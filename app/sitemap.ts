@@ -26,6 +26,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/careers', priority: 0.5, changeFrequency: 'weekly' as const },
     // Clutch keyword strategy pages (targeting generic "clutch" searches)
     { path: '/clutch-guide-canada', priority: 0.9, changeFrequency: 'weekly' as const },
+    // Carnex keyword strategy pages (EV-focused)
+    { path: '/electric-vehicles', priority: 0.95, changeFrequency: 'daily' as const },
+    { path: '/tesla', priority: 0.9, changeFrequency: 'daily' as const },
   ]
 
   // Legal pages - lower priority
