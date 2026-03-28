@@ -276,6 +276,42 @@ GET    /api/v1/returns/:id/refund    Get refund details
     └────────────────────────────┘
 ```
 
+### Auth Endpoints
+
+**1. Customer Login**
+```
+POST /api/v1/auth/login
+├── Validate credentials
+├── Check rate limits
+├── Generate JWT (access + refresh)
+└── Return tokens
+```
+
+**2. OAuth 2.0 Login (Google)**
+```
+GET /api/v1/auth/google
+├── Redirect to Google
+├── Receive callback
+├── Create/link account
+└── Generate JWT
+```
+
+**3. Token Refresh**
+```
+POST /api/v1/auth/refresh
+├── Validate refresh token
+├── Check revocation list
+└── Issue new access token
+```
+
+**4. Logout**
+```
+POST /api/v1/auth/logout
+├── Revoke refresh token
+├── Clear session
+└── Return success
+```
+
 ---
 
 ## 6. Implementation Roadmap
