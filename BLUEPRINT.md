@@ -511,6 +511,55 @@ NEXT_PUBLIC_SITE_URL=https://planetmotors.app
 2. **Upstash Redis** - Caching, Rate limiting
 3. **Stripe** - Payment processing
 4. **Vercel AI Gateway** - AI features (chatbot)
+5. **Sanity CMS** - Headless content management
+
+---
+
+## Sanity CMS Integration
+
+**Project ID**: `cgb59sfd`
+**Dataset**: `production`
+**Studio URL**: `studio.planetmotors.app`
+
+### Sanity Schemas
+
+| Schema | Fields | Purpose |
+|--------|--------|---------|
+| `siteSettings` | dealerName, phone, email, address, hours, financing, delivery, leadRouting | Global config |
+| `homepageHero` | headline, subheadline, ctaLabel, ctaUrl, backgroundImage, active | Hero banner |
+| `blogPost` | title, slug, publishedAt, excerpt, coverImage, body, seo | Blog articles |
+| `faqEntry` | question, answer, category, order | FAQ page |
+| `testimonial` | customerName, rating, review, vehiclePurchased, publishedAt, featured | Reviews |
+| `promotion` | title, message, ctaLabel, ctaUrl, active, startDate, endDate | Promo banners |
+| `protectionPlan` | name, description, price, features, coverage | Warranty plans |
+
+### Frontend Files
+
+```
+/lib/sanity/
+  client.ts       # Sanity client configuration
+  queries.ts      # GROQ queries for all content types
+  types.ts        # TypeScript interfaces
+  fetch.ts        # Data fetching helpers with ISR caching
+
+/app/api/sanity-webhook/route.ts  # Webhook for on-demand revalidation
+```
+
+### Environment Variables (Sanity)
+
+```bash
+NEXT_PUBLIC_SANITY_PROJECT_ID=cgb59sfd
+NEXT_PUBLIC_SANITY_DATASET=production
+SANITY_API_READ_TOKEN=sk_...
+SANITY_WEBHOOK_SECRET=...
+```
+
+### Webhook Setup
+
+Configure in Sanity Studio:
+- **URL**: `https://planetmotors.app/api/sanity-webhook`
+- **Secret**: Set as `SANITY_WEBHOOK_SECRET` env var
+- **Trigger on**: Create, Update, Delete
 
 ---
 
