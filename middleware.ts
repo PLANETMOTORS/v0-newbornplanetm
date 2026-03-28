@@ -1,9 +1,11 @@
-// Planet Motors Middleware v3.0
-// Simple pass-through - NO external dependencies
+// Planet Motors - Clean Middleware v4
+// No external dependencies - simple pass-through
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
+export function middleware(_request: NextRequest) {
+  // Simple pass-through middleware
+  // Auth will be added when Supabase integration is connected
   return NextResponse.next()
 }
 
