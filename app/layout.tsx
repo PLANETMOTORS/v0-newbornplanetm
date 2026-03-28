@@ -4,6 +4,8 @@ import { Analytics } from '@vercel/analytics/next'
 import { LiveChat } from '@/components/live-chat'
 import './globals.css'
 
+// Planet Motors - OMVIC Licensed Dealer #4048307
+
 const inter = Inter({ 
   subsets: ["latin"],
   variable: '--font-inter'
