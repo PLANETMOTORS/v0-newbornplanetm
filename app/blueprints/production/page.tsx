@@ -128,6 +128,46 @@ export default function ProductionBlueprintPage() {
 
             <Card>
               <CardHeader>
+                <CardTitle>Trade-Ins Table Schema</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-muted rounded-lg p-6 font-mono text-sm overflow-x-auto">
+                  <pre className="text-foreground">{`CREATE TABLE trade_ins (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  customer_id UUID NOT NULL REFERENCES customers(id),
+  
+  -- Vehicle Info
+  vin VARCHAR(17),
+  year INTEGER NOT NULL,
+  make VARCHAR(50) NOT NULL,
+  model VARCHAR(50) NOT NULL,
+  trim VARCHAR(100),
+  mileage INTEGER NOT NULL,
+  exterior_color VARCHAR(50),
+  interior_color VARCHAR(50),
+  
+  -- Condition
+  condition_rating VARCHAR(20),
+  accident_history BOOLEAN DEFAULT FALSE,
+  mechanical_issues TEXT,
+  cosmetic_issues TEXT,
+  
+  -- Valuation (Canadian Black Book)
+  kbb_value DECIMAL(12,2),
+  offer_amount DECIMAL(12,2),
+  final_value DECIMAL(12,2),
+  
+  status VARCHAR(30) DEFAULT 'pending',
+  
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`}</pre>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
                 <CardTitle>Order Table Schema</CardTitle>
               </CardHeader>
               <CardContent>
@@ -274,16 +314,17 @@ export default function ProductionBlueprintPage() {
                         <th className="text-left py-3 px-4 font-medium">Type</th>
                         <th className="text-left py-3 px-4 font-medium">Min Credit</th>
                         <th className="text-left py-3 px-4 font-medium">Max Term</th>
+                        <th className="text-left py-3 px-4 font-medium">Base Rate</th>
                       </tr>
                     </thead>
                     <tbody>
                       {[
-                        { lender: "TD Auto Finance", type: "Bank", minCredit: 600, maxTerm: "84 months" },
-                        { lender: "RBC", type: "Bank", minCredit: 620, maxTerm: "84 months" },
-                        { lender: "Scotiabank", type: "Bank", minCredit: 600, maxTerm: "84 months" },
-                        { lender: "BMO", type: "Bank", minCredit: 640, maxTerm: "72 months" },
-                        { lender: "CIBC", type: "Bank", minCredit: 620, maxTerm: "84 months" },
-                        { lender: "Desjardins", type: "Credit Union", minCredit: 580, maxTerm: "96 months" },
+                        { lender: "TD Auto Finance", type: "Bank", minCredit: 680, maxTerm: "84 months", baseRate: "4.79%" },
+                        { lender: "RBC", type: "Bank", minCredit: 700, maxTerm: "84 months", baseRate: "4.99%" },
+                        { lender: "Scotiabank", type: "Bank", minCredit: 680, maxTerm: "84 months", baseRate: "5.19%" },
+                        { lender: "BMO", type: "Bank", minCredit: 660, maxTerm: "72 months", baseRate: "5.49%" },
+                        { lender: "CIBC", type: "Bank", minCredit: 650, maxTerm: "84 months", baseRate: "5.79%" },
+                        { lender: "Desjardins", type: "Credit Union", minCredit: 600, maxTerm: "96 months", baseRate: "6.99%" },
                       ].map((row) => (
                         <tr key={row.lender} className="border-b hover:bg-muted/50">
                           <td className="py-3 px-4 font-medium">{row.lender}</td>
@@ -294,10 +335,89 @@ export default function ProductionBlueprintPage() {
                           </td>
                           <td className="py-3 px-4">{row.minCredit}</td>
                           <td className="py-3 px-4">{row.maxTerm}</td>
+                          <td className="py-3 px-4 font-mono text-primary">{row.baseRate}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Lenders Table Schema</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-muted rounded-lg p-6 font-mono text-sm overflow-x-auto">
+                  <pre className="text-foreground">{`CREATE TABLE lenders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  
+  name VARCHAR(100) NOT NULL,
+  code VARCHAR(20) UNIQUE NOT NULL,
+  lender_type VARCHAR(30) DEFAULT 'prime',
+  
+  -- Credit Requirements
+  min_credit_score INTEGER,
+  max_income DECIMAL(12,2),
+  min_income DECIMAL(12,2),
+  max_loan_amount DECIMAL(12,2),
+  min_loan_amount DECIMAL(12,2),
+  min_term_months INTEGER,
+  max_term_months INTEGER,
+  
+  -- Rates
+  base_rate DECIMAL(5,3),
+  rate_range_min DECIMAL(5,3),
+  rate_range_max DECIMAL(5,3),
+  
+  -- Integration
+  api_endpoint VARCHAR(500),
+  api_key_secret_name VARCHAR(100),
+  
+  is_active BOOLEAN DEFAULT TRUE,
+  priority INTEGER DEFAULT 0,
+  
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`}</pre>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Financing Offers Table (Multi-Lender)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-muted rounded-lg p-6 font-mono text-sm overflow-x-auto">
+                  <pre className="text-foreground">{`CREATE TABLE financing_offers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  application_id UUID NOT NULL REFERENCES financing_applications(id),
+  lender_id UUID NOT NULL REFERENCES lenders(id),
+  
+  status VARCHAR(30) DEFAULT 'pending',
+  offer_number VARCHAR(50),
+  
+  -- Terms
+  approved_amount DECIMAL(12,2),
+  interest_rate DECIMAL(5,3),
+  term_months INTEGER,
+  monthly_payment DECIMAL(12,2),
+  processing_fee DECIMAL(12,2),
+  total_cost DECIMAL(12,2),
+  
+  down_payment_required DECIMAL(12,2) DEFAULT 0,
+  conditions TEXT,
+  
+  is_selected BOOLEAN DEFAULT FALSE,
+  selected_at TIMESTAMP,
+  
+  received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  expires_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`}</pre>
                 </div>
               </CardContent>
             </Card>

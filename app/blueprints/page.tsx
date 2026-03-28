@@ -4,7 +4,7 @@ import { Footer } from "@/components/footer"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { FileText, Database, Server, Shield, Globe, Layers, Download, ExternalLink } from "lucide-react"
+import { FileText, Database, Server, Shield, Globe, Layers, Download, ExternalLink, DollarSign, CheckCircle2 } from "lucide-react"
 
 const blueprints = [
   {
@@ -42,11 +42,30 @@ const blueprints = [
 const quickStats = [
   { label: "Microservices", value: "14" },
   { label: "API Endpoints", value: "45+" },
-  { label: "Database Tables", value: "15" },
-  { label: "Provinces", value: "5" },
+  { label: "Database Tables", value: "13" },
+  { label: "Provinces", value: "10" },
   { label: "Lenders", value: "6" },
   { label: "Inspection Points", value: "210" },
 ]
+
+const costEstimation = {
+  aws: [
+    { service: "ECS Fargate", config: "14 services, auto-scaling", cost: "$3,000" },
+    { service: "RDS PostgreSQL", config: "db.r6g.large, Multi-AZ", cost: "$1,200" },
+    { service: "ElastiCache Redis", config: "cache.r6g.large", cost: "$400" },
+    { service: "OpenSearch", config: "3 nodes, m5.xlarge", cost: "$500" },
+    { service: "S3 + CloudFront", config: "5TB + 10TB transfer", cost: "$1,600" },
+    { service: "Data Transfer", config: "Inter-region, internet", cost: "$4,200" },
+  ],
+  thirdParty: [
+    { service: "Twilio", config: "SMS + Voice", cost: "$800" },
+    { service: "SendGrid", config: "Pro plan", cost: "$200" },
+    { service: "HubSpot", config: "Professional", cost: "$1,000" },
+    { service: "FullStory", config: "Business", cost: "$1,000" },
+    { service: "Optimizely", config: "Web experimentation", cost: "$2,000" },
+    { service: "CarFax + CBB", config: "API subscriptions", cost: "$1,000" },
+  ]
+}
 
 export default function BlueprintsPage() {
   return (
@@ -153,7 +172,7 @@ export default function BlueprintsPage() {
                                    ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    Application Load Balancers                        │
-└─────────────────────────────────────────────────────────────────────┘
+└─────────────��───────────────────────────────────────────────────────┘
                                    │
                                    ▼
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -346,6 +365,112 @@ export default function BlueprintsPage() {
                     <span>/api/v1/trade-in/valuation</span>
                   </div>
                 </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Cost Estimation */}
+        <Card className="mt-12 mb-12">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Cost Estimation (Monthly CAD)
+            </CardTitle>
+            <CardDescription>
+              Estimated monthly infrastructure and service costs
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-8">
+              <div>
+                <h4 className="font-medium mb-4 flex items-center gap-2">
+                  <Badge variant="outline">AWS Services</Badge>
+                  <span className="text-sm text-muted-foreground">$14,000/month</span>
+                </h4>
+                <div className="space-y-3">
+                  {costEstimation.aws.map((item) => (
+                    <div key={item.service} className="flex justify-between items-center text-sm border-b pb-2">
+                      <div>
+                        <p className="font-medium">{item.service}</p>
+                        <p className="text-muted-foreground text-xs">{item.config}</p>
+                      </div>
+                      <span className="font-mono">{item.cost}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium mb-4 flex items-center gap-2">
+                  <Badge variant="outline">Third-Party Services</Badge>
+                  <span className="text-sm text-muted-foreground">$10,000/month</span>
+                </h4>
+                <div className="space-y-3">
+                  {costEstimation.thirdParty.map((item) => (
+                    <div key={item.service} className="flex justify-between items-center text-sm border-b pb-2">
+                      <div>
+                        <p className="font-medium">{item.service}</p>
+                        <p className="text-muted-foreground text-xs">{item.config}</p>
+                      </div>
+                      <span className="font-mono">{item.cost}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="mt-6 p-4 bg-primary/5 rounded-lg">
+              <p className="text-lg font-bold text-center">
+                Total Estimated: <span className="text-primary">~$24,000 CAD/month</span>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Pre-Launch Checklist */}
+        <Card className="mb-12">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5" />
+              Pre-Launch Checklist
+            </CardTitle>
+            <CardDescription>
+              Technical review items for production launch
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div>
+                <h4 className="font-medium mb-3 text-sm uppercase tracking-wide text-muted-foreground">Infrastructure</h4>
+                <ul className="space-y-2 text-sm">
+                  {["VPC and subnets configured", "Security groups locked down", "ECS cluster running", "RDS Multi-AZ enabled", "ElastiCache cluster running", "SSL certificates installed"].map((item) => (
+                    <li key={item} className="flex items-center gap-2">
+                      <div className="h-4 w-4 border rounded flex items-center justify-center text-xs">[ ]</div>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-medium mb-3 text-sm uppercase tracking-wide text-muted-foreground">Integrations</h4>
+                <ul className="space-y-2 text-sm">
+                  {["Stripe webhooks configured", "CarFax API tested", "CBB API tested", "All 6 lender APIs tested", "Twilio verified", "SendGrid domain verified"].map((item) => (
+                    <li key={item} className="flex items-center gap-2">
+                      <div className="h-4 w-4 border rounded flex items-center justify-center text-xs">[ ]</div>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-medium mb-3 text-sm uppercase tracking-wide text-muted-foreground">Security & Testing</h4>
+                <ul className="space-y-2 text-sm">
+                  {["AWS Shield enabled", "WAF rules configured", "PCI-DSS compliance verified", "PIPEDA compliance verified", "Load testing complete", "Security audit passed"].map((item) => (
+                    <li key={item} className="flex items-center gap-2">
+                      <div className="h-4 w-4 border rounded flex items-center justify-center text-xs">[ ]</div>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </CardContent>
