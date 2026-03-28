@@ -1,15 +1,26 @@
-import 'server-only'
-
 import Stripe from 'stripe'
 
-// Only initialize Stripe if the secret key is available
-export const stripe = process.env.STRIPE_SECRET_KEY 
-  ? new Stripe(process.env.STRIPE_SECRET_KEY)
-  : null
+// Stripe client - only initialize on the server when secret key is available
+// This file should only be imported in server-side code (API routes, Server Components, Server Actions)
+let stripeInstance: Stripe | null = null
+
+function getStripeInstance(): Stripe | null {
+  if (typeof window !== 'undefined') {
+    // Never run on client
+    return null
+  }
+  if (!stripeInstance && process.env.STRIPE_SECRET_KEY) {
+    stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY)
+  }
+  return stripeInstance
+}
+
+export const stripe = getStripeInstance()
 
 export function getStripe(): Stripe {
-  if (!stripe) {
+  const instance = getStripeInstance()
+  if (!instance) {
     throw new Error('Stripe is not configured. Please add STRIPE_SECRET_KEY environment variable.')
   }
-  return stripe
+  return instance
 }
