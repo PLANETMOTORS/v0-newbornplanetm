@@ -309,7 +309,7 @@ export default function VehicleDetailPage() {
                       <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
                       <p className="text-sm">
                         <span className="font-medium">Verified by certified EV technicians.</span>{" "}
-                        Battery health tested using manufacturer diagnostic tools - a feature Clutch and Carvana don&apos;t offer.
+                        Battery health tested using manufacturer diagnostic tools - an exclusive feature competitors don&apos;t offer.
                       </p>
                     </div>
                   </CardContent>
@@ -629,7 +629,7 @@ export default function VehicleDetailPage() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold mb-2">Compare Before You Buy</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    See how Planet Motors beats Clutch and Carvana on price, inspection, and service.
+                    See how Planet Motors beats the competition on price, inspection, and service.
                   </p>
                   <Button variant="outline" className="w-full" asChild>
                     <Link href="/compare">
