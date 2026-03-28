@@ -6,6 +6,7 @@ import { CompareProvider } from '@/lib/compare-context'
 import { FavoritesProvider } from '@/lib/favorites-context'
 import { AuthProvider } from '@/contexts/auth-context'
 import { CompareBar } from '@/components/compare-bar'
+import { OrganizationJsonLd, LocalBusinessJsonLd, WebsiteSearchJsonLd } from '@/components/seo/json-ld'
 import './globals.css'
 
 // Planet Motors - OMVIC Licensed Dealer
@@ -88,6 +89,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <OrganizationJsonLd />
+        <LocalBusinessJsonLd />
+        <WebsiteSearchJsonLd />
+      </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
         <AuthProvider>
           <FavoritesProvider>

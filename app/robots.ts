@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next'
 
 export default function robots(): MetadataRoute.Robots {
+  const baseUrl = 'https://planetmotors.ca'
+  
   return {
     rules: [
       {
@@ -9,15 +11,53 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           '/api/',
           '/account/',
+          '/checkout/',
           '/favorites/',
+          '/admin/',
           '/_next/',
+          '/auth/callback',
+          '/auth/error',
+          '/auth/verify-email',
+          '/*.json$',
+          '/private/',
         ],
       },
       {
         userAgent: 'Googlebot',
         allow: '/',
+        disallow: [
+          '/api/',
+          '/account/',
+          '/checkout/',
+          '/admin/',
+        ],
+      },
+      {
+        userAgent: 'Googlebot-Image',
+        allow: '/images/',
+        allow: '/vehicles/',
+      },
+      {
+        userAgent: 'Bingbot',
+        allow: '/',
+        disallow: [
+          '/api/',
+          '/account/',
+          '/checkout/',
+          '/admin/',
+        ],
+      },
+      // Block aggressive crawlers
+      {
+        userAgent: 'AhrefsBot',
+        disallow: '/',
+      },
+      {
+        userAgent: 'SemrushBot',
+        disallow: '/',
       },
     ],
-    sitemap: 'https://planetmotors.ca/sitemap.xml',
+    sitemap: `${baseUrl}/sitemap.xml`,
+    host: baseUrl,
   }
 }
