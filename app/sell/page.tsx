@@ -17,7 +17,7 @@ import {
   Car, CheckCircle, ArrowRight, DollarSign, Clock, Shield, Camera, Upload, Zap, 
   TrendingUp, Star, Truck, Phone, ChevronRight, Sparkles, Target, Award, MapPin, 
   Calendar, Users, ThumbsUp, Banknote, FileCheck, HandCoins, Building2, CreditCard,
-  CircleDollarSign, ArrowUpRight, Timer, BadgeCheck, Gift, Heart, Percent, Lock
+  CircleDollarSign, ArrowUpRight, Timer, BadgeCheck, Gift, Heart, Percent, Lock, Search
 } from "lucide-react"
 
 // Vehicle makes with models
@@ -99,9 +99,16 @@ const recentSales = [
 
 export default function SellYourCarPage() {
   const [step, setStep] = useState(1)
+  const [lookupMethod, setLookupMethod] = useState<"plate" | "vin" | "manual">("plate")
+  const [province, setProvince] = useState("")
+  const [plateNumber, setPlateNumber] = useState("")
+  const [vinNumber, setVinNumber] = useState("")
+  const [isLookingUp, setIsLookingUp] = useState(false)
+  const [vehicleFound, setVehicleFound] = useState(false)
   const [selectedYear, setSelectedYear] = useState("")
   const [selectedMake, setSelectedMake] = useState("")
   const [selectedModel, setSelectedModel] = useState("")
+  const [selectedTrim, setSelectedTrim] = useState("")
   const [mileage, setMileage] = useState("")
   const [condition, setCondition] = useState("good")
   const [isCalculating, setIsCalculating] = useState(false)
@@ -131,6 +138,34 @@ export default function SellYourCarPage() {
     }, 8000)
     return () => clearInterval(interval)
   }, [])
+
+  const handlePlateLookup = async () => {
+    if (!province || !plateNumber) return
+    setIsLookingUp(true)
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    setVehicleFound(true)
+    setSelectedYear("2021")
+    setSelectedMake("Honda")
+    setSelectedModel("Accord")
+    setSelectedTrim("Sport 2.0T")
+    setMileage("45000")
+    setIsLookingUp(false)
+    setStep(2)
+  }
+
+  const handleVinLookup = async () => {
+    if (!vinNumber || vinNumber.length < 17) return
+    setIsLookingUp(true)
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    setVehicleFound(true)
+    setSelectedYear("2022")
+    setSelectedMake("Tesla")
+    setSelectedModel("Model 3")
+    setSelectedTrim("Long Range")
+    setMileage("32000")
+    setIsLookingUp(false)
+    setStep(2)
+  }
 
   const calculateOffer = async () => {
     setIsCalculating(true)
@@ -284,69 +319,165 @@ export default function SellYourCarPage() {
                     <CardContent className="p-6">
                       {step === 1 && (
                         <div className="space-y-5">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label className="text-sm font-medium mb-2 block">Year</Label>
-                              <Select value={selectedYear} onValueChange={setSelectedYear}>
-                                <SelectTrigger className="h-12">
-                                  <SelectValue placeholder="Select Year" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {Array.from({ length: 25 }, (_, i) => 2025 - i).map((year) => (
-                                    <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <Label className="text-sm font-medium mb-2 block">Make</Label>
-                              <Select value={selectedMake} onValueChange={(v) => { setSelectedMake(v); setSelectedModel(""); }}>
-                                <SelectTrigger className="h-12">
-                                  <SelectValue placeholder="Select Make" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {Object.keys(vehicleMakes).map((make) => (
-                                    <SelectItem key={make} value={make}>{make}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label className="text-sm font-medium mb-2 block">Model</Label>
-                              <Select value={selectedModel} onValueChange={setSelectedModel} disabled={!selectedMake}>
-                                <SelectTrigger className="h-12">
-                                  <SelectValue placeholder="Select Model" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {selectedMake && vehicleMakes[selectedMake as keyof typeof vehicleMakes]?.map((model) => (
-                                    <SelectItem key={model} value={model}>{model}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <Label className="text-sm font-medium mb-2 block">Mileage (km)</Label>
+                          <Tabs value={lookupMethod} onValueChange={(v) => setLookupMethod(v as any)}>
+                            <TabsList className="grid w-full grid-cols-3 mb-4">
+                              <TabsTrigger value="plate" className="text-xs sm:text-sm">License Plate</TabsTrigger>
+                              <TabsTrigger value="vin" className="text-xs sm:text-sm">VIN Number</TabsTrigger>
+                              <TabsTrigger value="manual" className="text-xs sm:text-sm">Manual Entry</TabsTrigger>
+                            </TabsList>
+                            
+                            <TabsContent value="plate" className="space-y-4">
+                              <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-sm">
+                                <p className="text-primary font-medium">Fastest way to get your offer</p>
+                                <p className="text-muted-foreground text-xs mt-1">We&apos;ll automatically retrieve your vehicle details</p>
+                              </div>
+                              <div className="grid grid-cols-3 gap-3">
+                                <Select value={province} onValueChange={setProvince}>
+                                  <SelectTrigger className="h-12">
+                                    <SelectValue placeholder="Province" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="ON">Ontario</SelectItem>
+                                    <SelectItem value="BC">British Columbia</SelectItem>
+                                    <SelectItem value="AB">Alberta</SelectItem>
+                                    <SelectItem value="QC">Quebec</SelectItem>
+                                    <SelectItem value="MB">Manitoba</SelectItem>
+                                    <SelectItem value="SK">Saskatchewan</SelectItem>
+                                    <SelectItem value="NS">Nova Scotia</SelectItem>
+                                    <SelectItem value="NB">New Brunswick</SelectItem>
+                                    <SelectItem value="NL">Newfoundland</SelectItem>
+                                    <SelectItem value="PE">PEI</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <Input 
+                                  placeholder="License Plate" 
+                                  className="col-span-2 h-12 uppercase text-lg tracking-wider font-mono"
+                                  value={plateNumber}
+                                  onChange={(e) => setPlateNumber(e.target.value.toUpperCase())}
+                                  maxLength={8}
+                                />
+                              </div>
+                              <Button 
+                                className="w-full h-14 text-lg font-semibold"
+                                size="lg"
+                                onClick={handlePlateLookup}
+                                disabled={!province || !plateNumber || isLookingUp}
+                              >
+                                {isLookingUp ? (
+                                  <>
+                                    <span className="animate-spin mr-2">&#9696;</span>
+                                    Looking up your vehicle...
+                                  </>
+                                ) : (
+                                  <>
+                                    Look Up My Vehicle
+                                    <ArrowRight className="ml-2 h-5 w-5" />
+                                  </>
+                                )}
+                              </Button>
+                            </TabsContent>
+                            
+                            <TabsContent value="vin" className="space-y-4">
+                              <div className="bg-muted/50 rounded-lg p-3 text-sm">
+                                <p className="font-medium">Where to find your VIN</p>
+                                <p className="text-muted-foreground text-xs mt-1">Check your dashboard (driver side), door jamb, or registration documents</p>
+                              </div>
                               <Input 
-                                placeholder="e.g. 45,000" 
-                                className="h-12"
-                                value={mileage}
-                                onChange={(e) => setMileage(e.target.value)}
+                                placeholder="Enter 17-character VIN" 
+                                className="h-12 uppercase text-lg tracking-wider font-mono"
+                                value={vinNumber}
+                                onChange={(e) => setVinNumber(e.target.value.toUpperCase())}
+                                maxLength={17}
                               />
-                            </div>
-                          </div>
-                          
-                          <Button 
-                            className="w-full h-14 text-lg font-semibold"
-                            size="lg"
-                            onClick={() => setStep(2)}
-                            disabled={!selectedYear || !selectedMake || !selectedModel || !mileage}
-                          >
-                            Continue
-                            <ArrowRight className="ml-2 h-5 w-5" />
-                          </Button>
+                              <div className="text-xs text-muted-foreground text-center">
+                                {vinNumber.length}/17 characters
+                              </div>
+                              <Button 
+                                className="w-full h-14 text-lg font-semibold"
+                                size="lg"
+                                onClick={handleVinLookup}
+                                disabled={vinNumber.length < 17 || isLookingUp}
+                              >
+                                {isLookingUp ? (
+                                  <>
+                                    <span className="animate-spin mr-2">&#9696;</span>
+                                    Decoding VIN...
+                                  </>
+                                ) : (
+                                  <>
+                                    Decode VIN
+                                    <ArrowRight className="ml-2 h-5 w-5" />
+                                  </>
+                                )}
+                              </Button>
+                            </TabsContent>
+                            
+                            <TabsContent value="manual" className="space-y-4">
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <Label className="text-sm font-medium mb-2 block">Year</Label>
+                                  <Select value={selectedYear} onValueChange={setSelectedYear}>
+                                    <SelectTrigger className="h-12">
+                                      <SelectValue placeholder="Select Year" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {Array.from({ length: 25 }, (_, i) => 2025 - i).map((year) => (
+                                        <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <Label className="text-sm font-medium mb-2 block">Make</Label>
+                                  <Select value={selectedMake} onValueChange={(v) => { setSelectedMake(v); setSelectedModel(""); }}>
+                                    <SelectTrigger className="h-12">
+                                      <SelectValue placeholder="Select Make" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {Object.keys(vehicleMakes).map((make) => (
+                                        <SelectItem key={make} value={make}>{make}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                              
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <Label className="text-sm font-medium mb-2 block">Model</Label>
+                                  <Select value={selectedModel} onValueChange={setSelectedModel} disabled={!selectedMake}>
+                                    <SelectTrigger className="h-12">
+                                      <SelectValue placeholder="Select Model" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {selectedMake && vehicleMakes[selectedMake as keyof typeof vehicleMakes]?.map((model) => (
+                                        <SelectItem key={model} value={model}>{model}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <Label className="text-sm font-medium mb-2 block">Mileage (km)</Label>
+                                  <Input 
+                                    placeholder="e.g. 45,000" 
+                                    className="h-12"
+                                    value={mileage}
+                                    onChange={(e) => setMileage(e.target.value)}
+                                  />
+                                </div>
+                              </div>
+                              
+                              <Button 
+                                className="w-full h-14 text-lg font-semibold"
+                                size="lg"
+                                onClick={() => setStep(2)}
+                                disabled={!selectedYear || !selectedMake || !selectedModel || !mileage}
+                              >
+                                Continue
+                                <ArrowRight className="ml-2 h-5 w-5" />
+                              </Button>
+                            </TabsContent>
+                          </Tabs>
                         </div>
                       )}
                       
