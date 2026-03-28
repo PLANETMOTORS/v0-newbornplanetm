@@ -4,7 +4,21 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    unoptimized: true,
+    unoptimized: false,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'hebbkx1anhila5yf.public.blob.vercel-storage.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.planetmotors.ca',
+      },
+      {
+        protocol: 'https',
+        hostname: 'planetmotors.imgix.net',
+      },
+    ],
   },
 }
 
