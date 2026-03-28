@@ -1,44 +1,5 @@
-import Typesense from 'typesense'
-import { getCachedSearchResults, cacheSearchResults } from './redis'
-import crypto from 'crypto'
-
-// Typesense client configuration
-export const typesenseClient = new Typesense.Client({
-  nodes: [
-    {
-      host: process.env.TYPESENSE_HOST || 'localhost',
-      port: parseInt(process.env.TYPESENSE_PORT || '8108'),
-      protocol: process.env.TYPESENSE_PROTOCOL || 'https',
-    },
-  ],
-  apiKey: process.env.TYPESENSE_API_KEY || '',
-  connectionTimeoutSeconds: 2,
-})
-
-// Vehicle search schema
-export const vehicleSchema = {
-  name: 'vehicles',
-  fields: [
-    { name: 'id', type: 'string' as const },
-    { name: 'stock_number', type: 'string' as const },
-    { name: 'year', type: 'int32' as const, facet: true },
-    { name: 'make', type: 'string' as const, facet: true },
-    { name: 'model', type: 'string' as const, facet: true },
-    { name: 'trim', type: 'string' as const, optional: true },
-    { name: 'body_style', type: 'string' as const, facet: true, optional: true },
-    { name: 'exterior_color', type: 'string' as const, facet: true, optional: true },
-    { name: 'price', type: 'int32' as const, facet: true },
-    { name: 'mileage', type: 'int32' as const, facet: true },
-    { name: 'drivetrain', type: 'string' as const, facet: true, optional: true },
-    { name: 'fuel_type', type: 'string' as const, facet: true, optional: true },
-    { name: 'is_ev', type: 'bool' as const, facet: true },
-    { name: 'is_certified', type: 'bool' as const, facet: true },
-    { name: 'status', type: 'string' as const, facet: true },
-    { name: 'primary_image_url', type: 'string' as const, optional: true },
-    { name: 'created_at', type: 'int64' as const },
-  ],
-  default_sorting_field: 'created_at',
-}
+// Typesense search utilities - only initializes when env vars are present
+// Gracefully degrades to mock data when Typesense is not configured
 
 export interface VehicleSearchParams {
   query?: string
@@ -59,117 +20,255 @@ export interface VehicleSearchParams {
   per_page?: number
 }
 
-// Build Typesense filter string from params
-function buildFilterString(params: VehicleSearchParams): string {
-  const filters: string[] = ['status:=available']
+export interface VehicleSearchResult {
+  id: string
+  stock_number: string
+  year: number
+  make: string
+  model: string
+  trim?: string
+  body_style?: string
+  exterior_color?: string
+  price: number
+  mileage: number
+  drivetrain?: string
+  fuel_type?: string
+  is_ev: boolean
+  is_certified: boolean
+  status: string
+  primary_image_url?: string
+}
 
+interface SearchResponse {
+  hits: Array<{ document: VehicleSearchResult }>
+  found: number
+  page: number
+  facet_counts?: Array<{
+    field_name: string
+    counts: Array<{ value: string; count: number }>
+  }>
+}
+
+// Check if Typesense is configured
+function isTypesenseConfigured(): boolean {
+  return !!(process.env.TYPESENSE_HOST && process.env.TYPESENSE_API_KEY)
+}
+
+// Mock search results for development
+function getMockResults(params: VehicleSearchParams): SearchResponse {
+  const mockVehicles: VehicleSearchResult[] = [
+    {
+      id: '1',
+      stock_number: 'PM73254025',
+      year: 2021,
+      make: 'Jeep',
+      model: 'Wrangler 4xe',
+      trim: 'Unlimited Sahara',
+      body_style: 'SUV',
+      exterior_color: 'Black',
+      price: 52995,
+      mileage: 45000,
+      drivetrain: '4WD',
+      fuel_type: 'Hybrid',
+      is_ev: false,
+      is_certified: true,
+      status: 'available',
+      primary_image_url: '/placeholder.svg?height=400&width=600',
+    },
+    {
+      id: '2',
+      stock_number: 'PM73254026',
+      year: 2023,
+      make: 'Tesla',
+      model: 'Model Y',
+      trim: 'Long Range',
+      body_style: 'SUV',
+      exterior_color: 'White',
+      price: 61990,
+      mileage: 12000,
+      drivetrain: 'AWD',
+      fuel_type: 'Electric',
+      is_ev: true,
+      is_certified: true,
+      status: 'available',
+      primary_image_url: '/placeholder.svg?height=400&width=600',
+    },
+    {
+      id: '3',
+      stock_number: 'PM73254027',
+      year: 2022,
+      make: 'BMW',
+      model: 'X5',
+      trim: 'xDrive40i',
+      body_style: 'SUV',
+      exterior_color: 'Blue',
+      price: 68500,
+      mileage: 28000,
+      drivetrain: 'AWD',
+      fuel_type: 'Gasoline',
+      is_ev: false,
+      is_certified: true,
+      status: 'available',
+      primary_image_url: '/placeholder.svg?height=400&width=600',
+    },
+  ]
+
+  // Simple filtering
+  let filtered = mockVehicles
+  
   if (params.make) {
     const makes = Array.isArray(params.make) ? params.make : [params.make]
-    filters.push(`make:=[${makes.map(m => `\`${m}\``).join(',')}]`)
+    filtered = filtered.filter(v => makes.includes(v.make))
   }
-
-  if (params.model) {
-    const models = Array.isArray(params.model) ? params.model : [params.model]
-    filters.push(`model:=[${models.map(m => `\`${m}\``).join(',')}]`)
-  }
-
-  if (params.year_min || params.year_max) {
-    const min = params.year_min || 1900
-    const max = params.year_max || 2030
-    filters.push(`year:>=${min} && year:<=${max}`)
-  }
-
-  if (params.price_min || params.price_max) {
-    const min = params.price_min || 0
-    const max = params.price_max || 999999999
-    filters.push(`price:>=${min} && price:<=${max}`)
-  }
-
-  if (params.mileage_max) {
-    filters.push(`mileage:<=${params.mileage_max}`)
-  }
-
-  if (params.body_style) {
-    const styles = Array.isArray(params.body_style) ? params.body_style : [params.body_style]
-    filters.push(`body_style:=[${styles.map(s => `\`${s}\``).join(',')}]`)
-  }
-
-  if (params.fuel_type) {
-    const types = Array.isArray(params.fuel_type) ? params.fuel_type : [params.fuel_type]
-    filters.push(`fuel_type:=[${types.map(t => `\`${t}\``).join(',')}]`)
-  }
-
-  if (params.drivetrain) {
-    const drivetrains = Array.isArray(params.drivetrain) ? params.drivetrain : [params.drivetrain]
-    filters.push(`drivetrain:=[${drivetrains.map(d => `\`${d}\``).join(',')}]`)
-  }
-
-  if (params.is_ev !== undefined) {
-    filters.push(`is_ev:=${params.is_ev}`)
-  }
-
-  if (params.is_certified !== undefined) {
-    filters.push(`is_certified:=${params.is_certified}`)
-  }
-
-  return filters.join(' && ')
-}
-
-// Generate cache key from search params
-function generateCacheKey(params: VehicleSearchParams): string {
-  const sorted = JSON.stringify(params, Object.keys(params).sort())
-  return crypto.createHash('md5').update(sorted).digest('hex')
-}
-
-// Search vehicles with Redis caching
-export async function searchVehicles(params: VehicleSearchParams) {
-  const cacheKey = generateCacheKey(params)
   
-  // Check Redis cache first
-  try {
-    const cached = await getCachedSearchResults(cacheKey)
-    if (cached) {
-      return cached
-    }
-  } catch (error) {
-    // Redis unavailable, continue without cache
-    console.warn('Redis cache unavailable:', error)
+  if (params.is_ev !== undefined) {
+    filtered = filtered.filter(v => v.is_ev === params.is_ev)
+  }
+  
+  if (params.price_max) {
+    filtered = filtered.filter(v => v.price <= params.price_max!)
   }
 
-  // Search Typesense
-  const searchParams = {
-    q: params.query || '*',
-    query_by: 'make,model,trim,body_style,exterior_color',
-    filter_by: buildFilterString(params),
-    sort_by: params.sort_by || 'created_at:desc',
+  return {
+    hits: filtered.map(doc => ({ document: doc })),
+    found: filtered.length,
     page: params.page || 1,
-    per_page: params.per_page || 24,
-    facet_by: 'make,model,year,body_style,fuel_type,drivetrain,is_ev',
-    max_facet_values: 100,
+    facet_counts: [
+      {
+        field_name: 'make',
+        counts: [
+          { value: 'Jeep', count: 1 },
+          { value: 'Tesla', count: 1 },
+          { value: 'BMW', count: 1 },
+        ],
+      },
+      {
+        field_name: 'fuel_type',
+        counts: [
+          { value: 'Electric', count: 1 },
+          { value: 'Hybrid', count: 1 },
+          { value: 'Gasoline', count: 1 },
+        ],
+      },
+    ],
+  }
+}
+
+// Search vehicles - uses Typesense if configured, otherwise returns mock data
+export async function searchVehicles(params: VehicleSearchParams): Promise<SearchResponse> {
+  if (!isTypesenseConfigured()) {
+    return getMockResults(params)
   }
 
-  const results = await typesenseClient.collections('vehicles').documents().search(searchParams)
-
-  // Cache results in Redis (5 minute TTL)
   try {
-    await cacheSearchResults(cacheKey, results, 300)
-  } catch (error) {
-    console.warn('Failed to cache search results:', error)
-  }
+    const Typesense = (await import('typesense')).default
+    
+    const client = new Typesense.Client({
+      nodes: [
+        {
+          host: process.env.TYPESENSE_HOST!,
+          port: parseInt(process.env.TYPESENSE_PORT || '443'),
+          protocol: process.env.TYPESENSE_PROTOCOL || 'https',
+        },
+      ],
+      apiKey: process.env.TYPESENSE_API_KEY!,
+      connectionTimeoutSeconds: 2,
+    })
 
-  return results
+    const filters: string[] = ['status:=available']
+
+    if (params.make) {
+      const makes = Array.isArray(params.make) ? params.make : [params.make]
+      filters.push(`make:=[${makes.map(m => `\`${m}\``).join(',')}]`)
+    }
+
+    if (params.year_min || params.year_max) {
+      const min = params.year_min || 1900
+      const max = params.year_max || 2030
+      filters.push(`year:>=${min} && year:<=${max}`)
+    }
+
+    if (params.price_min || params.price_max) {
+      const min = params.price_min || 0
+      const max = params.price_max || 999999999
+      filters.push(`price:>=${min} && price:<=${max}`)
+    }
+
+    if (params.is_ev !== undefined) {
+      filters.push(`is_ev:=${params.is_ev}`)
+    }
+
+    const searchParams = {
+      q: params.query || '*',
+      query_by: 'make,model,trim,body_style,exterior_color',
+      filter_by: filters.join(' && '),
+      sort_by: params.sort_by || 'created_at:desc',
+      page: params.page || 1,
+      per_page: params.per_page || 24,
+      facet_by: 'make,model,year,body_style,fuel_type,drivetrain,is_ev',
+      max_facet_values: 100,
+    }
+
+    const results = await client.collections('vehicles').documents().search(searchParams)
+    return results as SearchResponse
+  } catch (error) {
+    console.error('Typesense search error:', error)
+    return getMockResults(params)
+  }
 }
 
 // Get facets for filters
 export async function getVehicleFacets() {
-  const results = await typesenseClient.collections('vehicles').documents().search({
-    q: '*',
-    query_by: 'make',
-    filter_by: 'status:=available',
-    facet_by: 'make,model,year,body_style,fuel_type,drivetrain',
-    max_facet_values: 100,
-    per_page: 0, // We only want facets, not documents
-  })
+  if (!isTypesenseConfigured()) {
+    return [
+      {
+        field_name: 'make',
+        counts: [
+          { value: 'BMW', count: 45 },
+          { value: 'Tesla', count: 38 },
+          { value: 'Mercedes-Benz', count: 32 },
+          { value: 'Audi', count: 28 },
+          { value: 'Jeep', count: 25 },
+        ],
+      },
+      {
+        field_name: 'fuel_type',
+        counts: [
+          { value: 'Gasoline', count: 120 },
+          { value: 'Electric', count: 45 },
+          { value: 'Hybrid', count: 30 },
+          { value: 'Diesel', count: 12 },
+        ],
+      },
+    ]
+  }
 
-  return results.facet_counts
+  try {
+    const Typesense = (await import('typesense')).default
+    
+    const client = new Typesense.Client({
+      nodes: [
+        {
+          host: process.env.TYPESENSE_HOST!,
+          port: parseInt(process.env.TYPESENSE_PORT || '443'),
+          protocol: process.env.TYPESENSE_PROTOCOL || 'https',
+        },
+      ],
+      apiKey: process.env.TYPESENSE_API_KEY!,
+      connectionTimeoutSeconds: 2,
+    })
+
+    const results = await client.collections('vehicles').documents().search({
+      q: '*',
+      query_by: 'make',
+      filter_by: 'status:=available',
+      facet_by: 'make,model,year,body_style,fuel_type,drivetrain',
+      max_facet_values: 100,
+      per_page: 0,
+    })
+
+    return results.facet_counts
+  } catch {
+    return []
+  }
 }

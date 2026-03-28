@@ -5,7 +5,7 @@ const nextConfig = {
     ppr: true, // Partial Prerendering
     reactCompiler: true, // React 19 Compiler
   },
-  // Force clean build - cache version 4
+  // Force clean build - cache version 5 - all lib files use dynamic imports
   cleanDistDir: true,
   typescript: {
     ignoreBuildErrors: true,
