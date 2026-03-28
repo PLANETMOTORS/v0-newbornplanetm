@@ -8,7 +8,7 @@ export function OrganizationJsonLd() {
     "@id": "https://planetmotors.ca/#organization",
     "name": "Planet Motors",
     "legalName": "Planet Motors Inc.",
-    "url": "https://planetmotors.ca",
+    "url": "https://www.planetmotors.ca",
     "logo": "https://planetmotors.ca/images/planet-motors-logo.png",
     "image": "https://planetmotors.ca/images/dealership.jpg",
     "description": "Canada's trusted destination for premium pre-owned vehicles with nationwide delivery. 210-point inspection, 10-day money-back guarantee, and competitive multi-lender financing.",
@@ -153,7 +153,7 @@ export function VehicleJsonLd({ vehicle }: VehicleJsonLdProps) {
       "seller": {
         "@type": "AutoDealer",
         "name": "Planet Motors",
-        "url": "https://planetmotors.ca"
+        "url": "https://www.planetmotors.ca"
       },
       "warranty": {
         "@type": "WarrantyPromise",
@@ -283,8 +283,8 @@ export function LocalBusinessJsonLd() {
     "@type": "LocalBusiness",
     "name": "Planet Motors",
     "image": "https://planetmotors.ca/images/planet-motors-logo.png",
-    "@id": "https://planetmotors.ca",
-    "url": "https://planetmotors.ca",
+    "@id": "https://www.planetmotors.ca",
+    "url": "https://www.planetmotors.ca",
     "telephone": "+1-866-797-3332",
     "address": {
       "@type": "PostalAddress",
@@ -316,7 +316,7 @@ export function WebsiteSearchJsonLd() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "Planet Motors",
-    "url": "https://planetmotors.ca",
+    "url": "https://www.planetmotors.ca",
     "potentialAction": {
       "@type": "SearchAction",
       "target": {
