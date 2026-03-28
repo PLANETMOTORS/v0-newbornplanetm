@@ -23,14 +23,13 @@ export function PlanetMotorsLogo({
   const { width, height } = sizes[size]
 
   return (
-    <div className={`flex items-center ${className}`}>
+    <div className={`flex items-center ${className}`} style={{ position: 'relative', width, height }}>
       <Image
         src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Planet-Motors---Logo-Final%20Transp%20Back-ACl8Kr3pqlFeUI0w4UbtxQB8tQCt9R.jpeg"
         alt="Planet Motors - Fairness Integrity"
-        width={width}
-        height={height}
+        fill
         className="object-contain"
-        style={{ width: 'auto', height: 'auto' }}
+        sizes={`${width}px`}
         priority
       />
     </div>
