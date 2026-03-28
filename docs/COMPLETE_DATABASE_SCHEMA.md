@@ -288,39 +288,40 @@ INSERT INTO lenders (name, code, lender_type, min_credit_score, base_rate, prior
 
 ```sql
 CREATE TABLE financing_offers (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  application_id UUID NOT NULL REFERENCES financing_applications(id),
-  lender_id UUID NOT NULL REFERENCES lenders(id),
-  
-  -- Offer Details
-  status VARCHAR(30) DEFAULT 'pending',
-  offer_number VARCHAR(50),
-  
-  -- Terms
-  approved_amount DECIMAL(12,2),
-  interest_rate DECIMAL(5,3),
-  term_months INTEGER,
-  monthly_payment DECIMAL(12,2),
-  processing_fee DECIMAL(12,2),
-  total_cost DECIMAL(12,2),
-  
-  -- Conditions
-  down_payment_required DECIMAL(12,2) DEFAULT 0,
-  conditions TEXT,
-  
-  -- Selection
-  is_selected BOOLEAN DEFAULT FALSE,
-  selected_at TIMESTAMP,
-  
-  -- Timestamps
-  received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  expires_at TIMESTAMP,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    application_id UUID NOT NULL REFERENCES financing_applications(id),
+    lender_id UUID NOT NULL REFERENCES lenders(id),
+    
+    -- Offer Details
+    status VARCHAR(20) DEFAULT 'pending',
+    offer_number VARCHAR(50),
+    
+    -- Terms
+    approved_amount DECIMAL(12,2),
+    interest_rate DECIMAL(5,3),
+    term_months INTEGER,
+    monthly_payment DECIMAL(12,2),
+    total_interest DECIMAL(12,2),
+    total_cost DECIMAL(12,2),
+    
+    -- Conditions
+    down_payment_required DECIMAL(12,2) DEFAULT 0,
+    conditions TEXT,
+    
+    -- Selection
+    is_selected BOOLEAN DEFAULT FALSE,
+    selected_at TIMESTAMP,
+    
+    -- Timestamps
+    received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_financing_offers_application ON financing_offers(application_id);
-CREATE INDEX idx_financing_offers_lender ON financing_offers(lender_id);
+CREATE INDEX idx_offers_application ON financing_offers(application_id);
+CREATE INDEX idx_offers_lender ON financing_offers(lender_id);
+CREATE INDEX idx_offers_selected ON financing_offers(is_selected);
 ```
 
 ## 1.9 Trade-Ins Table
