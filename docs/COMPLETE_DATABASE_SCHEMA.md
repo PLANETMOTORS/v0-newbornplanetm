@@ -543,41 +543,39 @@ CREATE INDEX idx_payments_customer ON payments(customer_id);
 CREATE INDEX idx_payments_stripe ON payments(stripe_payment_intent_id);
 ```
 
-## 1.14 Tax Rates Table
+## 1.14 Tax Rates Table (Canadian Tax Configuration)
 
 ```sql
 CREATE TABLE tax_rates (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  province VARCHAR(2) NOT NULL,
-  province_name VARCHAR(50) NOT NULL,
-  
-  -- Tax Types
-  gst_rate DECIMAL(5,4) DEFAULT 0.05,
-  pst_rate DECIMAL(5,4) DEFAULT 0,
-  hst_rate DECIMAL(5,4) DEFAULT 0,
-  qst_rate DECIMAL(5,4) DEFAULT 0,
-  
-  -- Effective Date
-  effective_date DATE DEFAULT CURRENT_DATE,
-  
-  is_active BOOLEAN DEFAULT TRUE
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    province VARCHAR(2) UNIQUE NOT NULL,
+    province_name VARCHAR(50) NOT NULL,
+    gst_rate DECIMAL(5,3) DEFAULT 0,
+    pst_rate DECIMAL(5,3) DEFAULT 0,
+    hst_rate DECIMAL(5,3) DEFAULT 0,
+    qst_rate DECIMAL(5,3) DEFAULT 0,
+    total_rate DECIMAL(5,3) NOT NULL,
+    effective_date DATE NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Seed Canadian Tax Rates
-INSERT INTO tax_rates (province, province_name, gst_rate, pst_rate, hst_rate) VALUES
-  ('ON', 'Ontario', 0, 0, 0.13),
-  ('BC', 'British Columbia', 0.05, 0.07, 0),
-  ('AB', 'Alberta', 0.05, 0, 0),
-  ('SK', 'Saskatchewan', 0.05, 0.06, 0),
-  ('MB', 'Manitoba', 0.05, 0.07, 0),
-  ('QC', 'Quebec', 0.05, 0, 0),
-  ('NB', 'New Brunswick', 0, 0, 0.15),
-  ('NS', 'Nova Scotia', 0, 0, 0.15),
-  ('PE', 'Prince Edward Island', 0, 0, 0.15),
-  ('NL', 'Newfoundland and Labrador', 0, 0, 0.15);
-
--- Quebec uses QST instead of PST
-UPDATE tax_rates SET qst_rate = 0.09975 WHERE province = 'QC';
+-- Insert Canadian tax rates (all 13 provinces and territories)
+INSERT INTO tax_rates (province, province_name, gst_rate, pst_rate, hst_rate, qst_rate, total_rate, effective_date) VALUES
+('ON', 'Ontario', 0, 0, 13.0, 0, 13.0, '2024-01-01'),
+('BC', 'British Columbia', 5.0, 7.0, 0, 0, 12.0, '2024-01-01'),
+('AB', 'Alberta', 5.0, 0, 0, 0, 5.0, '2024-01-01'),
+('QC', 'Quebec', 5.0, 0, 0, 9.975, 14.975, '2024-01-01'),
+('NS', 'Nova Scotia', 0, 0, 15.0, 0, 15.0, '2024-01-01'),
+('NB', 'New Brunswick', 0, 0, 15.0, 0, 15.0, '2024-01-01'),
+('PE', 'Prince Edward Island', 0, 0, 15.0, 0, 15.0, '2024-01-01'),
+('MB', 'Manitoba', 5.0, 7.0, 0, 0, 12.0, '2024-01-01'),
+('SK', 'Saskatchewan', 5.0, 6.0, 0, 0, 11.0, '2024-01-01'),
+('NL', 'Newfoundland and Labrador', 0, 0, 15.0, 0, 15.0, '2024-01-01'),
+('NT', 'Northwest Territories', 5.0, 0, 0, 0, 5.0, '2024-01-01'),
+('YT', 'Yukon', 5.0, 0, 0, 0, 5.0, '2024-01-01'),
+('NU', 'Nunavut', 5.0, 0, 0, 0, 5.0, '2024-01-01');
 ```
 
 ---
