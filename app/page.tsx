@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { VehicleShowcase } from "@/components/vehicle-showcase"
-import { LiveChatWidget } from "@/components/live-chat-widget"
+import { HowItWorks } from "@/components/how-it-works"
+import { TrustBadges } from "@/components/trust-badges"
+import { ComparisonTable } from "@/components/comparison-table"
 
 const stats = [
   { value: "9,500+", label: "Vehicles in Stock" },
@@ -436,8 +438,16 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* How It Works */}
+      <HowItWorks />
+
+      {/* Trust Badges */}
+      <TrustBadges />
+
+      {/* Comparison Table */}
+      <ComparisonTable />
+
       <Footer />
-      <LiveChatWidget />
     </div>
   )
 }
