@@ -502,7 +502,48 @@ INSERT INTO hubs (name, code, street_address, city, province, postal_code, phone
   ('Richmond Hill', 'RHILL', '30 Major Mackenzie E', 'Richmond Hill', 'ON', 'L4C 1J2', '416-985-2277');
 ```
 
-## 1.13 Tax Rates Table
+## 1.13 Payments Table
+
+```sql
+CREATE TABLE payments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID NOT NULL REFERENCES orders(id),
+    customer_id UUID NOT NULL REFERENCES customers(id),
+    
+    -- Payment Details
+    payment_type VARCHAR(30) NOT NULL,
+    amount DECIMAL(12,2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'CAD',
+    
+    -- Stripe
+    stripe_payment_intent_id VARCHAR(100),
+    stripe_charge_id VARCHAR(100),
+    stripe_receipt_url VARCHAR(500),
+    
+    -- Card Details (masked)
+    card_brand VARCHAR(20),
+    card_last_four VARCHAR(4),
+    card_exp_month INTEGER,
+    card_exp_year INTEGER,
+    
+    -- Status
+    status VARCHAR(30) DEFAULT 'pending',
+    failure_code VARCHAR(50),
+    failure_message TEXT,
+    
+    -- Timestamps
+    processed_at TIMESTAMP,
+    refunded_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_payments_order ON payments(order_id);
+CREATE INDEX idx_payments_customer ON payments(customer_id);
+CREATE INDEX idx_payments_stripe ON payments(stripe_payment_intent_id);
+```
+
+## 1.14 Tax Rates Table
 
 ```sql
 CREATE TABLE tax_rates (
