@@ -25,15 +25,14 @@ export function PlanetMotorsLogo({
   return (
     <div 
       className={`flex items-center flex-shrink-0 ${className}`}
-      style={{ maxWidth: width, maxHeight: height }}
+      style={{ width, height, position: "relative" }}
     >
       <Image
         src="/images/planet-motors-logo.png"
         alt="Planet Motors - Fairness Integrity"
-        width={width}
-        height={height}
+        fill
         className="object-contain"
-        style={{ width: "auto", height: "auto" }}
+        sizes={`${width}px`}
         unoptimized
         priority
       />
