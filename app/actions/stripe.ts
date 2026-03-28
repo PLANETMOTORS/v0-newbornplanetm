@@ -1,8 +1,6 @@
 'use server'
 
-import { headers } from 'next/headers'
-
-import { stripe } from '../../lib/stripe'
+import { getStripe } from '../../lib/stripe'
 import { PRODUCTS } from '../../lib/products'
 
 export async function startCheckoutSession(productId: string) {
@@ -11,6 +9,8 @@ export async function startCheckoutSession(productId: string) {
     throw new Error(`Product with id "${productId}" not found`)
   }
 
+  const stripe = getStripe()
+
   // Create Checkout Sessions from body params.
   const session = await stripe.checkout.sessions.create({
     ui_mode: 'embedded',
@@ -18,7 +18,7 @@ export async function startCheckoutSession(productId: string) {
     line_items: [
       {
         price_data: {
-          currency: 'usd',
+          currency: 'cad',
           product_data: {
             name: product.name,
             description: product.description,
