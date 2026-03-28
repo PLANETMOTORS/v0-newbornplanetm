@@ -10,17 +10,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
+import { Input } from "@/components/ui/input"
 import { 
   ChevronLeft, ChevronRight, Heart, Share2, MapPin, Fuel, Gauge, 
   Calendar, Settings, Shield, CheckCircle, Calculator, Car, 
   FileText, History, Zap, RotateCcw, DollarSign, CreditCard,
   Phone, MessageCircle, Star, Clock, TrendingUp, Eye, Users,
   Award, Battery, Thermometer, Lock, Truck, ArrowRight, Play,
-  Download, ExternalLink, Check, X, AlertCircle
+  Download, ExternalLink, Check, X, AlertCircle, Bell, Expand,
+  Key, Sofa, Cog, Info
 } from "lucide-react"
 import { ScheduleTestDrive } from "@/components/schedule-test-drive"
 import { SimilarVehicles } from "@/components/similar-vehicles"
 import { ReserveVehicleModal } from "@/components/reserve-vehicle-modal"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 // Mock vehicle data
 const vehicleData = {
@@ -35,9 +44,11 @@ const vehicleData = {
   exteriorColor: "Pearl White Multi-Coat",
   interiorColor: "Black Premium",
   fuelType: "Electric",
-  transmission: "Single-Speed Automatic",
-  drivetrain: "All-Wheel Drive",
-  engine: "Dual Motor Electric",
+  transmission: "Automatic",
+  drivetrain: "AWD",
+  engine: "Dual Motor",
+  seats: 5,
+  keys: 2,
   vin: "5YJ3E1EA1PF123456",
   stockNumber: "PM24-1234",
   carfaxUrl: "https://www.carfax.ca/vehicle/5YJ3E1EA1PF123456",
@@ -54,69 +65,167 @@ const vehicleData = {
     "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&h=600&fit=crop",
     "https://images.unsplash.com/photo-1536700503339-1e4b06520771?w=800&h=600&fit=crop"
   ],
-  features: [
-    "Autopilot", "Premium Audio", "Heated Seats", "Navigation",
-    "Wireless Charging", "Premium Connectivity", "Glass Roof",
-    "Power Liftgate", "LED Headlights", "19\" Sport Wheels",
-    "Heated Steering Wheel", "Sentry Mode", "Dashcam", "Dog Mode"
+  interiorImages: [
+    "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1571127236794-81c0bbfe1ce3?w=800&h=600&fit=crop"
   ],
+  features: {
+    comfortConvenience: ["Heated Seats", "Power Liftgate", "Wireless Charging", "Premium Audio"],
+    safetySecurity: ["Autopilot", "Collision Avoidance", "Blind Spot Monitoring", "360 Camera"],
+    entertainmentTech: ["15\" Touchscreen", "Premium Connectivity", "Bluetooth", "USB-C Ports"],
+    brakingTraction: ["Regenerative Braking", "Traction Control", "ABS", "Stability Control"]
+  },
+  specs: {
+    range: "576 km",
+    exterior: "Pearl White",
+    interior: "Black",
+    drive: "AWD"
+  },
+  packages: ["Premium Package", "Enhanced Autopilot"],
   inspectionScore: 210,
-  inspectionItems: [
-    { category: "Exterior", passed: 45, total: 45, items: ["Paint", "Glass", "Lights", "Body Panels", "Wheels"] },
-    { category: "Interior", passed: 38, total: 38, items: ["Seats", "Dashboard", "Controls", "Screens", "Climate"] },
-    { category: "Mechanical", passed: 52, total: 52, items: ["Brakes", "Suspension", "Steering", "Motor", "Battery"] },
-    { category: "Electrical", passed: 35, total: 35, items: ["Charging", "12V Battery", "Lights", "Sensors", "Autopilot"] },
-    { category: "Safety", passed: 25, total: 25, items: ["Airbags", "Seatbelts", "Cameras", "Sensors", "Emergency"] },
-    { category: "Road Test", passed: 15, total: 15, items: ["Acceleration", "Braking", "Handling", "Noise", "Range"] }
+  inspectionCategories: [
+    { name: "VIN & History", points: 10, icon: "history" },
+    { name: "Powertrain & Engine", points: 22, icon: "engine" },
+    { name: "Brakes & Suspension", points: 13, icon: "brakes" },
+    { name: "Tyres & Wheels", points: 8, icon: "wheel" },
+    { name: "Exterior", points: 21, icon: "car" },
+    { name: "Interior", points: 20, icon: "interior" },
+    { name: "Drive Test", points: 10, icon: "drive" },
+    { name: "EV Systems", points: 12, icon: "ev" },
+    { name: "Detailing & Safety", points: 94, icon: "safety" }
   ],
+  inspectionItems: [
+    { category: "Under the hood", status: "Passed" },
+    { category: "Exterior", status: "Passed" },
+    { category: "Interior", status: "Passed" },
+    { category: "How it drives", status: "Passed" },
+    { category: "How it looks", status: "Passed" },
+    { category: "Detailing", status: "Passed" },
+    { category: "History", status: "No reported accidents" }
+  ],
+  vinHistoryItems: [
+    { item: "VIN verified (door jamb, dash, frame)", status: "Pass" },
+    { item: "Lien search — no outstanding liens", status: "Pass" },
+    { item: "CARFAX Canada history report clear", status: "Pass" },
+    { item: "All outstanding recalls cleared", status: "Pass" },
+    { item: "RCMP/CPIC stolen vehicle check — clear", status: "Pass" },
+    { item: "Odometer accuracy verified", status: "Pass" },
+    { item: "Clean Ontario title — no branding", status: "Pass" },
+    { item: "No flood or water damage history", status: "Pass" }
+  ],
+  conditionItems: [
+    "Vehicle passes Ontario Safety Standards Certificate requirements",
+    "All mechanical systems inspected by a licensed technician",
+    "Battery state of health verified (for EVs)",
+    "Professionally detailed — interior and exterior"
+  ],
+  ratings: {
+    overall: 4.8,
+    description: "The 2024 Tesla Model 3 combines cutting-edge technology with exceptional performance. Perfect for Canadian drivers looking for a premium EV experience.",
+    categories: [
+      { name: "Performance", score: 4.9 },
+      { name: "Efficiency", score: 5.0 },
+      { name: "Comfort", score: 4.5 },
+      { name: "Tech", score: 5.0 },
+      { name: "Space", score: 4.2 },
+      { name: "Reliability", score: 4.7 },
+      { name: "Safety", score: 4.9 }
+    ]
+  },
+  protectionPackages: [
+    {
+      name: "Basic",
+      paymentMethod: "Cash only",
+      moneyBack: true,
+      dueAtCheckout: "Full purchase price",
+      warranty: "—",
+      tireRim: "—",
+      gapCoverage: "—",
+      lifeDisability: "—",
+      price: "Included"
+    },
+    {
+      name: "Essential Shield",
+      paymentMethod: "Cash or Finance",
+      moneyBack: true,
+      dueAtCheckout: "$250 refundable deposit",
+      warranty: "Standard",
+      tireRim: "—",
+      gapCoverage: "$50K",
+      lifeDisability: "—",
+      price: "$1,950"
+    },
+    {
+      name: "Planet Care™",
+      paymentMethod: "Cash or Finance",
+      moneyBack: true,
+      dueAtCheckout: "$250 refundable deposit",
+      warranty: "Extended to 2034",
+      tireRim: "—",
+      gapCoverage: "$60K",
+      lifeDisability: "~$1M life",
+      price: "$3,000",
+      recommended: true
+    },
+    {
+      name: "Planet Care Plus™",
+      paymentMethod: "Finance only",
+      moneyBack: true,
+      dueAtCheckout: "$250 refundable deposit",
+      warranty: "Extended to 2034",
+      tireRim: true,
+      gapCoverage: "$60K",
+      lifeDisability: "~$1M life",
+      price: "$4,850"
+    }
+  ],
+  pricing: {
+    vehiclePrice: 52990,
+    deliveryFee: 0,
+    hst: 6889,
+    omvicFee: 22,
+    certificationFee: 595,
+    licensingReg: 59,
+    totalWithHst: 60555
+  },
   history: {
     owners: 1,
     accidents: 0,
     serviceRecords: 8,
     lastServiced: "2024-02-15"
-  },
-  similarVehicles: [
-    { id: "2024-tesla-model-y", name: "2024 Tesla Model Y", price: 64990, image: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400" },
-    { id: "2024-bmw-i4", name: "2024 BMW i4", price: 58900, image: "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?w=400" },
-    { id: "2024-polestar-2", name: "2024 Polestar 2", price: 54990, image: "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=400" }
-  ]
+  }
 }
 
 export default function VehicleDetailPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isFavorite, setIsFavorite] = useState(false)
-  const [downPayment, setDownPayment] = useState(5000)
-  const [loanTerm, setLoanTerm] = useState(60)
-  const [tradeInValue, setTradeInValue] = useState(0)
-  const [aprRate, setAprRate] = useState(4.79)
-  const [viewCount, setViewCount] = useState(47)
-  const [showFullGallery, setShowFullGallery] = useState(false)
+  const [activeTab, setActiveTab] = useState("photos")
+  const [imageType, setImageType] = useState<"exterior" | "interior">("exterior")
+  const [postalCode, setPostalCode] = useState("")
+  const [viewCount, setViewCount] = useState(78)
+  const [showInspectionModal, setShowInspectionModal] = useState(false)
 
   // Simulate live viewing count
   useEffect(() => {
     const interval = setInterval(() => {
-      setViewCount(prev => prev + Math.floor(Math.random() * 3) - 1)
+      setViewCount(prev => Math.max(50, prev + Math.floor(Math.random() * 3) - 1))
     }, 8000)
     return () => clearInterval(interval)
   }, [])
 
   const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % vehicleData.images.length)
+    const images = imageType === "exterior" ? vehicleData.images : vehicleData.interiorImages
+    setCurrentImageIndex((prev) => (prev + 1) % images.length)
   }
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + vehicleData.images.length) % vehicleData.images.length)
+    const images = imageType === "exterior" ? vehicleData.images : vehicleData.interiorImages
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
   }
 
-  // Calculate monthly payment
-  const loanAmount = vehicleData.price - downPayment - tradeInValue
-  const monthlyRate = aprRate / 100 / 12 // Convert APR to monthly rate
-  const monthlyPayment = Math.round(
-    (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, loanTerm)) /
-    (Math.pow(1 + monthlyRate, loanTerm) - 1)
-  )
-
+  const currentImages = imageType === "exterior" ? vehicleData.images : vehicleData.interiorImages
   const savings = vehicleData.originalPrice - vehicleData.price
+  const biweeklyPayment = Math.round(vehicleData.price / 208) // Rough estimate for 8 years
 
   return (
     <div className="min-h-screen bg-background">
@@ -126,438 +235,900 @@ export default function VehicleDetailPage() {
         {/* Breadcrumb */}
         <div className="bg-muted/30 py-3 border-b">
           <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm">
-                <Link href="/inventory" className="text-muted-foreground hover:text-foreground flex items-center gap-1">
-                  <ChevronLeft className="w-4 h-4" />
-                  Back to Inventory
-                </Link>
-                <span className="text-muted-foreground">/</span>
-                <span className="font-medium">
-                  {vehicleData.year} {vehicleData.make} {vehicleData.model}
-                </span>
-              </div>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Eye className="w-4 h-4" />
-                  {viewCount} viewing now
-                </span>
-                <span className="flex items-center gap-1 text-green-600">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-                  </span>
-                  Available
-                </span>
-              </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Link href="/inventory" className="text-muted-foreground hover:text-foreground">
+                All cars
+              </Link>
+              <span className="text-muted-foreground">›</span>
+              <Link href={`/inventory?make=${vehicleData.make}`} className="text-muted-foreground hover:text-foreground">
+                {vehicleData.make}
+              </Link>
+              <span className="text-muted-foreground">›</span>
+              <span>{vehicleData.model}</span>
             </div>
+          </div>
+        </div>
+
+        {/* Vehicle Title Bar */}
+        <div className="border-b py-4">
+          <div className="container mx-auto px-4">
+            <h1 className="text-2xl font-bold">
+              {vehicleData.year} {vehicleData.make} {vehicleData.model}
+            </h1>
+            <p className="text-muted-foreground">
+              {vehicleData.trim} · {vehicleData.mileage.toLocaleString()} km
+            </p>
+          </div>
+        </div>
+
+        {/* Main Tabs */}
+        <div className="border-b sticky top-16 bg-background z-40">
+          <div className="container mx-auto px-4">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="h-12 bg-transparent p-0 gap-0">
+                {["Photos", "Overview", "Features", "Inspection", "Pricing", "Ratings", "Protection"].map((tab) => (
+                  <TabsTrigger
+                    key={tab}
+                    value={tab.toLowerCase()}
+                    className="h-12 px-4 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                  >
+                    {tab}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
           </div>
         </div>
 
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Images & Details */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Image Gallery */}
-              <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-muted group">
-                <Image
-                  src={vehicleData.images[currentImageIndex]}
-                  alt={`${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`}
-                  fill
-                  className="object-cover"
-                  priority
-                />
-                
-                {/* Navigation Arrows */}
-                <button
-                  onClick={prevImage}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-background/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-background transition-all opacity-0 group-hover:opacity-100"
-                >
-                  <ChevronLeft className="h-6 w-6" />
-                </button>
-                <button
-                  onClick={nextImage}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-background/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-background transition-all opacity-0 group-hover:opacity-100"
-                >
-                  <ChevronRight className="h-6 w-6" />
-                </button>
-
-                {/* Top Left Badges */}
-                <div className="absolute top-4 left-4 flex flex-col gap-2">
-                  <Badge className="bg-green-500 text-white shadow-lg">
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    210/210 Inspected
-                  </Badge>
-                  <Badge className="bg-primary shadow-lg">
-                    <RotateCcw className="h-3 w-3 mr-1" />
-                    360° View Available
-                  </Badge>
-                  {savings > 0 && (
-                    <Badge className="bg-red-500 text-white shadow-lg">
-                      <TrendingUp className="h-3 w-3 mr-1" />
-                      Save ${savings.toLocaleString()}
+            {/* Left Column - Content */}
+            <div className="lg:col-span-2">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                {/* Photos Tab */}
+                <TabsContent value="photos" className="mt-0 space-y-4">
+                  <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-muted group">
+                    <Image
+                      src={currentImages[currentImageIndex]}
+                      alt={`${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`}
+                      fill
+                      className="object-cover"
+                      priority
+                    />
+                    
+                    {/* Views Badge */}
+                    <Badge className="absolute top-4 left-4 bg-red-500 text-white">
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      {viewCount}+ views today
                     </Badge>
-                  )}
-                </div>
 
-                {/* Top Right Actions */}
-                <div className="absolute top-4 right-4 flex gap-2">
-                  <button
-                    onClick={() => setIsFavorite(!isFavorite)}
-                    className={`w-11 h-11 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                      isFavorite ? "bg-red-500 text-white" : "bg-background/90 backdrop-blur-sm hover:bg-background"
-                    }`}
-                  >
-                    <Heart className={`h-5 w-5 ${isFavorite ? "fill-current" : ""}`} />
-                  </button>
-                  <button className="w-11 h-11 bg-background/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-background transition-all shadow-lg">
-                    <Share2 className="h-5 w-5" />
-                  </button>
-                </div>
-
-                {/* Bottom Controls */}
-                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-                  <button className="flex items-center gap-2 px-4 py-2 bg-background/90 backdrop-blur-sm rounded-full hover:bg-background transition-all">
-                    <Play className="w-4 h-4" />
-                    <span className="text-sm font-medium">Play 360° View</span>
-                  </button>
-                  <div className="flex items-center gap-2 px-4 py-2 bg-background/90 backdrop-blur-sm rounded-full">
-                    <span className="text-sm">{currentImageIndex + 1} / {vehicleData.images.length}</span>
+                    {/* Expand Button */}
+                    <button className="absolute top-4 right-4 w-10 h-10 bg-background/80 backdrop-blur rounded-lg flex items-center justify-center hover:bg-background transition">
+                      <Expand className="w-5 h-5" />
+                    </button>
+                    
+                    {/* Navigation Arrows */}
+                    <button
+                      onClick={prevImage}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={nextImage}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
                   </div>
-                </div>
-              </div>
 
-              {/* Thumbnail Strip */}
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {vehicleData.images.map((img, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentImageIndex(i)}
-                    className={`relative w-24 h-16 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
-                      i === currentImageIndex ? "border-primary ring-2 ring-primary ring-offset-2" : "border-transparent opacity-70 hover:opacity-100"
-                    }`}
-                  >
-                    <Image src={img} alt="" fill className="object-cover" />
-                  </button>
-                ))}
-              </div>
-
-              {/* Vehicle Title */}
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                <div>
-                  <h1 className="text-3xl md:text-4xl font-bold">
-                    {vehicleData.year} {vehicleData.make} {vehicleData.model}
-                  </h1>
-                  <p className="text-lg text-muted-foreground mt-1">{vehicleData.trim}</p>
-                  <div className="flex flex-wrap gap-4 mt-3 text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Gauge className="h-4 w-4" />
-                      {vehicleData.mileage.toLocaleString()} km
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Fuel className="h-4 w-4" />
-                      {vehicleData.fuelType}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Zap className="h-4 w-4 text-green-500" />
-                      {vehicleData.range} range
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4" />
-                      Richmond Hill, ON
-                    </span>
+                  {/* Image Type Toggle */}
+                  <div className="flex gap-2">
+                    <Button 
+                      variant={imageType === "exterior" ? "default" : "outline"} 
+                      size="sm"
+                      onClick={() => { setImageType("exterior"); setCurrentImageIndex(0) }}
+                    >
+                      Exterior
+                    </Button>
+                    <Button 
+                      variant={imageType === "interior" ? "default" : "outline"} 
+                      size="sm"
+                      onClick={() => { setImageType("interior"); setCurrentImageIndex(0) }}
+                    >
+                      Interior
+                    </Button>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    {[1,2,3,4,5].map(star => (
-                      <Star key={star} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+
+                  {/* Thumbnails */}
+                  <div className="flex gap-2 overflow-x-auto pb-2">
+                    {currentImages.map((img, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentImageIndex(i)}
+                        className={`relative w-20 h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
+                          i === currentImageIndex ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"
+                        }`}
+                      >
+                        <Image src={img} alt="" fill className="object-cover" />
+                      </button>
                     ))}
                   </div>
-                  <span className="text-sm text-muted-foreground">4.9 (124 reviews)</span>
-                </div>
-              </div>
 
-              {/* EV Battery Card - Prominent for Electric */}
-              {vehicleData.fuelType === "Electric" && (
-                <Card className="border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Battery className="h-5 w-5 text-green-600" />
-                      EV Battery Health Certification
-                      <Badge className="ml-auto bg-green-600">Exclusive Feature</Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center p-4 bg-background rounded-xl">
-                        <div className="text-4xl font-bold text-green-600">{vehicleData.batteryHealth}%</div>
-                        <p className="text-sm text-muted-foreground mt-1">State of Health</p>
+                  {/* Trade and Upgrade CTA */}
+                  <Card className="bg-primary text-primary-foreground">
+                    <CardContent className="p-4 flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold">Trade and upgrade</h3>
+                        <p className="text-sm text-primary-foreground/80">Apply your old car&apos;s value to your purchase.</p>
                       </div>
-                      <div className="text-center p-4 bg-background rounded-xl">
-                        <div className="text-2xl font-bold">{vehicleData.batteryCapacity}</div>
-                        <p className="text-sm text-muted-foreground mt-1">Battery Capacity</p>
-                      </div>
-                      <div className="text-center p-4 bg-background rounded-xl">
-                        <div className="text-2xl font-bold">{vehicleData.range}</div>
-                        <p className="text-sm text-muted-foreground mt-1">Est. Range</p>
-                      </div>
-                      <div className="text-center p-4 bg-background rounded-xl">
-                        <div className="text-2xl font-bold">{vehicleData.chargingSpeed}</div>
-                        <p className="text-sm text-muted-foreground mt-1">Max Charge Speed</p>
-                      </div>
-                    </div>
-                    <div className="mt-4 p-3 bg-background rounded-lg flex items-center gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                      <p className="text-sm">
-                        <span className="font-medium">Verified by certified EV technicians.</span>{" "}
-                        Battery health tested using manufacturer diagnostic tools - an exclusive feature competitors don&apos;t offer.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Tabs */}
-              <Tabs defaultValue="overview" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 h-12">
-                  <TabsTrigger value="overview" className="text-sm">Overview</TabsTrigger>
-                  <TabsTrigger value="features" className="text-sm">Features</TabsTrigger>
-                  <TabsTrigger value="inspection" className="text-sm">Inspection</TabsTrigger>
-                  <TabsTrigger value="history" className="text-sm">History</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="overview" className="space-y-6 pt-6">
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {[
-                      { label: "Exterior", value: vehicleData.exteriorColor, icon: Car },
-                      { label: "Interior", value: vehicleData.interiorColor, icon: Car },
-                      { label: "Drivetrain", value: vehicleData.drivetrain, icon: Settings },
-                      { label: "Engine", value: vehicleData.engine, icon: Zap },
-                      { label: "Transmission", value: vehicleData.transmission, icon: Settings },
-                      { label: "VIN", value: vehicleData.vin, icon: FileText }
-                    ].map((spec, i) => (
-                      <div key={i} className="bg-muted/30 p-4 rounded-xl border border-border">
-                        <div className="flex items-center gap-2 mb-1">
-                          <spec.icon className="w-4 h-4 text-muted-foreground" />
-                          <p className="text-xs text-muted-foreground uppercase tracking-wide">{spec.label}</p>
-                        </div>
-                        <p className="font-medium">{spec.value}</p>
-                      </div>
-                    ))}
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="features" className="pt-6">
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {vehicleData.features.map((feature, i) => (
-                      <div key={i} className="flex items-center gap-3 bg-muted/30 p-3 rounded-lg border border-border">
-                        <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                        <span className="text-sm">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="inspection" className="pt-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center justify-between">
-                        <span className="flex items-center gap-2">
-                          <Shield className="h-5 w-5 text-primary" />
-                          210-Point Inspection Report
-                        </span>
-                        <Badge className="bg-green-500 text-lg px-4 py-1">
-                          {vehicleData.inspectionScore}/210 Passed
-                        </Badge>
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground">
-                        60 more inspection points than Clutch or Carvana. Full transparency on every vehicle.
-                      </p>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {vehicleData.inspectionItems.map((item, i) => (
-                          <div key={i} className="text-center p-4 bg-muted/30 rounded-xl border border-border">
-                            <p className="text-sm text-muted-foreground mb-1">{item.category}</p>
-                            <p className="text-2xl font-bold text-green-600">
-                              {item.passed}/{item.total}
-                            </p>
-                            <div className="w-full bg-muted rounded-full h-2 mt-2">
-                              <div 
-                                className="bg-green-500 h-2 rounded-full" 
-                                style={{ width: `${(item.passed / item.total) * 100}%` }}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="flex gap-3">
-                        <Button variant="outline" className="flex-1">
-                          <FileText className="h-4 w-4 mr-2" />
-                          View Full Report
-                        </Button>
-                        <Button variant="outline" className="flex-1">
-                          <Download className="h-4 w-4 mr-2" />
-                          Download PDF
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="history" className="pt-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <History className="h-5 w-5" />
-                        Vehicle History Report
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="text-center p-4 bg-muted/30 rounded-xl border border-border">
-                          <Users className="w-6 h-6 mx-auto mb-2 text-muted-foreground" />
-                          <p className="text-2xl font-bold">{vehicleData.history.owners}</p>
-                          <p className="text-sm text-muted-foreground">Previous Owner</p>
-                        </div>
-                        <div className="text-center p-4 bg-green-50 dark:bg-green-950/30 rounded-xl border border-green-200 dark:border-green-800">
-                          <CheckCircle className="w-6 h-6 mx-auto mb-2 text-green-600" />
-                          <p className="text-2xl font-bold text-green-600">{vehicleData.history.accidents}</p>
-                          <p className="text-sm text-muted-foreground">Accidents</p>
-                        </div>
-                        <div className="text-center p-4 bg-muted/30 rounded-xl border border-border">
-                          <FileText className="w-6 h-6 mx-auto mb-2 text-muted-foreground" />
-                          <p className="text-2xl font-bold">{vehicleData.history.serviceRecords}</p>
-                          <p className="text-sm text-muted-foreground">Service Records</p>
-                        </div>
-                        <div className="text-center p-4 bg-green-50 dark:bg-green-950/30 rounded-xl border border-green-200 dark:border-green-800">
-                          <Shield className="w-6 h-6 mx-auto mb-2 text-green-600" />
-                          <p className="text-2xl font-bold text-green-600">Clean</p>
-                          <p className="text-sm text-muted-foreground">Title Status</p>
-                        </div>
-                      </div>
-                      <Button variant="outline" className="w-full" asChild>
-                        <Link href="#">
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          View Full CARFAX Report
-                        </Link>
+                      <Button variant="secondary" size="sm" asChild>
+                        <Link href="/trade-in">Get trade-in value →</Link>
                       </Button>
                     </CardContent>
                   </Card>
                 </TabsContent>
-              </Tabs>
 
-              {/* Similar Vehicles */}
-              <div className="pt-8">
-                <h2 className="text-xl font-semibold mb-4">Similar Vehicles</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {vehicleData.similarVehicles.map((vehicle) => (
-                    <Link key={vehicle.id} href={`/vehicles/${vehicle.id}`}>
-                      <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-                        <div className="relative aspect-[16/10]">
-                          <Image src={vehicle.image} alt={vehicle.name} fill className="object-cover" />
-                        </div>
-                        <CardContent className="p-4">
-                          <h3 className="font-semibold">{vehicle.name}</h3>
-                          <p className="text-lg font-bold text-primary">${vehicle.price.toLocaleString()}</p>
+                {/* Overview Tab */}
+                <TabsContent value="overview" className="mt-0 space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-semibold">Overview</h2>
+                    <div className="flex gap-4 text-sm text-muted-foreground">
+                      <span>VIN <span className="font-mono text-foreground">{vehicleData.vin}</span></span>
+                      <span>Stock # <span className="font-medium text-foreground">{vehicleData.stockNumber}</span></span>
+                    </div>
+                  </div>
+
+                  <Link href="#" className="text-primary text-sm flex items-center gap-1 hover:underline">
+                    <ExternalLink className="w-4 h-4" />
+                    View Full Listing on planetmotors.app →
+                  </Link>
+
+                  {/* Vehicle Details Icons */}
+                  <div className="flex flex-wrap gap-6">
+                    <div className="flex flex-col items-center text-center">
+                      <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center mb-1">
+                        <Settings className="w-5 h-5" />
+                      </div>
+                      <span className="text-xs text-muted-foreground">TRANSMISSION</span>
+                      <span className="text-sm font-medium">{vehicleData.transmission}</span>
+                    </div>
+                    <div className="flex flex-col items-center text-center">
+                      <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center mb-1">
+                        <Fuel className="w-5 h-5" />
+                      </div>
+                      <span className="text-xs text-muted-foreground">FUEL TYPE</span>
+                      <span className="text-sm font-medium">{vehicleData.fuelType}</span>
+                    </div>
+                    <div className="flex flex-col items-center text-center">
+                      <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center mb-1">
+                        <Zap className="w-5 h-5" />
+                      </div>
+                      <span className="text-xs text-muted-foreground">ENGINE</span>
+                      <span className="text-sm font-medium">{vehicleData.engine}</span>
+                    </div>
+                    <div className="flex flex-col items-center text-center">
+                      <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center mb-1">
+                        <Users className="w-5 h-5" />
+                      </div>
+                      <span className="text-xs text-muted-foreground">SEATS</span>
+                      <span className="text-sm font-medium">{vehicleData.seats} seats</span>
+                    </div>
+                    <div className="flex flex-col items-center text-center">
+                      <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center mb-1">
+                        <Key className="w-5 h-5" />
+                      </div>
+                      <span className="text-xs text-muted-foreground">KEYS</span>
+                      <span className="text-sm font-medium">{vehicleData.keys} keys</span>
+                    </div>
+                    <div className="flex flex-col items-center text-center">
+                      <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center mb-1">
+                        <FileText className="w-5 h-5" />
+                      </div>
+                      <span className="text-xs text-muted-foreground">HISTORY</span>
+                      <Badge variant="outline" className="text-xs border-red-500 text-red-600">CARFAX</Badge>
+                    </div>
+                  </div>
+
+                  {/* Highlights */}
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-3">HIGHLIGHTS</h3>
+                    <div className="flex flex-wrap gap-3">
+                      <Card className="flex-1 min-w-[140px]">
+                        <CardContent className="p-3 flex items-center gap-2">
+                          <CheckCircle className="w-5 h-5 text-pink-500" />
+                          <div>
+                            <p className="font-medium text-sm">No accidents</p>
+                            <p className="text-xs text-muted-foreground">Reported by Carfax</p>
+                          </div>
                         </CardContent>
                       </Card>
-                    </Link>
+                      <Card className="flex-1 min-w-[140px]">
+                        <CardContent className="p-3 flex items-center gap-2">
+                          <Gauge className="w-5 h-5 text-muted-foreground" />
+                          <p className="font-medium text-sm">{vehicleData.mileage.toLocaleString()} km</p>
+                        </CardContent>
+                      </Card>
+                      <Card className="flex-1 min-w-[140px]">
+                        <CardContent className="p-3 flex items-center gap-2">
+                          <Shield className="w-5 h-5 text-purple-500" />
+                          <div>
+                            <p className="font-medium text-sm">Safety certified</p>
+                            <p className="text-xs text-muted-foreground">Ontario Safety Certificate</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+
+                  {/* Delivery Options */}
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-3">GET IT TOMORROW</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Card className="bg-primary/5 border-primary/20">
+                        <CardContent className="p-4">
+                          <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-3">
+                            <Car className="w-6 h-6 text-primary" />
+                          </div>
+                          <h4 className="font-semibold">Pick up at Planet Motors</h4>
+                          <p className="text-sm text-green-600 font-medium">FREE</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            30 Major Mackenzie Dr E, Richmond Hill, ON. Open Mon–Sat.
+                          </p>
+                          <Button className="mt-3" size="sm">Start purchase</Button>
+                        </CardContent>
+                      </Card>
+                      <Card className="bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800">
+                        <CardContent className="p-4">
+                          <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mb-3">
+                            <Truck className="w-6 h-6 text-red-600" />
+                          </div>
+                          <h4 className="font-semibold">Home delivery</h4>
+                          <p className="text-sm text-muted-foreground">Delivery fee applies *</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            We&apos;ll deliver anywhere in Ontario & Canada.
+                          </p>
+                          <Button variant="outline" className="mt-3" size="sm">Start purchase</Button>
+                        </CardContent>
+                      </Card>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      * Delivery is an additional service that brings the car to your driveway.
+                    </p>
+                  </div>
+
+                  {/* Better than a test drive */}
+                  <Card className="border-2">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Better than a test drive — Try it for 10 days!</CardTitle>
+                      <p className="text-sm text-muted-foreground">All our cars come with a 10-day money back guarantee</p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-4 p-4 bg-primary/5 rounded-lg">
+                          <p className="font-semibold">The Planet Motors way 🏆</p>
+                          <div>
+                            <p className="font-medium">10 days to try it out</p>
+                            <p className="text-sm text-muted-foreground">take your time to know the car</p>
+                          </div>
+                          <div>
+                            <p className="font-medium">You pick your route</p>
+                            <p className="text-sm text-muted-foreground">city, highway, night, rain, etc.</p>
+                          </div>
+                          <div>
+                            <p className="font-medium">Completely unaccompanied</p>
+                            <p className="text-sm text-muted-foreground">no pressure, no rush</p>
+                          </div>
+                          <div>
+                            <p className="font-medium">Full money-back guarantee</p>
+                            <p className="text-sm text-muted-foreground">for any reason</p>
+                          </div>
+                        </div>
+                        <div className="space-y-4 p-4">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-muted-foreground">The old way</p>
+                            <span className="text-xs bg-muted px-2 py-0.5 rounded">vs</span>
+                          </div>
+                          <div>
+                            <p className="font-medium text-muted-foreground">Only 15 mins on average</p>
+                            <p className="text-sm text-muted-foreground">limited feel for comfort or quirks</p>
+                          </div>
+                          <div>
+                            <p className="font-medium text-muted-foreground">Seller picks route</p>
+                            <p className="text-sm text-muted-foreground">limited speeds/conditions</p>
+                          </div>
+                          <div>
+                            <p className="font-medium text-muted-foreground">Accompanied by salesperson</p>
+                            <p className="text-sm text-muted-foreground">pressure to decide</p>
+                          </div>
+                          <div>
+                            <p className="font-medium text-muted-foreground">No return option</p>
+                            <p className="text-sm text-muted-foreground">sale is final</p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Features Tab */}
+                <TabsContent value="features" className="mt-0 space-y-6">
+                  <h2 className="text-xl font-semibold">Features and specs</h2>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Features */}
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base">FEATURES</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex justify-between py-2 border-b">
+                          <span className="text-muted-foreground">Comfort & Convenience</span>
+                          <span className="font-medium">Heated Seats</span>
+                        </div>
+                        <div className="flex justify-between py-2 border-b">
+                          <span className="text-muted-foreground">Safety & Security</span>
+                          <span className="font-medium">Autopilot</span>
+                        </div>
+                        <div className="flex justify-between py-2 border-b">
+                          <span className="text-muted-foreground">Entertainment & Tech</span>
+                          <span className="font-medium">15&quot; Touchscreen</span>
+                        </div>
+                        <div className="flex justify-between py-2">
+                          <span className="text-muted-foreground">Braking & Traction</span>
+                          <span className="font-medium">Brake Assist</span>
+                        </div>
+                        <Button variant="link" className="p-0 h-auto text-primary">
+                          View all features →
+                        </Button>
+                      </CardContent>
+                    </Card>
+
+                    {/* Specs */}
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base">SPECS</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex justify-between py-2 border-b">
+                          <span className="text-muted-foreground">Range</span>
+                          <span className="font-medium">{vehicleData.range}</span>
+                        </div>
+                        <div className="flex justify-between py-2 border-b">
+                          <span className="text-muted-foreground">Exterior</span>
+                          <span className="font-medium">{vehicleData.exteriorColor}</span>
+                        </div>
+                        <div className="flex justify-between py-2 border-b">
+                          <span className="text-muted-foreground">Interior</span>
+                          <span className="font-medium">{vehicleData.interiorColor}</span>
+                        </div>
+                        <div className="flex justify-between py-2">
+                          <span className="text-muted-foreground">Drive</span>
+                          <span className="font-medium">{vehicleData.drivetrain}</span>
+                        </div>
+                        <Button variant="link" className="p-0 h-auto text-primary">
+                          View all specs →
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Packages */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base">PACKAGES</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {vehicleData.packages.map((pkg, i) => (
+                        <div key={i} className="py-3 border-b last:border-b-0">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">{pkg}</span>
+                            <Button variant="link" className="p-0 h-auto text-primary text-sm">
+                              3 features →
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Inspection Tab */}
+                <TabsContent value="inspection" className="mt-0 space-y-6">
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full border-4 border-primary flex items-center justify-center">
+                      <span className="text-2xl font-bold text-primary">{vehicleData.inspectionScore}</span>
+                    </div>
+                    <h2 className="text-2xl font-bold">210-Point Inspection</h2>
+                    <p className="text-muted-foreground mt-2 max-w-md mx-auto">
+                      This vehicle has been carefully inspected and reconditioned to ensure it meets our high safety and performance standards.
+                    </p>
+                  </div>
+
+                  {/* PM Certified Badge */}
+                  <Card className="border-2 border-primary/20">
+                    <CardContent className="p-4 flex items-center gap-4">
+                      <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                        <Shield className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-semibold">PM Certified™</p>
+                        <p className="text-sm text-muted-foreground">This vehicle passed our 210-point inspection.</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Inspection Items */}
+                  <Card>
+                    <CardContent className="p-0">
+                      {vehicleData.inspectionItems.map((item, i) => (
+                        <div key={i} className="flex justify-between items-center px-4 py-3 border-b last:border-b-0">
+                          <span>{item.category}</span>
+                          <span className={`flex items-center gap-1 text-sm ${item.status === "Passed" || item.status === "No reported accidents" ? "text-primary" : "text-green-600"}`}>
+                            <Check className="w-4 h-4" />
+                            {item.status}
+                          </span>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+
+                  {/* View Complete Inspection */}
+                  <Dialog open={showInspectionModal} onOpenChange={setShowInspectionModal}>
+                    <DialogTrigger asChild>
+                      <Button variant="link" className="p-0 text-primary">
+                        View complete 210-point inspection
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <div className="flex items-center gap-2 text-sm text-primary">
+                          <Shield className="w-4 h-4" />
+                          PM CERTIFIED™
+                        </div>
+                        <DialogTitle className="text-xl">210-Point Inspection Report</DialogTitle>
+                      </DialogHeader>
+                      <div className="grid grid-cols-3 gap-3 py-4">
+                        {vehicleData.inspectionCategories.map((cat, i) => (
+                          <div key={i} className="text-center p-3 bg-muted/30 rounded-lg">
+                            <CheckCircle className="w-6 h-6 text-primary mx-auto mb-1" />
+                            <p className="text-xs font-medium">{cat.name}</p>
+                            <p className="text-xs text-muted-foreground">{cat.points} points passed</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="space-y-3">
+                        <div className="bg-muted/30 p-3 rounded-lg">
+                          <p className="font-medium text-sm mb-2">VIN & History — Items 1-10</p>
+                        </div>
+                        {vehicleData.vinHistoryItems.map((item, i) => (
+                          <div key={i} className="flex justify-between items-center py-2 border-b">
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm text-muted-foreground">{i + 1}</span>
+                              <span className="text-sm">{item.item}</span>
+                            </div>
+                            <span className="text-sm text-primary flex items-center gap-1">
+                              <Check className="w-4 h-4" />
+                              {item.status}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+
+                  {/* CARFAX */}
+                  <Card>
+                    <CardContent className="p-4 flex items-center justify-between">
+                      <Badge variant="outline" className="border-red-500 text-red-600 text-base px-3 py-1">
+                        CARFAX
+                      </Badge>
+                      <Button variant="link" className="text-primary" asChild>
+                        <Link href={vehicleData.carfaxUrl} target="_blank">
+                          View report <ExternalLink className="w-4 h-4 ml-1" />
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* Condition */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base">Condition</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {vehicleData.conditionItems.map((item, i) => (
+                        <div key={i} className="flex items-start gap-2">
+                          <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                          <span className="text-sm">{item}</span>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Pricing Tab */}
+                <TabsContent value="pricing" className="mt-0 space-y-6">
+                  <h2 className="text-2xl font-bold text-center">Price Details</h2>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Pay Over Time */}
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm text-muted-foreground">PAY OVER TIME</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-3xl font-bold">${biweeklyPayment}<span className="text-lg font-normal">/biweekly*</span></p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          *Estimated payment based on 8.99% APR for 84 months, includes $0 cash down. OAC — on approved credit. Taxes extra.
+                        </p>
+                        <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg">
+                          <p className="text-sm flex items-center gap-2">
+                            <TrendingUp className="w-4 h-4 text-amber-600" />
+                            <span className="font-medium">80% of buyers finance with us</span>
+                          </p>
+                          <p className="text-xs text-muted-foreground">Get personalized financing terms in 2 minutes — no impact to your credit score.</p>
+                        </div>
+                        <Button className="w-full mt-4" variant="outline" asChild>
+                          <Link href="/financing">Get pre-qualified</Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+
+                    {/* Pay Once */}
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm text-muted-foreground">PAY ONCE</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-3xl font-bold">${vehicleData.price.toLocaleString()}</p>
+                        <div className="flex items-center gap-2 text-sm text-green-600 mt-2">
+                          <Truck className="w-4 h-4" />
+                          Free delivery to your door · Richmond Hill
+                        </div>
+                        <div className="mt-4 space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Vehicle price</span>
+                            <span>${vehicleData.pricing.vehiclePrice.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Delivery fee</span>
+                            <span>${vehicleData.pricing.deliveryFee}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Estimated HST (13%)</span>
+                            <span>${vehicleData.pricing.hst.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">OMVIC Fee</span>
+                            <span>${vehicleData.pricing.omvicFee}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Licensing & registration</span>
+                            <span>ON ~ ${vehicleData.pricing.licensingReg}</span>
+                          </div>
+                          <div className="flex justify-between font-semibold pt-2 border-t">
+                            <span>Total (incl. HST)</span>
+                            <span>${vehicleData.pricing.totalWithHst.toLocaleString()}</span>
+                          </div>
+                        </div>
+                        <Button className="w-full mt-4">Start your purchase</Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Out the Door Price */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <DollarSign className="w-5 h-5" />
+                        Real Out-the-Door Price
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        See exactly what you&apos;ll pay — vehicle price, HST, OMVIC fee, licensing, and delivery.
+                      </p>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="flex justify-between py-2 border-b">
+                        <span>Vehicle Price</span>
+                        <span className="font-medium">${vehicleData.price.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between py-2 border-b">
+                        <span>HST (13%)</span>
+                        <span className="font-medium">${vehicleData.pricing.hst.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between py-2 border-b">
+                        <span>OMVIC Fee</span>
+                        <span className="font-medium">${vehicleData.pricing.omvicFee}</span>
+                      </div>
+                      <div className="flex justify-between py-2 border-b">
+                        <span>Certification Fee</span>
+                        <span className="font-medium">${vehicleData.pricing.certificationFee}</span>
+                      </div>
+                      <div className="flex justify-between py-2 border-b">
+                        <span>Licensing & Registration (est.)</span>
+                        <span className="font-medium">ON ~ ${vehicleData.pricing.licensingReg}</span>
+                      </div>
+                      <div className="flex justify-between py-2 border-b">
+                        <span>Delivery</span>
+                        <span className="font-medium text-green-600">$0 (Ontario)</span>
+                      </div>
+                      <div className="flex justify-between py-3 font-semibold text-lg">
+                        <span>Estimated Total</span>
+                        <span className="text-primary">${(vehicleData.pricing.totalWithHst + vehicleData.pricing.certificationFee).toLocaleString()}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Estimate only. Includes OMVIC fee, certification, and Ontario registration. Exact amounts confirmed at signing.
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  {/* No Cash Surcharge */}
+                  <Card className="bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800">
+                    <CardContent className="p-4 flex items-center gap-3">
+                      <CreditCard className="w-6 h-6 text-purple-600" />
+                      <div>
+                        <p className="font-semibold">No Cash Surcharge — Ever</p>
+                        <p className="text-sm text-muted-foreground">
+                          Planet Motors accepts debit and credit cards with zero surcharge. No gimmicks. What you see is what you pay.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Trade CTA */}
+                  <Card>
+                    <CardContent className="p-4 flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold">Sell or Trade your car</p>
+                        <p className="text-sm text-muted-foreground">Get a real offer in less than 2 minutes — sell, trade, or track your value.</p>
+                      </div>
+                      <Button variant="outline" asChild>
+                        <Link href="/trade-in">Get your offer →</Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Ratings Tab */}
+                <TabsContent value="ratings" className="mt-0 space-y-6">
+                  <h2 className="text-xl font-semibold">Our rating</h2>
+                  
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-6">
+                        <div className="text-center">
+                          <p className="text-5xl font-bold">{vehicleData.ratings.overall}</p>
+                          <p className="text-lg text-muted-foreground">/5</p>
+                          <div className="w-16 h-1 bg-primary rounded-full mt-2 mx-auto" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-muted-foreground">{vehicleData.ratings.description}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-6 space-y-3">
+                        {vehicleData.ratings.categories.map((cat, i) => (
+                          <div key={i} className="flex items-center gap-4">
+                            <span className="w-24 text-sm text-muted-foreground">{cat.name}</span>
+                            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-primary rounded-full" 
+                                style={{ width: `${(cat.score / 5) * 100}%` }}
+                              />
+                            </div>
+                            <span className="w-8 text-sm font-medium">{cat.score}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Protection Tab */}
+                <TabsContent value="protection" className="mt-0 space-y-6">
+                  <div>
+                    <h2 className="text-xl font-semibold">Protection packages</h2>
+                    <p className="text-muted-foreground mt-1">
+                      This vehicle&apos;s manufacturer warranty has expired. But don&apos;t worry, we have options for you to stay covered!
+                    </p>
+                  </div>
+                  
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left py-3 px-4 font-medium"></th>
+                          {vehicleData.protectionPackages.map((pkg, i) => (
+                            <th key={i} className={`text-center py-3 px-4 font-medium ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                              {pkg.name}
+                              {pkg.recommended && <Badge className="ml-2 bg-primary text-xs">Recommended</Badge>}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b">
+                          <td className="py-3 px-4 text-muted-foreground">Payment method</td>
+                          {vehicleData.protectionPackages.map((pkg, i) => (
+                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                              {pkg.paymentMethod}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-3 px-4 text-muted-foreground">Money back guarantee</td>
+                          {vehicleData.protectionPackages.map((pkg, i) => (
+                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                              {pkg.moneyBack ? <Check className="w-5 h-5 text-primary mx-auto" /> : "—"}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-3 px-4 text-muted-foreground">Due at checkout</td>
+                          {vehicleData.protectionPackages.map((pkg, i) => (
+                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                              {pkg.dueAtCheckout}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-3 px-4 text-muted-foreground">Warranty</td>
+                          {vehicleData.protectionPackages.map((pkg, i) => (
+                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                              {pkg.warranty !== "—" && pkg.warranty !== "Standard" ? (
+                                <span className="flex items-center justify-center gap-1 text-primary">
+                                  <Check className="w-4 h-4" /><Check className="w-4 h-4" />
+                                  {pkg.warranty}
+                                </span>
+                              ) : pkg.warranty}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-3 px-4 text-muted-foreground">Tire & rim protection</td>
+                          {vehicleData.protectionPackages.map((pkg, i) => (
+                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                              {pkg.tireRim === true ? <Check className="w-5 h-5 text-primary mx-auto" /> : pkg.tireRim}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-3 px-4 text-muted-foreground">GAP coverage</td>
+                          {vehicleData.protectionPackages.map((pkg, i) => (
+                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                              {pkg.gapCoverage}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-3 px-4 text-muted-foreground">Life & disability</td>
+                          {vehicleData.protectionPackages.map((pkg, i) => (
+                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                              {pkg.lifeDisability}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr>
+                          <td className="py-3 px-4 font-medium">Price</td>
+                          {vehicleData.protectionPackages.map((pkg, i) => (
+                            <td key={i} className={`text-center py-3 px-4 font-medium ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                              {pkg.price}
+                            </td>
+                          ))}
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              {/* Next Steps */}
+              <div className="mt-12 pt-8 border-t">
+                <h2 className="text-xl font-semibold mb-6">Next steps</h2>
+                <div className="grid grid-cols-5 gap-4">
+                  {[
+                    { step: 1, title: "Start purchase", active: true },
+                    { step: 2, title: "Enter your info", active: false },
+                    { step: 3, title: "Add protections", subtitle: "Optional", active: false },
+                    { step: 4, title: "Finance application", subtitle: "If applicable", active: false },
+                    { step: 5, title: "Get your car!", active: false }
+                  ].map((item) => (
+                    <div key={item.step} className="text-center p-4 border rounded-lg">
+                      <p className="text-2xl font-bold mb-2">{item.step}</p>
+                      <p className="font-medium text-sm">{item.title}</p>
+                      {item.subtitle && <p className="text-xs text-muted-foreground">{item.subtitle}</p>}
+                      {item.active && (
+                        <Button size="sm" className="mt-3">Start purchase</Button>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>
+
+              {/* Testimonial */}
+              <Card className="mt-8 bg-muted/30">
+                <CardContent className="p-6">
+                  <div className="flex flex-col md:flex-row gap-6">
+                    <div className="md:w-1/3">
+                      <p className="text-4xl font-bold">274+</p>
+                      <p className="text-muted-foreground">happy customers</p>
+                      <div className="mt-4">
+                        <p className="text-xs text-muted-foreground mb-2">AS SEEN ON</p>
+                        <div className="flex gap-2">
+                          <Badge variant="outline">Google</Badge>
+                          <Badge variant="outline">CarGurus</Badge>
+                          <Badge variant="outline">AutoTrader</Badge>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="md:w-2/3">
+                      <p className="text-lg italic">
+                        &ldquo;Hamza was absolutely amazing — super professional, no pressure, walked me through every step. 
+                        The car was exactly as described and delivered right to my door. Planet Motors is the real deal.&rdquo;
+                      </p>
+                      <div className="mt-4">
+                        <p className="font-semibold">Sarah K.</p>
+                        <p className="text-sm text-muted-foreground">Richmond Hill, ON • 2025-01-14</p>
+                        <div className="flex gap-0.5 mt-1">
+                          {[1,2,3,4,5].map(i => (
+                            <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
-            {/* Right Column - Pricing & Actions */}
-            <div className="space-y-6">
-              {/* Price Card */}
-              <Card className="sticky top-24 shadow-xl border-2">
-                <CardContent className="p-6">
-                  {/* Urgency Banner */}
-                  <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-amber-600" />
-                    <span className="text-sm text-amber-700 dark:text-amber-400">
-                      <span className="font-semibold">{viewCount} people</span> viewing this vehicle
-                    </span>
+            {/* Right Column - Sticky Sidebar */}
+            <div className="space-y-4">
+              <Card className="sticky top-36 shadow-lg border-2">
+                <CardContent className="p-5">
+                  {/* Views & Track Price */}
+                  <div className="flex items-center justify-between mb-3">
+                    <Badge className="bg-red-500 text-white">
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      {viewCount}+ views today
+                    </Badge>
+                    <Button variant="ghost" size="sm" className="text-muted-foreground">
+                      <Bell className="w-4 h-4 mr-1" />
+                      Track price
+                    </Button>
                   </div>
+
+                  {/* Vehicle Title */}
+                  <h2 className="text-xl font-bold">
+                    {vehicleData.year} {vehicleData.make} {vehicleData.model}
+                  </h2>
+                  <p className="text-muted-foreground text-sm">
+                    {vehicleData.trim} · {vehicleData.mileage.toLocaleString()} km
+                  </p>
 
                   {/* Price */}
-                  <div className="mb-6">
-                    {savings > 0 && (
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-lg text-muted-foreground line-through">
-                          ${vehicleData.originalPrice.toLocaleString()}
-                        </span>
-                        <Badge className="bg-red-500">Save ${savings.toLocaleString()}</Badge>
-                      </div>
-                    )}
-                    <p className="text-4xl font-bold">${vehicleData.price.toLocaleString()}</p>
-                    <p className="text-sm text-muted-foreground">+ taxes & licensing fees</p>
+                  <p className="text-3xl font-bold mt-3">${vehicleData.price.toLocaleString()}</p>
+                  <div className="flex items-center gap-2 text-sm mt-1">
+                    <span>Estimated <span className="font-semibold">${biweeklyPayment}/biweekly</span></span>
+                    <span className="text-muted-foreground">·</span>
+                    <span className="text-muted-foreground">$0 down</span>
+                    <Link href="/financing" className="text-primary hover:underline">Get your terms</Link>
                   </div>
 
-                  {/* Payment Calculator */}
-                  <div className="space-y-4 mb-6 p-4 bg-muted/30 rounded-xl border border-border">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium flex items-center gap-2">
-                        <Calculator className="h-4 w-4" />
-                        Est. Monthly Payment
-                      </span>
-                      <span className="text-2xl font-bold text-primary">${monthlyPayment}/mo</span>
+                  {/* Trust Badges */}
+                  <div className="mt-4 space-y-2">
+                    <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                      <span className="text-sm font-medium">10-Day Money Back Guarantee</span>
                     </div>
-                    
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>Down Payment</span>
-                        <span className="font-medium">${downPayment.toLocaleString()}</span>
-                      </div>
-                      <Slider
-                        value={[downPayment]}
-                        onValueChange={([v]) => setDownPayment(v)}
-                        max={vehicleData.price * 0.5}
-                        step={500}
-                      />
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>Loan Term</span>
-                        <span className="font-medium">{loanTerm} months</span>
-                      </div>
-                      <Slider
-                        value={[loanTerm]}
-                        onValueChange={([v]) => setLoanTerm(v)}
-                        min={24}
-                        max={84}
-                        step={12}
-                      />
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>Interest Rate (APR)</span>
-                        <span className="font-medium">{aprRate.toFixed(2)}%</span>
-                      </div>
-                      <Slider
-                        value={[aprRate]}
-                        onValueChange={([v]) => setAprRate(v)}
-                        min={3.99}
-                        max={12.99}
-                        step={0.1}
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                        <span>Excellent Credit</span>
-                        <span>Fair Credit</span>
-                      </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-border text-xs text-muted-foreground">
-                      <Link href="/financing" className="text-primary hover:underline">Get pre-approved</Link> to see your actual rate. Rates vary by credit profile.
+                    <div className="flex items-center gap-2 p-2 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
+                      <Lock className="w-5 h-5 text-amber-600" />
+                      <span className="text-sm font-medium">$250 Refundable Deposit</span>
                     </div>
                   </div>
 
-{/* CTA Buttons */}
-                    <div className="space-y-3">
+                  {/* CTA Buttons */}
+                  <div className="mt-4 space-y-2">
                     <ReserveVehicleModal
                       vehicle={{
                         id: vehicleData.id,
@@ -570,122 +1141,92 @@ export default function VehicleDetailPage() {
                         stockNumber: vehicleData.stockNumber
                       }}
                       trigger={
-                        <Button className="w-full h-12 text-lg" size="lg">
-                          <Lock className="h-5 w-5 mr-2" />
-                          Reserve for $250
+                        <Button className="w-full h-11 bg-red-600 hover:bg-red-700 text-white">
+                          <Lock className="w-4 h-4 mr-2" />
+                          Reserve – $250 Refundable Deposit
                         </Button>
                       }
                     />
-                    <ScheduleTestDrive 
-                      vehicleTitle={`${vehicleData.year} ${vehicleData.make} ${vehicleData.model} ${vehicleData.trim}`}
-                      vehicleId={vehicleData.id}
-                      trigger={
-                        <Button variant="outline" className="w-full h-12" size="lg">
-                          <Calendar className="h-5 w-5 mr-2" />
-                          Schedule Test Drive
-                        </Button>
-                      }
-                    />
-                    <Button variant="outline" className="w-full h-12" size="lg" asChild>
-                      <Link href="/financing">
-                        <CreditCard className="h-5 w-5 mr-2" />
-                        Get Pre-Approved
-                      </Link>
-                    </Button>
-                    <Button variant="secondary" className="w-full h-12" size="lg" asChild>
-                      <Link href="/trade-in">
-                        <Car className="h-5 w-5 mr-2" />
-                        Value Your Trade-In
-                      </Link>
+                    <Button className="w-full h-11" variant="secondary">
+                      Start full purchase
                     </Button>
                   </div>
 
-                  {/* Contact */}
-                  <div className="mt-6 pt-6 border-t flex gap-3">
-                    <Button variant="outline" className="flex-1" asChild>
-                      <Link href="tel:1-866-787-3332">
-                        <Phone className="h-4 w-4 mr-1" />
-                        Call
-                      </Link>
-                    </Button>
-                    <Button variant="outline" className="flex-1">
-                      <MessageCircle className="h-4 w-4 mr-1" />
-                      Chat
-                    </Button>
-                  </div>
-
-                  {/* Trust Badges */}
-                  <div className="mt-6 pt-6 border-t grid grid-cols-2 gap-3 text-xs text-center">
-                    <div className="p-3 bg-muted/30 rounded-lg">
-                      <Shield className="h-5 w-5 mx-auto mb-1 text-primary" />
-                      <span className="font-medium">10-Day Returns</span>
-                    </div>
-                    <div className="p-3 bg-muted/30 rounded-lg">
-                      <Truck className="h-5 w-5 mx-auto mb-1 text-primary" />
-                      <span className="font-medium">Free Delivery</span>
-                    </div>
-                    <div className="p-3 bg-muted/30 rounded-lg">
-                      <CheckCircle className="h-5 w-5 mx-auto mb-1 text-green-500" />
-                      <span className="font-medium">210-Point Inspected</span>
-                    </div>
-                    <div className="p-3 bg-muted/30 rounded-lg">
-                      <Award className="h-5 w-5 mx-auto mb-1 text-primary" />
-                      <span className="font-medium">OMVIC Licensed</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Location Card */}
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                      <MapPin className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-semibold">Planet Motors</p>
-                      <p className="text-sm text-muted-foreground">
-                        30 Major Mackenzie Dr E<br />
-                        Richmond Hill, ON L4C 1G7
-                      </p>
-                      <Button variant="link" className="px-0 h-auto mt-1" asChild>
-                        <Link href="/schedule">
-                          Schedule Test Drive
-                          <ArrowRight className="w-3 h-3 ml-1" />
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Comparison CTA */}
-              <Card className="bg-primary/5 border-primary/20">
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-2">Compare Before You Buy</h3>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    See how Planet Motors beats the competition on price, inspection, and service.
+                  <p className="text-xs text-center text-muted-foreground mt-2">
+                    Excl. HST & Licensing · Incl. OMVIC Fee
                   </p>
-                  <Button variant="outline" className="w-full" asChild>
-                    <Link href="/compare">
-                      View Comparison
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Link>
-                  </Button>
+
+                  {/* Action Buttons */}
+                  <div className="flex justify-center gap-4 mt-4 pt-4 border-t">
+                    <Button variant="ghost" size="sm">
+                      <Share2 className="w-4 h-4 mr-1" />
+                      Share
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => setIsFavorite(!isFavorite)}
+                      className={isFavorite ? "text-red-500" : ""}
+                    >
+                      <Heart className={`w-4 h-4 mr-1 ${isFavorite ? "fill-current" : ""}`} />
+                      Save
+                    </Button>
+                    <Button variant="ghost" size="sm">
+                      <Bell className="w-4 h-4 mr-1" />
+                      Notify
+                    </Button>
+                  </div>
+
+                  {/* CARFAX */}
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                    <Badge variant="outline" className="border-red-500 text-red-600">CARFAX</Badge>
+                    <Button variant="link" className="text-primary p-0 h-auto" asChild>
+                      <Link href={vehicleData.carfaxUrl} target="_blank">
+                        View report <ExternalLink className="w-3 h-3 ml-1" />
+                      </Link>
+                    </Button>
+                  </div>
+
+                  {/* Delivery Calculator */}
+                  <div className="mt-4 pt-4 border-t">
+                    <p className="font-medium text-sm flex items-center gap-2 mb-2">
+                      <Truck className="w-4 h-4" />
+                      Delivery Calculator
+                    </p>
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="Enter postal code (e.g. L4C 1G7)" 
+                        value={postalCode}
+                        onChange={(e) => setPostalCode(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button variant="secondary" size="sm">Check</Button>
+                    </div>
+                  </div>
+
+                  {/* Phone */}
+                  <div className="mt-4 pt-4 border-t text-center">
+                    <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+                      <Phone className="w-4 h-4" />
+                      Questions? <Link href="tel:416-985-2277" className="font-semibold text-foreground">416-985-2277</Link>
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </div>
           </div>
         </div>
-      </main>
 
-      {/* Similar Vehicles Section */}
-      <SimilarVehicles 
-        currentVehicleId={vehicleData.id}
-        make={vehicleData.make}
-        priceRange={vehicleData.price}
-      />
+        {/* Similar Vehicles */}
+        <div className="container mx-auto px-4 py-8 border-t">
+          <h2 className="text-xl font-semibold mb-4">Other cars you might like</h2>
+          <SimilarVehicles 
+            currentVehicleId={vehicleData.id}
+            make={vehicleData.make}
+            priceRange={vehicleData.price}
+          />
+        </div>
+      </main>
 
       <Footer />
     </div>
