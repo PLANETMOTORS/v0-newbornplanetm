@@ -33,6 +33,7 @@ const navigation = [
     href: "/about",
     submenu: [
       { name: "About Us", href: "/about" },
+      { name: "Blog & Media", href: "/blog" },
       { name: "FAQ", href: "/faq" },
       { name: "Contact", href: "/contact" },
     ]
