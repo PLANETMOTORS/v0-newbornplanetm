@@ -1,4 +1,5 @@
-import type { Metadata } from "next"
+"use client"
+
 import Link from "next/link"
 import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin, TrendingUp, Award, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -9,17 +10,6 @@ import { VehicleShowcase } from "@/components/vehicle-showcase"
 import { HowItWorks } from "@/components/how-it-works"
 import { TrustBadges } from "@/components/trust-badges"
 import { LiveChatWidget } from "@/components/live-chat-widget"
-
-export const metadata: Metadata = {
-  title: "Planet Motors | Canada's #1 Online Used Car Dealer",
-  description: "Shop 9,500+ certified pre-owned vehicles with free nationwide delivery. 210-point inspection, 10-day money-back guarantee, and financing from 4.79% APR. OMVIC registered dealer in Richmond Hill, Ontario.",
-  keywords: "used cars Canada, certified pre-owned, EV battery certified, free delivery, OMVIC dealer, Richmond Hill",
-  openGraph: {
-    title: "Planet Motors | Canada's #1 Online Used Car Dealer",
-    description: "Shop 9,500+ certified pre-owned vehicles with free nationwide delivery across Canada.",
-    type: "website",
-  },
-}
 
 const stats = [
   { value: "9,500+", label: "Vehicles in Stock", trend: "+124 this week" },
