@@ -7,38 +7,43 @@ import { Button } from "@/components/ui/button"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 
 const navigation = [
-  { name: "Inventory", href: "/inventory" },
+  { name: "Home", href: "/" },
   { 
-    name: "Buy",
-    href: "/how-it-works",
+    name: "Shop Inventory",
+    href: "/inventory",
     submenu: [
+      { name: "All Vehicles", href: "/inventory" },
+      { name: "Electric Vehicles", href: "/inventory?fuelType=Electric" },
+      { name: "SUVs & Crossovers", href: "/inventory?bodyType=SUV" },
+      { name: "Sedans", href: "/inventory?bodyType=Sedan" },
+      { name: "Trucks", href: "/inventory?bodyType=Truck" },
+    ]
+  },
+  { name: "Sell or Trade", href: "/trade-in" },
+  { 
+    name: "Finance",
+    href: "/financing",
+    submenu: [
+      { name: "Get Pre-Approved", href: "/financing" },
+      { name: "Financing Calculator", href: "/financing#calculator" },
       { name: "How It Works", href: "/how-it-works" },
-      { name: "360 Viewer", href: "/viewer" },
-      { name: "Compare Vehicles", href: "/compare" },
-      { name: "Financing", href: "/financing" },
       { name: "Delivery", href: "/delivery" },
     ]
   },
-  { name: "Sell/Trade", href: "/trade-in" },
   { 
-    name: "Protection", 
-    href: "/protection-plans",
+    name: "More",
+    href: "/about",
     submenu: [
+      { name: "About", href: "/about" },
+      { name: "Car Value Calculator", href: "/trade-in" },
       { name: "Protection Plans", href: "/protection-plans" },
-      { name: "Warranty Info", href: "/warranty" },
+      { name: "FAQ", href: "/faq" },
+      { name: "Careers", href: "/careers" },
+      { name: "Contact Us", href: "/contact" },
+      { name: "Blog", href: "/blog" },
     ]
   },
   { name: "EV Battery", href: "/ev-battery-health" },
-  { 
-    name: "Resources",
-    href: "/about",
-    submenu: [
-      { name: "About Us", href: "/about" },
-      { name: "Blog & Media", href: "/blog" },
-      { name: "FAQ", href: "/faq" },
-      { name: "Contact", href: "/contact" },
-    ]
-  },
 ]
 
 export function Header() {
