@@ -1,6 +1,7 @@
 import Link from "next/link"
-import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin } from "lucide-react"
+import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin, TrendingUp, Award, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { VehicleShowcase } from "@/components/vehicle-showcase"
@@ -9,10 +10,10 @@ import { TrustBadges } from "@/components/trust-badges"
 import { ComparisonTable } from "@/components/comparison-table"
 
 const stats = [
-  { value: "9,500+", label: "Vehicles in Stock" },
-  { value: "210", label: "Point Inspection" },
-  { value: "10-Day", label: "Money Back Guarantee" },
-  { value: "6", label: "Lending Partners" },
+  { value: "9,500+", label: "Vehicles in Stock", trend: "+124 this week" },
+  { value: "210", label: "Point Inspection", trend: "60 more than competitors" },
+  { value: "10-Day", label: "Money Back Guarantee", trend: "No questions asked" },
+  { value: "4.79%", label: "Lowest APR Rate", trend: "2% lower than Clutch" },
 ]
 
 const features = [
@@ -129,12 +130,16 @@ export default function HomePage() {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative pt-8 pb-16 lg:pt-16 lg:pb-24">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+      <section className="relative pt-8 pb-16 lg:pt-16 lg:pb-24 overflow-hidden">
+        {/* Background gradient effect */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+        
+        <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
           {/* Trust badges */}
-          <div className="flex flex-wrap justify-center gap-6 mb-12">
+          <div className="flex flex-wrap justify-center gap-4 md:gap-6 mb-12">
             {trustBadges.map((badge) => (
-              <div key={badge.label} className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div key={badge.label} className="flex items-center gap-2 px-3 py-1.5 bg-card rounded-full border border-border text-sm text-muted-foreground shadow-sm">
                 <badge.icon className="w-4 h-4 text-primary" />
                 <span>{badge.label}</span>
               </div>
@@ -143,13 +148,23 @@ export default function HomePage() {
 
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent/10 text-accent rounded-full text-sm font-medium mb-6">
-                <Zap className="w-4 h-4" />
-                <span>31 vehicles available now</span>
+              {/* Live inventory badge */}
+              <div className="inline-flex items-center gap-3 px-4 py-2 bg-card border border-border rounded-full text-sm font-medium mb-6 shadow-sm">
+                <span className="flex items-center gap-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                  </span>
+                  <span className="text-green-600 font-semibold">124 new arrivals</span>
+                </span>
+                <span className="w-px h-4 bg-border" />
+                <span className="text-muted-foreground">Updated 2 min ago</span>
               </div>
               
-              <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-balance leading-tight">
-                Buy or Sell Your Car Online
+              <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-balance leading-[1.1]">
+                The Smarter Way to{" "}
+                <span className="text-primary">Buy or Sell</span>{" "}
+                Your Car
               </h1>
               <p className="mt-6 text-lg text-muted-foreground leading-relaxed max-w-xl">
                 Ontario&apos;s trusted destination for premium pre-owned vehicles. 210-point inspection, 10-day money-back guarantee, and the best multi-lender financing rates.
@@ -226,14 +241,23 @@ export default function HomePage() {
           </div>
 
           {/* Stats */}
-          <div className="mt-20 grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center p-6 bg-card rounded-xl border border-border">
-                <div className="font-serif text-3xl md:text-4xl font-semibold text-primary">
+          <div className="mt-20 grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {stats.map((stat, index) => (
+              <div 
+                key={stat.label} 
+                className="relative group text-center p-6 bg-card rounded-2xl border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300"
+              >
+                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <TrendingUp className="w-4 h-4 text-green-500" />
+                </div>
+                <div className="font-serif text-3xl md:text-4xl font-bold text-primary">
                   {stat.value}
                 </div>
-                <div className="mt-2 text-sm text-muted-foreground">
+                <div className="mt-2 text-sm font-medium text-foreground">
                   {stat.label}
+                </div>
+                <div className="mt-1 text-xs text-green-600 font-medium">
+                  {stat.trend}
                 </div>
               </div>
             ))}
@@ -242,46 +266,84 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 lg:py-28 bg-card">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+      <section className="py-20 lg:py-28 bg-card relative overflow-hidden">
+        {/* Background pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px] pointer-events-none" />
+        
+        <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
+            <Badge variant="outline" className="mb-4 px-4 py-1">
+              <Award className="w-3 h-3 mr-1" />
+              Industry-Leading Features
+            </Badge>
             <h2 className="font-serif text-3xl md:text-4xl font-semibold">
-              Why Choose Planet Motors
+              Why Planet Motors Wins
             </h2>
             <p className="mt-4 text-muted-foreground">
-              We outperform Clutch and Carvana on the metrics that matter most to Canadian car buyers.
+              60 more inspection points than Clutch. Better rates than Carvana. EV expertise no one else offers.
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((feature) => (
+            {features.map((feature, index) => (
               <div
                 key={feature.title}
-                className="bg-background rounded-xl p-6 border border-border hover:shadow-lg hover:border-primary/20 transition-all"
+                className="group relative bg-background rounded-2xl p-6 border border-border hover:shadow-xl hover:border-primary/30 hover:-translate-y-1 transition-all duration-300"
               >
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                  <feature.icon className="w-6 h-6 text-primary" />
+                {/* Gradient hover effect */}
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                
+                <div className="relative">
+                  <div className="w-14 h-14 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                    <feature.icon className="w-7 h-7 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-lg mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    {feature.description}
+                  </p>
                 </div>
-                <h3 className="font-semibold text-lg mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  {feature.description}
-                </p>
               </div>
             ))}
           </div>
 
           {/* Comparison callout */}
-          <div className="mt-12 p-6 bg-primary/5 rounded-2xl border border-primary/20">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              <div>
-                <h3 className="font-semibold text-lg">Planet Motors vs Competition</h3>
-                <p className="text-muted-foreground text-sm mt-1">
-                  See how we stack up against Clutch.ca and Carvana on features, pricing, and service.
-                </p>
+          <div className="mt-16 p-8 bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 rounded-3xl border border-primary/20 shadow-lg">
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center">
+                  <Sparkles className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-xl">See the Full Comparison</h3>
+                  <p className="text-muted-foreground mt-1">
+                    Planet Motors beats Clutch.ca and Carvana in 8 of 12 key categories
+                  </p>
+                </div>
               </div>
-              <Button variant="outline" asChild>
-                <Link href="/blueprints/enterprise">View Comparison</Link>
-              </Button>
+              <div className="flex items-center gap-4">
+                <div className="hidden md:flex items-center gap-3 text-sm">
+                  <div className="flex items-center gap-1 text-green-600">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>210 Inspection Points</span>
+                  </div>
+                  <div className="w-px h-4 bg-border" />
+                  <div className="flex items-center gap-1 text-green-600">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>6 Lenders</span>
+                  </div>
+                  <div className="w-px h-4 bg-border" />
+                  <div className="flex items-center gap-1 text-green-600">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>4.79% APR</span>
+                  </div>
+                </div>
+                <Button asChild>
+                  <Link href="#comparison">
+                    View Comparison
+                    <ArrowRight className="ml-2 w-4 h-4" />
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -445,7 +507,9 @@ export default function HomePage() {
       <TrustBadges />
 
       {/* Comparison Table */}
-      <ComparisonTable />
+      <div id="comparison">
+        <ComparisonTable />
+      </div>
 
       <Footer />
     </div>
