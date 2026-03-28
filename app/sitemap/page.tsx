@@ -133,29 +133,7 @@ export default function SitemapPage() {
               ))}
             </div>
             
-            <div className="mt-16 pt-8 border-t">
-              <h2 className="font-semibold text-lg mb-4">Technical Documentation</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Link 
-                  href="/blueprints"
-                  className="text-muted-foreground hover:text-primary transition-colors text-sm"
-                >
-                  Technical Blueprints
-                </Link>
-                <Link 
-                  href="/blueprints/technical"
-                  className="text-muted-foreground hover:text-primary transition-colors text-sm"
-                >
-                  Architecture Documentation
-                </Link>
-                <Link 
-                  href="/blueprints/enterprise"
-                  className="text-muted-foreground hover:text-primary transition-colors text-sm"
-                >
-                  Enterprise Features
-                </Link>
-              </div>
-            </div>
+            
           </div>
         </div>
       </main>
