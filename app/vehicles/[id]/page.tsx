@@ -20,6 +20,7 @@ import {
 } from "lucide-react"
 import { ScheduleTestDrive } from "@/components/schedule-test-drive"
 import { SimilarVehicles } from "@/components/similar-vehicles"
+import { ReserveVehicleModal } from "@/components/reserve-vehicle-modal"
 
 // Mock vehicle data
 const vehicleData = {
@@ -536,12 +537,26 @@ export default function VehicleDetailPage() {
                     </div>
                   </div>
 
-                  {/* CTA Buttons */}
-                  <div className="space-y-3">
-                    <Button className="w-full h-12 text-lg" size="lg">
-                      <Lock className="h-5 w-5 mr-2" />
-                      Reserve for $250
-                    </Button>
+{/* CTA Buttons */}
+                    <div className="space-y-3">
+                    <ReserveVehicleModal
+                      vehicle={{
+                        id: vehicleData.id,
+                        year: vehicleData.year,
+                        make: vehicleData.make,
+                        model: vehicleData.model,
+                        trim: vehicleData.trim,
+                        price: vehicleData.price,
+                        image: vehicleData.images[0],
+                        stockNumber: vehicleData.stockNumber
+                      }}
+                      trigger={
+                        <Button className="w-full h-12 text-lg" size="lg">
+                          <Lock className="h-5 w-5 mr-2" />
+                          Reserve for $250
+                        </Button>
+                      }
+                    />
                     <ScheduleTestDrive 
                       vehicleTitle={`${vehicleData.year} ${vehicleData.make} ${vehicleData.model} ${vehicleData.trim}`}
                       vehicleId={vehicleData.id}
@@ -552,9 +567,11 @@ export default function VehicleDetailPage() {
                         </Button>
                       }
                     />
-                    <Button variant="outline" className="w-full h-12" size="lg">
-                      <CreditCard className="h-5 w-5 mr-2" />
-                      Get Pre-Approved
+                    <Button variant="outline" className="w-full h-12" size="lg" asChild>
+                      <Link href="/financing">
+                        <CreditCard className="h-5 w-5 mr-2" />
+                        Get Pre-Approved
+                      </Link>
                     </Button>
                     <Button variant="secondary" className="w-full h-12" size="lg" asChild>
                       <Link href="/trade-in">
