@@ -62,7 +62,7 @@ export function Header() {
     <>
       {/* Top bar with contact info */}
       <div className={`bg-primary text-primary-foreground text-sm transition-all duration-300 ${scrolled ? "hidden" : "block"}`}>
-        <div className="mx-auto max-w-7xl px-6 lg:px-8 flex flex-wrap items-center justify-between gap-2 py-2">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-2 py-2">
           <div className="flex items-center gap-4 sm:gap-6">
             <a 
               href="tel:1-866-797-3332" 
@@ -93,7 +93,7 @@ export function Header() {
 
       {/* Main header */}
       <header className={`sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border transition-shadow duration-300 ${scrolled ? "shadow-sm" : ""}`}>
-        <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3 lg:px-8">
+        <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-3 lg:px-8">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
             <PlanetMotorsLogo size={scrolled ? "sm" : "md"} showTagline={!scrolled} />

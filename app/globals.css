@@ -133,8 +133,8 @@
     overflow-x: hidden;
   }
   
-  /* Touch target sizes for mobile */
-  button, a, [role="button"] {
+  /* Touch target sizes for mobile - only for primary interactive elements */
+  .touch-target {
     min-height: 44px;
     min-width: 44px;
   }
@@ -190,4 +190,23 @@
 /* Smooth scroll */
 html {
   scroll-behavior: smooth;
+}
+
+/* Hide scrollbar but allow scrolling */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile-friendly button sizes - exclude inline elements */
+@layer base {
+  button:not(.inline-btn), 
+  a:not(.inline-link), 
+  [role="button"]:not(.inline-btn) {
+    min-height: auto;
+    min-width: auto;
+  }
 }
