@@ -9,6 +9,14 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@stripe/react-stripe-js": "^3.6.1",
+    "@stripe/stripe-js": "^7.5.0",
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.49.4",
+    "@upstash/redis": "^1.35.0",
+    "nuqs": "^2.4.1",
+    "stripe": "^18.1.0",
+    "typesense": "^2.2.0",
     "@hookform/resolvers": "^3.9.1",
     "@vercel/analytics": "1.6.1",
     "@radix-ui/react-accordion": "1.2.12",

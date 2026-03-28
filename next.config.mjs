@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - cache version 2
+  // Next.js 16 features
+  experimental: {
+    ppr: true, // Partial Prerendering
+    reactCompiler: true, // React 19 Compiler
+  },
+  // Force clean build - cache version 3
   cleanDistDir: true,
   typescript: {
     ignoreBuildErrors: true,
