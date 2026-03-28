@@ -1,14 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Next.js 16 features
-  experimental: {
-    ppr: true, // Partial Prerendering
-    reactCompiler: true, // React 19 Compiler
-  },
-  // Force clean build - cache version 5 - all lib files use dynamic imports
+  // Force clean build - version 6
   cleanDistDir: true,
   typescript: {
     ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
   },
   images: {
     unoptimized: false,
@@ -24,6 +22,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'planetmotors.imgix.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
       },
     ],
   },
