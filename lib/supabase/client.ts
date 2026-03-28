@@ -1,28 +1,16 @@
-type SupabaseClient = Awaited<ReturnType<typeof import('@supabase/ssr')['createBrowserClient']>>
+'use client'
 
-let client: SupabaseClient | null = null
+import { createBrowserClient } from '@supabase/ssr'
 
-export async function createClient(): Promise<SupabaseClient> {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    throw new Error('Supabase environment variables are not configured. Please connect Supabase in Settings.')
+export function createClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      'Missing Supabase environment variables. Please connect Supabase in Settings.'
+    )
   }
 
-  if (client) return client
-
-  const { createBrowserClient } = await import('@supabase/ssr')
-  
-  client = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  )
-
-  return client
-}
-
-export async function getSupabaseClient(): Promise<SupabaseClient | null> {
-  try {
-    return await createClient()
-  } catch {
-    return null
-  }
+  return createBrowserClient(supabaseUrl, supabaseAnonKey)
 }
