@@ -21,13 +21,12 @@ export function PlanetMotorsLogo({
   const { width, height } = sizes[size]
 
   return (
-    <div className={`flex items-center ${className}`}>
+    <div className={`flex items-center ${className}`} style={{ maxWidth: width, maxHeight: height }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Planet-Motors---Logo-Final%20Transp%20Back-ACl8Kr3pqlFeUI0w4UbtxQB8tQCt9R.jpeg"
         alt="Planet Motors - Fairness Integrity"
-        className="object-contain"
-        style={{ maxWidth: width, maxHeight: height, width: 'auto', height: 'auto' }}
+        className="object-contain w-full h-full"
       />
     </div>
   )

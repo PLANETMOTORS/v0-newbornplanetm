@@ -1,7 +1,6 @@
 "use client"
 
 // Planet Motors Homepage - OMVIC Licensed Dealer #4048307
-import { LiveChatWidget } from "@/components/live-chat-widget"
 import Link from "next/link"
 import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin, TrendingUp, Award, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -510,7 +509,6 @@ export default function HomePage() {
       <TrustBadges />
       
       <Footer />
-      <LiveChatWidget />
     </div>
   )
 }
