@@ -90,25 +90,27 @@ CREATE TABLE customers (
 CREATE INDEX idx_customers_email ON customers(email);
 ```
 
-## 1.3 Inspections Table
+## 1.3 Inspections Table (210-Point)
 
 ```sql
 CREATE TABLE inspections (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  vehicle_id UUID NOT NULL REFERENCES vehicles(id),
-  inspector_id UUID REFERENCES employees(id),
-  
-  -- Scoring
-  inspection_date DATE NOT NULL,
-  total_points INTEGER DEFAULT 210,
-  passed_points INTEGER NOT NULL,
-  failed_points INTEGER DEFAULT 0,
-  percentage DECIMAL(5,2) GENERATED ALWAYS AS (passed_points::DECIMAL / total_points * 100) STORED,
-  overall_status VARCHAR(20) DEFAULT 'passed',
-  
-  -- Metadata
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    vehicle_id UUID NOT NULL REFERENCES vehicles(id),
+    inspector_name VARCHAR(100) NOT NULL,
+    inspection_date DATE NOT NULL,
+    
+    -- Scoring
+    total_points INTEGER DEFAULT 210,
+    passed_points INTEGER NOT NULL,
+    pass_rate DECIMAL(5,2) GENERATED ALWAYS AS (passed_points::DECIMAL / total_points * 100) STORED,
+    overall_status VARCHAR(20) DEFAULT 'passed',
+    
+    -- Notes
+    notes TEXT,
+    
+    -- Metadata
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_inspections_vehicle ON inspections(vehicle_id);
@@ -118,19 +120,16 @@ CREATE INDEX idx_inspections_vehicle ON inspections(vehicle_id);
 
 ```sql
 CREATE TABLE inspection_items (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  inspection_id UUID NOT NULL REFERENCES inspections(id),
-  
-  -- Item Details
-  item_name VARCHAR(200) NOT NULL,
-  item_description TEXT,
-  status VARCHAR(20) NOT NULL, -- 'pass', 'fail', 'repaired', 'replaced'
-  notes TEXT,
-  photo_url VARCHAR(500),
-  display_order INTEGER DEFAULT 0,
-  
-  -- Metadata
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    inspection_id UUID NOT NULL REFERENCES inspections(id),
+    category VARCHAR(50) NOT NULL,
+    item_name VARCHAR(100) NOT NULL,
+    item_description TEXT,
+    status VARCHAR(20) NOT NULL,  -- 'pass', 'fail', 'repaired', 'replaced'
+    notes TEXT,
+    photo_url VARCHAR(500),
+    display_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_inspection_items_inspection ON inspection_items(inspection_id);
