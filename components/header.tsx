@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 
 const navigation = [
-  { name: "Home", href: "/" },
   { 
     name: "Shop Inventory",
     href: "/inventory",
