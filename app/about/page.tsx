@@ -170,7 +170,7 @@ export default function AboutPage() {
                       Canada
                     </address>
                     <div className="space-y-2 text-sm">
-                      <p><strong>Toll-Free:</strong> 1-866-787-3332</p>
+                      <p><strong>Toll-Free:</strong> 1-866-797-3332</p>
                       <p><strong>Local:</strong> 416-985-2277</p>
                       <p><strong>Email:</strong> info@planetmotors.ca</p>
                     </div>

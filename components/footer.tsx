@@ -48,11 +48,11 @@ export function Footer() {
             
             <div className="space-y-3">
               <a 
-                href="tel:1-866-787-3332" 
+                href="tel:1-866-797-3332" 
                 className="flex items-center gap-3 text-sm text-background/70 hover:text-background transition-colors"
               >
                 <Phone className="w-4 h-4" />
-                <span>1-866-787-3332 (Toll Free)</span>
+                <span>1-866-797-3332 (Toll Free)</span>
               </a>
               <a 
                 href="tel:416-985-2277" 

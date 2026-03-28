@@ -60,11 +60,11 @@ export function Header() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8 flex flex-wrap items-center justify-between gap-2 py-2">
           <div className="flex items-center gap-4 sm:gap-6">
             <a 
-              href="tel:1-866-787-3332" 
+              href="tel:1-866-797-3332" 
               className="flex items-center gap-1.5 hover:text-primary-foreground/80 transition-colors"
             >
               <Phone className="w-3.5 h-3.5" />
-              <span className="font-medium">1-866-787-3332</span>
+              <span className="font-medium">1-866-797-3332</span>
             </a>
             <a 
               href="tel:416-985-2277" 
