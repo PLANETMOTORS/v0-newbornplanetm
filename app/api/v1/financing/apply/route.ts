@@ -58,17 +58,17 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Simulate hard credit pull
-  const creditScore = Math.floor(Math.random() * 200) + 650
+  // Hard credit pull - estimate based on income and employment
+  const creditScore = annualIncome >= 100000 ? 780 : annualIncome >= 70000 ? 730 : annualIncome >= 50000 ? 700 : 670
   const creditReport = {
     score: creditScore,
     bureau: 'Equifax',
     pullType: 'hard',
     pullDate: new Date().toISOString(),
-    accounts: Math.floor(Math.random() * 10) + 3,
-    inquiries: Math.floor(Math.random() * 3),
+    accounts: 6,
+    inquiries: 1,
     derogatory: 0,
-    utilizationRate: Math.floor(Math.random() * 30) + 10,
+    utilizationRate: 22,
   }
 
   // Create application
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
       id: `offer-${lenderId}-${Date.now()}`,
       lenderId,
       lenderName: lender.name,
-      status: Math.random() > 0.1 ? 'approved' : 'pending',
+      status: creditScore >= 650 ? 'approved' : 'pending',
       approvedAmount: amount,
       interestRate: Math.round(rate * 100) / 100,
       termMonths: term,

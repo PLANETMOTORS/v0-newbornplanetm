@@ -368,10 +368,13 @@ export default function VehicleDetailPage() {
     }
   }
 
-  // Simulate live viewing count
+  // Simulate live viewing count with deterministic pattern
   useEffect(() => {
+    let tick = 0
     const interval = setInterval(() => {
-      setViewCount(prev => Math.max(50, prev + Math.floor(Math.random() * 3) - 1))
+      tick++
+      const change = (tick % 3) - 1 // cycles: -1, 0, 1
+      setViewCount(prev => Math.max(50, Math.min(70, prev + change)))
     }, 8000)
     return () => clearInterval(interval)
   }, [])

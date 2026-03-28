@@ -210,7 +210,7 @@ export async function GET(
   }
 
   // Track view (would normally update database)
-  const viewCount = Math.floor(Math.random() * 50) + 10
+  const viewCount = 47
 
   return NextResponse.json({
     success: true,
@@ -218,7 +218,7 @@ export async function GET(
       vehicle,
       meta: {
         viewCount,
-        viewingNow: Math.floor(Math.random() * 5) + 1,
+        viewingNow: 3,
         lastViewed: new Date().toISOString(),
         similarCount: 12,
       },

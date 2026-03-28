@@ -64,7 +64,15 @@ export default function TradeInPage() {
   const [calculationProgress, setCalculationProgress] = useState(0)
   
   // Vehicle details
-  const [foundVehicle, setFoundVehicle] = useState<any>(null)
+  const [foundVehicle, setFoundVehicle] = useState<{
+    year: number
+    make: string
+    model: string
+    trim: string
+    vin: string
+    estimatedMileage: string
+    color: string
+  } | null>(null)
   const [selectedYear, setSelectedYear] = useState("")
   const [selectedMake, setSelectedMake] = useState("")
   const [selectedModel, setSelectedModel] = useState("")
@@ -88,7 +96,20 @@ export default function TradeInPage() {
   const [postalCode, setPostalCode] = useState("")
   
   // Offer
-  const [offer, setOffer] = useState<any>(null)
+  interface TradeInOffer {
+    offerNumber: string
+    vehicle: string
+    mileage: string
+    condition: string
+    cbbValue: { low: number; mid: number; high: number }
+    adjustments: Array<{ reason: string; amount: number } | false>
+    offerAmount: number
+    payoff: number
+    equity: number
+    validUntil: string
+    comparison: { privateSale: number; dealerTrade: number }
+  }
+  const [offer, setOffer] = useState<TradeInOffer | null>(null)
 
   const handlePlateLookup = async () => {
     setIsLookingUp(true)
@@ -375,7 +396,7 @@ export default function TradeInPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <Tabs value={lookupMethod} onValueChange={(v) => setLookupMethod(v as any)}>
+                      <Tabs value={lookupMethod} onValueChange={(v: "plate" | "vin" | "manual") => setLookupMethod(v)}>
                         <TabsList className="grid w-full grid-cols-3 mb-6">
                           <TabsTrigger value="plate">License Plate</TabsTrigger>
                           <TabsTrigger value="vin">VIN Number</TabsTrigger>

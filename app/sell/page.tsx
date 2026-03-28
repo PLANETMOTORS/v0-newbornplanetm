@@ -131,10 +131,13 @@ export default function SellYourCarPage() {
   const [hasLien, setHasLien] = useState(false)
   const [payoffAmount, setPayoffAmount] = useState("")
 
-  // Simulate live viewers
+  // Simulate live viewers with deterministic pattern
   useEffect(() => {
+    let tick = 0
     const interval = setInterval(() => {
-      setLiveViewers(prev => prev + Math.floor(Math.random() * 5) - 2)
+      tick++
+      const change = (tick % 5) - 2 // cycles: -2, -1, 0, 1, 2
+      setLiveViewers(prev => Math.max(20, Math.min(40, prev + change)))
     }, 8000)
     return () => clearInterval(interval)
   }, [])
@@ -319,7 +322,7 @@ export default function SellYourCarPage() {
                     <CardContent className="p-6">
                       {step === 1 && (
                         <div className="space-y-5">
-                          <Tabs value={lookupMethod} onValueChange={(v) => setLookupMethod(v as any)}>
+                          <Tabs value={lookupMethod} onValueChange={(v: "plate" | "vin" | "manual") => setLookupMethod(v)}>
                             <TabsList className="grid w-full grid-cols-3 mb-4">
                               <TabsTrigger value="plate" className="text-xs sm:text-sm">License Plate</TabsTrigger>
                               <TabsTrigger value="vin" className="text-xs sm:text-sm">VIN Number</TabsTrigger>

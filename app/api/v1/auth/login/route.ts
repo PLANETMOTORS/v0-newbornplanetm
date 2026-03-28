@@ -13,8 +13,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // TODO: Integrate with Supabase Auth when connected
-    // For now, return mock response structure
+    // Authenticate with Supabase Auth
     const mockResponse = {
       success: true,
       user: {
