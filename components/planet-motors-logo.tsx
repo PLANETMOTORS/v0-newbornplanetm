@@ -1,5 +1,7 @@
 "use client"
 
+import Image from "next/image"
+
 interface PlanetMotorsLogoProps {
   className?: string
   showTagline?: boolean
@@ -21,13 +23,14 @@ export function PlanetMotorsLogo({
   const { width, height } = sizes[size]
 
   return (
-    <div className={`flex items-center ${className}`} style={{ maxWidth: width, maxHeight: height }}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+    <div className={`flex items-center ${className}`}>
+      <Image
         src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Planet-Motors---Logo-Final%20Transp%20Back-ACl8Kr3pqlFeUI0w4UbtxQB8tQCt9R.jpeg"
         alt="Planet Motors - Fairness Integrity"
+        width={width}
+        height={height}
         className="object-contain"
-        style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%' }}
+        priority
       />
     </div>
   )
