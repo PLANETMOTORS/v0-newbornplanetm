@@ -12,14 +12,19 @@ import { Truck, MapPin, Clock, CheckCircle, Calculator, Info } from "lucide-reac
 // Planet Motors shipping location: L4C 1G7, Richmond Hill, Ontario
 const ORIGIN_POSTAL_CODE = "L4C1G7"
 
-// Delivery pricing tiers based on distance from Richmond Hill, ON
+// Delivery pricing tiers based on distance from Richmond Hill, ON (L4C 1G7)
+// Updated transportation rules:
+// 0-300 km: FREE
+// 301-499 km: $0.70/km
+// 500-999 km: $0.75/km
+// 1000-2000 km: $0.80/km
+// 2001-5000 km: $0.65/km (bulk rate for long distance)
 const DELIVERY_TIERS = [
-  { maxKm: 300, cost: 0, label: "FREE" },
-  { maxKm: 499, costPerKm: 0.70, label: "$0.70/km" },
-  { maxKm: 999, costPerKm: 0.75, label: "$0.75/km" },
-  { maxKm: 2000, costPerKm: 0.80, label: "$0.80/km" },
-  { maxKm: 5000, costPerKm: 0.85, label: "$0.85/km" },
-  { maxKm: Infinity, costPerKm: 0.90, label: "$0.90/km" }
+  { minKm: 0, maxKm: 300, cost: 0, label: "FREE" },
+  { minKm: 301, maxKm: 499, costPerKm: 0.70, label: "$0.70/km" },
+  { minKm: 500, maxKm: 999, costPerKm: 0.75, label: "$0.75/km" },
+  { minKm: 1000, maxKm: 2000, costPerKm: 0.80, label: "$0.80/km" },
+  { minKm: 2001, maxKm: 5000, costPerKm: 0.65, label: "$0.65/km" }
 ]
 
 // Sample city distances from Richmond Hill (for demo purposes)
@@ -94,14 +99,19 @@ export default function DeliveryPage() {
       // Calculate cost based on tier
       let cost = 0
       for (const tier of DELIVERY_TIERS) {
-        if (distance <= tier.maxKm) {
+        if (distance >= tier.minKm && distance <= tier.maxKm) {
           if (tier.cost !== undefined) {
             cost = tier.cost
           } else if (tier.costPerKm) {
+            // Cost is calculated on the distance beyond the free zone
             cost = Math.round(distance * tier.costPerKm)
           }
           break
         }
+      }
+      // If distance exceeds 5000km, use the highest tier rate
+      if (distance > 5000) {
+        cost = Math.round(distance * 0.65)
       }
 
       // Estimate delivery days
@@ -240,18 +250,17 @@ export default function DeliveryPage() {
             <div className="max-w-4xl mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[
-                  { range: "0 - 300 km", price: "FREE", examples: "Toronto, Hamilton, Barrie" },
-                  { range: "301 - 499 km", price: "$0.70/km", examples: "Ottawa, Kingston, London" },
-                  { range: "500 - 999 km", price: "$0.75/km", examples: "Montreal, Quebec City" },
-                  { range: "1,000 - 2,000 km", price: "$0.80/km", examples: "Halifax, Thunder Bay" },
-                  { range: "2,001 - 5,000 km", price: "$0.85/km", examples: "Winnipeg, Calgary, Edmonton" },
-                  { range: "5,000+ km", price: "$0.90/km", examples: "Vancouver, Victoria" }
+                  { range: "0 - 300 km", price: "FREE", examples: "Toronto, Hamilton, Barrie, Oshawa", highlight: true },
+                  { range: "301 - 499 km", price: "$0.70/km", examples: "Ottawa, Kingston, London, Sudbury" },
+                  { range: "500 - 999 km", price: "$0.75/km", examples: "Montreal, Quebec City, Thunder Bay" },
+                  { range: "1,000 - 2,000 km", price: "$0.80/km", examples: "Halifax, Winnipeg, Moncton" },
+                  { range: "2,001 - 5,000 km", price: "$0.65/km", examples: "Calgary, Edmonton, Regina, Vancouver" }
                 ].map((tier, i) => (
-                  <Card key={i} className={i === 0 ? "border-green-500 bg-green-50" : ""}>
+                  <Card key={i} className={tier.highlight ? "border-green-500 bg-green-50" : ""}>
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-2">
                         <span className="text-sm text-muted-foreground">{tier.range}</span>
-                        <Badge variant={i === 0 ? "default" : "secondary"} className={i === 0 ? "bg-green-600" : ""}>
+                        <Badge variant={tier.highlight ? "default" : "secondary"} className={tier.highlight ? "bg-green-600" : ""}>
                           {tier.price}
                         </Badge>
                       </div>
@@ -260,6 +269,9 @@ export default function DeliveryPage() {
                   </Card>
                 ))}
               </div>
+              <p className="text-center text-sm text-muted-foreground mt-6">
+                Long-distance deliveries (2,001+ km) qualify for our reduced bulk rate of $0.65/km
+              </p>
             </div>
           </div>
         </section>

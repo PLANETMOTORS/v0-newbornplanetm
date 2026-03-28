@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -10,82 +11,153 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Plus, X, CheckCircle, XCircle, Minus, ArrowRight } from "lucide-react"
 
-// Sample vehicles for comparison
-const availableVehicles = [
+// API-ready interface for vehicle comparison
+interface CompareVehicle {
+  id: string
+  name: string
+  image: string
+  price: number
+  originalPrice?: number
+  mileage: number
+  fuelType: string
+  range: string
+  horsepower: number
+  acceleration: string
+  seating: number
+  cargo: string
+  warranty: string
+  transmission: string
+  drivetrain: string
+  batteryHealth?: number
+  inspectionScore: number
+  carfaxUrl?: string
+  features: string[]
+}
+
+// Sample vehicles for comparison - will be replaced with API call: GET /api/vehicles/compare
+const availableVehicles: CompareVehicle[] = [
   {
-    id: "tesla-model-3",
-    name: "2024 Tesla Model 3 Long Range",
+    id: "2024-tesla-model-y",
+    name: "2024 Tesla Model Y Long Range AWD",
     image: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400&h=300&fit=crop",
-    price: 52990,
-    mileage: 12500,
+    price: 64990,
+    originalPrice: 69990,
+    mileage: 12450,
     fuelType: "Electric",
-    range: "576 km",
-    horsepower: 366,
-    acceleration: "4.2s 0-100",
+    range: "533 km",
+    horsepower: 384,
+    acceleration: "4.8s",
     seating: 5,
-    cargo: "649L",
+    cargo: "2,158L",
     warranty: "4 years / 80,000 km",
-    features: ["Autopilot", "Premium Audio", "Glass Roof", "Heated Seats", "Wireless Charging"]
+    transmission: "Automatic",
+    drivetrain: "AWD",
+    batteryHealth: 98,
+    inspectionScore: 210,
+    carfaxUrl: "https://www.carfax.ca/vehicle/5YJ3E1EA1PF123456",
+    features: ["Autopilot", "Premium Audio", "Glass Roof", "Heated Seats", "Wireless Charging", "Full Self-Driving Capable"]
   },
   {
-    id: "bmw-i4",
-    name: "2024 BMW i4 eDrive40",
+    id: "2024-bmw-m4",
+    name: "2024 BMW M4 Competition xDrive",
     image: "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?w=400&h=300&fit=crop",
-    price: 58990,
+    price: 89900,
+    originalPrice: 98500,
     mileage: 8200,
-    fuelType: "Electric",
-    range: "493 km",
-    horsepower: 335,
-    acceleration: "5.7s 0-100",
-    seating: 5,
-    cargo: "470L",
+    fuelType: "Premium",
+    range: "450 km",
+    horsepower: 503,
+    acceleration: "3.8s",
+    seating: 4,
+    cargo: "440L",
     warranty: "4 years / 80,000 km",
-    features: ["BMW Digital Key", "Harman Kardon Audio", "Panoramic Roof", "Heated Seats", "Gesture Control"]
+    transmission: "Automatic",
+    drivetrain: "AWD",
+    inspectionScore: 208,
+    carfaxUrl: "https://www.carfax.ca/vehicle/WBS83AH00NCK12345",
+    features: ["M Sport Package", "Carbon Fiber", "Head-Up Display", "Harman Kardon", "Laser Lights"]
   },
   {
-    id: "mercedes-eqe",
-    name: "2024 Mercedes-Benz EQE 350",
+    id: "2024-porsche-taycan",
+    name: "2024 Porsche Taycan 4S Performance",
+    image: "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=400&h=300&fit=crop",
+    price: 134500,
+    originalPrice: 145000,
+    mileage: 5100,
+    fuelType: "Electric",
+    range: "465 km",
+    horsepower: 563,
+    acceleration: "3.8s",
+    seating: 4,
+    cargo: "407L",
+    warranty: "4 years / 80,000 km",
+    transmission: "Automatic",
+    drivetrain: "AWD",
+    batteryHealth: 99,
+    inspectionScore: 210,
+    carfaxUrl: "https://www.carfax.ca/vehicle/WP0AD2A98NS123456",
+    features: ["Performance Battery Plus", "Sport Chrono", "BOSE Audio", "Air Suspension", "Porsche InnoDrive"]
+  },
+  {
+    id: "2023-mercedes-eqs",
+    name: "2023 Mercedes-Benz EQS 580 4MATIC",
     image: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=400&h=300&fit=crop",
-    price: 74990,
-    mileage: 5400,
+    price: 156900,
+    originalPrice: 175000,
+    mileage: 3800,
     fuelType: "Electric",
     range: "547 km",
-    horsepower: 288,
-    acceleration: "6.2s 0-100",
+    horsepower: 516,
+    acceleration: "4.1s",
     seating: 5,
-    cargo: "430L",
+    cargo: "610L",
     warranty: "4 years / 80,000 km",
-    features: ["MBUX Hyperscreen", "Burmester Audio", "Air Suspension", "Heated Seats", "360 Camera"]
+    transmission: "Automatic",
+    drivetrain: "AWD",
+    batteryHealth: 100,
+    inspectionScore: 210,
+    carfaxUrl: "https://www.carfax.ca/vehicle/W1K6M7GB8PA123456",
+    features: ["Hyperscreen", "Burmester 3D", "Air Suspension", "Rear-Axle Steering", "MBUX AR Navigation"]
   },
   {
-    id: "honda-accord",
-    name: "2024 Honda Accord Hybrid Touring",
-    image: "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=400&h=300&fit=crop",
+    id: "2024-honda-crv",
+    name: "2024 Honda CR-V Touring AWD Hybrid",
+    image: "https://images.unsplash.com/photo-1568844293986-8c292f8a7e83?w=400&h=300&fit=crop",
     price: 42990,
-    mileage: 15600,
+    originalPrice: 45990,
+    mileage: 15200,
     fuelType: "Hybrid",
     range: "850 km",
     horsepower: 204,
-    acceleration: "7.5s 0-100",
+    acceleration: "7.5s",
     seating: 5,
-    cargo: "473L",
+    cargo: "2,166L",
     warranty: "5 years / 100,000 km",
-    features: ["Honda Sensing", "Bose Audio", "Wireless CarPlay", "Heated Seats", "Head-Up Display"]
+    transmission: "CVT",
+    drivetrain: "AWD",
+    inspectionScore: 209,
+    carfaxUrl: "https://www.carfax.ca/vehicle/2HKRW2H94RH123456",
+    features: ["Honda Sensing", "Wireless CarPlay", "Panoramic Roof", "Heated Seats", "Power Tailgate"]
   },
   {
-    id: "toyota-camry",
-    name: "2024 Toyota Camry XSE Hybrid",
-    image: "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=400&h=300&fit=crop",
-    price: 39990,
-    mileage: 18900,
-    fuelType: "Hybrid",
-    range: "900 km",
-    horsepower: 225,
-    acceleration: "7.2s 0-100",
+    id: "2024-toyota-rav4",
+    name: "2024 Toyota RAV4 Prime XSE",
+    image: "https://images.unsplash.com/photo-1581540222194-0def2dda95b8?w=400&h=300&fit=crop",
+    price: 54990,
+    originalPrice: 58990,
+    mileage: 9800,
+    fuelType: "Plug-in Hybrid",
+    range: "68 km EV / 970 km total",
+    horsepower: 302,
+    acceleration: "5.7s",
     seating: 5,
-    cargo: "428L",
+    cargo: "1,977L",
     warranty: "5 years / 100,000 km",
-    features: ["Toyota Safety Sense", "JBL Audio", "Panoramic Roof", "Heated Seats", "Dynamic Radar Cruise"]
+    transmission: "CVT",
+    drivetrain: "AWD",
+    inspectionScore: 210,
+    carfaxUrl: "https://www.carfax.ca/vehicle/JTMAB3FV5PD123456",
+    features: ["Toyota Safety Sense", "JBL Audio", "Heated Steering", "Wireless Charging", "Digital Rearview Mirror"]
   }
 ]
 
@@ -297,11 +369,90 @@ export default function ComparePage() {
                         ))}
                       </tr>
 
+                      {/* Transmission */}
+                      <tr className="border-b bg-muted/10">
+                        <td className="p-4 font-medium">Transmission</td>
+                        {selectedVehicleData.map(vehicle => (
+                          <td key={vehicle.id} className="p-4 text-center">{vehicle.transmission}</td>
+                        ))}
+                      </tr>
+
+                      {/* Drivetrain */}
+                      <tr className="border-b">
+                        <td className="p-4 font-medium">Drivetrain</td>
+                        {selectedVehicleData.map(vehicle => (
+                          <td key={vehicle.id} className="p-4 text-center">
+                            <Badge variant="secondary">{vehicle.drivetrain}</Badge>
+                          </td>
+                        ))}
+                      </tr>
+
+                      {/* Inspection Score */}
+                      <tr className="border-b bg-muted/10">
+                        <td className="p-4 font-medium">210-Point Inspection</td>
+                        {selectedVehicleData.map((vehicle, i) => {
+                          const isBest = compareValue(selectedVehicleData.map(v => v.inspectionScore), "higher")[i]
+                          return (
+                            <td key={vehicle.id} className="p-4 text-center">
+                              <span className={isBest ? "text-green-600 font-bold" : ""}>
+                                {vehicle.inspectionScore}/210
+                              </span>
+                            </td>
+                          )
+                        })}
+                      </tr>
+
+                      {/* Battery Health (for EVs) */}
+                      {selectedVehicleData.some(v => v.batteryHealth) && (
+                        <tr className="border-b">
+                          <td className="p-4 font-medium">Battery Health</td>
+                          {selectedVehicleData.map((vehicle, i) => {
+                            const evVehicles = selectedVehicleData.filter(v => v.batteryHealth)
+                            const isBest = vehicle.batteryHealth && evVehicles.length > 1 
+                              ? compareValue(evVehicles.map(v => v.batteryHealth!), "higher")[evVehicles.indexOf(vehicle)]
+                              : false
+                            return (
+                              <td key={vehicle.id} className="p-4 text-center">
+                                {vehicle.batteryHealth ? (
+                                  <span className={isBest ? "text-green-600 font-bold" : ""}>
+                                    {vehicle.batteryHealth}%
+                                  </span>
+                                ) : (
+                                  <span className="text-muted-foreground">N/A</span>
+                                )}
+                              </td>
+                            )
+                          })}
+                        </tr>
+                      )}
+
                       {/* Warranty */}
                       <tr className="border-b bg-muted/10">
                         <td className="p-4 font-medium">Warranty</td>
                         {selectedVehicleData.map(vehicle => (
                           <td key={vehicle.id} className="p-4 text-center">{vehicle.warranty}</td>
+                        ))}
+                      </tr>
+                      
+                      {/* CARFAX */}
+                      <tr className="border-b">
+                        <td className="p-4 font-medium">CARFAX Report</td>
+                        {selectedVehicleData.map(vehicle => (
+                          <td key={vehicle.id} className="p-4 text-center">
+                            {vehicle.carfaxUrl ? (
+                              <a 
+                                href={vehicle.carfaxUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-primary hover:underline flex items-center justify-center gap-1"
+                              >
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                                View Report
+                              </a>
+                            ) : (
+                              <span className="text-muted-foreground">Not Available</span>
+                            )}
+                          </td>
                         ))}
                       </tr>
 
@@ -326,11 +477,18 @@ export default function ComparePage() {
                       <tr>
                         <td className="p-4"></td>
                         {selectedVehicleData.map(vehicle => (
-                          <td key={vehicle.id} className="p-4 text-center">
-                            <Button className="w-full">
-                              View Details
-                              <ArrowRight className="ml-2 h-4 w-4" />
+                          <td key={vehicle.id} className="p-4 text-center space-y-2">
+                            <Button className="w-full" asChild>
+                              <Link href={`/vehicles/${vehicle.id}`}>
+                                View Details
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                              </Link>
                             </Button>
+                            {vehicle.originalPrice && vehicle.originalPrice > vehicle.price && (
+                              <p className="text-sm text-green-600 font-medium">
+                                Save ${(vehicle.originalPrice - vehicle.price).toLocaleString()}
+                              </p>
+                            )}
                           </td>
                         ))}
                       </tr>

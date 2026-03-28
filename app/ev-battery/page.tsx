@@ -1,11 +1,34 @@
 "use client"
 
+import { useState } from "react"
+import Link from "next/link"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Battery, Zap, ThermometerSun, Clock, Shield, CheckCircle2, AlertTriangle, Info } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Battery, Zap, ThermometerSun, Clock, Shield, CheckCircle2, AlertTriangle, Info, ArrowRight, FileText, Download } from "lucide-react"
+
+// API-ready interface for EV battery data
+interface EVBatteryData {
+  id: string
+  vehicleId: string
+  vehicleName: string
+  batteryHealth: number
+  originalCapacity: number // kWh
+  currentCapacity: number // kWh
+  originalRange: number // km
+  currentRange: number // km
+  chargeCycles: number
+  cellBalanceStatus: "Excellent" | "Good" | "Fair" | "Poor"
+  thermalHealth: "Optimal" | "Good" | "Degraded"
+  fastChargeCapability: boolean
+  warrantyRemaining: string
+  certificationDate: string
+  certificationNumber: string
+  status: "Excellent" | "Very Good" | "Good" | "Fair"
+}
 
 const certificationProcess = [
   {
@@ -35,30 +58,79 @@ const certificationProcess = [
   }
 ]
 
-const sampleVehicles = [
+// Sample data - will be replaced with API call: GET /api/vehicles/ev-certified
+const sampleVehicles: EVBatteryData[] = [
   {
-    name: "2023 Tesla Model 3",
-    batteryHealth: 97,
-    originalRange: 358,
-    currentRange: 347,
-    cycles: 142,
+    id: "ev-cert-001",
+    vehicleId: "2024-tesla-model-y",
+    vehicleName: "2024 Tesla Model Y Long Range",
+    batteryHealth: 98,
+    originalCapacity: 75,
+    currentCapacity: 73.5,
+    originalRange: 533,
+    currentRange: 522,
+    chargeCycles: 89,
+    cellBalanceStatus: "Excellent",
+    thermalHealth: "Optimal",
+    fastChargeCapability: true,
+    warrantyRemaining: "7 years / 152,000 km",
+    certificationDate: "2024-03-15",
+    certificationNumber: "PM-EV-2024-0089",
     status: "Excellent"
   },
   {
-    name: "2022 Ford Mustang Mach-E",
-    batteryHealth: 94,
-    originalRange: 314,
-    currentRange: 295,
-    cycles: 287,
-    status: "Very Good"
+    id: "ev-cert-002",
+    vehicleId: "2024-porsche-taycan",
+    vehicleName: "2024 Porsche Taycan 4S",
+    batteryHealth: 99,
+    originalCapacity: 93.4,
+    currentCapacity: 92.5,
+    originalRange: 465,
+    currentRange: 460,
+    chargeCycles: 51,
+    cellBalanceStatus: "Excellent",
+    thermalHealth: "Optimal",
+    fastChargeCapability: true,
+    warrantyRemaining: "8 years / 160,000 km",
+    certificationDate: "2024-03-10",
+    certificationNumber: "PM-EV-2024-0085",
+    status: "Excellent"
   },
   {
-    name: "2021 Chevrolet Bolt EV",
-    batteryHealth: 91,
-    originalRange: 417,
-    currentRange: 379,
-    cycles: 412,
-    status: "Good"
+    id: "ev-cert-003",
+    vehicleId: "2023-mercedes-eqs",
+    vehicleName: "2023 Mercedes-Benz EQS 580",
+    batteryHealth: 96,
+    originalCapacity: 107.8,
+    currentCapacity: 103.5,
+    originalRange: 547,
+    currentRange: 525,
+    chargeCycles: 124,
+    cellBalanceStatus: "Excellent",
+    thermalHealth: "Good",
+    fastChargeCapability: true,
+    warrantyRemaining: "6 years / 140,000 km",
+    certificationDate: "2024-02-28",
+    certificationNumber: "PM-EV-2024-0072",
+    status: "Excellent"
+  },
+  {
+    id: "ev-cert-004",
+    vehicleId: "2023-audi-etron-gt",
+    vehicleName: "2023 Audi e-tron GT RS",
+    batteryHealth: 97,
+    originalCapacity: 93.4,
+    currentCapacity: 90.6,
+    originalRange: 395,
+    currentRange: 383,
+    chargeCycles: 98,
+    cellBalanceStatus: "Excellent",
+    thermalHealth: "Optimal",
+    fastChargeCapability: true,
+    warrantyRemaining: "7 years / 150,000 km",
+    certificationDate: "2024-03-01",
+    certificationNumber: "PM-EV-2024-0075",
+    status: "Excellent"
   }
 ]
 
@@ -161,51 +233,72 @@ export default function EVBatteryPage() {
           <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
             Browse our selection of battery-certified electric vehicles with full transparency on health metrics.
           </p>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {sampleVehicles.map((vehicle) => (
-              <Card key={vehicle.name} className="overflow-hidden">
-                <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                  <Battery className="w-16 h-16 text-primary/50" />
+              <Card key={vehicle.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                <div className="aspect-video bg-gradient-to-br from-green-500/20 to-primary/20 flex items-center justify-center relative">
+                  <Battery className="w-16 h-16 text-green-600/50" />
+                  <Badge className="absolute top-2 right-2 bg-green-600">
+                    {vehicle.batteryHealth}% Health
+                  </Badge>
                 </div>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold">{vehicle.name}</h3>
-                    <Badge variant={vehicle.batteryHealth >= 95 ? "default" : vehicle.batteryHealth >= 90 ? "secondary" : "outline"}>
-                      {vehicle.status}
-                    </Badge>
+                <CardContent className="p-4">
+                  <div className="mb-3">
+                    <h3 className="font-semibold text-sm leading-tight">{vehicle.vehicleName}</h3>
+                    <p className="text-xs text-muted-foreground">Cert #{vehicle.certificationNumber}</p>
                   </div>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <div>
-                      <div className="flex justify-between text-sm mb-1">
+                      <div className="flex justify-between text-xs mb-1">
                         <span className="text-muted-foreground">Battery Health</span>
-                        <span className="font-medium">{vehicle.batteryHealth}%</span>
+                        <span className="font-medium text-green-600">{vehicle.batteryHealth}%</span>
                       </div>
-                      <Progress value={vehicle.batteryHealth} className="h-2" />
+                      <Progress value={vehicle.batteryHealth} className="h-1.5" />
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="text-muted-foreground">Original Range</p>
-                        <p className="font-medium">{vehicle.originalRange} km</p>
-                      </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
                       <div>
                         <p className="text-muted-foreground">Current Range</p>
                         <p className="font-medium">{vehicle.currentRange} km</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">Charge Cycles</p>
-                        <p className="font-medium">{vehicle.cycles}</p>
+                        <p className="text-muted-foreground">Capacity</p>
+                        <p className="font-medium">{vehicle.currentCapacity} kWh</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">Degradation</p>
-                        <p className="font-medium">{100 - vehicle.batteryHealth}%</p>
+                        <p className="text-muted-foreground">Charge Cycles</p>
+                        <p className="font-medium">{vehicle.chargeCycles}</p>
                       </div>
+                      <div>
+                        <p className="text-muted-foreground">Cell Balance</p>
+                        <p className="font-medium text-green-600">{vehicle.cellBalanceStatus}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="pt-2 border-t flex gap-2">
+                      <Button size="sm" variant="outline" className="flex-1 text-xs" asChild>
+                        <Link href={`/vehicles/${vehicle.vehicleId}`}>
+                          View Vehicle
+                        </Link>
+                      </Button>
+                      <Button size="sm" variant="ghost" className="px-2">
+                        <Download className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             ))}
+          </div>
+          
+          <div className="text-center mt-8">
+            <Button size="lg" asChild>
+              <Link href="/inventory?fuelType=Electric">
+                View All Electric Vehicles
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </section>
 
