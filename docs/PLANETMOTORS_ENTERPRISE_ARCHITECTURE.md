@@ -250,6 +250,65 @@ CUSTOMER                    PLANETMOTORS                         EXTERNAL
    │ 18. Delivery scheduled     │                                    │
 ```
 
+### 4.2 Multi-Lender Financing Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    MULTI-LENDER FINANCING FLOW                           │
+└─────────────────────────────────────────────────────────────────────────┘
+
+CUSTOMER submits financing application
+          │
+          ▼
+┌─────────────────────┐
+│  FINANCING SERVICE  │
+│  (Express.js)       │
+└─────────────────────┘
+          │
+          │ 1. Soft credit pull (no score impact)
+          ▼
+┌─────────────────────┐
+│    CREDIT BUREAUS   │
+│  Equifax + TransU   │
+└─────────────────────┘
+          │
+          │ 2. Credit score + report
+          ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    PARALLEL LENDER REQUESTS                              │
+├─────────┬─────────┬─────────┬─────────┬─────────┬─────────┬────────────┤
+│ TD Auto │   RBC   │ Scotia  │   BMO   │  CIBC   │Desjard. │            │
+│ Finance │         │  bank   │         │         │         │            │
+├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤            │
+│ 4.99%   │ 5.49%   │ 5.29%   │ 5.99%   │ 5.49%   │ 4.79%   │  RATES    │
+│ 84 mo   │ 84 mo   │ 84 mo   │ 72 mo   │ 84 mo   │ 96 mo   │  TERMS    │
+└─────────┴─────────┴─────────┴─────────┴─────────┴─────────┴────────────┘
+          │
+          │ 3. Aggregate and rank offers
+          ▼
+┌─────────────────────┐
+│   OFFER RANKING     │
+│   1. Best Rate      │
+│   2. Lowest Payment │
+│   3. Longest Term   │
+└─────────────────────┘
+          │
+          │ 4. Present options to customer
+          ▼
+┌─────────────────────┐
+│      CUSTOMER       │
+│   Selects offer     │
+└─────────────────────┘
+          │
+          │ 5. Hard credit pull + final approval
+          ▼
+┌─────────────────────┐
+│   SELECTED LENDER   │
+│   Final approval    │
+│   Loan documents    │
+└─────────────────────┘
+```
+
 ---
 
 ## CI/CD Pipeline (GitHub Actions)
@@ -274,12 +333,58 @@ workflow:
 
 ## Monitoring & Observability
 
-| Tool | Purpose | Source |
-|------|---------|--------|
-| CloudWatch | Metrics, logs, alarms | Clutch |
-| X-Ray | Distributed tracing | Clutch |
-| FullStory | Session replay | Carvana |
-| PagerDuty | Alerting | Carvana |
+### Metrics Dashboard
+
+| Metric | Warning | Critical | Action |
+|--------|---------|----------|--------|
+| API Response Time (p99) | > 500ms | > 1000ms | Scale up, optimize queries |
+| Error Rate | > 1% | > 5% | Alert on-call, investigate |
+| CPU Utilization | > 70% | > 85% | Auto-scale triggers |
+| Memory Utilization | > 75% | > 90% | Auto-scale triggers |
+| Database Connections | > 80% | > 95% | Connection pooling |
+| Redis Hit Rate | < 90% | < 80% | Review cache strategy |
+| Kafka Lag | > 1000 | > 5000 | Scale consumers |
+
+### Alerting Rules
+
+```yaml
+# CloudWatch Alarms
+
+high_error_rate:
+  metric: ErrorRate
+  threshold: 5%
+  period: 5 minutes
+  action: PagerDuty critical
+
+high_latency:
+  metric: p99ResponseTime
+  threshold: 1000ms
+  period: 5 minutes
+  action: PagerDuty warning
+
+database_connections:
+  metric: DatabaseConnections
+  threshold: 95%
+  period: 1 minute
+  action: PagerDuty critical
+
+payment_failures:
+  metric: PaymentFailureRate
+  threshold: 2%
+  period: 5 minutes
+  action: PagerDuty critical, SMS to finance team
+```
+
+### Tools
+
+| Tool | Purpose |
+|------|---------|
+| CloudWatch | Metrics, logs, alarms |
+| X-Ray | Distributed tracing |
+| FullStory | Session replay |
+| PagerDuty | Alerting |
+| Sentry | Error tracking |
+| Slack | Notifications |
 
 ---
 
@@ -348,6 +453,80 @@ workflow:
 - **Approval Rates**: Higher overall approval
 - **Revenue**: Lender kickbacks
 - **Differentiation**: Key competitive advantage
+
+---
+
+## Pre-Launch Technical Review Checklist
+
+| Category | Item | Status |
+|----------|------|--------|
+| **Infrastructure** | VPC and subnets configured | [ ] |
+| **Infrastructure** | Security groups locked down | [ ] |
+| **Infrastructure** | ECS cluster running | [ ] |
+| **Infrastructure** | RDS Multi-AZ enabled | [ ] |
+| **Infrastructure** | ElastiCache cluster running | [ ] |
+| **Infrastructure** | OpenSearch domain ready | [ ] |
+| **Infrastructure** | S3 buckets created | [ ] |
+| **Infrastructure** | CloudFront distribution active | [ ] |
+| **Infrastructure** | SSL certificates installed | [ ] |
+| **Infrastructure** | DNS records configured | [ ] |
+| **Security** | AWS Shield Advanced enabled | [ ] |
+| **Security** | WAF rules configured | [ ] |
+| **Security** | Secrets in Secrets Manager | [ ] |
+| **Security** | IAM roles follow least privilege | [ ] |
+| **Security** | PCI DSS compliance verified | [ ] |
+| **Security** | PIPEDA compliance verified | [ ] |
+| **Database** | Schema migrations complete | [ ] |
+| **Database** | Tax rates loaded | [ ] |
+| **Database** | Lenders configured | [ ] |
+| **Database** | Hubs created | [ ] |
+| **Database** | Inspection templates loaded | [ ] |
+| **Database** | Backup policy configured | [ ] |
+| **Integrations** | Stripe webhooks configured | [ ] |
+| **Integrations** | Carfax API tested | [ ] |
+| **Integrations** | CBB API tested | [ ] |
+| **Integrations** | Equifax API tested | [ ] |
+| **Integrations** | TransUnion API tested | [ ] |
+| **Integrations** | All 6 lender APIs tested | [ ] |
+| **Integrations** | Twilio verified | [ ] |
+| **Integrations** | SendGrid domain verified | [ ] |
+| **Integrations** | HubSpot connected | [ ] |
+| **Analytics** | GA4 configured | [ ] |
+| **Analytics** | FullStory installed | [ ] |
+| **Analytics** | Optimizely configured | [ ] |
+| **Monitoring** | CloudWatch dashboards created | [ ] |
+| **Monitoring** | X-Ray tracing enabled | [ ] |
+| **Monitoring** | PagerDuty alerts configured | [ ] |
+| **Monitoring** | Slack notifications setup | [ ] |
+| **Testing** | Unit tests passing | [ ] |
+| **Testing** | E2E tests passing | [ ] |
+| **Testing** | Load testing complete | [ ] |
+| **Testing** | Security scan passed | [ ] |
+| **Documentation** | API documentation complete | [ ] |
+| **Documentation** | Runbook created | [ ] |
+| **Documentation** | Incident response plan | [ ] |
+
+---
+
+## Winner Summary Table
+
+| Category | Selected | Rationale |
+|----------|----------|-----------|
+| **Cloud Provider** | AWS | Canadian region, better documentation |
+| **Container Orchestration** | ECS Fargate | Simpler than Kubernetes |
+| **Backend Language** | Node.js/TypeScript | Faster development cycle |
+| **Database** | PostgreSQL | Open source, powerful |
+| **Search** | OpenSearch | Better scalability |
+| **Security** | Multi-layer (Shield, WAF, mTLS) | Enterprise-grade protection |
+| **Authentication** | JWT + OAuth 2.0 | Flexible, modern |
+| **Financing** | Multi-lender (6 Canadian banks) | Better rates for customers |
+| **Analytics** | FullStory + Optimizely | Session replay + A/B testing |
+| **Return Policy** | 10-day | Customer-friendly |
+| **Inspection** | 210-point | More thorough quality assurance |
+| **CRM** | HubSpot | Cost-effective for growth |
+| **Vehicle Valuation** | Canadian Black Book | Canadian market standard |
+| **Tax System** | Provincial HST/GST/PST | Full Canadian compliance |
+| **CI/CD** | GitHub Actions | Better developer experience |
 
 ---
 
