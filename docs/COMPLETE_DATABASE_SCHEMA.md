@@ -195,44 +195,47 @@ CREATE INDEX idx_orders_number ON orders(order_number);
 
 ```sql
 CREATE TABLE financing_applications (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  application_number VARCHAR(20) UNIQUE NOT NULL,
-  customer_id UUID NOT NULL REFERENCES customers(id),
-  vehicle_id UUID NOT NULL REFERENCES vehicles(id),
-  
-  -- Application Details
-  status VARCHAR(30) DEFAULT 'pending',
-  verification_type VARCHAR(20) DEFAULT 'standard',
-  
-  -- Employment
-  employment_status VARCHAR(30) NOT NULL,
-  employer_name VARCHAR(200),
-  job_title VARCHAR(100),
-  employment_years INTEGER,
-  annual_income DECIMAL(12,2),
-  
-  -- Residence
-  residence_status VARCHAR(30),
-  monthly_rent_mortgage DECIMAL(12,2),
-  residence_years INTEGER,
-  
-  -- Credit
-  credit_score INTEGER,
-  credit_bureau VARCHAR(50),
-  credit_pull_date TIMESTAMP,
-  credit_pull_type VARCHAR(20),
-  
-  -- Request
-  requested_amount DECIMAL(12,2),
-  requested_term INTEGER,
-  
-  -- Metadata
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    customer_id UUID NOT NULL REFERENCES customers(id),
+    vehicle_id UUID REFERENCES vehicles(id),
+    
+    -- Application Details
+    application_number VARCHAR(20) UNIQUE NOT NULL,
+    status VARCHAR(30) DEFAULT 'pending',
+    application_type VARCHAR(20) DEFAULT 'prequalify',
+    
+    -- Employment
+    employment_status VARCHAR(30),
+    employer_name VARCHAR(100),
+    job_title VARCHAR(100),
+    employment_years INTEGER,
+    annual_income DECIMAL(12,2),
+    
+    -- Residence
+    residence_status VARCHAR(30),
+    monthly_rent_mortgage DECIMAL(12,2),
+    residence_years INTEGER,
+    
+    -- Credit
+    credit_score INTEGER,
+    credit_bureau VARCHAR(20),
+    credit_pull_date TIMESTAMP,
+    credit_pull_type VARCHAR(10),
+    
+    -- Loan Request
+    requested_amount DECIMAL(12,2),
+    requested_term INTEGER,
+    
+    -- Timestamps
+    submitted_at TIMESTAMP,
+    decided_at TIMESTAMP,
+    expires_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_financing_apps_customer ON financing_applications(customer_id);
-CREATE INDEX idx_financing_apps_status ON financing_applications(status);
+CREATE INDEX idx_financing_customer ON financing_applications(customer_id);
+CREATE INDEX idx_financing_status ON financing_applications(status);
 ```
 
 ## 1.7 Lenders Table
