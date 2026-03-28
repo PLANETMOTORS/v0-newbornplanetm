@@ -4,7 +4,7 @@ const badges = [
   {
     icon: ClipboardCheck,
     title: "210-Point Inspection",
-    description: "60 more points than competitors",
+    description: "Industry-leading standard",
     highlight: true
   },
   {
@@ -84,7 +84,7 @@ export function TrustBadges() {
             256-bit SSL Encryption
           </span>
           <span className="hidden md:inline">|</span>
-          <span>OMVIC Licensed Dealer #12345</span>
+          <span>OMVIC Licensed Dealer #4048307</span>
           <span className="hidden md:inline">|</span>
           <span>BBB A+ Rating</span>
           <span className="hidden md:inline">|</span>

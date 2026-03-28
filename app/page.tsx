@@ -8,7 +8,6 @@ import { Footer } from "@/components/footer"
 import { VehicleShowcase } from "@/components/vehicle-showcase"
 import { HowItWorks } from "@/components/how-it-works"
 import { TrustBadges } from "@/components/trust-badges"
-import { ComparisonTable } from "@/components/comparison-table"
 import { LiveChatWidget } from "@/components/live-chat-widget"
 
 export const metadata: Metadata = {
@@ -24,9 +23,9 @@ export const metadata: Metadata = {
 
 const stats = [
   { value: "9,500+", label: "Vehicles in Stock", trend: "+124 this week" },
-  { value: "210", label: "Point Inspection", trend: "60 more than competitors" },
+  { value: "210", label: "Point Inspection", trend: "Industry-leading standard" },
   { value: "10-Day", label: "Money Back Guarantee", trend: "No questions asked" },
-  { value: "4.79%", label: "Lowest APR Rate", trend: "2% lower than Clutch" },
+  { value: "4.79%", label: "Lowest APR Rate", trend: "Financing from major lenders" },
 ]
 
 const features = [
@@ -351,8 +350,8 @@ export default function HomePage() {
                   </div>
                 </div>
                 <Button asChild>
-                  <Link href="#comparison">
-                    View Comparison
+                  <Link href="/inventory">
+                    Browse Inventory
                     <ArrowRight className="ml-2 w-4 h-4" />
                   </Link>
                 </Button>
@@ -518,12 +517,7 @@ export default function HomePage() {
 
       {/* Trust Badges */}
       <TrustBadges />
-
-      {/* Comparison Table */}
-      <div id="comparison">
-        <ComparisonTable />
-      </div>
-
+      
       <Footer />
       <LiveChatWidget />
     </div>

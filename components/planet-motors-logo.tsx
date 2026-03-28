@@ -27,7 +27,7 @@ export function PlanetMotorsLogo({
         src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Planet-Motors---Logo-Final%20Transp%20Back-ACl8Kr3pqlFeUI0w4UbtxQB8tQCt9R.jpeg"
         alt="Planet Motors - Fairness Integrity"
         className="object-contain"
-        style={{ width: width, height: height }}
+        style={{ maxWidth: width, maxHeight: height, width: 'auto', height: 'auto' }}
       />
     </div>
   )

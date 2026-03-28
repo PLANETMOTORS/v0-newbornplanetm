@@ -79,7 +79,7 @@ export function Footer() {
               </a>
               <div className="flex items-center gap-3 text-sm text-background/70">
                 <Clock className="w-4 h-4" />
-                <span>Mon-Sat: 9AM-8PM | Sun: 10AM-6PM</span>
+                <span>Mon-Fri: 9AM-7PM | Sat: 10AM-5PM | Sun: Closed</span>
               </div>
             </div>
           </div>
@@ -175,10 +175,6 @@ export function Footer() {
               <div className="text-center">
                 <p className="text-2xl font-bold">$250</p>
                 <p className="text-xs text-background/70">Refundable Deposit</p>
-              </div>
-              <div className="text-center bg-white rounded px-3 py-2">
-                <p className="text-xl font-bold text-[#e01f26]">CARFAX</p>
-                <p className="text-xs text-gray-600">Canada Certified</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold">Nationwide</p>
