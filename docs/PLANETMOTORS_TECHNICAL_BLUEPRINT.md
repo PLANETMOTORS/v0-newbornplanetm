@@ -323,7 +323,102 @@ POST /api/v1/auth/logout
 
 ---
 
-## 6. Implementation Roadmap
+## 6. Third-Party Integrations
+
+### Vehicle Data
+
+| Service | Provider | Purpose |
+|---------|----------|---------|
+| Vehicle History | Carfax | Accident history, ownership |
+| Vehicle Valuation | Canadian Black Book | Market value |
+| VIN Decoding | DataOne | Vehicle specs |
+
+### Credit & Financing (Multi-Lender)
+
+| Service | Provider | Purpose |
+|---------|----------|---------|
+| Credit Bureau | Equifax Canada | Credit reports |
+| Credit Bureau | TransUnion Canada | Credit reports |
+| Lender | TD Auto Finance | Vehicle financing |
+| Lender | RBC | Vehicle financing |
+| Lender | Scotiabank | Vehicle financing |
+| Lender | BMO | Vehicle financing |
+| Lender | CIBC | Vehicle financing |
+| Lender | Desjardins | Vehicle financing |
+
+### Payments
+
+| Service | Provider | Purpose |
+|---------|----------|---------|
+| Card Processing | Stripe | Credit/debit payments |
+| Bank Verification | Plaid | Bank account verification |
+| Canadian Payments | Interac e-Transfer | EFT payments |
+
+### Communications
+
+| Service | Provider | Purpose |
+|---------|----------|---------|
+| SMS/Voice | Twilio | Customer notifications |
+| Transactional Email | SendGrid | Order confirmations |
+| Marketing Email | HubSpot | Marketing automation |
+
+### CRM & Analytics
+
+| Service | Provider | Purpose |
+|---------|----------|---------|
+| CRM | HubSpot | Customer management |
+| Web Analytics | Google Analytics 4 | Traffic analysis |
+| Session Replay | FullStory | UX insights |
+| A/B Testing | Optimizely | Data-driven decisions |
+
+### Insurance & Warranty
+
+| Service | Provider | Purpose |
+|---------|----------|---------|
+| Insurance Quotes | Sonnet | Auto insurance |
+| Extended Warranty | Lubrico | Vehicle service contracts |
+
+---
+
+## 7. Cost Estimation (Monthly CAD)
+
+### AWS Services
+
+| Service | Configuration | Cost |
+|---------|---------------|------|
+| ECS Fargate | 14 services, auto-scaling | $3,500 |
+| RDS PostgreSQL | db.r6g.xlarge, Multi-AZ | $1,200 |
+| ElastiCache Redis | cache.r6g.large | $400 |
+| OpenSearch | 2 nodes, m5.large | $800 |
+| Amazon MSK | 3 brokers, kafka.m5.large | $1,500 |
+| Amazon MQ | mq.m5.large, active/standby | $200 |
+| S3 Storage | 5TB + requests | $500 |
+| CloudFront | 10TB transfer | $1,000 |
+| AWS Shield Advanced | Enterprise DDoS | $3,000 |
+| Secrets Manager | 50 secrets | $50 |
+| CloudWatch | Logs, metrics, alarms | $400 |
+| Data Transfer | Inter-region, internet | $1,500 |
+| **AWS Subtotal** | | **$14,050** |
+
+### Third-Party Services
+
+| Service | Configuration | Cost |
+|---------|---------------|------|
+| Stripe | 2.9% + $0.30 per transaction | Variable |
+| Twilio | SMS + Voice | $500 |
+| SendGrid | Pro plan | $200 |
+| HubSpot | Professional | $1,000 |
+| FullStory | Business | $5,000 |
+| Optimizely | Web experimentation | $2,000 |
+| Carfax API | Per-report | $500 |
+| CBB API | Subscription | $800 |
+| **Third-Party Subtotal** | | **$10,000** |
+
+### **TOTAL ESTIMATED: ~$24,050 CAD/month**
+
+---
+
+## 8. Implementation Roadmap
 
 | Phase | Duration | Deliverables |
 |-------|----------|--------------|
