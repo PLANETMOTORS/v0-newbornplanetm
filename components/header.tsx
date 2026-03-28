@@ -8,27 +8,36 @@ import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 
 const navigation = [
   { name: "Inventory", href: "/inventory" },
-  { name: "360 Viewer", href: "/viewer" },
   { 
-    name: "Protection Plans", 
+    name: "Buy",
+    href: "/how-it-works",
+    submenu: [
+      { name: "How It Works", href: "/how-it-works" },
+      { name: "360 Viewer", href: "/viewer" },
+      { name: "Compare Vehicles", href: "/compare" },
+      { name: "Financing", href: "/financing" },
+      { name: "Delivery", href: "/delivery" },
+    ]
+  },
+  { name: "Sell/Trade", href: "/trade-in" },
+  { 
+    name: "Protection", 
     href: "/protection-plans",
     submenu: [
-      { name: "Basic Coverage", href: "/protection-plans#basic" },
-      { name: "Premium Coverage", href: "/protection-plans#premium" },
-      { name: "Ultimate Coverage", href: "/protection-plans#ultimate" },
+      { name: "Protection Plans", href: "/protection-plans" },
+      { name: "Warranty Info", href: "/warranty" },
     ]
   },
   { 
-    name: "Blueprints", 
-    href: "/blueprints",
+    name: "Resources",
+    href: "/about",
     submenu: [
-      { name: "Technical Blueprint", href: "/blueprints/technical" },
-      { name: "Enterprise Architecture", href: "/blueprints/enterprise" },
-      { name: "Production Schema", href: "/blueprints/production" },
+      { name: "About Us", href: "/about" },
+      { name: "FAQ", href: "/faq" },
+      { name: "Contact", href: "/contact" },
+      { name: "Blueprints", href: "/blueprints" },
     ]
   },
-  { name: "Sell Your Car", href: "/sell" },
-  { name: "Contact", href: "/contact" },
 ]
 
 export function Header() {
