@@ -244,7 +244,7 @@ export default function HomePage() {
 
           {/* Stats */}
           <div className="mt-20 grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            {stats.map((stat, index) => (
+            {stats.map((stat) => (
               <div 
                 key={stat.label} 
                 className="relative group text-center p-6 bg-card rounded-2xl border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300"
@@ -287,7 +287,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((feature, index) => (
+            {features.map((feature) => (
               <div
                 key={feature.title}
                 className="group relative bg-background rounded-2xl p-6 border border-border hover:shadow-xl hover:border-primary/30 hover:-translate-y-1 transition-all duration-300"
@@ -316,9 +316,9 @@ export default function HomePage() {
                   <Sparkles className="w-8 h-8 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-xl">See the Full Comparison</h3>
+                  <h3 className="font-semibold text-xl">Industry-Leading Standards</h3>
                   <p className="text-muted-foreground mt-1">
-                    Planet Motors beats Clutch.ca and Carvana in 8 of 12 key categories
+                    Planet Motors exceeds industry standards in inspection, financing, and customer service
                   </p>
                 </div>
               </div>
@@ -457,55 +457,53 @@ export default function HomePage() {
                 Ready to find your perfect vehicle?
               </h2>
               <p className="mt-6 text-primary-foreground/80 max-w-xl">
-                Browse our entire inventory online or visit our showroom in Richmond Hill. Our team is here to help you every step of the way.
+                Browse our inventory of 9,500+ certified pre-owned vehicles. Get pre-approved for financing in minutes with rates from 4.79% APR.
               </p>
-              <div className="mt-10 flex flex-wrap gap-4">
+              <div className="mt-8 flex flex-wrap gap-4">
                 <Button size="lg" variant="secondary" asChild>
                   <Link href="/inventory">
-                    View All Vehicles
+                    Browse Inventory
+                    <ArrowRight className="ml-2 w-4 h-4" />
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10" asChild>
-                  <Link href="/contact">
-                    Contact Us
+                  <Link href="/financing">
+                    Get Pre-Approved
                   </Link>
                 </Button>
               </div>
             </div>
-            <div className="bg-primary-foreground/10 rounded-2xl p-8">
-              <h3 className="font-semibold text-xl mb-6">Visit Our Showroom</h3>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 mt-0.5" />
-                  <div>
-                    <p className="font-medium">30 Major Mackenzie E</p>
-                    <p className="text-primary-foreground/80">Richmond Hill, ON L4C 1G7</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Phone className="w-5 h-5 mt-0.5" />
-                  <div>
-                    <p className="font-medium">1-866-787-3332</p>
-                    <p className="text-primary-foreground/80">Local: 416-985-2277</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Clock className="w-5 h-5 mt-0.5" />
-                  <div>
-                    <p className="font-medium">Mon-Sat: 9AM - 8PM</p>
-                    <p className="text-primary-foreground/80">Sun: 10AM - 6PM</p>
-                  </div>
-                </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-primary-foreground/10 rounded-xl p-6">
+                <Phone className="w-8 h-8 mb-4" />
+                <h3 className="font-semibold">Call Us</h3>
+                <p className="text-sm text-primary-foreground/80 mt-1">1-866-797-3332</p>
+                <p className="text-sm text-primary-foreground/80">416-985-2277</p>
+              </div>
+              <div className="bg-primary-foreground/10 rounded-xl p-6">
+                <MapPin className="w-8 h-8 mb-4" />
+                <h3 className="font-semibold">Visit Us</h3>
+                <p className="text-sm text-primary-foreground/80 mt-1">30 Major Mackenzie Dr E</p>
+                <p className="text-sm text-primary-foreground/80">Richmond Hill, ON</p>
+              </div>
+              <div className="bg-primary-foreground/10 rounded-xl p-6">
+                <Clock className="w-8 h-8 mb-4" />
+                <h3 className="font-semibold">Hours</h3>
+                <p className="text-sm text-primary-foreground/80 mt-1">Mon-Fri: 9AM-7PM</p>
+                <p className="text-sm text-primary-foreground/80">Sat: 10AM-5PM</p>
+              </div>
+              <div className="bg-primary-foreground/10 rounded-xl p-6">
+                <BadgeCheck className="w-8 h-8 mb-4" />
+                <h3 className="font-semibold">Licensed</h3>
+                <p className="text-sm text-primary-foreground/80 mt-1">OMVIC Registered</p>
+                <p className="text-sm text-primary-foreground/80">#4048307</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* How It Works */}
       <HowItWorks />
-
-      {/* Trust Badges */}
       <TrustBadges />
       
       <Footer />
