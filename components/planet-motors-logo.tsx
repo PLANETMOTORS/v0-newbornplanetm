@@ -30,7 +30,7 @@ export function PlanetMotorsLogo({
         width={width}
         height={height}
         className="object-contain"
-        style={{ width: 'auto', height: 'auto', maxWidth: width, maxHeight: height }}
+        unoptimized
         priority
       />
     </div>

@@ -1,396 +1,117 @@
 "use client"
 
-import { useState, useRef, useCallback, useEffect } from "react"
-import { RotateCw, ZoomIn, ZoomOut, Maximize2, Minimize2, Play, Pause, Loader2 } from "lucide-react"
+import { useRef, useEffect, useState } from "react"
+import { use360Spin } from "@/hooks/use-360-spin"
+import { imgix } from "@/lib/imgix"
+import { Play, Pause, Maximize2, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-
-type QualityPreset = "preview" | "standard" | "4k"
 
 interface Vehicle360ViewerProps {
   stockNumber: string
   totalFrames?: number
-  quality?: QualityPreset
   className?: string
 }
 
-// Quality presets for imgix
-const QUALITY_PRESETS: Record<QualityPreset, { width: number; quality: number }> = {
-  preview: { width: 400, quality: 60 },
-  standard: { width: 1200, quality: 80 },
-  "4k": { width: 3840, quality: 85 },
-}
-
-// CDN base URL - uses CloudFront with imgix origin for AVIF auto-format
-const CDN_BASE_URL = "https://cdn.planetmotors.ca"
-
-// Generate imgix URL with AVIF-first optimization
-function getFrameUrl(stockNumber: string, frame: number, quality: QualityPreset): string {
-  const preset = QUALITY_PRESETS[quality]
-  const params = new URLSearchParams({
-    auto: "format,compress", // CloudFront + imgix handles AVIF/WebP/JPEG based on Accept header
-    w: preset.width.toString(),
-    q: preset.quality.toString(),
-    fit: "crop",
-  })
-  return `${CDN_BASE_URL}/vehicles/${stockNumber}/360/${frame.toString().padStart(3, "0")}.jpg?${params}`
-}
-
-export function Vehicle360Viewer({
-  stockNumber,
+export function Vehicle360Viewer({ 
+  stockNumber, 
   totalFrames = 72,
-  quality = "standard",
-  className,
+  className = ""
 }: Vehicle360ViewerProps) {
-  // State
-  const [isActivated, setIsActivated] = useState(false)
-  const [isInView, setIsInView] = useState(false)
-  const [currentFrame, setCurrentFrame] = useState(0)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [isDragging, setIsDragging] = useState(false)
-  const [zoom, setZoom] = useState(1)
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const [loadedFrames, setLoadedFrames] = useState<Set<number>>(new Set())
-  const [isPreloading, setIsPreloading] = useState(false)
-
-  // Refs
   const containerRef = useRef<HTMLDivElement>(null)
-  const lastXRef = useRef(0)
-  const playIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const [isVisible, setIsVisible] = useState(false)
+  const [isActivated, setIsActivated] = useState(false)
 
-  // IntersectionObserver for lazy loading
+  const { currentFrame, isPlaying, toggle, onPointerDown, onPointerMove, onPointerUp } = use360Spin({ 
+    totalFrames,
+    sensitivity: 5,
+    autoPlaySpeed: 50
+  })
+
+  // Lazy load with IntersectionObserver (200px rootMargin)
   useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
-
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsInView(entry.isIntersecting)
-      },
-      { rootMargin: "200px" } // Start loading when 200px from viewport
+      ([entry]) => setIsVisible(entry.isIntersecting),
+      { rootMargin: "200px" }
     )
-
-    observer.observe(container)
+    if (containerRef.current) observer.observe(containerRef.current)
     return () => observer.disconnect()
   }, [])
 
-  // Preload all frames when activated
-  useEffect(() => {
-    if (!isActivated || !isInView) return
-
-    setIsPreloading(true)
-    const preloadedSet = new Set<number>()
-
-    const preloadFrame = (frame: number): Promise<void> => {
-      return new Promise((resolve) => {
-        const img = new Image()
-        img.crossOrigin = "anonymous"
-        img.onload = () => {
-          preloadedSet.add(frame)
-          setLoadedFrames(new Set(preloadedSet))
-          resolve()
-        }
-        img.onerror = () => resolve() // Continue even if one fails
-        img.src = getFrameUrl(stockNumber, frame, quality)
-      })
-    }
-
-    // Preload frames with concurrency limit
-    const preloadAllFrames = async () => {
-      const concurrency = 6
-      for (let i = 0; i < totalFrames; i += concurrency) {
-        const batch = Array.from(
-          { length: Math.min(concurrency, totalFrames - i) },
-          (_, j) => preloadFrame(i + j)
-        )
-        await Promise.all(batch)
-      }
-      setIsPreloading(false)
-    }
-
-    preloadAllFrames()
-  }, [isActivated, isInView, stockNumber, totalFrames, quality])
-
-  // Auto-play at 20fps (50ms interval)
-  useEffect(() => {
-    if (isPlaying && !isPreloading) {
-      playIntervalRef.current = setInterval(() => {
-        setCurrentFrame((prev) => (prev + 1) % totalFrames)
-      }, 50)
-    } else if (playIntervalRef.current) {
-      clearInterval(playIntervalRef.current)
-    }
-
-    return () => {
-      if (playIntervalRef.current) {
-        clearInterval(playIntervalRef.current)
-      }
-    }
-  }, [isPlaying, isPreloading, totalFrames])
-
-  // Keyboard navigation
-  useEffect(() => {
-    if (!isActivated) return
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      switch (e.key) {
-        case "ArrowLeft":
-          e.preventDefault()
-          setCurrentFrame((prev) => (prev - 1 + totalFrames) % totalFrames)
-          break
-        case "ArrowRight":
-          e.preventDefault()
-          setCurrentFrame((prev) => (prev + 1) % totalFrames)
-          break
-        case " ":
-          e.preventDefault()
-          setIsPlaying((prev) => !prev)
-          break
-        case "Escape":
-          if (isFullscreen) {
-            document.exitFullscreen()
-          }
-          break
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [isActivated, isFullscreen, totalFrames])
-
-  // Fullscreen change listener
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement)
-    }
-
-    document.addEventListener("fullscreenchange", handleFullscreenChange)
-    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange)
-  }, [])
-
-  // Mouse handlers
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    setIsDragging(true)
-    setIsPlaying(false)
-    lastXRef.current = e.clientX
-  }, [])
-
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent) => {
-      if (!isDragging) return
-
-      const deltaX = e.clientX - lastXRef.current
-      const sensitivity = 5
-
-      if (Math.abs(deltaX) > sensitivity) {
-        const direction = deltaX > 0 ? 1 : -1
-        setCurrentFrame((prev) => (prev + direction + totalFrames) % totalFrames)
-        lastXRef.current = e.clientX
-      }
-    },
-    [isDragging, totalFrames]
-  )
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false)
-  }, [])
-
-  // Touch handlers
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    setIsDragging(true)
-    setIsPlaying(false)
-    lastXRef.current = e.touches[0].clientX
-  }, [])
-
-  const handleTouchMove = useCallback(
-    (e: React.TouchEvent) => {
-      if (!isDragging) return
-      e.preventDefault()
-
-      const deltaX = e.touches[0].clientX - lastXRef.current
-      const sensitivity = 5
-
-      if (Math.abs(deltaX) > sensitivity) {
-        const direction = deltaX > 0 ? 1 : -1
-        setCurrentFrame((prev) => (prev + direction + totalFrames) % totalFrames)
-        lastXRef.current = e.touches[0].clientX
-      }
-    },
-    [isDragging, totalFrames]
-  )
-
-  const handleTouchEnd = useCallback(() => {
-    setIsDragging(false)
-  }, [])
-
-  // Zoom controls
-  const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.25, 3))
-  const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.25, 1))
-
   // Fullscreen toggle
-  const toggleFullscreen = useCallback(() => {
+  const toggleFullscreen = () => {
     if (!containerRef.current) return
-
     if (!document.fullscreenElement) {
       containerRef.current.requestFullscreen()
     } else {
       document.exitFullscreen()
     }
-  }, [])
+  }
 
-  // Load progress
-  const loadProgress = Math.round((loadedFrames.size / totalFrames) * 100)
+  // AVIF-first frame URL via imgix + CloudFront
+  const frameUrl = imgix(`vehicles/${stockNumber}/360/frame-${String(currentFrame).padStart(3, '0')}.jpg`, {
+    w: 1920, h: 1080, q: 85
+  })
 
-  // Preview image URL (frame 0 in preview quality)
-  const previewUrl = getFrameUrl(stockNumber, 0, "preview")
+  const previewUrl = imgix(`vehicles/${stockNumber}/360/frame-000.jpg`, {
+    w: 800, h: 600, q: 75
+  })
 
-  return (
-    <div
-      ref={containerRef}
-      className={cn(
-        "relative bg-card rounded-lg overflow-hidden select-none",
-        isFullscreen && "fixed inset-0 z-50 rounded-none bg-black",
-        className
-      )}
-      tabIndex={isActivated ? 0 : -1}
-    >
-      {/* Click-to-activate preview */}
-      {!isActivated && (
-        <div className="relative aspect-[16/10]">
-          {isInView && (
-            <img
-              src={previewUrl}
-              alt="360 vehicle preview"
-              className="w-full h-full object-contain"
-            />
-          )}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-            <Button
-              size="lg"
-              onClick={() => setIsActivated(true)}
-              className="gap-2"
-            >
-              <RotateCw className="w-5 h-5" />
-              View 360 Spin
-            </Button>
+  // Not visible - placeholder
+  if (!isVisible) {
+    return <div ref={containerRef} className={`aspect-video bg-muted rounded-lg ${className}`} />
+  }
+
+  // Click-to-activate preview
+  if (!isActivated) {
+    return (
+      <div 
+        ref={containerRef}
+        className={`relative aspect-video bg-muted rounded-lg overflow-hidden cursor-pointer group ${className}`}
+        onClick={() => setIsActivated(true)}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={previewUrl} alt={`${stockNumber} 360 preview`} className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/50 transition-colors">
+          <div className="text-center text-white">
+            <RotateCcw className="w-12 h-12 mx-auto mb-2 animate-spin" style={{ animationDuration: "3s" }} />
+            <p className="font-semibold">View 360 Spin</p>
           </div>
         </div>
-      )}
+        <div className="absolute top-3 left-3 bg-black/70 text-white px-2 py-1 rounded text-xs font-medium">360</div>
+      </div>
+    )
+  }
 
-      {/* Active 360 viewer */}
-      {isActivated && (
-        <>
-          {/* Loading progress */}
-          {isPreloading && (
-            <div className="absolute top-4 left-4 z-20 bg-background/90 backdrop-blur-sm px-4 py-2 rounded-full text-sm flex items-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Loading: {loadProgress}%
-            </div>
-          )}
-
-          {/* Main viewer area */}
-          <div
-            className={cn(
-              "relative aspect-[16/10] cursor-grab overflow-hidden",
-              isDragging && "cursor-grabbing",
-              isFullscreen && "aspect-auto h-full"
-            )}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
-            {/* Vehicle image */}
-            <div
-              className="absolute inset-0 flex items-center justify-center transition-transform duration-75"
-              style={{ transform: `scale(${zoom})` }}
-            >
-              <img
-                src={getFrameUrl(stockNumber, currentFrame, quality)}
-                alt={`360 view - frame ${currentFrame + 1} of ${totalFrames}`}
-                className="max-w-full max-h-full object-contain"
-                draggable={false}
-              />
-            </div>
-
-            {/* Drag hint */}
-            {!isDragging && !isPlaying && loadProgress === 100 && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 hover:opacity-100 transition-opacity">
-                <div className="bg-foreground/10 backdrop-blur-sm px-4 py-2 rounded-full text-sm text-foreground/70 flex items-center gap-2">
-                  <RotateCw className="w-4 h-4" />
-                  Drag to rotate • Arrow keys • Space to play
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Controls */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-background/90 backdrop-blur-sm px-3 py-2 rounded-full shadow-lg">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setIsPlaying(!isPlaying)}
-              disabled={isPreloading}
-              aria-label={isPlaying ? "Pause rotation" : "Play rotation"}
-            >
+  // Active viewer
+  return (
+    <div 
+      ref={containerRef}
+      className={`relative aspect-video bg-black rounded-lg overflow-hidden cursor-grab active:cursor-grabbing select-none touch-none ${className}`}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerLeave={onPointerUp}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={frameUrl} alt={`${stockNumber} 360 frame ${currentFrame + 1}`} className="w-full h-full object-cover" draggable={false} />
+      
+      {/* Controls */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={toggle} className="text-white hover:bg-white/20 h-8 w-8">
               {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
             </Button>
-
-            <div className="w-px h-6 bg-border" />
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={handleZoomOut}
-              disabled={zoom <= 1}
-              aria-label="Zoom out"
-            >
-              <ZoomOut className="w-4 h-4" />
-            </Button>
-
-            <span className="text-xs text-muted-foreground w-12 text-center">
-              {Math.round(zoom * 100)}%
-            </span>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={handleZoomIn}
-              disabled={zoom >= 3}
-              aria-label="Zoom in"
-            >
-              <ZoomIn className="w-4 h-4" />
-            </Button>
-
-            <div className="w-px h-6 bg-border" />
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={toggleFullscreen}
-              aria-label="Toggle fullscreen"
-            >
-              {isFullscreen ? (
-                <Minimize2 className="w-4 h-4" />
-              ) : (
-                <Maximize2 className="w-4 h-4" />
-              )}
-            </Button>
+            <span className="text-white text-sm">{currentFrame + 1} / {totalFrames}</span>
           </div>
+          <Button variant="ghost" size="icon" onClick={toggleFullscreen} className="text-white hover:bg-white/20 h-8 w-8">
+            <Maximize2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
 
-          {/* Frame indicator */}
-          <div className="absolute top-4 right-4 bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm text-muted-foreground">
-            {currentFrame + 1} / {totalFrames}
-          </div>
-        </>
-      )}
+      <div className="absolute top-3 left-3 bg-black/70 text-white px-2 py-1 rounded text-xs font-medium">360</div>
+      {!isPlaying && <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded text-xs">Drag to rotate</div>}
     </div>
   )
 }
