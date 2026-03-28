@@ -194,6 +194,64 @@
 
 ---
 
+## Data Flow Diagrams
+
+### 4.1 Vehicle Purchase Flow
+
+```
+CUSTOMER                    PLANETMOTORS                         EXTERNAL
+   │                            │                                    │
+   │ 1. Browse vehicles         │                                    │
+   │ ─────────────────────────► │                                    │
+   │                            │ 2. Query inventory                 │
+   │                            │ ──────────────► PostgreSQL         │
+   │ ◄───────────────────────── │                                    │
+   │ 3. Vehicle list            │                                    │
+   │                            │                                    │
+   │ 4. View vehicle details    │                                    │
+   │ ─────────────────────────► │                                    │
+   │                            │ 5. Get Carfax report               │
+   │                            │ ──────────────────────────────────►│ Carfax
+   │                            │ ◄──────────────────────────────────│
+   │ ◄───────────────────────── │                                    │
+   │ 6. Vehicle + history       │                                    │
+   │                            │                                    │
+   │ 7. Apply for financing     │                                    │
+   │ ─────────────────────────► │                                    │
+   │                            │ 8. Soft credit pull                │
+   │                            │ ──────────────────────────────────►│ Equifax
+   │                            │ ◄──────────────────────────────────│
+   │                            │                                    │
+   │                            │ 9. Get offers from 6 lenders       │
+   │                            │ ──────────────────────────────────►│ TD, RBC...
+   │                            │ ◄──────────────────────────────────│
+   │ ◄───────────────────────── │                                    │
+   │ 10. Financing offers       │                                    │
+   │                            │                                    │
+   │ 11. Select offer + pay     │                                    │
+   │ ─────────────────────────► │                                    │
+   │                            │ 12. Process payment                │
+   │                            │ ──────────────────────────────────►│ Stripe
+   │                            │ ◄──────────────────────────────────│
+   │                            │                                    │
+   │                            │ 13. Create order                   │
+   │                            │ ──────────────────► PostgreSQL     │
+   │                            │                                    │
+   │                            │ 14. Send confirmation              │
+   │                            │ ──────────────────────────────────►│ SendGrid
+   │ ◄───────────────────────── │                                    │
+   │ 15. Order confirmation     │                                    │
+   │                            │                                    │
+   │ 16. Schedule delivery      │                                    │
+   │ ─────────────────────────► │                                    │
+   │                            │ 17. Create delivery                │
+   │                            │ ──────────────────► PostgreSQL     │
+   │ ◄───────────────────────── │                                    │
+   │ 18. Delivery scheduled     │                                    │
+```
+
+---
+
 ## CI/CD Pipeline (GitHub Actions)
 
 ### Workflow
