@@ -28,6 +28,7 @@ const navigation = [
       { name: "Warranty Info", href: "/warranty" },
     ]
   },
+  { name: "EV Battery", href: "/ev-battery-health" },
   { 
     name: "Resources",
     href: "/about",
