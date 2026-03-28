@@ -16,9 +16,10 @@ import {
   Search, SlidersHorizontal, Grid3X3, List, Heart, Share2, 
   Gauge, Fuel, Calendar, MapPin, Shield, Zap, ChevronDown,
   X, RotateCcw, TrendingUp, Eye, Clock, CheckCircle, Star,
-  ArrowUpDown, Filter, Sparkles, Battery, Car, ExternalLink
+  ArrowUpDown, Filter, Sparkles, Battery, Car, ExternalLink, Bell
 } from "lucide-react"
 import { useFavorites } from "@/lib/favorites-context"
+import { PriceAlertModal } from "@/components/price-alert-modal"
 
 // Premium vehicle inventory data
 const vehicles = [
@@ -706,6 +707,11 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                         {vehicle.batteryHealth}% Battery
                       </Badge>
                     )}
+                    {/* PM Certified Badge */}
+                    <Badge className="bg-blue-600 text-white shadow-lg">
+                      <Shield className="w-3 h-3 mr-1" />
+                      PM Certified
+                    </Badge>
                   </div>
 
                   {/* Actions */}
@@ -720,9 +726,20 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                     >
                       <Heart className={`w-4 h-4 ${isFavorite(vehicle.id) ? "fill-current" : ""}`} />
                     </button>
-                    <button className="w-9 h-9 bg-background/90 rounded-full flex items-center justify-center hover:bg-background">
-                      <Share2 className="w-4 h-4" />
-                    </button>
+                    <PriceAlertModal
+                      vehicle={{
+                        id: vehicle.id,
+                        year: vehicle.year,
+                        make: vehicle.make,
+                        model: vehicle.model,
+                        price: vehicle.price
+                      }}
+                      trigger={
+                        <button className="w-9 h-9 bg-background/90 rounded-full flex items-center justify-center hover:bg-background">
+                          <Bell className="w-4 h-4" />
+                        </button>
+                      }
+                    />
                   </div>
 
                   {/* 360 View Badge */}
@@ -733,12 +750,12 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
 
                   {/* Live Stats */}
                   <div className="absolute bottom-3 right-3 flex gap-2">
-                    <div className="bg-background/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 text-xs">
-                      <Eye className="w-3 h-3" />
-                      {vehicle.views}
+                    <div className="bg-red-500 text-white px-2 py-1 rounded-full flex items-center gap-1 text-xs animate-pulse">
+                      <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
+                      {Math.floor(Math.random() * 5) + 2} viewing
                     </div>
                     <div className="bg-background/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 text-xs">
-                      <Heart className="w-3 h-3" />
+                      <Heart className="w-3 h-3 text-red-500" />
                       {vehicle.favorites}
                     </div>
                   </div>
