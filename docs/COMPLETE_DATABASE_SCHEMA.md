@@ -328,39 +328,48 @@ CREATE INDEX idx_offers_selected ON financing_offers(is_selected);
 
 ```sql
 CREATE TABLE trade_ins (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  customer_id UUID NOT NULL REFERENCES customers(id),
-  
-  -- Vehicle Info
-  vin VARCHAR(17),
-  year INTEGER NOT NULL,
-  make VARCHAR(50) NOT NULL,
-  model VARCHAR(50) NOT NULL,
-  trim VARCHAR(100),
-  mileage INTEGER NOT NULL,
-  exterior_color VARCHAR(50),
-  interior_color VARCHAR(50),
-  
-  -- Condition
-  condition_rating VARCHAR(20),
-  accident_history BOOLEAN DEFAULT FALSE,
-  mechanical_issues TEXT,
-  cosmetic_issues TEXT,
-  
-  -- Valuation
-  kbb_value DECIMAL(12,2),
-  offer_amount DECIMAL(12,2),
-  final_value DECIMAL(12,2),
-  
-  -- Status
-  status VARCHAR(30) DEFAULT 'pending',
-  
-  -- Metadata
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    customer_id UUID NOT NULL REFERENCES customers(id),
+    
+    -- Vehicle Info
+    vin CHAR(17),
+    year INTEGER NOT NULL,
+    make VARCHAR(50) NOT NULL,
+    model VARCHAR(100) NOT NULL,
+    trim VARCHAR(100),
+    mileage INTEGER NOT NULL,
+    exterior_color VARCHAR(50),
+    interior_color VARCHAR(50),
+    
+    -- Condition
+    condition_rating VARCHAR(20),
+    accident_history BOOLEAN DEFAULT FALSE,
+    mechanical_issues TEXT,
+    cosmetic_issues TEXT,
+    
+    -- Valuation
+    cbb_value DECIMAL(12,2),
+    offer_amount DECIMAL(12,2),
+    final_value DECIMAL(12,2),
+    
+    -- Status
+    status VARCHAR(30) DEFAULT 'pending',
+    
+    -- Payoff
+    has_lien BOOLEAN DEFAULT FALSE,
+    lien_holder VARCHAR(100),
+    payoff_amount DECIMAL(12,2),
+    
+    -- Timestamps
+    offer_expires_at TIMESTAMP,
+    accepted_at TIMESTAMP,
+    inspected_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_trade_ins_customer ON trade_ins(customer_id);
+CREATE INDEX idx_tradein_customer ON trade_ins(customer_id);
+CREATE INDEX idx_tradein_status ON trade_ins(status);
 ```
 
 ## 1.10 Deliveries Table
