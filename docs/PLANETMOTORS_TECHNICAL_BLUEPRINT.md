@@ -312,6 +312,15 @@ POST /api/v1/auth/logout
 └── Return success
 ```
 
+### Compliance
+
+| Regulation | Requirement | Implementation |
+|------------|-------------|----------------|
+| **PIPEDA** | Canadian privacy | Data residency in ca-central-1 |
+| **PCI DSS** | Payment security | Stripe tokenization, no card storage |
+| **OMVIC** | Ontario dealer regulations | Documentation, disclosures |
+| **AMVIC** | Alberta dealer regulations | Documentation, disclosures |
+
 ---
 
 ## 6. Implementation Roadmap
