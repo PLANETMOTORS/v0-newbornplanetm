@@ -7,7 +7,7 @@ import { FavoritesProvider } from '@/lib/favorites-context'
 import { CompareBar } from '@/components/compare-bar'
 import './globals.css'
 
-// Planet Motors - OMVIC Licensed Dealer #4048307
+// Planet Motors - OMVIC Licensed Dealer
 
 const inter = Inter({ 
   subsets: ["latin"],

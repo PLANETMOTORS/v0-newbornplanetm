@@ -14,7 +14,7 @@ export default function AboutPage() {
 
   const milestones = [
     { year: "2015", title: "Founded", description: "Planet Motors established in Richmond Hill, Ontario" },
-    { year: "2018", title: "OMVIC Licensed", description: "Received official dealer license #4048307" },
+    { year: "2018", title: "OMVIC Licensed", description: "Became an officially licensed Ontario dealer" },
     { year: "2020", title: "Online Platform", description: "Launched digital-first buying experience" },
     { year: "2023", title: "Nationwide Delivery", description: "Expanded to serve all of Canada" },
     { year: "2024", title: "9,500+ Vehicles", description: "Grew inventory to serve more Canadians" }
@@ -28,7 +28,7 @@ export default function AboutPage() {
         {/* Hero Section */}
         <section className="bg-primary py-20">
           <div className="container mx-auto px-4 text-center">
-            <Badge className="mb-4 bg-accent text-accent-foreground">OMVIC Licensed #4048307</Badge>
+            <Badge className="mb-4 bg-accent text-accent-foreground">OMVIC Licensed Dealer</Badge>
             <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
               Fairness &amp; Integrity
             </h1>
