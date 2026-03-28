@@ -19,6 +19,7 @@ import {
   Download, ExternalLink, Check, X, AlertCircle
 } from "lucide-react"
 import { ScheduleTestDrive } from "@/components/schedule-test-drive"
+import { SimilarVehicles } from "@/components/similar-vehicles"
 
 // Mock vehicle data
 const vehicleData = {
@@ -38,6 +39,8 @@ const vehicleData = {
   engine: "Dual Motor Electric",
   vin: "5YJ3E1EA1PF123456",
   stockNumber: "PM24-1234",
+  carfaxUrl: "https://www.carfax.ca/vehicle/5YJ3E1EA1PF123456",
+  carfaxScore: "No Accidents Reported",
   range: "576 km",
   batteryHealth: 98,
   batteryCapacity: "82 kWh",
@@ -640,6 +643,13 @@ export default function VehicleDetailPage() {
           </div>
         </div>
       </main>
+
+      {/* Similar Vehicles Section */}
+      <SimilarVehicles 
+        currentVehicleId={vehicleData.id}
+        make={vehicleData.make}
+        priceRange={vehicleData.price}
+      />
 
       <Footer />
     </div>

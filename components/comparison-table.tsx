@@ -95,10 +95,17 @@ const comparisonData: ComparisonItem[] = [
     carvana: false
   },
   {
-    feature: "Free Ontario Delivery",
+    feature: "Free Nationwide Delivery",
     planetMotors: true,
-    clutch: true,
-    carvana: "$599+"
+    clutch: "Ontario Only",
+    carvana: "$599+",
+    highlight: true
+  },
+  {
+    feature: "CARFAX Canada Report",
+    planetMotors: "Included Free",
+    clutch: "Included Free",
+    carvana: false
   },
   {
     feature: "Same-Day Vehicle Pickup",

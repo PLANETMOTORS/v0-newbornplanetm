@@ -180,6 +180,10 @@ export function Footer() {
                 <p className="text-xl font-bold text-[#e01f26]">CARFAX</p>
                 <p className="text-xs text-gray-600">Canada Certified</p>
               </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold">Nationwide</p>
+                <p className="text-xs text-background/70">Free Delivery</p>
+              </div>
             </div>
           </div>
         </div>

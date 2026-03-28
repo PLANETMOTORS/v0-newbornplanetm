@@ -30,6 +30,9 @@ const vehicles = [
     originalPrice: 69990,
     mileage: 12450,
     fuelType: "Electric",
+    transmission: "Automatic",
+    drivetrain: "AWD",
+    exteriorColor: "White",
     range: "533 km",
     batteryHealth: 98,
     image: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&auto=format&fit=crop&q=80",
@@ -40,6 +43,7 @@ const vehicles = [
     views: 124,
     favorites: 18,
     monthlyPayment: 489,
+    carfaxUrl: "https://www.carfax.ca/vehicle/5YJ3E1EA1PF123456",
     features: ["Autopilot", "Premium Audio", "Heated Seats"]
   },
   {
@@ -52,6 +56,9 @@ const vehicles = [
     originalPrice: 98500,
     mileage: 8200,
     fuelType: "Premium",
+    transmission: "Automatic",
+    drivetrain: "AWD",
+    exteriorColor: "Black",
     image: "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?w=800&auto=format&fit=crop&q=80",
     location: "Richmond Hill",
     inspectionScore: 208,
@@ -60,6 +67,7 @@ const vehicles = [
     views: 89,
     favorites: 12,
     monthlyPayment: 699,
+    carfaxUrl: "https://www.carfax.ca/vehicle/WBS83AH00NCK12345",
     features: ["M Sport Package", "Carbon Fiber", "Head-Up Display"]
   },
   {
@@ -72,6 +80,9 @@ const vehicles = [
     originalPrice: 145000,
     mileage: 5100,
     fuelType: "Electric",
+    transmission: "Automatic",
+    drivetrain: "AWD",
+    exteriorColor: "Blue",
     range: "465 km",
     batteryHealth: 99,
     image: "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=800&auto=format&fit=crop&q=80",
@@ -82,6 +93,7 @@ const vehicles = [
     views: 156,
     favorites: 24,
     monthlyPayment: 1089,
+    carfaxUrl: "https://www.carfax.ca/vehicle/WP0AD2A98NS123456",
     features: ["Performance Battery Plus", "Sport Chrono", "BOSE Audio"]
   },
   {
