@@ -3,6 +3,7 @@ import { Inter, Playfair_Display } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { LiveChat } from '@/components/live-chat'
 import { CompareProvider } from '@/lib/compare-context'
+import { FavoritesProvider } from '@/lib/favorites-context'
 import { CompareBar } from '@/components/compare-bar'
 import './globals.css'
 
@@ -76,11 +77,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
-        <CompareProvider>
-          {children}
-          <CompareBar />
-          <LiveChat />
-        </CompareProvider>
+        <FavoritesProvider>
+          <CompareProvider>
+            {children}
+            <CompareBar />
+            <LiveChat />
+          </CompareProvider>
+        </FavoritesProvider>
         <Analytics />
       </body>
     </html>

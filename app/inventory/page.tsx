@@ -17,6 +17,7 @@ import {
   X, RotateCcw, TrendingUp, Eye, Clock, CheckCircle, Star,
   ArrowUpDown, Filter, Sparkles, Battery, Car, ExternalLink
 } from "lucide-react"
+import { useFavorites } from "@/lib/favorites-context"
 
 // Premium vehicle inventory data
 const vehicles = [
@@ -247,7 +248,7 @@ export default function InventoryPage() {
   const [showFilters, setShowFilters] = useState(false)
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [sortBy, setSortBy] = useState("featured")
-  const [favorites, setFavorites] = useState<string[]>([])
+  const { favorites, addFavorite, removeFavorite, isFavorite } = useFavorites()
   const [evOnly, setEvOnly] = useState(false)
 
   // Filter vehicles
@@ -288,10 +289,21 @@ export default function InventoryPage() {
     }
   }, [filteredVehicles, sortBy])
 
-  const toggleFavorite = (id: string) => {
-    setFavorites(prev => 
-      prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]
-    )
+const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
+    if (isFavorite(vehicleData.id)) {
+      removeFavorite(vehicleData.id)
+    } else {
+      addFavorite({
+        id: vehicleData.id,
+        year: vehicleData.year,
+        make: vehicleData.make,
+        model: vehicleData.model,
+        price: vehicleData.price,
+        originalPrice: vehicleData.originalPrice,
+        mileage: vehicleData.mileage,
+        image: vehicleData.image
+      })
+    }
   }
 
   const clearFilters = () => {
@@ -639,14 +651,14 @@ export default function InventoryPage() {
                   {/* Actions */}
                   <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
-                      onClick={() => toggleFavorite(vehicle.id)}
+                      onClick={() => toggleFavorite(vehicle)}
                       className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
-                        favorites.includes(vehicle.id)
+                        isFavorite(vehicle.id)
                           ? "bg-red-500 text-white"
                           : "bg-background/90 hover:bg-background"
                       }`}
                     >
-                      <Heart className={`w-4 h-4 ${favorites.includes(vehicle.id) ? "fill-current" : ""}`} />
+                      <Heart className={`w-4 h-4 ${isFavorite(vehicle.id) ? "fill-current" : ""}`} />
                     </button>
                     <button className="w-9 h-9 bg-background/90 rounded-full flex items-center justify-center hover:bg-background">
                       <Share2 className="w-4 h-4" />

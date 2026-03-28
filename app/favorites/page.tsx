@@ -8,57 +8,11 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Heart, Trash2, Share2, Bell, Car, Clock, TrendingDown } from "lucide-react"
 import Link from "next/link"
-
-// Sample saved vehicles - in production this would come from user session/database
-const initialFavorites = [
-  {
-    id: "1",
-    year: 2023,
-    make: "BMW",
-    model: "X5 xDrive40i",
-    price: 72995,
-    originalPrice: 78500,
-    mileage: 12450,
-    image: "/placeholder.svg?height=200&width=300",
-    daysOnLot: 8,
-    views: 234,
-    priceDropped: true
-  },
-  {
-    id: "2",
-    year: 2022,
-    make: "Mercedes-Benz",
-    model: "GLE 450",
-    price: 68900,
-    originalPrice: 68900,
-    mileage: 18200,
-    image: "/placeholder.svg?height=200&width=300",
-    daysOnLot: 15,
-    views: 189,
-    priceDropped: false
-  },
-  {
-    id: "3",
-    year: 2023,
-    make: "Audi",
-    model: "Q7 Premium Plus",
-    price: 64500,
-    originalPrice: 67000,
-    mileage: 9800,
-    image: "/placeholder.svg?height=200&width=300",
-    daysOnLot: 5,
-    views: 312,
-    priceDropped: true
-  }
-]
+import { useFavorites } from "@/lib/favorites-context"
 
 export default function FavoritesPage() {
-  const [favorites, setFavorites] = useState(initialFavorites)
+  const { favorites, removeFavorite } = useFavorites()
   const [notifications, setNotifications] = useState<Record<string, boolean>>({})
-
-  const removeFavorite = (id: string) => {
-    setFavorites(favorites.filter(f => f.id !== id))
-  }
 
   const toggleNotification = (id: string) => {
     setNotifications(prev => ({
@@ -113,7 +67,7 @@ export default function FavoritesPage() {
                         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
                           <Car className="w-12 h-12 text-primary/50" />
                         </div>
-                        {vehicle.priceDropped && (
+                        {vehicle.originalPrice && vehicle.price < vehicle.originalPrice && (
                           <Badge className="absolute top-3 left-3 bg-green-500">
                             <TrendingDown className="w-3 h-3 mr-1" />
                             Price Drop
@@ -134,9 +88,8 @@ export default function FavoritesPage() {
                               <span>{vehicle.mileage.toLocaleString()} km</span>
                               <span className="flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
-                                {vehicle.daysOnLot} days on lot
+                                Saved {new Date(vehicle.savedAt).toLocaleDateString()}
                               </span>
-                              <span>{vehicle.views} views</span>
                             </div>
                           </div>
 
@@ -144,7 +97,7 @@ export default function FavoritesPage() {
                             <div className="text-2xl font-bold text-primary">
                               ${vehicle.price.toLocaleString()}
                             </div>
-                            {vehicle.priceDropped && (
+                            {vehicle.originalPrice && vehicle.price < vehicle.originalPrice && (
                               <div className="text-sm text-muted-foreground line-through">
                                 ${vehicle.originalPrice.toLocaleString()}
                               </div>
@@ -193,9 +146,9 @@ export default function FavoritesPage() {
             <Card className="mt-8 p-6 bg-primary/5 border-primary/20">
               <h3 className="font-semibold mb-2">Pro Tips</h3>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Click the bell icon to get notified of price drops</li>
-                <li>• Compare up to 3 vehicles side-by-side in the Compare tool</li>
-                <li>• Schedule a test drive early - popular vehicles sell fast!</li>
+                <li>Click the bell icon to get notified of price drops</li>
+                <li>Compare up to 3 vehicles side-by-side in the Compare tool</li>
+                <li>Schedule a test drive early - popular vehicles sell fast!</li>
               </ul>
             </Card>
           )}
