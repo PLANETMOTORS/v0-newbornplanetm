@@ -3,7 +3,8 @@ import { Footer } from "@/components/footer"
 import { LiveChatWidget } from "@/components/live-chat-widget"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { CheckCircle, ArrowRight, Shield, Clock, BadgeCheck } from "lucide-react"
+import { CheckCircle, ArrowRight, Shield, Clock, BadgeCheck, User } from "lucide-react"
+import Link from "next/link"
 
 const lenders = [
   { name: "TD Auto", rate: "4.99%", term: "84 mo", logo: "TD" },
@@ -149,6 +150,22 @@ export default function FinancingPage() {
                 <p className="text-xs text-muted-foreground text-center">
                   Checking your rate won&apos;t affect your credit score
                 </p>
+
+                <div className="pt-4 border-t border-border text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Already have an account?{" "}
+                    <Link href="/auth/login" className="text-primary font-medium hover:underline">
+                      Sign in
+                    </Link>
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    <Link href="/auth/signup" className="text-primary font-medium hover:underline inline-flex items-center gap-1">
+                      <User className="w-3 h-3" />
+                      Create an account
+                    </Link>{" "}
+                    to save your applications
+                  </p>
+                </div>
               </form>
             </div>
           </div>

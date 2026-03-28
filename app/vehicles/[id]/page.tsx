@@ -88,6 +88,7 @@ export default function VehicleDetailPage() {
   const [downPayment, setDownPayment] = useState(5000)
   const [loanTerm, setLoanTerm] = useState(60)
   const [tradeInValue, setTradeInValue] = useState(0)
+  const [aprRate, setAprRate] = useState(4.79)
   const [viewCount, setViewCount] = useState(47)
   const [showFullGallery, setShowFullGallery] = useState(false)
 
@@ -109,7 +110,7 @@ export default function VehicleDetailPage() {
 
   // Calculate monthly payment
   const loanAmount = vehicleData.price - downPayment - tradeInValue
-  const monthlyRate = 0.0479 / 12 // 4.79% APR
+  const monthlyRate = aprRate / 100 / 12 // Convert APR to monthly rate
   const monthlyPayment = Math.round(
     (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, loanTerm)) /
     (Math.pow(1 + monthlyRate, loanTerm) - 1)
@@ -532,8 +533,26 @@ export default function VehicleDetailPage() {
                       />
                     </div>
 
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>Interest Rate (APR)</span>
+                        <span className="font-medium">{aprRate.toFixed(2)}%</span>
+                      </div>
+                      <Slider
+                        value={[aprRate]}
+                        onValueChange={([v]) => setAprRate(v)}
+                        min={3.99}
+                        max={12.99}
+                        step={0.1}
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                        <span>Excellent Credit</span>
+                        <span>Fair Credit</span>
+                      </div>
+                    </div>
+
                     <div className="pt-2 border-t border-border text-xs text-muted-foreground">
-                      *Estimated at 4.79% APR from Desjardins. Actual rate may vary.
+                      <Link href="/financing" className="text-primary hover:underline">Get pre-approved</Link> to see your actual rate. Rates vary by credit profile.
                     </div>
                   </div>
 
