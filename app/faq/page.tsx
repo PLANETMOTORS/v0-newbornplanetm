@@ -40,7 +40,7 @@ const faqCategories = [
       },
       {
         question: "How do I initiate a return?",
-        answer: "Contact our customer service team at 1-866-787-3332 or through our website chat. We will arrange free pickup of the vehicle and process your refund within 5-7 business days."
+        answer: "Contact our customer service team at 1-866-797-3332 or through our website chat. We will arrange free pickup of the vehicle and process your refund within 5-7 business days."
       }
     ]
   },

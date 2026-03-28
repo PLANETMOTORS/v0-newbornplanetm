@@ -170,11 +170,12 @@ export default function TermsOfServicePage() {
               </p>
               <div className="bg-muted/50 p-6 rounded-lg">
                 <p className="font-semibold">Planet Motors Inc.</p>
-                <p className="text-muted-foreground">OMVIC Registration #12345678</p>
-                <p className="text-muted-foreground">123 Auto Mall Drive</p>
-                <p className="text-muted-foreground">Richmond Hill, ON L4B 1K5</p>
+                <p className="text-muted-foreground">OMVIC Registration #4048307</p>
+                <p className="text-muted-foreground">30 Major Mackenzie Dr E</p>
+                <p className="text-muted-foreground">Richmond Hill, ON L4C 1G7</p>
                 <p className="text-muted-foreground mt-2">Email: legal@planetmotors.ca</p>
-                <p className="text-muted-foreground">Phone: 1-866-787-3332</p>
+                <p className="text-muted-foreground">Toll-Free: 1-866-797-3332</p>
+                <p className="text-muted-foreground">Local: 416-985-2277</p>
               </div>
             </section>
 

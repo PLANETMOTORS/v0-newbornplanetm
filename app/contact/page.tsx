@@ -9,7 +9,7 @@ const contactMethods = [
   {
     icon: Phone,
     title: "Phone",
-    primary: "1-866-787-3332",
+    primary: "1-866-797-3332",
     secondary: "Local: 416-985-2277",
     description: "Speak directly with our team",
   },
