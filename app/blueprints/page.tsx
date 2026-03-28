@@ -20,7 +20,7 @@ const blueprints = [
   {
     id: "enterprise",
     title: "Enterprise Architecture",
-    description: "System design, architecture principles, and Carvana vs Clutch.ca comparison analysis.",
+    description: "System design, architecture principles, and platform infrastructure documentation.",
     icon: Layers,
     sections: ["Architecture Principles", "System Context", "Network Architecture", "CI/CD Pipeline", "Comparison"],
     lastUpdated: "March 2026",
