@@ -3,6 +3,7 @@ import { Footer } from "@/components/footer"
 import { LiveChatWidget } from "@/components/live-chat-widget"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { FinanceApplicationForm } from "@/components/finance-application-form"
 import { CheckCircle, ArrowRight, Shield, Clock, BadgeCheck, User } from "lucide-react"
 import Link from "next/link"
 
@@ -98,75 +99,7 @@ export default function FinancingPage() {
                 Takes less than 5 minutes. No commitment required.
               </p>
               
-              <form className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">First Name</label>
-                    <Input placeholder="John" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Last Name</label>
-                    <Input placeholder="Doe" />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Email</label>
-                  <Input type="email" placeholder="john@example.com" />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Phone</label>
-                  <Input placeholder="416-555-0123" />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Estimated Vehicle Price</label>
-                  <Input placeholder="$25,000" />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Down Payment</label>
-                  <Input placeholder="$2,500" />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Employment Status</label>
-                  <select className="w-full h-10 px-3 rounded-md border border-input bg-background">
-                    <option value="">Select status</option>
-                    <option value="employed">Employed Full-Time</option>
-                    <option value="part-time">Employed Part-Time</option>
-                    <option value="self-employed">Self-Employed</option>
-                    <option value="retired">Retired</option>
-                    <option value="student">Student</option>
-                  </select>
-                </div>
-
-                <Button className="w-full" size="lg">
-                  Get Pre-Approved
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-
-                <p className="text-xs text-muted-foreground text-center">
-                  Checking your rate won&apos;t affect your credit score
-                </p>
-
-                <div className="pt-4 border-t border-border text-center">
-                  <p className="text-sm text-muted-foreground">
-                    Already have an account?{" "}
-                    <Link href="/auth/login" className="text-primary font-medium hover:underline">
-                      Sign in
-                    </Link>
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    <Link href="/auth/signup" className="text-primary font-medium hover:underline inline-flex items-center gap-1">
-                      <User className="w-3 h-3" />
-                      Create an account
-                    </Link>{" "}
-                    to save your applications
-                  </p>
-                </div>
-              </form>
+              <FinanceApplicationForm />
             </div>
           </div>
         </div>

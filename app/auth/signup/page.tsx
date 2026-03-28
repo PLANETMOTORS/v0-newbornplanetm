@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -16,6 +17,8 @@ import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 
 export default function SignUpPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get("redirectTo") || "/account"
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -50,33 +53,47 @@ export default function SignUpPage() {
 
     setIsLoading(true)
 
-    // TODO: Replace with Supabase auth when integration is connected
-    // const supabase = createClient()
-    // const { data, error } = await supabase.auth.signUp({
-    //   email: formData.email,
-    //   password: formData.password,
-    //   options: {
-    //     emailRedirectTo: `${window.location.origin}/auth/callback`,
-    //     data: {
-    //       first_name: formData.firstName,
-    //       last_name: formData.lastName,
-    //       phone: formData.phone
-    //     }
-    //   }
-    // })
-    
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    // Simulated signup - will be replaced with real auth
-    router.push("/auth/verify-email")
-    setIsLoading(false)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
+            `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`,
+          data: {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            phone: formData.phone,
+            marketing_consent: marketingConsent
+          }
+        }
+      })
+      
+      if (error) throw error
+      router.push("/auth/verify-email")
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to create account")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleOAuthLogin = async (provider: "google" | "apple") => {
     setIsLoading(true)
-    // TODO: Replace with Supabase OAuth when integration is connected
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    setIsLoading(false)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`,
+        },
+      })
+      if (error) throw error
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "OAuth signup failed")
+      setIsLoading(false)
+    }
   }
 
   const benefits = [

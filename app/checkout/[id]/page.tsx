@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -39,10 +40,31 @@ const vehicleData = {
 
 export default function CheckoutPage() {
   const params = useParams()
+  const router = useRouter()
+  const { user, isLoading } = useAuth()
   const [step, setStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [purchaseType, setPurchaseType] = useState<"finance" | "cash">("finance")
   const [deliveryType, setDeliveryType] = useState<"pickup" | "delivery">("pickup")
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push(`/auth/login?redirectTo=${encodeURIComponent(`/checkout/${params.id}`)}`)
+    }
+  }, [user, isLoading, router, params.id])
+
+  // Show loading while checking auth
+  if (isLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
   
   const [formData, setFormData] = useState({
     // Personal Info
