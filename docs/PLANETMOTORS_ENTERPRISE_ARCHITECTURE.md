@@ -49,6 +49,70 @@ PLANET MOTORS PLATFORM (AWS ca-central-1)
 
 ---
 
+## Microservices Architecture
+
+```
+                        INTERNET
+                            |
+              CloudFront + WAF + Shield Advanced
+                            |
+                   Application Load Balancers
+                            |
+        ┌───────────────────┼───────────────────┐
+        │           ECS FARGATE CLUSTER          │
+        │                                        │
+        │  ┌─────────────────────────────────┐  │
+        │  │       API GATEWAY SERVICE        │  │
+        │  │      (Express.js + JWT Auth)     │  │
+        │  └─────────────────────────────────┘  │
+        │                   │                    │
+        │  ┌────────────────┼────────────────┐  │
+        │  │                │                │  │
+        │  ▼                ▼                ▼  │
+        │ Inventory    Customer    Order       │
+        │ Service      Service     Service     │
+        │                                       │
+        │ Payment     Financing    Trade-In    │
+        │ Service     Service      Service     │
+        │                                       │
+        │ Delivery    Notification  Search     │
+        │ Service     Service       Service    │
+        │                                       │
+        │ Auth        Media        Analytics   │
+        │ Service     Service      Service     │
+        └───────────────────────────────────────┘
+                            │
+        ┌───────────────────┼───────────────────┐
+        │               DATA LAYER               │
+        │                                        │
+        │  RDS        ElastiCache   S3          │
+        │  PostgreSQL Redis        Storage      │
+        │                                        │
+        │  OpenSearch  MSK         Amazon MQ    │
+        │  Search      Kafka       RabbitMQ     │
+        └────────────────────────────────────────┘
+```
+
+### Microservices Overview
+
+| Service | Responsibility | Key Endpoints |
+|---------|---------------|---------------|
+| API Gateway | Request routing, JWT validation, rate limiting | All /api/* routes |
+| Inventory | Vehicle CRUD, 360 images, availability | /vehicles, /search |
+| Customer | User profiles, preferences, favorites | /customers, /favorites |
+| Order | Purchase flow, reservations, contracts | /orders, /reservations |
+| Payment | Stripe integration, refunds | /payments, /refunds |
+| Financing | Multi-lender submissions, approvals | /financing, /applications |
+| Trade-In | CBB valuation, vehicle appraisals | /trade-ins, /valuations |
+| Delivery | Scheduling, tracking, hub routing | /deliveries, /tracking |
+| Notification | SMS, email, push notifications | /notifications |
+| Search | OpenSearch indexing, filters | /search, /autocomplete |
+| Auth | JWT tokens, OAuth, sessions | /auth, /sessions |
+| Media | Image upload, AVIF conversion, CDN | /media, /images |
+| Analytics | Event tracking, reporting | /analytics, /events |
+
+---
+
 ## Network Architecture
 
 ### VPC Configuration
