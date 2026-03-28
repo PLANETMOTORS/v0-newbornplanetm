@@ -71,7 +71,7 @@
 │                                    │                                     │
 │   ┌─────────────────────────────────────────────────────────────────┐   │
 │   │                    DATA LAYER                                    │   │
-│   │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐   │   │
+│   ���  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐   │   │
 │   │  │RDS      │ │ElastiCa.│ │OpenSear.│ │S3       │ │MSK      │   │   │
 │   │  │Postgres │ │Redis    │ │Search   │ │Storage  │ │Kafka    │   │   │
 │   │  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └─────────┘   │   │
@@ -157,19 +157,39 @@
 ### VPC Configuration
 
 ```
-VPC: 10.0.0.0/16
-
-Public Subnets (10.0.200.0/24, 10.0.102.0/24, 10.0.103.0/24):
-├── NAT Gateways
-├── Application Load Balancers
-└── Bastion Hosts
-
-Private Subnets (10.0.1.0/24, 10.0.2.0/24, 10.0.3.0/24):
-├── ECS Fargate Services
-├── RDS PostgreSQL
-├── ElastiCache Redis
-├── OpenSearch
-└── Amazon MQ
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    VPC: 10.0.0.0/16                                      │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  AVAILABILITY ZONE A        AVAILABILITY ZONE B        AVAILABILITY ZONE C
+│  ┌───────────────────┐     ┌───────────────────┐     ┌───────────────────┐
+│  │ Public Subnet     │     │ Public Subnet     │     │ Public Subnet     │
+│  │ 10.0.101.0/24     │     │ 10.0.102.0/24     │     │ 10.0.103.0/24     │
+│  │                   │     │                   │     │                   │
+│  │ - NAT Gateway     │     │ - NAT Gateway     │     │ - NAT Gateway     │
+│  │ - ALB             │     │ - ALB             │     │ - ALB             │
+│  │ - Bastion Host    │     │                   │     │                   │
+│  └───────────────────┘     └───────────────────┘     └───────────────────┘
+│                                                                          │
+│  ┌───────────────────┐     ┌───────────────────┐     ┌───────────────────┐
+│  │ Private Subnet    │     │ Private Subnet    │     │ Private Subnet    │
+│  │ 10.0.1.0/24       │     │ 10.0.2.0/24       │     │ 10.0.3.0/24       │
+│  │                   │     │                   │     │                   │
+│  │ - ECS Tasks       │     │ - ECS Tasks       │     │ - ECS Tasks       │
+│  │ - RDS (Primary)   │     │ - RDS (Standby)   │     │                   │
+│  │ - ElastiCache     │     │ - ElastiCache     │     │ - ElastiCache     │
+│  │ - OpenSearch      │     │ - OpenSearch      │     │                   │
+│  │ - MSK Broker      │     │ - MSK Broker      │     │ - MSK Broker      │
+│  └───────────────────┘     └───────────────────┘     └───────────────────┘
+│                                                                          │
+│  Security Groups:                                                        │
+│  - alb-sg: 443 from 0.0.0.0/0                                           │
+│  - ecs-sg: 3000-3100 from alb-sg                                        │
+│  - rds-sg: 5432 from ecs-sg                                             │
+│  - redis-sg: 6379 from ecs-sg                                           │
+│  - opensearch-sg: 443 from ecs-sg                                       │
+│  - msk-sg: 9092 from ecs-sg                                             │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
