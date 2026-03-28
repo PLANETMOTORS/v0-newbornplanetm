@@ -394,7 +394,7 @@ export default function VehicleDetailPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="pb-20">
+      <main className="pb-20 md:pb-20 pb-32">
         {/* Breadcrumb */}
         <div className="bg-muted/30 py-3 border-b">
           <div className="container mx-auto px-4">
@@ -1642,6 +1642,23 @@ export default function VehicleDetailPage() {
           />
         </div>
 </main>
+
+      {/* Sticky Mobile CTA */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 md:hidden z-50 safe-area-inset-bottom">
+        <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
+          <div className="flex-1">
+            <p className="text-sm text-muted-foreground">Price</p>
+            <p className="text-xl font-bold">${vehicleData.price.toLocaleString()}</p>
+          </div>
+          <Button 
+            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+            onClick={() => handleProtectedAction("reserve this vehicle")}
+          >
+            <Lock className="w-4 h-4 mr-2" />
+            Reserve Now
+          </Button>
+        </div>
+      </div>
       
       <Footer />
 

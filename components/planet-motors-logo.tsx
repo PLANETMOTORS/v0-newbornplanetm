@@ -32,7 +32,8 @@ export function PlanetMotorsLogo({
         alt="Planet Motors - Fairness Integrity"
         width={width}
         height={height}
-        className="object-contain w-full h-auto"
+        className="object-contain"
+        style={{ width: "auto", height: "auto" }}
         unoptimized
         priority
       />
