@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Header } from "@/components/header"
@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Plus, X, CheckCircle, XCircle, Minus, ArrowRight } from "lucide-react"
+import { Plus, X, CheckCircle, XCircle, Minus, ArrowRight, Share2, Printer, Download } from "lucide-react"
+import { useCompare, type CompareVehicle } from "@/lib/compare-context"
 
 // API-ready interface for vehicle comparison
 interface CompareVehicle {
@@ -162,19 +163,47 @@ const availableVehicles: CompareVehicle[] = [
 ]
 
 export default function ComparePage() {
+  const { compareList, vehicles: contextVehicles, addToCompare, removeFromCompare, clearCompare } = useCompare()
   const [selectedVehicles, setSelectedVehicles] = useState<string[]>([])
+
+  // Sync with context on mount
+  useEffect(() => {
+    if (compareList.length > 0) {
+      setSelectedVehicles(compareList)
+    }
+  }, [compareList])
 
   const addVehicle = (vehicleId: string) => {
     if (selectedVehicles.length < 3 && !selectedVehicles.includes(vehicleId)) {
       setSelectedVehicles([...selectedVehicles, vehicleId])
+      const vehicle = availableVehicles.find(v => v.id === vehicleId)
+      if (vehicle) {
+        addToCompare(vehicleId, vehicle)
+      }
     }
   }
 
   const removeVehicle = (vehicleId: string) => {
     setSelectedVehicles(selectedVehicles.filter(id => id !== vehicleId))
+    removeFromCompare(vehicleId)
   }
 
-  const getVehicle = (id: string) => availableVehicles.find(v => v.id === id)
+  const handleShare = () => {
+    const url = `${window.location.origin}/compare?vehicles=${selectedVehicles.join(",")}`
+    navigator.clipboard.writeText(url)
+    alert("Comparison link copied to clipboard!")
+  }
+
+  const handlePrint = () => {
+    window.print()
+  }
+
+  const getVehicle = (id: string) => {
+    // First check context vehicles, then fall back to available vehicles
+    const fromContext = contextVehicles.find(v => v.id === id)
+    if (fromContext) return fromContext
+    return availableVehicles.find(v => v.id === id)
+  }
   const selectedVehicleData = selectedVehicles.map(id => getVehicle(id)!).filter(Boolean)
 
   const compareValue = (values: (string | number)[], type: "lower" | "higher" = "higher") => {
@@ -194,9 +223,24 @@ export default function ComparePage() {
             <h1 className="text-4xl font-bold text-primary-foreground mb-4">
               Compare Vehicles
             </h1>
-            <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
+            <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto mb-6">
               Select up to 3 vehicles to compare side-by-side and find your perfect match.
             </p>
+            {selectedVehicleData.length >= 2 && (
+              <div className="flex justify-center gap-3">
+                <Button variant="secondary" size="sm" onClick={handleShare}>
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share Comparison
+                </Button>
+                <Button variant="secondary" size="sm" onClick={handlePrint}>
+                  <Printer className="h-4 w-4 mr-2" />
+                  Print
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => { setSelectedVehicles([]); clearCompare(); }} className="border-white/30 text-white hover:bg-white/10">
+                  Clear All
+                </Button>
+              </div>
+            )}
           </div>
         </section>
 

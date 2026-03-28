@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-export async function middleware(request: NextRequest) {
-  // Supabase session handling will be enabled once the integration is connected
-  // For now, just pass through all requests
+export function middleware(request: NextRequest) {
+  // Simple pass-through middleware
+  // Supabase session handling will be added when the integration is connected
   return NextResponse.next()
 }
 
