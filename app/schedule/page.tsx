@@ -258,7 +258,7 @@ export default function SchedulePage() {
             {/* Info Card */}
             <Card className="mt-12 bg-primary/5 border-primary/20">
               <CardHeader>
-                <CardTitle className="text-lg">Nationwide Delivery Available</CardTitle>
+                <CardTitle className="text-lg">Nationwide Delivery Across Canada</CardTitle>
                 <CardDescription>
                   Can&apos;t visit us in person? We deliver anywhere in Canada!
                 </CardDescription>
@@ -267,15 +267,15 @@ export default function SchedulePage() {
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-green-600" />
-                    Free delivery within Ontario
+                    FREE delivery within 300km of Richmond Hill
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-green-600" />
-                    Coast-to-coast shipping available
+                    Coast-to-coast delivery from BC to Newfoundland
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-green-600" />
-                    10-day return policy on all deliveries
+                    10-day money-back guarantee on all deliveries
                   </li>
                 </ul>
               </CardContent>

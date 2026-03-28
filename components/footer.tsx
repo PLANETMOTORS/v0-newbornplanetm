@@ -43,7 +43,7 @@ export function Footer() {
               <PlanetMotorsLogo size="lg" />
             </div>
             <p className="text-background/70 text-sm leading-relaxed mb-6">
-              Ontario&apos;s trusted destination for premium pre-owned vehicles. 210-point inspection, 10-day money-back guarantee, and competitive multi-lender financing.
+              Canada&apos;s trusted destination for premium pre-owned vehicles with nationwide delivery. 210-point inspection, 10-day money-back guarantee, and competitive multi-lender financing.
             </p>
             
             <div className="space-y-3">

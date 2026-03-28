@@ -96,16 +96,20 @@ export default function TermsOfServicePage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">6. Delivery</h2>
+              <h2 className="text-2xl font-semibold mb-4">6. Nationwide Delivery</h2>
               <p className="text-muted-foreground mb-4">
-                We offer free delivery within Ontario for all vehicle purchases. For deliveries outside Ontario:
+                We provide delivery across Canada from our Richmond Hill location (L4C 1G7). Delivery pricing is based on distance:
               </p>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-                <li>Delivery fees will be quoted at checkout based on distance</li>
-                <li>Estimated delivery times are provided but are not guaranteed</li>
-                <li>You are responsible for being present to accept delivery and inspect the vehicle</li>
-                <li>Risk of loss transfers to you upon delivery acceptance</li>
+                <li><strong>0-300 km:</strong> FREE delivery</li>
+                <li><strong>301-499 km:</strong> $0.70 per km</li>
+                <li><strong>500-999 km:</strong> $0.75 per km</li>
+                <li><strong>1,000-2,000 km:</strong> $0.80 per km</li>
+                <li><strong>2,001+ km:</strong> $0.65 per km</li>
               </ul>
+              <p className="text-muted-foreground mt-4">
+                Estimated delivery times are provided but are not guaranteed. You are responsible for being present to accept delivery and inspect the vehicle. Risk of loss transfers to you upon delivery acceptance.
+              </p>
             </section>
 
             <section className="mb-8">

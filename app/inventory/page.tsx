@@ -257,13 +257,17 @@ export default function InventoryPage() {
         `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim}`.toLowerCase().includes(searchQuery.toLowerCase())
       const matchesMake = selectedMake === "All Makes" || vehicle.make === selectedMake
       const matchesFuel = selectedFuelType === "All Fuel Types" || vehicle.fuelType === selectedFuelType
+      const matchesYear = selectedYear === "All Years" || vehicle.year.toString() === selectedYear
+      const matchesTransmission = selectedTransmission === "All Transmissions" || vehicle.transmission === selectedTransmission
+      const matchesColor = selectedColor === "All Colors" || vehicle.exteriorColor === selectedColor
+      const matchesDrivetrain = selectedDrivetrain === "All Drivetrains" || vehicle.drivetrain === selectedDrivetrain
       const matchesPrice = vehicle.price >= priceRange[0] && vehicle.price <= priceRange[1]
       const matchesMileage = vehicle.mileage >= mileageRange[0] && vehicle.mileage <= mileageRange[1]
       const matchesEV = !evOnly || vehicle.fuelType === "Electric"
       
-      return matchesSearch && matchesMake && matchesFuel && matchesPrice && matchesMileage && matchesEV
+      return matchesSearch && matchesMake && matchesFuel && matchesYear && matchesTransmission && matchesColor && matchesDrivetrain && matchesPrice && matchesMileage && matchesEV
     })
-  }, [searchQuery, selectedMake, selectedFuelType, priceRange, mileageRange, evOnly])
+  }, [searchQuery, selectedMake, selectedFuelType, selectedYear, selectedTransmission, selectedColor, selectedDrivetrain, priceRange, mileageRange, evOnly])
 
   // Sort vehicles
   const sortedVehicles = useMemo(() => {

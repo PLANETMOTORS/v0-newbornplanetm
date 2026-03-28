@@ -158,7 +158,7 @@ export function SimilarVehicles({ currentVehicleId, make, priceRange }: SimilarV
                     </span>
                     <Badge variant="outline" className="text-xs">
                       <Truck className="h-3 w-3 mr-1" />
-                      Free Delivery
+                      Nationwide Delivery
                     </Badge>
                   </div>
                 </CardContent>
