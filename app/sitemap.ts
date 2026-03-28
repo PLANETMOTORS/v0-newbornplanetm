@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://planetmotors.ca'
+  const baseUrl = 'https://www.planetmotors.ca'
   const currentDate = new Date().toISOString()
   
   // Core pages - highest priority
@@ -33,20 +33,58 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/accessibility', priority: 0.3, changeFrequency: 'yearly' as const },
   ]
 
-  // Inventory filter pages (helps with SEO for specific searches)
+  // Location-based landing pages (for local SEO)
+  const cities = [
+    "toronto", "richmond-hill", "markham", "vaughan", "mississauga",
+    "brampton", "scarborough", "north-york", "oakville", "hamilton",
+    "ottawa", "montreal", "vancouver", "calgary", "edmonton",
+    "kitchener", "london", "windsor", "barrie", "guelph"
+  ]
+  
+  const locationPages = cities.map(city => ({
+    path: `/used-cars/${city}`,
+    priority: 0.85,
+    changeFrequency: 'weekly' as const,
+  }))
+
+  // Inventory filter pages (for search SEO)
   const inventoryFilters = [
-    { path: '/inventory?fuelType=Electric', priority: 0.85 },
-    { path: '/inventory?bodyType=SUV', priority: 0.85 },
+    // Fuel types
+    { path: '/inventory?fuelType=Electric', priority: 0.9 },
+    { path: '/inventory?fuelType=Hybrid', priority: 0.85 },
+    { path: '/inventory?fuelType=PHEV', priority: 0.85 },
+    { path: '/inventory?fuelType=Gasoline', priority: 0.8 },
+    // Body types
+    { path: '/inventory?bodyType=SUV', priority: 0.9 },
     { path: '/inventory?bodyType=Sedan', priority: 0.85 },
     { path: '/inventory?bodyType=Truck', priority: 0.85 },
-    { path: '/inventory?make=Tesla', priority: 0.8 },
-    { path: '/inventory?make=BMW', priority: 0.8 },
-    { path: '/inventory?make=Mercedes-Benz', priority: 0.8 },
-    { path: '/inventory?make=Porsche', priority: 0.8 },
-    { path: '/inventory?make=Audi', priority: 0.8 },
-    { path: '/inventory?make=Toyota', priority: 0.8 },
-    { path: '/inventory?make=Honda', priority: 0.8 },
-    { path: '/inventory?make=Ford', priority: 0.8 },
+    { path: '/inventory?bodyType=Coupe', priority: 0.8 },
+    { path: '/inventory?bodyType=Hatchback', priority: 0.8 },
+    // Popular makes
+    { path: '/inventory?make=Tesla', priority: 0.9 },
+    { path: '/inventory?make=BMW', priority: 0.85 },
+    { path: '/inventory?make=Mercedes-Benz', priority: 0.85 },
+    { path: '/inventory?make=Porsche', priority: 0.85 },
+    { path: '/inventory?make=Audi', priority: 0.85 },
+    { path: '/inventory?make=Toyota', priority: 0.85 },
+    { path: '/inventory?make=Honda', priority: 0.85 },
+    { path: '/inventory?make=Ford', priority: 0.85 },
+    { path: '/inventory?make=Lexus', priority: 0.8 },
+    { path: '/inventory?make=Hyundai', priority: 0.8 },
+    { path: '/inventory?make=Kia', priority: 0.8 },
+    { path: '/inventory?make=Mazda', priority: 0.8 },
+    { path: '/inventory?make=Volkswagen', priority: 0.8 },
+    { path: '/inventory?make=Chevrolet', priority: 0.8 },
+    { path: '/inventory?make=Nissan', priority: 0.8 },
+    // Combined filters (high-value searches)
+    { path: '/inventory?make=Tesla&fuelType=Electric', priority: 0.9 },
+    { path: '/inventory?bodyType=SUV&fuelType=Electric', priority: 0.9 },
+    { path: '/inventory?make=BMW&bodyType=SUV', priority: 0.85 },
+    { path: '/inventory?make=Mercedes-Benz&bodyType=SUV', priority: 0.85 },
+    // Price ranges
+    { path: '/inventory?maxPrice=30000', priority: 0.8 },
+    { path: '/inventory?maxPrice=50000', priority: 0.8 },
+    { path: '/inventory?minPrice=50000', priority: 0.75 },
   ]
 
   // Combine all static routes
@@ -54,6 +92,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...corePages,
     ...infoPages,
     ...legalPages,
+    ...locationPages,
   ].map(page => ({
     url: `${baseUrl}${page.path}`,
     lastModified: currentDate,
@@ -93,11 +132,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // Blog post routes
   // In production, fetch from Sanity CMS
   const blogSlugs = [
-    'ev-buying-guide-2024',
-    'tesla-model-3-vs-model-y',
+    'ev-buying-guide-2026',
+    'tesla-model-3-vs-model-y-comparison',
     'financing-tips-first-time-buyers',
     'trade-in-maximize-value',
-    'electric-vehicle-incentives-canada',
+    'electric-vehicle-incentives-canada-2026',
+    'best-used-cars-under-30000',
+    'ev-battery-health-explained',
+    'certified-pre-owned-vs-used',
+    'bad-credit-car-loan-guide',
+    'car-delivery-what-to-expect',
   ]
 
   const blogRoutes = blogSlugs.map(slug => ({

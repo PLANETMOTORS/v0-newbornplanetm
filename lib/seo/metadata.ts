@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 
-const BASE_URL = "https://planetmotors.ca"
+const BASE_URL = "https://www.planetmotors.ca"
 const SITE_NAME = "Planet Motors"
 const DEFAULT_DESCRIPTION = "Canada's trusted destination for premium pre-owned vehicles with nationwide delivery. 210-point inspection, 10-day money-back guarantee, and competitive multi-lender financing."
 

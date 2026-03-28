@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, Playfair_Display } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { GoogleAnalytics } from '@/components/analytics/google-analytics'
+import { GoogleTagManager, GoogleTagManagerNoScript } from '@/components/analytics/google-tag-manager'
+import { MetaPixel } from '@/components/analytics/meta-pixel'
 import { LiveChat } from '@/components/live-chat'
 import { CompareProvider } from '@/lib/compare-context'
 import { FavoritesProvider } from '@/lib/favorites-context'
@@ -40,7 +43,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Planet Motors | Premium Used Car Dealership',
     description: 'Shop 9,500+ certified pre-owned vehicles with free Carfax reports and nationwide delivery across Canada.',
-    url: 'https://planetmotors.ca',
+    url: 'https://www.planetmotors.ca',
     siteName: 'Planet Motors',
     locale: 'en_CA',
     type: 'website',
@@ -90,11 +93,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <GoogleAnalytics />
+        <GoogleTagManager />
+        <MetaPixel />
         <OrganizationJsonLd />
         <LocalBusinessJsonLd />
         <WebsiteSearchJsonLd />
       </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
+        <GoogleTagManagerNoScript />
         <AuthProvider>
           <FavoritesProvider>
             <CompareProvider>
