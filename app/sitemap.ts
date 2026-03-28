@@ -24,6 +24,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/warranty', priority: 0.7, changeFrequency: 'monthly' as const },
     { path: '/ev-battery-health', priority: 0.7, changeFrequency: 'monthly' as const },
     { path: '/careers', priority: 0.5, changeFrequency: 'weekly' as const },
+    // Clutch keyword strategy pages (targeting generic "clutch" searches)
+    { path: '/clutch-guide-canada', priority: 0.9, changeFrequency: 'weekly' as const },
   ]
 
   // Legal pages - lower priority
@@ -85,6 +87,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/inventory?maxPrice=30000', priority: 0.8 },
     { path: '/inventory?maxPrice=50000', priority: 0.8 },
     { path: '/inventory?minPrice=50000', priority: 0.75 },
+    // Transmission types (clutch strategy - targeting "clutch cars", "manual cars")
+    { path: '/inventory?transmission=Manual', priority: 0.9 },
+    { path: '/inventory?transmission=Automatic', priority: 0.8 },
   ]
 
   // Combine all static routes
@@ -142,6 +147,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     'certified-pre-owned-vs-used',
     'bad-credit-car-loan-guide',
     'car-delivery-what-to-expect',
+    // Clutch keyword strategy blog posts
+    'clutch-replacement-cost-canada',
+    'clutch-problems-signs-symptoms',
+    'best-manual-transmission-cars-canada-2026',
+    'how-to-drive-manual-transmission',
+    'clutch-vs-automatic-which-is-better',
+    'clutch-maintenance-tips-canadian-winters',
   ]
 
   const blogRoutes = blogSlugs.map(slug => ({

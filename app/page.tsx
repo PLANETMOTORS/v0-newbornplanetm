@@ -44,7 +44,7 @@ const features = [
 const trustBadges = [
   { icon: BadgeCheck, label: "OMVIC Licensed" },
   { icon: Shield, label: "10-Day Returns" },
-  { icon: Star, label: "4.9/5 Rating" },
+  { icon: Star, label: "4.8/5 Rating" },
   { icon: Clock, label: "24/7 Support" },
 ]
 
@@ -364,7 +364,7 @@ export default function HomePage() {
                   <Star key={star} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                 ))}
               </div>
-              <span className="text-muted-foreground">4.9/5 from 500+ reviews</span>
+              <span className="text-muted-foreground">4.8/5 from 277+ reviews</span>
             </div>
           </div>
 
