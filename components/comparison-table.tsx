@@ -14,10 +14,17 @@ interface ComparisonItem {
 
 const comparisonData: ComparisonItem[] = [
   {
-    feature: "Inspection Points",
+    feature: "Comprehensive Inspection",
     planetMotors: "210 Points",
-    clutch: "150 Points",
+    clutch: "210 Points",
     carvana: "150 Points",
+    highlight: false
+  },
+  {
+    feature: "EV Battery Health Certification",
+    planetMotors: true,
+    clutch: false,
+    carvana: false,
     highlight: true
   },
   {
@@ -30,34 +37,56 @@ const comparisonData: ComparisonItem[] = [
     feature: "Financing Partners",
     planetMotors: "6 Lenders",
     clutch: "3 Lenders",
-    carvana: "1 Lender",
+    carvana: "1 (In-House)",
     highlight: true
   },
   {
-    feature: "Lowest APR Rate",
+    feature: "Lowest APR Available",
     planetMotors: "4.79%",
     clutch: "6.99%",
     carvana: "7.99%",
     highlight: true
   },
   {
-    feature: "Free Carfax Report",
+    feature: "Same-Day Financing Decision",
     planetMotors: true,
-    clutch: true,
-    carvana: true
+    clutch: false,
+    carvana: true,
+    highlight: true
   },
   {
-    feature: "EV Battery Health Report",
+    feature: "AI-Powered Recommendations",
     planetMotors: true,
     clutch: false,
     carvana: false,
     highlight: true
   },
   {
-    feature: "360° Vehicle Views",
+    feature: "Virtual 3D Showroom",
+    planetMotors: true,
+    clutch: false,
+    carvana: "Vending Machine Only",
+    highlight: true
+  },
+  {
+    feature: "360° Interactive Views",
     planetMotors: true,
     clutch: true,
     carvana: true
+  },
+  {
+    feature: "Real-Time Inventory Updates",
+    planetMotors: "Live",
+    clutch: "Hourly",
+    carvana: "Daily",
+    highlight: true
+  },
+  {
+    feature: "Price Match Guarantee",
+    planetMotors: true,
+    clutch: false,
+    carvana: false,
+    highlight: true
   },
   {
     feature: "Canadian Black Book Valuation",
@@ -69,13 +98,14 @@ const comparisonData: ComparisonItem[] = [
     feature: "Free Ontario Delivery",
     planetMotors: true,
     clutch: true,
-    carvana: false
+    carvana: "$599+"
   },
   {
-    feature: "Same-Day Financing Decision",
+    feature: "Same-Day Vehicle Pickup",
     planetMotors: true,
     clutch: false,
-    carvana: true
+    carvana: false,
+    highlight: true
   },
   {
     feature: "OMVIC Licensed Dealer",
@@ -85,10 +115,23 @@ const comparisonData: ComparisonItem[] = [
     highlight: true
   },
   {
-    feature: "Local Ontario Support",
+    feature: "In-Person Showroom",
+    planetMotors: "Richmond Hill",
+    clutch: "No Physical Location",
+    carvana: "No (US Only)",
+    highlight: true
+  },
+  {
+    feature: "24/7 Live Chat Support",
+    planetMotors: true,
+    clutch: "Business Hours",
+    carvana: true
+  },
+  {
+    feature: "Trade-In Instant Offer",
     planetMotors: true,
     clutch: true,
-    carvana: false
+    carvana: true
   }
 ]
 
@@ -199,8 +242,8 @@ export function ComparisonTable() {
                     <Crown className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <p className="font-semibold text-foreground">Planet Motors Wins in 8 of 12 Categories</p>
-                    <p className="text-sm text-muted-foreground">More inspection points, better rates, EV expertise</p>
+                    <p className="font-semibold text-foreground">Planet Motors Wins in 12 of 18 Categories</p>
+                    <p className="text-sm text-muted-foreground">EV expertise, better rates, AI recommendations, physical showroom</p>
                   </div>
                 </div>
                 <div className="flex gap-6 text-center">

@@ -513,6 +513,7 @@ export default function HomePage() {
       </div>
 
       <Footer />
+      <LiveChatWidget />
     </div>
   )
 }
