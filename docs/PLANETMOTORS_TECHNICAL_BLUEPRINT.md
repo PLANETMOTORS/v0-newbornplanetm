@@ -10,7 +10,7 @@ This document provides a comprehensive technical blueprint for Planet Motors, a 
 
 | Metric | Value |
 |--------|-------|
-| Founded | 2024 |
+| Founded | 2015 |
 | Headquarters | Toronto, Ontario, Canada |
 | Employees | Target: 200+ |
 | Target Revenue | $150M+ CAD |
