@@ -413,49 +413,52 @@ CREATE INDEX idx_deliveries_order ON deliveries(order_id);
 CREATE INDEX idx_deliveries_status ON deliveries(status);
 ```
 
-## 1.11 Returns Table
+## 1.11 Returns Table (10-Day Policy)
 
 ```sql
 CREATE TABLE returns (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  order_id UUID NOT NULL REFERENCES orders(id),
-  
-  -- Return Request
-  reason_category VARCHAR(50) NOT NULL,
-  reason_details TEXT,
-  requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  
-  -- Vehicle Condition
-  mileage_at_return INTEGER,
-  condition_notes TEXT,
-  damage_reported BOOLEAN DEFAULT FALSE,
-  damage_details TEXT,
-  
-  -- Inspection
-  inspection_required BOOLEAN DEFAULT TRUE,
-  inspection_passed BOOLEAN,
-  inspection_notes TEXT,
-  
-  -- Refund
-  refund_amount DECIMAL(12,2),
-  deductions DECIMAL(12,2) DEFAULT 0,
-  deduction_reasons TEXT,
-  
-  -- Status
-  status VARCHAR(30) DEFAULT 'requested',
-  approved_by UUID REFERENCES employees(id),
-  
-  -- Timestamps
-  pickup_scheduled_at TIMESTAMP,
-  picked_up_at TIMESTAMP,
-  inspected_at TIMESTAMP,
-  refund_processed_at TIMESTAMP,
-  completed_at TIMESTAMP,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID NOT NULL REFERENCES orders(id),
+    customer_id UUID NOT NULL REFERENCES customers(id),
+    
+    -- Return Details
+    return_number VARCHAR(20) UNIQUE NOT NULL,
+    reason VARCHAR(100) NOT NULL,
+    reason_details TEXT,
+    
+    -- Policy
+    purchase_date DATE NOT NULL,
+    return_deadline DATE NOT NULL,
+    days_since_purchase INTEGER GENERATED ALWAYS AS (CURRENT_DATE - purchase_date) STORED,
+    is_within_policy BOOLEAN GENERATED ALWAYS AS ((CURRENT_DATE - purchase_date) <= 10) STORED,
+    
+    -- Mileage
+    mileage_at_purchase INTEGER NOT NULL,
+    mileage_at_return INTEGER,
+    mileage_driven INTEGER GENERATED ALWAYS AS (mileage_at_return - mileage_at_purchase) STORED,
+    
+    -- Status
+    status VARCHAR(30) DEFAULT 'requested',
+    
+    -- Pickup
+    pickup_scheduled_date DATE,
+    pickup_completed_at TIMESTAMP,
+    
+    -- Refund
+    refund_amount DECIMAL(12,2),
+    refund_method VARCHAR(30),
+    refund_processed_at TIMESTAMP,
+    
+    -- Timestamps
+    requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    approved_at TIMESTAMP,
+    completed_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_returns_order ON returns(order_id);
+CREATE INDEX idx_returns_customer ON returns(customer_id);
 CREATE INDEX idx_returns_status ON returns(status);
 ```
 
