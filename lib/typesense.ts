@@ -50,8 +50,12 @@ interface SearchResponse {
 }
 
 // Check if Typesense is configured
+// Note: Typesense package is not installed - always returns false for now
+// Install typesense package and set env vars to enable
 function isTypesenseConfigured(): boolean {
-  return !!(process.env.TYPESENSE_HOST && process.env.TYPESENSE_API_KEY)
+  // Disabled until typesense package is properly installed
+  return false
+  // return !!(process.env.TYPESENSE_HOST && process.env.TYPESENSE_API_KEY)
 }
 
 // Mock search results for development
