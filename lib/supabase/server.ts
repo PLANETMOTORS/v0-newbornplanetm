@@ -1,11 +1,13 @@
-import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-export async function createClient() {
+type SupabaseClient = Awaited<ReturnType<typeof import('@supabase/ssr')['createServerClient']>>
+
+export async function createClient(): Promise<SupabaseClient> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     throw new Error('Supabase environment variables are not configured')
   }
 
+  const { createServerClient } = await import('@supabase/ssr')
   const cookieStore = await cookies()
 
   return createServerClient(
@@ -23,8 +25,7 @@ export async function createClient() {
             )
           } catch {
             // The "setAll" method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
+            // This can be ignored if you have middleware refreshing user sessions.
           }
         },
       },
@@ -32,7 +33,7 @@ export async function createClient() {
   )
 }
 
-export async function getServerClient() {
+export async function getServerClient(): Promise<SupabaseClient | null> {
   try {
     return await createClient()
   } catch {
