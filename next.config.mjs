@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Force clean build - cache version 2
+  cleanDistDir: true,
   typescript: {
     ignoreBuildErrors: true,
   },
