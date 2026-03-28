@@ -15,7 +15,7 @@ import {
   Search, SlidersHorizontal, Grid3X3, List, Heart, Share2, 
   Gauge, Fuel, Calendar, MapPin, Shield, Zap, ChevronDown,
   X, RotateCcw, TrendingUp, Eye, Clock, CheckCircle, Star,
-  ArrowUpDown, Filter, Sparkles, Battery, Car
+  ArrowUpDown, Filter, Sparkles, Battery, Car, ExternalLink
 } from "lucide-react"
 
 // Premium vehicle inventory data
@@ -106,6 +106,9 @@ const vehicles = [
     originalPrice: 175000,
     mileage: 3800,
     fuelType: "Electric",
+    transmission: "Automatic",
+    drivetrain: "AWD",
+    exteriorColor: "Silver",
     range: "547 km",
     batteryHealth: 100,
     image: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&auto=format&fit=crop&q=80",
@@ -116,6 +119,7 @@ const vehicles = [
     views: 203,
     favorites: 31,
     monthlyPayment: 1249,
+    carfaxUrl: "https://www.carfax.ca/vehicle/W1K6M7GB8PA123456",
     features: ["Hyperscreen", "Burmester 3D", "Air Suspension"]
   },
   {
@@ -128,6 +132,9 @@ const vehicles = [
     originalPrice: 45990,
     mileage: 15200,
     fuelType: "Hybrid",
+    transmission: "CVT",
+    drivetrain: "AWD",
+    exteriorColor: "Gray",
     image: "https://images.unsplash.com/photo-1568844293986-8c292f8a7e83?w=800&auto=format&fit=crop&q=80",
     location: "Richmond Hill",
     inspectionScore: 209,
@@ -136,6 +143,7 @@ const vehicles = [
     views: 278,
     favorites: 45,
     monthlyPayment: 349,
+    carfaxUrl: "https://www.carfax.ca/vehicle/2HKRW2H94RH123456",
     features: ["Honda Sensing", "Wireless CarPlay", "Panoramic Roof"]
   },
   {
@@ -148,6 +156,9 @@ const vehicles = [
     originalPrice: 58990,
     mileage: 9800,
     fuelType: "Plug-in Hybrid",
+    transmission: "CVT",
+    drivetrain: "AWD",
+    exteriorColor: "White",
     range: "68 km EV",
     image: "https://images.unsplash.com/photo-1581540222194-0def2dda95b8?w=800&auto=format&fit=crop&q=80",
     location: "Richmond Hill",
@@ -157,6 +168,7 @@ const vehicles = [
     views: 167,
     favorites: 29,
     monthlyPayment: 439,
+    carfaxUrl: "https://www.carfax.ca/vehicle/JTMAB3FV5PD123456",
     features: ["Toyota Safety Sense", "JBL Audio", "Heated Steering"]
   },
   {
@@ -169,6 +181,9 @@ const vehicles = [
     originalPrice: 195000,
     mileage: 4200,
     fuelType: "Electric",
+    transmission: "Automatic",
+    drivetrain: "AWD",
+    exteriorColor: "Red",
     range: "395 km",
     batteryHealth: 99,
     image: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&auto=format&fit=crop&q=80",
@@ -179,6 +194,7 @@ const vehicles = [
     views: 312,
     favorites: 52,
     monthlyPayment: 1449,
+    carfaxUrl: "https://www.carfax.ca/vehicle/WUAESAF47PA123456",
     features: ["Matrix LED", "Bang & Olufsen", "Air Suspension"]
   },
   {
@@ -191,6 +207,9 @@ const vehicles = [
     originalPrice: 105000,
     mileage: 6500,
     fuelType: "Electric",
+    transmission: "Automatic",
+    drivetrain: "4WD",
+    exteriorColor: "Blue",
     range: "483 km",
     batteryHealth: 98,
     image: "https://images.unsplash.com/photo-1590362891991-f776e747a588?w=800&auto=format&fit=crop&q=80",
@@ -200,6 +219,7 @@ const vehicles = [
     badgeColor: "bg-blue-600",
     views: 234,
     favorites: 38,
+    carfaxUrl: "https://www.carfax.ca/vehicle/1FTFW1E58PF123456",
     monthlyPayment: 789,
     features: ["Pro Power Onboard", "BlueCruise", "Max Recline Seats"]
   }
@@ -723,6 +743,20 @@ export default function InventoryPage() {
                         <TrendingUp className="w-3 h-3" />
                         Save ${(vehicle.originalPrice - vehicle.price).toLocaleString()}
                       </div>
+                    )}
+                    
+                    {/* CARFAX Badge */}
+                    {vehicle.carfaxUrl && (
+                      <a 
+                        href={vehicle.carfaxUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-3 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <span className="font-bold text-[#e01f26]">CARFAX</span>
+                        <span>Report Available</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
                     )}
                   </div>
                 </CardContent>

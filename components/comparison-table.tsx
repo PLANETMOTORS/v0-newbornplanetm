@@ -249,8 +249,8 @@ export function ComparisonTable() {
                     <Crown className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <p className="font-semibold text-foreground">Planet Motors Wins in 12 of 18 Categories</p>
-                    <p className="text-sm text-muted-foreground">EV expertise, better rates, AI recommendations, physical showroom</p>
+                    <p className="font-semibold text-foreground">Planet Motors Wins in 13 of 19 Categories</p>
+                    <p className="text-sm text-muted-foreground">Nationwide delivery, EV expertise, CARFAX included, lower rates, physical showroom</p>
                   </div>
                 </div>
                 <div className="flex gap-6 text-center">
