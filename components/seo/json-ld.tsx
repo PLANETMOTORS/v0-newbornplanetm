@@ -5,12 +5,12 @@ export function OrganizationJsonLd() {
   const schema = {
     "@context": "https://schema.org",
     "@type": "AutoDealer",
-    "@id": "https://planetmotors.ca/#organization",
+    "@id": "https://www.planetmotors.ca/#organization",
     "name": "Planet Motors",
     "legalName": "Planet Motors Inc.",
     "url": "https://www.planetmotors.ca",
-    "logo": "https://planetmotors.ca/images/planet-motors-logo.png",
-    "image": "https://planetmotors.ca/images/dealership.jpg",
+    "logo": "https://www.planetmotors.ca/images/planet-motors-logo.png",
+    "image": "https://www.planetmotors.ca/images/dealership.jpg",
     "description": "Canada's trusted destination for premium pre-owned vehicles with nationwide delivery. 210-point inspection, 10-day money-back guarantee, and competitive multi-lender financing.",
     "telephone": "+1-866-797-3332",
     "email": "info@planetmotors.ca",
@@ -67,22 +67,22 @@ export function OrganizationJsonLd() {
         {
           "@type": "OfferCatalog",
           "name": "Electric Vehicles",
-          "url": "https://planetmotors.ca/inventory?fuelType=Electric"
+          "url": "https://www.planetmotors.ca/inventory?fuelType=Electric"
         },
         {
           "@type": "OfferCatalog",
           "name": "SUVs",
-          "url": "https://planetmotors.ca/inventory?bodyType=SUV"
+          "url": "https://www.planetmotors.ca/inventory?bodyType=SUV"
         },
         {
           "@type": "OfferCatalog",
           "name": "Sedans",
-          "url": "https://planetmotors.ca/inventory?bodyType=Sedan"
+          "url": "https://www.planetmotors.ca/inventory?bodyType=Sedan"
         },
         {
           "@type": "OfferCatalog",
           "name": "Trucks",
-          "url": "https://planetmotors.ca/inventory?bodyType=Truck"
+          "url": "https://www.planetmotors.ca/inventory?bodyType=Truck"
         }
       ]
     }
@@ -143,8 +143,8 @@ export function VehicleJsonLd({ vehicle }: VehicleJsonLdProps) {
       : "https://schema.org/UsedCondition",
     "image": vehicle.image.startsWith("http") 
       ? vehicle.image 
-      : `https://planetmotors.ca${vehicle.image}`,
-    "url": `https://planetmotors.ca/vehicles/${vehicle.id}`,
+      : `https://www.planetmotors.ca${vehicle.image}`,
+    "url": `https://www.planetmotors.ca/vehicles/${vehicle.id}`,
     "offers": {
       "@type": "Offer",
       "price": vehicle.price,
@@ -220,7 +220,7 @@ export function ArticleJsonLd({ article }: ArticleJsonLdProps) {
     "description": article.excerpt,
     "image": article.coverImage.startsWith("http") 
       ? article.coverImage 
-      : `https://planetmotors.ca${article.coverImage}`,
+      : `https://www.planetmotors.ca${article.coverImage}`,
     "datePublished": article.publishedAt,
     "dateModified": article.modifiedAt || article.publishedAt,
     "author": {
@@ -232,12 +232,12 @@ export function ArticleJsonLd({ article }: ArticleJsonLdProps) {
       "name": "Planet Motors",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://planetmotors.ca/images/planet-motors-logo.png"
+        "url": "https://www.planetmotors.ca/images/planet-motors-logo.png"
       }
     },
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": `https://planetmotors.ca/blog/${article.slug}`
+      "@id": `https://www.planetmotors.ca/blog/${article.slug}`
     }
   }
 
@@ -263,7 +263,7 @@ export function BreadcrumbJsonLd({ items }: BreadcrumbJsonLdProps) {
       "@type": "ListItem",
       "position": index + 1,
       "name": item.name,
-      "item": item.url.startsWith("http") ? item.url : `https://planetmotors.ca${item.url}`
+      "item": item.url.startsWith("http") ? item.url : `https://www.planetmotors.ca${item.url}`
     }))
   }
 
@@ -282,7 +282,7 @@ export function LocalBusinessJsonLd() {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "name": "Planet Motors",
-    "image": "https://planetmotors.ca/images/planet-motors-logo.png",
+    "image": "https://www.planetmotors.ca/images/planet-motors-logo.png",
     "@id": "https://www.planetmotors.ca",
     "url": "https://www.planetmotors.ca",
     "telephone": "+1-866-797-3332",
@@ -321,7 +321,7 @@ export function WebsiteSearchJsonLd() {
       "@type": "SearchAction",
       "target": {
         "@type": "EntryPoint",
-        "urlTemplate": "https://planetmotors.ca/inventory?search={search_term_string}"
+        "urlTemplate": "https://www.planetmotors.ca/inventory?search={search_term_string}"
       },
       "query-input": "required name=search_term_string"
     }
