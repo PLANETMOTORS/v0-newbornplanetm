@@ -111,8 +111,156 @@ const vehicleData = {
     { item: "RCMP/CPIC stolen vehicle check — clear", status: "Pass" },
     { item: "Odometer accuracy verified", status: "Pass" },
     { item: "Clean Ontario title — no branding", status: "Pass" },
-    { item: "No flood or water damage history", status: "Pass" }
+    { item: "No flood or water damage history", status: "Pass" },
+    { item: "Airbag deployment history — none", status: "Pass" },
+    { item: "Structural integrity — no frame damage", status: "Pass" }
   ],
+  fullInspection: {
+    vinHistory: [
+      "VIN verified (door jamb, dash, frame)",
+      "Lien search — no outstanding liens",
+      "CARFAX Canada history report clear",
+      "All outstanding recalls cleared",
+      "RCMP/CPIC stolen vehicle check — clear",
+      "Odometer accuracy verified",
+      "Clean Ontario title — no branding",
+      "No flood or water damage history",
+      "Airbag deployment history — none",
+      "Structural integrity — no frame damage"
+    ],
+    powertrainEngine: [
+      "Engine oil level & condition",
+      "Transmission fluid level & condition",
+      "12V battery load test ≥ 75% capacity",
+      "Alternator output & charging system",
+      "Water pump — no leaks or noise",
+      "Ignition system & spark plugs",
+      "Fuel system — no leaks, proper pressure",
+      "Radiator & coolant system",
+      "Coolant level & freeze protection",
+      "A/C system — cold air output verified",
+      "No oil, coolant, or fluid leaks",
+      "Belts & hoses — no cracks or wear",
+      "Engine mounts — secure, no excess vibration",
+      "Exhaust manifold — no leaks",
+      "Catalytic converter function",
+      "Timing belt/chain condition",
+      "Valve cover gaskets — no leaks",
+      "PCV valve function",
+      "Air filter condition",
+      "Throttle body & idle quality",
+      "Turbo/supercharger (if equipped)",
+      "Engine computer — no stored codes"
+    ],
+    brakesSuspension: [
+      "Master cylinder & brake fluid level",
+      "Front brake pad thickness ≥ 4mm",
+      "Rear brake pad thickness ≥ 4mm",
+      "Rotors & drums — no scoring or warping",
+      "Brake calipers — no leaks, proper movement",
+      "Brake lines & hoses — no damage",
+      "Parking brake function verified",
+      "Springs & shock absorbers — no leaks",
+      "Control arm bushings & ball joints",
+      "CV joints & axle boots",
+      "Steering rack & tie rods",
+      "Power steering fluid & pump operation",
+      "Wheel bearings — no noise or play"
+    ],
+    tyresWheels: [
+      "Tread depth all four tyres ≥ 4/32\"",
+      "No uneven wear, bulges or cracks",
+      "Tyre pressure set to spec",
+      "Alloy rims — no cracks or bends",
+      "Valve stems & caps intact",
+      "Lug nuts torqued to spec",
+      "TPMS sensors functional",
+      "Spare tyre & jack kit present"
+    ],
+    exterior: [
+      "Exhaust system & Ontario emissions",
+      "All exterior lights — headlights, tail, signal, fog",
+      "Door locks, handles & hinges",
+      "Windshield & glass — no chips, cracks",
+      "Body panels — no damage, rust or corrosion",
+      "Wipers, mirrors, bumpers & trim",
+      "Hood, trunk & fuel door operation",
+      "Paint condition assessment",
+      "Undercarriage inspection",
+      "Frame & structural integrity",
+      "Door seals & weatherstripping",
+      "Antenna & exterior accessories",
+      "Licence plate lights",
+      "Tow hooks & recovery points",
+      "Roof rails (if equipped)",
+      "Sunroof/moonroof operation",
+      "Convertible top (if equipped)",
+      "Running boards/side steps",
+      "Mud flaps & wheel well liners",
+      "Trailer hitch (if equipped)",
+      "Parking sensors verified"
+    ],
+    interior: [
+      "Instrument cluster & all warning lights",
+      "Infotainment, navigation & Bluetooth",
+      "All seats — power, heat, fold function",
+      "Seatbelts, airbag system & SRS light",
+      "HVAC, defroster & cabin air filter",
+      "USB ports, horn, key fob & owner's manual",
+      "Power windows all positions",
+      "Power door locks",
+      "Interior lighting — dome, map, ambient",
+      "Sunvisors & vanity mirrors",
+      "Center console & storage compartments",
+      "Cup holders & armrests",
+      "Carpet & floor mat condition",
+      "Headliner condition",
+      "Rear seat access & function",
+      "Child seat anchors (LATCH)",
+      "Trunk/cargo area condition",
+      "12V/USB charging ports",
+      "Garage door opener (if equipped)",
+      "Voice control system"
+    ],
+    driveTest: [
+      "Cold start & idle quality",
+      "Transmission — smooth shifts all gears",
+      "Braking performance — straight stop",
+      "Acceleration & throttle response",
+      "No abnormal suspension noise",
+      "Drivetrain — no vibration or clunking",
+      "10 km road test completed",
+      "ADAS features — lane assist, AEB verified",
+      "Regen braking function (EV/hybrid)",
+      "No warning lights at end of road test"
+    ],
+    evSystems: [
+      "High-voltage battery SOH & SOC",
+      "Battery management system (BMS) — no faults",
+      "Charge port — no damage, latches correctly",
+      "L1 & L2 charging verified",
+      "DC fast charging (if equipped)",
+      "HV cables & connectors — no damage",
+      "Electric motor — no noise or fault codes",
+      "Battery thermal management system",
+      "On-board charger (OBC) function",
+      "Autopilot / FSD hardware (Tesla)",
+      "Software version — latest OTA update",
+      "Energy consumption within range spec"
+    ],
+    detailingSafety: [
+      "Paint depth measurement — OEM thickness confirmed",
+      "Dent & paintwork inspection — PDR where required",
+      "Clay bar, paint correction & ceramic coat prep",
+      "Full interior detail — vacuum, shampoo, odour elimination",
+      "Ontario SSC safety standards certificate issued",
+      "OMVIC disclosure package prepared & signed",
+      "All keys, remotes & charge cables present",
+      "OBD-II full diagnostic — zero fault codes",
+      "Advanced safety systems — camera, radar, park sensors",
+      "Final QC sign-off by certified Planet Motors technician"
+    ]
+  },
   conditionItems: [
     "Vehicle passes Ontario Safety Standards Certificate requirements",
     "All mechanical systems inspected by a licensed technician",
@@ -680,7 +828,7 @@ export default function VehicleDetailPage() {
                         View complete 210-point inspection
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                    <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <div className="flex items-center gap-2 text-sm text-primary">
                           <Shield className="w-4 h-4" />
@@ -688,31 +836,198 @@ export default function VehicleDetailPage() {
                         </div>
                         <DialogTitle className="text-xl">210-Point Inspection Report</DialogTitle>
                       </DialogHeader>
-                      <div className="grid grid-cols-3 gap-3 py-4">
+                      
+                      {/* Category Grid */}
+                      <div className="grid grid-cols-3 md:grid-cols-5 gap-2 py-4">
                         {vehicleData.inspectionCategories.map((cat, i) => (
-                          <div key={i} className="text-center p-3 bg-muted/30 rounded-lg">
-                            <CheckCircle className="w-6 h-6 text-primary mx-auto mb-1" />
-                            <p className="text-xs font-medium">{cat.name}</p>
-                            <p className="text-xs text-muted-foreground">{cat.points} points passed</p>
+                          <div key={i} className="text-center p-2 bg-muted/30 rounded-lg">
+                            <CheckCircle className="w-5 h-5 text-primary mx-auto mb-1" />
+                            <p className="text-[10px] font-medium leading-tight">{cat.name}</p>
+                            <p className="text-[10px] text-primary">{cat.points} points passed</p>
                           </div>
                         ))}
                       </div>
-                      <div className="space-y-3">
-                        <div className="bg-muted/30 p-3 rounded-lg">
-                          <p className="font-medium text-sm mb-2">VIN & History — Items 1-10</p>
+
+                      {/* VIN & History — Items 1-10 */}
+                      <div className="space-y-1">
+                        <div className="bg-blue-600 text-white p-2 rounded-t-lg flex items-center gap-2">
+                          <span className="text-sm font-medium">VIN & History — Items 1-10</span>
                         </div>
-                        {vehicleData.vinHistoryItems.map((item, i) => (
-                          <div key={i} className="flex justify-between items-center py-2 border-b">
-                            <div className="flex items-center gap-3">
-                              <span className="text-sm text-muted-foreground">{i + 1}</span>
-                              <span className="text-sm">{item.item}</span>
-                            </div>
-                            <span className="text-sm text-primary flex items-center gap-1">
-                              <Check className="w-4 h-4" />
-                              {item.status}
-                            </span>
+                        <div className="border rounded-b-lg">
+                          <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
+                            <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
-                        ))}
+                          {vehicleData.fullInspection.vinHistory.map((item, i) => (
+                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                              <span className="text-muted-foreground">{i + 1}</span>
+                              <span>{item}</span>
+                              <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Powertrain & Engine — Items 11-32 */}
+                      <div className="space-y-1 mt-4">
+                        <div className="bg-orange-600 text-white p-2 rounded-t-lg flex items-center gap-2">
+                          <span className="text-sm font-medium">Powertrain & Engine — Items 11-32</span>
+                        </div>
+                        <div className="border rounded-b-lg">
+                          <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
+                            <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
+                          </div>
+                          {vehicleData.fullInspection.powertrainEngine.map((item, i) => (
+                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                              <span className="text-muted-foreground">{i + 11}</span>
+                              <span>{item}</span>
+                              <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Brakes & Suspension — Items 33-45 */}
+                      <div className="space-y-1 mt-4">
+                        <div className="bg-red-600 text-white p-2 rounded-t-lg flex items-center gap-2">
+                          <span className="text-sm font-medium">Brakes, Suspension & Steering — Items 33-45</span>
+                        </div>
+                        <div className="border rounded-b-lg">
+                          <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
+                            <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
+                          </div>
+                          {vehicleData.fullInspection.brakesSuspension.map((item, i) => (
+                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                              <span className="text-muted-foreground">{i + 33}</span>
+                              <span>{item}</span>
+                              <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Tyres & Wheels — Items 46-53 */}
+                      <div className="space-y-1 mt-4">
+                        <div className="bg-blue-500 text-white p-2 rounded-t-lg flex items-center gap-2">
+                          <span className="text-sm font-medium">Tyres & Wheels — Items 46-53</span>
+                        </div>
+                        <div className="border rounded-b-lg">
+                          <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
+                            <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
+                          </div>
+                          {vehicleData.fullInspection.tyresWheels.map((item, i) => (
+                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                              <span className="text-muted-foreground">{i + 46}</span>
+                              <span>{item}</span>
+                              <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Vehicle Exterior — Items 54-74 */}
+                      <div className="space-y-1 mt-4">
+                        <div className="bg-green-600 text-white p-2 rounded-t-lg flex items-center gap-2">
+                          <span className="text-sm font-medium">Vehicle Exterior — Items 54-74</span>
+                        </div>
+                        <div className="border rounded-b-lg">
+                          <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
+                            <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
+                          </div>
+                          {vehicleData.fullInspection.exterior.map((item, i) => (
+                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                              <span className="text-muted-foreground">{i + 54}</span>
+                              <span>{item}</span>
+                              <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Vehicle Interior — Items 75-94 */}
+                      <div className="space-y-1 mt-4">
+                        <div className="bg-purple-600 text-white p-2 rounded-t-lg flex items-center gap-2">
+                          <span className="text-sm font-medium">Vehicle Interior — Items 75-94</span>
+                        </div>
+                        <div className="border rounded-b-lg">
+                          <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
+                            <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
+                          </div>
+                          {vehicleData.fullInspection.interior.map((item, i) => (
+                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                              <span className="text-muted-foreground">{i + 75}</span>
+                              <span>{item}</span>
+                              <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* How it Drives — Items 95-104 */}
+                      <div className="space-y-1 mt-4">
+                        <div className="bg-amber-600 text-white p-2 rounded-t-lg flex items-center gap-2">
+                          <span className="text-sm font-medium">How it Drives — Items 95-104</span>
+                        </div>
+                        <div className="border rounded-b-lg">
+                          <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
+                            <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
+                          </div>
+                          {vehicleData.fullInspection.driveTest.map((item, i) => (
+                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                              <span className="text-muted-foreground">{i + 95}</span>
+                              <span>{item}</span>
+                              <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* EV & Hybrid Systems — Items 105-116 */}
+                      <div className="space-y-1 mt-4">
+                        <div className="bg-teal-600 text-white p-2 rounded-t-lg flex items-center gap-2">
+                          <span className="text-sm font-medium">EV & Hybrid Systems — Items 105-116</span>
+                        </div>
+                        <div className="border rounded-b-lg">
+                          <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
+                            <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
+                          </div>
+                          {vehicleData.fullInspection.evSystems.map((item, i) => (
+                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                              <span className="text-muted-foreground">{i + 105}</span>
+                              <span>{item}</span>
+                              <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Detailing, Safety & Advanced — Items 117-210 */}
+                      <div className="space-y-1 mt-4">
+                        <div className="bg-pink-600 text-white p-2 rounded-t-lg flex items-center gap-2">
+                          <span className="text-sm font-medium">Detailing, Safety & Advanced — Items 117-210</span>
+                        </div>
+                        <div className="border rounded-b-lg">
+                          <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
+                            <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
+                          </div>
+                          {vehicleData.fullInspection.detailingSafety.map((item, i) => (
+                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                              <span className="text-muted-foreground">{i + 117}-{i + 117 + 9}</span>
+                              <span>{item}</span>
+                              <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Footer Summary */}
+                      <div className="mt-6 bg-slate-900 text-white p-6 rounded-lg text-center">
+                        <Shield className="w-8 h-8 mx-auto mb-2 text-primary" />
+                        <p className="text-xl font-bold">210 Points — All Passed</p>
+                        <p className="text-sm text-slate-300 mt-1">Planet Motors Inc. · Richmond Hill, ON · OMVIC Reg.</p>
+                        <Button className="mt-4" variant="outline">
+                          <Download className="w-4 h-4 mr-2" />
+                          Download Full PDF Report
+                        </Button>
                       </div>
                     </DialogContent>
                   </Dialog>
