@@ -242,48 +242,46 @@ CREATE INDEX idx_financing_status ON financing_applications(status);
 
 ```sql
 CREATE TABLE lenders (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
-  -- Basic Info
-  name VARCHAR(100) NOT NULL,
-  code VARCHAR(20) UNIQUE NOT NULL,
-  lender_type VARCHAR(30) DEFAULT 'prime',
-  
-  -- Credit Requirements
-  min_credit_score INTEGER,
-  max_income DECIMAL(12,2),
-  min_income DECIMAL(12,2),
-  max_loan_amount DECIMAL(12,2),
-  min_loan_amount DECIMAL(12,2),
-  min_term_months INTEGER,
-  max_term_months INTEGER,
-  
-  -- Rates
-  base_rate DECIMAL(5,3),
-  rate_range_min DECIMAL(5,3),
-  rate_range_max DECIMAL(5,3),
-  
-  -- Integration
-  api_endpoint VARCHAR(500),
-  api_key_secret_name VARCHAR(100),
-  
-  -- Status
-  is_active BOOLEAN DEFAULT TRUE,
-  priority INTEGER DEFAULT 0,
-  
-  -- Metadata
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(100) NOT NULL,
+    code VARCHAR(20) UNIQUE NOT NULL,
+    lender_type VARCHAR(30) NOT NULL,
+    
+    -- Criteria
+    min_credit_score INTEGER,
+    max_credit_score INTEGER,
+    min_income DECIMAL(12,2),
+    min_loan_amount DECIMAL(12,2),
+    max_loan_amount DECIMAL(12,2),
+    min_term_months INTEGER,
+    max_term_months INTEGER,
+    
+    -- Rates
+    base_rate DECIMAL(5,3),
+    rate_range_min DECIMAL(5,3),
+    rate_range_max DECIMAL(5,3),
+    
+    -- Integration
+    api_endpoint VARCHAR(500),
+    api_key_secret_name VARCHAR(100),
+    
+    -- Status
+    is_active BOOLEAN DEFAULT TRUE,
+    priority INTEGER DEFAULT 0,
+    
+    -- Timestamps
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Seed Canadian Lenders
-INSERT INTO lenders (name, code, lender_type, min_credit_score, base_rate, priority) VALUES
-  ('TD Auto Finance', 'TD', 'prime', 680, 4.79, 1),
-  ('RBC Auto Finance', 'RBC', 'prime', 700, 4.99, 2),
-  ('Scotiabank Dealer Finance', 'SCOTIA', 'prime', 680, 5.19, 3),
-  ('BMO Auto Finance', 'BMO', 'prime', 660, 5.49, 4),
-  ('CIBC Auto Finance', 'CIBC', 'prime', 650, 5.79, 5),
-  ('Desjardins Auto', 'DESJ', 'near-prime', 600, 6.99, 6);
+-- Insert Canadian lenders
+INSERT INTO lenders (name, code, lender_type, min_credit_score, max_term_months, base_rate) VALUES
+('TD Auto Finance', 'TD', 'bank', 600, 84, 5.99),
+('RBC', 'RBC', 'bank', 620, 84, 6.29),
+('Scotiabank', 'SCOTIA', 'bank', 600, 84, 5.79),
+('BMO', 'BMO', 'bank', 640, 72, 6.49),
+('CIBC', 'CIBC', 'bank', 620, 84, 6.29),
+('Desjardins', 'DESJ', 'credit_union', 580, 96, 5.49);
 ```
 
 ## 1.8 Financing Offers Table (Multi-Lender)
