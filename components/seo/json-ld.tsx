@@ -8,6 +8,7 @@ export function OrganizationJsonLd() {
     "@id": "https://www.planetmotors.ca/#organization",
     "name": "Planet Motors",
     "legalName": "Planet Motors Inc.",
+    "foundingDate": "2015",
     "url": "https://www.planetmotors.ca",
     "logo": "https://www.planetmotors.ca/images/planet-motors-logo.png",
     "image": "https://www.planetmotors.ca/images/dealership.jpg",
