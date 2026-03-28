@@ -471,7 +471,7 @@ export default function VehicleDetailPage() {
                   </div>
 
                   {/* Image Type Toggle */}
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <Button 
                       variant={imageType === "exterior" ? "default" : "outline"} 
                       size="sm"
@@ -486,6 +486,41 @@ export default function VehicleDetailPage() {
                     >
                       Interior
                     </Button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-2">
+                          <Play className="w-4 h-4" />
+                          Video Walkaround
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl">
+                        <DialogHeader>
+                          <DialogTitle>Video Walkaround - {vehicleData.title}</DialogTitle>
+                        </DialogHeader>
+                        <div className="aspect-video bg-black rounded-lg flex items-center justify-center">
+                          <div className="text-center text-white">
+                            <Play className="w-16 h-16 mx-auto mb-4 opacity-80" />
+                            <p className="text-lg">360° Video Walkaround</p>
+                            <p className="text-sm text-white/70 mt-2">Watch a complete interior & exterior tour of this vehicle</p>
+                            <Button variant="secondary" size="lg" className="mt-6">
+                              <Play className="w-5 h-5 mr-2" />
+                              Play Video
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3 mt-4">
+                          <Button variant="outline" size="sm" className="justify-start">
+                            <Car className="w-4 h-4 mr-2" /> Exterior Tour
+                          </Button>
+                          <Button variant="outline" size="sm" className="justify-start">
+                            <Users className="w-4 h-4 mr-2" /> Interior Tour
+                          </Button>
+                          <Button variant="outline" size="sm" className="justify-start">
+                            <Zap className="w-4 h-4 mr-2" /> Engine Bay
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
 
                   {/* Thumbnails */}
@@ -1045,6 +1080,40 @@ export default function VehicleDetailPage() {
                       </Button>
                     </CardContent>
                   </Card>
+
+                  {/* EV Battery Health - Show for EVs/PHEVs */}
+                  {(vehicleData.fuelType === "Electric" || vehicleData.fuelType === "PHEV") && (
+                    <Card className="border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <Battery className="w-5 h-5 text-green-600" />
+                            <span className="font-semibold text-green-800 dark:text-green-400">Battery Health</span>
+                          </div>
+                          <Badge className="bg-green-500">{vehicleData.batteryHealth}% SOH</Badge>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Estimated Range</span>
+                            <span className="font-medium">{vehicleData.range}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Battery Capacity</span>
+                            <span className="font-medium">{vehicleData.batteryCapacity}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Fast Charging</span>
+                            <span className="font-medium">{vehicleData.chargingSpeed}</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" size="sm" className="w-full mt-3 border-green-300 text-green-700 hover:bg-green-100" asChild>
+                          <Link href="/ev-battery-health">
+                            View Full Battery Report <ArrowRight className="w-4 h-4 ml-1" />
+                          </Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
 
                   {/* Condition */}
                   <Card>
