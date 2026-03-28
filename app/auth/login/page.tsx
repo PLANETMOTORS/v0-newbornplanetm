@@ -197,7 +197,7 @@ export default function LoginPage() {
           {/* Trust Indicators */}
           <div className="mt-8 text-center text-sm text-muted-foreground">
             <p>Protected by industry-standard encryption</p>
-            <p className="mt-1">OMVIC Licensed Dealer #4048307</p>
+            <p className="mt-1">OMVIC Licensed Dealer</p>
           </div>
         </div>
       </main>

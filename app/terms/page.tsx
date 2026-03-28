@@ -174,7 +174,7 @@ export default function TermsOfServicePage() {
               </p>
               <div className="bg-muted/50 p-6 rounded-lg">
                 <p className="font-semibold">Planet Motors Inc.</p>
-                <p className="text-muted-foreground">OMVIC Registration #4048307</p>
+                <p className="text-muted-foreground">OMVIC Registered Dealer</p>
                 <p className="text-muted-foreground">30 Major Mackenzie Dr E</p>
                 <p className="text-muted-foreground">Richmond Hill, ON L4C 1G7</p>
                 <p className="text-muted-foreground mt-2">Email: legal@planetmotors.ca</p>

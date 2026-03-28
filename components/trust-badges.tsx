@@ -84,7 +84,7 @@ export function TrustBadges() {
             256-bit SSL Encryption
           </span>
           <span className="hidden md:inline">|</span>
-          <span>OMVIC Licensed Dealer #4048307</span>
+          <span>OMVIC Licensed Dealer</span>
           <span className="hidden md:inline">|</span>
           <span>BBB A+ Rating</span>
           <span className="hidden md:inline">|</span>

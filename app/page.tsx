@@ -1,6 +1,6 @@
 "use client"
 
-// Planet Motors Homepage - OMVIC Licensed Dealer #4048307
+// Planet Motors Homepage - OMVIC Licensed Dealer
 import Link from "next/link"
 import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin, TrendingUp, Award, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -496,7 +496,7 @@ export default function HomePage() {
                 <BadgeCheck className="w-8 h-8 mb-4" />
                 <h3 className="font-semibold">Licensed</h3>
                 <p className="text-sm text-primary-foreground/80 mt-1">OMVIC Registered</p>
-                <p className="text-sm text-primary-foreground/80">#4048307</p>
+                <p className="text-sm text-primary-foreground/80">Ontario Dealer</p>
               </div>
             </div>
           </div>
