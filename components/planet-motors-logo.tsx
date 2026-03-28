@@ -25,7 +25,7 @@ export function PlanetMotorsLogo({
   return (
     <div className={`flex items-center ${className}`}>
       <Image
-        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Planet-Motors---Logo-Final%20Transp%20Back-ACl8Kr3pqlFeUI0w4UbtxQB8tQCt9R.jpeg"
+        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Planet-Motors---Logo-Final%20Transp%20Back-aUCiMDzVN3TFfyvh7Kxyl8pl4efOf1.jpeg"
         alt="Planet Motors - Fairness Integrity"
         width={width}
         height={height}
