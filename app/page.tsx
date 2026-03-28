@@ -35,8 +35,8 @@ const features = [
   },
   {
     icon: Car,
-    title: "Local Ontario Focus",
-    description: "Proudly serving the Greater Toronto Area from Richmond Hill. OMVIC licensed dealer with community trust.",
+    title: "Free Nationwide Delivery",
+    description: "Free delivery anywhere in Canada. Headquartered in Richmond Hill, serving Canadians coast to coast. OMVIC licensed.",
   },
 ]
 
