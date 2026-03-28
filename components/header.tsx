@@ -18,7 +18,15 @@ const navigation = [
       { name: "Ultimate Coverage", href: "/protection-plans#ultimate" },
     ]
   },
-  { name: "About", href: "/about" },
+  { 
+    name: "Blueprints", 
+    href: "/blueprints",
+    submenu: [
+      { name: "Technical Blueprint", href: "/blueprints/technical" },
+      { name: "Enterprise Architecture", href: "/blueprints/enterprise" },
+      { name: "Production Schema", href: "/blueprints/production" },
+    ]
+  },
   { name: "Contact", href: "/contact" },
 ]
 
