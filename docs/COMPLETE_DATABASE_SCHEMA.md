@@ -140,50 +140,56 @@ CREATE INDEX idx_inspection_items_inspection ON inspection_items(inspection_id);
 
 ```sql
 CREATE TABLE orders (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  order_number VARCHAR(20) UNIQUE NOT NULL,
-  customer_id UUID NOT NULL REFERENCES customers(id),
-  vehicle_id UUID NOT NULL REFERENCES vehicles(id),
-  
-  -- Status
-  status VARCHAR(30) DEFAULT 'created',
-  
-  -- Pricing
-  vehicle_price DECIMAL(12,2) NOT NULL,
-  trade_in_credit DECIMAL(12,2) DEFAULT 0,
-  down_payment DECIMAL(12,2) DEFAULT 0,
-  registration_fee DECIMAL(12,2) DEFAULT 499.00,
-  admin_fee DECIMAL(12,2) DEFAULT 0,
-  delivery_fee DECIMAL(12,2) DEFAULT 0,
-  warranty_price DECIMAL(12,2) DEFAULT 0,
-  
-  -- Taxes
-  subtotal DECIMAL(12,2) NOT NULL,
-  gst_amount DECIMAL(12,2) DEFAULT 0,
-  pst_amount DECIMAL(12,2) DEFAULT 0,
-  hst_amount DECIMAL(12,2) DEFAULT 0,
-  total_price DECIMAL(12,2) NOT NULL,
-  
-  -- Financing
-  financing_application_id UUID REFERENCES financing_applications(id),
-  amount_financed DECIMAL(12,2) DEFAULT 0,
-  
-  -- Payment
-  down_payment_required DECIMAL(12,2) DEFAULT 0,
-  conditions TEXT,
-  
-  is_selected BOOLEAN DEFAULT FALSE,
-  selected_at TIMESTAMP,
-  
-  -- Timestamps
-  received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  expires_at TIMESTAMP,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_number VARCHAR(20) UNIQUE NOT NULL,
+    customer_id UUID NOT NULL REFERENCES customers(id),
+    vehicle_id UUID NOT NULL REFERENCES vehicles(id),
+    
+    -- Status
+    status VARCHAR(30) DEFAULT 'created',
+    
+    -- Pricing (CAD)
+    vehicle_price DECIMAL(12,2) NOT NULL,
+    trade_in_credit DECIMAL(12,2) DEFAULT 0,
+    down_payment DECIMAL(12,2) DEFAULT 0,
+    documentation_fee DECIMAL(12,2) DEFAULT 499.00,
+    registration_fee DECIMAL(12,2) DEFAULT 0,
+    omvic_fee DECIMAL(12,2) DEFAULT 10.00,
+    delivery_fee DECIMAL(12,2) DEFAULT 0,
+    warranty_price DECIMAL(12,2) DEFAULT 0,
+    
+    -- Taxes
+    subtotal DECIMAL(12,2) NOT NULL,
+    gst_amount DECIMAL(12,2) DEFAULT 0,
+    pst_amount DECIMAL(12,2) DEFAULT 0,
+    hst_amount DECIMAL(12,2) DEFAULT 0,
+    qst_amount DECIMAL(12,2) DEFAULT 0,
+    total_tax DECIMAL(12,2) NOT NULL,
+    total_price DECIMAL(12,2) NOT NULL,
+    
+    -- Financing
+    financing_application_id UUID REFERENCES financing_applications(id),
+    amount_financed DECIMAL(12,2) DEFAULT 0,
+    
+    -- Trade-In
+    trade_in_id UUID REFERENCES trade_ins(id),
+    
+    -- Delivery
+    delivery_type VARCHAR(20) DEFAULT 'delivery',
+    delivery_address_id UUID REFERENCES customer_addresses(id),
+    hub_id UUID REFERENCES hubs(id),
+    
+    -- Timestamps
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP,
+    cancelled_at TIMESTAMP
 );
 
 CREATE INDEX idx_orders_customer ON orders(customer_id);
+CREATE INDEX idx_orders_vehicle ON orders(vehicle_id);
 CREATE INDEX idx_orders_status ON orders(status);
+CREATE INDEX idx_orders_number ON orders(order_number);
 ```
 
 ## 1.6 Financing Applications Table
