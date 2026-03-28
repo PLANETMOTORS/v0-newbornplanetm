@@ -38,7 +38,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-12">
           {/* Brand & Contact */}
           <div className="lg:col-span-2">
-            <div className="mb-6 bg-white rounded-lg p-3 inline-block">
+            <div className="mb-6">
               <PlanetMotorsLogo size="lg" />
             </div>
             <p className="text-background/70 text-sm leading-relaxed mb-6">
