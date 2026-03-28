@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 7 - Supabase env vars configured
+  // Force clean build - version 8 - all integrations ready
   cleanDistDir: true,
   typescript: {
     ignoreBuildErrors: true,
