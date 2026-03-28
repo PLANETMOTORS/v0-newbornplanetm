@@ -21,7 +21,7 @@ export function Vehicle360Viewer({
   const [isVisible, setIsVisible] = useState(false)
   const [isActivated, setIsActivated] = useState(false)
 
-  const { currentFrame, isPlaying, toggle, onPointerDown, onPointerMove, onPointerUp } = use360Spin({ 
+  const { currentFrame, isPlaying, toggle, handlers } = use360Spin({ 
     totalFrames,
     sensitivity: 5,
     autoPlaySpeed: 50
@@ -87,10 +87,8 @@ export function Vehicle360Viewer({
     <div 
       ref={containerRef}
       className={`relative aspect-video bg-black rounded-lg overflow-hidden cursor-grab active:cursor-grabbing select-none touch-none ${className}`}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerLeave={onPointerUp}
+      {...handlers}
+      onPointerLeave={handlers.onPointerUp}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={frameUrl} alt={`${stockNumber} 360 frame ${currentFrame + 1}`} className="w-full h-full object-cover" draggable={false} />

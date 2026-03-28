@@ -1,49 +1,57 @@
 "use client"
 
-import { useState, useCallback, useRef, useEffect } from "react"
+import { useState, useRef, useEffect } from "react"
 
 interface Use360SpinOptions {
   totalFrames: number
   sensitivity?: number
   autoPlaySpeed?: number
+  loop?: boolean
 }
 
-export function use360Spin({ totalFrames, sensitivity = 5, autoPlaySpeed = 50 }: Use360SpinOptions) {
+export function use360Spin({ 
+  totalFrames, 
+  sensitivity = 5, 
+  autoPlaySpeed = 50,
+  loop = true 
+}: Use360SpinOptions) {
   const [currentFrame, setCurrentFrame] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
-  const isDragging = useRef(false)
-  const startX = useRef(0)
-  const startFrame = useRef(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const dragStartX = useRef(0)
+  const dragStartFrame = useRef(0)
 
+  // Auto-play interval
   useEffect(() => {
     if (!isPlaying) return
-    const id = setInterval(() => setCurrentFrame(f => (f + 1) % totalFrames), autoPlaySpeed)
+    const id = setInterval(() => {
+      setCurrentFrame(prev => (prev + 1 >= totalFrames ? (loop ? 0 : prev) : prev + 1))
+    }, autoPlaySpeed)
     return () => clearInterval(id)
-  }, [isPlaying, totalFrames, autoPlaySpeed])
+  }, [isPlaying, totalFrames, autoPlaySpeed, loop])
 
-  const onPointerDown = useCallback((e: React.PointerEvent) => {
-    isDragging.current = true
-    startX.current = e.clientX
-    startFrame.current = currentFrame
+  // Pointer handlers
+  const onPointerDown = (e: React.PointerEvent) => {
+    setIsDragging(true)
     setIsPlaying(false)
-  }, [currentFrame])
+    dragStartX.current = e.clientX
+    dragStartFrame.current = currentFrame
+    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+  }
 
-  const onPointerMove = useCallback((e: React.PointerEvent) => {
-    if (!isDragging.current) return
-    let frame = (startFrame.current + Math.floor((e.clientX - startX.current) / sensitivity)) % totalFrames
-    setCurrentFrame(frame < 0 ? frame + totalFrames : frame)
-  }, [sensitivity, totalFrames])
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!isDragging) return
+    let newFrame = (dragStartFrame.current + Math.floor((e.clientX - dragStartX.current) / sensitivity)) % totalFrames
+    setCurrentFrame(newFrame < 0 ? newFrame + totalFrames : newFrame)
+  }
 
-  const onPointerUp = useCallback(() => {
-    isDragging.current = false
-  }, [])
+  const onPointerUp = () => setIsDragging(false)
 
-  return { 
-    currentFrame, 
-    isPlaying, 
-    toggle: () => setIsPlaying(p => !p), 
-    onPointerDown, 
-    onPointerMove, 
-    onPointerUp 
+  return {
+    currentFrame,
+    isPlaying,
+    isDragging,
+    toggle: () => setIsPlaying(p => !p),
+    handlers: { onPointerDown, onPointerMove, onPointerUp }
   }
 }
