@@ -423,14 +423,14 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
               </div>
 
               {/* Quick Stats */}
-              <div className="flex items-center gap-4 text-sm">
-                <div className="flex items-center gap-2 px-3 py-2 bg-green-50 dark:bg-green-950/30 rounded-lg">
-                  <TrendingUp className="w-4 h-4 text-green-600" />
-                  <span className="text-green-700 dark:text-green-400">124 new this week</span>
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm">
+                <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                  <TrendingUp className="w-3 sm:w-4 h-3 sm:h-4 text-green-600" />
+                  <span className="text-green-700 dark:text-green-400 text-xs sm:text-sm">124 new</span>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 rounded-lg">
-                  <Zap className="w-4 h-4 text-primary" />
-                  <span className="text-primary">{vehicles.filter(v => v.fuelType === "Electric").length} EVs</span>
+                <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-primary/10 rounded-lg">
+                  <Zap className="w-3 sm:w-4 h-3 sm:h-4 text-primary" />
+                  <span className="text-primary text-xs sm:text-sm">{vehicles.filter(v => v.fuelType === "Electric").length} EVs</span>
                 </div>
               </div>
             </div>
@@ -684,11 +684,11 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
               <Card 
                 key={vehicle.id} 
                 className={`group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${
-                  viewMode === "list" ? "flex flex-row" : ""
+                  viewMode === "list" ? "flex flex-col sm:flex-row" : ""
                 }`}
               >
                 {/* Image */}
-                <div className={`relative ${viewMode === "list" ? "w-72 flex-shrink-0" : "aspect-[4/3]"}`}>
+                <div className={`relative ${viewMode === "list" ? "w-full sm:w-48 md:w-72 flex-shrink-0 aspect-[4/3] sm:aspect-auto" : "aspect-[4/3]"}`}>
                   <Image
                     src={vehicle.image}
                     alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
