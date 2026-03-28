@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { LiveChat } from '@/components/live-chat'
 import { CompareProvider } from '@/lib/compare-context'
 import { FavoritesProvider } from '@/lib/favorites-context'
+import { AuthProvider } from '@/contexts/auth-context'
 import { CompareBar } from '@/components/compare-bar'
 import './globals.css'
 
@@ -88,13 +89,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
-        <FavoritesProvider>
-          <CompareProvider>
-            {children}
-            <CompareBar />
-            <LiveChat />
-          </CompareProvider>
-        </FavoritesProvider>
+        <AuthProvider>
+          <FavoritesProvider>
+            <CompareProvider>
+              {children}
+              <CompareBar />
+              <LiveChat />
+            </CompareProvider>
+          </FavoritesProvider>
+        </AuthProvider>
         <Analytics />
       </body>
     </html>

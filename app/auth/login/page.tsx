@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -16,6 +17,8 @@ import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get("redirectTo") || "/account"
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -28,28 +31,37 @@ export default function LoginPage() {
     setError("")
     setIsLoading(true)
 
-    // TODO: Replace with Supabase auth when integration is connected
-    // const supabase = createClient()
-    // const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    // Simulated login - will be replaced with real auth
-    if (email && password) {
-      router.push("/account")
-    } else {
-      setError("Please enter your email and password")
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      
+      if (error) throw error
+      router.push(redirectTo)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Invalid email or password")
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
   const handleOAuthLogin = async (provider: "google" | "apple") => {
     setIsLoading(true)
-    // TODO: Replace with Supabase OAuth when integration is connected
-    // const supabase = createClient()
-    // const { data, error } = await supabase.auth.signInWithOAuth({ provider })
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    setIsLoading(false)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`,
+        },
+      })
+      if (error) throw error
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "OAuth login failed")
+      setIsLoading(false)
+    }
   }
 
   return (

@@ -23,6 +23,8 @@ import {
 import { ScheduleTestDrive } from "@/components/schedule-test-drive"
 import { SimilarVehicles } from "@/components/similar-vehicles"
 import { ReserveVehicleModal } from "@/components/reserve-vehicle-modal"
+import { AuthRequiredModal } from "@/components/auth-required-modal"
+import { useAuth } from "@/contexts/auth-context"
 import {
   Dialog,
   DialogContent,
@@ -345,6 +347,7 @@ const vehicleData = {
 }
 
 export default function VehicleDetailPage() {
+  const { user } = useAuth()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isFavorite, setIsFavorite] = useState(false)
   const [activeTab, setActiveTab] = useState("photos")
@@ -352,6 +355,18 @@ export default function VehicleDetailPage() {
   const [postalCode, setPostalCode] = useState("")
   const [viewCount, setViewCount] = useState(78)
   const [showInspectionModal, setShowInspectionModal] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [authAction, setAuthAction] = useState("")
+  const [showReserveModal, setShowReserveModal] = useState(false)
+
+  const handleProtectedAction = (action: string, callback?: () => void) => {
+    if (!user) {
+      setAuthAction(action)
+      setShowAuthModal(true)
+    } else if (callback) {
+      callback()
+    }
+  }
 
   // Simulate live viewing count
   useEffect(() => {
@@ -1513,28 +1528,40 @@ export default function VehicleDetailPage() {
 
                   {/* CTA Buttons */}
                   <div className="mt-4 space-y-2">
-                    <ReserveVehicleModal
-                      vehicle={{
-                        id: vehicleData.id,
-                        year: vehicleData.year,
-                        make: vehicleData.make,
-                        model: vehicleData.model,
-                        trim: vehicleData.trim,
-                        price: vehicleData.price,
-                        image: vehicleData.images[0],
-                        stockNumber: vehicleData.stockNumber
-                      }}
-                      trigger={
-                        <Button className="w-full h-11 bg-red-600 hover:bg-red-700 text-white">
-                          <Lock className="w-4 h-4 mr-2" />
-                          Reserve – $250 Refundable Deposit
-                        </Button>
-                      }
-                    />
+                    {user ? (
+                      <ReserveVehicleModal
+                        vehicle={{
+                          id: vehicleData.id,
+                          year: vehicleData.year,
+                          make: vehicleData.make,
+                          model: vehicleData.model,
+                          trim: vehicleData.trim,
+                          price: vehicleData.price,
+                          image: vehicleData.images[0],
+                          stockNumber: vehicleData.stockNumber
+                        }}
+                        trigger={
+                          <Button className="w-full h-11 bg-red-600 hover:bg-red-700 text-white">
+                            <Lock className="w-4 h-4 mr-2" />
+                            Reserve – $250 Refundable Deposit
+                          </Button>
+                        }
+                      />
+                    ) : (
+                      <Button 
+                        className="w-full h-11 bg-red-600 hover:bg-red-700 text-white"
+                        onClick={() => handleProtectedAction("reserve this vehicle")}
+                      >
+                        <Lock className="w-4 h-4 mr-2" />
+                        Reserve – $250 Refundable Deposit
+                      </Button>
+                    )}
                     <Button 
                       className="w-full h-11" 
                       variant="secondary"
-                      onClick={() => window.location.href = `/checkout/${vehicleData.id}`}
+                      onClick={() => handleProtectedAction("start your purchase", () => {
+                        window.location.href = `/checkout/${vehicleData.id}`
+                      })}
                     >
                       Start full purchase
                     </Button>
@@ -1614,9 +1641,17 @@ export default function VehicleDetailPage() {
             priceRange={vehicleData.price}
           />
         </div>
-      </main>
-
+</main>
+      
       <Footer />
+
+      {/* Auth Required Modal */}
+      <AuthRequiredModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        action={authAction}
+        redirectTo={`/vehicles/${vehicleData.id}`}
+      />
     </div>
   )
 }
