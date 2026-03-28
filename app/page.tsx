@@ -1,5 +1,7 @@
 "use client"
 
+// Planet Motors Homepage - OMVIC Licensed Dealer #4048307
+import { LiveChatWidget } from "@/components/live-chat-widget"
 import Link from "next/link"
 import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin, TrendingUp, Award, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -9,7 +11,6 @@ import { Footer } from "@/components/footer"
 import { VehicleShowcase } from "@/components/vehicle-showcase"
 import { HowItWorks } from "@/components/how-it-works"
 import { TrustBadges } from "@/components/trust-badges"
-import { LiveChatWidget } from "@/components/live-chat-widget"
 
 const stats = [
   { value: "9,500+", label: "Vehicles in Stock", trend: "+124 this week" },
