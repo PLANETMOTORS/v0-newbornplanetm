@@ -368,10 +368,13 @@ export default function VehicleDetailPage() {
     }
   }
 
-  // Simulate live viewing count
+  // Simulate live viewing count with deterministic pattern
   useEffect(() => {
+    let tick = 0
     const interval = setInterval(() => {
-      setViewCount(prev => Math.max(50, prev + Math.floor(Math.random() * 3) - 1))
+      tick++
+      const change = (tick % 3) - 1 // cycles: -1, 0, 1
+      setViewCount(prev => Math.max(50, Math.min(70, prev + change)))
     }, 8000)
     return () => clearInterval(interval)
   }, [])
@@ -394,31 +397,35 @@ export default function VehicleDetailPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="pb-20 md:pb-20 pb-32">
+      <main className="pb-20 md:pb-20 pb-32" role="main" aria-label="Vehicle details">
         {/* Breadcrumb */}
-        <div className="bg-muted/30 py-3 border-b">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center gap-2 text-sm">
-              <Link href="/inventory" className="text-muted-foreground hover:text-foreground">
-                All cars
-              </Link>
-              <span className="text-muted-foreground">›</span>
-              <Link href={`/inventory?make=${vehicleData.make}`} className="text-muted-foreground hover:text-foreground">
-                {vehicleData.make}
-              </Link>
-              <span className="text-muted-foreground">›</span>
-              <span>{vehicleData.model}</span>
-            </div>
+        <nav className="bg-muted/30 py-3 border-b" aria-label="Breadcrumb">
+          <div className="container mx-auto px-4 overflow-x-auto scrollbar-hide">
+            <ol className="flex items-center gap-2 text-sm whitespace-nowrap" role="list">
+              <li>
+                <Link href="/inventory" className="text-muted-foreground hover:text-foreground">
+                  All cars
+                </Link>
+              </li>
+              <li aria-hidden="true" className="text-muted-foreground">›</li>
+              <li>
+                <Link href={`/inventory?make=${vehicleData.make}`} className="text-muted-foreground hover:text-foreground">
+                  {vehicleData.make}
+                </Link>
+              </li>
+              <li aria-hidden="true" className="text-muted-foreground">›</li>
+              <li aria-current="page">{vehicleData.model}</li>
+            </ol>
           </div>
-        </div>
+        </nav>
 
         {/* Vehicle Title Bar */}
         <div className="border-b py-4">
           <div className="container mx-auto px-4">
-            <h1 className="text-2xl font-bold">
+            <h1 className="text-xl sm:text-2xl font-bold truncate">
               {vehicleData.year} {vehicleData.make} {vehicleData.model}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground">
               {vehicleData.trim} · {vehicleData.mileage.toLocaleString()} km
             </p>
           </div>
@@ -426,14 +433,14 @@ export default function VehicleDetailPage() {
 
         {/* Main Tabs */}
         <div className="border-b sticky top-16 bg-background z-40">
-          <div className="container mx-auto px-4">
+          <div className="container mx-auto px-4 overflow-x-auto scrollbar-hide">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="h-12 bg-transparent p-0 gap-0">
+              <TabsList className="h-12 bg-transparent p-0 gap-0 flex w-max min-w-full">
                 {["Photos", "Overview", "Features", "Inspection", "Pricing", "Ratings", "Protection"].map((tab) => (
                   <TabsTrigger
                     key={tab}
                     value={tab.toLowerCase()}
-                    className="h-12 px-4 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                    className="h-12 px-3 sm:px-4 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none whitespace-nowrap"
                   >
                     {tab}
                   </TabsTrigger>
@@ -486,7 +493,7 @@ export default function VehicleDetailPage() {
                   </div>
 
                   {/* Image Type Toggle */}
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex gap-2 flex-wrap overflow-x-auto scrollbar-hide pb-1">
                     <Button 
                       variant={imageType === "exterior" ? "default" : "outline"} 
                       size="sm"
@@ -539,16 +546,16 @@ export default function VehicleDetailPage() {
                   </div>
 
                   {/* Thumbnails */}
-                  <div className="flex gap-2 overflow-x-auto pb-2">
+                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                     {currentImages.map((img, i) => (
                       <button
                         key={i}
                         onClick={() => setCurrentImageIndex(i)}
-                        className={`relative w-20 h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
+                        className={`relative w-16 sm:w-20 h-12 sm:h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
                           i === currentImageIndex ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"
                         }`}
                       >
-                        <Image src={img} alt="" fill className="object-cover" />
+                        <Image src={img} alt="" fill className="object-cover" sizes="80px" />
                       </button>
                     ))}
                   </div>

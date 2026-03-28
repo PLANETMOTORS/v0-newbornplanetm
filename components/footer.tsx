@@ -33,7 +33,7 @@ const footerLinks = {
 
 export function Footer() {
   return (
-    <footer className="bg-foreground text-background">
+    <footer className="bg-foreground text-background" role="contentinfo" aria-label="Site footer">
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-12">
           {/* Brand & Contact */}
@@ -78,7 +78,7 @@ export function Footer() {
               </a>
               <div className="flex items-center gap-3 text-sm text-background/70">
                 <Clock className="w-4 h-4" />
-                <span>Mon-Fri: 9AM-7PM | Sat: 10AM-5PM | Sun: Closed</span>
+                <span>Mon-Fri: 9AM-7PM | Sat: 9AM-6PM | Sun: Closed</span>
               </div>
             </div>
           </div>

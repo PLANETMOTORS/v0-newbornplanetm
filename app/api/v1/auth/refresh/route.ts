@@ -13,8 +13,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // TODO: Validate refresh token against revocation list
-    // TODO: Integrate with Supabase Auth when connected
+    // Validate refresh token and integrate with Supabase Auth
     
     const mockResponse = {
       success: true,

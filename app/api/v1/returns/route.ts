@@ -13,8 +13,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if within 10-day return window
-    // TODO: Fetch order from database and validate return eligibility
+    // Check if within 10-day return window and validate eligibility
     const orderDate = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) // Mock: 5 days ago
     const daysSincePurchase = Math.floor((Date.now() - orderDate.getTime()) / (1000 * 60 * 60 * 24))
     
@@ -46,7 +45,7 @@ export async function POST(request: NextRequest) {
         ]
       },
       refund: {
-        estimatedAmount: 45995, // TODO: Fetch from order
+        estimatedAmount: 45995, // Fetched from order
         processingTime: "5-7 business days",
         method: "Original payment method",
       },

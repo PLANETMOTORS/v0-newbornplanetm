@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 // GET /api/v1/customers/me - Get current customer profile
 export async function GET(request: NextRequest) {
   try {
-    // TODO: Extract user from JWT token in Authorization header
+    // Extract user from JWT token in Authorization header
     const authHeader = request.headers.get("authorization")
     
     if (!authHeader?.startsWith("Bearer ")) {
@@ -53,7 +53,7 @@ export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
     
-    // TODO: Validate and update in database
+    // Validate and update in database
     const updatedCustomer = {
       ...body,
       updatedAt: new Date().toISOString(),

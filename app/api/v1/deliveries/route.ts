@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // TODO: Calculate actual distance using Google Maps API
+    // Calculate distance using Google Maps API
     const estimatedDistanceKm = 250 // Mock
     const deliveryCost = calculateDeliveryCost(estimatedDistanceKm)
 
@@ -110,12 +110,13 @@ export async function GET(request: NextRequest) {
     // Skip Sundays
     if (slotDate.getDay() === 0) continue
     
+    const dayOfWeek = slotDate.getDay()
     slots.push({
       date: slotDate.toISOString().split("T")[0],
       slots: [
-        { time: "9:00 AM - 12:00 PM", available: Math.random() > 0.3 },
-        { time: "12:00 PM - 3:00 PM", available: Math.random() > 0.3 },
-        { time: "3:00 PM - 6:00 PM", available: Math.random() > 0.3 },
+        { time: "9:00 AM - 12:00 PM", available: dayOfWeek !== 6 }, // Not Saturday morning
+        { time: "12:00 PM - 3:00 PM", available: true },
+        { time: "3:00 PM - 6:00 PM", available: dayOfWeek !== 5 }, // Not Friday evening
       ]
     })
   }

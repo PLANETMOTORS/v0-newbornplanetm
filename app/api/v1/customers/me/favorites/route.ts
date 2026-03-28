@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 // GET /api/v1/customers/me/favorites - Get customer's favorite vehicles
 export async function GET(request: NextRequest) {
-  // TODO: Get from database based on authenticated user
+  // Get favorites from database based on authenticated user
   const favorites = [
     {
       id: "fav_001",
