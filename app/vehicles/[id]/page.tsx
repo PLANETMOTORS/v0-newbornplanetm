@@ -18,6 +18,7 @@ import {
   Award, Battery, Thermometer, Lock, Truck, ArrowRight, Play,
   Download, ExternalLink, Check, X, AlertCircle
 } from "lucide-react"
+import { ScheduleTestDrive } from "@/components/schedule-test-drive"
 
 // Mock vehicle data
 const vehicleData = {
@@ -538,6 +539,16 @@ export default function VehicleDetailPage() {
                       <Lock className="h-5 w-5 mr-2" />
                       Reserve for $250
                     </Button>
+                    <ScheduleTestDrive 
+                      vehicleTitle={`${vehicleData.year} ${vehicleData.make} ${vehicleData.model} ${vehicleData.trim}`}
+                      vehicleId={vehicleData.id}
+                      trigger={
+                        <Button variant="outline" className="w-full h-12" size="lg">
+                          <Calendar className="h-5 w-5 mr-2" />
+                          Schedule Test Drive
+                        </Button>
+                      }
+                    />
                     <Button variant="outline" className="w-full h-12" size="lg">
                       <CreditCard className="h-5 w-5 mr-2" />
                       Get Pre-Approved

@@ -176,6 +176,10 @@ export function Footer() {
                 <p className="text-2xl font-bold">$250</p>
                 <p className="text-xs text-background/70">Refundable Deposit</p>
               </div>
+              <div className="text-center bg-white rounded px-3 py-2">
+                <p className="text-xl font-bold text-[#e01f26]">CARFAX</p>
+                <p className="text-xs text-gray-600">Canada Certified</p>
+              </div>
             </div>
           </div>
         </div>

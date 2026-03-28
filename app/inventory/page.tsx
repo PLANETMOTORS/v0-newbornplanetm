@@ -196,12 +196,20 @@ const vehicles = [
 const makes = ["All Makes", "Audi", "BMW", "Ford", "Honda", "Mercedes-Benz", "Porsche", "Tesla", "Toyota"]
 const bodyTypes = ["All Types", "SUV", "Sedan", "Truck", "Coupe", "Hatchback", "Convertible"]
 const fuelTypes = ["All Fuel Types", "Electric", "Hybrid", "Plug-in Hybrid", "Gasoline", "Premium"]
+const years = ["All Years", "2024", "2023", "2022", "2021", "2020", "2019", "2018"]
+const transmissions = ["All Transmissions", "Automatic", "Manual", "CVT", "Dual-Clutch"]
+const colors = ["All Colors", "White", "Black", "Silver", "Blue", "Red", "Gray", "Green"]
+const drivetrains = ["All Drivetrains", "AWD", "FWD", "RWD", "4WD"]
 
 export default function InventoryPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedMake, setSelectedMake] = useState("All Makes")
   const [selectedBodyType, setSelectedBodyType] = useState("All Types")
   const [selectedFuelType, setSelectedFuelType] = useState("All Fuel Types")
+  const [selectedYear, setSelectedYear] = useState("All Years")
+  const [selectedTransmission, setSelectedTransmission] = useState("All Transmissions")
+  const [selectedColor, setSelectedColor] = useState("All Colors")
+  const [selectedDrivetrain, setSelectedDrivetrain] = useState("All Drivetrains")
   const [priceRange, setPriceRange] = useState([0, 200000])
   const [mileageRange, setMileageRange] = useState([0, 100000])
   const [showFilters, setShowFilters] = useState(false)
@@ -255,6 +263,10 @@ export default function InventoryPage() {
     setSelectedMake("All Makes")
     setSelectedBodyType("All Types")
     setSelectedFuelType("All Fuel Types")
+    setSelectedYear("All Years")
+    setSelectedTransmission("All Transmissions")
+    setSelectedColor("All Colors")
+    setSelectedDrivetrain("All Drivetrains")
     setPriceRange([0, 200000])
     setMileageRange([0, 100000])
     setEvOnly(false)
@@ -263,6 +275,10 @@ export default function InventoryPage() {
   const activeFilterCount = [
     selectedMake !== "All Makes",
     selectedFuelType !== "All Fuel Types",
+    selectedYear !== "All Years",
+    selectedTransmission !== "All Transmissions",
+    selectedColor !== "All Colors",
+    selectedDrivetrain !== "All Drivetrains",
     priceRange[0] > 0 || priceRange[1] < 200000,
     mileageRange[0] > 0 || mileageRange[1] < 100000,
     evOnly
@@ -439,6 +455,20 @@ export default function InventoryPage() {
                     </select>
                   </div>
 
+                  {/* Year */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Year</label>
+                    <select
+                      value={selectedYear}
+                      onChange={(e) => setSelectedYear(e.target.value)}
+                      className="w-full h-10 px-3 border rounded-lg bg-background"
+                    >
+                      {years.map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
+                  </div>
+
                   {/* Fuel Type */}
                   <div>
                     <label className="block text-sm font-medium mb-2">Fuel Type</label>
@@ -449,6 +479,48 @@ export default function InventoryPage() {
                     >
                       {fuelTypes.map(fuel => (
                         <option key={fuel} value={fuel}>{fuel}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Transmission */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Transmission</label>
+                    <select
+                      value={selectedTransmission}
+                      onChange={(e) => setSelectedTransmission(e.target.value)}
+                      className="w-full h-10 px-3 border rounded-lg bg-background"
+                    >
+                      {transmissions.map(trans => (
+                        <option key={trans} value={trans}>{trans}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Drivetrain */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Drivetrain</label>
+                    <select
+                      value={selectedDrivetrain}
+                      onChange={(e) => setSelectedDrivetrain(e.target.value)}
+                      className="w-full h-10 px-3 border rounded-lg bg-background"
+                    >
+                      {drivetrains.map(drive => (
+                        <option key={drive} value={drive}>{drive}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Color */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Exterior Color</label>
+                    <select
+                      value={selectedColor}
+                      onChange={(e) => setSelectedColor(e.target.value)}
+                      className="w-full h-10 px-3 border rounded-lg bg-background"
+                    >
+                      {colors.map(color => (
+                        <option key={color} value={color}>{color}</option>
                       ))}
                     </select>
                   </div>
