@@ -1,4 +1,4 @@
-// Planet Motors Inc. - Homepage
+// Planet Motors Inc. - Homepage v2
 import Link from "next/link"
 import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin, TrendingUp, Award, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
