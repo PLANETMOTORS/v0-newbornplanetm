@@ -1531,7 +1531,11 @@ export default function VehicleDetailPage() {
                         </Button>
                       }
                     />
-                    <Button className="w-full h-11" variant="secondary">
+                    <Button 
+                      className="w-full h-11" 
+                      variant="secondary"
+                      onClick={() => window.location.href = `/checkout/${vehicleData.id}`}
+                    >
                       Start full purchase
                     </Button>
                   </div>
