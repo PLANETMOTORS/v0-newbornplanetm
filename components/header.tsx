@@ -60,6 +60,14 @@ export function Header() {
 
   return (
     <>
+      {/* Skip to main content link for accessibility */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-md"
+      >
+        Skip to main content
+      </a>
+      
       {/* Top bar with contact info */}
       <div className={`bg-primary text-primary-foreground text-sm transition-all duration-300 ${scrolled ? "hidden" : "block"}`}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-2 py-2">
@@ -92,8 +100,8 @@ export function Header() {
       </div>
 
       {/* Main header */}
-      <header className={`sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border transition-shadow duration-300 ${scrolled ? "shadow-sm" : ""}`}>
-        <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-3 lg:px-8">
+      <header className={`sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border transition-shadow duration-300 ${scrolled ? "shadow-sm" : ""}`} role="banner">
+        <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-3 lg:px-8" aria-label="Main navigation">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
             <PlanetMotorsLogo size={scrolled ? "sm" : "md"} showTagline={!scrolled} />

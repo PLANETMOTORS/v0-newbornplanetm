@@ -131,8 +131,9 @@ export default function HomePage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      {/* Hero Section */}
-      <section className="relative pt-8 pb-16 lg:pt-16 lg:pb-24 overflow-hidden">
+      <main id="main-content" role="main" aria-label="Home page content">
+        {/* Hero Section */}
+        <section className="relative pt-8 pb-16 lg:pt-16 lg:pb-24 overflow-hidden">
         {/* Background gradient effect */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
@@ -504,7 +505,8 @@ export default function HomePage() {
       </section>
 
       <HowItWorks />
-      <TrustBadges />
+        <TrustBadges />
+      </main>
       
       <Footer />
     </div>

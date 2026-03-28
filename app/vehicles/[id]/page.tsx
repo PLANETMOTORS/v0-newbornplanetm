@@ -397,23 +397,27 @@ export default function VehicleDetailPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="pb-20 md:pb-20 pb-32">
+      <main className="pb-20 md:pb-20 pb-32" role="main" aria-label="Vehicle details">
         {/* Breadcrumb */}
-        <div className="bg-muted/30 py-3 border-b">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center gap-2 text-sm">
-              <Link href="/inventory" className="text-muted-foreground hover:text-foreground">
-                All cars
-              </Link>
-              <span className="text-muted-foreground">›</span>
-              <Link href={`/inventory?make=${vehicleData.make}`} className="text-muted-foreground hover:text-foreground">
-                {vehicleData.make}
-              </Link>
-              <span className="text-muted-foreground">›</span>
-              <span>{vehicleData.model}</span>
-            </div>
+        <nav className="bg-muted/30 py-3 border-b" aria-label="Breadcrumb">
+          <div className="container mx-auto px-4 overflow-x-auto scrollbar-hide">
+            <ol className="flex items-center gap-2 text-sm whitespace-nowrap" role="list">
+              <li>
+                <Link href="/inventory" className="text-muted-foreground hover:text-foreground">
+                  All cars
+                </Link>
+              </li>
+              <li aria-hidden="true" className="text-muted-foreground">›</li>
+              <li>
+                <Link href={`/inventory?make=${vehicleData.make}`} className="text-muted-foreground hover:text-foreground">
+                  {vehicleData.make}
+                </Link>
+              </li>
+              <li aria-hidden="true" className="text-muted-foreground">›</li>
+              <li aria-current="page">{vehicleData.model}</li>
+            </ol>
           </div>
-        </div>
+        </nav>
 
         {/* Vehicle Title Bar */}
         <div className="border-b py-4">

@@ -1,16 +1,25 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, Playfair_Display } from 'next/font/google'
+import dynamic from 'next/dynamic'
 import { Analytics } from '@vercel/analytics/next'
 import { GoogleAnalytics } from '@/components/analytics/google-analytics'
 import { GoogleTagManager, GoogleTagManagerNoScript } from '@/components/analytics/google-tag-manager'
 import { MetaPixel } from '@/components/analytics/meta-pixel'
-import { LiveChat } from '@/components/live-chat'
 import { CompareProvider } from '@/lib/compare-context'
 import { FavoritesProvider } from '@/lib/favorites-context'
 import { AuthProvider } from '@/contexts/auth-context'
-import { CompareBar } from '@/components/compare-bar'
 import { OrganizationJsonLd, LocalBusinessJsonLd, WebsiteSearchJsonLd } from '@/components/seo/json-ld'
 import './globals.css'
+
+// Dynamic imports for non-critical components (improves initial page load)
+const LiveChat = dynamic(() => import('@/components/live-chat').then(mod => mod.LiveChat), {
+  ssr: false,
+  loading: () => null
+})
+const CompareBar = dynamic(() => import('@/components/compare-bar').then(mod => mod.CompareBar), {
+  ssr: false,
+  loading: () => null
+})
 
 // Planet Motors - OMVIC Licensed Dealer
 
@@ -95,6 +104,13 @@ export default function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <head>
+        {/* Preconnect to external domains for performance */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        
         <GoogleAnalytics />
         <GoogleTagManager />
         <MetaPixel />
