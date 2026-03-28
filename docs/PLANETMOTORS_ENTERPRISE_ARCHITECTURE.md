@@ -71,7 +71,7 @@
 │                                    │                                     │
 │   ┌─────────────────────────────────────────────────────────────────┐   │
 │   │                    DATA LAYER                                    │   │
-│   ���  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐   │   │
+│   �����  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐   │   │
 │   │  │RDS      │ │ElastiCa.│ │OpenSear.│ │S3       │ │MSK      │   │   │
 │   │  │Postgres │ │Redis    │ │Search   │ │Storage  │ │Kafka    │   │   │
 │   │  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └─────────┘   │   │
@@ -276,7 +276,7 @@ CUSTOMER submits financing application
           ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                    PARALLEL LENDER REQUESTS                              │
-├─────────┬─────────┬─────────┬─────────┬─────────┬─────────┬────────────┤
+├─────────┬─────────┬─────────┬─────────┬─────────┬─────────��────────────┤
 │ TD Auto │   RBC   │ Scotia  │   BMO   │  CIBC   │Desjard. │            │
 │ Finance │         │  bank   │         │         │         │            │
 ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤            │
@@ -453,6 +453,182 @@ payment_failures:
 - **Approval Rates**: Higher overall approval
 - **Revenue**: Lender kickbacks
 - **Differentiation**: Key competitive advantage
+
+---
+
+## Environment Variables
+
+### Application
+
+```bash
+NODE_ENV=production
+APP_NAME=planetmotors
+APP_URL=https://www.planetmotors.ca
+API_URL=https://api.planetmotors.ca
+ADMIN_URL=https://admin.planetmotors.ca
+```
+
+### Database & Cache
+
+```bash
+# PostgreSQL (AWS RDS)
+DATABASE_URL=postgresql://planetmotors_admin:${DB_PASSWORD}@planetmotors-prod.xxxxx.ca-central-1.rds.amazonaws.com:5432/planetmotors
+DATABASE_POOL_MIN=5
+DATABASE_POOL_MAX=20
+DATABASE_SSL=true
+
+# Redis (AWS ElastiCache)
+REDIS_URL=redis://planetmotors-cache.xxxxx.cache.amazonaws.com:6379
+REDIS_TLS=true
+
+# OpenSearch
+OPENSEARCH_URL=https://planetmotors-search.ca-central-1.es.amazonaws.com
+OPENSEARCH_INDEX_PREFIX=planetmotors
+```
+
+### AWS Services
+
+```bash
+AWS_REGION=ca-central-1
+S3_BUCKET_VEHICLES=planetmotors-vehicle-images
+S3_BUCKET_DOCUMENTS=planetmotors-documents
+S3_BUCKET_INSPECTIONS=planetmotors-inspections
+CLOUDFRONT_DISTRIBUTION_ID=EXXXXXXXXXX
+CLOUDFRONT_DOMAIN=cdn.planetmotors.ca
+```
+
+### Authentication
+
+```bash
+JWT_SECRET=${JWT_SECRET}
+JWT_EXPIRES_IN=7d
+JWT_REFRESH_EXPIRES_IN=30d
+BCRYPT_ROUNDS=12
+OAUTH_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+OAUTH_GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+OAUTH_CALLBACK_URL=https://api.planetmotors.ca/auth/google/callback
+```
+
+### Payments (Stripe)
+
+```bash
+STRIPE_PUBLISHABLE_KEY=pk_live_xxxxx
+STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+STRIPE_API_VERSION=2024-12-18
+```
+
+### Credit Bureaus
+
+```bash
+EQUIFAX_API_URL=https://api.equifax.ca
+EQUIFAX_API_KEY=${EQUIFAX_API_KEY}
+EQUIFAX_MEMBER_CODE=${EQUIFAX_MEMBER_CODE}
+TRANSUNION_API_URL=https://api.transunion.ca
+TRANSUNION_API_KEY=${TRANSUNION_API_KEY}
+TRANSUNION_SUBSCRIBER_CODE=${TRANSUNION_SUBSCRIBER_CODE}
+```
+
+### Lender Integrations
+
+```bash
+TD_AUTO_API_URL=https://api.td.com/auto-finance
+TD_AUTO_API_KEY=${TD_AUTO_API_KEY}
+TD_AUTO_DEALER_ID=${TD_AUTO_DEALER_ID}
+RBC_API_URL=https://api.rbc.com/financing
+RBC_API_KEY=${RBC_API_KEY}
+SCOTIA_API_URL=https://api.scotiabank.com/dealer-finance
+SCOTIA_API_KEY=${SCOTIA_API_KEY}
+BMO_API_URL=https://api.bmo.com/auto
+BMO_API_KEY=${BMO_API_KEY}
+CIBC_API_URL=https://api.cibc.com/vehicle-financing
+CIBC_API_KEY=${CIBC_API_KEY}
+DESJARDINS_API_URL=https://api.desjardins.com/auto
+DESJARDINS_API_KEY=${DESJARDINS_API_KEY}
+```
+
+### Vehicle Data
+
+```bash
+CARFAX_API_URL=https://api.carfax.ca
+CARFAX_API_KEY=${CARFAX_API_KEY}
+CARFAX_DEALER_ID=${CARFAX_DEALER_ID}
+CBB_API_URL=https://api.canadianblackbook.com
+CBB_API_KEY=${CBB_API_KEY}
+DATAONE_API_URL=https://api.dataonesoftware.com
+DATAONE_API_KEY=${DATAONE_API_KEY}
+```
+
+### Communications
+
+```bash
+# Twilio
+TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+TWILIO_PHONE_NUMBER=+16475551234
+TWILIO_MESSAGING_SERVICE_SID=${TWILIO_MESSAGING_SERVICE_SID}
+
+# SendGrid
+SENDGRID_API_KEY=${SENDGRID_API_KEY}
+SENDGRID_FROM_EMAIL=hello@planetmotors.ca
+SENDGRID_FROM_NAME=PlanetMotors
+
+# HubSpot
+HUBSPOT_API_KEY=${HUBSPOT_API_KEY}
+HUBSPOT_PORTAL_ID=${HUBSPOT_PORTAL_ID}
+```
+
+### Analytics
+
+```bash
+GA4_MEASUREMENT_ID=G-XXXXXXXXXX
+GA4_API_SECRET=${GA4_API_SECRET}
+FULLSTORY_ORG_ID=${FULLSTORY_ORG_ID}
+OPTIMIZELY_SDK_KEY=${OPTIMIZELY_SDK_KEY}
+```
+
+### Insurance & Warranty
+
+```bash
+SONNET_API_URL=https://api.sonnet.ca
+SONNET_API_KEY=${SONNET_API_KEY}
+LUBRICO_API_URL=https://api.lubrico.ca
+LUBRICO_API_KEY=${LUBRICO_API_KEY}
+```
+
+### Bank Verification
+
+```bash
+PLAID_CLIENT_ID=${PLAID_CLIENT_ID}
+PLAID_SECRET=${PLAID_SECRET}
+PLAID_ENV=production
+```
+
+### Monitoring
+
+```bash
+SENTRY_DSN=${SENTRY_DSN}
+PAGERDUTY_API_KEY=${PAGERDUTY_API_KEY}
+SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+```
+
+### Feature Flags
+
+```bash
+FEATURE_MULTI_LENDER=true
+FEATURE_TRADE_IN=true
+FEATURE_HOME_DELIVERY=true
+FEATURE_AB_TESTING=true
+FEATURE_SESSION_REPLAY=true
+```
+
+### Rate Limiting
+
+```bash
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+RATE_LIMIT_FINANCING_MAX=10
+```
 
 ---
 
