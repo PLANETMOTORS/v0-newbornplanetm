@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { Header } from "@/components/header"
@@ -27,6 +28,7 @@ const vehicles = [
     make: "Tesla",
     model: "Model Y",
     trim: "Long Range AWD",
+    bodyType: "SUV",
     price: 64990,
     originalPrice: 69990,
     mileage: 12450,
@@ -53,6 +55,7 @@ const vehicles = [
     make: "Tesla",
     model: "Model 3",
     trim: "Performance AWD",
+    bodyType: "Sedan",
     price: 58990,
     originalPrice: 62990,
     mileage: 8500,
@@ -79,6 +82,7 @@ const vehicles = [
     make: "BMW",
     model: "M4",
     trim: "Competition xDrive",
+    bodyType: "Coupe",
     price: 89900,
     originalPrice: 98500,
     mileage: 8200,
@@ -103,6 +107,7 @@ const vehicles = [
     make: "Porsche",
     model: "Taycan",
     trim: "4S Performance",
+    bodyType: "Sedan",
     price: 134500,
     originalPrice: 145000,
     mileage: 5100,
@@ -129,6 +134,7 @@ const vehicles = [
     make: "Mercedes-Benz",
     model: "EQS",
     trim: "580 4MATIC",
+    bodyType: "Sedan",
     price: 156900,
     originalPrice: 175000,
     mileage: 3800,
@@ -155,6 +161,7 @@ const vehicles = [
     make: "Honda",
     model: "CR-V",
     trim: "Touring AWD",
+    bodyType: "SUV",
     price: 42990,
     originalPrice: 45990,
     mileage: 15200,
@@ -179,6 +186,7 @@ const vehicles = [
     make: "Toyota",
     model: "RAV4",
     trim: "Prime XSE",
+    bodyType: "SUV",
     price: 54990,
     originalPrice: 58990,
     mileage: 9800,
@@ -204,6 +212,7 @@ const vehicles = [
     make: "Audi",
     model: "e-tron GT",
     trim: "RS",
+    bodyType: "Sedan",
     price: 178900,
     originalPrice: 195000,
     mileage: 4200,
@@ -230,6 +239,7 @@ const vehicles = [
     make: "Ford",
     model: "F-150",
     trim: "Lightning Platinum",
+    bodyType: "Truck",
     price: 98990,
     originalPrice: 105000,
     mileage: 6500,
@@ -261,6 +271,7 @@ const colors = ["All Colors", "White", "Black", "Silver", "Blue", "Red", "Gray",
 const drivetrains = ["All Drivetrains", "AWD", "FWD", "RWD", "4WD"]
 
 export default function InventoryPage() {
+  const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedMake, setSelectedMake] = useState("All Makes")
   const [selectedBodyType, setSelectedBodyType] = useState("All Types")
@@ -277,12 +288,35 @@ export default function InventoryPage() {
   const { favorites, addFavorite, removeFavorite, isFavorite } = useFavorites()
   const [evOnly, setEvOnly] = useState(false)
 
+  // Read URL parameters and set filters
+  useEffect(() => {
+    const fuelType = searchParams.get("fuelType")
+    const bodyType = searchParams.get("bodyType")
+    const make = searchParams.get("make")
+    
+    if (fuelType === "Electric") {
+      setSelectedFuelType("Electric")
+      setEvOnly(true)
+    } else if (fuelType) {
+      setSelectedFuelType(fuelType)
+    }
+    
+    if (bodyType) {
+      setSelectedBodyType(bodyType)
+    }
+    
+    if (make) {
+      setSelectedMake(make)
+    }
+  }, [searchParams])
+
   // Filter vehicles
   const filteredVehicles = useMemo(() => {
     return vehicles.filter(vehicle => {
       const matchesSearch = searchQuery === "" || 
         `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim}`.toLowerCase().includes(searchQuery.toLowerCase())
       const matchesMake = selectedMake === "All Makes" || vehicle.make === selectedMake
+      const matchesBodyType = selectedBodyType === "All Types" || vehicle.bodyType === selectedBodyType
       const matchesFuel = selectedFuelType === "All Fuel Types" || vehicle.fuelType === selectedFuelType
       const matchesYear = selectedYear === "All Years" || vehicle.year.toString() === selectedYear
       const matchesTransmission = selectedTransmission === "All Transmissions" || vehicle.transmission === selectedTransmission
@@ -292,9 +326,9 @@ export default function InventoryPage() {
       const matchesMileage = vehicle.mileage >= mileageRange[0] && vehicle.mileage <= mileageRange[1]
       const matchesEV = !evOnly || vehicle.fuelType === "Electric"
       
-      return matchesSearch && matchesMake && matchesFuel && matchesYear && matchesTransmission && matchesColor && matchesDrivetrain && matchesPrice && matchesMileage && matchesEV
+      return matchesSearch && matchesMake && matchesBodyType && matchesFuel && matchesYear && matchesTransmission && matchesColor && matchesDrivetrain && matchesPrice && matchesMileage && matchesEV
     })
-  }, [searchQuery, selectedMake, selectedFuelType, selectedYear, selectedTransmission, selectedColor, selectedDrivetrain, priceRange, mileageRange, evOnly])
+  }, [searchQuery, selectedMake, selectedBodyType, selectedFuelType, selectedYear, selectedTransmission, selectedColor, selectedDrivetrain, priceRange, mileageRange, evOnly])
 
   // Sort vehicles
   const sortedVehicles = useMemo(() => {
