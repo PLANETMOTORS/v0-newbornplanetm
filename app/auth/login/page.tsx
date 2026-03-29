@@ -48,44 +48,34 @@ function LoginForm() {
   }
 
   const handleOAuthLogin = async (provider: "google" | "apple") => {
-    console.log("[v0] OAuth button clicked for:", provider)
     setIsLoading(true)
     setError("")
     
     try {
       const supabase = createClient()
-      console.log("[v0] Supabase client created")
-      
       const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`
-      console.log("[v0] Callback URL:", callbackUrl)
       
+      // Use skipBrowserRedirect to get the URL and handle redirect ourselves
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: callbackUrl,
+          skipBrowserRedirect: true,
         },
       })
       
-      console.log("[v0] OAuth response:", { data, error })
-      
       if (error) {
-        console.error("[v0] OAuth error:", error)
-        if (error.message.includes('provider') || error.message.includes('not enabled')) {
-          throw new Error(`${provider.charAt(0).toUpperCase() + provider.slice(1)} sign-in is not configured. Please use email login.`)
-        }
         throw error
       }
       
-      // If we get here without redirect, manually redirect
+      // Manually redirect to OAuth URL
       if (data?.url) {
-        console.log("[v0] Manually redirecting to:", data.url)
-        window.location.href = data.url
+        window.location.assign(data.url)
       } else {
-        console.log("[v0] No URL in data, Supabase should handle redirect")
+        throw new Error("Could not initiate sign in. Please try again.")
       }
     } catch (err: unknown) {
-      console.error("[v0] OAuth catch error:", err)
-      const errorMessage = err instanceof Error ? err.message : "Social login unavailable. Please use email login."
+      const errorMessage = err instanceof Error ? err.message : "Sign in failed. Please try email login."
       setError(errorMessage)
       setIsLoading(false)
     }
