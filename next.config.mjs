@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 15 - timestamp 1711756800
+  // Force clean build - version 16 - LockKeyhole verified clean
   cleanDistDir: true,
   typescript: {
     ignoreBuildErrors: true,
