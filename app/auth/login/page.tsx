@@ -51,41 +51,25 @@ export default function LoginPage() {
     setIsLoading(true)
     setError("")
     
-    console.log("[v0] OAuth login initiated for provider:", provider)
-    
     try {
       const supabase = createClient()
       const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`
       
-      console.log("[v0] Callback URL:", callbackUrl)
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: callbackUrl,
         },
       })
       
-      console.log("[v0] OAuth response - data:", data, "error:", error)
-      
       if (error) {
-        console.error("[v0] OAuth error details:", error.message, error.status)
-        // Check for common OAuth configuration errors
         if (error.message.includes('provider') || error.message.includes('not enabled')) {
           throw new Error(`${provider.charAt(0).toUpperCase() + provider.slice(1)} sign-in is not configured. Please use email login.`)
         }
         throw error
       }
-      
-      // If no redirect URL returned, there's a configuration issue
-      if (!data?.url) {
-        console.error("[v0] No redirect URL returned from OAuth")
-        throw new Error(`${provider.charAt(0).toUpperCase() + provider.slice(1)} sign-in is not available. Please use email login.`)
-      }
-      
-      console.log("[v0] Redirecting to OAuth URL:", data.url)
+      // Supabase handles the redirect automatically
     } catch (err: unknown) {
-      console.error("[v0] OAuth catch block error:", err)
       const errorMessage = err instanceof Error ? err.message : "Social login unavailable. Please use email login."
       setError(errorMessage)
       setIsLoading(false)
