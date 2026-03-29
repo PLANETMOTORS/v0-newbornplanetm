@@ -1,16 +1,32 @@
 // imgix Image Loader for Next.js 16
-// Provides on-the-fly image transforms with CDN edge caching
+// AVIF-first delivery with automatic fallback to WebP/JPEG for older browsers
 //
-// CLOUDFRONT DEPLOYMENT NOTE:
-// When deploying with CloudFront, configure the Origin Request Policy to forward
-// the "Accept" header to imgix. This enables proper content negotiation:
-// - Browsers send Accept: image/avif,image/webp,... 
-// - imgix uses this to serve the optimal format (AVIF/WebP/JPEG)
-// - CloudFront caches each format variant separately via Vary: Accept
+// ============================================================================
+// CLOUDFRONT CONFIGURATION REQUIREMENTS
+// ============================================================================
 //
-// CloudFront Origin Request Policy settings:
-// - Headers: Include "Accept" header in cache key and forwarded to origin
-// - This allows imgix to detect browser capabilities before CloudFront caches
+// 1. CACHE POLICY - Include Accept header in Cache Key:
+//    - Go to CloudFront > Policies > Cache policies > Create policy
+//    - Cache key settings > Headers: Include "Accept"
+//    - This ensures CloudFront caches AVIF, WebP, and JPEG variants separately
+//
+// 2. ORIGIN REQUEST POLICY - Forward Accept header to imgix:
+//    - Go to CloudFront > Policies > Origin request policies > Create policy  
+//    - Headers: Include "Accept" header
+//    - Attach this policy to your CloudFront distribution's behavior
+//
+// 3. RESPONSE HEADERS - imgix automatically adds "Vary: Accept"
+//    - Verify in DevTools Network tab: Response Headers should show "Vary: Accept"
+//    - This tells CloudFront to cache based on the Accept header value
+//
+// VERIFICATION (DevTools > Network > select image > Headers):
+//    - Chrome/Edge: content-type: image/avif
+//    - Firefox 93+: content-type: image/avif  
+//    - Safari 16+: content-type: image/avif
+//    - Older browsers: content-type: image/webp or image/jpeg
+//    - Response should include: vary: Accept
+//
+// ============================================================================
 
 interface ImageLoaderProps {
   src: string
@@ -20,47 +36,53 @@ interface ImageLoaderProps {
 
 const IMGIX_DOMAIN = process.env.NEXT_PUBLIC_IMGIX_DOMAIN || 'planetmotors.imgix.net'
 
-export default function imgixLoader({ src, width, quality }: ImageLoaderProps): string {
+// Common imgix params for AVIF-first optimization
+const getImgixParams = (width: number, quality: number): URLSearchParams => {
+  return new URLSearchParams({
+    w: width.toString(),
+    q: quality.toString(),
+    // auto=format: AVIF-first, falls back to WebP, then JPEG based on Accept header
+    // auto=compress: Applies optimal compression for the selected format
+    auto: 'format,compress',
+    // fit=max: Maintain aspect ratio, never upscale
+    fit: 'max',
+    // cs=srgb: Consistent color space across all formats
+    cs: 'srgb',
+    // chromasub=444: Higher color quality for vehicle photos (no chroma subsampling)
+    chromasub: '444',
+  })
+}
+
+export default function imgixLoader({ src, width, quality = 75 }: ImageLoaderProps): string {
   // Skip imgix for placeholder/fallback images
   if (src === '/placeholder.svg' || src.startsWith('data:')) {
     return src
   }
 
-  // If already an imgix URL, just add params
+  // If already an imgix URL, just add/update params
   if (src.includes('imgix.net')) {
     const url = new URL(src)
-    url.searchParams.set('w', width.toString())
-    url.searchParams.set('q', (quality || 75).toString())
-    // auto=format enables Accept header content negotiation for AVIF/WebP
-    url.searchParams.set('auto', 'format,compress')
-    url.searchParams.set('fit', 'max')
-    url.searchParams.set('cs', 'srgb') // Consistent color space
+    const params = getImgixParams(width, quality)
+    params.forEach((value, key) => url.searchParams.set(key, value))
     return url.toString()
   }
 
-  // If external URL (unsplash, blob storage), proxy through imgix
+  // If external URL (unsplash, blob storage), proxy through imgix Web Proxy
   if (src.startsWith('http')) {
-    const params = new URLSearchParams({
-      url: src,
-      w: width.toString(),
-      q: (quality || 75).toString(),
-      auto: 'format,compress', // Enables Accept header content negotiation
-      fit: 'max',
-      cs: 'srgb',
-    })
+    const params = getImgixParams(width, quality)
+    params.set('url', src)
     return `https://${IMGIX_DOMAIN}/external?${params.toString()}`
   }
 
   // Local images - serve from imgix with path
-  const params = new URLSearchParams({
-    w: width.toString(),
-    q: (quality || 75).toString(),
-    auto: 'format,compress', // Enables Accept header content negotiation
-    fit: 'max',
-    cs: 'srgb',
-  })
-  
-  // Remove leading slash for imgix path
+  const params = getImgixParams(width, quality)
   const path = src.startsWith('/') ? src.slice(1) : src
   return `https://${IMGIX_DOMAIN}/${path}?${params.toString()}`
+}
+
+// Export for testing/debugging
+export function getImageFormat(acceptHeader: string): 'avif' | 'webp' | 'jpeg' {
+  if (acceptHeader.includes('image/avif')) return 'avif'
+  if (acceptHeader.includes('image/webp')) return 'webp'
+  return 'jpeg'
 }

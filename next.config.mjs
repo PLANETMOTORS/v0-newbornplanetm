@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 11 - all Lock icons verified as LockKeyhole
+  // Force clean build - version 12 - LockKeyhole verified, cache cleared
   cleanDistDir: true,
   typescript: {
     ignoreBuildErrors: true,
