@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { CheckCircle, Shield, X, Phone, Car, Wrench, Clock, Award, FileText, Sparkles, Lock, Droplets, CircleDot, PaintBucket } from "lucide-react"
+import { CheckCircle, Shield, X, Phone, Car, Wrench, Clock, Award, FileText, Sparkles, LockKeyhole, Droplets, CircleDot, PaintBucket } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -22,7 +22,7 @@ const packages = [
     pickupDelivery: true,
     tireRim: false,
     antitheft: false,
-    benefits: "You're covered for depreciation, repairs, and unforeseen events. If your car is totaled, we'll replace it. Job loss protection ensures next year's payments are covered.",
+    benefits: "You&apos;re covered for depreciation, repairs, and unforeseen events. If your car is totaled, we&apos;ll replace it. Job loss protection ensures next year&apos;s payments are covered.",
     maxValue: "$50K Replacement | ~$30k GAP | ~12 Payments",
     highlighted: false,
   },
@@ -61,7 +61,7 @@ const packages = [
 const additionalProducts = [
   {
     name: "Companion GAP Coverage",
-    description: "Covers the difference between your car's value and what you owe if it's totaled or stolen.",
+    description: "Covers the difference between your car&apos;s value and what you owe if it&apos;s totaled or stolen.",
     icon: Shield,
     href: "/protection/gap-coverage",
   },
@@ -80,7 +80,7 @@ const additionalProducts = [
   {
     name: "InvisiTrak Anti-Theft System",
     description: "GPS tracking and theft recovery system with 24/7 monitoring and mobile alerts.",
-    icon: Lock,
+    icon: LockKeyhole,
     href: "/protection/invisitrak",
   },
   {
@@ -122,7 +122,7 @@ const faqs = [
   },
   {
     question: "What is GAP insurance in Canada?",
-    answer: "GAP insurance covers the difference between your car's actual cash value and what you still owe on your loan if your vehicle is stolen or written off. This protects you from paying out-of-pocket for a car you no longer have.",
+    answer: "GAP insurance covers the difference between your car&apos;s actual cash value and what you still owe on your loan if your vehicle is stolen or written off. This protects you from paying out-of-pocket for a car you no longer have.",
   },
   {
     question: "What does tire and rim protection cover?",
@@ -134,7 +134,7 @@ const faqs = [
   },
   {
     question: "Are PlanetCare plans transferable?",
-    answer: "Yes, all PlanetCare protection packages are fully transferable to new owners, which can increase your vehicle's resale value when it's time to sell or trade in.",
+    answer: "Yes, all PlanetCare protection packages are fully transferable to new owners, which can increase your vehicle&apos;s resale value when it&apos;s time to sell or trade in.",
   },
 ]
 
@@ -169,7 +169,7 @@ export default function ProtectionPlansPage() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
               {packages.map((pkg) => (
                 <div
                   key={pkg.id}

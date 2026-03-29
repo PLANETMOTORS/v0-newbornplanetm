@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ make: str
   const { make, model } = await params
   const makeFormatted = make.charAt(0).toUpperCase() + make.slice(1)
   const modelFormatted = model.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-  const currentYear = new Date().getFullYear()
+  const currentYear = 2026
   
   return {
     title: `${currentYear} ${makeFormatted} ${modelFormatted} for Sale in Richmond Hill, ON | Planet Motors`,
@@ -56,8 +56,8 @@ const modelData: Record<string, Record<string, {
 }>> = {
   toyota: {
     'rav4': {
-      tagline: "Canada's Best-Selling SUV - Now Available at Planet Motors",
-      description: "Experience the perfect blend of versatility and efficiency with the Toyota RAV4. Built for Canadian winters and Ontario roads, the RAV4 delivers exceptional fuel economy, spacious interior, and Toyota's legendary reliability.",
+      tagline: "Canada&apos;s Best-Selling SUV - Now Available at Planet Motors",
+      description: "Experience the perfect blend of versatility and efficiency with the Toyota RAV4. Built for Canadian winters and Ontario roads, the RAV4 delivers exceptional fuel economy, spacious interior, and Toyota&apos;s legendary reliability.",
       startingPrice: 32990,
       mpg: { city: 8.4, highway: 6.8 },
       seating: 5,
@@ -70,7 +70,7 @@ const modelData: Record<string, Record<string, {
       ],
       faqs: [
         { question: "What is the towing capacity of a Toyota RAV4?", answer: "The Toyota RAV4 has a towing capacity of up to 1,500 kg (3,500 lbs) when properly equipped, making it suitable for small trailers, boats, and recreational equipment for Ontario cottage trips." },
-        { question: "Is the Toyota RAV4 good for Ontario winters?", answer: "Yes! The RAV4's available All-Wheel Drive system, combined with excellent ground clearance and Toyota's stability control, makes it an excellent choice for navigating snowy Ontario roads and harsh Canadian winters." },
+        { question: "Is the Toyota RAV4 good for Ontario winters?", answer: "Yes! The RAV4&apos;s available All-Wheel Drive system, combined with excellent ground clearance and Toyota&apos;s stability control, makes it an excellent choice for navigating snowy Ontario roads and harsh Canadian winters." },
         { question: "What is the fuel economy of the RAV4?", answer: "The Toyota RAV4 achieves approximately 8.4 L/100km in city driving and 6.8 L/100km on the highway. The RAV4 Hybrid model offers even better efficiency at 5.8 L/100km combined." }
       ],
       winterReady: true,
@@ -92,7 +92,7 @@ const modelData: Record<string, Record<string, {
       faqs: [
         { question: "Is the Toyota Camry available in hybrid?", answer: "Yes! The Camry Hybrid offers exceptional fuel economy of just 4.8 L/100km combined, making it one of the most fuel-efficient sedans available in Ontario." },
         { question: "What safety features come standard on the Camry?", answer: "Every Camry includes Toyota Safety Sense 3.0 with Pre-Collision System, Lane Departure Alert, Dynamic Radar Cruise Control, and Automatic High Beams as standard equipment." },
-        { question: "How reliable is the Toyota Camry?", answer: "The Camry consistently ranks as one of the most reliable vehicles in its class, with many examples exceeding 300,000 km with proper maintenance. Toyota's reputation for longevity makes the Camry an excellent value." }
+        { question: "How reliable is the Toyota Camry?", answer: "The Camry consistently ranks as one of the most reliable vehicles in its class, with many examples exceeding 300,000 km with proper maintenance. Toyota&apos;s reputation for longevity makes the Camry an excellent value." }
       ],
       winterReady: true,
       hybrid: true
@@ -100,8 +100,8 @@ const modelData: Record<string, Record<string, {
   },
   honda: {
     'civic': {
-      tagline: "Canada's #1 Car - More Powerful and Efficient Than Ever",
-      description: "The Honda Civic has been Canada's best-selling car for over two decades. Built right here in Ontario, the Civic delivers unmatched value, efficiency, and driving enjoyment for GTA commuters and families alike.",
+      tagline: "Canada&apos;s #1 Car - More Powerful and Efficient Than Ever",
+      description: "The Honda Civic has been Canada&apos;s best-selling car for over two decades. Built right here in Ontario, the Civic delivers unmatched value, efficiency, and driving enjoyment for GTA commuters and families alike.",
       startingPrice: 26990,
       mpg: { city: 7.7, highway: 5.9 },
       seating: 5,
@@ -113,8 +113,8 @@ const modelData: Record<string, Record<string, {
         { name: "Mazda3", price: 27490, mpg: 7.9, safety: 5 }
       ],
       faqs: [
-        { question: "Is the Honda Civic built in Canada?", answer: "Yes! The Honda Civic is proudly manufactured at Honda's Alliston, Ontario plant, supporting Canadian jobs and ensuring parts availability across the country." },
-        { question: "What is the Honda Civic's fuel economy?", answer: "The Civic achieves excellent fuel economy of 7.7 L/100km in the city and 5.9 L/100km on the highway. The available 1.5L turbocharged engine provides a perfect balance of power and efficiency." },
+        { question: "Is the Honda Civic built in Canada?", answer: "Yes! The Honda Civic is proudly manufactured at Honda&apos;s Alliston, Ontario plant, supporting Canadian jobs and ensuring parts availability across the country." },
+        { question: "What is the Honda Civic&apos;s fuel economy?", answer: "The Civic achieves excellent fuel economy of 7.7 L/100km in the city and 5.9 L/100km on the highway. The available 1.5L turbocharged engine provides a perfect balance of power and efficiency." },
         { question: "Does the Civic come with Honda Sensing?", answer: "Yes, Honda Sensing safety suite is standard on all Civic trims, including Collision Mitigation Braking, Road Departure Mitigation, Adaptive Cruise Control, and Lane Keeping Assist." }
       ],
       winterReady: true,
@@ -122,7 +122,7 @@ const modelData: Record<string, Record<string, {
     },
     'cr-v': {
       tagline: "The Family-Friendly SUV Built for Canadian Adventures",
-      description: "The Honda CR-V combines spacious versatility with Honda's legendary reliability. Perfect for Ontario families, the CR-V offers excellent cargo space, available hybrid powertrain, and a comfortable ride for long cottage trips.",
+      description: "The Honda CR-V combines spacious versatility with Honda&apos;s legendary reliability. Perfect for Ontario families, the CR-V offers excellent cargo space, available hybrid powertrain, and a comfortable ride for long cottage trips.",
       startingPrice: 34990,
       mpg: { city: 8.4, highway: 6.9 },
       seating: 5,
@@ -135,7 +135,7 @@ const modelData: Record<string, Record<string, {
       ],
       faqs: [
         { question: "How much cargo space does the CR-V have?", answer: "The CR-V offers 1,110 litres of cargo space behind the rear seats, expanding to 2,166 litres with the rear seats folded. This makes it one of the most spacious compact SUVs available." },
-        { question: "Is the Honda CR-V good in snow?", answer: "Absolutely! The CR-V's Real Time AWD system automatically distributes power to the wheels with the most traction, making it excellent for Ontario's snowy winters and icy conditions." },
+        { question: "Is the Honda CR-V good in snow?", answer: "Absolutely! The CR-V&apos;s Real Time AWD system automatically distributes power to the wheels with the most traction, making it excellent for Ontario&apos;s snowy winters and icy conditions." },
         { question: "Is there a hybrid CR-V available?", answer: "Yes, the CR-V Hybrid combines a 2.0L engine with dual electric motors for a combined 204 hp while achieving approximately 6.5 L/100km combined fuel economy." }
       ],
       winterReady: true,
@@ -157,7 +157,7 @@ const defaultModelData = {
   competitors: [],
   faqs: [
     { question: "What is the PM Certification process?", answer: "Every PM Certified vehicle undergoes a rigorous 210-point inspection covering mechanical, safety, and cosmetic elements. Only vehicles that pass our strict standards earn the PM Certified badge." },
-    { question: "Can I return my vehicle if I'm not satisfied?", answer: "Yes! Planet Motors offers a 10-day, 1,000km money-back guarantee on all purchases. If you're not completely satisfied, simply return the vehicle for a full refund." },
+    { question: "Can I return my vehicle if I&apos;m not satisfied?", answer: "Yes! Planet Motors offers a 10-day, 1,000km money-back guarantee on all purchases. If you&apos;re not completely satisfied, simply return the vehicle for a full refund." },
     { question: "Do you offer financing for all credit types?", answer: "Yes, we work with multiple lenders to provide financing options for all credit situations, including first-time buyers, newcomers to Canada, and those rebuilding credit." }
   ],
   winterReady: true,
@@ -168,7 +168,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
   const { make, model } = await params
   const makeFormatted = make.charAt(0).toUpperCase() + make.slice(1)
   const modelFormatted = model.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-  const currentYear = new Date().getFullYear()
+  const currentYear = 2026
   
   // Get model-specific data or use defaults
   const data = modelData[make.toLowerCase()]?.[model.toLowerCase()] || defaultModelData
@@ -317,6 +317,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                     fill
                     className="object-cover"
                     priority
+                    sizes="(max-width: 768px) 100vw, 50vw"
                   />
                 </div>
                 <div className="absolute -bottom-4 -right-4 bg-primary text-primary-foreground px-6 py-3 rounded-lg shadow-lg">
@@ -403,6 +404,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                       alt={`${makeFormatted} ${modelFormatted} for sale`}
                       fill
                       className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 25vw"
                     />
                     <Badge className="absolute top-3 left-3 bg-primary">PM Certified</Badge>
                   </div>

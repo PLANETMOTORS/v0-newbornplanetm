@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useParams, useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
@@ -14,7 +15,7 @@ import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { 
   ArrowLeft, 
-  Lock, 
+  LockKeyhole, 
   Shield, 
   CheckCircle, 
   CreditCard, 
@@ -111,7 +112,7 @@ export default function CheckoutPage() {
           </Link>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Lock className="w-4 h-4" />
+              <LockKeyhole className="w-4 h-4" />
               Secure Checkout
             </div>
             <Button variant="ghost" size="sm" asChild>
@@ -334,9 +335,9 @@ export default function CheckoutPage() {
                       <div className="space-y-2">
                         <Label>Preferred Term</Label>
                         <RadioGroup value={formData.term} onValueChange={(v) => setFormData({ ...formData, term: v })}>
-                          <div className="grid grid-cols-4 gap-2">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             {["36", "48", "60", "72"].map((term) => (
-                              <div key={term} className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-muted/50">
+                              <div key={term} className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-muted/50 min-h-[48px]">
                                 <RadioGroupItem value={term} id={`term-${term}`} />
                                 <Label htmlFor={`term-${term}`} className="cursor-pointer">{term} mo</Label>
                               </div>
@@ -473,7 +474,7 @@ export default function CheckoutPage() {
                       </li>
                       <li className="flex items-start gap-3">
                         <Badge variant="outline">2</Badge>
-                        <span>{purchaseType === "finance" ? "We'll submit your financing application" : "We'll send payment instructions"}</span>
+                        <span>{purchaseType === "finance" ? "We&apos;ll submit your financing application" : "We&apos;ll send payment instructions"}</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <Badge variant="outline">3</Badge>
@@ -508,10 +509,12 @@ export default function CheckoutPage() {
               <CardContent className="space-y-4">
                 {/* Vehicle */}
                 <div className="flex gap-3">
-                  <img
+                  <Image
                     src={vehicleData.image}
                     alt={`${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`}
-                    className="w-20 h-14 object-cover rounded"
+                    width={80}
+                    height={56}
+                    className="object-cover rounded"
                   />
                   <div>
                     <p className="font-medium text-sm">{vehicleData.year} {vehicleData.make} {vehicleData.model}</p>
@@ -575,7 +578,7 @@ export default function CheckoutPage() {
                     <span>10-Day Money Back Guarantee</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Lock className="w-4 h-4" />
+                    <LockKeyhole className="w-4 h-4" />
                     <span>Secure 256-bit SSL encryption</span>
                   </div>
                 </div>

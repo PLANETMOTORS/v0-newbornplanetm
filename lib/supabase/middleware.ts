@@ -1,17 +1,19 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Hardcoded correct Supabase URL - env var keeps getting wrong value
+const SUPABASE_URL = 'https://ldervbcvkoawwknsemuz.supabase.co'
+
 export async function updateSession(request: NextRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseAnonKey) {
     return NextResponse.next({ request })
   }
 
   let supabaseResponse = NextResponse.next({ request })
 
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+  const supabase = createServerClient(SUPABASE_URL, supabaseAnonKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll()

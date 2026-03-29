@@ -16,7 +16,7 @@ import {
   Calendar, Settings, Shield, CheckCircle, Calculator, Car, 
   FileText, History, Zap, RotateCcw, DollarSign, CreditCard,
   Phone, MessageCircle, Star, Clock, TrendingUp, Eye, Users,
-  Award, Battery, Thermometer, Lock, Truck, ArrowRight, Play,
+  Award, Battery, Thermometer, LockKeyhole, Truck, ArrowRight, Play,
   Download, ExternalLink, Check, X, AlertCircle, Bell, Expand,
   Key, Sofa, Cog, Info
 } from "lucide-react"
@@ -208,7 +208,7 @@ const vehicleData = {
       "All seats — power, heat, fold function",
       "Seatbelts, airbag system & SRS light",
       "HVAC, defroster & cabin air filter",
-      "USB ports, horn, key fob & owner's manual",
+      "USB ports, horn, key fob &amp; owner&apos;s manual",
       "Power windows all positions",
       "Power door locks",
       "Interior lighting — dome, map, ambient",
@@ -353,7 +353,7 @@ export default function VehicleDetailPage() {
   const [activeTab, setActiveTab] = useState("photos")
   const [imageType, setImageType] = useState<"exterior" | "interior">("exterior")
   const [postalCode, setPostalCode] = useState("")
-  const [viewCount, setViewCount] = useState(78)
+  const [viewCount, setViewCount] = useState<number | null>(null)
   const [showInspectionModal, setShowInspectionModal] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [authAction, setAuthAction] = useState("")
@@ -368,13 +368,14 @@ export default function VehicleDetailPage() {
     }
   }
 
-  // Simulate live viewing count with deterministic pattern
+  // Simulate live viewing count with deterministic pattern - initialize after mount
   useEffect(() => {
+    setViewCount(78) // Initialize on client only
     let tick = 0
     const interval = setInterval(() => {
       tick++
       const change = (tick % 3) - 1 // cycles: -1, 0, 1
-      setViewCount(prev => Math.max(50, Math.min(70, prev + change)))
+      setViewCount(prev => prev !== null ? Math.max(50, Math.min(70, prev + change)) : 78)
     }, 8000)
     return () => clearInterval(interval)
   }, [])
@@ -433,14 +434,14 @@ export default function VehicleDetailPage() {
 
         {/* Main Tabs */}
         <div className="border-b sticky top-16 bg-background z-40">
-          <div className="container mx-auto px-4 overflow-x-auto scrollbar-hide">
+          <div className="container mx-auto px-4 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="h-12 bg-transparent p-0 gap-0 flex w-max min-w-full">
-                {["Photos", "Overview", "Features", "Inspection", "Pricing", "Ratings", "Protection"].map((tab) => (
+              <TabsList className="h-12 bg-transparent p-0 gap-1 flex w-max min-w-full">
+                {["Photos", "Overview", "Features", "Inspect", "Pricing", "Ratings", "Protection"].map((tab) => (
                   <TabsTrigger
                     key={tab}
-                    value={tab.toLowerCase()}
-                    className="h-12 px-3 sm:px-4 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none whitespace-nowrap"
+                    value={tab === "Inspect" ? "inspection" : tab.toLowerCase()}
+                    className="h-12 px-3 sm:px-4 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none whitespace-nowrap min-h-[44px]"
                   >
                     {tab}
                   </TabsTrigger>
@@ -464,12 +465,13 @@ export default function VehicleDetailPage() {
                       fill
                       className="object-cover"
                       priority
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
                     />
                     
                     {/* Views Badge */}
                     <Badge className="absolute top-4 left-4 bg-red-500 text-white">
                       <TrendingUp className="w-3 h-3 mr-1" />
-                      {viewCount}+ views today
+                      {viewCount ?? '--'}+ views today
                     </Badge>
 
                     {/* Expand Button */}
@@ -530,14 +532,14 @@ export default function VehicleDetailPage() {
                             </Button>
                           </div>
                         </div>
-                        <div className="grid grid-cols-3 gap-3 mt-4">
-                          <Button variant="outline" size="sm" className="justify-start">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+                          <Button variant="outline" size="sm" className="justify-start min-h-[44px]">
                             <Car className="w-4 h-4 mr-2" /> Exterior Tour
                           </Button>
-                          <Button variant="outline" size="sm" className="justify-start">
+                          <Button variant="outline" size="sm" className="justify-start min-h-[44px]">
                             <Users className="w-4 h-4 mr-2" /> Interior Tour
                           </Button>
-                          <Button variant="outline" size="sm" className="justify-start">
+                          <Button variant="outline" size="sm" className="justify-start min-h-[44px]">
                             <Zap className="w-4 h-4 mr-2" /> Engine Bay
                           </Button>
                         </div>
@@ -898,9 +900,9 @@ export default function VehicleDetailPage() {
                       <div className="grid grid-cols-3 md:grid-cols-5 gap-2 py-4">
                         {vehicleData.inspectionCategories.map((cat, i) => (
                           <div key={i} className="text-center p-2 bg-muted/30 rounded-lg">
-                            <CheckCircle className="w-5 h-5 text-primary mx-auto mb-1" />
-                            <p className="text-[10px] font-medium leading-tight">{cat.name}</p>
-                            <p className="text-[10px] text-primary">{cat.points} points passed</p>
+                            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-primary mx-auto mb-1" />
+                            <p className="text-[11px] sm:text-xs font-medium leading-tight">{cat.name}</p>
+                            <p className="text-[11px] sm:text-xs text-primary">{cat.points} pts</p>
                           </div>
                         ))}
                       </div>
@@ -1432,17 +1434,17 @@ export default function VehicleDetailPage() {
               {/* Next Steps */}
               <div className="mt-12 pt-8 border-t">
                 <h2 className="text-xl font-semibold mb-6">Next steps</h2>
-                <div className="grid grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                   {[
-                    { step: 1, title: "Start purchase", active: true },
-                    { step: 2, title: "Enter your info", active: false },
-                    { step: 3, title: "Add protections", subtitle: "Optional", active: false },
-                    { step: 4, title: "Finance application", subtitle: "If applicable", active: false },
-                    { step: 5, title: "Get your car!", active: false }
+                    { step: 1, title: "Start", subtitle: "Purchase", active: true },
+                    { step: 2, title: "Your", subtitle: "Info", active: false },
+                    { step: 3, title: "Add", subtitle: "Protection", active: false },
+                    { step: 4, title: "Finance", subtitle: "If needed", active: false },
+                    { step: 5, title: "Get your", subtitle: "Car!", active: false }
                   ].map((item) => (
-                    <div key={item.step} className="text-center p-4 border rounded-lg">
-                      <p className="text-2xl font-bold mb-2">{item.step}</p>
-                      <p className="font-medium text-sm">{item.title}</p>
+                    <div key={item.step} className="text-center p-3 border rounded-lg">
+                      <p className="text-xl sm:text-2xl font-bold mb-1">{item.step}</p>
+                      <p className="font-medium text-xs sm:text-sm">{item.title}</p>
                       {item.subtitle && <p className="text-xs text-muted-foreground">{item.subtitle}</p>}
                       {item.active && (
                         <Button size="sm" className="mt-3">Start purchase</Button>
@@ -1496,7 +1498,7 @@ export default function VehicleDetailPage() {
                   <div className="flex items-center justify-between mb-3">
                     <Badge className="bg-red-500 text-white">
                       <TrendingUp className="w-3 h-3 mr-1" />
-                      {viewCount}+ views today
+                      {viewCount ?? '--'}+ views today
                     </Badge>
                     <Button variant="ghost" size="sm" className="text-muted-foreground">
                       <Bell className="w-4 h-4 mr-1" />
@@ -1528,7 +1530,7 @@ export default function VehicleDetailPage() {
                       <span className="text-sm font-medium">10-Day Money Back Guarantee</span>
                     </div>
                     <div className="flex items-center gap-2 p-2 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
-                      <Lock className="w-5 h-5 text-amber-600" />
+                      <LockKeyhole className="w-5 h-5 text-amber-600" />
                       <span className="text-sm font-medium">$250 Refundable Deposit</span>
                     </div>
                   </div>
@@ -1549,7 +1551,7 @@ export default function VehicleDetailPage() {
                         }}
                         trigger={
                           <Button className="w-full h-11 bg-red-600 hover:bg-red-700 text-white">
-                            <Lock className="w-4 h-4 mr-2" />
+                            <LockKeyhole className="w-4 h-4 mr-2" />
                             Reserve – $250 Refundable Deposit
                           </Button>
                         }
@@ -1559,7 +1561,7 @@ export default function VehicleDetailPage() {
                         className="w-full h-11 bg-red-600 hover:bg-red-700 text-white"
                         onClick={() => handleProtectedAction("reserve this vehicle")}
                       >
-                        <Lock className="w-4 h-4 mr-2" />
+                        <LockKeyhole className="w-4 h-4 mr-2" />
                         Reserve – $250 Refundable Deposit
                       </Button>
                     )}
@@ -1651,18 +1653,18 @@ export default function VehicleDetailPage() {
 </main>
 
       {/* Sticky Mobile CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 md:hidden z-50 safe-area-inset-bottom">
-        <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
-          <div className="flex-1">
-            <p className="text-sm text-muted-foreground">Price</p>
-            <p className="text-xl font-bold">${vehicleData.price.toLocaleString()}</p>
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-3 pb-safe md:hidden z-50">
+        <div className="flex items-center gap-3 max-w-lg mx-auto">
+          <div className="shrink-0">
+            <p className="text-xs text-muted-foreground">Price</p>
+            <p className="text-lg font-bold">${vehicleData.price.toLocaleString()}</p>
           </div>
           <Button 
-            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+            className="flex-1 h-12 min-h-[48px] bg-red-600 hover:bg-red-700 text-white text-sm font-medium"
             onClick={() => handleProtectedAction("reserve this vehicle")}
           >
-            <Lock className="w-4 h-4 mr-2" />
-            Reserve Now
+            <LockKeyhole className="w-4 h-4 mr-1.5 shrink-0" />
+            <span>Reserve Now</span>
           </Button>
         </div>
       </div>

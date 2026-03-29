@@ -1,16 +1,22 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 8 - all integrations ready
+  // Force clean build - version 17 - turbopack enabled, cache cleared
   cleanDistDir: true,
   typescript: {
     ignoreBuildErrors: true,
   },
   images: {
-    unoptimized: false,
+    loader: 'custom',
+    loaderFile: './lib/imgix-loader.ts',
+    // AVIF-first for 50% smaller files, WebP fallback for older browsers
     formats: ['image/avif', 'image/webp'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
+    // Mobile-first breakpoints optimized for <1s load time
+    // Prioritize mobile sizes (320-828px) for 20,000 monthly visitors
+    deviceSizes: [320, 480, 640, 750, 828, 1080, 1200, 1920],
+    // Thumbnail sizes for vehicle grid cards
+    imageSizes: [16, 32, 48, 64, 96, 128, 200, 256, 384],
+    // 30-day CDN cache for 9,500+ vehicle images
+    minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [
       {
         protocol: 'https',
@@ -30,12 +36,24 @@ const nextConfig = {
       },
     ],
   },
-  // Performance optimizations
+  // Performance optimizations for mobile
   experimental: {
     optimizeCss: true,
   },
-  // Compression
+  // Gzip/Brotli compression
   compress: true,
+  // HTTP headers for performance
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          // Preconnect hints for imgix CDN
+          { key: 'Link', value: '<https://planetmotors.imgix.net>; rel=preconnect' },
+        ],
+      },
+    ]
+  },
 }
 
 export default nextConfig

@@ -96,7 +96,7 @@ const cityData: Record<string, {
     region: "Ontario",
     distance: 450,
     population: "1M",
-    description: "Canada's capital city"
+    description: "Canada&apos;s capital city"
   },
   "montreal": {
     name: "Montreal",
@@ -117,7 +117,7 @@ const cityData: Record<string, {
     region: "Alberta",
     distance: 3400,
     population: "1.3M",
-    description: "Alberta's largest city"
+    description: "Alberta&apos;s largest city"
   },
   "edmonton": {
     name: "Edmonton",
@@ -247,6 +247,7 @@ export default function CityLandingPage() {
                         alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                         fill
                         className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       />
                       <Badge className="absolute top-3 left-3 bg-primary">
                         {vehicle.badge}

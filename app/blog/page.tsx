@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Calendar, Clock, ArrowRight, Search, Tag } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
@@ -26,7 +27,7 @@ const posts = [
   {
     slug: "tesla-full-self-driving-guide",
     title: "What Is Tesla Full Self-Driving (FSD)? Complete Buyer Guide",
-    excerpt: "Everything you need to know about Tesla's Full Self-Driving capability, including features, pricing, and what to expect when purchasing a Tesla with FSD.",
+    excerpt: "Everything you need to know about Tesla&apos;s Full Self-Driving capability, including features, pricing, and what to expect when purchasing a Tesla with FSD.",
     date: "Feb 10, 2026",
     readTime: "10 min read",
     category: "Electric Vehicles",
@@ -44,7 +45,7 @@ const posts = [
   {
     slug: "tesla-model-y-vs-model-3",
     title: "Tesla Model Y vs Tesla Model 3: Which One Should You Buy?",
-    excerpt: "A comprehensive comparison of Tesla's two most popular models. Discover the key differences in size, range, features, and value.",
+    excerpt: "A comprehensive comparison of Tesla&apos;s two most popular models. Discover the key differences in size, range, features, and value.",
     date: "Jan 26, 2026",
     readTime: "12 min read",
     category: "Electric Vehicles",
@@ -53,7 +54,7 @@ const posts = [
   {
     slug: "awd-vs-rwd-ontario",
     title: "AWD vs RWD: Which Is Better to Drive in Ontario?",
-    excerpt: "Understand the differences between all-wheel drive and rear-wheel drive, and which drivetrain is best for Ontario's varying weather conditions.",
+    excerpt: "Understand the differences between all-wheel drive and rear-wheel drive, and which drivetrain is best for Ontario&apos;s varying weather conditions.",
     date: "Jan 09, 2026",
     readTime: "7 min read",
     category: "Buying Guide",
@@ -89,7 +90,7 @@ const posts = [
   {
     slug: "how-to-trade-in-used-car",
     title: "How to Trade in Your Used Car",
-    excerpt: "Nearly 50% of Canadians choose to trade in their used cars when buying their next vehicle. It's a quick and hassle-free way to upgrade.",
+    excerpt: "Nearly 50% of Canadians choose to trade in their used cars when buying their next vehicle. It&apos;s a quick and hassle-free way to upgrade.",
     date: "Sep 03, 2025",
     readTime: "8 min read",
     category: "Trade-In",
@@ -98,7 +99,7 @@ const posts = [
   {
     slug: "car-resale-value-toronto",
     title: "Car Resale Value: How to Maximize it in Toronto",
-    excerpt: "Discover proven tips to maximize your car's resale value. From regular maintenance and detailing to timing your sale.",
+    excerpt: "Discover proven tips to maximize your car&apos;s resale value. From regular maintenance and detailing to timing your sale.",
     date: "Aug 19, 2025",
     readTime: "9 min read",
     category: "Selling",
@@ -134,7 +135,7 @@ const posts = [
   {
     slug: "sell-everything-before-sell",
     title: "Sell Your Car: Everything You Need to Know Before You Sell",
-    excerpt: "Whether you're upgrading to a new vehicle or simply want to cash out, knowing the right steps can help you get the best deal.",
+    excerpt: "Whether you&apos;re upgrading to a new vehicle or simply want to cash out, knowing the right steps can help you get the best deal.",
     date: "Aug 26, 2025",
     readTime: "8 min read",
     category: "Selling",
@@ -161,7 +162,7 @@ const posts = [
   {
     slug: "equifax-newcomers-credit-canada",
     title: "Equifax Lets Newcomers Import Credit Scores to Canada",
-    excerpt: "Navigating Canada's financial system as a newcomer can be challenging, particularly without a Canadian credit score.",
+    excerpt: "Navigating Canada&apos;s financial system as a newcomer can be challenging, particularly without a Canadian credit score.",
     date: "May 12, 2025",
     readTime: "6 min read",
     category: "Financing",
@@ -170,7 +171,7 @@ const posts = [
   {
     slug: "tesla-robotaxi-robovan",
     title: "The Future of Autonomous Vehicles: Tesla Unveils Robotaxi and Robovan",
-    excerpt: "Tesla's recent reveal of its autonomous Robotaxi and Robovan has set a new benchmark in the race for self-driving vehicles.",
+    excerpt: "Tesla&apos;s recent reveal of its autonomous Robotaxi and Robovan has set a new benchmark in the race for self-driving vehicles.",
     date: "Oct 19, 2024",
     readTime: "8 min read",
     category: "Electric Vehicles",
@@ -206,7 +207,7 @@ const posts = [
   {
     slug: "top-cars-fall-winter-2024",
     title: "Top Cars for Fall & Winter Driving in 2024",
-    excerpt: "Discover the best vehicles for tackling Ontario's challenging fall and winter driving conditions.",
+    excerpt: "Discover the best vehicles for tackling Ontario&apos;s challenging fall and winter driving conditions.",
     date: "Oct 01, 2024",
     readTime: "9 min read",
     category: "Buying Guide",
@@ -215,7 +216,7 @@ const posts = [
   {
     slug: "top-preowned-vehicles-2024",
     title: "Top Pre-Owned Vehicles to Consider in 2024",
-    excerpt: "Choosing the right pre-owned vehicle can be a challenge, but it's well worth the effort. At Planet Motors, we've curated a selection of the best.",
+    excerpt: "Choosing the right pre-owned vehicle can be a challenge, but it&apos;s well worth the effort. At Planet Motors, we&apos;ve curated a selection of the best.",
     date: "Sep 13, 2024",
     readTime: "10 min read",
     category: "Buying Guide",
@@ -223,7 +224,7 @@ const posts = [
   },
   {
     slug: "tesla-model-y-future-ev",
-    title: "Tesla Model Y: The Future of EV's at Your Fingertips",
+    title: "Tesla Model Y: The Future of EVs at Your Fingertips",
     excerpt: "This electric crossover combines innovation, performance, and futuristic design, making it a top choice for those looking to experience the EV revolution.",
     date: "Sep 12, 2024",
     readTime: "8 min read",
@@ -232,7 +233,7 @@ const posts = [
   },
   {
     slug: "first-time-car-buyer-financing",
-    title: "A Beginner's Guide to First-Time Car Buyer Financing in Canada",
+    title: "A Beginner&apos;s Guide to First-Time Car Buyer Financing in Canada",
     excerpt: "Buying your first car is an exciting milestone, but navigating the car financing process can be overwhelming.",
     date: "Aug 29, 2024",
     readTime: "11 min read",
@@ -321,11 +322,13 @@ export default function BlogPage() {
             <Link href={`/blog/${featuredPost.slug}`} className="group">
               <Card className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="grid md:grid-cols-2 gap-0">
-                  <div className="aspect-video md:aspect-auto">
-                    <img 
+                  <div className="aspect-video md:aspect-auto relative">
+                    <Image 
                       src={featuredPost.image} 
                       alt={featuredPost.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
                   <CardContent className="p-8 flex flex-col justify-center">
@@ -364,11 +367,13 @@ export default function BlogPage() {
               {posts.map((post) => (
                 <Link key={post.slug} href={`/blog/${post.slug}`} className="group">
                   <Card className="overflow-hidden h-full hover:shadow-lg transition-shadow">
-                    <div className="aspect-video overflow-hidden">
-                      <img 
+                    <div className="aspect-video overflow-hidden relative">
+                      <Image 
                         src={post.image} 
                         alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
                     <CardContent className="p-6">

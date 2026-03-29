@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback, useEffect } from "react"
+import Image from "next/image"
 import { RotateCw, ZoomIn, ZoomOut, Maximize2, Play, Pause, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -168,11 +169,14 @@ export function Vehicle360ViewerDemo() {
           className="absolute inset-0 flex items-center justify-center transition-transform duration-100"
           style={{ transform: `scale(${zoom})` }}
         >
-          <img
+          <Image
             src={demoFrames[currentFrame]}
             alt={`Vehicle view ${currentFrame + 1} of ${frameCount}`}
-            className="w-full h-full object-cover"
+            fill
+            sizes="(max-width: 768px) 100vw, 80vw"
+            className="object-cover"
             draggable={false}
+            unoptimized
           />
         </div>
 

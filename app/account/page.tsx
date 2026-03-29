@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -150,9 +151,9 @@ export default function AccountPage() {
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="signin" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="signin">Sign In</TabsTrigger>
-                    <TabsTrigger value="register">Create Account</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 h-auto">
+                    <TabsTrigger value="signin" className="px-4 py-2.5 min-h-[44px]">Sign In</TabsTrigger>
+                    <TabsTrigger value="register" className="px-4 py-2.5 min-h-[44px]">Register</TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="signin" className="space-y-4 mt-6">
@@ -273,12 +274,12 @@ export default function AccountPage() {
           <div className="max-w-4xl mx-auto">
             <h1 className="text-3xl font-serif font-bold mb-8">My Account</h1>
             
-            <div className="grid md:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8">
               {/* Sidebar */}
-              <div className="space-y-2">
+              <div className="flex md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0 md:space-y-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 <Button 
                   variant={activeTab === "profile" ? "secondary" : "ghost"} 
-                  className="w-full justify-start"
+                  className="shrink-0 md:w-full justify-start min-h-[44px]"
                   onClick={() => setActiveTab("profile")}
                 >
                   <User className="w-4 h-4 mr-2" />
@@ -286,16 +287,16 @@ export default function AccountPage() {
                 </Button>
                 <Button 
                   variant={activeTab === "saved" ? "secondary" : "ghost"} 
-                  className="w-full justify-start"
+                  className="shrink-0 md:w-full justify-start min-h-[44px]"
                   onClick={() => setActiveTab("saved")}
                 >
                   <Heart className="w-4 h-4 mr-2" />
-                  Saved Vehicles
-                  <Badge className="ml-auto">{mockSavedVehicles.length}</Badge>
+                  Saved
+                  <Badge className="ml-2">{mockSavedVehicles.length}</Badge>
                 </Button>
                 <Button 
                   variant={activeTab === "preapproval" ? "secondary" : "ghost"} 
-                  className="w-full justify-start"
+                  className="shrink-0 md:w-full justify-start min-h-[44px]"
                   onClick={() => setActiveTab("preapproval")}
                 >
                   <CreditCard className="w-4 h-4 mr-2" />
@@ -303,24 +304,24 @@ export default function AccountPage() {
                 </Button>
                 <Button 
                   variant={activeTab === "orders" ? "secondary" : "ghost"} 
-                  className="w-full justify-start"
+                  className="shrink-0 md:w-full justify-start min-h-[44px]"
                   onClick={() => setActiveTab("orders")}
                 >
                   <Car className="w-4 h-4 mr-2" />
-                  My Vehicles
+                  Vehicles
                 </Button>
                 <Button 
                   variant={activeTab === "settings" ? "secondary" : "ghost"} 
-                  className="w-full justify-start"
+                  className="shrink-0 md:w-full justify-start min-h-[44px]"
                   onClick={() => setActiveTab("settings")}
                 >
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
                 </Button>
-                <Separator className="my-4" />
+                <Separator className="hidden md:block my-4" />
                 <Button 
                   variant="ghost" 
-                  className="w-full justify-start text-destructive"
+                  className="shrink-0 md:w-full justify-start text-destructive min-h-[44px]"
                   onClick={() => setIsLoggedIn(false)}
                 >
                   <LogOut className="w-4 h-4 mr-2" />
@@ -415,10 +416,12 @@ export default function AccountPage() {
                         <div className="space-y-4">
                           {mockSavedVehicles.map(vehicle => (
                             <div key={vehicle.id} className="flex items-center gap-4 p-4 border rounded-lg">
-                              <img 
+                              <Image 
                                 src={vehicle.image} 
                                 alt={vehicle.vehicleName}
-                                className="w-24 h-16 object-cover rounded"
+                                width={96}
+                                height={64}
+                                className="object-cover rounded"
                               />
                               <div className="flex-1">
                                 <h4 className="font-semibold">{vehicle.vehicleName}</h4>

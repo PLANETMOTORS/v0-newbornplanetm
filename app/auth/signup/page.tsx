@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, EyeOff, Mail, Lock, User, Phone, Chrome, Apple, CheckCircle } from "lucide-react"
+import { Eye, EyeOff, Mail, LockKeyhole, User, Phone, Chrome, Apple, CheckCircle } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 
 function SignUpForm() {
@@ -83,13 +83,36 @@ function SignUpForm() {
     setIsLoading(true)
     try {
       const supabase = createClient()
-      const { error } = await supabase.auth.signInWithOAuth({
+      const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`
+      
+      // Build OAuth options with dynamic credentials for Google
+      const oauthOptions: {
+        redirectTo: string
+        skipBrowserRedirect: boolean
+        queryParams?: Record<string, string>
+      } = {
+        redirectTo: callbackUrl,
+        skipBrowserRedirect: true,
+      }
+      
+      // Use dynamic OAuth with Google credentials from environment variables
+      if (provider === "google" && process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
+        oauthOptions.queryParams = {
+          client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+        }
+      }
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`,
-        },
+        options: oauthOptions,
       })
+      
       if (error) throw error
+      
+      // Manually redirect to OAuth URL
+      if (data?.url) {
+        window.location.assign(data.url)
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "OAuth signup failed")
       setIsLoading(false)
@@ -269,7 +292,7 @@ function SignUpForm() {
                     <div className="space-y-2">
                       <Label htmlFor="password">Password</Label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input
                           id="password"
                           name="password"
@@ -297,7 +320,7 @@ function SignUpForm() {
                     <div className="space-y-2">
                       <Label htmlFor="confirmPassword">Confirm Password</Label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input
                           id="confirmPassword"
                           name="confirmPassword"

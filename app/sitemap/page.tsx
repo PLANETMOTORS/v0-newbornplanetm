@@ -3,7 +3,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { 
   Car, DollarSign, FileText, HelpCircle, Shield, 
-  Users, Phone, MapPin, Scale, Lock, Building2
+  Users, Phone, MapPin, Scale, LockKeyhole, Building2
 } from "lucide-react"
 
 export const metadata = {
@@ -88,7 +88,7 @@ const sitemapSections = [
   },
   {
     title: "Account",
-    icon: Lock,
+    icon: LockKeyhole,
     links: [
       { name: "My Account", href: "/account" },
       { name: "Saved Vehicles", href: "/favorites" },

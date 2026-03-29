@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -109,10 +110,12 @@ export function DeliveryTracker({ deliveryId }: { deliveryId: string }) {
       <CardContent className="space-y-6">
         {/* Vehicle Card */}
         <div className="flex gap-4 p-3 bg-muted rounded-lg">
-          <img
+          <Image
             src={delivery.vehicle.image}
             alt={`${delivery.vehicle.year} ${delivery.vehicle.make} ${delivery.vehicle.model}`}
-            className="w-24 h-16 object-cover rounded"
+            width={96}
+            height={64}
+            className="object-cover rounded"
           />
           <div>
             <p className="font-semibold">

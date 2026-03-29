@@ -17,7 +17,7 @@ import {
   Car, CheckCircle, ArrowRight, DollarSign, Clock, Shield, Camera, Upload, Zap, 
   TrendingUp, Star, Truck, Phone, ChevronRight, Sparkles, Target, Award, MapPin, 
   Calendar, Users, ThumbsUp, Banknote, FileCheck, HandCoins, Building2, CreditCard,
-  CircleDollarSign, ArrowUpRight, Timer, BadgeCheck, Gift, Heart, Percent, Lock, Search
+  CircleDollarSign, ArrowUpRight, Timer, BadgeCheck, Gift, Heart, Percent, LockKeyhole, Search
 } from "lucide-react"
 
 // Vehicle makes with models
@@ -270,19 +270,19 @@ export default function SellYourCarPage() {
                 </p>
                 
                 {/* Social proof stats */}
-                <div className="grid grid-cols-3 gap-8 mb-10">
+                <div className="grid grid-cols-3 gap-3 sm:gap-8 mb-10">
                   <div className="text-center lg:text-left">
-                    <div className="text-4xl font-bold text-white mb-1">$18M+</div>
-                    <div className="text-sm text-white/60">Paid to Sellers</div>
+                    <div className="text-2xl sm:text-4xl font-bold text-white mb-1">$18M+</div>
+                    <div className="text-xs sm:text-sm text-white/60">Paid to Sellers</div>
                   </div>
                   <div className="text-center lg:text-left">
-                    <div className="text-4xl font-bold text-white mb-1">24hrs</div>
-                    <div className="text-sm text-white/60">Avg. Payment Time</div>
+                    <div className="text-2xl sm:text-4xl font-bold text-white mb-1">24hrs</div>
+                    <div className="text-xs sm:text-sm text-white/60">Avg. Payment</div>
                   </div>
                   <div className="text-center lg:text-left">
-                    <div className="text-4xl font-bold text-white mb-1">4.9</div>
-                    <div className="flex items-center gap-1 justify-center lg:justify-start">
-                      {[1,2,3,4,5].map(i => <Star key={i} className="h-3 w-3 text-amber-400 fill-amber-400" />)}
+                    <div className="text-2xl sm:text-4xl font-bold text-white mb-1">4.9</div>
+                    <div className="flex items-center gap-0.5 justify-center lg:justify-start">
+                      {[1,2,3,4,5].map(i => <Star key={i} className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-amber-400 fill-amber-400" />)}
                     </div>
                   </div>
                 </div>
@@ -313,7 +313,7 @@ export default function SellYourCarPage() {
                           <p className="text-sm text-muted-foreground">Takes less than 60 seconds</p>
                         </div>
                         <div className="flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-                          <Lock className="h-3.5 w-3.5" />
+                          <LockKeyhole className="h-3.5 w-3.5" />
                           Secure
                         </div>
                       </div>
@@ -323,10 +323,10 @@ export default function SellYourCarPage() {
                       {step === 1 && (
                         <div className="space-y-5">
                           <Tabs value={lookupMethod} onValueChange={(v: "plate" | "vin" | "manual") => setLookupMethod(v)}>
-                            <TabsList className="grid w-full grid-cols-3 mb-4">
-                              <TabsTrigger value="plate" className="text-xs sm:text-sm">License Plate</TabsTrigger>
-                              <TabsTrigger value="vin" className="text-xs sm:text-sm">VIN Number</TabsTrigger>
-                              <TabsTrigger value="manual" className="text-xs sm:text-sm">Manual Entry</TabsTrigger>
+                            <TabsList className="grid w-full grid-cols-3 mb-4 h-auto gap-1">
+                              <TabsTrigger value="plate" className="text-xs sm:text-sm px-2 sm:px-4 py-2.5 min-h-[44px]">Plate</TabsTrigger>
+                              <TabsTrigger value="vin" className="text-xs sm:text-sm px-2 sm:px-4 py-2.5 min-h-[44px]">VIN</TabsTrigger>
+                              <TabsTrigger value="manual" className="text-xs sm:text-sm px-2 sm:px-4 py-2.5 min-h-[44px]">Manual</TabsTrigger>
                             </TabsList>
                             
                             <TabsContent value="plate" className="space-y-4">
@@ -334,7 +334,7 @@ export default function SellYourCarPage() {
                                 <p className="text-primary font-medium">Fastest way to get your offer</p>
                                 <p className="text-muted-foreground text-xs mt-1">We&apos;ll automatically retrieve your vehicle details</p>
                               </div>
-                              <div className="grid grid-cols-3 gap-3">
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <Select value={province} onValueChange={setProvince}>
                                   <SelectTrigger className="h-12">
                                     <SelectValue placeholder="Province" />
@@ -877,7 +877,7 @@ export default function SellYourCarPage() {
                   step: 2,
                   icon: Calendar,
                   title: "Schedule Free Pickup",
-                  description: "Choose a time that works for you. We'll come to your home or office.",
+                  description: "Choose a time that works for you. We&apos;ll come to your home or office.",
                   time: "Your schedule"
                 },
                 {

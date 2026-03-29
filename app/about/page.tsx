@@ -38,7 +38,7 @@ export default function AboutPage() {
   // Real customer reviews from Google
   const customerReviews = [
     { name: "Parsa", rating: 5, review: "Exceptional service from start to finish. Hamza was incredibly helpful and made the entire process seamless.", date: "2 weeks ago" },
-    { name: "Jee Han", rating: 5, review: "Best car buying experience I've ever had. Transparent pricing, no pressure, and the car was exactly as described.", date: "1 month ago" },
+    { name: "Jee Han", rating: 5, review: "Best car buying experience I&apos;ve ever had. Transparent pricing, no pressure, and the car was exactly as described.", date: "1 month ago" },
     { name: "Morgan", rating: 5, review: "Bought a Tesla Model Y from Planet Motors. The battery health report gave me complete confidence.", date: "1 month ago" },
     { name: "Ayman", rating: 5, review: "Adam in financing got me an amazing rate. Highly recommend for anyone with any credit situation.", date: "2 months ago" },
     { name: "Chrispin", rating: 5, review: "The 210-point inspection report was thorough. No surprises, just a great car at a fair price.", date: "2 months ago" },
@@ -146,22 +146,22 @@ export default function AboutPage() {
         {/* Stats */}
         <section className="py-16">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 text-center">
               <div>
-                <p className="text-4xl font-bold text-primary">9,500+</p>
-                <p className="text-muted-foreground">Vehicles Sold</p>
+                <p className="text-2xl sm:text-4xl font-bold text-primary">9,500+</p>
+                <p className="text-xs sm:text-base text-muted-foreground">Vehicles Sold</p>
               </div>
               <div>
-                <p className="text-4xl font-bold text-primary">4.8/5</p>
-                <p className="text-muted-foreground">Google Rating</p>
+                <p className="text-2xl sm:text-4xl font-bold text-primary">4.8/5</p>
+                <p className="text-xs sm:text-base text-muted-foreground">Google Rating</p>
               </div>
               <div>
-                <p className="text-4xl font-bold text-primary">277+</p>
-                <p className="text-muted-foreground">Happy Customers</p>
+                <p className="text-2xl sm:text-4xl font-bold text-primary">277+</p>
+                <p className="text-xs sm:text-base text-muted-foreground">Happy Customers</p>
               </div>
               <div>
-                <p className="text-4xl font-bold text-primary">10</p>
-                <p className="text-muted-foreground">Years in Business</p>
+                <p className="text-2xl sm:text-4xl font-bold text-primary">10</p>
+                <p className="text-xs sm:text-base text-muted-foreground">Years in Business</p>
               </div>
             </div>
           </div>
@@ -249,6 +249,7 @@ export default function AboutPage() {
                       alt={member.name}
                       fill
                       className="object-cover"
+                      sizes="(max-width: 768px) 50vw, 25vw"
                     />
                   </div>
                   <CardContent className="p-4">
@@ -273,6 +274,7 @@ export default function AboutPage() {
                       alt="Planet Motors Showroom"
                       fill
                       className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 50vw"
                     />
                   </div>
                   <CardContent className="p-8 flex flex-col justify-center">

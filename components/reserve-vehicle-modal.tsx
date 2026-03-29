@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Lock, Shield, Clock, CheckCircle, CreditCard, ArrowRight, Sparkles } from "lucide-react"
+import { LockKeyhole, Shield, Clock, CheckCircle, CreditCard, ArrowRight, Sparkles } from "lucide-react"
 
 interface ReserveVehicleModalProps {
   vehicle: {
@@ -50,7 +51,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
       <DialogTrigger asChild>
         {trigger || (
           <Button size="lg" className="w-full">
-            <Lock className="w-4 h-4 mr-2" />
+            <LockKeyhole className="w-4 h-4 mr-2" />
             Reserve for ${depositAmount} CAD
           </Button>
         )}
@@ -60,7 +61,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
           <>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Lock className="w-5 h-5 text-primary" />
+                <LockKeyhole className="w-5 h-5 text-primary" />
                 Reserve This Vehicle
               </DialogTitle>
               <DialogDescription>
@@ -71,10 +72,12 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
             <div className="space-y-4">
               {/* Vehicle Summary */}
               <div className="flex gap-4 p-3 bg-muted rounded-lg">
-                <img
+                <Image
                   src={vehicle.image || "/placeholder.svg"}
                   alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                  className="w-24 h-16 object-cover rounded"
+                  width={96}
+                  height={64}
+                  className="object-cover rounded"
                 />
                 <div>
                   <p className="font-semibold">{vehicle.year} {vehicle.make} {vehicle.model}</p>
@@ -218,7 +221,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
               </div>
 
               <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                <Lock className="w-3 h-3" />
+                <LockKeyhole className="w-3 h-3" />
                 Secured by Stripe. 256-bit encryption.
               </div>
             </div>
