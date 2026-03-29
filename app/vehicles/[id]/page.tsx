@@ -208,7 +208,7 @@ const vehicleData = {
       "All seats — power, heat, fold function",
       "Seatbelts, airbag system & SRS light",
       "HVAC, defroster & cabin air filter",
-      "USB ports, horn, key fob & owner's manual",
+      "USB ports, horn, key fob &amp; owner&apos;s manual",
       "Power windows all positions",
       "Power door locks",
       "Interior lighting — dome, map, ambient",

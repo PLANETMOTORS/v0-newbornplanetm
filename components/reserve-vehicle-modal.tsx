@@ -71,6 +71,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
             <div className="space-y-4">
               {/* Vehicle Summary */}
               <div className="flex gap-4 p-3 bg-muted rounded-lg">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={vehicle.image || "/placeholder.svg"}
                   alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}

@@ -168,6 +168,7 @@ export function Vehicle360ViewerDemo() {
           className="absolute inset-0 flex items-center justify-center transition-transform duration-100"
           style={{ transform: `scale(${zoom})` }}
         >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={demoFrames[currentFrame]}
             alt={`Vehicle view ${currentFrame + 1} of ${frameCount}`}

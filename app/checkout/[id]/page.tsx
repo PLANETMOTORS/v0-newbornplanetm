@@ -473,7 +473,7 @@ export default function CheckoutPage() {
                       </li>
                       <li className="flex items-start gap-3">
                         <Badge variant="outline">2</Badge>
-                        <span>{purchaseType === "finance" ? "We'll submit your financing application" : "We'll send payment instructions"}</span>
+                        <span>{purchaseType === "finance" ? "We&apos;ll submit your financing application" : "We&apos;ll send payment instructions"}</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <Badge variant="outline">3</Badge>
@@ -508,6 +508,7 @@ export default function CheckoutPage() {
               <CardContent className="space-y-4">
                 {/* Vehicle */}
                 <div className="flex gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={vehicleData.image}
                     alt={`${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`}

@@ -877,7 +877,7 @@ export default function SellYourCarPage() {
                   step: 2,
                   icon: Calendar,
                   title: "Schedule Free Pickup",
-                  description: "Choose a time that works for you. We'll come to your home or office.",
+                  description: "Choose a time that works for you. We&apos;ll come to your home or office.",
                   time: "Your schedule"
                 },
                 {

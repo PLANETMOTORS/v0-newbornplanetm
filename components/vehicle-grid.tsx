@@ -115,6 +115,7 @@ function VehicleCard({ vehicle }: VehicleCardProps) {
     <div className="group bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg transition-shadow">
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={vehicle.image}
           alt={vehicle.name}

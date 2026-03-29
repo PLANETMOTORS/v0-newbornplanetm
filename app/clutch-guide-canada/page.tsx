@@ -16,7 +16,7 @@ export default function ClutchGuideCanadaPage() {
   const clutchProblems = [
     {
       symptom: "Clutch Slipping",
-      description: "Engine revs increase but vehicle doesn't accelerate proportionally",
+      description: "Engine revs increase but vehicle doesn&apos;t accelerate proportionally",
       cause: "Worn clutch disc, oil contamination, or weak pressure plate",
       urgency: "High",
       cost: "$800 - $1,500"

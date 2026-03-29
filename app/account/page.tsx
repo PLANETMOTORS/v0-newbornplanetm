@@ -415,6 +415,7 @@ export default function AccountPage() {
                         <div className="space-y-4">
                           {mockSavedVehicles.map(vehicle => (
                             <div key={vehicle.id} className="flex items-center gap-4 p-4 border rounded-lg">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img 
                                 src={vehicle.image} 
                                 alt={vehicle.vehicleName}

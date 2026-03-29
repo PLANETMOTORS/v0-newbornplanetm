@@ -38,7 +38,7 @@ export default function AboutPage() {
   // Real customer reviews from Google
   const customerReviews = [
     { name: "Parsa", rating: 5, review: "Exceptional service from start to finish. Hamza was incredibly helpful and made the entire process seamless.", date: "2 weeks ago" },
-    { name: "Jee Han", rating: 5, review: "Best car buying experience I've ever had. Transparent pricing, no pressure, and the car was exactly as described.", date: "1 month ago" },
+    { name: "Jee Han", rating: 5, review: "Best car buying experience I&apos;ve ever had. Transparent pricing, no pressure, and the car was exactly as described.", date: "1 month ago" },
     { name: "Morgan", rating: 5, review: "Bought a Tesla Model Y from Planet Motors. The battery health report gave me complete confidence.", date: "1 month ago" },
     { name: "Ayman", rating: 5, review: "Adam in financing got me an amazing rate. Highly recommend for anyone with any credit situation.", date: "2 months ago" },
     { name: "Chrispin", rating: 5, review: "The 210-point inspection report was thorough. No surprises, just a great car at a fair price.", date: "2 months ago" },

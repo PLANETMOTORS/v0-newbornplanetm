@@ -113,6 +113,7 @@ export function VehicleShowcase() {
     >
       {/* Main image container */}
       <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted shadow-2xl">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={currentVehicle.image}
           alt={currentVehicle.name}
@@ -235,6 +236,7 @@ export function VehicleShowcase() {
               )}
               aria-label={`View ${vehicle.name}`}
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={vehicle.image}
                 alt={vehicle.name}

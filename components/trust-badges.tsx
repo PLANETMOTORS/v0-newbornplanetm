@@ -1,4 +1,4 @@
-import { Shield, RotateCcw, Truck, ClipboardCheck, Award, Headphones, CheckCircle } from "lucide-react"
+import { Shield, RotateCcw, Truck, ClipboardCheck, Award, Headphones, CheckCircle, LockKeyhole } from "lucide-react"
 
 const badges = [
   {
@@ -80,7 +80,7 @@ export function TrustBadges() {
         {/* Bottom trust line */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
           <span className="flex items-center gap-2">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Lock-green.svg/16px-Lock-green.svg.png" alt="" className="w-4 h-4" />
+            <LockKeyhole className="w-4 h-4 text-green-600" />
             256-bit SSL Encryption
           </span>
           <span className="hidden md:inline">|</span>

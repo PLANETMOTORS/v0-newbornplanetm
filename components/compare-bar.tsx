@@ -34,6 +34,7 @@ export function CompareBar() {
                   key={vehicle.id}
                   className="flex items-center gap-3 bg-muted rounded-lg p-2 pr-3 min-w-fit"
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={vehicle.image}
                     alt={vehicle.name}
