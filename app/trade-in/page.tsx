@@ -247,18 +247,18 @@ export default function TradeInPage() {
                 </p>
                 
                 {/* Stats */}
-                <div className="grid grid-cols-3 gap-6 text-white mb-8">
+                <div className="grid grid-cols-3 gap-3 sm:gap-6 text-white mb-8">
                   <div className="text-center lg:text-left">
-                    <div className="text-3xl font-bold">$12M+</div>
-                    <div className="text-sm text-white/70">Paid to Canadians</div>
+                    <div className="text-xl sm:text-3xl font-bold">$12M+</div>
+                    <div className="text-xs sm:text-sm text-white/70">Paid to Canadians</div>
                   </div>
                   <div className="text-center lg:text-left">
-                    <div className="text-3xl font-bold">15K+</div>
-                    <div className="text-sm text-white/70">Cars Purchased</div>
+                    <div className="text-xl sm:text-3xl font-bold">15K+</div>
+                    <div className="text-xs sm:text-sm text-white/70">Cars Purchased</div>
                   </div>
                   <div className="text-center lg:text-left">
-                    <div className="text-3xl font-bold">4.9/5</div>
-                    <div className="text-sm text-white/70">Customer Rating</div>
+                    <div className="text-xl sm:text-3xl font-bold">4.9/5</div>
+                    <div className="text-xs sm:text-sm text-white/70">Customer Rating</div>
                   </div>
                 </div>
                 
@@ -925,23 +925,23 @@ export default function TradeInPage() {
                     )}
 
                     {/* Comparison */}
-                    <div className="grid grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg">
+                    <div className="grid grid-cols-3 gap-2 sm:gap-4 p-3 sm:p-4 bg-muted/30 rounded-lg">
                       <div className="text-center">
-                        <p className="text-sm text-muted-foreground mb-1">Dealer Trade-In</p>
-                        <p className="font-medium text-muted-foreground line-through">${offer.comparison.dealerTrade.toLocaleString()}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground mb-1">Dealer</p>
+                        <p className="font-medium text-xs sm:text-base text-muted-foreground line-through">${offer.comparison.dealerTrade.toLocaleString()}</p>
                       </div>
                       <div className="text-center border-x">
-                        <p className="text-sm text-primary font-medium mb-1">Planet Motors</p>
-                        <p className="font-bold text-xl text-primary">${offer.offerAmount.toLocaleString()}</p>
+                        <p className="text-xs sm:text-sm text-primary font-medium mb-1">Planet Motors</p>
+                        <p className="font-bold text-base sm:text-xl text-primary">${offer.offerAmount.toLocaleString()}</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-sm text-muted-foreground mb-1">Private Sale (Est.)</p>
-                        <p className="font-medium text-muted-foreground">${offer.comparison.privateSale.toLocaleString()}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground mb-1">Private</p>
+                        <p className="font-medium text-xs sm:text-base text-muted-foreground">${offer.comparison.privateSale.toLocaleString()}</p>
                       </div>
                     </div>
 
                     {/* Why Planet Motors */}
-                    <div className="grid grid-cols-3 gap-4 text-center text-sm">
+                    <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center text-xs sm:text-sm">
                       <div>
                         <Zap className="h-6 w-6 mx-auto mb-1 text-primary" />
                         <p className="font-medium">Instant Offer</p>

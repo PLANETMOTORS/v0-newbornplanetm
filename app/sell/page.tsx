@@ -270,19 +270,19 @@ export default function SellYourCarPage() {
                 </p>
                 
                 {/* Social proof stats */}
-                <div className="grid grid-cols-3 gap-8 mb-10">
+                <div className="grid grid-cols-3 gap-3 sm:gap-8 mb-10">
                   <div className="text-center lg:text-left">
-                    <div className="text-4xl font-bold text-white mb-1">$18M+</div>
-                    <div className="text-sm text-white/60">Paid to Sellers</div>
+                    <div className="text-2xl sm:text-4xl font-bold text-white mb-1">$18M+</div>
+                    <div className="text-xs sm:text-sm text-white/60">Paid to Sellers</div>
                   </div>
                   <div className="text-center lg:text-left">
-                    <div className="text-4xl font-bold text-white mb-1">24hrs</div>
-                    <div className="text-sm text-white/60">Avg. Payment Time</div>
+                    <div className="text-2xl sm:text-4xl font-bold text-white mb-1">24hrs</div>
+                    <div className="text-xs sm:text-sm text-white/60">Avg. Payment</div>
                   </div>
                   <div className="text-center lg:text-left">
-                    <div className="text-4xl font-bold text-white mb-1">4.9</div>
-                    <div className="flex items-center gap-1 justify-center lg:justify-start">
-                      {[1,2,3,4,5].map(i => <Star key={i} className="h-3 w-3 text-amber-400 fill-amber-400" />)}
+                    <div className="text-2xl sm:text-4xl font-bold text-white mb-1">4.9</div>
+                    <div className="flex items-center gap-0.5 justify-center lg:justify-start">
+                      {[1,2,3,4,5].map(i => <Star key={i} className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-amber-400 fill-amber-400" />)}
                     </div>
                   </div>
                 </div>
@@ -334,7 +334,7 @@ export default function SellYourCarPage() {
                                 <p className="text-primary font-medium">Fastest way to get your offer</p>
                                 <p className="text-muted-foreground text-xs mt-1">We&apos;ll automatically retrieve your vehicle details</p>
                               </div>
-                              <div className="grid grid-cols-3 gap-3">
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <Select value={province} onValueChange={setProvince}>
                                   <SelectTrigger className="h-12">
                                     <SelectValue placeholder="Province" />

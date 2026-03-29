@@ -183,13 +183,14 @@ export default function SchedulePage() {
                     </div>
                     <div>
                       <Label className="mb-3 block">Select Time</Label>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {timeSlots.map((time) => (
                           <Button
                             key={time}
                             type="button"
                             variant={selectedTime === time ? "default" : "outline"}
                             size="sm"
+                            className="min-h-[44px]"
                             onClick={() => setSelectedTime(time)}
                           >
                             {time}

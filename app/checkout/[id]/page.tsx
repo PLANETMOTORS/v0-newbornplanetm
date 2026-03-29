@@ -334,9 +334,9 @@ export default function CheckoutPage() {
                       <div className="space-y-2">
                         <Label>Preferred Term</Label>
                         <RadioGroup value={formData.term} onValueChange={(v) => setFormData({ ...formData, term: v })}>
-                          <div className="grid grid-cols-4 gap-2">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             {["36", "48", "60", "72"].map((term) => (
-                              <div key={term} className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-muted/50">
+                              <div key={term} className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-muted/50 min-h-[48px]">
                                 <RadioGroupItem value={term} id={`term-${term}`} />
                                 <Label htmlFor={`term-${term}`} className="cursor-pointer">{term} mo</Label>
                               </div>

@@ -530,14 +530,14 @@ export default function VehicleDetailPage() {
                             </Button>
                           </div>
                         </div>
-                        <div className="grid grid-cols-3 gap-3 mt-4">
-                          <Button variant="outline" size="sm" className="justify-start">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+                          <Button variant="outline" size="sm" className="justify-start min-h-[44px]">
                             <Car className="w-4 h-4 mr-2" /> Exterior Tour
                           </Button>
-                          <Button variant="outline" size="sm" className="justify-start">
+                          <Button variant="outline" size="sm" className="justify-start min-h-[44px]">
                             <Users className="w-4 h-4 mr-2" /> Interior Tour
                           </Button>
-                          <Button variant="outline" size="sm" className="justify-start">
+                          <Button variant="outline" size="sm" className="justify-start min-h-[44px]">
                             <Zap className="w-4 h-4 mr-2" /> Engine Bay
                           </Button>
                         </div>
@@ -898,9 +898,9 @@ export default function VehicleDetailPage() {
                       <div className="grid grid-cols-3 md:grid-cols-5 gap-2 py-4">
                         {vehicleData.inspectionCategories.map((cat, i) => (
                           <div key={i} className="text-center p-2 bg-muted/30 rounded-lg">
-                            <CheckCircle className="w-5 h-5 text-primary mx-auto mb-1" />
-                            <p className="text-[10px] font-medium leading-tight">{cat.name}</p>
-                            <p className="text-[10px] text-primary">{cat.points} points passed</p>
+                            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-primary mx-auto mb-1" />
+                            <p className="text-[11px] sm:text-xs font-medium leading-tight">{cat.name}</p>
+                            <p className="text-[11px] sm:text-xs text-primary">{cat.points} pts</p>
                           </div>
                         ))}
                       </div>
@@ -1432,17 +1432,17 @@ export default function VehicleDetailPage() {
               {/* Next Steps */}
               <div className="mt-12 pt-8 border-t">
                 <h2 className="text-xl font-semibold mb-6">Next steps</h2>
-                <div className="grid grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                   {[
-                    { step: 1, title: "Start purchase", active: true },
-                    { step: 2, title: "Enter your info", active: false },
-                    { step: 3, title: "Add protections", subtitle: "Optional", active: false },
-                    { step: 4, title: "Finance application", subtitle: "If applicable", active: false },
-                    { step: 5, title: "Get your car!", active: false }
+                    { step: 1, title: "Start", subtitle: "Purchase", active: true },
+                    { step: 2, title: "Your", subtitle: "Info", active: false },
+                    { step: 3, title: "Add", subtitle: "Protection", active: false },
+                    { step: 4, title: "Finance", subtitle: "If needed", active: false },
+                    { step: 5, title: "Get your", subtitle: "Car!", active: false }
                   ].map((item) => (
-                    <div key={item.step} className="text-center p-4 border rounded-lg">
-                      <p className="text-2xl font-bold mb-2">{item.step}</p>
-                      <p className="font-medium text-sm">{item.title}</p>
+                    <div key={item.step} className="text-center p-3 border rounded-lg">
+                      <p className="text-xl sm:text-2xl font-bold mb-1">{item.step}</p>
+                      <p className="font-medium text-xs sm:text-sm">{item.title}</p>
                       {item.subtitle && <p className="text-xs text-muted-foreground">{item.subtitle}</p>}
                       {item.active && (
                         <Button size="sm" className="mt-3">Start purchase</Button>
@@ -1651,18 +1651,18 @@ export default function VehicleDetailPage() {
 </main>
 
       {/* Sticky Mobile CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 md:hidden z-50 safe-area-inset-bottom">
-        <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
-          <div className="flex-1">
-            <p className="text-sm text-muted-foreground">Price</p>
-            <p className="text-xl font-bold">${vehicleData.price.toLocaleString()}</p>
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-3 pb-safe md:hidden z-50">
+        <div className="flex items-center gap-3 max-w-lg mx-auto">
+          <div className="shrink-0">
+            <p className="text-xs text-muted-foreground">Price</p>
+            <p className="text-lg font-bold">${vehicleData.price.toLocaleString()}</p>
           </div>
           <Button 
-            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+            className="flex-1 h-12 min-h-[48px] bg-red-600 hover:bg-red-700 text-white text-sm font-medium"
             onClick={() => handleProtectedAction("reserve this vehicle")}
           >
-            <Lock className="w-4 h-4 mr-2" />
-            Reserve Now
+            <Lock className="w-4 h-4 mr-1.5 shrink-0" />
+            <span>Reserve Now</span>
           </Button>
         </div>
       </div>

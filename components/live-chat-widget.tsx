@@ -55,10 +55,10 @@ export function LiveChatWidget() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-primary text-primary-foreground px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105"
+        className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 flex items-center gap-2 bg-primary text-primary-foreground px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 min-h-[48px]"
       >
         <MessageCircle className="w-5 h-5" />
-        <span className="font-medium">Chat with us</span>
+        <span className="font-medium hidden sm:inline">Chat with us</span>
         <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
       </button>
     )
@@ -66,8 +66,8 @@ export function LiveChatWidget() {
 
   return (
     <div
-      className={`fixed bottom-6 right-6 z-50 bg-card border border-border rounded-xl shadow-2xl transition-all ${
-        isMinimized ? "w-72 h-14" : "w-80 sm:w-96 h-[480px]"
+      className={`fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 bg-card border border-border rounded-xl shadow-2xl transition-all ${
+        isMinimized ? "w-72 h-14" : "w-[calc(100vw-2rem)] sm:w-96 max-h-[60vh] sm:max-h-[480px]"
       }`}
     >
       {/* Header */}
