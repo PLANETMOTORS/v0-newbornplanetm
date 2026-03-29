@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ make: str
   const { make, model } = await params
   const makeFormatted = make.charAt(0).toUpperCase() + make.slice(1)
   const modelFormatted = model.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-  const currentYear = new Date().getFullYear()
+  const currentYear = 2026
   
   return {
     title: `${currentYear} ${makeFormatted} ${modelFormatted} for Sale in Richmond Hill, ON | Planet Motors`,
@@ -101,7 +101,7 @@ const modelData: Record<string, Record<string, {
   honda: {
     'civic': {
       tagline: "Canada&apos;s #1 Car - More Powerful and Efficient Than Ever",
-      description: "The Honda Civic has been Canada's best-selling car for over two decades. Built right here in Ontario, the Civic delivers unmatched value, efficiency, and driving enjoyment for GTA commuters and families alike.",
+      description: "The Honda Civic has been Canada&apos;s best-selling car for over two decades. Built right here in Ontario, the Civic delivers unmatched value, efficiency, and driving enjoyment for GTA commuters and families alike.",
       startingPrice: 26990,
       mpg: { city: 7.7, highway: 5.9 },
       seating: 5,

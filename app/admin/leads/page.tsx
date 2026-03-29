@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { 
   Search, Filter, Phone, Mail, MessageSquare, Clock, 
   CheckCircle, AlertCircle, User, Car, ChevronRight
@@ -93,6 +93,12 @@ export default function AdminLeadsPage() {
   const [typeFilter, setTypeFilter] = useState("all")
   const [selectedLead, setSelectedLead] = useState<typeof leadsData[0] | null>(null)
 
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
   const filteredLeads = leadsData.filter(lead => {
     const matchesSearch = `${lead.name} ${lead.email} ${lead.vehicle}`
       .toLowerCase()
@@ -103,6 +109,7 @@ export default function AdminLeadsPage() {
   })
 
   const formatDate = (dateString: string) => {
+    if (!isMounted) return ""
     const date = new Date(dateString)
     const now = new Date()
     const diffMs = now.getTime() - date.getTime()

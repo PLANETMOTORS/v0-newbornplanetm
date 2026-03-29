@@ -89,7 +89,7 @@ const posts = [
   {
     slug: "how-to-trade-in-used-car",
     title: "How to Trade in Your Used Car",
-    excerpt: "Nearly 50% of Canadians choose to trade in their used cars when buying their next vehicle. It's a quick and hassle-free way to upgrade.",
+    excerpt: "Nearly 50% of Canadians choose to trade in their used cars when buying their next vehicle. It&apos;s a quick and hassle-free way to upgrade.",
     date: "Sep 03, 2025",
     readTime: "8 min read",
     category: "Trade-In",
@@ -134,7 +134,7 @@ const posts = [
   {
     slug: "sell-everything-before-sell",
     title: "Sell Your Car: Everything You Need to Know Before You Sell",
-    excerpt: "Whether you're upgrading to a new vehicle or simply want to cash out, knowing the right steps can help you get the best deal.",
+    excerpt: "Whether you&apos;re upgrading to a new vehicle or simply want to cash out, knowing the right steps can help you get the best deal.",
     date: "Aug 26, 2025",
     readTime: "8 min read",
     category: "Selling",

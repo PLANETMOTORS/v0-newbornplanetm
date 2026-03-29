@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 9 - imgix loader configured
+  // Force clean build - version 10 - Lock icon replaced with LockKeyhole
   cleanDistDir: true,
   typescript: {
     ignoreBuildErrors: true,
