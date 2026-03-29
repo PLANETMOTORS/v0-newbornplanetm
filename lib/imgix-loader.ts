@@ -36,12 +36,24 @@ interface ImageLoaderProps {
 
 const IMGIX_DOMAIN = process.env.NEXT_PUBLIC_IMGIX_DOMAIN || 'planetmotors.imgix.net'
 
+// Adaptive quality based on image size for optimal mobile performance
+// Smaller images (thumbnails) can use lower quality, larger hero images need higher
+const getAdaptiveQuality = (width: number, baseQuality: number): number => {
+  if (width <= 400) return Math.min(baseQuality, 65)  // Thumbnails: aggressive compression
+  if (width <= 800) return Math.min(baseQuality, 72)  // Mobile: balanced
+  if (width <= 1200) return baseQuality               // Tablet: default quality
+  return Math.min(baseQuality + 5, 85)                // Desktop hero: higher quality
+}
+
 // Common imgix params for AVIF-first optimization
+// Target: <1s mobile load time for 9,500+ vehicle inventory
 const getImgixParams = (width: number, quality: number): URLSearchParams => {
+  const adaptiveQuality = getAdaptiveQuality(width, quality)
+  
   return new URLSearchParams({
     w: width.toString(),
-    q: quality.toString(),
-    // auto=format: AVIF-first, falls back to WebP, then JPEG based on Accept header
+    q: adaptiveQuality.toString(),
+    // auto=format: AVIF-first (up to 50% smaller than JPEG), WebP fallback, then JPEG
     // auto=compress: Applies optimal compression for the selected format
     auto: 'format,compress',
     // fit=max: Maintain aspect ratio, never upscale
@@ -50,6 +62,8 @@ const getImgixParams = (width: number, quality: number): URLSearchParams => {
     cs: 'srgb',
     // chromasub=444: Higher color quality for vehicle photos (no chroma subsampling)
     chromasub: '444',
+    // dpr=1: Prevent automatic DPR scaling (Next.js handles srcset)
+    dpr: '1',
   })
 }
 
