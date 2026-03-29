@@ -1,16 +1,13 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-// Hardcoded correct Supabase URL to fix OAuth redirect issue
-const SUPABASE_URL = 'https://ldervbcvkoawwknsemuz.supabase.co'
-
 export async function createClient() {
-  const supabaseUrl = SUPABASE_URL
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  if (!supabaseAnonKey) {
+  if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(
-      'Missing Supabase anon key. Please connect Supabase in Settings.'
+      'Missing Supabase environment variables. Please connect Supabase in Settings.'
     )
   }
 
