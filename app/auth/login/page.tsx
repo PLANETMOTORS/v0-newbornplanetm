@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
@@ -12,10 +12,10 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, EyeOff, Mail, Lock, Chrome, Apple } from "lucide-react"
+import { Eye, EyeOff, Mail, Lock, Chrome, Apple, Loader2 } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get("redirectTo") || "/account"
@@ -48,28 +48,43 @@ export default function LoginPage() {
   }
 
   const handleOAuthLogin = async (provider: "google" | "apple") => {
+    console.log("[v0] OAuth button clicked for:", provider)
     setIsLoading(true)
     setError("")
     
     try {
       const supabase = createClient()
-      const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`
+      console.log("[v0] Supabase client created")
       
-      const { error } = await supabase.auth.signInWithOAuth({
+      const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`
+      console.log("[v0] Callback URL:", callbackUrl)
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: callbackUrl,
         },
       })
       
+      console.log("[v0] OAuth response:", { data, error })
+      
       if (error) {
+        console.error("[v0] OAuth error:", error)
         if (error.message.includes('provider') || error.message.includes('not enabled')) {
           throw new Error(`${provider.charAt(0).toUpperCase() + provider.slice(1)} sign-in is not configured. Please use email login.`)
         }
         throw error
       }
-      // Supabase handles the redirect automatically
+      
+      // If we get here without redirect, manually redirect
+      if (data?.url) {
+        console.log("[v0] Manually redirecting to:", data.url)
+        window.location.href = data.url
+      } else {
+        console.log("[v0] No URL in data, Supabase should handle redirect")
+      }
     } catch (err: unknown) {
+      console.error("[v0] OAuth catch error:", err)
       const errorMessage = err instanceof Error ? err.message : "Social login unavailable. Please use email login."
       setError(errorMessage)
       setIsLoading(false)
@@ -228,5 +243,21 @@ export default function LoginPage() {
 
       <Footer />
     </div>
+  )
+}
+
+function LoginLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginLoading />}>
+      <LoginForm />
+    </Suspense>
   )
 }
