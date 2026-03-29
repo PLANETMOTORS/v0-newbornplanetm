@@ -150,9 +150,9 @@ export default function AccountPage() {
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="signin" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="signin">Sign In</TabsTrigger>
-                    <TabsTrigger value="register">Create Account</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 h-auto">
+                    <TabsTrigger value="signin" className="px-4 py-2.5 min-h-[44px]">Sign In</TabsTrigger>
+                    <TabsTrigger value="register" className="px-4 py-2.5 min-h-[44px]">Register</TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="signin" className="space-y-4 mt-6">
