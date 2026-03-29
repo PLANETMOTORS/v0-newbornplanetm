@@ -363,6 +363,7 @@ export default function EVBatteryHealthPage() {
                       alt={selectedVehicle.name}
                       fill
                       className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 50vw"
                     />
                     <div className="absolute top-4 left-4">
                       <Badge className={getBatteryHealthBadge(selectedVehicle.batteryHealth).color}>

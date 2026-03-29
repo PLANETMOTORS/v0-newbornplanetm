@@ -317,6 +317,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                     fill
                     className="object-cover"
                     priority
+                    sizes="(max-width: 768px) 100vw, 50vw"
                   />
                 </div>
                 <div className="absolute -bottom-4 -right-4 bg-primary text-primary-foreground px-6 py-3 rounded-lg shadow-lg">
@@ -403,6 +404,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                       alt={`${makeFormatted} ${modelFormatted} for sale`}
                       fill
                       className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 25vw"
                     />
                     <Badge className="absolute top-3 left-3 bg-primary">PM Certified</Badge>
                   </div>

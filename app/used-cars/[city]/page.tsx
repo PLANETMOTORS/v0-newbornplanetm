@@ -247,6 +247,7 @@ export default function CityLandingPage() {
                         alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                         fill
                         className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       />
                       <Badge className="absolute top-3 left-3 bg-primary">
                         {vehicle.badge}

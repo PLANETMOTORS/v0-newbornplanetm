@@ -259,10 +259,11 @@ export default function ComparePage() {
                     </button>
                     <div className="relative aspect-[4/3]">
                       <Image
-                        src={getVehicle(selectedVehicles[slot])?.image || ""}
-                        alt={getVehicle(selectedVehicles[slot])?.name || ""}
+                        src={getVehicle(selectedVehicles[slot])?.image || "/images/vehicle-placeholder.jpg"}
+                        alt={getVehicle(selectedVehicles[slot])?.name || "Vehicle image"}
                         fill
                         className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 33vw"
                       />
                     </div>
                     <CardContent className="p-4">

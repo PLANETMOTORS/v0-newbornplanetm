@@ -249,6 +249,7 @@ export default function AboutPage() {
                       alt={member.name}
                       fill
                       className="object-cover"
+                      sizes="(max-width: 768px) 50vw, 25vw"
                     />
                   </div>
                   <CardContent className="p-4">
@@ -273,6 +274,7 @@ export default function AboutPage() {
                       alt="Planet Motors Showroom"
                       fill
                       className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 50vw"
                     />
                   </div>
                   <CardContent className="p-8 flex flex-col justify-center">
