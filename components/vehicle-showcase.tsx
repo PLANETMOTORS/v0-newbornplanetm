@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { ChevronLeft, ChevronRight, RotateCw, Shield, Eye, Heart, Share2, Fuel, Gauge, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -113,12 +114,13 @@ export function VehicleShowcase() {
     >
       {/* Main image container */}
       <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted shadow-2xl">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={currentVehicle.image}
           alt={currentVehicle.name}
+          fill
+          sizes="(max-width: 768px) 100vw, 50vw"
           className={cn(
-            "absolute inset-0 w-full h-full object-cover transition-all duration-500",
+            "object-cover transition-all duration-500",
             isAnimating ? "scale-105 opacity-80" : "scale-100 opacity-100"
           )}
         />
@@ -236,11 +238,12 @@ export function VehicleShowcase() {
               )}
               aria-label={`View ${vehicle.name}`}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={vehicle.image}
                 alt={vehicle.name}
-                className="w-full h-full object-cover"
+                fill
+                sizes="80px"
+                className="object-cover"
               />
             </button>
           ))}

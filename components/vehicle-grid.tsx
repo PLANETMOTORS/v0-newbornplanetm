@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { RotateCw, Heart, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
@@ -115,11 +116,12 @@ function VehicleCard({ vehicle }: VehicleCardProps) {
     <div className="group bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg transition-shadow">
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={vehicle.image}
           alt={vehicle.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover group-hover:scale-105 transition-transform duration-300"
         />
         
         {/* Badges */}

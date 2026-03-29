@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -71,11 +72,12 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
             <div className="space-y-4">
               {/* Vehicle Summary */}
               <div className="flex gap-4 p-3 bg-muted rounded-lg">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={vehicle.image || "/placeholder.svg"}
                   alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                  className="w-24 h-16 object-cover rounded"
+                  width={96}
+                  height={64}
+                  className="object-cover rounded"
                 />
                 <div>
                   <p className="font-semibold">{vehicle.year} {vehicle.make} {vehicle.model}</p>

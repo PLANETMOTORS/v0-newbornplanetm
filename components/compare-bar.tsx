@@ -4,6 +4,7 @@ import { useCompare } from "@/lib/compare-context"
 import { Button } from "@/components/ui/button"
 import { X, GitCompare, ChevronUp } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import { useState } from "react"
 
 export function CompareBar() {
@@ -34,11 +35,12 @@ export function CompareBar() {
                   key={vehicle.id}
                   className="flex items-center gap-3 bg-muted rounded-lg p-2 pr-3 min-w-fit"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={vehicle.image}
                     alt={vehicle.name}
-                    className="w-16 h-12 object-cover rounded"
+                    width={64}
+                    height={48}
+                    className="object-cover rounded"
                   />
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate max-w-[150px]">
