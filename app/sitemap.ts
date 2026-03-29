@@ -95,12 +95,46 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/inventory?transmission=Automatic', priority: 0.8 },
   ]
 
+  // High-converting model landing pages (SEO 2026 standard)
+  const modelLandingPages = [
+    // Toyota - Focus on Hybrid & Reliability
+    { path: '/cars/toyota/rav4', priority: 0.95, changeFrequency: 'daily' as const },
+    { path: '/cars/toyota/camry', priority: 0.9, changeFrequency: 'daily' as const },
+    { path: '/cars/toyota/highlander', priority: 0.9, changeFrequency: 'daily' as const },
+    { path: '/cars/toyota/corolla', priority: 0.9, changeFrequency: 'daily' as const },
+    // Honda - Canadian Made
+    { path: '/cars/honda/civic', priority: 0.95, changeFrequency: 'daily' as const },
+    { path: '/cars/honda/cr-v', priority: 0.95, changeFrequency: 'daily' as const },
+    { path: '/cars/honda/accord', priority: 0.9, changeFrequency: 'daily' as const },
+    { path: '/cars/honda/pilot', priority: 0.9, changeFrequency: 'daily' as const },
+    // Tesla - EV Focus
+    { path: '/cars/tesla/model-y', priority: 0.95, changeFrequency: 'daily' as const },
+    { path: '/cars/tesla/model-3', priority: 0.95, changeFrequency: 'daily' as const },
+    { path: '/cars/tesla/model-x', priority: 0.9, changeFrequency: 'daily' as const },
+    { path: '/cars/tesla/model-s', priority: 0.9, changeFrequency: 'daily' as const },
+    // Ford - Trucks & Capability
+    { path: '/cars/ford/f-150', priority: 0.95, changeFrequency: 'daily' as const },
+    { path: '/cars/ford/explorer', priority: 0.9, changeFrequency: 'daily' as const },
+    { path: '/cars/ford/escape', priority: 0.9, changeFrequency: 'daily' as const },
+    { path: '/cars/ford/mustang-mach-e', priority: 0.9, changeFrequency: 'daily' as const },
+    // Hyundai - EV Competition
+    { path: '/cars/hyundai/ioniq-5', priority: 0.9, changeFrequency: 'daily' as const },
+    { path: '/cars/hyundai/ioniq-6', priority: 0.9, changeFrequency: 'daily' as const },
+    { path: '/cars/hyundai/tucson', priority: 0.85, changeFrequency: 'daily' as const },
+    // Luxury - BMW, Mercedes, Audi
+    { path: '/cars/bmw/x5', priority: 0.9, changeFrequency: 'daily' as const },
+    { path: '/cars/bmw/ix', priority: 0.85, changeFrequency: 'daily' as const },
+    { path: '/cars/mercedes-benz/glc', priority: 0.9, changeFrequency: 'daily' as const },
+    { path: '/cars/audi/q5', priority: 0.9, changeFrequency: 'daily' as const },
+  ]
+
   // Combine all static routes
   const staticRoutes = [
     ...corePages,
     ...infoPages,
     ...legalPages,
     ...locationPages,
+    ...modelLandingPages,
   ].map(page => ({
     url: `${baseUrl}${page.path}`,
     lastModified: currentDate,
