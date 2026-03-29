@@ -353,7 +353,7 @@ export default function VehicleDetailPage() {
   const [activeTab, setActiveTab] = useState("photos")
   const [imageType, setImageType] = useState<"exterior" | "interior">("exterior")
   const [postalCode, setPostalCode] = useState("")
-  const [viewCount, setViewCount] = useState(78)
+  const [viewCount, setViewCount] = useState<number | null>(null)
   const [showInspectionModal, setShowInspectionModal] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [authAction, setAuthAction] = useState("")
@@ -368,13 +368,14 @@ export default function VehicleDetailPage() {
     }
   }
 
-  // Simulate live viewing count with deterministic pattern
+  // Simulate live viewing count with deterministic pattern - initialize after mount
   useEffect(() => {
+    setViewCount(78) // Initialize on client only
     let tick = 0
     const interval = setInterval(() => {
       tick++
       const change = (tick % 3) - 1 // cycles: -1, 0, 1
-      setViewCount(prev => Math.max(50, Math.min(70, prev + change)))
+      setViewCount(prev => prev !== null ? Math.max(50, Math.min(70, prev + change)) : 78)
     }, 8000)
     return () => clearInterval(interval)
   }, [])
@@ -469,7 +470,7 @@ export default function VehicleDetailPage() {
                     {/* Views Badge */}
                     <Badge className="absolute top-4 left-4 bg-red-500 text-white">
                       <TrendingUp className="w-3 h-3 mr-1" />
-                      {viewCount}+ views today
+                      {viewCount ?? '--'}+ views today
                     </Badge>
 
                     {/* Expand Button */}
@@ -1496,7 +1497,7 @@ export default function VehicleDetailPage() {
                   <div className="flex items-center justify-between mb-3">
                     <Badge className="bg-red-500 text-white">
                       <TrendingUp className="w-3 h-3 mr-1" />
-                      {viewCount}+ views today
+                      {viewCount ?? '--'}+ views today
                     </Badge>
                     <Button variant="ghost" size="sm" className="text-muted-foreground">
                       <Bell className="w-4 h-4 mr-1" />

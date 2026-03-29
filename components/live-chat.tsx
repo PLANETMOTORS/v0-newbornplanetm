@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -17,15 +17,22 @@ interface Message {
 export function LiveChat() {
   const [isOpen, setIsOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      text: "Hi! Welcome to Planet Motors. How can I help you today?",
-      sender: "agent",
-      timestamp: new Date()
-    }
-  ])
+  const [isMounted, setIsMounted] = useState(false)
+  const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState("")
+
+  // Initialize after mount to avoid hydration mismatch
+  useEffect(() => {
+    setIsMounted(true)
+    setMessages([
+      {
+        id: "1",
+        text: "Hi! Welcome to Planet Motors. How can I help you today?",
+        sender: "agent",
+        timestamp: new Date()
+      }
+    ])
+  }, [])
 
   const sendMessage = () => {
     if (!inputValue.trim()) return
@@ -50,6 +57,11 @@ export function LiveChat() {
       }
       setMessages(prev => [...prev, agentMessage])
     }, 1000)
+  }
+
+  // Don't render until mounted to avoid hydration mismatch
+  if (!isMounted) {
+    return null
   }
 
   if (!isOpen) {

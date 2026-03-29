@@ -185,7 +185,7 @@ export function Footer() {
 
         <div className="mt-12 pt-8 border-t border-background/20 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-background/60">
-            &copy; {new Date().getFullYear()} Planet Motors. All rights reserved. | planetmotors.ca
+            &copy; 2026 Planet Motors. All rights reserved. | planetmotors.ca
           </p>
           <div className="flex items-center gap-6">
             <a 

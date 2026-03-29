@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -33,6 +33,7 @@ const locations = [
 export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: ScheduleTestDriveProps) {
   const [step, setStep] = useState(1)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [availableDates, setAvailableDates] = useState<string[]>([])
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -44,6 +45,19 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
     notes: "",
   })
 
+  // Generate dates on client only to avoid hydration mismatch
+  useEffect(() => {
+    const dates = []
+    for (let i = 1; i <= 14; i++) {
+      const date = new Date()
+      date.setDate(date.getDate() + i)
+      if (date.getDay() !== 0) {
+        dates.push(date.toISOString().split("T")[0])
+      }
+    }
+    setAvailableDates(dates)
+  }, [])
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // In production, this would submit to an API
@@ -54,18 +68,7 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  // Get next 14 days for date picker
-  const getAvailableDates = () => {
-    const dates = []
-    for (let i = 1; i <= 14; i++) {
-      const date = new Date()
-      date.setDate(date.getDate() + i)
-      if (date.getDay() !== 0) { // Exclude Sundays for simplicity
-        dates.push(date.toISOString().split("T")[0])
-      }
-    }
-    return dates
-  }
+  
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -139,7 +142,7 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
               <div>
                 <Label>Preferred Date</Label>
                 <div className="grid grid-cols-3 gap-2 mt-2">
-                  {getAvailableDates().slice(0, 6).map(date => (
+                  {availableDates.slice(0, 6).map(date => (
                     <button
                       key={date}
                       type="button"

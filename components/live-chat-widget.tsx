@@ -1,7 +1,7 @@
 "use client"
 
 // Planet Motors Live Chat Widget - Customer Support
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { MessageCircle, X, Send, Minimize2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,15 +16,22 @@ interface Message {
 export function LiveChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      text: "Hi! Welcome to Planet Motors. How can I help you today?",
-      sender: "agent",
-      timestamp: new Date(),
-    },
-  ])
+  const [isMounted, setIsMounted] = useState(false)
+  const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState("")
+
+  // Initialize messages after mount to avoid hydration mismatch
+  useEffect(() => {
+    setIsMounted(true)
+    setMessages([
+      {
+        id: 1,
+        text: "Hi! Welcome to Planet Motors. How can I help you today?",
+        sender: "agent",
+        timestamp: new Date(),
+      },
+    ])
+  }, [])
 
   const handleSendMessage = () => {
     if (!inputValue.trim()) return
@@ -49,6 +56,11 @@ export function LiveChatWidget() {
       }
       setMessages((prev) => [...prev, agentMessage])
     }, 1000)
+  }
+
+  // Don't render until mounted to avoid hydration mismatch
+  if (!isMounted) {
+    return null
   }
 
   if (!isOpen) {
