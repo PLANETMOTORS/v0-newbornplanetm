@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useParams, useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
@@ -508,11 +509,12 @@ export default function CheckoutPage() {
               <CardContent className="space-y-4">
                 {/* Vehicle */}
                 <div className="flex gap-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={vehicleData.image}
                     alt={`${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`}
-                    className="w-20 h-14 object-cover rounded"
+                    width={80}
+                    height={56}
+                    className="object-cover rounded"
                   />
                   <div>
                     <p className="font-medium text-sm">{vehicleData.year} {vehicleData.make} {vehicleData.model}</p>

@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Calendar, Clock, ArrowRight, Search, Tag } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
@@ -321,12 +322,13 @@ export default function BlogPage() {
             <Link href={`/blog/${featuredPost.slug}`} className="group">
               <Card className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="grid md:grid-cols-2 gap-0">
-                  <div className="aspect-video md:aspect-auto">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img 
+                  <div className="aspect-video md:aspect-auto relative">
+                    <Image 
                       src={featuredPost.image} 
                       alt={featuredPost.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
                   <CardContent className="p-8 flex flex-col justify-center">
@@ -365,12 +367,13 @@ export default function BlogPage() {
               {posts.map((post) => (
                 <Link key={post.slug} href={`/blog/${post.slug}`} className="group">
                   <Card className="overflow-hidden h-full hover:shadow-lg transition-shadow">
-                    <div className="aspect-video overflow-hidden">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img 
+                    <div className="aspect-video overflow-hidden relative">
+                      <Image 
                         src={post.image} 
                         alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
                     <CardContent className="p-6">

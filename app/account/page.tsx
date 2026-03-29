@@ -416,11 +416,12 @@ export default function AccountPage() {
                         <div className="space-y-4">
                           {mockSavedVehicles.map(vehicle => (
                             <div key={vehicle.id} className="flex items-center gap-4 p-4 border rounded-lg">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img 
+                              <Image 
                                 src={vehicle.image} 
                                 alt={vehicle.vehicleName}
-                                className="w-24 h-16 object-cover rounded"
+                                width={96}
+                                height={64}
+                                className="object-cover rounded"
                               />
                               <div className="flex-1">
                                 <h4 className="font-semibold">{vehicle.vehicleName}</h4>
