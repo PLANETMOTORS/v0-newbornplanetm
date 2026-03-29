@@ -159,14 +159,14 @@ export default function EVBatteryHealthPage() {
                 Know exactly what you&apos;re buying with transparent degradation data.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/vehicles?fuelType=Electric">
-                  <Button size="lg" variant="secondary" className="h-14 px-8 text-lg">
+                <Link href="/inventory?fuelType=Electric">
+                  <Button size="lg" className="h-14 px-8 text-lg bg-white text-primary hover:bg-white/90">
                     Browse EVs
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
                 <Link href="/contact">
-                  <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-white/30 text-white hover:bg-white/10">
+                  <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-white/50 text-white hover:bg-white/10">
                     <Phone className="mr-2 h-5 w-5" />
                     Speak to an Expert
                   </Button>
