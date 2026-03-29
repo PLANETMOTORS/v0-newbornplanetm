@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
@@ -12,10 +12,10 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, EyeOff, Mail, Lock, Chrome, Apple } from "lucide-react"
+import { Eye, EyeOff, Mail, Lock, Chrome, Apple, Loader2 } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get("redirectTo") || "/account"
@@ -51,42 +51,31 @@ export default function LoginPage() {
     setIsLoading(true)
     setError("")
     
-    console.log("[v0] OAuth login initiated for provider:", provider)
-    
     try {
       const supabase = createClient()
       const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`
       
-      console.log("[v0] Callback URL:", callbackUrl)
-      
+      // Use skipBrowserRedirect to get the URL and handle redirect ourselves
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: callbackUrl,
+          skipBrowserRedirect: true,
         },
       })
       
-      console.log("[v0] OAuth response - data:", data, "error:", error)
-      
       if (error) {
-        console.error("[v0] OAuth error details:", error.message, error.status)
-        // Check for common OAuth configuration errors
-        if (error.message.includes('provider') || error.message.includes('not enabled')) {
-          throw new Error(`${provider.charAt(0).toUpperCase() + provider.slice(1)} sign-in is not configured. Please use email login.`)
-        }
         throw error
       }
       
-      // If no redirect URL returned, there's a configuration issue
-      if (!data?.url) {
-        console.error("[v0] No redirect URL returned from OAuth")
-        throw new Error(`${provider.charAt(0).toUpperCase() + provider.slice(1)} sign-in is not available. Please use email login.`)
+      // Manually redirect to OAuth URL
+      if (data?.url) {
+        window.location.assign(data.url)
+      } else {
+        throw new Error("Could not initiate sign in. Please try again.")
       }
-      
-      console.log("[v0] Redirecting to OAuth URL:", data.url)
     } catch (err: unknown) {
-      console.error("[v0] OAuth catch block error:", err)
-      const errorMessage = err instanceof Error ? err.message : "Social login unavailable. Please use email login."
+      const errorMessage = err instanceof Error ? err.message : "Sign in failed. Please try email login."
       setError(errorMessage)
       setIsLoading(false)
     }
@@ -244,5 +233,21 @@ export default function LoginPage() {
 
       <Footer />
     </div>
+  )
+}
+
+function LoginLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginLoading />}>
+      <LoginForm />
+    </Suspense>
   )
 }
