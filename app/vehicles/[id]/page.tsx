@@ -433,14 +433,14 @@ export default function VehicleDetailPage() {
 
         {/* Main Tabs */}
         <div className="border-b sticky top-16 bg-background z-40">
-          <div className="container mx-auto px-4 overflow-x-auto scrollbar-hide">
+          <div className="container mx-auto px-4 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="h-12 bg-transparent p-0 gap-0 flex w-max min-w-full">
-                {["Photos", "Overview", "Features", "Inspection", "Pricing", "Ratings", "Protection"].map((tab) => (
+                {["Photos", "Overview", "Features", "Inspect", "Pricing", "Ratings", "Protection"].map((tab) => (
                   <TabsTrigger
                     key={tab}
-                    value={tab.toLowerCase()}
-                    className="h-12 px-3 sm:px-4 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none whitespace-nowrap"
+                    value={tab === "Inspect" ? "inspection" : tab.toLowerCase()}
+                    className="h-12 px-2.5 sm:px-4 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none whitespace-nowrap min-h-[44px]"
                   >
                     {tab}
                   </TabsTrigger>

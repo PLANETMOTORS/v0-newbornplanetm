@@ -146,22 +146,22 @@ export default function AboutPage() {
         {/* Stats */}
         <section className="py-16">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 text-center">
               <div>
-                <p className="text-4xl font-bold text-primary">9,500+</p>
-                <p className="text-muted-foreground">Vehicles Sold</p>
+                <p className="text-2xl sm:text-4xl font-bold text-primary">9,500+</p>
+                <p className="text-xs sm:text-base text-muted-foreground">Vehicles Sold</p>
               </div>
               <div>
-                <p className="text-4xl font-bold text-primary">4.8/5</p>
-                <p className="text-muted-foreground">Google Rating</p>
+                <p className="text-2xl sm:text-4xl font-bold text-primary">4.8/5</p>
+                <p className="text-xs sm:text-base text-muted-foreground">Google Rating</p>
               </div>
               <div>
-                <p className="text-4xl font-bold text-primary">277+</p>
-                <p className="text-muted-foreground">Happy Customers</p>
+                <p className="text-2xl sm:text-4xl font-bold text-primary">277+</p>
+                <p className="text-xs sm:text-base text-muted-foreground">Happy Customers</p>
               </div>
               <div>
-                <p className="text-4xl font-bold text-primary">10</p>
-                <p className="text-muted-foreground">Years in Business</p>
+                <p className="text-2xl sm:text-4xl font-bold text-primary">10</p>
+                <p className="text-xs sm:text-base text-muted-foreground">Years in Business</p>
               </div>
             </div>
           </div>

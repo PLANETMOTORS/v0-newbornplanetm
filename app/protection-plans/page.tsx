@@ -169,7 +169,7 @@ export default function ProtectionPlansPage() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
               {packages.map((pkg) => (
                 <div
                   key={pkg.id}

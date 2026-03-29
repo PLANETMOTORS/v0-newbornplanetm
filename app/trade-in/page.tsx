@@ -397,10 +397,10 @@ export default function TradeInPage() {
                     </CardHeader>
                     <CardContent>
                       <Tabs value={lookupMethod} onValueChange={(v: "plate" | "vin" | "manual") => setLookupMethod(v)}>
-                        <TabsList className="grid w-full grid-cols-3 mb-6">
-                          <TabsTrigger value="plate">License Plate</TabsTrigger>
-                          <TabsTrigger value="vin">VIN Number</TabsTrigger>
-                          <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+                        <TabsList className="grid w-full grid-cols-3 mb-6 h-auto">
+                          <TabsTrigger value="plate" className="text-xs sm:text-sm py-2.5 min-h-[44px]">Plate</TabsTrigger>
+                          <TabsTrigger value="vin" className="text-xs sm:text-sm py-2.5 min-h-[44px]">VIN</TabsTrigger>
+                          <TabsTrigger value="manual" className="text-xs sm:text-sm py-2.5 min-h-[44px]">Manual</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="plate" className="space-y-4">
