@@ -273,12 +273,12 @@ export default function AccountPage() {
           <div className="max-w-4xl mx-auto">
             <h1 className="text-3xl font-serif font-bold mb-8">My Account</h1>
             
-            <div className="grid md:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8">
               {/* Sidebar */}
-              <div className="space-y-2">
+              <div className="flex md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0 md:space-y-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 <Button 
                   variant={activeTab === "profile" ? "secondary" : "ghost"} 
-                  className="w-full justify-start"
+                  className="shrink-0 md:w-full justify-start min-h-[44px]"
                   onClick={() => setActiveTab("profile")}
                 >
                   <User className="w-4 h-4 mr-2" />
@@ -286,16 +286,16 @@ export default function AccountPage() {
                 </Button>
                 <Button 
                   variant={activeTab === "saved" ? "secondary" : "ghost"} 
-                  className="w-full justify-start"
+                  className="shrink-0 md:w-full justify-start min-h-[44px]"
                   onClick={() => setActiveTab("saved")}
                 >
                   <Heart className="w-4 h-4 mr-2" />
-                  Saved Vehicles
-                  <Badge className="ml-auto">{mockSavedVehicles.length}</Badge>
+                  Saved
+                  <Badge className="ml-2">{mockSavedVehicles.length}</Badge>
                 </Button>
                 <Button 
                   variant={activeTab === "preapproval" ? "secondary" : "ghost"} 
-                  className="w-full justify-start"
+                  className="shrink-0 md:w-full justify-start min-h-[44px]"
                   onClick={() => setActiveTab("preapproval")}
                 >
                   <CreditCard className="w-4 h-4 mr-2" />
@@ -303,24 +303,24 @@ export default function AccountPage() {
                 </Button>
                 <Button 
                   variant={activeTab === "orders" ? "secondary" : "ghost"} 
-                  className="w-full justify-start"
+                  className="shrink-0 md:w-full justify-start min-h-[44px]"
                   onClick={() => setActiveTab("orders")}
                 >
                   <Car className="w-4 h-4 mr-2" />
-                  My Vehicles
+                  Vehicles
                 </Button>
                 <Button 
                   variant={activeTab === "settings" ? "secondary" : "ghost"} 
-                  className="w-full justify-start"
+                  className="shrink-0 md:w-full justify-start min-h-[44px]"
                   onClick={() => setActiveTab("settings")}
                 >
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
                 </Button>
-                <Separator className="my-4" />
+                <Separator className="hidden md:block my-4" />
                 <Button 
                   variant="ghost" 
-                  className="w-full justify-start text-destructive"
+                  className="shrink-0 md:w-full justify-start text-destructive min-h-[44px]"
                   onClick={() => setIsLoggedIn(false)}
                 >
                   <LogOut className="w-4 h-4 mr-2" />
