@@ -59,25 +59,24 @@ export default function LoginPage() {
         provider,
         options: {
           redirectTo: callbackUrl,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
         },
       })
       
       if (error) {
-        console.error("[v0] OAuth error:", error)
+        // Check for common OAuth configuration errors
+        if (error.message.includes('provider') || error.message.includes('not enabled')) {
+          throw new Error(`${provider.charAt(0).toUpperCase() + provider.slice(1)} sign-in is not configured. Please use email login.`)
+        }
         throw error
       }
       
       // If no redirect URL returned, there's a configuration issue
       if (!data?.url) {
-        throw new Error("OAuth configuration error. Please contact support.")
+        throw new Error(`${provider.charAt(0).toUpperCase() + provider.slice(1)} sign-in is not available. Please use email login.`)
       }
     } catch (err: unknown) {
-      console.error("[v0] OAuth login failed:", err)
-      setError(err instanceof Error ? err.message : "OAuth login failed. Please try email login or contact support.")
+      const errorMessage = err instanceof Error ? err.message : "Social login unavailable. Please use email login."
+      setError(errorMessage)
       setIsLoading(false)
     }
   }
