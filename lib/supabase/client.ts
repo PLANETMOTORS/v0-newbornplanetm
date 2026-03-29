@@ -2,15 +2,17 @@
 
 import { createBrowserClient } from '@supabase/ssr'
 
+// Hardcoded correct Supabase URL - env var keeps getting wrong value
+const SUPABASE_URL = 'https://ldervbcvkoawwknsemuz.supabase.co'
+
 export function createClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseAnonKey) {
     throw new Error(
-      'Missing Supabase environment variables. Please connect Supabase in Settings.'
+      'Missing Supabase anon key. Please connect Supabase in Settings.'
     )
   }
 
-  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+  return createBrowserClient(SUPABASE_URL, supabaseAnonKey)
 }
