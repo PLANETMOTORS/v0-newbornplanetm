@@ -3,22 +3,54 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ArrowRight, User } from "lucide-react"
+import { Label } from "@/components/ui/label"
+import { Slider } from "@/components/ui/slider"
+import { ArrowRight, User, Calculator, Loader2, CheckCircle } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { AuthRequiredModal } from "@/components/auth-required-modal"
+
+interface LenderOffer {
+  lenderId: string
+  lenderName: string
+  estimatedRate: number
+  estimatedTerm: number
+  estimatedMonthlyPayment: number
+  prequalified: boolean
+  confidence: string
+}
+
+interface PrequalificationResult {
+  status: string
+  creditScore: number
+  eligibleLenders: LenderOffer[]
+  bestOffer: LenderOffer | null
+}
 
 export function FinanceApplicationForm() {
   const { user } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [result, setResult] = useState<PrequalificationResult | null>(null)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
-    income: "",
+    annualIncome: 60000,
+    requestedAmount: 35000,
+    requestedTerm: 72,
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Calculate monthly payment preview (before API call)
+  const calculatePaymentPreview = () => {
+    const rate = 5.99 / 100 / 12 // Estimated rate
+    const term = formData.requestedTerm
+    const amount = formData.requestedAmount
+    const payment = (amount * rate * Math.pow(1 + rate, term)) / (Math.pow(1 + rate, term) - 1)
+    return Math.round(payment)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!user) {
@@ -26,10 +58,84 @@ export function FinanceApplicationForm() {
       return
     }
     
-    // Process financing application
-    console.log("Submitting finance application:", formData)
-    // Redirect to financing application confirmation
-    window.location.href = "/financing/application"
+    setIsLoading(true)
+    
+    try {
+      const response = await fetch('/api/v1/financing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          annualIncome: formData.annualIncome,
+          requestedAmount: formData.requestedAmount,
+          requestedTerm: formData.requestedTerm,
+        }),
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        setResult(data.data.prequalification)
+      }
+    } catch (error) {
+      console.error('Financing API error:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Show results if prequalified
+  if (result) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
+          <h3 className="font-semibold text-lg">
+            {result.status === 'prequalified' ? 'You\'re Pre-Qualified!' : 'Application Received'}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {result.eligibleLenders.length} lender(s) available
+          </p>
+        </div>
+
+        {result.bestOffer && (
+          <div className="bg-primary/10 rounded-xl p-4 border border-primary/30">
+            <p className="text-xs text-muted-foreground mb-1">Best Rate Available</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold text-primary">{result.bestOffer.estimatedRate}%</span>
+              <span className="text-muted-foreground">APR</span>
+            </div>
+            <p className="text-sm mt-2">
+              ${result.bestOffer.estimatedMonthlyPayment}/mo for {result.bestOffer.estimatedTerm} months
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              via {result.bestOffer.lenderName}
+            </p>
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <p className="text-sm font-medium">All Offers:</p>
+          {result.eligibleLenders.slice(0, 4).map((offer) => (
+            <div key={offer.lenderId} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+              <span className="font-medium">{offer.lenderName}</span>
+              <div className="text-right">
+                <span className="font-bold">{offer.estimatedRate}%</span>
+                <span className="text-sm text-muted-foreground ml-2">${offer.estimatedMonthlyPayment}/mo</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <Button className="w-full" size="lg" onClick={() => window.location.href = '/financing/application'}>
+          Continue Application
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </Button>
+
+        <Button variant="outline" className="w-full" onClick={() => setResult(null)}>
+          Start Over
+        </Button>
+      </div>
+    )
   }
 
   return (
@@ -67,17 +173,87 @@ export function FinanceApplicationForm() {
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
           required
         />
-        <Input 
-          type="text" 
-          placeholder="Annual Income (e.g., $75,000)" 
-          value={formData.income}
-          onChange={(e) => setFormData({ ...formData, income: e.target.value })}
-          required
-        />
         
-        <Button type="submit" className="w-full" size="lg">
-          Get Pre-Approved
-          <ArrowRight className="w-4 h-4 ml-2" />
+        {/* Annual Income Slider */}
+        <div className="space-y-3">
+          <div className="flex justify-between">
+            <Label>Annual Income</Label>
+            <span className="font-semibold">${formData.annualIncome.toLocaleString()}</span>
+          </div>
+          <Slider
+            value={[formData.annualIncome]}
+            onValueChange={(value) => setFormData({ ...formData, annualIncome: value[0] })}
+            min={25000}
+            max={200000}
+            step={5000}
+            className="w-full"
+          />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>$25,000</span>
+            <span>$200,000</span>
+          </div>
+        </div>
+
+        {/* Loan Amount Slider */}
+        <div className="space-y-3">
+          <div className="flex justify-between">
+            <Label>Loan Amount</Label>
+            <span className="font-semibold">${formData.requestedAmount.toLocaleString()}</span>
+          </div>
+          <Slider
+            value={[formData.requestedAmount]}
+            onValueChange={(value) => setFormData({ ...formData, requestedAmount: value[0] })}
+            min={10000}
+            max={100000}
+            step={1000}
+            className="w-full"
+          />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>$10,000</span>
+            <span>$100,000</span>
+          </div>
+        </div>
+
+        {/* Term Selector */}
+        <div className="space-y-3">
+          <Label>Loan Term</Label>
+          <div className="grid grid-cols-4 gap-2">
+            {[36, 48, 60, 72, 84, 96].map((term) => (
+              <Button
+                key={term}
+                type="button"
+                variant={formData.requestedTerm === term ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFormData({ ...formData, requestedTerm: term })}
+                className="text-xs"
+              >
+                {term} mo
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Payment Preview */}
+        <div className="bg-muted/50 rounded-lg p-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Calculator className="w-5 h-5 text-muted-foreground" />
+            <span className="text-sm">Est. Monthly Payment</span>
+          </div>
+          <span className="text-xl font-bold">${calculatePaymentPreview()}/mo</span>
+        </div>
+        
+        <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Checking Rates...
+            </>
+          ) : (
+            <>
+              Get Pre-Approved
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </>
+          )}
         </Button>
         
         <p className="text-xs text-center text-muted-foreground">

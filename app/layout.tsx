@@ -12,7 +12,7 @@ import { CompareBar } from '@/components/compare-bar'
 import { OrganizationJsonLd, LocalBusinessJsonLd, WebsiteSearchJsonLd } from '@/components/seo/json-ld'
 import './globals.css'
 
-// Planet Motors - OMVIC Licensed Dealer
+// Planet Motors - OMVIC Licensed Dealer - Build v9
 
 const inter = Inter({ 
   subsets: ["latin"],
