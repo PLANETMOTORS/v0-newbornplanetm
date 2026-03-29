@@ -178,7 +178,7 @@ export default function SchedulePage() {
                         type="date" 
                         value={selectedDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
-                        min={new Date().toISOString().split('T')[0]}
+                        min="2026-03-29"
                       />
                     </div>
                     <div>

@@ -437,8 +437,73 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
           </div>
 
           {/* Search & Filter Bar */}
-          <div className="py-6 space-y-4">
-            <div className="flex flex-col md:flex-row gap-4">
+          <div className="py-4 sm:py-6 space-y-4">
+            {/* Mobile: Search + Filter row */}
+            <div className="flex gap-2 sm:hidden">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search vehicles..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-11 text-base"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                  >
+                    <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                  </button>
+                )}
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => setShowFilters(!showFilters)}
+                className="h-11 px-3 gap-1.5 shrink-0"
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+                {activeFilterCount > 0 && (
+                  <Badge className="h-5 w-5 p-0 flex items-center justify-center text-xs">{activeFilterCount}</Badge>
+                )}
+              </Button>
+            </div>
+
+            {/* Mobile: Sort + View row */}
+            <div className="flex gap-2 sm:hidden">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="flex-1 h-11 px-3 border rounded-lg bg-background text-sm"
+              >
+                <option value="featured">Featured</option>
+                <option value="price-low">Price: Low</option>
+                <option value="price-high">Price: High</option>
+                <option value="mileage-low">Low Mileage</option>
+                <option value="newest">Newest</option>
+              </select>
+              <div className="flex border rounded-lg overflow-hidden shrink-0">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`px-3 h-11 flex items-center min-w-[44px] justify-center transition-colors ${
+                    viewMode === "grid" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                  }`}
+                >
+                  <Grid3X3 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`px-3 h-11 flex items-center min-w-[44px] justify-center transition-colors ${
+                    viewMode === "list" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                  }`}
+                >
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Desktop: Original layout */}
+            <div className="hidden sm:flex flex-col md:flex-row gap-4">
               {/* Search Input */}
               <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -507,13 +572,13 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
               </select>
             </div>
 
-            {/* Quick Filters */}
-            <div className="flex flex-wrap gap-2">
+            {/* Quick Filters - Scrollable on mobile */}
+            <div className="flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {makes.filter(m => m !== "All Makes").map(make => (
                 <button
                   key={make}
                   onClick={() => setSelectedMake(selectedMake === make ? "All Makes" : make)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  className={`px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap shrink-0 min-h-[44px] ${
                     selectedMake === make
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted hover:bg-muted/80"
@@ -524,7 +589,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
               ))}
               <button
                 onClick={() => setEvOnly(!evOnly)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1 ${
+                className={`px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1 whitespace-nowrap shrink-0 min-h-[44px] ${
                   evOnly
                     ? "bg-green-500 text-white"
                     : "bg-muted hover:bg-muted/80"
@@ -537,26 +602,26 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
 
             {/* Expanded Filters Panel */}
             {showFilters && (
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-semibold text-lg flex items-center gap-2">
-                    <Filter className="w-5 h-5" />
-                    Advanced Filters
+              <Card className="p-4 sm:p-6">
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <h3 className="font-semibold text-base sm:text-lg flex items-center gap-2">
+                    <Filter className="w-4 sm:w-5 h-4 sm:h-5" />
+                    Filters
                   </h3>
-                  <Button variant="ghost" size="sm" onClick={clearFilters}>
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="min-h-[44px]">
                     <RotateCcw className="w-4 h-4 mr-1" />
-                    Clear All
+                    Clear
                   </Button>
                 </div>
 
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                   {/* Make */}
                   <div>
-                    <label className="block text-sm font-medium mb-2">Make</label>
+                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Make</label>
                     <select
                       value={selectedMake}
                       onChange={(e) => setSelectedMake(e.target.value)}
-                      className="w-full h-10 px-3 border rounded-lg bg-background"
+                      className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
                     >
                       {makes.map(make => (
                         <option key={make} value={make}>{make}</option>
@@ -566,11 +631,11 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
 
                   {/* Year */}
                   <div>
-                    <label className="block text-sm font-medium mb-2">Year</label>
+                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Year</label>
                     <select
                       value={selectedYear}
                       onChange={(e) => setSelectedYear(e.target.value)}
-                      className="w-full h-10 px-3 border rounded-lg bg-background"
+                      className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
                     >
                       {years.map(year => (
                         <option key={year} value={year}>{year}</option>
@@ -580,11 +645,11 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
 
                   {/* Fuel Type */}
                   <div>
-                    <label className="block text-sm font-medium mb-2">Fuel Type</label>
+                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Fuel</label>
                     <select
                       value={selectedFuelType}
                       onChange={(e) => setSelectedFuelType(e.target.value)}
-                      className="w-full h-10 px-3 border rounded-lg bg-background"
+                      className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
                     >
                       {fuelTypes.map(fuel => (
                         <option key={fuel} value={fuel}>{fuel}</option>
@@ -594,11 +659,11 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
 
                   {/* Transmission */}
                   <div>
-                    <label className="block text-sm font-medium mb-2">Transmission</label>
+                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Trans</label>
                     <select
                       value={selectedTransmission}
                       onChange={(e) => setSelectedTransmission(e.target.value)}
-                      className="w-full h-10 px-3 border rounded-lg bg-background"
+                      className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
                     >
                       {transmissions.map(trans => (
                         <option key={trans} value={trans}>{trans}</option>
@@ -608,11 +673,11 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
 
                   {/* Drivetrain */}
                   <div>
-                    <label className="block text-sm font-medium mb-2">Drivetrain</label>
+                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Drive</label>
                     <select
                       value={selectedDrivetrain}
                       onChange={(e) => setSelectedDrivetrain(e.target.value)}
-                      className="w-full h-10 px-3 border rounded-lg bg-background"
+                      className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
                     >
                       {drivetrains.map(drive => (
                         <option key={drive} value={drive}>{drive}</option>
@@ -622,11 +687,11 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
 
                   {/* Color */}
                   <div>
-                    <label className="block text-sm font-medium mb-2">Exterior Color</label>
+                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Color</label>
                     <select
                       value={selectedColor}
                       onChange={(e) => setSelectedColor(e.target.value)}
-                      className="w-full h-10 px-3 border rounded-lg bg-background"
+                      className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
                     >
                       {colors.map(color => (
                         <option key={color} value={color}>{color}</option>
@@ -635,9 +700,9 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                   </div>
 
                   {/* Price Range */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Price: ${priceRange[0].toLocaleString()} - ${priceRange[1].toLocaleString()}
+                  <div className="col-span-2 lg:col-span-1">
+                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">
+                      Price: ${(priceRange[0]/1000).toFixed(0)}k - ${(priceRange[1]/1000).toFixed(0)}k
                     </label>
                     <Slider
                       value={priceRange}
@@ -645,13 +710,14 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                       min={0}
                       max={200000}
                       step={5000}
+                      className="py-2"
                     />
                   </div>
 
                   {/* Mileage Range */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Mileage: {mileageRange[0].toLocaleString()} - {mileageRange[1].toLocaleString()} km
+                  <div className="col-span-2 lg:col-span-1">
+                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">
+                      Mileage: {(mileageRange[0]/1000).toFixed(0)}k - {(mileageRange[1]/1000).toFixed(0)}k km
                     </label>
                     <Slider
                       value={mileageRange}
@@ -659,6 +725,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                       min={0}
                       max={100000}
                       step={5000}
+                      className="py-2"
                     />
                   </div>
                 </div>

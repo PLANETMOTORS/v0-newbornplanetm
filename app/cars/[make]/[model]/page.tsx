@@ -168,7 +168,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
   const { make, model } = await params
   const makeFormatted = make.charAt(0).toUpperCase() + make.slice(1)
   const modelFormatted = model.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-  const currentYear = new Date().getFullYear()
+  const currentYear = 2026
   
   // Get model-specific data or use defaults
   const data = modelData[make.toLowerCase()]?.[model.toLowerCase()] || defaultModelData
