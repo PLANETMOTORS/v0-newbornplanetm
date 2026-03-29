@@ -1,11 +1,14 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Hardcoded correct Supabase URL to fix OAuth redirect issue
+const SUPABASE_URL = 'https://ldervbcvkoawwknsemuz.supabase.co'
+
 export async function updateSession(request: NextRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseUrl = SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseAnonKey) {
     return NextResponse.next({ request })
   }
 

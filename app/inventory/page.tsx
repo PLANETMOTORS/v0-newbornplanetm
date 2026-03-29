@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -271,7 +271,7 @@ const transmissions = ["All Transmissions", "Automatic", "Manual", "CVT", "Dual-
 const colors = ["All Colors", "White", "Black", "Silver", "Blue", "Red", "Gray", "Green"]
 const drivetrains = ["All Drivetrains", "AWD", "FWD", "RWD", "4WD"]
 
-export default function InventoryPage() {
+function InventoryContent() {
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedMake, setSelectedMake] = useState("All Makes")
@@ -885,5 +885,13 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
 
       <Footer />
     </div>
+  )
+}
+
+export default function InventoryPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>}>
+      <InventoryContent />
+    </Suspense>
   )
 }
