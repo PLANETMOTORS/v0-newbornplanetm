@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { CheckCircle, Shield, X, Phone, Car, Wrench, Clock, Award, FileText, Sparkles, Lock, Droplets, CircleDot, PaintBucket } from "lucide-react"
+import { CheckCircle, Shield, X, Phone, Car, Wrench, Clock, Award, FileText, Sparkles, LockKeyhole, Droplets, CircleDot, PaintBucket } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -80,7 +80,7 @@ const additionalProducts = [
   {
     name: "InvisiTrak Anti-Theft System",
     description: "GPS tracking and theft recovery system with 24/7 monitoring and mobile alerts.",
-    icon: Lock,
+    icon: LockKeyhole,
     href: "/protection/invisitrak",
   },
   {

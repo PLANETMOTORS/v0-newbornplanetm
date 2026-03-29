@@ -1,12 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 8 - all integrations ready
+  // Force clean build - version 9 - imgix loader configured
   cleanDistDir: true,
   typescript: {
     ignoreBuildErrors: true,
   },
   images: {
-    unoptimized: false,
+    loader: 'custom',
+    loaderFile: './lib/imgix-loader.ts',
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],

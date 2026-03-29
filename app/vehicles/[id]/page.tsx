@@ -16,7 +16,7 @@ import {
   Calendar, Settings, Shield, CheckCircle, Calculator, Car, 
   FileText, History, Zap, RotateCcw, DollarSign, CreditCard,
   Phone, MessageCircle, Star, Clock, TrendingUp, Eye, Users,
-  Award, Battery, Thermometer, Lock, Truck, ArrowRight, Play,
+  Award, Battery, Thermometer, LockKeyhole, Truck, ArrowRight, Play,
   Download, ExternalLink, Check, X, AlertCircle, Bell, Expand,
   Key, Sofa, Cog, Info
 } from "lucide-react"
@@ -1530,7 +1530,7 @@ export default function VehicleDetailPage() {
                       <span className="text-sm font-medium">10-Day Money Back Guarantee</span>
                     </div>
                     <div className="flex items-center gap-2 p-2 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
-                      <Lock className="w-5 h-5 text-amber-600" />
+                      <LockKeyhole className="w-5 h-5 text-amber-600" />
                       <span className="text-sm font-medium">$250 Refundable Deposit</span>
                     </div>
                   </div>
@@ -1551,7 +1551,7 @@ export default function VehicleDetailPage() {
                         }}
                         trigger={
                           <Button className="w-full h-11 bg-red-600 hover:bg-red-700 text-white">
-                            <Lock className="w-4 h-4 mr-2" />
+                            <LockKeyhole className="w-4 h-4 mr-2" />
                             Reserve – $250 Refundable Deposit
                           </Button>
                         }
@@ -1561,7 +1561,7 @@ export default function VehicleDetailPage() {
                         className="w-full h-11 bg-red-600 hover:bg-red-700 text-white"
                         onClick={() => handleProtectedAction("reserve this vehicle")}
                       >
-                        <Lock className="w-4 h-4 mr-2" />
+                        <LockKeyhole className="w-4 h-4 mr-2" />
                         Reserve – $250 Refundable Deposit
                       </Button>
                     )}
@@ -1663,7 +1663,7 @@ export default function VehicleDetailPage() {
             className="flex-1 h-12 min-h-[48px] bg-red-600 hover:bg-red-700 text-white text-sm font-medium"
             onClick={() => handleProtectedAction("reserve this vehicle")}
           >
-            <Lock className="w-4 h-4 mr-1.5 shrink-0" />
+            <LockKeyhole className="w-4 h-4 mr-1.5 shrink-0" />
             <span>Reserve Now</span>
           </Button>
         </div>

@@ -17,7 +17,7 @@ import {
   Car, CheckCircle, ArrowRight, DollarSign, Clock, Shield, Camera, Upload, Zap, 
   TrendingUp, Star, Truck, Phone, ChevronRight, Sparkles, Target, Award, MapPin, 
   Calendar, Users, ThumbsUp, Banknote, FileCheck, HandCoins, Building2, CreditCard,
-  CircleDollarSign, ArrowUpRight, Timer, BadgeCheck, Gift, Heart, Percent, Lock, Search
+  CircleDollarSign, ArrowUpRight, Timer, BadgeCheck, Gift, Heart, Percent, LockKeyhole, Search
 } from "lucide-react"
 
 // Vehicle makes with models
@@ -313,7 +313,7 @@ export default function SellYourCarPage() {
                           <p className="text-sm text-muted-foreground">Takes less than 60 seconds</p>
                         </div>
                         <div className="flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-                          <Lock className="h-3.5 w-3.5" />
+                          <LockKeyhole className="h-3.5 w-3.5" />
                           Secure
                         </div>
                       </div>

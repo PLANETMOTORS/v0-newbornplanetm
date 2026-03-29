@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { 
   ArrowLeft, 
-  Lock, 
+  LockKeyhole, 
   Shield, 
   CheckCircle, 
   CreditCard, 
@@ -111,7 +111,7 @@ export default function CheckoutPage() {
           </Link>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Lock className="w-4 h-4" />
+              <LockKeyhole className="w-4 h-4" />
               Secure Checkout
             </div>
             <Button variant="ghost" size="sm" asChild>
@@ -576,7 +576,7 @@ export default function CheckoutPage() {
                     <span>10-Day Money Back Guarantee</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Lock className="w-4 h-4" />
+                    <LockKeyhole className="w-4 h-4" />
                     <span>Secure 256-bit SSL encryption</span>
                   </div>
                 </div>

@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, EyeOff, Mail, Lock, Chrome, Apple, Loader2 } from "lucide-react"
+import { Eye, EyeOff, Mail, LockKeyhole, Chrome, Apple, Loader2 } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 
 function LoginForm() {
@@ -186,7 +186,7 @@ function LoginForm() {
                     </Link>
                   </div>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
