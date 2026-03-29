@@ -24,17 +24,14 @@ export function MetaPixel() {
         `}
       </Script>
       <noscript>
-        <picture>
-          <source srcSet={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`} type="image/gif" />
-          <img
-            height={1}
-            width={1}
-            style={{ display: "none" }}
-            src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
-            alt=""
-            aria-hidden="true"
-          />
-        </picture>
+        <iframe
+          src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+          height={1}
+          width={1}
+          style={{ display: "none", visibility: "hidden" }}
+          title="Meta Pixel"
+          aria-hidden="true"
+        />
       </noscript>
     </>
   )

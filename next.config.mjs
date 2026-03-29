@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 16 - LockKeyhole verified clean
+  // Force clean build - version 17 - turbopack enabled, cache cleared
   cleanDistDir: true,
   typescript: {
     ignoreBuildErrors: true,
