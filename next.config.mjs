@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 14 - cache bust for Lock icon fix
+  // Force clean build - version 15 - timestamp 1711756800
   cleanDistDir: true,
   typescript: {
     ignoreBuildErrors: true,
