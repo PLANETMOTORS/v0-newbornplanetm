@@ -323,10 +323,10 @@ export default function SellYourCarPage() {
                       {step === 1 && (
                         <div className="space-y-5">
                           <Tabs value={lookupMethod} onValueChange={(v: "plate" | "vin" | "manual") => setLookupMethod(v)}>
-                            <TabsList className="grid w-full grid-cols-3 mb-4">
-                              <TabsTrigger value="plate" className="text-xs sm:text-sm">License Plate</TabsTrigger>
-                              <TabsTrigger value="vin" className="text-xs sm:text-sm">VIN Number</TabsTrigger>
-                              <TabsTrigger value="manual" className="text-xs sm:text-sm">Manual Entry</TabsTrigger>
+                            <TabsList className="grid w-full grid-cols-3 mb-4 h-auto">
+                              <TabsTrigger value="plate" className="text-xs sm:text-sm py-2.5 min-h-[44px]">Plate</TabsTrigger>
+                              <TabsTrigger value="vin" className="text-xs sm:text-sm py-2.5 min-h-[44px]">VIN</TabsTrigger>
+                              <TabsTrigger value="manual" className="text-xs sm:text-sm py-2.5 min-h-[44px]">Manual</TabsTrigger>
                             </TabsList>
                             
                             <TabsContent value="plate" className="space-y-4">
