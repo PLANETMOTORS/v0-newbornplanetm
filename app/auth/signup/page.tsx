@@ -83,13 +83,36 @@ function SignUpForm() {
     setIsLoading(true)
     try {
       const supabase = createClient()
-      const { error } = await supabase.auth.signInWithOAuth({
+      const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`
+      
+      // Build OAuth options with dynamic credentials for Google
+      const oauthOptions: {
+        redirectTo: string
+        skipBrowserRedirect: boolean
+        queryParams?: Record<string, string>
+      } = {
+        redirectTo: callbackUrl,
+        skipBrowserRedirect: true,
+      }
+      
+      // Use dynamic OAuth with Google credentials from environment variables
+      if (provider === "google" && process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
+        oauthOptions.queryParams = {
+          client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+        }
+      }
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`,
-        },
+        options: oauthOptions,
       })
+      
       if (error) throw error
+      
+      // Manually redirect to OAuth URL
+      if (data?.url) {
+        window.location.assign(data.url)
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "OAuth signup failed")
       setIsLoading(false)
