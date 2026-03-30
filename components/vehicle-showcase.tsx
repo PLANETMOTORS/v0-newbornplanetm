@@ -33,6 +33,8 @@ const makePlaceholders: Record<string, string> = {
   'Hyundai': 'https://images.unsplash.com/photo-1629897048514-3dd7414fe72a?w=800&auto=format&fit=crop&q=80',
   'Kia': 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&auto=format&fit=crop&q=80',
   'Chevrolet': 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&auto=format&fit=crop&q=80',
+  'Volkswagen': 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&auto=format&fit=crop&q=80',
+  'Jeep': 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&auto=format&fit=crop&q=80',
   'Honda': 'https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=800&auto=format&fit=crop&q=80',
   'Lexus': 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&auto=format&fit=crop&q=80',
   'default': 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&auto=format&fit=crop&q=80'
@@ -57,13 +59,16 @@ function transformToShowcase(v: any) {
     badgeColor = "bg-green-500"
   }
   
-  // Use placeholder image based on make (VDP URLs aren't images)
+  // Check if primary_image_url is a valid image URL (not a VDP page URL)
   const isValidImageUrl = v.primary_image_url && 
+    !v.primary_image_url.includes('planetmotors.ca/inventory') &&
     (v.primary_image_url.includes('.jpg') || 
      v.primary_image_url.includes('.png') || 
      v.primary_image_url.includes('.webp') ||
-     v.primary_image_url.includes('unsplash.com'))
+     v.primary_image_url.includes('unsplash.com') ||
+     v.primary_image_url.includes('carpages.ca'))
   
+  // Use valid image URL or fall back to make-specific placeholder
   const image = isValidImageUrl 
     ? v.primary_image_url 
     : (makePlaceholders[v.make] || makePlaceholders['default'])
