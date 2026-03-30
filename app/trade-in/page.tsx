@@ -1016,7 +1016,7 @@ export default function TradeInPage() {
           </section>
         )}
 
-        {/* How It Works - Better than Clutch */}
+        {/* How It Works */}
         {!showOffer && (
           <section className="py-20 bg-background">
             <div className="container mx-auto px-4">
@@ -1036,7 +1036,7 @@ export default function TradeInPage() {
                     icon: Zap, 
                     title: "60-Second Offers", 
                     desc: "Get an instant offer powered by Canadian Black Book. No waiting, no haggling.",
-                    highlight: "vs. 2-3 days at Clutch"
+                    highlight: "Instant Offer"
                   },
                   { 
                     icon: TrendingUp, 
@@ -1095,24 +1095,22 @@ export default function TradeInPage() {
                           Planet Motors
                         </div>
                       </th>
-                      <th className="p-4 text-muted-foreground">Clutch</th>
                       <th className="p-4 text-muted-foreground">Traditional Dealer</th>
                     </tr>
                   </thead>
                   <tbody>
                     {[
-                      ["Offer Speed", "60 seconds", "2-3 days", "2+ hours"],
-                      ["Price Guarantee", "Beat by $500", "No", "No"],
-                      ["Pickup Service", "Free, Canada-wide", "$299", "N/A"],
-                      ["Payment Time", "24 hours", "3-5 days", "Same day (cheque)"],
-                      ["Valuation Source", "Canadian Black Book", "Internal", "Trade-in guides"],
-                      ["Phone Calls Required", "None", "Multiple", "Many"],
-                      ["Haggling", "No games", "Some", "Expected"],
-                    ].map(([feature, pm, clutch, dealer], i) => (
+                      ["Offer Speed", "60 seconds", "2+ hours"],
+                      ["Price Guarantee", "Beat by $500", "No"],
+                      ["Pickup Service", "Free, Canada-wide", "N/A"],
+                      ["Payment Time", "24 hours", "Same day (cheque)"],
+                      ["Valuation Source", "Canadian Black Book", "Trade-in guides"],
+                      ["Phone Calls Required", "None", "Many"],
+                      ["Haggling", "No games", "Expected"],
+                    ].map(([feature, pm, dealer], i) => (
                       <tr key={i} className="border-b">
                         <td className="p-4 font-medium">{feature}</td>
                         <td className="p-4 bg-primary/5 text-center font-semibold text-primary">{pm}</td>
-                        <td className="p-4 text-center text-muted-foreground">{clutch}</td>
                         <td className="p-4 text-center text-muted-foreground">{dealer}</td>
                       </tr>
                     ))}

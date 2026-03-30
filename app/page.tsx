@@ -27,7 +27,7 @@ const features = [
   {
     icon: Shield,
     title: "210-Point Inspection",
-    description: "Every vehicle passes our comprehensive inspection - 60 points more than Carvana. Full transparency with detailed reports.",
+    description: "Every vehicle passes our comprehensive 210-point inspection. Full transparency with detailed reports.",
   },
   {
     icon: Battery,
@@ -283,7 +283,7 @@ export default function HomePage() {
               Why Planet Motors Wins
             </h2>
             <p className="mt-4 text-muted-foreground">
-              60 more inspection points than Clutch. Better rates than Carvana. EV expertise no one else offers.
+              210-point inspections. Competitive financing rates. Industry-leading EV expertise.
             </p>
           </div>
 

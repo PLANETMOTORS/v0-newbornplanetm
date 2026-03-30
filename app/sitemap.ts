@@ -24,9 +24,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/warranty', priority: 0.7, changeFrequency: 'monthly' as const },
     { path: '/ev-battery-health', priority: 0.7, changeFrequency: 'monthly' as const },
     { path: '/careers', priority: 0.5, changeFrequency: 'weekly' as const },
-    // Clutch keyword strategy pages (targeting generic "clutch" searches)
+    // Manual transmission content
     { path: '/clutch-guide-canada', priority: 0.9, changeFrequency: 'weekly' as const },
-    // Carnex keyword strategy pages (EV-focused)
+    // EV-focused pages
     { path: '/electric-vehicles', priority: 0.95, changeFrequency: 'daily' as const },
     { path: '/tesla', priority: 0.9, changeFrequency: 'daily' as const },
   ]
@@ -90,7 +90,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/inventory?maxPrice=30000', priority: 0.8 },
     { path: '/inventory?maxPrice=50000', priority: 0.8 },
     { path: '/inventory?minPrice=50000', priority: 0.75 },
-    // Transmission types (clutch strategy - targeting "clutch cars", "manual cars")
+    // Transmission types
     { path: '/inventory?transmission=Manual', priority: 0.9 },
     { path: '/inventory?transmission=Automatic', priority: 0.8 },
   ]
@@ -184,7 +184,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     'certified-pre-owned-vs-used',
     'bad-credit-car-loan-guide',
     'car-delivery-what-to-expect',
-    // Clutch keyword strategy blog posts
+    // Manual transmission guides
     'clutch-replacement-cost-canada',
     'clutch-problems-signs-symptoms',
     'best-manual-transmission-cars-canada-2026',
