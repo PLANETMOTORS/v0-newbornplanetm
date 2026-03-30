@@ -1,10 +1,23 @@
+import path from 'path'
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 21 - explicit turbopack root
+  // Force clean build - version 26 - use process.cwd() for turbopack
   cleanDistDir: true,
-  // Fix Turbopack workspace root resolution
+  // Turbopack configuration using process.cwd() for both dev and production
   turbopack: {
-    root: '/vercel/share/v0-project',
+    root: process.cwd(),
+    resolveAlias: {
+      '@': process.cwd(),
+    },
+  },
+  // Webpack for production builds
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(process.cwd()),
+    }
+    return config
   },
   typescript: {
     ignoreBuildErrors: true,
