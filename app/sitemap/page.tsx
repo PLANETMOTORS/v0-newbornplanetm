@@ -53,7 +53,7 @@ const sitemapSections = [
       { name: "Warranty Options", href: "/warranty" },
       { name: "EV Battery Health", href: "/ev-battery" },
       { name: "210-Point Inspection", href: "/how-it-works#inspection" },
-      { name: "Free Delivery", href: "/delivery" },
+      { name: "Delivery Options", href: "/delivery" },
     ],
   },
   {

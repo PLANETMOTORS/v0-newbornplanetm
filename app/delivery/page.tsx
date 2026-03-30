@@ -142,7 +142,7 @@ export default function DeliveryPage() {
           <div className="container mx-auto px-4 text-center">
             <Badge className="mb-4 bg-accent text-accent-foreground">Nationwide Delivery</Badge>
             <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
-              Free Delivery Within 300km
+              Nationwide Delivery
             </h1>
             <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
               We deliver anywhere in Canada. Enter your postal code to calculate your delivery cost.

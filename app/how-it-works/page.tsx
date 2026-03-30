@@ -32,8 +32,8 @@ const buyingSteps = [
   {
     icon: Truck,
     title: "Delivery or Pickup",
-    description: "Choose free delivery within 300km or competitive rates for anywhere in Canada. Or pick up at our Richmond Hill showroom.",
-    details: ["FREE delivery within 300km", "Nationwide shipping", "Scheduled delivery times", "Vehicle walk-through"]
+    description: "Choose home delivery with competitive rates anywhere in Canada. Or pick up at our Richmond Hill showroom.",
+    details: ["Affordable delivery rates", "Nationwide shipping", "Scheduled delivery times", "Vehicle walk-through"]
   },
   {
     icon: RotateCcw,

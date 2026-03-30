@@ -36,8 +36,8 @@ const features = [
   },
   {
     icon: Car,
-    title: "Free Nationwide Delivery",
-    description: "Free delivery anywhere in Canada. Headquartered in Richmond Hill, serving Canadians coast to coast. OMVIC licensed.",
+    title: "Nationwide Delivery",
+    description: "Delivery available anywhere in Canada. Headquartered in Richmond Hill, serving Canadians coast to coast. OMVIC licensed.",
   },
 ]
 
