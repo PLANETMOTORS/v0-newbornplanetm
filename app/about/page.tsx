@@ -31,7 +31,7 @@ export default function AboutPage() {
     { year: "2020", title: "Digital Platform", description: "Launched online buying experience with virtual tours" },
     { year: "2021", title: "Autotrader Award", description: "Recognized as Best Priced Dealer in the GTA" },
     { year: "2023", title: "CarGurus Top Rated", description: "Earned Top Rated Dealer status for customer satisfaction" },
-    { year: "2024", title: "Nationwide Delivery", description: "Expanded to serve all of Canada with free delivery" },
+    { year: "2024", title: "Nationwide Delivery", description: "Expanded to serve all of Canada with coast-to-coast delivery" },
     { year: "2025", title: "EV Specialist", description: "Became a leading used EV dealer with battery health certification" }
   ]
 

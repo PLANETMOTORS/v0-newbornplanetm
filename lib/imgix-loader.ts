@@ -81,17 +81,37 @@ export default function imgixLoader({ src, width, quality = 75 }: ImageLoaderPro
     return url.toString()
   }
 
-  // If external URL (unsplash, blob storage), proxy through imgix Web Proxy
-  if (src.startsWith('http')) {
-    const params = getImgixParams(width, quality)
-    params.set('url', src)
-    return `https://${IMGIX_DOMAIN}/external?${params.toString()}`
+  // Pass through Unsplash URLs directly (they have their own CDN optimization)
+  if (src.includes('images.unsplash.com')) {
+    const url = new URL(src)
+    url.searchParams.set('w', width.toString())
+    url.searchParams.set('q', quality.toString())
+    url.searchParams.set('auto', 'format')
+    url.searchParams.set('fit', 'crop')
+    return url.toString()
   }
 
-  // Local images - serve from imgix with path
+  // Pass through Vercel Blob URLs directly
+  if (src.includes('blob.vercel-storage.com')) {
+    return src
+  }
+
+  // For other external URLs, return them directly (imgix proxy may not be configured)
+  if (src.startsWith('http')) {
+    return src
+  }
+
+  // Local images - serve from imgix with path if imgix is configured
   const params = getImgixParams(width, quality)
   const path = src.startsWith('/') ? src.slice(1) : src
-  return `https://${IMGIX_DOMAIN}/${path}?${params.toString()}`
+  
+  // Check if imgix domain is actually configured
+  if (IMGIX_DOMAIN && IMGIX_DOMAIN !== 'planetmotors.imgix.net') {
+    return `https://${IMGIX_DOMAIN}/${path}?${params.toString()}`
+  }
+  
+  // Fallback to local path if imgix not configured
+  return src
 }
 
 // Export for testing/debugging

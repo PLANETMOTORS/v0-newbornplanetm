@@ -1190,9 +1190,9 @@ export default function VehicleDetailPage() {
                       </CardHeader>
                       <CardContent>
                         <p className="text-3xl font-bold">${vehicleData.price.toLocaleString()}</p>
-                        <div className="flex items-center gap-2 text-sm text-green-600 mt-2">
+                        <div className="flex items-center gap-2 text-sm text-primary mt-2">
                           <Truck className="w-4 h-4" />
-                          Free delivery to your door · Richmond Hill
+                          Nationwide delivery available · Richmond Hill
                         </div>
                         <div className="mt-4 space-y-2 text-sm">
                           <div className="flex justify-between">
