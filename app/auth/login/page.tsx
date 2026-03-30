@@ -48,12 +48,14 @@ function LoginForm() {
   }
 
   const handleOAuthLogin = async (provider: "google" | "facebook") => {
+    console.log("[v0] OAuth login started for provider:", provider)
     setIsLoading(true)
     setError("")
     
     try {
       const supabase = createClient()
       const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`
+      console.log("[v0] Callback URL:", callbackUrl)
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -63,17 +65,21 @@ function LoginForm() {
         },
       })
       
+      console.log("[v0] OAuth response:", { data, error })
+      
       if (error) {
         throw error
       }
       
       // Manually redirect to OAuth URL
       if (data?.url) {
+        console.log("[v0] Redirecting to:", data.url)
         window.location.assign(data.url)
       } else {
         throw new Error("Could not initiate sign in. Please try again.")
       }
     } catch (err: unknown) {
+      console.error("[v0] OAuth error:", err)
       const errorMessage = err instanceof Error ? err.message : "Sign in failed. Please try email login."
       setError(errorMessage)
       setIsLoading(false)
