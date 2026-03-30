@@ -99,14 +99,15 @@ function transformVehicle(v: Vehicle) {
   else displayFuelType = "Gasoline"
   
   // Check if primary_image_url is a valid image URL (not a VDP page URL)
-  // VDP URLs contain planetmotors.ca and /inventory (sometimes with double slash)
+  // Valid sources: cpsimg.com (carpages CDN), unsplash, direct image files
   const isValidImageUrl = v.primary_image_url && 
     !v.primary_image_url.includes('planetmotors.ca') &&
     (v.primary_image_url.includes('.jpg') || 
      v.primary_image_url.includes('.png') || 
      v.primary_image_url.includes('.webp') ||
      v.primary_image_url.includes('unsplash.com') ||
-     v.primary_image_url.includes('carpages.ca'))
+     v.primary_image_url.includes('carpages.ca') ||
+     v.primary_image_url.includes('cpsimg.com'))
   
   // Make-specific placeholder images
   const makePlaceholders: Record<string, string> = {
