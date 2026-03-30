@@ -1,21 +1,26 @@
 import path from 'path'
+import { fileURLToPath } from 'url'
+
+// Get the directory of this config file - works in both dev and production
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 26 - use process.cwd() for turbopack
+  // Force clean build - version 27 - use import.meta.url for correct path
   cleanDistDir: true,
-  // Turbopack configuration using process.cwd() for both dev and production
+  // Turbopack configuration with correct project root from import.meta.url
   turbopack: {
-    root: process.cwd(),
+    root: __dirname,
     resolveAlias: {
-      '@': process.cwd(),
+      '@': __dirname,
     },
   },
   // Webpack for production builds
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': path.resolve(process.cwd()),
+      '@': __dirname,
     }
     return config
   },
