@@ -194,8 +194,8 @@ export default function HomePage() {
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
-                  <Link href="/sell">
-                    Sell Your Car
+                  <Link href="/trade-in">
+                    Trade-In
                   </Link>
                 </Button>
               </div>

@@ -27,12 +27,10 @@ const sitemapSections = [
     ],
   },
   {
-    title: "Sell or Trade",
+    title: "Trade-In",
     icon: DollarSign,
     links: [
-      { name: "Sell Your Car", href: "/sell" },
       { name: "Trade-In Appraisal", href: "/trade-in" },
-      { name: "Instant Cash Offer", href: "/sell#instant-offer" },
     ],
   },
   {
