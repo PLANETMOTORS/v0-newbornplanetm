@@ -151,9 +151,57 @@ function normalizePostalCode(postalCode: string): string {
   return postalCode.toUpperCase().replace(/\s/g, "").slice(0, 3)
 }
 
-function getDistanceFromPostalCode(postalCode: string): number {
+// Out-of-province approximate distances from Richmond Hill
+const OUT_OF_PROVINCE_DISTANCES: Record<string, number> = {
+  "QC": 550, // Montreal area
+  "NS": 1800, // Halifax
+  "NB": 1400, // Fredericton
+  "PE": 1600, // Charlottetown
+  "NL": 2500, // St. John's
+  "MB": 2200, // Winnipeg
+  "SK": 2800, // Saskatoon
+  "AB": 3400, // Calgary
+  "BC": 4400, // Vancouver
+  "NT": 4500, // Yellowknife
+  "YT": 5500, // Whitehorse
+  "NU": 3500, // Nunavut
+}
+
+function getProvinceFromPostal(fsa: string): string {
+  const firstChar = fsa.charAt(0)
+  switch (firstChar) {
+    case "A": return "NL"
+    case "B": return "NS"
+    case "C": return "PE"
+    case "E": return "NB"
+    case "G": case "H": case "J": return "QC"
+    case "K": case "L": case "M": case "N": case "P": return "ON"
+    case "R": return "MB"
+    case "S": return "SK"
+    case "T": return "AB"
+    case "V": return "BC"
+    case "X": return "NT"
+    case "Y": return "YT"
+    default: return "ON"
+  }
+}
+
+function getDistanceFromPostalCode(postalCode: string): { distance: number; isEstimate: boolean } {
   const fsa = normalizePostalCode(postalCode)
-  return POSTAL_DISTANCES[fsa] ?? 500 // Default to 500km if unknown
+  const province = getProvinceFromPostal(fsa)
+  
+  // Check if we have exact distance data
+  if (POSTAL_DISTANCES[fsa] !== undefined) {
+    return { distance: POSTAL_DISTANCES[fsa], isEstimate: false }
+  }
+  
+  // For out-of-province or unknown Ontario postal codes, use province estimate
+  if (province !== "ON") {
+    return { distance: OUT_OF_PROVINCE_DISTANCES[province] ?? 2000, isEstimate: true }
+  }
+  
+  // Unknown Ontario postal code - estimate based on first character pattern
+  return { distance: 300, isEstimate: true }
 }
 
 function calculateDeliveryCost(distanceKm: number): { cost: number; isFree: boolean; distance: number } {
@@ -203,47 +251,51 @@ export async function GET(request: NextRequest) {
 
   // Validate Canadian postal code format
   const cleanPostal = postalCode.toUpperCase().replace(/\s/g, "")
-  const postalRegex = /^[A-Z]\d[A-Z]\d[A-Z]\d$/
   
-  if (cleanPostal.length < 3) {
+  // Must be at least 3 characters and start with valid Canadian province letter
+  const validFirstChars = "ABCEGHJKLMNPRSTVXY"
+  if (cleanPostal.length < 3 || !validFirstChars.includes(cleanPostal.charAt(0))) {
     return NextResponse.json(
-      { error: "Invalid postal code format" },
+      { error: "Invalid Canadian postal code format" },
+      { status: 400 }
+    )
+  }
+  
+  // Validate FSA pattern (Letter-Number-Letter)
+  const fsaPattern = /^[A-Z]\d[A-Z]/
+  if (!fsaPattern.test(cleanPostal)) {
+    return NextResponse.json(
+      { error: "Invalid postal code format. Expected format: A1A or A1A 1A1" },
       { status: 400 }
     )
   }
 
-  const distance = getDistanceFromPostalCode(cleanPostal)
+  const fsa = cleanPostal.slice(0, 3)
+  const province = getProvinceFromPostal(fsa)
+  const { distance, isEstimate } = getDistanceFromPostalCode(cleanPostal)
   const { cost, isFree } = calculateDeliveryCost(distance)
 
-  // Determine province from postal code
-  const fsa = cleanPostal.slice(0, 1)
-  let province = "ON"
-  if (fsa === "H" || fsa === "J" || fsa === "G") province = "QC"
-  else if (fsa === "B") province = "NS"
-  else if (fsa === "C") province = "PE"
-  else if (fsa === "E") province = "NB"
-  else if (fsa === "A") province = "NL"
-  else if (fsa === "R") province = "MB"
-  else if (fsa === "S") province = "SK"
-  else if (fsa === "T") province = "AB"
-  else if (fsa === "V") province = "BC"
-  else if (fsa === "X") province = "NT"
-  else if (fsa === "Y") province = "YT"
+  // Check if delivery is available (max 5000km)
+  const isDeliveryAvailable = distance <= 5000
 
   return NextResponse.json({
     postalCode: cleanPostal,
     province,
     distanceKm: distance,
+    isDistanceEstimate: isEstimate,
     deliveryCost: cost,
     isFreeDelivery: isFree,
+    isDeliveryAvailable,
     freeDeliveryThreshold: 300,
-    message: isFree 
-      ? `Free delivery to ${cleanPostal} (${distance}km from Richmond Hill)`
-      : `Delivery fee: $${cost.toFixed(2)} (${distance}km from Richmond Hill)`,
+    message: !isDeliveryAvailable
+      ? `Delivery not available to ${province} (${distance}km)`
+      : isFree 
+        ? `Free delivery to ${cleanPostal} (${distance}km from Richmond Hill)`
+        : `Delivery fee: $${cost.toFixed(2)} (${distance}km from Richmond Hill)`,
     breakdown: isFree ? null : {
       baseDistance: 300,
       chargeableDistance: distance - 300,
-      ratePerKm: 0.70,
+      ratePerKm: distance <= 500 ? 0.70 : distance <= 1000 ? 0.75 : 0.80,
     }
   })
 }
