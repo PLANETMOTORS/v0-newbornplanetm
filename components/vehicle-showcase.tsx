@@ -60,14 +60,15 @@ function transformToShowcase(v: any) {
   }
   
   // Check if primary_image_url is a valid image URL (not a VDP page URL)
-  // VDP URLs contain planetmotors.ca - reject all of those
+  // Valid sources: cpsimg.com (carpages CDN), unsplash, direct image files
   const isValidImageUrl = v.primary_image_url && 
     !v.primary_image_url.includes('planetmotors.ca') &&
     (v.primary_image_url.includes('.jpg') || 
      v.primary_image_url.includes('.png') || 
      v.primary_image_url.includes('.webp') ||
      v.primary_image_url.includes('unsplash.com') ||
-     v.primary_image_url.includes('carpages.ca'))
+     v.primary_image_url.includes('carpages.ca') ||
+     v.primary_image_url.includes('cpsimg.com'))
   
   // Use valid image URL or fall back to make-specific placeholder
   const image = isValidImageUrl 
