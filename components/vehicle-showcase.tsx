@@ -118,6 +118,7 @@ export function VehicleShowcase() {
           src={currentVehicle.image}
           alt={currentVehicle.name}
           fill
+          priority
           sizes="(max-width: 768px) 100vw, 50vw"
           className={cn(
             "object-cover transition-all duration-500",
