@@ -2,17 +2,23 @@ import { fileURLToPath } from 'url'
 import path from 'path'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const PROJECT_ROOT = '/vercel/share/v0-project'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 24 - proper Turbopack config
+  // Force clean build - version 25 - hardcoded Turbopack root
   cleanDistDir: true,
-  // Turbopack configuration for fast builds
+  // Turbopack configuration with absolute path for reliable resolution
   turbopack: {
-    root: __dirname,
+    root: PROJECT_ROOT,
     resolveAlias: {
-      '@': __dirname,
-      '@/*': `${__dirname}/*`,
+      '@': PROJECT_ROOT,
+      '@/lib/utils': `${PROJECT_ROOT}/lib/utils`,
+      '@/lib/supabase/client': `${PROJECT_ROOT}/lib/supabase/client`,
+      '@/components/ui/button': `${PROJECT_ROOT}/components/ui/button`,
+      '@/components/ui/badge': `${PROJECT_ROOT}/components/ui/badge`,
+      '@/components/ui/input': `${PROJECT_ROOT}/components/ui/input`,
+      '@/components/ui/card': `${PROJECT_ROOT}/components/ui/card`,
     },
   },
   // Webpack fallback for production builds
