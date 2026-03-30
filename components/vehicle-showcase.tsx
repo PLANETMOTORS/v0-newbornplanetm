@@ -24,6 +24,20 @@ const fetcher = async () => {
   return data
 }
 
+// Make-specific placeholder images
+const makePlaceholders: Record<string, string> = {
+  'Tesla': 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&auto=format&fit=crop&q=80',
+  'BMW': 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&auto=format&fit=crop&q=80',
+  'Audi': 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&auto=format&fit=crop&q=80',
+  'Toyota': 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&auto=format&fit=crop&q=80',
+  'Hyundai': 'https://images.unsplash.com/photo-1629897048514-3dd7414fe72a?w=800&auto=format&fit=crop&q=80',
+  'Kia': 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&auto=format&fit=crop&q=80',
+  'Chevrolet': 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&auto=format&fit=crop&q=80',
+  'Honda': 'https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=800&auto=format&fit=crop&q=80',
+  'Lexus': 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&auto=format&fit=crop&q=80',
+  'default': 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&auto=format&fit=crop&q=80'
+}
+
 // Transform database vehicle to showcase format
 function transformToShowcase(v: any) {
   const priceInDollars = v.price / 100
@@ -43,12 +57,23 @@ function transformToShowcase(v: any) {
     badgeColor = "bg-green-500"
   }
   
+  // Use placeholder image based on make (VDP URLs aren't images)
+  const isValidImageUrl = v.primary_image_url && 
+    (v.primary_image_url.includes('.jpg') || 
+     v.primary_image_url.includes('.png') || 
+     v.primary_image_url.includes('.webp') ||
+     v.primary_image_url.includes('unsplash.com'))
+  
+  const image = isValidImageUrl 
+    ? v.primary_image_url 
+    : (makePlaceholders[v.make] || makePlaceholders['default'])
+  
   return {
     id: v.id,
     name: `${v.year} ${v.make} ${v.model} ${v.trim || ''}`.trim(),
     price: `$${priceInDollars.toLocaleString()}`,
     monthlyPayment: `$${Math.round(priceInDollars / 84).toLocaleString()}`,
-    image: v.primary_image_url || "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&auto=format&fit=crop&q=80",
+    image,
     mileage: `${v.mileage.toLocaleString()} km`,
     fuel: v.fuel_type || "Gasoline",
     year: v.year.toString(),
