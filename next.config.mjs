@@ -5,9 +5,17 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 23 - webpack alias fallback
+  // Force clean build - version 24 - proper Turbopack config
   cleanDistDir: true,
-  // Use webpack instead of turbopack for reliable path resolution
+  // Turbopack configuration for fast builds
+  turbopack: {
+    root: __dirname,
+    resolveAlias: {
+      '@': __dirname,
+      '@/*': `${__dirname}/*`,
+    },
+  },
+  // Webpack fallback for production builds
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
