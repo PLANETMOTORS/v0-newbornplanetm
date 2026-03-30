@@ -1,68 +1,62 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ChevronLeft, ChevronRight, RotateCw, Shield, Eye, Heart, Share2, Fuel, Gauge, Calendar } from "lucide-react"
+import useSWR from "swr"
+import { ChevronLeft, ChevronRight, RotateCw, Shield, Eye, Heart, Share2, Fuel, Gauge, Calendar, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { createClient } from "@/lib/supabase/client"
 
-// Premium demo vehicles for showcase
-const showcaseVehicles = [
-  {
-    id: "tesla-model-y",
-    name: "2024 Tesla Model Y Long Range",
-    price: "$64,990",
-    monthlyPayment: "$489",
-    image: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&auto=format&fit=crop&q=80",
-    mileage: "12,450 km",
-    fuel: "Electric",
-    year: "2024",
-    inspectionScore: 210,
-    badge: "Just Arrived",
-    badgeColor: "bg-green-500"
-  },
-  {
-    id: "bmw-m4",
-    name: "2024 BMW M4 Competition xDrive",
-    price: "$89,900",
-    monthlyPayment: "$699",
-    image: "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?w=800&auto=format&fit=crop&q=80",
-    mileage: "8,200 km",
-    fuel: "Premium",
-    year: "2024",
-    inspectionScore: 208,
-    badge: "Hot Deal",
-    badgeColor: "bg-accent"
-  },
-  {
-    id: "porsche-taycan",
-    name: "2024 Porsche Taycan 4S",
-    price: "$134,500",
-    monthlyPayment: "$1,089",
-    image: "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=800&auto=format&fit=crop&q=80",
-    mileage: "5,100 km",
-    fuel: "Electric",
-    year: "2024",
-    inspectionScore: 210,
-    badge: "Premium",
-    badgeColor: "bg-primary"
-  },
-  {
-    id: "mercedes-eqs",
-    name: "2024 Mercedes-Benz EQS 580",
-    price: "$156,900",
-    monthlyPayment: "$1,249",
-    image: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&auto=format&fit=crop&q=80",
-    mileage: "3,800 km",
-    fuel: "Electric",
-    year: "2024",
-    inspectionScore: 210,
-    badge: "Certified",
-    badgeColor: "bg-blue-500"
-  },
-]
+// Fetcher for featured vehicles
+const fetcher = async () => {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('vehicles')
+    .select('*')
+    .eq('status', 'available')
+    .order('price', { ascending: false })
+    .limit(6)
+  
+  if (error) throw error
+  return data
+}
+
+// Transform database vehicle to showcase format
+function transformToShowcase(v: any) {
+  const priceInDollars = v.price / 100
+  
+  // Determine badge
+  let badge = "PM Certified"
+  let badgeColor = "bg-primary"
+  
+  if (v.fuel_type === "Electric") {
+    badge = "Electric"
+    badgeColor = "bg-blue-500"
+  } else if (priceInDollars > 100000) {
+    badge = "Premium"
+    badgeColor = "bg-purple-500"
+  } else if (v.is_new_arrival) {
+    badge = "Just Arrived"
+    badgeColor = "bg-green-500"
+  }
+  
+  return {
+    id: v.id,
+    name: `${v.year} ${v.make} ${v.model} ${v.trim || ''}`.trim(),
+    price: `$${priceInDollars.toLocaleString()}`,
+    monthlyPayment: `$${Math.round(priceInDollars / 84).toLocaleString()}`,
+    image: v.primary_image_url || "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&auto=format&fit=crop&q=80",
+    mileage: `${v.mileage.toLocaleString()} km`,
+    fuel: v.fuel_type || "Gasoline",
+    year: v.year.toString(),
+    inspectionScore: v.inspection_score || 210,
+    badge,
+    badgeColor
+  }
+}
 
 export function VehicleShowcase() {
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -70,7 +64,18 @@ export function VehicleShowcase() {
   const [isHovering, setIsHovering] = useState(false)
   const [viewCount, setViewCount] = useState(47)
 
-  const currentVehicle = showcaseVehicles[currentIndex]
+  // Fetch vehicles from Supabase
+  const { data: dbVehicles, isLoading } = useSWR('showcase-vehicles', fetcher, {
+    refreshInterval: 60000
+  })
+
+  // Transform to showcase format
+  const showcaseVehicles = useMemo(() => {
+    if (!dbVehicles || dbVehicles.length === 0) return []
+    return dbVehicles.map(transformToShowcase)
+  }, [dbVehicles])
+
+  const currentVehicle = showcaseVehicles[currentIndex] || null
 
   // Simulate live viewing count with deterministic pattern
   useEffect(() => {
@@ -85,25 +90,34 @@ export function VehicleShowcase() {
 
   // Auto-rotate when not hovering
   useEffect(() => {
-    if (isHovering) return
+    if (isHovering || showcaseVehicles.length === 0) return
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % showcaseVehicles.length)
     }, 5000)
     return () => clearInterval(interval)
-  }, [isHovering])
+  }, [isHovering, showcaseVehicles.length])
 
   const goToPrevious = () => {
-    if (isAnimating) return
+    if (isAnimating || showcaseVehicles.length === 0) return
     setIsAnimating(true)
     setCurrentIndex((prev) => (prev - 1 + showcaseVehicles.length) % showcaseVehicles.length)
     setTimeout(() => setIsAnimating(false), 300)
   }
 
   const goToNext = () => {
-    if (isAnimating) return
+    if (isAnimating || showcaseVehicles.length === 0) return
     setIsAnimating(true)
     setCurrentIndex((prev) => (prev + 1) % showcaseVehicles.length)
     setTimeout(() => setIsAnimating(false), 300)
+  }
+
+  // Loading state
+  if (isLoading || !currentVehicle) {
+    return (
+      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted shadow-2xl flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      </div>
+    )
   }
 
   return (

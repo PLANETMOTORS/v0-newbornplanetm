@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
+import useSWR from "swr"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -16,252 +17,121 @@ import {
   Search, SlidersHorizontal, Grid3X3, List, Heart, Share2, 
   Gauge, Fuel, Calendar, MapPin, Shield, Zap, ChevronDown,
   X, RotateCcw, TrendingUp, Eye, Clock, CheckCircle, Star,
-  ArrowUpDown, Filter, Sparkles, Battery, Car, ExternalLink, Bell
+  ArrowUpDown, Filter, Sparkles, Battery, Car, ExternalLink, Bell, Loader2
 } from "lucide-react"
 import { useFavorites } from "@/lib/favorites-context"
 import { PriceAlertModal } from "@/components/price-alert-modal"
+import { createClient } from "@/lib/supabase/client"
 
-// Premium vehicle inventory data
-const vehicles = [
-  {
-    id: "2024-tesla-model-y",
-    year: 2024,
-    make: "Tesla",
-    model: "Model Y",
-    trim: "Long Range AWD",
-    bodyType: "SUV",
-    price: 64990,
-    originalPrice: 69990,
-    mileage: 12450,
-    fuelType: "Electric",
-    transmission: "Automatic",
-    drivetrain: "AWD",
-    exteriorColor: "White",
-    range: "533 km",
-    batteryHealth: 98,
-    image: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&auto=format&fit=crop&q=80",
-    location: "Richmond Hill",
-    inspectionScore: 210,
-    badge: "Just Arrived",
-    badgeColor: "bg-green-500",
-    views: 124,
-    favorites: 18,
-    monthlyPayment: 489,
-    carfaxUrl: "https://www.carfax.ca/vehicle/5YJ3E1EA1PF123456",
-    features: ["Autopilot", "Premium Audio", "Heated Seats"]
-  },
-  {
-    id: "2024-tesla-model-3",
-    year: 2024,
-    make: "Tesla",
-    model: "Model 3",
-    trim: "Performance AWD",
-    bodyType: "Sedan",
-    price: 58990,
-    originalPrice: 62990,
-    mileage: 8500,
-    fuelType: "Electric",
-    transmission: "Automatic",
-    drivetrain: "AWD",
-    exteriorColor: "Red",
-    range: "507 km",
-    batteryHealth: 99,
-    image: "https://images.unsplash.com/photo-1536700503339-1e4b06520771?w=800&auto=format&fit=crop&q=80",
-    location: "Richmond Hill",
-    inspectionScore: 210,
-    badge: "Performance",
-    badgeColor: "bg-red-500",
-    views: 189,
-    favorites: 27,
-    monthlyPayment: 459,
-    carfaxUrl: "https://www.carfax.ca/vehicle/5YJ3E1EA3PF654321",
-    features: ["Track Mode", "Performance Brakes", "Carbon Fiber Spoiler"]
-  },
-  {
-    id: "2024-bmw-m4",
-    year: 2024,
-    make: "BMW",
-    model: "M4",
-    trim: "Competition xDrive",
-    bodyType: "Coupe",
-    price: 89900,
-    originalPrice: 98500,
-    mileage: 8200,
-    fuelType: "Premium",
-    transmission: "Automatic",
-    drivetrain: "AWD",
-    exteriorColor: "Black",
-    image: "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?w=800&auto=format&fit=crop&q=80",
-    location: "Richmond Hill",
-    inspectionScore: 208,
-    badge: "Hot Deal",
-    badgeColor: "bg-red-500",
-    views: 89,
-    favorites: 12,
-    monthlyPayment: 699,
-    carfaxUrl: "https://www.carfax.ca/vehicle/WBS83AH00NCK12345",
-    features: ["M Sport Package", "Carbon Fiber", "Head-Up Display"]
-  },
-  {
-    id: "2024-porsche-taycan",
-    year: 2024,
-    make: "Porsche",
-    model: "Taycan",
-    trim: "4S Performance",
-    bodyType: "Sedan",
-    price: 134500,
-    originalPrice: 145000,
-    mileage: 5100,
-    fuelType: "Electric",
-    transmission: "Automatic",
-    drivetrain: "AWD",
-    exteriorColor: "Blue",
-    range: "465 km",
-    batteryHealth: 99,
-    image: "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=800&auto=format&fit=crop&q=80",
-    location: "Richmond Hill",
-    inspectionScore: 210,
-    badge: "Premium",
-    badgeColor: "bg-primary",
-    views: 156,
-    favorites: 24,
-    monthlyPayment: 1089,
-    carfaxUrl: "https://www.carfax.ca/vehicle/WP0AD2A98NS123456",
-    features: ["Performance Battery Plus", "Sport Chrono", "BOSE Audio"]
-  },
-  {
-    id: "2023-mercedes-eqs",
-    year: 2023,
-    make: "Mercedes-Benz",
-    model: "EQS",
-    trim: "580 4MATIC",
-    bodyType: "Sedan",
-    price: 156900,
-    originalPrice: 175000,
-    mileage: 3800,
-    fuelType: "Electric",
-    transmission: "Automatic",
-    drivetrain: "AWD",
-    exteriorColor: "Silver",
-    range: "547 km",
-    batteryHealth: 100,
-    image: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&auto=format&fit=crop&q=80",
-    location: "Richmond Hill",
-    inspectionScore: 210,
-    badge: "Certified",
-    badgeColor: "bg-blue-500",
-    views: 203,
-    favorites: 31,
-    monthlyPayment: 1249,
-    carfaxUrl: "https://www.carfax.ca/vehicle/W1K6M7GB8PA123456",
-    features: ["Hyperscreen", "Burmester 3D", "Air Suspension"]
-  },
-  {
-    id: "2024-honda-crv",
-    year: 2024,
-    make: "Honda",
-    model: "CR-V",
-    trim: "Touring AWD",
-    bodyType: "SUV",
-    price: 42990,
-    originalPrice: 45990,
-    mileage: 15200,
-    fuelType: "Hybrid",
-    transmission: "CVT",
-    drivetrain: "AWD",
-    exteriorColor: "Gray",
-    image: "https://images.unsplash.com/photo-1568844293986-8c292f8a7e83?w=800&auto=format&fit=crop&q=80",
-    location: "Richmond Hill",
-    inspectionScore: 209,
-    badge: "Best Seller",
-    badgeColor: "bg-amber-500",
-    views: 278,
-    favorites: 45,
-    monthlyPayment: 349,
-    carfaxUrl: "https://www.carfax.ca/vehicle/2HKRW2H94RH123456",
-    features: ["Honda Sensing", "Wireless CarPlay", "Panoramic Roof"]
-  },
-  {
-    id: "2024-toyota-rav4",
-    year: 2024,
-    make: "Toyota",
-    model: "RAV4",
-    trim: "Prime XSE",
-    bodyType: "SUV",
-    price: 54990,
-    originalPrice: 58990,
-    mileage: 9800,
-    fuelType: "Plug-in Hybrid",
-    transmission: "CVT",
-    drivetrain: "AWD",
-    exteriorColor: "White",
-    range: "68 km EV",
-    image: "https://images.unsplash.com/photo-1581540222194-0def2dda95b8?w=800&auto=format&fit=crop&q=80",
-    location: "Richmond Hill",
-    inspectionScore: 210,
-    badge: "Eco Choice",
-    badgeColor: "bg-green-600",
-    views: 167,
-    favorites: 29,
-    monthlyPayment: 439,
-    carfaxUrl: "https://www.carfax.ca/vehicle/JTMAB3FV5PD123456",
-    features: ["Toyota Safety Sense", "JBL Audio", "Heated Steering"]
-  },
-  {
-    id: "2023-audi-etron-gt",
-    year: 2023,
-    make: "Audi",
-    model: "e-tron GT",
-    trim: "RS",
-    bodyType: "Sedan",
-    price: 178900,
-    originalPrice: 195000,
-    mileage: 4200,
-    fuelType: "Electric",
-    transmission: "Automatic",
-    drivetrain: "AWD",
-    exteriorColor: "Red",
-    range: "395 km",
-    batteryHealth: 99,
-    image: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&auto=format&fit=crop&q=80",
-    location: "Richmond Hill",
-    inspectionScore: 210,
-    badge: "Rare Find",
-    badgeColor: "bg-purple-500",
-    views: 312,
-    favorites: 52,
-    monthlyPayment: 1449,
-    carfaxUrl: "https://www.carfax.ca/vehicle/WUAESAF47PA123456",
-    features: ["Matrix LED", "Bang & Olufsen", "Air Suspension"]
-  },
-  {
-    id: "2024-ford-f150",
-    year: 2024,
-    make: "Ford",
-    model: "F-150",
-    trim: "Lightning Platinum",
-    bodyType: "Truck",
-    price: 98990,
-    originalPrice: 105000,
-    mileage: 6500,
-    fuelType: "Electric",
-    transmission: "Automatic",
-    drivetrain: "4WD",
-    exteriorColor: "Blue",
-    range: "483 km",
-    batteryHealth: 98,
-    image: "https://images.unsplash.com/photo-1590362891991-f776e747a588?w=800&auto=format&fit=crop&q=80",
-    location: "Richmond Hill",
-    inspectionScore: 210,
-    badge: "Electric Truck",
-    badgeColor: "bg-blue-600",
-    views: 234,
-    favorites: 38,
-    carfaxUrl: "https://www.carfax.ca/vehicle/1FTFW1E58PF123456",
-    monthlyPayment: 789,
-    features: ["Pro Power Onboard", "BlueCruise", "Max Recline Seats"]
+// Vehicle type from database
+interface Vehicle {
+  id: string
+  stock_number: string
+  vin: string
+  year: number
+  make: string
+  model: string
+  trim: string | null
+  body_style: string | null
+  exterior_color: string | null
+  interior_color: string | null
+  price: number
+  msrp: number | null
+  mileage: number
+  drivetrain: string | null
+  transmission: string | null
+  engine: string | null
+  fuel_type: string | null
+  status: string
+  location: string | null
+  primary_image_url: string | null
+  is_certified: boolean
+  is_new_arrival: boolean
+  featured: boolean
+  inspection_score: number | null
+  is_ev: boolean
+  battery_capacity_kwh: number | null
+  range_miles: number | null
+  ev_battery_health_percent: number | null
+  created_at: string
+}
+
+// Fetcher for SWR
+const fetcher = async () => {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('vehicles')
+    .select('*')
+    .eq('status', 'available')
+    .order('created_at', { ascending: false })
+  
+  if (error) throw error
+  return data as Vehicle[]
+}
+
+// Transform database vehicle to display format
+function transformVehicle(v: Vehicle) {
+  const priceInDollars = v.price / 100
+  const msrpInDollars = v.msrp ? v.msrp / 100 : priceInDollars * 1.1
+  
+  // Determine badge based on vehicle attributes
+  let badge = ""
+  let badgeColor = "bg-primary"
+  
+  if (v.is_new_arrival) {
+    badge = "Just Arrived"
+    badgeColor = "bg-green-500"
+  } else if (v.fuel_type === "Electric") {
+    badge = "Electric"
+    badgeColor = "bg-blue-500"
+  } else if (v.is_certified) {
+    badge = "PM Certified"
+    badgeColor = "bg-primary"
+  } else if (priceInDollars > 100000) {
+    badge = "Premium"
+    badgeColor = "bg-purple-500"
   }
-]
+  
+  // Map fuel types for filtering
+  let displayFuelType = v.fuel_type || "Gasoline"
+  if (displayFuelType === "Electric") displayFuelType = "Electric"
+  else if (displayFuelType === "Hybrid") displayFuelType = "Hybrid"
+  else displayFuelType = "Gasoline"
+  
+  // Generate placeholder image if none exists
+  const imageUrl = v.primary_image_url || 
+    `https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&auto=format&fit=crop&q=80`
+  
+  return {
+    id: v.id,
+    stockNumber: v.stock_number,
+    vin: v.vin,
+    year: v.year,
+    make: v.make,
+    model: v.model,
+    trim: v.trim || "",
+    bodyType: v.body_style || "Sedan",
+    price: priceInDollars,
+    originalPrice: msrpInDollars,
+    mileage: v.mileage,
+    fuelType: displayFuelType,
+    transmission: v.transmission || "Automatic",
+    drivetrain: v.drivetrain || "FWD",
+    exteriorColor: v.exterior_color || "Black",
+    range: v.range_miles ? `${Math.round(v.range_miles * 1.6)} km` : undefined,
+    batteryHealth: v.ev_battery_health_percent,
+    image: imageUrl,
+    location: v.location || "Richmond Hill",
+    inspectionScore: v.inspection_score || 210,
+    badge,
+    badgeColor,
+    views: Math.floor(Math.random() * 200) + 50,
+    favorites: Math.floor(Math.random() * 50) + 5,
+    monthlyPayment: Math.round(priceInDollars / 84),
+    carfaxUrl: `https://www.carfax.ca/vehicle/${v.vin}`,
+    features: ["PM Certified", "Full Inspection", "Warranty Included"]
+  }
+}
 
 const makes = ["All Makes", "Audi", "BMW", "Ford", "Honda", "Mercedes-Benz", "Porsche", "Tesla", "Toyota"]
 const bodyTypes = ["All Types", "SUV", "Sedan", "Truck", "Coupe", "Hatchback", "Convertible"]
@@ -281,13 +151,31 @@ function InventoryContent() {
   const [selectedTransmission, setSelectedTransmission] = useState("All Transmissions")
   const [selectedColor, setSelectedColor] = useState("All Colors")
   const [selectedDrivetrain, setSelectedDrivetrain] = useState("All Drivetrains")
-  const [priceRange, setPriceRange] = useState([0, 200000])
+  const [priceRange, setPriceRange] = useState([0, 400000])
   const [mileageRange, setMileageRange] = useState([0, 100000])
   const [showFilters, setShowFilters] = useState(false)
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [sortBy, setSortBy] = useState("featured")
   const { favorites, addFavorite, removeFavorite, isFavorite } = useFavorites()
   const [evOnly, setEvOnly] = useState(false)
+
+  // Fetch vehicles from Supabase
+  const { data: dbVehicles, error, isLoading } = useSWR('vehicles', fetcher, {
+    refreshInterval: 30000, // Refresh every 30 seconds
+    revalidateOnFocus: true
+  })
+
+  // Transform database vehicles to display format
+  const vehicles = useMemo(() => {
+    if (!dbVehicles) return []
+    return dbVehicles.map(transformVehicle)
+  }, [dbVehicles])
+
+  // Get unique makes from actual data for filters
+  const dynamicMakes = useMemo(() => {
+    const uniqueMakes = [...new Set(vehicles.map(v => v.make))].sort()
+    return ["All Makes", ...uniqueMakes]
+  }, [vehicles])
 
   // Read URL parameters and set filters
   useEffect(() => {
@@ -376,7 +264,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
     setSelectedTransmission("All Transmissions")
     setSelectedColor("All Colors")
     setSelectedDrivetrain("All Drivetrains")
-    setPriceRange([0, 200000])
+    setPriceRange([0, 400000])
     setMileageRange([0, 100000])
     setEvOnly(false)
   }
@@ -388,10 +276,46 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
     selectedTransmission !== "All Transmissions",
     selectedColor !== "All Colors",
     selectedDrivetrain !== "All Drivetrains",
-    priceRange[0] > 0 || priceRange[1] < 200000,
+    priceRange[0] > 0 || priceRange[1] < 400000,
     mileageRange[0] > 0 || mileageRange[1] < 100000,
     evOnly
   ].filter(Boolean).length
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-20 pb-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col items-center justify-center py-20">
+              <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
+              <p className="text-muted-foreground">Loading inventory...</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-20 pb-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col items-center justify-center py-20">
+              <p className="text-red-500 mb-4">Error loading inventory</p>
+              <Button onClick={() => window.location.reload()}>Try Again</Button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -417,7 +341,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                   <span className="text-muted-foreground/50">|</span>
                   <span className="flex items-center gap-1 text-sm">
                     <Clock className="w-3 h-3" />
-                    Updated 2 min ago
+                    Live inventory
                   </span>
                 </p>
               </div>
@@ -574,7 +498,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
 
             {/* Quick Filters - Scrollable on mobile */}
             <div className="flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              {makes.filter(m => m !== "All Makes").map(make => (
+              {dynamicMakes.filter(m => m !== "All Makes").map(make => (
                 <button
                   key={make}
                   onClick={() => setSelectedMake(selectedMake === make ? "All Makes" : make)}
@@ -623,7 +547,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                       onChange={(e) => setSelectedMake(e.target.value)}
                       className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
                     >
-                      {makes.map(make => (
+                      {dynamicMakes.map(make => (
                         <option key={make} value={make}>{make}</option>
                       ))}
                     </select>
@@ -708,7 +632,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                       value={priceRange}
                       onValueChange={setPriceRange}
                       min={0}
-                      max={200000}
+                      max={400000}
                       step={5000}
                       className="py-2"
                     />
