@@ -682,7 +682,9 @@ export default function VehicleDetailPage() {
                           <p className="text-xs text-muted-foreground mt-1">
                             30 Major Mackenzie Dr E, Richmond Hill, ON. Open Mon–Sat.
                           </p>
-                          <Button className="mt-3" size="sm">Start purchase</Button>
+                          <Button className="mt-3" size="sm" asChild>
+                            <Link href={`/finance/${vehicle.id}`}>Start purchase</Link>
+                          </Button>
                         </CardContent>
                       </Card>
                       <Card className="bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800">
@@ -695,7 +697,9 @@ export default function VehicleDetailPage() {
                           <p className="text-xs text-muted-foreground mt-1">
                             We&apos;ll deliver anywhere in Ontario & Canada.
                           </p>
-                          <Button variant="outline" className="mt-3" size="sm">Start purchase</Button>
+                          <Button variant="outline" className="mt-3" size="sm" asChild>
+                            <Link href={`/finance/${vehicle.id}`}>Start purchase</Link>
+                          </Button>
                         </CardContent>
                       </Card>
                     </div>
