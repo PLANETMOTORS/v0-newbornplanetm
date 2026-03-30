@@ -98,9 +98,30 @@ function transformVehicle(v: Vehicle) {
   else if (displayFuelType === "Hybrid") displayFuelType = "Hybrid"
   else displayFuelType = "Gasoline"
   
-  // Generate placeholder image if none exists
-  const imageUrl = v.primary_image_url || 
-    `https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&auto=format&fit=crop&q=80`
+  // Use placeholder image - primary_image_url contains VDP URL, not image URL
+  // Images will be loaded from planetmotors.ca via scraping
+  const isValidImageUrl = v.primary_image_url && 
+    (v.primary_image_url.includes('.jpg') || 
+     v.primary_image_url.includes('.png') || 
+     v.primary_image_url.includes('.webp') ||
+     v.primary_image_url.includes('unsplash.com'))
+  
+  // Generate make-specific placeholder
+  const makePlaceholders: Record<string, string> = {
+    'Tesla': 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&auto=format&fit=crop&q=80',
+    'BMW': 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&auto=format&fit=crop&q=80',
+    'Audi': 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&auto=format&fit=crop&q=80',
+    'Toyota': 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&auto=format&fit=crop&q=80',
+    'Hyundai': 'https://images.unsplash.com/photo-1629897048514-3dd7414fe72a?w=800&auto=format&fit=crop&q=80',
+    'Kia': 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&auto=format&fit=crop&q=80',
+    'Chevrolet': 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&auto=format&fit=crop&q=80',
+    'Honda': 'https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=800&auto=format&fit=crop&q=80',
+    'default': 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&auto=format&fit=crop&q=80'
+  }
+  
+  const imageUrl = isValidImageUrl 
+    ? v.primary_image_url! 
+    : (makePlaceholders[v.make] || makePlaceholders['default'])
   
   return {
     id: v.id,
@@ -175,6 +196,18 @@ function InventoryContent() {
   const dynamicMakes = useMemo(() => {
     const uniqueMakes = [...new Set(vehicles.map(v => v.make))].sort()
     return ["All Makes", ...uniqueMakes]
+  }, [vehicles])
+
+  // Get unique years from actual data for filters
+  const dynamicYears = useMemo(() => {
+    const uniqueYears = [...new Set(vehicles.map(v => v.year.toString()))].sort((a, b) => Number(b) - Number(a))
+    return ["All Years", ...uniqueYears]
+  }, [vehicles])
+
+  // Get unique body types from actual data
+  const dynamicBodyTypes = useMemo(() => {
+    const uniqueTypes = [...new Set(vehicles.map(v => v.bodyType))].sort()
+    return ["All Types", ...uniqueTypes]
   }, [vehicles])
 
   // Read URL parameters and set filters
@@ -348,13 +381,13 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
 
               {/* Quick Stats */}
               <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm">
-                <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-green-50 dark:bg-green-950/30 rounded-lg">
-                  <TrendingUp className="w-3 sm:w-4 h-3 sm:h-4 text-green-600" />
-                  <span className="text-green-700 dark:text-green-400 text-xs sm:text-sm">124 new</span>
-                </div>
                 <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-primary/10 rounded-lg">
                   <Zap className="w-3 sm:w-4 h-3 sm:h-4 text-primary" />
                   <span className="text-primary text-xs sm:text-sm">{vehicles.filter(v => v.fuelType === "Electric").length} EVs</span>
+                </div>
+                <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-muted rounded-lg">
+                  <Car className="w-3 sm:w-4 h-3 sm:h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground text-xs sm:text-sm">{dynamicMakes.length - 1} brands</span>
                 </div>
               </div>
             </div>
@@ -561,7 +594,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                       onChange={(e) => setSelectedYear(e.target.value)}
                       className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
                     >
-                      {years.map(year => (
+                      {dynamicYears.map(year => (
                         <option key={year} value={year}>{year}</option>
                       ))}
                     </select>
