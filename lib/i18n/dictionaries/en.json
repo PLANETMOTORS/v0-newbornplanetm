@@ -40,12 +40,12 @@
     "evBattery": "EV Battery"
   },
   "hero": {
-    "title": "Buy or sell your car online",
-    "subtitle": "We buy, recondition, and sell cars. Certified for quality by professional servicemen.",
+    "title": "Buy your car online",
+    "subtitle": "We recondition and sell certified pre-owned vehicles. Quality inspected by professional servicemen.",
     "tagline": "That's Planet Motors.",
     "searchPlaceholder": "Search by make, model, or keyword",
     "browseInventory": "Browse Inventory",
-    "sellYourCar": "Sell Your Car"
+    "tradeIn": "Trade-In"
   },
   "inventory": {
     "title": "Our Inventory",

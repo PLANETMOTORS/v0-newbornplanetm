@@ -80,7 +80,6 @@ planetmotors/
 │   ├── api/               # API routes
 │   ├── financing/         # Multi-lender financing
 │   ├── inventory/         # Vehicle listings
-│   ├── sell/              # Sell your car
 │   ├── trade-in/          # Trade-in valuation
 │   └── vehicles/          # Vehicle detail pages
 ├── components/            # React components

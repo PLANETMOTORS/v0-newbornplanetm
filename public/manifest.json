@@ -82,9 +82,9 @@
       "icons": [{ "src": "/icons/inventory.png", "sizes": "96x96" }]
     },
     {
-      "name": "Sell Your Car",
-      "short_name": "Sell",
-      "description": "Get an instant offer for your vehicle",
+      "name": "Trade-In",
+      "short_name": "Trade",
+      "description": "Get a trade-in offer for your vehicle",
       "url": "/trade-in",
       "icons": [{ "src": "/icons/sell.png", "sizes": "96x96" }]
     },
