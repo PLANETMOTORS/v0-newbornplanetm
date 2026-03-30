@@ -177,7 +177,7 @@ export function Footer() {
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold">Nationwide</p>
-                <p className="text-xs text-background/70">Free Delivery</p>
+                <p className="text-xs text-background/70">Delivery</p>
               </div>
             </div>
           </div>
