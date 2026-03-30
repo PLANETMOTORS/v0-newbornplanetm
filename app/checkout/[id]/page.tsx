@@ -138,14 +138,14 @@ export default function CheckoutPage() {
   }
 
   const vehiclePrice = vehicleData.price
-  const omvicFee = 10
-  const certificationFee = 699
-  const adminFee = 499
+  const omvicFee = 22 // OMVIC regulatory fee
+  const certificationFee = 595 // Safety certification
+  const licensingFee = 59 // Ontario licensing & registration (estimated)
   // Dynamic delivery fee based on postal code distance (free within 300km)
   const deliveryFee = deliveryType === "delivery" 
     ? (deliveryQuote?.cost ?? 0)
     : 0
-  const subtotal = vehiclePrice + omvicFee + certificationFee + adminFee + deliveryFee
+  const subtotal = vehiclePrice + omvicFee + certificationFee + licensingFee + deliveryFee
   const hst = Math.round(subtotal * 0.13)
   const total = subtotal + hst
 
@@ -611,12 +611,12 @@ export default function CheckoutPage() {
                     <span>${omvicFee}</span>
                   </div>
                   <div className="flex justify-between text-muted-foreground">
-                    <span>Certification</span>
+                    <span>Certification Fee</span>
                     <span>${certificationFee}</span>
                   </div>
                   <div className="flex justify-between text-muted-foreground">
-                    <span>Admin Fee</span>
-                    <span>${adminFee}</span>
+                    <span>Licensing & Registration (est.)</span>
+                    <span>~${licensingFee}</span>
                   </div>
                   {deliveryType === "delivery" && (
                     <div className="flex justify-between text-muted-foreground">
