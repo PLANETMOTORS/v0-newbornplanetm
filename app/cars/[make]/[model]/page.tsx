@@ -285,7 +285,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                     </Link>
                   </Button>
                   <Button size="lg" variant="outline" asChild>
-                    <Link href="/financing/calculator">
+                    <Link href="/financing">
                       <Calculator className="mr-2 h-5 w-5" />
                       Calculate Monthly Payment
                     </Link>
@@ -508,7 +508,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                 <h3 className="text-xl font-semibold mb-2">Calculate Your Payment</h3>
                 <p className="mb-4 opacity-90">See what your monthly payment could be</p>
                 <Button variant="secondary" asChild>
-                  <Link href="/financing/calculator">Get Started</Link>
+                  <Link href="/financing">Get Started</Link>
                 </Button>
               </div>
               <div>
@@ -524,7 +524,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                 <h3 className="text-xl font-semibold mb-2">Get Pre-Approved</h3>
                 <p className="mb-4 opacity-90">Check your rate in 60 seconds - no impact to credit</p>
                 <Button variant="secondary" asChild>
-                  <Link href="/financing/apply">Apply Now</Link>
+                  <Link href="/financing/application">Apply Now</Link>
                 </Button>
               </div>
             </div>
