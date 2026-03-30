@@ -165,6 +165,7 @@ export function VehicleShowcase() {
           alt={currentVehicle.name}
           fill
           priority
+          loading="eager"
           sizes="(max-width: 768px) 100vw, 50vw"
           unoptimized={currentVehicle.image.includes('cpsimg.com')}
           className={cn(
