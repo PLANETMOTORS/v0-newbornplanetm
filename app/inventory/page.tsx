@@ -862,10 +862,10 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                             ${vehicle.originalPrice.toLocaleString()}
                           </p>
                         )}
-                        <p className="text-2xl font-bold">${vehicle.price.toLocaleString()}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Est. ${vehicle.monthlyPayment}/mo
-                        </p>
+<p className="text-2xl font-bold">${vehicle.price.toLocaleString()}</p>
+                      <Link href={`/finance/${vehicle.id}`} className="text-sm text-primary hover:underline">
+                        Est. ${vehicle.monthlyPayment}/mo
+                      </Link>
                       </div>
                       <Button size="sm" asChild>
                         <Link href={`/vehicles/${vehicle.id}`}>
