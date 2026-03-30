@@ -166,6 +166,7 @@ export function VehicleShowcase() {
           fill
           priority
           sizes="(max-width: 768px) 100vw, 50vw"
+          unoptimized={currentVehicle.image.includes('cpsimg.com')}
           className={cn(
             "object-cover transition-all duration-500",
             isAnimating ? "scale-105 opacity-80" : "scale-100 opacity-100"
@@ -291,6 +292,7 @@ export function VehicleShowcase() {
                 fill
                 sizes="80px"
                 className="object-cover"
+                unoptimized={vehicle.image.includes('cpsimg.com')}
               />
             </button>
           ))}
