@@ -13,7 +13,6 @@ const footerLinks = {
   services: [
     { name: "Protection Plans", href: "/protection-plans" },
     { name: "Financing", href: "/financing" },
-    { name: "Sell Your Car", href: "/sell" },
     { name: "Trade-In", href: "/trade-in" },
     { name: "Service Center", href: "/service" },
   ],
