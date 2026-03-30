@@ -682,7 +682,9 @@ export default function VehicleDetailPage() {
                           <p className="text-xs text-muted-foreground mt-1">
                             30 Major Mackenzie Dr E, Richmond Hill, ON. Open Mon–Sat.
                           </p>
-                          <Button className="mt-3" size="sm">Start purchase</Button>
+                          <Button className="mt-3" size="sm" asChild>
+                            <Link href={`/finance/${vehicle.id}`}>Start purchase</Link>
+                          </Button>
                         </CardContent>
                       </Card>
                       <Card className="bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800">
@@ -695,7 +697,9 @@ export default function VehicleDetailPage() {
                           <p className="text-xs text-muted-foreground mt-1">
                             We&apos;ll deliver anywhere in Ontario & Canada.
                           </p>
-                          <Button variant="outline" className="mt-3" size="sm">Start purchase</Button>
+                          <Button variant="outline" className="mt-3" size="sm" asChild>
+                            <Link href={`/finance/${vehicle.id}`}>Start purchase</Link>
+                          </Button>
                         </CardContent>
                       </Card>
                     </div>
@@ -1177,9 +1181,9 @@ export default function VehicleDetailPage() {
                           </p>
                           <p className="text-xs text-muted-foreground">Get personalized financing terms in 2 minutes — no impact to your credit score.</p>
                         </div>
-                        <Button className="w-full mt-4" variant="outline" asChild>
-                          <Link href="/financing">Get pre-qualified</Link>
-                        </Button>
+<Button className="w-full mt-4" variant="outline" asChild>
+  <Link href={`/finance/${vehicle.id}`}>Get pre-qualified</Link>
+  </Button>
                       </CardContent>
                     </Card>
 
@@ -1447,7 +1451,9 @@ export default function VehicleDetailPage() {
                       <p className="font-medium text-xs sm:text-sm">{item.title}</p>
                       {item.subtitle && <p className="text-xs text-muted-foreground">{item.subtitle}</p>}
                       {item.active && (
-                        <Button size="sm" className="mt-3">Start purchase</Button>
+                        <Button size="sm" className="mt-3" asChild>
+                          <Link href={`/finance/${vehicle.id}`}>Start purchase</Link>
+                        </Button>
                       )}
                     </div>
                   ))}
@@ -1520,7 +1526,7 @@ export default function VehicleDetailPage() {
                     <span>Estimated <span className="font-semibold">${biweeklyPayment}/biweekly</span></span>
                     <span className="text-muted-foreground">·</span>
                     <span className="text-muted-foreground">$0 down</span>
-                    <Link href="/financing" className="text-primary hover:underline">Get your terms</Link>
+                    <Link href={`/finance/${vehicle.id}`} className="text-primary hover:underline">Get your terms</Link>
                   </div>
 
                   {/* Trust Badges */}

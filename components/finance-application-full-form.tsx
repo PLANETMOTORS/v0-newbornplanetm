@@ -207,11 +207,12 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
   const [additionalNotes, setAdditionalNotes] = useState("")
   
   const steps = [
-    { number: 1, title: "Primary Applicant", icon: User },
+    { number: 1, title: "Applicant", icon: User },
     { number: 2, title: "Co-Applicant", icon: User },
     { number: 3, title: "Vehicle & Financing", icon: Car },
-    { number: 4, title: "Review", icon: FileText },
+    { number: 4, title: "Review & Submit", icon: FileText },
     { number: 5, title: "Documents", icon: Upload },
+    { number: 6, title: "ID Verification", icon: Shield },
   ]
   
   // Calculate financing details
@@ -291,25 +292,29 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
     }
   }
   
-  // Render success state
+  // Render success state - redirect to ID verification
   if (isSubmitted) {
     return (
       <div className="max-w-2xl mx-auto p-8 text-center">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <CheckCircle className="w-8 h-8 text-green-600" />
+        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Shield className="w-8 h-8 text-primary" />
         </div>
-        <h2 className="text-2xl font-bold mb-2">Application Submitted!</h2>
+        <h2 className="text-2xl font-bold mb-2">Application Received!</h2>
         <p className="text-muted-foreground mb-6">
-          Your finance application has been received. Our team will review it and contact you within 24 hours.
+          Your finance application has been saved. Complete identity verification to finalize your application.
         </p>
-        <div className="flex gap-4 justify-center">
-          <Button onClick={() => window.location.href = "/inventory"}>
-            Browse More Vehicles
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button onClick={() => window.location.href = `/financing/verification?vehicleId=${vehicleId}`}>
+            <Shield className="w-4 h-4 mr-2" />
+            Continue to ID Verification
           </Button>
-          <Button variant="outline" onClick={() => window.location.href = "/account"}>
-            View My Applications
+          <Button variant="outline" onClick={() => window.location.href = "/inventory"}>
+            Complete Later
           </Button>
         </div>
+        <p className="text-xs text-muted-foreground mt-4">
+          ID verification is required to complete your application
+        </p>
       </div>
     )
   }
