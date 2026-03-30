@@ -499,7 +499,7 @@ CREATE TABLE hubs (
 
 -- Seed Initial Hub
 INSERT INTO hubs (name, code, street_address, city, province, postal_code, phone) VALUES
-  ('Richmond Hill', 'RHILL', '30 Major Mackenzie E', 'Richmond Hill', 'ON', 'L4C 1J2', '416-985-2277');
+  ('Richmond Hill', 'RHILL', '30 Major Mackenzie Dr E', 'Richmond Hill', 'ON', 'L4C 1G7', '416-985-2277');
 ```
 
 ## 1.13 Payments Table
