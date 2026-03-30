@@ -71,13 +71,16 @@ export default function FinanceCalculatorPage() {
 
   // Fetch vehicle data
   useEffect(() => {
+    console.log("[v0] Finance page loaded, vehicleId:", vehicleId)
     async function fetchVehicle() {
+      console.log("[v0] Fetching vehicle data...")
       const supabase = createClient()
       const { data, error } = await supabase
         .from("vehicles")
         .select("*")
         .eq("id", vehicleId)
         .single()
+      console.log("[v0] Vehicle fetch result:", { data, error })
 
       if (error || !data) {
         console.error("Error fetching vehicle:", error)
