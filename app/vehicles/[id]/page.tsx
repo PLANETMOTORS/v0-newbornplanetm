@@ -1,8 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
+import { createClient } from "@/lib/supabase/client"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -347,7 +349,11 @@ const vehicleData = {
 }
 
 export default function VehicleDetailPage() {
+  const params = useParams()
+  const vehicleId = params.id as string
   const { user } = useAuth()
+  const [vehicle, setVehicle] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isFavorite, setIsFavorite] = useState(false)
   const [activeTab, setActiveTab] = useState("photos")
@@ -358,6 +364,60 @@ export default function VehicleDetailPage() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [authAction, setAuthAction] = useState("")
   const [showReserveModal, setShowReserveModal] = useState(false)
+  
+  // Fetch vehicle from database
+  useEffect(() => {
+    async function fetchVehicle() {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from("vehicles")
+        .select("*")
+        .eq("id", vehicleId)
+        .single()
+      
+      if (data) {
+        // Transform database vehicle to page format
+        const priceInDollars = data.price / 100
+        const hst = priceInDollars * 0.13
+        setVehicle({
+          ...vehicleData, // Keep mock inspection data etc.
+          id: data.id,
+          year: data.year,
+          make: data.make,
+          model: data.model,
+          trim: data.trim || "",
+          price: priceInDollars,
+          mileage: data.mileage,
+          exteriorColor: data.exterior_color,
+          interiorColor: data.interior_color,
+          fuelType: data.fuel_type,
+          transmission: data.transmission,
+          drivetrain: data.drivetrain,
+          bodyStyle: data.body_style,
+          vin: data.vin,
+          stockNumber: data.stock_number,
+          images: data.primary_image_url ? [data.primary_image_url] : vehicleData.images,
+          pricing: {
+            vehiclePrice: priceInDollars,
+            deliveryFee: 0,
+            hst: Math.round(hst),
+            omvicFee: 22,
+            certificationFee: 595,
+            licensingReg: 59,
+            totalWithHst: Math.round(priceInDollars + hst + 22 + 595 + 59)
+          }
+        })
+      } else {
+        // Fallback to mock data if vehicle not found
+        setVehicle(vehicleData)
+      }
+      setIsLoading(false)
+    }
+    
+    if (vehicleId) {
+      fetchVehicle()
+    }
+  }, [vehicleId])
 
   const handleProtectedAction = (action: string, callback?: () => void) => {
     if (!user) {
@@ -390,9 +450,25 @@ export default function VehicleDetailPage() {
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
   }
 
-  const currentImages = imageType === "exterior" ? vehicleData.images : vehicleData.interiorImages
-  const savings = vehicleData.originalPrice - vehicleData.price
-  const biweeklyPayment = Math.round(vehicleData.price / 208) // Rough estimate for 8 years
+  // Show loading state
+  if (isLoading || !vehicle) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading vehicle details...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
+
+  const currentImages = imageType === "exterior" ? vehicle.images : vehicleData.interiorImages
+  const savings = (vehicleData.originalPrice || vehicle.price * 1.1) - vehicle.price
+  const biweeklyPayment = Math.round(vehicle.price / 208) // Rough estimate for 8 years
 
   return (
     <div className="min-h-screen bg-background">
@@ -410,12 +486,12 @@ export default function VehicleDetailPage() {
               </li>
               <li aria-hidden="true" className="text-muted-foreground">›</li>
               <li>
-                <Link href={`/inventory?make=${vehicleData.make}`} className="text-muted-foreground hover:text-foreground">
-                  {vehicleData.make}
+                <Link href={`/inventory?make=${vehicle.make}`} className="text-muted-foreground hover:text-foreground">
+                  {vehicle.make}
                 </Link>
               </li>
               <li aria-hidden="true" className="text-muted-foreground">›</li>
-              <li aria-current="page">{vehicleData.model}</li>
+              <li aria-current="page">{vehicle.model}</li>
             </ol>
           </div>
         </nav>
@@ -424,10 +500,10 @@ export default function VehicleDetailPage() {
         <div className="border-b py-4">
           <div className="container mx-auto px-4">
             <h1 className="text-xl sm:text-2xl font-bold truncate">
-              {vehicleData.year} {vehicleData.make} {vehicleData.model}
+              {vehicle.year} {vehicle.make} {vehicle.model}
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground">
-              {vehicleData.trim} · {vehicleData.mileage.toLocaleString()} km
+              {vehicle.trim} · {vehicle.mileage.toLocaleString()} km
             </p>
           </div>
         </div>
@@ -461,7 +537,7 @@ export default function VehicleDetailPage() {
                   <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-muted group">
                     <Image
                       src={currentImages[currentImageIndex]}
-                      alt={`${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`}
+                      alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                       fill
                       className="object-cover"
                       priority
@@ -581,8 +657,8 @@ export default function VehicleDetailPage() {
                   <div className="flex items-center justify-between">
                     <h2 className="text-xl font-semibold">Overview</h2>
                     <div className="flex gap-4 text-sm text-muted-foreground">
-                      <span>VIN <span className="font-mono text-foreground">{vehicleData.vin}</span></span>
-                      <span>Stock # <span className="font-medium text-foreground">{vehicleData.stockNumber}</span></span>
+                      <span>VIN <span className="font-mono text-foreground">{vehicle.vin}</span></span>
+                      <span>Stock # <span className="font-medium text-foreground">{vehicle.stockNumber}</span></span>
                     </div>
                   </div>
 
@@ -598,14 +674,14 @@ export default function VehicleDetailPage() {
                         <Settings className="w-5 h-5" />
                       </div>
                       <span className="text-xs text-muted-foreground">TRANSMISSION</span>
-                      <span className="text-sm font-medium">{vehicleData.transmission}</span>
+                      <span className="text-sm font-medium">{vehicle.transmission}</span>
                     </div>
                     <div className="flex flex-col items-center text-center">
                       <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center mb-1">
                         <Fuel className="w-5 h-5" />
                       </div>
                       <span className="text-xs text-muted-foreground">FUEL TYPE</span>
-                      <span className="text-sm font-medium">{vehicleData.fuelType}</span>
+                      <span className="text-sm font-medium">{vehicle.fuelType}</span>
                     </div>
                     <div className="flex flex-col items-center text-center">
                       <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center mb-1">
@@ -653,7 +729,7 @@ export default function VehicleDetailPage() {
                       <Card className="flex-1 min-w-[140px]">
                         <CardContent className="p-3 flex items-center gap-2">
                           <Gauge className="w-5 h-5 text-muted-foreground" />
-                          <p className="font-medium text-sm">{vehicleData.mileage.toLocaleString()} km</p>
+                          <p className="font-medium text-sm">{vehicle.mileage.toLocaleString()} km</p>
                         </CardContent>
                       </Card>
                       <Card className="flex-1 min-w-[140px]">
@@ -807,15 +883,15 @@ export default function VehicleDetailPage() {
                         </div>
                         <div className="flex justify-between py-2 border-b">
                           <span className="text-muted-foreground">Exterior</span>
-                          <span className="font-medium">{vehicleData.exteriorColor}</span>
+                          <span className="font-medium">{vehicle.exteriorColor}</span>
                         </div>
                         <div className="flex justify-between py-2 border-b">
                           <span className="text-muted-foreground">Interior</span>
-                          <span className="font-medium">{vehicleData.interiorColor}</span>
+                          <span className="font-medium">{vehicle.interiorColor}</span>
                         </div>
                         <div className="flex justify-between py-2">
                           <span className="text-muted-foreground">Drive</span>
-                          <span className="font-medium">{vehicleData.drivetrain}</span>
+                          <span className="font-medium">{vehicle.drivetrain}</span>
                         </div>
                         <Button variant="link" className="p-0 h-auto text-primary">
                           View all specs →
@@ -1110,7 +1186,7 @@ export default function VehicleDetailPage() {
                   </Card>
 
                   {/* EV Battery Health - Show for EVs/PHEVs */}
-                  {(vehicleData.fuelType === "Electric" || vehicleData.fuelType === "PHEV") && (
+                  {(vehicle.fuelType === "Electric" || vehicle.fuelType === "PHEV") && (
                     <Card className="border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800">
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between mb-3">
@@ -1193,7 +1269,7 @@ export default function VehicleDetailPage() {
                         <CardTitle className="text-sm text-muted-foreground">PAY ONCE</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-3xl font-bold">${vehicleData.price.toLocaleString()}</p>
+                        <p className="text-3xl font-bold">${vehicle.price.toLocaleString()}</p>
                         <div className="flex items-center gap-2 text-sm text-primary mt-2">
                           <Truck className="w-4 h-4" />
                           Nationwide delivery available · Richmond Hill
@@ -1201,27 +1277,27 @@ export default function VehicleDetailPage() {
                         <div className="mt-4 space-y-2 text-sm">
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Vehicle price</span>
-                            <span>${vehicleData.pricing.vehiclePrice.toLocaleString()}</span>
+                            <span>${vehicle.pricing.vehiclePrice.toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Delivery fee</span>
-                            <span>${vehicleData.pricing.deliveryFee}</span>
+                            <span>${vehicle.pricing.deliveryFee}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Estimated HST (13%)</span>
-                            <span>${vehicleData.pricing.hst.toLocaleString()}</span>
+                            <span>${vehicle.pricing.hst.toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">OMVIC Fee</span>
-                            <span>${vehicleData.pricing.omvicFee}</span>
+                            <span>${vehicle.pricing.omvicFee}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Licensing & registration</span>
-                            <span>ON ~ ${vehicleData.pricing.licensingReg}</span>
+                            <span>ON ~ ${vehicle.pricing.licensingReg}</span>
                           </div>
                           <div className="flex justify-between font-semibold pt-2 border-t">
                             <span>Total (incl. HST)</span>
-                            <span>${vehicleData.pricing.totalWithHst.toLocaleString()}</span>
+                            <span>${vehicle.pricing.totalWithHst.toLocaleString()}</span>
                           </div>
                         </div>
                         <Button className="w-full mt-4">Start your purchase</Button>
@@ -1243,23 +1319,23 @@ export default function VehicleDetailPage() {
                     <CardContent className="space-y-2">
                       <div className="flex justify-between py-2 border-b">
                         <span>Vehicle Price</span>
-                        <span className="font-medium">${vehicleData.price.toLocaleString()}</span>
+                        <span className="font-medium">${vehicle.price.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between py-2 border-b">
                         <span>HST (13%)</span>
-                        <span className="font-medium">${vehicleData.pricing.hst.toLocaleString()}</span>
+                        <span className="font-medium">${vehicle.pricing.hst.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between py-2 border-b">
                         <span>OMVIC Fee</span>
-                        <span className="font-medium">${vehicleData.pricing.omvicFee}</span>
+                        <span className="font-medium">${vehicle.pricing.omvicFee}</span>
                       </div>
                       <div className="flex justify-between py-2 border-b">
                         <span>Certification Fee</span>
-                        <span className="font-medium">${vehicleData.pricing.certificationFee}</span>
+                        <span className="font-medium">${vehicle.pricing.certificationFee}</span>
                       </div>
                       <div className="flex justify-between py-2 border-b">
                         <span>Licensing & Registration (est.)</span>
-                        <span className="font-medium">ON ~ ${vehicleData.pricing.licensingReg}</span>
+                        <span className="font-medium">ON ~ ${vehicle.pricing.licensingReg}</span>
                       </div>
                       <div className="flex justify-between py-2 border-b">
                         <span>Delivery</span>
@@ -1267,7 +1343,7 @@ export default function VehicleDetailPage() {
                       </div>
                       <div className="flex justify-between py-3 font-semibold text-lg">
                         <span>Estimated Total</span>
-                        <span className="text-primary">${(vehicleData.pricing.totalWithHst + vehicleData.pricing.certificationFee).toLocaleString()}</span>
+                        <span className="text-primary">${(vehicle.pricing.totalWithHst + vehicle.pricing.certificationFee).toLocaleString()}</span>
                       </div>
                       <p className="text-xs text-muted-foreground">
                         Estimate only. Includes OMVIC fee, certification, and Ontario registration. Exact amounts confirmed at signing.
@@ -1514,14 +1590,14 @@ export default function VehicleDetailPage() {
 
                   {/* Vehicle Title */}
                   <h2 className="text-xl font-bold">
-                    {vehicleData.year} {vehicleData.make} {vehicleData.model}
+                    {vehicle.year} {vehicle.make} {vehicle.model}
                   </h2>
                   <p className="text-muted-foreground text-sm">
-                    {vehicleData.trim} · {vehicleData.mileage.toLocaleString()} km
+                    {vehicle.trim} · {vehicle.mileage.toLocaleString()} km
                   </p>
 
                   {/* Price */}
-                  <p className="text-3xl font-bold mt-3">${vehicleData.price.toLocaleString()}</p>
+                  <p className="text-3xl font-bold mt-3">${vehicle.price.toLocaleString()}</p>
                   <div className="flex items-center gap-2 text-sm mt-1">
                     <span>Estimated <span className="font-semibold">${biweeklyPayment}/biweekly</span></span>
                     <span className="text-muted-foreground">·</span>
@@ -1547,13 +1623,13 @@ export default function VehicleDetailPage() {
                       <ReserveVehicleModal
                         vehicle={{
                           id: vehicleData.id,
-                          year: vehicleData.year,
-                          make: vehicleData.make,
-                          model: vehicleData.model,
-                          trim: vehicleData.trim,
-                          price: vehicleData.price,
+                          year: vehicle.year,
+                          make: vehicle.make,
+                          model: vehicle.model,
+                          trim: vehicle.trim,
+                          price: vehicle.price,
                           image: vehicleData.images[0],
-                          stockNumber: vehicleData.stockNumber
+                          stockNumber: vehicle.stockNumber
                         }}
                         trigger={
                           <Button className="w-full h-11 bg-red-600 hover:bg-red-700 text-white">
@@ -1652,8 +1728,8 @@ export default function VehicleDetailPage() {
           <h2 className="text-xl font-semibold mb-4">Other cars you might like</h2>
           <SimilarVehicles 
             currentVehicleId={vehicleData.id}
-            make={vehicleData.make}
-            priceRange={vehicleData.price}
+            make={vehicle.make}
+            priceRange={vehicle.price}
           />
         </div>
 </main>
@@ -1663,7 +1739,7 @@ export default function VehicleDetailPage() {
         <div className="flex items-center gap-3 max-w-lg mx-auto">
           <div className="shrink-0">
             <p className="text-xs text-muted-foreground">Price</p>
-            <p className="text-lg font-bold">${vehicleData.price.toLocaleString()}</p>
+            <p className="text-lg font-bold">${vehicle.price.toLocaleString()}</p>
           </div>
           <Button 
             className="flex-1 h-12 min-h-[48px] bg-red-600 hover:bg-red-700 text-white text-sm font-medium"
