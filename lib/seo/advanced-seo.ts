@@ -1,5 +1,4 @@
 // Advanced SEO Utilities for Planet Motors
-// Designed to outcompete Clutch.ca
 
 export const DOMAIN = "www.planetmotors.ca"
 export const BASE_URL = `https://${DOMAIN}`
@@ -86,13 +85,12 @@ export function generateLocationSlugs(): string[] {
   return slugs
 }
 
-// Competitor keyword gaps - terms Clutch ranks for that we should target
-export const competitorKeywordGaps = [
-  "clutch alternative",
-  "better than clutch cars",
-  "clutch vs canada drives",
+// High-value keyword opportunities
+export const keywordOpportunities = [
   "online car buying canada review",
   "buy car without dealer",
+  "best online car dealership canada",
+  "trusted used car dealer ontario",
 ]
 
 // Content topics for blog SEO

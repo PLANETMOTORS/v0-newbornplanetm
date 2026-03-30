@@ -1,6 +1,6 @@
 # Planet Motors
 
-> Canada's Premier Online Used Car Marketplace - Better than Clutch, Smarter than Carvana
+> Canada's Premier Online Used Car Marketplace
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org)
@@ -9,16 +9,16 @@
 
 ## What Makes Planet Motors Different
 
-| Feature | Planet Motors | Clutch | Carvana |
-|---------|--------------|--------|---------|
-| Inspection Points | **210-point** | 200-point | 150-point |
-| Return Policy | **10 days** | 10 days | 7 days |
-| Lender Network | **6 Canadian Banks** | 3 lenders | 1 in-house |
-| Home Delivery | **Free 250km** | $299 | $599 |
-| Trade-In Valuation | **Instant CBB + Photos** | Next-day | 2-3 days |
-| Price Transparency | **Full breakdown** | Hidden fees | Add-ons |
-| 360° Vehicle Views | **Interactive AVIF** | Static photos | Basic 360 |
-| EV Battery Health | **Full report** | Not offered | Basic |
+| Feature | Planet Motors |
+|---------|--------------|
+| Inspection Points | **210-point** |
+| Return Policy | **10 days** |
+| Lender Network | **6 Canadian Banks** |
+| Home Delivery | **Nationwide** |
+| Trade-In Valuation | **Instant CBB + Photos** |
+| Price Transparency | **Full breakdown** |
+| 360° Vehicle Views | **Interactive AVIF** |
+| EV Battery Health | **Full report** |
 
 ## Quick Start
 
