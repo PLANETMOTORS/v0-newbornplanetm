@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, EyeOff, Mail, LockKeyhole, Chrome, Apple, Loader2 } from "lucide-react"
+import { Eye, EyeOff, Mail, LockKeyhole, Chrome, Apple, Facebook, Loader2 } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 
 function LoginForm() {
@@ -47,7 +47,7 @@ function LoginForm() {
     }
   }
 
-  const handleOAuthLogin = async (provider: "google" | "apple") => {
+  const handleOAuthLogin = async (provider: "google" | "apple" | "facebook") => {
     setIsLoading(true)
     setError("")
     
@@ -55,26 +55,12 @@ function LoginForm() {
       const supabase = createClient()
       const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`
       
-      // Build OAuth options with dynamic credentials for Google
-      const oauthOptions: {
-        redirectTo: string
-        skipBrowserRedirect: boolean
-        queryParams?: Record<string, string>
-      } = {
-        redirectTo: callbackUrl,
-        skipBrowserRedirect: true,
-      }
-      
-      // Use dynamic OAuth with Google credentials from environment variables
-      if (provider === "google" && process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
-        oauthOptions.queryParams = {
-          client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-        }
-      }
-      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
-        options: oauthOptions,
+        options: {
+          redirectTo: callbackUrl,
+          skipBrowserRedirect: true,
+        },
       })
       
       if (error) {
@@ -119,7 +105,7 @@ function LoginForm() {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* OAuth Buttons */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <Button 
                   variant="outline" 
                   className="h-12"
@@ -137,6 +123,15 @@ function LoginForm() {
                 >
                   <Apple className="mr-2 h-5 w-5" />
                   Apple
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-12"
+                  onClick={() => handleOAuthLogin("facebook")}
+                  disabled={isLoading}
+                >
+                  <Facebook className="mr-2 h-5 w-5" />
+                  Facebook
                 </Button>
               </div>
 
