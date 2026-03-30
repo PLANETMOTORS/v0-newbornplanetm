@@ -1,7 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 20
+  // Force clean build - version 21 - explicit turbopack root
   cleanDistDir: true,
+  // Fix Turbopack workspace root resolution
+  turbopack: {
+    root: '/vercel/share/v0-project',
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
