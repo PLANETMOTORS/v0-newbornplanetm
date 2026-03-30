@@ -179,7 +179,7 @@ function InventoryContent() {
   const [selectedColor, setSelectedColor] = useState("All Colors")
   const [selectedDrivetrain, setSelectedDrivetrain] = useState("All Drivetrains")
   const [priceRange, setPriceRange] = useState([0, 400000])
-  const [mileageRange, setMileageRange] = useState([0, 100000])
+  const [mileageRange, setMileageRange] = useState([0, 200000])
   const [showFilters, setShowFilters] = useState(false)
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [sortBy, setSortBy] = useState("featured")
@@ -256,7 +256,7 @@ function InventoryContent() {
       
       return matchesSearch && matchesMake && matchesBodyType && matchesFuel && matchesYear && matchesTransmission && matchesColor && matchesDrivetrain && matchesPrice && matchesMileage && matchesEV
     })
-  }, [searchQuery, selectedMake, selectedBodyType, selectedFuelType, selectedYear, selectedTransmission, selectedColor, selectedDrivetrain, priceRange, mileageRange, evOnly])
+  }, [vehicles, searchQuery, selectedMake, selectedBodyType, selectedFuelType, selectedYear, selectedTransmission, selectedColor, selectedDrivetrain, priceRange, mileageRange, evOnly])
 
   // Sort vehicles
   const sortedVehicles = useMemo(() => {
@@ -540,7 +540,11 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
               {dynamicMakes.filter(m => m !== "All Makes").map(make => (
                 <button
                   key={make}
-                  onClick={() => setSelectedMake(selectedMake === make ? "All Makes" : make)}
+                  onClick={() => {
+                    // Reset EV filter when selecting a brand (tabs are independent)
+                    setEvOnly(false)
+                    setSelectedMake(selectedMake === make ? "All Makes" : make)
+                  }}
                   className={`px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap shrink-0 min-h-[44px] ${
                     selectedMake === make
                       ? "bg-primary text-primary-foreground"
@@ -732,6 +736,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    unoptimized={vehicle.image.includes('cpsimg.com')}
                   />
                   
                   {/* Badges */}
