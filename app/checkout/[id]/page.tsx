@@ -47,6 +47,13 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [purchaseType, setPurchaseType] = useState<"finance" | "cash">("finance")
   const [deliveryType, setDeliveryType] = useState<"pickup" | "delivery">("pickup")
+  const [deliveryQuote, setDeliveryQuote] = useState<{
+    cost: number
+    isFree: boolean
+    distance: number
+    message: string
+  } | null>(null)
+  const [isCalculatingDelivery, setIsCalculatingDelivery] = useState(false)
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -86,6 +93,43 @@ export default function CheckoutPage() {
     agreeToCredit: false,
   })
 
+  // Calculate delivery cost when postal code changes
+  const calculateDelivery = async (postalCode: string) => {
+    if (!postalCode || postalCode.length < 3) {
+      setDeliveryQuote(null)
+      return
+    }
+    
+    setIsCalculatingDelivery(true)
+    try {
+      const response = await fetch(`/api/v1/deliveries/quote?postalCode=${encodeURIComponent(postalCode)}`)
+      if (response.ok) {
+        const data = await response.json()
+        setDeliveryQuote({
+          cost: data.deliveryCost,
+          isFree: data.isFreeDelivery,
+          distance: data.distanceKm,
+          message: data.message
+        })
+      }
+    } catch {
+      // Fallback to default pricing if API fails
+      setDeliveryQuote({ cost: 0, isFree: true, distance: 0, message: "Free delivery" })
+    } finally {
+      setIsCalculatingDelivery(false)
+    }
+  }
+
+  // Recalculate delivery when postal code changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (formData.postalCode) {
+        calculateDelivery(formData.postalCode)
+      }
+    }, 500) // Debounce
+    return () => clearTimeout(timer)
+  }, [formData.postalCode])
+
   const handleSubmit = async () => {
     setIsSubmitting(true)
     await new Promise(resolve => setTimeout(resolve, 2000))
@@ -97,7 +141,10 @@ export default function CheckoutPage() {
   const omvicFee = 10
   const certificationFee = 699
   const adminFee = 499
-  const deliveryFee = deliveryType === "delivery" ? 299 : 0
+  // Dynamic delivery fee based on postal code distance (free within 300km)
+  const deliveryFee = deliveryType === "delivery" 
+    ? (deliveryQuote?.cost ?? 0)
+    : 0
   const subtotal = vehiclePrice + omvicFee + certificationFee + adminFee + deliveryFee
   const hst = Math.round(subtotal * 0.13)
   const total = subtotal + hst
@@ -272,11 +319,39 @@ export default function CheckoutPage() {
                         <RadioGroupItem value="delivery" id="delivery" />
                         <Label htmlFor="delivery" className="flex-1 cursor-pointer">
                           <div className="font-medium">Home Delivery</div>
-                          <div className="text-sm text-muted-foreground">Delivered to your address</div>
+                          <div className="text-sm text-muted-foreground">
+                            {isCalculatingDelivery ? (
+                              "Calculating delivery cost..."
+                            ) : deliveryQuote ? (
+                              deliveryQuote.isFree 
+                                ? `Free delivery to your area (${deliveryQuote.distance}km)` 
+                                : `${deliveryQuote.distance}km from dealership`
+                            ) : (
+                              "Enter postal code to calculate delivery"
+                            )}
+                          </div>
                         </Label>
-                        <Badge>$299</Badge>
+                        {isCalculatingDelivery ? (
+                          <Badge variant="outline">...</Badge>
+                        ) : deliveryQuote?.isFree ? (
+                          <Badge className="bg-green-600">FREE</Badge>
+                        ) : deliveryQuote ? (
+                          <Badge>${deliveryQuote.cost.toFixed(0)}</Badge>
+                        ) : (
+                          <Badge variant="outline">Enter postal code</Badge>
+                        )}
                       </div>
                     </RadioGroup>
+                    {deliveryQuote && !deliveryQuote.isFree && deliveryType === "delivery" && (
+                      <p className="text-xs text-muted-foreground mt-3">
+                        Delivery within 300km of Richmond Hill is FREE. Your location is {deliveryQuote.distance}km away.
+                      </p>
+                    )}
+                    {deliveryQuote?.isFree && deliveryType === "delivery" && (
+                      <p className="text-xs text-green-600 mt-3">
+                        Great news! Your location qualifies for FREE delivery (within 300km).
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -543,10 +618,12 @@ export default function CheckoutPage() {
                     <span>Admin Fee</span>
                     <span>${adminFee}</span>
                   </div>
-                  {deliveryFee > 0 && (
+                  {deliveryType === "delivery" && (
                     <div className="flex justify-between text-muted-foreground">
                       <span>Delivery</span>
-                      <span>${deliveryFee}</span>
+                      <span className={deliveryQuote?.isFree ? "text-green-600 font-medium" : ""}>
+                        {deliveryQuote?.isFree ? "FREE" : `$${deliveryFee}`}
+                      </span>
                     </div>
                   )}
                   <div className="flex justify-between text-muted-foreground">
