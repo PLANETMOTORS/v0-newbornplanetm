@@ -60,8 +60,9 @@ function transformToShowcase(v: any) {
   }
   
   // Check if primary_image_url is a valid image URL (not a VDP page URL)
+  // VDP URLs contain planetmotors.ca - reject all of those
   const isValidImageUrl = v.primary_image_url && 
-    !v.primary_image_url.includes('planetmotors.ca/inventory') &&
+    !v.primary_image_url.includes('planetmotors.ca') &&
     (v.primary_image_url.includes('.jpg') || 
      v.primary_image_url.includes('.png') || 
      v.primary_image_url.includes('.webp') ||

@@ -99,8 +99,9 @@ function transformVehicle(v: Vehicle) {
   else displayFuelType = "Gasoline"
   
   // Check if primary_image_url is a valid image URL (not a VDP page URL)
+  // VDP URLs contain planetmotors.ca and /inventory (sometimes with double slash)
   const isValidImageUrl = v.primary_image_url && 
-    !v.primary_image_url.includes('planetmotors.ca/inventory') &&
+    !v.primary_image_url.includes('planetmotors.ca') &&
     (v.primary_image_url.includes('.jpg') || 
      v.primary_image_url.includes('.png') || 
      v.primary_image_url.includes('.webp') ||
@@ -549,7 +550,14 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                 </button>
               ))}
               <button
-                onClick={() => setEvOnly(!evOnly)}
+                onClick={() => {
+                  const newEvOnly = !evOnly
+                  setEvOnly(newEvOnly)
+                  // When enabling EV filter, reset make to show all EVs
+                  if (newEvOnly) {
+                    setSelectedMake("All Makes")
+                  }
+                }}
                 className={`px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1 whitespace-nowrap shrink-0 min-h-[44px] ${
                   evOnly
                     ? "bg-green-500 text-white"
