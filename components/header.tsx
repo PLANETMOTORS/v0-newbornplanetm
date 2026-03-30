@@ -51,10 +51,17 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
+    let ticking = false
     const handleScroll = () => {
-      setScrolled(window.scrollY > 40)
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 40)
+          ticking = false
+        })
+        ticking = true
+      }
     }
-    window.addEventListener("scroll", handleScroll)
+    window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
@@ -69,8 +76,8 @@ export function Header() {
       </a>
       
       {/* Top bar with contact info */}
-      <div className={`bg-primary text-primary-foreground text-sm transition-all duration-300 ${scrolled ? "hidden" : "block"}`}>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-2 py-2">
+      <div className={`bg-primary text-primary-foreground text-sm transition-all duration-300 overflow-hidden ${scrolled ? "max-h-0 py-0" : "max-h-12 py-2"}`}>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-4 sm:gap-6">
             <a 
               href="tel:1-866-797-3332" 
@@ -100,11 +107,13 @@ export function Header() {
       </div>
 
       {/* Main header */}
-      <header className={`sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border transition-shadow duration-300 ${scrolled ? "shadow-sm" : ""}`} role="banner">
+      <header className={`sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border transition-shadow duration-300 will-change-transform ${scrolled ? "shadow-sm" : ""}`} role="banner">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-3 lg:px-8" aria-label="Main navigation">
           {/* Logo */}
-          <Link href="/" className="flex-shrink-0">
-            <PlanetMotorsLogo size={scrolled ? "sm" : "md"} showTagline={!scrolled} />
+          <Link href="/" className="flex-shrink-0 min-w-[120px]">
+            <div className="transition-transform duration-300 origin-left" style={{ transform: scrolled ? 'scale(0.85)' : 'scale(1)' }}>
+              <PlanetMotorsLogo size="md" showTagline={!scrolled} />
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
