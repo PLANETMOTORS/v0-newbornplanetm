@@ -1,14 +1,10 @@
-import { dirname, resolve } from 'path'
-import { fileURLToPath } from 'url'
-
-const __dirname = dirname(fileURLToPath(import.meta.url))
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 19 - turbopack root absolute path
+  // Force clean build - version 21 - explicit turbopack root
   cleanDistDir: true,
+  // Fix Turbopack workspace root resolution
   turbopack: {
-    root: resolve(__dirname),
+    root: '/vercel/share/v0-project',
   },
   typescript: {
     ignoreBuildErrors: true,
