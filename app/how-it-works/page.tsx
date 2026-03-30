@@ -184,10 +184,10 @@ export default function HowItWorksPage() {
         <section className="py-16">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
-              <Badge className="mb-4" variant="secondary">Sell Your Car</Badge>
-              <h2 className="text-3xl font-bold mb-4">4-Step Selling Process</h2>
+              <Badge className="mb-4" variant="secondary">Trade-In</Badge>
+              <h2 className="text-3xl font-bold mb-4">4-Step Trade-In Process</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Get a competitive offer and sell your car without leaving home.
+                Get a competitive trade-in offer without leaving home.
               </p>
             </div>
 
@@ -239,7 +239,7 @@ export default function HowItWorksPage() {
               </Link>
               <Link href="/trade-in">
                 <Button size="lg" variant="outline" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
-                  Sell Your Car
+                  Trade-In Your Car
                 </Button>
               </Link>
             </div>

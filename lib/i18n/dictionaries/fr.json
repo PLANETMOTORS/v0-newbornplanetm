@@ -40,12 +40,12 @@
     "evBattery": "Batterie VÉ"
   },
   "hero": {
-    "title": "Achetez ou vendez votre voiture en ligne",
-    "subtitle": "Nous achetons, reconditionnons et vendons des voitures. Certifié pour la qualité par des professionnels.",
+    "title": "Achetez votre voiture en ligne",
+    "subtitle": "Nous reconditionnons et vendons des véhicules d'occasion certifiés. Inspectés par des professionnels.",
     "tagline": "C'est Planet Motors.",
     "searchPlaceholder": "Rechercher par marque, modèle ou mot-clé",
     "browseInventory": "Parcourir l'inventaire",
-    "sellYourCar": "Vendez votre voiture"
+    "tradeIn": "Échange"
   },
   "inventory": {
     "title": "Notre inventaire",
