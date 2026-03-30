@@ -1,7 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 17 - turbopack enabled, cache cleared
+  // Force clean build - version 18 - turbopack root fixed
   cleanDistDir: true,
+  turbopack: {
+    root: '.',
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
