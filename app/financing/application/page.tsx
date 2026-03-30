@@ -7,11 +7,12 @@ export const metadata: Metadata = {
   description: "Complete your finance application for vehicle financing at Planet Motors. Get approved in minutes.",
 }
 
-export default function FinanceApplicationPage({
+export default async function FinanceApplicationPage({
   searchParams,
 }: {
-  searchParams: { vehicleId?: string }
+  searchParams: Promise<{ vehicleId?: string }>
 }) {
+  const params = await searchParams
   return (
     <div className="min-h-screen bg-muted/30">
       {/* Header */}
@@ -42,7 +43,7 @@ export default function FinanceApplicationPage({
       
       {/* Form Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <FinanceApplicationFullForm vehicleId={searchParams.vehicleId} />
+        <FinanceApplicationFullForm vehicleId={params.vehicleId} />
       </div>
     </div>
   )

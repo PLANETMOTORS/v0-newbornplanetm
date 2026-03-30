@@ -592,7 +592,7 @@ export default function FinanceCalculatorPage() {
               {/* CTA Buttons */}
               <div className="space-y-3">
                 <Button className="w-full h-12 text-base" size="lg" asChild>
-                  <Link href={`/financing/application?vehicle=${vehicleId}`}>
+                  <Link href={`/financing/application?vehicleId=${vehicleId}`}>
                     <CreditCard className="w-5 h-5 mr-2" />
                     Apply for Financing
                   </Link>
