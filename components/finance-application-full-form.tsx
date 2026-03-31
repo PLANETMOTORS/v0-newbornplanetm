@@ -191,7 +191,6 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
   // Auto-fill vehicle info when vehicleData is provided from inventory
   useEffect(() => {
     if (vehicleData) {
-      console.log("[v0] Auto-filling vehicle data from inventory:", vehicleData)
       setVehicleInfo(prev => ({
         ...prev,
         vin: vehicleData.vin || "",
