@@ -736,7 +736,12 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    unoptimized={vehicle.image.includes('cpsimg.com')}
+                    unoptimized={vehicle.image.includes('cpsimg.com') || vehicle.image.includes('carpages.ca')}
+                    onError={(e) => {
+                      // Fallback to placeholder if image fails to load
+                      const target = e.target as HTMLImageElement
+                      target.src = 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&auto=format&fit=crop&q=80'
+                    }}
                   />
                   
                   {/* Badges */}
