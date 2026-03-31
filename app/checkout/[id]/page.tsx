@@ -86,7 +86,7 @@ export default function CheckoutPage() {
     province: "ON",
     postalCode: "",
     // Financing
-    downPayment: "5000",
+    downPayment: "0",
     term: "60",
     // Terms
     agreeToTerms: false,
@@ -139,15 +139,19 @@ export default function CheckoutPage() {
 
   const vehiclePrice = vehicleData.price
   const omvicFee = 22 // OMVIC regulatory fee
-  const certificationFee = 595 // Safety certification
+  const certificationFee = 699 // Safety certification
+  const adminFee = 499 // Admin fee for financing
   const licensingFee = 59 // Ontario licensing & registration (estimated)
   // Dynamic delivery fee based on postal code distance (free within 300km)
   const deliveryFee = deliveryType === "delivery" 
-    ? (deliveryQuote?.cost ?? 0)
+    ? (deliveryQuote?.cost ?? 299)
     : 0
-  const subtotal = vehiclePrice + omvicFee + certificationFee + licensingFee + deliveryFee
-  const hst = Math.round(subtotal * 0.13)
-  const total = subtotal + hst
+  // HST applies to vehicle price only (13%)
+  const hst = Math.round(vehiclePrice * 0.13)
+  // Subtotal before HST
+  const subtotalBeforeHst = vehiclePrice + omvicFee + certificationFee + (purchaseType === "finance" ? adminFee : 0) + licensingFee + deliveryFee
+  // Total with HST
+  const total = subtotalBeforeHst + hst
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -289,8 +293,16 @@ export default function CheckoutPage() {
                         <Input
                           id="postalCode"
                           value={formData.postalCode}
-                          onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
+                          onChange={(e) => {
+                            // Format Canadian postal code (e.g., M5V 1A1)
+                            let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')
+                            if (value.length > 3) {
+                              value = value.slice(0, 3) + ' ' + value.slice(3, 6)
+                            }
+                            setFormData({ ...formData, postalCode: value.slice(0, 7) })
+                          }}
                           placeholder="M5V 1A1"
+                          maxLength={7}
                         />
                       </div>
                     </div>
@@ -410,8 +422,8 @@ export default function CheckoutPage() {
                       <div className="space-y-2">
                         <Label>Preferred Term</Label>
                         <RadioGroup value={formData.term} onValueChange={(v) => setFormData({ ...formData, term: v })}>
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            {["36", "48", "60", "72"].map((term) => (
+                          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                            {["24", "36", "48", "60", "72", "84"].map((term) => (
                               <div key={term} className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-muted/50 min-h-[48px]">
                                 <RadioGroupItem value={term} id={`term-${term}`} />
                                 <Label htmlFor={`term-${term}`} className="cursor-pointer">{term} mo</Label>
@@ -422,8 +434,15 @@ export default function CheckoutPage() {
                       </div>
                       <div className="p-4 bg-muted rounded-lg">
                         <p className="text-sm text-muted-foreground mb-1">Estimated Monthly Payment</p>
-                        <p className="text-2xl font-bold">${Math.round((total - parseInt(formData.downPayment)) / parseInt(formData.term))}/mo</p>
-                        <p className="text-xs text-muted-foreground mt-1">*Subject to credit approval. Rates from 6.99% APR.</p>
+                        <p className="text-2xl font-bold">${(() => {
+                          const principal = total - (parseInt(formData.downPayment) || 0)
+                          const monthlyRate = 0.0799 / 12 // 7.99% APR
+                          const months = parseInt(formData.term)
+                          if (principal <= 0) return 0
+                          const payment = (principal * monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1)
+                          return Math.round(payment)
+                        })()}/mo</p>
+                        <p className="text-xs text-muted-foreground mt-1">*Subject to credit approval. Rates from 6.99% APR OAC.</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -611,13 +630,15 @@ export default function CheckoutPage() {
                     <span>${omvicFee}</span>
                   </div>
                   <div className="flex justify-between text-muted-foreground">
-                    <span>Certification Fee</span>
+                    <span>Certification</span>
                     <span>${certificationFee}</span>
                   </div>
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Licensing & Registration (est.)</span>
-                    <span>~${licensingFee}</span>
-                  </div>
+                  {purchaseType === "finance" && (
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Admin Fee</span>
+                      <span>${adminFee}</span>
+                    </div>
+                  )}
                   {deliveryType === "delivery" && (
                     <div className="flex justify-between text-muted-foreground">
                       <span>Delivery</span>
@@ -626,6 +647,10 @@ export default function CheckoutPage() {
                       </span>
                     </div>
                   )}
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Licensing & Reg. (est.)</span>
+                    <span>~${licensingFee}</span>
+                  </div>
                   <div className="flex justify-between text-muted-foreground">
                     <span>HST (13%)</span>
                     <span>${hst.toLocaleString()}</span>
@@ -643,8 +668,16 @@ export default function CheckoutPage() {
                   <div className="p-3 bg-primary/5 rounded-lg text-center">
                     <p className="text-xs text-muted-foreground">Est. Monthly Payment</p>
                     <p className="text-xl font-bold text-primary">
-                      ${Math.round((total - parseInt(formData.downPayment || "0")) / parseInt(formData.term || "60"))}/mo
+                      ${(() => {
+                        const principal = total - (parseInt(formData.downPayment) || 0)
+                        const monthlyRate = 0.0799 / 12
+                        const months = parseInt(formData.term) || 60
+                        if (principal <= 0) return 0
+                        const payment = (principal * monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1)
+                        return Math.round(payment)
+                      })()}/mo
                     </p>
+                    <p className="text-xs text-muted-foreground mt-1">@ 7.99% APR for {formData.term} mo</p>
                   </div>
                 )}
 
