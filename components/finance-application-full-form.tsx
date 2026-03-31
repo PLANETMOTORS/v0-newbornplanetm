@@ -1800,8 +1800,8 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
               
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                  <Label className="text-xs">Admin Fee $ <span className="text-muted-foreground">(Finance setup)</span></Label>
-                  <Input value={financingTerms.adminFee} onChange={(e) => setFinancingTerms({ ...financingTerms, adminFee: e.target.value })} />
+                  <Label className="text-xs">Finance Docs Fee $ <span className="text-primary font-medium">($895)</span></Label>
+                  <Input value={financingTerms.adminFee} onChange={(e) => setFinancingTerms({ ...financingTerms, adminFee: e.target.value })} readOnly className="bg-muted" />
                 </div>
                 <div>
                   <Label className="text-xs">Delivery Fee $ <span className="text-muted-foreground">(Enter postal code)</span></Label>
@@ -1889,9 +1889,9 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                   <span className="text-muted-foreground">Vehicle Price:</span>
                   <span>${financing.price.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Admin Fee <span className="text-xs">(Finance setup)</span>:</span>
-                  <span>${financing.adminFee.toLocaleString()}</span>
+                <div className="flex justify-between text-primary">
+                  <span className="font-medium">Finance Docs Fee:</span>
+                  <span className="font-medium">+${financing.adminFee.toLocaleString()}</span>
                 </div>
                 {financing.deliveryFee > 0 && (
                   <div className="flex justify-between">
