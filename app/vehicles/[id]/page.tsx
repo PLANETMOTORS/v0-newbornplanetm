@@ -473,7 +473,13 @@ export default function VehicleDetailPage() {
 
   const currentImages = imageType === "exterior" ? vehicle.images : vehicleData.interiorImages
   const savings = (vehicleData.originalPrice || vehicle.price * 1.1) - vehicle.price
-  const biweeklyPayment = Math.round(vehicle.price / 208) // Rough estimate for 8 years
+  
+  // Finance calculation: Vehicle Price + $895 Admin Fee (Finance Docs Set-up)
+  const FINANCE_ADMIN_FEE = 895
+  const financeSubtotal = vehicle.price + FINANCE_ADMIN_FEE
+  const financeTax = financeSubtotal * 0.13
+  const financeTotal = financeSubtotal + financeTax
+  const biweeklyPayment = Math.round(financeTotal / 208) // 8 years bi-weekly (26 payments x 8)
 
   return (
     <div className="min-h-screen bg-background">
@@ -1245,7 +1251,7 @@ export default function VehicleDetailPage() {
                   <h2 className="text-2xl font-bold text-center">Price Details</h2>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Pay Over Time */}
+                    {/* Pay Over Time - Includes $895 Finance Docs Fee */}
                     <Card>
                       <CardHeader className="pb-2">
                         <CardTitle className="text-sm text-muted-foreground">PAY OVER TIME</CardTitle>
@@ -1253,8 +1259,26 @@ export default function VehicleDetailPage() {
                       <CardContent>
                         <p className="text-3xl font-bold">${biweeklyPayment}<span className="text-lg font-normal">/biweekly*</span></p>
                         <p className="text-xs text-muted-foreground mt-2">
-                          *Estimated payment based on 8.99% APR for 84 months, includes $0 cash down. OAC — on approved credit. Taxes extra.
+                          *Estimated payment based on 8.99% APR for 84 months, includes $0 cash down. OAC — on approved credit.
                         </p>
+                        <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+                          <div className="flex justify-between">
+                            <span>Vehicle Price</span>
+                            <span>${vehicle.price.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between text-primary font-medium">
+                            <span>Finance Docs Fee</span>
+                            <span>+${FINANCE_ADMIN_FEE}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>HST (13%)</span>
+                            <span>+${Math.round(financeTax).toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between font-semibold text-foreground pt-1 border-t">
+                            <span>Total Financed</span>
+                            <span>${Math.round(financeTotal).toLocaleString()}</span>
+                          </div>
+                        </div>
                         <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg">
                           <p className="text-sm flex items-center gap-2">
                             <TrendingUp className="w-4 h-4 text-amber-600" />
@@ -1262,19 +1286,20 @@ export default function VehicleDetailPage() {
                           </p>
                           <p className="text-xs text-muted-foreground">Get personalized financing terms in 2 minutes — no impact to your credit score.</p>
                         </div>
-<Button className="w-full mt-4" variant="outline" asChild>
-  <Link href={`/finance/${vehicle.id}`}>Get pre-qualified</Link>
-  </Button>
+                        <Button className="w-full mt-4" variant="outline" asChild>
+                          <Link href={`/finance/${vehicle.id}`}>Get pre-qualified</Link>
+                        </Button>
                       </CardContent>
                     </Card>
 
-                    {/* Pay Once */}
+                    {/* Pay Once - Cash price (no Finance Docs Fee) */}
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm text-muted-foreground">PAY ONCE</CardTitle>
+                        <CardTitle className="text-sm text-muted-foreground">PAY ONCE (CASH)</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <p className="text-3xl font-bold">${vehicle.price.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground mt-1">As-is price · No Finance Docs Fee</p>
                         <div className="flex items-center gap-2 text-sm text-primary mt-2">
                           <Truck className="w-4 h-4" />
                           Nationwide delivery available · Richmond Hill
