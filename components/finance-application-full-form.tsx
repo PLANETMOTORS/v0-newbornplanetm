@@ -115,9 +115,11 @@ interface FinancingTerms {
   salesTaxRate: string
   interestRate: string
   adminFee: string
+  deliveryFee: string
+  deliveryPostalCode: string
   loanTermMonths: number
   paymentFrequency: "weekly" | "bi-weekly" | "semi-monthly" | "monthly"
-}
+  }
 
 interface DocumentUpload {
   type: string
@@ -249,13 +251,15 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
     hasLien: false, lienHolder: "", lienAmount: ""
   })
   
-  const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
-    agreementType: "finance",
-    salesTaxRate: "13",
-    interestRate: "",
-    adminFee: "895",
-    loanTermMonths: 72,
-    paymentFrequency: "bi-weekly"
+const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
+  agreementType: "finance",
+  salesTaxRate: "13",
+  interestRate: "",
+  adminFee: "895",
+  deliveryFee: "0",
+  deliveryPostalCode: "",
+  loanTermMonths: 72,
+  paymentFrequency: "bi-weekly"
   })
   
   const [documents, setDocuments] = useState<DocumentUpload[]>([])
@@ -277,10 +281,13 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
     const tradeValue = tradeIn.hasTradeIn ? (parseFloat(tradeIn.estimatedValue) || 0) : 0
     const lienAmount = tradeIn.hasLien ? (parseFloat(tradeIn.lienAmount) || 0) : 0
     const netTrade = tradeValue - lienAmount
-    const adminFee = parseFloat(financingTerms.adminFee) || 895
+    const adminFee = financingTerms.agreementType === "finance" ? (parseFloat(financingTerms.adminFee) || 895) : 0
+    const deliveryFee = parseFloat(financingTerms.deliveryFee) || 0
     const taxRate = parseFloat(financingTerms.salesTaxRate) / 100 || 0.13
     
-    const subtotal = price + adminFee - downPayment - netTrade
+    // For Finance: Price + Admin Fee ($895) + Delivery Fee + Tax - Down Payment - Trade
+    // For Cash: Price only (no admin fee)
+    const subtotal = price + adminFee + deliveryFee - downPayment - netTrade
     const tax = subtotal * taxRate
     const amountFinanced = subtotal + tax
     
@@ -308,6 +315,7 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
       downPayment,
       netTrade,
       adminFee,
+      deliveryFee,
       tax,
       amountFinanced,
       payment: isNaN(payment) ? 0 : payment,
@@ -1405,9 +1413,9 @@ interface VehicleFinancingFormProps {
   setAdditionalNotes: (n: string) => void
 }
 
-function calculateFinancing(): { price: number; downPayment: number; netTrade: number; adminFee: number; tax: number; amountFinanced: number; payment: number; totalToRepay: number; totalInterest: number; totalPayments: number } {
-  return { price: 0, downPayment: 0, netTrade: 0, adminFee: 0, tax: 0, amountFinanced: 0, payment: 0, totalToRepay: 0, totalInterest: 0, totalPayments: 0 }
-}
+function calculateFinancing(): { price: number; downPayment: number; netTrade: number; adminFee: number; deliveryFee: number; tax: number; amountFinanced: number; payment: number; totalToRepay: number; totalInterest: number; totalPayments: number } {
+  return { price: 0, downPayment: 0, netTrade: 0, adminFee: 0, deliveryFee: 0, tax: 0, amountFinanced: 0, payment: 0, totalToRepay: 0, totalInterest: 0, totalPayments: 0 }
+  }
 
 function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn, financingTerms, setFinancingTerms, financing, additionalNotes, setAdditionalNotes }: VehicleFinancingFormProps) {
   // Check if vehicle data was pre-filled (has year and make)
@@ -1790,9 +1798,47 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                 </div>
               </div>
               
-              <div className="mb-4">
-                <Label className="text-xs">Admin Fee $</Label>
-                <Input value={financingTerms.adminFee} onChange={(e) => setFinancingTerms({ ...financingTerms, adminFee: e.target.value })} />
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <Label className="text-xs">Admin Fee $ <span className="text-muted-foreground">(Finance setup)</span></Label>
+                  <Input value={financingTerms.adminFee} onChange={(e) => setFinancingTerms({ ...financingTerms, adminFee: e.target.value })} />
+                </div>
+                <div>
+                  <Label className="text-xs">Delivery Fee $ <span className="text-muted-foreground">(Enter postal code)</span></Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      value={financingTerms.deliveryPostalCode} 
+                      onChange={(e) => setFinancingTerms({ ...financingTerms, deliveryPostalCode: e.target.value.toUpperCase() })}
+                      placeholder="L4C 1G7"
+                      className="flex-1 font-mono uppercase"
+                    />
+                    <Button 
+                      type="button" 
+                      size="sm" 
+                      variant="outline"
+                      onClick={async () => {
+                        if (financingTerms.deliveryPostalCode.length >= 3) {
+                          try {
+                            const res = await fetch(`/api/v1/deliveries/quote?postalCode=${financingTerms.deliveryPostalCode}`)
+                            const data = await res.json()
+                            if (data.deliveryCost !== undefined) {
+                              setFinancingTerms({ ...financingTerms, deliveryFee: data.deliveryCost.toString() })
+                            }
+                          } catch {
+                            setFinancingTerms({ ...financingTerms, deliveryFee: "0" })
+                          }
+                        }
+                      }}
+                    >
+                      Check
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {parseFloat(financingTerms.deliveryFee) > 0 
+                      ? `Delivery: $${parseFloat(financingTerms.deliveryFee).toFixed(0)}` 
+                      : "Free within 300km of Richmond Hill"}
+                  </p>
+                </div>
               </div>
               
               {/* Loan Term */}
@@ -1844,9 +1890,15 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                   <span>${financing.price.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Admin Fee:</span>
+                  <span className="text-muted-foreground">Admin Fee <span className="text-xs">(Finance setup)</span>:</span>
                   <span>${financing.adminFee.toLocaleString()}</span>
                 </div>
+                {financing.deliveryFee > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Delivery Fee:</span>
+                    <span>+${financing.deliveryFee.toLocaleString()}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Sales Tax ({financingTerms.salesTaxRate}%):</span>
                   <span>+${financing.tax.toLocaleString()}</span>

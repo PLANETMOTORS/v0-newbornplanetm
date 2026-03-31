@@ -97,10 +97,14 @@ export default function FinanceCalculatorPage() {
     if (!vehicle) return null
 
     const vehiclePrice = vehicle.price / 100 // Convert from cents
-    // HST applies to FULL subtotal (vehicle + all fees)
-    const subtotalForHst = vehiclePrice + adminFee
+    
+    // Admin fee ($895 Finance Docs Fee) ONLY applies when financing, NOT for cash
+    const applicableAdminFee = agreementType === "finance" ? adminFee : 0
+    
+    // HST applies to vehicle price + admin fee (if financing)
+    const subtotalForHst = vehiclePrice + applicableAdminFee
     const hstAmount = subtotalForHst * HST_RATE
-    const totalBeforeCredits = vehiclePrice + hstAmount + adminFee
+    const totalBeforeCredits = vehiclePrice + hstAmount + applicableAdminFee
     const totalCredits = downPayment + (hasTradeIn ? tradeInValue : 0)
     const amountToFinance = Math.max(0, totalBeforeCredits - totalCredits)
 
@@ -127,7 +131,7 @@ export default function FinanceCalculatorPage() {
     return {
       vehiclePrice,
       hstAmount,
-      adminFee,
+      adminFee: applicableAdminFee,
       totalBeforeCredits,
       downPayment,
       tradeInValue: hasTradeIn ? tradeInValue : 0,
