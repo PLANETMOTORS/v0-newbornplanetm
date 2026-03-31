@@ -6,7 +6,8 @@ const nextConfig = {
   // The turbopack.root config caused "Invalid distDirRoot" errors
   turbopack: {},
   typescript: {
-    ignoreBuildErrors: true,
+    // Build will fail on TypeScript errors - clean builds only
+    ignoreBuildErrors: false,
   },
   images: {
     loader: 'custom',
