@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { 
   User, MapPin, Home, Briefcase, DollarSign, Car, FileText, Upload,
-  ArrowRight, ArrowLeft, CheckCircle, Loader2, Shield, AlertCircle, X
+  ArrowRight, ArrowLeft, CheckCircle, Loader2, Shield, AlertCircle, X, Check
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -890,41 +890,46 @@ function PostalCodeInput({ value, onChange, label = "Postal Code *" }: PostalCod
             fetchAddressSuggestions(formatted)
           }}
           onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-          onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+          onBlur={() => setTimeout(() => setShowSuggestions(false), 300)}
           placeholder="L4B 0G2"
-          className="font-mono uppercase pr-8"
+          className="font-mono uppercase pr-8 border-primary/50 focus:border-primary"
         />
         {isLoading && (
-          <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+          <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-primary" />
         )}
       </div>
       
       {/* City/Province indicator */}
       {cityProvince.city && (
-        <p className="text-xs text-green-600 mt-1">
+        <p className="text-xs text-green-600 mt-1 font-medium flex items-center gap-1">
+          <CheckCircle className="w-3 h-3" />
           {cityProvince.city}, {cityProvince.province}
         </p>
       )}
       
-      {/* Street suggestions dropdown */}
+      {/* Street suggestions dropdown - MANDATORY SELECTION */}
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-background border rounded-lg shadow-lg max-h-48 overflow-y-auto">
-          <p className="px-3 py-2 text-xs text-muted-foreground border-b bg-muted/50">
-            Select a street to auto-fill address:
-          </p>
+        <div className="absolute z-50 w-[350px] mt-1 bg-background border-2 border-primary rounded-lg shadow-xl max-h-64 overflow-y-auto">
+          <div className="px-3 py-2 bg-primary/10 border-b border-primary/20 sticky top-0">
+            <p className="text-xs font-semibold text-primary">
+              Select your street to auto-fill address:
+            </p>
+          </div>
           {suggestions.map((suggestion, idx) => (
             <button
               key={idx}
               type="button"
-              className="w-full px-3 py-2 text-left text-sm hover:bg-primary/10 flex items-center gap-2 border-b last:border-b-0"
+              className="w-full px-3 py-3 text-left text-sm hover:bg-primary/10 flex items-center gap-3 border-b last:border-b-0 transition-colors"
               onClick={() => handleSelectSuggestion(suggestion)}
             >
-              <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-              <span>
-                <span className="font-medium">{suggestion.streetName} {suggestion.streetType}</span>
-                {suggestion.direction && <span className="text-muted-foreground"> {suggestion.direction}</span>}
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <MapPin className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <span className="font-semibold text-foreground">{suggestion.streetName} {suggestion.streetType}</span>
+                {suggestion.direction && <span className="text-primary font-medium"> {suggestion.direction}</span>}
                 <span className="text-muted-foreground text-xs block">{suggestion.city}, {suggestion.province}</span>
-              </span>
+              </div>
             </button>
           ))}
         </div>

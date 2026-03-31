@@ -14,40 +14,69 @@ interface AddressSuggestion {
   fullAddress: string
 }
 
-// Comprehensive Canadian postal code to address mapping
-const postalCodeDatabase: Record<string, AddressSuggestion[]> = {
-  // Richmond Hill
-  "L4B0G2": [
-    { streetName: "Highway 7", streetType: "Road", city: "Richmond Hill", province: "Ontario", postalCode: "L4B 0G2", fullAddress: "Highway 7 Road, Richmond Hill, ON" },
-    { streetName: "Leslie", streetType: "Street", city: "Richmond Hill", province: "Ontario", postalCode: "L4B 0G2", fullAddress: "Leslie Street, Richmond Hill, ON" },
+// Comprehensive Canadian postal code to address mapping by prefix
+const postalCodePrefixStreets: Record<string, AddressSuggestion[]> = {
+  // Richmond Hill L4B
+  "L4B": [
+    { streetName: "Highway 7", streetType: "Road", direction: "East", city: "Richmond Hill", province: "Ontario", postalCode: "L4B", fullAddress: "Highway 7 Road East, Richmond Hill, ON" },
+    { streetName: "Leslie", streetType: "Street", city: "Richmond Hill", province: "Ontario", postalCode: "L4B", fullAddress: "Leslie Street, Richmond Hill, ON" },
+    { streetName: "Yonge", streetType: "Street", city: "Richmond Hill", province: "Ontario", postalCode: "L4B", fullAddress: "Yonge Street, Richmond Hill, ON" },
+    { streetName: "Bayview", streetType: "Avenue", city: "Richmond Hill", province: "Ontario", postalCode: "L4B", fullAddress: "Bayview Avenue, Richmond Hill, ON" },
+    { streetName: "Major Mackenzie", streetType: "Drive", direction: "East", city: "Richmond Hill", province: "Ontario", postalCode: "L4B", fullAddress: "Major Mackenzie Drive East, Richmond Hill, ON" },
   ],
-  "L4B1A1": [
-    { streetName: "Times", streetType: "Avenue", city: "Richmond Hill", province: "Ontario", postalCode: "L4B 1A1", fullAddress: "Times Avenue, Richmond Hill, ON" },
+  // Richmond Hill L4C
+  "L4C": [
+    { streetName: "Major Mackenzie", streetType: "Drive", direction: "East", city: "Richmond Hill", province: "Ontario", postalCode: "L4C", fullAddress: "Major Mackenzie Drive East, Richmond Hill, ON" },
+    { streetName: "Major Mackenzie", streetType: "Drive", direction: "West", city: "Richmond Hill", province: "Ontario", postalCode: "L4C", fullAddress: "Major Mackenzie Drive West, Richmond Hill, ON" },
+    { streetName: "Yonge", streetType: "Street", city: "Richmond Hill", province: "Ontario", postalCode: "L4C", fullAddress: "Yonge Street, Richmond Hill, ON" },
+    { streetName: "Bathurst", streetType: "Street", city: "Richmond Hill", province: "Ontario", postalCode: "L4C", fullAddress: "Bathurst Street, Richmond Hill, ON" },
+    { streetName: "Elgin Mills", streetType: "Road", direction: "East", city: "Richmond Hill", province: "Ontario", postalCode: "L4C", fullAddress: "Elgin Mills Road East, Richmond Hill, ON" },
+    { streetName: "King", streetType: "Road", city: "Richmond Hill", province: "Ontario", postalCode: "L4C", fullAddress: "King Road, Richmond Hill, ON" },
   ],
-  "L4B4M6": [
-    { streetName: "Commerce Valley", streetType: "Drive", direction: "East", city: "Richmond Hill", province: "Ontario", postalCode: "L4B 4M6", fullAddress: "Commerce Valley Drive East, Richmond Hill, ON" },
+  // Richmond Hill L4E
+  "L4E": [
+    { streetName: "Yonge", streetType: "Street", city: "Richmond Hill", province: "Ontario", postalCode: "L4E", fullAddress: "Yonge Street, Richmond Hill, ON" },
+    { streetName: "Bloomington", streetType: "Road", city: "Richmond Hill", province: "Ontario", postalCode: "L4E", fullAddress: "Bloomington Road, Richmond Hill, ON" },
+    { streetName: "19th", streetType: "Avenue", city: "Richmond Hill", province: "Ontario", postalCode: "L4E", fullAddress: "19th Avenue, Richmond Hill, ON" },
+    { streetName: "Stouffville", streetType: "Road", city: "Richmond Hill", province: "Ontario", postalCode: "L4E", fullAddress: "Stouffville Road, Richmond Hill, ON" },
   ],
-  // Markham
-  "L3R5M9": [
-    { streetName: "Warden", streetType: "Avenue", city: "Markham", province: "Ontario", postalCode: "L3R 5M9", fullAddress: "Warden Avenue, Markham, ON" },
+  // Richmond Hill L4S
+  "L4S": [
+    { streetName: "Bayview", streetType: "Avenue", city: "Richmond Hill", province: "Ontario", postalCode: "L4S", fullAddress: "Bayview Avenue, Richmond Hill, ON" },
+    { streetName: "16th", streetType: "Avenue", city: "Richmond Hill", province: "Ontario", postalCode: "L4S", fullAddress: "16th Avenue, Richmond Hill, ON" },
+    { streetName: "Leslie", streetType: "Street", city: "Richmond Hill", province: "Ontario", postalCode: "L4S", fullAddress: "Leslie Street, Richmond Hill, ON" },
   ],
-  "L6E1A1": [
-    { streetName: "Main Street", streetType: "North", city: "Markham", province: "Ontario", postalCode: "L6E 1A1", fullAddress: "Main Street North, Markham, ON" },
+  // Markham L3R
+  "L3R": [
+    { streetName: "Warden", streetType: "Avenue", city: "Markham", province: "Ontario", postalCode: "L3R", fullAddress: "Warden Avenue, Markham, ON" },
+    { streetName: "Highway 7", streetType: "Road", direction: "East", city: "Markham", province: "Ontario", postalCode: "L3R", fullAddress: "Highway 7 Road East, Markham, ON" },
+    { streetName: "McCowan", streetType: "Road", city: "Markham", province: "Ontario", postalCode: "L3R", fullAddress: "McCowan Road, Markham, ON" },
+    { streetName: "Denison", streetType: "Street", city: "Markham", province: "Ontario", postalCode: "L3R", fullAddress: "Denison Street, Markham, ON" },
   ],
-  // Toronto
-  "M5V3L9": [
-    { streetName: "Spadina", streetType: "Avenue", city: "Toronto", province: "Ontario", postalCode: "M5V 3L9", fullAddress: "Spadina Avenue, Toronto, ON" },
+  // Markham L6E
+  "L6E": [
+    { streetName: "Main Street", streetType: "Markham", city: "Markham", province: "Ontario", postalCode: "L6E", fullAddress: "Main Street Markham, Markham, ON" },
+    { streetName: "9th Line", streetType: "Road", city: "Markham", province: "Ontario", postalCode: "L6E", fullAddress: "9th Line Road, Markham, ON" },
+    { streetName: "Markham", streetType: "Road", city: "Markham", province: "Ontario", postalCode: "L6E", fullAddress: "Markham Road, Markham, ON" },
   ],
-  "M4B1B3": [
-    { streetName: "Victoria Park", streetType: "Avenue", city: "Toronto", province: "Ontario", postalCode: "M4B 1B3", fullAddress: "Victoria Park Avenue, Toronto, ON" },
+  // Toronto M5V
+  "M5V": [
+    { streetName: "Spadina", streetType: "Avenue", city: "Toronto", province: "Ontario", postalCode: "M5V", fullAddress: "Spadina Avenue, Toronto, ON" },
+    { streetName: "King", streetType: "Street", direction: "West", city: "Toronto", province: "Ontario", postalCode: "M5V", fullAddress: "King Street West, Toronto, ON" },
+    { streetName: "Queen", streetType: "Street", direction: "West", city: "Toronto", province: "Ontario", postalCode: "M5V", fullAddress: "Queen Street West, Toronto, ON" },
+    { streetName: "Front", streetType: "Street", direction: "West", city: "Toronto", province: "Ontario", postalCode: "M5V", fullAddress: "Front Street West, Toronto, ON" },
   ],
-  // Mississauga
-  "L5B4M7": [
-    { streetName: "Hurontario", streetType: "Street", city: "Mississauga", province: "Ontario", postalCode: "L5B 4M7", fullAddress: "Hurontario Street, Mississauga, ON" },
+  // Mississauga L5B
+  "L5B": [
+    { streetName: "Hurontario", streetType: "Street", city: "Mississauga", province: "Ontario", postalCode: "L5B", fullAddress: "Hurontario Street, Mississauga, ON" },
+    { streetName: "Dundas", streetType: "Street", direction: "East", city: "Mississauga", province: "Ontario", postalCode: "L5B", fullAddress: "Dundas Street East, Mississauga, ON" },
+    { streetName: "Burnhamthorpe", streetType: "Road", city: "Mississauga", province: "Ontario", postalCode: "L5B", fullAddress: "Burnhamthorpe Road, Mississauga, ON" },
   ],
-  // Brampton
-  "L6Y5M3": [
-    { streetName: "Queen", streetType: "Street", direction: "East", city: "Brampton", province: "Ontario", postalCode: "L6Y 5M3", fullAddress: "Queen Street East, Brampton, ON" },
+  // Brampton L6Y
+  "L6Y": [
+    { streetName: "Queen", streetType: "Street", direction: "East", city: "Brampton", province: "Ontario", postalCode: "L6Y", fullAddress: "Queen Street East, Brampton, ON" },
+    { streetName: "Main", streetType: "Street", direction: "North", city: "Brampton", province: "Ontario", postalCode: "L6Y", fullAddress: "Main Street North, Brampton, ON" },
+    { streetName: "Bovaird", streetType: "Drive", direction: "East", city: "Brampton", province: "Ontario", postalCode: "L6Y", fullAddress: "Bovaird Drive East, Brampton, ON" },
   ],
 }
 
@@ -112,45 +141,40 @@ export async function GET(request: NextRequest) {
   const city = getCityFromPostalCode(postalCode)
   const province = getProvinceFromPostalCode(postalCode)
   
-  // Check if we have street-level data for this postal code
-  const streetSuggestions = postalCodeDatabase[postalCode] || []
+  // Get prefix (first 3 characters)
+  const prefix = postalCode.slice(0, 3)
   
-  // If we have full postal code (6 chars), provide more specific suggestions
-  if (postalCode.length >= 6) {
-    // Generate common street suggestions for the area
-    const commonStreets = [
-      { streetName: "Main", streetType: "Street" },
-      { streetName: "King", streetType: "Street" },
-      { streetName: "Queen", streetType: "Street" },
-      { streetName: "Church", streetType: "Street" },
-      { streetName: "Bay", streetType: "Street" },
-      { streetName: "Yonge", streetType: "Street" },
-      { streetName: "Dundas", streetType: "Street" },
-      { streetName: "College", streetType: "Street" },
-      { streetName: "Bloor", streetType: "Street" },
-      { streetName: "Lawrence", streetType: "Avenue" },
-      { streetName: "Eglinton", streetType: "Avenue" },
-      { streetName: "Finch", streetType: "Avenue" },
-      { streetName: "Steeles", streetType: "Avenue" },
-    ]
-    
-    const generatedSuggestions = city ? commonStreets.slice(0, 5).map(s => ({
-      ...s,
+  // Check if we have street-level data for this postal code prefix
+  const streetSuggestions = postalCodePrefixStreets[prefix] || []
+  
+  // Always return suggestions if we have them for the prefix
+  if (streetSuggestions.length > 0) {
+    return NextResponse.json({
+      suggestions: streetSuggestions,
       city,
       province,
-      postalCode: postalCode.slice(0, 3) + ' ' + postalCode.slice(3),
-      fullAddress: `${s.streetName} ${s.streetType}, ${city}, ${province.slice(0, 2).toUpperCase()}`
-    })) : []
+    })
+  }
+  
+  // Fallback: Generate common street suggestions for areas without specific data
+  if (city && postalCode.length >= 3) {
+    const commonStreets: AddressSuggestion[] = [
+      { streetName: "Main", streetType: "Street", city, province, postalCode: prefix, fullAddress: `Main Street, ${city}, ON` },
+      { streetName: "King", streetType: "Street", city, province, postalCode: prefix, fullAddress: `King Street, ${city}, ON` },
+      { streetName: "Queen", streetType: "Street", city, province, postalCode: prefix, fullAddress: `Queen Street, ${city}, ON` },
+      { streetName: "Church", streetType: "Street", city, province, postalCode: prefix, fullAddress: `Church Street, ${city}, ON` },
+      { streetName: "Yonge", streetType: "Street", city, province, postalCode: prefix, fullAddress: `Yonge Street, ${city}, ON` },
+    ]
     
     return NextResponse.json({
-      suggestions: streetSuggestions.length > 0 ? streetSuggestions : generatedSuggestions,
+      suggestions: commonStreets,
       city,
       province,
     })
   }
   
   return NextResponse.json({
-    suggestions: streetSuggestions,
+    suggestions: [],
     city,
     province,
   })
