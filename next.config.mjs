@@ -1,28 +1,20 @@
-import path from 'path'
-import { fileURLToPath } from 'url'
-
-// Get the directory of this config file - works in both dev and production
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 27 - use import.meta.url for correct path
+  // Force clean build - version 39
   cleanDistDir: true,
-  // Turbopack configuration with correct project root from import.meta.url
+  // PERMANENT FIX: Turbopack configuration for v0 sandbox
+  // The v0 sandbox incorrectly infers /vercel/share/v0-next-shadcn as workspace root
+  // but actual project is at /vercel/share/v0-project
   turbopack: {
-    root: __dirname,
+    root: '/vercel/share/v0-project',
     resolveAlias: {
-      '@': __dirname,
+      '@/lib/utils': '/vercel/share/v0-project/lib/utils',
+      '@/lib/*': '/vercel/share/v0-project/lib/*',
+      '@/components/*': '/vercel/share/v0-project/components/*',
+      '@/app/*': '/vercel/share/v0-project/app/*',
+      '@/hooks/*': '/vercel/share/v0-project/hooks/*',
+      '@/*': '/vercel/share/v0-project/*',
     },
-  },
-  // Webpack for production builds
-  webpack: (config) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@': __dirname,
-    }
-    return config
   },
   typescript: {
     ignoreBuildErrors: true,
