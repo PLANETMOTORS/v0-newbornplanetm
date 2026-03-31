@@ -176,17 +176,72 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
   const [coApplicantRelation, setCoApplicantRelation] = useState("")
   
   const [vehicleInfo, setVehicleInfo] = useState<VehicleInfo>({
-    vin: vehicleData?.vin || "",
-    year: vehicleData?.year?.toString() || "",
-    make: vehicleData?.make || "",
-    model: vehicleData?.model || "",
-    trim: vehicleData?.trim || "",
-    color: vehicleData?.color || "",
-    mileage: vehicleData?.mileage?.toString() || "",
-    totalPrice: vehicleData?.price?.toString() || "",
+    vin: "",
+    year: "",
+    make: "",
+    model: "",
+    trim: "",
+    color: "",
+    mileage: "",
+    totalPrice: "",
     downPayment: "0",
     maxDownPayment: ""
   })
+  
+  // Auto-fill vehicle info when vehicleData is provided from inventory
+  useEffect(() => {
+    if (vehicleData) {
+      console.log("[v0] Auto-filling vehicle data from inventory:", vehicleData)
+      setVehicleInfo(prev => ({
+        ...prev,
+        vin: vehicleData.vin || "",
+        year: vehicleData.year?.toString() || "",
+        make: vehicleData.make || "",
+        model: vehicleData.model || "",
+        trim: vehicleData.trim || "",
+        color: vehicleData.color || "",
+        mileage: vehicleData.mileage?.toString() || "",
+        totalPrice: vehicleData.price?.toString() || "",
+      }))
+    }
+  }, [vehicleData])
+  
+  // Auto-calculate annual income when gross income or frequency changes
+  useEffect(() => {
+    const grossAmount = parseFloat(primaryApplicant.grossIncome) || 0
+    const frequency = primaryApplicant.incomeFrequency
+    const otherAmount = parseFloat(primaryApplicant.otherIncomeAmount) || 0
+    const otherFreq = primaryApplicant.otherIncomeFrequency
+    
+    // Calculate annual gross income based on frequency
+    let annualGross = 0
+    switch (frequency) {
+      case 'weekly': annualGross = grossAmount * 52; break
+      case 'bi-weekly': annualGross = grossAmount * 26; break
+      case 'semi-monthly': annualGross = grossAmount * 24; break
+      case 'monthly': annualGross = grossAmount * 12; break
+      case 'annually': annualGross = grossAmount; break
+      default: annualGross = grossAmount
+    }
+    
+    // Calculate annual other income based on frequency
+    let annualOther = 0
+    if (otherAmount > 0 && otherFreq) {
+      switch (otherFreq) {
+        case 'weekly': annualOther = otherAmount * 52; break
+        case 'bi-weekly': annualOther = otherAmount * 26; break
+        case 'semi-monthly': annualOther = otherAmount * 24; break
+        case 'monthly': annualOther = otherAmount * 12; break
+        case 'annually': annualOther = otherAmount; break
+        default: annualOther = otherAmount
+      }
+    }
+    
+    const totalAnnual = annualGross + annualOther
+    if (totalAnnual > 0) {
+      setPrimaryApplicant(prev => ({ ...prev, annualTotal: totalAnnual.toFixed(2) }))
+    }
+  }, [primaryApplicant.grossIncome, primaryApplicant.incomeFrequency, primaryApplicant.otherIncomeAmount, primaryApplicant.otherIncomeFrequency])
   
   const [tradeIn, setTradeIn] = useState<TradeInInfo>({
     hasTradeIn: false, vin: "", year: "", make: "", model: "", trim: "",
@@ -808,12 +863,12 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
                 if (value.length > 3) {
                   value = value.slice(0, 3) + ' ' + value.slice(3, 6)
                 }
-                updateField("postalCode", value.slice(0, 7))
+                const formattedPostal = value.slice(0, 7)
                 
                 // Auto-fill city/province based on postal code prefix (first 3 chars)
                 const prefix = value.replace(/\s/g, '').slice(0, 3).toUpperCase()
                 if (prefix.length >= 3) {
-                  // Ontario postal codes
+                  // Ontario postal codes - comprehensive list
                   const ontarioPrefixes: Record<string, string> = {
                     'L4B': 'Richmond Hill', 'L4C': 'Richmond Hill', 'L4E': 'Richmond Hill', 'L4S': 'Richmond Hill',
                     'L3R': 'Markham', 'L3S': 'Markham', 'L3T': 'Markham', 'L3P': 'Markham', 'L6B': 'Markham', 'L6C': 'Markham', 'L6E': 'Markham', 'L6G': 'Markham',
@@ -833,7 +888,8 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
                   }
                   const city = ontarioPrefixes[prefix]
                   if (city) {
-                    onChange({ ...data, postalCode: value.slice(0, 7), city, province: 'Ontario' })
+                    // Update postal code, city, and province in a single state update
+                    onChange({ ...data, postalCode: formattedPostal, city, province: 'Ontario' })
                     return
                   }
                   // Default province detection by first letter
@@ -851,9 +907,12 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
                   }
                   const prov = provinceMap[prefix[0]]
                   if (prov) {
-                    onChange({ ...data, postalCode: value.slice(0, 7), province: prov })
+                    onChange({ ...data, postalCode: formattedPostal, province: prov })
+                    return
                   }
                 }
+                // If no auto-fill match, just update postal code
+                onChange({ ...data, postalCode: formattedPostal })
               }} 
               placeholder="L4B 0G2" 
             />
@@ -1160,8 +1219,13 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
             </>
           )}
           <div>
-            <Label>Annual Total *</Label>
-            <Input type="number" value={data.annualTotal} onChange={(e) => updateField("annualTotal", e.target.value)} placeholder="$0.00" className="bg-amber-50 font-semibold" />
+            <Label>Annual Total * <span className="text-xs text-muted-foreground">(Auto-calculated)</span></Label>
+            <Input 
+              type="text" 
+              value={data.annualTotal ? `$${parseFloat(data.annualTotal).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "$0.00"} 
+              readOnly 
+              className="bg-amber-50 font-semibold" 
+            />
           </div>
         </div>
       </section>
@@ -1211,13 +1275,13 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
           )}
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <Label>VIN</Label>
+              <Label>VIN {!isVehiclePreFilled && <span className="text-xs text-muted-foreground">(autofill available)</span>}</Label>
               <Input 
                 value={vehicleInfo.vin} 
                 onChange={(e) => !isVehiclePreFilled && setVehicleInfo({ ...vehicleInfo, vin: e.target.value })} 
-                placeholder="17-character VIN" 
+                placeholder="Enter 17-character VIN" 
                 readOnly={isVehiclePreFilled}
-                className={isVehiclePreFilled ? "bg-muted" : ""}
+                className={isVehiclePreFilled ? "bg-muted font-medium" : ""}
               />
             </div>
             <div>

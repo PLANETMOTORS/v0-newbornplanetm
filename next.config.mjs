@@ -1,21 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 39
+  // Force clean build - version 40
   cleanDistDir: true,
-  // PERMANENT FIX: Turbopack configuration for v0 sandbox
-  // The v0 sandbox incorrectly infers /vercel/share/v0-next-shadcn as workspace root
-  // but actual project is at /vercel/share/v0-project
-  turbopack: {
-    root: '/vercel/share/v0-project',
-    resolveAlias: {
-      '@/lib/utils': '/vercel/share/v0-project/lib/utils',
-      '@/lib/*': '/vercel/share/v0-project/lib/*',
-      '@/components/*': '/vercel/share/v0-project/components/*',
-      '@/app/*': '/vercel/share/v0-project/app/*',
-      '@/hooks/*': '/vercel/share/v0-project/hooks/*',
-      '@/*': '/vercel/share/v0-project/*',
-    },
-  },
+  // Empty turbopack config - let Next.js 16 use defaults
+  // The turbopack.root config caused "Invalid distDirRoot" errors
+  turbopack: {},
   typescript: {
     ignoreBuildErrors: true,
   },
