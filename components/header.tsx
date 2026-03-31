@@ -117,26 +117,36 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex lg:items-center lg:gap-1 relative z-[60]">
+          <div className="hidden lg:flex lg:items-center lg:gap-1">
             {navigation.map((item) => (
               <div
                 key={item.name}
-                className="relative group"
+                className="relative"
                 onMouseEnter={() => item.submenu && setActiveSubmenu(item.name)}
                 onMouseLeave={() => setActiveSubmenu(null)}
               >
-                <Link
-                  href={item.href}
-                  className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
-                >
-                  {item.name}
-                  {item.submenu && <ChevronDown className="w-3.5 h-3.5" />}
-                </Link>
+                {item.submenu ? (
+                  <button
+                    type="button"
+                    className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
+                    onClick={() => setActiveSubmenu(activeSubmenu === item.name ? null : item.name)}
+                  >
+                    {item.name}
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${activeSubmenu === item.name ? 'rotate-180' : ''}`} />
+                  </button>
+                ) : (
+                  <Link
+                    href={item.href}
+                    className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
+                  >
+                    {item.name}
+                  </Link>
+                )}
 
-                {/* Submenu */}
+                {/* Submenu Dropdown */}
                 {item.submenu && activeSubmenu === item.name && (
-                  <div className="absolute top-full left-0 pt-2 z-[100]">
-                    <div className="bg-card rounded-xl shadow-xl border border-border py-2 min-w-[220px] animate-in fade-in-0 zoom-in-95 duration-150">
+                  <div className="absolute top-full left-0 pt-2 z-[9999]" style={{ minWidth: '220px' }}>
+                    <div className="bg-background rounded-xl shadow-2xl border border-border py-2 min-w-[220px]">
                       {item.submenu.map((subitem) => (
                         <Link
                           key={subitem.name}
