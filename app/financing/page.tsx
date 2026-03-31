@@ -100,6 +100,16 @@ export default function FinancingPage() {
               </p>
               
               <FinanceApplicationForm />
+              
+              <div className="mt-6 pt-6 border-t border-border">
+                <p className="text-sm text-muted-foreground mb-3">Already have a vehicle in mind?</p>
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href="/financing/application">
+                    <User className="w-4 h-4 mr-2" />
+                    Complete Full Application
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>

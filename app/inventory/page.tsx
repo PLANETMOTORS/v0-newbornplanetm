@@ -872,11 +872,18 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                         Est. ${vehicle.monthlyPayment}/mo
                       </Link>
                       </div>
-                      <Button size="sm" asChild>
-                        <Link href={`/vehicles/${vehicle.id}`}>
-                          View Details
-                        </Link>
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" asChild>
+                          <Link href={`/financing/application?vehicleId=${vehicle.id}`}>
+                            Finance
+                          </Link>
+                        </Button>
+                        <Button size="sm" asChild>
+                          <Link href={`/vehicles/${vehicle.id}`}>
+                            View
+                          </Link>
+                        </Button>
+                      </div>
                     </div>
                     
                     {vehicle.originalPrice > vehicle.price && (

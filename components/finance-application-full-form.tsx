@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { 
   User, MapPin, Home, Briefcase, DollarSign, Car, FileText, Upload,
-  ArrowRight, ArrowLeft, CheckCircle, Loader2, Shield, AlertCircle
+  ArrowRight, ArrowLeft, CheckCircle, Loader2, Shield, AlertCircle, X
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -388,11 +388,10 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
   // Validate Step 3 - Vehicle & Financing
   const validateStep3 = (): string[] => {
     const errors: string[] = []
-    if (!vehicleInfo.year) errors.push("Vehicle Year is required")
-    if (!vehicleInfo.make.trim()) errors.push("Vehicle Make is required")
-    if (!vehicleInfo.model.trim()) errors.push("Vehicle Model is required")
-    if (!vehicleInfo.totalPrice || parseFloat(vehicleInfo.totalPrice) <= 0) {
-      errors.push("Total Price Before Tax is required")
+    // Vehicle must be selected from inventory
+    const isVehicleSelected = Boolean(vehicleInfo.year && vehicleInfo.make && vehicleInfo.totalPrice && parseFloat(vehicleInfo.totalPrice) > 0)
+    if (!isVehicleSelected) {
+      errors.push("Please select a vehicle from inventory")
     }
     return errors
   }
@@ -1254,101 +1253,248 @@ function calculateFinancing(): { price: number; downPayment: number; netTrade: n
 
 function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn, financingTerms, setFinancingTerms, financing, additionalNotes, setAdditionalNotes }: VehicleFinancingFormProps) {
   // Check if vehicle data was pre-filled (has year and make)
-  const isVehiclePreFilled = Boolean(vehicleInfo.year && vehicleInfo.make)
+  const isVehicleSelected = Boolean(vehicleInfo.year && vehicleInfo.make && vehicleInfo.totalPrice)
+  const [showInventoryModal, setShowInventoryModal] = useState(false)
+  const [inventoryVehicles, setInventoryVehicles] = useState<any[]>([])
+  const [isLoadingInventory, setIsLoadingInventory] = useState(false)
+  const [inventorySearch, setInventorySearch] = useState("")
+  
+  // Fetch vehicles from inventory when modal opens
+  useEffect(() => {
+    if (showInventoryModal && inventoryVehicles.length === 0) {
+      fetchInventory()
+    }
+  }, [showInventoryModal])
+  
+  const fetchInventory = async () => {
+    setIsLoadingInventory(true)
+    try {
+      const { createClient } = await import("@/lib/supabase/client")
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from("vehicles")
+        .select("id, year, make, model, trim, price, vin, mileage, exterior_color, primary_image_url, stock_number")
+        .eq("status", "available")
+        .order("created_at", { ascending: false })
+        .limit(50)
+      
+      if (data) {
+        setInventoryVehicles(data)
+      }
+    } catch (error) {
+      console.error("Error fetching inventory:", error)
+    } finally {
+      setIsLoadingInventory(false)
+    }
+  }
+  
+  const handleSelectVehicle = (vehicle: any) => {
+    setVehicleInfo({
+      ...vehicleInfo,
+      vin: vehicle.vin || "",
+      year: vehicle.year?.toString() || "",
+      make: vehicle.make || "",
+      model: vehicle.model || "",
+      trim: vehicle.trim || "",
+      color: vehicle.exterior_color || "",
+      mileage: vehicle.mileage?.toString() || "",
+      totalPrice: (vehicle.price / 100).toString(), // Convert from cents
+    })
+    setShowInventoryModal(false)
+  }
+  
+  const filteredVehicles = inventoryVehicles.filter(v => {
+    if (!inventorySearch) return true
+    const searchLower = inventorySearch.toLowerCase()
+    return (
+      v.make?.toLowerCase().includes(searchLower) ||
+      v.model?.toLowerCase().includes(searchLower) ||
+      v.year?.toString().includes(searchLower) ||
+      v.vin?.toLowerCase().includes(searchLower)
+    )
+  })
   
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Inventory Selection Modal */}
+      {showInventoryModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-background rounded-xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="p-4 border-b flex items-center justify-between">
+              <h3 className="font-semibold text-lg">Select Vehicle from Inventory</h3>
+              <Button variant="ghost" size="sm" onClick={() => setShowInventoryModal(false)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="p-4 border-b">
+              <Input
+                placeholder="Search by make, model, year, or VIN..."
+                value={inventorySearch}
+                onChange={(e) => setInventorySearch(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              {isLoadingInventory ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              ) : filteredVehicles.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  No vehicles found in inventory
+                </div>
+              ) : (
+                <div className="grid gap-3">
+                  {filteredVehicles.map((vehicle) => (
+                    <div
+                      key={vehicle.id}
+                      className="flex items-center gap-4 p-3 rounded-lg border hover:border-primary hover:bg-primary/5 cursor-pointer transition-colors"
+                      onClick={() => handleSelectVehicle(vehicle)}
+                    >
+                      <div className="w-24 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
+                        {vehicle.primary_image_url ? (
+                          <img 
+                            src={vehicle.primary_image_url} 
+                            alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Car className="w-8 h-8 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">
+                          {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {vehicle.mileage?.toLocaleString()} km | Stock #{vehicle.stock_number}
+                        </p>
+                        <p className="text-xs text-muted-foreground font-mono">{vehicle.vin}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-primary">
+                          ${(vehicle.price / 100).toLocaleString()}
+                        </p>
+                        <Button size="sm" className="mt-1">Select</Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Left Column - Vehicle Info */}
       <div className="space-y-6">
         <section>
           <h4 className="font-medium mb-4 flex items-center gap-2">
             <Car className="w-4 h-4" />
             Vehicle Information
-            {isVehiclePreFilled && (
-              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Auto-filled from inventory</span>
+            {isVehicleSelected && (
+              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Selected from inventory</span>
             )}
           </h4>
-          {isVehiclePreFilled && (
-            <p className="text-sm text-muted-foreground mb-4">
-              Vehicle details have been automatically filled from your selected vehicle.
-            </p>
+          
+          {!isVehicleSelected ? (
+            // No vehicle selected - show browse button
+            <div className="border-2 border-dashed rounded-xl p-8 text-center">
+              <Car className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+              <h5 className="font-medium mb-2">No Vehicle Selected</h5>
+              <p className="text-sm text-muted-foreground mb-4">
+                Select a vehicle from our inventory to continue with your finance application.
+              </p>
+              <Button onClick={() => setShowInventoryModal(true)}>
+                <Car className="w-4 h-4 mr-2" />
+                Browse Inventory
+              </Button>
+            </div>
+          ) : (
+            // Vehicle selected - show read-only details
+            <>
+              <p className="text-sm text-muted-foreground mb-4">
+                Vehicle details have been automatically filled from your selected vehicle.
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <Label>VIN</Label>
+                  <Input 
+                    value={vehicleInfo.vin} 
+                    readOnly
+                    className="bg-muted font-mono text-sm"
+                  />
+                </div>
+                <div>
+                  <Label>Year</Label>
+                  <Input 
+                    value={vehicleInfo.year} 
+                    readOnly
+                    className="bg-muted"
+                  />
+                </div>
+                <div>
+                  <Label>Make</Label>
+                  <Input 
+                    value={vehicleInfo.make} 
+                    readOnly
+                    className="bg-muted"
+                  />
+                </div>
+                <div>
+                  <Label>Model/Trim</Label>
+                  <Input 
+                    value={`${vehicleInfo.model}${vehicleInfo.trim ? ` ${vehicleInfo.trim}` : ''}`} 
+                    readOnly
+                    className="bg-muted"
+                  />
+                </div>
+                <div>
+                  <Label>Color</Label>
+                  <Input 
+                    value={vehicleInfo.color} 
+                    readOnly
+                    className="bg-muted"
+                  />
+                </div>
+                <div>
+                  <Label>Current KMs</Label>
+                  <Input 
+                    value={vehicleInfo.mileage ? parseInt(vehicleInfo.mileage).toLocaleString() : ""} 
+                    readOnly
+                    className="bg-muted"
+                  />
+                </div>
+                <div>
+                  <Label>Total Price Before Tax</Label>
+                  <Input 
+                    value={vehicleInfo.totalPrice ? `$${parseFloat(vehicleInfo.totalPrice).toLocaleString()}` : ""} 
+                    readOnly
+                    className="bg-muted font-semibold"
+                  />
+                </div>
+                <div>
+                  <Label>Down Payment</Label>
+                  <Input type="number" value={vehicleInfo.downPayment} onChange={(e) => setVehicleInfo({ ...vehicleInfo, downPayment: e.target.value })} className="bg-green-50" />
+                </div>
+                <div>
+                  <Label>Max Down Payment If Needed</Label>
+                  <Input type="number" value={vehicleInfo.maxDownPayment} onChange={(e) => setVehicleInfo({ ...vehicleInfo, maxDownPayment: e.target.value })} />
+                </div>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-4"
+                onClick={() => setShowInventoryModal(true)}
+              >
+                <Car className="w-4 h-4 mr-2" />
+                Change Vehicle
+              </Button>
+            </>
           )}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <Label>VIN {!isVehiclePreFilled && <span className="text-xs text-muted-foreground">(autofill available)</span>}</Label>
-              <Input 
-                value={vehicleInfo.vin} 
-                onChange={(e) => !isVehiclePreFilled && setVehicleInfo({ ...vehicleInfo, vin: e.target.value })} 
-                placeholder="Enter 17-character VIN" 
-                readOnly={isVehiclePreFilled}
-                className={isVehiclePreFilled ? "bg-muted font-medium" : ""}
-              />
-            </div>
-            <div>
-              <Label>Year *</Label>
-              <Input 
-                value={vehicleInfo.year} 
-                onChange={(e) => !isVehiclePreFilled && setVehicleInfo({ ...vehicleInfo, year: e.target.value })} 
-                readOnly={isVehiclePreFilled}
-                className={isVehiclePreFilled ? "bg-muted" : ""}
-              />
-            </div>
-            <div>
-              <Label>Make *</Label>
-              <Input 
-                value={vehicleInfo.make} 
-                onChange={(e) => !isVehiclePreFilled && setVehicleInfo({ ...vehicleInfo, make: e.target.value })} 
-                readOnly={isVehiclePreFilled}
-                className={isVehiclePreFilled ? "bg-muted" : ""}
-              />
-            </div>
-            <div>
-              <Label>Model/Trim *</Label>
-              <Input 
-                value={`${vehicleInfo.model}${vehicleInfo.trim ? ` ${vehicleInfo.trim}` : ''}`} 
-                onChange={(e) => !isVehiclePreFilled && setVehicleInfo({ ...vehicleInfo, model: e.target.value })} 
-                readOnly={isVehiclePreFilled}
-                className={isVehiclePreFilled ? "bg-muted" : ""}
-              />
-            </div>
-            <div>
-              <Label>Color</Label>
-              <Input 
-                value={vehicleInfo.color} 
-                onChange={(e) => !isVehiclePreFilled && setVehicleInfo({ ...vehicleInfo, color: e.target.value })} 
-                readOnly={isVehiclePreFilled}
-                className={isVehiclePreFilled ? "bg-muted" : ""}
-              />
-            </div>
-            <div>
-              <Label>Current KMs</Label>
-              <Input 
-                type="number" 
-                value={vehicleInfo.mileage} 
-                onChange={(e) => !isVehiclePreFilled && setVehicleInfo({ ...vehicleInfo, mileage: e.target.value })} 
-                readOnly={isVehiclePreFilled}
-                className={isVehiclePreFilled ? "bg-muted" : ""}
-              />
-            </div>
-            <div>
-              <Label>Total Price Before Tax *</Label>
-              <Input 
-                type="number" 
-                value={vehicleInfo.totalPrice} 
-                onChange={(e) => !isVehiclePreFilled && setVehicleInfo({ ...vehicleInfo, totalPrice: e.target.value })} 
-                readOnly={isVehiclePreFilled}
-                className={isVehiclePreFilled ? "bg-muted font-semibold" : "bg-green-50"}
-              />
-            </div>
-            <div>
-              <Label>Down Payment</Label>
-              <Input type="number" value={vehicleInfo.downPayment} onChange={(e) => setVehicleInfo({ ...vehicleInfo, downPayment: e.target.value })} className="bg-green-50" />
-            </div>
-            <div>
-              <Label>Max Down Payment If Needed</Label>
-              <Input type="number" value={vehicleInfo.maxDownPayment} onChange={(e) => setVehicleInfo({ ...vehicleInfo, maxDownPayment: e.target.value })} />
-            </div>
-          </div>
         </section>
         
         <Separator />
