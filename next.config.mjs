@@ -1,14 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 37
+  // Force clean build - version 38
   cleanDistDir: true,
-  // PERMANENT FIX: Set Turbopack root to the actual project directory
-  // The v0 sandbox incorrectly infers /vercel/share/v0-next-shadcn as the workspace root
-  // but the actual project is at /vercel/share/v0-project
-  // This MUST be hardcoded because import.meta.url resolves incorrectly in the sandbox
-  turbopack: {
-    root: '/vercel/share/v0-project',
-  },
+  // PERMANENT FIX: Empty turbopack config to use Turbopack defaults
+  // As of Next.js 16, Turbopack is the default bundler
+  // Setting empty config silences webpack migration warnings
+  turbopack: {},
   typescript: {
     ignoreBuildErrors: true,
   },
