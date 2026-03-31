@@ -826,12 +826,12 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
                 if (value.length > 3) {
                   value = value.slice(0, 3) + ' ' + value.slice(3, 6)
                 }
-                updateField("postalCode", value.slice(0, 7))
+                const formattedPostal = value.slice(0, 7)
                 
                 // Auto-fill city/province based on postal code prefix (first 3 chars)
                 const prefix = value.replace(/\s/g, '').slice(0, 3).toUpperCase()
                 if (prefix.length >= 3) {
-                  // Ontario postal codes
+                  // Ontario postal codes - comprehensive list
                   const ontarioPrefixes: Record<string, string> = {
                     'L4B': 'Richmond Hill', 'L4C': 'Richmond Hill', 'L4E': 'Richmond Hill', 'L4S': 'Richmond Hill',
                     'L3R': 'Markham', 'L3S': 'Markham', 'L3T': 'Markham', 'L3P': 'Markham', 'L6B': 'Markham', 'L6C': 'Markham', 'L6E': 'Markham', 'L6G': 'Markham',
@@ -851,7 +851,8 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
                   }
                   const city = ontarioPrefixes[prefix]
                   if (city) {
-                    onChange({ ...data, postalCode: value.slice(0, 7), city, province: 'Ontario' })
+                    // Update postal code, city, and province in a single state update
+                    onChange({ ...data, postalCode: formattedPostal, city, province: 'Ontario' })
                     return
                   }
                   // Default province detection by first letter
@@ -869,9 +870,12 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
                   }
                   const prov = provinceMap[prefix[0]]
                   if (prov) {
-                    onChange({ ...data, postalCode: value.slice(0, 7), province: prov })
+                    onChange({ ...data, postalCode: formattedPostal, province: prov })
+                    return
                   }
                 }
+                // If no auto-fill match, just update postal code
+                onChange({ ...data, postalCode: formattedPostal })
               }} 
               placeholder="L4B 0G2" 
             />
