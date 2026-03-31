@@ -141,7 +141,7 @@ const emptyApplicant: ApplicantData = {
   jobTitle: "", employerStreet: "", employerCity: "", employerProvince: "",
   employerPostalCode: "", employerPhone: "", employerPhoneExt: "",
   employmentYears: "", employmentMonths: "",
-  grossIncome: "", incomeFrequency: "annually", otherIncomeType: "",
+  grossIncome: "", incomeFrequency: "", otherIncomeType: "",
   otherIncomeAmount: "", otherIncomeFrequency: "", otherIncomeDescription: "",
   annualTotal: ""
 }
@@ -215,13 +215,15 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
     
     // Calculate annual gross income based on frequency
     let annualGross = 0
-    switch (frequency) {
-      case 'weekly': annualGross = grossAmount * 52; break
-      case 'bi-weekly': annualGross = grossAmount * 26; break
-      case 'semi-monthly': annualGross = grossAmount * 24; break
-      case 'monthly': annualGross = grossAmount * 12; break
-      case 'annually': annualGross = grossAmount; break
-      default: annualGross = grossAmount
+    if (grossAmount > 0 && frequency) {
+      switch (frequency) {
+        case 'weekly': annualGross = grossAmount * 52; break
+        case 'bi-weekly': annualGross = grossAmount * 26; break
+        case 'semi-monthly': annualGross = grossAmount * 24; break
+        case 'monthly': annualGross = grossAmount * 12; break
+        case 'annually': annualGross = grossAmount; break
+        default: annualGross = grossAmount * 12 // Default to monthly
+      }
     }
     
     // Calculate annual other income based on frequency
@@ -238,9 +240,8 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
     }
     
     const totalAnnual = annualGross + annualOther
-    if (totalAnnual > 0) {
-      setPrimaryApplicant(prev => ({ ...prev, annualTotal: totalAnnual.toFixed(2) }))
-    }
+    // Always update annualTotal (even if 0)
+    setPrimaryApplicant(prev => ({ ...prev, annualTotal: totalAnnual.toFixed(2) }))
   }, [primaryApplicant.grossIncome, primaryApplicant.incomeFrequency, primaryApplicant.otherIncomeAmount, primaryApplicant.otherIncomeFrequency])
   
   const [tradeIn, setTradeIn] = useState<TradeInInfo>({
