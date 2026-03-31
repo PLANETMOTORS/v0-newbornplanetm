@@ -1296,6 +1296,8 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
               value={data.employerProvince} 
               readOnly={Boolean(data.employerProvince && data.employerPostalCode.length >= 6)}
               className={data.employerProvince && data.employerPostalCode.length >= 6 ? "bg-muted" : ""}
+            />
+          </div>
           <div className="flex gap-2">
             <div className="flex-1">
               <Label>Years Employed</Label>
