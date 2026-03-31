@@ -1,17 +1,7 @@
-import { fileURLToPath } from 'node:url'
-import { dirname, resolve } from 'node:path'
-
-// Get absolute path to this config file's directory
-const __dirname = dirname(fileURLToPath(import.meta.url))
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 31
+  // Force clean build - version 32
   cleanDistDir: true,
-  // Turbopack root - absolute path from import.meta.url
-  turbopack: {
-    root: resolve(__dirname),
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
