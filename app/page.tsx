@@ -151,19 +151,6 @@ export default function HomePage() {
 
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              {/* Live inventory badge */}
-              <div className="inline-flex items-center gap-3 px-4 py-2 bg-card border border-border rounded-full text-sm font-medium mb-6 shadow-sm">
-                <span className="flex items-center gap-2">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-                  </span>
-                  <span className="text-green-600 font-semibold">124 new arrivals</span>
-                </span>
-                <span className="w-px h-4 bg-border" />
-                <span className="text-muted-foreground">Updated 2 min ago</span>
-              </div>
-              
               <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-balance leading-[1.1]">
                 The Smarter Way to{" "}
                 <span className="text-primary">Buy or Sell</span>{" "}
