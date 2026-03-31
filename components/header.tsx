@@ -107,7 +107,7 @@ export function Header() {
       </div>
 
       {/* Main header */}
-      <header className={`sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border transition-shadow duration-300 will-change-transform ${scrolled ? "shadow-sm" : ""}`} role="banner">
+      <header className={`sticky top-0 z-[60] bg-background/95 backdrop-blur-md border-b border-border transition-shadow duration-300 will-change-transform ${scrolled ? "shadow-sm" : ""}`} role="banner">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-3 lg:px-8" aria-label="Main navigation">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0 min-w-[120px]">
@@ -117,11 +117,11 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex lg:items-center lg:gap-1">
+          <div className="hidden lg:flex lg:items-center lg:gap-1 relative z-[60]">
             {navigation.map((item) => (
               <div
                 key={item.name}
-                className="relative"
+                className="relative group"
                 onMouseEnter={() => item.submenu && setActiveSubmenu(item.name)}
                 onMouseLeave={() => setActiveSubmenu(null)}
               >
@@ -135,13 +135,14 @@ export function Header() {
 
                 {/* Submenu */}
                 {item.submenu && activeSubmenu === item.name && (
-                  <div className="absolute top-full left-0 pt-2">
-                    <div className="bg-card rounded-xl shadow-lg border border-border py-2 min-w-[220px]">
+                  <div className="absolute top-full left-0 pt-2 z-[100]">
+                    <div className="bg-card rounded-xl shadow-xl border border-border py-2 min-w-[220px] animate-in fade-in-0 zoom-in-95 duration-150">
                       {item.submenu.map((subitem) => (
                         <Link
                           key={subitem.name}
                           href={subitem.href}
                           className="block px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                          onClick={() => setActiveSubmenu(null)}
                         >
                           {subitem.name}
                         </Link>
