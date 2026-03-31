@@ -22,7 +22,8 @@ import {
   Building2,
   Truck,
   FileText,
-  Phone
+  Phone,
+  AlertCircle
 } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 
@@ -92,6 +93,68 @@ export default function CheckoutPage() {
     agreeToTerms: false,
     agreeToCredit: false,
   })
+  
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
+  
+  // Validation functions
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email) && email.length >= 5
+  }
+  
+  const validatePhone = (phone: string): boolean => {
+    const digitsOnly = phone.replace(/\D/g, '')
+    return digitsOnly.length === 10
+  }
+  
+  const validatePostalCode = (postalCode: string): boolean => {
+    // Canadian postal code: A1A 1A1 (letter-digit-letter space digit-letter-digit)
+    const cleanCode = postalCode.replace(/\s/g, '').toUpperCase()
+    const postalRegex = /^[A-Z]\d[A-Z]\d[A-Z]\d$/
+    return postalRegex.test(cleanCode)
+  }
+  
+  const formatPhone = (value: string): string => {
+    const digits = value.replace(/\D/g, '').slice(0, 10)
+    if (digits.length <= 3) return digits
+    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
+  }
+  
+  const validateStep1 = (): string[] => {
+    const errors: string[] = []
+    if (!formData.firstName.trim()) errors.push("First Name is required")
+    if (!formData.lastName.trim()) errors.push("Last Name is required")
+    if (!formData.email.trim()) {
+      errors.push("Email Address is required")
+    } else if (!validateEmail(formData.email)) {
+      errors.push("Please enter a valid email address (e.g., name@example.com)")
+    }
+    if (!formData.phone.trim()) {
+      errors.push("Phone Number is required")
+    } else if (!validatePhone(formData.phone)) {
+      errors.push("Phone must be 10 digits (3-digit area code + 7-digit number)")
+    }
+    if (!formData.address.trim()) errors.push("Street Address is required")
+    if (!formData.city.trim()) errors.push("City is required")
+    if (!formData.postalCode.trim()) {
+      errors.push("Postal Code is required")
+    } else if (!validatePostalCode(formData.postalCode)) {
+      errors.push("Postal Code must be valid Canadian format (e.g., M5C 1A1)")
+    }
+    return errors
+  }
+  
+  const handleContinueToPayment = () => {
+    const errors = validateStep1()
+    if (errors.length > 0) {
+      setValidationErrors(errors)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+    setValidationErrors([])
+    setStep(2)
+  }
 
   // Calculate delivery cost when postal code changes
   const calculateDelivery = async (postalCode: string) => {
@@ -130,11 +193,25 @@ export default function CheckoutPage() {
     return () => clearTimeout(timer)
   }, [formData.postalCode])
 
-  const handleSubmit = async () => {
-    setIsSubmitting(true)
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    setStep(4) // Success
-    setIsSubmitting(false)
+const handleSubmit = async () => {
+  setIsSubmitting(true)
+  
+  // If financing, redirect to full finance application
+  if (purchaseType === "finance") {
+    // Store checkout data in sessionStorage for the finance application
+    sessionStorage.setItem('checkoutData', JSON.stringify({
+      ...formData,
+      vehicleId: params.id,
+      deliveryType,
+    }))
+    router.push(`/financing/application?vehicleId=${params.id}`)
+    return
+  }
+  
+  // For cash purchases, complete immediately
+  await new Promise(resolve => setTimeout(resolve, 2000))
+  setStep(4) // Success
+  setIsSubmitting(false)
   }
 
   const vehiclePrice = vehicleData.price
@@ -241,17 +318,25 @@ export default function CheckoutPage() {
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         placeholder="john@example.com"
+                        className={!validateEmail(formData.email) && formData.email.length > 0 ? "border-destructive" : ""}
                       />
+                      {formData.email.length > 0 && !validateEmail(formData.email) && (
+                        <p className="text-xs text-destructive">Please enter a valid email address</p>
+                      )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number *</Label>
+                      <Label htmlFor="phone">Phone Number * <span className="text-xs text-muted-foreground">(10 digits required)</span></Label>
                       <Input
                         id="phone"
                         type="tel"
                         value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })}
                         placeholder="(416) 555-0123"
+                        className={!validatePhone(formData.phone) && formData.phone.length > 0 ? "border-destructive" : ""}
                       />
+                      {formData.phone.length > 0 && !validatePhone(formData.phone) && (
+                        <p className="text-xs text-destructive">Phone must be 10 digits</p>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -289,7 +374,7 @@ export default function CheckoutPage() {
                         <Input id="province" value="Ontario" disabled />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="postalCode">Postal Code *</Label>
+                        <Label htmlFor="postalCode">Postal Code * <span className="text-xs text-muted-foreground">(e.g., M5C 1A1)</span></Label>
                         <Input
                           id="postalCode"
                           value={formData.postalCode}
@@ -301,9 +386,13 @@ export default function CheckoutPage() {
                             }
                             setFormData({ ...formData, postalCode: value.slice(0, 7) })
                           }}
-                          placeholder="M5V 1A1"
+                          placeholder="M5C 1A1"
                           maxLength={7}
+                          className={!validatePostalCode(formData.postalCode) && formData.postalCode.length > 0 ? "border-destructive" : ""}
                         />
+                        {formData.postalCode.length > 0 && !validatePostalCode(formData.postalCode) && (
+                          <p className="text-xs text-destructive">Must be 6 characters (e.g., M5C 1A1)</p>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -367,7 +456,24 @@ export default function CheckoutPage() {
                   </CardContent>
                 </Card>
 
-                <Button onClick={() => setStep(2)} className="w-full h-12" size="lg">
+                {/* Validation Errors */}
+                {validationErrors.length > 0 && (
+                  <div className="bg-destructive/10 border border-destructive rounded-lg p-4">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-destructive">Please fix the following errors:</p>
+                        <ul className="list-disc list-inside mt-2 text-sm text-destructive">
+                          {validationErrors.map((error, i) => (
+                            <li key={i}>{error}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <Button onClick={handleContinueToPayment} className="w-full h-12" size="lg">
                   Continue to Payment
                 </Button>
               </>
@@ -488,6 +594,11 @@ export default function CheckoutPage() {
                           : "Pay in Full"
                         }
                       </p>
+                      {purchaseType === "finance" && (
+                        <p className="text-sm text-primary mt-2 font-medium">
+                          You will complete a full finance application on the next step.
+                        </p>
+                      )}
                     </div>
 
                     <Separator />
@@ -542,7 +653,7 @@ export default function CheckoutPage() {
                     disabled={!formData.agreeToTerms || (purchaseType === "finance" && !formData.agreeToCredit) || isSubmitting}
                     className="flex-1 h-12 bg-green-600 hover:bg-green-700"
                   >
-                    {isSubmitting ? "Processing..." : "Complete Purchase"}
+                    {isSubmitting ? "Processing..." : purchaseType === "finance" ? "Continue to Finance Application" : "Complete Purchase"}
                   </Button>
                 </div>
               </>
