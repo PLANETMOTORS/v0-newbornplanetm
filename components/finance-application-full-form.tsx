@@ -323,11 +323,69 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
   // Validation state
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   
-  // Phone number validation (10 digits: 3 area code + 7 number)
-  const validatePhone = (phone: string): boolean => {
+  // Phone number validation - strict rules for real Canadian phone numbers
+  const validatePhone = (phone: string): { valid: boolean; error?: string } => {
     const digitsOnly = phone.replace(/\D/g, '')
-    return digitsOnly.length === 10
+    
+    // Must be exactly 10 digits
+    if (digitsOnly.length !== 10) {
+      return { valid: false, error: "Phone must be exactly 10 digits" }
+    }
+    
+    const areaCode = digitsOnly.slice(0, 3)
+    const exchange = digitsOnly.slice(3, 6)
+    const lineNumber = digitsOnly.slice(6, 10)
+    
+    // Area code cannot start with 0 or 1 (North American numbering rules)
+    if (areaCode[0] === '0' || areaCode[0] === '1') {
+      return { valid: false, error: "Invalid area code - cannot start with 0 or 1" }
+    }
+    
+    // Exchange (first 3 digits of local number) cannot start with 0 or 1
+    if (exchange[0] === '0' || exchange[0] === '1') {
+      return { valid: false, error: "Invalid phone number format" }
+    }
+    
+    // Block obvious fake/test numbers
+    const fakePatterns = [
+      '0000000', '1111111', '2222222', '3333333', '4444444',
+      '5555555', '6666666', '7777777', '8888888', '9999999',
+      '1234567', '2345678', '3456789', '7654321', '9876543',
+      '1231234', '1112222', '1234321', '0001234', '9990000'
+    ]
+    const localNumber = digitsOnly.slice(3) // Last 7 digits
+    if (fakePatterns.includes(localNumber)) {
+      return { valid: false, error: "Please enter a valid phone number" }
+    }
+    
+    // Block 555-01XX to 555-09XX (reserved for fictional use)
+    if (exchange === '555' && lineNumber >= '0100' && lineNumber <= '0199') {
+      return { valid: false, error: "Please enter a valid phone number" }
+    }
+    
+    // Block numbers with all same digits
+    if (/^(\d)\1{9}$/.test(digitsOnly)) {
+      return { valid: false, error: "Please enter a valid phone number" }
+    }
+    
+    // Block sequential ascending/descending patterns
+    const isSequential = (str: string): boolean => {
+      let ascending = true, descending = true
+      for (let i = 1; i < str.length; i++) {
+        if (parseInt(str[i]) !== parseInt(str[i-1]) + 1) ascending = false
+        if (parseInt(str[i]) !== parseInt(str[i-1]) - 1) descending = false
+      }
+      return (ascending || descending) && str.length >= 7
+    }
+    if (isSequential(localNumber)) {
+      return { valid: false, error: "Please enter a valid phone number" }
+    }
+    
+    return { valid: true }
   }
+  
+  // Simple boolean check for backward compatibility
+  const isPhoneValid = (phone: string): boolean => validatePhone(phone).valid
   
   // Format phone number as (XXX) XXX-XXXX
   const formatPhone = (value: string): string => {
@@ -347,8 +405,9 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
     }
     if (!primaryApplicant.gender) errors.push("Gender is required")
     if (!primaryApplicant.maritalStatus) errors.push("Marital Status is required")
-    if (!primaryApplicant.phone || !validatePhone(primaryApplicant.phone)) {
-      errors.push("Phone must be 10 digits (3-digit area code + 7-digit number)")
+    const phoneValidation = validatePhone(primaryApplicant.phone)
+    if (!primaryApplicant.phone || !phoneValidation.valid) {
+      errors.push(phoneValidation.error || "Phone number is required")
     }
     if (!primaryApplicant.email.trim() && !primaryApplicant.noEmail) errors.push("Email is required")
     if (!primaryApplicant.creditRating) errors.push("Credit Rating is required")
@@ -364,8 +423,9 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
     if (!primaryApplicant.employmentStatus) errors.push("Employment Status is required")
     if (!primaryApplicant.employerName.trim()) errors.push("Employer Name is required")
     if (!primaryApplicant.occupation.trim()) errors.push("Occupation is required")
-    if (!primaryApplicant.employerPhone || !validatePhone(primaryApplicant.employerPhone)) {
-      errors.push("Employer Phone must be 10 digits")
+    const employerPhoneValidation = validatePhone(primaryApplicant.employerPhone)
+    if (!primaryApplicant.employerPhone || !employerPhoneValidation.valid) {
+      errors.push("Employer " + (employerPhoneValidation.error || "Phone is required"))
     }
     if (!primaryApplicant.grossIncome) errors.push("Gross Income is required")
     if (!primaryApplicant.incomeFrequency) errors.push("Income Frequency is required")
@@ -379,8 +439,9 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
     if (!coApplicantRelation) errors.push("Relation to Primary Applicant is required")
     if (!coApplicant.firstName.trim()) errors.push("Co-Applicant First Name is required")
     if (!coApplicant.lastName.trim()) errors.push("Co-Applicant Last Name is required")
-    if (!coApplicant.phone || !validatePhone(coApplicant.phone)) {
-      errors.push("Co-Applicant Phone must be 10 digits")
+    const coPhoneValidation = validatePhone(coApplicant.phone)
+    if (!coApplicant.phone || !coPhoneValidation.valid) {
+      errors.push("Co-Applicant " + (coPhoneValidation.error || "Phone is required"))
     }
     if (!coApplicant.email.trim() && !coApplicant.noEmail) errors.push("Co-Applicant Email is required")
     return errors
@@ -806,7 +867,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
                   `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
                 updateField("phone", formatted)
               }} 
-              placeholder="(416) 555-0123" 
+              placeholder="(XXX) XXX-XXXX" 
             />
           </div>
           <div>
@@ -821,7 +882,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
                   `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
                 updateField("mobilePhone", formatted)
               }} 
-              placeholder="(416) 555-0123" 
+              placeholder="(XXX) XXX-XXXX" 
             />
           </div>
           <div>
@@ -1115,7 +1176,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
         `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
       updateField("employerPhone", formatted)
     }} 
-    placeholder="(416) 555-0123"
+    placeholder="(XXX) XXX-XXXX"
     className="flex-1" 
   />
               <Input value={data.employerPhoneExt} onChange={(e) => updateField("employerPhoneExt", e.target.value)} placeholder="Ext." className="w-20" />
