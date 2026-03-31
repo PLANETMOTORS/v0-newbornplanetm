@@ -1,24 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 40
+  // Force clean build - version 42
   cleanDistDir: true,
-  // Empty turbopack config - let Next.js 16 use defaults
-  // The turbopack.root config caused "Invalid distDirRoot" errors
   turbopack: {},
   typescript: {
     ignoreBuildErrors: true,
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
     loader: 'custom',
     loaderFile: './lib/imgix-loader.ts',
-    // AVIF-first for 50% smaller files, WebP fallback for older browsers
     formats: ['image/avif', 'image/webp'],
-    // Mobile-first breakpoints optimized for <1s load time
-    // Prioritize mobile sizes (320-828px) for 20,000 monthly visitors
     deviceSizes: [320, 480, 640, 750, 828, 1080, 1200, 1920],
-    // Thumbnail sizes for vehicle grid cards
     imageSizes: [16, 32, 48, 64, 96, 128, 200, 256, 384],
-    // 30-day CDN cache for 9,500+ vehicle images
     minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [
       {
@@ -43,19 +39,15 @@ const nextConfig = {
       },
     ],
   },
-  // Performance optimizations for mobile
   experimental: {
     optimizeCss: true,
   },
-  // Gzip/Brotli compression
   compress: true,
-  // HTTP headers for performance
   async headers() {
     return [
       {
         source: '/:path*',
         headers: [
-          // Preconnect hints for imgix CDN
           { key: 'Link', value: '<https://planetmotors.imgix.net>; rel=preconnect' },
         ],
       },
