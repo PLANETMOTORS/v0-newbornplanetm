@@ -1,29 +1,7 @@
-import path from 'path'
-import { fileURLToPath } from 'url'
-
-// Get the directory of this config file - works in both dev and production
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 27 - use import.meta.url for correct path
+  // Force clean build - version 28
   cleanDistDir: true,
-  // Turbopack configuration with correct project root from import.meta.url
-  turbopack: {
-    root: __dirname,
-    resolveAlias: {
-      '@': __dirname,
-    },
-  },
-  // Webpack for production builds
-  webpack: (config) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@': __dirname,
-    }
-    return config
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
