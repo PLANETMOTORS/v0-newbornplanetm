@@ -1,7 +1,13 @@
+import { resolve } from 'path'
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 32
+  // Force clean build - version 33
   cleanDistDir: true,
+  // Fix Turbopack root to project directory
+  turbopack: {
+    root: '/vercel/share/v0-project',
+  },
   typescript: {
     ignoreBuildErrors: true,
   },

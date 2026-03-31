@@ -194,24 +194,28 @@ export default function CheckoutPage() {
   }, [formData.postalCode])
 
 const handleSubmit = async () => {
-  setIsSubmitting(true)
-  
-  // If financing, redirect to full finance application
-  if (purchaseType === "finance") {
-    // Store checkout data in sessionStorage for the finance application
-    sessionStorage.setItem('checkoutData', JSON.stringify({
-      ...formData,
-      vehicleId: params.id,
-      deliveryType,
-    }))
-    router.push(`/financing/application?vehicleId=${params.id}`)
-    return
-  }
-  
-  // For cash purchases, complete immediately
-  await new Promise(resolve => setTimeout(resolve, 2000))
-  setStep(4) // Success
-  setIsSubmitting(false)
+    console.log("[v0] handleSubmit called - purchaseType:", purchaseType)
+    setIsSubmitting(true)
+    
+    // If financing, redirect to full finance application
+    if (purchaseType === "finance") {
+      console.log("[v0] Finance selected - redirecting to finance application")
+      // Store checkout data in sessionStorage for the finance application
+      sessionStorage.setItem('checkoutData', JSON.stringify({
+        ...formData,
+        vehicleId: params.id,
+        deliveryType,
+      }))
+      // Use window.location for guaranteed redirect
+      window.location.href = `/financing/application?vehicleId=${params.id}`
+      return
+    }
+    
+    // For cash purchases, complete immediately
+    console.log("[v0] Cash purchase - completing order")
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    setStep(4) // Success
+    setIsSubmitting(false)
   }
 
   const vehiclePrice = vehicleData.price
