@@ -217,7 +217,7 @@ export function FinanceApplicationForm() {
         {/* Term Selector */}
         <div className="space-y-3">
           <Label>Loan Term</Label>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
             {[36, 48, 60, 72, 84, 96].map((term) => (
               <Button
                 key={term}

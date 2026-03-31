@@ -1,5 +1,5 @@
-// Typesense search utilities - only initializes when env vars are present
-// Gracefully degrades to mock data when Typesense is not configured
+// Typesense search utilities - Returns mock data
+// Note: Typesense integration disabled - using Supabase directly for vehicle search
 
 export interface VehicleSearchParams {
   query?: string
@@ -49,16 +49,7 @@ interface SearchResponse {
   }>
 }
 
-// Check if Typesense is configured
-// Note: Typesense package is not installed - always returns false for now
-// Install typesense package and set env vars to enable
-function isTypesenseConfigured(): boolean {
-  // Disabled until typesense package is properly installed
-  return false
-  // return !!(process.env.TYPESENSE_HOST && process.env.TYPESENSE_API_KEY)
-}
-
-// Mock search results for development
+// Mock search results
 function getMockResults(params: VehicleSearchParams): SearchResponse {
   const mockVehicles: VehicleSearchResult[] = [
     {
@@ -158,121 +149,32 @@ function getMockResults(params: VehicleSearchParams): SearchResponse {
   }
 }
 
-// Search vehicles - uses Typesense if configured, otherwise returns mock data
+// Search vehicles - returns mock data (Typesense disabled)
 export async function searchVehicles(params: VehicleSearchParams): Promise<SearchResponse> {
-  if (!isTypesenseConfigured()) {
-    return getMockResults(params)
-  }
-
-  try {
-    const Typesense = (await import('typesense')).default
-    
-    const client = new Typesense.Client({
-      nodes: [
-        {
-          host: process.env.TYPESENSE_HOST!,
-          port: parseInt(process.env.TYPESENSE_PORT || '443'),
-          protocol: process.env.TYPESENSE_PROTOCOL || 'https',
-        },
-      ],
-      apiKey: process.env.TYPESENSE_API_KEY!,
-      connectionTimeoutSeconds: 2,
-    })
-
-    const filters: string[] = ['status:=available']
-
-    if (params.make) {
-      const makes = Array.isArray(params.make) ? params.make : [params.make]
-      filters.push(`make:=[${makes.map(m => `\`${m}\``).join(',')}]`)
-    }
-
-    if (params.year_min || params.year_max) {
-      const min = params.year_min || 1900
-      const max = params.year_max || 2030
-      filters.push(`year:>=${min} && year:<=${max}`)
-    }
-
-    if (params.price_min || params.price_max) {
-      const min = params.price_min || 0
-      const max = params.price_max || 999999999
-      filters.push(`price:>=${min} && price:<=${max}`)
-    }
-
-    if (params.is_ev !== undefined) {
-      filters.push(`is_ev:=${params.is_ev}`)
-    }
-
-    const searchParams = {
-      q: params.query || '*',
-      query_by: 'make,model,trim,body_style,exterior_color',
-      filter_by: filters.join(' && '),
-      sort_by: params.sort_by || 'created_at:desc',
-      page: params.page || 1,
-      per_page: params.per_page || 24,
-      facet_by: 'make,model,year,body_style,fuel_type,drivetrain,is_ev',
-      max_facet_values: 100,
-    }
-
-    const results = await client.collections('vehicles').documents().search(searchParams)
-    return results as SearchResponse
-  } catch (error) {
-    console.error('Typesense search error:', error)
-    return getMockResults(params)
-  }
+  return getMockResults(params)
 }
 
-// Get facets for filters
+// Get facets for filters - returns mock data
 export async function getVehicleFacets() {
-  if (!isTypesenseConfigured()) {
-    return [
-      {
-        field_name: 'make',
-        counts: [
-          { value: 'BMW', count: 45 },
-          { value: 'Tesla', count: 38 },
-          { value: 'Mercedes-Benz', count: 32 },
-          { value: 'Audi', count: 28 },
-          { value: 'Jeep', count: 25 },
-        ],
-      },
-      {
-        field_name: 'fuel_type',
-        counts: [
-          { value: 'Gasoline', count: 120 },
-          { value: 'Electric', count: 45 },
-          { value: 'Hybrid', count: 30 },
-          { value: 'Diesel', count: 12 },
-        ],
-      },
-    ]
-  }
-
-  try {
-    const Typesense = (await import('typesense')).default
-    
-    const client = new Typesense.Client({
-      nodes: [
-        {
-          host: process.env.TYPESENSE_HOST!,
-          port: parseInt(process.env.TYPESENSE_PORT || '443'),
-          protocol: process.env.TYPESENSE_PROTOCOL || 'https',
-        },
+  return [
+    {
+      field_name: 'make',
+      counts: [
+        { value: 'BMW', count: 45 },
+        { value: 'Tesla', count: 38 },
+        { value: 'Mercedes-Benz', count: 32 },
+        { value: 'Audi', count: 28 },
+        { value: 'Jeep', count: 25 },
       ],
-      apiKey: process.env.TYPESENSE_API_KEY!,
-      connectionTimeoutSeconds: 2,
-    })
-
-    const results = await client.collections('vehicles').documents().search({
-      q: '*',
-      query_by: 'make',
-      filter_by: 'status:=available',
-      facet_by: 'make,model,year,body_style,fuel_type,drivetrain',
-      max_facet_values: 100,
-      per_page: 0,
-    })
-
-    return results.facet_counts
-  } catch {
-    return []
-  }
+    },
+    {
+      field_name: 'fuel_type',
+      counts: [
+        { value: 'Gasoline', count: 120 },
+        { value: 'Electric', count: 45 },
+        { value: 'Hybrid', count: 30 },
+        { value: 'Diesel', count: 12 },
+      ],
+    },
+  ]
 }

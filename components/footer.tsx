@@ -152,41 +152,41 @@ export function Footer() {
         </div>
 
         {/* OMVIC Badge */}
-        <div className="mt-12 p-6 bg-background/5 rounded-xl">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Shield className="w-8 h-8 text-background/80" />
+        <div className="mt-12 p-4 sm:p-6 bg-background/5 rounded-xl">
+          <div className="flex flex-col items-center gap-6">
+            <div className="flex items-center gap-3 text-center sm:text-left">
+              <Shield className="w-8 h-8 text-background/80 shrink-0" />
               <div>
                 <p className="font-semibold">OMVIC Registered Dealer</p>
                 <p className="text-sm text-background/70">Ontario Motor Vehicle Industry Council Licensed</p>
               </div>
             </div>
-            <div className="flex items-center gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 w-full">
               <div className="text-center">
-                <p className="text-2xl font-bold">210</p>
+                <p className="text-xl sm:text-2xl font-bold">210</p>
                 <p className="text-xs text-background/70">Point Inspection</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold">10-Day</p>
+                <p className="text-xl sm:text-2xl font-bold">10-Day</p>
                 <p className="text-xs text-background/70">Money Back</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold">$250</p>
+                <p className="text-xl sm:text-2xl font-bold">$250</p>
                 <p className="text-xs text-background/70">Refundable Deposit</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold">Nationwide</p>
-                <p className="text-xs text-background/70">Delivery</p>
+                <p className="text-xl sm:text-2xl font-bold">Canada</p>
+                <p className="text-xs text-background/70">Wide Delivery</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-background/20 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="mt-12 pt-8 border-t border-background/20 flex flex-col items-center gap-4 text-center">
           <p className="text-sm text-background/60">
-            &copy; 2026 Planet Motors. All rights reserved. | planetmotors.ca
+            &copy; 2026 Planet Motors. All rights reserved.
           </p>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 sm:gap-6">
             <a 
               href="https://facebook.com/planetmotors" 
               target="_blank"

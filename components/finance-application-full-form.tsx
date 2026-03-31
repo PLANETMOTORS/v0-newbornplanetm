@@ -1853,7 +1853,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
               {/* Loan Term */}
               <div className="mb-4">
                 <Label className="text-xs uppercase text-muted-foreground">Loan Term (Months)</Label>
-                <div className="grid grid-cols-4 gap-2 mt-2">
+                <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 mt-2">
                   {[24, 36, 48, 60, 72, 84, 96].map((term) => (
                     <Button
                       key={term}
@@ -1871,7 +1871,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
               {/* Payment Frequency */}
               <div className="mb-6">
                 <Label className="text-xs uppercase text-muted-foreground">Payment Frequency</Label>
-                <div className="grid grid-cols-4 gap-2 mt-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
                   {[
                     { value: "weekly", label: "Weekly" },
                     { value: "bi-weekly", label: "Bi-Weekly" },

@@ -120,16 +120,29 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    box-sizing: border-box;
   }
-  html, body {
+  html {
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  body {
     @apply bg-background text-foreground;
     overflow-x: hidden;
     max-width: 100vw;
+    min-height: 100vh;
+    position: relative;
   }
   
   /* Fix for mobile horizontal scroll */
   .container {
     max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  /* Prevent horizontal overflow from any element */
+  main, section, article, aside, header, footer, nav {
+    max-width: 100vw;
     overflow-x: hidden;
   }
   

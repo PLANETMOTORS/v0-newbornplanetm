@@ -68,7 +68,7 @@ export function LiveChat() {
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-lg z-50"
         size="icon"
       >
         <MessageCircle className="h-6 w-6" />
@@ -80,7 +80,7 @@ export function LiveChat() {
   }
 
   return (
-    <Card className={`fixed bottom-6 right-6 w-80 sm:w-96 shadow-2xl z-50 transition-all duration-200 ${isMinimized ? "h-14" : "h-[480px]"}`}>
+    <Card className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-[calc(100vw-2rem)] sm:w-80 md:w-96 max-w-96 shadow-2xl z-50 transition-all duration-200 ${isMinimized ? "h-14" : "h-[450px] sm:h-[480px]"}`}>
       <CardHeader className="p-3 bg-primary text-primary-foreground rounded-t-lg flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />

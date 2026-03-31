@@ -10,7 +10,6 @@
     "clean": "rm -rf .next node_modules/.cache"
   },
   "dependencies": {
-    "@babel/runtime": "^7.24.0",
     "@hookform/resolvers": "^3.9.1",
     "@radix-ui/react-accordion": "1.2.12",
     "@radix-ui/react-alert-dialog": "1.1.15",
@@ -69,7 +68,6 @@
     "stripe": "^18.1.0",
     "swr": "^2.4.1",
     "tailwind-merge": "^3.3.1",
-    "typesense": "^3.0.4",
     "vaul": "^1.1.2",
     "zod": "^3.24.1"
   },

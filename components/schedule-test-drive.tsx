@@ -162,7 +162,7 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
               {/* Time Selection */}
               <div>
                 <Label>Preferred Time</Label>
-                <div className="grid grid-cols-4 gap-2 mt-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
                   {timeSlots.map(time => (
                     <button
                       key={time}
