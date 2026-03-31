@@ -143,16 +143,42 @@ export function Header() {
                   </Link>
                 )}
 
-                {/* Submenu Dropdown */}
+                {/* Submenu Dropdown - Fixed with inline styles for guaranteed visibility */}
                 {item.submenu && activeSubmenu === item.name && (
-                  <div className="absolute top-full left-0 pt-2 z-[9999]" style={{ minWidth: '220px' }}>
-                    <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border border-zinc-200 dark:border-zinc-700 py-2 min-w-[220px]">
+                  <div 
+                    className="absolute left-0 mt-1"
+                    style={{ 
+                      top: '100%',
+                      zIndex: 99999,
+                      minWidth: '220px'
+                    }}
+                  >
+                    <div 
+                      style={{
+                        backgroundColor: '#ffffff',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+                        border: '1px solid #e5e7eb',
+                        padding: '8px 0',
+                        minWidth: '220px'
+                      }}
+                    >
                       {item.submenu.map((subitem) => (
                         <Link
                           key={subitem.name}
                           href={subitem.href}
-                          className="block px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                          style={{
+                            display: 'block',
+                            padding: '10px 16px',
+                            fontSize: '14px',
+                            color: '#374151',
+                            textDecoration: 'none',
+                            transition: 'background-color 0.15s'
+                          }}
+                          className="hover:!bg-gray-100"
                           onClick={() => setActiveSubmenu(null)}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
                           {subitem.name}
                         </Link>
