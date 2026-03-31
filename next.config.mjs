@@ -1,23 +1,13 @@
-import { fileURLToPath } from 'node:url'
-import { dirname } from 'node:path'
-
-const __dirname = dirname(fileURLToPath(import.meta.url))
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 36
+  // Force clean build - version 37
   cleanDistDir: true,
-  // PERMANENT FIX: Disable Turbopack and use webpack
-  // Turbopack has a known issue with workspace root detection in v0 sandbox
-  // Webpack is stable and properly respects tsconfig.json path aliases
-  bundler: 'webpack',
-  // Webpack configuration for path alias (fallback if tsconfig not respected)
-  webpack: (config) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@': __dirname,
-    }
-    return config
+  // PERMANENT FIX: Set Turbopack root to the actual project directory
+  // The v0 sandbox incorrectly infers /vercel/share/v0-next-shadcn as the workspace root
+  // but the actual project is at /vercel/share/v0-project
+  // This MUST be hardcoded because import.meta.url resolves incorrectly in the sandbox
+  turbopack: {
+    root: '/vercel/share/v0-project',
   },
   typescript: {
     ignoreBuildErrors: true,
