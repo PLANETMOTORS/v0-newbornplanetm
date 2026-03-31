@@ -206,6 +206,43 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
     }
   }, [vehicleData])
   
+  // Auto-calculate annual income when gross income or frequency changes
+  useEffect(() => {
+    const grossAmount = parseFloat(primaryApplicant.grossIncome) || 0
+    const frequency = primaryApplicant.incomeFrequency
+    const otherAmount = parseFloat(primaryApplicant.otherIncomeAmount) || 0
+    const otherFreq = primaryApplicant.otherIncomeFrequency
+    
+    // Calculate annual gross income based on frequency
+    let annualGross = 0
+    switch (frequency) {
+      case 'weekly': annualGross = grossAmount * 52; break
+      case 'bi-weekly': annualGross = grossAmount * 26; break
+      case 'semi-monthly': annualGross = grossAmount * 24; break
+      case 'monthly': annualGross = grossAmount * 12; break
+      case 'annually': annualGross = grossAmount; break
+      default: annualGross = grossAmount
+    }
+    
+    // Calculate annual other income based on frequency
+    let annualOther = 0
+    if (otherAmount > 0 && otherFreq) {
+      switch (otherFreq) {
+        case 'weekly': annualOther = otherAmount * 52; break
+        case 'bi-weekly': annualOther = otherAmount * 26; break
+        case 'semi-monthly': annualOther = otherAmount * 24; break
+        case 'monthly': annualOther = otherAmount * 12; break
+        case 'annually': annualOther = otherAmount; break
+        default: annualOther = otherAmount
+      }
+    }
+    
+    const totalAnnual = annualGross + annualOther
+    if (totalAnnual > 0) {
+      setPrimaryApplicant(prev => ({ ...prev, annualTotal: totalAnnual.toFixed(2) }))
+    }
+  }, [primaryApplicant.grossIncome, primaryApplicant.incomeFrequency, primaryApplicant.otherIncomeAmount, primaryApplicant.otherIncomeFrequency])
+  
   const [tradeIn, setTradeIn] = useState<TradeInInfo>({
     hasTradeIn: false, vin: "", year: "", make: "", model: "", trim: "",
     color: "", mileage: "", condition: "", estimatedValue: "",
@@ -1182,8 +1219,13 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
             </>
           )}
           <div>
-            <Label>Annual Total *</Label>
-            <Input type="number" value={data.annualTotal} onChange={(e) => updateField("annualTotal", e.target.value)} placeholder="$0.00" className="bg-amber-50 font-semibold" />
+            <Label>Annual Total * <span className="text-xs text-muted-foreground">(Auto-calculated)</span></Label>
+            <Input 
+              type="text" 
+              value={data.annualTotal ? `$${parseFloat(data.annualTotal).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "$0.00"} 
+              readOnly 
+              className="bg-amber-50 font-semibold" 
+            />
           </div>
         </div>
       </section>
