@@ -64,7 +64,7 @@ export default function FinanceCalculatorPage() {
   const [tradeInValue, setTradeInValue] = useState(0)
   const [hasTradeIn, setHasTradeIn] = useState(false)
   const [interestRate, setInterestRate] = useState(7.99)
-  const [adminFee, setAdminFee] = useState(499)
+  const [adminFee, setAdminFee] = useState(895) // Finance Docs Fee
   const [loanTerm, setLoanTerm] = useState(60)
   const [paymentFrequency, setPaymentFrequency] = useState("biweekly")
   const [showAmortization, setShowAmortization] = useState(false)
@@ -342,7 +342,7 @@ export default function FinanceCalculatorPage() {
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="adminFee">Admin Fee</Label>
+                    <Label htmlFor="adminFee">Finance Docs Fee</Label>
                     <div className="relative mt-1.5">
                       <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
@@ -543,7 +543,7 @@ export default function FinanceCalculatorPage() {
                       <span>${financeDetails.hstAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Admin Fee</span>
+                      <span className="text-muted-foreground">Finance Docs Fee</span>
                       <span>${financeDetails.adminFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                     <Separator />
