@@ -97,7 +97,9 @@ export default function FinanceCalculatorPage() {
     if (!vehicle) return null
 
     const vehiclePrice = vehicle.price / 100 // Convert from cents
-    const hstAmount = vehiclePrice * HST_RATE
+    // HST applies to FULL subtotal (vehicle + all fees)
+    const subtotalForHst = vehiclePrice + adminFee
+    const hstAmount = subtotalForHst * HST_RATE
     const totalBeforeCredits = vehiclePrice + hstAmount + adminFee
     const totalCredits = downPayment + (hasTradeIn ? tradeInValue : 0)
     const amountToFinance = Math.max(0, totalBeforeCredits - totalCredits)

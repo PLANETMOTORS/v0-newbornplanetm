@@ -378,7 +378,12 @@ export default function VehicleDetailPage() {
       if (data) {
         // Transform database vehicle to page format
         const priceInDollars = data.price / 100
-        const hst = priceInDollars * 0.13
+        // Calculate subtotal (vehicle + all fees) for HST
+        const omvicFee = 22
+        const certificationFee = 595
+        const licensingFee = 59
+        const subtotalForHst = priceInDollars + omvicFee + certificationFee + licensingFee
+        const hst = subtotalForHst * 0.13
         setVehicle({
           ...vehicleData, // Keep mock inspection data etc.
           id: data.id,
@@ -401,7 +406,7 @@ export default function VehicleDetailPage() {
             vehiclePrice: priceInDollars,
             deliveryFee: 0,
             hst: Math.round(hst),
-            omvicFee: 22,
+            omvicFee: omvicFee,
             certificationFee: 595,
             licensingReg: 59,
             totalWithHst: Math.round(priceInDollars + hst + 22 + 595 + 59)
@@ -990,7 +995,7 @@ export default function VehicleDetailPage() {
                       {/* VIN & History — Items 1-10 */}
                       <div className="space-y-1">
                         <div className="bg-blue-600 text-white p-2 rounded-t-lg flex items-center gap-2">
-                          <span className="text-sm font-medium">VIN & History — Items 1-10</span>
+                          <span className="text-sm font-medium">VIN & History ��� Items 1-10</span>
                         </div>
                         <div className="border rounded-b-lg">
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">

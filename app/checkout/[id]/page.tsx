@@ -146,10 +146,10 @@ export default function CheckoutPage() {
   const deliveryFee = deliveryType === "delivery" 
     ? (deliveryQuote?.cost ?? 299)
     : 0
-  // HST applies to vehicle price only (13%)
-  const hst = Math.round(vehiclePrice * 0.13)
-  // Subtotal before HST
+  // Subtotal before HST (vehicle + all fees)
   const subtotalBeforeHst = vehiclePrice + omvicFee + certificationFee + (purchaseType === "finance" ? financeDocsFee : 0) + licensingFee + deliveryFee
+  // HST applies to FULL subtotal (13%)
+  const hst = Math.round(subtotalBeforeHst * 0.13)
   // Total with HST
   const total = subtotalBeforeHst + hst
 
