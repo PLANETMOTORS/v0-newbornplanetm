@@ -139,8 +139,8 @@ export default function CheckoutPage() {
 
   const vehiclePrice = vehicleData.price
   const omvicFee = 22 // OMVIC regulatory fee
-  const certificationFee = 699 // Safety certification
-  const adminFee = 499 // Admin fee for financing
+  const certificationFee = 595 // Safety certification
+  const financeDocsFee = 895 // Finance docs fee (only applies if financing)
   const licensingFee = 59 // Ontario licensing & registration (estimated)
   // Dynamic delivery fee based on postal code distance (free within 300km)
   const deliveryFee = deliveryType === "delivery" 
@@ -149,7 +149,7 @@ export default function CheckoutPage() {
   // HST applies to vehicle price only (13%)
   const hst = Math.round(vehiclePrice * 0.13)
   // Subtotal before HST
-  const subtotalBeforeHst = vehiclePrice + omvicFee + certificationFee + (purchaseType === "finance" ? adminFee : 0) + licensingFee + deliveryFee
+  const subtotalBeforeHst = vehiclePrice + omvicFee + certificationFee + (purchaseType === "finance" ? financeDocsFee : 0) + licensingFee + deliveryFee
   // Total with HST
   const total = subtotalBeforeHst + hst
 
@@ -633,11 +633,11 @@ export default function CheckoutPage() {
                     <span>Certification</span>
                     <span>${certificationFee}</span>
                   </div>
-                  {purchaseType === "finance" && (
-                    <div className="flex justify-between text-muted-foreground">
-                      <span>Admin Fee</span>
-                      <span>${adminFee}</span>
-                    </div>
+{purchaseType === "finance" && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Finance Docs Fee</span>
+                    <span>${financeDocsFee}</span>
+                  </div>
                   )}
                   {deliveryType === "delivery" && (
                     <div className="flex justify-between text-muted-foreground">
