@@ -1,12 +1,20 @@
-import { resolve } from 'path'
+import { fileURLToPath } from 'node:url'
+import { dirname } from 'node:path'
+
+// PERMANENT FIX: Get the absolute path to this config file's directory
+// This ensures Turbopack always uses the correct project root regardless of where Next.js is invoked from
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 33
+  // Force clean build - version 34
   cleanDistDir: true,
-  // Fix Turbopack root to project directory
+  // PERMANENT FIX: Set Turbopack root to this config file's directory
+  // This fixes the "@/lib/utils" module resolution issue by ensuring Turbopack
+  // looks for modules relative to the actual project directory, not the workspace root
   turbopack: {
-    root: '/vercel/share/v0-project',
+    root: __dirname,
   },
   typescript: {
     ignoreBuildErrors: true,
