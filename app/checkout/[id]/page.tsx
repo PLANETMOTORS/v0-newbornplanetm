@@ -23,7 +23,8 @@ import {
   Truck,
   FileText,
   Phone,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 
@@ -194,25 +195,20 @@ export default function CheckoutPage() {
   }, [formData.postalCode])
 
 const handleSubmit = async () => {
-    console.log("[v0] handleSubmit called - purchaseType:", purchaseType)
     setIsSubmitting(true)
     
     // If financing, redirect to full finance application
     if (purchaseType === "finance") {
-      console.log("[v0] Finance selected - redirecting to finance application")
-      // Store checkout data in sessionStorage for the finance application
       sessionStorage.setItem('checkoutData', JSON.stringify({
         ...formData,
         vehicleId: params.id,
         deliveryType,
       }))
-      // Use window.location for guaranteed redirect
       window.location.href = `/financing/application?vehicleId=${params.id}`
       return
     }
     
     // For cash purchases, complete immediately
-    console.log("[v0] Cash purchase - completing order")
     await new Promise(resolve => setTimeout(resolve, 2000))
     setStep(4) // Success
     setIsSubmitting(false)
@@ -345,7 +341,7 @@ const handleSubmit = async () => {
                   </CardContent>
                 </Card>
 
-                {/* Address */}
+                {/* Address - Postal Code FIRST to auto-fill other fields */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -354,36 +350,16 @@ const handleSubmit = async () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="address">Street Address *</Label>
-                      <Input
-                        id="address"
-                        value={formData.address}
-                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                        placeholder="123 Main Street"
-                      />
-                    </div>
-                    <div className="grid sm:grid-cols-3 gap-4">
+                    {/* POSTAL CODE FIRST - This auto-fills City and Province */}
+                    <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
                       <div className="space-y-2">
-                        <Label htmlFor="city">City * <span className="text-xs text-muted-foreground">(Auto-filled from postal code)</span></Label>
-                        <Input
-                          id="city"
-                          value={formData.city}
-                          readOnly
-                          className="bg-muted"
-                          placeholder="Enter postal code to auto-fill"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="province">Province</Label>
-                        <Input id="province" value={formData.province === "ON" ? "Ontario" : formData.province} readOnly className="bg-muted" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="postalCode">Postal Code * <span className="text-xs text-muted-foreground">(Auto-fills address)</span></Label>
+                        <Label htmlFor="postalCode" className="text-primary font-semibold">
+                          Postal Code * <span className="text-xs font-medium">(Enter first to auto-fill address)</span>
+                        </Label>
                         <Input
                           id="postalCode"
                           value={formData.postalCode}
-                          onChange={(e) => {
+                          onChange={async (e) => {
                             // Format Canadian postal code (e.g., M5V 1A1)
                             let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')
                             if (value.length > 3) {
@@ -394,7 +370,24 @@ const handleSubmit = async () => {
                             // Auto-fill city/province based on postal code prefix
                             const prefix = value.replace(/\s/g, '').slice(0, 3).toUpperCase()
                             if (prefix.length >= 3) {
-                              // Ontario postal codes - comprehensive list
+                              // Fetch from API for street suggestions
+                              try {
+                                const res = await fetch(`/api/address-lookup?postalCode=${prefix}`)
+                                const data = await res.json()
+                                if (data.city && data.province) {
+                                  setFormData(prev => ({ 
+                                    ...prev, 
+                                    postalCode: formattedPostal, 
+                                    city: data.city, 
+                                    province: data.province 
+                                  }))
+                                  return
+                                }
+                              } catch (error) {
+                                // Fallback to local lookup
+                              }
+                              
+                              // Fallback: Ontario postal codes - comprehensive list
                               const ontarioPrefixes: Record<string, string> = {
                                 'L4B': 'Richmond Hill', 'L4C': 'Richmond Hill', 'L4E': 'Richmond Hill', 'L4S': 'Richmond Hill',
                                 'L3R': 'Markham', 'L3S': 'Markham', 'L3T': 'Markham', 'L3P': 'Markham', 'L6B': 'Markham', 'L6C': 'Markham', 'L6E': 'Markham', 'L6G': 'Markham',
@@ -446,6 +439,46 @@ const handleSubmit = async () => {
                         {formData.postalCode.length > 0 && !validatePostalCode(formData.postalCode) && (
                           <p className="text-xs text-destructive">Must be 6 characters (e.g., M5C 1A1)</p>
                         )}
+                        {formData.city && (
+                          <p className="text-xs text-green-600 mt-1 font-medium">
+                            {formData.city}, {formData.province === "ON" ? "Ontario" : formData.province}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Street Address */}
+                    <div className="space-y-2">
+                      <Label htmlFor="address">Street Address *</Label>
+                      <Input
+                        id="address"
+                        value={formData.address}
+                        onChange={(e) => setFormData({ ...formData, address: e.target.value.toUpperCase() })}
+                        placeholder="123 MAIN STREET"
+                        className="uppercase"
+                      />
+                    </div>
+                    
+                    {/* City and Province - Auto-filled from Postal Code */}
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="city">City * <span className="text-xs text-muted-foreground">(Auto-filled)</span></Label>
+                        <Input
+                          id="city"
+                          value={formData.city}
+                          readOnly
+                          className="bg-muted"
+                          placeholder="Enter postal code first"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="province">Province <span className="text-xs text-muted-foreground">(Auto-filled)</span></Label>
+                        <Input 
+                          id="province" 
+                          value={formData.province === "ON" ? "Ontario" : formData.province} 
+                          readOnly 
+                          className="bg-muted" 
+                        />
                       </div>
                     </div>
                   </CardContent>

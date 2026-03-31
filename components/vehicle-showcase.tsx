@@ -273,14 +273,14 @@ export function VehicleShowcase() {
       </div>
 
       {/* Thumbnail navigation */}
-      <div className="mt-4 flex items-center justify-between">
-        <div className="flex gap-2">
-          {showcaseVehicles.map((vehicle, index) => (
+      <div className="mt-4 flex items-center justify-between gap-2">
+        <div className="flex gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide">
+          {showcaseVehicles.slice(0, 5).map((vehicle, index) => (
             <button
               key={vehicle.id}
               onClick={() => setCurrentIndex(index)}
               className={cn(
-                "relative w-16 h-12 rounded-lg overflow-hidden transition-all duration-200",
+                "relative w-12 h-9 sm:w-16 sm:h-12 rounded-lg overflow-hidden transition-all duration-200 flex-shrink-0",
                 index === currentIndex 
                   ? "ring-2 ring-primary ring-offset-2 ring-offset-background" 
                   : "opacity-60 hover:opacity-100"
@@ -299,7 +299,7 @@ export function VehicleShowcase() {
           ))}
         </div>
         
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
           <Eye className="w-4 h-4" />
           <span>{viewCount} viewing</span>
         </div>

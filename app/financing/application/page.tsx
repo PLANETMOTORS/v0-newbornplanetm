@@ -9,21 +9,17 @@ export const metadata: Metadata = {
 }
 
 async function getVehicleData(vehicleId: string | undefined) {
-  console.log("[v0] getVehicleData called with vehicleId:", vehicleId)
   if (!vehicleId) {
-    console.log("[v0] No vehicleId provided, returning null")
     return null
   }
   
   try {
     const supabase = await createClient()
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("vehicles")
       .select("id, year, make, model, trim, price, vin, mileage, exterior_color")
       .eq("id", vehicleId)
       .single()
-    
-    console.log("[v0] Supabase query result - data:", data, "error:", error)
     
     if (data) {
       return {

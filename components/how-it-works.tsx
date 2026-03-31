@@ -67,7 +67,7 @@ export function HowItWorks() {
           {/* Connector Line */}
           <div className="absolute top-24 left-[10%] right-[10%] h-1 bg-gradient-to-r from-blue-500 via-green-500 via-purple-500 to-orange-500 rounded-full" />
           
-          <div className="grid grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             {steps.map((item, index) => (
               <div key={item.step} className="relative">
                 {/* Step Circle with gradient */}

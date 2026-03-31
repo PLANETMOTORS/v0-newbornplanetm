@@ -218,26 +218,26 @@ export default function ComparePage() {
       
       <main>
         {/* Hero Section */}
-        <section className="bg-primary py-12">
+        <section className="bg-primary py-8 sm:py-12">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="text-4xl font-bold text-primary-foreground mb-4">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary-foreground mb-3 sm:mb-4">
               Compare Vehicles
             </h1>
-            <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto mb-6">
-              Select up to 3 vehicles to compare side-by-side and find your perfect match.
+            <p className="text-base sm:text-lg md:text-xl text-primary-foreground/80 max-w-2xl mx-auto mb-4 sm:mb-6">
+              Select up to 3 vehicles to compare side-by-side.
             </p>
             {selectedVehicleData.length >= 2 && (
-              <div className="flex justify-center gap-3">
+              <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
                 <Button variant="secondary" size="sm" onClick={handleShare}>
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share Comparison
+                  <Share2 className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Share</span>
                 </Button>
                 <Button variant="secondary" size="sm" onClick={handlePrint}>
-                  <Printer className="h-4 w-4 mr-2" />
-                  Print
+                  <Printer className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Print</span>
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => { setSelectedVehicles([]); clearCompare(); }} className="border-white/30 text-white hover:bg-white/10">
-                  Clear All
+                  Clear
                 </Button>
               </div>
             )}
