@@ -323,6 +323,62 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
   // Validation state
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   
+  // Canadian postal code auto-fill helper
+  const getAddressFromPostalCode = (postalCode: string): { city?: string; province?: string } => {
+    const prefix = postalCode.replace(/\s/g, '').slice(0, 3).toUpperCase()
+    if (prefix.length < 3) return {}
+    
+    // Ontario postal codes - comprehensive list
+    const ontarioPrefixes: Record<string, string> = {
+      'L4B': 'Richmond Hill', 'L4C': 'Richmond Hill', 'L4E': 'Richmond Hill', 'L4S': 'Richmond Hill',
+      'L3R': 'Markham', 'L3S': 'Markham', 'L3T': 'Markham', 'L3P': 'Markham', 'L6B': 'Markham', 'L6C': 'Markham', 'L6E': 'Markham', 'L6G': 'Markham',
+      'M5V': 'Toronto', 'M5J': 'Toronto', 'M5H': 'Toronto', 'M5C': 'Toronto', 'M5A': 'Toronto', 'M5B': 'Toronto', 'M5E': 'Toronto', 'M5G': 'Toronto', 'M5K': 'Toronto', 'M5L': 'Toronto', 'M5M': 'Toronto', 'M5N': 'Toronto', 'M5P': 'Toronto', 'M5R': 'Toronto', 'M5S': 'Toronto', 'M5T': 'Toronto', 'M5W': 'Toronto', 'M5X': 'Toronto',
+      'M4V': 'Toronto', 'M4W': 'Toronto', 'M4X': 'Toronto', 'M4Y': 'Toronto', 'M4E': 'Toronto', 'M4G': 'Toronto', 'M4H': 'Toronto', 'M4J': 'Toronto', 'M4K': 'Toronto', 'M4L': 'Toronto', 'M4M': 'Toronto', 'M4N': 'Toronto', 'M4P': 'Toronto', 'M4R': 'Toronto', 'M4S': 'Toronto', 'M4T': 'Toronto',
+      'M6A': 'North York', 'M6B': 'North York', 'M6C': 'Toronto', 'M6E': 'Toronto', 'M6G': 'Toronto', 'M6H': 'Toronto', 'M6J': 'Toronto', 'M6K': 'Toronto', 'M6L': 'North York', 'M6M': 'Toronto', 'M6N': 'Toronto', 'M6P': 'Toronto', 'M6R': 'Toronto', 'M6S': 'Toronto',
+      'M9A': 'Etobicoke', 'M9B': 'Etobicoke', 'M9C': 'Etobicoke', 'M9L': 'North York', 'M9M': 'North York', 'M9N': 'Toronto', 'M9P': 'Etobicoke', 'M9R': 'Etobicoke', 'M9V': 'Etobicoke', 'M9W': 'Etobicoke',
+      'L1N': 'Oshawa', 'L1G': 'Oshawa', 'L1H': 'Oshawa', 'L1J': 'Oshawa', 'L1K': 'Oshawa', 'L1L': 'Oshawa', 'L1M': 'Oshawa', 'L1P': 'Oshawa', 'L1R': 'Oshawa', 'L1S': 'Oshawa', 'L1T': 'Oshawa', 'L1V': 'Oshawa', 'L1W': 'Oshawa', 'L1X': 'Oshawa', 'L1Y': 'Oshawa', 'L1Z': 'Oshawa',
+      'L5A': 'Mississauga', 'L5B': 'Mississauga', 'L5C': 'Mississauga', 'L5E': 'Mississauga', 'L5G': 'Mississauga', 'L5H': 'Mississauga', 'L5J': 'Mississauga', 'L5K': 'Mississauga', 'L5L': 'Mississauga', 'L5M': 'Mississauga', 'L5N': 'Mississauga', 'L5P': 'Mississauga', 'L5R': 'Mississauga', 'L5S': 'Mississauga', 'L5T': 'Mississauga', 'L5V': 'Mississauga', 'L5W': 'Mississauga',
+      'L6H': 'Oakville', 'L6J': 'Oakville', 'L6K': 'Oakville', 'L6L': 'Oakville', 'L6M': 'Oakville',
+      'L7A': 'Brampton', 'L7C': 'Brampton', 'L6P': 'Brampton', 'L6R': 'Brampton', 'L6S': 'Brampton', 'L6T': 'Brampton', 'L6V': 'Brampton', 'L6W': 'Brampton', 'L6X': 'Brampton', 'L6Y': 'Brampton', 'L6Z': 'Brampton',
+      'L7G': 'Georgetown', 'L7J': 'Acton', 'L7L': 'Burlington', 'L7M': 'Burlington', 'L7N': 'Burlington', 'L7P': 'Burlington', 'L7R': 'Burlington', 'L7S': 'Burlington', 'L7T': 'Burlington',
+      'L8E': 'Hamilton', 'L8G': 'Hamilton', 'L8H': 'Hamilton', 'L8J': 'Hamilton', 'L8K': 'Hamilton', 'L8L': 'Hamilton', 'L8M': 'Hamilton', 'L8N': 'Hamilton', 'L8P': 'Hamilton', 'L8R': 'Hamilton', 'L8S': 'Hamilton', 'L8T': 'Hamilton', 'L8V': 'Hamilton', 'L8W': 'Hamilton', 'L9A': 'Hamilton', 'L9B': 'Hamilton', 'L9C': 'Hamilton',
+      'K1A': 'Ottawa', 'K1B': 'Ottawa', 'K1C': 'Ottawa', 'K1E': 'Ottawa', 'K1G': 'Ottawa', 'K1H': 'Ottawa', 'K1J': 'Ottawa', 'K1K': 'Ottawa', 'K1L': 'Ottawa', 'K1M': 'Ottawa', 'K1N': 'Ottawa', 'K1P': 'Ottawa', 'K1R': 'Ottawa', 'K1S': 'Ottawa', 'K1T': 'Ottawa', 'K1V': 'Ottawa', 'K1W': 'Ottawa', 'K1X': 'Ottawa', 'K1Y': 'Ottawa', 'K1Z': 'Ottawa', 'K2A': 'Ottawa', 'K2B': 'Ottawa', 'K2C': 'Ottawa', 'K2E': 'Ottawa', 'K2G': 'Ottawa', 'K2H': 'Ottawa', 'K2J': 'Ottawa', 'K2K': 'Ottawa', 'K2L': 'Ottawa', 'K2M': 'Ottawa', 'K2P': 'Ottawa', 'K2R': 'Ottawa', 'K2S': 'Ottawa', 'K2T': 'Ottawa', 'K2V': 'Ottawa', 'K2W': 'Ottawa',
+      'N2A': 'Kitchener', 'N2B': 'Kitchener', 'N2C': 'Kitchener', 'N2E': 'Kitchener', 'N2G': 'Kitchener', 'N2H': 'Kitchener', 'N2J': 'Kitchener', 'N2K': 'Kitchener', 'N2L': 'Waterloo', 'N2M': 'Kitchener', 'N2N': 'Kitchener', 'N2P': 'Kitchener', 'N2R': 'Kitchener', 'N2T': 'Kitchener', 'N2V': 'Waterloo',
+      'N6A': 'London', 'N6B': 'London', 'N6C': 'London', 'N6E': 'London', 'N6G': 'London', 'N6H': 'London', 'N6J': 'London', 'N6K': 'London', 'N6L': 'London', 'N6M': 'London', 'N6N': 'London', 'N6P': 'London',
+    }
+    
+    const city = ontarioPrefixes[prefix]
+    if (city) {
+      return { city, province: 'Ontario' }
+    }
+    
+    // Province detection by first letter
+    const provinceMap: Record<string, string> = {
+      'K': 'Ontario', 'L': 'Ontario', 'M': 'Ontario', 'N': 'Ontario', 'P': 'Ontario',
+      'G': 'Quebec', 'H': 'Quebec', 'J': 'Quebec',
+      'V': 'British Columbia',
+      'T': 'Alberta',
+      'S': 'Saskatchewan',
+      'R': 'Manitoba',
+      'E': 'New Brunswick',
+      'B': 'Nova Scotia',
+      'C': 'Prince Edward Island',
+      'A': 'Newfoundland and Labrador',
+    }
+    
+    const province = provinceMap[prefix[0]]
+    return province ? { province } : {}
+  }
+  
+  // Format and validate postal code input
+  const formatPostalCode = (value: string): string => {
+    let formatted = value.toUpperCase().replace(/[^A-Z0-9]/g, '')
+    if (formatted.length > 3) {
+      formatted = formatted.slice(0, 3) + ' ' + formatted.slice(3, 6)
+    }
+    return formatted.slice(0, 7)
+  }
+
   // Phone number validation - strict rules for real Canadian phone numbers
   const validatePhone = (phone: string): { valid: boolean; error?: string } => {
     const digitsOnly = phone.replace(/\D/g, '')
@@ -411,7 +467,9 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
     }
     if (!primaryApplicant.email.trim() && !primaryApplicant.noEmail) errors.push("Email is required")
     if (!primaryApplicant.creditRating) errors.push("Credit Rating is required")
-    if (!primaryApplicant.postalCode.trim()) errors.push("Postal Code is required")
+    if (!primaryApplicant.postalCode.trim() || primaryApplicant.postalCode.replace(/\s/g, '').length < 6) {
+      errors.push("Valid Postal Code is required (format: A1A 1A1)")
+    }
     if (!primaryApplicant.addressType) errors.push("Address Type is required")
     if (!primaryApplicant.streetNumber.trim()) errors.push("Street Number is required")
     if (!primaryApplicant.streetName.trim()) errors.push("Street Name is required")
@@ -423,6 +481,9 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
     if (!primaryApplicant.employmentStatus) errors.push("Employment Status is required")
     if (!primaryApplicant.employerName.trim()) errors.push("Employer Name is required")
     if (!primaryApplicant.occupation.trim()) errors.push("Occupation is required")
+    if (!primaryApplicant.employerPostalCode.trim() || primaryApplicant.employerPostalCode.replace(/\s/g, '').length < 6) {
+      errors.push("Employer Postal Code is required (format: A1A 1A1)")
+    }
     const employerPhoneValidation = validatePhone(primaryApplicant.employerPhone)
     if (!primaryApplicant.employerPhone || !employerPhoneValidation.valid) {
       errors.push("Employer " + (employerPhoneValidation.error || "Phone is required"))
@@ -915,67 +976,21 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label>Postal Code * <span className="text-xs text-muted-foreground">(Auto-fills address)</span></Label>
+            <Label>Postal Code * <span className="text-xs text-primary font-medium">(Auto-fills address)</span></Label>
             <Input 
               value={data.postalCode} 
               onChange={(e) => {
-                // Format postal code (A1A 1A1)
-                let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')
-                if (value.length > 3) {
-                  value = value.slice(0, 3) + ' ' + value.slice(3, 6)
-                }
-                const formattedPostal = value.slice(0, 7)
-                
-                // Auto-fill city/province based on postal code prefix (first 3 chars)
-                const prefix = value.replace(/\s/g, '').slice(0, 3).toUpperCase()
-                if (prefix.length >= 3) {
-                  // Ontario postal codes - comprehensive list
-                  const ontarioPrefixes: Record<string, string> = {
-                    'L4B': 'Richmond Hill', 'L4C': 'Richmond Hill', 'L4E': 'Richmond Hill', 'L4S': 'Richmond Hill',
-                    'L3R': 'Markham', 'L3S': 'Markham', 'L3T': 'Markham', 'L3P': 'Markham', 'L6B': 'Markham', 'L6C': 'Markham', 'L6E': 'Markham', 'L6G': 'Markham',
-                    'M5V': 'Toronto', 'M5J': 'Toronto', 'M5H': 'Toronto', 'M5C': 'Toronto', 'M5A': 'Toronto', 'M5B': 'Toronto', 'M5E': 'Toronto', 'M5G': 'Toronto', 'M5K': 'Toronto', 'M5L': 'Toronto', 'M5M': 'Toronto', 'M5N': 'Toronto', 'M5P': 'Toronto', 'M5R': 'Toronto', 'M5S': 'Toronto', 'M5T': 'Toronto', 'M5W': 'Toronto', 'M5X': 'Toronto',
-                    'M4V': 'Toronto', 'M4W': 'Toronto', 'M4X': 'Toronto', 'M4Y': 'Toronto', 'M4E': 'Toronto', 'M4G': 'Toronto', 'M4H': 'Toronto', 'M4J': 'Toronto', 'M4K': 'Toronto', 'M4L': 'Toronto', 'M4M': 'Toronto', 'M4N': 'Toronto', 'M4P': 'Toronto', 'M4R': 'Toronto', 'M4S': 'Toronto', 'M4T': 'Toronto',
-                    'M6A': 'North York', 'M6B': 'North York', 'M6C': 'Toronto', 'M6E': 'Toronto', 'M6G': 'Toronto', 'M6H': 'Toronto', 'M6J': 'Toronto', 'M6K': 'Toronto', 'M6L': 'North York', 'M6M': 'Toronto', 'M6N': 'Toronto', 'M6P': 'Toronto', 'M6R': 'Toronto', 'M6S': 'Toronto',
-                    'M9A': 'Etobicoke', 'M9B': 'Etobicoke', 'M9C': 'Etobicoke', 'M9L': 'North York', 'M9M': 'North York', 'M9N': 'Toronto', 'M9P': 'Etobicoke', 'M9R': 'Etobicoke', 'M9V': 'Etobicoke', 'M9W': 'Etobicoke',
-                    'L1N': 'Oshawa', 'L1G': 'Oshawa', 'L1H': 'Oshawa', 'L1J': 'Oshawa', 'L1K': 'Oshawa', 'L1L': 'Oshawa', 'L1M': 'Oshawa', 'L1P': 'Oshawa', 'L1R': 'Oshawa', 'L1S': 'Oshawa', 'L1T': 'Oshawa', 'L1V': 'Oshawa', 'L1W': 'Oshawa', 'L1X': 'Oshawa', 'L1Y': 'Oshawa', 'L1Z': 'Oshawa',
-                    'L5A': 'Mississauga', 'L5B': 'Mississauga', 'L5C': 'Mississauga', 'L5E': 'Mississauga', 'L5G': 'Mississauga', 'L5H': 'Mississauga', 'L5J': 'Mississauga', 'L5K': 'Mississauga', 'L5L': 'Mississauga', 'L5M': 'Mississauga', 'L5N': 'Mississauga', 'L5P': 'Mississauga', 'L5R': 'Mississauga', 'L5S': 'Mississauga', 'L5T': 'Mississauga', 'L5V': 'Mississauga', 'L5W': 'Mississauga',
-                    'L6H': 'Oakville', 'L6J': 'Oakville', 'L6K': 'Oakville', 'L6L': 'Oakville', 'L6M': 'Oakville',
-                    'L7A': 'Brampton', 'L7C': 'Brampton', 'L6P': 'Brampton', 'L6R': 'Brampton', 'L6S': 'Brampton', 'L6T': 'Brampton', 'L6V': 'Brampton', 'L6W': 'Brampton', 'L6X': 'Brampton', 'L6Y': 'Brampton', 'L6Z': 'Brampton',
-                    'L7G': 'Georgetown', 'L7J': 'Acton', 'L7L': 'Burlington', 'L7M': 'Burlington', 'L7N': 'Burlington', 'L7P': 'Burlington', 'L7R': 'Burlington', 'L7S': 'Burlington', 'L7T': 'Burlington',
-                    'L8E': 'Hamilton', 'L8G': 'Hamilton', 'L8H': 'Hamilton', 'L8J': 'Hamilton', 'L8K': 'Hamilton', 'L8L': 'Hamilton', 'L8M': 'Hamilton', 'L8N': 'Hamilton', 'L8P': 'Hamilton', 'L8R': 'Hamilton', 'L8S': 'Hamilton', 'L8T': 'Hamilton', 'L8V': 'Hamilton', 'L8W': 'Hamilton', 'L9A': 'Hamilton', 'L9B': 'Hamilton', 'L9C': 'Hamilton',
-                    'K1A': 'Ottawa', 'K1B': 'Ottawa', 'K1C': 'Ottawa', 'K1E': 'Ottawa', 'K1G': 'Ottawa', 'K1H': 'Ottawa', 'K1J': 'Ottawa', 'K1K': 'Ottawa', 'K1L': 'Ottawa', 'K1M': 'Ottawa', 'K1N': 'Ottawa', 'K1P': 'Ottawa', 'K1R': 'Ottawa', 'K1S': 'Ottawa', 'K1T': 'Ottawa', 'K1V': 'Ottawa', 'K1W': 'Ottawa', 'K1X': 'Ottawa', 'K1Y': 'Ottawa', 'K1Z': 'Ottawa', 'K2A': 'Ottawa', 'K2B': 'Ottawa', 'K2C': 'Ottawa', 'K2E': 'Ottawa', 'K2G': 'Ottawa', 'K2H': 'Ottawa', 'K2J': 'Ottawa', 'K2K': 'Ottawa', 'K2L': 'Ottawa', 'K2M': 'Ottawa', 'K2P': 'Ottawa', 'K2R': 'Ottawa', 'K2S': 'Ottawa', 'K2T': 'Ottawa', 'K2V': 'Ottawa', 'K2W': 'Ottawa',
-                    'N2A': 'Kitchener', 'N2B': 'Kitchener', 'N2C': 'Kitchener', 'N2E': 'Kitchener', 'N2G': 'Kitchener', 'N2H': 'Kitchener', 'N2J': 'Kitchener', 'N2K': 'Kitchener', 'N2L': 'Waterloo', 'N2M': 'Kitchener', 'N2N': 'Kitchener', 'N2P': 'Kitchener', 'N2R': 'Kitchener', 'N2T': 'Kitchener', 'N2V': 'Waterloo',
-                    'N6A': 'London', 'N6B': 'London', 'N6C': 'London', 'N6E': 'London', 'N6G': 'London', 'N6H': 'London', 'N6J': 'London', 'N6K': 'London', 'N6L': 'London', 'N6M': 'London', 'N6N': 'London', 'N6P': 'London',
-                  }
-                  const city = ontarioPrefixes[prefix]
-                  if (city) {
-                    // Update postal code, city, and province in a single state update
-                    onChange({ ...data, postalCode: formattedPostal, city, province: 'Ontario' })
-                    return
-                  }
-                  // Default province detection by first letter
-                  const provinceMap: Record<string, string> = {
-                    'K': 'Ontario', 'L': 'Ontario', 'M': 'Ontario', 'N': 'Ontario', 'P': 'Ontario',
-                    'G': 'Quebec', 'H': 'Quebec', 'J': 'Quebec',
-                    'V': 'British Columbia',
-                    'T': 'Alberta',
-                    'S': 'Saskatchewan',
-                    'R': 'Manitoba',
-                    'E': 'New Brunswick',
-                    'B': 'Nova Scotia',
-                    'C': 'Prince Edward Island',
-                    'A': 'Newfoundland and Labrador',
-                  }
-                  const prov = provinceMap[prefix[0]]
-                  if (prov) {
-                    onChange({ ...data, postalCode: formattedPostal, province: prov })
-                    return
-                  }
-                }
-                // If no auto-fill match, just update postal code
-                onChange({ ...data, postalCode: formattedPostal })
+                const formattedPostal = formatPostalCode(e.target.value)
+                const { city, province } = getAddressFromPostalCode(formattedPostal)
+                onChange({ 
+                  ...data, 
+                  postalCode: formattedPostal, 
+                  ...(city && { city }),
+                  ...(province && { province })
+                })
               }} 
-              placeholder="L4B 0G2" 
+              placeholder="L4B 0G2"
+              className="font-mono uppercase"
             />
           </div>
           <div>
@@ -1036,26 +1051,21 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
             </Select>
           </div>
           <div>
-            <Label>City *</Label>
-            <Input value={data.city} onChange={(e) => updateField("city", e.target.value)} />
+            <Label>City * <span className="text-xs text-muted-foreground">(from postal code)</span></Label>
+            <Input 
+              value={data.city} 
+              onChange={(e) => updateField("city", e.target.value)}
+              readOnly={Boolean(data.city && data.postalCode.length >= 6)}
+              className={data.city && data.postalCode.length >= 6 ? "bg-muted" : ""}
+            />
           </div>
           <div>
-            <Label>Province *</Label>
-            <Select value={data.province} onValueChange={(v) => updateField("province", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Ontario">Ontario</SelectItem>
-                <SelectItem value="Quebec">Quebec</SelectItem>
-                <SelectItem value="British Columbia">British Columbia</SelectItem>
-                <SelectItem value="Alberta">Alberta</SelectItem>
-                <SelectItem value="Manitoba">Manitoba</SelectItem>
-                <SelectItem value="Saskatchewan">Saskatchewan</SelectItem>
-                <SelectItem value="Nova Scotia">Nova Scotia</SelectItem>
-                <SelectItem value="New Brunswick">New Brunswick</SelectItem>
-                <SelectItem value="Newfoundland">Newfoundland</SelectItem>
-                <SelectItem value="PEI">Prince Edward Island</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label>Province * <span className="text-xs text-muted-foreground">(from postal code)</span></Label>
+            <Input 
+              value={data.province} 
+              readOnly={Boolean(data.province && data.postalCode.length >= 6)}
+              className={data.province && data.postalCode.length >= 6 ? "bg-muted" : ""}
+            />
           </div>
           <div className="flex gap-2">
             <div className="flex-1">
@@ -1182,26 +1192,44 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
               <Input value={data.employerPhoneExt} onChange={(e) => updateField("employerPhoneExt", e.target.value)} placeholder="Ext." className="w-20" />
             </div>
           </div>
+          <div>
+            <Label>Postal Code * <span className="text-xs text-primary font-medium">(Auto-fills address)</span></Label>
+            <Input 
+              value={data.employerPostalCode} 
+              onChange={(e) => {
+                const formattedPostal = formatPostalCode(e.target.value)
+                const { city, province } = getAddressFromPostalCode(formattedPostal)
+                onChange({
+                  ...data,
+                  employerPostalCode: formattedPostal,
+                  ...(city && { employerCity: city }),
+                  ...(province && { employerProvince: province })
+                })
+              }}
+              placeholder="L4B 0G2"
+              className="font-mono uppercase"
+            />
+          </div>
           <div className="md:col-span-2">
             <Label>Employer Address</Label>
             <Input value={data.employerStreet} onChange={(e) => updateField("employerStreet", e.target.value)} placeholder="Street address" />
           </div>
           <div>
             <Label>City</Label>
-            <Input value={data.employerCity} onChange={(e) => updateField("employerCity", e.target.value)} />
+            <Input 
+              value={data.employerCity} 
+              onChange={(e) => updateField("employerCity", e.target.value)}
+              readOnly={Boolean(data.employerCity && data.employerPostalCode)}
+              className={data.employerCity && data.employerPostalCode ? "bg-muted" : ""}
+            />
           </div>
           <div>
             <Label>Province</Label>
-            <Select value={data.employerProvince} onValueChange={(v) => updateField("employerProvince", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Ontario">Ontario</SelectItem>
-                <SelectItem value="Quebec">Quebec</SelectItem>
-                <SelectItem value="British Columbia">British Columbia</SelectItem>
-                <SelectItem value="Alberta">Alberta</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            <Input 
+              value={data.employerProvince} 
+              readOnly={Boolean(data.employerProvince && data.employerPostalCode)}
+              className={data.employerProvince && data.employerPostalCode ? "bg-muted" : ""}
+            />
           <div className="flex gap-2">
             <div className="flex-1">
               <Label>Years Employed</Label>
