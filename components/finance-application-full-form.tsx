@@ -176,17 +176,35 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
   const [coApplicantRelation, setCoApplicantRelation] = useState("")
   
   const [vehicleInfo, setVehicleInfo] = useState<VehicleInfo>({
-    vin: vehicleData?.vin || "",
-    year: vehicleData?.year?.toString() || "",
-    make: vehicleData?.make || "",
-    model: vehicleData?.model || "",
-    trim: vehicleData?.trim || "",
-    color: vehicleData?.color || "",
-    mileage: vehicleData?.mileage?.toString() || "",
-    totalPrice: vehicleData?.price?.toString() || "",
+    vin: "",
+    year: "",
+    make: "",
+    model: "",
+    trim: "",
+    color: "",
+    mileage: "",
+    totalPrice: "",
     downPayment: "0",
     maxDownPayment: ""
   })
+  
+  // Auto-fill vehicle info when vehicleData is provided from inventory
+  useEffect(() => {
+    if (vehicleData) {
+      console.log("[v0] Auto-filling vehicle data from inventory:", vehicleData)
+      setVehicleInfo(prev => ({
+        ...prev,
+        vin: vehicleData.vin || "",
+        year: vehicleData.year?.toString() || "",
+        make: vehicleData.make || "",
+        model: vehicleData.model || "",
+        trim: vehicleData.trim || "",
+        color: vehicleData.color || "",
+        mileage: vehicleData.mileage?.toString() || "",
+        totalPrice: vehicleData.price?.toString() || "",
+      }))
+    }
+  }, [vehicleData])
   
   const [tradeIn, setTradeIn] = useState<TradeInInfo>({
     hasTradeIn: false, vin: "", year: "", make: "", model: "", trim: "",
@@ -1211,13 +1229,13 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
           )}
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <Label>VIN</Label>
+              <Label>VIN {!isVehiclePreFilled && <span className="text-xs text-muted-foreground">(autofill available)</span>}</Label>
               <Input 
                 value={vehicleInfo.vin} 
                 onChange={(e) => !isVehiclePreFilled && setVehicleInfo({ ...vehicleInfo, vin: e.target.value })} 
-                placeholder="17-character VIN" 
+                placeholder="Enter 17-character VIN" 
                 readOnly={isVehiclePreFilled}
-                className={isVehiclePreFilled ? "bg-muted" : ""}
+                className={isVehiclePreFilled ? "bg-muted font-medium" : ""}
               />
             </div>
             <div>
