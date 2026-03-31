@@ -1,21 +1,23 @@
-import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { dirname } from 'node:path'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 35
+  // Force clean build - version 36
   cleanDistDir: true,
-  // PERMANENT FIX: Turbopack configuration for path alias resolution
-  // The resolveAlias explicitly maps @/* imports to the project directory
-  // This works regardless of where Next.js is invoked from or workspace structure
-  turbopack: {
-    resolveAlias: {
-      '@/lib/*': './lib/*',
-      '@/components/*': './components/*',
-      '@/app/*': './app/*',
-      '@/hooks/*': './hooks/*',
-      '@/styles/*': './styles/*',
-      '@/*': './*',
-    },
+  // PERMANENT FIX: Disable Turbopack and use webpack
+  // Turbopack has a known issue with workspace root detection in v0 sandbox
+  // Webpack is stable and properly respects tsconfig.json path aliases
+  bundler: 'webpack',
+  // Webpack configuration for path alias (fallback if tsconfig not respected)
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': __dirname,
+    }
+    return config
   },
   typescript: {
     ignoreBuildErrors: true,
