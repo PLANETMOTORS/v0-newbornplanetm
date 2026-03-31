@@ -1,10 +1,145 @@
 "use client"
 
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
+import { createPortal } from "react-dom"
 import { Menu, X, ChevronDown, Phone, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
+
+// Navigation item type
+type NavItem = {
+  name: string
+  href: string
+  submenu?: { name: string; href: string }[]
+}
+
+// Desktop Navigation with Portal-based dropdowns
+function DesktopNav({ 
+  navigation, 
+  activeSubmenu, 
+  setActiveSubmenu 
+}: { 
+  navigation: NavItem[]
+  activeSubmenu: string | null
+  setActiveSubmenu: (name: string | null) => void
+}) {
+  const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
+  const [dropdownPositions, setDropdownPositions] = useState<Map<string, { top: number; left: number }>>(new Map())
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (activeSubmenu) {
+      const button = buttonRefs.current.get(activeSubmenu)
+      if (button) {
+        const rect = button.getBoundingClientRect()
+        setDropdownPositions(prev => new Map(prev).set(activeSubmenu, {
+          top: rect.bottom + 8,
+          left: rect.left
+        }))
+      }
+    }
+  }, [activeSubmenu])
+
+  const handleMouseEnter = (itemName: string, hasSubmenu: boolean) => {
+    if (hasSubmenu) {
+      setActiveSubmenu(itemName)
+    }
+  }
+
+  const handleMouseLeave = () => {
+    setActiveSubmenu(null)
+  }
+
+  return (
+    <div className="hidden lg:flex lg:items-center lg:gap-1">
+      {navigation.map((item) => (
+        <div
+          key={item.name}
+          className="relative"
+          onMouseEnter={() => handleMouseEnter(item.name, !!item.submenu)}
+          onMouseLeave={handleMouseLeave}
+        >
+          {item.submenu ? (
+            <button
+              ref={(el) => { if (el) buttonRefs.current.set(item.name, el) }}
+              type="button"
+              className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
+              onClick={() => setActiveSubmenu(activeSubmenu === item.name ? null : item.name)}
+            >
+              {item.name}
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${activeSubmenu === item.name ? 'rotate-180' : ''}`} />
+            </button>
+          ) : (
+            <Link
+              href={item.href}
+              className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
+            >
+              {item.name}
+            </Link>
+          )}
+
+          {/* Render dropdown via Portal to document.body */}
+          {item.submenu && activeSubmenu === item.name && isMounted && createPortal(
+            <div 
+              style={{
+                position: 'fixed',
+                top: dropdownPositions.get(item.name)?.top || 0,
+                left: dropdownPositions.get(item.name)?.left || 0,
+                zIndex: 999999,
+                minWidth: '220px'
+              }}
+              onMouseEnter={() => setActiveSubmenu(item.name)}
+              onMouseLeave={() => setActiveSubmenu(null)}
+            >
+              <div 
+                style={{
+                  backgroundColor: '#ffffff',
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+                  border: '1px solid #d1d5db',
+                  padding: '8px 0',
+                  minWidth: '220px'
+                }}
+              >
+                {item.submenu.map((subitem) => (
+                  <Link
+                    key={subitem.name}
+                    href={subitem.href}
+                    style={{
+                      display: 'block',
+                      padding: '12px 16px',
+                      fontSize: '14px',
+                      color: '#1f2937',
+                      textDecoration: 'none',
+                      fontWeight: 500
+                    }}
+                    onClick={() => setActiveSubmenu(null)}
+                    onMouseEnter={(e) => { 
+                      e.currentTarget.style.backgroundColor = '#f3f4f6'
+                      e.currentTarget.style.color = '#111827'
+                    }}
+                    onMouseLeave={(e) => { 
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                      e.currentTarget.style.color = '#1f2937'
+                    }}
+                  >
+                    {subitem.name}
+                  </Link>
+                ))}
+              </div>
+            </div>,
+            document.body
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
 
 const navigation = [
   { 
@@ -117,78 +252,11 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex lg:items-center lg:gap-1">
-            {navigation.map((item) => (
-              <div
-                key={item.name}
-                className="relative"
-                onMouseEnter={() => item.submenu && setActiveSubmenu(item.name)}
-                onMouseLeave={() => setActiveSubmenu(null)}
-              >
-                {item.submenu ? (
-                  <button
-                    type="button"
-                    className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
-                    onClick={() => setActiveSubmenu(activeSubmenu === item.name ? null : item.name)}
-                  >
-                    {item.name}
-                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${activeSubmenu === item.name ? 'rotate-180' : ''}`} />
-                  </button>
-                ) : (
-                  <Link
-                    href={item.href}
-                    className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
-                  >
-                    {item.name}
-                  </Link>
-                )}
-
-                {/* Submenu Dropdown - Fixed with inline styles for guaranteed visibility */}
-                {item.submenu && activeSubmenu === item.name && (
-                  <div 
-                    className="absolute left-0 mt-1"
-                    style={{ 
-                      top: '100%',
-                      zIndex: 99999,
-                      minWidth: '220px'
-                    }}
-                  >
-                    <div 
-                      style={{
-                        backgroundColor: '#ffffff',
-                        borderRadius: '12px',
-                        boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
-                        border: '1px solid #e5e7eb',
-                        padding: '8px 0',
-                        minWidth: '220px'
-                      }}
-                    >
-                      {item.submenu.map((subitem) => (
-                        <Link
-                          key={subitem.name}
-                          href={subitem.href}
-                          style={{
-                            display: 'block',
-                            padding: '10px 16px',
-                            fontSize: '14px',
-                            color: '#374151',
-                            textDecoration: 'none',
-                            transition: 'background-color 0.15s'
-                          }}
-                          className="hover:!bg-gray-100"
-                          onClick={() => setActiveSubmenu(null)}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                        >
-                          {subitem.name}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          <DesktopNav 
+            navigation={navigation} 
+            activeSubmenu={activeSubmenu} 
+            setActiveSubmenu={setActiveSubmenu} 
+          />
 
           {/* Social Media Icons */}
           <div className="hidden lg:flex items-center gap-2">
