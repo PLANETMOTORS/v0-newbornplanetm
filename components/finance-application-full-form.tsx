@@ -264,6 +264,107 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
   
   const financing = calculateFinancing()
   
+  // Validation state
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
+  
+  // Phone number validation (10 digits: 3 area code + 7 number)
+  const validatePhone = (phone: string): boolean => {
+    const digitsOnly = phone.replace(/\D/g, '')
+    return digitsOnly.length === 10
+  }
+  
+  // Format phone number as (XXX) XXX-XXXX
+  const formatPhone = (value: string): string => {
+    const digits = value.replace(/\D/g, '').slice(0, 10)
+    if (digits.length <= 3) return digits
+    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
+  }
+  
+  // Validate Step 1 - Primary Applicant
+  const validateStep1 = (): string[] => {
+    const errors: string[] = []
+    if (!primaryApplicant.firstName.trim()) errors.push("First Name is required")
+    if (!primaryApplicant.lastName.trim()) errors.push("Last Name is required")
+    if (!primaryApplicant.dateOfBirth.day || !primaryApplicant.dateOfBirth.month || !primaryApplicant.dateOfBirth.year) {
+      errors.push("Date of Birth is required")
+    }
+    if (!primaryApplicant.gender) errors.push("Gender is required")
+    if (!primaryApplicant.maritalStatus) errors.push("Marital Status is required")
+    if (!primaryApplicant.phone || !validatePhone(primaryApplicant.phone)) {
+      errors.push("Phone must be 10 digits (3-digit area code + 7-digit number)")
+    }
+    if (!primaryApplicant.email.trim() && !primaryApplicant.noEmail) errors.push("Email is required")
+    if (!primaryApplicant.creditRating) errors.push("Credit Rating is required")
+    if (!primaryApplicant.postalCode.trim()) errors.push("Postal Code is required")
+    if (!primaryApplicant.addressType) errors.push("Address Type is required")
+    if (!primaryApplicant.streetNumber.trim()) errors.push("Street Number is required")
+    if (!primaryApplicant.streetName.trim()) errors.push("Street Name is required")
+    if (!primaryApplicant.city.trim()) errors.push("City is required")
+    if (!primaryApplicant.province) errors.push("Province is required")
+    if (!primaryApplicant.homeStatus) errors.push("Home Status is required")
+    if (!primaryApplicant.monthlyPayment) errors.push("Monthly Payment is required")
+    if (!primaryApplicant.employmentCategory) errors.push("Employment Type is required")
+    if (!primaryApplicant.employmentStatus) errors.push("Employment Status is required")
+    if (!primaryApplicant.employerName.trim()) errors.push("Employer Name is required")
+    if (!primaryApplicant.occupation.trim()) errors.push("Occupation is required")
+    if (!primaryApplicant.employerPhone || !validatePhone(primaryApplicant.employerPhone)) {
+      errors.push("Employer Phone must be 10 digits")
+    }
+    if (!primaryApplicant.grossIncome) errors.push("Gross Income is required")
+    if (!primaryApplicant.incomeFrequency) errors.push("Income Frequency is required")
+    return errors
+  }
+  
+  // Validate Step 2 - Co-Applicant (only if included)
+  const validateStep2 = (): string[] => {
+    if (!includeCoApplicant) return []
+    const errors: string[] = []
+    if (!coApplicantRelation) errors.push("Relation to Primary Applicant is required")
+    if (!coApplicant.firstName.trim()) errors.push("Co-Applicant First Name is required")
+    if (!coApplicant.lastName.trim()) errors.push("Co-Applicant Last Name is required")
+    if (!coApplicant.phone || !validatePhone(coApplicant.phone)) {
+      errors.push("Co-Applicant Phone must be 10 digits")
+    }
+    if (!coApplicant.email.trim() && !coApplicant.noEmail) errors.push("Co-Applicant Email is required")
+    return errors
+  }
+  
+  // Validate Step 3 - Vehicle & Financing
+  const validateStep3 = (): string[] => {
+    const errors: string[] = []
+    if (!vehicleInfo.year) errors.push("Vehicle Year is required")
+    if (!vehicleInfo.make.trim()) errors.push("Vehicle Make is required")
+    if (!vehicleInfo.model.trim()) errors.push("Vehicle Model is required")
+    if (!vehicleInfo.totalPrice || parseFloat(vehicleInfo.totalPrice) <= 0) {
+      errors.push("Total Price Before Tax is required")
+    }
+    return errors
+  }
+  
+  // Handle step navigation with validation
+  const handleNextStep = () => {
+    let errors: string[] = []
+    
+    if (currentStep === 1) {
+      errors = validateStep1()
+    } else if (currentStep === 2) {
+      errors = validateStep2()
+    } else if (currentStep === 3) {
+      errors = validateStep3()
+    }
+    
+    if (errors.length > 0) {
+      setValidationErrors(errors)
+      // Scroll to top to show errors
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+    
+    setValidationErrors([])
+    setCurrentStep(prev => prev + 1)
+  }
+  
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
@@ -459,11 +560,31 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
         </CardContent>
       </Card>
       
+      {/* Validation Errors */}
+      {validationErrors.length > 0 && (
+        <div className="bg-destructive/10 border border-destructive rounded-lg p-4 mb-4">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-destructive">Please fix the following errors:</p>
+              <ul className="list-disc list-inside mt-2 text-sm text-destructive">
+                {validationErrors.map((error, i) => (
+                  <li key={i}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Navigation */}
       <div className="flex justify-between mt-6">
         <Button
           variant="outline"
-          onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
+          onClick={() => {
+            setValidationErrors([])
+            setCurrentStep(prev => Math.max(1, prev - 1))
+          }}
           disabled={currentStep === 1}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -471,7 +592,7 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
         </Button>
         
         {currentStep < 5 ? (
-          <Button onClick={() => setCurrentStep(prev => prev + 1)}>
+          <Button onClick={handleNextStep}>
             Continue
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
@@ -619,12 +740,34 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
             </Select>
           </div>
           <div>
-            <Label>Phone *</Label>
-            <Input type="tel" value={data.phone} onChange={(e) => updateField("phone", e.target.value)} placeholder="(___) ___-____" />
+            <Label>Phone * <span className="text-xs text-muted-foreground">(10 digits)</span></Label>
+            <Input 
+              type="tel" 
+              value={data.phone} 
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, '').slice(0, 10)
+                const formatted = digits.length <= 3 ? digits :
+                  digits.length <= 6 ? `(${digits.slice(0, 3)}) ${digits.slice(3)}` :
+                  `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
+                updateField("phone", formatted)
+              }} 
+              placeholder="(416) 555-0123" 
+            />
           </div>
           <div>
             <Label>Mobile Phone</Label>
-            <Input type="tel" value={data.mobilePhone} onChange={(e) => updateField("mobilePhone", e.target.value)} placeholder="(___) ___-____" />
+            <Input 
+              type="tel" 
+              value={data.mobilePhone} 
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, '').slice(0, 10)
+                const formatted = digits.length <= 3 ? digits :
+                  digits.length <= 6 ? `(${digits.slice(0, 3)}) ${digits.slice(3)}` :
+                  `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
+                updateField("mobilePhone", formatted)
+              }} 
+              placeholder="(416) 555-0123" 
+            />
           </div>
           <div>
             <Label>Email *</Label>
@@ -656,8 +799,64 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label>Postal Code *</Label>
-            <Input value={data.postalCode} onChange={(e) => updateField("postalCode", e.target.value.toUpperCase())} placeholder="A1A 1A1" />
+            <Label>Postal Code * <span className="text-xs text-muted-foreground">(Auto-fills address)</span></Label>
+            <Input 
+              value={data.postalCode} 
+              onChange={(e) => {
+                // Format postal code (A1A 1A1)
+                let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')
+                if (value.length > 3) {
+                  value = value.slice(0, 3) + ' ' + value.slice(3, 6)
+                }
+                updateField("postalCode", value.slice(0, 7))
+                
+                // Auto-fill city/province based on postal code prefix (first 3 chars)
+                const prefix = value.replace(/\s/g, '').slice(0, 3).toUpperCase()
+                if (prefix.length >= 3) {
+                  // Ontario postal codes
+                  const ontarioPrefixes: Record<string, string> = {
+                    'L4B': 'Richmond Hill', 'L4C': 'Richmond Hill', 'L4E': 'Richmond Hill', 'L4S': 'Richmond Hill',
+                    'L3R': 'Markham', 'L3S': 'Markham', 'L3T': 'Markham', 'L3P': 'Markham', 'L6B': 'Markham', 'L6C': 'Markham', 'L6E': 'Markham', 'L6G': 'Markham',
+                    'M5V': 'Toronto', 'M5J': 'Toronto', 'M5H': 'Toronto', 'M5C': 'Toronto', 'M5A': 'Toronto', 'M5B': 'Toronto', 'M5E': 'Toronto', 'M5G': 'Toronto', 'M5K': 'Toronto', 'M5L': 'Toronto', 'M5M': 'Toronto', 'M5N': 'Toronto', 'M5P': 'Toronto', 'M5R': 'Toronto', 'M5S': 'Toronto', 'M5T': 'Toronto', 'M5W': 'Toronto', 'M5X': 'Toronto',
+                    'M4V': 'Toronto', 'M4W': 'Toronto', 'M4X': 'Toronto', 'M4Y': 'Toronto', 'M4E': 'Toronto', 'M4G': 'Toronto', 'M4H': 'Toronto', 'M4J': 'Toronto', 'M4K': 'Toronto', 'M4L': 'Toronto', 'M4M': 'Toronto', 'M4N': 'Toronto', 'M4P': 'Toronto', 'M4R': 'Toronto', 'M4S': 'Toronto', 'M4T': 'Toronto',
+                    'M6A': 'North York', 'M6B': 'North York', 'M6C': 'Toronto', 'M6E': 'Toronto', 'M6G': 'Toronto', 'M6H': 'Toronto', 'M6J': 'Toronto', 'M6K': 'Toronto', 'M6L': 'North York', 'M6M': 'Toronto', 'M6N': 'Toronto', 'M6P': 'Toronto', 'M6R': 'Toronto', 'M6S': 'Toronto',
+                    'M9A': 'Etobicoke', 'M9B': 'Etobicoke', 'M9C': 'Etobicoke', 'M9L': 'North York', 'M9M': 'North York', 'M9N': 'Toronto', 'M9P': 'Etobicoke', 'M9R': 'Etobicoke', 'M9V': 'Etobicoke', 'M9W': 'Etobicoke',
+                    'L1N': 'Oshawa', 'L1G': 'Oshawa', 'L1H': 'Oshawa', 'L1J': 'Oshawa', 'L1K': 'Oshawa', 'L1L': 'Oshawa', 'L1M': 'Oshawa', 'L1P': 'Oshawa', 'L1R': 'Oshawa', 'L1S': 'Oshawa', 'L1T': 'Oshawa', 'L1V': 'Oshawa', 'L1W': 'Oshawa', 'L1X': 'Oshawa', 'L1Y': 'Oshawa', 'L1Z': 'Oshawa',
+                    'L5A': 'Mississauga', 'L5B': 'Mississauga', 'L5C': 'Mississauga', 'L5E': 'Mississauga', 'L5G': 'Mississauga', 'L5H': 'Mississauga', 'L5J': 'Mississauga', 'L5K': 'Mississauga', 'L5L': 'Mississauga', 'L5M': 'Mississauga', 'L5N': 'Mississauga', 'L5P': 'Mississauga', 'L5R': 'Mississauga', 'L5S': 'Mississauga', 'L5T': 'Mississauga', 'L5V': 'Mississauga', 'L5W': 'Mississauga',
+                    'L6H': 'Oakville', 'L6J': 'Oakville', 'L6K': 'Oakville', 'L6L': 'Oakville', 'L6M': 'Oakville',
+                    'L7A': 'Brampton', 'L7C': 'Brampton', 'L6P': 'Brampton', 'L6R': 'Brampton', 'L6S': 'Brampton', 'L6T': 'Brampton', 'L6V': 'Brampton', 'L6W': 'Brampton', 'L6X': 'Brampton', 'L6Y': 'Brampton', 'L6Z': 'Brampton',
+                    'L7G': 'Georgetown', 'L7J': 'Acton', 'L7L': 'Burlington', 'L7M': 'Burlington', 'L7N': 'Burlington', 'L7P': 'Burlington', 'L7R': 'Burlington', 'L7S': 'Burlington', 'L7T': 'Burlington',
+                    'L8E': 'Hamilton', 'L8G': 'Hamilton', 'L8H': 'Hamilton', 'L8J': 'Hamilton', 'L8K': 'Hamilton', 'L8L': 'Hamilton', 'L8M': 'Hamilton', 'L8N': 'Hamilton', 'L8P': 'Hamilton', 'L8R': 'Hamilton', 'L8S': 'Hamilton', 'L8T': 'Hamilton', 'L8V': 'Hamilton', 'L8W': 'Hamilton', 'L9A': 'Hamilton', 'L9B': 'Hamilton', 'L9C': 'Hamilton',
+                    'K1A': 'Ottawa', 'K1B': 'Ottawa', 'K1C': 'Ottawa', 'K1E': 'Ottawa', 'K1G': 'Ottawa', 'K1H': 'Ottawa', 'K1J': 'Ottawa', 'K1K': 'Ottawa', 'K1L': 'Ottawa', 'K1M': 'Ottawa', 'K1N': 'Ottawa', 'K1P': 'Ottawa', 'K1R': 'Ottawa', 'K1S': 'Ottawa', 'K1T': 'Ottawa', 'K1V': 'Ottawa', 'K1W': 'Ottawa', 'K1X': 'Ottawa', 'K1Y': 'Ottawa', 'K1Z': 'Ottawa', 'K2A': 'Ottawa', 'K2B': 'Ottawa', 'K2C': 'Ottawa', 'K2E': 'Ottawa', 'K2G': 'Ottawa', 'K2H': 'Ottawa', 'K2J': 'Ottawa', 'K2K': 'Ottawa', 'K2L': 'Ottawa', 'K2M': 'Ottawa', 'K2P': 'Ottawa', 'K2R': 'Ottawa', 'K2S': 'Ottawa', 'K2T': 'Ottawa', 'K2V': 'Ottawa', 'K2W': 'Ottawa',
+                    'N2A': 'Kitchener', 'N2B': 'Kitchener', 'N2C': 'Kitchener', 'N2E': 'Kitchener', 'N2G': 'Kitchener', 'N2H': 'Kitchener', 'N2J': 'Kitchener', 'N2K': 'Kitchener', 'N2L': 'Waterloo', 'N2M': 'Kitchener', 'N2N': 'Kitchener', 'N2P': 'Kitchener', 'N2R': 'Kitchener', 'N2T': 'Kitchener', 'N2V': 'Waterloo',
+                    'N6A': 'London', 'N6B': 'London', 'N6C': 'London', 'N6E': 'London', 'N6G': 'London', 'N6H': 'London', 'N6J': 'London', 'N6K': 'London', 'N6L': 'London', 'N6M': 'London', 'N6N': 'London', 'N6P': 'London',
+                  }
+                  const city = ontarioPrefixes[prefix]
+                  if (city) {
+                    onChange({ ...data, postalCode: value.slice(0, 7), city, province: 'Ontario' })
+                    return
+                  }
+                  // Default province detection by first letter
+                  const provinceMap: Record<string, string> = {
+                    'K': 'Ontario', 'L': 'Ontario', 'M': 'Ontario', 'N': 'Ontario', 'P': 'Ontario',
+                    'G': 'Quebec', 'H': 'Quebec', 'J': 'Quebec',
+                    'V': 'British Columbia',
+                    'T': 'Alberta',
+                    'S': 'Saskatchewan',
+                    'R': 'Manitoba',
+                    'E': 'New Brunswick',
+                    'B': 'Nova Scotia',
+                    'C': 'Prince Edward Island',
+                    'A': 'Newfoundland and Labrador',
+                  }
+                  const prov = provinceMap[prefix[0]]
+                  if (prov) {
+                    onChange({ ...data, postalCode: value.slice(0, 7), province: prov })
+                  }
+                }
+              }} 
+              placeholder="L4B 0G2" 
+            />
           </div>
           <div>
             <Label>Address Type *</Label>
@@ -844,10 +1043,22 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
             <Label>Job Title</Label>
             <Input value={data.jobTitle} onChange={(e) => updateField("jobTitle", e.target.value)} />
           </div>
-          <div>
-            <Label>Employer Phone *</Label>
-            <div className="flex gap-2">
-              <Input type="tel" value={data.employerPhone} onChange={(e) => updateField("employerPhone", e.target.value)} className="flex-1" />
+<div>
+  <Label>Employer Phone * <span className="text-xs text-muted-foreground">(10 digits)</span></Label>
+  <div className="flex gap-2">
+  <Input 
+    type="tel" 
+    value={data.employerPhone} 
+    onChange={(e) => {
+      const digits = e.target.value.replace(/\D/g, '').slice(0, 10)
+      const formatted = digits.length <= 3 ? digits :
+        digits.length <= 6 ? `(${digits.slice(0, 3)}) ${digits.slice(3)}` :
+        `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
+      updateField("employerPhone", formatted)
+    }} 
+    placeholder="(416) 555-0123"
+    className="flex-1" 
+  />
               <Input value={data.employerPhoneExt} onChange={(e) => updateField("employerPhoneExt", e.target.value)} placeholder="Ext." className="w-20" />
             </div>
           </div>
@@ -978,6 +1189,9 @@ function calculateFinancing(): { price: number; downPayment: number; netTrade: n
 }
 
 function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn, financingTerms, setFinancingTerms, financing, additionalNotes, setAdditionalNotes }: VehicleFinancingFormProps) {
+  // Check if vehicle data was pre-filled (has year and make)
+  const isVehiclePreFilled = Boolean(vehicleInfo.year && vehicleInfo.make)
+  
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       {/* Left Column - Vehicle Info */}
@@ -986,35 +1200,81 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
           <h4 className="font-medium mb-4 flex items-center gap-2">
             <Car className="w-4 h-4" />
             Vehicle Information
+            {isVehiclePreFilled && (
+              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Auto-filled from inventory</span>
+            )}
           </h4>
+          {isVehiclePreFilled && (
+            <p className="text-sm text-muted-foreground mb-4">
+              Vehicle details have been automatically filled from your selected vehicle.
+            </p>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <Label>VIN (autofill available)</Label>
-              <Input value={vehicleInfo.vin} onChange={(e) => setVehicleInfo({ ...vehicleInfo, vin: e.target.value })} placeholder="Enter 17-character VIN" />
+              <Label>VIN</Label>
+              <Input 
+                value={vehicleInfo.vin} 
+                onChange={(e) => !isVehiclePreFilled && setVehicleInfo({ ...vehicleInfo, vin: e.target.value })} 
+                placeholder="17-character VIN" 
+                readOnly={isVehiclePreFilled}
+                className={isVehiclePreFilled ? "bg-muted" : ""}
+              />
             </div>
             <div>
-              <Label>Year</Label>
-              <Input value={vehicleInfo.year} onChange={(e) => setVehicleInfo({ ...vehicleInfo, year: e.target.value })} />
+              <Label>Year *</Label>
+              <Input 
+                value={vehicleInfo.year} 
+                onChange={(e) => !isVehiclePreFilled && setVehicleInfo({ ...vehicleInfo, year: e.target.value })} 
+                readOnly={isVehiclePreFilled}
+                className={isVehiclePreFilled ? "bg-muted" : ""}
+              />
             </div>
             <div>
-              <Label>Make</Label>
-              <Input value={vehicleInfo.make} onChange={(e) => setVehicleInfo({ ...vehicleInfo, make: e.target.value })} />
+              <Label>Make *</Label>
+              <Input 
+                value={vehicleInfo.make} 
+                onChange={(e) => !isVehiclePreFilled && setVehicleInfo({ ...vehicleInfo, make: e.target.value })} 
+                readOnly={isVehiclePreFilled}
+                className={isVehiclePreFilled ? "bg-muted" : ""}
+              />
             </div>
             <div>
-              <Label>Model/Trim</Label>
-              <Input value={vehicleInfo.model} onChange={(e) => setVehicleInfo({ ...vehicleInfo, model: e.target.value })} />
+              <Label>Model/Trim *</Label>
+              <Input 
+                value={`${vehicleInfo.model}${vehicleInfo.trim ? ` ${vehicleInfo.trim}` : ''}`} 
+                onChange={(e) => !isVehiclePreFilled && setVehicleInfo({ ...vehicleInfo, model: e.target.value })} 
+                readOnly={isVehiclePreFilled}
+                className={isVehiclePreFilled ? "bg-muted" : ""}
+              />
             </div>
             <div>
               <Label>Color</Label>
-              <Input value={vehicleInfo.color} onChange={(e) => setVehicleInfo({ ...vehicleInfo, color: e.target.value })} />
+              <Input 
+                value={vehicleInfo.color} 
+                onChange={(e) => !isVehiclePreFilled && setVehicleInfo({ ...vehicleInfo, color: e.target.value })} 
+                readOnly={isVehiclePreFilled}
+                className={isVehiclePreFilled ? "bg-muted" : ""}
+              />
             </div>
             <div>
               <Label>Current KMs</Label>
-              <Input type="number" value={vehicleInfo.mileage} onChange={(e) => setVehicleInfo({ ...vehicleInfo, mileage: e.target.value })} />
+              <Input 
+                type="number" 
+                value={vehicleInfo.mileage} 
+                onChange={(e) => !isVehiclePreFilled && setVehicleInfo({ ...vehicleInfo, mileage: e.target.value })} 
+                readOnly={isVehiclePreFilled}
+                className={isVehiclePreFilled ? "bg-muted" : ""}
+              />
             </div>
             <div>
-              <Label>Total Price Before Tax</Label>
-              <Input type="number" value={vehicleInfo.totalPrice} onChange={(e) => setVehicleInfo({ ...vehicleInfo, totalPrice: e.target.value })} className="bg-green-50" />
+              <Label>Total Price Before Tax *</Label>
+              <Input 
+                type="number" 
+                value={vehicleInfo.totalPrice} 
+                onChange={(e) => !isVehiclePreFilled && setVehicleInfo({ ...vehicleInfo, totalPrice: e.target.value })} 
+                readOnly={isVehiclePreFilled}
+                className={isVehiclePreFilled ? "bg-muted font-semibold" : "bg-green-50"}
+              />
             </div>
             <div>
               <Label>Down Payment</Label>
