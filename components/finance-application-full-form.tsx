@@ -804,6 +804,135 @@ interface ApplicantFormProps {
   isPrimary: boolean
 }
 
+// =====================================================
+// POSTAL CODE INPUT WITH ADDRESS LOOKUP
+// =====================================================
+interface AddressSuggestion {
+  streetName: string
+  streetType: string
+  direction?: string
+  city: string
+  province: string
+  postalCode: string
+  fullAddress: string
+}
+
+interface PostalCodeInputProps {
+  value: string
+  onChange: (postalCode: string, addressData?: { city?: string; province?: string; streetName?: string; streetType?: string; direction?: string }) => void
+  label?: string
+}
+
+function PostalCodeInput({ value, onChange, label = "Postal Code *" }: PostalCodeInputProps) {
+  const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [cityProvince, setCityProvince] = useState<{ city: string; province: string }>({ city: '', province: '' })
+  
+  const formatPostalCode = (val: string): string => {
+    let formatted = val.toUpperCase().replace(/[^A-Z0-9]/g, '')
+    if (formatted.length > 3) {
+      formatted = formatted.slice(0, 3) + ' ' + formatted.slice(3, 6)
+    }
+    return formatted.slice(0, 7)
+  }
+  
+  const fetchAddressSuggestions = async (postalCode: string) => {
+    const cleanPostal = postalCode.replace(/\s/g, '')
+    if (cleanPostal.length < 3) {
+      setSuggestions([])
+      setCityProvince({ city: '', province: '' })
+      return
+    }
+    
+    setIsLoading(true)
+    try {
+      const res = await fetch(`/api/address-lookup?postalCode=${cleanPostal}`)
+      const data = await res.json()
+      setSuggestions(data.suggestions || [])
+      setCityProvince({ city: data.city || '', province: data.province || '' })
+      
+      // Auto-fill city and province immediately
+      if (data.city || data.province) {
+        onChange(postalCode, { city: data.city, province: data.province })
+      }
+      
+      if (data.suggestions?.length > 0) {
+        setShowSuggestions(true)
+      }
+    } catch (error) {
+      console.error("Error fetching address:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  
+  const handleSelectSuggestion = (suggestion: AddressSuggestion) => {
+    onChange(value, {
+      city: suggestion.city,
+      province: suggestion.province,
+      streetName: suggestion.streetName,
+      streetType: suggestion.streetType,
+      direction: suggestion.direction,
+    })
+    setShowSuggestions(false)
+  }
+  
+  return (
+    <div className="relative">
+      <Label>{label} <span className="text-xs text-primary font-medium">(Auto-fills address)</span></Label>
+      <div className="relative">
+        <Input 
+          value={value} 
+          onChange={(e) => {
+            const formatted = formatPostalCode(e.target.value)
+            onChange(formatted)
+            fetchAddressSuggestions(formatted)
+          }}
+          onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+          onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+          placeholder="L4B 0G2"
+          className="font-mono uppercase pr-8"
+        />
+        {isLoading && (
+          <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+        )}
+      </div>
+      
+      {/* City/Province indicator */}
+      {cityProvince.city && (
+        <p className="text-xs text-green-600 mt-1">
+          {cityProvince.city}, {cityProvince.province}
+        </p>
+      )}
+      
+      {/* Street suggestions dropdown */}
+      {showSuggestions && suggestions.length > 0 && (
+        <div className="absolute z-50 w-full mt-1 bg-background border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+          <p className="px-3 py-2 text-xs text-muted-foreground border-b bg-muted/50">
+            Select a street to auto-fill address:
+          </p>
+          {suggestions.map((suggestion, idx) => (
+            <button
+              key={idx}
+              type="button"
+              className="w-full px-3 py-2 text-left text-sm hover:bg-primary/10 flex items-center gap-2 border-b last:border-b-0"
+              onClick={() => handleSelectSuggestion(suggestion)}
+            >
+              <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+              <span>
+                <span className="font-medium">{suggestion.streetName} {suggestion.streetType}</span>
+                {suggestion.direction && <span className="text-muted-foreground"> {suggestion.direction}</span>}
+                <span className="text-muted-foreground text-xs block">{suggestion.city}, {suggestion.province}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function ApplicantForm({ title, description, data, onChange, isPrimary }: ApplicantFormProps) {
   const updateField = (field: keyof ApplicantData, value: any) => {
     onChange({ ...data, [field]: value })
@@ -917,7 +1046,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
             </Select>
           </div>
           <div>
-            <Label>Phone * <span className="text-xs text-muted-foreground">(10 digits)</span></Label>
+            <Label>Phone * <span className="text-xs text-primary font-medium">(3-digit area + 7-digit number)</span></Label>
             <Input 
               type="tel" 
               value={data.phone} 
@@ -975,24 +1104,20 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
           Current Address
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <Label>Postal Code * <span className="text-xs text-primary font-medium">(Auto-fills address)</span></Label>
-            <Input 
-              value={data.postalCode} 
-              onChange={(e) => {
-                const formattedPostal = formatPostalCode(e.target.value)
-                const { city, province } = getAddressFromPostalCode(formattedPostal)
-                onChange({ 
-                  ...data, 
-                  postalCode: formattedPostal, 
-                  ...(city && { city }),
-                  ...(province && { province })
-                })
-              }} 
-              placeholder="L4B 0G2"
-              className="font-mono uppercase"
-            />
-          </div>
+          <PostalCodeInput
+            value={data.postalCode}
+            onChange={(postalCode, addressData) => {
+              onChange({
+                ...data,
+                postalCode,
+                ...(addressData?.city && { city: addressData.city }),
+                ...(addressData?.province && { province: addressData.province }),
+                ...(addressData?.streetName && { streetName: addressData.streetName }),
+                ...(addressData?.streetType && { streetType: addressData.streetType }),
+                ...(addressData?.direction && { direction: addressData.direction }),
+              })
+            }}
+          />
           <div>
             <Label>Address Type *</Label>
             <Select value={data.addressType} onValueChange={(v) => updateField("addressType", v)}>
@@ -1174,7 +1299,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
             <Input value={data.jobTitle} onChange={(e) => updateField("jobTitle", e.target.value)} />
           </div>
 <div>
-  <Label>Employer Phone * <span className="text-xs text-muted-foreground">(10 digits)</span></Label>
+  <Label>Employer Phone * <span className="text-xs text-primary font-medium">(3-digit area + 7-digit number)</span></Label>
   <div className="flex gap-2">
   <Input 
     type="tel" 
@@ -1192,44 +1317,37 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
               <Input value={data.employerPhoneExt} onChange={(e) => updateField("employerPhoneExt", e.target.value)} placeholder="Ext." className="w-20" />
             </div>
           </div>
-          <div>
-            <Label>Postal Code * <span className="text-xs text-primary font-medium">(Auto-fills address)</span></Label>
-            <Input 
-              value={data.employerPostalCode} 
-              onChange={(e) => {
-                const formattedPostal = formatPostalCode(e.target.value)
-                const { city, province } = getAddressFromPostalCode(formattedPostal)
-                onChange({
-                  ...data,
-                  employerPostalCode: formattedPostal,
-                  ...(city && { employerCity: city }),
-                  ...(province && { employerProvince: province })
-                })
-              }}
-              placeholder="L4B 0G2"
-              className="font-mono uppercase"
-            />
-          </div>
+          <PostalCodeInput
+            value={data.employerPostalCode}
+            label="Employer Postal Code *"
+            onChange={(postalCode, addressData) => {
+              onChange({
+                ...data,
+                employerPostalCode: postalCode,
+                ...(addressData?.city && { employerCity: addressData.city }),
+                ...(addressData?.province && { employerProvince: addressData.province }),
+              })
+            }}
+          />
           <div className="md:col-span-2">
             <Label>Employer Address</Label>
             <Input value={data.employerStreet} onChange={(e) => updateField("employerStreet", e.target.value)} placeholder="Street address" />
           </div>
           <div>
-            <Label>City</Label>
+            <Label>City <span className="text-xs text-muted-foreground">(from postal code)</span></Label>
             <Input 
               value={data.employerCity} 
               onChange={(e) => updateField("employerCity", e.target.value)}
-              readOnly={Boolean(data.employerCity && data.employerPostalCode)}
-              className={data.employerCity && data.employerPostalCode ? "bg-muted" : ""}
+              readOnly={Boolean(data.employerCity && data.employerPostalCode.length >= 6)}
+              className={data.employerCity && data.employerPostalCode.length >= 6 ? "bg-muted" : ""}
             />
           </div>
           <div>
-            <Label>Province</Label>
+            <Label>Province <span className="text-xs text-muted-foreground">(from postal code)</span></Label>
             <Input 
               value={data.employerProvince} 
-              readOnly={Boolean(data.employerProvince && data.employerPostalCode)}
-              className={data.employerProvince && data.employerPostalCode ? "bg-muted" : ""}
-            />
+              readOnly={Boolean(data.employerProvince && data.employerPostalCode.length >= 6)}
+              className={data.employerProvince && data.employerPostalCode.length >= 6 ? "bg-muted" : ""}
           <div className="flex gap-2">
             <div className="flex-1">
               <Label>Years Employed</Label>
