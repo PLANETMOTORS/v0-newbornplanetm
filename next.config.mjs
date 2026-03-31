@@ -1,16 +1,10 @@
-import { fileURLToPath } from 'url'
-import { dirname } from 'path'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 29
+  // Force clean build - version 30
   cleanDistDir: true,
-  // Turbopack root - fix for path resolution
+  // Turbopack root - use process.cwd() for correct path resolution
   turbopack: {
-    root: __dirname,
+    root: process.cwd(),
   },
   typescript: {
     ignoreBuildErrors: true,
