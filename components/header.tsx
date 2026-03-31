@@ -146,12 +146,12 @@ export function Header() {
                 {/* Submenu Dropdown */}
                 {item.submenu && activeSubmenu === item.name && (
                   <div className="absolute top-full left-0 pt-2 z-[9999]" style={{ minWidth: '220px' }}>
-                    <div className="bg-background rounded-xl shadow-2xl border border-border py-2 min-w-[220px]">
+                    <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border border-zinc-200 dark:border-zinc-700 py-2 min-w-[220px]">
                       {item.submenu.map((subitem) => (
                         <Link
                           key={subitem.name}
                           href={subitem.href}
-                          className="block px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                          className="block px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                           onClick={() => setActiveSubmenu(null)}
                         >
                           {subitem.name}
