@@ -69,7 +69,6 @@ function TradeInContent() {
   const searchParams = useSearchParams()
   const { user } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
-  const [pendingAction, setPendingAction] = useState<"apply" | "accept" | null>(null)
   const [step, setStep] = useState(1)
   const [lookupMethod, setLookupMethod] = useState<"plate" | "vin" | "manual">("plate")
   const [province, setProvince] = useState("")
@@ -215,9 +214,7 @@ function TradeInContent() {
   }
   const [offer, setOffer] = useState<TradeInOffer | null>(null)
   
-  // Offer acceptance state
-  const [offerAccepted, setOfferAccepted] = useState(false)
-  const [applyToPurchase, setApplyToPurchase] = useState(false)
+  // Modal states
   const [showAcceptModal, setShowAcceptModal] = useState(false)
   const [showApplyModal, setShowApplyModal] = useState(false)
 
@@ -1136,7 +1133,6 @@ function TradeInContent() {
     className="h-14 text-lg"
     onClick={() => {
       if (!user) {
-        setPendingAction("apply")
         setShowAuthModal(true)
       } else {
         setShowApplyModal(true)
@@ -1477,7 +1473,6 @@ function TradeInContent() {
                   const data = await response.json()
                   
                   if (data.success) {
-                    setOfferAccepted(true)
                     setShowAcceptModal(false)
                     alert(`Offer Accepted!\n\nYou will receive a confirmation email and SMS shortly.\n\nOur team will contact you within 2 hours to schedule your free pickup.\n\nQuote ID: ${offer?.quoteId}`)
                   } else {
@@ -1486,7 +1481,6 @@ function TradeInContent() {
                 } catch (error) {
                   console.error('Error accepting offer:', error)
                   // Still show success to user - fallback for API errors
-                  setOfferAccepted(true)
                   setShowAcceptModal(false)
                   alert(`Offer Accepted!\n\nOur team will contact you within 2 hours to schedule your free pickup.\n\nQuote ID: ${offer?.quoteId}`)
                 }
@@ -1579,7 +1573,6 @@ function TradeInContent() {
                   console.error('Error saving trade-in:', error)
                 }
                 
-                setApplyToPurchase(true)
                 setShowApplyModal(false)
                 // Redirect to inventory with full trade-in info
                 const params = new URLSearchParams({
@@ -1600,10 +1593,7 @@ function TradeInContent() {
       {/* Auth Required Modal for Apply to Purchase */}
       <AuthRequiredModal
         isOpen={showAuthModal}
-        onClose={() => {
-          setShowAuthModal(false)
-          setPendingAction(null)
-        }}
+        onClose={() => setShowAuthModal(false)}
         action="apply your trade-in to a vehicle purchase"
         redirectTo={`/trade-in?quote=${offer?.quoteId || ''}&vehicle=${encodeURIComponent(offer?.vehicle || '')}&value=${offer?.offerAmount || 0}&action=apply`}
       />

@@ -385,9 +385,9 @@ export function InstantQuote() {
                 <p className="text-sm font-medium">
                   {formData.year} {formData.make} {formData.model}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  {formData.trim} • {parseInt(formData.mileage).toLocaleString()} km • {formData.condition} condition
-                </p>
+<p className="text-xs text-muted-foreground">
+{formData.trim} • {formData.mileage ? parseInt(formData.mileage).toLocaleString() : '0'} km • {formData.condition} condition
+</p>
                 <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                   <MapPin className="w-3 h-3" />
                   {formData.postalCode}
