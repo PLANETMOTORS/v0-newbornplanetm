@@ -72,6 +72,11 @@ export default function FinanceCalculatorPage() {
   const [tradeInVehicleInfo] = useState(urlTradeInVehicle ? decodeURIComponent(urlTradeInVehicle) : "")
   const [interestRate, setInterestRate] = useState(7.99)
   const [adminFee, setAdminFee] = useState(895) // Finance Docs Fee
+  const [omvicFee] = useState(22) // OMVIC Fee - fixed
+  const [certificationFee, setCertificationFee] = useState(595) // Certification Fee
+  const [licensingFee] = useState(59) // Licensing Fee - fixed
+  const [deliveryFee, setDeliveryFee] = useState(0) // Delivery Fee - conditional
+  const [deliveryPostalCode, setDeliveryPostalCode] = useState("")
   const [loanTerm, setLoanTerm] = useState(60)
   const [paymentFrequency, setPaymentFrequency] = useState("biweekly")
   const [showAmortization, setShowAmortization] = useState(false)
@@ -108,10 +113,13 @@ export default function FinanceCalculatorPage() {
     // Admin fee ($895 Finance Docs Fee) ONLY applies when financing, NOT for cash
     const applicableAdminFee = agreementType === "finance" ? adminFee : 0
     
-    // HST applies to vehicle price + admin fee (if financing)
-    const subtotalForHst = vehiclePrice + applicableAdminFee
+    // All fees that apply on top of vehicle price
+    const totalFees = applicableAdminFee + omvicFee + certificationFee + licensingFee + deliveryFee
+    
+    // HST applies to vehicle price + all fees
+    const subtotalForHst = vehiclePrice + totalFees
     const hstAmount = subtotalForHst * HST_RATE
-    const totalBeforeCredits = vehiclePrice + hstAmount + applicableAdminFee
+    const totalBeforeCredits = vehiclePrice + hstAmount + totalFees
     const totalCredits = downPayment + (hasTradeIn ? tradeInValue : 0)
     const amountToFinance = Math.max(0, totalBeforeCredits - totalCredits)
 
@@ -139,6 +147,11 @@ export default function FinanceCalculatorPage() {
       vehiclePrice,
       hstAmount,
       adminFee: applicableAdminFee,
+      omvicFee,
+      certificationFee,
+      licensingFee,
+      deliveryFee,
+      totalFees,
       totalBeforeCredits,
       downPayment,
       tradeInValue: hasTradeIn ? tradeInValue : 0,
@@ -153,7 +166,7 @@ export default function FinanceCalculatorPage() {
       totalInterest,
       totalCostOfBorrowing,
     }
-  }, [vehicle, downPayment, tradeInValue, hasTradeIn, interestRate, adminFee, loanTerm, paymentFrequency, agreementType])
+  }, [vehicle, downPayment, tradeInValue, hasTradeIn, interestRate, adminFee, omvicFee, certificationFee, licensingFee, deliveryFee, loanTerm, paymentFrequency, agreementType])
 
   // Generate amortization schedule (yearly summary)
   const amortizationSchedule = useMemo(() => {
@@ -569,13 +582,33 @@ export default function FinanceCalculatorPage() {
                       <span className="text-muted-foreground">Vehicle Price</span>
                       <span>${financeDetails.vehiclePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
+                    {agreementType === "finance" && financeDetails.adminFee > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Finance Docs Fee</span>
+                        <span className="text-primary">+${financeDetails.adminFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">HST (13%)</span>
-                      <span>${financeDetails.hstAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span className="text-muted-foreground">OMVIC Fee</span>
+                      <span>+${financeDetails.omvicFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Finance Docs Fee</span>
-                      <span>${financeDetails.adminFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span className="text-muted-foreground">Certification Fee</span>
+                      <span>+${financeDetails.certificationFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Licensing Fee</span>
+                      <span>+${financeDetails.licensingFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                    {financeDetails.deliveryFee > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Delivery Fee</span>
+                        <span>+${financeDetails.deliveryFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">HST (13%)</span>
+                      <span>+${financeDetails.hstAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between text-sm font-medium">
