@@ -133,7 +133,7 @@ function TradeInContent() {
           vehicle: decodeURIComponent(vehicle),
           offerAmount: parseInt(value),
           validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          mileage: "",
+          mileage: mileage || "N/A",
           condition: "good"
         }
         setOffer(offerData)
@@ -1080,7 +1080,7 @@ function TradeInContent() {
                     <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                       <div>
                         <p className="font-semibold text-lg">{offer.vehicle}</p>
-                        <p className="text-sm text-muted-foreground">{offer.mileage ? parseInt(offer.mileage).toLocaleString() : '0'} km | {offer.condition} condition</p>
+                        <p className="text-sm text-muted-foreground">{offer.mileage && offer.mileage !== "N/A" ? parseInt(offer.mileage).toLocaleString() + ' km' : ''}{offer.mileage && offer.mileage !== "N/A" && offer.condition ? ' | ' : ''}{offer.condition ? offer.condition + ' condition' : ''}</p>
                       </div>
                       <Car className="h-8 w-8 text-muted-foreground" />
                     </div>

@@ -43,10 +43,17 @@ async function getVehicleData(vehicleId: string | undefined) {
 export default async function FinanceApplicationPage({
   searchParams,
 }: {
-  searchParams: Promise<{ vehicleId?: string }>
+  searchParams: Promise<{ vehicleId?: string; tradeIn?: string; tradeInVehicle?: string; quoteId?: string }>
 }) {
   const params = await searchParams
   const vehicleData = await getVehicleData(params.vehicleId)
+  
+  // Parse trade-in data from URL params
+  const tradeInData = params.tradeIn ? {
+    value: parseInt(params.tradeIn) || 0,
+    vehicle: params.tradeInVehicle ? decodeURIComponent(params.tradeInVehicle) : undefined,
+    quoteId: params.quoteId
+  } : undefined
   
   return (
     <div className="min-h-screen bg-muted/30">
@@ -78,7 +85,7 @@ export default async function FinanceApplicationPage({
       
       {/* Form Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <FinanceApplicationFullForm vehicleId={params.vehicleId} vehicleData={vehicleData || undefined} />
+        <FinanceApplicationFullForm vehicleId={params.vehicleId} vehicleData={vehicleData || undefined} tradeInData={tradeInData} />
       </div>
     </div>
   )

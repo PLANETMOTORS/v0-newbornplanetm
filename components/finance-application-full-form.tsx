@@ -115,6 +115,9 @@ interface FinancingTerms {
   salesTaxRate: string
   interestRate: string
   adminFee: string
+  omvicFee: string
+  certificationFee: string
+  licensingFee: string
   deliveryFee: string
   deliveryPostalCode: string
   loanTermMonths: number
@@ -164,9 +167,14 @@ interface FinanceApplicationFullFormProps {
     mileage?: number
     color?: string
   }
+  tradeInData?: {
+    value: number
+    vehicle?: string
+    quoteId?: string
+  }
 }
 
-export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceApplicationFullFormProps) {
+export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData }: FinanceApplicationFullFormProps) {
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
@@ -245,10 +253,31 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData }: FinanceAp
     setPrimaryApplicant(prev => ({ ...prev, annualTotal: totalAnnual.toFixed(2) }))
   }, [primaryApplicant.grossIncome, primaryApplicant.incomeFrequency, primaryApplicant.otherIncomeAmount, primaryApplicant.otherIncomeFrequency])
   
-  const [tradeIn, setTradeIn] = useState<TradeInInfo>({
-    hasTradeIn: false, vin: "", year: "", make: "", model: "", trim: "",
-    color: "", mileage: "", condition: "", estimatedValue: "",
-    hasLien: false, lienHolder: "", lienAmount: ""
+  const [tradeIn, setTradeIn] = useState<TradeInInfo>(() => {
+    // Initialize from tradeInData prop if provided
+    if (tradeInData && tradeInData.value > 0) {
+      const vehicleParts = tradeInData.vehicle?.split(' ') || []
+      return {
+        hasTradeIn: true, 
+        vin: "", 
+        year: vehicleParts[0] || "", 
+        make: vehicleParts[1] || "", 
+        model: vehicleParts.slice(2).join(' ') || "", 
+        trim: "",
+        color: "", 
+        mileage: "", 
+        condition: "good", 
+        estimatedValue: tradeInData.value.toString(),
+        hasLien: false, 
+        lienHolder: "", 
+        lienAmount: ""
+      }
+    }
+    return {
+      hasTradeIn: false, vin: "", year: "", make: "", model: "", trim: "",
+      color: "", mileage: "", condition: "", estimatedValue: "",
+      hasLien: false, lienHolder: "", lienAmount: ""
+    }
   })
   
 const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
@@ -256,6 +285,9 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   salesTaxRate: "13",
   interestRate: "",
   adminFee: "895",
+  omvicFee: "22",
+  certificationFee: "595",
+  licensingFee: "59",
   deliveryFee: "0",
   deliveryPostalCode: "",
   loanTermMonths: 72,
@@ -282,14 +314,20 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     const lienAmount = tradeIn.hasLien ? (parseFloat(tradeIn.lienAmount) || 0) : 0
     const netTrade = tradeValue - lienAmount
     const adminFee = financingTerms.agreementType === "finance" ? (parseFloat(financingTerms.adminFee) || 895) : 0
+    const omvicFee = parseFloat(financingTerms.omvicFee) || 22
+    const certificationFee = parseFloat(financingTerms.certificationFee) || 595
+    const licensingFee = parseFloat(financingTerms.licensingFee) || 59
     const deliveryFee = parseFloat(financingTerms.deliveryFee) || 0
     const taxRate = parseFloat(financingTerms.salesTaxRate) / 100 || 0.13
     
-    // For Finance: Price + Admin Fee ($895) + Delivery Fee + Tax - Down Payment - Trade
-    // For Cash: Price only (no admin fee)
-    const subtotal = price + adminFee + deliveryFee - downPayment - netTrade
-    const tax = subtotal * taxRate
-    const amountFinanced = subtotal + tax
+    // All fees: Admin Fee (finance only) + OMVIC + Certification + Licensing + Delivery
+    const totalFees = adminFee + omvicFee + certificationFee + licensingFee + deliveryFee
+    
+    // For Finance: Price + All Fees + Tax - Down Payment - Trade
+    // For Cash: Price + fees (no admin fee) + Tax - Down Payment - Trade
+    const subtotalBeforeTax = price + totalFees - downPayment - netTrade
+    const tax = (price + totalFees) * taxRate // Tax on price + fees before credits
+    const amountFinanced = price + totalFees + tax - downPayment - netTrade
     
     // Calculate payment
     const rate = (parseFloat(financingTerms.interestRate) || 8.99) / 100
@@ -315,7 +353,11 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
       downPayment,
       netTrade,
       adminFee,
+      omvicFee,
+      certificationFee,
+      licensingFee,
       deliveryFee,
+      totalFees,
       tax,
       amountFinanced,
       payment: isNaN(payment) ? 0 : payment,
@@ -1413,8 +1455,8 @@ interface VehicleFinancingFormProps {
   setAdditionalNotes: (n: string) => void
 }
 
-function calculateFinancing(): { price: number; downPayment: number; netTrade: number; adminFee: number; deliveryFee: number; tax: number; amountFinanced: number; payment: number; totalToRepay: number; totalInterest: number; totalPayments: number } {
-  return { price: 0, downPayment: 0, netTrade: 0, adminFee: 0, deliveryFee: 0, tax: 0, amountFinanced: 0, payment: 0, totalToRepay: 0, totalInterest: 0, totalPayments: 0 }
+function calculateFinancing(): { price: number; downPayment: number; netTrade: number; adminFee: number; omvicFee: number; certificationFee: number; licensingFee: number; deliveryFee: number; totalFees: number; tax: number; amountFinanced: number; payment: number; totalToRepay: number; totalInterest: number; totalPayments: number } {
+  return { price: 0, downPayment: 0, netTrade: 0, adminFee: 0, omvicFee: 0, certificationFee: 0, licensingFee: 0, deliveryFee: 0, totalFees: 0, tax: 0, amountFinanced: 0, payment: 0, totalToRepay: 0, totalInterest: 0, totalPayments: 0 }
   }
 
 function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn, financingTerms, setFinancingTerms, financing, additionalNotes, setAdditionalNotes }: VehicleFinancingFormProps) {
@@ -1889,9 +1931,23 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                   <span className="text-muted-foreground">Vehicle Price:</span>
                   <span>${financing.price.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-primary">
-                  <span className="font-medium">Finance Docs Fee:</span>
-                  <span className="font-medium">+${financing.adminFee.toLocaleString()}</span>
+                {financing.adminFee > 0 && (
+                  <div className="flex justify-between text-primary">
+                    <span className="font-medium">Finance Docs Fee:</span>
+                    <span className="font-medium">+${financing.adminFee.toLocaleString()}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">OMVIC Fee:</span>
+                  <span>+${financing.omvicFee.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Certification Fee:</span>
+                  <span>+${financing.certificationFee.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Licensing Fee:</span>
+                  <span>+${financing.licensingFee.toLocaleString()}</span>
                 </div>
                 {financing.deliveryFee > 0 && (
                   <div className="flex justify-between">
