@@ -15,6 +15,7 @@ import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { 
   Car, CreditCard, FileText, Search, CheckCircle, ArrowRight, DollarSign, Clock, Shield, 
   Camera, Upload, Zap, TrendingUp, Star, Truck, Phone, MessageSquare, ChevronRight,
@@ -146,6 +147,12 @@ function TradeInContent() {
     comparison: { privateSale: number; dealerTrade: number }
   }
   const [offer, setOffer] = useState<TradeInOffer | null>(null)
+  
+  // Offer acceptance state
+  const [offerAccepted, setOfferAccepted] = useState(false)
+  const [applyToPurchase, setApplyToPurchase] = useState(false)
+  const [showAcceptModal, setShowAcceptModal] = useState(false)
+  const [showApplyModal, setShowApplyModal] = useState(false)
 
   const handlePlateLookup = async () => {
     setIsLookingUp(true)
@@ -640,7 +647,7 @@ function TradeInContent() {
                       <div className="p-4 bg-muted/50 rounded-lg flex items-center justify-between">
                         <div>
                           <p className="font-semibold">{selectedYear} {selectedMake} {selectedModel} {selectedTrim}</p>
-                          <p className="text-sm text-muted-foreground">{parseInt(mileage).toLocaleString()} km</p>
+                          <p className="text-sm text-muted-foreground">{mileage ? parseInt(mileage).toLocaleString() : '0'} km</p>
                         </div>
                         <Button variant="outline" size="sm" onClick={() => setStep(1)}>Edit</Button>
                       </div>
@@ -829,7 +836,7 @@ function TradeInContent() {
                       <div className="p-4 bg-muted/50 rounded-lg">
                         <p className="font-semibold text-lg">{selectedYear} {selectedMake} {selectedModel} {selectedTrim}</p>
                         <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
-                          <span>{parseInt(mileage).toLocaleString()} km</span>
+                          <span>{mileage ? parseInt(mileage).toLocaleString() : '0'} km</span>
                           <span>|</span>
                           <span className="capitalize">{condition} condition</span>
                           {hasAccident && <><span>|</span><span>Accident history</span></>}
@@ -943,7 +950,7 @@ function TradeInContent() {
                     <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                       <div>
                         <p className="font-semibold text-lg">{offer.vehicle}</p>
-                        <p className="text-sm text-muted-foreground">{parseInt(offer.mileage).toLocaleString()} km | {offer.condition} condition</p>
+                        <p className="text-sm text-muted-foreground">{offer.mileage ? parseInt(offer.mileage).toLocaleString() : '0'} km | {offer.condition} condition</p>
                       </div>
                       <Car className="h-8 w-8 text-muted-foreground" />
                     </div>
@@ -1018,17 +1025,26 @@ function TradeInContent() {
                       </div>
                     </div>
 
-                    {/* CTA Buttons */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                      <Button size="lg" className="h-14 text-lg bg-accent hover:bg-accent/90 text-accent-foreground">
-                        <ThumbsUp className="mr-2 h-5 w-5" />
-                        Accept Offer
-                      </Button>
-                      <Button size="lg" variant="outline" className="h-14 text-lg">
-                        <Car className="mr-2 h-5 w-5" />
-                        Apply to a Purchase
-                      </Button>
-                    </div>
+{/* CTA Buttons */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+  <Button 
+    size="lg" 
+    className="h-14 text-lg bg-accent hover:bg-accent/90 text-accent-foreground"
+    onClick={() => setShowAcceptModal(true)}
+  >
+  <ThumbsUp className="mr-2 h-5 w-5" />
+  Accept Offer
+  </Button>
+  <Button 
+    size="lg" 
+    variant="outline" 
+    className="h-14 text-lg"
+    onClick={() => setShowApplyModal(true)}
+  >
+  <Car className="mr-2 h-5 w-5" />
+  Apply to a Purchase
+  </Button>
+  </div>
 
                     <p className="text-center text-sm text-muted-foreground">
                       Questions? Call us at <strong>1-866-787-3332</strong>
@@ -1279,6 +1295,134 @@ function TradeInContent() {
           </section>
         )}
       </main>
+
+      {/* Accept Offer Modal */}
+      <Dialog open={showAcceptModal} onOpenChange={setShowAcceptModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+              Accept Your Offer
+            </DialogTitle>
+            <DialogDescription>
+              {offer ? `Your ${offer.vehicle} offer of $${offer.offerAmount.toLocaleString()}` : 'Confirm your trade-in offer'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h4 className="font-semibold text-green-800 mb-2">What happens next:</h4>
+              <ol className="text-sm text-green-700 space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="bg-green-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">1</span>
+                  <span>We&apos;ll contact you within 2 hours to schedule a pickup</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="bg-green-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">2</span>
+                  <span>Free pickup anywhere in Canada at your convenience</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="bg-green-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">3</span>
+                  <span>Get paid within 24 hours via e-Transfer or cheque</span>
+                </li>
+              </ol>
+            </div>
+            
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="accept-email">Confirm Email</Label>
+                <Input id="accept-email" type="email" placeholder="your@email.com" defaultValue={email} />
+              </div>
+              <div>
+                <Label htmlFor="accept-phone">Confirm Phone</Label>
+                <Input id="accept-phone" type="tel" placeholder="(416) 555-1234" defaultValue={phone} />
+              </div>
+              <div className="flex items-start gap-2">
+                <Checkbox id="accept-terms" />
+                <Label htmlFor="accept-terms" className="text-sm text-muted-foreground leading-tight">
+                  I confirm the vehicle condition is as described and agree to Planet Motors&apos; terms of service
+                </Label>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowAcceptModal(false)}>
+              Cancel
+            </Button>
+            <Button 
+              className="bg-green-600 hover:bg-green-700"
+              onClick={() => {
+                setOfferAccepted(true)
+                setShowAcceptModal(false)
+                // Show success message or redirect
+                alert('Offer Accepted! Our team will contact you within 2 hours to schedule pickup.')
+              }}
+            >
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Confirm & Accept Offer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Apply to Purchase Modal */}
+      <Dialog open={showApplyModal} onOpenChange={setShowApplyModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Car className="w-6 h-6 text-primary" />
+              Apply Trade-In to a Purchase
+            </DialogTitle>
+            <DialogDescription>
+              Use your trade-in value towards a vehicle from our inventory
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm text-muted-foreground">Your Trade-In Value</span>
+                <span className="text-2xl font-bold text-primary">${offer?.offerAmount.toLocaleString() || '0'}</span>
+              </div>
+              <p className="text-sm text-muted-foreground">This amount will be applied as a down payment on your new vehicle</p>
+            </div>
+            
+            <div className="space-y-3">
+              <h4 className="font-medium">What are you looking for?</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {['SUV', 'Sedan', 'Truck', 'Electric', 'Luxury', 'Under $30k'].map((type) => (
+                  <Button key={type} variant="outline" size="sm" className="justify-start">
+                    {type}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-2 text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+              <Sparkles className="w-4 h-4 mt-0.5 text-primary" />
+              <span>A sales specialist will contact you with personalized vehicle recommendations based on your preferences and trade-in value.</span>
+            </div>
+          </div>
+          
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowApplyModal(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                setApplyToPurchase(true)
+                setShowApplyModal(false)
+                // Redirect to inventory with trade-in value
+                window.location.href = `/inventory?tradeIn=${offer?.offerAmount || 0}`
+              }}
+            >
+              <ArrowRight className="mr-2 h-4 w-4" />
+              Browse Inventory
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>
