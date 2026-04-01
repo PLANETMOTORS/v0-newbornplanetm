@@ -27,6 +27,10 @@ import { SimilarVehicles } from "@/components/similar-vehicles"
 import { ReserveVehicleModal } from "@/components/reserve-vehicle-modal"
 import { AuthRequiredModal } from "@/components/auth-required-modal"
 import { useAuth } from "@/contexts/auth-context"
+import { PriceNegotiator } from "@/components/vehicle/price-negotiator"
+import { LiveVideoCall } from "@/components/vehicle/live-video-call"
+import { PriceDropAlert } from "@/components/vehicle/price-drop-alert"
+import { AddToCompare } from "@/components/vehicle/add-to-compare"
 import {
   Dialog,
   DialogContent,
@@ -1691,6 +1695,43 @@ export default function VehicleDetailPage() {
                   <p className="text-xs text-center text-muted-foreground mt-2">
                     Excl. HST & Licensing · Incl. OMVIC Fee
                   </p>
+
+                  {/* AI Features Section */}
+                  <div className="mt-4 pt-4 border-t space-y-3">
+                    <h4 className="text-sm font-medium text-muted-foreground">AI-POWERED FEATURES</h4>
+                    
+                    {/* AI Price Negotiator */}
+                    <PriceNegotiator 
+                      vehicleId={vehicle.id} 
+                      vehiclePrice={vehicle.price} 
+                      vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`} 
+                    />
+                    
+                    {/* Live Video Call */}
+                    <LiveVideoCall 
+                      vehicleId={vehicle.id} 
+                      vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`} 
+                    />
+                    
+                    {/* Price Drop Alert */}
+                    <PriceDropAlert 
+                      vehicleId={vehicle.id} 
+                      vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`} 
+                      currentPrice={vehicle.price} 
+                    />
+                    
+                    {/* Add to Compare */}
+                    <AddToCompare 
+                      vehicle={{
+                        id: vehicle.id,
+                        name: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+                        price: vehicle.price,
+                        image: vehicleData.images[0],
+                        mileage: vehicle.mileage,
+                        year: vehicle.year
+                      }} 
+                    />
+                  </div>
 
                   {/* Action Buttons */}
                   <div className="flex justify-center gap-4 mt-4 pt-4 border-t">
