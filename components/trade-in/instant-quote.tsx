@@ -1,22 +1,22 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Car, DollarSign, ArrowRight, Check, Clock, Shield } from "lucide-react"
-
-const currentYear = new Date().getFullYear()
-const years = Array.from({ length: 20 }, (_, i) => currentYear - i)
-
-const makes = [
-  "Tesla", "BMW", "Mercedes-Benz", "Audi", "Porsche", "Toyota", "Honda", 
-  "Ford", "Chevrolet", "Nissan", "Hyundai", "Kia", "Volkswagen", "Mazda", 
-  "Subaru", "Lexus", "Acura", "Infiniti", "Other"
-]
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog"
+import { Car, DollarSign, ArrowRight, Check, Clock, Shield, MapPin, AlertCircle } from "lucide-react"
+import { 
+  getAllMakes, 
+  getModelsForMake, 
+  getTrimsForModel, 
+  getYears,
+  isValidPostalCode,
+  formatPostalCode,
+  type VehicleTrim
+} from "@/lib/vehicle-data"
 
 interface QuoteResult {
   quoteId: string
@@ -34,17 +34,70 @@ export function InstantQuote() {
   const [isLoading, setIsLoading] = useState(false)
   const [quoteResult, setQuoteResult] = useState<QuoteResult | null>(null)
 
+  // Vehicle data
+  const years = getYears()
+  const makes = getAllMakes()
+  const [availableModels, setAvailableModels] = useState<string[]>([])
+  const [availableTrims, setAvailableTrims] = useState<VehicleTrim[]>([])
+
+  // Postal code validation
+  const [postalCodeError, setPostalCodeError] = useState<string>("")
+
   const [formData, setFormData] = useState({
     year: "",
     make: "",
     model: "",
+    trim: "",
     mileage: "",
     condition: "",
+    postalCode: "",
     vin: "",
     customerName: "",
     customerEmail: "",
     customerPhone: "",
   })
+
+  // Update models when make changes
+  useEffect(() => {
+    if (formData.make) {
+      const models = getModelsForMake(formData.make)
+      setAvailableModels(models)
+      // Reset model and trim when make changes
+      setFormData(prev => ({ ...prev, model: "", trim: "" }))
+      setAvailableTrims([])
+    } else {
+      setAvailableModels([])
+      setAvailableTrims([])
+    }
+  }, [formData.make])
+
+  // Update trims when model changes
+  useEffect(() => {
+    if (formData.make && formData.model) {
+      const trims = getTrimsForModel(formData.make, formData.model)
+      setAvailableTrims(trims)
+      // Reset trim when model changes
+      setFormData(prev => ({ ...prev, trim: "" }))
+    } else {
+      setAvailableTrims([])
+    }
+  }, [formData.make, formData.model])
+
+  // Validate postal code
+  const handlePostalCodeChange = (value: string) => {
+    const formatted = formatPostalCode(value)
+    setFormData({ ...formData, postalCode: formatted })
+    
+    if (formatted.length >= 6) {
+      if (!isValidPostalCode(formatted)) {
+        setPostalCodeError("Please enter a valid Canadian postal code")
+      } else {
+        setPostalCodeError("")
+      }
+    } else {
+      setPostalCodeError("")
+    }
+  }
 
   const handleSubmit = async () => {
     setIsLoading(true)
@@ -77,18 +130,34 @@ export function InstantQuote() {
   const resetForm = () => {
     setStep(1)
     setQuoteResult(null)
+    setPostalCodeError("")
+    setAvailableModels([])
+    setAvailableTrims([])
     setFormData({
       year: "",
       make: "",
       model: "",
+      trim: "",
       mileage: "",
       condition: "",
+      postalCode: "",
       vin: "",
       customerName: "",
       customerEmail: "",
       customerPhone: "",
     })
   }
+
+  // Check if step 1 form is valid
+  const isStep1Valid = 
+    formData.year && 
+    formData.make && 
+    formData.model && 
+    formData.trim &&
+    formData.mileage && 
+    formData.condition &&
+    formData.postalCode &&
+    isValidPostalCode(formData.postalCode)
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
@@ -98,18 +167,21 @@ export function InstantQuote() {
           Get Instant Trade-In Quote
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Car className="w-5 h-5 text-primary" />
             Instant Trade-In Quote
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Get an instant cash offer for your vehicle based on Canadian Black Book values
+          </DialogDescription>
         </DialogHeader>
 
         {/* Step 1: Vehicle Info */}
         {step === 1 && (
           <div className="space-y-4">
-            <div className="flex gap-3 text-sm text-muted-foreground pb-2">
+            <div className="flex flex-wrap gap-3 text-sm text-muted-foreground pb-2">
               <div className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
                 Under 60 seconds
@@ -120,14 +192,15 @@ export function InstantQuote() {
               </div>
             </div>
 
+            {/* Year and Make */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Year</Label>
+                <Label htmlFor="year">Year <span className="text-destructive">*</span></Label>
                 <Select value={formData.year} onValueChange={(v) => setFormData({ ...formData, year: v })}>
-                  <SelectTrigger>
+                  <SelectTrigger id="year">
                     <SelectValue placeholder="Select year" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-[200px]">
                     {years.map((y) => (
                       <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
                     ))}
@@ -135,12 +208,12 @@ export function InstantQuote() {
                 </Select>
               </div>
               <div>
-                <Label>Make</Label>
-                <Select value={formData.make} onValueChange={(v) => setFormData({ ...formData, make: v })}>
-                  <SelectTrigger>
+                <Label htmlFor="make">Make <span className="text-destructive">*</span></Label>
+                <Select value={formData.make} onValueChange={(v) => setFormData({ ...formData, make: v, model: "", trim: "" })}>
+                  <SelectTrigger id="make">
                     <SelectValue placeholder="Select make" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-[200px]">
                     {makes.map((m) => (
                       <SelectItem key={m} value={m}>{m}</SelectItem>
                     ))}
@@ -149,19 +222,52 @@ export function InstantQuote() {
               </div>
             </div>
 
+            {/* Model */}
             <div>
-              <Label>Model</Label>
-              <Input
-                placeholder="e.g. Model 3, Civic, Camry"
-                value={formData.model}
-                onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-              />
+              <Label htmlFor="model">Model <span className="text-destructive">*</span></Label>
+              <Select 
+                value={formData.model} 
+                onValueChange={(v) => setFormData({ ...formData, model: v, trim: "" })}
+                disabled={!formData.make}
+              >
+                <SelectTrigger id="model">
+                  <SelectValue placeholder={formData.make ? "Select model" : "Select make first"} />
+                </SelectTrigger>
+                <SelectContent className="max-h-[200px]">
+                  {availableModels.map((m) => (
+                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
+            {/* Trim */}
+            <div>
+              <Label htmlFor="trim">Trim <span className="text-destructive">*</span></Label>
+              <Select 
+                value={formData.trim} 
+                onValueChange={(v) => setFormData({ ...formData, trim: v })}
+                disabled={!formData.model}
+              >
+                <SelectTrigger id="trim">
+                  <SelectValue placeholder={formData.model ? "Select trim" : "Select model first"} />
+                </SelectTrigger>
+                <SelectContent className="max-h-[200px]">
+                  {availableTrims.map((t) => (
+                    <SelectItem key={t.name} value={t.name}>
+                      {t.name} {t.engine && `(${t.engine})`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Mileage and Condition */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Mileage (km)</Label>
+                <Label htmlFor="mileage">Mileage (km) <span className="text-destructive">*</span></Label>
                 <Input
+                  id="mileage"
                   type="number"
                   placeholder="e.g. 50000"
                   value={formData.mileage}
@@ -169,9 +275,9 @@ export function InstantQuote() {
                 />
               </div>
               <div>
-                <Label>Condition</Label>
+                <Label htmlFor="condition">Condition <span className="text-destructive">*</span></Label>
                 <Select value={formData.condition} onValueChange={(v) => setFormData({ ...formData, condition: v })}>
-                  <SelectTrigger>
+                  <SelectTrigger id="condition">
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent>
@@ -184,9 +290,36 @@ export function InstantQuote() {
               </div>
             </div>
 
+            {/* Postal Code - MANDATORY */}
             <div>
-              <Label>VIN (optional)</Label>
+              <Label htmlFor="postalCode" className="flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
+                Postal Code <span className="text-destructive">*</span>
+              </Label>
               <Input
+                id="postalCode"
+                placeholder="e.g. M5V 1J2"
+                value={formData.postalCode}
+                onChange={(e) => handlePostalCodeChange(e.target.value)}
+                maxLength={7}
+                className={postalCodeError ? "border-destructive" : ""}
+              />
+              {postalCodeError && (
+                <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  {postalCodeError}
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">
+                Required for accurate local market valuation
+              </p>
+            </div>
+
+            {/* VIN (Optional) */}
+            <div>
+              <Label htmlFor="vin">VIN (optional)</Label>
+              <Input
+                id="vin"
                 placeholder="For more accurate quote"
                 value={formData.vin}
                 onChange={(e) => setFormData({ ...formData, vin: e.target.value.toUpperCase() })}
@@ -198,7 +331,7 @@ export function InstantQuote() {
             <Button
               className="w-full"
               onClick={() => setStep(2)}
-              disabled={!formData.year || !formData.make || !formData.model || !formData.mileage || !formData.condition}
+              disabled={!isStep1Valid}
             >
               Continue <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
@@ -214,14 +347,19 @@ export function InstantQuote() {
                   {formData.year} {formData.make} {formData.model}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {parseInt(formData.mileage).toLocaleString()} km • {formData.condition} condition
+                  {formData.trim} • {parseInt(formData.mileage).toLocaleString()} km • {formData.condition} condition
+                </p>
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <MapPin className="w-3 h-3" />
+                  {formData.postalCode}
                 </p>
               </CardContent>
             </Card>
 
             <div>
-              <Label>Your Name</Label>
+              <Label htmlFor="name">Your Name <span className="text-destructive">*</span></Label>
               <Input
+                id="name"
                 placeholder="John Smith"
                 value={formData.customerName}
                 onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
@@ -229,8 +367,9 @@ export function InstantQuote() {
             </div>
 
             <div>
-              <Label>Email</Label>
+              <Label htmlFor="email">Email <span className="text-destructive">*</span></Label>
               <Input
+                id="email"
                 type="email"
                 placeholder="john@example.com"
                 value={formData.customerEmail}
@@ -239,8 +378,9 @@ export function InstantQuote() {
             </div>
 
             <div>
-              <Label>Phone</Label>
+              <Label htmlFor="phone">Phone <span className="text-destructive">*</span></Label>
               <Input
+                id="phone"
                 type="tel"
                 placeholder="(416) 555-0123"
                 value={formData.customerPhone}
@@ -273,7 +413,7 @@ export function InstantQuote() {
             <div>
               <h3 className="text-lg font-semibold">Your Instant Quote</h3>
               <p className="text-sm text-muted-foreground">
-                {formData.year} {formData.make} {formData.model}
+                {formData.year} {formData.make} {formData.model} {formData.trim}
               </p>
             </div>
 
@@ -292,6 +432,10 @@ export function InstantQuote() {
             <div className="text-xs text-muted-foreground space-y-1">
               <p>Quote ID: <span className="font-mono">{quoteResult.quoteId}</span></p>
               <p>Valid until: {new Date(quoteResult.validUntil).toLocaleDateString()}</p>
+              <p className="flex items-center justify-center gap-1">
+                <MapPin className="w-3 h-3" />
+                Based on market values in {formData.postalCode}
+              </p>
               <p>Final offer subject to in-person inspection</p>
             </div>
 
