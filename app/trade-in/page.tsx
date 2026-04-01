@@ -22,6 +22,15 @@ import {
   AlertCircle, Sparkles, Target, Award, MapPin, Calendar, Users, ThumbsUp
 } from "lucide-react"
 import { InstantQuote } from "@/components/trade-in/instant-quote"
+import {
+  isValidEmail,
+  isValidCanadianPhoneNumber,
+  isValidCanadianPostalCode,
+  isValidName,
+  formatCanadianPhoneNumber,
+  formatCanadianPostalCode,
+  ValidationMessages
+} from "@/lib/validation"
 
 // Vehicle makes with models
 const vehicleMakes = {
@@ -132,6 +141,41 @@ function TradeInContent() {
   const [phone, setPhone] = useState("")
   const [postalCode, setPostalCode] = useState("")
   
+  // Validation errors
+  const [emailError, setEmailError] = useState("")
+  const [phoneError, setPhoneError] = useState("")
+  const [postalCodeError, setPostalCodeError] = useState("")
+  
+  // Validation handlers
+  const handleEmailChange = (value: string) => {
+    setEmail(value)
+    if (value && !isValidEmail(value)) {
+      setEmailError(ValidationMessages.email)
+    } else {
+      setEmailError("")
+    }
+  }
+  
+  const handlePhoneChange = (value: string) => {
+    const formatted = formatCanadianPhoneNumber(value)
+    setPhone(formatted)
+    if (formatted.length >= 14 && !isValidCanadianPhoneNumber(formatted)) {
+      setPhoneError(ValidationMessages.phone)
+    } else {
+      setPhoneError("")
+    }
+  }
+  
+  const handlePostalCodeChange = (value: string) => {
+    const formatted = formatCanadianPostalCode(value)
+    setPostalCode(formatted)
+    if (formatted.length >= 6 && !isValidCanadianPostalCode(formatted)) {
+      setPostalCodeError(ValidationMessages.postalCode)
+    } else {
+      setPostalCodeError("")
+    }
+  }
+  
   // Offer
   interface TradeInOffer {
     offerNumber: string
@@ -153,9 +197,6 @@ function TradeInContent() {
   const [applyToPurchase, setApplyToPurchase] = useState(false)
   const [showAcceptModal, setShowAcceptModal] = useState(false)
   const [showApplyModal, setShowApplyModal] = useState(false)
-  
-  // Debug log modal states
-  console.log("[v0] Modal states - Accept:", showAcceptModal, "Apply:", showApplyModal)
 
   const handlePlateLookup = async () => {
     setIsLookingUp(true)
@@ -849,32 +890,53 @@ function TradeInContent() {
                       {/* Contact Form */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>Email Address</Label>
+                          <Label>Email Address <span className="text-destructive">*</span></Label>
                           <Input 
                             type="email" 
                             placeholder="you@example.com"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(e) => handleEmailChange(e.target.value)}
+                            className={emailError ? "border-destructive" : ""}
                           />
+                          {emailError && (
+                            <p className="text-xs text-destructive flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3" />
+                              {emailError}
+                            </p>
+                          )}
                         </div>
                         <div className="space-y-2">
-                          <Label>Phone Number</Label>
+                          <Label>Phone Number <span className="text-destructive">*</span></Label>
                           <Input 
                             type="tel" 
                             placeholder="(416) 555-1234"
                             value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
+                            onChange={(e) => handlePhoneChange(e.target.value)}
+                            className={phoneError ? "border-destructive" : ""}
                           />
+                          {phoneError && (
+                            <p className="text-xs text-destructive flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3" />
+                              {phoneError}
+                            </p>
+                          )}
                         </div>
                         <div className="space-y-2 md:col-span-2">
-                          <Label>Postal Code</Label>
+                          <Label>Postal Code <span className="text-destructive">*</span></Label>
                           <Input 
                             placeholder="A1A 1A1"
                             value={postalCode}
-                            onChange={(e) => setPostalCode(e.target.value.toUpperCase())}
-                            className="max-w-xs uppercase"
+                            onChange={(e) => handlePostalCodeChange(e.target.value)}
+                            className={`max-w-xs uppercase ${postalCodeError ? "border-destructive" : ""}`}
                           />
-                          <p className="text-xs text-muted-foreground">For scheduling free pickup</p>
+                          {postalCodeError ? (
+                            <p className="text-xs text-destructive flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3" />
+                              {postalCodeError}
+                            </p>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">For scheduling free pickup</p>
+                          )}
                         </div>
                       </div>
 
@@ -897,7 +959,14 @@ function TradeInContent() {
                         <Button 
                           onClick={calculateOffer} 
                           className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground h-12 text-lg"
-                          disabled={!email || !phone}
+                          disabled={
+                            !email || 
+                            !phone || 
+                            !postalCode ||
+                            !isValidEmail(email) || 
+                            !isValidCanadianPhoneNumber(phone) ||
+                            !isValidCanadianPostalCode(postalCode)
+                          }
                         >
                           <Sparkles className="mr-2 h-5 w-5" />
                           Get My Offer
@@ -1033,10 +1102,7 @@ function TradeInContent() {
   <Button 
     size="lg" 
     className="h-14 text-lg bg-accent hover:bg-accent/90 text-accent-foreground"
-    onClick={() => {
-      console.log("[v0] Accept Offer clicked")
-      setShowAcceptModal(true)
-    }}
+    onClick={() => setShowAcceptModal(true)}
   >
   <ThumbsUp className="mr-2 h-5 w-5" />
   Accept Offer
@@ -1045,10 +1111,7 @@ function TradeInContent() {
     size="lg" 
     variant="outline" 
     className="h-14 text-lg"
-    onClick={() => {
-      console.log("[v0] Apply to Purchase clicked")
-      setShowApplyModal(true)
-    }}
+    onClick={() => setShowApplyModal(true)}
   >
   <Car className="mr-2 h-5 w-5" />
   Apply to a Purchase

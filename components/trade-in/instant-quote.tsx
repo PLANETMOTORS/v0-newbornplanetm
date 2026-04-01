@@ -17,6 +17,13 @@ import {
   formatPostalCode,
   type VehicleTrim
 } from "@/lib/vehicle-data"
+import {
+  isValidEmail,
+  isValidCanadianPhoneNumber,
+  isValidName,
+  formatCanadianPhoneNumber,
+  ValidationMessages
+} from "@/lib/validation"
 
 interface QuoteResult {
   quoteId: string
@@ -42,6 +49,11 @@ export function InstantQuote() {
 
   // Postal code validation
   const [postalCodeError, setPostalCodeError] = useState<string>("")
+  
+  // Contact form validation errors
+  const [nameError, setNameError] = useState<string>("")
+  const [emailError, setEmailError] = useState<string>("")
+  const [phoneError, setPhoneError] = useState<string>("")
 
   const [formData, setFormData] = useState({
     year: "",
@@ -120,17 +132,44 @@ export function InstantQuote() {
     }
   }
 
-  const formatPhoneNumber = (value: string) => {
-    const digits = value.replace(/\D/g, "")
-    if (digits.length <= 3) return digits
-    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
-    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`
+  // Validate name field
+  const handleNameChange = (value: string) => {
+    setFormData({ ...formData, customerName: value })
+    if (value && !isValidName(value)) {
+      setNameError(ValidationMessages.name)
+    } else {
+      setNameError("")
+    }
+  }
+
+  // Validate email field
+  const handleEmailChange = (value: string) => {
+    setFormData({ ...formData, customerEmail: value })
+    if (value && !isValidEmail(value)) {
+      setEmailError(ValidationMessages.email)
+    } else {
+      setEmailError("")
+    }
+  }
+
+  // Validate phone field
+  const handlePhoneChange = (value: string) => {
+    const formatted = formatCanadianPhoneNumber(value)
+    setFormData({ ...formData, customerPhone: formatted })
+    if (formatted.length >= 14 && !isValidCanadianPhoneNumber(formatted)) {
+      setPhoneError(ValidationMessages.phone)
+    } else {
+      setPhoneError("")
+    }
   }
 
   const resetForm = () => {
     setStep(1)
     setQuoteResult(null)
     setPostalCodeError("")
+    setNameError("")
+    setEmailError("")
+    setPhoneError("")
     setAvailableModels([])
     setAvailableTrims([])
     setFormData({
@@ -362,8 +401,15 @@ export function InstantQuote() {
                 id="name"
                 placeholder="John Smith"
                 value={formData.customerName}
-                onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+                onChange={(e) => handleNameChange(e.target.value)}
+                className={nameError ? "border-destructive" : ""}
               />
+              {nameError && (
+                <p className="text-xs text-destructive mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  {nameError}
+                </p>
+              )}
             </div>
 
             <div>
@@ -373,8 +419,15 @@ export function InstantQuote() {
                 type="email"
                 placeholder="john@example.com"
                 value={formData.customerEmail}
-                onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
+                onChange={(e) => handleEmailChange(e.target.value)}
+                className={emailError ? "border-destructive" : ""}
               />
+              {emailError && (
+                <p className="text-xs text-destructive mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  {emailError}
+                </p>
+              )}
             </div>
 
             <div>
@@ -384,8 +437,15 @@ export function InstantQuote() {
                 type="tel"
                 placeholder="(416) 555-0123"
                 value={formData.customerPhone}
-                onChange={(e) => setFormData({ ...formData, customerPhone: formatPhoneNumber(e.target.value) })}
+                onChange={(e) => handlePhoneChange(e.target.value)}
+                className={phoneError ? "border-destructive" : ""}
               />
+              {phoneError && (
+                <p className="text-xs text-destructive mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  {phoneError}
+                </p>
+              )}
             </div>
 
             <div className="flex gap-2">
@@ -395,7 +455,15 @@ export function InstantQuote() {
               <Button
                 className="flex-1"
                 onClick={handleSubmit}
-                disabled={isLoading || !formData.customerName || !formData.customerEmail || !formData.customerPhone}
+                disabled={
+                  isLoading || 
+                  !formData.customerName || 
+                  !formData.customerEmail || 
+                  !formData.customerPhone ||
+                  !isValidName(formData.customerName) ||
+                  !isValidEmail(formData.customerEmail) ||
+                  !isValidCanadianPhoneNumber(formData.customerPhone)
+                }
               >
                 {isLoading ? "Calculating..." : "Get My Quote"}
               </Button>
