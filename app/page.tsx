@@ -193,11 +193,17 @@ export default function HomePage() {
                     <ArrowRight className="ml-2 w-4 h-4" />
                   </Link>
                 </Button>
-                <Button size="lg" variant="outline" asChild>
-                  <Link href="/trade-in">
-                    Trade-In
-                  </Link>
-                </Button>
+<Button size="lg" variant="outline" asChild>
+                <Link href="/trade-in">
+                  Trade-In
+                </Link>
+              </Button>
+              <Button size="lg" variant="secondary" className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0" asChild>
+                <Link href="/trade-in#instant-quote">
+                  <Sparkles className="mr-2 w-4 h-4" />
+                  Instant Cash Offer
+                </Link>
+              </Button>
               </div>
 
               {/* Financing teaser */}

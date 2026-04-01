@@ -1179,7 +1179,7 @@ export default function TradeInPage() {
         )}
 
         {/* AI-Powered Instant Quote Alternative */}
-        <section className="py-16 bg-gradient-to-b from-background to-muted/30">
+        <section id="instant-quote" className="py-16 bg-gradient-to-b from-background to-muted/30 scroll-mt-20">
           <div className="container mx-auto px-4">
             <div className="text-center mb-8">
               <Badge className="mb-3 bg-blue-500">
