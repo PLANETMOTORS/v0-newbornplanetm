@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
@@ -70,6 +70,19 @@ function TradeInContent() {
   const { user } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [step, setStep] = useState(1)
+  
+  // Ref for step content area to scroll to
+  const stepContentRef = useRef<HTMLDivElement>(null)
+  
+  // Helper function to change step and scroll to content
+  const goToStep = (newStep: number) => {
+    setStep(newStep)
+    // Scroll to step content after state update
+    setTimeout(() => {
+      stepContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 100)
+  }
+  
   const [lookupMethod, setLookupMethod] = useState<"plate" | "vin" | "manual">("plate")
   const [province, setProvince] = useState("")
   const [plateNumber, setPlateNumber] = useState("")
@@ -110,7 +123,7 @@ function TradeInContent() {
       }
       
       // Skip to step 2 since we already have vehicle info
-      setStep(2)
+      goToStep(2)
       
       // If user just signed in and has action=apply, open the apply modal
       if (action === "apply" && user) {
@@ -323,8 +336,18 @@ function TradeInContent() {
     setShowOffer(true)
   }
 
-  const nextStep = () => setStep(s => Math.min(s + 1, 4))
-  const prevStep = () => setStep(s => Math.max(s - 1, 1))
+  const nextStep = () => {
+    setStep(s => Math.min(s + 1, 4))
+    setTimeout(() => {
+      stepContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 100)
+  }
+  const prevStep = () => {
+    setStep(s => Math.max(s - 1, 1))
+    setTimeout(() => {
+      stepContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 100)
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -462,7 +485,7 @@ function TradeInContent() {
                     <Button 
                       className="w-full h-12 text-lg"
                       size="lg"
-                      onClick={() => { setStep(2); setVehicleFound(true); }}
+                      onClick={() => { goToStep(2); setVehicleFound(true); }}
                       disabled={!selectedYear || !selectedMake || !selectedModel || !mileage}
                     >
                       Get My Instant Offer
@@ -481,10 +504,10 @@ function TradeInContent() {
         {/* Main Wizard Section */}
         {!showOffer && (
           <section className="py-12 bg-muted/30">
-            <div className="container mx-auto px-4">
-              <div className="max-w-4xl mx-auto">
-                {/* Progress Steps */}
-                <div className="flex items-center justify-between mb-8 px-4">
+<div className="container mx-auto px-4">
+  <div className="max-w-4xl mx-auto" ref={stepContentRef}>
+  {/* Progress Steps */}
+  <div className="flex items-center justify-between mb-8 px-4">
                   {[
                     { num: 1, label: "Vehicle Info" },
                     { num: 2, label: "Condition" },
@@ -713,7 +736,7 @@ function TradeInContent() {
                           <p className="font-semibold">{selectedYear} {selectedMake} {selectedModel} {selectedTrim}</p>
                           <p className="text-sm text-muted-foreground">{mileage ? parseInt(mileage).toLocaleString() : '0'} km</p>
                         </div>
-                        <Button variant="outline" size="sm" onClick={() => setStep(1)}>Edit</Button>
+                        <Button variant="outline" size="sm" onClick={() => goToStep(1)}>Edit</Button>
                       </div>
 
                       {/* Condition Selection */}
