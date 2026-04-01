@@ -1485,8 +1485,13 @@ function TradeInContent() {
               onClick={() => {
                 setApplyToPurchase(true)
                 setShowApplyModal(false)
-                // Redirect to inventory with trade-in value
-                window.location.href = `/inventory?tradeIn=${offer?.offerAmount || 0}`
+                // Redirect to inventory with full trade-in info
+                const params = new URLSearchParams({
+                  tradeIn: String(offer?.offerAmount || 0),
+                  quoteId: offer?.quoteId || '',
+                  tradeInVehicle: encodeURIComponent(offer?.vehicle || '')
+                })
+                window.location.href = `/inventory?${params.toString()}`
               }}
             >
               <ArrowRight className="mr-2 h-4 w-4" />

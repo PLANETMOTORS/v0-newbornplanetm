@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
@@ -354,6 +354,7 @@ const vehicleData = {
 
 export default function VehicleDetailPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const vehicleId = params.id as string
   const { user } = useAuth()
   const [vehicle, setVehicle] = useState<any>(null)
@@ -368,6 +369,24 @@ export default function VehicleDetailPage() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [authAction, setAuthAction] = useState("")
   const [showReserveModal, setShowReserveModal] = useState(false)
+  
+  // Trade-in from AI Quote
+  const tradeInValue = searchParams.get("tradeIn")
+  const tradeInQuoteId = searchParams.get("quoteId")
+  const tradeInVehicle = searchParams.get("tradeInVehicle")
+  
+  // Helper to build finance link with trade-in info
+  const getFinanceLink = (vehicleId: string) => {
+    if (tradeInValue && parseInt(tradeInValue) > 0) {
+      const params = new URLSearchParams({
+        tradeIn: tradeInValue,
+        quoteId: tradeInQuoteId || '',
+        tradeInVehicle: tradeInVehicle || ''
+      })
+      return `/finance/${vehicleId}?${params.toString()}`
+    }
+    return `/finance/${vehicleId}`
+  }
   
   // Fetch vehicle from database
   useEffect(() => {
@@ -489,8 +508,28 @@ export default function VehicleDetailPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="pb-20 md:pb-20 pb-32" role="main" aria-label="Vehicle details">
-        {/* Breadcrumb */}
+<main className="pb-20 md:pb-20 pb-32" role="main" aria-label="Vehicle details">
+  {/* Trade-In Banner */}
+  {tradeInValue && parseInt(tradeInValue) > 0 && (
+    <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div className="flex items-center gap-3">
+            <CheckCircle className="w-5 h-5" />
+            <span className="font-medium">
+              Your Trade-In: <span className="font-bold">${parseInt(tradeInValue).toLocaleString()}</span>
+              {tradeInVehicle && <span className="text-white/80 ml-2">({decodeURIComponent(tradeInVehicle)})</span>}
+            </span>
+          </div>
+          <Button size="sm" variant="secondary" asChild>
+            <Link href={getFinanceLink(vehicle?.id || '')}>Apply to This Vehicle</Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  )}
+  
+  {/* Breadcrumb */}
         <nav className="bg-muted/30 py-3 border-b" aria-label="Breadcrumb">
           <div className="container mx-auto px-4 overflow-x-auto scrollbar-hide">
             <ol className="flex items-center gap-2 text-sm whitespace-nowrap" role="list">
@@ -774,7 +813,7 @@ export default function VehicleDetailPage() {
                             30 Major Mackenzie Dr E, Richmond Hill, ON. Open Mon–Sat.
                           </p>
                           <Button className="mt-3" size="sm" asChild>
-                            <Link href={`/finance/${vehicle.id}`}>Start purchase</Link>
+                            <Link href={getFinanceLink(vehicle.id)}>Start purchase</Link>
                           </Button>
                         </CardContent>
                       </Card>
@@ -789,7 +828,7 @@ export default function VehicleDetailPage() {
                             We&apos;ll deliver anywhere in Ontario & Canada.
                           </p>
                           <Button variant="outline" className="mt-3" size="sm" asChild>
-                            <Link href={`/finance/${vehicle.id}`}>Start purchase</Link>
+                            <Link href={getFinanceLink(vehicle.id)}>Start purchase</Link>
                           </Button>
                         </CardContent>
                       </Card>
@@ -1291,7 +1330,7 @@ export default function VehicleDetailPage() {
                           <p className="text-xs text-muted-foreground">Get personalized financing terms in 2 minutes — no impact to your credit score.</p>
                         </div>
                         <Button className="w-full mt-4" variant="outline" asChild>
-                          <Link href={`/finance/${vehicle.id}`}>Get pre-qualified</Link>
+                          <Link href={getFinanceLink(vehicle.id)}>Get pre-qualified</Link>
                         </Button>
                       </CardContent>
                     </Card>
@@ -1562,7 +1601,7 @@ export default function VehicleDetailPage() {
                       {item.subtitle && <p className="text-xs text-muted-foreground">{item.subtitle}</p>}
                       {item.active && (
                         <Button size="sm" className="mt-3" asChild>
-                          <Link href={`/finance/${vehicle.id}`}>Start purchase</Link>
+                          <Link href={getFinanceLink(vehicle.id)}>Start purchase</Link>
                         </Button>
                       )}
                     </div>
@@ -1636,7 +1675,7 @@ export default function VehicleDetailPage() {
                     <span>Estimated <span className="font-semibold">${biweeklyPayment}/biweekly</span></span>
                     <span className="text-muted-foreground">·</span>
                     <span className="text-muted-foreground">$0 down</span>
-                    <Link href={`/finance/${vehicle.id}`} className="text-primary hover:underline">Get your terms</Link>
+                    <Link href={getFinanceLink(vehicle.id)} className="text-primary hover:underline">Get your terms</Link>
                   </div>
 
                   {/* Trust Badges */}

@@ -185,6 +185,13 @@ function InventoryContent() {
   const [sortBy, setSortBy] = useState("featured")
   const { favorites, addFavorite, removeFavorite, isFavorite } = useFavorites()
   const [evOnly, setEvOnly] = useState(false)
+  
+  // Trade-in from AI Quote
+  const [tradeInInfo, setTradeInInfo] = useState<{
+    value: number
+    quoteId: string
+    vehicle: string
+  } | null>(null)
 
   // Fetch vehicles from Supabase
   const { data: dbVehicles, error, isLoading } = useSWR('vehicles', fetcher, {
@@ -221,6 +228,19 @@ function InventoryContent() {
     const fuelType = searchParams.get("fuelType")
     const bodyType = searchParams.get("bodyType")
     const make = searchParams.get("make")
+    
+    // Check for trade-in from AI Quote
+    const tradeIn = searchParams.get("tradeIn")
+    const quoteId = searchParams.get("quoteId")
+    const tradeInVehicle = searchParams.get("tradeInVehicle")
+    
+    if (tradeIn && parseInt(tradeIn) > 0) {
+      setTradeInInfo({
+        value: parseInt(tradeIn),
+        quoteId: quoteId || '',
+        vehicle: tradeInVehicle ? decodeURIComponent(tradeInVehicle) : ''
+      })
+    }
     
     if (fuelType === "Electric") {
       setSelectedFuelType("Electric")
@@ -360,10 +380,28 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="pt-20 pb-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Page Header */}
-          <div className="py-8 border-b border-border">
+<main className="pt-20 pb-20">
+  {/* Trade-In Banner */}
+  {tradeInInfo && tradeInInfo.value > 0 && (
+    <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div className="flex items-center gap-3">
+            <CheckCircle className="w-5 h-5" />
+            <span className="font-medium">
+              Your Trade-In: <span className="font-bold">${tradeInInfo.value.toLocaleString()}</span>
+              {tradeInInfo.vehicle && <span className="text-white/80 ml-2">({tradeInInfo.vehicle})</span>}
+            </span>
+          </div>
+          <span className="text-sm text-white/80">Select a vehicle to apply your trade-in value</span>
+        </div>
+      </div>
+    </div>
+  )}
+
+  <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  {/* Page Header */}
+  <div className="py-8 border-b border-border">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div>
                 <h1 className="font-serif text-3xl md:text-4xl font-bold">
@@ -813,7 +851,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                 <CardContent className={`p-4 ${viewMode === "list" ? "flex-1 flex flex-col justify-between" : ""}`}>
                   <div>
                     {/* Title */}
-                    <Link href={`/vehicles/${vehicle.id}`} className="block group/link">
+                    <Link href={tradeInInfo ? `/vehicles/${vehicle.id}?tradeIn=${tradeInInfo.value}&quoteId=${tradeInInfo.quoteId}&tradeInVehicle=${encodeURIComponent(tradeInInfo.vehicle)}` : `/vehicles/${vehicle.id}`} className="block group/link">
                       <h3 className="font-semibold text-lg group-hover/link:text-primary transition-colors">
                         {vehicle.year} {vehicle.make} {vehicle.model}
                       </h3>
@@ -878,10 +916,10 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                             Finance
                           </Link>
                         </Button>
-                        <Button size="sm" asChild>
-                          <Link href={`/vehicles/${vehicle.id}`}>
-                            View
-                          </Link>
+<Button size="sm" asChild>
+  <Link href={tradeInInfo ? `/vehicles/${vehicle.id}?tradeIn=${tradeInInfo.value}&quoteId=${tradeInInfo.quoteId}&tradeInVehicle=${encodeURIComponent(tradeInInfo.vehicle)}` : `/vehicles/${vehicle.id}`}>
+  View
+  </Link>
                         </Button>
                       </div>
                     </div>

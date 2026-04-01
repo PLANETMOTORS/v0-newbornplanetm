@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { ArrowLeft, Calculator, Car, DollarSign, Calendar, Percent, CreditCard, FileText, ChevronDown, ChevronUp, Info, CheckCircle2 } from "lucide-react"
@@ -52,17 +52,24 @@ interface Vehicle {
 export default function FinanceCalculatorPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const vehicleId = params.vehicleId as string
 
   // Vehicle data
   const [vehicle, setVehicle] = useState<Vehicle | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // Check for trade-in value from URL (from AI instant quote)
+  const urlTradeIn = searchParams.get("tradeIn")
+  const urlQuoteId = searchParams.get("quoteId")
+  const urlTradeInVehicle = searchParams.get("tradeInVehicle")
+
   // Finance calculator state
   const [agreementType, setAgreementType] = useState<"finance" | "cash">("finance")
   const [downPayment, setDownPayment] = useState(0)
-  const [tradeInValue, setTradeInValue] = useState(0)
-  const [hasTradeIn, setHasTradeIn] = useState(false)
+  const [tradeInValue, setTradeInValue] = useState(urlTradeIn ? parseInt(urlTradeIn) : 0)
+  const [hasTradeIn, setHasTradeIn] = useState(!!urlTradeIn)
+  const [tradeInVehicleInfo, setTradeInVehicleInfo] = useState(urlTradeInVehicle ? decodeURIComponent(urlTradeInVehicle) : "")
   const [interestRate, setInterestRate] = useState(7.99)
   const [adminFee, setAdminFee] = useState(895) // Finance Docs Fee
   const [loanTerm, setLoanTerm] = useState(60)
@@ -365,6 +372,21 @@ export default function FinanceCalculatorPage() {
 
                 {/* Trade-in */}
                 <div className="space-y-3">
+                  {/* Show AI Quote Banner if trade-in came from URL */}
+                  {urlQuoteId && urlTradeIn && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle2 className="w-5 h-5 text-green-600" />
+                        <span className="font-semibold text-green-800">AI Instant Quote Applied</span>
+                      </div>
+                      <div className="text-sm text-green-700">
+                        <p className="font-medium">Quote ID: {urlQuoteId}</p>
+                        {tradeInVehicleInfo && <p>Trade-In: {tradeInVehicleInfo}</p>}
+                        <p className="text-lg font-bold mt-1">${tradeInValue.toLocaleString()} applied to your purchase</p>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="hasTradeIn"
@@ -388,6 +410,9 @@ export default function FinanceCalculatorPage() {
                           placeholder="0"
                         />
                       </div>
+                      {tradeInVehicleInfo && (
+                        <p className="text-xs text-muted-foreground mt-1">{tradeInVehicleInfo}</p>
+                      )}
                     </div>
                   )}
                 </div>
