@@ -86,7 +86,7 @@ export function VehicleShowcase() {
   const [imageError, setImageError] = useState(false)
 
   // Fetch vehicles from Supabase
-  const { data: dbVehicles, isLoading } = useSWR('showcase-vehicles', fetcher, {
+  const { data: dbVehicles, isLoading, error } = useSWR('showcase-vehicles', fetcher, {
     refreshInterval: 60000
   })
 
@@ -150,10 +150,28 @@ export function VehicleShowcase() {
   }
 
   // Loading state
-  if (isLoading || !currentVehicle) {
+  if (isLoading) {
     return (
       <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted shadow-2xl flex items-center justify-center">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  // Error state or no vehicles
+  if (error || !currentVehicle) {
+    return (
+      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted shadow-2xl flex flex-col items-center justify-center gap-4 p-6 text-center">
+        <p className="text-muted-foreground">
+          {error ? "Unable to load vehicles" : "No vehicles available"}
+        </p>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => window.location.reload()}
+        >
+          Try Again
+        </Button>
       </div>
     )
   }
