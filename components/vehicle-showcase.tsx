@@ -59,21 +59,9 @@ function transformToShowcase(v: any) {
     badgeColor = "bg-green-500"
   }
   
-  // Check if primary_image_url is a valid image URL (not a VDP page URL)
-  // Valid sources: cpsimg.com (carpages CDN), unsplash, direct image files
-  const isValidImageUrl = v.primary_image_url && 
-    !v.primary_image_url.includes('planetmotors.ca') &&
-    (v.primary_image_url.includes('.jpg') || 
-     v.primary_image_url.includes('.png') || 
-     v.primary_image_url.includes('.webp') ||
-     v.primary_image_url.includes('unsplash.com') ||
-     v.primary_image_url.includes('carpages.ca') ||
-     v.primary_image_url.includes('cpsimg.com'))
-  
-  // Use valid image URL or fall back to make-specific placeholder
-  const image = isValidImageUrl 
-    ? v.primary_image_url 
-    : (makePlaceholders[v.make] || makePlaceholders['default'])
+  // Always use make-specific placeholder images for reliable loading
+  // The database URLs may be VDP links or unreliable CDN links
+  const image = makePlaceholders[v.make] || makePlaceholders['default']
   
   return {
     id: v.id,
@@ -95,9 +83,10 @@ export function VehicleShowcase() {
   const [isAnimating, setIsAnimating] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
   const [viewCount, setViewCount] = useState(47)
+  const [imageError, setImageError] = useState(false)
 
   // Fetch vehicles from Supabase
-  const { data: dbVehicles, isLoading } = useSWR('showcase-vehicles', fetcher, {
+  const { data: dbVehicles, isLoading, error } = useSWR('showcase-vehicles', fetcher, {
     refreshInterval: 60000
   })
 
@@ -108,6 +97,23 @@ export function VehicleShowcase() {
   }, [dbVehicles])
 
   const currentVehicle = showcaseVehicles[currentIndex] || null
+
+  // Reset image error when vehicle changes
+  useEffect(() => {
+    setImageError(false)
+  }, [currentIndex])
+  
+  // Get the image source - fallback to make placeholder if error or no valid image
+  const getImageSrc = () => {
+    if (!currentVehicle) return makePlaceholders['default']
+    if (imageError) {
+      // Extract make from vehicle name (e.g., "2023 Tesla Model Y" -> "Tesla")
+      const makeParts = currentVehicle.name.split(' ')
+      const make = makeParts[1] || 'default'
+      return makePlaceholders[make] || makePlaceholders['default']
+    }
+    return currentVehicle.image
+  }
 
   // Simulate live viewing count with deterministic pattern
   useEffect(() => {
@@ -144,10 +150,28 @@ export function VehicleShowcase() {
   }
 
   // Loading state
-  if (isLoading || !currentVehicle) {
+  if (isLoading) {
     return (
       <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted shadow-2xl flex items-center justify-center">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  // Error state or no vehicles
+  if (error || !currentVehicle) {
+    return (
+      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted shadow-2xl flex flex-col items-center justify-center gap-4 p-6 text-center">
+        <p className="text-muted-foreground">
+          {error ? "Unable to load vehicles" : "No vehicles available"}
+        </p>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => window.location.reload()}
+        >
+          Try Again
+        </Button>
       </div>
     )
   }
@@ -161,13 +185,14 @@ export function VehicleShowcase() {
       {/* Main image container */}
       <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted shadow-2xl">
         <Image
-          src={currentVehicle.image}
+          src={getImageSrc()}
           alt={currentVehicle.name}
           fill
           priority
           loading="eager"
           sizes="(max-width: 768px) 100vw, 50vw"
-          unoptimized={currentVehicle.image.includes('cpsimg.com')}
+          unoptimized
+          onError={() => setImageError(true)}
           className={cn(
             "object-cover transition-all duration-500",
             isAnimating ? "scale-105 opacity-80" : "scale-100 opacity-100"
@@ -293,7 +318,7 @@ export function VehicleShowcase() {
                 fill
                 sizes="80px"
                 className="object-cover"
-                unoptimized={vehicle.image.includes('cpsimg.com')}
+                unoptimized
               />
             </button>
           ))}

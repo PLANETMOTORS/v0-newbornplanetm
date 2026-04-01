@@ -27,9 +27,15 @@ function DesktopNav({
   const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
   const [dropdownPositions, setDropdownPositions] = useState<Map<string, { top: number; left: number }>>(new Map())
   const [isMounted, setIsMounted] = useState(false)
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     setIsMounted(true)
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current)
+      }
+    }
   }, [])
 
   useEffect(() => {
@@ -46,13 +52,37 @@ function DesktopNav({
   }, [activeSubmenu])
 
   const handleMouseEnter = (itemName: string, hasSubmenu: boolean) => {
+    // Clear any pending close timeout
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current)
+      closeTimeoutRef.current = null
+    }
     if (hasSubmenu) {
       setActiveSubmenu(itemName)
     }
   }
 
   const handleMouseLeave = () => {
-    setActiveSubmenu(null)
+    // Add 300ms delay before closing to allow mouse to reach submenu
+    closeTimeoutRef.current = setTimeout(() => {
+      setActiveSubmenu(null)
+    }, 300)
+  }
+  
+  const handleDropdownMouseEnter = (itemName: string) => {
+    // Cancel close when entering dropdown
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current)
+      closeTimeoutRef.current = null
+    }
+    setActiveSubmenu(itemName)
+  }
+  
+  const handleDropdownMouseLeave = () => {
+    // Close immediately when leaving dropdown area completely
+    closeTimeoutRef.current = setTimeout(() => {
+      setActiveSubmenu(null)
+    }, 150)
   }
 
   return (
@@ -93,8 +123,8 @@ function DesktopNav({
                 zIndex: 999999,
                 minWidth: '220px'
               }}
-              onMouseEnter={() => setActiveSubmenu(item.name)}
-              onMouseLeave={() => setActiveSubmenu(null)}
+              onMouseEnter={() => handleDropdownMouseEnter(item.name)}
+              onMouseLeave={handleDropdownMouseLeave}
             >
               <div 
                 style={{
