@@ -69,7 +69,7 @@ export default function FinanceCalculatorPage() {
   const [downPayment, setDownPayment] = useState(0)
   const [tradeInValue, setTradeInValue] = useState(urlTradeIn ? parseInt(urlTradeIn) : 0)
   const [hasTradeIn, setHasTradeIn] = useState(!!urlTradeIn)
-  const [tradeInVehicleInfo, setTradeInVehicleInfo] = useState(urlTradeInVehicle ? decodeURIComponent(urlTradeInVehicle) : "")
+  const [tradeInVehicleInfo] = useState(urlTradeInVehicle ? decodeURIComponent(urlTradeInVehicle) : "")
   const [interestRate, setInterestRate] = useState(7.99)
   const [adminFee, setAdminFee] = useState(895) // Finance Docs Fee
   const [loanTerm, setLoanTerm] = useState(60)
