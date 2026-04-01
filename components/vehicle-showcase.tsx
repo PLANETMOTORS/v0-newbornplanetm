@@ -59,21 +59,9 @@ function transformToShowcase(v: any) {
     badgeColor = "bg-green-500"
   }
   
-  // Check if primary_image_url is a valid image URL (not a VDP page URL)
-  // Valid sources: cpsimg.com (carpages CDN), unsplash, direct image files
-  const isValidImageUrl = v.primary_image_url && 
-    !v.primary_image_url.includes('planetmotors.ca') &&
-    (v.primary_image_url.includes('.jpg') || 
-     v.primary_image_url.includes('.png') || 
-     v.primary_image_url.includes('.webp') ||
-     v.primary_image_url.includes('unsplash.com') ||
-     v.primary_image_url.includes('carpages.ca') ||
-     v.primary_image_url.includes('cpsimg.com'))
-  
-  // Use valid image URL or fall back to make-specific placeholder
-  const image = isValidImageUrl 
-    ? v.primary_image_url 
-    : (makePlaceholders[v.make] || makePlaceholders['default'])
+  // Always use make-specific placeholder images for reliable loading
+  // The database URLs may be VDP links or unreliable CDN links
+  const image = makePlaceholders[v.make] || makePlaceholders['default']
   
   return {
     id: v.id,
@@ -185,7 +173,7 @@ export function VehicleShowcase() {
           priority
           loading="eager"
           sizes="(max-width: 768px) 100vw, 50vw"
-          unoptimized={getImageSrc().includes('cpsimg.com') || getImageSrc().includes('unsplash.com')}
+          unoptimized
           onError={() => setImageError(true)}
           className={cn(
             "object-cover transition-all duration-500",
@@ -312,13 +300,7 @@ export function VehicleShowcase() {
                 fill
                 sizes="80px"
                 className="object-cover"
-                unoptimized={vehicle.image.includes('cpsimg.com') || vehicle.image.includes('unsplash.com')}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement
-                  const makeParts = vehicle.name.split(' ')
-                  const make = makeParts[1] || 'default'
-                  target.src = makePlaceholders[make] || makePlaceholders['default']
-                }}
+                unoptimized
               />
             </button>
           ))}
