@@ -184,7 +184,10 @@ function TradeInContent() {
   // Validation handlers
   const handleEmailChange = (value: string) => {
     setEmail(value)
-    if (value && !isValidEmail(value)) {
+    // Show specific guidance based on what's missing
+    if (value && !value.includes('@')) {
+      setEmailError("Email must include @ symbol (e.g., name@email.com)")
+    } else if (value && !isValidEmail(value)) {
       setEmailError(ValidationMessages.email)
     } else {
       setEmailError("")
@@ -194,7 +197,11 @@ function TradeInContent() {
   const handlePhoneChange = (value: string) => {
     const formatted = formatCanadianPhoneNumber(value)
     setPhone(formatted)
-    if (formatted.length >= 14 && !isValidCanadianPhoneNumber(formatted)) {
+    // Show error if user has entered some digits but format is incomplete/invalid
+    const digitsOnly = value.replace(/\D/g, '')
+    if (digitsOnly.length > 0 && digitsOnly.length < 10) {
+      setPhoneError("Please enter a complete 10-digit phone number")
+    } else if (digitsOnly.length >= 10 && !isValidCanadianPhoneNumber(formatted)) {
       setPhoneError(ValidationMessages.phone)
     } else {
       setPhoneError("")
@@ -204,7 +211,11 @@ function TradeInContent() {
   const handlePostalCodeChange = (value: string) => {
     const formatted = formatCanadianPostalCode(value)
     setPostalCode(formatted)
-    if (formatted.length >= 6 && !isValidCanadianPostalCode(formatted)) {
+    // Show error if user has started entering but it's incomplete
+    const cleanValue = value.replace(/\s/g, '')
+    if (cleanValue.length > 0 && cleanValue.length < 6) {
+      setPostalCodeError("Please enter a complete postal code (e.g., L4C 2G1)")
+    } else if (cleanValue.length >= 6 && !isValidCanadianPostalCode(formatted)) {
       setPostalCodeError(ValidationMessages.postalCode)
     } else {
       setPostalCodeError("")
@@ -941,11 +952,13 @@ function TradeInContent() {
                             onChange={(e) => handleEmailChange(e.target.value)}
                             className={emailError ? "border-destructive" : ""}
                           />
-                          {emailError && (
+                          {emailError ? (
                             <p className="text-xs text-destructive flex items-center gap-1">
                               <AlertCircle className="w-3 h-3" />
                               {emailError}
                             </p>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">Example: name@email.com</p>
                           )}
                         </div>
                         <div className="space-y-2">
@@ -957,11 +970,13 @@ function TradeInContent() {
                             onChange={(e) => handlePhoneChange(e.target.value)}
                             className={phoneError ? "border-destructive" : ""}
                           />
-                          {phoneError && (
+                          {phoneError ? (
                             <p className="text-xs text-destructive flex items-center gap-1">
                               <AlertCircle className="w-3 h-3" />
                               {phoneError}
                             </p>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">Format: (416) 555-1234</p>
                           )}
                         </div>
                         <div className="space-y-2 md:col-span-2">
@@ -978,7 +993,7 @@ function TradeInContent() {
                               {postalCodeError}
                             </p>
                           ) : (
-                            <p className="text-xs text-muted-foreground">For scheduling free pickup</p>
+                            <p className="text-xs text-muted-foreground">Format: A1A 1A1 - For scheduling free pickup</p>
                           )}
                         </div>
                       </div>
