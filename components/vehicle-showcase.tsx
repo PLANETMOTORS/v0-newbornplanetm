@@ -184,17 +184,14 @@ export function VehicleShowcase() {
     >
       {/* Main image container */}
       <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted shadow-2xl">
-        <Image
+        {/* Use native img for maximum compatibility with external URLs */}
+        <img
           src={getImageSrc()}
           alt={currentVehicle.name}
-          fill
-          priority
           loading="eager"
-          sizes="(max-width: 768px) 100vw, 50vw"
-          unoptimized
           onError={() => setImageError(true)}
           className={cn(
-            "object-cover transition-all duration-500",
+            "absolute inset-0 w-full h-full object-cover transition-all duration-500",
             isAnimating ? "scale-105 opacity-80" : "scale-100 opacity-100"
           )}
         />
@@ -312,13 +309,10 @@ export function VehicleShowcase() {
               )}
               aria-label={`View ${vehicle.name}`}
             >
-              <Image
+              <img
                 src={vehicle.image}
                 alt={vehicle.name}
-                fill
-                sizes="80px"
-                className="object-cover"
-                unoptimized
+                className="absolute inset-0 w-full h-full object-cover"
               />
             </button>
           ))}
