@@ -444,7 +444,7 @@ export function InstantQuote() {
                 Close
               </Button>
               <Button className="flex-1" asChild>
-                <a href="/sell-trade">Complete Trade-In</a>
+                <a href={`/trade-in?quote=${quoteResult.quoteId}&vehicle=${encodeURIComponent(`${formData.year} ${formData.make} ${formData.model}`)}&value=${quoteResult.estimate.average}`}>Complete Trade-In</a>
               </Button>
             </div>
           </div>
