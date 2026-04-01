@@ -153,6 +153,9 @@ function TradeInContent() {
   const [applyToPurchase, setApplyToPurchase] = useState(false)
   const [showAcceptModal, setShowAcceptModal] = useState(false)
   const [showApplyModal, setShowApplyModal] = useState(false)
+  
+  // Debug log modal states
+  console.log("[v0] Modal states - Accept:", showAcceptModal, "Apply:", showApplyModal)
 
   const handlePlateLookup = async () => {
     setIsLookingUp(true)
@@ -1030,7 +1033,10 @@ function TradeInContent() {
   <Button 
     size="lg" 
     className="h-14 text-lg bg-accent hover:bg-accent/90 text-accent-foreground"
-    onClick={() => setShowAcceptModal(true)}
+    onClick={() => {
+      console.log("[v0] Accept Offer clicked")
+      setShowAcceptModal(true)
+    }}
   >
   <ThumbsUp className="mr-2 h-5 w-5" />
   Accept Offer
@@ -1039,7 +1045,10 @@ function TradeInContent() {
     size="lg" 
     variant="outline" 
     className="h-14 text-lg"
-    onClick={() => setShowApplyModal(true)}
+    onClick={() => {
+      console.log("[v0] Apply to Purchase clicked")
+      setShowApplyModal(true)
+    }}
   >
   <Car className="mr-2 h-5 w-5" />
   Apply to a Purchase
