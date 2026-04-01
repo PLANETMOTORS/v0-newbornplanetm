@@ -63,10 +63,10 @@ function DesktopNav({
   }
 
   const handleMouseLeave = () => {
-    // Add 300ms delay before closing to allow mouse to reach submenu
+    // Add 500ms delay before closing to allow mouse to reach submenu
     closeTimeoutRef.current = setTimeout(() => {
       setActiveSubmenu(null)
-    }, 300)
+    }, 500)
   }
   
   const handleDropdownMouseEnter = (itemName: string) => {
@@ -79,10 +79,10 @@ function DesktopNav({
   }
   
   const handleDropdownMouseLeave = () => {
-    // Close immediately when leaving dropdown area completely
+    // Add delay when leaving dropdown too - gives user time to move back
     closeTimeoutRef.current = setTimeout(() => {
       setActiveSubmenu(null)
-    }, 150)
+    }, 300)
   }
 
   return (
