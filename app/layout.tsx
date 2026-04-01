@@ -5,6 +5,7 @@ import { GoogleAnalytics } from '@/components/analytics/google-analytics'
 import { GoogleTagManager, GoogleTagManagerNoScript } from '@/components/analytics/google-tag-manager'
 import { MetaPixel } from '@/components/analytics/meta-pixel'
 import { LiveChat } from '@/components/live-chat'
+import { AIAssistantWidget } from '@/components/ai-assistant-widget'
 import { CompareProvider } from '@/lib/compare-context'
 import { FavoritesProvider } from '@/lib/favorites-context'
 import { AuthProvider } from '@/contexts/auth-context'
@@ -116,6 +117,7 @@ export default function RootLayout({
             <CompareProvider>
               {children}
               <CompareBar />
+              <AIAssistantWidget />
               <LiveChat />
             </CompareProvider>
           </FavoritesProvider>
