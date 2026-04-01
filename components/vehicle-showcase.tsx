@@ -95,6 +95,7 @@ export function VehicleShowcase() {
   const [isAnimating, setIsAnimating] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
   const [viewCount, setViewCount] = useState(47)
+  const [imageError, setImageError] = useState(false)
 
   // Fetch vehicles from Supabase
   const { data: dbVehicles, isLoading } = useSWR('showcase-vehicles', fetcher, {
@@ -108,6 +109,23 @@ export function VehicleShowcase() {
   }, [dbVehicles])
 
   const currentVehicle = showcaseVehicles[currentIndex] || null
+
+  // Reset image error when vehicle changes
+  useEffect(() => {
+    setImageError(false)
+  }, [currentIndex])
+  
+  // Get the image source - fallback to make placeholder if error or no valid image
+  const getImageSrc = () => {
+    if (!currentVehicle) return makePlaceholders['default']
+    if (imageError) {
+      // Extract make from vehicle name (e.g., "2023 Tesla Model Y" -> "Tesla")
+      const makeParts = currentVehicle.name.split(' ')
+      const make = makeParts[1] || 'default'
+      return makePlaceholders[make] || makePlaceholders['default']
+    }
+    return currentVehicle.image
+  }
 
   // Simulate live viewing count with deterministic pattern
   useEffect(() => {
@@ -161,13 +179,14 @@ export function VehicleShowcase() {
       {/* Main image container */}
       <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted shadow-2xl">
         <Image
-          src={currentVehicle.image}
+          src={getImageSrc()}
           alt={currentVehicle.name}
           fill
           priority
           loading="eager"
           sizes="(max-width: 768px) 100vw, 50vw"
-          unoptimized={currentVehicle.image.includes('cpsimg.com')}
+          unoptimized={getImageSrc().includes('cpsimg.com') || getImageSrc().includes('unsplash.com')}
+          onError={() => setImageError(true)}
           className={cn(
             "object-cover transition-all duration-500",
             isAnimating ? "scale-105 opacity-80" : "scale-100 opacity-100"
@@ -293,7 +312,13 @@ export function VehicleShowcase() {
                 fill
                 sizes="80px"
                 className="object-cover"
-                unoptimized={vehicle.image.includes('cpsimg.com')}
+                unoptimized={vehicle.image.includes('cpsimg.com') || vehicle.image.includes('unsplash.com')}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  const makeParts = vehicle.name.split(' ')
+                  const make = makeParts[1] || 'default'
+                  target.src = makePlaceholders[make] || makePlaceholders['default']
+                }}
               />
             </button>
           ))}
