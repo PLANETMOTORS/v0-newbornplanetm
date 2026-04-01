@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -52,7 +53,8 @@ const conditionOptions = [
   { value: "poor", label: "Poor", description: "Significant wear, mechanical or body issues, needs work", multiplier: 0.75 },
 ]
 
-export default function TradeInPage() {
+function TradeInContent() {
+  const searchParams = useSearchParams()
   const [step, setStep] = useState(1)
   const [lookupMethod, setLookupMethod] = useState<"plate" | "vin" | "manual">("plate")
   const [province, setProvince] = useState("")
@@ -63,6 +65,39 @@ export default function TradeInPage() {
   const [showOffer, setShowOffer] = useState(false)
   const [isCalculating, setIsCalculating] = useState(false)
   const [calculationProgress, setCalculationProgress] = useState(0)
+  
+  // Quote from Instant Cash Offer
+  const [instantQuote, setInstantQuote] = useState<{
+    quoteId: string
+    vehicle: string
+    value: number
+  } | null>(null)
+  
+  // Check for quote parameters from Instant Quote
+  useEffect(() => {
+    const quoteId = searchParams.get("quote")
+    const vehicle = searchParams.get("vehicle")
+    const value = searchParams.get("value")
+    
+    if (quoteId && vehicle && value) {
+      setInstantQuote({
+        quoteId,
+        vehicle: decodeURIComponent(vehicle),
+        value: parseInt(value)
+      })
+      
+      // Parse vehicle info and pre-fill form
+      const parts = decodeURIComponent(vehicle).split(" ")
+      if (parts.length >= 3) {
+        setSelectedYear(parts[0])
+        setSelectedMake(parts[1])
+        setSelectedModel(parts.slice(2).join(" "))
+      }
+      
+      // Skip to step 2 since we already have vehicle info
+      setStep(2)
+    }
+  }, [searchParams])
   
   // Vehicle details
   const [foundVehicle, setFoundVehicle] = useState<{
@@ -225,6 +260,29 @@ export default function TradeInPage() {
       <Header />
       
       <main>
+        {/* Instant Quote Banner - Shows when coming from AI Quote */}
+        {instantQuote && (
+          <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4">
+            <div className="container mx-auto px-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white/80">Your Instant Quote for {instantQuote.vehicle}</p>
+                    <p className="text-2xl font-bold">${instantQuote.value.toLocaleString()}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 text-sm">
+                  <span className="bg-white/20 px-3 py-1 rounded-full">Quote ID: {instantQuote.quoteId}</span>
+                  <span className="text-white/80">Complete details below to finalize your offer</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Hero Section - Premium Design */}
         <section className="relative bg-gradient-to-br from-primary via-primary to-primary/90 py-20 overflow-hidden">
           {/* Background Pattern */}
@@ -1224,5 +1282,21 @@ export default function TradeInPage() {
 
       <Footer />
     </div>
+  )
+}
+
+// Wrap with Suspense for useSearchParams
+export default function TradeInPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading trade-in...</p>
+        </div>
+      </div>
+    }>
+      <TradeInContent />
+    </Suspense>
   )
 }
