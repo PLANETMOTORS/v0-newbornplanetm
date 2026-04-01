@@ -19,6 +19,7 @@ import {
   Camera, Upload, Zap, TrendingUp, Star, Truck, Phone, MessageSquare, ChevronRight,
   AlertCircle, Sparkles, Target, Award, MapPin, Calendar, Users, ThumbsUp
 } from "lucide-react"
+import { InstantQuote } from "@/components/trade-in/instant-quote"
 
 // Vehicle makes with models
 const vehicleMakes = {
@@ -1176,6 +1177,23 @@ export default function TradeInPage() {
             </div>
           </section>
         )}
+
+        {/* AI-Powered Instant Quote Alternative */}
+        <section className="py-16 bg-gradient-to-b from-background to-muted/30">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-8">
+              <Badge className="mb-3 bg-blue-500">
+                <Sparkles className="w-3 h-3 mr-1" />
+                AI-Powered
+              </Badge>
+              <h2 className="text-3xl font-bold mb-3">Get an AI Instant Quote</h2>
+              <p className="text-muted-foreground max-w-xl mx-auto">
+                Our AI can analyze your vehicle details and provide an instant estimate based on market data.
+              </p>
+            </div>
+            <InstantQuote />
+          </div>
+        </section>
 
         {/* Final CTA */}
         {!showOffer && (
