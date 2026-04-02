@@ -1,12 +1,11 @@
-import { groq } from "next-sanity"
-
-// Planet Motors CMS Queries
+// Planet Motors CMS - GROQ Queries
+// Plain template literals (no groq import needed)
 // ==========================================
 // VEHICLE QUERIES
 // ==========================================
 
 // All vehicles with filters
-export const VEHICLES_QUERY = groq`
+export const VEHICLES_QUERY = `
   *[_type == "vehicle" && status == "available"] | order(_createdAt desc) {
     _id,
     year,
@@ -51,7 +50,7 @@ export const VEHICLES_QUERY = groq`
 `
 
 // Single vehicle by slug
-export const VEHICLE_BY_SLUG_QUERY = groq`
+export const VEHICLE_BY_SLUG_QUERY = `
   *[_type == "vehicle" && slug.current == $slug][0] {
     _id,
     year,
@@ -96,7 +95,7 @@ export const VEHICLE_BY_SLUG_QUERY = groq`
 `
 
 // Featured vehicles for homepage
-export const FEATURED_VEHICLES_QUERY = groq`
+export const FEATURED_VEHICLES_QUERY = `
   *[_type == "vehicle" && featured == true && status == "available"] | order(_createdAt desc)[0...8] {
     _id,
     year,
@@ -112,12 +111,12 @@ export const FEATURED_VEHICLES_QUERY = groq`
 `
 
 // Vehicle count for pagination
-export const VEHICLE_COUNT_QUERY = groq`
+export const VEHICLE_COUNT_QUERY = `
   count(*[_type == "vehicle" && status == "available"])
 `
 
 // Vehicles by stock numbers (for homepage featured selection)
-export const VEHICLES_BY_STOCK_NUMBERS_QUERY = groq`
+export const VEHICLES_BY_STOCK_NUMBERS_QUERY = `
   *[_type == "vehicle" && stockNumber in $stockNumbers && status == "available"] {
     _id,
     year,
@@ -138,7 +137,7 @@ export const VEHICLES_BY_STOCK_NUMBERS_QUERY = groq`
 // ==========================================
 
 // Site Settings - dealer info, hours, financing, delivery config
-export const SITE_SETTINGS_QUERY = groq`
+export const SITE_SETTINGS_QUERY = `
   *[_type == "siteSettings"][0] {
     dealerName,
     phone,
@@ -168,7 +167,7 @@ export const SITE_SETTINGS_QUERY = groq`
 `
 
 // Homepage - hero, testimonials, FAQ preview
-export const HOMEPAGE_QUERY = groq`
+export const HOMEPAGE_QUERY = `
   *[_type == "homepage"][0] {
     heroSection {
       headline,
@@ -194,7 +193,7 @@ export const HOMEPAGE_QUERY = groq`
 `
 
 // Navigation settings
-export const NAVIGATION_QUERY = groq`
+export const NAVIGATION_QUERY = `
   *[_type == "navigation"][0] {
     topBar {
       showTopBar,
@@ -220,7 +219,7 @@ export const NAVIGATION_QUERY = groq`
 `
 
 // Blog listing - paginated
-export const BLOG_LIST_QUERY = groq`
+export const BLOG_LIST_QUERY = `
   *[_type == "blogPost"] | order(publishedAt desc)[$start...$end] {
     _id,
     title,
@@ -234,12 +233,12 @@ export const BLOG_LIST_QUERY = groq`
 `
 
 // Blog post count for pagination
-export const BLOG_COUNT_QUERY = groq`
+export const BLOG_COUNT_QUERY = `
   count(*[_type == "blogPost"])
 `
 
 // Single blog post
-export const BLOG_POST_QUERY = groq`
+export const BLOG_POST_QUERY = `
   *[_type == "blogPost" && slug.current == $slug][0] {
     _id,
     title,
@@ -254,7 +253,7 @@ export const BLOG_POST_QUERY = groq`
 `
 
 // All FAQs by category
-export const FAQ_QUERY = groq`
+export const FAQ_QUERY = `
   *[_type == "faqItem"] | order(order asc, _createdAt desc) {
     _id,
     question,
@@ -264,7 +263,7 @@ export const FAQ_QUERY = groq`
 `
 
 // Active promotions (date-gated)
-export const ACTIVE_PROMOS_QUERY = groq`
+export const ACTIVE_PROMOS_QUERY = `
   *[_type == "promotion" && active == true && startDate <= now() && endDate >= now()] {
     _id,
     title,
@@ -277,7 +276,7 @@ export const ACTIVE_PROMOS_QUERY = groq`
 `
 
 // All testimonials
-export const TESTIMONIALS_QUERY = groq`
+export const TESTIMONIALS_QUERY = `
   *[_type == "testimonial"] | order(order asc, _createdAt desc) {
     _id,
     "customerName": name,
@@ -291,7 +290,7 @@ export const TESTIMONIALS_QUERY = groq`
 `
 
 // Featured testimonials only
-export const FEATURED_TESTIMONIALS_QUERY = groq`
+export const FEATURED_TESTIMONIALS_QUERY = `
   *[_type == "testimonial" && featured == true] | order(order asc, _createdAt desc)[0...6] {
     _id,
     "customerName": name,
@@ -304,7 +303,7 @@ export const FEATURED_TESTIMONIALS_QUERY = groq`
 `
 
 // Protection/warranty plans
-export const PROTECTION_PLANS_QUERY = groq`
+export const PROTECTION_PLANS_QUERY = `
   *[_type == "protectionPlan"] | order(order asc) {
     _id,
     name,
@@ -317,7 +316,7 @@ export const PROTECTION_PLANS_QUERY = groq`
 `
 
 // Sell Your Car page content
-export const SELL_YOUR_CAR_PAGE_QUERY = groq`
+export const SELL_YOUR_CAR_PAGE_QUERY = `
   *[_type == "sellYourCar"][0] {
     heroSection {
       headline,
@@ -337,7 +336,7 @@ export const SELL_YOUR_CAR_PAGE_QUERY = groq`
 `
 
 // Financing page content
-export const FINANCING_PAGE_QUERY = groq`
+export const FINANCING_PAGE_QUERY = `
   *[_type == "financing"][0] {
     heroSection {
       headline,
@@ -358,7 +357,7 @@ export const FINANCING_PAGE_QUERY = groq`
 `
 
 // Inventory Settings
-export const INVENTORY_SETTINGS_QUERY = groq`
+export const INVENTORY_SETTINGS_QUERY = `
   *[_type == "inventorySettings"][0] {
     displaySettings {
       pageTitle,
@@ -375,7 +374,7 @@ export const INVENTORY_SETTINGS_QUERY = groq`
 `
 
 // Lenders
-export const LENDERS_QUERY = groq`
+export const LENDERS_QUERY = `
   *[_type == "lender"] | order(order asc) {
     _id,
     name,
@@ -387,7 +386,7 @@ export const LENDERS_QUERY = groq`
 `
 
 // Banners
-export const BANNERS_QUERY = groq`
+export const BANNERS_QUERY = `
   *[_type == "banner" && active == true] | order(priority desc) {
     _id,
     title,
