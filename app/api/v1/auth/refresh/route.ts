@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"
+
+const SUPABASE_URL = "https://ldervbcvkoawwknsemuz.supabase.co"
 
 // POST /api/v1/auth/refresh - Refresh JWT token
 export async function POST(request: NextRequest) {
@@ -13,22 +16,30 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate refresh token and integrate with Supabase Auth
-    
-    const mockResponse = {
-      success: true,
-      tokens: {
-        accessToken: "eyJ_new_" + Date.now(),
-        refreshToken: "refresh_new_" + Date.now(),
-        expiresIn: 3600,
-      },
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    if (!supabaseAnonKey) {
+      return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
     }
 
-    return NextResponse.json(mockResponse)
+    const supabase = createSupabaseClient(SUPABASE_URL, supabaseAnonKey)
+    const { data, error } = await supabase.auth.refreshSession({ refresh_token: refreshToken })
+
+    if (error || !data.session) {
+      return NextResponse.json({ error: "Invalid or expired refresh token" }, { status: 401 })
+    }
+
+    return NextResponse.json({
+      success: true,
+      tokens: {
+        accessToken: data.session.access_token,
+        refreshToken: data.session.refresh_token,
+        expiresIn: data.session.expires_in,
+      },
+    })
   } catch (error) {
     return NextResponse.json(
       { error: "Token refresh failed" },
-      { status: 401 }
+      { status: 500 }
     )
   }
 }

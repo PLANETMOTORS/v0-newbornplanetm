@@ -1,15 +1,25 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
+// Admin emails - in production, check against database role
+const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
+
 // GET /api/v1/admin/trade-ins - Get all trade-in quotes for admin
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
-    
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const status = searchParams.get("status")
-    const limit = parseInt(searchParams.get("limit") || "100")
-    const offset = parseInt(searchParams.get("offset") || "0")
+    const rawLimit = parseInt(searchParams.get("limit") || "100")
+    const limit = Math.min(Math.max(1, isNaN(rawLimit) ? 100 : rawLimit), 500)
+    const rawOffset = parseInt(searchParams.get("offset") || "0")
+    const offset = Math.max(0, isNaN(rawOffset) ? 0 : rawOffset)
     
     let query = supabase
       .from("trade_in_quotes")

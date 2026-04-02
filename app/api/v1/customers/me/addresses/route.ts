@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
 
 // GET /api/v1/customers/me/addresses - Get customer's saved addresses
 export async function GET(request: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  // TODO: fetch real addresses from DB for user.id
   const addresses = [
     {
       id: "addr_001",
@@ -44,6 +52,12 @@ export async function GET(request: NextRequest) {
 
 // POST /api/v1/customers/me/addresses - Add new address
 export async function POST(request: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   const body = await request.json()
   const { 
     type, label, firstName, lastName, street, unit, 

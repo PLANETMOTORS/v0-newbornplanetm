@@ -1,42 +1,20 @@
 import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
 
 // GET /api/v1/customers/me - Get current customer profile
 export async function GET(request: NextRequest) {
   try {
-    // Extract user from JWT token in Authorization header
-    const authHeader = request.headers.get("authorization")
-    
-    if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Mock customer response
+    // TODO: fetch real profile from DB; returning stub until profiles table is wired up
     const customer = {
-      id: "cust_pm_001",
-      email: "john.doe@example.com",
-      firstName: "John",
-      lastName: "Doe",
-      phone: "+1 (416) 555-0123",
-      preferredContact: "email",
-      addresses: [
-        {
-          id: "addr_001",
-          type: "home",
-          street: "123 Main Street",
-          city: "Toronto",
-          province: "ON",
-          postalCode: "M5V 1A1",
-          isDefault: true,
-        }
-      ],
-      favorites: [],
-      savedSearches: [],
-      orders: [],
-      createdAt: "2024-01-15T10:00:00Z",
-      updatedAt: "2024-03-20T14:30:00Z",
+      id: user.id,
+      email: user.email,
+      createdAt: user.created_at,
     }
 
     return NextResponse.json({ customer })
@@ -51,17 +29,24 @@ export async function GET(request: NextRequest) {
 // PUT /api/v1/customers/me - Update customer profile
 export async function PUT(request: NextRequest) {
   try {
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const body = await request.json()
-    
-    // Validate and update in database
+
+    // TODO: persist update to profiles table
     const updatedCustomer = {
+      id: user.id,
       ...body,
       updatedAt: new Date().toISOString(),
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      customer: updatedCustomer 
+      customer: updatedCustomer,
     })
   } catch (error) {
     return NextResponse.json(

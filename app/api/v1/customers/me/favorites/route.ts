@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
 
 // GET /api/v1/customers/me/favorites - Get customer's favorite vehicles
 export async function GET(request: NextRequest) {
-  // Get favorites from database based on authenticated user
+  const supabase = await createClient()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  // TODO: fetch real favorites from DB for user.id
   const favorites = [
     {
       id: "fav_001",
@@ -56,6 +63,12 @@ export async function GET(request: NextRequest) {
 
 // POST /api/v1/customers/me/favorites - Add vehicle to favorites
 export async function POST(request: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   const body = await request.json()
   const { vehicleId, alerts } = body
 

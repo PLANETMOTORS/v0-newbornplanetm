@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
 
 // GET /api/v1/notifications - Get user notifications
 export async function GET(request: NextRequest) {
-  // Mock notifications
+  try {
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+  // TODO: fetch real notifications from DB for user.id
   const notifications = [
     {
       id: "notif_001",
@@ -39,23 +47,36 @@ export async function GET(request: NextRequest) {
     notifications,
     unreadCount: notifications.filter(n => !n.read).length 
   })
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to fetch notifications" }, { status: 500 })
+  }
 }
 
 // POST /api/v1/notifications - Create notification subscription
 export async function POST(request: NextRequest) {
-  const body = await request.json()
-  const { type, vehicleId, email, phone, preferences } = body
+  try {
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
-  const subscription = {
-    id: "sub_" + Date.now(),
-    type, // price_drop, back_in_stock, similar_vehicle
-    vehicleId,
-    email,
-    phone,
-    preferences: preferences || { email: true, sms: false, push: true },
-    active: true,
-    createdAt: new Date().toISOString(),
+    const body = await request.json()
+    const { type, vehicleId, email, phone, preferences } = body
+
+    const subscription = {
+      id: "sub_" + Date.now(),
+      type,
+      vehicleId,
+      email,
+      phone,
+      preferences: preferences || { email: true, sms: false, push: true },
+      active: true,
+      createdAt: new Date().toISOString(),
+    }
+
+    return NextResponse.json({ success: true, subscription })
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to create subscription" }, { status: 500 })
   }
-
-  return NextResponse.json({ success: true, subscription })
 }
