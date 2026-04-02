@@ -1,7 +1,7 @@
+// Using @sanity/client directly - NOT next-sanity
 import { createClient } from "@sanity/client"
 
-// Planet Motors CMS - using @sanity/client (not next-sanity)
-// Validate dataset name - must be lowercase, numbers, dashes only (max 64 chars)
+// Planet Motors CMS Sanity Client
 function getValidDataset(): string {
   const envDataset = process.env.NEXT_PUBLIC_SANITY_DATASET
   
