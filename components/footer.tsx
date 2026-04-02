@@ -1,4 +1,4 @@
-// Planet Motors Footer - v10 FINAL - All defaults inline, NO @/lib/sanity imports
+// Planet Motors Footer - v11 CACHE CLEARED - All defaults inline
 import { FooterContent } from "@/components/footer-content"
 
 // Default site settings - no external imports needed

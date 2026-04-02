@@ -1,4 +1,4 @@
-// Planet Motors Homepage - v10 FINAL - All defaults inline, NO @/lib/sanity imports
+// Planet Motors Homepage - v11 CACHE CLEARED - All defaults inline
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { HomepageContent } from "@/components/homepage-content"

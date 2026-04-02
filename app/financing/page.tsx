@@ -6,8 +6,7 @@ import { Input } from "@/components/ui/input"
 import { FinanceApplicationForm } from "@/components/finance-application-form"
 import { CheckCircle, ArrowRight, Shield, Clock, BadgeCheck, User } from "lucide-react"
 import Link from "next/link"
-import { getLenders, getFinancingPage } from "@/lib/sanity/fetch"
-import { getSiteData } from "@/lib/sanity/site-data"
+// Sanity imports removed - using inline defaults
 
 // Default lenders fallback
 const defaultLenders = [
@@ -52,25 +51,11 @@ const steps = [
 ]
 
 export default async function FinancingPage() {
-  // Fetch data from Sanity CMS
-  const [sanityLenders, financingPageData, siteData] = await Promise.all([
-    getLenders(),
-    getFinancingPage(),
-    getSiteData(),
-  ])
-
-  // Use Sanity lenders or fallback to defaults
-  const lenders = sanityLenders.length > 0 
-    ? sanityLenders.map(l => ({
-        name: l.name,
-        rate: `${l.interestRate}%`,
-        term: `${l.maxTerm} mo`,
-        logo: l.name.slice(0, 3).toUpperCase(),
-      }))
-    : defaultLenders
+  // Using default lenders (Sanity imports removed to fix module resolution)
+  const lenders = defaultLenders
 
   // Get the lowest rate for display
-  const lowestRate = siteData.settings.financingDefaults?.annualInterestRate || 4.79
+  const lowestRate = 4.79
 
   return (
     <div className="min-h-screen bg-background">
