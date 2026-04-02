@@ -1,8 +1,19 @@
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
 /** @type {import('next').NextConfig} */
-// Planet Motors - Next.js Config v64 - Sanity Memory Fix
+// Planet Motors - Next.js Config v66 - Turbopack Absolute Root
 const nextConfig = {
   // CRITICAL: Transpile Sanity packages to prevent duplicate bundling
   transpilePackages: ['sanity', 'next-sanity', '@sanity/vision', '@sanity/ui', '@sanity/client'],
+  
+  // Turbopack configuration - use absolute path for root
+  turbopack: {
+    root: __dirname,
+  },
   
   experimental: {
     webpackMemoryOptimizations: true,
