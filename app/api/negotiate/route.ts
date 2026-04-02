@@ -1,37 +1,90 @@
 import { streamText, Output } from "ai"
 import { z } from "zod"
+import { getAISettings } from "@/lib/sanity/fetch"
 
 export async function POST(req: Request) {
   const { vehicleId, vehiclePrice, customerOffer, customerMessage, vehicleInfo } = await req.json()
 
+  // Fetch AI settings from CMS
+  const aiSettings = await getAISettings()
+  const rules = aiSettings?.priceNegotiator?.negotiationRules
+  const fees = aiSettings?.fees
+
   const offerPercentage = (customerOffer / vehiclePrice) * 100
   const daysListed = vehicleInfo?.daysListed || 30
   const isHotSeller = vehicleInfo?.viewsLastWeek > 50
+  
+  // Calculate max discount based on CMS rules
+  const isLowPrice = vehiclePrice < (rules?.lowPriceThreshold || 30000)
+  let maxDiscountPercent: number
+  
+  if (isLowPrice) {
+    if (daysListed <= 31) {
+      maxDiscountPercent = rules?.lowPriceMaxDiscount_0_31days || 1
+    } else if (daysListed <= 46) {
+      maxDiscountPercent = rules?.lowPriceMaxDiscount_32_46days || 1.25
+    } else {
+      maxDiscountPercent = rules?.lowPriceMaxDiscount_47plus || 1.5
+    }
+  } else {
+    if (daysListed <= 46) {
+      maxDiscountPercent = rules?.highPriceMaxDiscount_0_46days || 0.75
+    } else {
+      maxDiscountPercent = rules?.highPriceMaxDiscount_47plus || 1
+    }
+  }
+  
+  const minAcceptablePrice = vehiclePrice * (1 - maxDiscountPercent / 100)
+  
+  // CRITICAL: Determine if offer should be ACCEPTED
+  const offerIsAcceptable = customerOffer >= minAcceptablePrice
+  const offerIsClose = customerOffer >= (minAcceptablePrice * 0.98)
+  const suggestedCounterOffer = Math.round(minAcceptablePrice)
 
-  // System prompt for AI negotiator
-  const systemPrompt = `You are a friendly but firm AI sales negotiator for Planet Motors, a trusted EV dealership in Richmond Hill, Ontario.
+  // Build decision instruction
+  let decisionInstruction: string
+  if (offerIsAcceptable) {
+    decisionInstruction = `
+**ACCEPT THIS OFFER IMMEDIATELY**
+Customer offered $${customerOffer.toLocaleString()} which is AT OR ABOVE your minimum of $${minAcceptablePrice.toLocaleString()}.
+- Set status to "accepted"
+- Set counterOffer to null
+- Congratulate them: "Fantastic! I'm happy to accept your offer of $${customerOffer.toLocaleString()}!"
+- Mention next steps (paperwork, delivery options)
+DO NOT counter-offer. DO NOT ask for more money. ACCEPT THE DEAL.`
+  } else if (offerIsClose) {
+    decisionInstruction = `
+**COUNTER AT MINIMUM PRICE**
+Customer offered $${customerOffer.toLocaleString()} which is close but below minimum.
+- Set status to "negotiating"
+- Set counterOffer to ${suggestedCounterOffer}
+- Say you can meet them at $${suggestedCounterOffer.toLocaleString()}`
+  } else {
+    decisionInstruction = `
+**COUNTER HIGHER**
+Customer offered $${customerOffer.toLocaleString()} which is too low.
+- Set status to "negotiating" 
+- Set counterOffer to ${Math.round(suggestedCounterOffer * 1.01)} or ${Math.round(suggestedCounterOffer * 1.02)}
+- Explain the value they're getting`
+  }
 
-VEHICLE CONTEXT:
-- Vehicle: ${vehicleInfo?.name || "Vehicle"}
-- Listed Price: $${vehiclePrice.toLocaleString()} CAD
-- Customer Offer: $${customerOffer.toLocaleString()} CAD (${offerPercentage.toFixed(1)}% of list price)
-- Days on lot: ${daysListed}
-- Hot seller: ${isHotSeller ? "Yes" : "No"}
+  const systemPrompt = `You are a friendly AI sales negotiator for Planet Motors dealership.
 
-NEGOTIATION RULES:
-1. Never accept offers below 85% of list price on first counter
-2. If offer is 90%+, you can accept or counter slightly higher
-3. If vehicle has been listed 60+ days, be more flexible (can go to 88%)
-4. Hot sellers have less room for negotiation
-5. Always highlight value: warranty, certification, free delivery in Ontario
-6. Be conversational and warm, not robotic
-7. If offer is way too low (<75%), politely decline and explain fair market value
-8. Maximum 3 counter-offers before suggesting they speak to a human
+VEHICLE: ${vehicleInfo?.name || "Vehicle"} - Listed at $${vehiclePrice.toLocaleString()} CAD
+CUSTOMER OFFER: $${customerOffer.toLocaleString()} CAD
+MINIMUM ACCEPTABLE: $${minAcceptablePrice.toLocaleString()} CAD (${maxDiscountPercent}% max discount)
+DAYS ON LOT: ${daysListed}
 
-RESPONSE FORMAT:
-- Keep responses under 150 words
-- Always provide a counter-offer amount if not accepting
-- End with a question to keep conversation going`
+${decisionInstruction}
+
+RULES:
+- NEVER counter above listed price ($${vehiclePrice.toLocaleString()})
+- NEVER counter below customer's offer ($${customerOffer.toLocaleString()})
+- If accepting, counterOffer MUST be null
+- Be warm and conversational
+
+FEES TO MENTION: Certification $${fees?.certification || 595}, Doc $${fees?.financeDocFee || 895}, OMVIC $${fees?.omvic || 22}
+VALUE: 210-point inspection, 10-day guarantee, free delivery 300km, financing from ${aiSettings?.financing?.lowestRate || 4.79}%`
 
   const result = streamText({
     model: "openai/gpt-4o-mini",
@@ -44,10 +97,18 @@ RESPONSE FORMAT:
     ],
     output: Output.object({
       schema: z.object({
-        response: z.string().describe("The negotiation response message"),
-        counterOffer: z.number().nullable().describe("Counter offer amount in dollars, or null if accepting"),
-        status: z.enum(["negotiating", "accepted", "declined", "escalate"]).describe("Current negotiation status"),
-        confidence: z.number().min(0).max(100).describe("AI confidence in this response"),
+        response: z.string().describe("Your response message"),
+        counterOffer: z.number().nullable().describe(
+          offerIsAcceptable 
+            ? "MUST BE null - you are accepting their offer" 
+            : `Your counter offer - around $${suggestedCounterOffer}`
+        ),
+        status: z.enum(["negotiating", "accepted", "declined", "escalate"]).describe(
+          offerIsAcceptable 
+            ? "MUST BE 'accepted'" 
+            : "'negotiating'"
+        ),
+        confidence: z.number().min(0).max(100),
       }),
     }),
   })
