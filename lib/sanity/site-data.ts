@@ -1,4 +1,4 @@
-// Planet Motors CMS - Site Data Helper v7
+// Planet Motors CMS - Site Data Helper v11 - CACHE CLEAR
 import { getSiteSettings, getNavigation } from "./fetch"
 
 // Default site settings fallback

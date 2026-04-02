@@ -1,4 +1,4 @@
-// Planet Motors Footer - v7 2026-04-02 14:30
+// Planet Motors Footer - v12 - 2026-04-02T16:00 - All defaults inline
 import { FooterContent } from "@/components/footer-content"
 
 // Default site settings - no external imports needed

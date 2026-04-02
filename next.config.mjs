@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-// CACHE BUST: 2026-04-02-v54
+// CACHE BUST: v59 - ALL Sanity files verified: client.ts, types.ts, fetch.ts, site-data.ts
 const nextConfig = {
   // Force complete rebuild - Sanity files verified
   cleanDistDir: true,

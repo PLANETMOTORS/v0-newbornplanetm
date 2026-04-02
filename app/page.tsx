@@ -1,4 +1,4 @@
-// Planet Motors Homepage - v7 2026-04-02 14:30
+// Planet Motors Homepage - v12 - 2026-04-02T16:00 - All defaults inline
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { HomepageContent } from "@/components/homepage-content"

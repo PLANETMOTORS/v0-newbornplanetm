@@ -1,4 +1,4 @@
-// Sanity CMS Types for Planet Motors v7
+// Sanity CMS Types for Planet Motors v11 - CACHE CLEAR
 
 // ==========================================
 // SITE CONFIGURATION
