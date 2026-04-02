@@ -1,5 +1,5 @@
-// Planet Motors GROQ Queries
-// Plain string queries for Sanity Content Lake
+// Planet Motors CMS - GROQ Queries
+// Using plain template strings with @sanity/client
 
 export const VEHICLES_QUERY = `
   *[_type == "vehicle" && status == "available"] | order(_createdAt desc) {
