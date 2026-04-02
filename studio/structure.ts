@@ -12,7 +12,8 @@ import {
   LayoutGrid,
   Megaphone,
   FileStack,
-  Receipt
+  Receipt,
+  Menu
 } from 'lucide-react'
 
 export const structure = (S: StructureBuilder) =>
@@ -193,6 +194,17 @@ export const structure = (S: StructureBuilder) =>
             .schemaType('vdpSettings')
             .documentId('vdpSettings')
             .title('Vehicle Detail Page Settings')
+        ),
+      
+      // Navigation
+      S.listItem()
+        .title('Navigation')
+        .icon(() => Menu({ size: 20 }))
+        .child(
+          S.document()
+            .schemaType('navigation')
+            .documentId('navigation')
+            .title('Navigation Settings')
         ),
       
       // Site Settings

@@ -249,19 +249,8 @@ export const protectionPlan = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      name: 'slug',
-      title: 'Slug',
-      type: 'slug',
-      options: { source: 'name' },
-    }),
-    defineField({
-      name: 'shortDescription',
-      title: 'Short Description',
-      type: 'string',
-    }),
-    defineField({
       name: 'description',
-      title: 'Full Description',
+      title: 'Description',
       type: 'text',
       rows: 3,
     }),
@@ -277,12 +266,6 @@ export const protectionPlan = defineType({
       description: 'e.g., "Starting from" or "per month"',
     }),
     defineField({
-      name: 'priceType',
-      title: 'Price Type',
-      type: 'string',
-      options: { list: ['one-time', 'monthly', 'per-term'] },
-    }),
-    defineField({
       name: 'features',
       title: 'Features',
       type: 'array',
@@ -295,19 +278,8 @@ export const protectionPlan = defineType({
       rows: 4,
     }),
     defineField({
-      name: 'termOptions',
-      title: 'Term Options (months)',
-      type: 'array',
-      of: [{ type: 'number' }],
-    }),
-    defineField({
       name: 'icon',
       title: 'Icon',
-      type: 'image',
-    }),
-    defineField({
-      name: 'image',
-      title: 'Image',
       type: 'image',
     }),
     defineField({
@@ -323,10 +295,4 @@ export const protectionPlan = defineType({
       initialValue: false,
     }),
   ],
-  preview: {
-    select: { title: 'name', price: 'price' },
-    prepare({ title, price }) {
-      return { title, subtitle: price ? `From $${price}` : '' }
-    },
-  },
 })
