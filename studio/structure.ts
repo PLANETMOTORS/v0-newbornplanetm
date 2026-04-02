@@ -184,6 +184,17 @@ export const structure = (S: StructureBuilder) =>
         .icon(() => Search({ size: 20 }))
         .child(S.documentTypeList('seoSettings').title('SEO Settings')),
       
+      // VDP Settings
+      S.listItem()
+        .title('VDP Settings')
+        .icon(() => Car({ size: 20 }))
+        .child(
+          S.document()
+            .schemaType('vdpSettings')
+            .documentId('vdpSettings')
+            .title('Vehicle Detail Page Settings')
+        ),
+      
       // Site Settings
       S.listItem()
         .title('Site Settings')
