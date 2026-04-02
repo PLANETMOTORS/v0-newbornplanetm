@@ -354,6 +354,35 @@ export const LENDERS_QUERY = groq`
   }
 `
 
+// Vehicles by stock numbers
+export const VEHICLES_BY_STOCK_NUMBERS_QUERY = groq`
+  *[_type == "vehicle" && stockNumber in $stockNumbers] {
+    _id,
+    year,
+    make,
+    model,
+    trim,
+    price,
+    mileage,
+    fuelType,
+    "mainImage": mainImage.asset->url,
+    slug
+  }
+`
+
+// Featured testimonials
+export const FEATURED_TESTIMONIALS_QUERY = groq`
+  *[_type == "testimonial" && featured == true] | order(publishedAt desc) {
+    _id,
+    customerName,
+    rating,
+    review,
+    vehiclePurchased,
+    publishedAt,
+    featured
+  }
+`
+
 // Banners
 export const BANNERS_QUERY = groq`
   *[_type == "banner" && active == true] | order(priority desc) {
