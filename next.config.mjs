@@ -1,9 +1,15 @@
 /** @type {import('next').NextConfig} */
-// Planet Motors - Next.js Config v63 - Minimal + Memory Optimized
+// Planet Motors - Next.js Config v64 - Sanity Memory Fix
 const nextConfig = {
+  // CRITICAL: Transpile Sanity packages to prevent duplicate bundling
+  transpilePackages: ['sanity', 'next-sanity', '@sanity/vision', '@sanity/ui', '@sanity/client'],
+  
   experimental: {
     webpackMemoryOptimizations: true,
+    // Optimize package imports to reduce memory
+    optimizePackageImports: ['sanity', '@sanity/ui', 'lucide-react', '@radix-ui/react-icons'],
   },
+  
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
   images: {
