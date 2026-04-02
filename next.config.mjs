@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 44
+  // Force clean build - version 51 - no lib/sanity imports
   cleanDistDir: true,
   turbopack: {},
   typescript: {

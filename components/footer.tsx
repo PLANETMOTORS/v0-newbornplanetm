@@ -1,15 +1,16 @@
 import { FooterContent } from "@/components/footer-content"
-import { getSiteData, DEFAULT_SITE_SETTINGS } from "@/lib/sanity/site-data"
+
+// Default site settings - no external imports needed
+const DEFAULT_SITE_SETTINGS = {
+  dealerName: "Planet Motors",
+  phone: "(416) 555-0123",
+  email: "info@planetmotors.ca",
+  streetAddress: "1234 Auto Drive",
+  city: "Toronto",
+  province: "ON",
+  postalCode: "M1M 1M1",
+}
 
 export async function Footer() {
-  let siteData
-  
-  try {
-    siteData = await getSiteData()
-  } catch (error) {
-    console.error("Footer: Failed to fetch site data, using defaults:", error)
-    siteData = { settings: DEFAULT_SITE_SETTINGS }
-  }
-
-  return <FooterContent siteSettings={siteData.settings} />
+  return <FooterContent siteSettings={DEFAULT_SITE_SETTINGS} navigation={null} />
 }
