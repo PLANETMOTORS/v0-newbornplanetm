@@ -1,6 +1,9 @@
 import { defineType, defineField } from 'sanity'
 
-// Reusable object types
+// ============================================
+// REUSABLE OBJECT TYPES
+// ============================================
+
 const trustBadge = defineType({
   name: 'trustBadge',
   title: 'Trust Badge',
@@ -67,8 +70,8 @@ const comparisonRow = defineType({
   ],
 })
 
-const faqItem = defineType({
-  name: 'faqItem',
+const faqItemObject = defineType({
+  name: 'faqItemObject',
   title: 'FAQ Item',
   type: 'object',
   fields: [
@@ -83,33 +86,56 @@ const ctaButton = defineType({
   type: 'object',
   fields: [
     defineField({ name: 'text', title: 'Button Text', type: 'string' }),
+    defineField({ name: 'label', title: 'Button Label', type: 'string' }),
     defineField({ name: 'url', title: 'URL', type: 'string' }),
     defineField({ name: 'style', title: 'Style', type: 'string', options: { list: ['primary', 'secondary', 'outline'] } }),
   ],
 })
 
-// Homepage Schema - Complete
+// SEO Object for reuse
+const seoFields = [
+  { name: 'metaTitle', title: 'Meta Title', type: 'string' },
+  { name: 'metaDescription', title: 'Meta Description', type: 'text' },
+  { name: 'title', title: 'SEO Title', type: 'string' },
+  { name: 'description', title: 'SEO Description', type: 'text' },
+  { name: 'image', title: 'OG Image', type: 'image' },
+  { name: 'keywords', title: 'Keywords', type: 'array', of: [{ type: 'string' }] },
+]
+
+// ============================================
+// HOMEPAGE
+// ============================================
 export const homepage = defineType({
   name: 'homepage',
   title: 'Homepage',
   type: 'document',
-  groups: [
-    { name: 'hero', title: 'Hero Section' },
-    { name: 'trust', title: 'Trust Badges' },
-    { name: 'featured', title: 'Featured Vehicles' },
-    { name: 'testimonials', title: 'Testimonials' },
-    { name: 'faq', title: 'FAQ' },
-    { name: 'promo', title: 'Promo Banner' },
-    { name: 'seo', title: 'SEO' },
-  ],
   fields: [
-    // Hero Section
-    defineField({ name: 'heroHeadline', title: 'Hero Headline', type: 'string', group: 'hero' }),
-    defineField({ name: 'heroSubheadline', title: 'Hero Subheadline', type: 'text', group: 'hero' }),
-    defineField({ name: 'heroImage', title: 'Hero Background Image', type: 'image', group: 'hero' }),
-    defineField({ name: 'heroVideo', title: 'Hero Video URL', type: 'url', group: 'hero' }),
-    defineField({ name: 'heroCta', title: 'Hero CTA Button', type: 'ctaButton', group: 'hero' }),
-    defineField({ name: 'heroCtaSecondary', title: 'Hero Secondary CTA', type: 'ctaButton', group: 'hero' }),
+    defineField({ name: 'title', title: 'Page Title', type: 'string', initialValue: 'Homepage' }),
+    
+    // Hero Section (nested object)
+    defineField({
+      name: 'heroSection',
+      title: 'Hero Section',
+      type: 'object',
+      fields: [
+        { name: 'headline', title: 'Headline', type: 'string' },
+        { name: 'headlineHighlight', title: 'Headline Highlight', type: 'string' },
+        { name: 'subheadline', title: 'Subheadline', type: 'text' },
+        { name: 'highlightText', title: 'Highlight Text', type: 'string' },
+        { name: 'backgroundImage', title: 'Background Image', type: 'image' },
+        { name: 'backgroundVideo', title: 'Background Video URL', type: 'url' },
+        { name: 'primaryCta', title: 'Primary CTA', type: 'object', fields: [
+          { name: 'label', title: 'Label', type: 'string' },
+          { name: 'url', title: 'URL', type: 'string' },
+        ]},
+        { name: 'secondaryCta', title: 'Secondary CTA', type: 'object', fields: [
+          { name: 'label', title: 'Label', type: 'string' },
+          { name: 'url', title: 'URL', type: 'string' },
+        ]},
+        { name: 'showForm', title: 'Show Form', type: 'boolean' },
+        { name: 'formTitle', title: 'Form Title', type: 'string' },
+      ],
+    }),
     
     // Trust Badges
     defineField({
@@ -117,608 +143,829 @@ export const homepage = defineType({
       title: 'Trust Badges',
       type: 'array',
       of: [{ type: 'trustBadge' }],
-      group: 'trust',
-    }),
-    defineField({ name: 'altText', title: 'Alt Text', type: 'string', group: 'trust' }),
-    
-    // Featured Vehicles
-    defineField({
-      name: 'featuredVehicleStockNumbers',
-      title: 'Featured Vehicle Stock Numbers',
-      type: 'array',
-      of: [{ type: 'string' }],
-      description: 'Up to 6 stock numbers to pin on the homepage inventory section.',
-      group: 'featured',
-    }),
-    defineField({
-      name: 'featuredVehicles',
-      title: 'Featured Vehicles',
-      type: 'array',
-      of: [{ type: 'reference', to: [{ type: 'vehicle' }] }],
-      group: 'featured',
     }),
     
-    // Testimonials
+    // Quick Filters
     defineField({
-      name: 'testimonials',
-      title: 'Testimonials',
-      type: 'array',
-      of: [{ type: 'testimonialItem' }, { type: 'reference', to: [{ type: 'testimonial' }] }],
-      group: 'testimonials',
+      name: 'quickFilters',
+      title: 'Quick Filters',
+      type: 'object',
+      fields: [
+        { name: 'showFilters', title: 'Show Quick Filters', type: 'boolean' },
+        { name: 'filterOptions', title: 'Filter Options', type: 'array', of: [
+          { type: 'object', fields: [
+            { name: 'label', title: 'Label', type: 'string' },
+            { name: 'value', title: 'Value', type: 'string' },
+            { name: 'type', title: 'Filter Type', type: 'string' },
+          ]}
+        ]},
+      ],
     }),
     
-    // FAQ
+    // Financing Promo
     defineField({
-      name: 'faqHighlights',
-      title: 'FAQ Highlights (on homepage)',
-      type: 'array',
-      of: [{ type: 'faqItem' }, { type: 'reference', to: [{ type: 'faqEntry' }] }],
-      group: 'faq',
+      name: 'financingPromo',
+      title: 'Financing Promo',
+      type: 'object',
+      fields: [
+        { name: 'enabled', title: 'Show Financing Promo', type: 'boolean' },
+        { name: 'headline', title: 'Headline', type: 'string' },
+        { name: 'subheadline', title: 'Subheadline', type: 'string' },
+        { name: 'rate', title: 'Rate', type: 'string' },
+        { name: 'rateLabel', title: 'Rate Label', type: 'string' },
+        { name: 'ctaLabel', title: 'CTA Label', type: 'string' },
+        { name: 'ctaUrl', title: 'CTA URL', type: 'string' },
+        { name: 'backgroundImage', title: 'Background Image', type: 'image' },
+      ],
     }),
     
-    // Promo Banner
-    defineField({ name: 'promoBannerEnabled', title: 'Show Promo Banner', type: 'boolean', group: 'promo' }),
-    defineField({ name: 'promoBannerText', title: 'Promo Banner Text', type: 'string', group: 'promo' }),
-    defineField({ name: 'promoBannerLink', title: 'Promo Banner Link', type: 'string', group: 'promo' }),
-    defineField({ name: 'promoBannerColor', title: 'Promo Banner Color', type: 'string', group: 'promo' }),
+    // Announcement Bar
+    defineField({
+      name: 'announcementBar',
+      title: 'Announcement Bar',
+      type: 'object',
+      fields: [
+        { name: 'show', title: 'Show Announcement', type: 'boolean' },
+        { name: 'enabled', title: 'Enabled', type: 'boolean' },
+        { name: 'message', title: 'Message', type: 'string' },
+        { name: 'text', title: 'Text', type: 'string' },
+        { name: 'linkText', title: 'Link Text', type: 'string' },
+        { name: 'linkUrl', title: 'Link URL', type: 'string' },
+        { name: 'link', title: 'Link', type: 'string' },
+        { name: 'backgroundColor', title: 'Background Color', type: 'string' },
+        { name: 'textColor', title: 'Text Color', type: 'string' },
+      ],
+    }),
     
     // SEO
-    defineField({ name: 'seoTitle', title: 'SEO Title', type: 'string', group: 'seo' }),
-    defineField({ name: 'seoDescription', title: 'SEO Description', type: 'text', group: 'seo' }),
-    defineField({ name: 'seoImage', title: 'SEO Image', type: 'image', group: 'seo' }),
+    defineField({
+      name: 'seo',
+      title: 'SEO Settings',
+      type: 'object',
+      fields: seoFields,
+    }),
   ],
-  preview: {
-    prepare() {
-      return { title: 'Homepage' }
-    },
-  },
+  preview: { prepare() { return { title: 'Homepage' } } },
 })
 
-// Landing Page Schema (for custom landing pages)
-export const landingPage = defineType({
-  name: 'landingPage',
-  title: 'Landing Page',
+// ============================================
+// FINANCING PAGE
+// ============================================
+export const financingPage = defineType({
+  name: 'financingPage',
+  title: 'Financing Page',
   type: 'document',
-  groups: [
-    { name: 'hero', title: 'Hero Section' },
-    { name: 'benefits', title: 'Benefits' },
-    { name: 'comparison', title: 'Comparison Table' },
-    { name: 'process', title: 'Process Steps' },
-    { name: 'testimonials', title: 'Testimonials' },
-    { name: 'cta', title: 'CTA Section' },
-    { name: 'faq', title: 'FAQ' },
-    { name: 'seo', title: 'SEO' },
-  ],
   fields: [
-    defineField({ name: 'title', title: 'Page Title', type: 'string' }),
-    defineField({ name: 'slug', title: 'Slug', type: 'slug', options: { source: 'title' } }),
-    defineField({ name: 'pageType', title: 'Page Type', type: 'string', options: { list: ['financing', 'sell-your-car', 'service', 'about', 'contact', 'custom'] } }),
+    defineField({ name: 'title', title: 'Page Title', type: 'string', initialValue: 'Financing' }),
     
     // Hero Section
     defineField({
       name: 'heroSection',
       title: 'Hero Section',
       type: 'object',
-      group: 'hero',
+      fields: [
+        { name: 'headline', title: 'Headline', type: 'string' },
+        { name: 'subheadline', title: 'Subheadline', type: 'text' },
+        { name: 'highlightText', title: 'Highlight Text', type: 'string' },
+        { name: 'featuredRateText', title: 'Featured Rate Text', type: 'string' },
+        { name: 'rateSubtext', title: 'Rate Subtext', type: 'string' },
+        { name: 'backgroundImage', title: 'Background Image', type: 'image' },
+        { name: 'primaryCta', title: 'Primary CTA', type: 'object', fields: [
+          { name: 'label', title: 'Label', type: 'string' },
+          { name: 'url', title: 'URL', type: 'string' },
+        ]},
+        { name: 'secondaryCta', title: 'Secondary CTA', type: 'object', fields: [
+          { name: 'label', title: 'Label', type: 'string' },
+          { name: 'url', title: 'URL', type: 'string' },
+        ]},
+      ],
+    }),
+    
+    // Benefits
+    defineField({
+      name: 'benefits',
+      title: 'Benefits',
+      type: 'object',
+      fields: [
+        { name: 'sectionTitle', title: 'Section Title', type: 'string' },
+        { name: 'items', title: 'Benefit Items', type: 'array', of: [{ type: 'benefitItem' }] },
+      ],
+    }),
+    
+    // Calculator
+    defineField({
+      name: 'calculator',
+      title: 'Calculator Settings',
+      type: 'object',
+      fields: [
+        { name: 'showCalculator', title: 'Show Calculator', type: 'boolean' },
+        { name: 'title', title: 'Title', type: 'string' },
+        { name: 'description', title: 'Description', type: 'text' },
+        { name: 'defaultVehiclePrice', title: 'Default Vehicle Price', type: 'number' },
+        { name: 'defaultDownPayment', title: 'Default Down Payment', type: 'number' },
+        { name: 'defaultTerm', title: 'Default Term (months)', type: 'number' },
+        { name: 'defaultInterestRate', title: 'Default Interest Rate (%)', type: 'number' },
+        { name: 'minPrice', title: 'Min Price', type: 'number' },
+        { name: 'maxPrice', title: 'Max Price', type: 'number' },
+        { name: 'termOptions', title: 'Term Options', type: 'array', of: [{ type: 'number' }] },
+      ],
+    }),
+    
+    // Process Steps
+    defineField({
+      name: 'processSteps',
+      title: 'Process Steps',
+      type: 'object',
+      fields: [
+        { name: 'sectionTitle', title: 'Section Title', type: 'string' },
+        { name: 'steps', title: 'Steps', type: 'array', of: [{ type: 'processStep' }] },
+      ],
+    }),
+    
+    // SEO
+    defineField({
+      name: 'seo',
+      title: 'SEO Settings',
+      type: 'object',
+      fields: seoFields,
+    }),
+  ],
+  preview: { prepare() { return { title: 'Financing Page' } } },
+})
+
+// ============================================
+// SELL YOUR CAR PAGE
+// ============================================
+export const sellYourCarPage = defineType({
+  name: 'sellYourCarPage',
+  title: 'Sell Your Car Page',
+  type: 'document',
+  fields: [
+    defineField({ name: 'title', title: 'Page Title', type: 'string', initialValue: 'Sell Your Car' }),
+    
+    // Hero Section
+    defineField({
+      name: 'heroSection',
+      title: 'Hero Section',
+      type: 'object',
       fields: [
         { name: 'headline', title: 'Headline', type: 'string' },
         { name: 'subheadline', title: 'Subheadline', type: 'text' },
         { name: 'highlightText', title: 'Highlight Text', type: 'string' },
         { name: 'backgroundImage', title: 'Background Image', type: 'image' },
-        { name: 'backgroundVideo', title: 'Background Video URL', type: 'url' },
-        { name: 'ctaPrimary', title: 'Primary CTA', type: 'ctaButton' },
-        { name: 'ctaSecondary', title: 'Secondary CTA', type: 'ctaButton' },
-      ],
-    }),
-    defineField({
-      name: 'formSettings',
-      title: 'Form Settings',
-      type: 'object',
-      group: 'hero',
-      fields: [
-        { name: 'showForm', title: 'Show Form', type: 'boolean' },
-        { name: 'formTitle', title: 'Form Title', type: 'string' },
-        { name: 'formType', title: 'Form Type', type: 'string', options: { list: ['financing', 'trade-in', 'contact', 'appointment'] } },
+        { name: 'primaryCta', title: 'Primary CTA', type: 'object', fields: [
+          { name: 'label', title: 'Label', type: 'string' },
+          { name: 'url', title: 'URL', type: 'string' },
+        ]},
+        { name: 'formSettings', title: 'Form Settings', type: 'object', fields: [
+          { name: 'vinPlaceholder', title: 'VIN Placeholder', type: 'string' },
+          { name: 'licensePlatePlaceholder', title: 'License Plate Placeholder', type: 'string' },
+          { name: 'submitButtonText', title: 'Submit Button Text', type: 'string' },
+        ]},
       ],
     }),
     
-    // Benefits Section
+    // Benefits
     defineField({
-      name: 'benefitsSection',
-      title: 'Why Sell to Us',
+      name: 'benefits',
+      title: 'Benefits',
       type: 'object',
-      group: 'benefits',
       fields: [
         { name: 'sectionTitle', title: 'Section Title', type: 'string' },
-        { name: 'sectionSubtitle', title: 'Section Subtitle', type: 'text' },
-        { name: 'benefitItems', title: 'Benefit Items', type: 'array', of: [{ type: 'benefitItem' }] },
+        { name: 'items', title: 'Benefit Items', type: 'array', of: [{ type: 'benefitItem' }] },
       ],
     }),
     
     // Comparison Table
     defineField({
-      name: 'comparisonSection',
+      name: 'comparisonTable',
       title: 'Comparison Table',
       type: 'object',
-      group: 'comparison',
       fields: [
         { name: 'sectionTitle', title: 'Section Title', type: 'string' },
-        { name: 'usLabel', title: 'Us Label', type: 'string' },
-        { name: 'othersLabel', title: 'Others Label', type: 'string' },
+        { name: 'headers', title: 'Column Headers', type: 'object', fields: [
+          { name: 'feature', title: 'Feature Column', type: 'string' },
+          { name: 'us', title: 'Us Column', type: 'string' },
+          { name: 'others', title: 'Others Column', type: 'string' },
+        ]},
         { name: 'rows', title: 'Comparison Rows', type: 'array', of: [{ type: 'comparisonRow' }] },
       ],
     }),
     
     // Process Steps
     defineField({
-      name: 'processSection',
-      title: 'How It Works',
+      name: 'processSteps',
+      title: 'Process Steps',
       type: 'object',
-      group: 'process',
       fields: [
         { name: 'sectionTitle', title: 'Section Title', type: 'string' },
-        { name: 'sectionSubtitle', title: 'Section Subtitle', type: 'text' },
         { name: 'steps', title: 'Steps', type: 'array', of: [{ type: 'processStep' }] },
       ],
     }),
     
-    // Testimonials
-    defineField({
-      name: 'testimonialsSection',
-      title: 'Testimonials',
-      type: 'object',
-      group: 'testimonials',
-      fields: [
-        { name: 'sectionTitle', title: 'Section Title', type: 'string' },
-        { name: 'testimonials', title: 'Testimonials', type: 'array', of: [{ type: 'testimonialItem' }, { type: 'reference', to: [{ type: 'testimonial' }] }] },
-      ],
-    }),
-    
-    // CTA Section
-    defineField({
-      name: 'ctaSection',
-      title: 'CTA Section',
-      type: 'object',
-      group: 'cta',
-      fields: [
-        { name: 'headline', title: 'Headline', type: 'string' },
-        { name: 'subheadline', title: 'Subheadline', type: 'text' },
-        { name: 'ctaPrimary', title: 'Primary CTA', type: 'ctaButton' },
-        { name: 'ctaSecondary', title: 'Secondary CTA', type: 'ctaButton' },
-        { name: 'backgroundImage', title: 'Background Image', type: 'image' },
-      ],
-    }),
-    
-    // FAQ
-    defineField({
-      name: 'faqSection',
-      title: 'FAQ Section',
-      type: 'object',
-      group: 'faq',
-      fields: [
-        { name: 'sectionTitle', title: 'Section Title', type: 'string' },
-        { name: 'faqs', title: 'FAQs', type: 'array', of: [{ type: 'faqItem' }] },
-      ],
-    }),
-    
     // SEO
-    defineField({ name: 'seoTitle', title: 'SEO Title', type: 'string', group: 'seo' }),
-    defineField({ name: 'seoDescription', title: 'SEO Description', type: 'text', group: 'seo' }),
-    defineField({ name: 'seoImage', title: 'SEO Image', type: 'image', group: 'seo' }),
+    defineField({
+      name: 'seo',
+      title: 'SEO Settings',
+      type: 'object',
+      fields: seoFields,
+    }),
   ],
-  preview: {
-    select: { title: 'title', pageType: 'pageType' },
-    prepare({ title, pageType }) {
-      return { title: title || 'Untitled', subtitle: pageType }
-    },
-  },
+  preview: { prepare() { return { title: 'Sell Your Car Page' } } },
 })
 
-// Financing Page Schema - COMPLETE with all fields
-export const financingPage = defineType({
-  name: 'financingPage',
-  title: 'Financing Page',
+// ============================================
+// TRADE-IN PAGE
+// ============================================
+export const tradeInPage = defineType({
+  name: 'tradeInPage',
+  title: 'Trade-In Page',
   type: 'document',
-  groups: [
-    { name: 'hero', title: 'Hero Section' },
-    { name: 'benefits', title: 'Benefits' },
-    { name: 'calculator', title: 'Calculator' },
-    { name: 'lenders', title: 'Lenders' },
-    { name: 'process', title: 'Process' },
-    { name: 'comparison', title: 'Comparison' },
-    { name: 'testimonials', title: 'Testimonials' },
-    { name: 'cta', title: 'CTA Section' },
-    { name: 'faq', title: 'FAQ' },
-    { name: 'seo', title: 'SEO' },
-  ],
   fields: [
-    defineField({ name: 'title', title: 'Page Title', type: 'string', initialValue: 'Financing' }),
-    
-    // Hero Section
-    defineField({ name: 'heroHeadline', title: 'Hero Headline', type: 'string', group: 'hero' }),
-    defineField({ name: 'heroSubheadline', title: 'Hero Subheadline', type: 'text', group: 'hero' }),
-    defineField({ name: 'heroHighlightText', title: 'Highlight Text', type: 'string', group: 'hero' }),
-    defineField({ name: 'heroImage', title: 'Hero Image', type: 'image', group: 'hero' }),
-    defineField({ name: 'heroVideo', title: 'Hero Video URL', type: 'url', group: 'hero' }),
-    defineField({ name: 'heroCta', title: 'Hero CTA', type: 'ctaButton', group: 'hero' }),
-    defineField({ name: 'heroCtaSecondary', title: 'Secondary CTA', type: 'ctaButton', group: 'hero' }),
+    defineField({ name: 'title', title: 'Page Title', type: 'string', initialValue: 'Trade-In' }),
     defineField({
       name: 'heroSection',
-      title: 'Hero Section (Object)',
+      title: 'Hero Section',
       type: 'object',
-      group: 'hero',
       fields: [
         { name: 'headline', title: 'Headline', type: 'string' },
         { name: 'subheadline', title: 'Subheadline', type: 'text' },
-        { name: 'highlightText', title: 'Highlight Text', type: 'string' },
         { name: 'backgroundImage', title: 'Background Image', type: 'image' },
-        { name: 'ctaPrimary', title: 'Primary CTA', type: 'ctaButton' },
-        { name: 'ctaSecondary', title: 'Secondary CTA', type: 'ctaButton' },
+        { name: 'primaryCta', title: 'Primary CTA', type: 'object', fields: [
+          { name: 'label', title: 'Label', type: 'string' },
+          { name: 'url', title: 'URL', type: 'string' },
+        ]},
+      ],
+    }),
+    defineField({ name: 'benefits', title: 'Benefits', type: 'array', of: [{ type: 'benefitItem' }] }),
+    defineField({ name: 'processSteps', title: 'Process Steps', type: 'array', of: [{ type: 'processStep' }] }),
+    defineField({ name: 'faqs', title: 'FAQs', type: 'array', of: [{ type: 'faqItemObject' }] }),
+    defineField({ name: 'seo', title: 'SEO Settings', type: 'object', fields: seoFields }),
+  ],
+  preview: { prepare() { return { title: 'Trade-In Page' } } },
+})
+
+// ============================================
+// CONTACT US PAGE
+// ============================================
+export const contactPage = defineType({
+  name: 'contactPage',
+  title: 'Contact Us Page',
+  type: 'document',
+  fields: [
+    defineField({ name: 'title', title: 'Page Title', type: 'string', initialValue: 'Contact Us' }),
+    defineField({
+      name: 'heroSection',
+      title: 'Hero Section',
+      type: 'object',
+      fields: [
+        { name: 'headline', title: 'Headline', type: 'string' },
+        { name: 'subheadline', title: 'Subheadline', type: 'text' },
+        { name: 'backgroundImage', title: 'Background Image', type: 'image' },
+      ],
+    }),
+    defineField({
+      name: 'contactInfo',
+      title: 'Contact Information',
+      type: 'object',
+      fields: [
+        { name: 'phone', title: 'Phone', type: 'string' },
+        { name: 'email', title: 'Email', type: 'string' },
+        { name: 'address', title: 'Address', type: 'text' },
+        { name: 'googleMapsEmbed', title: 'Google Maps Embed URL', type: 'url' },
+        { name: 'hours', title: 'Business Hours', type: 'array', of: [{ type: 'object', fields: [
+          { name: 'day', title: 'Day', type: 'string' },
+          { name: 'hours', title: 'Hours', type: 'string' },
+        ]}]},
       ],
     }),
     defineField({
       name: 'formSettings',
       title: 'Form Settings',
       type: 'object',
-      group: 'hero',
       fields: [
-        { name: 'showForm', title: 'Show Form', type: 'boolean' },
         { name: 'formTitle', title: 'Form Title', type: 'string' },
-        { name: 'formType', title: 'Form Type', type: 'string' },
+        { name: 'submitButtonText', title: 'Submit Button Text', type: 'string' },
+        { name: 'successMessage', title: 'Success Message', type: 'text' },
       ],
     }),
-    
-    // Benefits
-    defineField({ name: 'benefitsTitle', title: 'Benefits Section Title', type: 'string', group: 'benefits' }),
-    defineField({ name: 'benefitsSubtitle', title: 'Benefits Subtitle', type: 'text', group: 'benefits' }),
-    defineField({ name: 'benefits', title: 'Benefits', type: 'array', of: [{ type: 'benefitItem' }], group: 'benefits' }),
-    defineField({
-      name: 'whySellToUs',
-      title: 'Why Finance With Us',
-      type: 'object',
-      group: 'benefits',
-      fields: [
-        { name: 'sectionTitle', title: 'Section Title', type: 'string' },
-        { name: 'benefitItems', title: 'Benefit Items', type: 'array', of: [{ type: 'benefitItem' }] },
-      ],
-    }),
-    
-    // Calculator Settings
-    defineField({ name: 'showCalculator', title: 'Show Payment Calculator', type: 'boolean', group: 'calculator', initialValue: true }),
-    defineField({ name: 'calculatorTitle', title: 'Calculator Title', type: 'string', group: 'calculator' }),
-    defineField({ name: 'calculatorDescription', title: 'Calculator Description', type: 'text', group: 'calculator' }),
-    defineField({ name: 'defaultDownPayment', title: 'Default Down Payment', type: 'number', group: 'calculator' }),
-    defineField({ name: 'defaultTerm', title: 'Default Term (months)', type: 'number', group: 'calculator' }),
-    defineField({ name: 'defaultInterestRate', title: 'Default Interest Rate (%)', type: 'number', group: 'calculator' }),
-    
-    // Lenders
-    defineField({ name: 'lendersTitle', title: 'Lenders Section Title', type: 'string', group: 'lenders' }),
-    defineField({ name: 'lendersSubtitle', title: 'Lenders Subtitle', type: 'text', group: 'lenders' }),
-    defineField({ name: 'featuredLenders', title: 'Featured Lenders', type: 'array', of: [{ type: 'reference', to: [{ type: 'lender' }] }], group: 'lenders' }),
-    
-    // Process
-    defineField({ name: 'processTitle', title: 'Process Section Title', type: 'string', group: 'process' }),
-    defineField({ name: 'processSubtitle', title: 'Process Subtitle', type: 'text', group: 'process' }),
-    defineField({ name: 'processSteps', title: 'Process Steps', type: 'array', of: [{ type: 'processStep' }], group: 'process' }),
-    defineField({
-      name: 'howItWorks',
-      title: 'How It Works',
-      type: 'object',
-      group: 'process',
-      fields: [
-        { name: 'sectionTitle', title: 'Section Title', type: 'string' },
-        { name: 'steps', title: 'Steps', type: 'array', of: [{ type: 'processStep' }] },
-      ],
-    }),
-    
-    // Comparison Table
-    defineField({ name: 'comparisonTitle', title: 'Comparison Title', type: 'string', group: 'comparison' }),
-    defineField({ name: 'comparisonRows', title: 'Comparison Rows', type: 'array', of: [{ type: 'comparisonRow' }], group: 'comparison' }),
-    defineField({
-      name: 'comparisonTable',
-      title: 'Comparison Table',
-      type: 'object',
-      group: 'comparison',
-      fields: [
-        { name: 'sectionTitle', title: 'Section Title', type: 'string' },
-        { name: 'ourColumnTitle', title: 'Our Column Title', type: 'string' },
-        { name: 'othersColumnTitle', title: 'Others Column Title', type: 'string' },
-        { name: 'rows', title: 'Rows', type: 'array', of: [{ type: 'comparisonRow' }] },
-      ],
-    }),
-    
-    // Testimonials
-    defineField({ name: 'testimonialsTitle', title: 'Testimonials Title', type: 'string', group: 'testimonials' }),
-    defineField({ name: 'testimonials', title: 'Testimonials', type: 'array', of: [{ type: 'testimonialItem' }, { type: 'reference', to: [{ type: 'testimonial' }] }], group: 'testimonials' }),
-    defineField({
-      name: 'testimonialsSection',
-      title: 'Testimonials Section',
-      type: 'object',
-      group: 'testimonials',
-      fields: [
-        { name: 'sectionTitle', title: 'Section Title', type: 'string' },
-        { name: 'testimonials', title: 'Testimonials', type: 'array', of: [{ type: 'testimonialItem' }] },
-      ],
-    }),
-    
-    // CTA Section
-    defineField({ name: 'ctaHeadline', title: 'CTA Headline', type: 'string', group: 'cta' }),
-    defineField({ name: 'ctaSubheadline', title: 'CTA Subheadline', type: 'text', group: 'cta' }),
-    defineField({ name: 'ctaButton', title: 'CTA Button', type: 'ctaButton', group: 'cta' }),
-    defineField({ name: 'ctaBackgroundImage', title: 'CTA Background', type: 'image', group: 'cta' }),
-    defineField({
-      name: 'ctaSection',
-      title: 'CTA Section',
-      type: 'object',
-      group: 'cta',
-      fields: [
-        { name: 'headline', title: 'Headline', type: 'string' },
-        { name: 'subheadline', title: 'Subheadline', type: 'text' },
-        { name: 'ctaText', title: 'CTA Text', type: 'string' },
-        { name: 'ctaLink', title: 'CTA Link', type: 'string' },
-        { name: 'backgroundImage', title: 'Background Image', type: 'image' },
-      ],
-    }),
-    
-    // FAQ
-    defineField({ name: 'faqTitle', title: 'FAQ Section Title', type: 'string', group: 'faq' }),
-    defineField({ name: 'faqs', title: 'FAQs', type: 'array', of: [{ type: 'faqItem' }], group: 'faq' }),
-    
-    // SEO
-    defineField({ name: 'seoTitle', title: 'SEO Title', type: 'string', group: 'seo' }),
-    defineField({ name: 'seoDescription', title: 'SEO Description', type: 'text', group: 'seo' }),
-    defineField({ name: 'seoImage', title: 'SEO Image', type: 'image', group: 'seo' }),
-    defineField({ name: 'seoKeywords', title: 'SEO Keywords', type: 'array', of: [{ type: 'string' }], group: 'seo' }),
+    defineField({ name: 'faqs', title: 'FAQs', type: 'array', of: [{ type: 'faqItemObject' }] }),
+    defineField({ name: 'seo', title: 'SEO Settings', type: 'object', fields: seoFields }),
   ],
-  preview: {
-    prepare() {
-      return { title: 'Financing Page' }
-    },
-  },
+  preview: { prepare() { return { title: 'Contact Us Page' } } },
 })
 
-// Sell Your Car Page - COMPLETE with all fields
-export const sellYourCarPage = defineType({
-  name: 'sellYourCarPage',
-  title: 'Sell Your Car Page',
+// ============================================
+// ABOUT US PAGE
+// ============================================
+export const aboutPage = defineType({
+  name: 'aboutPage',
+  title: 'About Us Page',
   type: 'document',
-  groups: [
-    { name: 'hero', title: 'Hero Section' },
-    { name: 'benefits', title: 'Why Sell to Us' },
-    { name: 'process', title: 'How It Works' },
-    { name: 'comparison', title: 'Comparison' },
-    { name: 'testimonials', title: 'Testimonials' },
-    { name: 'cta', title: 'CTA' },
-    { name: 'faq', title: 'FAQ' },
-    { name: 'seo', title: 'SEO' },
-  ],
   fields: [
-    defineField({ name: 'title', title: 'Page Title', type: 'string', initialValue: 'Sell Your Car' }),
-    
-    // Hero Section
-    defineField({ name: 'heroHeadline', title: 'Hero Headline', type: 'string', group: 'hero' }),
-    defineField({ name: 'heroSubheadline', title: 'Hero Subheadline', type: 'text', group: 'hero' }),
-    defineField({ name: 'heroHighlightText', title: 'Highlight Text', type: 'string', group: 'hero' }),
-    defineField({ name: 'heroImage', title: 'Hero Image', type: 'image', group: 'hero' }),
-    defineField({ name: 'heroVideo', title: 'Hero Video URL', type: 'url', group: 'hero' }),
-    defineField({ name: 'heroCta', title: 'Hero CTA', type: 'ctaButton', group: 'hero' }),
-    defineField({ name: 'heroCtaSecondary', title: 'Secondary CTA', type: 'ctaButton', group: 'hero' }),
+    defineField({ name: 'title', title: 'Page Title', type: 'string', initialValue: 'About Us' }),
     defineField({
       name: 'heroSection',
-      title: 'Hero Section (Object)',
+      title: 'Hero Section',
       type: 'object',
-      group: 'hero',
       fields: [
         { name: 'headline', title: 'Headline', type: 'string' },
         { name: 'subheadline', title: 'Subheadline', type: 'text' },
-        { name: 'highlightText', title: 'Highlight Text', type: 'string' },
-        { name: 'backgroundImage', title: 'Background Image', type: 'image' },
-        { name: 'ctaPrimary', title: 'Primary CTA', type: 'ctaButton' },
-        { name: 'ctaSecondary', title: 'Secondary CTA', type: 'ctaButton' },
-      ],
-    }),
-    defineField({
-      name: 'formSettings',
-      title: 'Form Settings',
-      type: 'object',
-      group: 'hero',
-      fields: [
-        { name: 'showForm', title: 'Show Form', type: 'boolean' },
-        { name: 'formTitle', title: 'Form Title', type: 'string' },
-        { name: 'formType', title: 'Form Type', type: 'string' },
-      ],
-    }),
-    
-    // Why Sell to Us
-    defineField({ name: 'benefitsTitle', title: 'Benefits Section Title', type: 'string', group: 'benefits' }),
-    defineField({ name: 'benefitsSubtitle', title: 'Benefits Subtitle', type: 'text', group: 'benefits' }),
-    defineField({ name: 'benefits', title: 'Benefits', type: 'array', of: [{ type: 'benefitItem' }], group: 'benefits' }),
-    defineField({
-      name: 'whySellToUs',
-      title: 'Why Sell to Us',
-      type: 'object',
-      group: 'benefits',
-      fields: [
-        { name: 'sectionTitle', title: 'Section Title', type: 'string' },
-        { name: 'benefitItems', title: 'Benefit Items', type: 'array', of: [{ type: 'benefitItem' }] },
-      ],
-    }),
-    
-    // How It Works
-    defineField({ name: 'processTitle', title: 'Process Section Title', type: 'string', group: 'process' }),
-    defineField({ name: 'processSubtitle', title: 'Process Subtitle', type: 'text', group: 'process' }),
-    defineField({ name: 'processSteps', title: 'Process Steps', type: 'array', of: [{ type: 'processStep' }], group: 'process' }),
-    defineField({
-      name: 'howItWorks',
-      title: 'How It Works',
-      type: 'object',
-      group: 'process',
-      fields: [
-        { name: 'sectionTitle', title: 'Section Title', type: 'string' },
-        { name: 'steps', title: 'Steps', type: 'array', of: [{ type: 'processStep' }] },
-      ],
-    }),
-    
-    // Comparison
-    defineField({ name: 'comparisonTitle', title: 'Comparison Section Title', type: 'string', group: 'comparison' }),
-    defineField({ name: 'comparisonRows', title: 'Comparison Rows', type: 'array', of: [{ type: 'comparisonRow' }], group: 'comparison' }),
-    defineField({
-      name: 'comparisonTable',
-      title: 'Comparison Table',
-      type: 'object',
-      group: 'comparison',
-      fields: [
-        { name: 'sectionTitle', title: 'Section Title', type: 'string' },
-        { name: 'ourColumnTitle', title: 'Our Column Title', type: 'string' },
-        { name: 'othersColumnTitle', title: 'Others Column Title', type: 'string' },
-        { name: 'rows', title: 'Rows', type: 'array', of: [{ type: 'comparisonRow' }] },
-      ],
-    }),
-    
-    // Testimonials
-    defineField({ name: 'testimonialsTitle', title: 'Testimonials Section Title', type: 'string', group: 'testimonials' }),
-    defineField({ name: 'testimonials', title: 'Testimonials', type: 'array', of: [{ type: 'testimonialItem' }], group: 'testimonials' }),
-    defineField({
-      name: 'testimonialsSection',
-      title: 'Testimonials Section',
-      type: 'object',
-      group: 'testimonials',
-      fields: [
-        { name: 'sectionTitle', title: 'Section Title', type: 'string' },
-        { name: 'testimonials', title: 'Testimonials', type: 'array', of: [{ type: 'testimonialItem' }] },
-      ],
-    }),
-    
-    // CTA
-    defineField({ name: 'ctaHeadline', title: 'CTA Headline', type: 'string', group: 'cta' }),
-    defineField({ name: 'ctaSubheadline', title: 'CTA Subheadline', type: 'text', group: 'cta' }),
-    defineField({ name: 'ctaButton', title: 'CTA Button', type: 'ctaButton', group: 'cta' }),
-    defineField({ name: 'ctaBackgroundImage', title: 'CTA Background', type: 'image', group: 'cta' }),
-    defineField({
-      name: 'ctaSection',
-      title: 'CTA Section',
-      type: 'object',
-      group: 'cta',
-      fields: [
-        { name: 'headline', title: 'Headline', type: 'string' },
-        { name: 'subheadline', title: 'Subheadline', type: 'text' },
-        { name: 'ctaText', title: 'CTA Text', type: 'string' },
-        { name: 'ctaLink', title: 'CTA Link', type: 'string' },
         { name: 'backgroundImage', title: 'Background Image', type: 'image' },
       ],
     }),
-    
-    // FAQ
-    defineField({ name: 'faqTitle', title: 'FAQ Section Title', type: 'string', group: 'faq' }),
-    defineField({ name: 'faqs', title: 'FAQs', type: 'array', of: [{ type: 'faqItem' }], group: 'faq' }),
-    
-    // SEO
-    defineField({ name: 'seoTitle', title: 'SEO Title', type: 'string', group: 'seo' }),
-    defineField({ name: 'seoDescription', title: 'SEO Description', type: 'text', group: 'seo' }),
-    defineField({ name: 'seoImage', title: 'SEO Image', type: 'image', group: 'seo' }),
-    defineField({ name: 'seoKeywords', title: 'SEO Keywords', type: 'array', of: [{ type: 'string' }], group: 'seo' }),
+    defineField({
+      name: 'story',
+      title: 'Our Story',
+      type: 'object',
+      fields: [
+        { name: 'title', title: 'Section Title', type: 'string' },
+        { name: 'content', title: 'Content', type: 'array', of: [{ type: 'block' }] },
+        { name: 'image', title: 'Image', type: 'image' },
+      ],
+    }),
+    defineField({
+      name: 'team',
+      title: 'Team',
+      type: 'array',
+      of: [{
+        type: 'object',
+        fields: [
+          { name: 'name', title: 'Name', type: 'string' },
+          { name: 'role', title: 'Role', type: 'string' },
+          { name: 'bio', title: 'Bio', type: 'text' },
+          { name: 'image', title: 'Photo', type: 'image' },
+        ],
+      }],
+    }),
+    defineField({ name: 'values', title: 'Our Values', type: 'array', of: [{ type: 'benefitItem' }] }),
+    defineField({ name: 'seo', title: 'SEO Settings', type: 'object', fields: seoFields }),
   ],
-  preview: {
-    prepare() {
-      return { title: 'Sell Your Car Page' }
-    },
-  },
+  preview: { prepare() { return { title: 'About Us Page' } } },
 })
 
-// VDP (Vehicle Detail Page) Settings
+// ============================================
+// BLOG INDEX PAGE
+// ============================================
+export const blogIndexPage = defineType({
+  name: 'blogIndexPage',
+  title: 'Blog Index Page',
+  type: 'document',
+  fields: [
+    defineField({ name: 'title', title: 'Page Title', type: 'string', initialValue: 'Blog' }),
+    defineField({
+      name: 'heroSection',
+      title: 'Hero Section',
+      type: 'object',
+      fields: [
+        { name: 'headline', title: 'Headline', type: 'string' },
+        { name: 'subheadline', title: 'Subheadline', type: 'text' },
+      ],
+    }),
+    defineField({ name: 'featuredPosts', title: 'Featured Posts', type: 'array', of: [{ type: 'reference', to: [{ type: 'blogPost' }] }] }),
+    defineField({ name: 'postsPerPage', title: 'Posts Per Page', type: 'number', initialValue: 12 }),
+    defineField({ name: 'seo', title: 'SEO Settings', type: 'object', fields: seoFields }),
+  ],
+  preview: { prepare() { return { title: 'Blog Index Page' } } },
+})
+
+// ============================================
+// INVENTORY PAGE
+// ============================================
+export const inventoryPage = defineType({
+  name: 'inventoryPage',
+  title: 'Inventory Page',
+  type: 'document',
+  fields: [
+    defineField({ name: 'title', title: 'Page Title', type: 'string', initialValue: 'Inventory' }),
+    defineField({
+      name: 'heroSection',
+      title: 'Hero Section',
+      type: 'object',
+      fields: [
+        { name: 'headline', title: 'Headline', type: 'string' },
+        { name: 'subheadline', title: 'Subheadline', type: 'text' },
+        { name: 'showSearch', title: 'Show Search', type: 'boolean' },
+      ],
+    }),
+    defineField({
+      name: 'filterSettings',
+      title: 'Filter Settings',
+      type: 'object',
+      fields: [
+        { name: 'showMakeFilter', title: 'Show Make Filter', type: 'boolean' },
+        { name: 'showModelFilter', title: 'Show Model Filter', type: 'boolean' },
+        { name: 'showYearFilter', title: 'Show Year Filter', type: 'boolean' },
+        { name: 'showPriceFilter', title: 'Show Price Filter', type: 'boolean' },
+        { name: 'showBodyTypeFilter', title: 'Show Body Type Filter', type: 'boolean' },
+      ],
+    }),
+    defineField({ name: 'vehiclesPerPage', title: 'Vehicles Per Page', type: 'number', initialValue: 24 }),
+    defineField({ name: 'seo', title: 'SEO Settings', type: 'object', fields: seoFields }),
+  ],
+  preview: { prepare() { return { title: 'Inventory Page' } } },
+})
+
+// ============================================
+// VDP (Vehicle Detail Page) SETTINGS
+// ============================================
 export const vdpSettings = defineType({
   name: 'vdpSettings',
   title: 'Vehicle Detail Page Settings',
   type: 'document',
-  groups: [
-    { name: 'display', title: 'Display Options' },
-    { name: 'cta', title: 'CTA Buttons' },
-    { name: 'calculator', title: 'Calculator' },
-    { name: 'similar', title: 'Similar Vehicles' },
-  ],
   fields: [
     defineField({ name: 'title', title: 'Title', type: 'string', initialValue: 'VDP Settings' }),
-    
-    // Display Options
-    defineField({ name: 'showPaymentCalculator', title: 'Show Payment Calculator', type: 'boolean', initialValue: true, group: 'display' }),
-    defineField({ name: 'showTradeInCta', title: 'Show Trade-In CTA', type: 'boolean', initialValue: true, group: 'display' }),
-    defineField({ name: 'showFinancingCta', title: 'Show Financing CTA', type: 'boolean', initialValue: true, group: 'display' }),
-    defineField({ name: 'show360Viewer', title: 'Show 360 Viewer', type: 'boolean', initialValue: true, group: 'display' }),
-    defineField({ name: 'showCarfaxBadge', title: 'Show Carfax Badge', type: 'boolean', initialValue: true, group: 'display' }),
-    defineField({ name: 'showSimilarVehicles', title: 'Show Similar Vehicles', type: 'boolean', initialValue: true, group: 'display' }),
-    defineField({ name: 'showWarrantyInfo', title: 'Show Warranty Info', type: 'boolean', initialValue: true, group: 'display' }),
-    defineField({ name: 'showHistoryReport', title: 'Show History Report', type: 'boolean', initialValue: true, group: 'display' }),
-    defineField({ name: 'showVideoPlayer', title: 'Show Video Player', type: 'boolean', initialValue: true, group: 'display' }),
-    defineField({ name: 'galleryStyle', title: 'Gallery Style', type: 'string', options: { list: ['carousel', 'grid', 'filmstrip'] }, group: 'display' }),
-    
-    // CTA Buttons
-    defineField({ name: 'ctaButtonText', title: 'Primary CTA Button Text', type: 'string', initialValue: 'Get Pre-Approved', group: 'cta' }),
-    defineField({ name: 'ctaButtonUrl', title: 'Primary CTA Button URL', type: 'string', group: 'cta' }),
-    defineField({ name: 'secondaryCtaText', title: 'Secondary CTA Text', type: 'string', initialValue: 'Schedule Test Drive', group: 'cta' }),
-    defineField({ name: 'secondaryCtaUrl', title: 'Secondary CTA URL', type: 'string', group: 'cta' }),
-    defineField({ name: 'showCallButton', title: 'Show Call Button', type: 'boolean', initialValue: true, group: 'cta' }),
-    defineField({ name: 'showTextButton', title: 'Show Text/SMS Button', type: 'boolean', initialValue: true, group: 'cta' }),
-    defineField({ name: 'showShareButton', title: 'Show Share Button', type: 'boolean', initialValue: true, group: 'cta' }),
-    
-    // Calculator Settings
-    defineField({ name: 'calculatorPosition', title: 'Calculator Position', type: 'string', options: { list: ['sidebar', 'below-gallery', 'tab'] }, group: 'calculator' }),
-    defineField({ name: 'defaultDownPaymentPercent', title: 'Default Down Payment %', type: 'number', initialValue: 10, group: 'calculator' }),
-    defineField({ name: 'defaultTermMonths', title: 'Default Term (months)', type: 'number', initialValue: 60, group: 'calculator' }),
-    
-    // Similar Vehicles
-    defineField({ name: 'similarVehiclesCount', title: 'Number of Similar Vehicles', type: 'number', initialValue: 4, group: 'similar' }),
-    defineField({ name: 'similarVehiclesCriteria', title: 'Similar By', type: 'string', options: { list: ['make', 'bodyStyle', 'price', 'category'] }, group: 'similar' }),
-    
-    // Disclaimer
     defineField({
-      name: 'disclaimerText',
-      title: 'Disclaimer Text',
-      type: 'text',
-      initialValue: 'Prices shown do not include taxes, licensing, or fees. Payment estimates are for illustrative purposes only.',
+      name: 'layout',
+      title: 'Layout Settings',
+      type: 'object',
+      fields: [
+        { name: 'showGallery', title: 'Show Gallery', type: 'boolean', initialValue: true },
+        { name: 'showSpecs', title: 'Show Specs', type: 'boolean', initialValue: true },
+        { name: 'showCalculator', title: 'Show Calculator', type: 'boolean', initialValue: true },
+        { name: 'showSimilarVehicles', title: 'Show Similar Vehicles', type: 'boolean', initialValue: true },
+      ],
     }),
+    defineField({
+      name: 'ctaButtons',
+      title: 'CTA Buttons',
+      type: 'object',
+      fields: [
+        { name: 'primaryLabel', title: 'Primary Button Label', type: 'string' },
+        { name: 'primaryAction', title: 'Primary Action', type: 'string' },
+        { name: 'secondaryLabel', title: 'Secondary Button Label', type: 'string' },
+        { name: 'secondaryAction', title: 'Secondary Action', type: 'string' },
+      ],
+    }),
+    defineField({ name: 'disclaimers', title: 'Disclaimers', type: 'text' }),
   ],
-  preview: {
-    prepare() {
-      return { title: 'VDP Settings' }
-    },
-  },
+  preview: { prepare() { return { title: 'VDP Settings' } } },
 })
 
-// Calculator Settings (Global)
-export const calculatorSettings = defineType({
-  name: 'calculatorSettings',
-  title: 'Payment Calculator Settings',
+// ============================================
+// SERVICES PAGE
+// ============================================
+export const servicesPage = defineType({
+  name: 'servicesPage',
+  title: 'Services Page',
   type: 'document',
   fields: [
-    defineField({ name: 'defaultInterestRate', title: 'Default Interest Rate (%)', type: 'number', initialValue: 6.99 }),
-    defineField({ name: 'minDownPayment', title: 'Minimum Down Payment (%)', type: 'number', initialValue: 0 }),
-    defineField({ name: 'maxDownPayment', title: 'Maximum Down Payment (%)', type: 'number', initialValue: 50 }),
-    defineField({ name: 'availableTerms', title: 'Available Loan Terms', type: 'array', of: [{ type: 'number' }] }),
-    defineField({ name: 'taxRate', title: 'Tax Rate (%)', type: 'number', initialValue: 13 }),
-    defineField({ name: 'includeTaxInPayment', title: 'Include Tax in Monthly Payment', type: 'boolean', initialValue: true }),
-    defineField({ name: 'showBiWeeklyPayment', title: 'Show Bi-Weekly Payment', type: 'boolean', initialValue: true }),
-    defineField({ name: 'disclaimerText', title: 'Disclaimer', type: 'text' }),
+    defineField({ name: 'title', title: 'Page Title', type: 'string', initialValue: 'Services' }),
+    defineField({
+      name: 'heroSection',
+      title: 'Hero Section',
+      type: 'object',
+      fields: [
+        { name: 'headline', title: 'Headline', type: 'string' },
+        { name: 'subheadline', title: 'Subheadline', type: 'text' },
+        { name: 'backgroundImage', title: 'Background Image', type: 'image' },
+      ],
+    }),
+    defineField({
+      name: 'services',
+      title: 'Services',
+      type: 'array',
+      of: [{
+        type: 'object',
+        fields: [
+          { name: 'title', title: 'Service Title', type: 'string' },
+          { name: 'description', title: 'Description', type: 'text' },
+          { name: 'icon', title: 'Icon', type: 'string' },
+          { name: 'image', title: 'Image', type: 'image' },
+          { name: 'link', title: 'Link', type: 'string' },
+        ],
+      }],
+    }),
+    defineField({ name: 'seo', title: 'SEO Settings', type: 'object', fields: seoFields }),
   ],
-  preview: {
-    prepare() {
-      return { title: 'Calculator Settings' }
-    },
-  },
+  preview: { prepare() { return { title: 'Services Page' } } },
 })
 
-// Export all page schemas
+// ============================================
+// WARRANTY PAGE
+// ============================================
+export const warrantyPage = defineType({
+  name: 'warrantyPage',
+  title: 'Warranty Page',
+  type: 'document',
+  fields: [
+    defineField({ name: 'title', title: 'Page Title', type: 'string', initialValue: 'Warranty' }),
+    defineField({
+      name: 'heroSection',
+      title: 'Hero Section',
+      type: 'object',
+      fields: [
+        { name: 'headline', title: 'Headline', type: 'string' },
+        { name: 'subheadline', title: 'Subheadline', type: 'text' },
+        { name: 'backgroundImage', title: 'Background Image', type: 'image' },
+      ],
+    }),
+    defineField({ name: 'protectionPlans', title: 'Featured Protection Plans', type: 'array', of: [{ type: 'reference', to: [{ type: 'protectionPlan' }] }] }),
+    defineField({ name: 'faqs', title: 'FAQs', type: 'array', of: [{ type: 'faqItemObject' }] }),
+    defineField({ name: 'seo', title: 'SEO Settings', type: 'object', fields: seoFields }),
+  ],
+  preview: { prepare() { return { title: 'Warranty Page' } } },
+})
+
+// ============================================
+// FAQ PAGE
+// ============================================
+export const faqPage = defineType({
+  name: 'faqPage',
+  title: 'FAQ Page',
+  type: 'document',
+  fields: [
+    defineField({ name: 'title', title: 'Page Title', type: 'string', initialValue: 'FAQ' }),
+    defineField({
+      name: 'heroSection',
+      title: 'Hero Section',
+      type: 'object',
+      fields: [
+        { name: 'headline', title: 'Headline', type: 'string' },
+        { name: 'subheadline', title: 'Subheadline', type: 'text' },
+      ],
+    }),
+    defineField({
+      name: 'categories',
+      title: 'FAQ Categories',
+      type: 'array',
+      of: [{
+        type: 'object',
+        fields: [
+          { name: 'title', title: 'Category Title', type: 'string' },
+          { name: 'faqs', title: 'FAQs', type: 'array', of: [{ type: 'faqItemObject' }] },
+        ],
+      }],
+    }),
+    defineField({ name: 'seo', title: 'SEO Settings', type: 'object', fields: seoFields }),
+  ],
+  preview: { prepare() { return { title: 'FAQ Page' } } },
+})
+
+// ============================================
+// SELL PAGE (Legacy)
+// ============================================
+export const sellPage = defineType({
+  name: 'sellPage',
+  title: 'Sell Page (Legacy)',
+  type: 'document',
+  fields: [
+    defineField({ name: 'title', title: 'Page Title', type: 'string' }),
+    defineField({
+      name: 'hero',
+      title: 'Hero Section',
+      type: 'object',
+      fields: [
+        { name: 'headline', title: 'Headline', type: 'string' },
+        { name: 'subheadline', title: 'Subheadline', type: 'text' },
+        { name: 'backgroundImage', title: 'Background Image', type: 'image' },
+        { name: 'form', title: 'Form Settings', type: 'object', fields: [
+          { name: 'placeholderVin', title: 'VIN Placeholder', type: 'string' },
+          { name: 'placeholderPlate', title: 'Plate Placeholder', type: 'string' },
+          { name: 'buttonText', title: 'Button Text', type: 'string' },
+        ]},
+      ],
+    }),
+    defineField({
+      name: 'benefits',
+      title: 'Benefits',
+      type: 'object',
+      fields: [
+        { name: 'sectionTitle', title: 'Section Title', type: 'string' },
+        { name: 'items', title: 'Benefit Items', type: 'array', of: [{ type: 'benefitItem' }] },
+      ],
+    }),
+    defineField({
+      name: 'comparison',
+      title: 'Comparison',
+      type: 'object',
+      fields: [
+        { name: 'sectionTitle', title: 'Section Title', type: 'string' },
+        { name: 'competitors', title: 'Competitors Label', type: 'string' },
+        { name: 'rows', title: 'Comparison Rows', type: 'array', of: [{ type: 'comparisonRow' }] },
+      ],
+    }),
+    defineField({
+      name: 'cta',
+      title: 'CTA Section',
+      type: 'object',
+      fields: [
+        { name: 'headline', title: 'Headline', type: 'string' },
+        { name: 'bonusText', title: 'Bonus Text', type: 'string' },
+        { name: 'buttonText', title: 'Button Text', type: 'string' },
+        { name: 'buttonUrl', title: 'Button URL', type: 'string' },
+      ],
+    }),
+    defineField({ name: 'seo', title: 'SEO Settings', type: 'object', fields: seoFields }),
+  ],
+  preview: { prepare() { return { title: 'Sell Page (Legacy)' } } },
+})
+
+// ============================================
+// FAQ ITEM (Document type)
+// ============================================
+export const faqItemDoc = defineType({
+  name: 'faqItem',
+  title: 'FAQ Item',
+  type: 'document',
+  fields: [
+    defineField({ name: 'question', title: 'Question', type: 'string', validation: (Rule) => Rule.required() }),
+    defineField({ name: 'answer', title: 'Answer', type: 'text', validation: (Rule) => Rule.required() }),
+    defineField({ name: 'category', title: 'Category', type: 'string', options: { list: [
+      { title: 'General', value: 'general' },
+      { title: 'Financing', value: 'financing' },
+      { title: 'Trade-In', value: 'trade-in' },
+      { title: 'Delivery', value: 'delivery' },
+      { title: 'Warranty', value: 'warranty' },
+    ]}}),
+    defineField({ name: 'order', title: 'Display Order', type: 'number' }),
+  ],
+  preview: { select: { title: 'question', subtitle: 'category' } },
+})
+
+// ============================================
+// AI SETTINGS
+// ============================================
+export const aiSettings = defineType({
+  name: 'aiSettings',
+  title: 'AI Settings',
+  type: 'document',
+  fields: [
+    defineField({ name: 'title', title: 'Title', type: 'string', initialValue: 'AI Settings' }),
+    
+    // Anna Assistant
+    defineField({
+      name: 'annaAssistant',
+      title: 'Anna Assistant',
+      type: 'object',
+      fields: [
+        { name: 'enabled', title: 'Enabled', type: 'boolean' },
+        { name: 'displayName', title: 'Display Name', type: 'string' },
+        { name: 'avatarImage', title: 'Avatar Image', type: 'image' },
+        { name: 'welcomeMessage', title: 'Welcome Message', type: 'text' },
+        { name: 'personality', title: 'Personality', type: 'text' },
+        { name: 'quickActions', title: 'Quick Actions', type: 'array', of: [{
+          type: 'object',
+          fields: [
+            { name: 'label', title: 'Label', type: 'string' },
+            { name: 'prompt', title: 'Prompt', type: 'string' },
+            { name: 'icon', title: 'Icon', type: 'string' },
+          ],
+        }]},
+      ],
+    }),
+    
+    // Price Negotiator
+    defineField({
+      name: 'priceNegotiator',
+      title: 'Price Negotiator',
+      type: 'object',
+      fields: [
+        { name: 'enabled', title: 'Enabled', type: 'boolean' },
+        { name: 'negotiationRules', title: 'Negotiation Rules', type: 'object', fields: [
+          { name: 'minDiscountPercent', title: 'Min Discount %', type: 'number' },
+          { name: 'maxDiscountPercent', title: 'Max Discount %', type: 'number' },
+          { name: 'requireManagerApproval', title: 'Require Manager Approval', type: 'boolean' },
+          { name: 'approvalThreshold', title: 'Approval Threshold', type: 'number' },
+          { name: 'counterOfferStrategy', title: 'Counter Offer Strategy', type: 'string' },
+        ]},
+      ],
+    }),
+    
+    // Instant Appraisal
+    defineField({
+      name: 'instantAppraisal',
+      title: 'Instant Appraisal',
+      type: 'object',
+      fields: [
+        { name: 'enabled', title: 'Enabled', type: 'boolean' },
+        { name: 'provider', title: 'Provider', type: 'string' },
+        { name: 'apiKey', title: 'API Key', type: 'string' },
+        { name: 'adjustmentRules', title: 'Adjustment Rules', type: 'array', of: [{
+          type: 'object',
+          fields: [
+            { name: 'condition', title: 'Condition', type: 'string' },
+            { name: 'adjustment', title: 'Adjustment %', type: 'number' },
+          ],
+        }]},
+      ],
+    }),
+    
+    // Fees Configuration
+    defineField({
+      name: 'fees',
+      title: 'Fees Configuration',
+      type: 'object',
+      fields: [
+        { name: 'documentationFee', title: 'Documentation Fee', type: 'number' },
+        { name: 'licensingFee', title: 'Licensing Fee', type: 'number' },
+        { name: 'registrationFee', title: 'Registration Fee', type: 'number' },
+        { name: 'additionalFees', title: 'Additional Fees', type: 'array', of: [{
+          type: 'object',
+          fields: [
+            { name: 'name', title: 'Fee Name', type: 'string' },
+            { name: 'amount', title: 'Amount', type: 'number' },
+            { name: 'taxable', title: 'Taxable', type: 'boolean' },
+          ],
+        }]},
+      ],
+    }),
+    
+    // Financing Configuration
+    defineField({
+      name: 'financing',
+      title: 'Financing Configuration',
+      type: 'object',
+      fields: [
+        { name: 'defaultRate', title: 'Default Rate %', type: 'number' },
+        { name: 'defaultTerm', title: 'Default Term (months)', type: 'number' },
+        { name: 'creditTiers', title: 'Credit Tiers', type: 'array', of: [{
+          type: 'object',
+          fields: [
+            { name: 'name', title: 'Tier Name', type: 'string' },
+            { name: 'minScore', title: 'Min Score', type: 'number' },
+            { name: 'maxScore', title: 'Max Score', type: 'number' },
+            { name: 'rate', title: 'Rate %', type: 'number' },
+          ],
+        }]},
+      ],
+    }),
+  ],
+  preview: { prepare() { return { title: 'AI Settings' } } },
+})
+
+// ============================================
+// LANDING PAGE (Generic)
+// ============================================
+export const landingPage = defineType({
+  name: 'landingPage',
+  title: 'Landing Page',
+  type: 'document',
+  fields: [
+    defineField({ name: 'title', title: 'Page Title', type: 'string' }),
+    defineField({ name: 'slug', title: 'Slug', type: 'slug', options: { source: 'title' } }),
+    defineField({ name: 'pageType', title: 'Page Type', type: 'string', options: { list: ['financing', 'sell-your-car', 'service', 'about', 'contact', 'custom'] } }),
+    defineField({
+      name: 'heroSection',
+      title: 'Hero Section',
+      type: 'object',
+      fields: [
+        { name: 'headline', title: 'Headline', type: 'string' },
+        { name: 'subheadline', title: 'Subheadline', type: 'text' },
+        { name: 'backgroundImage', title: 'Background Image', type: 'image' },
+        { name: 'primaryCta', title: 'Primary CTA', type: 'object', fields: [
+          { name: 'label', title: 'Label', type: 'string' },
+          { name: 'url', title: 'URL', type: 'string' },
+        ]},
+      ],
+    }),
+    defineField({ name: 'sections', title: 'Content Sections', type: 'array', of: [
+      { type: 'object', name: 'textSection', title: 'Text Section', fields: [
+        { name: 'title', title: 'Title', type: 'string' },
+        { name: 'content', title: 'Content', type: 'array', of: [{ type: 'block' }] },
+      ]},
+      { type: 'object', name: 'benefitsSection', title: 'Benefits Section', fields: [
+        { name: 'title', title: 'Title', type: 'string' },
+        { name: 'benefits', title: 'Benefits', type: 'array', of: [{ type: 'benefitItem' }] },
+      ]},
+    ]}),
+    defineField({ name: 'seo', title: 'SEO Settings', type: 'object', fields: seoFields }),
+  ],
+  preview: { select: { title: 'title', subtitle: 'pageType' } },
+})
+
+// ============================================
+// EXPORT ALL SCHEMAS
+// ============================================
 export const pageSchemas = [
+  // Object types
   trustBadge,
   benefitItem,
   processStep,
   testimonialItem,
   comparisonRow,
-  faqItem,
+  faqItemObject,
   ctaButton,
+  
+  // Document types - Pages
   homepage,
-  landingPage,
   financingPage,
   sellYourCarPage,
+  tradeInPage,
+  contactPage,
+  aboutPage,
+  blogIndexPage,
+  inventoryPage,
+  servicesPage,
+  warrantyPage,
+  faqPage,
+  landingPage,
+  
+  // Settings
   vdpSettings,
-  calculatorSettings,
+  aiSettings,
+  
+  // Legacy
+  sellPage,
+  faqItemDoc,
 ]

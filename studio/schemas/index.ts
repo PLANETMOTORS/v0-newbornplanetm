@@ -1,15 +1,19 @@
-// Vehicle
+// Planet Motors - Sanity Schema Index - COMPLETE
+// All 25+ schemas for full CMS coverage
+
+// Vehicle & Lender
 import { vehicle } from './vehicle'
 import { lender } from './lender'
 
-// Pages - Homepage, Financing, Sell Your Car, Sell Page (legacy), AI Settings, FAQ Item
-// Also includes object types: trustBadge, benefitItem, processStep
+// Pages - ALL page types including new ones:
+// Homepage, Financing, Sell Your Car, Trade-In, Contact, About, Blog Index,
+// Inventory, Services, Warranty, FAQ Page, Landing Page, VDP Settings, AI Settings
 import { pageSchemas } from './pages'
 
 // Homepage & Website Components
 import { homepageHero, banner, page, promotion } from './homepage'
 
-// Content (faqItem is in pageSchemas to match database structure)
+// Content
 import { blogPost, testimonial, faqEntry, protectionPlan } from './content'
 
 // Settings
@@ -21,17 +25,16 @@ export const schemaTypes = [
   vehicle,
   lender,
   
-  // Pages (Homepage, Financing, Sell Your Car, Sell Page Legacy, AI Settings, FAQ Item)
-  // Also includes object types: trustBadge, benefitItem, processStep
+  // All Page Schemas (25+ types including object types)
   ...pageSchemas,
   
-  // Website Components (Hero variants, Banners, Static Pages, Promotions)
+  // Website Components
   homepageHero,
   banner,
   page,
   promotion,
   
-  // Content (Blog, Testimonials, FAQ Entry, Protection Plans)
+  // Content
   blogPost,
   testimonial,
   faqEntry,
