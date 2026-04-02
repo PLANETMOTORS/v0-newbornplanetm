@@ -83,8 +83,25 @@ export async function GET() {
 }
 
 // Endpoint to manually refresh cache (can be called by cron job)
-export async function POST() {
+export async function POST(request: Request) {
   try {
+    const refreshSecret = process.env.INTERNAL_API_SECRET
+    if (!refreshSecret) {
+      return NextResponse.json(
+        { success: false, error: "Cache refresh secret is not configured" },
+        { status: 500 }
+      )
+    }
+
+    const authHeader = request.headers.get("authorization")
+    const provided = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null
+    if (!provided || provided !== refreshSecret) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      )
+    }
+
     // Clear cache to force refresh on next GET
     await redis.del(CACHE_KEY)
     
