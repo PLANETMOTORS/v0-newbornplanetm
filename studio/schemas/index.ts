@@ -2,7 +2,10 @@
 import { vehicle } from './vehicle'
 import { lender } from './lender'
 
-// Homepage & Website
+// Pages - Homepage, Financing, Sell Your Car, Landing Pages, VDP Settings
+import { pageSchemas } from './pages'
+
+// Homepage & Website Components
 import { homepageHero, banner, page, promotion } from './homepage'
 
 // Content
@@ -17,7 +20,10 @@ export const schemaTypes = [
   vehicle,
   lender,
   
-  // Website Content
+  // Pages (Homepage, Financing, Sell Your Car, VDP Settings, Object types)
+  ...pageSchemas,
+  
+  // Website Components
   homepageHero,
   banner,
   page,
