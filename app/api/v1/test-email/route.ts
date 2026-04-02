@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
 
-// Test email endpoint - uses Resend test domain (no verification required)
+// Test email endpoint - uses verified planetmotors.ca domain
 export async function GET() {
   const apiKey = process.env.API_KEY_RESEND || process.env.RESEND_API_KEY
   const adminEmail = process.env.ADMIN_EMAIL || "toni@planetmotors.ca"
@@ -13,9 +13,9 @@ export async function GET() {
   const resend = new Resend(apiKey)
   
   try {
-    // Use onboarding@resend.dev - works without domain verification
+    // Use verified planetmotors.ca domain
     const { data, error } = await resend.emails.send({
-      from: 'Planet Motors <onboarding@resend.dev>',
+      from: 'Planet Motors <notifications@planetmotors.ca>',
       to: adminEmail,
       subject: 'Test Email from Planet Motors',
       html: `
@@ -43,7 +43,7 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       message: "Test email sent successfully!",
-      version: "v2-onboarding",
+      version: "v3-verified-domain",
       emailId: data?.id,
       sentTo: adminEmail
     })
