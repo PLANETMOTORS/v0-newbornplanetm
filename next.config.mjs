@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 45
+  // Force clean build - version 46
   cleanDistDir: true,
   turbopack: {},
   typescript: {
