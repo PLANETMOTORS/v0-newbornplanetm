@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-// CACHE BUST: 2026-04-02-v55-FINAL - All Sanity files verified
+// CACHE BUST: v57 - All Sanity lib files exist and verified
 const nextConfig = {
   // Force complete rebuild - Sanity files verified
   cleanDistDir: true,
