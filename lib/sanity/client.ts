@@ -1,6 +1,6 @@
 import { createClient } from "@sanity/client"
 
-// Planet Motors CMS - Sanity client (using @sanity/client package)
+// Planet Motors CMS - @sanity/client (cache cleared)
 function getValidDataset(): string {
   const envDataset = process.env.NEXT_PUBLIC_SANITY_DATASET
   if (!envDataset || !/^[a-z0-9_-]+$/.test(envDataset) || envDataset.length > 64) {
