@@ -247,6 +247,66 @@ export const VEHICLES_BY_PAYMENT_QUERY = `
   }
 `
 
+// Professional Full-Stack Payment Query with Credit Tier Support
+// Pre-calculates payments using "Excellent" (lowest APR) tier for "Starting at" display
+export const VEHICLES_WITH_DYNAMIC_PAYMENTS_QUERY = `
+{
+  "finance": *[_type == "inventorySettings"][0] {
+    taxRate,
+    defaultTerm,
+    defaultDownPayment,
+    averageTradeInValue,
+    creditTiers[] { label, minScore, apr }
+  },
+  "vehicles": *[_type == "vehicle" && status == "available"] | order(price asc) {
+    _id,
+    year,
+    make,
+    model,
+    trim,
+    price,
+    specialPrice,
+    mileage,
+    fuelType,
+    condition,
+    featured,
+    "slug": slug.current,
+    "mainImage": mainImage.asset->url,
+    "specialFinance": specialFinance-> { 
+      name, "logo": logo.asset->url, promoRate, promoEndDate 
+    }
+  }
+}
+`
+
+// Vehicle detail with full finance context for PaymentCalculator component
+export const VEHICLE_DETAIL_WITH_FINANCE_QUERY = `
+{
+  "finance": *[_type == "inventorySettings"][0] {
+    taxRate,
+    defaultTerm,
+    defaultDownPayment,
+    averageTradeInValue,
+    creditTiers[] { label, minScore, apr }
+  },
+  "vehicle": *[_type == "vehicle" && slug.current == $slug][0] {
+    _id, year, make, model, trim, vin, stockNumber, price, msrp, specialPrice,
+    status, condition, featured, mileage, exteriorColor, interiorColor, bodyStyle,
+    fuelType, transmission, drivetrain, engine, horsepower, doors, seats,
+    features, safetyFeatures, "mainImage": mainImage.asset->url,
+    "images": images[].asset->url, description, highlights,
+    carfaxUrl, previousOwners, accidentFree, serviceHistory,
+    "specialFinance": specialFinance-> { 
+      _id, name, "logo": logo.asset->url, promoRate, standardRate, 
+      promoEndDate, promoDescription, contactName, contactEmail, contactPhone
+    }
+  },
+  "lowestLenderRate": *[_type == "lender"] | order(promoRate asc)[0] {
+    name, promoRate, "logo": logo.asset->url, promoEndDate
+  }
+}
+`
+
 export const BANNERS_QUERY = `
   *[_type == "banner" && active == true] | order(priority desc) {
     _id, title, message, ctaLabel, ctaUrl, "backgroundImage": backgroundImage.asset->url, backgroundColor, textColor, position, pages

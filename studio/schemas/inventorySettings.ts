@@ -140,34 +140,33 @@ export const inventorySettings = defineType({
       initialValue: 60,
     }),
     
-    // Credit Score Tiers for Dynamic Interest Rates
+    // Credit Score Tiers for Dynamic Interest Rates (Professional Format)
     defineField({
       name: 'creditTiers',
-      title: 'Credit Score Interest Rate Tiers',
+      title: 'Credit Score Tiers',
       type: 'array',
-      description: 'Define interest rates based on credit score ranges.',
+      description: 'Define APR rates based on credit score. Update these when bank rates change - all vehicle payments update automatically.',
       of: [
         {
           type: 'object',
           fields: [
-            { name: 'tierName', title: 'Tier Name', type: 'string' },
-            { name: 'minScore', title: 'Minimum Credit Score', type: 'number' },
-            { name: 'maxScore', title: 'Maximum Credit Score', type: 'number' },
-            { name: 'interestRate', title: 'Interest Rate (%)', type: 'number' },
+            { name: 'label', title: 'Tier Label (e.g. Excellent)', type: 'string' },
+            { name: 'minScore', title: 'Min Credit Score', type: 'number' },
+            { name: 'apr', title: 'APR (%)', type: 'number', description: 'Annual Percentage Rate' },
           ],
           preview: {
-            select: { tierName: 'tierName', rate: 'interestRate', min: 'minScore', max: 'maxScore' },
-            prepare({ tierName, rate, min, max }) {
-              return { title: `${tierName}: ${rate}%`, subtitle: `Score ${min}-${max}` }
+            select: { label: 'label', apr: 'apr', minScore: 'minScore' },
+            prepare({ label, apr, minScore }) {
+              return { title: `${label}: ${apr}% APR`, subtitle: `Min Score: ${minScore}` }
             },
           },
         },
       ],
       initialValue: [
-        { tierName: 'Excellent', minScore: 750, maxScore: 850, interestRate: 3.99 },
-        { tierName: 'Good', minScore: 700, maxScore: 749, interestRate: 5.99 },
-        { tierName: 'Fair', minScore: 650, maxScore: 699, interestRate: 8.99 },
-        { tierName: 'Needs Work', minScore: 550, maxScore: 649, interestRate: 14.99 },
+        { label: 'Excellent', minScore: 740, apr: 4.99 },
+        { label: 'Good', minScore: 670, apr: 6.99 },
+        { label: 'Fair', minScore: 580, apr: 12.99 },
+        { label: 'Subprime', minScore: 500, apr: 18.99 },
       ],
     }),
     
