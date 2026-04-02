@@ -115,18 +115,18 @@ export function VehicleShowcase() {
     return currentVehicle.image
   }
 
-  // Simulate live viewing count with deterministic pattern
+  // Simulate live viewing count - stable empty dependency array
   useEffect(() => {
     let tick = 0
     const interval = setInterval(() => {
       tick++
-      const change = (tick % 3) - 1 // cycles: -1, 0, 1
+      const change = (tick % 3) - 1
       setViewCount((prev) => Math.max(40, Math.min(60, prev + change)))
     }, 5000)
     return () => clearInterval(interval)
   }, [])
 
-  // Auto-rotate when not hovering
+  // Auto-rotate carousel when not hovering
   useEffect(() => {
     if (isHovering || showcaseVehicles.length === 0) return
     const interval = setInterval(() => {
