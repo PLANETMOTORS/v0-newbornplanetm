@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 43
+  // Force clean build - version 44
   cleanDistDir: true,
   turbopack: {},
   typescript: {
@@ -41,8 +41,7 @@ const nextConfig = {
     ],
   },
   experimental: {
-    // optimizeCss disabled - critters has compatibility issues with Next.js 16
-    optimizeCss: false,
+    // Empty - no experimental features needed
   },
   compress: true,
   async headers() {

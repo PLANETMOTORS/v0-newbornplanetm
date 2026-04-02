@@ -1,13 +1,13 @@
 import { createClient } from "next-sanity"
 
-// Planet Motors CMS - Sanity client v12
+// Planet Motors CMS - Sanity client configuration
 // Validate dataset name - must be lowercase, numbers, dashes only (max 64 chars)
 function getValidDataset(): string {
   const envDataset = process.env.NEXT_PUBLIC_SANITY_DATASET
   
-  // If no env var or invalid format, use production
-  if (!envDataset || !/^[a-z0-9-]+$/.test(envDataset) || envDataset.length > 64) {
-    return "production"
+  // If no env var or invalid format, use planetmotors_cms (matching Studio)
+  if (!envDataset || !/^[a-z0-9_-]+$/.test(envDataset) || envDataset.length > 64) {
+    return "planetmotors_cms"
   }
   
   return envDataset
