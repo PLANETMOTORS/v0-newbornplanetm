@@ -115,7 +115,7 @@ export function VehicleShowcase() {
     return currentVehicle.image
   }
 
-  // Simulate live viewing count with deterministic pattern
+  // Simulate live viewing count with deterministic pattern (no dependencies)
   useEffect(() => {
     let tick = 0
     const interval = setInterval(() => {
