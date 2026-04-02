@@ -175,6 +175,7 @@ interface FinanceApplicationFullFormProps {
 }
 
 export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData }: FinanceApplicationFullFormProps) {
+  console.log("[v0] FinanceApplicationFullForm MOUNTED with props:", { vehicleId, vehicleData, tradeInData })
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
@@ -255,8 +256,10 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
   
   const [tradeIn, setTradeIn] = useState<TradeInInfo>(() => {
     // Initialize from tradeInData prop if provided
+    console.log("[v0] TradeIn Initialization - tradeInData prop:", tradeInData)
     if (tradeInData && tradeInData.value > 0) {
       const vehicleParts = tradeInData.vehicle?.split(' ') || []
+      console.log("[v0] TradeIn FOUND - value:", tradeInData.value, "vehicle:", tradeInData.vehicle)
       return {
         hasTradeIn: true, 
         vin: "", 
@@ -273,6 +276,7 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
         lienAmount: ""
       }
     }
+    console.log("[v0] TradeIn NOT provided - defaulting to empty")
     return {
       hasTradeIn: false, vin: "", year: "", make: "", model: "", trim: "",
       color: "", mileage: "", condition: "", estimatedValue: "",
@@ -371,6 +375,22 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   
   // Validation state
   const [validationErrors, setValidationErrors] = useState<string[]>([])
+  
+  // Helper to check if a field has an error and return the error class
+  const getFieldErrorClass = (fieldName: string): string => {
+    const hasError = validationErrors.some(err => 
+      err.toLowerCase().includes(fieldName.toLowerCase())
+    )
+    return hasError ? "border-destructive ring-1 ring-destructive bg-destructive/5" : ""
+  }
+  
+  // Helper to get Label class with error styling
+  const getLabelErrorClass = (fieldName: string): string => {
+    const hasError = validationErrors.some(err => 
+      err.toLowerCase().includes(fieldName.toLowerCase())
+    )
+    return hasError ? "text-destructive" : ""
+  }
   
   // Phone number validation - strict rules for real Canadian phone numbers
   const validatePhone = (phone: string): { valid: boolean; error?: string } => {
@@ -512,11 +532,13 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     return errors
   }
   
-  // Handle step navigation with validation
+// Handle step navigation with validation
   const handleNextStep = () => {
-    let errors: string[] = []
-    
-    if (currentStep === 1) {
+  console.log("[v0] handleNextStep called - currentStep:", currentStep)
+  let errors: string[] = []
+  
+  if (currentStep === 1) {
+    console.log("[v0] Validating Step 1 - primaryApplicant:", primaryApplicant)
       errors = validateStep1()
     } else if (currentStep === 2) {
       errors = validateStep2()
@@ -524,12 +546,14 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
       errors = validateStep3()
     }
     
-    if (errors.length > 0) {
-      setValidationErrors(errors)
-      // Scroll to top to show errors
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-      return
-    }
+if (errors.length > 0) {
+  console.log("[v0] Validation FAILED - errors:", errors)
+  setValidationErrors(errors)
+  // Scroll to top to show errors
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+  return
+  }
+  console.log("[v0] Validation PASSED - proceeding to step:", currentStep + 1)
     
     setValidationErrors([])
     setCurrentStep(prev => prev + 1)
@@ -553,14 +577,44 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
         })
       })
       
-      if (response.ok) {
-        setIsSubmitted(true)
+if (response.ok) {
+  const result = await response.json()
+  const applicationId = result.data?.id
+  
+  // Upload documents to private Blob storage
+  if (applicationId && documents.length > 0) {
+    console.log("[v0] Uploading documents for application:", applicationId)
+    for (const doc of documents) {
+      if (doc.file) {
+        const formData = new FormData()
+        formData.append("file", doc.file)
+        formData.append("applicationId", applicationId)
+        formData.append("documentType", doc.type)
+        
+        try {
+          const uploadRes = await fetch("/api/v1/financing/documents", {
+            method: "POST",
+            body: formData
+          })
+          if (uploadRes.ok) {
+            console.log("[v0] Document uploaded:", doc.type)
+          } else {
+            console.error("[v0] Document upload failed:", doc.type)
+          }
+        } catch (uploadErr) {
+          console.error("[v0] Document upload error:", uploadErr)
+        }
       }
-    } catch (error) {
-      console.error("Submit error:", error)
-    } finally {
-      setIsSubmitting(false)
     }
+  }
+  
+  setIsSubmitted(true)
+  }
+  } catch (error) {
+  console.error("Submit error:", error)
+  } finally {
+  setIsSubmitting(false)
+  }
   }
   
   // Render success state - redirect to ID verification
@@ -637,13 +691,14 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
         <CardContent className="p-6">
           {/* STEP 1: Primary Applicant */}
           {currentStep === 1 && (
-            <ApplicantForm
-              title="Primary Applicant Information"
-              description="Enter your personal, address, employment, and income information"
-              data={primaryApplicant}
-              onChange={setPrimaryApplicant}
-              isPrimary
-            />
+<ApplicantForm
+  title="Primary Applicant Information"
+  description="Enter your personal, address, employment, and income information"
+  data={primaryApplicant}
+  onChange={setPrimaryApplicant}
+  isPrimary
+  validationErrors={validationErrors}
+  />
           )}
           
           {/* STEP 2: Co-Applicant */}
@@ -679,13 +734,14 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
                     </div>
                   </div>
                   
-                  <ApplicantForm
-                    title="Co-Applicant Information"
-                    description="Enter co-applicant details"
-                    data={coApplicant}
-                    onChange={setCoApplicant}
-                    isPrimary={false}
-                  />
+<ApplicantForm
+  title="Co-Applicant Information"
+  description="Enter co-applicant details"
+  data={coApplicant}
+  onChange={setCoApplicant}
+  isPrimary={false}
+  validationErrors={validationErrors}
+  />
                 </>
               )}
             </div>
@@ -795,7 +851,8 @@ interface ApplicantFormProps {
   data: ApplicantData
   onChange: (data: ApplicantData) => void
   isPrimary: boolean
-}
+  validationErrors?: string[]
+  }
 
 // =====================================================
 // POSTAL CODE INPUT WITH ADDRESS LOOKUP
@@ -861,6 +918,14 @@ function PostalCodeInput({ value, onChange, label = "Postal Code *" }: PostalCod
   }
   
   const handleSelectSuggestion = (suggestion: AddressSuggestion) => {
+    console.log("[v0] handleSelectSuggestion CLICKED - suggestion:", suggestion)
+    console.log("[v0] Calling onChange with:", {
+      city: suggestion.city,
+      province: suggestion.province,
+      streetName: suggestion.streetName,
+      streetType: suggestion.streetType,
+      direction: suggestion.direction,
+    })
     onChange(value, {
       city: suggestion.city,
       province: suggestion.province,
@@ -869,6 +934,7 @@ function PostalCodeInput({ value, onChange, label = "Postal Code *" }: PostalCod
       direction: suggestion.direction,
     })
     setShowSuggestions(false)
+    console.log("[v0] handleSelectSuggestion COMPLETE")
   }
   
   return (
@@ -882,10 +948,10 @@ function PostalCodeInput({ value, onChange, label = "Postal Code *" }: PostalCod
             onChange(formatted)
             fetchAddressSuggestions(formatted)
           }}
-          onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-          onBlur={() => setTimeout(() => setShowSuggestions(false), 300)}
-          placeholder="L4B 0G2"
-          className="font-mono uppercase pr-8 border-primary/50 focus:border-primary"
+onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+  onBlur={() => setTimeout(() => setShowSuggestions(false), 500)}
+  placeholder="L4B 0G2"
+  className="font-mono uppercase pr-8 border-primary/50 focus:border-primary"
         />
         {isLoading && (
           <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-primary" />
@@ -902,7 +968,7 @@ function PostalCodeInput({ value, onChange, label = "Postal Code *" }: PostalCod
       
       {/* Street suggestions dropdown - MANDATORY SELECTION */}
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute z-50 w-[350px] mt-1 bg-background border-2 border-primary rounded-lg shadow-xl max-h-64 overflow-y-auto">
+        <div className="absolute z-[9999] left-0 top-full w-[350px] mt-1 bg-background border-2 border-primary rounded-lg shadow-xl max-h-64 overflow-y-auto">
           <div className="px-3 py-2 bg-primary/10 border-b border-primary/20 sticky top-0">
             <p className="text-xs font-semibold text-primary">
               Select your street to auto-fill address:
@@ -931,9 +997,26 @@ function PostalCodeInput({ value, onChange, label = "Postal Code *" }: PostalCod
   )
 }
 
-function ApplicantForm({ title, description, data, onChange, isPrimary }: ApplicantFormProps) {
+function ApplicantForm({ title, description, data, onChange, isPrimary, validationErrors = [] }: ApplicantFormProps) {
   const updateField = (field: keyof ApplicantData, value: any) => {
     onChange({ ...data, [field]: value })
+  }
+  
+  // Helper to check if a field has an error
+  const hasFieldError = (fieldName: string): boolean => {
+    return validationErrors.some(err => 
+      err.toLowerCase().includes(fieldName.toLowerCase())
+    )
+  }
+  
+  // Get error class for inputs
+  const getInputErrorClass = (fieldName: string): string => {
+    return hasFieldError(fieldName) ? "border-destructive ring-1 ring-destructive bg-destructive/5" : ""
+  }
+  
+  // Get error class for labels
+  const getLabelClass = (fieldName: string): string => {
+    return hasFieldError(fieldName) ? "text-destructive font-medium" : ""
   }
   
   return (
@@ -964,16 +1047,16 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
             </Select>
           </div>
           <div>
-            <Label>First Name *</Label>
-            <Input value={data.firstName} onChange={(e) => updateField("firstName", e.target.value)} required />
+            <Label className={getLabelClass("First Name")}>First Name *</Label>
+            <Input value={data.firstName} onChange={(e) => updateField("firstName", e.target.value)} required className={getInputErrorClass("First Name")} />
           </div>
           <div>
             <Label>Middle Name</Label>
             <Input value={data.middleName} onChange={(e) => updateField("middleName", e.target.value)} />
           </div>
           <div>
-            <Label>Last Name *</Label>
-            <Input value={data.lastName} onChange={(e) => updateField("lastName", e.target.value)} required />
+            <Label className={getLabelClass("Last Name")}>Last Name *</Label>
+            <Input value={data.lastName} onChange={(e) => updateField("lastName", e.target.value)} required className={getInputErrorClass("Last Name")} />
           </div>
           <div>
             <Label>Suffix</Label>
@@ -988,10 +1071,10 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
             </Select>
           </div>
           <div>
-            <Label>Date of Birth *</Label>
+            <Label className={getLabelClass("Date of Birth")}>Date of Birth *</Label>
             <div className="grid grid-cols-3 gap-2">
               <Select value={data.dateOfBirth.day} onValueChange={(v) => updateField("dateOfBirth", { ...data.dateOfBirth, day: v })}>
-                <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
+                <SelectTrigger className={getInputErrorClass("Date of Birth")}><SelectValue placeholder="Day" /></SelectTrigger>
                 <SelectContent>
                   {Array.from({ length: 31 }, (_, i) => (
                     <SelectItem key={i + 1} value={String(i + 1)}>{i + 1}</SelectItem>
@@ -1018,9 +1101,9 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
             </div>
           </div>
           <div>
-            <Label>Gender *</Label>
+            <Label className={getLabelClass("Gender")}>Gender *</Label>
             <Select value={data.gender} onValueChange={(v) => updateField("gender", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectTrigger className={getInputErrorClass("Gender")}><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="male">Male</SelectItem>
                 <SelectItem value="female">Female</SelectItem>
@@ -1105,7 +1188,8 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
           <PostalCodeInput
             value={data.postalCode}
             onChange={(postalCode, addressData) => {
-              onChange({
+              console.log("[v0] PostalCodeInput onChange RECEIVED:", { postalCode, addressData })
+              const newData = {
                 ...data,
                 postalCode,
                 ...(addressData?.city && { city: addressData.city }),
@@ -1113,13 +1197,15 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
                 ...(addressData?.streetName && { streetName: addressData.streetName }),
                 ...(addressData?.streetType && { streetType: addressData.streetType }),
                 ...(addressData?.direction && { direction: addressData.direction }),
-              })
+              }
+              console.log("[v0] Updating applicant data with:", newData)
+              onChange(newData)
             }}
           />
-          <div>
-            <Label>Address Type *</Label>
-            <Select value={data.addressType} onValueChange={(v) => updateField("addressType", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+<div>
+  <Label className={getLabelClass("Address Type")}>Address Type *</Label>
+  <Select value={data.addressType} onValueChange={(v) => updateField("addressType", v)}>
+  <SelectTrigger className={getInputErrorClass("Address Type")}><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="house">House</SelectItem>
                 <SelectItem value="apartment">Apartment</SelectItem>
@@ -1133,10 +1219,10 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
             <Label>Suite/Unit No.</Label>
             <Input value={data.suiteNumber} onChange={(e) => updateField("suiteNumber", e.target.value)} />
           </div>
-          <div>
-            <Label>Street Number *</Label>
-            <Input value={data.streetNumber} onChange={(e) => updateField("streetNumber", e.target.value)} />
-          </div>
+<div>
+  <Label className={getLabelClass("Street Number")}>Street Number *</Label>
+  <Input value={data.streetNumber} onChange={(e) => updateField("streetNumber", e.target.value)} className={getInputErrorClass("Street Number")} />
+  </div>
           <div className="md:col-span-2">
             <Label>Street Name *</Label>
             <Input value={data.streetName} onChange={(e) => updateField("streetName", e.target.value)} />
@@ -2089,7 +2175,7 @@ function ReviewStep({ primaryApplicant, coApplicant, vehicleInfo, tradeIn, finan
           </CardHeader>
           <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
             <div><span className="text-muted-foreground">Vehicle:</span> <span className="font-medium">{tradeIn.year} {tradeIn.make} {tradeIn.model}</span></div>
-            <div><span className="text-muted-foreground">Value:</span> <span className="font-medium">${parseFloat(tradeIn.estimatedValue).toLocaleString()}</span></div>
+            <div><span className="text-muted-foreground">Value:</span> <span className="font-medium">${(parseFloat(tradeIn.estimatedValue) || 0).toLocaleString()}</span></div>
             {tradeIn.hasLien && (
               <div><span className="text-muted-foreground">Lien:</span> <span className="font-medium">${parseFloat(tradeIn.lienAmount).toLocaleString()}</span></div>
             )}

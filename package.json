@@ -65,6 +65,7 @@
     "react-hook-form": "^7.54.1",
     "react-resizable-panels": "^2.1.7",
     "recharts": "2.15.0",
+    "resend": "^6.10.0",
     "sonner": "^1.7.1",
     "stripe": "^18.1.0",
     "swr": "^2.4.1",
