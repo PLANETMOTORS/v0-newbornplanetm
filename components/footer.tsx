@@ -1,4 +1,4 @@
-// Planet Motors Footer - v9 VERIFIED - Inline defaults only - 2026-04-02T15:00
+// Planet Motors Footer - v10 FINAL - All defaults inline, NO @/lib/sanity imports
 import { FooterContent } from "@/components/footer-content"
 
 // Default site settings - no external imports needed
