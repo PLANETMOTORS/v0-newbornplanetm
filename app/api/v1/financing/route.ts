@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
 // Canadian lenders configuration
 const lenders = [
@@ -12,6 +13,9 @@ const lenders = [
 
 // POST /api/v1/financing/prequalify - Soft credit pull (no score impact)
 export async function POST(request: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   const body = await request.json()
   
   const {
@@ -30,6 +34,22 @@ export async function POST(request: NextRequest) {
       { success: false, error: { code: 'MISSING_FIELDS', message: 'Annual income and requested amount are required' } },
       { status: 400 }
     )
+  }
+
+  if (customerId) {
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required when customerId is provided' } },
+        { status: 401 }
+      )
+    }
+
+    if (customerId !== user.id) {
+      return NextResponse.json(
+        { success: false, error: { code: 'FORBIDDEN', message: 'customerId must match authenticated user' } },
+        { status: 403 }
+      )
+    }
   }
 
   // Soft credit pull (calls Equifax/TransUnion in production)
@@ -73,7 +93,7 @@ export async function POST(request: NextRequest) {
   // Create prequalification record
   const prequalification = {
     id: `preq-${Date.now()}`,
-    customerId,
+    customerId: user?.id || null,
     vehicleId,
     status: eligibleLenders.length > 0 ? 'prequalified' : 'declined',
     creditScore,
