@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
 // POST /api/v1/financing/apply - Full application (hard pull)
 export async function POST(request: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   const body = await request.json()
   
   const {
@@ -56,6 +60,22 @@ export async function POST(request: NextRequest) {
       },
       { status: 400 }
     )
+  }
+
+  if (customerId) {
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required when customerId is provided' } },
+        { status: 401 }
+      )
+    }
+
+    if (customerId !== user.id) {
+      return NextResponse.json(
+        { success: false, error: { code: 'FORBIDDEN', message: 'customerId must match authenticated user' } },
+        { status: 403 }
+      )
+    }
   }
 
   // Hard credit pull - estimate based on income and employment
@@ -123,7 +143,7 @@ export async function POST(request: NextRequest) {
   const application = {
     id: `app-${Date.now()}`,
     applicationNumber,
-    customerId,
+    customerId: user?.id || null,
     vehicleId,
     status: 'submitted',
     applicationType: 'full',
