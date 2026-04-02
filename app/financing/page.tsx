@@ -6,8 +6,11 @@ import { Input } from "@/components/ui/input"
 import { FinanceApplicationForm } from "@/components/finance-application-form"
 import { CheckCircle, ArrowRight, Shield, Clock, BadgeCheck, User } from "lucide-react"
 import Link from "next/link"
+import { getLenders, getFinancingPage } from "@/lib/sanity/fetch"
+import { getSiteData } from "@/lib/sanity/site-data"
 
-const lenders = [
+// Default lenders fallback
+const defaultLenders = [
   { name: "TD Auto", rate: "4.99%", term: "84 mo", logo: "TD" },
   { name: "RBC", rate: "5.49%", term: "84 mo", logo: "RBC" },
   { name: "Scotiabank", rate: "5.29%", term: "84 mo", logo: "SCO" },
@@ -48,7 +51,27 @@ const steps = [
   },
 ]
 
-export default function FinancingPage() {
+export default async function FinancingPage() {
+  // Fetch data from Sanity CMS
+  const [sanityLenders, financingPageData, siteData] = await Promise.all([
+    getLenders(),
+    getFinancingPage(),
+    getSiteData(),
+  ])
+
+  // Use Sanity lenders or fallback to defaults
+  const lenders = sanityLenders.length > 0 
+    ? sanityLenders.map(l => ({
+        name: l.name,
+        rate: `${l.interestRate}%`,
+        term: `${l.maxTerm} mo`,
+        logo: l.name.slice(0, 3).toUpperCase(),
+      }))
+    : defaultLenders
+
+  // Get the lowest rate for display
+  const lowestRate = siteData.settings.financingDefaults?.annualInterestRate || 4.79
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -60,7 +83,7 @@ export default function FinancingPage() {
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium mb-6">
                 <BadgeCheck className="w-4 h-4" />
-                <span>Rates from 4.79% APR</span>
+                <span>Rates from {lowestRate}% APR</span>
               </div>
               
               <h1 className="font-serif text-4xl md:text-5xl font-semibold tracking-tight text-balance">
