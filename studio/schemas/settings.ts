@@ -245,20 +245,12 @@ export const navigation = defineType({
         { name: 'addressLink', title: 'Address Link (Google Maps)', type: 'url' },
       ],
     }),
-    // Trust Badges in Header
+    // Trust Badges in Header - references trustBadge type from pages.ts
     defineField({
       name: 'trustBadges',
       title: 'Header Trust Badges',
       type: 'array',
-      of: [
-        {
-          type: 'object',
-          fields: [
-            { name: 'label', title: 'Label', type: 'string' },
-            { name: 'icon', title: 'Icon', type: 'string' },
-          ],
-        },
-      ],
+      of: [{ type: 'trustBadge' }],
     }),
     // Main Navigation
     defineField({
