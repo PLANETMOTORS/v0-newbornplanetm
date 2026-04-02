@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { createClient } from "next-sanity"
+import { createClient as createSanityClient } from "next-sanity"
 import { groq } from "next-sanity"
 import { createClient } from "@/lib/supabase/server"
 
@@ -25,7 +25,7 @@ export async function GET() {
   }
   
   // Create client with validated config
-  const sanityClient = createClient({
+  const sanityClient = createSanityClient({
     projectId,
     dataset,
     apiVersion: "2024-01-01",
