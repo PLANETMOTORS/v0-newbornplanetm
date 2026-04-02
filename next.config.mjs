@@ -37,6 +37,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'media.cpsimg.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.sanity.io',
+      },
     ],
   },
   experimental: {
