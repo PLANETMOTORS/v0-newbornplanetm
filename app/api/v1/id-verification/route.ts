@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { put } from "@vercel/blob"
+import { del, put } from "@vercel/blob"
 import { createClient } from "@/lib/supabase/server"
+
+const MAX_ID_IMAGE_SIZE_BYTES = 10 * 1024 * 1024 // 10MB
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,6 +39,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const filesToValidate: Array<{ file: File | null; label: string }> = [
+      { file: primaryFrontImage, label: "Primary front image" },
+      { file: primaryBackImage, label: "Primary back image" },
+      { file: secondaryFrontImage, label: "Secondary front image" },
+      { file: secondaryBackImage, label: "Secondary back image" },
+    ]
+
+    for (const { file, label } of filesToValidate) {
+      if (!file) {
+        continue
+      }
+
+      const validationError = validateIdImageFile(file)
+      if (validationError) {
+        return NextResponse.json({ error: `${label}: ${validationError}` }, { status: 400 })
+      }
+    }
+
     // Generate unique folder path for this verification
     const timestamp = Date.now()
     const verificationId = `idv_${user.id}_${timestamp}`
@@ -47,6 +68,8 @@ export async function POST(request: NextRequest) {
       url: string
       uploadedAt: string
     }[] = []
+
+    const uploadedBlobPaths: string[] = []
 
     // Upload primary ID front
     if (primaryFrontImage) {
@@ -61,6 +84,7 @@ export async function POST(request: NextRequest) {
         url: blob.pathname,
         uploadedAt: new Date().toISOString()
       })
+      uploadedBlobPaths.push(blob.pathname)
     }
 
     // Upload primary ID back
@@ -76,6 +100,7 @@ export async function POST(request: NextRequest) {
         url: blob.pathname,
         uploadedAt: new Date().toISOString()
       })
+      uploadedBlobPaths.push(blob.pathname)
     }
 
     // Upload secondary ID images if provided
@@ -91,6 +116,7 @@ export async function POST(request: NextRequest) {
         url: blob.pathname,
         uploadedAt: new Date().toISOString()
       })
+      uploadedBlobPaths.push(blob.pathname)
     }
 
     if (secondaryBackImage) {
@@ -105,6 +131,7 @@ export async function POST(request: NextRequest) {
         url: blob.pathname,
         uploadedAt: new Date().toISOString()
       })
+      uploadedBlobPaths.push(blob.pathname)
     }
 
     // Save verification record to Supabase
@@ -132,6 +159,7 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       console.error("Failed to save ID verification:", insertError)
+      await cleanupUploadedBlobs(uploadedBlobPaths)
       return NextResponse.json(
         { error: "Failed to save ID verification record. Please try again." },
         { status: 500 }
@@ -140,18 +168,23 @@ export async function POST(request: NextRequest) {
 
     // Update finance application status if applicationId provided
     if (applicationId) {
-      const { error: updateError } = await supabase
+      const { data: updatedApplications, error: updateError } = await supabase
         .from("finance_applications")
         .update({ 
           id_verification_status: "submitted",
           id_verification_id: verificationId
         })
         .eq("id", applicationId)
+        .select("id")
       
-      if (updateError) {
+      if (updateError || !updatedApplications || updatedApplications.length === 0) {
         console.error("Failed to update finance application:", updateError)
-        // Don't fail the whole request, but log the error
-        // The ID verification was still saved successfully
+        await supabase.from("id_verifications").delete().eq("id", verificationId).eq("user_id", user.id)
+        await cleanupUploadedBlobs(uploadedBlobPaths)
+        return NextResponse.json(
+          { error: "Failed to link ID verification to the financing application." },
+          { status: 500 }
+        )
       }
     }
 
@@ -208,7 +241,7 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error("Failed to fetch verifications:", error)
-      return NextResponse.json({ verifications: [] })
+      return NextResponse.json({ error: "Failed to fetch verifications" }, { status: 500 })
     }
 
     return NextResponse.json({ verifications: verifications || [] })
@@ -216,5 +249,29 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching verifications:", error)
     return NextResponse.json({ error: "Failed to fetch verifications" }, { status: 500 })
+  }
+}
+
+function validateIdImageFile(file: File): string | null {
+  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+    return "unsupported file type. Allowed types: JPEG, PNG, WEBP"
+  }
+
+  if (file.size > MAX_ID_IMAGE_SIZE_BYTES) {
+    return "file is too large. Maximum size is 10MB"
+  }
+
+  return null
+}
+
+async function cleanupUploadedBlobs(paths: string[]) {
+  if (paths.length === 0) {
+    return
+  }
+
+  try {
+    await del(paths)
+  } catch (cleanupError) {
+    console.error("Failed to cleanup uploaded blobs:", cleanupError)
   }
 }
