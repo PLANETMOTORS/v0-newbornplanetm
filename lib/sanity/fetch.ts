@@ -1,4 +1,4 @@
-// Planet Motors CMS - Data Fetching v14
+// Planet Motors CMS - Data Fetching v17
 import { sanityClient } from "./client"
 import type {
   SiteSettings,
@@ -54,6 +54,46 @@ const FEATURED_TESTIMONIALS_QUERY = `*[_type == "testimonial" && featured == tru
 const PROTECTION_PLANS_QUERY = `*[_type == "protectionPlan"] | order(order asc) { _id, name, description, price, features, coverage, "icon": icon.asset->url }`
 
 const LENDERS_QUERY = `*[_type == "lender"] | order(order asc) { _id, name, "logo": logo.asset->url, description, specialties, featured }`
+
+// Combined query for vehicles with special financing resolved
+const VEHICLES_WITH_FINANCING_QUERY = `{
+  "vehicles": *[_type == "vehicle" && status == "available"] | order(price asc) {
+    _id,
+    year,
+    make,
+    model,
+    trim,
+    price,
+    msrp,
+    specialPrice,
+    mileage,
+    fuelType,
+    transmission,
+    "slug": slug.current,
+    "mainImage": mainImage.asset->url,
+    "images": images[].asset->url,
+    condition,
+    featured,
+    // Resolve the specialFinance lender reference
+    "specialFinance": specialFinance->{
+      _id,
+      name,
+      "logo": logo.asset->url,
+      promoRate,
+      promoEndDate,
+      minCreditScore
+    }
+  },
+  "lenders": *[_type == "lender"] | order(order asc) {
+    _id,
+    name,
+    "logo": logo.asset->url,
+    promoRate,
+    standardRate,
+    promoEndDate,
+    featured
+  }
+}`
 
 // Cache tags for ISR revalidation
 const CACHE_TAGS = {
@@ -272,6 +312,42 @@ export async function getLenders(): Promise<Lender[]> {
     console.error("Failed to fetch lenders:", error)
     return []
   }
+}
+
+// Combined fetch for vehicles with their special financing deals resolved
+export async function getVehiclesWithFinancing(): Promise<{
+  vehicles: (Vehicle & { specialFinance?: Lender | null })[];
+  lenders: Lender[];
+}> {
+  try {
+    const result = await sanityClient.fetch(VEHICLES_WITH_FINANCING_QUERY, {}, {
+      next: { tags: ["sanity-vehicles", "sanity-lenders"], revalidate: 300 }
+    })
+    return {
+      vehicles: result?.vehicles || [],
+      lenders: result?.lenders || []
+    }
+  } catch (error) {
+    console.error("Failed to fetch vehicles with financing:", error)
+    return { vehicles: [], lenders: [] }
+  }
+}
+
+// Helper: Calculate monthly payment (PMT formula)
+export function calculateMonthlyPayment(
+  principal: number,
+  annualRate: number,
+  termMonths: number = 60
+): number {
+  if (annualRate === 0) return principal / termMonths
+  const monthlyRate = annualRate / 100 / 12
+  return (principal * monthlyRate * Math.pow(1 + monthlyRate, termMonths)) /
+         (Math.pow(1 + monthlyRate, termMonths) - 1)
+}
+
+// Helper: Get effective price (special price if available, otherwise regular price)
+export function getEffectivePrice(vehicle: Vehicle): number {
+  return vehicle.specialPrice || vehicle.price || 0
 }
 
 export { CACHE_TAGS }

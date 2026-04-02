@@ -12,7 +12,11 @@ export const VEHICLES_QUERY = `
     fuelType, transmission, drivetrain, engine, horsepower, doors, seats, evRange,
     batteryCapacity, features, safetyFeatures, "mainImage": mainImage.asset->url,
     "images": images[].asset->url, description, highlights, carfaxUrl, previousOwners,
-    accidentFree, serviceHistory, slug, seoTitle, seoDescription
+    accidentFree, serviceHistory, slug, seoTitle, seoDescription,
+    // Professional Monthly Payment Calculation (60-month term, ~5% interest factor)
+    "estMonthlyPayment": round(coalesce(specialPrice, price) / 60 * 1.05),
+    // Resolve special financing lender reference
+    "specialFinance": specialFinance-> { _id, name, "logo": logo.asset->url, promoRate, promoEndDate }
   }
 `
 
@@ -23,13 +27,23 @@ export const VEHICLE_BY_SLUG_QUERY = `
     fuelType, transmission, drivetrain, engine, horsepower, doors, seats, evRange,
     batteryCapacity, features, safetyFeatures, "mainImage": mainImage.asset->url,
     "images": images[].asset->url, description, highlights, carfaxUrl, previousOwners,
-    accidentFree, serviceHistory, slug, seoTitle, seoDescription
+    accidentFree, serviceHistory, slug, seoTitle, seoDescription,
+    // Professional Monthly Payment Calculation
+    "estMonthlyPayment": round(coalesce(specialPrice, price) / 60 * 1.05),
+    // Resolve special financing lender reference with full details
+    "specialFinance": specialFinance-> { 
+      _id, name, "logo": logo.asset->url, promoRate, standardRate, promoEndDate,
+      promoDescription, contactName, contactEmail, contactPhone
+    }
   }
 `
 
 export const FEATURED_VEHICLES_QUERY = `
   *[_type == "vehicle" && featured == true && status == "available"] | order(_createdAt desc)[0...8] {
-    _id, year, make, model, trim, price, mileage, fuelType, "mainImage": mainImage.asset->url, slug
+    _id, year, make, model, trim, price, specialPrice, mileage, fuelType, 
+    "mainImage": mainImage.asset->url, slug,
+    "estMonthlyPayment": round(coalesce(specialPrice, price) / 60 * 1.05),
+    "specialFinance": specialFinance-> { name, "logo": logo.asset->url, promoRate }
   }
 `
 
@@ -93,9 +107,69 @@ export const FINANCING_PAGE_QUERY = `
 
 export const INVENTORY_SETTINGS_QUERY = `
   *[_type == "inventorySettings"][0] {
-    displaySettings { pageTitle, pageSubtitle, defaultView, itemsPerPage, showFiltersSidebar },
-    filterConfiguration, sortingOptions, vehicleBadges, seo
+    title, showFiltersSidebar, itemsPerPage, defaultSortOrder,
+    showComparisonTool, showQuickView, filterOptions, priceDisplay,
+    taxRate, defaultDownPayment, averageTradeInValue, defaultTerm,
+    creditTiers, noResultsMessage
   }
+`
+
+// Full-Stack Dynamic Payment Calculator Query
+// Fetches vehicles with global settings for accurate payment calculations
+export const VEHICLES_WITH_PAYMENT_CALC_QUERY = `
+{
+  "settings": *[_type == "inventorySettings"][0] {
+    taxRate,
+    defaultTerm,
+    defaultDownPayment,
+    averageTradeInValue,
+    creditTiers
+  },
+  "vehicles": *[_type == "vehicle" && status == "available"] | order(price asc) {
+    _id,
+    year,
+    make,
+    model,
+    trim,
+    price,
+    specialPrice,
+    mileage,
+    fuelType,
+    condition,
+    "slug": slug.current,
+    "mainImage": mainImage.asset->url,
+    "specialFinance": specialFinance-> { 
+      name, "logo": logo.asset->url, promoRate, promoEndDate 
+    }
+  }
+}
+`
+
+// Single vehicle with full payment calculation context
+export const VEHICLE_WITH_PAYMENT_CONTEXT_QUERY = `
+{
+  "settings": *[_type == "inventorySettings"][0] {
+    taxRate,
+    defaultTerm,
+    defaultDownPayment,
+    averageTradeInValue,
+    creditTiers
+  },
+  "vehicle": *[_type == "vehicle" && slug.current == $slug][0] {
+    _id, year, make, model, trim, vin, stockNumber, price, msrp, specialPrice,
+    status, condition, mileage, exteriorColor, interiorColor, bodyStyle,
+    fuelType, transmission, drivetrain, engine, horsepower,
+    features, safetyFeatures, "mainImage": mainImage.asset->url,
+    "images": images[].asset->url, description, highlights,
+    "specialFinance": specialFinance-> { 
+      _id, name, "logo": logo.asset->url, promoRate, standardRate, 
+      promoEndDate, promoDescription
+    }
+  },
+  "lowestRate": *[_type == "lender"] | order(promoRate asc)[0] {
+    name, promoRate, "logo": logo.asset->url
+  }
+}
 `
 
 // ==========================================
@@ -149,9 +223,88 @@ export const PROTECTION_PLANS_QUERY = `
 `
 
 export const LENDERS_QUERY = `
-  *[_type == "lender"] | order(order asc) {
-    _id, name, "logo": logo.asset->url, description, specialties, featured
+  *[_type == "lender"] | order(promoRate asc, standardRate asc) {
+    _id, name, "logo": logo.asset->url, description, specialties, featured,
+    promoRate, standardRate, promoEndDate, promoDescription,
+    contactName, contactEmail, contactPhone
   }
+`
+
+// Get the lowest available interest rate from all lenders
+export const LOWEST_RATE_QUERY = `
+  *[_type == "lender"] | order(promoRate asc)[0] {
+    name, promoRate, standardRate, promoEndDate, "logo": logo.asset->url
+  }
+`
+
+// Vehicles with special financing sorted by monthly payment
+export const VEHICLES_BY_PAYMENT_QUERY = `
+  *[_type == "vehicle" && status == "available"] | order(round(coalesce(specialPrice, price) / 60 * 1.05) asc) {
+    _id, year, make, model, trim, price, specialPrice, mileage, fuelType,
+    "mainImage": mainImage.asset->url, slug,
+    "estMonthlyPayment": round(coalesce(specialPrice, price) / 60 * 1.05),
+    "specialFinance": specialFinance-> { name, "logo": logo.asset->url, promoRate }
+  }
+`
+
+// Professional Full-Stack Payment Query with Credit Tier Support
+// Pre-calculates payments using "Excellent" (lowest APR) tier for "Starting at" display
+export const VEHICLES_WITH_DYNAMIC_PAYMENTS_QUERY = `
+{
+  "finance": *[_type == "inventorySettings"][0] {
+    taxRate,
+    defaultTerm,
+    defaultDownPayment,
+    averageTradeInValue,
+    creditTiers[] { label, minScore, apr }
+  },
+  "vehicles": *[_type == "vehicle" && status == "available"] | order(price asc) {
+    _id,
+    year,
+    make,
+    model,
+    trim,
+    price,
+    specialPrice,
+    mileage,
+    fuelType,
+    condition,
+    featured,
+    "slug": slug.current,
+    "mainImage": mainImage.asset->url,
+    "specialFinance": specialFinance-> { 
+      name, "logo": logo.asset->url, promoRate, promoEndDate 
+    }
+  }
+}
+`
+
+// Vehicle detail with full finance context for PaymentCalculator component
+export const VEHICLE_DETAIL_WITH_FINANCE_QUERY = `
+{
+  "finance": *[_type == "inventorySettings"][0] {
+    taxRate,
+    defaultTerm,
+    defaultDownPayment,
+    averageTradeInValue,
+    creditTiers[] { label, minScore, apr }
+  },
+  "vehicle": *[_type == "vehicle" && slug.current == $slug][0] {
+    _id, year, make, model, trim, vin, stockNumber, price, msrp, specialPrice,
+    status, condition, featured, mileage, exteriorColor, interiorColor, bodyStyle,
+    fuelType, transmission, drivetrain, engine, horsepower, doors, seats,
+    features, safetyFeatures, "mainImage": mainImage.asset->url,
+    "images": images[].asset->url, description, highlights,
+    carfaxUrl, previousOwners, accidentFree, serviceHistory,
+    "specialFinance": specialFinance-> { 
+      _id, name, "logo": logo.asset->url, promoRate, standardRate, 
+      promoEndDate, promoDescription, contactName, contactEmail, contactPhone
+    }
+  },
+  "lowestLenderRate": *[_type == "lender"] | order(promoRate asc)[0] {
+    name, promoRate, "logo": logo.asset->url, promoEndDate
+  }
+}
 `
 
 export const BANNERS_QUERY = `

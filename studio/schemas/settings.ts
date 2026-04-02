@@ -5,6 +5,21 @@ export const siteSettings = defineType({
   title: 'Site Settings',
   type: 'document',
   fields: [
+    // Title (for ghost data compatibility)
+    defineField({
+      name: 'title',
+      title: 'Title',
+      type: 'string',
+      hidden: true,
+    }),
+    // Show Filters Sidebar (for ghost data compatibility)
+    defineField({
+      name: 'showFiltersSidebar',
+      title: 'Show Filters Sidebar',
+      type: 'boolean',
+      initialValue: true,
+      hidden: true,
+    }),
     // Dealer Info
     defineField({
       name: 'dealerName',

@@ -1,12 +1,12 @@
 /** @type {import('next').NextConfig} */
-// CACHE BUST: v61 - Files verified v15 FINAL - page.tsx and footer.tsx have ZERO @/lib/sanity imports - using inline DEFAULT_SITE_SETTINGS
+// CACHE BUST: v62 - Force App Router only, no Pages Router
 const nextConfig = {
-  // Force complete rebuild
+  // Force complete rebuild and disable all caching
   cleanDistDir: true,
-  turbopack: {
-    // Force module resolution refresh
-    resolveExtensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
-  },
+  
+  // Explicitly use App Router only - no pages directory
+  // This should prevent Turbopack from looking for pages/_app
+  
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -44,9 +44,6 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    // Empty - no experimental features needed
-  },
   compress: true,
   async headers() {
     return [
@@ -54,6 +51,8 @@ const nextConfig = {
         source: '/:path*',
         headers: [
           { key: 'Link', value: '<https://planetmotors.imgix.net>; rel=preconnect' },
+          // Disable caching for development
+          { key: 'Cache-Control', value: 'no-store, must-revalidate' },
         ],
       },
     ]
