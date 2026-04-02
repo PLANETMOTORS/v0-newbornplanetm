@@ -9,7 +9,7 @@ import { pageSchemas } from './pages'
 import { homepageHero, banner, page, promotion } from './homepage'
 
 // Content
-import { blogPost, testimonial, faqEntry, protectionPlan } from './content'
+import { blogPost, testimonial, faqItem, faqEntry, protectionPlan } from './content'
 
 // Settings
 import { siteSettings, seoSettings, navigation } from './settings'
@@ -20,8 +20,8 @@ export const schemaTypes = [
   vehicle,
   lender,
   
-  // Pages (Homepage, Financing, Sell Your Car, Landing Pages, VDP Settings)
-  // Also includes object types: trustBadge, benefitItem, processStep, testimonialItem, comparisonRow, faqItem, ctaButton
+  // Pages (Homepage, Financing, Sell Your Car, VDP Settings, AI Settings, Sell Page)
+  // Also includes object types: trustBadge, benefitItem, processStep, testimonialItem, comparisonRow, faqItemObj, ctaButton
   ...pageSchemas,
   
   // Website Components (Hero variants, Banners, Static Pages, Promotions)
@@ -33,6 +33,7 @@ export const schemaTypes = [
   // Content (Blog, Testimonials, FAQ, Protection Plans)
   blogPost,
   testimonial,
+  faqItem,
   faqEntry,
   protectionPlan,
   
