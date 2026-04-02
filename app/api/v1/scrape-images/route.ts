@@ -86,12 +86,12 @@ export async function GET() {
     }
     
     // Get all vehicles with VDP URLs
-    const { data: vehicles, error: vehiclesError } = await supabase
+    const { data: vehicles, error } = await supabase
       .from('vehicles')
       .select('id, stock_number, make, model, primary_image_url')
       .eq('status', 'available')
     
-    if (vehiclesError) throw vehiclesError
+    if (error) throw error
     
     const results = []
     
