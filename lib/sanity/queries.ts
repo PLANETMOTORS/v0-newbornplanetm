@@ -107,9 +107,69 @@ export const FINANCING_PAGE_QUERY = `
 
 export const INVENTORY_SETTINGS_QUERY = `
   *[_type == "inventorySettings"][0] {
-    displaySettings { pageTitle, pageSubtitle, defaultView, itemsPerPage, showFiltersSidebar },
-    filterConfiguration, sortingOptions, vehicleBadges, seo
+    title, showFiltersSidebar, itemsPerPage, defaultSortOrder,
+    showComparisonTool, showQuickView, filterOptions, priceDisplay,
+    taxRate, defaultDownPayment, averageTradeInValue, defaultTerm,
+    creditTiers, noResultsMessage
   }
+`
+
+// Full-Stack Dynamic Payment Calculator Query
+// Fetches vehicles with global settings for accurate payment calculations
+export const VEHICLES_WITH_PAYMENT_CALC_QUERY = `
+{
+  "settings": *[_type == "inventorySettings"][0] {
+    taxRate,
+    defaultTerm,
+    defaultDownPayment,
+    averageTradeInValue,
+    creditTiers
+  },
+  "vehicles": *[_type == "vehicle" && status == "available"] | order(price asc) {
+    _id,
+    year,
+    make,
+    model,
+    trim,
+    price,
+    specialPrice,
+    mileage,
+    fuelType,
+    condition,
+    "slug": slug.current,
+    "mainImage": mainImage.asset->url,
+    "specialFinance": specialFinance-> { 
+      name, "logo": logo.asset->url, promoRate, promoEndDate 
+    }
+  }
+}
+`
+
+// Single vehicle with full payment calculation context
+export const VEHICLE_WITH_PAYMENT_CONTEXT_QUERY = `
+{
+  "settings": *[_type == "inventorySettings"][0] {
+    taxRate,
+    defaultTerm,
+    defaultDownPayment,
+    averageTradeInValue,
+    creditTiers
+  },
+  "vehicle": *[_type == "vehicle" && slug.current == $slug][0] {
+    _id, year, make, model, trim, vin, stockNumber, price, msrp, specialPrice,
+    status, condition, mileage, exteriorColor, interiorColor, bodyStyle,
+    fuelType, transmission, drivetrain, engine, horsepower,
+    features, safetyFeatures, "mainImage": mainImage.asset->url,
+    "images": images[].asset->url, description, highlights,
+    "specialFinance": specialFinance-> { 
+      _id, name, "logo": logo.asset->url, promoRate, standardRate, 
+      promoEndDate, promoDescription
+    }
+  },
+  "lowestRate": *[_type == "lender"] | order(promoRate asc)[0] {
+    name, promoRate, "logo": logo.asset->url
+  }
+}
 `
 
 // ==========================================
