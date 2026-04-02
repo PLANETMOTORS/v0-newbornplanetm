@@ -84,9 +84,15 @@ export function VehicleShowcase() {
   const [isHovering, setIsHovering] = useState(false)
   const [viewCount, setViewCount] = useState(47)
   const [imageError, setImageError] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+
+  // Track mount state to prevent state updates before mount
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   // Fetch vehicles from Supabase
-  const { data: dbVehicles, isLoading, error } = useSWR('showcase-vehicles', fetcher, {
+  const { data: dbVehicles, isLoading, error } = useSWR(isMounted ? 'showcase-vehicles' : null, fetcher, {
     refreshInterval: 60000
   })
 
@@ -117,6 +123,7 @@ export function VehicleShowcase() {
 
   // Simulate live viewing count with deterministic pattern
   useEffect(() => {
+    if (!isMounted) return
     let tick = 0
     const interval = setInterval(() => {
       tick++
@@ -124,16 +131,16 @@ export function VehicleShowcase() {
       setViewCount(prev => Math.max(40, Math.min(60, prev + change)))
     }, 5000)
     return () => clearInterval(interval)
-  }, [])
+  }, [isMounted])
 
   // Auto-rotate when not hovering
   useEffect(() => {
-    if (isHovering || showcaseVehicles.length === 0) return
+    if (!isMounted || isHovering || showcaseVehicles.length === 0) return
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % showcaseVehicles.length)
     }, 5000)
     return () => clearInterval(interval)
-  }, [isHovering, showcaseVehicles.length])
+  }, [isMounted, isHovering, showcaseVehicles.length])
 
   const goToPrevious = () => {
     if (isAnimating || showcaseVehicles.length === 0) return
