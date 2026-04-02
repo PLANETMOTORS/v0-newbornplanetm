@@ -10,8 +10,9 @@ import {
   Search,
   DollarSign,
   LayoutGrid,
-  CreditCard,
-  Building
+  Megaphone,
+  FileStack,
+  Receipt
 } from 'lucide-react'
 
 export const structure = (S: StructureBuilder) =>
@@ -82,6 +83,15 @@ export const structure = (S: StructureBuilder) =>
               S.documentTypeListItem('lender').title('Lenders'),
               S.divider(),
               S.listItem()
+                .title('Financing Page')
+                .icon(() => Receipt({ size: 20 }))
+                .child(
+                  S.document()
+                    .schemaType('financingPage')
+                    .documentId('financingPage')
+                    .title('Financing Page Content')
+                ),
+              S.listItem()
                 .title('Inventory Settings')
                 .icon(() => LayoutGrid({ size: 20 }))
                 .child(
@@ -95,17 +105,49 @@ export const structure = (S: StructureBuilder) =>
       
       S.divider(),
       
+      // Homepage
+      S.listItem()
+        .title('Homepage')
+        .icon(() => Home({ size: 20 }))
+        .child(
+          S.document()
+            .schemaType('homepage')
+            .documentId('homepage')
+            .title('Homepage Content')
+        ),
+      
+      // Landing Pages
+      S.listItem()
+        .title('Landing Pages')
+        .icon(() => FileStack({ size: 20 }))
+        .child(
+          S.list()
+            .title('Landing Pages')
+            .items([
+              S.listItem()
+                .title('Sell Your Car')
+                .child(
+                  S.document()
+                    .schemaType('sellYourCarPage')
+                    .documentId('sellYourCarPage')
+                    .title('Sell Your Car Page')
+                ),
+              S.divider(),
+              S.documentTypeListItem('landingPage').title('Custom Landing Pages'),
+            ])
+        ),
+      
       // Website Content
       S.listItem()
         .title('Website Content')
-        .icon(() => Home({ size: 20 }))
+        .icon(() => Megaphone({ size: 20 }))
         .child(
           S.list()
             .title('Website Content')
             .items([
-              S.documentTypeListItem('homepageHero').title('Homepage Hero'),
+              S.documentTypeListItem('homepageHero').title('Hero Variants'),
               S.documentTypeListItem('banner').title('Banners'),
-              S.documentTypeListItem('page').title('Pages'),
+              S.documentTypeListItem('page').title('Static Pages'),
               S.documentTypeListItem('promotion').title('Promotions'),
             ])
         ),
