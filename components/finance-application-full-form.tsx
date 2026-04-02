@@ -175,6 +175,7 @@ interface FinanceApplicationFullFormProps {
 }
 
 export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData }: FinanceApplicationFullFormProps) {
+  console.log("[v0] FinanceApplicationFullForm MOUNTED with props:", { vehicleId, vehicleData, tradeInData })
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
@@ -255,8 +256,10 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
   
   const [tradeIn, setTradeIn] = useState<TradeInInfo>(() => {
     // Initialize from tradeInData prop if provided
+    console.log("[v0] TradeIn Initialization - tradeInData prop:", tradeInData)
     if (tradeInData && tradeInData.value > 0) {
       const vehicleParts = tradeInData.vehicle?.split(' ') || []
+      console.log("[v0] TradeIn FOUND - value:", tradeInData.value, "vehicle:", tradeInData.vehicle)
       return {
         hasTradeIn: true, 
         vin: "", 
@@ -273,6 +276,7 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
         lienAmount: ""
       }
     }
+    console.log("[v0] TradeIn NOT provided - defaulting to empty")
     return {
       hasTradeIn: false, vin: "", year: "", make: "", model: "", trim: "",
       color: "", mileage: "", condition: "", estimatedValue: "",
@@ -528,11 +532,13 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     return errors
   }
   
-  // Handle step navigation with validation
+// Handle step navigation with validation
   const handleNextStep = () => {
-    let errors: string[] = []
-    
-    if (currentStep === 1) {
+  console.log("[v0] handleNextStep called - currentStep:", currentStep)
+  let errors: string[] = []
+  
+  if (currentStep === 1) {
+    console.log("[v0] Validating Step 1 - primaryApplicant:", primaryApplicant)
       errors = validateStep1()
     } else if (currentStep === 2) {
       errors = validateStep2()
@@ -540,12 +546,14 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
       errors = validateStep3()
     }
     
-    if (errors.length > 0) {
-      setValidationErrors(errors)
-      // Scroll to top to show errors
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-      return
-    }
+if (errors.length > 0) {
+  console.log("[v0] Validation FAILED - errors:", errors)
+  setValidationErrors(errors)
+  // Scroll to top to show errors
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+  return
+  }
+  console.log("[v0] Validation PASSED - proceeding to step:", currentStep + 1)
     
     setValidationErrors([])
     setCurrentStep(prev => prev + 1)
@@ -880,6 +888,14 @@ function PostalCodeInput({ value, onChange, label = "Postal Code *" }: PostalCod
   }
   
   const handleSelectSuggestion = (suggestion: AddressSuggestion) => {
+    console.log("[v0] handleSelectSuggestion CLICKED - suggestion:", suggestion)
+    console.log("[v0] Calling onChange with:", {
+      city: suggestion.city,
+      province: suggestion.province,
+      streetName: suggestion.streetName,
+      streetType: suggestion.streetType,
+      direction: suggestion.direction,
+    })
     onChange(value, {
       city: suggestion.city,
       province: suggestion.province,
@@ -888,6 +904,7 @@ function PostalCodeInput({ value, onChange, label = "Postal Code *" }: PostalCod
       direction: suggestion.direction,
     })
     setShowSuggestions(false)
+    console.log("[v0] handleSelectSuggestion COMPLETE")
   }
   
   return (
@@ -1141,7 +1158,8 @@ function ApplicantForm({ title, description, data, onChange, isPrimary, validati
           <PostalCodeInput
             value={data.postalCode}
             onChange={(postalCode, addressData) => {
-              onChange({
+              console.log("[v0] PostalCodeInput onChange RECEIVED:", { postalCode, addressData })
+              const newData = {
                 ...data,
                 postalCode,
                 ...(addressData?.city && { city: addressData.city }),
@@ -1149,7 +1167,9 @@ function ApplicantForm({ title, description, data, onChange, isPrimary, validati
                 ...(addressData?.streetName && { streetName: addressData.streetName }),
                 ...(addressData?.streetType && { streetType: addressData.streetType }),
                 ...(addressData?.direction && { direction: addressData.direction }),
-              })
+              }
+              console.log("[v0] Updating applicant data with:", newData)
+              onChange(newData)
             }}
           />
 <div>
