@@ -9,7 +9,7 @@ if (!token) {
 
 const client = createClient({
   projectId: '4588vjsz',
-  dataset: 'production',
+  dataset: 'planetmotors_cms',
   apiVersion: '2024-01-01',
   useCdn: false,
   token: token,
