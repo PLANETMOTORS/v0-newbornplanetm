@@ -1,4 +1,6 @@
-// Sanity data fetching - All queries inlined to avoid module resolution issues
+// Planet Motors CMS - Sanity Data Fetching
+// All GROQ queries are inlined directly in this file - NO external imports
+// Cache bust: 2026-04-02-v1
 import { sanityClient } from "./client"
 import type {
   SiteSettings,

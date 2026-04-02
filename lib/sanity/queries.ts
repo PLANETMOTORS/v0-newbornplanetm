@@ -1,5 +1,9 @@
-// Planet Motors CMS - GROQ Queries
-// Using plain template strings with @sanity/client
+// Planet Motors CMS - GROQ Query Definitions
+// All queries exported as plain template strings
+
+// ==========================================
+// VEHICLE QUERIES
+// ==========================================
 
 export const VEHICLES_QUERY = `
   *[_type == "vehicle" && status == "available"] | order(_createdAt desc) {
@@ -37,21 +41,16 @@ export const VEHICLES_BY_STOCK_NUMBERS_QUERY = `
   }
 `
 
+// ==========================================
+// SITE CONFIGURATION QUERIES
+// ==========================================
+
 export const SITE_SETTINGS_QUERY = `
   *[_type == "siteSettings"][0] {
     dealerName, phone, email, streetAddress, city, province, postalCode, latitude, longitude,
     omvicNumber, businessHours, facebookUrl, instagramUrl, twitterUrl, youtubeUrl,
     googleMapsEmbedUrl, announcementBar, mainNavigation, financingDefaults,
     deliveryConfiguration, aggregateRating, defaultSeo, leadRoutingRules, depositAmount
-  }
-`
-
-export const HOMEPAGE_QUERY = `
-  *[_type == "homepage"][0] {
-    heroSection { headline, subheadline, primaryCta, secondaryCta, "backgroundImage": backgroundImage.asset->url, altText, trustBadges },
-    featuredVehicleStockNumbers,
-    promoBanner { showBanner, headline, bodyText, ctaLabel, ctaUrl, backgroundColor },
-    testimonials, faqHighlights
   }
 `
 
@@ -64,6 +63,44 @@ export const NAVIGATION_QUERY = `
     footerBottom { copyrightText, legalLinks }
   }
 `
+
+// ==========================================
+// PAGE QUERIES
+// ==========================================
+
+export const HOMEPAGE_QUERY = `
+  *[_type == "homepage"][0] {
+    heroSection { headline, subheadline, primaryCta, secondaryCta, "backgroundImage": backgroundImage.asset->url, altText, trustBadges },
+    featuredVehicleStockNumbers,
+    promoBanner { showBanner, headline, bodyText, ctaLabel, ctaUrl, backgroundColor },
+    testimonials, faqHighlights
+  }
+`
+
+export const SELL_YOUR_CAR_PAGE_QUERY = `
+  *[_type == "sellYourCar"][0] {
+    heroSection { headline, subheadline, highlightText, formSettings, trustBadges, "backgroundImage": backgroundImage.asset->url },
+    benefits, comparisonTable, processSteps, testimonials, ctaSection, seo
+  }
+`
+
+export const FINANCING_PAGE_QUERY = `
+  *[_type == "financing"][0] {
+    heroSection { headline, subheadline, featuredRateText, rateSubtext, primaryCta, secondaryCta, heroStats },
+    lenders, calculator, processSteps, benefits, faqs, seo
+  }
+`
+
+export const INVENTORY_SETTINGS_QUERY = `
+  *[_type == "inventorySettings"][0] {
+    displaySettings { pageTitle, pageSubtitle, defaultView, itemsPerPage, showFiltersSidebar },
+    filterConfiguration, sortingOptions, vehicleBadges, seo
+  }
+`
+
+// ==========================================
+// BLOG QUERIES
+// ==========================================
 
 export const BLOG_LIST_QUERY = `
   *[_type == "blogPost"] | order(publishedAt desc)[$start...$end] {
@@ -78,6 +115,10 @@ export const BLOG_POST_QUERY = `
     _id, title, slug, publishedAt, excerpt, "coverImage": coverImage.asset->url, body, seoTitle, seoDescription
   }
 `
+
+// ==========================================
+// CONTENT QUERIES
+// ==========================================
 
 export const FAQ_QUERY = `
   *[_type == "faqItem"] | order(order asc, _createdAt desc) { _id, question, answer, category }
@@ -104,27 +145,6 @@ export const FEATURED_TESTIMONIALS_QUERY = `
 export const PROTECTION_PLANS_QUERY = `
   *[_type == "protectionPlan"] | order(order asc) {
     _id, name, description, price, features, coverage, "icon": icon.asset->url
-  }
-`
-
-export const SELL_YOUR_CAR_PAGE_QUERY = `
-  *[_type == "sellYourCar"][0] {
-    heroSection { headline, subheadline, highlightText, formSettings, trustBadges, "backgroundImage": backgroundImage.asset->url },
-    benefits, comparisonTable, processSteps, testimonials, ctaSection, seo
-  }
-`
-
-export const FINANCING_PAGE_QUERY = `
-  *[_type == "financing"][0] {
-    heroSection { headline, subheadline, featuredRateText, rateSubtext, primaryCta, secondaryCta, heroStats },
-    lenders, calculator, processSteps, benefits, faqs, seo
-  }
-`
-
-export const INVENTORY_SETTINGS_QUERY = `
-  *[_type == "inventorySettings"][0] {
-    displaySettings { pageTitle, pageSubtitle, defaultView, itemsPerPage, showFiltersSidebar },
-    filterConfiguration, sortingOptions, vehicleBadges, seo
   }
 `
 
