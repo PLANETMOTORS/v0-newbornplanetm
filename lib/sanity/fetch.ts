@@ -1,5 +1,6 @@
-// Planet Motors - Sanity data fetching (uses @sanity/client)
+// Sanity data fetching functions for Planet Motors
 import { sanityClient } from "./client"
+// GROQ queries from local file
 import {
   SITE_SETTINGS_QUERY,
   NAVIGATION_QUERY,
