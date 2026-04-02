@@ -1,4 +1,4 @@
-// Planet Motors Homepage - v9 VERIFIED - Inline defaults only - 2026-04-02T15:00
+// Planet Motors Homepage - v10 FINAL - All defaults inline, NO @/lib/sanity imports
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { HomepageContent } from "@/components/homepage-content"

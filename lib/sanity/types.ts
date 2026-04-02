@@ -1,4 +1,4 @@
-// Sanity CMS Types for Planet Motors v9
+// Sanity CMS Types for Planet Motors v10 - VERIFIED EXISTS
 
 // ==========================================
 // SITE CONFIGURATION
