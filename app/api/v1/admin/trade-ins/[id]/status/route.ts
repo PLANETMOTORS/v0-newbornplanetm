@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
+// Admin emails - in production, check against database role
+const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
+
 // PATCH /api/v1/admin/trade-ins/[id]/status - Update trade-in quote status
 export async function PATCH(
   request: NextRequest,
@@ -9,7 +12,12 @@ export async function PATCH(
   try {
     const { id } = await params
     const supabase = await createClient()
-    
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const body = await request.json()
     const { status } = body
     

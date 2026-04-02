@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 
-// POST /api/v1/auth/login - Customer login with JWT
+const SUPABASE_URL = "https://ldervbcvkoawwknsemuz.supabase.co"
+
+// POST /api/v1/auth/login - Customer login
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -13,28 +16,35 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Authenticate with Supabase Auth
-    const mockResponse = {
-      success: true,
-      user: {
-        id: "user_" + Date.now(),
-        email,
-        firstName: "John",
-        lastName: "Doe",
-        createdAt: new Date().toISOString(),
-      },
-      tokens: {
-        accessToken: "eyJ..." + Buffer.from(email).toString("base64"),
-        refreshToken: "refresh_" + Date.now(),
-        expiresIn: 3600, // 1 hour
-      },
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    if (!supabaseAnonKey) {
+      return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
     }
 
-    return NextResponse.json(mockResponse)
+    const supabase = createSupabaseClient(SUPABASE_URL, supabaseAnonKey)
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+
+    if (error || !data.session) {
+      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 })
+    }
+
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+        createdAt: data.user.created_at,
+      },
+      tokens: {
+        accessToken: data.session.access_token,
+        refreshToken: data.session.refresh_token,
+        expiresIn: data.session.expires_in,
+      },
+    })
   } catch (error) {
     return NextResponse.json(
       { error: "Authentication failed" },
-      { status: 401 }
+      { status: 500 }
     )
   }
 }
