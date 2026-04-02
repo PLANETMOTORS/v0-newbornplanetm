@@ -108,10 +108,11 @@ function TradeInContent() {
     const action = searchParams.get("action")
     
     if (quoteId && vehicle && value) {
+      const parsedValue = parseInt(value) || 0
       setInstantQuote({
         quoteId,
         vehicle: decodeURIComponent(vehicle),
-        value: parseInt(value)
+        value: parsedValue
       })
       
       // Parse vehicle info and pre-fill form
@@ -131,7 +132,7 @@ function TradeInContent() {
         const offerData = {
           quoteId,
           vehicle: decodeURIComponent(vehicle),
-          offerAmount: parseInt(value),
+          offerAmount: parseInt(value) || 0,
           validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
           mileage: mileage || "N/A",
           condition: "good"

@@ -134,20 +134,41 @@ function IDVerificationContent() {
     setIsSubmitting(true)
     
     try {
-      // Simulate verification process
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Build form data for API submission
+      const formData = new FormData()
+      formData.append("applicationId", applicationId || "")
+      formData.append("primaryIdType", primaryID.type)
+      formData.append("primaryIdNumber", primaryID.number)
+      formData.append("primaryExpiryDate", primaryID.expiryDate)
+      formData.append("primaryIssuingProvince", primaryID.issuingProvince)
+      if (primaryID.frontImage) formData.append("primaryFrontImage", primaryID.frontImage)
+      if (primaryID.backImage) formData.append("primaryBackImage", primaryID.backImage)
       
-      // In production, this would send to ID verification API
-      // const formData = new FormData()
-      // formData.append("applicationId", applicationId || "")
-      // formData.append("primaryIdType", primaryID.type)
-      // formData.append("primaryIdNumber", primaryID.number)
-      // if (primaryID.frontImage) formData.append("primaryFront", primaryID.frontImage)
-      // if (primaryID.backImage) formData.append("primaryBack", primaryID.backImage)
+      // Secondary ID
+      if (useSecondaryID && secondaryID.type) {
+        formData.append("secondaryIdType", secondaryID.type)
+        formData.append("secondaryIdNumber", secondaryID.number)
+        if (secondaryID.frontImage) formData.append("secondaryFrontImage", secondaryID.frontImage)
+        if (secondaryID.backImage) formData.append("secondaryBackImage", secondaryID.backImage)
+      }
       
-      setIsVerified(true)
+      // Submit to API
+      const response = await fetch("/api/v1/id-verification", {
+        method: "POST",
+        body: formData
+      })
+      
+      const result = await response.json()
+      
+      if (response.ok && result.success) {
+        setIsVerified(true)
+      } else {
+        console.error("Verification failed:", result.error)
+        alert(result.error || "Failed to submit verification. Please try again.")
+      }
     } catch (error) {
       console.error("Verification error:", error)
+      alert("An error occurred. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
