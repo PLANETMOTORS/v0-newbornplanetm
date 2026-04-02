@@ -372,6 +372,22 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   // Validation state
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   
+  // Helper to check if a field has an error and return the error class
+  const getFieldErrorClass = (fieldName: string): string => {
+    const hasError = validationErrors.some(err => 
+      err.toLowerCase().includes(fieldName.toLowerCase())
+    )
+    return hasError ? "border-destructive ring-1 ring-destructive bg-destructive/5" : ""
+  }
+  
+  // Helper to get Label class with error styling
+  const getLabelErrorClass = (fieldName: string): string => {
+    const hasError = validationErrors.some(err => 
+      err.toLowerCase().includes(fieldName.toLowerCase())
+    )
+    return hasError ? "text-destructive" : ""
+  }
+  
   // Phone number validation - strict rules for real Canadian phone numbers
   const validatePhone = (phone: string): { valid: boolean; error?: string } => {
     const digitsOnly = phone.replace(/\D/g, '')
@@ -637,13 +653,14 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
         <CardContent className="p-6">
           {/* STEP 1: Primary Applicant */}
           {currentStep === 1 && (
-            <ApplicantForm
-              title="Primary Applicant Information"
-              description="Enter your personal, address, employment, and income information"
-              data={primaryApplicant}
-              onChange={setPrimaryApplicant}
-              isPrimary
-            />
+<ApplicantForm
+  title="Primary Applicant Information"
+  description="Enter your personal, address, employment, and income information"
+  data={primaryApplicant}
+  onChange={setPrimaryApplicant}
+  isPrimary
+  validationErrors={validationErrors}
+  />
           )}
           
           {/* STEP 2: Co-Applicant */}
@@ -679,13 +696,14 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
                     </div>
                   </div>
                   
-                  <ApplicantForm
-                    title="Co-Applicant Information"
-                    description="Enter co-applicant details"
-                    data={coApplicant}
-                    onChange={setCoApplicant}
-                    isPrimary={false}
-                  />
+<ApplicantForm
+  title="Co-Applicant Information"
+  description="Enter co-applicant details"
+  data={coApplicant}
+  onChange={setCoApplicant}
+  isPrimary={false}
+  validationErrors={validationErrors}
+  />
                 </>
               )}
             </div>
@@ -795,7 +813,8 @@ interface ApplicantFormProps {
   data: ApplicantData
   onChange: (data: ApplicantData) => void
   isPrimary: boolean
-}
+  validationErrors?: string[]
+  }
 
 // =====================================================
 // POSTAL CODE INPUT WITH ADDRESS LOOKUP
@@ -882,10 +901,10 @@ function PostalCodeInput({ value, onChange, label = "Postal Code *" }: PostalCod
             onChange(formatted)
             fetchAddressSuggestions(formatted)
           }}
-          onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-          onBlur={() => setTimeout(() => setShowSuggestions(false), 300)}
-          placeholder="L4B 0G2"
-          className="font-mono uppercase pr-8 border-primary/50 focus:border-primary"
+onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+  onBlur={() => setTimeout(() => setShowSuggestions(false), 500)}
+  placeholder="L4B 0G2"
+  className="font-mono uppercase pr-8 border-primary/50 focus:border-primary"
         />
         {isLoading && (
           <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-primary" />
@@ -902,7 +921,7 @@ function PostalCodeInput({ value, onChange, label = "Postal Code *" }: PostalCod
       
       {/* Street suggestions dropdown - MANDATORY SELECTION */}
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute z-50 w-[350px] mt-1 bg-background border-2 border-primary rounded-lg shadow-xl max-h-64 overflow-y-auto">
+        <div className="absolute z-[9999] left-0 top-full w-[350px] mt-1 bg-background border-2 border-primary rounded-lg shadow-xl max-h-64 overflow-y-auto">
           <div className="px-3 py-2 bg-primary/10 border-b border-primary/20 sticky top-0">
             <p className="text-xs font-semibold text-primary">
               Select your street to auto-fill address:
@@ -931,9 +950,26 @@ function PostalCodeInput({ value, onChange, label = "Postal Code *" }: PostalCod
   )
 }
 
-function ApplicantForm({ title, description, data, onChange, isPrimary }: ApplicantFormProps) {
+function ApplicantForm({ title, description, data, onChange, isPrimary, validationErrors = [] }: ApplicantFormProps) {
   const updateField = (field: keyof ApplicantData, value: any) => {
     onChange({ ...data, [field]: value })
+  }
+  
+  // Helper to check if a field has an error
+  const hasFieldError = (fieldName: string): boolean => {
+    return validationErrors.some(err => 
+      err.toLowerCase().includes(fieldName.toLowerCase())
+    )
+  }
+  
+  // Get error class for inputs
+  const getInputErrorClass = (fieldName: string): string => {
+    return hasFieldError(fieldName) ? "border-destructive ring-1 ring-destructive bg-destructive/5" : ""
+  }
+  
+  // Get error class for labels
+  const getLabelClass = (fieldName: string): string => {
+    return hasFieldError(fieldName) ? "text-destructive font-medium" : ""
   }
   
   return (
@@ -964,16 +1000,16 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
             </Select>
           </div>
           <div>
-            <Label>First Name *</Label>
-            <Input value={data.firstName} onChange={(e) => updateField("firstName", e.target.value)} required />
+            <Label className={getLabelClass("First Name")}>First Name *</Label>
+            <Input value={data.firstName} onChange={(e) => updateField("firstName", e.target.value)} required className={getInputErrorClass("First Name")} />
           </div>
           <div>
             <Label>Middle Name</Label>
             <Input value={data.middleName} onChange={(e) => updateField("middleName", e.target.value)} />
           </div>
           <div>
-            <Label>Last Name *</Label>
-            <Input value={data.lastName} onChange={(e) => updateField("lastName", e.target.value)} required />
+            <Label className={getLabelClass("Last Name")}>Last Name *</Label>
+            <Input value={data.lastName} onChange={(e) => updateField("lastName", e.target.value)} required className={getInputErrorClass("Last Name")} />
           </div>
           <div>
             <Label>Suffix</Label>
@@ -988,10 +1024,10 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
             </Select>
           </div>
           <div>
-            <Label>Date of Birth *</Label>
+            <Label className={getLabelClass("Date of Birth")}>Date of Birth *</Label>
             <div className="grid grid-cols-3 gap-2">
               <Select value={data.dateOfBirth.day} onValueChange={(v) => updateField("dateOfBirth", { ...data.dateOfBirth, day: v })}>
-                <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
+                <SelectTrigger className={getInputErrorClass("Date of Birth")}><SelectValue placeholder="Day" /></SelectTrigger>
                 <SelectContent>
                   {Array.from({ length: 31 }, (_, i) => (
                     <SelectItem key={i + 1} value={String(i + 1)}>{i + 1}</SelectItem>
@@ -1018,9 +1054,9 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
             </div>
           </div>
           <div>
-            <Label>Gender *</Label>
+            <Label className={getLabelClass("Gender")}>Gender *</Label>
             <Select value={data.gender} onValueChange={(v) => updateField("gender", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectTrigger className={getInputErrorClass("Gender")}><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="male">Male</SelectItem>
                 <SelectItem value="female">Female</SelectItem>
@@ -1116,10 +1152,10 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
               })
             }}
           />
-          <div>
-            <Label>Address Type *</Label>
-            <Select value={data.addressType} onValueChange={(v) => updateField("addressType", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+<div>
+  <Label className={getLabelClass("Address Type")}>Address Type *</Label>
+  <Select value={data.addressType} onValueChange={(v) => updateField("addressType", v)}>
+  <SelectTrigger className={getInputErrorClass("Address Type")}><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="house">House</SelectItem>
                 <SelectItem value="apartment">Apartment</SelectItem>
@@ -1133,10 +1169,10 @@ function ApplicantForm({ title, description, data, onChange, isPrimary }: Applic
             <Label>Suite/Unit No.</Label>
             <Input value={data.suiteNumber} onChange={(e) => updateField("suiteNumber", e.target.value)} />
           </div>
-          <div>
-            <Label>Street Number *</Label>
-            <Input value={data.streetNumber} onChange={(e) => updateField("streetNumber", e.target.value)} />
-          </div>
+<div>
+  <Label className={getLabelClass("Street Number")}>Street Number *</Label>
+  <Input value={data.streetNumber} onChange={(e) => updateField("streetNumber", e.target.value)} className={getInputErrorClass("Street Number")} />
+  </div>
           <div className="md:col-span-2">
             <Label>Street Name *</Label>
             <Input value={data.streetName} onChange={(e) => updateField("streetName", e.target.value)} />
@@ -2089,7 +2125,7 @@ function ReviewStep({ primaryApplicant, coApplicant, vehicleInfo, tradeIn, finan
           </CardHeader>
           <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
             <div><span className="text-muted-foreground">Vehicle:</span> <span className="font-medium">{tradeIn.year} {tradeIn.make} {tradeIn.model}</span></div>
-            <div><span className="text-muted-foreground">Value:</span> <span className="font-medium">${parseFloat(tradeIn.estimatedValue).toLocaleString()}</span></div>
+            <div><span className="text-muted-foreground">Value:</span> <span className="font-medium">${(parseFloat(tradeIn.estimatedValue) || 0).toLocaleString()}</span></div>
             {tradeIn.hasLien && (
               <div><span className="text-muted-foreground">Lien:</span> <span className="font-medium">${parseFloat(tradeIn.lienAmount).toLocaleString()}</span></div>
             )}

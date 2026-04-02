@@ -912,7 +912,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                       </div>
                       <div className="flex gap-2">
                         <Button size="sm" variant="outline" asChild>
-                          <Link href={`/financing/application?vehicleId=${vehicle.id}`}>
+                          <Link href={tradeInInfo ? `/financing/application?vehicleId=${vehicle.id}&tradeIn=${tradeInInfo.value}&quoteId=${tradeInInfo.quoteId}&tradeInVehicle=${encodeURIComponent(tradeInInfo.vehicle)}` : `/financing/application?vehicleId=${vehicle.id}`}>
                             Finance
                           </Link>
                         </Button>
