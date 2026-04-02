@@ -26,8 +26,7 @@ export async function GET() {
     if (error) {
       return NextResponse.json({
         success: false,
-        error: error,
-        apiKeyPrefix: apiKey.substring(0, 10) + "..."
+        error: error
       }, { status: 500 })
     }
     
@@ -40,8 +39,7 @@ export async function GET() {
   } catch (err: any) {
     return NextResponse.json({
       success: false,
-      error: err.message,
-      apiKeyPrefix: apiKey.substring(0, 10) + "..."
+      error: err.message
     }, { status: 500 })
   }
 }
