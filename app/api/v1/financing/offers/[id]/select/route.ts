@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
 
 // POST /api/v1/financing/offers/:id/select - Select a lender offer
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const supabase = await createClient()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   const { id: offerId } = await params
   const body = await request.json()
   const { vehicleId, customerId, downPayment, tradeInValue } = body
+
+  if (customerId && customerId !== user.id) {
+    return NextResponse.json({ error: "customerId must match authenticated user" }, { status: 403 })
+  }
 
   // Validate offer exists and is still valid
   // In production, fetch from database
@@ -16,7 +27,7 @@ export async function POST(
     id: "sel_" + Date.now(),
     offerId,
     vehicleId,
-    customerId,
+    customerId: user.id,
     status: "pending_documents",
     selectedAt: new Date().toISOString(),
     offer: {

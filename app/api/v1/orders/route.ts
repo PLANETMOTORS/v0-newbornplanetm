@@ -50,6 +50,19 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  if (customerId !== user.id) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'customerId must match authenticated user',
+        },
+      },
+      { status: 403 }
+    )
+  }
+
   // Mock vehicle data
   const vehicle = {
     id: vehicleId,
@@ -217,15 +230,35 @@ export async function POST(request: NextRequest) {
 
 // GET /api/v1/orders - List customer orders
 export async function GET(request: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } }, { status: 401 })
+  }
+
   const { searchParams } = new URL(request.url)
   const customerId = searchParams.get('customerId')
   const status = searchParams.get('status')
+
+  if (customerId && customerId !== user.id) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'You can only access your own orders',
+        },
+      },
+      { status: 403 }
+    )
+  }
 
   // Mock orders
   const orders = [
     {
       id: 'order-1',
       orderNumber: 'PM-ABC123',
+      customerId: user.id,
       status: 'delivered',
       vehicle: { year: 2023, make: 'Honda', model: 'Accord', trim: 'Sport' },
       totalPrice: 39549.86,
@@ -234,14 +267,16 @@ export async function GET(request: NextRequest) {
     },
   ]
 
+  const filteredOrders = status ? orders.filter((order) => order.status === status) : orders
+
   return NextResponse.json({
     success: true,
     data: {
-      orders,
+      orders: filteredOrders,
       pagination: {
         page: 1,
         limit: 20,
-        total: orders.length,
+        total: filteredOrders.length,
       },
     },
   })
