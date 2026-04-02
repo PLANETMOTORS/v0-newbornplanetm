@@ -28,8 +28,17 @@ export async function POST(request: NextRequest) {
     const signature = request.headers.get("sanity-webhook-signature") || ""
     const secret = process.env.SANITY_WEBHOOK_SECRET
 
+    if (!secret) {
+      console.error("[Sanity Webhook] Missing SANITY_WEBHOOK_SECRET")
+      return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 })
+    }
+
+    if (!signature) {
+      return NextResponse.json({ error: "Missing signature" }, { status: 401 })
+    }
+
     // Verify webhook signature
-    if (secret && !verifySignature(body, signature, secret)) {
+    if (!verifySignature(body, signature, secret)) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
     }
 

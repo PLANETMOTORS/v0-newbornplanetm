@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
+const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
+
+async function requireAdmin() {
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error || !user || !ADMIN_EMAILS.includes(user.email || "")) {
+    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
+  }
+  return { supabase }
+}
+
 // Scrape images from Planet Motors VDP page
 async function scrapeImagesFromVDP(vdpUrl: string): Promise<{
   images: string[]
@@ -72,7 +83,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const supabase = await createClient()
+  const { supabase, error: adminError } = await requireAdmin()
+  if (adminError) {
+    return adminError
+  }
   
   // Fetch vehicle
   const { data: vehicle, error } = await supabase
@@ -143,7 +157,10 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const supabase = await createClient()
+  const { supabase, error: adminError } = await requireAdmin()
+  if (adminError) {
+    return adminError
+  }
   
   // Fetch vehicle
   const { data: vehicle, error } = await supabase

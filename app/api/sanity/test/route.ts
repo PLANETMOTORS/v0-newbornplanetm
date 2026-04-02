@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
 import { createClient } from "next-sanity"
 import { groq } from "next-sanity"
+import { createClient } from "@/lib/supabase/server"
+
+const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
 
 // Force dynamic to prevent build-time errors
 export const dynamic = "force-dynamic"
@@ -29,6 +32,12 @@ export async function GET() {
     useCdn: false,
   })
   try {
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user || !ADMIN_EMAILS.includes(user.email || "")) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
+    }
+
     // Test basic connection
     const connectionTest = await sanityClient.fetch(groq`*[_type == "siteSettings"][0]{ dealerName }`)
     
