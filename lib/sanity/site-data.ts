@@ -1,26 +1,20 @@
+// Planet Motors CMS - Site Data Helper v2
+// Self-contained with fallback defaults
 import { getSiteSettings, getNavigation } from "./fetch"
 
+// Default fallback data when Sanity is not populated
 export const DEFAULT_SITE_SETTINGS = {
-  dealerName: "Planet Motors",
-  phone: "(905) 761-2700",
+  siteName: "Planet Motors",
+  tagline: "Ontario's Trusted Destination for Premium Pre-Owned Vehicles",
+  phone: "(416) 555-0123",
   email: "info@planetmotors.ca",
-  streetAddress: "8505 Keele St Unit 1",
-  city: "Concord",
-  province: "ON",
-  postalCode: "L4K 3P4",
+  address: "123 Auto Drive, Toronto, ON M5V 1A1",
   socialLinks: [
     { platform: "facebook", url: "https://facebook.com/planetmotors" },
     { platform: "instagram", url: "https://instagram.com/planetmotors" },
+    { platform: "twitter", url: "https://twitter.com/planetmotors" },
   ],
-  businessHours: [
-    { day: "Monday", open: "9:00 AM", close: "7:00 PM", closed: false },
-    { day: "Tuesday", open: "9:00 AM", close: "7:00 PM", closed: false },
-    { day: "Wednesday", open: "9:00 AM", close: "7:00 PM", closed: false },
-    { day: "Thursday", open: "9:00 AM", close: "7:00 PM", closed: false },
-    { day: "Friday", open: "9:00 AM", close: "6:00 PM", closed: false },
-    { day: "Saturday", open: "10:00 AM", close: "5:00 PM", closed: false },
-    { day: "Sunday", open: "", close: "", closed: true },
-  ],
+  logo: null,
 }
 
 const DEFAULT_NAVIGATION = [
@@ -46,12 +40,10 @@ export async function getSiteData(): Promise<SiteData> {
 
     return {
       settings: settings || DEFAULT_SITE_SETTINGS,
-      navigation:
-        navigation?.mainNavigation && navigation.mainNavigation.length > 0
-          ? navigation.mainNavigation
-          : DEFAULT_NAVIGATION,
+      navigation: navigation?.length > 0 ? navigation : DEFAULT_NAVIGATION,
     }
-  } catch {
+  } catch (error) {
+    console.error("[v0] Failed to fetch site data:", error)
     return {
       settings: DEFAULT_SITE_SETTINGS,
       navigation: DEFAULT_NAVIGATION,

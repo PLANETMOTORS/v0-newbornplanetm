@@ -1,5 +1,5 @@
-// Planet Motors CMS - Sanity Data Fetching
-// All GROQ queries and client inlined to avoid module resolution issues
+// Planet Motors CMS - Sanity Data Fetching v2
+// Self-contained: All GROQ queries and client are inlined
 import { createClient } from "@sanity/client"
 import type {
   SiteSettings,
