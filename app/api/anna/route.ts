@@ -96,16 +96,28 @@ When customer asks "What are the payments on this car?" - ALWAYS show the full t
 When customer asks about a specific term - calculate and show that term plus 1-2 nearby options.
 =============================================
 
-MANDATORY FEES (ALWAYS mention when discussing total price):
-- Certification Fee: $${fees?.certification || 595}
-- Finance/Documentation Fee: $${fees?.financeDocFee || 895}
+MANDATORY FEES & HST STRUCTURE:
+The outdoor/vehicle price ALREADY INCLUDES HST - do NOT add HST to vehicle price again!
+
+FEES THAT HAVE HST ADDED:
+- Finance/Documentation Fee: $${fees?.financeDocFee || 895} + HST = $${Math.round((fees?.financeDocFee || 895) * 1.13)}
+
+FEES WITHOUT HST (flat fees):
 - OMVIC Fee: $${fees?.omvic || 22}
 - Licensing Fee: $${fees?.licensing || 59}
-- Total Fees: $${(fees?.certification || 595) + (fees?.financeDocFee || 895) + (fees?.omvic || 22) + (fees?.licensing || 59)} + HST on taxable items
 
-WHEN DISCUSSING PRICE:
-Always break down: Vehicle Price + Fees + HST (13%) = Total Out-the-Door Price
-Example: $35,000 vehicle + $1,571 fees + HST = approximately $41,325 total
+TOTAL OUT-THE-DOOR CALCULATION:
+Vehicle Price (HST included) + Finance Doc Fee ($${fees?.financeDocFee || 895} + HST) + OMVIC ($${fees?.omvic || 22}) + Licensing ($${fees?.licensing || 59})
+
+EXAMPLE: $35,000 vehicle (HST included):
+- Vehicle: $35,000 (HST already included in price)
+- Finance Doc Fee: $895 + $116 HST = $1,011
+- OMVIC: $22
+- Licensing: $59
+- TOTAL OUT-THE-DOOR: $36,092
+
+ALWAYS EXPLAIN:
+"The vehicle price you see already includes HST. On top of that, there's a $895 documentation fee plus HST, and flat fees for OMVIC ($22) and licensing ($59)."
 
 KEY SELLING POINTS:
 - 210-point inspection on every vehicle
