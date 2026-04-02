@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-// CACHE BUST: v60 - Files verified v14: page.tsx, footer.tsx have NO @/lib/sanity imports
+// CACHE BUST: v61 - Files verified v15 FINAL - page.tsx and footer.tsx have ZERO @/lib/sanity imports - using inline DEFAULT_SITE_SETTINGS
 const nextConfig = {
   // Force complete rebuild
   cleanDistDir: true,

@@ -1,4 +1,4 @@
-// Planet Motors Footer - v14
+// Planet Motors Footer - v16
 import { FooterContent } from "@/components/footer-content"
 
 // Default site settings - no external imports needed
