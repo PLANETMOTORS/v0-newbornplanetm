@@ -1,5 +1,124 @@
 import { groq } from "next-sanity"
 
+// ==========================================
+// VEHICLE QUERIES
+// ==========================================
+
+// All vehicles with filters
+export const VEHICLES_QUERY = groq`
+  *[_type == "vehicle" && status == "available"] | order(_createdAt desc) {
+    _id,
+    year,
+    make,
+    model,
+    trim,
+    vin,
+    stockNumber,
+    price,
+    msrp,
+    specialPrice,
+    status,
+    condition,
+    featured,
+    mileage,
+    exteriorColor,
+    interiorColor,
+    bodyStyle,
+    fuelType,
+    transmission,
+    drivetrain,
+    engine,
+    horsepower,
+    doors,
+    seats,
+    evRange,
+    batteryCapacity,
+    features,
+    safetyFeatures,
+    "mainImage": mainImage.asset->url,
+    "images": images[].asset->url,
+    description,
+    highlights,
+    carfaxUrl,
+    previousOwners,
+    accidentFree,
+    serviceHistory,
+    slug,
+    seoTitle,
+    seoDescription
+  }
+`
+
+// Single vehicle by slug
+export const VEHICLE_BY_SLUG_QUERY = groq`
+  *[_type == "vehicle" && slug.current == $slug][0] {
+    _id,
+    year,
+    make,
+    model,
+    trim,
+    vin,
+    stockNumber,
+    price,
+    msrp,
+    specialPrice,
+    status,
+    condition,
+    featured,
+    mileage,
+    exteriorColor,
+    interiorColor,
+    bodyStyle,
+    fuelType,
+    transmission,
+    drivetrain,
+    engine,
+    horsepower,
+    doors,
+    seats,
+    evRange,
+    batteryCapacity,
+    features,
+    safetyFeatures,
+    "mainImage": mainImage.asset->url,
+    "images": images[].asset->url,
+    description,
+    highlights,
+    carfaxUrl,
+    previousOwners,
+    accidentFree,
+    serviceHistory,
+    slug,
+    seoTitle,
+    seoDescription
+  }
+`
+
+// Featured vehicles for homepage
+export const FEATURED_VEHICLES_QUERY = groq`
+  *[_type == "vehicle" && featured == true && status == "available"] | order(_createdAt desc)[0...8] {
+    _id,
+    year,
+    make,
+    model,
+    trim,
+    price,
+    mileage,
+    fuelType,
+    "mainImage": mainImage.asset->url,
+    slug
+  }
+`
+
+// Vehicle count for pagination
+export const VEHICLE_COUNT_QUERY = groq`
+  count(*[_type == "vehicle" && status == "available"])
+`
+
+// ==========================================
+// SITE SETTINGS & CONTENT QUERIES
+// ==========================================
+
 // Site Settings - dealer info, hours, financing, delivery config
 export const SITE_SETTINGS_QUERY = groq`
   *[_type == "siteSettings"][0] {

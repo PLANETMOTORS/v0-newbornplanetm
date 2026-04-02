@@ -1,0 +1,125 @@
+import type { StructureBuilder } from 'sanity/structure'
+import { 
+  Car, 
+  Home, 
+  FileText, 
+  Settings, 
+  MessageSquare, 
+  Star, 
+  HelpCircle,
+  Tag,
+  Shield,
+  Search
+} from 'lucide-react'
+
+export const structure = (S: StructureBuilder) =>
+  S.list()
+    .title('Planet Motors CMS')
+    .items([
+      // Inventory
+      S.listItem()
+        .title('Inventory')
+        .icon(() => Car({ size: 20 }))
+        .child(
+          S.list()
+            .title('Inventory')
+            .items([
+              S.documentTypeListItem('vehicle').title('All Vehicles'),
+              S.divider(),
+              S.listItem()
+                .title('By Status')
+                .child(
+                  S.list()
+                    .title('By Status')
+                    .items([
+                      S.listItem()
+                        .title('Available')
+                        .child(S.documentList().title('Available').filter('_type == "vehicle" && status == "available"')),
+                      S.listItem()
+                        .title('Pending')
+                        .child(S.documentList().title('Pending').filter('_type == "vehicle" && status == "pending"')),
+                      S.listItem()
+                        .title('Sold')
+                        .child(S.documentList().title('Sold').filter('_type == "vehicle" && status == "sold"')),
+                    ])
+                ),
+              S.listItem()
+                .title('By Condition')
+                .child(
+                  S.list()
+                    .title('By Condition')
+                    .items([
+                      S.listItem()
+                        .title('New')
+                        .child(S.documentList().title('New Vehicles').filter('_type == "vehicle" && condition == "new"')),
+                      S.listItem()
+                        .title('Used')
+                        .child(S.documentList().title('Used Vehicles').filter('_type == "vehicle" && condition == "used"')),
+                      S.listItem()
+                        .title('Certified Pre-Owned')
+                        .child(S.documentList().title('CPO Vehicles').filter('_type == "vehicle" && condition == "certified"')),
+                    ])
+                ),
+            ])
+        ),
+      
+      S.divider(),
+      
+      // Website Content
+      S.listItem()
+        .title('Website Content')
+        .icon(() => Home({ size: 20 }))
+        .child(
+          S.list()
+            .title('Website Content')
+            .items([
+              S.documentTypeListItem('homepageHero').title('Homepage Hero'),
+              S.documentTypeListItem('banner').title('Banners'),
+              S.documentTypeListItem('page').title('Pages'),
+              S.documentTypeListItem('promotion').title('Promotions'),
+            ])
+        ),
+      
+      // Blog
+      S.listItem()
+        .title('Blog')
+        .icon(() => FileText({ size: 20 }))
+        .child(S.documentTypeList('blogPost').title('Blog Posts')),
+      
+      // Testimonials
+      S.listItem()
+        .title('Testimonials')
+        .icon(() => Star({ size: 20 }))
+        .child(S.documentTypeList('testimonial').title('Testimonials')),
+      
+      // FAQ
+      S.listItem()
+        .title('FAQ')
+        .icon(() => HelpCircle({ size: 20 }))
+        .child(S.documentTypeList('faqEntry').title('FAQ Entries')),
+      
+      // Protection Plans
+      S.listItem()
+        .title('Protection Plans')
+        .icon(() => Shield({ size: 20 }))
+        .child(S.documentTypeList('protectionPlan').title('Protection Plans')),
+      
+      S.divider(),
+      
+      // SEO
+      S.listItem()
+        .title('SEO Settings')
+        .icon(() => Search({ size: 20 }))
+        .child(S.documentTypeList('seoSettings').title('SEO Settings')),
+      
+      // Site Settings
+      S.listItem()
+        .title('Site Settings')
+        .icon(() => Settings({ size: 20 }))
+        .child(
+          S.document()
+            .schemaType('siteSettings')
+            .documentId('siteSettings')
+            .title('Site Settings')
+        ),
+    ])
