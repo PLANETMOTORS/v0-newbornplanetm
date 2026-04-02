@@ -1,5 +1,6 @@
 import { groq } from "next-sanity"
 
+// Planet Motors CMS Queries
 // ==========================================
 // VEHICLE QUERIES
 // ==========================================
