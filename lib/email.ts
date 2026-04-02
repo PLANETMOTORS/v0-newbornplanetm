@@ -3,7 +3,8 @@ import { Resend } from 'resend'
 const resend = new Resend(process.env.API_KEY_RESEND || process.env.RESEND_API_KEY)
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'toni@planetmotors.ca'
-const FROM_EMAIL = process.env.FROM_EMAIL || 'notifications@planetmotors.ca'
+// Use Resend's test domain until planetmotors.ca is verified in Resend
+const FROM_EMAIL = process.env.FROM_EMAIL || 'Planet Motors <onboarding@resend.dev>'
 
 export type NotificationType = 
   | 'finance_application'
@@ -206,7 +207,9 @@ export async function sendNotificationEmail(data: EmailData): Promise<{ success:
 
     const template = templates[data.type](data)
 
-    const { error } = await resend.emails.send({
+    console.log('[v0] Sending email with:', { from: FROM_EMAIL, to: ADMIN_EMAIL, subject: template.subject })
+    
+    const { data: sendData, error } = await resend.emails.send({
       from: FROM_EMAIL,
       to: ADMIN_EMAIL,
       subject: template.subject,
@@ -215,8 +218,10 @@ export async function sendNotificationEmail(data: EmailData): Promise<{ success:
 
     if (error) {
       console.error('[v0] Email send error:', error)
-      return { success: false, error: error.message }
+      return { success: false, error: JSON.stringify(error) }
     }
+    
+    console.log('[v0] Email sent successfully:', sendData)
 
     console.log('[v0] Email notification sent:', data.type)
     return { success: true }
