@@ -1,4 +1,4 @@
-// Sanity CMS Types for Planet Motors v13 FINAL
+// Sanity CMS Types for Planet Motors v14
 
 // ==========================================
 // SITE CONFIGURATION

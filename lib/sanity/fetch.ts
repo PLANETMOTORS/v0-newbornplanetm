@@ -1,4 +1,4 @@
-// Planet Motors CMS - Data Fetching v13 FINAL
+// Planet Motors CMS - Data Fetching v14
 import { sanityClient } from "./client"
 import type {
   SiteSettings,

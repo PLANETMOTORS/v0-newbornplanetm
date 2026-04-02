@@ -1,5 +1,4 @@
-// Planet Motors CMS - Sanity Barrel Export
-// Re-export everything from individual modules for easier imports
+// Planet Motors CMS - Sanity Barrel Export v14
 
 export * from "./client"
 export * from "./types"
