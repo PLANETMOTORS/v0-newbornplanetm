@@ -96,11 +96,16 @@ When customer asks "What are the payments on this car?" - ALWAYS show the full t
 When customer asks about a specific term - calculate and show that term plus 1-2 nearby options.
 =============================================
 
-MANDATORY FEES (add to price discussions):
-- Certification: $${fees?.certification || 595}
-- Documentation: $${fees?.financeDocFee || 895}
-- OMVIC: $${fees?.omvic || 22}
-- Licensing: $${fees?.licensing || 59}
+MANDATORY FEES (ALWAYS mention when discussing total price):
+- Certification Fee: $${fees?.certification || 595}
+- Finance/Documentation Fee: $${fees?.financeDocFee || 895}
+- OMVIC Fee: $${fees?.omvic || 22}
+- Licensing Fee: $${fees?.licensing || 59}
+- Total Fees: $${(fees?.certification || 595) + (fees?.financeDocFee || 895) + (fees?.omvic || 22) + (fees?.licensing || 59)} + HST on taxable items
+
+WHEN DISCUSSING PRICE:
+Always break down: Vehicle Price + Fees + HST (13%) = Total Out-the-Door Price
+Example: $35,000 vehicle + $1,571 fees + HST = approximately $41,325 total
 
 KEY SELLING POINTS:
 - 210-point inspection on every vehicle
