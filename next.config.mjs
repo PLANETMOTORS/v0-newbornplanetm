@@ -1,9 +1,12 @@
 /** @type {import('next').NextConfig} */
-// CACHE BUST: v59 - ALL Sanity files verified: client.ts, types.ts, fetch.ts, site-data.ts
+// CACHE BUST: v61 - Files verified v15 FINAL - page.tsx and footer.tsx have ZERO @/lib/sanity imports - using inline DEFAULT_SITE_SETTINGS
 const nextConfig = {
-  // Force complete rebuild - Sanity files verified
+  // Force complete rebuild
   cleanDistDir: true,
-  turbopack: {},
+  turbopack: {
+    // Force module resolution refresh
+    resolveExtensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
