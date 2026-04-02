@@ -1,41 +1,54 @@
 import { NextResponse } from "next/server"
-import { sendNotificationEmail } from "@/lib/email"
+import { Resend } from "resend"
 
 export async function GET() {
-  console.log("[v0] Test email API called")
-  console.log("[v0] API_KEY_RESEND exists:", !!process.env.API_KEY_RESEND)
-  console.log("[v0] ADMIN_EMAIL:", process.env.ADMIN_EMAIL || "toni@planetmotors.ca (default)")
+  const apiKey = process.env.API_KEY_RESEND || process.env.RESEND_API_KEY
+  const adminEmail = process.env.ADMIN_EMAIL || "toni@planetmotors.ca"
+  
+  if (!apiKey) {
+    return NextResponse.json({ success: false, error: "No API key configured" }, { status: 500 })
+  }
+  
+  const resend = new Resend(apiKey)
   
   try {
-    const result = await sendNotificationEmail({
-      type: 'finance_application',
-      customerName: 'Test Customer',
-      customerEmail: 'test@example.com',
-      customerPhone: '(416) 555-1234',
-      vehicleInfo: '2024 Tesla Model 3 Long Range',
-      applicationId: 'TEST-001'
+    // Use onboarding@resend.dev - works without domain verification
+    const { data, error } = await resend.emails.send({
+      from: 'Planet Motors <onboarding@resend.dev>',
+      to: adminEmail,
+      subject: 'Test Email from Planet Motors',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1 style="color: #1a1a1a;">Test Email Successful!</h1>
+          <p>Congratulations! Your email notification system is working.</p>
+          <p>This email was sent from the Planet Motors notification system.</p>
+          <hr style="border: 1px solid #eee; margin: 20px 0;" />
+          <p style="color: #666; font-size: 12px;">
+            Planet Motors - Email Notifications<br/>
+            Sent at: ${new Date().toISOString()}
+          </p>
+        </div>
+      `
     })
     
-    console.log("[v0] Email send result:", result)
+    if (error) {
+      return NextResponse.json({
+        success: false,
+        error: error.message,
+        details: error
+      }, { status: 500 })
+    }
     
     return NextResponse.json({
       success: true,
-      message: "Test email sent!",
-      result,
-      config: {
-        apiKeyConfigured: !!(process.env.API_KEY_RESEND || process.env.RESEND_API_KEY),
-        adminEmail: process.env.ADMIN_EMAIL || "toni@planetmotors.ca (default)"
-      }
+      message: "Test email sent successfully!",
+      emailId: data?.id,
+      sentTo: adminEmail
     })
   } catch (error: any) {
-    console.error("[v0] Test email error:", error)
     return NextResponse.json({
       success: false,
-      error: error.message,
-      config: {
-        apiKeyConfigured: !!(process.env.API_KEY_RESEND || process.env.RESEND_API_KEY),
-        adminEmail: process.env.ADMIN_EMAIL || "toni@planetmotors.ca (default)"
-      }
+      error: error.message
     }, { status: 500 })
   }
 }
