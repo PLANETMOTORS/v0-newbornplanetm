@@ -124,46 +124,79 @@ export const SITE_SETTINGS_QUERY = groq`
   *[_type == "siteSettings"][0] {
     dealerName,
     phone,
-    tollFree,
     email,
-    address,
-    hours,
-    financing,
-    delivery,
-    leadRouting,
-    socialLinks
+    streetAddress,
+    city,
+    province,
+    postalCode,
+    latitude,
+    longitude,
+    omvicNumber,
+    businessHours,
+    facebookUrl,
+    instagramUrl,
+    twitterUrl,
+    youtubeUrl,
+    googleMapsEmbedUrl,
+    announcementBar,
+    mainNavigation,
+    financingDefaults,
+    deliveryConfiguration,
+    aggregateRating,
+    defaultSeo,
+    leadRoutingRules,
+    depositAmount
   }
 `
 
 // Homepage - hero, testimonials, FAQ preview
 export const HOMEPAGE_QUERY = groq`
-  {
-    "hero": *[_type == "homepageHero" && active == true][0] {
+  *[_type == "homepage"][0] {
+    heroSection {
       headline,
       subheadline,
+      primaryCta,
+      secondaryCta,
+      "backgroundImage": backgroundImage.asset->url,
+      altText,
+      trustBadges
+    },
+    featuredVehicleStockNumbers,
+    promoBanner {
+      showBanner,
+      headline,
+      bodyText,
       ctaLabel,
       ctaUrl,
-      "backgroundImage": backgroundImage.asset->url
+      backgroundColor
     },
-    "testimonials": *[_type == "testimonial" && featured == true] | order(publishedAt desc)[0...6] {
-      _id,
-      customerName,
-      rating,
-      review,
-      vehiclePurchased,
-      publishedAt
+    testimonials,
+    faqHighlights
+  }
+`
+
+// Navigation settings
+export const NAVIGATION_QUERY = groq`
+  *[_type == "navigation"][0] {
+    topBar {
+      showTopBar,
+      phoneNumber,
+      phoneDisplayText,
+      address,
+      addressLink,
+      trustBadges
     },
-    "promos": *[_type == "promotion" && active == true && startDate <= now() && endDate >= now()][0] {
-      title,
-      message,
-      ctaLabel,
-      ctaUrl
+    mainNavigation,
+    headerCta {
+      showCta,
+      buttonLabel,
+      buttonUrl,
+      buttonStyle
     },
-    "faqPreview": *[_type == "faqEntry"] | order(order asc)[0...5] {
-      _id,
-      question,
-      answer,
-      category
+    footerLinkColumns,
+    footerBottom {
+      copyrightText,
+      legalLinks
     }
   }
 `
@@ -248,5 +281,91 @@ export const PROTECTION_PLANS_QUERY = groq`
     features,
     coverage,
     "icon": icon.asset->url
+  }
+`
+
+// Sell Your Car page content
+export const SELL_YOUR_CAR_PAGE_QUERY = groq`
+  *[_type == "sellYourCar"][0] {
+    heroSection {
+      headline,
+      subheadline,
+      highlightText,
+      formSettings,
+      trustBadges,
+      "backgroundImage": backgroundImage.asset->url
+    },
+    benefits,
+    comparisonTable,
+    processSteps,
+    testimonials,
+    ctaSection,
+    seo
+  }
+`
+
+// Financing page content
+export const FINANCING_PAGE_QUERY = groq`
+  *[_type == "financing"][0] {
+    heroSection {
+      headline,
+      subheadline,
+      featuredRateText,
+      rateSubtext,
+      primaryCta,
+      secondaryCta,
+      heroStats
+    },
+    lenders,
+    calculator,
+    processSteps,
+    benefits,
+    faqs,
+    seo
+  }
+`
+
+// Inventory Settings
+export const INVENTORY_SETTINGS_QUERY = groq`
+  *[_type == "inventorySettings"][0] {
+    displaySettings {
+      pageTitle,
+      pageSubtitle,
+      defaultView,
+      itemsPerPage,
+      showFiltersSidebar
+    },
+    filterConfiguration,
+    sortingOptions,
+    vehicleBadges,
+    seo
+  }
+`
+
+// Lenders
+export const LENDERS_QUERY = groq`
+  *[_type == "lender"] | order(order asc) {
+    _id,
+    name,
+    "logo": logo.asset->url,
+    description,
+    specialties,
+    featured
+  }
+`
+
+// Banners
+export const BANNERS_QUERY = groq`
+  *[_type == "banner" && active == true] | order(priority desc) {
+    _id,
+    title,
+    message,
+    ctaLabel,
+    ctaUrl,
+    "backgroundImage": backgroundImage.asset->url,
+    backgroundColor,
+    textColor,
+    position,
+    pages
   }
 `
