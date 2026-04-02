@@ -1,4 +1,4 @@
-// Planet Motors CMS - Site Data Helper v5
+// Planet Motors CMS - Site Data Helper v7
 import { getSiteSettings, getNavigation } from "./fetch"
 
 // Default site settings fallback
