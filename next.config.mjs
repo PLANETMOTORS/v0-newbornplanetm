@@ -41,7 +41,8 @@ const nextConfig = {
     ],
   },
   experimental: {
-    optimizeCss: true,
+    // optimizeCss disabled - critters has compatibility issues with Next.js 16
+    optimizeCss: false,
   },
   compress: true,
   async headers() {
