@@ -5,7 +5,7 @@ import { createBrowserClient } from '@supabase/ssr'
 // Hardcoded correct Supabase URL - env var keeps getting wrong value
 const SUPABASE_URL = 'https://ldervbcvkoawwknsemuz.supabase.co'
 
-export function createClient() {
+export function createClient(): ReturnType<typeof createBrowserClient> | null {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseAnonKey) {
