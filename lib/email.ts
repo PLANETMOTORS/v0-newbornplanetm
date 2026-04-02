@@ -3,8 +3,8 @@ import { Resend } from 'resend'
 const resend = new Resend(process.env.API_KEY_RESEND || process.env.RESEND_API_KEY)
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'toni@planetmotors.ca'
-// Use Resend's test domain until planetmotors.ca is verified in Resend
-const FROM_EMAIL = process.env.FROM_EMAIL || 'Planet Motors <onboarding@resend.dev>'
+// Domain verified in Resend - emails now come from planetmotors.ca
+const FROM_EMAIL = process.env.FROM_EMAIL || 'Planet Motors <notifications@planetmotors.ca>'
 
 export type NotificationType = 
   | 'finance_application'
