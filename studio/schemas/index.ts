@@ -2,14 +2,15 @@
 import { vehicle } from './vehicle'
 import { lender } from './lender'
 
-// Pages - Homepage, Financing, Sell Your Car, Landing Pages, VDP Settings + Object types
+// Pages - Homepage, Financing, Sell Your Car, Sell Page (legacy), AI Settings, FAQ Item
+// Also includes object types: trustBadge, benefitItem, processStep
 import { pageSchemas } from './pages'
 
 // Homepage & Website Components
 import { homepageHero, banner, page, promotion } from './homepage'
 
-// Content
-import { blogPost, testimonial, faqItem, faqEntry, protectionPlan } from './content'
+// Content (faqItem is in pageSchemas to match database structure)
+import { blogPost, testimonial, faqEntry, protectionPlan } from './content'
 
 // Settings
 import { siteSettings, seoSettings, navigation } from './settings'
@@ -20,8 +21,8 @@ export const schemaTypes = [
   vehicle,
   lender,
   
-  // Pages (Homepage, Financing, Sell Your Car, VDP Settings, AI Settings, Sell Page)
-  // Also includes object types: trustBadge, benefitItem, processStep, testimonialItem, comparisonRow, faqItemObj, ctaButton
+  // Pages (Homepage, Financing, Sell Your Car, Sell Page Legacy, AI Settings, FAQ Item)
+  // Also includes object types: trustBadge, benefitItem, processStep
   ...pageSchemas,
   
   // Website Components (Hero variants, Banners, Static Pages, Promotions)
@@ -30,10 +31,9 @@ export const schemaTypes = [
   page,
   promotion,
   
-  // Content (Blog, Testimonials, FAQ, Protection Plans)
+  // Content (Blog, Testimonials, FAQ Entry, Protection Plans)
   blogPost,
   testimonial,
-  faqItem,
   faqEntry,
   protectionPlan,
   
