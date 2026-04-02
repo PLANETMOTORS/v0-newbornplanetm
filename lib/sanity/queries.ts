@@ -254,7 +254,7 @@ export const BLOG_POST_QUERY = groq`
 
 // All FAQs by category
 export const FAQ_QUERY = groq`
-  *[_type == "faqEntry"] | order(category asc, order asc) {
+  *[_type == "faqItem"] | order(order asc, _createdAt desc) {
     _id,
     question,
     answer,
@@ -277,26 +277,28 @@ export const ACTIVE_PROMOS_QUERY = groq`
 
 // All testimonials
 export const TESTIMONIALS_QUERY = groq`
-  *[_type == "testimonial"] | order(publishedAt desc) {
+  *[_type == "testimonial"] | order(order asc, _createdAt desc) {
     _id,
-    customerName,
+    "customerName": name,
     rating,
-    review,
+    "review": text,
     vehiclePurchased,
-    publishedAt,
+    location,
+    "publishedAt": _createdAt,
     featured
   }
 `
 
 // Featured testimonials only
 export const FEATURED_TESTIMONIALS_QUERY = groq`
-  *[_type == "testimonial" && featured == true] | order(publishedAt desc)[0...6] {
+  *[_type == "testimonial" && featured == true] | order(order asc, _createdAt desc)[0...6] {
     _id,
-    customerName,
+    "customerName": name,
     rating,
-    review,
+    "review": text,
     vehiclePurchased,
-    publishedAt
+    location,
+    "publishedAt": _createdAt
   }
 `
 
