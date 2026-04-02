@@ -1,28 +1,13 @@
 import type { StructureBuilder } from 'sanity/structure'
 import { 
-  Car, 
-  Home, 
-  FileText, 
-  Settings, 
-  Star, 
-  HelpCircle,
-  Shield,
-  Search,
-  DollarSign,
-  LayoutGrid,
-  Megaphone,
-  FileStack,
-  Receipt,
-  Menu,
-  Bot,
-  ArrowRightLeft
+  Car, Home, Settings, HelpCircle, DollarSign, LayoutGrid, Megaphone, FileStack, Receipt, Menu, Bot, ArrowRightLeft, Phone, Users, BookOpen, Wrench, CheckCircle, Tags, Calculator, Truck
 } from 'lucide-react'
 
 export const structure = (S: StructureBuilder) =>
   S.list()
     .title('Planet Motors CMS')
     .items([
-      // Inventory
+      // INVENTORY
       S.listItem()
         .title('Inventory')
         .icon(() => Car({ size: 20 }))
@@ -32,33 +17,18 @@ export const structure = (S: StructureBuilder) =>
             .items([
               S.documentTypeListItem('vehicle').title('All Vehicles'),
               S.divider(),
-              S.listItem()
-                .title('By Status')
-                .child(
-                  S.list()
-                    .title('By Status')
-                    .items([
-                      S.listItem()
-                        .title('Available')
-                        .child(S.documentList().title('Available').filter('_type == "vehicle" && status == "available"')),
-                      S.listItem()
-                        .title('In-Transit')
-                        .child(S.documentList().title('In-Transit').filter('_type == "vehicle" && status == "in-transit"')),
-                      S.listItem()
-                        .title('Reserved')
-                        .child(S.documentList().title('Reserved').filter('_type == "vehicle" && status == "reserved"')),
-                      S.listItem()
-                        .title('Pending Sale')
-                        .child(S.documentList().title('Pending Sale').filter('_type == "vehicle" && status == "pending"')),
-                      S.listItem()
-                        .title('Sold')
-                        .child(S.documentList().title('Sold').filter('_type == "vehicle" && status == "sold"')),
-                    ])
-                ),
+              S.listItem().title('By Status').child(
+                S.list().title('By Status').items([
+                  S.listItem().title('Available').child(S.documentList().title('Available').filter('_type == "vehicle" && status == "available"')),
+                  S.listItem().title('In-Transit').child(S.documentList().title('In-Transit').filter('_type == "vehicle" && status == "in-transit"')),
+                  S.listItem().title('Reserved').child(S.documentList().title('Reserved').filter('_type == "vehicle" && status == "reserved"')),
+                  S.listItem().title('Sold').child(S.documentList().title('Sold').filter('_type == "vehicle" && status == "sold"')),
+                ])
+              ),
             ])
         ),
       
-      // Financing & Lenders
+      // FINANCING
       S.listItem()
         .title('Financing')
         .icon(() => DollarSign({ size: 20 }))
@@ -68,136 +38,73 @@ export const structure = (S: StructureBuilder) =>
             .items([
               S.documentTypeListItem('lender').title('Lenders'),
               S.divider(),
-              S.listItem()
-                .title('Financing Page')
-                .icon(() => Receipt({ size: 20 }))
-                .child(
-                  S.document()
-                    .schemaType('financingPage')
-                    .documentId('financingPage')
-                    .title('Financing Page Content')
-                ),
-              S.listItem()
-                .title('Inventory Settings')
-                .icon(() => LayoutGrid({ size: 20 }))
-                .child(
-                  S.document()
-                    .schemaType('inventorySettings')
-                    .documentId('inventorySettings')
-                    .title('Inventory & Payment Settings')
-                ),
+              S.listItem().title('Financing Page').icon(() => Receipt({ size: 20 })).child(S.document().schemaType('financingPage').documentId('financingPage').title('Financing Page Content')),
+              S.listItem().title('Calculator Settings').icon(() => Calculator({ size: 20 })).child(S.document().schemaType('calculatorSettings').documentId('calculatorSettings').title('Finance Calculator Settings')),
             ])
         ),
       
+      // DELIVERY
+      S.listItem()
+        .title('Delivery')
+        .icon(() => Truck({ size: 20 }))
+        .child(S.document().schemaType('deliverySettings').documentId('deliverySettings').title('Delivery Calculator Settings')),
+      
       S.divider(),
       
-      // Homepage
+      // PAGES
       S.listItem()
-        .title('Homepage')
-        .icon(() => Home({ size: 20 }))
-        .child(
-          S.document()
-            .schemaType('homepage')
-            .documentId('homepage')
-            .title('Homepage Content')
-        ),
-      
-      // Landing Pages
-      S.listItem()
-        .title('Landing Pages')
+        .title('Pages')
         .icon(() => FileStack({ size: 20 }))
         .child(
           S.list()
-            .title('Landing Pages')
+            .title('Website Pages')
             .items([
-              S.listItem()
-                .title('Sell Your Car')
-                .child(
-                  S.document()
-                    .schemaType('sellYourCarPage')
-                    .documentId('sellYourCarPage')
-                    .title('Sell Your Car Page')
-                ),
-              S.listItem()
-                .title('Sell Page (Legacy)')
-                .icon(() => ArrowRightLeft({ size: 20 }))
-                .child(
-                  S.documentTypeList('sellPage').title('Sell Page (Legacy)')
-                ),
+              S.listItem().title('Homepage').icon(() => Home({ size: 20 })).child(S.document().schemaType('homepage').documentId('homepage').title('Homepage')),
+              S.divider(),
+              S.listItem().title('Sell Your Car').icon(() => ArrowRightLeft({ size: 20 })).child(S.document().schemaType('sellYourCarPage').documentId('sellYourCarPage').title('Sell Your Car Page')),
+              S.listItem().title('Contact Us').icon(() => Phone({ size: 20 })).child(S.document().schemaType('contactPage').documentId('contactPage').title('Contact Us Page')),
+              S.listItem().title('About Us').icon(() => Users({ size: 20 })).child(S.document().schemaType('aboutPage').documentId('aboutPage').title('About Us Page')),
+              S.listItem().title('Blog Index').icon(() => BookOpen({ size: 20 })).child(S.document().schemaType('blogIndexPage').documentId('blogIndexPage').title('Blog Index Page')),
+              S.listItem().title('Services').icon(() => Wrench({ size: 20 })).child(S.document().schemaType('servicesPage').documentId('servicesPage').title('Services Page')),
+              S.listItem().title('Warranty').icon(() => CheckCircle({ size: 20 })).child(S.document().schemaType('warrantyPage').documentId('warrantyPage').title('Warranty Page')),
+              S.listItem().title('FAQ Page').icon(() => HelpCircle({ size: 20 })).child(S.document().schemaType('faqPage').documentId('faqPage').title('FAQ Page')),
+              S.divider(),
+              S.listItem().title('Legacy Pages').child(
+                S.list().title('Legacy').items([
+                  S.documentTypeListItem('sellPage').title('Sell Page (Legacy)'),
+                ])
+              ),
             ])
         ),
       
-      // Website Content
+      // CONTENT
       S.listItem()
-        .title('Website Content')
+        .title('Content')
         .icon(() => Megaphone({ size: 20 }))
         .child(
           S.list()
-            .title('Website Content')
+            .title('Content')
             .items([
-              S.documentTypeListItem('homepageHero').title('Hero Variants'),
-              S.documentTypeListItem('banner').title('Banners'),
-              S.documentTypeListItem('page').title('Static Pages'),
-              S.documentTypeListItem('promotion').title('Promotions'),
+              S.documentTypeListItem('blogPost').title('Blog Posts'),
+              S.documentTypeListItem('testimonial').title('Testimonials'),
+              S.documentTypeListItem('faqItem').title('FAQ Items'),
+              S.documentTypeListItem('protectionPlan').title('Protection Plans'),
             ])
         ),
       
-      // Blog
-      S.listItem()
-        .title('Blog')
-        .icon(() => FileText({ size: 20 }))
-        .child(S.documentTypeList('blogPost').title('Blog Posts')),
-      
-      // Testimonials
-      S.listItem()
-        .title('Testimonials')
-        .icon(() => Star({ size: 20 }))
-        .child(S.documentTypeList('testimonial').title('Testimonials')),
-      
-      // FAQ
-      S.listItem()
-        .title('FAQ')
-        .icon(() => HelpCircle({ size: 20 }))
-        .child(S.documentTypeList('faqItem').title('FAQ Items')),
-      
-      // Protection Plans
-      S.listItem()
-        .title('Protection Plans')
-        .icon(() => Shield({ size: 20 }))
-        .child(S.documentTypeList('protectionPlan').title('Protection Plans')),
-      
       S.divider(),
       
-      // AI Settings
+      // SETTINGS
       S.listItem()
-        .title('AI Settings')
-        .icon(() => Bot({ size: 20 }))
-        .child(
-          S.document()
-            .schemaType('aiSettings')
-            .documentId('aiSettings')
-            .title('AI & Automation Settings')
-        ),
-      
-      // Navigation
-      S.listItem()
-        .title('Navigation')
-        .icon(() => Menu({ size: 20 }))
-        .child(
-          S.document()
-            .schemaType('navigation')
-            .documentId('navigation')
-            .title('Navigation Settings')
-        ),
-      
-      // Site Settings
-      S.listItem()
-        .title('Site Settings')
+        .title('Settings')
         .icon(() => Settings({ size: 20 }))
         .child(
-          S.document()
-            .schemaType('siteSettings')
-            .documentId('siteSettings')
-            .title('Site Settings')
+          S.list()
+            .title('Settings')
+            .items([
+              S.listItem().title('Site Settings').icon(() => Settings({ size: 20 })).child(S.document().schemaType('siteSettings').documentId('siteSettings').title('Site Settings')),
+              S.listItem().title('Navigation').icon(() => Menu({ size: 20 })).child(S.document().schemaType('navigation').documentId('navigation').title('Navigation')),
+              S.listItem().title('AI Settings').icon(() => Bot({ size: 20 })).child(S.document().schemaType('aiSettings').documentId('aiSettings').title('AI & Automation')),
+            ])
         ),
     ])
