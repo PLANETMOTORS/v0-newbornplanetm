@@ -5,178 +5,55 @@ export const blogPost = defineType({
   title: 'Blog Post',
   type: 'document',
   fields: [
-    defineField({
-      name: 'title',
-      title: 'Title',
-      type: 'string',
-      validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: 'slug',
-      title: 'Slug',
-      type: 'slug',
-      options: {
-        source: 'title',
-        maxLength: 96,
-      },
-      validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: 'publishedAt',
-      title: 'Published At',
-      type: 'datetime',
-      validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: 'excerpt',
-      title: 'Excerpt',
-      type: 'text',
-      rows: 3,
-      validation: (Rule) => Rule.required().max(300),
-    }),
-    defineField({
-      name: 'coverImage',
-      title: 'Cover Image',
-      type: 'image',
-      options: {
-        hotspot: true,
-      },
-    }),
-    defineField({
-      name: 'body',
-      title: 'Body',
-      type: 'array',
-      of: [
-        { type: 'block' },
-        {
-          type: 'image',
-          options: { hotspot: true },
-          fields: [
-            { name: 'alt', type: 'string', title: 'Alt Text' },
-            { name: 'caption', type: 'string', title: 'Caption' },
-          ],
-        },
-      ],
-    }),
-    defineField({
-      name: 'categories',
-      title: 'Categories',
-      type: 'array',
-      of: [{ type: 'string' }],
-      options: {
-        list: [
-          { title: 'Buying Guide', value: 'buying-guide' },
-          { title: 'Maintenance Tips', value: 'maintenance' },
-          { title: 'News', value: 'news' },
-          { title: 'EV Info', value: 'ev' },
-          { title: 'Financing', value: 'financing' },
-        ],
-      },
-    }),
-    defineField({
-      name: 'seoTitle',
-      title: 'SEO Title',
-      type: 'string',
-    }),
-    defineField({
-      name: 'seoDescription',
-      title: 'SEO Description',
-      type: 'text',
-      rows: 2,
-    }),
+    defineField({ name: 'title', title: 'Title', type: 'string', validation: (Rule) => Rule.required() }),
+    defineField({ name: 'slug', title: 'Slug', type: 'slug', options: { source: 'title' } }),
+    defineField({ name: 'publishedAt', title: 'Published At', type: 'datetime' }),
+    defineField({ name: 'excerpt', title: 'Excerpt', type: 'text', rows: 3 }),
+    defineField({ name: 'coverImage', title: 'Cover Image', type: 'image', options: { hotspot: true } }),
+    defineField({ name: 'body', title: 'Body', type: 'array', of: [{ type: 'block' }, { type: 'image' }] }),
+    defineField({ name: 'categories', title: 'Categories', type: 'array', of: [{ type: 'string' }] }),
+    defineField({ name: 'seoTitle', title: 'SEO Title', type: 'string' }),
+    defineField({ name: 'seoDescription', title: 'SEO Description', type: 'text' }),
   ],
   preview: {
-    select: {
-      title: 'title',
-      date: 'publishedAt',
-      media: 'coverImage',
-    },
+    select: { title: 'title', date: 'publishedAt', media: 'coverImage' },
     prepare({ title, date, media }) {
-      return {
-        title,
-        subtitle: date ? new Date(date).toLocaleDateString() : 'Draft',
-        media,
-      }
+      return { title, subtitle: date ? new Date(date).toLocaleDateString() : 'Draft', media }
     },
   },
-  orderings: [
-    {
-      title: 'Published Date (Newest)',
-      name: 'publishedAtDesc',
-      by: [{ field: 'publishedAt', direction: 'desc' }],
-    },
-  ],
 })
 
+// Testimonial - EXACT match to database structure
 export const testimonial = defineType({
   name: 'testimonial',
   title: 'Testimonial',
   type: 'document',
   fields: [
-    defineField({
-      name: 'customerName',
-      title: 'Customer Name',
-      type: 'string',
-      validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: 'rating',
-      title: 'Rating',
-      type: 'number',
-      validation: (Rule) => Rule.required().min(1).max(5),
-    }),
-    defineField({
-      name: 'review',
-      title: 'Review',
-      type: 'text',
-      rows: 4,
-      validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: 'vehiclePurchased',
-      title: 'Vehicle Purchased',
-      type: 'string',
-    }),
-    defineField({
-      name: 'customerPhoto',
-      title: 'Customer Photo',
-      type: 'image',
-    }),
-    defineField({
-      name: 'featured',
-      title: 'Featured',
-      type: 'boolean',
-      initialValue: false,
-    }),
-    defineField({
-      name: 'publishedAt',
-      title: 'Date',
-      type: 'datetime',
-    }),
-    defineField({
-      name: 'source',
-      title: 'Source',
-      type: 'string',
-      options: {
-        list: [
-          { title: 'Google', value: 'google' },
-          { title: 'Facebook', value: 'facebook' },
-          { title: 'Direct', value: 'direct' },
-          { title: 'DealerRater', value: 'dealerrater' },
-        ],
-      },
-    }),
+    defineField({ name: 'name', title: 'Customer Name', type: 'string', validation: (Rule) => Rule.required() }),
+    defineField({ name: 'location', title: 'Location', type: 'string' }),
+    defineField({ name: 'rating', title: 'Rating', type: 'number', validation: (Rule) => Rule.min(1).max(5) }),
+    defineField({ name: 'text', title: 'Review Text', type: 'text', rows: 4 }),
+    defineField({ name: 'body', title: 'Review Body', type: 'text', rows: 4 }),
+    defineField({ name: 'vehiclePurchased', title: 'Vehicle Purchased', type: 'string' }),
+    defineField({ name: 'date', title: 'Date', type: 'datetime' }),
+    defineField({ name: 'featured', title: 'Featured', type: 'boolean', initialValue: false }),
+    defineField({ name: 'order', title: 'Display Order', type: 'number', initialValue: 0 }),
+    defineField({ name: 'source', title: 'Source', type: 'string', options: {
+      list: [
+        { title: 'Google', value: 'google' },
+        { title: 'Facebook', value: 'facebook' },
+        { title: 'Direct', value: 'direct' },
+        { title: 'DealerRater', value: 'dealerrater' },
+      ],
+    }}),
+    defineField({ name: 'customerPhoto', title: 'Customer Photo', type: 'image' }),
   ],
   preview: {
-    select: {
-      title: 'customerName',
-      rating: 'rating',
-      featured: 'featured',
-    },
+    select: { title: 'name', rating: 'rating', featured: 'featured' },
     prepare({ title, rating, featured }) {
       return {
         title: `${title}${featured ? ' (Featured)' : ''}`,
-        subtitle: `${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}`,
+        subtitle: rating ? `${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}` : '',
       }
     },
   },
@@ -187,112 +64,60 @@ export const faqEntry = defineType({
   title: 'FAQ Entry',
   type: 'document',
   fields: [
-    defineField({
-      name: 'question',
-      title: 'Question',
-      type: 'string',
-      validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: 'answer',
-      title: 'Answer',
-      type: 'array',
-      of: [{ type: 'block' }],
-      validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: 'category',
-      title: 'Category',
-      type: 'string',
-      options: {
-        list: [
-          { title: 'General', value: 'general' },
-          { title: 'Financing', value: 'financing' },
-          { title: 'Trade-In', value: 'trade-in' },
-          { title: 'Delivery', value: 'delivery' },
-          { title: 'Warranty', value: 'warranty' },
-          { title: 'Electric Vehicles', value: 'ev' },
-        ],
-      },
-      validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: 'order',
-      title: 'Display Order',
-      type: 'number',
-      initialValue: 0,
-    }),
+    defineField({ name: 'question', title: 'Question', type: 'string', validation: (Rule) => Rule.required() }),
+    defineField({ name: 'answer', title: 'Answer', type: 'array', of: [{ type: 'block' }] }),
+    defineField({ name: 'category', title: 'Category', type: 'string', options: {
+      list: [
+        { title: 'General', value: 'general' },
+        { title: 'Financing', value: 'financing' },
+        { title: 'Trade-In', value: 'trade-in' },
+        { title: 'Delivery', value: 'delivery' },
+        { title: 'Warranty', value: 'warranty' },
+      ],
+    }}),
+    defineField({ name: 'order', title: 'Display Order', type: 'number', initialValue: 0 }),
   ],
-  preview: {
-    select: {
-      title: 'question',
-      category: 'category',
-    },
-    prepare({ title, category }) {
-      return {
-        title,
-        subtitle: category,
-      }
-    },
-  },
+  preview: { select: { title: 'question', category: 'category' } },
 })
 
+// Protection Plan - EXACT match to database structure
 export const protectionPlan = defineType({
   name: 'protectionPlan',
   title: 'Protection Plan',
   type: 'document',
   fields: [
+    defineField({ name: 'title', title: 'Title', type: 'string', validation: (Rule) => Rule.required() }),
+    defineField({ name: 'tagline', title: 'Tagline', type: 'string' }),
+    defineField({ name: 'slug', title: 'Slug', type: 'slug', options: { source: 'title' } }),
+    defineField({ name: 'active', title: 'Active', type: 'boolean', initialValue: true }),
+    defineField({ name: 'order', title: 'Display Order', type: 'number', initialValue: 0 }),
+    defineField({ name: 'ctaLabel', title: 'CTA Label', type: 'string' }),
+    defineField({ name: 'ctaUrl', title: 'CTA URL', type: 'string' }),
     defineField({
-      name: 'name',
-      title: 'Plan Name',
-      type: 'string',
-      validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: 'description',
-      title: 'Description',
-      type: 'text',
-      rows: 3,
-    }),
-    defineField({
-      name: 'price',
-      title: 'Starting Price',
-      type: 'number',
-    }),
-    defineField({
-      name: 'priceNote',
-      title: 'Price Note',
-      type: 'string',
-      description: 'e.g., "Starting from" or "per month"',
-    }),
-    defineField({
-      name: 'features',
-      title: 'Features',
+      name: 'highlights',
+      title: 'Highlights',
       type: 'array',
-      of: [{ type: 'string' }],
+      of: [{
+        type: 'object',
+        fields: [
+          { name: 'icon', title: 'Icon', type: 'string' },
+          { name: 'label', title: 'Label', type: 'string' },
+        ],
+      }],
     }),
-    defineField({
-      name: 'coverage',
-      title: 'Coverage Details',
-      type: 'text',
-      rows: 4,
-    }),
-    defineField({
-      name: 'icon',
-      title: 'Icon',
-      type: 'image',
-    }),
-    defineField({
-      name: 'order',
-      title: 'Display Order',
-      type: 'number',
-      initialValue: 0,
-    }),
-    defineField({
-      name: 'featured',
-      title: 'Featured',
-      type: 'boolean',
-      initialValue: false,
-    }),
+    defineField({ name: 'name', title: 'Plan Name (Legacy)', type: 'string', hidden: true }),
+    defineField({ name: 'description', title: 'Description', type: 'text', rows: 3 }),
+    defineField({ name: 'price', title: 'Starting Price', type: 'number' }),
+    defineField({ name: 'priceNote', title: 'Price Note', type: 'string' }),
+    defineField({ name: 'features', title: 'Features', type: 'array', of: [{ type: 'string' }] }),
+    defineField({ name: 'coverage', title: 'Coverage Details', type: 'text', rows: 4 }),
+    defineField({ name: 'icon', title: 'Icon', type: 'image' }),
+    defineField({ name: 'featured', title: 'Featured', type: 'boolean', initialValue: false }),
   ],
+  preview: {
+    select: { title: 'title', tagline: 'tagline' },
+    prepare({ title, tagline }) {
+      return { title: title || 'Untitled', subtitle: tagline }
+    },
+  },
 })
