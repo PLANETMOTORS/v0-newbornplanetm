@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 49 - fresh Sanity module setup
+  // Force clean build - version 50 - inline Sanity client in page.tsx
   cleanDistDir: true,
   turbopack: {},
   typescript: {
