@@ -1,8 +1,8 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const resend = new Resend(process.env.API_KEY_RESEND || process.env.RESEND_API_KEY)
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@planetmotors.ca'
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'toni@planetmotors.ca'
 const FROM_EMAIL = process.env.FROM_EMAIL || 'notifications@planetmotors.ca'
 
 export type NotificationType = 
@@ -199,8 +199,8 @@ const templates: Record<NotificationType, (data: EmailData) => { subject: string
 
 export async function sendNotificationEmail(data: EmailData): Promise<{ success: boolean; error?: string }> {
   try {
-    if (!process.env.RESEND_API_KEY) {
-      console.warn('[v0] RESEND_API_KEY not configured - skipping email notification')
+    if (!process.env.API_KEY_RESEND && !process.env.RESEND_API_KEY) {
+      console.warn('[v0] Resend API key not configured - skipping email notification')
       return { success: false, error: 'Email not configured' }
     }
 
@@ -233,7 +233,7 @@ export async function sendCustomerConfirmationEmail(
   data: { customerName: string; referenceId?: string; vehicleInfo?: string; offerAmount?: number }
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    if (!process.env.RESEND_API_KEY) {
+    if (!process.env.API_KEY_RESEND && !process.env.RESEND_API_KEY) {
       return { success: false, error: 'Email not configured' }
     }
 
