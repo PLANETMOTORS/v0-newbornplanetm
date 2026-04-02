@@ -1,8 +1,13 @@
 /** @type {import('next').NextConfig} */
-// Planet Motors - Next.js Config v64 - Sanity Memory Fix
+// Planet Motors - Next.js Config v65 - Turbopack Root Fix
 const nextConfig = {
   // CRITICAL: Transpile Sanity packages to prevent duplicate bundling
   transpilePackages: ['sanity', 'next-sanity', '@sanity/vision', '@sanity/ui', '@sanity/client'],
+  
+  // Turbopack configuration - fix workspace root resolution
+  turbopack: {
+    root: '.',
+  },
   
   experimental: {
     webpackMemoryOptimizations: true,

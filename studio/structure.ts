@@ -105,6 +105,8 @@ export const structure = (S: StructureBuilder) =>
               S.listItem().title('Site Settings').icon(() => Settings({ size: 20 })).child(S.document().schemaType('siteSettings').documentId('siteSettings').title('Site Settings')),
               S.listItem().title('Navigation').icon(() => Menu({ size: 20 })).child(S.document().schemaType('navigation').documentId('navigation').title('Navigation')),
               S.listItem().title('AI Settings').icon(() => Bot({ size: 20 })).child(S.document().schemaType('aiSettings').documentId('aiSettings').title('AI & Automation')),
+              S.listItem().title('VDP Settings').icon(() => Car({ size: 20 })).child(S.document().schemaType('vdpSettings').documentId('vdpSettings').title('VDP Settings')),
+              S.listItem().title('Customer Auth').icon(() => Users({ size: 20 })).child(S.document().schemaType('customerAuthSettings').documentId('customerAuthSettings').title('Customer Sign-In Settings')),
             ])
         ),
     ])
