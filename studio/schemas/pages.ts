@@ -236,16 +236,17 @@ export const landingPage = defineType({
     }),
     
     // Comparison Table
-    defineField({
-      name: 'comparisonSection',
+defineField({
+      name: 'comparisonTable',
       title: 'Comparison Table',
       type: 'object',
       group: 'comparison',
       fields: [
         { name: 'sectionTitle', title: 'Section Title', type: 'string' },
-        { name: 'usLabel', title: 'Us Label', type: 'string' },
-        { name: 'othersLabel', title: 'Others Label', type: 'string' },
-        { name: 'rows', title: 'Comparison Rows', type: 'array', of: [{ type: 'comparisonRow' }] },
+        { name: 'ourColumnTitle', title: 'Our Column Title', type: 'string' },
+        { name: 'othersColumnTitle', title: 'Others Column Title', type: 'string' },
+        { name: 'headers', title: 'Table Headers', type: 'array', of: [{ type: 'string' }] },
+        { name: 'rows', title: 'Rows', type: 'array', of: [{ type: 'comparisonRow' }] },
       ],
     }),
     
@@ -505,7 +506,7 @@ export const sellYourCarPage = defineType({
     defineField({ name: 'heroCtaSecondary', title: 'Secondary CTA', type: 'ctaButton', group: 'hero' }),
     defineField({
       name: 'heroSection',
-      title: 'Hero Section (Object)',
+      title: 'Hero Section',
       type: 'object',
       group: 'hero',
       fields: [
@@ -515,17 +516,18 @@ export const sellYourCarPage = defineType({
         { name: 'backgroundImage', title: 'Background Image', type: 'image' },
         { name: 'ctaPrimary', title: 'Primary CTA', type: 'ctaButton' },
         { name: 'ctaSecondary', title: 'Secondary CTA', type: 'ctaButton' },
-      ],
-    }),
-    defineField({
-      name: 'formSettings',
-      title: 'Form Settings',
-      type: 'object',
-      group: 'hero',
-      fields: [
-        { name: 'showForm', title: 'Show Form', type: 'boolean' },
-        { name: 'formTitle', title: 'Form Title', type: 'string' },
-        { name: 'formType', title: 'Form Type', type: 'string' },
+        {
+          name: 'formSettings',
+          title: 'Form Settings',
+          type: 'object',
+          fields: [
+            { name: 'vinPlaceholder', title: 'VIN Placeholder', type: 'string' },
+            { name: 'licensePlatePlaceholder', title: 'License Plate Placeholder', type: 'string' },
+            { name: 'submitButtonText', title: 'Submit Button Text', type: 'string' },
+            { name: 'showForm', title: 'Show Form', type: 'boolean' },
+            { name: 'formTitle', title: 'Form Title', type: 'string' },
+          ],
+        },
       ],
     }),
     
@@ -706,6 +708,279 @@ export const calculatorSettings = defineType({
   },
 })
 
+// AI Settings - EXACT match to database
+export const aiSettings = defineType({
+  name: 'aiSettings',
+  title: 'AI Settings',
+  type: 'document',
+  groups: [
+    { name: 'anna', title: 'Anna Assistant' },
+    { name: 'negotiator', title: 'Price Negotiator' },
+    { name: 'appraisal', title: 'Instant Appraisal' },
+    { name: 'fees', title: 'Fees' },
+    { name: 'financing', title: 'Financing' },
+  ],
+  fields: [
+    defineField({ name: 'title', title: 'Title', type: 'string', initialValue: 'AI Settings' }),
+    
+    // Anna Assistant
+    defineField({
+      name: 'annaAssistant',
+      title: 'Anna Assistant',
+      type: 'object',
+      group: 'anna',
+      fields: [
+        { name: 'enabled', title: 'Enabled', type: 'boolean', initialValue: true },
+        { name: 'displayName', title: 'Display Name', type: 'string', initialValue: 'Anna' },
+        { name: 'welcomeMessage', title: 'Welcome Message', type: 'text' },
+        { 
+          name: 'quickActions', 
+          title: 'Quick Actions', 
+          type: 'array', 
+          of: [{
+            type: 'object',
+            fields: [
+              { name: 'label', title: 'Label', type: 'string' },
+              { name: 'action', title: 'Action', type: 'string' },
+              { name: 'icon', title: 'Icon', type: 'string' },
+            ],
+          }],
+        },
+      ],
+    }),
+    
+    // Price Negotiator
+    defineField({
+      name: 'priceNegotiator',
+      title: 'Price Negotiator',
+      type: 'object',
+      group: 'negotiator',
+      fields: [
+        { name: 'enabled', title: 'Enabled', type: 'boolean', initialValue: true },
+        { name: 'requireVerification', title: 'Require Verification', type: 'boolean' },
+        {
+          name: 'negotiationRules',
+          title: 'Negotiation Rules',
+          type: 'object',
+          fields: [
+            { name: 'lowPriceThreshold', title: 'Low Price Threshold', type: 'number' },
+            { name: 'lowPriceMaxDiscount_0_31days', title: 'Low Price Max Discount (0-31 days)', type: 'number' },
+            { name: 'lowPriceMaxDiscount_32_46days', title: 'Low Price Max Discount (32-46 days)', type: 'number' },
+            { name: 'lowPriceMaxDiscount_47plus', title: 'Low Price Max Discount (47+ days)', type: 'number' },
+            { name: 'highPriceMaxDiscount_0_46days', title: 'High Price Max Discount (0-46 days)', type: 'number' },
+            { name: 'highPriceMaxDiscount_47plus', title: 'High Price Max Discount (47+ days)', type: 'number' },
+          ],
+        },
+      ],
+    }),
+    
+    // Instant Appraisal
+    defineField({
+      name: 'instantAppraisal',
+      title: 'Instant Appraisal',
+      type: 'object',
+      group: 'appraisal',
+      fields: [
+        { name: 'enabled', title: 'Enabled', type: 'boolean', initialValue: true },
+        { name: 'requireVerification', title: 'Require Verification', type: 'boolean' },
+        { name: 'offerValidDays', title: 'Offer Valid Days', type: 'number', initialValue: 7 },
+        { name: 'hstRate', title: 'HST Rate (%)', type: 'number', initialValue: 13 },
+        { name: 'dataSources', title: 'Data Sources', type: 'array', of: [{ type: 'string' }] },
+      ],
+    }),
+    
+    // Fees
+    defineField({
+      name: 'fees',
+      title: 'Mandatory Fees',
+      type: 'object',
+      group: 'fees',
+      fields: [
+        { name: 'adminFee', title: 'Admin Fee', type: 'number' },
+        { name: 'certification', title: 'Certification', type: 'number' },
+        { name: 'financeDocFee', title: 'Finance Doc Fee', type: 'number' },
+        { name: 'licensing', title: 'Licensing', type: 'number' },
+        { name: 'omvic', title: 'OMVIC Fee', type: 'number' },
+      ],
+    }),
+    
+    // Financing
+    defineField({
+      name: 'financing',
+      title: 'Financing Settings',
+      type: 'object',
+      group: 'financing',
+      fields: [
+        { name: 'lowestRate', title: 'Lowest Rate (%)', type: 'number' },
+        { name: 'numberOfLenders', title: 'Number of Lenders', type: 'number' },
+        { name: 'terms', title: 'Available Terms (months)', type: 'array', of: [{ type: 'number' }] },
+        { name: 'paymentFrequencies', title: 'Payment Frequencies', type: 'array', of: [{ type: 'string' }] },
+      ],
+    }),
+  ],
+  preview: {
+    prepare() {
+      return { title: 'AI Settings' }
+    },
+  },
+})
+
+// Sell Page (Legacy) - EXACT match to database
+export const sellPage = defineType({
+  name: 'sellPage',
+  title: 'Sell Page (Legacy)',
+  type: 'document',
+  fields: [
+    defineField({ name: 'seoTitle', title: 'SEO Title', type: 'string' }),
+    defineField({ name: 'seoDescription', title: 'SEO Description', type: 'text' }),
+    
+    // Hero
+    defineField({
+      name: 'hero',
+      title: 'Hero Section',
+      type: 'object',
+      fields: [
+        { name: 'headline', title: 'Headline', type: 'string' },
+        { name: 'subheadline', title: 'Subheadline', type: 'text' },
+        { name: 'highlightText', title: 'Highlight Text', type: 'string' },
+        { name: 'trustBadges', title: 'Trust Badges', type: 'array', of: [{ type: 'string' }] },
+        {
+          name: 'form',
+          title: 'Form',
+          type: 'object',
+          fields: [
+            { name: 'placeholderVin', title: 'VIN Placeholder', type: 'string' },
+            { name: 'placeholderPlate', title: 'Plate Placeholder', type: 'string' },
+            { name: 'buttonText', title: 'Button Text', type: 'string' },
+          ],
+        },
+      ],
+    }),
+    
+    // Benefits
+    defineField({
+      name: 'benefits',
+      title: 'Benefits Section',
+      type: 'object',
+      fields: [
+        { name: 'sectionTitle', title: 'Section Title', type: 'string' },
+        {
+          name: 'items',
+          title: 'Benefit Items',
+          type: 'array',
+          of: [{
+            type: 'object',
+            fields: [
+              { name: 'icon', title: 'Icon', type: 'string' },
+              { name: 'title', title: 'Title', type: 'string' },
+              { name: 'description', title: 'Description', type: 'text' },
+            ],
+          }],
+        },
+      ],
+    }),
+    
+    // Process
+    defineField({
+      name: 'process',
+      title: 'Process Section',
+      type: 'object',
+      fields: [
+        { name: 'sectionTitle', title: 'Section Title', type: 'string' },
+        {
+          name: 'steps',
+          title: 'Steps',
+          type: 'array',
+          of: [{
+            type: 'object',
+            fields: [
+              { name: 'stepNumber', title: 'Step Number', type: 'number' },
+              { name: 'title', title: 'Title', type: 'string' },
+              { name: 'description', title: 'Description', type: 'text' },
+            ],
+          }],
+        },
+      ],
+    }),
+    
+    // Comparison
+    defineField({
+      name: 'comparison',
+      title: 'Comparison Section',
+      type: 'object',
+      fields: [
+        { name: 'sectionTitle', title: 'Section Title', type: 'string' },
+        { name: 'sectionSubtitle', title: 'Section Subtitle', type: 'string' },
+        { name: 'competitors', title: 'Competitors', type: 'array', of: [{ type: 'string' }] },
+        {
+          name: 'rows',
+          title: 'Comparison Rows',
+          type: 'array',
+          of: [{
+            type: 'object',
+            fields: [
+              { name: 'feature', title: 'Feature', type: 'string' },
+              { name: 'us', title: 'Us', type: 'string' },
+              { name: 'others', title: 'Others', type: 'string' },
+            ],
+          }],
+        },
+      ],
+    }),
+    
+    // CTA
+    defineField({
+      name: 'cta',
+      title: 'CTA Section',
+      type: 'object',
+      fields: [
+        { name: 'headline', title: 'Headline', type: 'string' },
+        { name: 'subheadline', title: 'Subheadline', type: 'string' },
+        { name: 'bonusText', title: 'Bonus Text', type: 'string' },
+        { name: 'buttonText', title: 'Button Text', type: 'string' },
+        { name: 'buttonUrl', title: 'Button URL', type: 'string' },
+      ],
+    }),
+  ],
+  preview: {
+    prepare() {
+      return { title: 'Sell Page (Legacy)' }
+    },
+  },
+})
+
+// FAQ Item - Document type (not just object)
+export const faqItemDoc = defineType({
+  name: 'faqItem',
+  title: 'FAQ Item',
+  type: 'document',
+  fields: [
+    defineField({ name: 'question', title: 'Question', type: 'string', validation: (Rule) => Rule.required() }),
+    defineField({ name: 'answer', title: 'Answer', type: 'text', validation: (Rule) => Rule.required() }),
+    defineField({
+      name: 'category',
+      title: 'Category',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'General', value: 'general' },
+          { title: 'Financing', value: 'financing' },
+          { title: 'Trade-In', value: 'trade-in' },
+          { title: 'Delivery', value: 'delivery' },
+          { title: 'Warranty', value: 'warranty' },
+        ],
+      },
+    }),
+    defineField({ name: 'order', title: 'Display Order', type: 'number', initialValue: 0 }),
+  ],
+  preview: {
+    select: { title: 'question', category: 'category' },
+    prepare({ title, category }) {
+      return { title, subtitle: category }
+    },
+  },
+})
+
 // Export all page schemas
 export const pageSchemas = [
   trustBadge,
@@ -719,6 +994,9 @@ export const pageSchemas = [
   landingPage,
   financingPage,
   sellYourCarPage,
+  sellPage,
+  aiSettings,
+  faqItemDoc,
   vdpSettings,
   calculatorSettings,
 ]
