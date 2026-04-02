@@ -6,6 +6,8 @@ const MAX_ID_IMAGE_SIZE_BYTES = 10 * 1024 * 1024 // 10MB
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
 
 export async function POST(request: NextRequest) {
+  const uploadedBlobPaths: string[] = []
+
   try {
     const supabase = await createClient()
     
@@ -68,8 +70,6 @@ export async function POST(request: NextRequest) {
       url: string
       uploadedAt: string
     }[] = []
-
-    const uploadedBlobPaths: string[] = []
 
     // Upload primary ID front
     if (primaryFrontImage) {
@@ -175,11 +175,22 @@ export async function POST(request: NextRequest) {
           id_verification_id: verificationId
         })
         .eq("id", applicationId)
+        .eq("user_id", user.id)
         .select("id")
       
       if (updateError || !updatedApplications || updatedApplications.length === 0) {
         console.error("Failed to update finance application:", updateError)
-        await supabase.from("id_verifications").delete().eq("id", verificationId).eq("user_id", user.id)
+
+        const { error: rollbackError } = await supabase
+          .from("id_verifications")
+          .delete()
+          .eq("id", verificationId)
+          .eq("user_id", user.id)
+
+        if (rollbackError) {
+          console.error("Failed to rollback ID verification after linking failure:", rollbackError)
+        }
+
         await cleanupUploadedBlobs(uploadedBlobPaths)
         return NextResponse.json(
           { error: "Failed to link ID verification to the financing application." },
@@ -197,6 +208,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error("ID verification error:", error)
+    await cleanupUploadedBlobs(uploadedBlobPaths)
     return NextResponse.json(
       { error: "Failed to process ID verification" },
       { status: 500 }
@@ -228,7 +240,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from("id_verifications")
-      .select("*")
+      .select("id, application_id, primary_id_type, secondary_id_type, status, submitted_at, reviewed_at, notes")
       .eq("user_id", user.id)
 
     if (verificationId) {
