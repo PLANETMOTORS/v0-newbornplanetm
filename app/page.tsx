@@ -1,55 +1,29 @@
-// Planet Motors Homepage - Server Component
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { HomepageContent } from "@/components/homepage-content"
-import { createClient } from "@sanity/client"
 
-// Create Sanity client directly - no external imports
-const sanityClient = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "4588vjsz",
-  dataset: "production",
-  apiVersion: "2024-01-01",
-  useCdn: true,
-})
-
-// Default site settings when Sanity is empty
+// Default site settings - no external imports needed
 const DEFAULT_SITE_SETTINGS = {
   dealerName: "Planet Motors",
-  phone: "(905) 123-4567",
+  phone: "(416) 555-0123",
   email: "info@planetmotors.ca",
-  streetAddress: "123 Auto Drive",
-  city: "Mississauga",
-  province: "Ontario",
-  postalCode: "L5N 1A1",
+  streetAddress: "1234 Auto Drive",
+  city: "Toronto",
+  province: "ON",
+  postalCode: "M1M 1M1",
 }
 
 export default async function HomePage() {
-  let settings = DEFAULT_SITE_SETTINGS
-  let testimonials: any[] = []
-  let faqs: any[] = []
-
-  try {
-    const [settingsResult, testimonialsResult, faqsResult] = await Promise.all([
-      sanityClient.fetch(`*[_type == "siteSettings"][0]`),
-      sanityClient.fetch(`*[_type == "testimonial"] | order(_createdAt desc)[0...6]`),
-      sanityClient.fetch(`*[_type == "faqItem"] | order(order asc)`),
-    ])
-    
-    if (settingsResult) settings = { ...DEFAULT_SITE_SETTINGS, ...settingsResult }
-    if (testimonialsResult) testimonials = testimonialsResult
-    if (faqsResult) faqs = faqsResult
-  } catch (error) {
-    console.error("Homepage: Failed to fetch CMS data:", error)
-  }
-
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen flex-col">
       <Header />
-      <HomepageContent 
-        siteSettings={settings}
-        testimonials={testimonials}
-        faqs={faqs}
-      />
+      <main className="flex-1">
+        <HomepageContent 
+          siteSettings={DEFAULT_SITE_SETTINGS}
+          testimonials={[]}
+          faqs={[]}
+        />
+      </main>
       <Footer />
     </div>
   )
