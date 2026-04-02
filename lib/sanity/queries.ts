@@ -163,8 +163,27 @@ export const PROTECTION_PLANS_QUERY = `
 `
 
 export const LENDERS_QUERY = `
-  *[_type == "lender"] | order(order asc) {
-    _id, name, "logo": logo.asset->url, description, specialties, featured
+  *[_type == "lender"] | order(promoRate asc, standardRate asc) {
+    _id, name, "logo": logo.asset->url, description, specialties, featured,
+    promoRate, standardRate, promoEndDate, promoDescription,
+    contactName, contactEmail, contactPhone
+  }
+`
+
+// Get the lowest available interest rate from all lenders
+export const LOWEST_RATE_QUERY = `
+  *[_type == "lender"] | order(promoRate asc)[0] {
+    name, promoRate, standardRate, promoEndDate, "logo": logo.asset->url
+  }
+`
+
+// Vehicles with special financing sorted by monthly payment
+export const VEHICLES_BY_PAYMENT_QUERY = `
+  *[_type == "vehicle" && status == "available"] | order(round(coalesce(specialPrice, price) / 60 * 1.05) asc) {
+    _id, year, make, model, trim, price, specialPrice, mileage, fuelType,
+    "mainImage": mainImage.asset->url, slug,
+    "estMonthlyPayment": round(coalesce(specialPrice, price) / 60 * 1.05),
+    "specialFinance": specialFinance-> { name, "logo": logo.asset->url, promoRate }
   }
 `
 
