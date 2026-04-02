@@ -1,4 +1,4 @@
-// Planet Motors Homepage - Server Component with Sanity CMS Integration
+// Planet Motors Homepage - Server Component using @sanity/client
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { HomepageContent } from "@/components/homepage-content"

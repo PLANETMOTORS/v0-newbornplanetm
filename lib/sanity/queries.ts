@@ -1,4 +1,4 @@
-// Planet Motors - GROQ Queries (plain strings)
+// Planet Motors - GROQ Queries (plain template strings, no groq import needed)
 // ==========================================
 // VEHICLE QUERIES
 // ==========================================
