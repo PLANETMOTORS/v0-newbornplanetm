@@ -1,6 +1,17 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
+const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
+
+async function requireAdmin() {
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error || !user || !ADMIN_EMAILS.includes(user.email || "")) {
+    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
+  }
+  return { supabase }
+}
+
 // Scrape images from planetmotors.ca VDP page
 async function scrapeVehicleImages(vdpUrl: string): Promise<{
   images: string[]
@@ -69,7 +80,10 @@ async function scrapeVehicleImages(vdpUrl: string): Promise<{
 // GET - Scrape images for all vehicles
 export async function GET() {
   try {
-    const supabase = await createClient()
+    const { supabase, error } = await requireAdmin()
+    if (error) {
+      return error
+    }
     
     // Get all vehicles with VDP URLs
     const { data: vehicles, error } = await supabase
@@ -140,6 +154,11 @@ export async function GET() {
 // POST - Scrape images for a single vehicle by ID
 export async function POST(request: Request) {
   try {
+    const { supabase, error } = await requireAdmin()
+    if (error) {
+      return error
+    }
+
     const { vehicleId, vdpUrl } = await request.json()
     
     if (!vdpUrl) {
@@ -149,7 +168,6 @@ export async function POST(request: Request) {
     const scraped = await scrapeVehicleImages(vdpUrl)
     
     if (vehicleId && scraped.images.length > 0) {
-      const supabase = await createClient()
       await supabase
         .from('vehicles')
         .update({

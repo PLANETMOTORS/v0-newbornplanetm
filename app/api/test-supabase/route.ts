@@ -1,7 +1,16 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { createClient as createServerClient } from '@/lib/supabase/server'
+
+const ADMIN_EMAILS = ['admin@planetmotors.ca', 'toni@planetmotors.ca']
 
 export async function GET() {
+  const serverClient = await createServerClient()
+  const { data: { user }, error: authError } = await serverClient.auth.getUser()
+  if (authError || !user || !ADMIN_EMAILS.includes(user.email || '')) {
+    return NextResponse.json({ status: 'error', message: 'Unauthorized' }, { status: 401 })
+  }
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   
