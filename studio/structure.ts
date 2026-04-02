@@ -12,7 +12,10 @@ import {
   LayoutGrid,
   Megaphone,
   FileStack,
-  Receipt
+  Receipt,
+  Menu,
+  Bot,
+  ArrowRightLeft
 } from 'lucide-react'
 
 export const structure = (S: StructureBuilder) =>
@@ -50,23 +53,6 @@ export const structure = (S: StructureBuilder) =>
                       S.listItem()
                         .title('Sold')
                         .child(S.documentList().title('Sold').filter('_type == "vehicle" && status == "sold"')),
-                    ])
-                ),
-              S.listItem()
-                .title('By Condition')
-                .child(
-                  S.list()
-                    .title('By Condition')
-                    .items([
-                      S.listItem()
-                        .title('New')
-                        .child(S.documentList().title('New Vehicles').filter('_type == "vehicle" && condition == "new"')),
-                      S.listItem()
-                        .title('Used')
-                        .child(S.documentList().title('Used Vehicles').filter('_type == "vehicle" && condition == "used"')),
-                      S.listItem()
-                        .title('Certified Pre-Owned')
-                        .child(S.documentList().title('CPO Vehicles').filter('_type == "vehicle" && condition == "certified"')),
                     ])
                 ),
             ])
@@ -132,8 +118,12 @@ export const structure = (S: StructureBuilder) =>
                     .documentId('sellYourCarPage')
                     .title('Sell Your Car Page')
                 ),
-              S.divider(),
-              S.documentTypeListItem('landingPage').title('Custom Landing Pages'),
+              S.listItem()
+                .title('Sell Page (Legacy)')
+                .icon(() => ArrowRightLeft({ size: 20 }))
+                .child(
+                  S.documentTypeList('sellPage').title('Sell Page (Legacy)')
+                ),
             ])
         ),
       
@@ -168,7 +158,7 @@ export const structure = (S: StructureBuilder) =>
       S.listItem()
         .title('FAQ')
         .icon(() => HelpCircle({ size: 20 }))
-        .child(S.documentTypeList('faqEntry').title('FAQ Entries')),
+        .child(S.documentTypeList('faqItem').title('FAQ Items')),
       
       // Protection Plans
       S.listItem()
@@ -178,11 +168,27 @@ export const structure = (S: StructureBuilder) =>
       
       S.divider(),
       
-      // SEO
+      // AI Settings
       S.listItem()
-        .title('SEO Settings')
-        .icon(() => Search({ size: 20 }))
-        .child(S.documentTypeList('seoSettings').title('SEO Settings')),
+        .title('AI Settings')
+        .icon(() => Bot({ size: 20 }))
+        .child(
+          S.document()
+            .schemaType('aiSettings')
+            .documentId('aiSettings')
+            .title('AI & Automation Settings')
+        ),
+      
+      // Navigation
+      S.listItem()
+        .title('Navigation')
+        .icon(() => Menu({ size: 20 }))
+        .child(
+          S.document()
+            .schemaType('navigation')
+            .documentId('navigation')
+            .title('Navigation Settings')
+        ),
       
       // Site Settings
       S.listItem()

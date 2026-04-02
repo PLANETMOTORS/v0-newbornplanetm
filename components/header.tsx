@@ -183,7 +183,14 @@ const navigation = [
       { name: "Trucks", href: "/inventory?bodyType=Truck" },
     ]
   },
-  { name: "Sell or Trade", href: "/trade-in" },
+  { 
+    name: "Sell or Trade",
+    href: "/trade-in",
+    submenu: [
+      { name: "Get Trade-In Value", href: "/trade-in" },
+      { name: "Sell Your Car", href: "/sell-your-car" },
+    ]
+  },
   { 
     name: "Finance",
     href: "/financing",
