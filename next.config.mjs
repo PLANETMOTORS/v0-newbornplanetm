@@ -1,15 +1,19 @@
 /** @type {import('next').NextConfig} */
-// CACHE BUST: v62 - Force App Router only, no Pages Router
+// CACHE BUST: v63 - Memory optimization + complete rebuild
 const nextConfig = {
-  // Force complete rebuild and disable all caching
+  // Force complete rebuild
   cleanDistDir: true,
   
-  // Explicitly use App Router only - no pages directory
-  // This should prevent Turbopack from looking for pages/_app
+  // Experimental memory optimization
+  experimental: {
+    // Reduce memory usage
+    optimizePackageImports: ['lucide-react', '@sanity/client', 'sanity'],
+  },
   
   typescript: {
     ignoreBuildErrors: true,
   },
+  
   images: {
     loader: 'custom',
     loaderFile: './lib/imgix-loader.ts',
@@ -44,15 +48,22 @@ const nextConfig = {
       },
     ],
   },
+  
   compress: true,
+  
+  // Reduce bundle size
+  modularizeImports: {
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+    },
+  },
+  
   async headers() {
     return [
       {
         source: '/:path*',
         headers: [
           { key: 'Link', value: '<https://planetmotors.imgix.net>; rel=preconnect' },
-          // Disable caching for development
-          { key: 'Cache-Control', value: 'no-store, must-revalidate' },
         ],
       },
     ]

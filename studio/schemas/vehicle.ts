@@ -71,17 +71,26 @@ export const vehicle = defineType({
     // Status & Condition
     defineField({
       name: 'status',
-      title: 'Status',
+      title: 'Availability Status',
       type: 'string',
       options: {
         list: [
           { title: 'Available', value: 'available' },
-          { title: 'Pending', value: 'pending' },
+          { title: 'In-Transit', value: 'in-transit' },
+          { title: 'Reserved', value: 'reserved' },
+          { title: 'Pending Sale', value: 'pending' },
           { title: 'Sold', value: 'sold' },
-          { title: 'Coming Soon', value: 'coming_soon' },
         ],
+        layout: 'radio',
       },
       initialValue: 'available',
+    }),
+    defineField({
+      name: 'estimatedArrivalDate',
+      title: 'Estimated Arrival Date',
+      type: 'date',
+      description: 'When will this vehicle arrive? Only shown when status is In-Transit.',
+      hidden: ({ document }) => document?.status !== 'in-transit',
     }),
     defineField({
       name: 'condition',

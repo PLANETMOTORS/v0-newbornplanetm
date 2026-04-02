@@ -4,12 +4,14 @@ import {
   Home, 
   FileText, 
   Settings, 
-  MessageSquare, 
   Star, 
   HelpCircle,
-  Tag,
   Shield,
-  Search
+  Search,
+  DollarSign,
+  LayoutGrid,
+  CreditCard,
+  Building
 } from 'lucide-react'
 
 export const structure = (S: StructureBuilder) =>
@@ -36,8 +38,14 @@ export const structure = (S: StructureBuilder) =>
                         .title('Available')
                         .child(S.documentList().title('Available').filter('_type == "vehicle" && status == "available"')),
                       S.listItem()
-                        .title('Pending')
-                        .child(S.documentList().title('Pending').filter('_type == "vehicle" && status == "pending"')),
+                        .title('In-Transit')
+                        .child(S.documentList().title('In-Transit').filter('_type == "vehicle" && status == "in-transit"')),
+                      S.listItem()
+                        .title('Reserved')
+                        .child(S.documentList().title('Reserved').filter('_type == "vehicle" && status == "reserved"')),
+                      S.listItem()
+                        .title('Pending Sale')
+                        .child(S.documentList().title('Pending Sale').filter('_type == "vehicle" && status == "pending"')),
                       S.listItem()
                         .title('Sold')
                         .child(S.documentList().title('Sold').filter('_type == "vehicle" && status == "sold"')),
@@ -59,6 +67,28 @@ export const structure = (S: StructureBuilder) =>
                         .title('Certified Pre-Owned')
                         .child(S.documentList().title('CPO Vehicles').filter('_type == "vehicle" && condition == "certified"')),
                     ])
+                ),
+            ])
+        ),
+      
+      // Financing & Lenders
+      S.listItem()
+        .title('Financing')
+        .icon(() => DollarSign({ size: 20 }))
+        .child(
+          S.list()
+            .title('Financing')
+            .items([
+              S.documentTypeListItem('lender').title('Lenders'),
+              S.divider(),
+              S.listItem()
+                .title('Inventory Settings')
+                .icon(() => LayoutGrid({ size: 20 }))
+                .child(
+                  S.document()
+                    .schemaType('inventorySettings')
+                    .documentId('inventorySettings')
+                    .title('Inventory & Payment Settings')
                 ),
             ])
         ),
