@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
+// CACHE BUST: 2026-04-02-v54
 const nextConfig = {
-  // Force clean build - version 52 - all sanity files verified 2026-04-02
+  // Force complete rebuild - Sanity files verified
   cleanDistDir: true,
   turbopack: {},
   typescript: {

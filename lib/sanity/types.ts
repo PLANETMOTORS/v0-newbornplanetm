@@ -1,4 +1,4 @@
-// Sanity CMS Types for Planet Motors - matches cms.planetmotors.ca schema
+// Sanity CMS Types for Planet Motors v7
 
 // ==========================================
 // SITE CONFIGURATION
