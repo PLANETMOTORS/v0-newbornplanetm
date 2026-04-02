@@ -85,6 +85,10 @@ export default function FinanceCalculatorPage() {
   useEffect(() => {
     async function fetchVehicle() {
       const supabase = createClient()
+      if (!supabase) {
+        setLoading(false)
+        return
+      }
       const { data, error } = await supabase
         .from("vehicles")
         .select("*")

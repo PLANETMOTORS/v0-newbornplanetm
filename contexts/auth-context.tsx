@@ -19,6 +19,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const supabase = createClient()
 
+    // If Supabase is not configured, skip auth initialization
+    if (!supabase) {
+      setIsLoading(false)
+      return
+    }
+
     // Get initial user
     const getUser = async () => {
       try {
@@ -48,7 +54,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     const supabase = createClient()
-    await supabase.auth.signOut()
+    if (supabase) {
+      await supabase.auth.signOut()
+    }
     setUser(null)
   }
 

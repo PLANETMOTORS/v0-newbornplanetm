@@ -59,6 +59,7 @@ interface Vehicle {
 // Fetcher for SWR
 const fetcher = async () => {
   const supabase = createClient()
+  if (!supabase) return [] as Vehicle[]
   const { data, error } = await supabase
     .from('vehicles')
     .select('*')

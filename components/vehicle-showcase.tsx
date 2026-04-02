@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/client"
 // Fetcher for featured vehicles
 const fetcher = async () => {
   const supabase = createClient()
+  if (!supabase) return []
   const { data, error } = await supabase
     .from('vehicles')
     .select('*')

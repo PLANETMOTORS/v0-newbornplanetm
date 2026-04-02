@@ -392,6 +392,10 @@ export default function VehicleDetailPage() {
   useEffect(() => {
     async function fetchVehicle() {
       const supabase = createClient()
+      if (!supabase) {
+        setIsLoading(false)
+        return
+      }
       const { data, error } = await supabase
         .from("vehicles")
         .select("*")

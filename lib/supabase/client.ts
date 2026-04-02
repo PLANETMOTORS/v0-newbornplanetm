@@ -9,9 +9,10 @@ export function createClient() {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseAnonKey) {
-    throw new Error(
-      'Missing Supabase anon key. Please connect Supabase in Settings.'
+    console.warn(
+      'Missing Supabase anon key. Auth features will be disabled. Please connect Supabase in Settings.'
     )
+    return null
   }
 
   return createBrowserClient(SUPABASE_URL, supabaseAnonKey)
