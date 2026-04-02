@@ -577,14 +577,44 @@ if (errors.length > 0) {
         })
       })
       
-      if (response.ok) {
-        setIsSubmitted(true)
+if (response.ok) {
+  const result = await response.json()
+  const applicationId = result.data?.id
+  
+  // Upload documents to private Blob storage
+  if (applicationId && documents.length > 0) {
+    console.log("[v0] Uploading documents for application:", applicationId)
+    for (const doc of documents) {
+      if (doc.file) {
+        const formData = new FormData()
+        formData.append("file", doc.file)
+        formData.append("applicationId", applicationId)
+        formData.append("documentType", doc.type)
+        
+        try {
+          const uploadRes = await fetch("/api/v1/financing/documents", {
+            method: "POST",
+            body: formData
+          })
+          if (uploadRes.ok) {
+            console.log("[v0] Document uploaded:", doc.type)
+          } else {
+            console.error("[v0] Document upload failed:", doc.type)
+          }
+        } catch (uploadErr) {
+          console.error("[v0] Document upload error:", uploadErr)
+        }
       }
-    } catch (error) {
-      console.error("Submit error:", error)
-    } finally {
-      setIsSubmitting(false)
     }
+  }
+  
+  setIsSubmitted(true)
+  }
+  } catch (error) {
+  console.error("Submit error:", error)
+  } finally {
+  setIsSubmitting(false)
+  }
   }
   
   // Render success state - redirect to ID verification

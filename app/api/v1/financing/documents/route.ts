@@ -40,14 +40,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
     
-    // Upload file to Vercel Blob
+    // Upload file to Vercel Blob (PRIVATE storage for security)
     const filename = `finance-docs/${applicationId}/${documentType}-${Date.now()}-${file.name}`
     const blob = await put(filename, file, {
-      access: "public",
+      access: "private",
       contentType: file.type
     })
     
-    // Save document record to database
+    // Save document record to database (store pathname, not URL for private blobs)
     const { data: document, error: docError } = await supabase
       .from("finance_documents")
       .insert({
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         applicant_id: applicantId || null,
         document_type: documentType,
         document_name: file.name,
-        file_url: blob.url,
+        file_url: blob.pathname, // Store pathname for private blob access
         file_size: file.size,
         file_type: file.type,
         is_verified: false
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       success: true,
       data: {
         id: document.id,
-        url: blob.url,
+        pathname: blob.pathname, // Return pathname for secure access
         documentType,
         fileName: file.name
       }
