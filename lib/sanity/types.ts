@@ -282,6 +282,10 @@ export interface Lender {
   logo?: string
   description?: string
   website?: string
+  interestRate?: number
+  maxTerm?: number
+  specialties?: string[]
+  featured?: boolean
 }
 
 export interface ProtectionPlan {

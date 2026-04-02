@@ -115,6 +115,23 @@ export const VEHICLE_COUNT_QUERY = groq`
   count(*[_type == "vehicle" && status == "available"])
 `
 
+// Vehicles by stock numbers (for homepage featured selection)
+export const VEHICLES_BY_STOCK_NUMBERS_QUERY = groq`
+  *[_type == "vehicle" && stockNumber in $stockNumbers && status == "available"] {
+    _id,
+    year,
+    make,
+    model,
+    trim,
+    price,
+    mileage,
+    fuelType,
+    "mainImage": mainImage.asset->url,
+    slug,
+    stockNumber
+  }
+`
+
 // ==========================================
 // SITE SETTINGS & CONTENT QUERIES
 // ==========================================
@@ -268,6 +285,18 @@ export const TESTIMONIALS_QUERY = groq`
     vehiclePurchased,
     publishedAt,
     featured
+  }
+`
+
+// Featured testimonials only
+export const FEATURED_TESTIMONIALS_QUERY = groq`
+  *[_type == "testimonial" && featured == true] | order(publishedAt desc)[0...6] {
+    _id,
+    customerName,
+    rating,
+    review,
+    vehiclePurchased,
+    publishedAt
   }
 `
 
