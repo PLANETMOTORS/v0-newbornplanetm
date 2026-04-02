@@ -53,12 +53,12 @@ export async function POST(request: NextRequest) {
       const blob = await put(
         `id-verification/${user.id}/${verificationId}/primary-front.${primaryFrontImage.name.split('.').pop()}`,
         primaryFrontImage,
-        { access: "public", addRandomSuffix: true }
+        { access: "private", addRandomSuffix: true }
       )
       uploadedDocuments.push({
         type: "primary",
         side: "front",
-        url: blob.url,
+        url: blob.pathname,
         uploadedAt: new Date().toISOString()
       })
     }
@@ -68,12 +68,12 @@ export async function POST(request: NextRequest) {
       const blob = await put(
         `id-verification/${user.id}/${verificationId}/primary-back.${primaryBackImage.name.split('.').pop()}`,
         primaryBackImage,
-        { access: "public", addRandomSuffix: true }
+        { access: "private", addRandomSuffix: true }
       )
       uploadedDocuments.push({
         type: "primary",
         side: "back",
-        url: blob.url,
+        url: blob.pathname,
         uploadedAt: new Date().toISOString()
       })
     }
@@ -83,12 +83,12 @@ export async function POST(request: NextRequest) {
       const blob = await put(
         `id-verification/${user.id}/${verificationId}/secondary-front.${secondaryFrontImage.name.split('.').pop()}`,
         secondaryFrontImage,
-        { access: "public", addRandomSuffix: true }
+        { access: "private", addRandomSuffix: true }
       )
       uploadedDocuments.push({
         type: "secondary",
         side: "front",
-        url: blob.url,
+        url: blob.pathname,
         uploadedAt: new Date().toISOString()
       })
     }
@@ -97,12 +97,12 @@ export async function POST(request: NextRequest) {
       const blob = await put(
         `id-verification/${user.id}/${verificationId}/secondary-back.${secondaryBackImage.name.split('.').pop()}`,
         secondaryBackImage,
-        { access: "public", addRandomSuffix: true }
+        { access: "private", addRandomSuffix: true }
       )
       uploadedDocuments.push({
         type: "secondary",
         side: "back",
-        url: blob.url,
+        url: blob.pathname,
         uploadedAt: new Date().toISOString()
       })
     }
