@@ -1,4 +1,4 @@
-// Planet Motors CMS - Sanity Client v10 - VERIFIED EXISTS
+// Planet Motors CMS - Sanity Client v11 - CACHE CLEAR
 import { createClient } from "@sanity/client"
 
 // Hardcode safe default values - env vars may have invalid characters
