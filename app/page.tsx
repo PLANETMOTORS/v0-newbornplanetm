@@ -1,4 +1,4 @@
-// Planet Motors Homepage - v8 FINAL - NO external sanity imports
+// Planet Motors Homepage - v9 VERIFIED - Inline defaults only - 2026-04-02T15:00
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { HomepageContent } from "@/components/homepage-content"

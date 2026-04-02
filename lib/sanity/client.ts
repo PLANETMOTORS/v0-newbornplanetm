@@ -1,4 +1,4 @@
-// Planet Motors CMS - Sanity Client v8 - FINAL
+// Planet Motors CMS - Sanity Client v9
 import { createClient } from "@sanity/client"
 
 // Hardcode safe default values - env vars may have invalid characters
