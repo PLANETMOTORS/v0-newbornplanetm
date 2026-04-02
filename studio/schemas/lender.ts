@@ -30,7 +30,7 @@ export const lender = defineType({
       },
     }),
     defineField({
-      name: 'interestRate',
+      name: 'promoRate',
       title: 'Promotional Interest Rate (%)',
       type: 'number',
       description: 'Current promotional APR (e.g., 3.9)',
@@ -120,7 +120,7 @@ export const lender = defineType({
   preview: {
     select: {
       name: 'name',
-      rate: 'interestRate',
+      rate: 'promoRate',
       promo: 'promoTitle',
       media: 'logo',
       active: 'isActive',
@@ -140,7 +140,7 @@ export const lender = defineType({
     {
       title: 'Interest Rate (Low to High)',
       name: 'rateAsc',
-      by: [{ field: 'interestRate', direction: 'asc' }],
+      by: [{ field: 'promoRate', direction: 'asc' }],
     },
     {
       title: 'Sort Order',

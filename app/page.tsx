@@ -1,4 +1,4 @@
-// Planet Motors Homepage - v18
+// Planet Motors Homepage - v20 - Memory Optimized
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { HomepageContent } from "@/components/homepage-content"
