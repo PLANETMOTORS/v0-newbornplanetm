@@ -1,4 +1,4 @@
-// Planet Motors Homepage - v7 2026-04-02 14:30
+// Planet Motors Homepage - v8 FINAL - NO external sanity imports
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { HomepageContent } from "@/components/homepage-content"

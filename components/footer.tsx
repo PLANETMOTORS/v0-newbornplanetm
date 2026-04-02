@@ -1,4 +1,4 @@
-// Planet Motors Footer - v7 2026-04-02 14:30
+// Planet Motors Footer - v8 FINAL - NO external sanity imports
 import { FooterContent } from "@/components/footer-content"
 
 // Default site settings - no external imports needed
