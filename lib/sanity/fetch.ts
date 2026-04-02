@@ -1,3 +1,4 @@
+// Sanity data fetching functions - uses @sanity/client
 import { sanityClient } from "./client"
 import {
   SITE_SETTINGS_QUERY,
