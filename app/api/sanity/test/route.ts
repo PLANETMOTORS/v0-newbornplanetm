@@ -1,8 +1,33 @@
 import { NextResponse } from "next/server"
-import { sanityClient } from "@/lib/sanity/client"
+import { createClient } from "next-sanity"
 import { groq } from "next-sanity"
 
+// Force dynamic to prevent build-time errors
+export const dynamic = "force-dynamic"
+
+// Validate dataset name - must be lowercase, numbers, dashes only
+function isValidDataset(dataset: string): boolean {
+  return /^[a-z0-9-]+$/.test(dataset) && dataset.length <= 64
+}
+
 export async function GET() {
+  // Get and validate environment variables
+  const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "4588vjsz"
+  let dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || "production"
+  
+  // Validate dataset - if invalid, use production
+  if (!isValidDataset(dataset)) {
+    console.warn(`Invalid dataset name "${dataset}", using "production"`)
+    dataset = "production"
+  }
+  
+  // Create client with validated config
+  const sanityClient = createClient({
+    projectId,
+    dataset,
+    apiVersion: "2024-01-01",
+    useCdn: false,
+  })
   try {
     // Test basic connection
     const connectionTest = await sanityClient.fetch(groq`*[_type == "siteSettings"][0]{ dealerName }`)
@@ -35,8 +60,8 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       connection: "Connected to Sanity",
-      projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "4588vjsz",
-      dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || "planetmotors_cms",
+      projectId,
+      dataset,
       documentCounts: counts,
       siteSettings: siteSettings || null,
       dealerName: connectionTest?.dealerName || "No dealer name found"
@@ -46,8 +71,8 @@ export async function GET() {
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
-      projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "4588vjsz",
-      dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || "planetmotors_cms"
+      projectId,
+      dataset
     }, { status: 500 })
   }
 }
