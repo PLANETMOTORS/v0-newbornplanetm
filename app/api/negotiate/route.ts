@@ -35,46 +35,56 @@ export async function POST(req: Request) {
   }
   
   const minAcceptablePrice = vehiclePrice * (1 - maxDiscountPercent / 100)
-  const minAcceptablePercent = 100 - maxDiscountPercent
+  
+  // CRITICAL: Determine if offer should be ACCEPTED
+  const offerIsAcceptable = customerOffer >= minAcceptablePrice
+  const offerIsClose = customerOffer >= (minAcceptablePrice * 0.98)
+  const suggestedCounterOffer = Math.round(minAcceptablePrice)
 
-  // System prompt for AI negotiator with CMS-driven rules
-  const systemPrompt = `You are a friendly but firm AI sales negotiator for Planet Motors, a trusted dealership in Richmond Hill, Ontario.
+  // Build decision instruction
+  let decisionInstruction: string
+  if (offerIsAcceptable) {
+    decisionInstruction = `
+**ACCEPT THIS OFFER IMMEDIATELY**
+Customer offered $${customerOffer.toLocaleString()} which is AT OR ABOVE your minimum of $${minAcceptablePrice.toLocaleString()}.
+- Set status to "accepted"
+- Set counterOffer to null
+- Congratulate them: "Fantastic! I'm happy to accept your offer of $${customerOffer.toLocaleString()}!"
+- Mention next steps (paperwork, delivery options)
+DO NOT counter-offer. DO NOT ask for more money. ACCEPT THE DEAL.`
+  } else if (offerIsClose) {
+    decisionInstruction = `
+**COUNTER AT MINIMUM PRICE**
+Customer offered $${customerOffer.toLocaleString()} which is close but below minimum.
+- Set status to "negotiating"
+- Set counterOffer to ${suggestedCounterOffer}
+- Say you can meet them at $${suggestedCounterOffer.toLocaleString()}`
+  } else {
+    decisionInstruction = `
+**COUNTER HIGHER**
+Customer offered $${customerOffer.toLocaleString()} which is too low.
+- Set status to "negotiating" 
+- Set counterOffer to ${Math.round(suggestedCounterOffer * 1.01)} or ${Math.round(suggestedCounterOffer * 1.02)}
+- Explain the value they're getting`
+  }
 
-VEHICLE CONTEXT:
-- Vehicle: ${vehicleInfo?.name || "Vehicle"}
-- Listed Price: $${vehiclePrice.toLocaleString()} CAD
-- Customer Offer: $${customerOffer.toLocaleString()} CAD (${offerPercentage.toFixed(1)}% of list price)
-- Days on lot: ${daysListed}
-- Hot seller: ${isHotSeller ? "Yes" : "No"}
-- Price category: ${isLowPrice ? "Standard" : "Premium"} (threshold: $${(rules?.lowPriceThreshold || 30000).toLocaleString()})
+  const systemPrompt = `You are a friendly AI sales negotiator for Planet Motors dealership.
 
-NEGOTIATION RULES (from management):
-1. Maximum discount allowed: ${maxDiscountPercent}% off list price
-2. Minimum acceptable price: $${minAcceptablePrice.toLocaleString()} (${minAcceptablePercent.toFixed(1)}% of list)
-3. If offer is at or above ${minAcceptablePercent.toFixed(1)}%, you CAN ACCEPT
-4. If offer is close (within 2% of minimum), counter at the minimum
-5. If offer is too low, counter at 1-2% above your minimum
-6. Hot sellers have less room - stick closer to list price
+VEHICLE: ${vehicleInfo?.name || "Vehicle"} - Listed at $${vehiclePrice.toLocaleString()} CAD
+CUSTOMER OFFER: $${customerOffer.toLocaleString()} CAD
+MINIMUM ACCEPTABLE: $${minAcceptablePrice.toLocaleString()} CAD (${maxDiscountPercent}% max discount)
+DAYS ON LOT: ${daysListed}
 
-MANDATORY FEES (inform customer these apply on top of price):
-- Certification: $${fees?.certification || 595}
-- Documentation: $${fees?.financeDocFee || 895}
-- OMVIC: $${fees?.omvic || 22}
-- Licensing: $${fees?.licensing || 59}
+${decisionInstruction}
 
-VALUE HIGHLIGHTS:
-- 210-point inspection included
-- 10-day/500km money-back guarantee
-- Free delivery within 300km
-- 20+ lender financing network
-- Best rate from ${aiSettings?.financing?.lowestRate || 4.79}%
+RULES:
+- NEVER counter above listed price ($${vehiclePrice.toLocaleString()})
+- NEVER counter below customer's offer ($${customerOffer.toLocaleString()})
+- If accepting, counterOffer MUST be null
+- Be warm and conversational
 
-RESPONSE GUIDELINES:
-- Be conversational and warm, not robotic
-- Keep responses under 150 words
-- Always provide a counter-offer amount if not accepting
-- End with a question to keep conversation going
-- Maximum 3 counter-offers before suggesting they speak to a human`
+FEES TO MENTION: Certification $${fees?.certification || 595}, Doc $${fees?.financeDocFee || 895}, OMVIC $${fees?.omvic || 22}
+VALUE: 210-point inspection, 10-day guarantee, free delivery 300km, financing from ${aiSettings?.financing?.lowestRate || 4.79}%`
 
   const result = streamText({
     model: "openai/gpt-4o-mini",
@@ -87,10 +97,18 @@ RESPONSE GUIDELINES:
     ],
     output: Output.object({
       schema: z.object({
-        response: z.string().describe("The negotiation response message"),
-        counterOffer: z.number().nullable().describe("Counter offer amount in dollars, or null if accepting"),
-        status: z.enum(["negotiating", "accepted", "declined", "escalate"]).describe("Current negotiation status"),
-        confidence: z.number().min(0).max(100).describe("AI confidence in this response"),
+        response: z.string().describe("Your response message"),
+        counterOffer: z.number().nullable().describe(
+          offerIsAcceptable 
+            ? "MUST BE null - you are accepting their offer" 
+            : `Your counter offer - around $${suggestedCounterOffer}`
+        ),
+        status: z.enum(["negotiating", "accepted", "declined", "escalate"]).describe(
+          offerIsAcceptable 
+            ? "MUST BE 'accepted'" 
+            : "'negotiating'"
+        ),
+        confidence: z.number().min(0).max(100),
       }),
     }),
   })
