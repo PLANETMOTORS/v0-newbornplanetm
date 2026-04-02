@@ -1,5 +1,6 @@
 // Vehicle
 import { vehicle } from './vehicle'
+import { lender } from './lender'
 
 // Homepage & Website
 import { homepageHero, banner, page, promotion } from './homepage'
@@ -14,6 +15,7 @@ import { inventorySettings } from './inventorySettings'
 export const schemaTypes = [
   // Vehicles
   vehicle,
+  lender,
   
   // Website Content
   homepageHero,

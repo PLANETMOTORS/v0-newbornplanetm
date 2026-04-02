@@ -60,6 +60,13 @@ export const vehicle = defineType({
       type: 'number',
       description: 'Sale or promotional price',
     }),
+    defineField({
+      name: 'specialFinance',
+      title: 'Special Financing Deal',
+      type: 'reference',
+      to: [{ type: 'lender' }],
+      description: 'Select a lender if this vehicle qualifies for a promotional rate',
+    }),
     
     // Status & Condition
     defineField({
