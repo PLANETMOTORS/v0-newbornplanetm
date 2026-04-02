@@ -132,24 +132,27 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       console.error("Failed to save ID verification:", insertError)
-      // If table doesn't exist, return success anyway (for demo)
-      return NextResponse.json({
-        success: true,
-        verificationId,
-        status: "pending_review",
-        message: "Your ID documents have been submitted for verification. You will receive confirmation within 24-48 hours."
-      })
+      return NextResponse.json(
+        { error: "Failed to save ID verification record. Please try again." },
+        { status: 500 }
+      )
     }
 
     // Update finance application status if applicationId provided
     if (applicationId) {
-      await supabase
+      const { error: updateError } = await supabase
         .from("finance_applications")
         .update({ 
           id_verification_status: "submitted",
           id_verification_id: verificationId
         })
         .eq("id", applicationId)
+      
+      if (updateError) {
+        console.error("Failed to update finance application:", updateError)
+        // Don't fail the whole request, but log the error
+        // The ID verification was still saved successfully
+      }
     }
 
     return NextResponse.json({
