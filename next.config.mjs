@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Force clean build - version 47 - uses @sanity/client
+  // Force clean build - version 48 - @sanity/client with queries.ts
   cleanDistDir: true,
   turbopack: {},
   typescript: {
