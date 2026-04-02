@@ -1,5 +1,44 @@
 import { streamText } from "ai"
-import { getAISettings } from "@/lib/sanity/fetch"
+import { getAISettings, getSiteSettings } from "@/lib/sanity/fetch"
+
+// Check if current time is within business hours (Eastern Time)
+function isWithinBusinessHours(): { isOpen: boolean; currentDay: string; message: string } {
+  const now = new Date()
+  const eastern = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Toronto',
+    weekday: 'long',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: false
+  }).formatToParts(now)
+  
+  const day = eastern.find(p => p.type === 'weekday')?.value || ''
+  const hour = parseInt(eastern.find(p => p.type === 'hour')?.value || '0')
+  const minute = parseInt(eastern.find(p => p.type === 'minute')?.value || '0')
+  const currentTime = hour + minute / 60
+  
+  // Business hours from CMS:
+  // Monday - Friday: 9:00 AM - 7:00 PM (9-19)
+  // Saturday: 10:00 AM - 5:00 PM (10-17)
+  // Sunday: Closed
+  
+  if (day === 'Sunday') {
+    return { isOpen: false, currentDay: day, message: "We're closed on Sundays. We reopen Monday at 9:00 AM." }
+  }
+  
+  if (day === 'Saturday') {
+    if (currentTime >= 10 && currentTime < 17) {
+      return { isOpen: true, currentDay: day, message: "We're open until 5:00 PM today." }
+    }
+    return { isOpen: false, currentDay: day, message: "We're closed. Saturday hours are 10:00 AM - 5:00 PM." }
+  }
+  
+  // Monday - Friday
+  if (currentTime >= 9 && currentTime < 19) {
+    return { isOpen: true, currentDay: day, message: "We're open until 7:00 PM today." }
+  }
+  return { isOpen: false, currentDay: day, message: "We're closed. We're open Monday-Friday 9:00 AM - 7:00 PM." }
+}
 
 // Finance calculator function - PMT formula
 function calculatePayment(principal: number, annualRate: number, termMonths: number): number {
@@ -30,9 +69,13 @@ export async function POST(req: Request) {
 
   // Fetch Anna's rules and configuration from CMS
   const aiSettings = await getAISettings()
+  const siteSettings = await getSiteSettings()
   const anna = aiSettings?.annaAssistant
   const fees = aiSettings?.fees
   const financing = aiSettings?.financing
+  
+  // Check business hours for scheduling
+  const businessStatus = isWithinBusinessHours()
   
   // Finance calculation settings
   const baseRate = 6.29
@@ -57,11 +100,60 @@ ${anna?.welcomeMessage || "Hi! I'm Anna from Planet Motors. How can I help you t
 QUICK ACTIONS YOU CAN HELP WITH:
 ${anna?.quickActions?.map(qa => `- ${qa.label}: ${qa.prompt}`).join('\n') || '- Calculate payments\n- Get trade value\n- Book test drive\n- Find a car'}
 
-DEALERSHIP INFORMATION:
-- Name: Planet Motors
-- Location: 30 Major Mackenzie Dr E, Richmond Hill, Ontario
-- Phone: 1-866-787-3332
+=============================================
+DEALERSHIP INFORMATION (from website):
+=============================================
+- Name: ${siteSettings?.dealerName || 'Planet Motors'}
+- Address: ${siteSettings?.streetAddress || siteSettings?.address || '30 Major Mackenzie Dr E'}, ${siteSettings?.city || 'Richmond Hill'}, ${siteSettings?.province || 'Ontario'} ${siteSettings?.postalCode || 'L4C 1G7'}
+- Phone: ${siteSettings?.phone || '1-866-797-3332'}
+- Secondary Phone: ${siteSettings?.phoneSecondary || '416-985-2277'}
+- Email: ${siteSettings?.email || 'info@planetmotors.ca'}
 - Inventory: 9,500+ vehicles
+- Google Maps: ${siteSettings?.googleMapsUrl || 'https://maps.google.com/?q=30+Major+Mackenzie+E+Richmond+Hill'}
+- Rating: ${siteSettings?.ratingDisplay?.ratingValue || '4.9'}/5 (${siteSettings?.ratingDisplay?.reviewCount || '500'}+ reviews)
+- OMVIC Licensed: ${siteSettings?.omvicNumber || 'Yes'}
+
+=============================================
+BUSINESS HOURS (from website):
+=============================================
+- Monday - Friday: 9:00 AM - 7:00 PM
+- Saturday: 10:00 AM - 5:00 PM  
+- Sunday: Closed
+
+CURRENT STATUS: ${businessStatus.message}
+Today is ${businessStatus.currentDay}. We are currently ${businessStatus.isOpen ? 'OPEN' : 'CLOSED'}.
+
+=============================================
+TEST DRIVE SCHEDULING:
+=============================================
+${businessStatus.isOpen ? `
+YES - You CAN schedule test drives right now!
+- Ask for their preferred date and time
+- Confirm within business hours (Mon-Fri 9AM-7PM, Sat 10AM-5PM)
+- Get their name and phone number
+- Confirm which vehicle they want to test drive
+- Tell them: "I've noted your test drive request for [vehicle] on [date/time]. Our team will call you at [phone] to confirm."
+` : `
+Currently CLOSED - Take their info for callback:
+- Get their name and phone number
+- Get preferred date/time for test drive
+- Note which vehicle they're interested in
+- Tell them: "We're currently closed, but I've noted your request. Our team will call you when we reopen to confirm your test drive."
+`}
+
+=============================================
+INVENTORY VIEWING:
+=============================================
+You CAN help customers browse inventory anytime!
+- Direct them to: planetmotors.ca/inventory
+- Help filter by: type (SUV, Sedan, Electric, Luxury), price range, make, model
+- Quick filters available: SUV, Sedan, Electric, Luxury, Under $20k
+- Tell them about the 124 new arrivals this week!
+
+Example responses:
+- "You can browse our full inventory at planetmotors.ca/inventory"
+- "Looking for an SUV? Check out planetmotors.ca/inventory?type=suv"
+- "We have great options under $20k at planetmotors.ca/inventory?maxPrice=20000"
 
 =============================================
 CRITICAL: FINANCE CALCULATOR RULES
@@ -96,28 +188,35 @@ When customer asks "What are the payments on this car?" - ALWAYS show the full t
 When customer asks about a specific term - calculate and show that term plus 1-2 nearby options.
 =============================================
 
-MANDATORY FEES & HST STRUCTURE:
-The outdoor/vehicle price ALREADY INCLUDES HST - do NOT add HST to vehicle price again!
+=============================================
+CRITICAL: PRICING & HST STRUCTURE
+=============================================
+HST (13%) is NEVER included - always add 13% HST to EVERYTHING!
 
-FEES THAT HAVE HST ADDED:
+VEHICLE PRICE:
+- Listed/Outdoor Price: Does NOT include HST
+- MUST add 13% HST to vehicle price
+
+ALL FEES (add 13% HST to each):
 - Finance/Documentation Fee: $${fees?.financeDocFee || 895} + HST = $${Math.round((fees?.financeDocFee || 895) * 1.13)}
+- OMVIC Fee: $${fees?.omvic || 22} + HST = $${Math.round((fees?.omvic || 22) * 1.13)}
+- Licensing Fee: $${fees?.licensing || 59} + HST = $${Math.round((fees?.licensing || 59) * 1.13)}
 
-FEES WITHOUT HST (flat fees):
-- OMVIC Fee: $${fees?.omvic || 22}
-- Licensing Fee: $${fees?.licensing || 59}
+TOTAL FEES BEFORE HST: $${(fees?.financeDocFee || 895) + (fees?.omvic || 22) + (fees?.licensing || 59)}
+TOTAL FEES WITH HST: $${Math.round(((fees?.financeDocFee || 895) + (fees?.omvic || 22) + (fees?.licensing || 59)) * 1.13)}
 
-TOTAL OUT-THE-DOOR CALCULATION:
-Vehicle Price (HST included) + Finance Doc Fee ($${fees?.financeDocFee || 895} + HST) + OMVIC ($${fees?.omvic || 22}) + Licensing ($${fees?.licensing || 59})
+TOTAL OUT-THE-DOOR FORMULA:
+(Vehicle Price + 13% HST) + (All Fees + 13% HST) = Total
 
-EXAMPLE: $35,000 vehicle (HST included):
-- Vehicle: $35,000 (HST already included in price)
+EXAMPLE: $35,000 vehicle:
+- Vehicle: $35,000 + $4,550 HST = $39,550
 - Finance Doc Fee: $895 + $116 HST = $1,011
-- OMVIC: $22
-- Licensing: $59
-- TOTAL OUT-THE-DOOR: $36,092
+- OMVIC: $22 + $3 HST = $25
+- Licensing: $59 + $8 HST = $67
+- TOTAL OUT-THE-DOOR: $40,653
 
 ALWAYS EXPLAIN:
-"The vehicle price you see already includes HST. On top of that, there's a $895 documentation fee plus HST, and flat fees for OMVIC ($22) and licensing ($59)."
+"The listed price is $XX,XXX. Plus 13% HST on the vehicle, and fees of $895 documentation, $22 OMVIC, and $59 licensing - all plus HST. Your total out-the-door price would be $XX,XXX."
 
 KEY SELLING POINTS:
 - 210-point inspection on every vehicle
