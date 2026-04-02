@@ -43,6 +43,7 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       message: "Test email sent successfully!",
+      version: "v2-onboarding",
       emailId: data?.id,
       sentTo: adminEmail
     })
