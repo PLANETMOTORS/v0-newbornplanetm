@@ -18,10 +18,13 @@ export async function GET(request: NextRequest) {
   const transmission = searchParams.get('transmission')
   const drivetrain = searchParams.get('drivetrain')
   const status = searchParams.get('status') || 'available'
-  const sort = searchParams.get('sort') || 'created_at'
+  const ALLOWED_SORT_COLUMNS = new Set(['created_at', 'price', 'year', 'mileage', 'make', 'model'])
+  const rawSort = searchParams.get('sort') || 'created_at'
+  const sort = ALLOWED_SORT_COLUMNS.has(rawSort) ? rawSort : 'created_at'
   const order = searchParams.get('order') || 'desc'
-  const page = parseInt(searchParams.get('page') || '1')
-  const limit = parseInt(searchParams.get('limit') || '20')
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1') || 1)
+  const rawLimit = parseInt(searchParams.get('limit') || '20') || 20
+  const limit = Math.min(Math.max(1, rawLimit), 100)
 
   // Build query
   let query = supabase

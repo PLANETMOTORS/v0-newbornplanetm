@@ -51,10 +51,12 @@ export async function POST(request: Request) {
       }
 
       const vehicle: Record<string, unknown> = {}
-      
-      headers.forEach((header, index) => {
-        const value = values[index]?.trim()
-        if (!value) return
+      let invalidRow = false
+
+      for (let j = 0; j < headers.length; j++) {
+        const header = headers[j]
+        const value = values[j]?.trim()
+        if (!value) continue
 
         // Type conversions
         switch (header) {
@@ -66,12 +68,26 @@ export async function POST(request: Request) {
           case "fuel_economy_highway":
           case "range_miles":
           case "inspection_score":
-          case "ev_battery_health_percent":
-            vehicle[header] = parseInt(value, 10)
+          case "ev_battery_health_percent": {
+            const parsed = parseInt(value, 10)
+            if (isNaN(parsed)) {
+              errors.push({ row: i + 1, error: `Invalid numeric value for ${header}: "${value}"` })
+              invalidRow = true
+            } else {
+              vehicle[header] = parsed
+            }
             break
-          case "battery_capacity_kwh":
-            vehicle[header] = parseFloat(value)
+          }
+          case "battery_capacity_kwh": {
+            const parsed = parseFloat(value)
+            if (isNaN(parsed)) {
+              errors.push({ row: i + 1, error: `Invalid numeric value for ${header}: "${value}"` })
+              invalidRow = true
+            } else {
+              vehicle[header] = parsed
+            }
             break
+          }
           case "is_ev":
           case "is_certified":
           case "is_new_arrival":
@@ -85,7 +101,9 @@ export async function POST(request: Request) {
           default:
             vehicle[header] = value
         }
-      })
+      }
+
+      if (invalidRow) continue
 
       // Validate required fields have values
       const vehicleMissingFields = requiredFields.filter(f => !vehicle[f])

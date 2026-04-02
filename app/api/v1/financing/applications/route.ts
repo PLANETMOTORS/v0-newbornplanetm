@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
         payment_frequency: financingTerms.paymentFrequency,
         interest_rate: parseFloat(financingTerms.interestRate) || null,
         admin_fee: adminFee,
-        sales_tax_rate: parseFloat(financingTerms.salesTaxRate),
+        sales_tax_rate: parseFloat(financingTerms.salesTaxRate) || null,
         has_trade_in: tradeIn?.hasTradeIn || false,
         trade_in_value: tradeIn?.hasTradeIn ? tradeValue : null,
         trade_in_lien_amount: tradeIn?.hasLien ? lienAmount : null,
