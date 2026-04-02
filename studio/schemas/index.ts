@@ -9,6 +9,7 @@ import { blogPost, testimonial, faqEntry, protectionPlan } from './content'
 
 // Settings
 import { siteSettings, seoSettings } from './settings'
+import { inventorySettings } from './inventorySettings'
 
 export const schemaTypes = [
   // Vehicles
@@ -29,4 +30,5 @@ export const schemaTypes = [
   // Settings
   siteSettings,
   seoSettings,
+  inventorySettings,
 ]
