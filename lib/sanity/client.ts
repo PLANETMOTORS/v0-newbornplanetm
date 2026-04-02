@@ -1,15 +1,11 @@
-// Using @sanity/client directly - NOT next-sanity
 import { createClient } from "@sanity/client"
 
-// Planet Motors CMS Sanity Client
+// Planet Motors CMS - @sanity/client
 function getValidDataset(): string {
   const envDataset = process.env.NEXT_PUBLIC_SANITY_DATASET
-  
-  // If no env var or invalid format, use planetmotors_cms (matching Studio)
   if (!envDataset || !/^[a-z0-9_-]+$/.test(envDataset) || envDataset.length > 64) {
     return "planetmotors_cms"
   }
-  
   return envDataset
 }
 
@@ -22,7 +18,6 @@ export const sanityClient = createClient({
   useCdn: process.env.NODE_ENV === "production",
 })
 
-// For server-side with token (drafts, mutations)
 export const sanityWriteClient = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "4588vjsz",
   dataset: SANITY_DATASET,
