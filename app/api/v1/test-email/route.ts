@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
 
+// Test email endpoint - uses Resend test domain (no verification required)
 export async function GET() {
   const apiKey = process.env.API_KEY_RESEND || process.env.RESEND_API_KEY
   const adminEmail = process.env.ADMIN_EMAIL || "toni@planetmotors.ca"
