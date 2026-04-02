@@ -851,6 +851,42 @@ export const aiSettings = defineType({
       ],
     }),
     
+    // Live Video Tour
+    defineField({
+      name: 'liveVideoTour',
+      title: 'Live Video Tour',
+      type: 'object',
+      fields: [
+        { name: 'enabled', title: 'Enabled', type: 'boolean' },
+        { name: 'displayName', title: 'Display Name', type: 'string', initialValue: 'Live Video Tour' },
+        { name: 'description', title: 'Description', type: 'string', initialValue: 'Schedule a live video walkthrough' },
+        { name: 'icon', title: 'Icon', type: 'string', initialValue: 'Video' },
+        { name: 'color', title: 'Color', type: 'string', initialValue: 'bg-blue-500' },
+        { name: 'schedulingUrl', title: 'Scheduling URL', type: 'string' },
+        { name: 'availableHours', title: 'Available Hours', type: 'object', fields: [
+          { name: 'start', title: 'Start Time', type: 'string' },
+          { name: 'end', title: 'End Time', type: 'string' },
+          { name: 'timezone', title: 'Timezone', type: 'string' },
+        ]},
+      ],
+    }),
+    
+    // Price Drop Alerts
+    defineField({
+      name: 'priceDropAlerts',
+      title: 'Price Drop Alerts',
+      type: 'object',
+      fields: [
+        { name: 'enabled', title: 'Enabled', type: 'boolean' },
+        { name: 'displayName', title: 'Display Name', type: 'string', initialValue: 'Price Drop Alerts' },
+        { name: 'description', title: 'Description', type: 'string', initialValue: 'Get notified when prices drop' },
+        { name: 'icon', title: 'Icon', type: 'string', initialValue: 'Bell' },
+        { name: 'color', title: 'Color', type: 'string', initialValue: 'bg-orange-500' },
+        { name: 'alertThreshold', title: 'Alert Threshold (%)', type: 'number', initialValue: 5 },
+        { name: 'notificationMethods', title: 'Notification Methods', type: 'array', of: [{ type: 'string' }] },
+      ],
+    }),
+    
     // Fees Configuration
     defineField({
       name: 'fees',
@@ -860,6 +896,9 @@ export const aiSettings = defineType({
         { name: 'documentationFee', title: 'Documentation Fee', type: 'number' },
         { name: 'licensingFee', title: 'Licensing Fee', type: 'number' },
         { name: 'registrationFee', title: 'Registration Fee', type: 'number' },
+        { name: 'omvicFee', title: 'OMVIC Fee', type: 'number' },
+        { name: 'adminFee', title: 'Admin Fee', type: 'number' },
+        { name: 'certificationFee', title: 'Certification Fee', type: 'number' },
         { name: 'additionalFees', title: 'Additional Fees', type: 'array', of: [{
           type: 'object',
           fields: [
