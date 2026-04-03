@@ -9,6 +9,7 @@ export const liveVideoTourRequestSchema = z.object({
   customerPhone: z.string().min(10, "Phone number must be at least 10 digits"),
   preferredTime: z.string().min(1, "Please select a time slot"),
   timezone: z.string().default("America/Toronto"),
+  provider: z.enum(["google_meet", "zoom", "whatsapp"]).default("google_meet"),
   notes: z.string().optional(),
 })
 

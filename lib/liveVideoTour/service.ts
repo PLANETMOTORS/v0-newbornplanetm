@@ -58,7 +58,7 @@ export async function createLiveVideoTourBooking(
     customerPhone: data.customerPhone,
     preferredTime: scheduledDateTime.toISOString(),
     timezone: data.timezone || DEALERSHIP_TIMEZONE,
-    provider: DEFAULT_PROVIDER as LiveVideoTourBooking["provider"],
+    provider: (data.provider || DEFAULT_PROVIDER) as LiveVideoTourBooking["provider"],
     status: "requested",
     notes: data.notes || "",
     createdAt: new Date().toISOString(),
@@ -109,6 +109,7 @@ export async function createLiveVideoTourBooking(
     joinUrl: booking.joinUrl,
     scheduledTime: booking.preferredTime,
     status: booking.status,
+    provider: booking.provider,
   }
 }
 

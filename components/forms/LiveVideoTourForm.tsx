@@ -6,11 +6,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
-import { AlertCircle } from "lucide-react"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { AlertCircle, Video, Phone } from "lucide-react"
 import { DateSlotPicker } from "./DateSlotPicker"
 import { formatPhoneNumber, isValidPhone } from "@/lib/liveVideoTour/schema"
 import { isDealershipOpen } from "@/lib/liveVideoTour/availability"
-import type { LiveVideoTourResponse } from "@/types/liveVideoTour"
+import type { LiveVideoTourResponse, LiveVideoTourProvider } from "@/types/liveVideoTour"
+import { PROVIDER_OPTIONS } from "@/types/liveVideoTour"
 
 interface LiveVideoTourFormProps {
   vehicleId: string
@@ -28,6 +30,7 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVid
     customerPhone: "",
     selectedDate: "",
     selectedTime: "",
+    provider: "google_meet" as LiveVideoTourProvider,
     notes: "",
   })
 
@@ -61,6 +64,7 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVid
           customerEmail: formData.customerEmail,
           customerPhone: formData.customerPhone,
           preferredTime,
+          provider: formData.provider,
           notes: formData.notes,
         }),
       })
@@ -87,7 +91,7 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVid
         <CardContent className="pt-4 pb-3">
           <p className="text-sm font-semibold">{vehicleName}</p>
           <p className="text-xs text-muted-foreground mt-1">
-            Join a live Google Meet video tour with our sales team
+            Join a live video tour with our sales team
           </p>
           <div className="flex items-center gap-1.5 mt-2">
             <div className={`w-2 h-2 rounded-full ${isOpen ? "bg-green-500" : "bg-amber-500"}`} />
@@ -158,6 +162,45 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVid
           />
         </div>
 
+        {/* Video Call Method Selection */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">
+            Preferred Video Call Method <span className="text-destructive">*</span>
+          </Label>
+          <RadioGroup
+            value={formData.provider}
+            onValueChange={(value) =>
+              setFormData({ ...formData, provider: value as LiveVideoTourProvider })
+            }
+            className="grid gap-2"
+          >
+            {PROVIDER_OPTIONS.map((option) => (
+              <Label
+                key={option.value}
+                htmlFor={option.value}
+                className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                  formData.provider === option.value
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:bg-muted/50"
+                }`}
+              >
+                <RadioGroupItem value={option.value} id={option.value} />
+                <div className="flex items-center gap-2 flex-1">
+                  {option.value === "whatsapp" ? (
+                    <Phone className="w-4 h-4 text-green-600" />
+                  ) : (
+                    <Video className="w-4 h-4 text-primary" />
+                  )}
+                  <div>
+                    <p className="font-medium text-sm">{option.label}</p>
+                    <p className="text-xs text-muted-foreground">{option.description}</p>
+                  </div>
+                </div>
+              </Label>
+            ))}
+          </RadioGroup>
+        </div>
+
         {/* Date & Time Picker */}
         <DateSlotPicker
           selectedDate={formData.selectedDate}
@@ -192,7 +235,10 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVid
         </Button>
 
         <p className="text-xs text-center text-muted-foreground">
-          Free service. You&apos;ll receive a Google Meet link via email.
+          Free service.{" "}
+          {formData.provider === "whatsapp"
+            ? "We'll call you on WhatsApp at the scheduled time."
+            : "You'll receive a join link via email."}
         </p>
       </div>
     </form>

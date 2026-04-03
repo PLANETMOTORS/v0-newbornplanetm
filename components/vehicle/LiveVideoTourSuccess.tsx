@@ -2,14 +2,16 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Check, Calendar, Video, MapPin } from "lucide-react"
+import { Check, Calendar, Video, MapPin, MessageCircle } from "lucide-react"
 import { DEALERSHIP_TIMEZONE } from "@/lib/liveVideoTour/constants"
+import type { LiveVideoTourProvider } from "@/types/liveVideoTour"
 
 interface LiveVideoTourSuccessProps {
   vehicleName: string
   bookingId: string
   scheduledTime: string
   joinUrl?: string
+  provider?: LiveVideoTourProvider
   onClose: () => void
 }
 
@@ -18,9 +20,34 @@ export function LiveVideoTourSuccess({
   bookingId,
   scheduledTime,
   joinUrl,
+  provider = "google_meet",
   onClose,
 }: LiveVideoTourSuccessProps) {
   const scheduledDate = new Date(scheduledTime)
+
+  // Provider-specific display info
+  const providerInfo = {
+    google_meet: {
+      name: "Google Meet",
+      emailText: "Check your email for the Google Meet join link.",
+      showroomText: "Live from our showroom via Google Meet",
+      buttonText: "Save Meet Link",
+    },
+    zoom: {
+      name: "Zoom",
+      emailText: "Check your email for the Zoom meeting link.",
+      showroomText: "Live from our showroom via Zoom",
+      buttonText: "Save Zoom Link",
+    },
+    whatsapp: {
+      name: "WhatsApp",
+      emailText: "We'll video call your WhatsApp at the scheduled time.",
+      showroomText: "Live from our showroom via WhatsApp Video",
+      buttonText: "Open WhatsApp",
+    },
+  }
+
+  const info = providerInfo[provider]
 
   const formattedDate = scheduledDate.toLocaleDateString("en-CA", {
     weekday: "long",
@@ -46,7 +73,7 @@ export function LiveVideoTourSuccess({
       <div className="space-y-2">
         <h3 className="font-bold text-xl">Video Tour Scheduled!</h3>
         <p className="text-sm text-muted-foreground">
-          Check your email for the Google Meet join link.
+          {info.emailText}
         </p>
       </div>
 
@@ -71,7 +98,7 @@ export function LiveVideoTourSuccess({
             <MapPin className="w-5 h-5 text-primary mt-0.5" />
             <div>
               <p className="font-medium">Planet Motors</p>
-              <p className="text-sm text-muted-foreground">Live from our showroom via Google Meet</p>
+              <p className="text-sm text-muted-foreground">{info.showroomText}</p>
             </div>
           </div>
         </CardContent>
@@ -79,15 +106,23 @@ export function LiveVideoTourSuccess({
 
       {/* Actions */}
       <div className="space-y-2">
-        {joinUrl && (
+        {joinUrl && provider !== "whatsapp" && (
           <Button
             variant="outline"
             className="w-full h-12 text-base"
             onClick={() => window.open(joinUrl, "_blank")}
           >
             <Video className="w-4 h-4 mr-2" />
-            Save Meet Link
+            {info.buttonText}
           </Button>
+        )}
+        {provider === "whatsapp" && (
+          <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+            <MessageCircle className="w-5 h-5 text-green-600" />
+            <p className="text-sm text-green-700 dark:text-green-300">
+              Keep your phone handy - we&apos;ll call you on WhatsApp!
+            </p>
+          </div>
         )}
         <Button onClick={onClose} className="w-full h-12 text-base">
           Done

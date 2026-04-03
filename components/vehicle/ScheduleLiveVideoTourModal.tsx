@@ -62,6 +62,7 @@ export function ScheduleLiveVideoTourModal({
       bookingId={successData.bookingId || ""}
       scheduledTime={successData.scheduledTime || ""}
       joinUrl={successData.joinUrl}
+      provider={successData.provider}
       onClose={handleClose}
     />
   ) : (

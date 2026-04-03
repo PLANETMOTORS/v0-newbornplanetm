@@ -10,11 +10,12 @@ export interface LiveVideoTourProviderAdapter {
   cancelMeeting?(meetingId: string): Promise<boolean>
 }
 
-// Provider selector - uses env var or default
+// Provider selector - uses customer's choice from booking
 export async function createMeetingForBooking(
   booking: LiveVideoTourBooking
 ): Promise<LiveVideoTourProviderResult> {
-  const provider = process.env.LIVE_VIDEO_TOUR_PROVIDER || DEFAULT_PROVIDER
+  // Use customer's preferred provider, or fallback to env/default
+  const provider = booking.provider || process.env.LIVE_VIDEO_TOUR_PROVIDER || DEFAULT_PROVIDER
 
   switch (provider) {
     case "google_meet":

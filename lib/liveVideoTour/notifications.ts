@@ -31,8 +31,36 @@ function formatBookingDateTime(booking: LiveVideoTourBooking) {
   }
 }
 
+// Provider display names
+function getProviderDisplayName(provider: string): string {
+  switch (provider) {
+    case "google_meet": return "Google Meet"
+    case "zoom": return "Zoom"
+    case "whatsapp": return "WhatsApp Video"
+    default: return "Video Call"
+  }
+}
+
+// Provider-specific instructions
+function getProviderInstructions(provider: string): string {
+  switch (provider) {
+    case "google_meet":
+      return "A member of our team will walk you around the vehicle via Google Meet."
+    case "zoom":
+      return "A member of our team will walk you around the vehicle via Zoom."
+    case "whatsapp":
+      return "A member of our team will video call you on WhatsApp at the scheduled time. Keep your phone handy!"
+    default:
+      return "A member of our team will walk you around the vehicle via video call."
+  }
+}
+
 // Email template for customer confirmation
 function getCustomerConfirmationTemplate(booking: LiveVideoTourBooking, formattedDate: string, formattedTime: string) {
+  const providerName = getProviderDisplayName(booking.provider)
+  const providerInstructions = getProviderInstructions(booking.provider)
+  const isWhatsApp = booking.provider === "whatsapp"
+
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <div style="background: #7c3aed; color: white; padding: 20px; text-align: center;">
@@ -41,7 +69,7 @@ function getCustomerConfirmationTemplate(booking: LiveVideoTourBooking, formatte
       </div>
       <div style="padding: 20px; background: #f8fafc;">
         <h2 style="color: #7c3aed;">Hi ${booking.customerName}!</h2>
-        <p>Your live video tour has been scheduled. A member of our team will walk you around the vehicle via Google Meet.</p>
+        <p>Your live video tour has been scheduled. ${providerInstructions}</p>
         
         <div style="background: white; border: 2px solid #7c3aed; border-radius: 8px; padding: 20px; margin: 20px 0;">
           <table style="width: 100%;">
@@ -64,10 +92,17 @@ function getCustomerConfirmationTemplate(booking: LiveVideoTourBooking, formatte
           </table>
         </div>
 
-        ${booking.joinUrl ? `
+        ${booking.joinUrl && !isWhatsApp ? `
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${booking.joinUrl}" style="background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">Join Video Tour</a>
+          <a href="${booking.joinUrl}" style="background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">Join ${providerName}</a>
           <p style="margin-top: 10px; font-size: 12px; color: #64748b;">Or copy this link: ${booking.joinUrl}</p>
+        </div>
+        ` : ''}
+
+        ${isWhatsApp ? `
+        <div style="background: #dcfce7; border: 2px solid #22c55e; border-radius: 8px; padding: 16px; margin: 20px 0; text-align: center;">
+          <p style="margin: 0; font-size: 16px; color: #166534;"><strong>We will call you on WhatsApp at the scheduled time.</strong></p>
+          <p style="margin: 8px 0 0; font-size: 14px; color: #15803d;">Make sure WhatsApp is installed and your phone is nearby.</p>
         </div>
         ` : ''}
 
@@ -89,16 +124,27 @@ function getCustomerConfirmationTemplate(booking: LiveVideoTourBooking, formatte
 
 // Email template for staff notification
 function getStaffNotificationTemplate(booking: LiveVideoTourBooking, formattedDate: string, formattedTime: string) {
+  const providerName = getProviderDisplayName(booking.provider)
+  const isWhatsApp = booking.provider === "whatsapp"
+  
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <div style="background: #7c3aed; color: white; padding: 20px; text-align: center;">
+      <div style="background: ${isWhatsApp ? '#22c55e' : '#7c3aed'}; color: white; padding: 20px; text-align: center;">
         <h1 style="margin: 0;">New Video Tour Booking</h1>
+        <p style="margin: 5px 0 0; opacity: 0.9;">via ${providerName}</p>
       </div>
       <div style="padding: 20px; background: #f8fafc;">
+        ${isWhatsApp ? `
+        <div style="background: #dcfce7; border: 2px solid #22c55e; border-radius: 8px; padding: 12px; margin-bottom: 16px; text-align: center;">
+          <strong style="color: #166534;">WhatsApp Call Required!</strong>
+          <p style="margin: 4px 0 0; font-size: 14px; color: #15803d;">You must call the customer on WhatsApp at the scheduled time.</p>
+        </div>
+        ` : ''}
         <table style="width: 100%; border-collapse: collapse;">
           <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><strong>Customer:</strong></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${booking.customerName}</td></tr>
           <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><strong>Email:</strong></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><a href="mailto:${booking.customerEmail}">${booking.customerEmail}</a></td></tr>
           <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><strong>Phone:</strong></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><a href="tel:${booking.customerPhone}">${booking.customerPhone}</a></td></tr>
+          <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><strong>Video Method:</strong></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><strong>${providerName}</strong></td></tr>
           <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><strong>Vehicle:</strong></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${booking.vehicleName}</td></tr>
           <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><strong>Date:</strong></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${formattedDate}</td></tr>
           <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><strong>Time:</strong></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${formattedTime} EST</td></tr>

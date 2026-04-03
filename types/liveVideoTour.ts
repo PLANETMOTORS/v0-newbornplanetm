@@ -20,6 +20,7 @@ export interface LiveVideoTourRequestInput {
   customerPhone: string
   preferredTime: string // ISO string
   timezone?: string
+  provider?: LiveVideoTourProvider // Customer's preferred method
   notes?: string
 }
 
@@ -58,6 +59,7 @@ export interface LiveVideoTourResponse {
   bookingId?: string
   joinUrl?: string
   scheduledTime?: string
+  provider?: LiveVideoTourProvider
   status?: LiveVideoTourStatus
   error?: string
 }
