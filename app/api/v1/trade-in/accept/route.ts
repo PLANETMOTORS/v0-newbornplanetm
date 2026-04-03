@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { sendNotificationEmail } from "@/lib/email"
 
 export async function POST(request: NextRequest) {
   try {
@@ -95,33 +96,16 @@ export async function POST(request: NextRequest) {
       savedQuote = data
     }
 
-    // TODO: In production, send notifications here:
-    // 1. Send email to customer confirming acceptance
-    // 2. Send SMS to customer
-    // 3. Notify dealership team via email/Slack
-    // 
-    // Example:
-    // await sendEmail({
-    //   to: customerEmail,
-    //   subject: `Trade-In Offer Accepted - Quote #${quoteId}`,
-    //   template: 'trade-in-accepted',
-    //   data: { quoteId, vehicle: `${vehicleYear} ${vehicleMake} ${vehicleModel}`, offerAmount }
-    // })
-    //
-    // await sendSMS({
-    //   to: customerPhone,
-    //   message: `Planet Motors: Your trade-in offer of $${offerAmount.toLocaleString()} has been accepted! We'll contact you within 2 hours. Quote #${quoteId}`
-    // })
-    //
-    // await notifyDealership({
-    //   type: 'trade-in-accepted',
-    //   quoteId,
-    //   customerName,
-    //   customerEmail,
-    //   customerPhone,
-    //   vehicle: `${vehicleYear} ${vehicleMake} ${vehicleModel}`,
-    //   offerAmount
-    // })
+    // Send email notification to admin
+    await sendNotificationEmail({
+      type: 'ico_accepted',
+      customerName: customerName || 'Customer',
+      customerEmail,
+      customerPhone,
+      vehicleInfo: `${vehicleYear} ${vehicleMake} ${vehicleModel}`,
+      quoteId,
+      tradeInValue: offerAmount,
+    })
 
     return NextResponse.json({
       success: true,
