@@ -14,6 +14,7 @@ export type NotificationType =
   | 'test_drive_request'
   | 'document_uploaded'
   | 'application_status_changed'
+  | 'verification_code'
 
 interface EmailData {
   type: NotificationType
@@ -195,6 +196,29 @@ const templates: Record<NotificationType, (data: EmailData) => { subject: string
         </div>
       </div>
     `
+  }),
+
+  verification_code: (data) => ({
+    subject: `🔐 Your Planet Motors Verification Code`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #1e40af; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0;">Planet Motors</h1>
+          <p style="margin: 5px 0 0;">Verification Code</p>
+        </div>
+        <div style="padding: 30px; background: #f8fafc; text-align: center;">
+          <p style="margin: 0 0 20px; color: #64748b;">Your verification code to ${data.additionalData?.purpose} is:</p>
+          <div style="background: #1e40af; color: white; font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 20px 30px; border-radius: 8px; display: inline-block;">
+            ${data.additionalData?.code}
+          </div>
+          <p style="margin: 20px 0 0; color: #94a3b8; font-size: 14px;">This code expires in ${data.additionalData?.expiresIn || '10 minutes'}.</p>
+          <p style="margin: 10px 0 0; color: #94a3b8; font-size: 14px;">If you didn&apos;t request this code, please ignore this email.</p>
+        </div>
+        <div style="padding: 15px; background: #e2e8f0; text-align: center; font-size: 12px; color: #64748b;">
+          Planet Motors | 416-985-2277 | planetmotors.ca
+        </div>
+      </div>
+    `
   })
 }
 
@@ -206,9 +230,12 @@ export async function sendNotificationEmail(data: EmailData): Promise<{ success:
 
     const template = templates[data.type](data)
     
+    // Send to customer for verification codes, otherwise send to admin
+    const recipient = data.type === 'verification_code' ? data.customerEmail : ADMIN_EMAIL
+    
     const { error } = await resend.emails.send({
       from: FROM_EMAIL,
-      to: ADMIN_EMAIL,
+      to: recipient,
       subject: template.subject,
       html: template.html,
     })
