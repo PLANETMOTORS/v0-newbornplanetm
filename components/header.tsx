@@ -39,7 +39,7 @@ function DesktopNav({
   const handleMouseLeave = () => {
     closeTimeoutRef.current = setTimeout(() => {
       setActiveSubmenu(null)
-    }, 150)
+    }, 400)
   }
 
   return (
