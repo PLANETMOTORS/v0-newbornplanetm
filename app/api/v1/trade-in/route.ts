@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { sendNotificationEmail } from '@/lib/email'
 
 // Mock CBB valuation data
 const getVehicleValue = (year: number, make: string, model: string, mileage: number, condition: string) => {
@@ -191,6 +192,19 @@ export async function POST(request: NextRequest) {
     ],
     
     createdAt: new Date().toISOString(),
+  }
+
+  // Send notification email to admin
+  if (email) {
+    await sendNotificationEmail({
+      type: 'trade_in_quote',
+      customerName: customerId || 'Customer',
+      customerEmail: email,
+      customerPhone: phone,
+      vehicleInfo: `${year} ${make} ${model}`,
+      quoteId: offerNumber,
+      tradeInValue: offer.offerAmount,
+    })
   }
 
   return NextResponse.json({

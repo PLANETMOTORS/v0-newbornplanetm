@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { sendNotificationEmail } from "@/lib/email"
 
 // Vehicle value estimation algorithm
 function estimateTradeInValue(data: {
@@ -105,13 +106,18 @@ export async function POST(req: Request) {
     // Generate quote ID
     const quoteId = `TQ-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`
 
-    // In production, save to database and optionally send email
-    console.log("[v0] Trade-in quote generated:", {
-      quoteId,
-      vehicle: `${year} ${make} ${model}`,
-      estimate,
-      customer: { customerName, customerEmail, customerPhone },
-    })
+    // Send notification email to admin
+    if (customerEmail) {
+      await sendNotificationEmail({
+        type: 'trade_in_quote',
+        customerName: customerName || 'Customer',
+        customerEmail,
+        customerPhone,
+        vehicleInfo: `${year} ${make} ${model}`,
+        quoteId,
+        tradeInValue: estimate.averageEstimate,
+      })
+    }
 
     return NextResponse.json({
       success: true,
