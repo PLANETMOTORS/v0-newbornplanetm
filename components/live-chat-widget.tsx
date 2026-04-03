@@ -35,7 +35,7 @@ export function LiveChatWidget() {
       {
         id: "welcome",
         role: "assistant",
-        content: "Hey! I'm Anna from Planet Motors. How can I help you today?\n\nI can help with:\n• Finding the perfect vehicle from our 9,500+ inventory\n• Calculating payments and financing options\n• Getting your trade-in value\n• Booking test drives or appointments\n\nWhat are you looking for?"
+        content: "Hey! I'm Anna from Planet Motors. How can I help you today?\n\nI can help with:\n• Finding the perfect vehicle from our available inventory\n• Calculating payments and financing options\n• Getting your trade-in value\n• Booking test drives or appointments\n\nWhat are you looking for?"
       }
     ],
   })
