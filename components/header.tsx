@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
-import { createPortal } from "react-dom"
 import { Menu, X, ChevronDown, Phone, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
@@ -14,7 +13,7 @@ type NavItem = {
   submenu?: { name: string; href: string }[]
 }
 
-// Desktop Navigation with Portal-based dropdowns
+// Desktop Navigation with simple CSS dropdowns
 function DesktopNav({ 
   navigation, 
   activeSubmenu, 
@@ -24,35 +23,9 @@ function DesktopNav({
   activeSubmenu: string | null
   setActiveSubmenu: (name: string | null) => void
 }) {
-  const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
-  const [dropdownPositions, setDropdownPositions] = useState<Map<string, { top: number; left: number }>>(new Map())
-  const [isMounted, setIsMounted] = useState(false)
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  useEffect(() => {
-    setIsMounted(true)
-    return () => {
-      if (closeTimeoutRef.current) {
-        clearTimeout(closeTimeoutRef.current)
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    if (activeSubmenu) {
-      const button = buttonRefs.current.get(activeSubmenu)
-      if (button) {
-        const rect = button.getBoundingClientRect()
-        setDropdownPositions(prev => new Map(prev).set(activeSubmenu, {
-          top: rect.bottom + 8,
-          left: rect.left
-        }))
-      }
-    }
-  }, [activeSubmenu])
-
   const handleMouseEnter = (itemName: string, hasSubmenu: boolean) => {
-    // Clear any pending close timeout
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current)
       closeTimeoutRef.current = null
@@ -63,26 +36,9 @@ function DesktopNav({
   }
 
   const handleMouseLeave = () => {
-    // Add 500ms delay before closing to allow mouse to reach submenu
     closeTimeoutRef.current = setTimeout(() => {
       setActiveSubmenu(null)
-    }, 500)
-  }
-  
-  const handleDropdownMouseEnter = (itemName: string) => {
-    // Cancel close when entering dropdown
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current)
-      closeTimeoutRef.current = null
-    }
-    setActiveSubmenu(itemName)
-  }
-  
-  const handleDropdownMouseLeave = () => {
-    // Add delay when leaving dropdown too - gives user time to move back
-    closeTimeoutRef.current = setTimeout(() => {
-      setActiveSubmenu(null)
-    }, 300)
+    }, 150)
   }
 
   return (
@@ -96,7 +52,6 @@ function DesktopNav({
         >
           {item.submenu ? (
             <button
-              ref={(el) => { if (el) buttonRefs.current.set(item.name, el) }}
               type="button"
               className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
               onClick={() => setActiveSubmenu(activeSubmenu === item.name ? null : item.name)}
@@ -113,57 +68,24 @@ function DesktopNav({
             </Link>
           )}
 
-          {/* Render dropdown via Portal to document.body */}
-          {item.submenu && activeSubmenu === item.name && isMounted && createPortal(
+          {/* Simple CSS dropdown */}
+          {item.submenu && activeSubmenu === item.name && (
             <div 
-              style={{
-                position: 'fixed',
-                top: dropdownPositions.get(item.name)?.top || 0,
-                left: dropdownPositions.get(item.name)?.left || 0,
-                zIndex: 999999,
-                minWidth: '220px'
-              }}
-              onMouseEnter={() => handleDropdownMouseEnter(item.name)}
-              onMouseLeave={handleDropdownMouseLeave}
+              className="absolute top-full left-0 mt-1 min-w-[220px] bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-[9999]"
+              onMouseEnter={() => handleMouseEnter(item.name, true)}
+              onMouseLeave={handleMouseLeave}
             >
-              <div 
-                style={{
-                  backgroundColor: '#ffffff',
-                  borderRadius: '12px',
-                  boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
-                  border: '1px solid #d1d5db',
-                  padding: '8px 0',
-                  minWidth: '220px'
-                }}
-              >
-                {item.submenu.map((subitem) => (
-                  <Link
-                    key={subitem.name}
-                    href={subitem.href}
-                    style={{
-                      display: 'block',
-                      padding: '12px 16px',
-                      fontSize: '14px',
-                      color: '#1f2937',
-                      textDecoration: 'none',
-                      fontWeight: 500
-                    }}
-                    onClick={() => setActiveSubmenu(null)}
-                    onMouseEnter={(e) => { 
-                      e.currentTarget.style.backgroundColor = '#f3f4f6'
-                      e.currentTarget.style.color = '#111827'
-                    }}
-                    onMouseLeave={(e) => { 
-                      e.currentTarget.style.backgroundColor = 'transparent'
-                      e.currentTarget.style.color = '#1f2937'
-                    }}
-                  >
-                    {subitem.name}
-                  </Link>
-                ))}
-              </div>
-            </div>,
-            document.body
+              {item.submenu.map((subitem) => (
+                <Link
+                  key={subitem.name}
+                  href={subitem.href}
+                  className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                  onClick={() => setActiveSubmenu(null)}
+                >
+                  {subitem.name}
+                </Link>
+              ))}
+            </div>
           )}
         </div>
       ))}

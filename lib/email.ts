@@ -201,15 +201,12 @@ const templates: Record<NotificationType, (data: EmailData) => { subject: string
 export async function sendNotificationEmail(data: EmailData): Promise<{ success: boolean; error?: string }> {
   try {
     if (!process.env.API_KEY_RESEND && !process.env.RESEND_API_KEY) {
-      console.warn('[v0] Resend API key not configured - skipping email notification')
-      return { success: false, error: 'Email not configured' }
+      return { success: false, error: 'Email not configured - missing RESEND_API_KEY' }
     }
 
     const template = templates[data.type](data)
-
-    console.log('[v0] Sending email with:', { from: FROM_EMAIL, to: ADMIN_EMAIL, subject: template.subject })
     
-    const { data: sendData, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: FROM_EMAIL,
       to: ADMIN_EMAIL,
       subject: template.subject,
@@ -217,16 +214,11 @@ export async function sendNotificationEmail(data: EmailData): Promise<{ success:
     })
 
     if (error) {
-      console.error('[v0] Email send error:', error)
       return { success: false, error: JSON.stringify(error) }
     }
-    
-    console.log('[v0] Email sent successfully:', sendData)
 
-    console.log('[v0] Email notification sent:', data.type)
     return { success: true }
   } catch (err) {
-    console.error('[v0] Email error:', err)
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
   }
 }

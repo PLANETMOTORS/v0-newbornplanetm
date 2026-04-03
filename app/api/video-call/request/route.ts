@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { sendNotificationEmail } from "@/lib/email"
 
 export async function POST(req: Request) {
   try {
@@ -35,8 +36,15 @@ export async function POST(req: Request) {
       createdAt: new Date().toISOString(),
     }
 
-    // Simulate database save
-    console.log("[v0] Video call request created:", videoCallRequest)
+    // Send notification email to admin
+    await sendNotificationEmail({
+      type: 'test_drive_request',
+      customerName,
+      customerEmail,
+      customerPhone,
+      vehicleInfo: vehicleName,
+      additionalData: { callId, preferredTime, notes, type: 'Video Call Request' },
+    })
 
     return NextResponse.json({
       success: true,
