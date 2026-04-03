@@ -8,14 +8,13 @@ import { FinanceCalculator } from "@/components/finance-calculator"
 import { CheckCircle, ArrowRight, Shield, Clock, BadgeCheck, User, Calculator } from "lucide-react"
 import Link from "next/link"
 
-// Default lenders fallback - Canadian bank partners
+// Default lenders fallback - Generic lender partners
 const defaultLenders = [
-  { name: "TD Bank", rate: "4.99%", term: "84 mo", logo: "TD", color: "bg-green-600" },
-  { name: "RBC Royal Bank", rate: "5.49%", term: "84 mo", logo: "RBC", color: "bg-blue-700" },
-  { name: "Scotiabank", rate: "5.29%", term: "84 mo", logo: "Scotia", color: "bg-red-600" },
-  { name: "BMO", rate: "5.99%", term: "72 mo", logo: "BMO", color: "bg-blue-500" },
-  { name: "CIBC", rate: "5.49%", term: "84 mo", logo: "CIBC", color: "bg-red-700" },
-  { name: "Desjardins", rate: "6.29%", term: "96 mo", logo: "Desj", color: "bg-green-500" },
+  { name: "Credit Union", rate: "6.29%", term: "96 mo", logo: "CU", color: "bg-emerald-600" },
+  { name: "Major Bank", rate: "6.49%", term: "84 mo", logo: "MB", color: "bg-blue-600" },
+  { name: "Commercial Bank", rate: "6.79%", term: "72 mo", logo: "CB", color: "bg-slate-600" },
+  { name: "Prime Lender", rate: "6.99%", term: "84 mo", logo: "PL", color: "bg-indigo-600" },
+  { name: "Auto Finance", rate: "7.49%", term: "60 mo", logo: "AF", color: "bg-amber-600" },
 ]
 
 const benefits = [
@@ -188,23 +187,21 @@ export default async function FinancingPage() {
                     <thead>
                       <tr className="border-b border-border">
                         <th className="text-left py-2 px-4">Lender</th>
-                        <th className="text-center py-2 px-4">TD Auto</th>
-                        <th className="text-center py-2 px-4">RBC</th>
-                        <th className="text-center py-2 px-4">Scotiabank</th>
-                        <th className="text-center py-2 px-4">BMO</th>
-                        <th className="text-center py-2 px-4">CIBC</th>
-                        <th className="text-center py-2 px-4">Desjardins</th>
+                        <th className="text-center py-2 px-4">Credit Union</th>
+                        <th className="text-center py-2 px-4">Major Bank</th>
+                        <th className="text-center py-2 px-4">Commercial Bank</th>
+                        <th className="text-center py-2 px-4">Prime Lender</th>
+                        <th className="text-center py-2 px-4">Auto Finance</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr className="border-b border-border">
                         <td className="py-2 px-4 font-medium">RATES</td>
-                        <td className="text-center py-2 px-4">4.99%</td>
-                        <td className="text-center py-2 px-4">5.49%</td>
-                        <td className="text-center py-2 px-4">5.29%</td>
-                        <td className="text-center py-2 px-4">5.99%</td>
-                        <td className="text-center py-2 px-4">5.49%</td>
                         <td className="text-center py-2 px-4 text-primary font-medium">6.29%</td>
+                        <td className="text-center py-2 px-4">6.49%</td>
+                        <td className="text-center py-2 px-4">6.79%</td>
+                        <td className="text-center py-2 px-4">6.99%</td>
+                        <td className="text-center py-2 px-4">7.49%</td>
                       </tr>
                       <tr>
                         <td className="py-2 px-4 font-medium">TERMS</td>
