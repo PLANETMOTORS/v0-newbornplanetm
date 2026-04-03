@@ -77,7 +77,7 @@ const whyBuyTesla = [
   { title: "Supercharger Ready", description: "All our Teslas are ready to use the Supercharger network across Canada" },
   { title: "Software Updated", description: "We ensure all Teslas have the latest software updates installed" },
   { title: "10-Day Guarantee", description: "Not happy? Return within 10 days for a full refund" },
-  { title: "Financing Available", description: "Competitive rates starting at 4.99% OAC" },
+  { title: "Financing Available", description: "Competitive rates starting at 6.29% OAC" },
 ]
 
 export default function TeslaPage() {
@@ -224,7 +224,7 @@ export default function TeslaPage() {
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold mb-4">Tesla Financing Available</h2>
             <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
-              Get approved for Tesla financing in minutes. Rates starting at 4.99% OAC. 
+              Get approved for Tesla financing in minutes. Rates starting at 6.29% OAC. 
               We work with all credit situations.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
