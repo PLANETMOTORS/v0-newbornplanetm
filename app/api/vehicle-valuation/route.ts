@@ -14,31 +14,51 @@ export async function POST(request: NextRequest) {
     const currentYear = new Date().getFullYear()
     const vehicleAge = currentYear - parseInt(year)
 
-    // Use AI to analyze and estimate vehicle value based on Canadian market
-    const prompt = `You are a Canadian automotive valuation expert. Estimate the trade-in value for this vehicle:
+    // Use AI to analyze and estimate vehicle value using Live Market approach (like vAuto Provision)
+    // vAuto philosophy: "history and book values alone are no longer the best way" - use real-time market data
+    // Mileage is part of a live-market appraisal model, NOT a simple fixed mileage table
+    const prompt = `You are a Canadian automotive valuation expert using a LIVE MARKET approach (similar to vAuto Provision).
 
-Vehicle: ${year} ${make} ${model}${trim ? ` ${trim}` : ""}
-Mileage: ${mileageNum.toLocaleString()} km
-Condition: ${condition || "Good"}
-Vehicle Age: ${vehicleAge} years
+IMPORTANT METHODOLOGY:
+- Do NOT use simple depreciation formulas or fixed mileage tables
+- vAuto's Live Market View uses real-time data from AutoTrader, Manheim, and dealer listings
+- "History and book values alone are no longer the best way to appraise vehicles"
+- Consider what similar vehicles are ACTUALLY SELLING FOR right now in Canada
 
-Consider these Canadian market factors:
-1. Current Canadian used car market prices (2024-2026)
-2. Average depreciation rates for this make/model
-3. Mileage impact (Canadian average is 20,000 km/year)
-4. Condition adjustment
-5. Seasonal factors
-6. This is a TRADE-IN value (typically 10-20% below private sale)
+Vehicle to Appraise:
+- Year: ${year}
+- Make: ${make}
+- Model: ${model}${trim ? `\n- Trim: ${trim}` : ""}
+- Mileage: ${mileageNum.toLocaleString()} km
+- Condition: ${condition || "Good"}
+- Vehicle Age: ${vehicleAge} years
+- Accident History: Clean (no reported accidents)
 
-For reference, typical Canadian trade-in values:
-- High-mileage economy cars (10+ years, 200k+ km): $500-$3,000
-- Mid-age sedans (5-8 years, 100-150k km): $5,000-$15,000
-- Newer SUVs (3-5 years, 50-80k km): $20,000-$35,000
-- Trucks hold value well, luxury depreciates faster
+LIVE MARKET FACTORS TO CONSIDER:
+1. Current AutoTrader.ca listings for similar vehicles in Canada
+2. Recent Manheim auction results for wholesale values
+3. Regional demand (Ontario/GTA market)
+4. Supply/demand for this specific make/model/trim
+5. Current economic conditions affecting used car market
+6. Seasonal factors (SUVs/trucks worth more in winter)
+7. This is a TRADE-IN/WHOLESALE value (not private sale retail)
 
-IMPORTANT: Be realistic. A 2015 Jetta with 220,000 km should be worth approximately $1,000-$2,500 for trade-in.
+REALISTIC CANADIAN TRADE-IN BENCHMARKS:
+- 2015 VW Jetta, 220,000 km, Good: $1,000 - $2,500
+- 2020 Toyota RAV4, 60,000 km, Excellent: $28,000 - $32,000
+- 2018 Honda Civic, 90,000 km, Good: $14,000 - $17,000
+- 2022 Ford F-150, 40,000 km, Excellent: $42,000 - $48,000
+- 2026 Tesla Model Y LR, 5,000 km, Excellent: $48,000 - $54,000
+- 2019 BMW 3 Series, 70,000 km, Good: $24,000 - $28,000
 
-Respond ONLY with a JSON object in this exact format (no markdown, no explanation):
+CRITICAL RULES:
+- Trade-in values are 10-20% BELOW private sale prices
+- High mileage vehicles (200k+ km) have significantly reduced value
+- Older economy cars (10+ years) may only be worth $500-$3,000
+- Luxury vehicles depreciate faster than mainstream brands
+- Trucks and Toyota/Honda hold value better than average
+
+Respond ONLY with a JSON object (no markdown, no explanation):
 {"lowValue": NUMBER, "midValue": NUMBER, "highValue": NUMBER, "confidence": "high"|"medium"|"low", "factors": ["factor1", "factor2", "factor3"]}`
 
     const { text } = await generateText({
