@@ -1,9 +1,9 @@
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { LiveChatWidget } from "@/components/live-chat-widget"
+import { ContactForm } from "@/components/contact-form"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Phone, MapPin, Mail, Clock, MessageCircle, Car } from "lucide-react"
+import { Phone, MapPin, Mail, Clock, MessageCircle } from "lucide-react"
 
 const contactMethods = [
   {
@@ -79,53 +79,7 @@ export default function ContactPage() {
             {/* Contact Form */}
             <div className="bg-card rounded-2xl border border-border p-8">
               <h2 className="font-semibold text-xl mb-6">Send Us a Message</h2>
-              
-              <form className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">First Name</label>
-                    <Input placeholder="John" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Last Name</label>
-                    <Input placeholder="Doe" />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Email</label>
-                  <Input type="email" placeholder="john@example.com" />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Phone</label>
-                  <Input placeholder="416-985-2277" />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Department</label>
-                  <select className="w-full h-10 px-3 rounded-md border border-input bg-background">
-                    <option value="">Select a department</option>
-                    <option value="sales">Sales</option>
-                    <option value="financing">Financing</option>
-                    <option value="service">Service</option>
-                    <option value="tradein">Trade-In</option>
-                    <option value="general">General Inquiry</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Message</label>
-                  <textarea 
-                    className="w-full min-h-[120px] px-3 py-2 rounded-md border border-input bg-background resize-none"
-                    placeholder="How can we help you?"
-                  />
-                </div>
-
-                <Button className="w-full" size="lg">
-                  Send Message
-                </Button>
-              </form>
+              <ContactForm />
             </div>
 
             {/* Map & Hours */}
