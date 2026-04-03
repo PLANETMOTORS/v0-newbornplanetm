@@ -50,7 +50,7 @@ const faqCategories = [
     faqs: [
       {
         question: "What financing options are available?",
-        answer: "We work with 20+ Canadian lenders including TD, RBC, Scotiabank, BMO, CIBC, and Desjardins. Rates start as low as 6.29% APR depending on your credit profile. Get pre-approved in minutes with no impact to your credit score."
+        answer: "We work with 20+ Canadian lenders including major banks, credit unions, and specialized auto finance companies. Rates start as low as 6.29% APR depending on your credit profile. Get pre-approved in minutes with no impact to your credit score."
       },
       {
         question: "Can I get approved with bad credit?",

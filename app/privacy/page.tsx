@@ -64,7 +64,7 @@ export default function PrivacyPolicyPage() {
               <h2 className="text-2xl font-semibold mb-4">4. Information Sharing</h2>
               <p className="text-muted-foreground mb-4">We may share your information with:</p>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-                <li><strong>Financing Partners:</strong> TD Auto Finance, Scotiabank, BMO, RBC, Desjardins, Capital One (for credit applications)</li>
+                <li><strong>Financing Partners:</strong> Major banks, credit unions, and specialized auto finance lenders (for credit applications)</li>
                 <li><strong>Vehicle History Providers:</strong> Carfax Canada, Canadian Black Book</li>
                 <li><strong>Delivery Partners:</strong> Licensed auto transport companies</li>
                 <li><strong>Service Providers:</strong> Payment processors, email services, analytics providers</li>

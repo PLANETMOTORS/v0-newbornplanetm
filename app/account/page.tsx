@@ -100,9 +100,9 @@ const mockPreApproval: PreApproval = {
   id: "pa_789",
   status: "approved",
   amount: 75000,
-  rate: 5.49,
+  rate: 6.29,
   term: 72,
-  lender: "TD Bank",
+  lender: "Credit Union",
   expiresAt: "2024-04-28"
 }
 
