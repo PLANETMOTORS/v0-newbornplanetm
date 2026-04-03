@@ -39,15 +39,18 @@ export async function POST(req: Request) {
     console.log("[v0] Video call request created:", videoCallRequest)
 
     return NextResponse.json({
-      ok: true,
-      bookingId: callId,
-      scheduledTime: preferredTime,
-      message: "We'll send a confirmation email with the join link.",
+      success: true,
+      message: "Video call scheduled successfully",
+      data: {
+        callId,
+        joinLink: videoCallRequest.joinLink,
+        scheduledTime: preferredTime,
+      },
     })
   } catch (error) {
     console.error("Video call request error:", error)
     return NextResponse.json(
-      { ok: false, error: "Failed to schedule video call" },
+      { error: "Failed to schedule video call" },
       { status: 500 }
     )
   }
