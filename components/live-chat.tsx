@@ -155,11 +155,11 @@ export function LiveChat() {
           {/* Call Option */}
           <div className="p-2 border-t bg-muted/30 text-center">
             <a 
-              href="tel:1-866-787-3332" 
+              href="tel:1-866-797-3332" 
               className="text-xs text-muted-foreground hover:text-primary flex items-center justify-center gap-1"
             >
               <Phone className="h-3 w-3" />
-              Prefer to call? 1-866-787-3332
+              Prefer to call? 1-866-797-3332
             </a>
           </div>
         </CardContent>

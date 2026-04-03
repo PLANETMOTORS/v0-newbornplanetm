@@ -260,7 +260,7 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="(416) 555-0123"
+                  placeholder="416-985-2277"
                   value={formData.phone}
                   onChange={(e) => handleInputChange("phone", e.target.value)}
                   required

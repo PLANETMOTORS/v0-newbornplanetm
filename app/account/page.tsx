@@ -67,7 +67,7 @@ const mockUser: UserProfile = {
   email: "john.smith@example.com",
   firstName: "John",
   lastName: "Smith",
-  phone: "(416) 555-0123",
+  phone: "416-985-2277",
   address: "123 Main Street",
   postalCode: "M5V 1K4",
   city: "Toronto",
@@ -235,7 +235,7 @@ export default function AccountPage() {
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="registerPhone">Phone</Label>
-                          <Input id="registerPhone" name="registerPhone" type="tel" placeholder="(416) 555-0123" required />
+                          <Input id="registerPhone" name="registerPhone" type="tel" placeholder="416-985-2277" required />
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="registerPassword">Password</Label>

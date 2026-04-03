@@ -150,9 +150,9 @@ export default function AccessibilityPage() {
                 </p>
                 <div className="flex flex-wrap gap-4">
                   <Button asChild>
-                    <a href="tel:1-866-787-3332">
+                    <a href="tel:1-866-797-3332">
                       <Phone className="w-4 h-4 mr-2" />
-                      1-866-787-3332
+                      1-866-797-3332
                     </a>
                   </Button>
                   <Button variant="outline" asChild>

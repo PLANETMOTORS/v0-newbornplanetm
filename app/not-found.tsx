@@ -47,11 +47,11 @@ export default function NotFound() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center text-sm">
             <a 
-              href="tel:1-866-787-3332" 
+              href="tel:1-866-797-3332" 
               className="flex items-center justify-center gap-2 text-primary hover:underline"
             >
               <Phone className="w-4 h-4" />
-              1-866-787-3332
+              1-866-797-3332
             </a>
             <span className="hidden sm:inline text-muted-foreground">|</span>
             <Link 

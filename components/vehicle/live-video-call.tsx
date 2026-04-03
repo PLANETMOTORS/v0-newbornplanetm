@@ -122,7 +122,7 @@ export function LiveVideoCall({ vehicleId, vehicleName }: LiveVideoCallProps) {
                   required
                   value={formData.customerPhone}
                   onChange={(e) => setFormData({ ...formData, customerPhone: formatPhoneNumber(e.target.value) })}
-                  placeholder="(416) 555-0123"
+                  placeholder="416-985-2277"
                 />
               </div>
 

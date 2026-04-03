@@ -4,7 +4,7 @@ import { FooterContent } from "@/components/footer-content"
 // Default site settings - no external imports needed
 const DEFAULT_SITE_SETTINGS = {
   dealerName: "Planet Motors",
-  phone: "(416) 555-0123",
+  phone: "1-866-797-3332",
   email: "info@planetmotors.ca",
   streetAddress: "1234 Auto Drive",
   city: "Toronto",

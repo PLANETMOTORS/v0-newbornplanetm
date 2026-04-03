@@ -192,9 +192,9 @@ export default function WarrantyPage() {
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Button variant="secondary" size="lg" asChild>
-                <a href="tel:1-866-787-3332">
+                <a href="tel:1-866-797-3332">
                   <Phone className="w-4 h-4 mr-2" />
-                  Call 1-866-787-3332
+                  Call 1-866-797-3332
                 </a>
               </Button>
               <Button variant="outline" size="lg" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10" asChild>

@@ -188,7 +188,7 @@ export function LiveChatWidget() {
           <div className="px-4 py-2 border-t bg-muted/30 text-center">
             <p className="text-xs text-muted-foreground">
               AI-powered • Available 24/7 • 
-              <a href="tel:1-866-787-3332" className="text-primary hover:underline ml-1">
+              <a href="tel:1-866-797-3332" className="text-primary hover:underline ml-1">
                 Or call us
               </a>
             </p>

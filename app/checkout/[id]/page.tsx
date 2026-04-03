@@ -331,7 +331,7 @@ const handleSubmit = async () => {
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })}
-                        placeholder="(416) 555-0123"
+                        placeholder="416-985-2277"
                         className={!validatePhone(formData.phone) && formData.phone.length > 0 ? "border-destructive" : ""}
                       />
                       {formData.phone.length > 0 && !validatePhone(formData.phone) && (
