@@ -12,7 +12,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Calendar, Clock, MapPin, Car, CheckCircle, Phone } from "lucide-react"
+import { Calendar, Clock, MapPin, Car, CheckCircle, Phone, AlertCircle } from "lucide-react"
+import { isValidEmail, isValidCanadianPhone, formatCanadianPhone, isValidCanadianPostalCode, formatCanadianPostalCode } from "@/lib/form-validation"
 
 interface ScheduleTestDriveProps {
   vehicleTitle: string
@@ -39,11 +40,33 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
     lastName: "",
     email: "",
     phone: "",
+    postalCode: "",
     date: "",
     time: "",
     location: "richmond-hill",
     notes: "",
   })
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
+
+  const validateField = (field: string, value: string) => {
+    const errors = { ...validationErrors }
+    if (field === "email") {
+      errors.email = value && !isValidEmail(value) ? "Enter valid email" : ""
+    } else if (field === "phone") {
+      errors.phone = value && !isValidCanadianPhone(value) ? "Enter valid 10-digit phone" : ""
+    } else if (field === "postalCode") {
+      errors.postalCode = value && !isValidCanadianPostalCode(value) ? "Enter valid postal code" : ""
+    }
+    setValidationErrors(errors)
+  }
+
+  const isFormComplete = () => {
+    return formData.firstName && formData.lastName &&
+      formData.email && isValidEmail(formData.email) &&
+      formData.phone && isValidCanadianPhone(formData.phone) &&
+      formData.postalCode && isValidCanadianPostalCode(formData.postalCode) &&
+      formData.date && formData.time
+  }
 
   // Generate dates on client only to avoid hydration mismatch
   useEffect(() => {
@@ -93,7 +116,11 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
   }
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    let formatted = value
+    if (field === "phone") formatted = formatCanadianPhone(value)
+    else if (field === "postalCode") formatted = formatCanadianPostalCode(value)
+    setFormData(prev => ({ ...prev, [field]: formatted }))
+    validateField(field, formatted)
   }
 
   
@@ -284,15 +311,40 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
               </div>
 
               <div>
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="phone">Phone Number <span className="text-destructive">*</span></Label>
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="416-985-2277"
+                  placeholder="(416) 985-2277"
                   value={formData.phone}
                   onChange={(e) => handleInputChange("phone", e.target.value)}
+                  className={validationErrors.phone ? "border-destructive" : ""}
                   required
                 />
+                {validationErrors.phone && (
+                  <p className="text-xs text-destructive mt-1 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" /> {validationErrors.phone}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="postalCode">Postal Code <span className="text-destructive">*</span></Label>
+                <Input
+                  id="postalCode"
+                  type="text"
+                  placeholder="M5V 3L9"
+                  value={formData.postalCode}
+                  onChange={(e) => handleInputChange("postalCode", e.target.value)}
+                  className={validationErrors.postalCode ? "border-destructive" : ""}
+                  maxLength={7}
+                  required
+                />
+                {validationErrors.postalCode && (
+                  <p className="text-xs text-destructive mt-1 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" /> {validationErrors.postalCode}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -329,7 +381,7 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
                 <Button
                   type="submit"
                   className="flex-1"
-                  disabled={!formData.firstName || !formData.lastName || !formData.email || !formData.phone || isSubmitting}
+                  disabled={!isFormComplete() || isSubmitting}
                 >
                   {isSubmitting ? "Scheduling..." : "Confirm Test Drive"}
                 </Button>
