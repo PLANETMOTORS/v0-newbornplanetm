@@ -22,7 +22,7 @@ import {
 
 export const metadata: Metadata = {
   title: "Used Electric Vehicles Ontario | Tesla, Hyundai, BMW EVs | Planet Motors",
-  description: "Shop certified pre-owned electric vehicles in Ontario. Tesla Model 3, Model Y, Hyundai Ioniq, BMW i4 & more. Battery health reports, 210-point inspection, nationwide delivery. 4.8 stars.",
+  description: "Shop certified pre-owned electric vehicles in Ontario. Tesla Model 3, Model Y, Hyundai Ioniq, BMW i4 & more. Battery health reports, 210-point inspection, nationwide delivery. 4.8 Star Rating.",
   keywords: "electric cars Ontario, used Tesla Ontario, EV dealership Toronto, used electric cars Canada, buy EV online Ontario, Tesla Model Y Canada, Tesla Model 3 used, Hyundai Ioniq 5 used",
   openGraph: {
     title: "Used Electric Vehicles Ontario | Planet Motors",
@@ -94,7 +94,7 @@ export default function ElectricVehiclesPage() {
               <div className="flex flex-wrap items-center gap-6 mt-10 text-sm">
                 <div className="flex items-center gap-2">
                   <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                  <span>4.8/5 (500+ reviews)</span>
+                  <span>4.8 Star Rating (500+ Reviews)</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Shield className="w-5 h-5" />

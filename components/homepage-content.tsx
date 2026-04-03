@@ -81,7 +81,7 @@ const features = [
 const trustBadges = [
   { icon: BadgeCheck, label: "OMVIC Licensed" },
   { icon: Shield, label: "10-Day Returns" },
-  { icon: Star, label: "4.8/5 Rating" },
+  { icon: Star, label: "4.8 Star Rating" },
   { icon: Clock, label: "24/7 Support" },
 ]
 

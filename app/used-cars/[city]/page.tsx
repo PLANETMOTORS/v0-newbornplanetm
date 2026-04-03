@@ -220,7 +220,7 @@ export default function CityLandingPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Star className="w-5 h-5 text-yellow-500" />
-                  <span className="text-sm">4.8/5 Rating (500+ reviews)</span>
+                  <span className="text-sm">4.8 Star Rating (500+ Reviews)</span>
                 </div>
               </div>
             </div>
@@ -332,7 +332,7 @@ export default function CityLandingPage() {
                 </div>
                 <h3 className="font-semibold mb-2">5-Star Service</h3>
                 <p className="text-sm text-muted-foreground">
-                  4.8/5 rating from 500+ verified customer reviews
+                  4.8 Star Rating from 500+ verified customer reviews
                 </p>
               </Card>
             </div>
