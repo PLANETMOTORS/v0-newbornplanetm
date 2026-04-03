@@ -131,12 +131,12 @@ const protectionPlans = [
 ]
 
 const lenders = [
-  { name: "TD Auto", rate: "4.99%" },
-  { name: "RBC", rate: "5.49%" },
-  { name: "Scotiabank", rate: "5.29%" },
-  { name: "BMO", rate: "5.99%" },
-  { name: "CIBC", rate: "5.49%" },
-  { name: "Desjardins", rate: "6.29%" },
+  { name: "TD Bank", abbr: "TD", color: "bg-green-600", rate: "4.99%" },
+  { name: "RBC Royal Bank", abbr: "RBC", color: "bg-blue-700", rate: "5.49%" },
+  { name: "Scotiabank", abbr: "Scotia", color: "bg-red-600", rate: "5.29%" },
+  { name: "BMO", abbr: "BMO", color: "bg-blue-500", rate: "5.99%" },
+  { name: "CIBC", abbr: "CIBC", color: "bg-red-700", rate: "5.49%" },
+  { name: "Desjardins", abbr: "Desj", color: "bg-green-500", rate: "6.29%" },
 ]
 
 export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
@@ -266,14 +266,14 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                     {lenders.slice(0, 4).map((lender) => (
                       <div 
                         key={lender.name}
-                        className="w-10 h-10 bg-muted rounded-full border-2 border-background flex items-center justify-center text-xs font-medium"
-                        title={lender.name}
+                        className={`w-10 h-10 ${lender.color} text-white rounded-full border-2 border-background flex items-center justify-center text-[10px] font-bold shadow-sm`}
+                        title={`${lender.name} - from ${lender.rate}`}
                       >
-                        {lender.name.slice(0, 2)}
+                        {lender.abbr}
                       </div>
                     ))}
-                    <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full border-2 border-background flex items-center justify-center text-xs font-medium">
-                      +2
+                    <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full border-2 border-background flex items-center justify-center text-xs font-bold">
+                      +{lenders.length - 4}
                     </div>
                   </div>
                   <Button variant="outline" size="sm" asChild>
