@@ -2,9 +2,10 @@
 
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
-import { Menu, X, ChevronDown, Phone, MapPin } from "lucide-react"
+import { Menu, X, ChevronDown, Phone, MapPin, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
+import { GoogleReviewsBadge } from "@/components/google-reviews-badge"
 
 // Navigation item type
 type NavItem = {
