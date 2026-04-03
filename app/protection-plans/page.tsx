@@ -22,7 +22,7 @@ const packages = [
     pickupDelivery: true,
     tireRim: false,
     antitheft: false,
-    benefits: "You&apos;re covered for depreciation, repairs, and unforeseen events. If your car is totaled, we&apos;ll replace it. Job loss protection ensures next year&apos;s payments are covered.",
+    benefits: "You're covered for depreciation, repairs, and unforeseen events. If your car is totaled, we'll replace it. Job loss protection ensures next year's payments are covered.",
     maxValue: "$50K Replacement | ~$30k GAP | ~12 Payments",
     highlighted: false,
   },
@@ -113,7 +113,7 @@ const faqs = [
   },
   {
     question: "What is GAP insurance in Canada?",
-    answer: "GAP insurance covers the difference between your car&apos;s actual cash value and what you still owe on your loan if your vehicle is stolen or written off. This protects you from paying out-of-pocket for a car you no longer have.",
+    answer: "GAP insurance covers the difference between your car's actual cash value and what you still owe on your loan if your vehicle is stolen or written off. This protects you from paying out-of-pocket for a car you no longer have.",
   },
   {
     question: "What does tire and rim protection cover?",
@@ -125,7 +125,7 @@ const faqs = [
   },
   {
     question: "Are PlanetCare plans transferable?",
-    answer: "Yes, all PlanetCare protection packages are fully transferable to new owners, which can increase your vehicle&apos;s resale value when it&apos;s time to sell or trade in.",
+    answer: "Yes, all PlanetCare protection packages are fully transferable to new owners, which can increase your vehicle's resale value when it's time to sell or trade in.",
   },
 ]
 
