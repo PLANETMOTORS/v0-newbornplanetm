@@ -18,7 +18,7 @@ import {
 
 export const metadata: Metadata = {
   title: "Used Tesla Ontario | Model 3, Model Y, Model S, Model X | Planet Motors",
-  description: "Shop certified pre-owned Tesla vehicles in Ontario. Model 3, Model Y, Model S & Model X with battery health reports. 210-point inspection, financing available. 4.8 stars.",
+  description: "Shop certified pre-owned Tesla vehicles in Ontario. Model 3, Model Y, Model S & Model X with battery health reports. 210-point inspection, financing available. 4.8 Star Rating.",
   keywords: "used Tesla Ontario, Tesla Model Y Canada, Tesla Model 3 used, Tesla Model S used, Tesla Model X used, buy Tesla Ontario, Tesla dealership Toronto",
   openGraph: {
     title: "Used Tesla Ontario | Planet Motors",

@@ -352,7 +352,7 @@ export default function ClutchGuideCanadaPage() {
                 <div>
                   <Star className="w-12 h-12 mx-auto mb-4 text-yellow-400" />
                   <h3 className="font-semibold text-xl mb-2">4.8 Star Rating</h3>
-                  <p className="text-blue-100">277+ verified customer reviews since 2015</p>
+                  <p className="text-blue-100">500+ verified customer reviews since 2015</p>
                 </div>
                 <div>
                   <Clock className="w-12 h-12 mx-auto mb-4 text-blue-300" />

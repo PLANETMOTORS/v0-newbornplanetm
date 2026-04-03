@@ -435,7 +435,7 @@ export function InstantQuote() {
               <Input
                 id="phone"
                 type="tel"
-                placeholder="(416) 555-0123"
+                placeholder="416-985-2277"
                 value={formData.customerPhone}
                 onChange={(e) => handlePhoneChange(e.target.value)}
                 className={phoneError ? "border-destructive" : ""}

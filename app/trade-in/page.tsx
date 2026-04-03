@@ -422,8 +422,8 @@ function TradeInContent() {
                     <div className="text-xs sm:text-sm text-white/70">Cars Purchased</div>
                   </div>
                   <div className="text-center lg:text-left">
-                    <div className="text-xl sm:text-3xl font-bold">4.9/5</div>
-                    <div className="text-xs sm:text-sm text-white/70">Customer Rating</div>
+                    <div className="text-xl sm:text-3xl font-bold">4.8 Star Rating</div>
+                    <div className="text-xs sm:text-sm text-white/70">Google Reviews</div>
                   </div>
                 </div>
                 
@@ -1184,7 +1184,7 @@ function TradeInContent() {
   </div>
 
                     <p className="text-center text-sm text-muted-foreground">
-                      Questions? Call us at <strong>1-866-787-3332</strong>
+                      Questions? Call us at <strong>1-866-797-3332</strong>
                     </p>
                   </CardContent>
                 </Card>
@@ -1341,7 +1341,7 @@ function TradeInContent() {
                 <h2 className="text-3xl font-bold mb-4">What Canadians Are Saying</h2>
                 <div className="flex items-center justify-center gap-2 text-amber-500">
                   {[1,2,3,4,5].map(i => <Star key={i} className="h-5 w-5 fill-current" />)}
-                  <span className="ml-2 text-foreground font-medium">4.9/5 from 2,500+ reviews</span>
+                  <span className="ml-2 text-foreground font-medium">4.8 Star Rating (500+ Reviews)</span>
                 </div>
               </div>
               
@@ -1515,7 +1515,7 @@ function TradeInContent() {
                     setShowAcceptModal(false)
                     alert(`Offer Accepted!\n\nYou will receive a confirmation email and SMS shortly.\n\nOur team will contact you within 2 hours to schedule your free pickup.\n\nQuote ID: ${offer?.quoteId}`)
                   } else {
-                    alert('There was an issue processing your acceptance. Please try again or call us at 1-866-787-3332.')
+                    alert('There was an issue processing your acceptance. Please try again or call us at 1-866-797-3332.')
                   }
                 } catch (error) {
                   console.error('Error accepting offer:', error)

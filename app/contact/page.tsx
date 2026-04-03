@@ -38,9 +38,9 @@ const contactMethods = [
 
 const departments = [
   { name: "Sales", phone: "416-985-2277", email: "sales@planetmotors.ca" },
-  { name: "Financing", phone: "416-985-2278", email: "financing@planetmotors.ca" },
-  { name: "Service", phone: "416-985-2279", email: "service@planetmotors.ca" },
-  { name: "Trade-In", phone: "416-985-2280", email: "tradein@planetmotors.ca" },
+  { name: "Financing", phone: "416-985-2277", email: "financing@planetmotors.ca" },
+  { name: "Service", phone: "416-985-2277", email: "service@planetmotors.ca" },
+  { name: "Trade-In", phone: "416-985-2277", email: "tradein@planetmotors.ca" },
 ]
 
 export default function ContactPage() {
@@ -99,7 +99,7 @@ export default function ContactPage() {
 
                 <div>
                   <label className="block text-sm font-medium mb-2">Phone</label>
-                  <Input placeholder="416-555-0123" />
+                  <Input placeholder="416-985-2277" />
                 </div>
 
                 <div>

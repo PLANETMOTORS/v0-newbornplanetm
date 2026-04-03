@@ -208,7 +208,7 @@ export default function FAQPage() {
                 Chat With Us
               </Button>
               <Button variant="outline">
-                Call 1-866-787-3332
+                Call 1-866-797-3332
               </Button>
             </div>
           </div>

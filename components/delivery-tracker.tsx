@@ -53,7 +53,7 @@ export function DeliveryTracker({ deliveryId }: { deliveryId: string }) {
         scheduledDate: "March 30, 2026",
         estimatedArrival: "2:30 PM - 4:30 PM",
         driverName: "Michael Chen",
-        driverPhone: "(416) 555-0142",
+        driverPhone: "416-985-2277",
         currentLocation: "Highway 401, Approaching Toronto",
         deliveryAddress: "123 Main Street, Toronto, ON M5V 1A1"
       })

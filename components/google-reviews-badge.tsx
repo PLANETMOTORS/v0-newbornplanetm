@@ -65,7 +65,7 @@ export function GoogleReviewsBadge({
 // Server component version for static pages
 export function GoogleReviewsStatic({ 
   rating = 4.8, 
-  reviewCount = 277,
+  reviewCount = 500,
   variant = "default",
   className = ""
 }: {

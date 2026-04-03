@@ -88,7 +88,7 @@ export function TrustBadges() {
           <span className="hidden md:inline">|</span>
           <span>BBB A+ Rating</span>
           <span className="hidden md:inline">|</span>
-          <span>4.9/5 Google Reviews (500+)</span>
+          <span>4.8 Star Rating (500+ Reviews)</span>
         </div>
       </div>
     </section>

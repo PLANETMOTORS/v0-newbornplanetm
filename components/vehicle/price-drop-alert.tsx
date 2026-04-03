@@ -112,7 +112,7 @@ export function PriceDropAlert({ vehicleId, vehicleName, currentPrice }: PriceDr
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: formatPhoneNumber(e.target.value) })}
-                placeholder="(416) 555-0123"
+                placeholder="416-985-2277"
               />
             </div>
 

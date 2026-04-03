@@ -219,7 +219,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
     "aggregateRating": {
       "@type": "AggregateRating",
       "ratingValue": "4.8",
-      "reviewCount": "277"
+      "reviewCount": "500"
     }
   }
 
@@ -304,7 +304,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                   </div>
                   <div className="flex items-center gap-2">
                     <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-                    <span className="text-sm">4.8/5 (277+ Reviews)</span>
+                    <span className="text-sm">4.8 Star Rating (500+ Reviews)</span>
                   </div>
                 </div>
               </div>

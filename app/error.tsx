@@ -50,11 +50,11 @@ export default function Error({
             Need immediate assistance?
           </p>
           <a 
-            href="tel:1-866-787-3332" 
+            href="tel:1-866-797-3332" 
             className="inline-flex items-center justify-center gap-2 text-primary hover:underline"
           >
             <Phone className="w-4 h-4" />
-            Call 1-866-787-3332
+            Call 1-866-797-3332
           </a>
           {error.digest && (
             <p className="text-xs text-muted-foreground mt-4">
