@@ -562,12 +562,12 @@ export default function VehicleDetailPage() {
           </div>
         </div>
 
-        {/* Main Tabs - Mobile Optimized */}
-        <div className="border-b sticky top-16 bg-background z-40">
-          <div className="overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        {/* Main Tabs - Mobile Optimized with Scroll Indicator */}
+        <div className="border-b sticky top-16 bg-background z-40 relative">
+          <div className="overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="h-12 bg-transparent p-0 gap-0 flex w-max px-4">
-                {["Photos", "Overview", "Features", "Inspect", "Pricing", "Protection"].map((tab) => (
+              <TabsList className="h-12 bg-transparent p-0 gap-0 flex w-max px-4 pr-10">
+                {["Photos", "Overview", "Features", "Inspect", "Pricing", "Ratings", "Protection"].map((tab) => (
                   <TabsTrigger
                     key={tab}
                     value={tab === "Inspect" ? "inspection" : tab.toLowerCase()}
@@ -579,6 +579,8 @@ export default function VehicleDetailPage() {
               </TabsList>
             </Tabs>
           </div>
+          {/* Scroll indicator gradient - shows there are more tabs on mobile */}
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
         </div>
 
         <div className="container mx-auto px-4 py-8">
