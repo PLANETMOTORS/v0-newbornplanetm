@@ -8,14 +8,14 @@ import { FinanceCalculator } from "@/components/finance-calculator"
 import { CheckCircle, ArrowRight, Shield, Clock, BadgeCheck, User, Calculator } from "lucide-react"
 import Link from "next/link"
 
-// Default lenders fallback
+// Default lenders fallback - Canadian bank partners
 const defaultLenders = [
-  { name: "TD Auto", rate: "4.99%", term: "84 mo", logo: "TD" },
-  { name: "RBC", rate: "5.49%", term: "84 mo", logo: "RBC" },
-  { name: "Scotiabank", rate: "5.29%", term: "84 mo", logo: "SCO" },
-  { name: "BMO", rate: "5.99%", term: "72 mo", logo: "BMO" },
-  { name: "CIBC", rate: "5.49%", term: "84 mo", logo: "CIBC" },
-  { name: "Desjardins", rate: "6.29%", term: "96 mo", logo: "DES" },
+  { name: "TD Bank", rate: "4.99%", term: "84 mo", logo: "TD", color: "bg-green-600" },
+  { name: "RBC Royal Bank", rate: "5.49%", term: "84 mo", logo: "RBC", color: "bg-blue-700" },
+  { name: "Scotiabank", rate: "5.29%", term: "84 mo", logo: "Scotia", color: "bg-red-600" },
+  { name: "BMO", rate: "5.99%", term: "72 mo", logo: "BMO", color: "bg-blue-500" },
+  { name: "CIBC", rate: "5.49%", term: "84 mo", logo: "CIBC", color: "bg-red-700" },
+  { name: "Desjardins", rate: "6.29%", term: "96 mo", logo: "Desj", color: "bg-green-500" },
 ]
 
 const benefits = [
@@ -138,11 +138,11 @@ export default async function FinancingPage() {
           {/* Lender Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {lenders.map((lender) => (
-              <div key={lender.name} className="bg-background rounded-xl p-6 border border-border text-center hover:border-primary/30 transition-colors">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="font-bold text-primary text-sm">{lender.logo}</span>
+              <div key={lender.name} className="bg-background rounded-xl p-6 border border-border text-center hover:border-primary/30 hover:shadow-md transition-all">
+                <div className={`w-14 h-14 ${lender.color} text-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm`}>
+                  <span className="font-bold text-xs">{lender.logo}</span>
                 </div>
-                <h3 className="font-semibold">{lender.name}</h3>
+                <h3 className="font-semibold text-sm">{lender.name}</h3>
                 <p className="text-2xl font-bold text-primary mt-2">{lender.rate}</p>
                 <p className="text-xs text-muted-foreground">{lender.term}</p>
               </div>

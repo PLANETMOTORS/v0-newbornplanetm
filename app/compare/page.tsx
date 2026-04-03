@@ -12,29 +12,6 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, X, CheckCircle, XCircle, Minus, ArrowRight, Share2, Printer, Download } from "lucide-react"
 import { useCompare, type CompareVehicle } from "@/lib/compare-context"
 
-// API-ready interface for vehicle comparison
-interface CompareVehicle {
-  id: string
-  name: string
-  image: string
-  price: number
-  originalPrice?: number
-  mileage: number
-  fuelType: string
-  range: string
-  horsepower: number
-  acceleration: string
-  seating: number
-  cargo: string
-  warranty: string
-  transmission: string
-  drivetrain: string
-  batteryHealth?: number
-  inspectionScore: number
-  carfaxUrl?: string
-  features: string[]
-}
-
 // Sample vehicles for comparison - will be replaced with API call: GET /api/vehicles/compare
 const availableVehicles: CompareVehicle[] = [
   {

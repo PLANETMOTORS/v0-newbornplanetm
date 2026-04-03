@@ -155,27 +155,43 @@ export default function DeliveryTrackingPage({ params }: { params: Promise<{ id:
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main tracking area */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Map placeholder */}
+            {/* Live GPS Map */}
             <Card>
               <CardContent className="p-0">
                 <div className="relative aspect-[16/9] bg-muted rounded-lg overflow-hidden">
-                  {/* In production, integrate with Google Maps or Mapbox */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-100 to-green-100">
-                    <div className="text-center">
-                      <Navigation className="w-12 h-12 text-primary mx-auto mb-2" />
-                      <p className="font-medium">Live GPS Tracking</p>
-                      <p className="text-sm text-muted-foreground">
-                        {delivery.currentLocation.address}
-                      </p>
-                    </div>
-                  </div>
+                  <iframe
+                    src={`https://www.google.com/maps/embed/v1/directions?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || 'AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8'}&origin=${delivery.currentLocation.lat},${delivery.currentLocation.lng}&destination=${delivery.destination.lat},${delivery.destination.lng}&mode=driving`}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Live Vehicle Tracking - Google Maps"
+                    className="absolute inset-0"
+                  />
                   {/* ETA overlay */}
-                  <div className="absolute top-4 right-4 bg-background rounded-lg shadow-lg p-3">
+                  <div className="absolute top-4 right-4 bg-background rounded-lg shadow-lg p-3 z-10">
                     <p className="text-xs text-muted-foreground">Estimated Arrival</p>
                     <p className="text-xl font-bold text-primary">
                       {timeUntilArrival} min
                     </p>
                   </div>
+                  {/* Current location */}
+                  <div className="absolute bottom-4 left-4 bg-background rounded-lg shadow-lg p-3 z-10">
+                    <p className="text-xs text-muted-foreground">Current Location</p>
+                    <p className="text-sm font-medium">{delivery.currentLocation.address}</p>
+                  </div>
+                  {/* Google Maps link */}
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&origin=${delivery.currentLocation.lat},${delivery.currentLocation.lng}&destination=${delivery.destination.lat},${delivery.destination.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="absolute bottom-4 right-4 bg-primary text-primary-foreground px-3 py-2 rounded-lg text-sm font-medium shadow-lg z-10 hover:bg-primary/90 flex items-center gap-2"
+                  >
+                    <Navigation className="w-4 h-4" />
+                    Open in Maps
+                  </a>
                 </div>
               </CardContent>
             </Card>

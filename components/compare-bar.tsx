@@ -14,7 +14,7 @@ export function CompareBar() {
   if (compareList.length === 0) return null
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t shadow-lg">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t shadow-lg will-change-transform" style={{ contain: 'layout' }}>
       {/* Toggle Button */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
