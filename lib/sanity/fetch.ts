@@ -350,4 +350,63 @@ export function getEffectivePrice(vehicle: Vehicle): number {
   return vehicle.specialPrice || vehicle.price || 0
 }
 
+// AI Settings for Anna chatbot and negotiator
+const AI_SETTINGS_QUERY = `*[_type == "aiSettings"][0] {
+  annaAssistant {
+    displayName,
+    welcomeMessage,
+    quickActions[] { label, prompt }
+  },
+  priceNegotiator {
+    negotiationRules {
+      lowPriceThreshold,
+      lowPriceMaxDiscount_0_31days,
+      lowPriceMaxDiscount_32_46days,
+      lowPriceMaxDiscount_47plus,
+      highPriceMaxDiscount_0_46days,
+      highPriceMaxDiscount_47plus
+    }
+  },
+  fees {
+    certification,
+    financeDocFee,
+    omvic,
+    licensing
+  },
+  financing {
+    lowestRate,
+    numberOfLenders,
+    terms,
+    paymentFrequencies
+  }
+}`
+
+export async function getAISettings(): Promise<any> {
+  try {
+    return await sanityClient.fetch(AI_SETTINGS_QUERY, {}, {
+      next: { tags: ["sanity-ai-settings"], revalidate: 3600 }
+    })
+  } catch (error) {
+    console.error("Failed to fetch AI settings:", error)
+    // Return defaults if CMS fetch fails
+    return {
+      annaAssistant: {
+        displayName: "Anna",
+        welcomeMessage: "Hi! I'm Anna from Planet Motors. How can I help you today?",
+        quickActions: []
+      },
+      fees: {
+        certification: 595,
+        financeDocFee: 895,
+        omvic: 22,
+        licensing: 59
+      },
+      financing: {
+        lowestRate: 6.29,
+        numberOfLenders: 20
+      }
+    }
+  }
+}
+
 export { CACHE_TAGS }

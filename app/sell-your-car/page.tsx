@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { sanityFetch } from '@/lib/sanity/client'
+import { getSellYourCarPage } from '@/lib/sanity/fetch'
 import { SellYourCarHero } from '@/components/sell-your-car/hero'
 import { BenefitsSection } from '@/components/sell-your-car/benefits-section'
 import { ProcessSteps } from '@/components/sell-your-car/process-steps'
@@ -14,41 +14,8 @@ export const metadata: Metadata = {
   description: 'Get the best price for your vehicle. No hassle, no hidden fees. Get an instant offer and same-day payment.',
 }
 
-const sellYourCarQuery = `*[_type == "sellYourCarPage"][0] {
-  title,
-  heroHeadline,
-  heroSubheadline,
-  heroHighlightText,
-  heroImage,
-  heroCta,
-  heroSection,
-  formSettings,
-  benefitsTitle,
-  benefits,
-  whySellToUs,
-  processTitle,
-  processSteps,
-  howItWorks,
-  comparisonTitle,
-  comparisonRows,
-  comparisonTable,
-  testimonialsTitle,
-  testimonials,
-  testimonialsSection,
-  ctaHeadline,
-  ctaSubheadline,
-  ctaButton,
-  ctaSection,
-  faqTitle,
-  faqs,
-  seoTitle,
-  seoDescription
-}`
-
 export default async function SellYourCarPage() {
-  const pageData = await sanityFetch<any>({
-    query: sellYourCarQuery,
-  }).catch(() => null)
+  const pageData = await getSellYourCarPage()
 
   // Default content if CMS data is not available
   const heroContent = {
