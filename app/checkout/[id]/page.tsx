@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useParams, useRouter } from "next/navigation"
@@ -27,6 +27,19 @@ import {
   Loader2
 } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
+import { loadStripe } from "@stripe/stripe-js"
+import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js"
+import { startVehicleCheckout } from "@/app/actions/stripe"
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+
+// Protection Plans
+const PROTECTION_PLANS = [
+  { id: "none", name: "No Protection", price: 0, description: "" },
+  { id: "essential", name: "PlanetCare Essential", price: 1950, description: "3-year powertrain warranty" },
+  { id: "smart", name: "PlanetCare Smart", price: 3000, description: "5-year comprehensive coverage" },
+  { id: "lifeproof", name: "PlanetCare Life Proof", price: 4850, description: "Lifetime bumper-to-bumper" },
+]
 
 // Sample vehicle data (in real app, fetch from API)
 const vehicleData = {
@@ -48,6 +61,8 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [purchaseType, setPurchaseType] = useState<"finance" | "cash">("finance")
+  const [selectedProtection, setSelectedProtection] = useState("none")
+  const [showStripeCheckout, setShowStripeCheckout] = useState(false)
   const [deliveryType, setDeliveryType] = useState<"pickup" | "delivery">("pickup")
   const [deliveryQuote, setDeliveryQuote] = useState<{
     cost: number
@@ -203,18 +218,32 @@ const handleSubmit = async () => {
         ...formData,
         vehicleId: params.id,
         deliveryType,
+        selectedProtection,
       }))
       window.location.href = `/financing/application?vehicleId=${params.id}`
       return
     }
     
-    // For cash purchases, complete immediately
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    setStep(4) // Success
+    // For cash purchases, show Stripe checkout
+    setShowStripeCheckout(true)
     setIsSubmitting(false)
   }
 
+  // Stripe client secret fetcher for embedded checkout
+  const fetchClientSecret = useCallback(async () => {
+    const protectionPlan = PROTECTION_PLANS.find(p => p.id === selectedProtection)
+    const protectionPrice = protectionPlan?.price || 0
+    return await startVehicleCheckout({
+      vehicleId: params.id as string,
+      vehicleName: `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`,
+      vehiclePriceCents: (total + protectionPrice) * 100,
+      protectionPlanId: selectedProtection !== "none" ? selectedProtection : undefined,
+      customerEmail: formData.email,
+    })
+  }, [params.id, total, selectedProtection, formData.email])
+
   const vehiclePrice = vehicleData.price
+  const protectionPrice = PROTECTION_PLANS.find(p => p.id === selectedProtection)?.price || 0
   const omvicFee = 22 // OMVIC regulatory fee
   const certificationFee = 595 // Safety certification
   const financeDocsFee = 895 // Finance docs fee (only applies if financing)
@@ -223,8 +252,8 @@ const handleSubmit = async () => {
   const deliveryFee = deliveryType === "delivery" 
     ? (deliveryQuote?.cost ?? 299)
     : 0
-  // Subtotal before HST (vehicle + all fees)
-  const subtotalBeforeHst = vehiclePrice + omvicFee + certificationFee + (purchaseType === "finance" ? financeDocsFee : 0) + licensingFee + deliveryFee
+  // Subtotal before HST (vehicle + all fees + protection)
+  const subtotalBeforeHst = vehiclePrice + protectionPrice + omvicFee + certificationFee + (purchaseType === "finance" ? financeDocsFee : 0) + licensingFee + deliveryFee
   // HST applies to FULL subtotal (13%)
   const hst = Math.round(subtotalBeforeHst * 0.13)
   // Total with HST
@@ -596,6 +625,33 @@ const handleSubmit = async () => {
                   </CardContent>
                 </Card>
 
+                {/* Protection Plans */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Shield className="w-5 h-5" />
+                      Vehicle Protection Plan
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <RadioGroup value={selectedProtection} onValueChange={setSelectedProtection}>
+                      {PROTECTION_PLANS.map((plan) => (
+                        <div key={plan.id} className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 ${plan.id === "lifeproof" ? "border-primary bg-primary/5" : ""} ${plan.id !== "none" ? "mt-2" : ""}`}>
+                          <RadioGroupItem value={plan.id} id={`plan-${plan.id}`} />
+                          <Label htmlFor={`plan-${plan.id}`} className="flex-1 cursor-pointer">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{plan.name}</span>
+                              {plan.id === "lifeproof" && <Badge className="bg-primary">Best Value</Badge>}
+                            </div>
+                            {plan.description && <div className="text-sm text-muted-foreground">{plan.description}</div>}
+                          </Label>
+                          <span className="font-semibold">{plan.price > 0 ? `$${plan.price.toLocaleString()}` : "—"}</span>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </CardContent>
+                </Card>
+
                 {purchaseType === "finance" && (
                   <Card>
                     <CardHeader>
@@ -822,6 +878,12 @@ const handleSubmit = async () => {
                     <span>Vehicle Price</span>
                     <span>${vehiclePrice.toLocaleString()}</span>
                   </div>
+                  {selectedProtection !== "none" && (
+                    <div className="flex justify-between text-primary font-medium">
+                      <span>{PROTECTION_PLANS.find(p => p.id === selectedProtection)?.name}</span>
+                      <span>${protectionPrice.toLocaleString()}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-muted-foreground">
                     <span>OMVIC Fee</span>
                     <span>${omvicFee}</span>
@@ -905,6 +967,25 @@ const handleSubmit = async () => {
           </div>
         </div>
       </main>
+
+      {/* Stripe Checkout Modal */}
+      {showStripeCheckout && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b flex items-center justify-between">
+              <h2 className="font-semibold">Complete Payment</h2>
+              <Button variant="ghost" size="sm" onClick={() => setShowStripeCheckout(false)}>
+                &times;
+              </Button>
+            </div>
+            <div className="p-4">
+              <EmbeddedCheckoutProvider stripe={stripePromise} options={{ fetchClientSecret }}>
+                <EmbeddedCheckout />
+              </EmbeddedCheckoutProvider>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
