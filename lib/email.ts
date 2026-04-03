@@ -278,7 +278,7 @@ export async function sendCustomerConfirmationEmail(
             ${data.vehicleInfo ? `<p><strong>Vehicle:</strong> ${data.vehicleInfo}</p>` : ''}
             <p>We'll contact you soon with next steps.</p>
             <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-            <p style="color: #64748b; font-size: 14px;">Questions? Call us at (416) 270-9955</p>
+            <p style="color: #64748b; font-size: 14px;">Questions? Call us at 416-985-2277</p>
           </div>
         </div>
       `
@@ -313,7 +313,7 @@ export async function sendCustomerConfirmationEmail(
             ${data.vehicleInfo ? `<p><strong>Vehicle:</strong> ${data.vehicleInfo}</p>` : ''}
             <p>Our team will contact you within 24 hours to schedule vehicle inspection and payment.</p>
             <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-            <p style="color: #64748b; font-size: 14px;">Questions? Call us at (416) 270-9955</p>
+            <p style="color: #64748b; font-size: 14px;">Questions? Call us at 416-985-2277</p>
           </div>
         </div>
       `

@@ -4,7 +4,7 @@ import { getSiteSettings, getNavigation } from "./fetch"
 // Default site settings fallback
 export const DEFAULT_SITE_SETTINGS = {
   dealerName: "Planet Motors",
-  phone: "(905) 123-4567",
+  phone: "1-866-797-3332",
   email: "info@planetmotors.ca",
   streetAddress: "123 Auto Drive",
   city: "Mississauga",

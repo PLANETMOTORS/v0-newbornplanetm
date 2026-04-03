@@ -59,7 +59,7 @@ export async function POST(req: Request) {
                   ${currentPrice ? `<p style="margin: 8px 0 0; font-size: 24px; color: #7c3aed;">$${Number(currentPrice).toLocaleString()}</p>` : ""}
                 </div>
                 <p>We'll email you when the price drops.</p>
-                <p style="color: #64748b; font-size: 14px; margin-top: 20px;">Planet Motors | (416) 270-9955</p>
+                <p style="color: #64748b; font-size: 14px; margin-top: 20px;">Planet Motors | 416-985-2277</p>
               </div>
             </div>
           `,

@@ -112,7 +112,7 @@ function getCustomerConfirmationTemplate(booking: LiveVideoTourBooking, formatte
 
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
         <p style="color: #64748b; font-size: 14px; text-align: center;">
-          Questions? Call us at <a href="tel:4162709955" style="color: #7c3aed;">(416) 270-9955</a>
+          Questions? Call us at <a href="tel:416-985-2277" style="color: #7c3aed;">416-985-2277</a>
         </p>
       </div>
       <div style="padding: 15px; background: #1e293b; text-align: center;">
@@ -267,7 +267,7 @@ export async function sendTourReminder(booking: LiveVideoTourBooking): Promise<b
             ` : ''}
 
             <p style="color: #64748b; font-size: 14px; text-align: center;">
-              Can't make it? Call us at <a href="tel:4162709955">(416) 270-9955</a> to reschedule.
+              Can't make it? Call us at <a href="tel:416-985-2277">416-985-2277</a> to reschedule.
             </p>
           </div>
         </div>
@@ -309,7 +309,7 @@ export async function sendCancellationNotification(booking: LiveVideoTourBooking
           <div style="padding: 20px; background: #f8fafc;">
             <p>Hi ${booking.customerName},</p>
             <p>Your video tour for <strong>${booking.vehicleName}</strong> scheduled for ${formattedDate} at ${formattedTime} has been cancelled.</p>
-            <p>If you'd like to reschedule, please visit our website or call us at <a href="tel:4162709955">(416) 270-9955</a>.</p>
+            <p>If you'd like to reschedule, please visit our website or call us at <a href="tel:416-985-2277">416-985-2277</a>.</p>
           </div>
         </div>
       `,
