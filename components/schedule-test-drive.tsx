@@ -58,10 +58,38 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
     setAvailableDates(dates)
   }, [])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState("")
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // In production, this would submit to an API
-    setIsSubmitted(true)
+    setIsSubmitting(true)
+    setError("")
+    
+    try {
+      const response = await fetch("/api/video-call/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerName: `${formData.firstName} ${formData.lastName}`,
+          customerEmail: formData.email,
+          customerPhone: formData.phone,
+          vehicleId: vehicleId,
+          vehicleName: vehicleTitle,
+          preferredTime: `${formData.date} at ${formData.time}`,
+          notes: `Location: ${locations.find(l => l.id === formData.location)?.name}. ${formData.notes}`,
+          type: "test_drive",
+        }),
+      })
+      
+      if (!response.ok) throw new Error("Failed to schedule test drive")
+      
+      setIsSubmitted(true)
+    } catch {
+      setError("Failed to schedule. Please try again or call us at 416-985-2277.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleInputChange = (field: string, value: string) => {
@@ -297,12 +325,13 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
                 >
                   Back
                 </Button>
+                {error && <p className="text-sm text-destructive">{error}</p>}
                 <Button
                   type="submit"
                   className="flex-1"
-                  disabled={!formData.firstName || !formData.lastName || !formData.email || !formData.phone}
+                  disabled={!formData.firstName || !formData.lastName || !formData.email || !formData.phone || isSubmitting}
                 >
-                  Confirm Test Drive
+                  {isSubmitting ? "Scheduling..." : "Confirm Test Drive"}
                 </Button>
               </div>
             </div>

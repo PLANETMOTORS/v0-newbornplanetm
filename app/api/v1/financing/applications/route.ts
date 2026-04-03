@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { sendNotificationEmail } from "@/lib/email"
 
 // POST /api/v1/financing/applications - Create new finance application
 export async function POST(request: NextRequest) {
@@ -271,6 +272,22 @@ export async function POST(request: NextRequest) {
       to_status: "submitted",
       changed_by: user?.id || null,
       notes: "Application submitted"
+    })
+    
+    // Send notification email to admin
+    await sendNotificationEmail({
+      type: 'finance_application',
+      customerName: `${primaryApplicant.firstName} ${primaryApplicant.lastName}`,
+      customerEmail: primaryApplicant.email,
+      customerPhone: primaryApplicant.phone,
+      vehicleInfo: vehicleId || 'Not specified',
+      applicationId: application.application_number,
+      additionalData: {
+        requestedAmount: amountFinanced,
+        downPayment,
+        loanTermMonths: financingTerms.loanTermMonths,
+        estimatedPayment: payment,
+      },
     })
     
     return NextResponse.json({

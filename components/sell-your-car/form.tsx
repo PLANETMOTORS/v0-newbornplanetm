@@ -37,11 +37,40 @@ export function SellYourCarForm() {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle form submission
-    console.log('Form submitted:', formData)
-    setStep(3)
+    setIsSubmitting(true)
+    setError('')
+    
+    try {
+      const response = await fetch('/api/trade-in/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          year: formData.year,
+          make: formData.make,
+          model: formData.model,
+          trim: formData.trim,
+          mileage: formData.mileage,
+          condition: formData.condition,
+          customerName: formData.name,
+          customerEmail: formData.email,
+          customerPhone: formData.phone,
+          comments: formData.comments,
+        }),
+      })
+      
+      if (!response.ok) throw new Error('Failed to submit')
+      
+      setStep(3)
+    } catch {
+      setError('Failed to submit. Please try again or call us at 416-985-2277.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -192,12 +221,13 @@ export function SellYourCarForm() {
                 rows={3}
               />
             </div>
+            {error && <p className="text-sm text-destructive">{error}</p>}
             <div className="flex gap-3">
-              <Button type="button" variant="outline" onClick={() => setStep(1)}>
+              <Button type="button" variant="outline" onClick={() => setStep(1)} disabled={isSubmitting}>
                 Back
               </Button>
-              <Button type="submit" className="flex-1" size="lg">
-                Get My Quote <ArrowRight className="ml-2 h-4 w-4" />
+              <Button type="submit" className="flex-1" size="lg" disabled={isSubmitting}>
+                {isSubmitting ? 'Submitting...' : 'Get My Quote'} {!isSubmitting && <ArrowRight className="ml-2 h-4 w-4" />}
               </Button>
             </div>
           </form>
