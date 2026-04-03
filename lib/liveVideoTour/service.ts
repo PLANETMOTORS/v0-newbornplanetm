@@ -7,8 +7,8 @@ import { liveVideoTourRequestSchema } from "./schema"
 import { checkSlotAvailability, isWithinBusinessHours } from "./availability"
 import { createMeetingForBooking } from "./providers"
 import { DEALERSHIP_TIMEZONE, DEFAULT_PROVIDER } from "./constants"
-// import { liveVideoTourRepository } from "./repository"
-// import { sendLiveVideoTourNotifications } from "./notifications"
+import { liveVideoTourRepository } from "./repository"
+import { sendLiveVideoTourNotifications, sendCancellationNotification } from "./notifications"
 
 // Generate unique booking ID
 function generateBookingId(): string {
@@ -75,20 +75,25 @@ export async function createLiveVideoTourBooking(
   booking.updatedAt = new Date().toISOString()
 
   // 7. Save to database
-  // In production: await liveVideoTourRepository.create(booking)
-  console.log("[liveVideoTour] Booking created:", {
-    id: booking.id,
-    vehicle: booking.vehicleName,
-    customer: booking.customerName,
-    email: booking.customerEmail,
-    scheduled: booking.preferredTime,
-    provider: booking.provider,
-    joinUrl: booking.joinUrl,
-    status: booking.status,
-  })
+  try {
+    const savedBooking = await liveVideoTourRepository.create(booking)
+    if (savedBooking) {
+      booking.id = savedBooking.id // Use database-generated ID if available
+    }
+    console.log("[liveVideoTour] Booking saved to database:", booking.id)
+  } catch (dbError) {
+    console.error("[liveVideoTour] Database save failed:", dbError)
+    // Continue anyway - booking can still work without DB persistence
+  }
 
-  // 8. Send notifications
-  // In production: await sendLiveVideoTourNotifications(booking)
+  // 8. Send notifications (email to customer + staff)
+  try {
+    const notificationResult = await sendLiveVideoTourNotifications(booking)
+    console.log("[liveVideoTour] Notifications sent:", notificationResult)
+  } catch (notifyError) {
+    console.error("[liveVideoTour] Notification failed:", notifyError)
+    // Continue anyway - booking is still valid
+  }
 
   // 9. Return success response
   if (providerResult.status === "failed") {
@@ -109,23 +114,60 @@ export async function createLiveVideoTourBooking(
 
 // Cancel a booking
 export async function cancelLiveVideoTourBooking(bookingId: string): Promise<LiveVideoTourResponse> {
-  // In production:
-  // 1. Find booking in database
-  // 2. Cancel meeting with provider
-  // 3. Update status to cancelled
-  // 4. Send cancellation notifications
+  try {
+    // 1. Find booking in database
+    const booking = await liveVideoTourRepository.findById(bookingId)
+    if (!booking) {
+      return { ok: false, error: "Booking not found" }
+    }
 
-  console.log("[liveVideoTour] Cancelling booking:", bookingId)
-  return { ok: true }
+    if (booking.status === "cancelled") {
+      return { ok: false, error: "Booking is already cancelled" }
+    }
+
+    // 2. Update status to cancelled
+    const updated = await liveVideoTourRepository.updateStatus(bookingId, "cancelled")
+    if (!updated) {
+      return { ok: false, error: "Failed to cancel booking" }
+    }
+
+    // 3. Send cancellation notifications
+    await sendCancellationNotification(booking)
+
+    console.log("[liveVideoTour] Booking cancelled:", bookingId)
+    return { ok: true, status: "cancelled" }
+  } catch (error) {
+    console.error("[liveVideoTour] Cancel failed:", error)
+    return { ok: false, error: "Failed to cancel booking" }
+  }
 }
 
 // Confirm a booking (for manual approval flow)
 export async function confirmLiveVideoTourBooking(bookingId: string): Promise<LiveVideoTourResponse> {
-  // In production:
-  // 1. Find booking in database
-  // 2. Update status to confirmed
-  // 3. Send confirmation notifications
+  try {
+    // 1. Find booking in database
+    const booking = await liveVideoTourRepository.findById(bookingId)
+    if (!booking) {
+      return { ok: false, error: "Booking not found" }
+    }
 
-  console.log("[liveVideoTour] Confirming booking:", bookingId)
-  return { ok: true }
+    if (booking.status === "confirmed") {
+      return { ok: true, status: "confirmed" } // Already confirmed
+    }
+
+    // 2. Update status to confirmed
+    const updated = await liveVideoTourRepository.updateStatus(bookingId, "confirmed")
+    if (!updated) {
+      return { ok: false, error: "Failed to confirm booking" }
+    }
+
+    // 3. Send confirmation notification (if not already sent)
+    await sendLiveVideoTourNotifications(booking)
+
+    console.log("[liveVideoTour] Booking confirmed:", bookingId)
+    return { ok: true, status: "confirmed" }
+  } catch (error) {
+    console.error("[liveVideoTour] Confirm failed:", error)
+    return { ok: false, error: "Failed to confirm booking" }
+  }
 }

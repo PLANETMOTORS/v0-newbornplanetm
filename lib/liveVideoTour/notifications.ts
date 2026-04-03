@@ -1,13 +1,119 @@
 import type { LiveVideoTourBooking } from "@/types/liveVideoTour"
 import { DEALERSHIP_TIMEZONE } from "./constants"
+import { Resend } from "resend"
 
 // Notification service for live video tour bookings
-// In production: Integrate with email (Resend/SendGrid) and SMS (Twilio)
+const resend = new Resend(process.env.API_KEY_RESEND || process.env.RESEND_API_KEY)
+
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "toni@planetmotors.ca"
+const FROM_EMAIL = process.env.FROM_EMAIL || "Planet Motors <notifications@planetmotors.ca>"
 
 interface NotificationResult {
   email: { sent: boolean; error?: string }
   sms: { sent: boolean; error?: string }
   staff: { notified: boolean; error?: string }
+}
+
+function formatBookingDateTime(booking: LiveVideoTourBooking) {
+  const scheduledDate = new Date(booking.preferredTime)
+  return {
+    formattedDate: scheduledDate.toLocaleDateString("en-CA", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      timeZone: DEALERSHIP_TIMEZONE,
+    }),
+    formattedTime: scheduledDate.toLocaleTimeString("en-CA", {
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: DEALERSHIP_TIMEZONE,
+    }),
+  }
+}
+
+// Email template for customer confirmation
+function getCustomerConfirmationTemplate(booking: LiveVideoTourBooking, formattedDate: string, formattedTime: string) {
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: #7c3aed; color: white; padding: 20px; text-align: center;">
+        <h1 style="margin: 0;">Planet Motors</h1>
+        <p style="margin: 5px 0 0;">Live Video Tour Confirmed</p>
+      </div>
+      <div style="padding: 20px; background: #f8fafc;">
+        <h2 style="color: #7c3aed;">Hi ${booking.customerName}!</h2>
+        <p>Your live video tour has been scheduled. A member of our team will walk you around the vehicle via Google Meet.</p>
+        
+        <div style="background: white; border: 2px solid #7c3aed; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <table style="width: 100%;">
+            <tr>
+              <td style="padding: 8px 0;"><strong>Vehicle:</strong></td>
+              <td style="padding: 8px 0;">${booking.vehicleName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0;"><strong>Date:</strong></td>
+              <td style="padding: 8px 0;">${formattedDate}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0;"><strong>Time:</strong></td>
+              <td style="padding: 8px 0;">${formattedTime} EST</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0;"><strong>Booking ID:</strong></td>
+              <td style="padding: 8px 0; font-family: monospace;">${booking.id}</td>
+            </tr>
+          </table>
+        </div>
+
+        ${booking.joinUrl ? `
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${booking.joinUrl}" style="background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">Join Video Tour</a>
+          <p style="margin-top: 10px; font-size: 12px; color: #64748b;">Or copy this link: ${booking.joinUrl}</p>
+        </div>
+        ` : ''}
+
+        <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin: 20px 0;">
+          <p style="margin: 0; font-size: 14px;"><strong>Reminder:</strong> Join from a quiet place with good internet. Have your questions ready!</p>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+        <p style="color: #64748b; font-size: 14px; text-align: center;">
+          Questions? Call us at <a href="tel:4162709955" style="color: #7c3aed;">(416) 270-9955</a>
+        </p>
+      </div>
+      <div style="padding: 15px; background: #1e293b; text-align: center;">
+        <p style="margin: 0; color: #94a3b8; font-size: 12px;">Planet Motors | Toronto, ON</p>
+      </div>
+    </div>
+  `
+}
+
+// Email template for staff notification
+function getStaffNotificationTemplate(booking: LiveVideoTourBooking, formattedDate: string, formattedTime: string) {
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: #7c3aed; color: white; padding: 20px; text-align: center;">
+        <h1 style="margin: 0;">New Video Tour Booking</h1>
+      </div>
+      <div style="padding: 20px; background: #f8fafc;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><strong>Customer:</strong></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${booking.customerName}</td></tr>
+          <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><strong>Email:</strong></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><a href="mailto:${booking.customerEmail}">${booking.customerEmail}</a></td></tr>
+          <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><strong>Phone:</strong></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><a href="tel:${booking.customerPhone}">${booking.customerPhone}</a></td></tr>
+          <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><strong>Vehicle:</strong></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${booking.vehicleName}</td></tr>
+          <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><strong>Date:</strong></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${formattedDate}</td></tr>
+          <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><strong>Time:</strong></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${formattedTime} EST</td></tr>
+          <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><strong>Booking ID:</strong></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0; font-family: monospace;">${booking.id}</td></tr>
+          ${booking.notes ? `<tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><strong>Notes:</strong></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${booking.notes}</td></tr>` : ''}
+        </table>
+        
+        ${booking.joinUrl ? `
+        <div style="text-align: center; margin: 20px 0;">
+          <a href="${booking.joinUrl}" style="background: #7c3aed; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Join Meeting</a>
+        </div>
+        ` : ''}
+      </div>
+    </div>
+  `
 }
 
 export async function sendLiveVideoTourNotifications(
@@ -19,83 +125,58 @@ export async function sendLiveVideoTourNotifications(
     staff: { notified: false },
   }
 
-  // Format the scheduled time for display
-  const scheduledDate = new Date(booking.preferredTime)
-  const formattedDate = scheduledDate.toLocaleDateString("en-CA", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    timeZone: DEALERSHIP_TIMEZONE,
-  })
-  const formattedTime = scheduledDate.toLocaleTimeString("en-CA", {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: DEALERSHIP_TIMEZONE,
-  })
+  const { formattedDate, formattedTime } = formatBookingDateTime(booking)
 
   // 1. Send email confirmation to customer
   try {
-    // In production: Use Resend or SendGrid
-    // await resend.emails.send({
-    //   from: 'Planet Motors <tours@planetmotors.ca>',
-    //   to: booking.customerEmail,
-    //   subject: `Video Tour Confirmed - ${booking.vehicleName}`,
-    //   html: `...`
-    // })
+    if (process.env.API_KEY_RESEND || process.env.RESEND_API_KEY) {
+      const { error } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: booking.customerEmail,
+        subject: `Video Tour Confirmed - ${booking.vehicleName}`,
+        html: getCustomerConfirmationTemplate(booking, formattedDate, formattedTime),
+      })
 
-    console.log("[liveVideoTour] Email notification:", {
-      to: booking.customerEmail,
-      subject: `Video Tour Confirmed - ${booking.vehicleName}`,
-      date: formattedDate,
-      time: formattedTime,
-      joinUrl: booking.joinUrl,
-    })
-
-    results.email.sent = true
+      if (error) {
+        console.error("[liveVideoTour] Customer email failed:", error)
+        results.email.error = error.message
+      } else {
+        results.email.sent = true
+        console.log("[liveVideoTour] Customer email sent to:", booking.customerEmail)
+      }
+    } else {
+      console.warn("[liveVideoTour] Resend API key not configured")
+      results.email.error = "Email not configured"
+    }
   } catch (error) {
     console.error("[liveVideoTour] Email failed:", error)
     results.email.error = "Failed to send confirmation email"
   }
 
-  // 2. Send SMS reminder to customer (optional)
+  // 2. SMS reminder - placeholder for Twilio integration
+  // For now, log only. In production: integrate with Twilio
+  console.log("[liveVideoTour] SMS would be sent to:", booking.customerPhone)
+  results.sms.sent = false
+  results.sms.error = "SMS not configured"
+
+  // 3. Notify dealership staff via email
   try {
-    // In production: Use Twilio
-    // await twilio.messages.create({
-    //   to: booking.customerPhone,
-    //   from: process.env.TWILIO_PHONE_NUMBER,
-    //   body: `Your video tour for ${booking.vehicleName} is confirmed for ${formattedDate} at ${formattedTime}. Join link: ${booking.joinUrl}`
-    // })
+    if (process.env.API_KEY_RESEND || process.env.RESEND_API_KEY) {
+      const { error } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: ADMIN_EMAIL,
+        subject: `New Video Tour Booking - ${booking.customerName} - ${booking.vehicleName}`,
+        html: getStaffNotificationTemplate(booking, formattedDate, formattedTime),
+      })
 
-    console.log("[liveVideoTour] SMS notification:", {
-      to: booking.customerPhone,
-      message: `Video tour confirmed for ${formattedDate} at ${formattedTime}`,
-    })
-
-    results.sms.sent = true
-  } catch (error) {
-    console.error("[liveVideoTour] SMS failed:", error)
-    results.sms.error = "Failed to send SMS"
-  }
-
-  // 3. Notify dealership staff
-  try {
-    // In production: Send to staff Slack/Teams channel or email
-    // await slack.chat.postMessage({
-    //   channel: '#video-tours',
-    //   text: `New video tour booking!`,
-    //   blocks: [...]
-    // })
-
-    console.log("[liveVideoTour] Staff notification:", {
-      customer: booking.customerName,
-      phone: booking.customerPhone,
-      vehicle: booking.vehicleName,
-      date: formattedDate,
-      time: formattedTime,
-      notes: booking.notes,
-    })
-
-    results.staff.notified = true
+      if (error) {
+        console.error("[liveVideoTour] Staff email failed:", error)
+        results.staff.error = error.message
+      } else {
+        results.staff.notified = true
+        console.log("[liveVideoTour] Staff notification sent to:", ADMIN_EMAIL)
+      }
+    }
   } catch (error) {
     console.error("[liveVideoTour] Staff notification failed:", error)
     results.staff.error = "Failed to notify staff"
@@ -104,33 +185,115 @@ export async function sendLiveVideoTourNotifications(
   return results
 }
 
-// Send reminder before the tour (called by cron job)
+// Send reminder before the tour (called by cron job - 1 hour before)
 export async function sendTourReminder(booking: LiveVideoTourBooking): Promise<boolean> {
-  const scheduledDate = new Date(booking.preferredTime)
-  const formattedTime = scheduledDate.toLocaleTimeString("en-CA", {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: DEALERSHIP_TIMEZONE,
-  })
+  const { formattedDate, formattedTime } = formatBookingDateTime(booking)
 
-  console.log("[liveVideoTour] Sending reminder:", {
-    to: booking.customerEmail,
-    phone: booking.customerPhone,
-    time: formattedTime,
-    joinUrl: booking.joinUrl,
-  })
+  try {
+    if (!(process.env.API_KEY_RESEND || process.env.RESEND_API_KEY)) {
+      console.warn("[liveVideoTour] Resend not configured for reminder")
+      return false
+    }
 
-  // In production: Send email + SMS reminder
-  return true
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: booking.customerEmail,
+      subject: `Reminder: Video Tour in 1 Hour - ${booking.vehicleName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #f59e0b; color: white; padding: 20px; text-align: center;">
+            <h1 style="margin: 0;">Video Tour Reminder</h1>
+            <p style="margin: 5px 0 0;">Starting in 1 hour!</p>
+          </div>
+          <div style="padding: 20px; background: #f8fafc;">
+            <h2>Hi ${booking.customerName}!</h2>
+            <p>Your live video tour for <strong>${booking.vehicleName}</strong> starts soon.</p>
+            
+            <div style="background: white; border: 2px solid #f59e0b; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+              <p style="margin: 0; font-size: 18px;"><strong>${formattedDate}</strong></p>
+              <p style="margin: 5px 0; font-size: 24px; color: #f59e0b;"><strong>${formattedTime} EST</strong></p>
+            </div>
+
+            ${booking.joinUrl ? `
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${booking.joinUrl}" style="background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">Join Video Tour Now</a>
+            </div>
+            ` : ''}
+
+            <p style="color: #64748b; font-size: 14px; text-align: center;">
+              Can't make it? Call us at <a href="tel:4162709955">(416) 270-9955</a> to reschedule.
+            </p>
+          </div>
+        </div>
+      `,
+    })
+
+    if (error) {
+      console.error("[liveVideoTour] Reminder email failed:", error)
+      return false
+    }
+
+    console.log("[liveVideoTour] Reminder sent to:", booking.customerEmail)
+    return true
+  } catch (error) {
+    console.error("[liveVideoTour] Reminder failed:", error)
+    return false
+  }
 }
 
 // Send cancellation notification
 export async function sendCancellationNotification(booking: LiveVideoTourBooking): Promise<boolean> {
-  console.log("[liveVideoTour] Cancellation notification:", {
-    to: booking.customerEmail,
-    vehicle: booking.vehicleName,
-  })
+  const { formattedDate, formattedTime } = formatBookingDateTime(booking)
 
-  // In production: Send email + notify staff
-  return true
+  try {
+    if (!(process.env.API_KEY_RESEND || process.env.RESEND_API_KEY)) {
+      return false
+    }
+
+    // Email to customer
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: booking.customerEmail,
+      subject: `Video Tour Cancelled - ${booking.vehicleName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #dc2626; color: white; padding: 20px; text-align: center;">
+            <h1 style="margin: 0;">Video Tour Cancelled</h1>
+          </div>
+          <div style="padding: 20px; background: #f8fafc;">
+            <p>Hi ${booking.customerName},</p>
+            <p>Your video tour for <strong>${booking.vehicleName}</strong> scheduled for ${formattedDate} at ${formattedTime} has been cancelled.</p>
+            <p>If you'd like to reschedule, please visit our website or call us at <a href="tel:4162709955">(416) 270-9955</a>.</p>
+          </div>
+        </div>
+      `,
+    })
+
+    // Notify staff
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: ADMIN_EMAIL,
+      subject: `Video Tour Cancelled - ${booking.customerName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #dc2626; color: white; padding: 20px; text-align: center;">
+            <h1 style="margin: 0;">Booking Cancelled</h1>
+          </div>
+          <div style="padding: 20px;">
+            <table style="width: 100%;">
+              <tr><td><strong>Customer:</strong></td><td>${booking.customerName}</td></tr>
+              <tr><td><strong>Vehicle:</strong></td><td>${booking.vehicleName}</td></tr>
+              <tr><td><strong>Was Scheduled:</strong></td><td>${formattedDate} at ${formattedTime}</td></tr>
+            </table>
+          </div>
+        </div>
+      `,
+    })
+
+    console.log("[liveVideoTour] Cancellation notifications sent")
+    return true
+  } catch (error) {
+    console.error("[liveVideoTour] Cancellation notification failed:", error)
+    return false
+  }
 }
