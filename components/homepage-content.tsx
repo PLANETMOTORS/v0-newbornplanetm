@@ -131,12 +131,11 @@ const protectionPlans = [
 ]
 
 const lenders = [
-  { name: "TD Bank", abbr: "TD", color: "bg-green-600", rate: "4.99%" },
-  { name: "RBC Royal Bank", abbr: "RBC", color: "bg-blue-700", rate: "5.49%" },
-  { name: "Scotiabank", abbr: "Scotia", color: "bg-red-600", rate: "5.29%" },
-  { name: "BMO", abbr: "BMO", color: "bg-blue-500", rate: "5.99%" },
-  { name: "CIBC", abbr: "CIBC", color: "bg-red-700", rate: "5.49%" },
-  { name: "Desjardins", abbr: "Desj", color: "bg-green-500", rate: "6.29%" },
+  { name: "Credit Union", abbr: "CU", color: "bg-emerald-600", rate: "6.29%" },
+  { name: "Major Bank", abbr: "MB", color: "bg-blue-600", rate: "6.49%" },
+  { name: "Commercial Bank", abbr: "CB", color: "bg-slate-600", rate: "6.79%" },
+  { name: "Prime Lender", abbr: "PL", color: "bg-indigo-600", rate: "6.99%" },
+  { name: "Auto Finance", abbr: "AF", color: "bg-amber-600", rate: "7.49%" },
 ]
 
 export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {

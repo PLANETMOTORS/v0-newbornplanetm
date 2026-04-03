@@ -68,7 +68,7 @@ export default function TermsOfServicePage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">4. Financing</h2>
               <p className="text-muted-foreground mb-4">
-                Financing is provided through our network of trusted lending partners including TD Auto Finance, Scotiabank, BMO, RBC, Desjardins, and Capital One. Approval is subject to:
+                Financing is provided through our network of trusted lending partners including major banks, credit unions, and specialized auto finance companies. Approval is subject to:
               </p>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
                 <li>Credit approval by the lender</li>

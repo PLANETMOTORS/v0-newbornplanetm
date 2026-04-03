@@ -3,7 +3,7 @@ import { Footer } from "@/components/footer"
 import { LiveChatWidget } from "@/components/live-chat-widget"
 import { ContactForm } from "@/components/contact-form"
 import { Button } from "@/components/ui/button"
-import { Phone, MapPin, Mail, Clock, MessageCircle } from "lucide-react"
+import { Phone, MapPin, Mail, Clock, MessageCircle, Car } from "lucide-react"
 
 const contactMethods = [
   {

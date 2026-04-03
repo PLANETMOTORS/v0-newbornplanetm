@@ -562,16 +562,16 @@ export default function VehicleDetailPage() {
           </div>
         </div>
 
-        {/* Main Tabs */}
+        {/* Main Tabs - Mobile Optimized */}
         <div className="border-b sticky top-16 bg-background z-40">
-          <div className="container mx-auto px-4 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="h-12 bg-transparent p-0 gap-1 flex w-max min-w-full">
-                {["Photos", "Overview", "Features", "Inspect", "Pricing", "Ratings", "Protection"].map((tab) => (
+          <div className="overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="h-12 bg-transparent p-0 gap-0 flex w-max px-4">
+                {["Photos", "Overview", "Features", "Inspect", "Pricing", "Protection"].map((tab) => (
                   <TabsTrigger
                     key={tab}
                     value={tab === "Inspect" ? "inspection" : tab.toLowerCase()}
-                    className="h-12 px-3 sm:px-4 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none whitespace-nowrap min-h-[44px]"
+                    className="h-12 px-3 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none whitespace-nowrap min-h-[44px] flex-shrink-0"
                   >
                     {tab}
                   </TabsTrigger>

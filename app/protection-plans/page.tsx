@@ -22,7 +22,7 @@ const packages = [
     pickupDelivery: true,
     tireRim: false,
     antitheft: false,
-    benefits: "You&apos;re covered for depreciation, repairs, and unforeseen events. If your car is totaled, we&apos;ll replace it. Job loss protection ensures next year&apos;s payments are covered.",
+    benefits: "You're covered for depreciation, repairs, and unforeseen events. If your car is totaled, we'll replace it. Job loss protection ensures next year's payments are covered.",
     maxValue: "$50K Replacement | ~$30k GAP | ~12 Payments",
     highlighted: false,
   },
@@ -61,57 +61,48 @@ const packages = [
 const additionalProducts = [
   {
     name: "Companion GAP Coverage",
-    description: "Covers the difference between your car&apos;s value and what you owe if it&apos;s totaled or stolen.",
+    description: "Covers the difference between your car's value and what you owe if it's totaled or stolen.",
     icon: Shield,
-    href: "/protection/gap-coverage",
   },
   {
     name: "Extended Vehicle Warranty",
     description: "Comprehensive mechanical breakdown protection after manufacturer warranty expires.",
     icon: FileText,
-    href: "/protection/extended-warranty",
   },
   {
     name: "IncidentPro",
     description: "Protection against accidents, theft, and total loss events with fast claims processing.",
     icon: Car,
-    href: "/protection/incident-pro",
   },
   {
     name: "InvisiTrak Anti-Theft System",
     description: "GPS tracking and theft recovery system with 24/7 monitoring and mobile alerts.",
     icon: LockKeyhole,
-    href: "/protection/invisitrak",
   },
   {
     name: "Paint Protection Film",
     description: "Clear protective film that shields your paint from chips, scratches, and UV damage.",
     icon: PaintBucket,
-    href: "/protection/paint-protection",
   },
   {
     name: "Replacement Warranty Plan",
     description: "New-for-old vehicle replacement if your car is written off within coverage period.",
     icon: Sparkles,
-    href: "/protection/replacement-warranty",
   },
   {
     name: "Rust Protection Coating",
     description: "Professional-grade undercoating to prevent rust and corrosion from Canadian winters.",
     icon: Droplets,
-    href: "/protection/rust-protection",
   },
   {
     name: "Tire and Rim Protection",
     description: "Coverage for damage from potholes, nails, curb impact, and road hazards.",
     icon: CircleDot,
-    href: "/protection/tire-rim",
   },
   {
     name: "Window Tint Film",
     description: "Premium window tinting for UV protection, privacy, and heat reduction.",
     icon: Wrench,
-    href: "/protection/window-tint",
   },
 ]
 
@@ -122,7 +113,7 @@ const faqs = [
   },
   {
     question: "What is GAP insurance in Canada?",
-    answer: "GAP insurance covers the difference between your car&apos;s actual cash value and what you still owe on your loan if your vehicle is stolen or written off. This protects you from paying out-of-pocket for a car you no longer have.",
+    answer: "GAP insurance covers the difference between your car's actual cash value and what you still owe on your loan if your vehicle is stolen or written off. This protects you from paying out-of-pocket for a car you no longer have.",
   },
   {
     question: "What does tire and rim protection cover?",
@@ -134,7 +125,7 @@ const faqs = [
   },
   {
     question: "Are PlanetCare plans transferable?",
-    answer: "Yes, all PlanetCare protection packages are fully transferable to new owners, which can increase your vehicle&apos;s resale value when it&apos;s time to sell or trade in.",
+    answer: "Yes, all PlanetCare protection packages are fully transferable to new owners, which can increase your vehicle's resale value when it's time to sell or trade in.",
   },
 ]
 
@@ -291,7 +282,7 @@ export default function ProtectionPlansPage() {
                   <CardContent>
                     <p className="text-sm text-muted-foreground mb-4">{product.description}</p>
                     <Button variant="outline" size="sm" className="w-full" asChild>
-                      <Link href={product.href}>Learn More</Link>
+                      <a href="tel:1-866-797-3332">Learn More</a>
                     </Button>
                   </CardContent>
                 </Card>
