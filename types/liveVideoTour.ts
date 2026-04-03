@@ -76,3 +76,26 @@ export interface VehicleLiveVideoTourConfig {
   enabled: boolean
   videoWalkaroundUrl?: string // Prerecorded video (separate feature)
 }
+
+// Provider display options for UI
+export const PROVIDER_OPTIONS: {
+  value: LiveVideoTourProvider
+  label: string
+  description: string
+}[] = [
+  {
+    value: "google_meet",
+    label: "Google Meet",
+    description: "Join via browser or app",
+  },
+  {
+    value: "zoom",
+    label: "Zoom",
+    description: "Join via browser or app",
+  },
+  {
+    value: "whatsapp",
+    label: "WhatsApp Video",
+    description: "We'll call your WhatsApp",
+  },
+]
