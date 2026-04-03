@@ -148,8 +148,8 @@ export default function AboutPage() {
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 text-center">
               <div>
-                <p className="text-2xl sm:text-4xl font-bold text-primary">9,500+</p>
-                <p className="text-xs sm:text-base text-muted-foreground">Vehicles Sold</p>
+                <p className="text-2xl sm:text-4xl font-bold text-primary">1000+</p>
+                <p className="text-xs sm:text-base text-muted-foreground">Happy Customers</p>
               </div>
               <div>
                 <p className="text-2xl sm:text-4xl font-bold text-primary">4.8/5</p>

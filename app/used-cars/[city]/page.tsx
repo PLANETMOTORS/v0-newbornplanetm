@@ -190,7 +190,7 @@ export default function CityLandingPage() {
               </h1>
               
               <p className="text-xl text-muted-foreground mb-8 max-w-2xl">
-                Browse 9,500+ certified pre-owned vehicles available for delivery to {city.name}, {city.region}. 
+                Browse our certified pre-owned vehicles available for delivery to {city.name}, {city.region}. 
                 Planet Motors offers {city.distance === 0 ? "in-person viewing at our showroom" : `free delivery within 300km and affordable shipping to ${city.name}`}.
               </p>
               
@@ -272,7 +272,7 @@ export default function CityLandingPage() {
             <div className="text-center mt-8">
               <Link href="/inventory">
                 <Button size="lg">
-                  View All 9,500+ Vehicles
+                  View All Vehicles
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
@@ -356,7 +356,7 @@ export default function CityLandingPage() {
                 
                 <h3>Why Buy Online from Planet Motors?</h3>
                 <ul>
-                  <li>Browse 9,500+ certified pre-owned vehicles from your home in {city.name}</li>
+                  <li>Browse our certified pre-owned vehicles from your home in {city.name}</li>
                   <li>Every vehicle includes a free CARFAX report and 210-point inspection</li>
                   <li>10-day money-back guarantee - no questions asked</li>
                   <li>Competitive financing from multiple lenders, all credit types welcome</li>

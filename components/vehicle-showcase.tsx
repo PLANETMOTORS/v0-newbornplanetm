@@ -258,7 +258,7 @@ export function VehicleShowcase() {
             <div>
               <p className="text-2xl font-bold">{currentVehicle.price}</p>
               <p className="text-sm text-white/70">
-                Est. {currentVehicle.monthlyPayment}/mo at 4.79% APR
+                Est. {currentVehicle.monthlyPayment}/mo at 6.29% APR
               </p>
             </div>
             <Button size="sm" className="bg-white text-primary hover:bg-white/90" asChild>

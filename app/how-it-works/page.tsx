@@ -14,14 +14,14 @@ const buyingSteps = [
   {
     icon: Search,
     title: "Browse & Select",
-    description: "Explore our inventory of 9,500+ quality vehicles. Use filters to find your perfect match, view 360° photos, and check detailed specs.",
+    description: "Explore our inventory of quality vehicles. Use filters to find your perfect match, view 360° photos, and check detailed specs.",
     details: ["360° vehicle photos", "Detailed inspection reports", "Vehicle history included", "Compare up to 3 vehicles"]
   },
   {
     icon: CreditCard,
     title: "Reserve & Finance",
-    description: "Reserve your vehicle with a $250 refundable deposit. Get pre-approved for financing in minutes with rates starting at 4.79% APR.",
-    details: ["$250 refundable deposit", "6 major lender partners", "Pre-approval in minutes", "No credit score impact"]
+    description: "Reserve your vehicle with a $250 refundable deposit. Get pre-approved for financing in minutes with rates starting at 6.29% APR.",
+    details: ["$250 refundable deposit", "20+ lender partners", "Pre-approval in minutes", "No credit score impact"]
   },
   {
     icon: FileCheck,
@@ -94,7 +94,7 @@ export default function HowItWorksPage() {
                 { icon: Shield, text: "210-Point Inspection" },
                 { icon: RotateCcw, text: "10-Day Returns" },
                 { icon: Star, text: "4.9/5 Rating" },
-                { icon: Heart, text: "9,500+ Happy Customers" }
+                { icon: Heart, text: "Happy Customers" }
               ].map((badge, i) => (
                 <div key={i} className="flex items-center gap-2 text-muted-foreground">
                   <badge.icon className="h-5 w-5 text-primary" />

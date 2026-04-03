@@ -1,9 +1,10 @@
 import { defineType, defineField } from 'sanity'
 
 // ============================================
-// REUSABLE OBJECT TYPES
+// REUSABLE OBJECT TYPES - These are registered as named types
+// so arrays can reference them with { type: 'trustBadge' }
 // ============================================
-const trustBadge = defineType({
+export const trustBadge = defineType({
   name: 'trustBadge',
   title: 'Trust Badge',
   type: 'object',
@@ -11,10 +12,11 @@ const trustBadge = defineType({
     defineField({ name: 'icon', title: 'Icon', type: 'string' }),
     defineField({ name: 'text', title: 'Text', type: 'string' }),
     defineField({ name: 'label', title: 'Label', type: 'string' }),
+    defineField({ name: 'value', title: 'Value', type: 'string' }),
   ],
 })
 
-const ctaButton = defineType({
+export const ctaButton = defineType({
   name: 'ctaButton',
   title: 'CTA Button',
   type: 'object',
@@ -53,10 +55,7 @@ export const homepage = defineType({
         ]},
       ],
     }),
-    defineField({ name: 'trustBadges', title: 'Trust Badges', type: 'array', of: [{ type: 'object', fields: [
-      { name: 'icon', title: 'Icon', type: 'string' },
-      { name: 'text', title: 'Text', type: 'string' },
-    ]}]}),
+    defineField({ name: 'trustBadges', title: 'Trust Badges', type: 'array', of: [{ type: 'trustBadge' }]}),
     defineField({ name: 'quickFilters', title: 'Quick Filters', type: 'array', of: [{ type: 'object', fields: [
       { name: 'label', title: 'Label', type: 'string' },
       { name: 'url', title: 'URL', type: 'string' },
