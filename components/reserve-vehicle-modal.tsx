@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import Image from "next/image"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,11 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { LockKeyhole, Shield, Clock, CheckCircle, CreditCard, ArrowRight, Sparkles } from "lucide-react"
+import { loadStripe } from "@stripe/stripe-js"
+import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js"
+import { startVehicleCheckout } from "@/app/actions/stripe"
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 interface ReserveVehicleModalProps {
   vehicle: {
@@ -36,11 +41,21 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
     agreeToTerms: false,
   })
 
+  const [showStripeCheckout, setShowStripeCheckout] = useState(false)
+
+  const fetchClientSecret = useCallback(async () => {
+    return await startVehicleCheckout({
+      vehicleId: vehicle.id,
+      vehicleName: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+      vehiclePriceCents: depositAmount * 100,
+      depositOnly: true,
+      customerEmail: formData.email,
+    })
+  }, [vehicle, formData.email])
+
   const handleSubmit = async () => {
     setIsProcessing(true)
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    setStep(3) // Success
+    setShowStripeCheckout(true)
     setIsProcessing(false)
   }
 
@@ -266,6 +281,17 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
               </Button>
             </div>
           </>
+        )}
+      {showStripeCheckout && (
+          <div className="py-4">
+            <h3 className="font-medium mb-4">Complete Your ${depositAmount} Deposit</h3>
+            <EmbeddedCheckoutProvider stripe={stripePromise} options={{ fetchClientSecret }}>
+              <EmbeddedCheckout />
+            </EmbeddedCheckoutProvider>
+            <Button variant="ghost" className="w-full mt-4" onClick={() => setShowStripeCheckout(false)}>
+              Cancel
+            </Button>
+          </div>
         )}
       </DialogContent>
     </Dialog>

@@ -34,12 +34,35 @@ export function PriceAlertModal({ vehicle, searchCriteria, trigger }: PriceAlert
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
 
+  const [error, setError] = useState("")
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    setIsSuccess(true)
-    setIsSubmitting(false)
+    setError("")
+    
+    try {
+      const response = await fetch("/api/alerts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          vehicleId: vehicle?.id,
+          make: vehicle?.make || searchCriteria?.make,
+          model: vehicle?.model || searchCriteria?.model,
+          maxPrice: vehicle?.price || searchCriteria?.maxPrice,
+          preferences,
+        }),
+      })
+      
+      if (!response.ok) throw new Error("Failed to create alert")
+      
+      setIsSuccess(true)
+    } catch {
+      setError("Failed to create alert. Please try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const title = vehicle 
@@ -120,6 +143,7 @@ export function PriceAlertModal({ vehicle, searchCriteria, trigger }: PriceAlert
                 </div>
               </div>
 
+              {error && <p className="text-sm text-destructive text-center">{error}</p>}
               <Button type="submit" className="w-full" disabled={!email || isSubmitting}>
                 {isSubmitting ? "Setting up alerts..." : "Create Alert"}
               </Button>

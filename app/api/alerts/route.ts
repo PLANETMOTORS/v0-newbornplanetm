@@ -6,15 +6,20 @@ const resend = new Resend(process.env.API_KEY_RESEND || process.env.RESEND_API_K
 
 export async function POST(req: Request) {
   try {
-    const { vehicleId, vehicleName, currentPrice, email, phone } = await req.json()
+    const { vehicleId, vehicleName, currentPrice, email, phone, make, model, maxPrice, preferences } = await req.json()
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 })
     }
 
-    // Parse make/model from vehicleName
-    const [make, ...modelParts] = (vehicleName || "").split(" ")
-    const model = modelParts.join(" ")
+    // Parse make/model from vehicleName if not provided directly
+    let parsedMake = make
+    let parsedModel = model
+    if (!parsedMake && vehicleName) {
+      const [m, ...modelParts] = vehicleName.split(" ")
+      parsedMake = m
+      parsedModel = modelParts.join(" ")
+    }
 
     const supabase = await createClient()
 
@@ -23,10 +28,11 @@ export async function POST(req: Request) {
       .insert({
         email,
         vehicle_id: vehicleId || null,
-        make: make || null,
-        model: model || null,
-        max_price: currentPrice || null,
-        notify_price_drops: true,
+        make: parsedMake || null,
+        model: parsedModel || null,
+        max_price: maxPrice || currentPrice || null,
+        notify_price_drops: preferences?.priceDrops ?? true,
+        notify_new_listings: preferences?.newListings ?? true,
         is_active: true,
       })
       .select()
