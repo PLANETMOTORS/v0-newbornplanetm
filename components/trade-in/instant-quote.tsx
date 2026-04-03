@@ -1,0 +1,614 @@
+"use client"
+
+import { useState, useCallback, useRef, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { Progress } from "@/components/ui/progress"
+import { Badge } from "@/components/ui/badge"
+import { 
+  Car, Sparkles, TrendingUp, Shield, Clock, CheckCircle, 
+  DollarSign, ArrowRight, Star, Zap, AlertCircle
+} from "lucide-react"
+import {
+  isValidEmail,
+  isValidCanadianPhoneNumber,
+  isValidCanadianPostalCode,
+  formatCanadianPhoneNumber,
+  formatCanadianPostalCode,
+  ValidationMessages
+} from "@/lib/validation"
+
+// Vehicle makes with models and trims
+const vehicleData: Record<string, Record<string, string[]>> = {
+  "Acura": {
+    "ILX": ["Base", "Premium", "A-Spec", "Technology"],
+    "Integra": ["Base", "A-Spec", "A-Spec Technology"],
+    "MDX": ["Base", "Technology", "A-Spec", "Advance", "Type S"],
+    "RDX": ["Base", "Technology", "A-Spec", "Advance"],
+    "TLX": ["Base", "Technology", "A-Spec", "Advance", "Type S"],
+  },
+  "Audi": {
+    "A3": ["Premium", "Premium Plus", "Prestige"],
+    "A4": ["Premium", "Premium Plus", "Prestige", "S Line"],
+    "A5": ["Premium", "Premium Plus", "Prestige"],
+    "A6": ["Premium", "Premium Plus", "Prestige"],
+    "Q3": ["Premium", "Premium Plus", "Prestige"],
+    "Q5": ["Premium", "Premium Plus", "Prestige", "S Line"],
+    "Q7": ["Premium", "Premium Plus", "Prestige"],
+    "e-tron": ["Premium", "Premium Plus", "Prestige"],
+  },
+  "BMW": {
+    "3 Series": ["330i", "330i xDrive", "M340i", "M340i xDrive"],
+    "5 Series": ["530i", "530i xDrive", "540i", "540i xDrive", "M550i"],
+    "X3": ["sDrive30i", "xDrive30i", "M40i"],
+    "X5": ["sDrive40i", "xDrive40i", "xDrive45e", "M50i"],
+    "iX": ["xDrive40", "xDrive50", "M60"],
+  },
+  "Chevrolet": {
+    "Equinox": ["LS", "LT", "RS", "Premier"],
+    "Malibu": ["LS", "RS", "LT", "Premier"],
+    "Silverado": ["Work Truck", "Custom", "LT", "RST", "LTZ", "High Country"],
+    "Tahoe": ["LS", "LT", "RST", "Z71", "Premier", "High Country"],
+    "Traverse": ["LS", "LT", "RS", "Premier", "High Country"],
+  },
+  "Ford": {
+    "Bronco": ["Base", "Big Bend", "Black Diamond", "Outer Banks", "Badlands", "Wildtrak"],
+    "Edge": ["SE", "SEL", "ST-Line", "Titanium", "ST"],
+    "Escape": ["S", "SE", "SEL", "Titanium", "ST-Line"],
+    "Explorer": ["Base", "XLT", "Limited", "ST", "Platinum", "King Ranch"],
+    "F-150": ["XL", "XLT", "Lariat", "King Ranch", "Platinum", "Limited", "Raptor"],
+    "Mustang": ["EcoBoost", "EcoBoost Premium", "GT", "GT Premium", "Mach 1", "Shelby GT500"],
+  },
+  "Honda": {
+    "Accord": ["LX", "EX", "EX-L", "Sport", "Sport SE", "Touring"],
+    "Civic": ["LX", "Sport", "EX", "EX-L", "Touring", "Si", "Type R"],
+    "CR-V": ["LX", "EX", "EX-L", "Touring", "Hybrid"],
+    "HR-V": ["LX", "Sport", "EX-L"],
+    "Pilot": ["LX", "EX", "EX-L", "Touring", "Elite", "TrailSport", "Black Edition"],
+    "Odyssey": ["LX", "EX", "EX-L", "Touring", "Elite"],
+  },
+  "Hyundai": {
+    "Elantra": ["SE", "SEL", "N Line", "Limited", "N"],
+    "Ioniq 5": ["SE", "SEL", "Limited"],
+    "Ioniq 6": ["SE", "SEL", "Limited"],
+    "Kona": ["SE", "SEL", "N Line", "Limited", "N"],
+    "Palisade": ["SE", "SEL", "XRT", "Limited", "Calligraphy"],
+    "Santa Fe": ["SE", "SEL", "XRT", "Limited", "Calligraphy"],
+    "Sonata": ["SE", "SEL", "SEL Plus", "N Line", "Limited"],
+    "Tucson": ["SE", "SEL", "XRT", "N Line", "Limited"],
+  },
+  "Kia": {
+    "EV6": ["Light", "Wind", "GT-Line", "GT"],
+    "Forte": ["FE", "LXS", "GT-Line", "GT"],
+    "K5": ["LXS", "GT-Line", "EX", "GT"],
+    "Seltos": ["LX", "S", "EX", "SX", "SX Turbo"],
+    "Sorento": ["LX", "S", "EX", "SX", "SX Prestige", "X-Line"],
+    "Sportage": ["LX", "EX", "SX", "SX Prestige", "X-Line", "X-Pro"],
+    "Telluride": ["LX", "S", "EX", "SX", "SX Prestige", "X-Line", "X-Pro"],
+  },
+  "Lexus": {
+    "ES": ["ES 250", "ES 300h", "ES 350", "ES 350 F Sport"],
+    "IS": ["IS 300", "IS 350", "IS 500 F Sport"],
+    "NX": ["NX 250", "NX 350", "NX 350h", "NX 450h+"],
+    "RX": ["RX 350", "RX 350h", "RX 450h+", "RX 500h F Sport"],
+  },
+  "Mazda": {
+    "CX-30": ["Base", "Select", "Preferred", "Premium", "Turbo", "Turbo Premium Plus"],
+    "CX-5": ["Sport", "Select", "Preferred", "Premium", "Premium Plus", "Turbo", "Signature"],
+    "CX-50": ["Select", "Preferred", "Premium", "Premium Plus", "Turbo", "Turbo Meridian"],
+    "CX-90": ["Select", "Preferred", "Premium", "Premium Plus", "PHEV Premium Plus"],
+    "Mazda3": ["Base", "Select", "Preferred", "Carbon Edition", "Premium", "Turbo", "Turbo Premium Plus"],
+  },
+  "Mercedes-Benz": {
+    "C-Class": ["C 300", "C 300 4MATIC", "AMG C 43", "AMG C 63"],
+    "E-Class": ["E 350", "E 350 4MATIC", "E 450", "AMG E 53", "AMG E 63 S"],
+    "GLC": ["GLC 300", "GLC 300 4MATIC", "AMG GLC 43", "AMG GLC 63"],
+    "GLE": ["GLE 350", "GLE 350 4MATIC", "GLE 450", "GLE 580", "AMG GLE 53", "AMG GLE 63 S"],
+    "S-Class": ["S 500", "S 500 4MATIC", "S 580", "S 580 4MATIC", "AMG S 63"],
+  },
+  "Nissan": {
+    "Altima": ["S", "SV", "SR", "SL", "Platinum"],
+    "Rogue": ["S", "SV", "SL", "Platinum"],
+    "Sentra": ["S", "SV", "SR"],
+    "Pathfinder": ["S", "SV", "SL", "Platinum", "Rock Creek"],
+  },
+  "Subaru": {
+    "Crosstrek": ["Base", "Premium", "Sport", "Limited"],
+    "Forester": ["Base", "Premium", "Sport", "Limited", "Touring", "Wilderness"],
+    "Outback": ["Base", "Premium", "Limited", "Touring", "Onyx Edition XT", "Wilderness"],
+    "WRX": ["Base", "Premium", "Limited", "GT"],
+  },
+  "Tesla": {
+    "Model 3": ["Standard Range Plus", "Long Range", "Performance"],
+    "Model S": ["Long Range", "Plaid"],
+    "Model X": ["Long Range", "Plaid"],
+    "Model Y": ["Standard Range", "Long Range", "Performance"],
+  },
+  "Toyota": {
+    "4Runner": ["SR5", "SR5 Premium", "TRD Sport", "TRD Off-Road", "TRD Off-Road Premium", "Limited", "TRD Pro"],
+    "Camry": ["LE", "SE", "SE Nightshade", "XLE", "XSE", "TRD"],
+    "Corolla": ["L", "LE", "SE", "XLE", "XSE", "Apex Edition"],
+    "Highlander": ["L", "LE", "XLE", "Limited", "Platinum", "Bronze Edition"],
+    "RAV4": ["LE", "XLE", "XLE Premium", "Adventure", "TRD Off-Road", "Limited"],
+    "Tacoma": ["SR", "SR5", "TRD Sport", "TRD Off-Road", "Limited", "TRD Pro"],
+    "Tundra": ["SR", "SR5", "Limited", "Platinum", "1794 Edition", "TRD Pro", "Capstone"],
+  },
+  "Volkswagen": {
+    "Atlas": ["S", "SE", "SE with Technology", "SEL", "SEL Premium"],
+    "Golf": ["S", "SE", "R-Line"],
+    "GTI": ["S", "SE", "Autobahn"],
+    "ID.4": ["Standard", "Pro", "Pro S", "Pro S Plus"],
+    "Jetta": ["S", "Sport", "SE", "SEL"],
+    "Tiguan": ["S", "SE", "SE R-Line", "SEL", "SEL R-Line"],
+  },
+  "Volvo": {
+    "S60": ["Core", "Plus", "Ultimate", "Polestar Engineered"],
+    "XC40": ["Core", "Plus", "Ultimate", "Recharge"],
+    "XC60": ["Core", "Plus", "Ultimate", "Polestar Engineered"],
+    "XC90": ["Core", "Plus", "Ultimate"],
+  },
+}
+
+// Format postal code: A1A 1A1
+function formatPostalCode(value: string): string {
+  const cleaned = value.toUpperCase().replace(/[^A-Z0-9]/g, '')
+  if (cleaned.length <= 3) return cleaned
+  return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)}`
+}
+
+// Validate postal code format
+function isValidPostalCode(postalCode: string): boolean {
+  const pattern = /^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/i
+  return pattern.test(postalCode)
+}
+
+interface FormData {
+  year: string
+  make: string
+  model: string
+  trim: string
+  mileage: string
+  postalCode: string
+  name: string
+  email: string
+  phone: string
+}
+
+export function InstantQuote() {
+  const router = useRouter()
+  const formRef = useRef<HTMLDivElement>(null)
+  
+  const [formData, setFormData] = useState<FormData>({
+    year: '',
+    make: '',
+    model: '',
+    trim: '',
+    mileage: '',
+    postalCode: '',
+    name: '',
+    email: '',
+    phone: '',
+  })
+  
+  const [availableModels, setAvailableModels] = useState<string[]>([])
+  const [availableTrims, setAvailableTrims] = useState<string[]>([])
+  const [isCalculating, setIsCalculating] = useState(false)
+  const [calculationProgress, setCalculationProgress] = useState(0)
+  const [showResult, setShowResult] = useState(false)
+  const [quoteResult, setQuoteResult] = useState<{
+    quoteId: string
+    lowValue: number
+    midValue: number
+    highValue: number
+    vehicle: string
+  } | null>(null)
+  
+  // Validation errors
+  const [postalCodeError, setPostalCodeError] = useState("")
+  const [emailError, setEmailError] = useState("")
+  const [phoneError, setPhoneError] = useState("")
+  
+  // Update models when make changes
+  useEffect(() => {
+    if (formData.make && vehicleData[formData.make]) {
+      setAvailableModels(Object.keys(vehicleData[formData.make]))
+    } else {
+      setAvailableModels([])
+    }
+    // Reset model and trim when make changes
+    setFormData(prev => ({ ...prev, model: '', trim: '' }))
+    setAvailableTrims([])
+  }, [formData.make])
+  
+  // Update trims when model changes
+  useEffect(() => {
+    if (formData.make && formData.model && vehicleData[formData.make]?.[formData.model]) {
+      setAvailableTrims(vehicleData[formData.make][formData.model])
+    } else {
+      setAvailableTrims([])
+    }
+    // Reset trim when model changes
+    setFormData(prev => ({ ...prev, trim: '' }))
+  }, [formData.model, formData.make])
+  
+  // Handle field changes with functional updates to prevent glitches
+  const handleFieldChange = useCallback((field: keyof FormData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+  }, [])
+  
+  // Mileage handler - only allow numbers, prevent scroll glitches
+  const handleMileageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^0-9]/g, '')
+    setFormData(prev => ({ ...prev, mileage: value }))
+  }, [])
+  
+  // Postal code handler - format and validate without causing glitches
+  const handlePostalCodeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPostalCode(e.target.value)
+    setFormData(prev => ({ ...prev, postalCode: formatted }))
+    
+    // Only validate when user has entered enough characters (complete postal code is 7 chars with space)
+    if (formatted.length === 7) {
+      if (!isValidPostalCode(formatted)) {
+        setPostalCodeError("Please enter a valid Canadian postal code (e.g., M5V 1J2)")
+      } else {
+        setPostalCodeError("")
+      }
+    } else if (formatted.length < 6) {
+      // Clear error while user is still typing
+      setPostalCodeError("")
+    }
+  }, [])
+  
+  // Email handler with validation
+  const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setFormData(prev => ({ ...prev, email: value }))
+    
+    if (value && !value.includes('@')) {
+      setEmailError("Email must include @ symbol")
+    } else if (value && !isValidEmail(value)) {
+      setEmailError(ValidationMessages.email)
+    } else {
+      setEmailError("")
+    }
+  }, [])
+  
+  // Phone handler with formatting
+  const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCanadianPhoneNumber(e.target.value)
+    setFormData(prev => ({ ...prev, phone: formatted }))
+    
+    const digitsOnly = e.target.value.replace(/\D/g, '')
+    if (digitsOnly.length > 0 && digitsOnly.length < 10) {
+      setPhoneError("Please enter a complete 10-digit phone number")
+    } else if (digitsOnly.length >= 10 && !isValidCanadianPhoneNumber(formatted)) {
+      setPhoneError(ValidationMessages.phone)
+    } else {
+      setPhoneError("")
+    }
+  }, [])
+  
+  // Check if form is valid
+  const isFormValid = () => {
+    return (
+      formData.year &&
+      formData.make &&
+      formData.model &&
+      formData.trim &&
+      formData.mileage &&
+      formData.postalCode.length >= 6 &&
+      isValidPostalCode(formData.postalCode) &&
+      !postalCodeError
+    )
+  }
+  
+  // Calculate quote
+  const calculateQuote = async () => {
+    if (!isFormValid()) return
+    
+    setIsCalculating(true)
+    setCalculationProgress(0)
+    
+    // Simulate calculation with progress
+    const steps = [
+      "Checking Canadian Black Book values...",
+      "Analyzing current market demand...",
+      "Reviewing auction data...",
+      "Calculating regional adjustments...",
+      "Generating your instant offer..."
+    ]
+    
+    for (let i = 0; i < steps.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 500))
+      setCalculationProgress((i + 1) * 20)
+    }
+    
+    // Calculate value based on year, make, model
+    const yearNum = parseInt(formData.year)
+    const currentYear = new Date().getFullYear()
+    const age = currentYear - yearNum
+    const mileageNum = parseInt(formData.mileage) || 50000
+    
+    // Base value calculation (simplified)
+    let baseValue = 35000
+    baseValue -= age * 2500 // Depreciation per year
+    baseValue -= (mileageNum / 1000) * 100 // Mileage adjustment
+    baseValue = Math.max(baseValue, 5000) // Minimum value
+    
+    // Random variance for realism
+    const variance = 0.1
+    const lowValue = Math.round((baseValue * (1 - variance)) / 100) * 100
+    const highValue = Math.round((baseValue * (1 + variance)) / 100) * 100
+    const midValue = Math.round(baseValue / 100) * 100
+    
+    const quoteId = `PQ-${Date.now().toString(36).toUpperCase()}`
+    
+    setQuoteResult({
+      quoteId,
+      lowValue,
+      midValue,
+      highValue,
+      vehicle: `${formData.year} ${formData.make} ${formData.model} ${formData.trim}`,
+    })
+    
+    setIsCalculating(false)
+    setShowResult(true)
+  }
+  
+  // Proceed with quote
+  const proceedWithQuote = () => {
+    if (quoteResult) {
+      router.push(
+        `/trade-in?quote=${quoteResult.quoteId}&vehicle=${encodeURIComponent(quoteResult.vehicle)}&value=${quoteResult.midValue}`
+      )
+    }
+  }
+  
+  return (
+    <Card className="shadow-xl border-0 bg-gradient-to-br from-card to-card/95">
+      <CardHeader className="pb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <Car className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <CardTitle className="text-xl">Instant Cash Offer</CardTitle>
+            <CardDescription>Get your offer in 60 seconds</CardDescription>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Sparkles className="h-4 w-4 text-amber-500" />
+          <span>Powered by Canadian Black Book</span>
+        </div>
+      </CardHeader>
+      
+      <CardContent ref={formRef} className="space-y-4">
+        {/* Vehicle Selection - using fixed height containers to prevent layout shifts */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5 min-h-[68px]">
+            <Label htmlFor="year">Year <span className="text-destructive">*</span></Label>
+            <Select value={formData.year} onValueChange={(v) => handleFieldChange('year', v)}>
+              <SelectTrigger id="year">
+                <SelectValue placeholder="Select year" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 25 }, (_, i) => 2025 - i).map((year) => (
+                  <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-1.5 min-h-[68px]">
+            <Label htmlFor="make">Make <span className="text-destructive">*</span></Label>
+            <Select value={formData.make} onValueChange={(v) => handleFieldChange('make', v)}>
+              <SelectTrigger id="make">
+                <SelectValue placeholder="Select make" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.keys(vehicleData).sort().map((make) => (
+                  <SelectItem key={make} value={make}>{make}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5 min-h-[68px]">
+            <Label htmlFor="model">Model <span className="text-destructive">*</span></Label>
+            <Select 
+              value={formData.model} 
+              onValueChange={(v) => handleFieldChange('model', v)}
+              disabled={!formData.make}
+            >
+              <SelectTrigger id="model">
+                <SelectValue placeholder={formData.make ? "Select model" : "Select make first"} />
+              </SelectTrigger>
+              <SelectContent>
+                {availableModels.map((model) => (
+                  <SelectItem key={model} value={model}>{model}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-1.5 min-h-[68px]">
+            <Label htmlFor="trim">Trim Level <span className="text-destructive">*</span></Label>
+            <Select 
+              value={formData.trim} 
+              onValueChange={(v) => handleFieldChange('trim', v)}
+              disabled={!formData.model}
+            >
+              <SelectTrigger id="trim">
+                <SelectValue placeholder={formData.model ? "Select trim" : "Select model first"} />
+              </SelectTrigger>
+              <SelectContent>
+                {availableTrims.map((trim) => (
+                  <SelectItem key={trim} value={trim}>{trim}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3">
+          {/* Mileage - using type="text" with inputMode to prevent scroll glitches */}
+          <div className="space-y-1.5 min-h-[68px]">
+            <Label htmlFor="mileage">Mileage (km) <span className="text-destructive">*</span></Label>
+            <Input
+              id="mileage"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              placeholder="e.g. 50000"
+              value={formData.mileage}
+              onChange={handleMileageChange}
+              autoComplete="off"
+              className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+          </div>
+          
+          {/* Postal Code - with validation rules intact */}
+          <div className="space-y-1.5 min-h-[68px]">
+            <Label htmlFor="postalCode">Postal Code <span className="text-destructive">*</span></Label>
+            <Input
+              id="postalCode"
+              type="text"
+              placeholder="e.g. M5V 1J2"
+              value={formData.postalCode}
+              onChange={handlePostalCodeChange}
+              maxLength={7}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="characters"
+              spellCheck={false}
+              className={postalCodeError ? "border-destructive" : ""}
+            />
+            {postalCodeError && (
+              <p className="text-xs text-destructive flex items-center gap-1 mt-1">
+                <AlertCircle className="h-3 w-3" />
+                {postalCodeError}
+              </p>
+            )}
+          </div>
+        </div>
+        
+        {/* Get Quote Button */}
+        <Button
+          onClick={calculateQuote}
+          disabled={!isFormValid() || isCalculating}
+          className="w-full h-12 text-base font-semibold"
+          size="lg"
+        >
+          {isCalculating ? (
+            <span className="flex items-center gap-2">
+              <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Calculating...
+            </span>
+          ) : (
+            <span className="flex items-center gap-2">
+              <Zap className="h-5 w-5" />
+              Get Instant Cash Offer
+            </span>
+          )}
+        </Button>
+        
+        {/* Progress indicator during calculation */}
+        {isCalculating && (
+          <div className="space-y-2">
+            <Progress value={calculationProgress} className="h-2" />
+            <p className="text-xs text-center text-muted-foreground">
+              Analyzing market data...
+            </p>
+          </div>
+        )}
+        
+        {/* Trust badges */}
+        <div className="flex flex-wrap justify-center gap-2 pt-2">
+          <Badge variant="outline" className="text-xs">
+            <Shield className="h-3 w-3 mr-1" /> No Obligation
+          </Badge>
+          <Badge variant="outline" className="text-xs">
+            <Clock className="h-3 w-3 mr-1" /> 60-Second Quote
+          </Badge>
+          <Badge variant="outline" className="text-xs">
+            <TrendingUp className="h-3 w-3 mr-1" /> Top Dollar
+          </Badge>
+        </div>
+      </CardContent>
+      
+      {/* Result Dialog */}
+      <Dialog open={showResult} onOpenChange={setShowResult}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <CheckCircle className="h-6 w-6" />
+              Your Instant Cash Offer
+            </DialogTitle>
+            <DialogDescription>
+              {quoteResult?.vehicle}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {quoteResult && (
+            <div className="space-y-4 py-4">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-1">Estimated Value Range</p>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-lg text-muted-foreground">${quoteResult.lowValue.toLocaleString()}</span>
+                  <span className="text-3xl font-bold text-primary">${quoteResult.midValue.toLocaleString()}</span>
+                  <span className="text-lg text-muted-foreground">${quoteResult.highValue.toLocaleString()}</span>
+                </div>
+              </div>
+              
+              <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Quote ID:</span>
+                  <span className="font-mono">{quoteResult.quoteId}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Mileage:</span>
+                  <span>{parseInt(formData.mileage).toLocaleString()} km</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Location:</span>
+                  <span>{formData.postalCode}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Valid for:</span>
+                  <span>7 days</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-900">
+                <Star className="h-5 w-5 text-amber-500 shrink-0" />
+                <p className="text-sm text-amber-800 dark:text-amber-200">
+                  Complete the full appraisal to lock in your best offer and get paid within 24 hours!
+                </p>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowResult(false)} className="sm:flex-1">
+              Get New Quote
+            </Button>
+            <Button onClick={proceedWithQuote} className="sm:flex-1">
+              <span className="flex items-center gap-2">
+                Continue to Full Appraisal
+                <ArrowRight className="h-4 w-4" />
+              </span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  )
+}
