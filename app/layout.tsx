@@ -13,6 +13,7 @@ import { AuthProvider } from '@/contexts/auth-context'
 import { CompareBar } from '@/components/compare-bar'
 import { OrganizationJsonLd, LocalBusinessJsonLd, WebsiteSearchJsonLd } from '@/components/seo/json-ld'
 import './globals.css'
+import './stability-fixes.css'
 
 // Planet Motors - OMVIC Licensed Dealer - Build v18 - Clean codebase verified
 

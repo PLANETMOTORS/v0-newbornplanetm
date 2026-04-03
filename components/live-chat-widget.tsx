@@ -74,9 +74,10 @@ export function LiveChatWidget() {
   return (
     <div
       className={cn(
-        "fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 bg-card border border-border rounded-xl shadow-2xl transition-all",
+        "fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 bg-card border border-border rounded-xl shadow-2xl transition-all will-change-transform",
         isMinimized ? "w-72 h-14" : "w-[calc(100vw-2rem)] sm:w-96 max-h-[70vh] sm:max-h-[520px] flex flex-col"
       )}
+      style={{ contain: 'layout style' }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-xl">

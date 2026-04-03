@@ -14,7 +14,7 @@ type NavItem = {
   submenu?: { name: string; href: string }[]
 }
 
-// Desktop Navigation with simple CSS dropdowns
+// Desktop Navigation with stable dropdown behavior
 function DesktopNav({ 
   navigation, 
   activeSubmenu, 
@@ -25,8 +25,10 @@ function DesktopNav({
   setActiveSubmenu: (name: string | null) => void
 }) {
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const isHoveringRef = useRef(false)
 
   const handleMouseEnter = (itemName: string, hasSubmenu: boolean) => {
+    isHoveringRef.current = true
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current)
       closeTimeoutRef.current = null
@@ -37,9 +39,13 @@ function DesktopNav({
   }
 
   const handleMouseLeave = () => {
+    isHoveringRef.current = false
+    // Longer delay to prevent accidental closes
     closeTimeoutRef.current = setTimeout(() => {
-      setActiveSubmenu(null)
-    }, 400)
+      if (!isHoveringRef.current) {
+        setActiveSubmenu(null)
+      }
+    }, 800)
   }
 
   return (
@@ -69,13 +75,14 @@ function DesktopNav({
             </Link>
           )}
 
-          {/* Simple CSS dropdown */}
+          {/* Dropdown menu with stable hover */}
           {item.submenu && activeSubmenu === item.name && (
             <div 
-              className="absolute top-full left-0 mt-1 min-w-[220px] bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-[9999]"
+              className="absolute top-full left-0 pt-2 min-w-[220px] z-[9999]"
               onMouseEnter={() => handleMouseEnter(item.name, true)}
               onMouseLeave={handleMouseLeave}
             >
+              <div className="bg-white rounded-xl shadow-xl border border-gray-200 py-2">
               {item.submenu.map((subitem) => (
                 <Link
                   key={subitem.name}
@@ -86,6 +93,7 @@ function DesktopNav({
                   {subitem.name}
                 </Link>
               ))}
+              </div>
             </div>
           )}
         </div>
@@ -217,6 +225,11 @@ export function Header() {
             activeSubmenu={activeSubmenu} 
             setActiveSubmenu={setActiveSubmenu} 
           />
+
+          {/* Google Reviews Badge */}
+          <div className="hidden lg:flex items-center mr-4">
+            <GoogleReviewsBadge variant="compact" />
+          </div>
 
           {/* Social Media Icons */}
           <div className="hidden lg:flex items-center gap-2">

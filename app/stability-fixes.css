@@ -1,0 +1,69 @@
+/* === CRITICAL LAYOUT STABILITY FIXES === */
+
+/* Prevent grid/flex children from causing overflow and vibration */
+.grid > *, .flex > * {
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Stable card layouts - contain prevents content from pushing boundaries */
+[class*="Card"], [class*="card"], .card {
+  contain: layout style;
+  isolation: isolate;
+}
+
+/* Prevent text overflow causing horizontal scroll */
+h1, h2, h3, h4, h5, h6, p, span {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+/* Fix for absolute positioned elements causing overflow */
+.relative {
+  isolation: isolate;
+}
+
+/* Prevent images from causing layout shift */
+img, video, iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Fixed elements need contain for better performance */
+.fixed {
+  contain: layout style;
+  will-change: transform;
+}
+
+/* Use clip instead of hidden for sections - prevents dropdown issues */
+main, section, article, aside, footer {
+  overflow-x: clip;
+}
+
+/* Prevent dropdown menus from being cut off */
+header, nav {
+  overflow: visible;
+}
+
+/* Stable grid layouts */
+.grid {
+  contain: layout;
+}
+
+/* Prevent layout thrashing */
+.animate-pulse, .animate-spin, .animate-bounce {
+  will-change: transform, opacity;
+}
+
+/* Mobile viewport fixes */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+  
+  .container {
+    max-width: 100vw;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}

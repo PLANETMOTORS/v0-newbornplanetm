@@ -113,7 +113,7 @@ function VehicleCard({ vehicle }: VehicleCardProps) {
   const [isFavorite, setIsFavorite] = useState(false)
 
   return (
-    <div className="group bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg transition-shadow">
+    <div className="group bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg transition-shadow min-w-0" style={{ contain: 'layout style' }}>
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden">
         <Image
@@ -198,7 +198,7 @@ export function VehicleGrid() {
       </div>
 
       {/* Grid */}
-      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6" style={{ contain: 'layout' }}>
         {vehicles.map((vehicle) => (
           <VehicleCard key={vehicle.id} vehicle={vehicle} />
         ))}
