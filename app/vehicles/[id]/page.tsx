@@ -567,7 +567,7 @@ export default function VehicleDetailPage() {
           <div className="overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="h-12 bg-transparent p-0 gap-0 flex w-max px-4">
-                {["Photos", "Overview", "Features", "Inspect", "Pricing", "Ratings"].map((tab) => (
+                {["Photos", "Overview", "Features", "Inspect", "Pricing", "Protection"].map((tab) => (
                   <TabsTrigger
                     key={tab}
                     value={tab === "Inspect" ? "inspection" : tab.toLowerCase()}
