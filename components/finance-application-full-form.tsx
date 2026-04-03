@@ -1828,8 +1828,8 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                 <Input value={tradeIn.model} onChange={(e) => setTradeIn({ ...tradeIn, model: e.target.value })} />
               </div>
               <div>
-                <Label>Mileage</Label>
-                <Input type="number" value={tradeIn.mileage} onChange={(e) => setTradeIn({ ...tradeIn, mileage: e.target.value })} />
+                <Label>Mileage (km)</Label>
+                <Input type="text" inputMode="numeric" pattern="[0-9]*" value={tradeIn.mileage} onChange={(e) => setTradeIn({ ...tradeIn, mileage: e.target.value.replace(/[^0-9]/g, '') })} autoComplete="off" />
               </div>
               <div>
                 <Label>Condition</Label>

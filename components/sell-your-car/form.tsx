@@ -24,6 +24,7 @@ export function SellYourCarForm() {
     year: '',
     make: '',
     model: '',
+    trim: '',
     mileage: '',
     condition: '',
     name: '',
@@ -87,14 +88,25 @@ export function SellYourCarForm() {
                 </Select>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="model">Model</Label>
-              <Input
-                id="model"
-                placeholder="e.g., Camry, Civic, F-150"
-                value={formData.model}
-                onChange={(e) => handleChange('model', e.target.value)}
-              />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="model">Model</Label>
+                <Input
+                  id="model"
+                  placeholder="e.g., Camry, Civic, F-150"
+                  value={formData.model}
+                  onChange={(e) => handleChange('model', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="trim">Trim Level</Label>
+                <Input
+                  id="trim"
+                  placeholder="e.g., SE, LX, XLT, Sport"
+                  value={formData.trim}
+                  onChange={(e) => handleChange('trim', e.target.value)}
+                />
+              </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -163,7 +175,7 @@ export function SellYourCarForm() {
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="(555) 123-4567"
+                  placeholder="416-985-2277"
                   value={formData.phone}
                   onChange={(e) => handleChange('phone', e.target.value)}
                   required
@@ -202,7 +214,7 @@ export function SellYourCarForm() {
             <p className="text-muted-foreground">
               We&apos;ll review your vehicle details and get back to you within 24 hours with a competitive offer.
             </p>
-            <Button variant="outline" onClick={() => { setStep(1); setFormData({ year: '', make: '', model: '', mileage: '', condition: '', name: '', email: '', phone: '', comments: '' }) }}>
+            <Button variant="outline" onClick={() => { setStep(1); setFormData({ year: '', make: '', model: '', trim: '', mileage: '', condition: '', name: '', email: '', phone: '', comments: '' }) }}>
               Submit Another Vehicle
             </Button>
           </div>

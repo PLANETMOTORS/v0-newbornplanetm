@@ -477,7 +477,7 @@ function TradeInContent() {
                           ))}
                         </SelectContent>
                       </Select>
-                      <Select value={selectedModel} onValueChange={setSelectedModel} disabled={!selectedMake}>
+                      <Select value={selectedModel} onValueChange={(v) => { setSelectedModel(v); setSelectedTrim(""); }} disabled={!selectedMake}>
                         <SelectTrigger>
                           <SelectValue placeholder="Model" />
                         </SelectTrigger>
@@ -487,18 +487,31 @@ function TradeInContent() {
                           ))}
                         </SelectContent>
                       </Select>
-                      <Input 
-                        placeholder="Mileage (km)" 
-                        type="number"
-                        value={mileage}
-                        onChange={(e) => setMileage(e.target.value)}
-                      />
+                      <Select value={selectedTrim} onValueChange={setSelectedTrim} disabled={!selectedModel}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Trim Level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {selectedModel && (vehicleTrims[selectedModel] || vehicleTrims["default"])?.map((trim) => (
+                            <SelectItem key={trim} value={trim}>{trim}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
+                    <Input 
+                      placeholder="Mileage (km)" 
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={mileage}
+                      onChange={(e) => setMileage(e.target.value.replace(/[^0-9]/g, ''))}
+                      autoComplete="off"
+                    />
                     <Button 
                       className="w-full h-12 text-lg"
                       size="lg"
                       onClick={() => { goToStep(2); setVehicleFound(true); }}
-                      disabled={!selectedYear || !selectedMake || !selectedModel || !mileage}
+                      disabled={!selectedYear || !selectedMake || !selectedModel || !selectedTrim || !mileage}
                     >
                       Get My Instant Offer
                       <ArrowRight className="ml-2 h-5 w-5" />
@@ -658,7 +671,7 @@ function TradeInContent() {
                                 ))}
                               </SelectContent>
                             </Select>
-                            <Select value={selectedModel} onValueChange={setSelectedModel} disabled={!selectedMake}>
+                            <Select value={selectedModel} onValueChange={(v) => { setSelectedModel(v); setSelectedTrim(""); }} disabled={!selectedMake}>
                               <SelectTrigger>
                                 <SelectValue placeholder="Model" />
                               </SelectTrigger>
@@ -668,24 +681,32 @@ function TradeInContent() {
                                 ))}
                               </SelectContent>
                             </Select>
-                            <Input 
-                              placeholder="Trim (optional)" 
-                              value={selectedTrim}
-                              onChange={(e) => setSelectedTrim(e.target.value)}
-                            />
+                            <Select value={selectedTrim} onValueChange={setSelectedTrim} disabled={!selectedModel}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Trim Level" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {selectedModel && (vehicleTrims[selectedModel] || vehicleTrims["default"])?.map((trim) => (
+                                  <SelectItem key={trim} value={trim}>{trim}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                           <Input 
                             placeholder="Current Mileage (km)" 
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             value={mileage}
-                            onChange={(e) => setMileage(e.target.value)}
+                            onChange={(e) => setMileage(e.target.value.replace(/[^0-9]/g, ''))}
+                            autoComplete="off"
                             className="text-lg"
                           />
                           <Button 
                             className="w-full h-12" 
                             size="lg"
                             onClick={() => { setVehicleFound(true); nextStep(); }}
-                            disabled={!selectedYear || !selectedMake || !selectedModel || !mileage}
+                            disabled={!selectedYear || !selectedMake || !selectedModel || !selectedTrim || !mileage}
                           >
                             <ArrowRight className="mr-2 h-5 w-5" />
                             Continue

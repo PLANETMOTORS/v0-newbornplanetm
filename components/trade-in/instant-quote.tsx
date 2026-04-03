@@ -1,523 +1,701 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog"
-import { Car, DollarSign, ArrowRight, Check, Clock, Shield, MapPin, AlertCircle } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { Progress } from "@/components/ui/progress"
+import { Badge } from "@/components/ui/badge"
 import { 
-  getAllMakes, 
-  getModelsForMake, 
-  getTrimsForModel, 
-  getYears,
-  isValidPostalCode,
-  formatPostalCode,
-  type VehicleTrim
-} from "@/lib/vehicle-data"
+  Car, Sparkles, TrendingUp, Shield, Clock, CheckCircle, 
+  DollarSign, ArrowRight, Star, Zap, AlertCircle
+} from "lucide-react"
 import {
   isValidEmail,
   isValidCanadianPhoneNumber,
-  isValidName,
+  isValidCanadianPostalCode,
   formatCanadianPhoneNumber,
+  formatCanadianPostalCode,
   ValidationMessages
 } from "@/lib/validation"
 
-interface QuoteResult {
-  quoteId: string
-  estimate: {
-    low: number
-    high: number
-    average: number
-  }
-  validUntil: string
+// Vehicle makes with models and trims
+const vehicleData: Record<string, Record<string, string[]>> = {
+  "Acura": {
+    "ILX": ["Base", "Premium", "A-Spec", "Technology"],
+    "Integra": ["Base", "A-Spec", "A-Spec Technology"],
+    "MDX": ["Base", "Technology", "A-Spec", "Advance", "Type S"],
+    "RDX": ["Base", "Technology", "A-Spec", "Advance"],
+    "TLX": ["Base", "Technology", "A-Spec", "Advance", "Type S"],
+  },
+  "Audi": {
+    "A3": ["Premium", "Premium Plus", "Prestige"],
+    "A4": ["Premium", "Premium Plus", "Prestige", "S Line"],
+    "A5": ["Premium", "Premium Plus", "Prestige"],
+    "A6": ["Premium", "Premium Plus", "Prestige"],
+    "Q3": ["Premium", "Premium Plus", "Prestige"],
+    "Q5": ["Premium", "Premium Plus", "Prestige", "S Line"],
+    "Q7": ["Premium", "Premium Plus", "Prestige"],
+    "e-tron": ["Premium", "Premium Plus", "Prestige"],
+  },
+  "BMW": {
+    "3 Series": ["330i", "330i xDrive", "M340i", "M340i xDrive"],
+    "5 Series": ["530i", "530i xDrive", "540i", "540i xDrive", "M550i"],
+    "X3": ["sDrive30i", "xDrive30i", "M40i"],
+    "X5": ["sDrive40i", "xDrive40i", "xDrive45e", "M50i"],
+    "iX": ["xDrive40", "xDrive50", "M60"],
+  },
+  "Chevrolet": {
+    "Equinox": ["LS", "LT", "RS", "Premier"],
+    "Malibu": ["LS", "RS", "LT", "Premier"],
+    "Silverado": ["Work Truck", "Custom", "LT", "RST", "LTZ", "High Country"],
+    "Tahoe": ["LS", "LT", "RST", "Z71", "Premier", "High Country"],
+    "Traverse": ["LS", "LT", "RS", "Premier", "High Country"],
+  },
+  "Ford": {
+    "Bronco": ["Base", "Big Bend", "Black Diamond", "Outer Banks", "Badlands", "Wildtrak"],
+    "Edge": ["SE", "SEL", "ST-Line", "Titanium", "ST"],
+    "Escape": ["S", "SE", "SEL", "Titanium", "ST-Line"],
+    "Explorer": ["Base", "XLT", "Limited", "ST", "Platinum", "King Ranch"],
+    "F-150": ["XL", "XLT", "Lariat", "King Ranch", "Platinum", "Limited", "Raptor"],
+    "Mustang": ["EcoBoost", "EcoBoost Premium", "GT", "GT Premium", "Mach 1", "Shelby GT500"],
+  },
+  "Honda": {
+    "Accord": ["LX", "EX", "EX-L", "Sport", "Sport SE", "Touring"],
+    "Civic": ["LX", "Sport", "EX", "EX-L", "Touring", "Si", "Type R"],
+    "CR-V": ["LX", "EX", "EX-L", "Touring", "Hybrid"],
+    "HR-V": ["LX", "Sport", "EX-L"],
+    "Pilot": ["LX", "EX", "EX-L", "Touring", "Elite", "TrailSport", "Black Edition"],
+    "Odyssey": ["LX", "EX", "EX-L", "Touring", "Elite"],
+  },
+  "Hyundai": {
+    "Elantra": ["SE", "SEL", "N Line", "Limited", "N"],
+    "Ioniq 5": ["SE", "SEL", "Limited"],
+    "Ioniq 6": ["SE", "SEL", "Limited"],
+    "Kona": ["SE", "SEL", "N Line", "Limited", "N"],
+    "Palisade": ["SE", "SEL", "XRT", "Limited", "Calligraphy"],
+    "Santa Fe": ["SE", "SEL", "XRT", "Limited", "Calligraphy"],
+    "Sonata": ["SE", "SEL", "SEL Plus", "N Line", "Limited"],
+    "Tucson": ["SE", "SEL", "XRT", "N Line", "Limited"],
+  },
+  "Kia": {
+    "EV6": ["Light", "Wind", "GT-Line", "GT"],
+    "Forte": ["FE", "LXS", "GT-Line", "GT"],
+    "K5": ["LXS", "GT-Line", "EX", "GT"],
+    "Seltos": ["LX", "S", "EX", "SX", "SX Turbo"],
+    "Sorento": ["LX", "S", "EX", "SX", "SX Prestige", "X-Line"],
+    "Sportage": ["LX", "EX", "SX", "SX Prestige", "X-Line", "X-Pro"],
+    "Telluride": ["LX", "S", "EX", "SX", "SX Prestige", "X-Line", "X-Pro"],
+  },
+  "Lexus": {
+    "ES": ["ES 250", "ES 300h", "ES 350", "ES 350 F Sport"],
+    "IS": ["IS 300", "IS 350", "IS 500 F Sport"],
+    "NX": ["NX 250", "NX 350", "NX 350h", "NX 450h+"],
+    "RX": ["RX 350", "RX 350h", "RX 450h+", "RX 500h F Sport"],
+  },
+  "Mazda": {
+    "CX-30": ["Base", "Select", "Preferred", "Premium", "Turbo", "Turbo Premium Plus"],
+    "CX-5": ["Sport", "Select", "Preferred", "Premium", "Premium Plus", "Turbo", "Signature"],
+    "CX-50": ["Select", "Preferred", "Premium", "Premium Plus", "Turbo", "Turbo Meridian"],
+    "CX-90": ["Select", "Preferred", "Premium", "Premium Plus", "PHEV Premium Plus"],
+    "Mazda3": ["Base", "Select", "Preferred", "Carbon Edition", "Premium", "Turbo", "Turbo Premium Plus"],
+  },
+  "Mercedes-Benz": {
+    "C-Class": ["C 300", "C 300 4MATIC", "AMG C 43", "AMG C 63"],
+    "E-Class": ["E 350", "E 350 4MATIC", "E 450", "AMG E 53", "AMG E 63 S"],
+    "GLC": ["GLC 300", "GLC 300 4MATIC", "AMG GLC 43", "AMG GLC 63"],
+    "GLE": ["GLE 350", "GLE 350 4MATIC", "GLE 450", "GLE 580", "AMG GLE 53", "AMG GLE 63 S"],
+    "S-Class": ["S 500", "S 500 4MATIC", "S 580", "S 580 4MATIC", "AMG S 63"],
+  },
+  "Nissan": {
+    "Altima": ["S", "SV", "SR", "SL", "Platinum"],
+    "Rogue": ["S", "SV", "SL", "Platinum"],
+    "Sentra": ["S", "SV", "SR"],
+    "Pathfinder": ["S", "SV", "SL", "Platinum", "Rock Creek"],
+  },
+  "Subaru": {
+    "Crosstrek": ["Base", "Premium", "Sport", "Limited"],
+    "Forester": ["Base", "Premium", "Sport", "Limited", "Touring", "Wilderness"],
+    "Outback": ["Base", "Premium", "Limited", "Touring", "Onyx Edition XT", "Wilderness"],
+    "WRX": ["Base", "Premium", "Limited", "GT"],
+  },
+  "Tesla": {
+    "Model 3": ["Standard Range Plus", "Long Range", "Performance"],
+    "Model S": ["Long Range", "Plaid"],
+    "Model X": ["Long Range", "Plaid"],
+    "Model Y": ["Standard Range", "Long Range", "Performance"],
+  },
+  "Toyota": {
+    "4Runner": ["SR5", "SR5 Premium", "TRD Sport", "TRD Off-Road", "TRD Off-Road Premium", "Limited", "TRD Pro"],
+    "Camry": ["LE", "SE", "SE Nightshade", "XLE", "XSE", "TRD"],
+    "Corolla": ["L", "LE", "SE", "XLE", "XSE", "Apex Edition"],
+    "Highlander": ["L", "LE", "XLE", "Limited", "Platinum", "Bronze Edition"],
+    "RAV4": ["LE", "XLE", "XLE Premium", "Adventure", "TRD Off-Road", "Limited"],
+    "Tacoma": ["SR", "SR5", "TRD Sport", "TRD Off-Road", "Limited", "TRD Pro"],
+    "Tundra": ["SR", "SR5", "Limited", "Platinum", "1794 Edition", "TRD Pro", "Capstone"],
+  },
+  "Volkswagen": {
+    "Atlas": ["S", "SE", "SE with Technology", "SEL", "SEL Premium"],
+    "Golf": ["S", "SE", "R-Line"],
+    "GTI": ["S", "SE", "Autobahn"],
+    "ID.4": ["Standard", "Pro", "Pro S", "Pro S Plus"],
+    "Jetta": ["S", "Sport", "SE", "SEL"],
+    "Tiguan": ["S", "SE", "SE R-Line", "SEL", "SEL R-Line"],
+  },
+  "Volvo": {
+    "S60": ["Core", "Plus", "Ultimate", "Polestar Engineered"],
+    "XC40": ["Core", "Plus", "Ultimate", "Recharge"],
+    "XC60": ["Core", "Plus", "Ultimate", "Polestar Engineered"],
+    "XC90": ["Core", "Plus", "Ultimate"],
+  },
+}
+
+// Format postal code: A1A 1A1
+function formatPostalCode(value: string): string {
+  const cleaned = value.toUpperCase().replace(/[^A-Z0-9]/g, '')
+  if (cleaned.length <= 3) return cleaned
+  return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)}`
+}
+
+// Validate postal code format
+function isValidPostalCode(postalCode: string): boolean {
+  const pattern = /^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/i
+  return pattern.test(postalCode)
+}
+
+interface FormData {
+  year: string
+  make: string
+  model: string
+  trim: string
+  mileage: string
+  postalCode: string
+  name: string
+  email: string
+  phone: string
 }
 
 export function InstantQuote() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [step, setStep] = useState(1)
-  const [isLoading, setIsLoading] = useState(false)
-  const [quoteResult, setQuoteResult] = useState<QuoteResult | null>(null)
-
-  // Vehicle data
-  const years = getYears()
-  const makes = getAllMakes()
-  const [availableModels, setAvailableModels] = useState<string[]>([])
-  const [availableTrims, setAvailableTrims] = useState<VehicleTrim[]>([])
-
-  // Postal code validation
-  const [postalCodeError, setPostalCodeError] = useState<string>("")
+  const router = useRouter()
+  const formRef = useRef<HTMLDivElement>(null)
   
-  // Contact form validation errors
-  const [nameError, setNameError] = useState<string>("")
-  const [emailError, setEmailError] = useState<string>("")
-  const [phoneError, setPhoneError] = useState<string>("")
-
-  const [formData, setFormData] = useState({
-    year: "",
-    make: "",
-    model: "",
-    trim: "",
-    mileage: "",
-    condition: "",
-    postalCode: "",
-    vin: "",
-    customerName: "",
-    customerEmail: "",
-    customerPhone: "",
+  const [formData, setFormData] = useState<FormData>({
+    year: '',
+    make: '',
+    model: '',
+    trim: '',
+    mileage: '',
+    postalCode: '',
+    name: '',
+    email: '',
+    phone: '',
   })
-
+  
+  const [availableModels, setAvailableModels] = useState<string[]>([])
+  const [availableTrims, setAvailableTrims] = useState<string[]>([])
+  const [isCalculating, setIsCalculating] = useState(false)
+  const [calculationProgress, setCalculationProgress] = useState(0)
+  const [showResult, setShowResult] = useState(false)
+  const [quoteResult, setQuoteResult] = useState<{
+    quoteId: string
+    lowValue: number
+    midValue: number
+    highValue: number
+    vehicle: string
+  } | null>(null)
+  
+  // Validation errors
+  const [postalCodeError, setPostalCodeError] = useState("")
+  const [emailError, setEmailError] = useState("")
+  const [phoneError, setPhoneError] = useState("")
+  
   // Update models when make changes
   useEffect(() => {
-    if (formData.make) {
-      const models = getModelsForMake(formData.make)
-      setAvailableModels(models)
-      // Reset model and trim when make changes
-      setFormData(prev => ({ ...prev, model: "", trim: "" }))
-      setAvailableTrims([])
+    if (formData.make && vehicleData[formData.make]) {
+      setAvailableModels(Object.keys(vehicleData[formData.make]))
     } else {
       setAvailableModels([])
-      setAvailableTrims([])
     }
+    // Reset model and trim when make changes
+    setFormData(prev => ({ ...prev, model: '', trim: '' }))
+    setAvailableTrims([])
   }, [formData.make])
-
+  
   // Update trims when model changes
   useEffect(() => {
-    if (formData.make && formData.model) {
-      const trims = getTrimsForModel(formData.make, formData.model)
-      setAvailableTrims(trims)
-      // Reset trim when model changes
-      setFormData(prev => ({ ...prev, trim: "" }))
+    if (formData.make && formData.model && vehicleData[formData.make]?.[formData.model]) {
+      setAvailableTrims(vehicleData[formData.make][formData.model])
     } else {
       setAvailableTrims([])
     }
-  }, [formData.make, formData.model])
-
-  // Validate postal code
-  const handlePostalCodeChange = (value: string) => {
-    const formatted = formatPostalCode(value)
-    setFormData({ ...formData, postalCode: formatted })
+    // Reset trim when model changes
+    setFormData(prev => ({ ...prev, trim: '' }))
+  }, [formData.model, formData.make])
+  
+  // Handle field changes with functional updates to prevent glitches
+  const handleFieldChange = useCallback((field: keyof FormData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+  }, [])
+  
+  // Mileage handler - only allow numbers, prevent scroll glitches
+  const handleMileageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^0-9]/g, '')
+    setFormData(prev => ({ ...prev, mileage: value }))
+  }, [])
+  
+  // Postal code handler - format and validate without causing glitches
+  const handlePostalCodeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPostalCode(e.target.value)
+    setFormData(prev => ({ ...prev, postalCode: formatted }))
     
-    if (formatted.length >= 6) {
+    // Only validate when user has entered enough characters (complete postal code is 7 chars with space)
+    if (formatted.length === 7) {
       if (!isValidPostalCode(formatted)) {
-        setPostalCodeError("Please enter a valid Canadian postal code")
+        setPostalCodeError("Please enter a valid Canadian postal code (e.g., M5V 1J2)")
       } else {
         setPostalCodeError("")
       }
-    } else {
+    } else if (formatted.length < 6) {
+      // Clear error while user is still typing
       setPostalCodeError("")
     }
-  }
-
-  const handleSubmit = async () => {
-    setIsLoading(true)
-    try {
-      const response = await fetch("/api/trade-in/quote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      })
-
-      const data = await response.json()
-      if (data.success) {
-        setQuoteResult(data)
-        setStep(3)
-      }
-    } catch (error) {
-      console.error("Failed to get quote:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Validate name field
-  const handleNameChange = (value: string) => {
-    setFormData({ ...formData, customerName: value })
-    if (value && !isValidName(value)) {
-      setNameError(ValidationMessages.name)
-    } else {
-      setNameError("")
-    }
-  }
-
-  // Validate email field
-  const handleEmailChange = (value: string) => {
-    setFormData({ ...formData, customerEmail: value })
-    if (value && !isValidEmail(value)) {
+  }, [])
+  
+  // Email handler with validation
+  const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setFormData(prev => ({ ...prev, email: value }))
+    
+    if (value && !value.includes('@')) {
+      setEmailError("Email must include @ symbol")
+    } else if (value && !isValidEmail(value)) {
       setEmailError(ValidationMessages.email)
     } else {
       setEmailError("")
     }
-  }
-
-  // Validate phone field
-  const handlePhoneChange = (value: string) => {
-    const formatted = formatCanadianPhoneNumber(value)
-    setFormData({ ...formData, customerPhone: formatted })
-    if (formatted.length >= 14 && !isValidCanadianPhoneNumber(formatted)) {
+  }, [])
+  
+  // Phone handler with formatting
+  const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCanadianPhoneNumber(e.target.value)
+    setFormData(prev => ({ ...prev, phone: formatted }))
+    
+    const digitsOnly = e.target.value.replace(/\D/g, '')
+    if (digitsOnly.length > 0 && digitsOnly.length < 10) {
+      setPhoneError("Please enter a complete 10-digit phone number")
+    } else if (digitsOnly.length >= 10 && !isValidCanadianPhoneNumber(formatted)) {
       setPhoneError(ValidationMessages.phone)
     } else {
       setPhoneError("")
     }
+  }, [])
+  
+  // Check if form is valid
+  const isFormValid = () => {
+    return (
+      formData.year &&
+      formData.make &&
+      formData.model &&
+      formData.trim &&
+      formData.mileage &&
+      formData.postalCode.length >= 6 &&
+      isValidPostalCode(formData.postalCode) &&
+      !postalCodeError
+    )
   }
-
-  const resetForm = () => {
-    setStep(1)
-    setQuoteResult(null)
-    setPostalCodeError("")
-    setNameError("")
-    setEmailError("")
-    setPhoneError("")
-    setAvailableModels([])
-    setAvailableTrims([])
-    setFormData({
-      year: "",
-      make: "",
-      model: "",
-      trim: "",
-      mileage: "",
-      condition: "",
-      postalCode: "",
-      vin: "",
-      customerName: "",
-      customerEmail: "",
-      customerPhone: "",
+  
+  // Local fallback valuation calculation (used if API fails)
+  const calculateLocalValue = (data: typeof formData) => {
+    const currentYear = new Date().getFullYear()
+    const age = currentYear - parseInt(data.year)
+    const mileageNum = parseInt(data.mileage.replace(/,/g, '')) || 50000
+    
+    // Base values by model/make
+    const baseValues: Record<string, number> = {
+      "Jetta": 24000, "Civic": 26000, "Corolla": 24000, "Elantra": 22000,
+      "Golf": 25000, "Mazda3": 24000, "Sentra": 21000, "Forte": 21000,
+      "Accord": 32000, "Camry": 32000, "Sonata": 30000, "Passat": 30000,
+      "CR-V": 35000, "RAV4": 35000, "Tucson": 32000, "Tiguan": 34000,
+      "Highlander": 48000, "Pilot": 48000, "4Runner": 52000,
+      "F-150": 55000, "Silverado": 52000, "Tacoma": 42000, "Tundra": 55000,
+      "3 Series": 52000, "C-Class": 50000, "Model 3": 55000, "Model Y": 60000,
+    }
+    const makeTiers: Record<string, number> = {
+      "BMW": 45000, "Mercedes-Benz": 48000, "Audi": 45000, "Lexus": 42000,
+      "Tesla": 55000, "Toyota": 28000, "Honda": 28000, "Volkswagen": 27000,
+      "Hyundai": 25000, "Kia": 25000, "Ford": 30000, "Chevrolet": 28000,
+    }
+    
+    let baseValue = baseValues[data.model] || makeTiers[data.make] || 28000
+    
+    // Depreciation curve
+    let value = baseValue
+    for (let y = 0; y < age; y++) {
+      if (y === 0) value *= 0.80
+      else if (y === 1) value *= 0.85
+      else if (y === 2) value *= 0.88
+      else if (y < 6) value *= 0.90
+      else value *= 0.92
+    }
+    
+    // Mileage adjustment
+    const expectedMileage = age * 20000
+    const mileageDiff = mileageNum - expectedMileage
+    if (mileageDiff > 0) {
+      value -= mileageDiff * 0.05
+      if (mileageNum > 150000) value -= (mileageNum - 150000) * 0.03
+      if (mileageNum > 200000) value -= (mileageNum - 200000) * 0.02
+    }
+    
+    // Condition adjustment
+    const conditionMultipliers: Record<string, number> = {
+      "excellent": 1.10, "good": 1.00, "fair": 0.85, "poor": 0.65,
+    }
+    value *= conditionMultipliers[data.condition] || 1.0
+    
+    // Minimum and rounding
+    value = Math.max(500, value)
+    value = Math.round(value / 50) * 50
+    
+    return {
+      lowValue: Math.round(value * 0.90 / 50) * 50,
+      midValue: value,
+      highValue: Math.round(value * 1.10 / 50) * 50,
+    }
+  }
+  
+  // Calculate quote
+  const calculateQuote = async () => {
+    if (!isFormValid()) return
+    
+    setIsCalculating(true)
+    setCalculationProgress(0)
+    
+    // Simulate calculation with progress
+    const steps = [
+      "Checking Canadian Black Book values...",
+      "Analyzing current market demand...",
+      "Reviewing auction data...",
+      "Calculating regional adjustments...",
+      "Generating your instant offer..."
+    ]
+    
+    // Call AI-powered valuation API
+    let lowValue = 0
+    let midValue = 0
+    let highValue = 0
+    let valuationFactors: string[] = []
+    
+    try {
+      // Start progress animation
+      const progressInterval = setInterval(() => {
+        setCalculationProgress(prev => Math.min(prev + 5, 90))
+      }, 300)
+      
+      const response = await fetch("/api/vehicle-valuation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          year: formData.year,
+          make: formData.make,
+          model: formData.model,
+          trim: formData.trim,
+          mileage: formData.mileage,
+          condition: formData.condition,
+        }),
+      })
+      
+      clearInterval(progressInterval)
+      setCalculationProgress(100)
+      
+      if (response.ok) {
+        const valuation = await response.json()
+        lowValue = valuation.lowValue
+        midValue = valuation.midValue
+        highValue = valuation.highValue
+        valuationFactors = valuation.factors || []
+      } else {
+        // Fallback to local calculation if API fails
+        const fallbackResult = calculateLocalValue(formData)
+        lowValue = fallbackResult.lowValue
+        midValue = fallbackResult.midValue
+        highValue = fallbackResult.highValue
+      }
+    } catch {
+      // Fallback to local calculation on network error
+      setCalculationProgress(100)
+      const fallbackResult = calculateLocalValue(formData)
+      lowValue = fallbackResult.lowValue
+      midValue = fallbackResult.midValue
+      highValue = fallbackResult.highValue
+    }
+    
+    const quoteId = `PQ-${Date.now().toString(36).toUpperCase()}`
+    
+    setQuoteResult({
+      quoteId,
+      lowValue,
+      midValue,
+      highValue,
+      vehicle: `${formData.year} ${formData.make} ${formData.model} ${formData.trim}`,
     })
+    
+    setIsCalculating(false)
+    setShowResult(true)
   }
-
-  // Check if step 1 form is valid
-  const isStep1Valid = 
-    formData.year && 
-    formData.make && 
-    formData.model && 
-    formData.trim &&
-    formData.mileage && 
-    formData.condition &&
-    formData.postalCode &&
-    isValidPostalCode(formData.postalCode)
-
+  
+  // Proceed with quote
+  const proceedWithQuote = () => {
+    if (quoteResult) {
+      router.push(
+        `/trade-in?quote=${quoteResult.quoteId}&vehicle=${encodeURIComponent(quoteResult.vehicle)}&value=${quoteResult.midValue}`
+      )
+    }
+  }
+  
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="w-full gap-2">
-          <DollarSign className="w-4 h-4" />
-          Get Instant Trade-In Quote
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Car className="w-5 h-5 text-primary" />
-            Instant Trade-In Quote
-          </DialogTitle>
-          <DialogDescription className="sr-only">
-            Get an instant cash offer for your vehicle based on Canadian Black Book values
-          </DialogDescription>
-        </DialogHeader>
-
-        {/* Step 1: Vehicle Info */}
-        {step === 1 && (
-          <div className="space-y-4">
-            <div className="flex flex-wrap gap-3 text-sm text-muted-foreground pb-2">
-              <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                Under 60 seconds
-              </div>
-              <div className="flex items-center gap-1">
-                <Shield className="w-4 h-4" />
-                No obligation
-              </div>
-            </div>
-
-            {/* Year and Make */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="year">Year <span className="text-destructive">*</span></Label>
-                <Select value={formData.year} onValueChange={(v) => setFormData({ ...formData, year: v })}>
-                  <SelectTrigger id="year">
-                    <SelectValue placeholder="Select year" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[200px]">
-                    {years.map((y) => (
-                      <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="make">Make <span className="text-destructive">*</span></Label>
-                <Select value={formData.make} onValueChange={(v) => setFormData({ ...formData, make: v, model: "", trim: "" })}>
-                  <SelectTrigger id="make">
-                    <SelectValue placeholder="Select make" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[200px]">
-                    {makes.map((m) => (
-                      <SelectItem key={m} value={m}>{m}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Model */}
-            <div>
-              <Label htmlFor="model">Model <span className="text-destructive">*</span></Label>
-              <Select 
-                value={formData.model} 
-                onValueChange={(v) => setFormData({ ...formData, model: v, trim: "" })}
-                disabled={!formData.make}
-              >
-                <SelectTrigger id="model">
-                  <SelectValue placeholder={formData.make ? "Select model" : "Select make first"} />
-                </SelectTrigger>
-                <SelectContent className="max-h-[200px]">
-                  {availableModels.map((m) => (
-                    <SelectItem key={m} value={m}>{m}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Trim */}
-            <div>
-              <Label htmlFor="trim">Trim <span className="text-destructive">*</span></Label>
-              <Select 
-                value={formData.trim} 
-                onValueChange={(v) => setFormData({ ...formData, trim: v })}
-                disabled={!formData.model}
-              >
-                <SelectTrigger id="trim">
-                  <SelectValue placeholder={formData.model ? "Select trim" : "Select model first"} />
-                </SelectTrigger>
-                <SelectContent className="max-h-[200px]">
-                  {availableTrims.map((t) => (
-                    <SelectItem key={t.name} value={t.name}>
-                      {t.name} {t.engine && `(${t.engine})`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Mileage and Condition */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="mileage">Mileage (km) <span className="text-destructive">*</span></Label>
-                <Input
-                  id="mileage"
-                  type="number"
-                  placeholder="e.g. 50000"
-                  value={formData.mileage}
-                  onChange={(e) => setFormData({ ...formData, mileage: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="condition">Condition <span className="text-destructive">*</span></Label>
-                <Select value={formData.condition} onValueChange={(v) => setFormData({ ...formData, condition: v })}>
-                  <SelectTrigger id="condition">
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="excellent">Excellent</SelectItem>
-                    <SelectItem value="good">Good</SelectItem>
-                    <SelectItem value="fair">Fair</SelectItem>
-                    <SelectItem value="poor">Poor</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Postal Code - MANDATORY */}
-            <div>
-              <Label htmlFor="postalCode" className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
-                Postal Code <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="postalCode"
-                placeholder="e.g. M5V 1J2"
-                value={formData.postalCode}
-                onChange={(e) => handlePostalCodeChange(e.target.value)}
-                maxLength={7}
-                className={postalCodeError ? "border-destructive" : ""}
-              />
-              {postalCodeError && (
-                <p className="text-sm text-destructive mt-1 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {postalCodeError}
-                </p>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">
-                Required for accurate local market valuation
-              </p>
-            </div>
-
-            {/* VIN (Optional) */}
-            <div>
-              <Label htmlFor="vin">VIN (optional)</Label>
-              <Input
-                id="vin"
-                placeholder="For more accurate quote"
-                value={formData.vin}
-                onChange={(e) => setFormData({ ...formData, vin: e.target.value.toUpperCase() })}
-                className="font-mono"
-                maxLength={17}
-              />
-            </div>
-
-            <Button
-              className="w-full"
-              onClick={() => setStep(2)}
-              disabled={!isStep1Valid}
+    <Card className="shadow-xl border-0 bg-gradient-to-br from-card to-card/95">
+      <CardHeader className="pb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <Car className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <CardTitle className="text-xl">Instant Cash Offer</CardTitle>
+            <CardDescription>Get your offer in 60 seconds</CardDescription>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Sparkles className="h-4 w-4 text-amber-500" />
+          <span>Powered by Canadian Black Book</span>
+        </div>
+      </CardHeader>
+      
+      <CardContent ref={formRef} className="space-y-4">
+        {/* Vehicle Selection - using fixed height containers to prevent layout shifts */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5 min-h-[68px]">
+            <Label htmlFor="year">Year <span className="text-destructive">*</span></Label>
+            <Select value={formData.year} onValueChange={(v) => handleFieldChange('year', v)}>
+              <SelectTrigger id="year">
+                <SelectValue placeholder="Select year" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 25 }, (_, i) => 2025 - i).map((year) => (
+                  <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-1.5 min-h-[68px]">
+            <Label htmlFor="make">Make <span className="text-destructive">*</span></Label>
+            <Select value={formData.make} onValueChange={(v) => handleFieldChange('make', v)}>
+              <SelectTrigger id="make">
+                <SelectValue placeholder="Select make" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.keys(vehicleData).sort().map((make) => (
+                  <SelectItem key={make} value={make}>{make}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5 min-h-[68px]">
+            <Label htmlFor="model">Model <span className="text-destructive">*</span></Label>
+            <Select 
+              value={formData.model} 
+              onValueChange={(v) => handleFieldChange('model', v)}
+              disabled={!formData.make}
             >
-              Continue <ArrowRight className="w-4 h-4 ml-1" />
+              <SelectTrigger id="model">
+                <SelectValue placeholder={formData.make ? "Select model" : "Select make first"} />
+              </SelectTrigger>
+              <SelectContent>
+                {availableModels.map((model) => (
+                  <SelectItem key={model} value={model}>{model}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-1.5 min-h-[68px]">
+            <Label htmlFor="trim">Trim Level <span className="text-destructive">*</span></Label>
+            <Select 
+              value={formData.trim} 
+              onValueChange={(v) => handleFieldChange('trim', v)}
+              disabled={!formData.model}
+            >
+              <SelectTrigger id="trim">
+                <SelectValue placeholder={formData.model ? "Select trim" : "Select model first"} />
+              </SelectTrigger>
+              <SelectContent>
+                {availableTrims.map((trim) => (
+                  <SelectItem key={trim} value={trim}>{trim}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3">
+          {/* Mileage - using type="text" with inputMode to prevent scroll glitches */}
+          <div className="space-y-1.5 min-h-[68px]">
+            <Label htmlFor="mileage">Mileage (km) <span className="text-destructive">*</span></Label>
+            <Input
+              id="mileage"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              placeholder="e.g. 50000"
+              value={formData.mileage}
+              onChange={handleMileageChange}
+              autoComplete="off"
+              className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+          </div>
+          
+          {/* Postal Code - with validation rules intact */}
+          <div className="space-y-1.5 min-h-[68px]">
+            <Label htmlFor="postalCode">Postal Code <span className="text-destructive">*</span></Label>
+            <Input
+              id="postalCode"
+              type="text"
+              placeholder="e.g. M5V 1J2"
+              value={formData.postalCode}
+              onChange={handlePostalCodeChange}
+              maxLength={7}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="characters"
+              spellCheck={false}
+              className={postalCodeError ? "border-destructive" : ""}
+            />
+            {postalCodeError && (
+              <p className="text-xs text-destructive flex items-center gap-1 mt-1">
+                <AlertCircle className="h-3 w-3" />
+                {postalCodeError}
+              </p>
+            )}
+          </div>
+        </div>
+        
+        {/* Get Quote Button */}
+        <Button
+          onClick={calculateQuote}
+          disabled={!isFormValid() || isCalculating}
+          className="w-full h-12 text-base font-semibold"
+          size="lg"
+        >
+          {isCalculating ? (
+            <span className="flex items-center gap-2">
+              <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Calculating...
+            </span>
+          ) : (
+            <span className="flex items-center gap-2">
+              <Zap className="h-5 w-5" />
+              Get Instant Cash Offer
+            </span>
+          )}
+        </Button>
+        
+        {/* Progress indicator during calculation */}
+        {isCalculating && (
+          <div className="space-y-2">
+            <Progress value={calculationProgress} className="h-2" />
+            <p className="text-xs text-center text-muted-foreground">
+              Analyzing market data...
+            </p>
+          </div>
+        )}
+        
+        {/* Trust badges */}
+        <div className="flex flex-wrap justify-center gap-2 pt-2">
+          <Badge variant="outline" className="text-xs">
+            <Shield className="h-3 w-3 mr-1" /> No Obligation
+          </Badge>
+          <Badge variant="outline" className="text-xs">
+            <Clock className="h-3 w-3 mr-1" /> 60-Second Quote
+          </Badge>
+          <Badge variant="outline" className="text-xs">
+            <TrendingUp className="h-3 w-3 mr-1" /> Top Dollar
+          </Badge>
+        </div>
+      </CardContent>
+      
+      {/* Result Dialog */}
+      <Dialog open={showResult} onOpenChange={setShowResult}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <CheckCircle className="h-6 w-6" />
+              Your Instant Cash Offer
+            </DialogTitle>
+            <DialogDescription>
+              {quoteResult?.vehicle}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {quoteResult && (
+            <div className="space-y-4 py-4">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-1">Estimated Value Range</p>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-lg text-muted-foreground">${quoteResult.lowValue.toLocaleString()}</span>
+                  <span className="text-3xl font-bold text-primary">${quoteResult.midValue.toLocaleString()}</span>
+                  <span className="text-lg text-muted-foreground">${quoteResult.highValue.toLocaleString()}</span>
+                </div>
+              </div>
+              
+              <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Quote ID:</span>
+                  <span className="font-mono">{quoteResult.quoteId}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Mileage:</span>
+                  <span>{parseInt(formData.mileage).toLocaleString()} km</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Location:</span>
+                  <span>{formData.postalCode}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Valid for:</span>
+                  <span>7 days</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-900">
+                <Star className="h-5 w-5 text-amber-500 shrink-0" />
+                <p className="text-sm text-amber-800 dark:text-amber-200">
+                  Complete the full appraisal to lock in your best offer and get paid within 24 hours!
+                </p>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowResult(false)} className="sm:flex-1">
+              Get New Quote
             </Button>
-          </div>
-        )}
-
-        {/* Step 2: Contact Info */}
-        {step === 2 && (
-          <div className="space-y-4">
-            <Card className="bg-muted/50">
-              <CardContent className="pt-4">
-                <p className="text-sm font-medium">
-                  {formData.year} {formData.make} {formData.model}
-                </p>
-<p className="text-xs text-muted-foreground">
-{formData.trim} • {formData.mileage ? parseInt(formData.mileage).toLocaleString() : '0'} km • {formData.condition} condition
-</p>
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <MapPin className="w-3 h-3" />
-                  {formData.postalCode}
-                </p>
-              </CardContent>
-            </Card>
-
-            <div>
-              <Label htmlFor="name">Your Name <span className="text-destructive">*</span></Label>
-              <Input
-                id="name"
-                placeholder="John Smith"
-                value={formData.customerName}
-                onChange={(e) => handleNameChange(e.target.value)}
-                className={nameError ? "border-destructive" : ""}
-              />
-              {nameError && (
-                <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {nameError}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="email">Email <span className="text-destructive">*</span></Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="john@example.com"
-                value={formData.customerEmail}
-                onChange={(e) => handleEmailChange(e.target.value)}
-                className={emailError ? "border-destructive" : ""}
-              />
-              {emailError && (
-                <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {emailError}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="phone">Phone <span className="text-destructive">*</span></Label>
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="416-985-2277"
-                value={formData.customerPhone}
-                onChange={(e) => handlePhoneChange(e.target.value)}
-                className={phoneError ? "border-destructive" : ""}
-              />
-              {phoneError && (
-                <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {phoneError}
-                </p>
-              )}
-            </div>
-
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
-                Back
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={handleSubmit}
-                disabled={
-                  isLoading || 
-                  !formData.customerName || 
-                  !formData.customerEmail || 
-                  !formData.customerPhone ||
-                  !isValidName(formData.customerName) ||
-                  !isValidEmail(formData.customerEmail) ||
-                  !isValidCanadianPhoneNumber(formData.customerPhone)
-                }
-              >
-                {isLoading ? "Calculating..." : "Get My Quote"}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Step 3: Quote Result */}
-        {step === 3 && quoteResult && (
-          <div className="space-y-4 text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <Check className="w-8 h-8 text-green-600" />
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold">Your Instant Quote</h3>
-              <p className="text-sm text-muted-foreground">
-                {formData.year} {formData.make} {formData.model} {formData.trim}
-              </p>
-            </div>
-
-            <Card className="bg-primary/5 border-primary/20">
-              <CardContent className="pt-6">
-                <p className="text-sm text-muted-foreground mb-1">Estimated Value</p>
-                <p className="text-4xl font-bold text-primary">
-                  ${quoteResult.estimate.average.toLocaleString()}
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Range: ${quoteResult.estimate.low.toLocaleString()} - ${quoteResult.estimate.high.toLocaleString()}
-                </p>
-              </CardContent>
-            </Card>
-
-            <div className="text-xs text-muted-foreground space-y-1">
-              <p>Quote ID: <span className="font-mono">{quoteResult.quoteId}</span></p>
-              <p>Valid until: {new Date(quoteResult.validUntil).toLocaleDateString()}</p>
-              <p className="flex items-center justify-center gap-1">
-                <MapPin className="w-3 h-3" />
-                Based on market values in {formData.postalCode}
-              </p>
-              <p>Final offer subject to in-person inspection</p>
-            </div>
-
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setIsOpen(false)} className="flex-1">
-                Close
-              </Button>
-              <Button className="flex-1" asChild>
-                <a href={`/trade-in?quote=${quoteResult.quoteId}&vehicle=${encodeURIComponent(`${formData.year} ${formData.make} ${formData.model}`)}&value=${quoteResult.estimate.average}`}>Complete Trade-In</a>
-              </Button>
-            </div>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
+            <Button onClick={proceedWithQuote} className="sm:flex-1">
+              <span className="flex items-center gap-2">
+                Continue to Full Appraisal
+                <ArrowRight className="h-4 w-4" />
+              </span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Card>
   )
 }
