@@ -8,15 +8,15 @@ export const GOOGLE_MAPS_URL = "https://maps.app.goo.gl/BnMSuy2N9ssa3qo19"
 // Default/fallback values (used when API is unavailable)
 // These should match the current live Google rating
 export const GOOGLE_RATING_DEFAULTS = {
-  rating: 4.9,
+  rating: 4.8,
   reviewCount: 500,
-  ratingDisplay: "4.9/5",
+  ratingDisplay: "4.8/5",
   reviewsDisplay: "500+ reviews"
 } as const
 
 // For SEO structured data
 export const GOOGLE_RATING_SEO = {
-  ratingValue: "4.9",
+  ratingValue: "4.8",
   reviewCount: "500",
   bestRating: "5",
   worstRating: "1"

@@ -1614,7 +1614,7 @@ export default function VehicleDetailPage() {
                 <CardContent className="p-6">
                   <div className="flex flex-col md:flex-row gap-6">
                     <div className="md:w-1/3">
-<p className="text-4xl font-bold">277+</p>
+<p className="text-4xl font-bold">500+</p>
                             <p className="text-muted-foreground">happy customers</p>
                       <div className="mt-4">
                         <p className="text-xs text-muted-foreground mb-2">AS SEEN ON</p>

@@ -17,7 +17,7 @@ export default function AboutPage() {
   const awards = [
     { title: "CarGurus Top Rated Dealer", years: "2023, 2024", icon: Trophy },
     { title: "Autotrader Best Priced Dealer", years: "2021, 2022", icon: Award },
-    { title: "Google 4.8-Star Rating", years: "277+ Reviews", icon: Star },
+    { title: "Google 4.8-Star Rating", years: "500+ Reviews", icon: Star },
   ]
 
   // Languages offered
@@ -156,7 +156,7 @@ export default function AboutPage() {
                 <p className="text-xs sm:text-base text-muted-foreground">Google Rating</p>
               </div>
               <div>
-                <p className="text-2xl sm:text-4xl font-bold text-primary">277+</p>
+                <p className="text-2xl sm:text-4xl font-bold text-primary">500+</p>
                 <p className="text-xs sm:text-base text-muted-foreground">Happy Customers</p>
               </div>
               <div>

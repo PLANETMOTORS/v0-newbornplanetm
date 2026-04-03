@@ -20,7 +20,7 @@ async function getGoogleReviewsData() {
     // Fallback data
     return {
       rating: 4.8,
-      reviewCount: 277
+      reviewCount: 500
     }
   }
 }

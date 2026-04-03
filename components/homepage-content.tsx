@@ -172,7 +172,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
   ]
 
   const ratingValue = siteSettings.aggregateRating?.ratingValue || 4.8
-  const reviewCount = siteSettings.aggregateRating?.reviewCount || 277
+  const reviewCount = siteSettings.aggregateRating?.reviewCount || 500
   const lowestRate = siteSettings.financingDefaults?.annualInterestRate || 6.29
 
   // Get business hours for display
