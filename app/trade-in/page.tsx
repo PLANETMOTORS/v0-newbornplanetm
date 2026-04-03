@@ -489,9 +489,12 @@ function TradeInContent() {
                       </Select>
                       <Input 
                         placeholder="Mileage (km)" 
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         value={mileage}
-                        onChange={(e) => setMileage(e.target.value)}
+                        onChange={(e) => setMileage(e.target.value.replace(/[^0-9]/g, ''))}
+                        autoComplete="off"
                       />
                     </div>
                     <Button 
