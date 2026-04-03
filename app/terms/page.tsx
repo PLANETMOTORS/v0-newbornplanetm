@@ -77,7 +77,7 @@ export default function TermsOfServicePage() {
                 <li>Valid driver&apos;s license and insurance</li>
               </ul>
               <p className="text-muted-foreground mt-4">
-                Rates starting from 4.79% APR are available to qualified buyers. Your actual rate will depend on your credit profile and the lender&apos;s assessment.
+                Rates starting from 6.29% APR are available to qualified buyers. Your actual rate will depend on your credit profile and the lender&apos;s assessment.
               </p>
             </section>
 

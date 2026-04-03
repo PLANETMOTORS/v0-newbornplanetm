@@ -28,7 +28,7 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: 'Planet Motors | Premium Used Car Dealership - Nationwide Delivery',
-  description: 'Shop 9,500+ certified pre-owned vehicles with free Carfax reports, 210-point inspections, and nationwide delivery across Canada. Get pre-approved in minutes.',
+  description: 'Shop certified pre-owned vehicles with free Carfax reports, 210-point inspections, and nationwide delivery across Canada. Get pre-approved in minutes.',
   keywords: 'used cars, pre-owned vehicles, car dealership, Canada, Ontario, Toronto, Richmond Hill, financing, trade-in, nationwide delivery',
   authors: [{ name: 'Planet Motors' }],
   manifest: '/manifest.json',
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Planet Motors | Premium Used Car Dealership',
-    description: 'Shop 9,500+ certified pre-owned vehicles with free Carfax reports and nationwide delivery across Canada.',
+    description: 'Shop certified pre-owned vehicles with free Carfax reports and nationwide delivery across Canada.',
     url: 'https://www.planetmotors.ca',
     siteName: 'Planet Motors',
     locale: 'en_CA',
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Planet Motors | Premium Used Car Dealership',
-    description: 'Shop 9,500+ certified pre-owned vehicles with free Carfax reports and nationwide delivery.',
+    description: 'Shop certified pre-owned vehicles with free Carfax reports and nationwide delivery.',
   },
   robots: {
     index: true,

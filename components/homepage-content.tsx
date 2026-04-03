@@ -49,17 +49,17 @@ export type HomepageProps = {
 }
 
 const stats = [
-  { value: "9,500+", label: "Vehicles in Stock", trend: "+124 this week" },
+  { value: "20+", label: "Lender Partners", trend: "Best rates guaranteed" },
   { value: "210", label: "Point Inspection", trend: "Industry-leading standard" },
   { value: "10-Day", label: "Money Back Guarantee", trend: "No questions asked" },
-  { value: "4.79%", label: "Lowest APR Rate", trend: "Financing from major lenders" },
+  { value: "6.29%", label: "Starting APR Rate", trend: "Financing from major lenders" },
 ]
 
 const features = [
   {
     icon: RotateCw,
     title: "360° Vehicle Views",
-    description: "Explore every angle with our interactive viewer. AVIF-optimized images for lightning-fast loading across 9,500+ vehicles.",
+    description: "Explore every angle with our interactive viewer. AVIF-optimized images for lightning-fast loading across our available inventory.",
   },
   {
     icon: Shield,
@@ -136,7 +136,7 @@ const lenders = [
   { name: "Scotiabank", rate: "5.29%" },
   { name: "BMO", rate: "5.99%" },
   { name: "CIBC", rate: "5.49%" },
-  { name: "Desjardins", rate: "4.79%" },
+  { name: "Desjardins", rate: "6.29%" },
 ]
 
 export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
@@ -173,7 +173,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
 
   const ratingValue = siteSettings.aggregateRating?.ratingValue || 4.8
   const reviewCount = siteSettings.aggregateRating?.reviewCount || 277
-  const lowestRate = siteSettings.financingDefaults?.annualInterestRate || 4.79
+  const lowestRate = siteSettings.financingDefaults?.annualInterestRate || 6.29
 
   // Get business hours for display
   const weekdayHours = siteSettings.businessHours?.find(h => h.day === "Monday")
@@ -207,7 +207,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
                   </span>
-                  <span className="text-green-600 font-semibold">124 new arrivals</span>
+                  <span className="text-green-600 font-semibold">New arrivals daily</span>
                 </span>
                 <span className="w-px h-4 bg-border" />
                 <span className="text-muted-foreground">Updated 2 min ago</span>
@@ -387,7 +387,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                   <div className="w-px h-4 bg-border" />
                   <div className="flex items-center gap-1 text-green-600">
                     <CheckCircle className="w-4 h-4" />
-                    <span>6 Lenders</span>
+                    <span>20+ Lenders</span>
                   </div>
                   <div className="w-px h-4 bg-border" />
                   <div className="flex items-center gap-1 text-green-600">
@@ -513,7 +513,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                 Ready to find your perfect vehicle?
               </h2>
               <p className="mt-6 text-primary-foreground/80 max-w-xl">
-                Browse our inventory of 9,500+ certified pre-owned vehicles. Get pre-approved for financing in minutes with rates from {lowestRate}% APR.
+                Browse our inventory of certified pre-owned vehicles. Get pre-approved for financing in minutes with rates from {lowestRate}% APR.
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
                 <Button size="lg" variant="secondary" asChild>

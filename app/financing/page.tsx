@@ -15,12 +15,12 @@ const defaultLenders = [
   { name: "Scotiabank", rate: "5.29%", term: "84 mo", logo: "SCO" },
   { name: "BMO", rate: "5.99%", term: "72 mo", logo: "BMO" },
   { name: "CIBC", rate: "5.49%", term: "84 mo", logo: "CIBC" },
-  { name: "Desjardins", rate: "4.79%", term: "96 mo", logo: "DES" },
+  { name: "Desjardins", rate: "6.29%", term: "96 mo", logo: "DES" },
 ]
 
 const benefits = [
   "No impact on your credit score for pre-approval",
-  "Compare rates from 6 major Canadian lenders",
+  "Compare rates from 20+ major Canadian lenders",
   "Get approved in as little as 30 minutes",
   "Flexible terms from 24 to 96 months",
   "No hidden fees or surprises",
@@ -55,7 +55,7 @@ export default async function FinancingPage() {
   const lenders = defaultLenders
 
   // Get the lowest rate for display
-  const lowestRate = 4.79
+  const lowestRate = 6.29
 
   return (
     <div className="min-h-screen bg-background">
@@ -75,7 +75,7 @@ export default async function FinancingPage() {
                 Get Pre-Approved for Auto Financing
               </h1>
               <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
-                Compare rates from 6 major Canadian lenders and get approved in minutes. No impact on your credit score.
+                Compare rates from 20+ major Canadian lenders and get approved in minutes. No impact on your credit score.
               </p>
 
               <div className="mt-8 space-y-3">
@@ -204,7 +204,7 @@ export default async function FinancingPage() {
                         <td className="text-center py-2 px-4">5.29%</td>
                         <td className="text-center py-2 px-4">5.99%</td>
                         <td className="text-center py-2 px-4">5.49%</td>
-                        <td className="text-center py-2 px-4 text-primary font-medium">4.79%</td>
+                        <td className="text-center py-2 px-4 text-primary font-medium">6.29%</td>
                       </tr>
                       <tr>
                         <td className="py-2 px-4 font-medium">TERMS</td>

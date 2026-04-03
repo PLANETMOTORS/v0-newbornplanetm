@@ -45,7 +45,7 @@ export function TrustBadges() {
       <div className="container mx-auto px-4">
         {/* Section header */}
         <div className="text-center mb-10">
-          <p className="text-sm font-medium text-primary mb-2">Why 9,500+ Customers Trust Us</p>
+          <p className="text-sm font-medium text-primary mb-2">Why Customers Trust Us</p>
           <h2 className="text-2xl md:text-3xl font-serif font-semibold">The Planet Motors Promise</h2>
         </div>
         

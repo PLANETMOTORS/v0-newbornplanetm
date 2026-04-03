@@ -10,7 +10,7 @@ const steps = [
     icon: Search,
     step: 1,
     title: "Browse & Select",
-    description: "Explore 9,500+ certified vehicles with 360° views, detailed inspection reports, and transparent pricing.",
+    description: "Explore our certified vehicles with 360° views, detailed inspection reports, and transparent pricing.",
     features: ["360° Interactive Views", "210-Point Inspection Reports", "Price Match Guarantee"],
     time: "5 min",
     color: "from-blue-500 to-blue-600"
@@ -19,8 +19,8 @@ const steps = [
     icon: CreditCard,
     step: 2,
     title: "Get Pre-Approved",
-    description: "Apply in 2 minutes with no credit impact. Compare offers from 6 Canadian lenders instantly.",
-    features: ["No Credit Impact", "6 Lender Options", "Rates from 4.79%"],
+    description: "Apply in 2 minutes with no credit impact. Compare offers from 20+ Canadian lenders instantly.",
+    features: ["No Credit Impact", "20+ Lender Options", "Rates from 6.29%"],
     time: "2 min",
     color: "from-green-500 to-green-600"
   },
