@@ -308,6 +308,66 @@ export function InstantQuote() {
     )
   }
   
+  // Local fallback valuation calculation (used if API fails)
+  const calculateLocalValue = (data: typeof formData) => {
+    const currentYear = new Date().getFullYear()
+    const age = currentYear - parseInt(data.year)
+    const mileageNum = parseInt(data.mileage.replace(/,/g, '')) || 50000
+    
+    // Base values by model/make
+    const baseValues: Record<string, number> = {
+      "Jetta": 24000, "Civic": 26000, "Corolla": 24000, "Elantra": 22000,
+      "Golf": 25000, "Mazda3": 24000, "Sentra": 21000, "Forte": 21000,
+      "Accord": 32000, "Camry": 32000, "Sonata": 30000, "Passat": 30000,
+      "CR-V": 35000, "RAV4": 35000, "Tucson": 32000, "Tiguan": 34000,
+      "Highlander": 48000, "Pilot": 48000, "4Runner": 52000,
+      "F-150": 55000, "Silverado": 52000, "Tacoma": 42000, "Tundra": 55000,
+      "3 Series": 52000, "C-Class": 50000, "Model 3": 55000, "Model Y": 60000,
+    }
+    const makeTiers: Record<string, number> = {
+      "BMW": 45000, "Mercedes-Benz": 48000, "Audi": 45000, "Lexus": 42000,
+      "Tesla": 55000, "Toyota": 28000, "Honda": 28000, "Volkswagen": 27000,
+      "Hyundai": 25000, "Kia": 25000, "Ford": 30000, "Chevrolet": 28000,
+    }
+    
+    let baseValue = baseValues[data.model] || makeTiers[data.make] || 28000
+    
+    // Depreciation curve
+    let value = baseValue
+    for (let y = 0; y < age; y++) {
+      if (y === 0) value *= 0.80
+      else if (y === 1) value *= 0.85
+      else if (y === 2) value *= 0.88
+      else if (y < 6) value *= 0.90
+      else value *= 0.92
+    }
+    
+    // Mileage adjustment
+    const expectedMileage = age * 20000
+    const mileageDiff = mileageNum - expectedMileage
+    if (mileageDiff > 0) {
+      value -= mileageDiff * 0.05
+      if (mileageNum > 150000) value -= (mileageNum - 150000) * 0.03
+      if (mileageNum > 200000) value -= (mileageNum - 200000) * 0.02
+    }
+    
+    // Condition adjustment
+    const conditionMultipliers: Record<string, number> = {
+      "excellent": 1.10, "good": 1.00, "fair": 0.85, "poor": 0.65,
+    }
+    value *= conditionMultipliers[data.condition] || 1.0
+    
+    // Minimum and rounding
+    value = Math.max(500, value)
+    value = Math.round(value / 50) * 50
+    
+    return {
+      lowValue: Math.round(value * 0.90 / 50) * 50,
+      midValue: value,
+      highValue: Math.round(value * 1.10 / 50) * 50,
+    }
+  }
+  
   // Calculate quote
   const calculateQuote = async () => {
     if (!isFormValid()) return
@@ -324,110 +384,55 @@ export function InstantQuote() {
       "Generating your instant offer..."
     ]
     
-    for (let i = 0; i < steps.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setCalculationProgress((i + 1) * 20)
-    }
+    // Call AI-powered valuation API
+    let lowValue = 0
+    let midValue = 0
+    let highValue = 0
+    let valuationFactors: string[] = []
     
-    // Calculate value based on year, make, model using realistic Canadian market data
-    const yearNum = parseInt(formData.year)
-    const currentYear = new Date().getFullYear()
-    const age = currentYear - yearNum
-    const mileageNum = parseInt(formData.mileage.replace(/,/g, '')) || 50000
-    
-    // Base MSRP values by vehicle class (Canadian market)
-    const vehicleBaseValues: Record<string, number> = {
-      // Economy/Compact
-      "Jetta": 24000, "Civic": 26000, "Corolla": 24000, "Elantra": 22000, "Sentra": 21000,
-      "Mazda3": 24000, "Cruze": 22000, "Focus": 21000, "Golf": 25000, "Forte": 21000,
-      // Mid-size
-      "Accord": 32000, "Camry": 32000, "Sonata": 30000, "Altima": 29000, "Passat": 30000,
-      "Mazda6": 29000, "Malibu": 28000, "Fusion": 28000, "Legacy": 30000, "Optima": 28000,
-      // SUV Compact
-      "CR-V": 35000, "RAV4": 35000, "Tucson": 32000, "Rogue": 33000, "CX-5": 34000,
-      "Escape": 33000, "Equinox": 32000, "Forester": 33000, "Sportage": 32000, "Tiguan": 34000,
-      // SUV Mid/Full
-      "Highlander": 48000, "Pilot": 48000, "Palisade": 50000, "Telluride": 50000, "4Runner": 52000,
-      "Explorer": 45000, "Tahoe": 65000, "Traverse": 45000, "Pathfinder": 45000, "Outback": 36000,
-      // Trucks
-      "F-150": 55000, "Silverado": 52000, "RAM 1500": 52000, "Tacoma": 42000, "Tundra": 55000,
-      "Sierra": 52000, "Colorado": 38000, "Ranger": 38000, "Frontier": 38000, "Ridgeline": 45000,
-      // Luxury
-      "3 Series": 52000, "5 Series": 68000, "C-Class": 50000, "E-Class": 65000, "A4": 48000,
-      "Model 3": 55000, "Model Y": 60000, "Model S": 110000, "Model X": 120000,
-      // Sports
-      "Mustang": 38000, "Camaro": 35000, "Challenger": 38000, "86": 32000, "MX-5": 35000,
-    }
-    
-    // Get base value or use default based on make tier
-    const makeTiers: Record<string, number> = {
-      "BMW": 45000, "Mercedes-Benz": 48000, "Audi": 45000, "Lexus": 42000, "Tesla": 55000,
-      "Porsche": 75000, "Land Rover": 60000, "Jaguar": 50000, "Infiniti": 40000, "Acura": 38000,
-      "Toyota": 28000, "Honda": 28000, "Mazda": 26000, "Subaru": 28000,
-      "Ford": 30000, "Chevrolet": 28000, "GMC": 35000, "RAM": 40000,
-      "Hyundai": 25000, "Kia": 25000, "Nissan": 26000, "Volkswagen": 27000,
-      "Dodge": 28000, "Jeep": 35000, "Chrysler": 30000,
-    }
-    
-    let baseValue = vehicleBaseValues[formData.model] || makeTiers[formData.make] || 28000
-    
-    // Depreciation curve (steeper in early years, flattens out)
-    // Year 1: 20%, Year 2: 15%, Year 3: 12%, Year 4-6: 10%, Year 7+: 8%
-    let depreciationRate = 1.0
-    for (let y = 0; y < age; y++) {
-      if (y === 0) depreciationRate *= 0.80
-      else if (y === 1) depreciationRate *= 0.85
-      else if (y === 2) depreciationRate *= 0.88
-      else if (y < 6) depreciationRate *= 0.90
-      else depreciationRate *= 0.92
-    }
-    
-    // Calculate depreciated value
-    let currentValue = baseValue * depreciationRate
-    
-    // Mileage adjustment (average is 20,000 km/year in Canada)
-    const expectedMileage = age * 20000
-    const mileageDiff = mileageNum - expectedMileage
-    
-    // High mileage penalty: $0.05 per km over expected
-    // Low mileage bonus: $0.03 per km under expected (capped)
-    if (mileageDiff > 0) {
-      // High mileage - significant penalty
-      currentValue -= mileageDiff * 0.05
-      // Extra penalty for very high mileage (over 150,000 km)
-      if (mileageNum > 150000) {
-        currentValue -= (mileageNum - 150000) * 0.03
+    try {
+      // Start progress animation
+      const progressInterval = setInterval(() => {
+        setCalculationProgress(prev => Math.min(prev + 5, 90))
+      }, 300)
+      
+      const response = await fetch("/api/vehicle-valuation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          year: formData.year,
+          make: formData.make,
+          model: formData.model,
+          trim: formData.trim,
+          mileage: formData.mileage,
+          condition: formData.condition,
+        }),
+      })
+      
+      clearInterval(progressInterval)
+      setCalculationProgress(100)
+      
+      if (response.ok) {
+        const valuation = await response.json()
+        lowValue = valuation.lowValue
+        midValue = valuation.midValue
+        highValue = valuation.highValue
+        valuationFactors = valuation.factors || []
+      } else {
+        // Fallback to local calculation if API fails
+        const fallbackResult = calculateLocalValue(formData)
+        lowValue = fallbackResult.lowValue
+        midValue = fallbackResult.midValue
+        highValue = fallbackResult.highValue
       }
-      // Extra penalty for extreme mileage (over 200,000 km)
-      if (mileageNum > 200000) {
-        currentValue -= (mileageNum - 200000) * 0.02
-      }
-    } else {
-      // Low mileage bonus (capped at 15% of value)
-      const bonus = Math.min(Math.abs(mileageDiff) * 0.03, currentValue * 0.15)
-      currentValue += bonus
+    } catch {
+      // Fallback to local calculation on network error
+      setCalculationProgress(100)
+      const fallbackResult = calculateLocalValue(formData)
+      lowValue = fallbackResult.lowValue
+      midValue = fallbackResult.midValue
+      highValue = fallbackResult.highValue
     }
-    
-    // Condition adjustment based on user selection
-    const conditionMultipliers: Record<string, number> = {
-      "excellent": 1.10,
-      "good": 1.00,
-      "fair": 0.85,
-      "poor": 0.65,
-    }
-    currentValue *= conditionMultipliers[formData.condition] || 1.0
-    
-    // Ensure minimum trade-in value (scrap value ~$500-1500)
-    const minValue = Math.max(500, baseValue * 0.02)
-    currentValue = Math.max(currentValue, minValue)
-    
-    // Round to nearest $50
-    currentValue = Math.round(currentValue / 50) * 50
-    
-    // Create range (trade-in values vary by dealer)
-    const lowValue = Math.round((currentValue * 0.90) / 50) * 50
-    const highValue = Math.round((currentValue * 1.10) / 50) * 50
-    const midValue = currentValue
     
     const quoteId = `PQ-${Date.now().toString(36).toUpperCase()}`
     
