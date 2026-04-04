@@ -5,8 +5,14 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 /** @type {import('next').NextConfig} */
-// Planet Motors - Next.js Config v66 - Turbopack Absolute Root
+// Planet Motors - Next.js Config v67 - Performance Optimizations
 const nextConfig = {
+  // Enable React Compiler for automatic optimizations
+  reactCompiler: true,
+  
+  // Enable cache components for better static caching
+  cacheComponents: true,
+  
   // CRITICAL: Transpile Sanity packages to prevent duplicate bundling
   transpilePackages: ['sanity', 'next-sanity', '@sanity/vision', '@sanity/ui', '@sanity/client'],
   
@@ -18,7 +24,7 @@ const nextConfig = {
   experimental: {
     webpackMemoryOptimizations: true,
     // Optimize package imports to reduce memory
-    optimizePackageImports: ['sanity', '@sanity/ui', 'lucide-react', '@radix-ui/react-icons'],
+    optimizePackageImports: ['sanity', '@sanity/ui', 'lucide-react', '@radix-ui/react-icons', 'date-fns', 'framer-motion'],
   },
   
   typescript: { ignoreBuildErrors: true },
