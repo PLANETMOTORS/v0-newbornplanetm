@@ -677,14 +677,6 @@ export default function VehicleDetailPage() {
                         </div>
                       </DialogContent>
                     </Dialog>
-                    {/* Live Video Tour - Inline Button */}
-                    <div className="inline-flex">
-                      <LiveVideoCall 
-                        vehicleId={vehicle.id} 
-                        vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`} 
-                        variant="prominent"
-                      />
-                    </div>
                   </div>
 
                   {/* Thumbnails */}
