@@ -7,12 +7,6 @@ const __dirname = dirname(__filename)
 /** @type {import('next').NextConfig} */
 // Planet Motors - Next.js Config v67 - Performance Optimizations
 const nextConfig = {
-  // Enable React Compiler for automatic optimizations
-  reactCompiler: true,
-  
-  // Enable cache components for better static caching
-  cacheComponents: true,
-  
   // CRITICAL: Transpile Sanity packages to prevent duplicate bundling
   transpilePackages: ['sanity', 'next-sanity', '@sanity/vision', '@sanity/ui', '@sanity/client'],
   
@@ -23,12 +17,11 @@ const nextConfig = {
   
   experimental: {
     webpackMemoryOptimizations: true,
-    // Optimize package imports to reduce memory
+    // Optimize package imports to reduce memory and bundle size
     optimizePackageImports: ['sanity', '@sanity/ui', 'lucide-react', '@radix-ui/react-icons', 'date-fns', 'framer-motion'],
   },
   
   typescript: { ignoreBuildErrors: true },
-  eslint: { ignoreDuringBuilds: true },
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
