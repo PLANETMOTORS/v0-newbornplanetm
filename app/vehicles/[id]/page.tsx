@@ -562,30 +562,25 @@ export default function VehicleDetailPage() {
           </div>
         </div>
 
-        {/* Main Tabs - Mobile Optimized to fit all tabs without scrolling */}
-        <div className="border-b sticky top-16 bg-background z-40">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="h-11 bg-transparent p-0 gap-0 w-full flex justify-between px-1 sm:px-4 sm:justify-start sm:gap-1">
-              {[
-                { label: "Photos", short: "Pics", value: "photos" },
-                { label: "Overview", short: "Info", value: "overview" },
-                { label: "Features", short: "Specs", value: "features" },
-                { label: "Inspect", short: "Check", value: "inspection" },
-                { label: "Pricing", short: "Price", value: "pricing" },
-                { label: "Ratings", short: "Rate", value: "ratings" },
-                { label: "Protection", short: "Plan", value: "protection" },
-              ].map((tab) => (
-                <TabsTrigger
-                  key={tab.value}
-                  value={tab.value}
-                  className="h-11 px-1.5 sm:px-3 text-[10px] sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none whitespace-nowrap min-h-[44px]"
-                >
-                  <span className="hidden sm:inline">{tab.label}</span>
-                  <span className="sm:hidden">{tab.short}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+        {/* Main Tabs - Mobile Optimized with Scroll Indicator */}
+        <div className="border-b sticky top-16 bg-background z-40 relative">
+          <div className="overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="h-12 bg-transparent p-0 gap-0 flex w-max px-4 pr-10">
+                {["Photos", "Overview", "Features", "Inspect", "Pricing", "Ratings", "Protection"].map((tab) => (
+                  <TabsTrigger
+                    key={tab}
+                    value={tab === "Inspect" ? "inspection" : tab.toLowerCase()}
+                    className="h-12 px-3 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none whitespace-nowrap min-h-[44px] flex-shrink-0"
+                  >
+                    {tab}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+          {/* Scroll indicator gradient - shows there are more tabs on mobile */}
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
         </div>
 
         <div className="container mx-auto px-4 py-8">
