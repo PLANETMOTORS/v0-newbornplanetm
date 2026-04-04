@@ -96,17 +96,17 @@ export async function POST(request: NextRequest) {
   const applicationNumber = `PM-${Date.now().toString(36).toUpperCase()}`
   
   // Simulate submitting to selected lenders and getting offers
-  const offers = (selectedLenderIds || ['td', 'rbc', 'scotia']).map((lenderId: string) => {
+  const offers = (selectedLenderIds || ['lender_a', 'lender_b', 'lender_c']).map((lenderId: string) => {
     const lenderConfig: Record<string, any> = {
-      td: { name: 'TD Auto Finance', baseRate: 5.99, maxTerm: 84 },
-      rbc: { name: 'RBC', baseRate: 6.29, maxTerm: 84 },
-      scotia: { name: 'Scotiabank', baseRate: 5.79, maxTerm: 84 },
-      bmo: { name: 'BMO', baseRate: 6.49, maxTerm: 72 },
-      cibc: { name: 'CIBC', baseRate: 6.29, maxTerm: 84 },
-      desjardins: { name: 'Desjardins', baseRate: 5.49, maxTerm: 96 },
+      lender_a: { name: 'Partner Lender A', baseRate: 6.29, maxTerm: 84 },
+      lender_b: { name: 'Partner Lender B', baseRate: 6.49, maxTerm: 84 },
+      lender_c: { name: 'Partner Lender C', baseRate: 6.79, maxTerm: 84 },
+      lender_d: { name: 'Partner Lender D', baseRate: 6.99, maxTerm: 72 },
+      lender_e: { name: 'Partner Lender E', baseRate: 7.29, maxTerm: 84 },
+      lender_f: { name: 'Partner Lender F', baseRate: 7.49, maxTerm: 96 },
     }
     
-    const lender = lenderConfig[lenderId] || lenderConfig.td
+    const lender = lenderConfig[lenderId] || lenderConfig.lender_a
     
     // Calculate rate based on credit score
     let rate = lender.baseRate

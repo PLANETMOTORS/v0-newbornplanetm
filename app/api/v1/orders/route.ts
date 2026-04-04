@@ -83,8 +83,8 @@ export async function POST(request: NextRequest) {
   // Mock financing offer
   const financing = financingOfferId ? {
     id: financingOfferId,
-    lender: 'TD Auto Finance',
-    rate: 5.49,
+    lender: 'Premier Auto Finance',
+    rate: 6.29,
     term: 72,
     monthlyPayment: 485,
   } : null

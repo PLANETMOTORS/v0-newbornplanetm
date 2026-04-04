@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-// Canadian lenders configuration
+// Partner lenders configuration
 const lenders = [
-  { id: 'td', name: 'TD Auto Finance', code: 'TD', type: 'bank', minScore: 600, maxTerm: 84, baseRate: 5.99 },
-  { id: 'rbc', name: 'RBC', code: 'RBC', type: 'bank', minScore: 620, maxTerm: 84, baseRate: 6.29 },
-  { id: 'scotia', name: 'Scotiabank', code: 'SCOTIA', type: 'bank', minScore: 600, maxTerm: 84, baseRate: 5.79 },
-  { id: 'bmo', name: 'BMO', code: 'BMO', type: 'bank', minScore: 640, maxTerm: 72, baseRate: 6.49 },
-  { id: 'cibc', name: 'CIBC', code: 'CIBC', type: 'bank', minScore: 620, maxTerm: 84, baseRate: 6.29 },
-  { id: 'desjardins', name: 'Desjardins', code: 'DESJ', type: 'credit_union', minScore: 580, maxTerm: 96, baseRate: 5.49 },
+  { id: 'lender_a', name: 'Partner Lender A', code: 'PLA', type: 'bank', minScore: 600, maxTerm: 84, baseRate: 6.29 },
+  { id: 'lender_b', name: 'Partner Lender B', code: 'PLB', type: 'bank', minScore: 620, maxTerm: 84, baseRate: 6.49 },
+  { id: 'lender_c', name: 'Partner Lender C', code: 'PLC', type: 'bank', minScore: 600, maxTerm: 84, baseRate: 6.79 },
+  { id: 'lender_d', name: 'Partner Lender D', code: 'PLD', type: 'bank', minScore: 640, maxTerm: 72, baseRate: 6.99 },
+  { id: 'lender_e', name: 'Partner Lender E', code: 'PLE', type: 'bank', minScore: 620, maxTerm: 84, baseRate: 7.29 },
+  { id: 'lender_f', name: 'Partner Lender F', code: 'PLF', type: 'credit_union', minScore: 580, maxTerm: 96, baseRate: 7.49 },
 ]
 
 // POST /api/v1/financing/prequalify - Soft credit pull (no score impact)
