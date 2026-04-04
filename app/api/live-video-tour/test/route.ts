@@ -1,36 +1,65 @@
 import { NextResponse } from "next/server"
-import { createLiveVideoTourBooking } from "@/lib/liveVideoTour/service"
+import { Resend } from "resend"
 
 // GET /api/live-video-tour/test
-// Triggers a test booking to verify email notifications
+// Sends a direct test email to verify Resend is working
 export async function GET() {
-  const testData = {
-    vehicleId: "test-vehicle-123",
-    vehicleName: "2024 BMW X5 xDrive40i",
-    customerName: "Test User",
-    customerEmail: "info@planetmotors.ca",
-    customerPhone: "4165551234",
-    preferredTime: "2026-04-07T10:00:00-04:00",
-    timezone: "America/Toronto",
-    provider: "google_meet" as const,
-    notes: "Test booking triggered from v0 to verify email system"
+  const apiKey = process.env.API_KEY_RESEND || process.env.RESEND_API_KEY
+  
+  console.log("[v0] API Key exists:", !!apiKey)
+  console.log("[v0] API Key prefix:", apiKey?.substring(0, 10))
+  
+  if (!apiKey) {
+    return NextResponse.json({
+      success: false,
+      error: "No Resend API key found",
+      checkedVars: ["API_KEY_RESEND", "RESEND_API_KEY"]
+    }, { status: 500 })
   }
 
-  console.log("[v0] Triggering test Live Video Tour booking...")
+  const resend = new Resend(apiKey)
   
   try {
-    const result = await createLiveVideoTourBooking(testData)
-    console.log("[v0] Test booking result:", result)
+    console.log("[v0] Sending test email via Resend...")
+    
+    const { data, error } = await resend.emails.send({
+      from: "onboarding@resend.dev", // Use Resend's test domain
+      to: "info@planetmotors.ca",
+      subject: "Live Video Tour Test - " + new Date().toISOString(),
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h1 style="color: #7c3aed;">Live Video Tour Test Email</h1>
+          <p>This is a test email from Planet Motors to verify the email system is working.</p>
+          <p><strong>Timestamp:</strong> ${new Date().toISOString()}</p>
+          <p><strong>Test Vehicle:</strong> 2024 BMW X5 xDrive40i</p>
+          <hr/>
+          <p style="color: #666;">If you receive this, the email system is working correctly.</p>
+        </div>
+      `
+    })
+
+    if (error) {
+      console.error("[v0] Resend error:", error)
+      return NextResponse.json({
+        success: false,
+        error: error.message,
+        errorDetails: error
+      }, { status: 500 })
+    }
+
+    console.log("[v0] Email sent successfully:", data)
     
     return NextResponse.json({
-      message: "Test booking triggered",
-      result,
-      sentTo: testData.customerEmail
+      success: true,
+      message: "Test email sent successfully",
+      emailId: data?.id,
+      sentTo: "info@planetmotors.ca",
+      timestamp: new Date().toISOString()
     })
   } catch (error) {
-    console.error("[v0] Test booking error:", error)
+    console.error("[v0] Exception:", error)
     return NextResponse.json({
-      message: "Test booking failed",
+      success: false,
       error: String(error)
     }, { status: 500 })
   }
