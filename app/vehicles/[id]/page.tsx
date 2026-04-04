@@ -567,7 +567,7 @@ export default function VehicleDetailPage() {
           <div className="overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="h-12 bg-transparent p-0 gap-0 flex w-max px-4 pr-10">
-                {["Photos", "Overview", "Features", "Inspect", "Pricing", "Ratings", "Protection"].map((tab) => (
+                {["Photos", "Overview", "Features", "Inspect", "Pricing", "Protection"].map((tab) => (
                   <TabsTrigger
                     key={tab}
                     value={tab === "Inspect" ? "inspection" : tab.toLowerCase()}
@@ -1461,7 +1461,7 @@ export default function VehicleDetailPage() {
                   </Card>
                 </TabsContent>
 
-                {/* Ratings Tab */}
+                {/* ARCHIVED: Ratings Tab - Commented out per request
                 <TabsContent value="ratings" className="mt-0 space-y-6">
                   <h2 className="text-xl font-semibold">Our rating</h2>
                   
@@ -1495,6 +1495,7 @@ export default function VehicleDetailPage() {
                     </CardContent>
                   </Card>
                 </TabsContent>
+                */}
 
                 {/* Protection Tab */}
                 <TabsContent value="protection" className="mt-0 space-y-6">
