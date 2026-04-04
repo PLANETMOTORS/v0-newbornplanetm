@@ -31,9 +31,9 @@ export async function POST(
     status: "pending_documents",
     selectedAt: new Date().toISOString(),
     offer: {
-      lenderId: "td",
-      lenderName: "TD Auto Finance",
-      rate: 5.49,
+      lenderId: "premier",
+      lenderName: "Premier Auto Finance",
+      rate: 6.29,
       term: 72,
       monthlyPayment: 749.99,
     },

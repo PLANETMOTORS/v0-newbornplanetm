@@ -23,12 +23,12 @@ export async function GET(request: NextRequest) {
   // Mock offers from multiple lenders
   const offers = [
     {
-      id: "offer_td_001",
-      lenderId: "td",
-      lenderName: "TD Auto Finance",
-      lenderLogo: "/lenders/td-logo.png",
+      id: "offer_premier_001",
+      lenderId: "premier",
+      lenderName: "Premier Auto Finance",
+      lenderLogo: "/lenders/premier-logo.png",
       status: "approved",
-      rate: 5.49,
+      rate: 6.29,
       rateType: "fixed",
       term: 72,
       monthlyPayment: 749.99,
@@ -49,12 +49,12 @@ export async function GET(request: NextRequest) {
       savings: 1200, // vs average
     },
     {
-      id: "offer_scotia_001",
-      lenderId: "scotia",
-      lenderName: "Scotiabank",
-      lenderLogo: "/lenders/scotia-logo.png",
+      id: "offer_capital_001",
+      lenderId: "capital",
+      lenderName: "Capital Auto Credit",
+      lenderLogo: "/lenders/capital-logo.png",
       status: "approved",
-      rate: 5.79,
+      rate: 6.79,
       rateType: "fixed",
       term: 72,
       monthlyPayment: 762.45,
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
       totalCost: 54896.40,
       downPaymentRequired: 5000,
       features: [
-        "Scene+ points eligible",
+        "Rewards points eligible",
         "Flexible payment dates",
       ],
       conditions: [
@@ -73,12 +73,12 @@ export async function GET(request: NextRequest) {
       recommended: false,
     },
     {
-      id: "offer_desj_001",
-      lenderId: "desjardins",
-      lenderName: "Desjardins",
-      lenderLogo: "/lenders/desjardins-logo.png",
+      id: "offer_community_001",
+      lenderId: "community",
+      lenderName: "Community Auto Loans",
+      lenderLogo: "/lenders/community-logo.png",
       status: "approved",
-      rate: 5.29,
+      rate: 6.49,
       rateType: "fixed",
       term: 84,
       monthlyPayment: 658.99,
