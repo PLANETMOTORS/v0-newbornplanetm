@@ -566,7 +566,7 @@ export const financingPage = defineType({
       fields: [
         { name: 'headline', title: 'Headline', type: 'string' },
         { name: 'subheadline', title: 'Subheadline', type: 'text', rows: 2 },
-        { name: 'highlightText', title: 'Highlight Text (e.g., "Rates from 4.99%")', type: 'string' },
+        { name: 'highlightText', title: 'Highlight Text (e.g., "Rates from 6.29%")', type: 'string' },
         { name: 'backgroundImage', title: 'Background Image', type: 'image', options: { hotspot: true } },
       ],
     }),
