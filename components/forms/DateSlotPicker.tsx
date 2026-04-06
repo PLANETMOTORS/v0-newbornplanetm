@@ -72,17 +72,26 @@ export function DateSlotPicker({
           onValueChange={handleDateChange}
           disabled={disabled || loading}
         >
-          <SelectTrigger className="h-12 text-base">
+          <SelectTrigger className="w-full h-12 text-base touch-manipulation">
             <SelectValue placeholder={loading ? "Loading..." : "Choose a date"} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent 
+            className="max-h-[50vh] z-[9999]"
+            position="popper"
+            sideOffset={4}
+          >
             {availability.map(({ date, dayLabel }) => (
-              <SelectItem key={date} value={date}>
+              <SelectItem key={date} value={date} className="py-3 text-base">
                 {dayLabel}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+        {selectedDate && (
+          <p className="text-sm text-green-600 font-medium mt-1">
+            Selected: {availability.find(a => a.date === selectedDate)?.dayLabel}
+          </p>
+        )}
       </div>
 
       {/* Time Slot Selection */}
@@ -95,7 +104,7 @@ export function DateSlotPicker({
           onValueChange={onTimeChange}
           disabled={disabled || !selectedDate}
         >
-          <SelectTrigger className="h-12 text-base">
+          <SelectTrigger className="w-full h-12 text-base touch-manipulation">
             <SelectValue 
               placeholder={
                 !selectedDate 
@@ -106,14 +115,23 @@ export function DateSlotPicker({
               } 
             />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent 
+            className="max-h-[50vh] z-[9999]"
+            position="popper"
+            sideOffset={4}
+          >
             {slots.map(({ time, label }) => (
-              <SelectItem key={time} value={time}>
+              <SelectItem key={time} value={time} className="py-3 text-base">
                 {label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+        {selectedTime && (
+          <p className="text-sm text-green-600 font-medium mt-1">
+            Selected: {slots.find(s => s.time === selectedTime)?.label}
+          </p>
+        )}
         <p className="text-xs text-muted-foreground flex items-center gap-1">
           <Clock className="w-3 h-3" />
           {BUSINESS_HOURS_DISPLAY}
