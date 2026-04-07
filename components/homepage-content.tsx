@@ -4,7 +4,7 @@
 // Section Order: Hero -> 4-Step Process -> Featured Vehicles -> Why Choose Us -> Sell/Trade -> Reviews -> Protection Plans -> CTA -> The Promise -> Footer
 import Link from "next/link"
 import { useState } from "react"
-import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin, Award, DollarSign, Truck, Users, Leaf, Search, CreditCard, FileCheck, Home } from "lucide-react"
+import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin, Award, DollarSign, Truck, Users, Leaf, Search, CreditCard, FileCheck, Home, Tag, Handshake } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { VehicleShowcase } from "@/components/vehicle-showcase"
 
@@ -289,17 +289,21 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Button size="lg" className="bg-[#dc2626] hover:bg-[#b91c1c] text-white px-8" asChild>
-                  <Link href="/inventory">
-                    Browse Inventory
-                    <ArrowRight className="ml-2 w-4 h-4" />
-                  </Link>
-                </Button>
-                <Button size="lg" variant="outline" className="border-2 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white px-8" asChild>
-                  <Link href="/trade-in">
-                    Sell / Trade Your Car
-                  </Link>
-                </Button>
+                <Link
+                  href="/inventory"
+                  className="inline-flex items-center gap-3 bg-[#dc2626] hover:bg-[#b91c1c] text-white text-lg font-semibold px-8 py-4 rounded-lg transition-colors"
+                >
+                  <Tag className="w-6 h-6 flex-shrink-0" />
+                  <span>Shop Great Deals</span>
+                  <ArrowRight className="w-6 h-6 flex-shrink-0" />
+                </Link>
+                <Link
+                  href="/trade-in"
+                  className="inline-flex items-center gap-3 border-2 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white text-lg font-semibold px-8 py-4 rounded-lg transition-colors"
+                >
+                  <Handshake className="w-6 h-6 flex-shrink-0" />
+                  <span>Sell or Trade Your Car</span>
+                </Link>
               </div>
 
 
@@ -318,19 +322,35 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
         </div>
       </section>
 
-      {/* Shop By Category - stays between Hero and Process */}
-      <section className="py-6 border-b border-gray-200 bg-white">
+      {/* Shop By Category - Carvana Style Large Boxes */}
+      <section className="py-16 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4 flex-wrap">
-            <span className="text-sm text-gray-500 font-medium">Shop by:</span>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Shop by Category
+            </h2>
+            <p className="text-gray-600 text-lg">
+              Find the perfect vehicle that matches your needs
+            </p>
+          </div>
+
+          {/* Grid of 6 Boxes in Single Row */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {shopByCategories.map((cat) => (
               <Link
                 key={cat.label}
                 href={cat.href}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm font-medium text-gray-700 transition-colors"
+                className="group flex flex-col items-center justify-center p-5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-gray-200 hover:border-primary hover:from-blue-50 hover:to-blue-100 transition-all duration-300 hover:shadow-md hover:scale-103"
               >
-                <cat.icon className={`w-4 h-4 ${cat.iconColor}`} />
-                {cat.label}
+                {/* Medium Icon */}
+                <div className="mb-2 p-3 bg-white rounded-lg group-hover:bg-primary/10 transition-colors">
+                  <cat.icon className={`w-8 h-8 ${cat.iconColor}`} />
+                </div>
+                
+                {/* Category Label */}
+                <h3 className="text-sm font-bold text-gray-900 group-hover:text-primary transition-colors text-center leading-tight">
+                  {cat.label}
+                </h3>
               </Link>
             ))}
           </div>
