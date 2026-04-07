@@ -231,11 +231,6 @@ export function Header() {
             setActiveSubmenu={setActiveSubmenu} 
           />
 
-          {/* Google Reviews Badge */}
-          <div className="hidden lg:flex items-center mr-4">
-            <GoogleReviewsBadge variant="compact" />
-          </div>
-
           {/* Social Media Icons */}
           <div className="hidden lg:flex items-center gap-2">
             <a 
