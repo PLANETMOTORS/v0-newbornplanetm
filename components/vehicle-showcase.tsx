@@ -209,12 +209,14 @@ export function VehicleShowcase() {
 
   return (
     <div 
-      className="relative group"
+      className="relative group w-full"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      {/* Main image container */}
-      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted shadow-2xl">
+      {/* Main carousel container - prevent cutoff */}
+      <div className="w-full max-w-6xl mx-auto px-2 sm:px-4">
+        {/* Main image container */}
+        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted shadow-2xl">
         {/* Use native img for maximum compatibility with external URLs */}
         <img
           src={getImageSrc()}
@@ -324,14 +326,15 @@ export function VehicleShowcase() {
           </Button>
         </div>
       </div>
+      {/* End of main carousel container */}
 
       {/* Thumbnail navigation */}
-      <div className="mt-4 flex items-center justify-between gap-2">
+      <div className="mt-4 flex items-center justify-between gap-2 max-w-6xl mx-auto px-2 sm:px-4">
         {/* Left arrow - scroll thumbnails left */}
         <Button
           variant="ghost"
           size="icon"
-          className="flex-shrink-0 h-9 w-9 rounded-lg hover:bg-gray-200"
+          className="flex-shrink-0 h-10 w-10 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
           onClick={() => {
             const container = document.querySelector('.thumbnail-scroll-container')
             if (container) {
@@ -340,7 +343,7 @@ export function VehicleShowcase() {
           }}
           aria-label="Scroll thumbnails left"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-5 h-5" />
         </Button>
 
         {/* Thumbnail scroll container */}
@@ -370,7 +373,7 @@ export function VehicleShowcase() {
         <Button
           variant="ghost"
           size="icon"
-          className="flex-shrink-0 h-9 w-9 rounded-lg hover:bg-gray-200"
+          className="flex-shrink-0 h-10 w-10 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
           onClick={() => {
             const container = document.querySelector('.thumbnail-scroll-container')
             if (container) {
@@ -379,7 +382,7 @@ export function VehicleShowcase() {
           }}
           aria-label="Scroll thumbnails right"
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-5 h-5" />
         </Button>
       </div>
     </div>
