@@ -840,7 +840,7 @@ export default function DeliveryPage() {
           if (tier.cost !== undefined) {
             cost = tier.cost
           } else if (tier.costPerKm) {
-            // Cost is calculated on the distance beyond the free zone
+            // Cost is calculated on the full distance (multiply entire distance by tier rate)
             cost = Math.round(distance * tier.costPerKm)
           }
           break
