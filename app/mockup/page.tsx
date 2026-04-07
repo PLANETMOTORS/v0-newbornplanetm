@@ -198,14 +198,8 @@ export default function HomepageMockupV2() {
                 </div>
               </div>
 
-              {/* Floating Price Tag */}
-              <div className="absolute -bottom-4 -left-4 bg-white text-[#1e3a8a] px-6 py-4 rounded-2xl shadow-xl border border-gray-100">
-                <div className="text-sm text-gray-500">Financing from</div>
-                <div className="text-2xl font-bold">$299/mo</div>
-              </div>
-
               {/* Floating Badge */}
-              <div className="absolute -top-4 -right-4 bg-[#dc2626] text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+              <div className="absolute top-4 right-4 bg-[#dc2626] text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg z-10">
                 Low Rates Available
               </div>
             </div>
