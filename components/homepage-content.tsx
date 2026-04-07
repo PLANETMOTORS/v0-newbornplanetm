@@ -263,7 +263,6 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
   ]
 
   const ratingValue = siteSettings.aggregateRating?.ratingValue || 4.8
-  const reviewCount = siteSettings.aggregateRating?.reviewCount || 500
   const lowestRate = siteSettings.financingDefaults?.annualInterestRate || 6.29
 
   // Get business hours for display
@@ -647,7 +646,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                   <Star key={star} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                 ))}
               </div>
-              <span className="text-gray-600">{ratingValue}/5 from {reviewCount}+ reviews</span>
+              <span className="text-gray-600">{ratingValue}/5 Star Rating</span>
             </div>
           </div>
 

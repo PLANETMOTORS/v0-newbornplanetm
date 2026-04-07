@@ -138,7 +138,6 @@ export function VehicleShowcase() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
-  const [viewCount, setViewCount] = useState(47)
   const [imageError, setImageError] = useState(false)
 
   // Fetch vehicles from Supabase

@@ -1,12 +1,8 @@
 import { Badge } from "@/components/ui/badge"
-import { 
-  Zap, 
-  Eye, 
-  Clock, 
-  TrendingDown, 
-  Star, 
-  Shield, 
-  Sparkles, 
+import {
+  TrendingDown,
+  Sparkles,
+  Clock,
   AlertCircle,
   CheckCircle2,
   Battery
@@ -17,7 +13,6 @@ interface VehicleBadgesProps {
   isPriceDrop?: boolean
   priceDropAmount?: number
   isPopular?: boolean
-  viewCount?: number
   daysOnLot?: number
   isSalePending?: boolean
   hasCarfax?: boolean
@@ -32,7 +27,6 @@ export function VehicleBadges({
   isPriceDrop,
   priceDropAmount,
   isPopular,
-  viewCount,
   daysOnLot,
   isSalePending,
   hasCarfax,
@@ -72,14 +66,6 @@ export function VehicleBadges({
         <Badge className="bg-green-500">
           <TrendingDown className="w-3 h-3 mr-1" />
           {priceDropAmount ? `$${priceDropAmount.toLocaleString()} Off` : "Price Drop"}
-        </Badge>
-      )}
-
-      {/* Popular / High Views */}
-      {isPopular && viewCount && viewCount > 200 && (
-        <Badge variant="secondary">
-          <Eye className="w-3 h-3 mr-1" />
-          {viewCount} views
         </Badge>
       )}
 
