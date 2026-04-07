@@ -5,8 +5,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import { GoogleAnalytics } from '@/components/analytics/google-analytics'
 import { GoogleTagManager, GoogleTagManagerNoScript } from '@/components/analytics/google-tag-manager'
 import { MetaPixel } from '@/components/analytics/meta-pixel'
-import { LiveChat } from '@/components/live-chat'
-import { AIAssistantWidget } from '@/components/ai-assistant-widget'
+import { LiveChatWidget } from '@/components/live-chat-widget'
 import { CompareProvider } from '@/lib/compare-context'
 import { FavoritesProvider } from '@/lib/favorites-context'
 import { AuthProvider } from '@/contexts/auth-context'
@@ -15,7 +14,7 @@ import { OrganizationJsonLd, LocalBusinessJsonLd, WebsiteSearchJsonLd } from '@/
 import './globals.css'
 import './stability-fixes.css'
 
-// Planet Motors - OMVIC Licensed Dealer - Build v18 - Clean codebase verified
+// Planet Motors - OMVIC Licensed Dealer - Production Ready
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -96,7 +95,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" data-scroll-behavior="smooth">
+    <html lang="en" className="bg-background" data-scroll-behavior="smooth">
       <head>
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -119,8 +118,7 @@ export default function RootLayout({
             <CompareProvider>
               {children}
               <CompareBar />
-              <AIAssistantWidget />
-              <LiveChat />
+              <LiveChatWidget />
             </CompareProvider>
           </FavoritesProvider>
         </AuthProvider>
