@@ -188,21 +188,7 @@ export default function HomepageMockupV2() {
                 </button>
               </div>
 
-              {/* Quick Stats */}
-              <div className="flex items-center justify-center lg:justify-start gap-8 mt-12 pt-8 border-t border-gray-200">
-                <div>
-                  <div className="text-3xl font-bold text-[#1e3a8a]">500+</div>
-                  <div className="text-gray-500 text-sm">Happy Customers</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-[#1e3a8a]">20+</div>
-                  <div className="text-gray-500 text-sm">Lender Partners</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-[#1e3a8a]">4.9</div>
-                  <div className="text-gray-500 text-sm">Google Rating</div>
-                </div>
-              </div>
+
             </div>
 
             {/* Hero Image */}

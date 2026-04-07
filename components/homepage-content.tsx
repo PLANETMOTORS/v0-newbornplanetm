@@ -316,21 +316,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                 </Button>
               </div>
 
-              {/* Quick Stats */}
-              <div className="flex items-center justify-center lg:justify-start gap-8 mt-10 pt-8 border-t border-gray-200">
-                <div className="text-center">
-                  <div className="text-2xl md:text-3xl font-bold text-[#1e3a8a]">500+</div>
-                  <div className="text-sm text-gray-500">Happy Customers</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl md:text-3xl font-bold text-[#1e3a8a]">20+</div>
-                  <div className="text-sm text-gray-500">Lender Partners</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl md:text-3xl font-bold text-[#1e3a8a]">4.9</div>
-                  <div className="text-sm text-gray-500">Google Rating</div>
-                </div>
-              </div>
+
             </div>
 
             {/* Hero Image / Vehicle Showcase */}
