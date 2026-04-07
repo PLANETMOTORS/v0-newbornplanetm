@@ -543,7 +543,7 @@ export default function HomepageMockupV2() {
                 <li>(416) 555-1234</li>
                 <li>info@planetmotors.ca</li>
                 <li>Scarborough, ON</li>
-                <li>Mon-Sat: 9AM-7PM</li>
+                <li>Mon-Sat: 9AM-6PM</li>
               </ul>
             </div>
           </div>

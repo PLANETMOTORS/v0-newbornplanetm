@@ -27,7 +27,7 @@ const timeSlots = [
 ]
 
 const locations = [
-  { id: "richmond-hill", name: "Richmond Hill Showroom", address: "30 Major Mackenzie E, Richmond Hill, ON" },
+  { id: "richmond-hill", name: "Richmond Hill Showroom", address: "30 Major Mackenzie Dr E, Richmond Hill, ON" },
   { id: "home", name: "At Your Home/Office", address: "We come to you (GTA only)" },
 ]
 

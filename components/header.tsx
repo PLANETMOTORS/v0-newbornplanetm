@@ -209,7 +209,7 @@ export function Header() {
               className="hidden lg:flex items-center gap-1.5 hover:text-primary-foreground/80 transition-colors"
             >
               <MapPin className="w-3.5 h-3.5" />
-              <span>30 Major Mackenzie E, Richmond Hill, ON L4C 1G7</span>
+              <span>30 Major Mackenzie Dr E, Richmond Hill, ON L4C 1G7</span>
             </a>
           </div>
         </div>
@@ -268,7 +268,7 @@ export function Header() {
               </svg>
             </a>
             <a 
-              href="https://www.youtube.com/@planetmotorscanada" 
+              href="https://www.youtube.com/@PlanetMotors_ca" 
               target="_blank" 
               rel="noopener noreferrer"
               className="p-2 text-muted-foreground hover:text-foreground transition-colors"

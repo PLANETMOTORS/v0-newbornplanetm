@@ -30,7 +30,7 @@ const contactMethods = [
   {
     icon: MapPin,
     title: "Visit Us",
-    primary: "30 Major Mackenzie E",
+    primary: "30 Major Mackenzie Dr E",
     secondary: "Richmond Hill, ON L4C 1G7",
     description: "Walk-ins welcome",
   },
@@ -88,11 +88,11 @@ export default function ContactPage() {
               <div className="bg-muted rounded-xl h-64 flex items-center justify-center">
                 <div className="text-center">
                   <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-muted-foreground">30 Major Mackenzie E</p>
+                  <p className="text-muted-foreground">30 Major Mackenzie Dr E</p>
                   <p className="text-muted-foreground">Richmond Hill, ON L4C 1G7</p>
                   <Button variant="outline" size="sm" className="mt-4" asChild>
                     <a 
-                      href="https://maps.google.com/?q=30+Major+Mackenzie+E+Richmond+Hill+ON"
+                      href="https://maps.google.com/?q=30+Major+Mackenzie+Dr+E+Richmond+Hill+ON"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
