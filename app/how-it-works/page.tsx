@@ -93,8 +93,7 @@ export default function HowItWorksPage() {
               {[
                 { icon: Shield, text: "210-Point Inspection" },
                 { icon: RotateCcw, text: "10-Day Returns" },
-                { icon: Star, text: "4.8 Star Rating" },
-                { icon: Heart, text: "Happy Customers" }
+                { icon: Star, text: "4.8 Star Rating" }
               ].map((badge, i) => (
                 <div key={i} className="flex items-center gap-2 text-muted-foreground">
                   <badge.icon className="h-5 w-5 text-primary" />

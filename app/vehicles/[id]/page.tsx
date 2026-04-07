@@ -364,7 +364,7 @@ export default function VehicleDetailPage() {
   const [activeTab, setActiveTab] = useState("photos")
   const [imageType, setImageType] = useState<"exterior" | "interior">("exterior")
   const [postalCode, setPostalCode] = useState("")
-  const [viewCount, setViewCount] = useState<number | null>(null)
+
   const [showInspectionModal, setShowInspectionModal] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [authAction, setAuthAction] = useState("")
@@ -456,17 +456,7 @@ export default function VehicleDetailPage() {
     }
   }
 
-  // Simulate live viewing count with deterministic pattern - initialize after mount
-  useEffect(() => {
-    setViewCount(78) // Initialize on client only
-    let tick = 0
-    const interval = setInterval(() => {
-      tick++
-      const change = (tick % 3) - 1 // cycles: -1, 0, 1
-      setViewCount(prev => prev !== null ? Math.max(50, Math.min(70, prev + change)) : 78)
-    }, 8000)
-    return () => clearInterval(interval)
-  }, [])
+
 
   const nextImage = () => {
     const images = imageType === "exterior" ? vehicleData.images : vehicleData.interiorImages
@@ -600,12 +590,6 @@ export default function VehicleDetailPage() {
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
                     />
                     
-                    {/* Views Badge */}
-                    <Badge className="absolute top-4 left-4 bg-red-500 text-white">
-                      <TrendingUp className="w-3 h-3 mr-1" />
-                      {viewCount ?? '--'}+ views today
-                    </Badge>
-
                     {/* Expand Button */}
                     <button className="absolute top-4 right-4 w-10 h-10 bg-background/80 backdrop-blur rounded-lg flex items-center justify-center hover:bg-background transition">
                       <Expand className="w-5 h-5" />
@@ -1652,18 +1636,6 @@ export default function VehicleDetailPage() {
             <div className="space-y-4">
               <Card className="sticky top-36 shadow-lg border-2">
                 <CardContent className="p-5">
-                  {/* Views & Track Price */}
-                  <div className="flex items-center justify-between mb-3">
-                    <Badge className="bg-red-500 text-white">
-                      <TrendingUp className="w-3 h-3 mr-1" />
-                      {viewCount ?? '--'}+ views today
-                    </Badge>
-                    <Button variant="ghost" size="sm" className="text-muted-foreground">
-                      <Bell className="w-4 h-4 mr-1" />
-                      Track price
-                    </Button>
-                  </div>
-
                   {/* Vehicle Title */}
                   <h2 className="text-xl font-bold">
                     {vehicle.year} {vehicle.make} {vehicle.model}

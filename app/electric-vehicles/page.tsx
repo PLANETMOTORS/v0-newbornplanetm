@@ -94,7 +94,7 @@ export default function ElectricVehiclesPage() {
               <div className="flex flex-wrap items-center gap-6 mt-10 text-sm">
                 <div className="flex items-center gap-2">
                   <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                  <span>4.8 Star Rating (500+ Reviews)</span>
+                  <span>4.8 Star Rating</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Shield className="w-5 h-5" />

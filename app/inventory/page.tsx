@@ -834,17 +834,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                     360° View
                   </div>
 
-                  {/* Live Stats */}
-                  <div className="absolute bottom-3 right-3 flex gap-2">
-                    <div className="bg-red-500 text-white px-2 py-1 rounded-full flex items-center gap-1 text-xs animate-pulse">
-                      <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
-                      {((vehicle.id.charCodeAt(0) + vehicle.id.charCodeAt(vehicle.id.length - 1)) % 5) + 2} viewing
-                    </div>
-                    <div className="bg-background/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 text-xs">
-                      <Heart className="w-3 h-3 text-red-500" />
-                      {vehicle.favorites}
-                    </div>
-                  </div>
+
                 </div>
 
                 {/* Content */}

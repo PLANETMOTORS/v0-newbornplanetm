@@ -17,7 +17,7 @@ export default function AboutPage() {
   const awards = [
     { title: "CarGurus Top Rated Dealer", years: "2023, 2024", icon: Trophy },
     { title: "Autotrader Best Priced Dealer", years: "2021, 2022", icon: Award },
-    { title: "Google 4.8 Star Rating", years: "500+ Reviews", icon: Star },
+    { title: "Google 4.8 Star Rating", years: "Verified", icon: Star },
   ]
 
   // Languages offered
@@ -143,29 +143,7 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Stats */}
-        <section className="py-16">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 text-center">
-              <div>
-                <p className="text-2xl sm:text-4xl font-bold text-primary">1000+</p>
-                <p className="text-xs sm:text-base text-muted-foreground">Happy Customers</p>
-              </div>
-              <div>
-                <p className="text-2xl sm:text-4xl font-bold text-primary">4.8 Star Rating</p>
-                <p className="text-xs sm:text-base text-muted-foreground">Google Reviews</p>
-              </div>
-              <div>
-                <p className="text-2xl sm:text-4xl font-bold text-primary">500+</p>
-                <p className="text-xs sm:text-base text-muted-foreground">Happy Customers</p>
-              </div>
-              <div>
-                <p className="text-2xl sm:text-4xl font-bold text-primary">10</p>
-                <p className="text-xs sm:text-base text-muted-foreground">Years in Business</p>
-              </div>
-            </div>
-          </div>
-        </section>
+
 
         {/* Languages Section */}
         <section className="py-16 bg-muted/30">

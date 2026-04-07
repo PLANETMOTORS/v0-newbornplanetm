@@ -116,23 +116,7 @@ export default function TeslaPage() {
                   </Button>
                 </div>
                 
-                {/* Stats */}
-                <div className="flex flex-wrap items-center gap-8 mt-10">
-                  <div>
-                    <p className="text-3xl font-bold">48+</p>
-                    <p className="text-gray-400 text-sm">Teslas in Stock</p>
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold flex items-center gap-1">
-                      4.8 <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" />
-                    </p>
-                    <p className="text-gray-400 text-sm">Google Rating</p>
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold">210</p>
-                    <p className="text-gray-400 text-sm">Point Inspection</p>
-                  </div>
-                </div>
+
               </div>
               <div className="relative aspect-video lg:aspect-square">
                 <Image

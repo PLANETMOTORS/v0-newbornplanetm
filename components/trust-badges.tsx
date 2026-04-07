@@ -15,8 +15,8 @@ const badges = [
   },
   {
     icon: Truck,
-    title: "Free Ontario Delivery",
-    description: "Or nationwide shipping available",
+    title: "Ontario-Wide Delivery",
+    description: "Convenient delivery across Ontario",
     highlight: false
   },
   {
@@ -88,7 +88,7 @@ export function TrustBadges() {
           <span className="hidden md:inline">|</span>
           <span>BBB A+ Rating</span>
           <span className="hidden md:inline">|</span>
-          <span>4.8 Star Rating (500+ Reviews)</span>
+          <span>4.8 Star Rating</span>
         </div>
       </div>
     </section>

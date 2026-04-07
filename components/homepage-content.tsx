@@ -7,7 +7,7 @@ import { useState } from "react"
 import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin, Award, DollarSign, Truck, Users, Leaf, Search, CreditCard, FileCheck, Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { VehicleShowcase } from "@/components/vehicle-showcase"
-import { TrustBadges } from "@/components/trust-badges"
+
 
 export type HomepageProps = {
   siteSettings: {
@@ -48,13 +48,7 @@ export type HomepageProps = {
   }>
 }
 
-// Trust bar items
-const trustBarItems = [
-  { icon: RotateCw, label: "10-Day Returns" },
-  { icon: CheckCircle, label: "210-Point Inspection" },
-  { icon: Shield, label: "No Hidden Fees" },
-  { icon: Truck, label: "Free Delivery" },
-]
+
 
 // Shop by category chips
 const shopByCategories = [
@@ -225,15 +219,7 @@ const protectionPlans = [
   },
 ]
 
-// The Promise items (Box 10)
-const promiseItems = [
-  { icon: CheckCircle, title: "210-Point Inspection", description: "Every vehicle thoroughly checked" },
-  { icon: RotateCw, title: "10-Day Returns", description: "No questions asked" },
-  { icon: Truck, title: "Free Ontario Delivery", description: "Right to your door" },
-  { icon: Shield, title: "Warranty Included", description: "Comprehensive coverage" },
-  { icon: BadgeCheck, title: "Carfax Verified", description: "Full history report" },
-  { icon: Phone, title: "24/7 Support", description: "We're here for you" },
-]
+
 
 export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
   const [activeTab, setActiveTab] = useState<"all" | "electric" | "suvs">("all")
@@ -277,7 +263,6 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
   ]
 
   const ratingValue = siteSettings.aggregateRating?.ratingValue || 4.8
-  const reviewCount = siteSettings.aggregateRating?.reviewCount || 500
   const lowestRate = siteSettings.financingDefaults?.annualInterestRate || 6.29
 
   // Get business hours for display
@@ -286,31 +271,12 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
 
   return (
     <main id="main-content" role="main" aria-label="Home page content">
-      {/* Trust Bar - White Background */}
-      <div className="bg-white border-b border-gray-200 py-3">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center gap-4 sm:gap-8 flex-wrap">
-            {trustBarItems.map((item) => (
-              <div key={item.label} className="flex items-center gap-2 text-sm text-gray-600">
-                <item.icon className="w-4 h-4 text-[#1e3a8a]" />
-                <span>{item.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* ========== BOX 2: HERO SECTION - Off-White #F9FAFB ========== */}
       <section className="relative overflow-hidden" style={{ backgroundColor: "#F9FAFB" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Hero Text */}
             <div className="text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full text-sm mb-6 shadow-sm border border-gray-200">
-                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <span className="text-green-600 font-medium">50+ Vehicles In Stock</span>
-              </div>
-              
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-gray-900">
                 The Smarter Way to
                 <span className="block text-[#1e3a8a]">
@@ -336,21 +302,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                 </Button>
               </div>
 
-              {/* Quick Stats */}
-              <div className="flex items-center justify-center lg:justify-start gap-8 mt-10 pt-8 border-t border-gray-200">
-                <div className="text-center">
-                  <div className="text-2xl md:text-3xl font-bold text-[#1e3a8a]">500+</div>
-                  <div className="text-sm text-gray-500">Happy Customers</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl md:text-3xl font-bold text-[#1e3a8a]">20+</div>
-                  <div className="text-sm text-gray-500">Lender Partners</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl md:text-3xl font-bold text-[#1e3a8a]">4.9</div>
-                  <div className="text-sm text-gray-500">Google Rating</div>
-                </div>
-              </div>
+
             </div>
 
             {/* Hero Image / Vehicle Showcase */}
@@ -608,8 +560,8 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
               },
               {
                 icon: Truck,
-                title: "Free Delivery",
-                description: "Get your vehicle delivered anywhere in Ontario at no extra cost.",
+                title: "Ontario-Wide Delivery",
+                description: "Get your vehicle delivered anywhere in Ontario with our convenient delivery service.",
               },
             ].map((feature) => (
               <div
@@ -694,7 +646,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                   <Star key={star} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                 ))}
               </div>
-              <span className="text-gray-600">{ratingValue}/5 from {reviewCount}+ reviews</span>
+              <span className="text-gray-600">{ratingValue}/5 Star Rating</span>
             </div>
           </div>
 
@@ -833,30 +785,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
         </div>
       </section>
 
-      {/* ========== BOX 10: THE PROMISE - Very Light Grey #F3F4F6 ========== */}
-      <section className="py-16" style={{ backgroundColor: "#F3F4F6" }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <p className="text-sm font-medium text-[#1e3a8a] mb-2">Why Customers Trust Us</p>
-            <h2 className="text-3xl font-bold text-gray-900">The {siteSettings.dealerName} Promise</h2>
-          </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {promiseItems.map((item) => (
-              <div key={item.title} className="text-center">
-                <div className="w-14 h-14 mx-auto bg-[#1e3a8a] rounded-xl flex items-center justify-center mb-3">
-                  <item.icon className="w-7 h-7 text-white" />
-                </div>
-                <h3 className="font-semibold text-gray-900 text-sm mb-1">{item.title}</h3>
-                <p className="text-xs text-gray-500">{item.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Trust Badges (OMVIC, etc.) */}
-      <TrustBadges />
     </main>
   )
 }

@@ -142,7 +142,7 @@ export default function HomepageMockupV2() {
             </div>
             <div className="hidden md:flex items-center gap-2 whitespace-nowrap">
               <Truck className="w-4 h-4 text-[#1e3a8a]" />
-              <span className="font-medium">Free Delivery</span>
+              <span className="font-medium">Ontario-Wide Delivery</span>
             </div>
           </div>
         </div>
@@ -162,11 +162,6 @@ export default function HomepageMockupV2() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Hero Text */}
             <div className="text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full text-sm mb-6 shadow-sm border border-gray-200">
-                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <span className="text-green-600 font-medium">50+ Vehicles In Stock</span>
-              </div>
-              
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 text-gray-900">
                 Buy Your Next Vehicle
                 <span className="block text-[#1e3a8a]">
@@ -188,21 +183,7 @@ export default function HomepageMockupV2() {
                 </button>
               </div>
 
-              {/* Quick Stats */}
-              <div className="flex items-center justify-center lg:justify-start gap-8 mt-12 pt-8 border-t border-gray-200">
-                <div>
-                  <div className="text-3xl font-bold text-[#1e3a8a]">500+</div>
-                  <div className="text-gray-500 text-sm">Happy Customers</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-[#1e3a8a]">20+</div>
-                  <div className="text-gray-500 text-sm">Lender Partners</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-[#1e3a8a]">4.9</div>
-                  <div className="text-gray-500 text-sm">Google Rating</div>
-                </div>
-              </div>
+
             </div>
 
             {/* Hero Image */}

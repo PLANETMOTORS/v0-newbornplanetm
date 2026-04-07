@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
-import { Menu, X, ChevronDown, Phone, MapPin, Star } from "lucide-react"
+import { Menu, X, ChevronDown, Phone, MapPin, Star, CheckCircle, Shield, Truck, Award } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import { GoogleReviewsBadge } from "@/components/google-reviews-badge"
@@ -137,6 +137,7 @@ const navigation = [
     href: "/about",
     submenu: [
       { name: "About", href: "/about" },
+      { name: "EV Battery Health", href: "/ev-battery-health" },
       { name: "Car Value Calculator", href: "/trade-in" },
       { name: "Protection Plans", href: "/protection-plans" },
       { name: "FAQ", href: "/faq" },
@@ -145,7 +146,6 @@ const navigation = [
       { name: "Blog", href: "/blog" },
     ]
   },
-  { name: "EV Battery", href: "/ev-battery-health" },
 ]
 
 export function Header() {
@@ -189,23 +189,29 @@ export function Header() {
               <Phone className="w-3.5 h-3.5" />
               <span className="font-medium">1-866-797-3332</span>
             </a>
+            <span className="hidden sm:flex items-center text-primary-foreground/90">
+              Mon-Fri 9AM-7PM | Sat 9AM-6PM
+            </span>
+          </div>
+          <div className="flex items-center gap-4 sm:gap-6">
+            <div className="flex items-center gap-1.5">
+              <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+              <span className="font-medium">4.8 Star Rating</span>
+            </div>
+            <span className="hidden md:flex items-center gap-1.5 font-medium">
+              <Award className="w-3.5 h-3.5" />
+              OMVIC Licensed
+            </span>
             <a 
-              href="tel:416-985-2277" 
-              className="hidden sm:flex items-center gap-1.5 hover:text-primary-foreground/80 transition-colors"
+              href="https://maps.google.com/?q=30+Major+Mackenzie+E+Richmond+Hill+ON"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden lg:flex items-center gap-1.5 hover:text-primary-foreground/80 transition-colors"
             >
-              <span>Local: 416-985-2277</span>
+              <MapPin className="w-3.5 h-3.5" />
+              <span>30 Major Mackenzie E, Richmond Hill, ON L4C 1G7</span>
             </a>
           </div>
-          <a 
-            href="https://maps.google.com/?q=30+Major+Mackenzie+E+Richmond+Hill+ON"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 hover:text-primary-foreground/80 transition-colors"
-          >
-            <MapPin className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">30 Major Mackenzie E, Richmond Hill, ON L4C 1G7</span>
-            <span className="sm:hidden">Richmond Hill, ON</span>
-          </a>
         </div>
       </div>
 
@@ -225,11 +231,6 @@ export function Header() {
             activeSubmenu={activeSubmenu} 
             setActiveSubmenu={setActiveSubmenu} 
           />
-
-          {/* Google Reviews Badge */}
-          <div className="hidden lg:flex items-center mr-4">
-            <GoogleReviewsBadge variant="compact" />
-          </div>
 
           {/* Social Media Icons */}
           <div className="hidden lg:flex items-center gap-2">
@@ -353,6 +354,33 @@ export function Header() {
           </div>
         )}
       </header>
+
+      {/* Trust Bar - Value Propositions (Light Gray - Professional) */}
+      <div className={`bg-gray-100 border-b border-gray-200 text-gray-700 text-sm transition-all duration-300 overflow-hidden ${scrolled ? "max-h-0 py-0" : "max-h-14 py-2.5"}`}>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center gap-3 sm:gap-6 md:gap-10 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <span className="font-medium text-xs sm:text-sm">10-Day Money Back Guarantee</span>
+            </div>
+            <span className="hidden sm:block text-gray-300">|</span>
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <Shield className="w-4 h-4 text-blue-600" />
+              <span className="font-medium text-xs sm:text-sm">$250 Refundable Deposit</span>
+            </div>
+            <span className="hidden sm:block text-gray-300">|</span>
+            <div className="hidden sm:flex items-center gap-2 whitespace-nowrap">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <span className="font-medium text-xs sm:text-sm">210-Point Inspection</span>
+            </div>
+            <span className="hidden md:block text-gray-300">|</span>
+            <div className="hidden md:flex items-center gap-2 whitespace-nowrap">
+              <Truck className="w-4 h-4 text-blue-600" />
+              <span className="font-medium text-xs sm:text-sm">Canada-Wide Delivery</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   )
 }
