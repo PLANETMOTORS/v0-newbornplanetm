@@ -312,14 +312,14 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
               </div>
               
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-gray-900">
-                Buy Your Next Vehicle
+                The Smarter Way to
                 <span className="block text-[#1e3a8a]">
-                  With Confidence
+                  Buy or Sell Your Car
                 </span>
               </h1>
               
               <p className="mt-6 text-lg text-gray-600 max-w-lg mx-auto lg:mx-0">
-                Ontario&apos;s trusted online dealership specializing in EVs, hybrids, and quality used vehicles. Browse, finance, and get your car delivered.
+                Ontario&apos;s trusted destination for premium pre-owned vehicles. 210-point inspection, 10-day money-back guarantee, and the best multi-lender financing rates.
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
