@@ -15,8 +15,8 @@ const badges = [
   },
   {
     icon: Truck,
-    title: "Free Ontario Delivery",
-    description: "Or nationwide shipping available",
+    title: "Ontario-Wide Delivery",
+    description: "Convenient delivery across Ontario",
     highlight: false
   },
   {

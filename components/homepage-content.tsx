@@ -53,7 +53,7 @@ const trustBarItems = [
   { icon: RotateCw, label: "10-Day Returns" },
   { icon: CheckCircle, label: "210-Point Inspection" },
   { icon: Shield, label: "No Hidden Fees" },
-  { icon: Truck, label: "Free Delivery" },
+  { icon: Truck, label: "Ontario-Wide Delivery" },
 ]
 
 // Shop by category chips
@@ -608,8 +608,8 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
               },
               {
                 icon: Truck,
-                title: "Free Delivery",
-                description: "Get your vehicle delivered anywhere in Ontario at no extra cost.",
+                title: "Ontario-Wide Delivery",
+                description: "Get your vehicle delivered anywhere in Ontario with our convenient delivery service.",
               },
             ].map((feature) => (
               <div

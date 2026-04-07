@@ -40,6 +40,62 @@ const makePlaceholders: Record<string, string> = {
   'default': 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&auto=format&fit=crop&q=80'
 }
 
+// Fallback vehicles when database is empty or loading fails
+const fallbackVehicles = [
+  {
+    id: "featured-1",
+    name: "2024 Tesla Model Y Long Range",
+    price: "$54,990",
+    monthlyPayment: "$654",
+    image: makePlaceholders['Tesla'],
+    mileage: "12,500 km",
+    fuel: "Electric",
+    year: "2024",
+    inspectionScore: 210,
+    badge: "Electric",
+    badgeColor: "bg-blue-500"
+  },
+  {
+    id: "featured-2",
+    name: "2023 BMW X5 xDrive40i",
+    price: "$72,900",
+    monthlyPayment: "$868",
+    image: makePlaceholders['BMW'],
+    mileage: "18,200 km",
+    fuel: "Gasoline",
+    year: "2023",
+    inspectionScore: 208,
+    badge: "Premium",
+    badgeColor: "bg-purple-500"
+  },
+  {
+    id: "featured-3",
+    name: "2024 Toyota RAV4 Hybrid XLE",
+    price: "$42,500",
+    monthlyPayment: "$506",
+    image: makePlaceholders['Toyota'],
+    mileage: "8,400 km",
+    fuel: "Hybrid",
+    year: "2024",
+    inspectionScore: 210,
+    badge: "Fuel Saver",
+    badgeColor: "bg-green-500"
+  },
+  {
+    id: "featured-4",
+    name: "2023 Audi Q5 Sportback",
+    price: "$58,900",
+    monthlyPayment: "$701",
+    image: makePlaceholders['Audi'],
+    mileage: "22,100 km",
+    fuel: "Gasoline",
+    year: "2023",
+    inspectionScore: 207,
+    badge: "Just Arrived",
+    badgeColor: "bg-green-500"
+  }
+]
+
 // Transform database vehicle to showcase format
 function transformToShowcase(v: any) {
   const priceInDollars = v.price / 100
@@ -90,9 +146,9 @@ export function VehicleShowcase() {
     refreshInterval: 60000
   })
 
-  // Transform to showcase format
+  // Transform to showcase format - use fallback if no DB data
   const showcaseVehicles = useMemo(() => {
-    if (!dbVehicles || dbVehicles.length === 0) return []
+    if (!dbVehicles || dbVehicles.length === 0) return fallbackVehicles
     return dbVehicles.map(transformToShowcase)
   }, [dbVehicles])
 
@@ -149,32 +205,8 @@ export function VehicleShowcase() {
     setTimeout(() => setIsAnimating(false), 300)
   }
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted shadow-2xl flex items-center justify-center">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
-      </div>
-    )
-  }
-
-  // Error state or no vehicles
-  if (error || !currentVehicle) {
-    return (
-      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted shadow-2xl flex flex-col items-center justify-center gap-4 p-6 text-center">
-        <p className="text-muted-foreground">
-          {error ? "Unable to load vehicles" : "No vehicles available"}
-        </p>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => window.location.reload()}
-        >
-          Try Again
-        </Button>
-      </div>
-    )
-  }
+  // Always show content - fallback vehicles ensure we never have empty state
+  // No loading spinner needed as fallbackVehicles are always available
 
   return (
     <div 

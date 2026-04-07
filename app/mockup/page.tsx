@@ -142,7 +142,7 @@ export default function HomepageMockupV2() {
             </div>
             <div className="hidden md:flex items-center gap-2 whitespace-nowrap">
               <Truck className="w-4 h-4 text-[#1e3a8a]" />
-              <span className="font-medium">Free Delivery</span>
+              <span className="font-medium">Ontario-Wide Delivery</span>
             </div>
           </div>
         </div>
