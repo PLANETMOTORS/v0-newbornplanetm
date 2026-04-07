@@ -215,33 +215,6 @@ export function Header() {
         </div>
       </div>
 
-      {/* Second Trust Bar - Value Propositions (Light Gray - Professional) */}
-      <div className={`bg-gray-100 border-b border-gray-200 text-gray-700 text-sm transition-all duration-300 overflow-hidden ${scrolled ? "max-h-0 py-0" : "max-h-14 py-2.5"}`}>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center gap-3 sm:gap-6 md:gap-10 overflow-x-auto scrollbar-hide">
-            <div className="flex items-center gap-2 whitespace-nowrap">
-              <CheckCircle className="w-4 h-4 text-green-600" />
-              <span className="font-medium text-xs sm:text-sm">10-Day Money Back Guarantee</span>
-            </div>
-            <span className="hidden sm:block text-gray-300">|</span>
-            <div className="flex items-center gap-2 whitespace-nowrap">
-              <Shield className="w-4 h-4 text-blue-600" />
-              <span className="font-medium text-xs sm:text-sm">$250 Refundable Deposit</span>
-            </div>
-            <span className="hidden sm:block text-gray-300">|</span>
-            <div className="hidden sm:flex items-center gap-2 whitespace-nowrap">
-              <CheckCircle className="w-4 h-4 text-green-600" />
-              <span className="font-medium text-xs sm:text-sm">210-Point Inspection</span>
-            </div>
-            <span className="hidden md:block text-gray-300">|</span>
-            <div className="hidden md:flex items-center gap-2 whitespace-nowrap">
-              <Truck className="w-4 h-4 text-blue-600" />
-              <span className="font-medium text-xs sm:text-sm">Canada-Wide Delivery</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main header */}
       <header className={`sticky top-0 z-[60] bg-background/95 backdrop-blur-md border-b border-border transition-shadow duration-300 will-change-transform ${scrolled ? "shadow-sm" : ""}`} role="banner">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-3 lg:px-8" aria-label="Main navigation">
@@ -381,6 +354,33 @@ export function Header() {
           </div>
         )}
       </header>
+
+      {/* Trust Bar - Value Propositions (Light Gray - Professional) */}
+      <div className={`bg-gray-100 border-b border-gray-200 text-gray-700 text-sm transition-all duration-300 overflow-hidden ${scrolled ? "max-h-0 py-0" : "max-h-14 py-2.5"}`}>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center gap-3 sm:gap-6 md:gap-10 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <span className="font-medium text-xs sm:text-sm">10-Day Money Back Guarantee</span>
+            </div>
+            <span className="hidden sm:block text-gray-300">|</span>
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <Shield className="w-4 h-4 text-blue-600" />
+              <span className="font-medium text-xs sm:text-sm">$250 Refundable Deposit</span>
+            </div>
+            <span className="hidden sm:block text-gray-300">|</span>
+            <div className="hidden sm:flex items-center gap-2 whitespace-nowrap">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <span className="font-medium text-xs sm:text-sm">210-Point Inspection</span>
+            </div>
+            <span className="hidden md:block text-gray-300">|</span>
+            <div className="hidden md:flex items-center gap-2 whitespace-nowrap">
+              <Truck className="w-4 h-4 text-blue-600" />
+              <span className="font-medium text-xs sm:text-sm">Canada-Wide Delivery</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   )
 }
