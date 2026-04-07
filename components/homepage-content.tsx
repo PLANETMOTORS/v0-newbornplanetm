@@ -7,7 +7,7 @@ import { useState } from "react"
 import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin, Award, DollarSign, Truck, Users, Leaf, Search, CreditCard, FileCheck, Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { VehicleShowcase } from "@/components/vehicle-showcase"
-import { TrustBadges } from "@/components/trust-badges"
+
 
 export type HomepageProps = {
   siteSettings: {
@@ -219,15 +219,7 @@ const protectionPlans = [
   },
 ]
 
-// The Promise items (Box 10)
-const promiseItems = [
-  { icon: CheckCircle, title: "210-Point Inspection", description: "Every vehicle thoroughly checked" },
-  { icon: RotateCw, title: "10-Day Returns", description: "No questions asked" },
-  { icon: Truck, title: "Free Ontario Delivery", description: "Right to your door" },
-  { icon: Shield, title: "Warranty Included", description: "Comprehensive coverage" },
-  { icon: BadgeCheck, title: "Carfax Verified", description: "Full history report" },
-  { icon: Phone, title: "24/7 Support", description: "We're here for you" },
-]
+
 
 export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
   const [activeTab, setActiveTab] = useState<"all" | "electric" | "suvs">("all")
@@ -799,30 +791,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
         </div>
       </section>
 
-      {/* ========== BOX 10: THE PROMISE - Very Light Grey #F3F4F6 ========== */}
-      <section className="py-16" style={{ backgroundColor: "#F3F4F6" }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <p className="text-sm font-medium text-[#1e3a8a] mb-2">Why Customers Trust Us</p>
-            <h2 className="text-3xl font-bold text-gray-900">The {siteSettings.dealerName} Promise</h2>
-          </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {promiseItems.map((item) => (
-              <div key={item.title} className="text-center">
-                <div className="w-14 h-14 mx-auto bg-[#1e3a8a] rounded-xl flex items-center justify-center mb-3">
-                  <item.icon className="w-7 h-7 text-white" />
-                </div>
-                <h3 className="font-semibold text-gray-900 text-sm mb-1">{item.title}</h3>
-                <p className="text-xs text-gray-500">{item.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Trust Badges (OMVIC, etc.) */}
-      <TrustBadges />
     </main>
   )
 }
