@@ -82,7 +82,7 @@ const CITY_DISTANCES: { [key: string]: { km: number; city: string; province: str
   "N0L": { km: 220, city: "Elgin County", province: "ON" },
   "N0M": { km: 240, city: "Lambton County", province: "ON" },
   "N0N": { km: 280, city: "Chatham-Kent", province: "ON" },
-  "N0P": { km: 260, city: "Elgin County", province: "ON" },  // Port Stanley area
+  "N0P": { km: 320, city: "Tilbury (Elgin County)", province: "ON" },  // Tilbury - 319-324 km actual distance
   "N0R": { km: 350, city: "Essex County", province: "ON" },
   "N1A": { km: 100, city: "Dufferin County", province: "ON" },
   "N1G": { km: 80, city: "Guelph", province: "ON" },
