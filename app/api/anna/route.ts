@@ -1,4 +1,4 @@
-import { streamText } from "ai"
+import { streamText, convertToModelMessages, UIMessage, consumeStream } from "ai"
 import { getAISettings, getSiteSettings } from "@/lib/sanity/fetch"
 
 // Check if current time is within business hours (Eastern Time)
@@ -57,7 +57,7 @@ function generatePaymentTable(vehiclePrice: number, rate: number = 6.29): string
 }
 
 export async function POST(req: Request) {
-  const { messages, vehicleContext } = await req.json()
+  const { messages, vehicleContext }: { messages: UIMessage[]; vehicleContext?: any } = await req.json()
 
   const aiSettings = await getAISettings()
   const siteSettings = await getSiteSettings()
@@ -82,7 +82,7 @@ WELCOME MESSAGE (use on first interaction):
 ${anna?.welcomeMessage || "Hi! I'm Anna from Planet Motors. How can I help you today?"}
 
 QUICK ACTIONS YOU CAN HELP WITH:
-${anna?.quickActions?.map(qa => `- ${qa.label}: ${qa.prompt}`).join('\n') || '- Calculate payments\n- Get trade value\n- Book test drive\n- Find a car'}
+${anna?.quickActions?.map((qa: any) => `- ${qa.label}: ${qa.prompt}`).join('\n') || '- Calculate payments\n- Get trade value\n- Book test drive\n- Find a car'}
 
 =============================================
 DEALERSHIP INFORMATION:
@@ -208,11 +208,15 @@ RESPONSE GUIDELINES:
 3. Keep responses concise (2-3 sentences for non-payment questions)
 4. Always offer to help with next steps`
 
+  // AI SDK 6: Convert UIMessage format to ModelMessage format
   const result = streamText({
     model: "openai/gpt-4o-mini",
     system: systemPrompt,
-    messages,
+    messages: await convertToModelMessages(messages),
   })
 
-  return result.toDataStreamResponse()
+  // AI SDK 6: Use toUIMessageStreamResponse instead of toDataStreamResponse
+  return result.toUIMessageStreamResponse({
+    consumeSseStream: consumeStream,
+  })
 }
