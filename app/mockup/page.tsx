@@ -547,19 +547,19 @@ export default function HomepageMockupV2() {
             <div>
               <h4 className="font-semibold mb-4">Shop</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><Link href="#" className="hover:text-white">All Vehicles</Link></li>
-                <li><Link href="#" className="hover:text-white">Electric Vehicles</Link></li>
-                <li><Link href="#" className="hover:text-white">SUVs</Link></li>
-                <li><Link href="#" className="hover:text-white">Sell Your Car</Link></li>
+                <li><Link href="/inventory" className="hover:text-white">All Vehicles</Link></li>
+                <li><Link href="/electric-vehicles" className="hover:text-white">Electric Vehicles</Link></li>
+                <li><Link href="/inventory?bodyStyle=SUV" className="hover:text-white">SUVs</Link></li>
+                <li><Link href="/sell-your-car" className="hover:text-white">Sell Your Car</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><Link href="#" className="hover:text-white">About Us</Link></li>
-                <li><Link href="#" className="hover:text-white">Reviews</Link></li>
-                <li><Link href="#" className="hover:text-white">Financing</Link></li>
-                <li><Link href="#" className="hover:text-white">Contact</Link></li>
+                <li><Link href="/about" className="hover:text-white">About Us</Link></li>
+                <li><Link href="/reviews" className="hover:text-white">Reviews</Link></li>
+                <li><Link href="/financing" className="hover:text-white">Financing</Link></li>
+                <li><Link href="/contact" className="hover:text-white">Contact</Link></li>
               </ul>
             </div>
             <div>

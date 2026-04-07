@@ -74,7 +74,7 @@ export function ScheduleLiveVideoTourModal({
     return (
       <Drawer open={isOpen} onOpenChange={setIsOpen}>
         <DrawerTrigger asChild>{triggerButton}</DrawerTrigger>
-        <DrawerContent className="max-h-[90vh]">
+        <DrawerContent className="max-h-[90vh]" style={{ zIndex: 9999 }}>
           <DrawerHeader className="border-b pb-4">
             <DrawerTitle className="flex items-center gap-2 text-lg">
               <Video className="w-5 h-5 text-primary" />
@@ -91,7 +91,7 @@ export function ScheduleLiveVideoTourModal({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{triggerButton}</DialogTrigger>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto" style={{ zIndex: 9999 }}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Video className="w-5 h-5 text-primary" />

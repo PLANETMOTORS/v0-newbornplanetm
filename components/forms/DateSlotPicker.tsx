@@ -72,16 +72,17 @@ export function DateSlotPicker({
           onValueChange={handleDateChange}
           disabled={disabled || loading}
         >
-          <SelectTrigger className="w-full h-12 text-base touch-manipulation">
+          <SelectTrigger className="w-full h-12 text-base touch-manipulation min-h-[48px]">
             <SelectValue placeholder={loading ? "Loading..." : "Choose a date"} />
           </SelectTrigger>
           <SelectContent 
-            className="max-h-[50vh] z-[9999]"
+            className="max-h-[50vh]"
             position="popper"
             sideOffset={4}
+            style={{ zIndex: 99999 }}
           >
             {availability.map(({ date, dayLabel }) => (
-              <SelectItem key={date} value={date} className="py-3 text-base">
+              <SelectItem key={date} value={date} className="py-3 text-base cursor-pointer min-h-[48px]">
                 {dayLabel}
               </SelectItem>
             ))}
@@ -104,7 +105,7 @@ export function DateSlotPicker({
           onValueChange={onTimeChange}
           disabled={disabled || !selectedDate}
         >
-          <SelectTrigger className="w-full h-12 text-base touch-manipulation">
+          <SelectTrigger className="w-full h-12 text-base touch-manipulation min-h-[48px]">
             <SelectValue 
               placeholder={
                 !selectedDate 
@@ -116,12 +117,13 @@ export function DateSlotPicker({
             />
           </SelectTrigger>
           <SelectContent 
-            className="max-h-[50vh] z-[9999]"
+            className="max-h-[50vh]"
             position="popper"
             sideOffset={4}
+            style={{ zIndex: 99999 }}
           >
             {slots.map(({ time, label }) => (
-              <SelectItem key={time} value={time} className="py-3 text-base">
+              <SelectItem key={time} value={time} className="py-3 text-base cursor-pointer min-h-[48px]">
                 {label}
               </SelectItem>
             ))}
