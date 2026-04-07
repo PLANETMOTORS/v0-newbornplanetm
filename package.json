@@ -77,7 +77,6 @@
     "resend": "^6.10.0",
     "sanity": "^3.72.0",
     "sonner": "^1.7.1",
-    "ssh2": "^1.17.0",
     "stripe": "^18.1.0",
     "styled-components": "^6.1.15",
     "swr": "^2.4.1",
