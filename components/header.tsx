@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
-import { Menu, X, ChevronDown, Phone, MapPin, Star } from "lucide-react"
+import { Menu, X, ChevronDown, Phone, MapPin, Star, CheckCircle, Shield, Truck, Award } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import { GoogleReviewsBadge } from "@/components/google-reviews-badge"
@@ -210,6 +210,33 @@ export function Header() {
               <MapPin className="w-3.5 h-3.5" />
               <span>30 Major Mackenzie E, Richmond Hill, ON L4C 1G7</span>
             </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Second Trust Bar - Value Propositions */}
+      <div className={`bg-[#16a34a] text-white text-sm transition-all duration-300 overflow-hidden ${scrolled ? "max-h-0 py-0" : "max-h-14 py-2.5"}`}>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center gap-3 sm:gap-6 md:gap-10 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-2 whitespace-nowrap bg-white/10 px-3 py-1.5 rounded-full">
+              <CheckCircle className="w-4 h-4 text-white" />
+              <span className="font-medium text-xs sm:text-sm">10-Day Money Back Guarantee</span>
+            </div>
+            <span className="hidden sm:block text-white/40">|</span>
+            <div className="flex items-center gap-2 whitespace-nowrap bg-white/10 px-3 py-1.5 rounded-full">
+              <Shield className="w-4 h-4 text-white" />
+              <span className="font-medium text-xs sm:text-sm">$250 Refundable Deposit</span>
+            </div>
+            <span className="hidden md:block text-white/40">|</span>
+            <div className="hidden md:flex items-center gap-2 whitespace-nowrap bg-white/10 px-3 py-1.5 rounded-full">
+              <Truck className="w-4 h-4 text-white" />
+              <span className="font-medium text-xs sm:text-sm">Canada-Wide Delivery</span>
+            </div>
+            <span className="hidden lg:block text-white/40">|</span>
+            <div className="hidden lg:flex items-center gap-2 whitespace-nowrap bg-white/10 px-3 py-1.5 rounded-full">
+              <Award className="w-4 h-4 text-yellow-300" />
+              <span className="font-medium text-xs sm:text-sm">OMVIC #5482807</span>
+            </div>
           </div>
         </div>
       </div>
