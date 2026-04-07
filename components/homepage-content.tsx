@@ -48,13 +48,7 @@ export type HomepageProps = {
   }>
 }
 
-// Trust bar items
-const trustBarItems = [
-  { icon: RotateCw, label: "10-Day Returns" },
-  { icon: CheckCircle, label: "210-Point Inspection" },
-  { icon: Shield, label: "No Hidden Fees" },
-  { icon: Truck, label: "Ontario-Wide Delivery" },
-]
+
 
 // Shop by category chips
 const shopByCategories = [
@@ -286,20 +280,6 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
 
   return (
     <main id="main-content" role="main" aria-label="Home page content">
-      {/* Trust Bar - White Background */}
-      <div className="bg-white border-b border-gray-200 py-3">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center gap-4 sm:gap-8 flex-wrap">
-            {trustBarItems.map((item) => (
-              <div key={item.label} className="flex items-center gap-2 text-sm text-gray-600">
-                <item.icon className="w-4 h-4 text-[#1e3a8a]" />
-                <span>{item.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* ========== BOX 2: HERO SECTION - Off-White #F9FAFB ========== */}
       <section className="relative overflow-hidden" style={{ backgroundColor: "#F9FAFB" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
