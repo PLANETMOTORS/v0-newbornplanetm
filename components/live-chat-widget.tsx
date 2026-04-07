@@ -1,11 +1,12 @@
 "use client"
 
-// Planet Motors Live Chat Widget - Anna AI Assistant
+// Planet Motors Live Chat Widget - Anna AI Assistant (AI SDK 6)
 import { useState, useEffect, useRef } from "react"
 import { MessageCircle, X, Send, Minimize2, Bot, Sparkles, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useChat } from "@ai-sdk/react"
+import { DefaultChatTransport } from "ai"
 import { cn } from "@/lib/utils"
 
 interface QuickAction {
@@ -14,13 +15,24 @@ interface QuickAction {
   icon: string
 }
 
+// Helper to extract text from message parts (AI SDK 6 format)
+function getMessageText(message: any): string {
+  if (message.content) return message.content // Backwards compat
+  if (!message.parts || !Array.isArray(message.parts)) return ""
+  return message.parts
+    .filter((p: any) => p.type === "text")
+    .map((p: any) => p.text)
+    .join("")
+}
+
 export function LiveChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
+  const [inputValue, setInputValue] = useState("")
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Quick actions from CMS (hardcoded fallback, but API uses CMS values)
+  // Quick actions
   const quickActions: QuickAction[] = [
     { label: "Calculate Payment", prompt: "Help me calculate monthly payments", icon: "calculator" },
     { label: "Get Trade Value", prompt: "What's my car worth?", icon: "dollar" },
@@ -28,17 +40,12 @@ export function LiveChatWidget() {
     { label: "Find a Car", prompt: "Help me find my perfect car", icon: "car" },
   ]
 
-  // AI Chat hook
-  const { messages, input, setInput, handleSubmit, isLoading, append } = useChat({
-    api: "/api/anna",
-    initialMessages: [
-      {
-        id: "welcome",
-        role: "assistant",
-        content: "Hey! I'm Anna from Planet Motors. How can I help you today?\n\nI can help with:\n• Finding the perfect vehicle from our available inventory\n• Calculating payments and financing options\n• Getting your trade-in value\n• Booking test drives or appointments\n\nWhat are you looking for?"
-      }
-    ],
+  // AI SDK 6 Chat hook with DefaultChatTransport
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({ api: "/api/anna" }),
   })
+
+  const isLoading = status === "streaming" || status === "submitted"
 
   useEffect(() => {
     setIsMounted(true)
@@ -49,14 +56,31 @@ export function LiveChatWidget() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!inputValue.trim() || isLoading) return
+    sendMessage({ text: inputValue })
+    setInputValue("")
+  }
+
   const handleQuickAction = (prompt: string) => {
-    append({ role: "user", content: prompt })
+    if (isLoading) return
+    sendMessage({ text: prompt })
   }
 
   // Don't render until mounted to avoid hydration mismatch
   if (!isMounted) {
     return null
   }
+
+  // Show welcome message if no messages yet
+  const displayMessages = messages.length === 0 
+    ? [{ 
+        id: "welcome", 
+        role: "assistant", 
+        parts: [{ type: "text", text: "Hey! I'm Anna from Planet Motors. How can I help you today?\n\nI can help with:\n• Finding the perfect vehicle from our available inventory\n• Calculating payments and financing options\n• Getting your trade-in value\n• Booking test drives or appointments\n\nWhat are you looking for?" }]
+      }]
+    : messages
 
   if (!isOpen) {
     return (
@@ -118,7 +142,7 @@ export function LiveChatWidget() {
         <>
           {/* Messages */}
           <div className="flex-1 p-4 space-y-4 overflow-y-auto min-h-[200px] max-h-[300px]">
-            {messages.map((message) => (
+            {displayMessages.map((message: any) => (
               <div
                 key={message.id}
                 className={cn(
@@ -134,7 +158,7 @@ export function LiveChatWidget() {
                       : "bg-muted text-foreground rounded-bl-md"
                   )}
                 >
-                  {message.content}
+                  {getMessageText(message)}
                 </div>
               </div>
             ))}
@@ -150,7 +174,7 @@ export function LiveChatWidget() {
           </div>
 
           {/* Quick Actions - Show only if few messages */}
-          {messages.length <= 2 && (
+          {displayMessages.length <= 2 && (
             <div className="px-4 py-2 border-t flex gap-2 flex-wrap">
               {quickActions.map((action) => (
                 <Button
@@ -170,13 +194,13 @@ export function LiveChatWidget() {
           {/* Input */}
           <form onSubmit={handleSubmit} className="p-3 border-t flex gap-2">
             <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
               placeholder="Type your message..."
               className="flex-1"
               disabled={isLoading}
             />
-            <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
+            <Button type="submit" size="icon" disabled={isLoading || !inputValue.trim()}>
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (

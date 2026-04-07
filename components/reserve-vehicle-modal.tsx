@@ -14,7 +14,7 @@ import { loadStripe } from "@stripe/stripe-js"
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js"
 import { startVehicleCheckout } from "@/app/actions/stripe"
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 
 interface ReserveVehicleModalProps {
   vehicle: {
@@ -43,15 +43,16 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
 
   const [showStripeCheckout, setShowStripeCheckout] = useState(false)
 
-  const fetchClientSecret = useCallback(async () => {
-    return await startVehicleCheckout({
+  const getClientSecret = useCallback(
+    () => startVehicleCheckout({
       vehicleId: vehicle.id,
       vehicleName: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
       vehiclePriceCents: depositAmount * 100,
       depositOnly: true,
       customerEmail: formData.email,
-    })
-  }, [vehicle, formData.email])
+    }),
+    [vehicle, formData.email]
+  )
 
   const handleSubmit = async () => {
     setIsProcessing(true)
@@ -285,7 +286,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
       {showStripeCheckout && (
           <div className="py-4">
             <h3 className="font-medium mb-4">Complete Your ${depositAmount} Deposit</h3>
-            <EmbeddedCheckoutProvider stripe={stripePromise} options={{ fetchClientSecret }}>
+            <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret: getClientSecret }}>
               <EmbeddedCheckout />
             </EmbeddedCheckoutProvider>
             <Button variant="ghost" className="w-full mt-4" onClick={() => setShowStripeCheckout(false)}>
