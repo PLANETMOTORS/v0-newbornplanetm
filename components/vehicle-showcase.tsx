@@ -325,6 +325,7 @@ export function VehicleShowcase() {
             <ChevronRight className="w-5 h-5" />
           </Button>
         </div>
+        </div>
       </div>
       {/* End of main carousel container */}
 
