@@ -209,12 +209,14 @@ export function VehicleShowcase() {
 
   return (
     <div 
-      className="relative group"
+      className="relative group w-full"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      {/* Main image container */}
-      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted shadow-2xl">
+      {/* Main carousel container - prevent cutoff */}
+      <div className="w-full max-w-6xl mx-auto px-2 sm:px-4">
+        {/* Main image container */}
+        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted shadow-2xl">
         {/* Use native img for maximum compatibility with external URLs */}
         <img
           src={getImageSrc()}
@@ -323,20 +325,39 @@ export function VehicleShowcase() {
             <ChevronRight className="w-5 h-5" />
           </Button>
         </div>
+        </div>
       </div>
+      {/* End of main carousel container */}
 
       {/* Thumbnail navigation */}
-      <div className="mt-4 flex items-center justify-between gap-2">
-        <div className="flex gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide">
+      <div className="mt-4 flex items-center justify-between gap-2 max-w-6xl mx-auto px-2 sm:px-4">
+        {/* Left arrow - scroll thumbnails left */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="flex-shrink-0 h-10 w-10 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
+          onClick={() => {
+            const container = document.querySelector('.thumbnail-scroll-container')
+            if (container) {
+              container.scrollLeft -= 80
+            }
+          }}
+          aria-label="Scroll thumbnails left"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </Button>
+
+        {/* Thumbnail scroll container */}
+        <div className="thumbnail-scroll-container flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide flex-1 px-1 py-1">
           {showcaseVehicles.slice(0, 5).map((vehicle, index) => (
             <button
               key={vehicle.id}
               onClick={() => setCurrentIndex(index)}
               className={cn(
-                "relative w-12 h-9 sm:w-16 sm:h-12 rounded-lg overflow-hidden transition-all duration-200 flex-shrink-0",
+                "relative w-12 h-9 sm:w-16 sm:h-12 rounded-lg overflow-hidden transition-all duration-200 flex-shrink-0 border-2",
                 index === currentIndex 
-                  ? "ring-2 ring-primary ring-offset-2 ring-offset-background" 
-                  : "opacity-60 hover:opacity-100"
+                  ? "border-primary shadow-md" 
+                  : "border-transparent opacity-60 hover:opacity-100 hover:border-gray-300"
               )}
               aria-label={`View ${vehicle.name}`}
             >
@@ -348,6 +369,22 @@ export function VehicleShowcase() {
             </button>
           ))}
         </div>
+
+        {/* Right arrow - scroll thumbnails right */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="flex-shrink-0 h-10 w-10 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
+          onClick={() => {
+            const container = document.querySelector('.thumbnail-scroll-container')
+            if (container) {
+              container.scrollLeft += 80
+            }
+          }}
+          aria-label="Scroll thumbnails right"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </Button>
       </div>
     </div>
   )

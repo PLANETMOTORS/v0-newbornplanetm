@@ -52,12 +52,12 @@ export type HomepageProps = {
 
 // Shop by category chips
 const shopByCategories = [
-  { icon: DollarSign, label: "Under $30k", href: "/inventory?maxPrice=30000" },
-  { icon: Car, label: "SUVs", href: "/inventory?bodyType=SUV" },
-  { icon: Zap, label: "Electric", href: "/inventory?fuelType=Electric" },
-  { icon: Leaf, label: "Hybrids", href: "/inventory?fuelType=Hybrid" },
-  { icon: Star, label: "Luxury", href: "/inventory?category=Luxury" },
-  { icon: Users, label: "Family", href: "/inventory?category=Family" },
+  { icon: DollarSign, label: "Under $30k", href: "/inventory?maxPrice=30000", iconColor: "text-green-600" },
+  { icon: Car, label: "SUVs", href: "/inventory?bodyType=SUV", iconColor: "text-slate-600" },
+  { icon: Zap, label: "Electric", href: "/inventory?fuelType=Electric", iconColor: "text-emerald-500" },
+  { icon: Leaf, label: "Hybrids", href: "/inventory?fuelType=Hybrid", iconColor: "text-teal-500" },
+  { icon: Star, label: "Luxury", href: "/inventory?category=Luxury", iconColor: "text-amber-500" },
+  { icon: Users, label: "Family", href: "/inventory?category=Family", iconColor: "text-blue-500" },
 ]
 
 // 4-Step Process (Box 9) - with colorful icons
@@ -329,7 +329,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                 href={cat.href}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm font-medium text-gray-700 transition-colors"
               >
-                <cat.icon className="w-4 h-4" />
+                <cat.icon className={`w-4 h-4 ${cat.iconColor}`} />
                 {cat.label}
               </Link>
             ))}
