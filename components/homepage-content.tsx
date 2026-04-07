@@ -309,14 +309,8 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
             <div className="relative">
               <VehicleShowcase />
               
-              {/* Floating Price Tag */}
-              <div className="absolute -bottom-4 left-4 bg-white px-5 py-3 rounded-xl shadow-lg border border-gray-100">
-                <div className="text-xs text-gray-500">Financing from</div>
-                <div className="text-xl font-bold text-[#1e3a8a]">$299/mo</div>
-              </div>
-
               {/* Floating Badge */}
-              <div className="absolute -top-2 right-4 bg-[#dc2626] text-white px-4 py-1.5 rounded-full text-sm font-medium shadow-lg">
+              <div className="absolute top-4 right-4 bg-[#dc2626] text-white px-4 py-1.5 rounded-full text-sm font-medium shadow-lg z-10">
                 Low Rates Available
               </div>
             </div>
