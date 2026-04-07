@@ -148,13 +148,13 @@ export default function HomepageMockupV2() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-[#1e3a8a] via-[#1e3a8a] to-[#172554] text-white overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
+      {/* Hero Section - Light Background (Clutch/Carvana Style) */}
+      <section className="relative bg-gradient-to-b from-gray-50 to-white overflow-hidden">
+        {/* Subtle Background Pattern */}
+        <div className="absolute inset-0 opacity-40">
           <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
-            backgroundSize: '32px 32px'
+            backgroundImage: `radial-gradient(circle at 2px 2px, #1e3a8a 0.5px, transparent 0)`,
+            backgroundSize: '40px 40px'
           }} />
         </div>
 
@@ -162,19 +162,19 @@ export default function HomepageMockupV2() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Hero Text */}
             <div className="text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-sm mb-6">
-                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                50+ Vehicles In Stock
+              <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full text-sm mb-6 shadow-sm border border-gray-200">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                <span className="text-green-600 font-medium">50+ Vehicles In Stock</span>
               </div>
               
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 text-gray-900">
                 Buy Your Next Vehicle
-                <span className="block text-[#dc2626]">
+                <span className="block text-[#1e3a8a]">
                   With Confidence
                 </span>
               </h1>
               
-              <p className="text-lg md:text-xl text-white/80 mb-8 max-w-lg mx-auto lg:mx-0">
+              <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-lg mx-auto lg:mx-0">
                 Ontario&apos;s trusted online dealership specializing in EVs, hybrids, and quality used vehicles. Browse, finance, and get your car delivered.
               </p>
 
@@ -183,42 +183,42 @@ export default function HomepageMockupV2() {
                   Browse Inventory
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
-                <button className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl transition-colors backdrop-blur-sm border border-white/20">
+                <button className="px-8 py-4 bg-white hover:bg-gray-50 text-[#1e3a8a] font-semibold rounded-xl transition-colors border-2 border-[#1e3a8a]">
                   Sell / Trade Your Car
                 </button>
               </div>
 
               {/* Quick Stats */}
-              <div className="flex items-center justify-center lg:justify-start gap-8 mt-12 pt-8 border-t border-white/10">
+              <div className="flex items-center justify-center lg:justify-start gap-8 mt-12 pt-8 border-t border-gray-200">
                 <div>
-                  <div className="text-3xl font-bold">500+</div>
-                  <div className="text-white/60 text-sm">Happy Customers</div>
+                  <div className="text-3xl font-bold text-[#1e3a8a]">500+</div>
+                  <div className="text-gray-500 text-sm">Happy Customers</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold">20+</div>
-                  <div className="text-white/60 text-sm">Lender Partners</div>
+                  <div className="text-3xl font-bold text-[#1e3a8a]">20+</div>
+                  <div className="text-gray-500 text-sm">Lender Partners</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold">4.9</div>
-                  <div className="text-white/60 text-sm">Google Rating</div>
+                  <div className="text-3xl font-bold text-[#1e3a8a]">4.9</div>
+                  <div className="text-gray-500 text-sm">Google Rating</div>
                 </div>
               </div>
             </div>
 
             {/* Hero Image */}
             <div className="relative hidden lg:block">
-              <div className="aspect-[4/3] bg-gradient-to-br from-white/10 to-white/5 rounded-3xl border border-white/10 flex items-center justify-center overflow-hidden">
+              <div className="aspect-[4/3] bg-white rounded-3xl border border-gray-200 shadow-xl flex items-center justify-center overflow-hidden">
                 <div className="text-center p-8">
-                  <div className="w-32 h-32 mx-auto mb-4 bg-white/10 rounded-full flex items-center justify-center">
-                    <Car className="w-16 h-16 text-white/40" />
+                  <div className="w-32 h-32 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <Car className="w-16 h-16 text-[#1e3a8a]/30" />
                   </div>
-                  <p className="text-white/40">Featured Vehicle Image</p>
-                  <p className="text-white/30 text-sm">Tesla, SUV, or Hybrid showcase</p>
+                  <p className="text-gray-400">Featured Vehicle Image</p>
+                  <p className="text-gray-300 text-sm">Tesla, SUV, or Hybrid showcase</p>
                 </div>
               </div>
 
               {/* Floating Price Tag */}
-              <div className="absolute -bottom-4 -left-4 bg-white text-[#1e3a8a] px-6 py-4 rounded-2xl shadow-xl">
+              <div className="absolute -bottom-4 -left-4 bg-white text-[#1e3a8a] px-6 py-4 rounded-2xl shadow-xl border border-gray-100">
                 <div className="text-sm text-gray-500">Financing from</div>
                 <div className="text-2xl font-bold">$299/mo</div>
               </div>
@@ -393,35 +393,40 @@ export default function HomepageMockupV2() {
         </div>
       </section>
 
-      {/* Sell / Trade Section */}
-      <section className="py-16 bg-[#1e3a8a] text-white">
+      {/* Sell / Trade Section - Light Background */}
+      <section className="py-16 bg-gradient-to-br from-green-50 to-emerald-50 border-y border-green-100">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium mb-4">
+                <DollarSign className="w-4 h-4" />
+                Sell or Trade
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
                 Have a Vehicle to Sell or Trade?
               </h2>
-              <p className="text-white/80 text-lg mb-6">
+              <p className="text-gray-600 text-lg mb-6">
                 Get a competitive offer in minutes. We buy all makes and models - you don&apos;t need to purchase from us to sell to us.
               </p>
               <ul className="space-y-3 mb-8">
                 {["Instant online offer", "Free vehicle pickup", "Same-day payment available", "No obligation to buy from us"].map((item, i) => (
                   <li key={i} className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-400" />
-                    <span>{item}</span>
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <span className="text-gray-700">{item}</span>
                   </li>
                 ))}
               </ul>
-              <button className="px-8 py-4 bg-white text-[#1e3a8a] font-semibold rounded-xl hover:bg-gray-100 transition-colors">
+              <button className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-colors shadow-lg">
                 Get Your Offer
               </button>
             </div>
-            <div className="bg-white/10 rounded-3xl p-8 backdrop-blur-sm border border-white/20">
-              <h3 className="text-xl font-semibold mb-6">Quick Estimate</h3>
+            <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-200">
+              <h3 className="text-xl font-semibold mb-6 text-gray-900">Quick Estimate</h3>
               <div className="space-y-4">
-                <input type="text" placeholder="Year, Make, Model" className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:border-white/40" />
-                <input type="text" placeholder="Mileage (km)" className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:border-white/40" />
-                <button className="w-full px-6 py-3 bg-[#dc2626] hover:bg-[#b91c1c] text-white font-semibold rounded-xl transition-colors">
+                <input type="text" placeholder="Year, Make, Model" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20" />
+                <input type="text" placeholder="Mileage (km)" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20" />
+                <input type="email" placeholder="Your Email" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20" />
+                <button className="w-full px-6 py-3 bg-[#1e3a8a] hover:bg-[#172554] text-white font-semibold rounded-xl transition-colors">
                   Get Instant Offer
                 </button>
               </div>
