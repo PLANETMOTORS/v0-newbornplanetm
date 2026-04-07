@@ -220,7 +220,7 @@ export default function CityLandingPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Star className="w-5 h-5 text-yellow-500" />
-                  <span className="text-sm">4.8 Star Rating (500+ Reviews)</span>
+                  <span className="text-sm">4.8 Star Rating</span>
                 </div>
               </div>
             </div>

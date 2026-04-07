@@ -1362,7 +1362,7 @@ function TradeInContent() {
                 <h2 className="text-3xl font-bold mb-4">What Canadians Are Saying</h2>
                 <div className="flex items-center justify-center gap-2 text-amber-500">
                   {[1,2,3,4,5].map(i => <Star key={i} className="h-5 w-5 fill-current" />)}
-                  <span className="ml-2 text-foreground font-medium">4.8 Star Rating (500+ Reviews)</span>
+                  <span className="ml-2 text-foreground font-medium">4.8 Star Rating</span>
                 </div>
               </div>
               
