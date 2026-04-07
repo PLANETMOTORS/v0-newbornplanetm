@@ -194,13 +194,14 @@ export function Header() {
             </span>
           </div>
           <div className="flex items-center gap-4 sm:gap-6">
-            <span className="hidden md:flex items-center gap-1.5 font-medium">
-              Canada Wide Delivery
-            </span>
             <div className="flex items-center gap-1">
               <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
               <span className="font-medium">4.8</span>
             </div>
+            <span className="hidden md:flex items-center gap-1.5 font-medium">
+              <Award className="w-3.5 h-3.5" />
+              OMVIC #5482807
+            </span>
             <a 
               href="https://maps.google.com/?q=30+Major+Mackenzie+E+Richmond+Hill+ON"
               target="_blank"
@@ -227,15 +228,15 @@ export function Header() {
               <Shield className="w-4 h-4 text-white" />
               <span className="font-medium text-xs sm:text-sm">$250 Refundable Deposit</span>
             </div>
+            <span className="hidden sm:block text-white/40">|</span>
+            <div className="hidden sm:flex items-center gap-2 whitespace-nowrap bg-white/10 px-3 py-1.5 rounded-full">
+              <CheckCircle className="w-4 h-4 text-white" />
+              <span className="font-medium text-xs sm:text-sm">210-Point Inspection</span>
+            </div>
             <span className="hidden md:block text-white/40">|</span>
             <div className="hidden md:flex items-center gap-2 whitespace-nowrap bg-white/10 px-3 py-1.5 rounded-full">
               <Truck className="w-4 h-4 text-white" />
               <span className="font-medium text-xs sm:text-sm">Canada-Wide Delivery</span>
-            </div>
-            <span className="hidden lg:block text-white/40">|</span>
-            <div className="hidden lg:flex items-center gap-2 whitespace-nowrap bg-white/10 px-3 py-1.5 rounded-full">
-              <Award className="w-4 h-4 text-yellow-300" />
-              <span className="font-medium text-xs sm:text-sm">OMVIC #5482807</span>
             </div>
           </div>
         </div>
