@@ -200,7 +200,6 @@ export function Header() {
             <div className="flex items-center gap-1">
               <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
               <span className="font-medium">4.8</span>
-              <span className="hidden sm:inline text-primary-foreground/80">(277)</span>
             </div>
             <a 
               href="https://maps.google.com/?q=30+Major+Mackenzie+E+Richmond+Hill+ON"
