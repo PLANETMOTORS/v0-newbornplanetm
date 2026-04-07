@@ -137,6 +137,7 @@ const navigation = [
     href: "/about",
     submenu: [
       { name: "About", href: "/about" },
+      { name: "EV Battery Health", href: "/ev-battery-health" },
       { name: "Car Value Calculator", href: "/trade-in" },
       { name: "Protection Plans", href: "/protection-plans" },
       { name: "FAQ", href: "/faq" },
@@ -145,7 +146,6 @@ const navigation = [
       { name: "Blog", href: "/blog" },
     ]
   },
-  { name: "EV Battery", href: "/ev-battery-health" },
 ]
 
 export function Header() {
@@ -189,23 +189,29 @@ export function Header() {
               <Phone className="w-3.5 h-3.5" />
               <span className="font-medium">1-866-797-3332</span>
             </a>
+            <span className="hidden sm:flex items-center text-primary-foreground/90">
+              Mon-Fri 9AM-7PM | Sat 9AM-6PM
+            </span>
+          </div>
+          <div className="flex items-center gap-4 sm:gap-6">
+            <span className="hidden md:flex items-center gap-1.5 font-medium">
+              Canada Wide Delivery
+            </span>
+            <div className="flex items-center gap-1">
+              <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+              <span className="font-medium">4.8</span>
+              <span className="hidden sm:inline text-primary-foreground/80">(277)</span>
+            </div>
             <a 
-              href="tel:416-985-2277" 
-              className="hidden sm:flex items-center gap-1.5 hover:text-primary-foreground/80 transition-colors"
+              href="https://maps.google.com/?q=30+Major+Mackenzie+E+Richmond+Hill+ON"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden lg:flex items-center gap-1.5 hover:text-primary-foreground/80 transition-colors"
             >
-              <span>Local: 416-985-2277</span>
+              <MapPin className="w-3.5 h-3.5" />
+              <span>30 Major Mackenzie E, Richmond Hill, ON L4C 1G7</span>
             </a>
           </div>
-          <a 
-            href="https://maps.google.com/?q=30+Major+Mackenzie+E+Richmond+Hill+ON"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 hover:text-primary-foreground/80 transition-colors"
-          >
-            <MapPin className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">30 Major Mackenzie E, Richmond Hill, ON L4C 1G7</span>
-            <span className="sm:hidden">Richmond Hill, ON</span>
-          </a>
         </div>
       </div>
 
