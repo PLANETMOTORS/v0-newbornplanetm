@@ -4,7 +4,7 @@
 // Section Order: Hero -> 4-Step Process -> Featured Vehicles -> Why Choose Us -> Sell/Trade -> Reviews -> Protection Plans -> CTA -> The Promise -> Footer
 import Link from "next/link"
 import { useState } from "react"
-import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin, Award, DollarSign, Truck, Users, Leaf, Search, CreditCard, FileCheck, Home } from "lucide-react"
+import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin, Award, DollarSign, Truck, Users, Leaf, Search, CreditCard, FileCheck, Home, Handshake, Tag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { VehicleShowcase } from "@/components/vehicle-showcase"
 
@@ -288,7 +288,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                 Ontario&apos;s trusted destination for premium pre-owned vehicles. 210-point inspection, 10-day money-back guarantee, and the best multi-lender financing rates.
               </p>
 
-              <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center">
                 <Button size="lg" className="bg-[#dc2626] hover:bg-[#b91c1c] text-white px-8" asChild>
                   <Link href="/inventory">
                     Browse Inventory
@@ -296,10 +296,20 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" className="border-2 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white px-8" asChild>
-                  <Link href="/trade-in">
-                    Sell / Trade Your Car
+                  <Link href="/trade-in" className="flex items-center gap-2">
+                    <Handshake className="w-4 h-4" />
+                    Sell or Trade Your Car
                   </Link>
                 </Button>
+                
+                {/* Shop Great Deals - Promotional Badge */}
+                <Link href="/inventory?filter=deals" className="ml-auto lg:ml-8 flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-[#dc2626] to-[#f97316] hover:from-[#b91c1c] hover:to-[#ea580c] text-white rounded-lg shadow-lg transition-all hover:shadow-xl hover:scale-105">
+                  <Tag className="w-5 h-5" />
+                  <div className="text-left">
+                    <p className="text-sm font-semibold">Shop Great</p>
+                    <p className="text-xs font-medium opacity-90">Deals</p>
+                  </div>
+                </Link>
               </div>
 
 
