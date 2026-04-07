@@ -320,19 +320,38 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
         </div>
       </section>
 
-      {/* Shop By Category - stays between Hero and Process */}
-      <section className="py-6 border-b border-gray-200 bg-white">
+      {/* Shop By Category - Carvana Style Large Boxes */}
+      <section className="py-16 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4 flex-wrap">
-            <span className="text-sm text-gray-500 font-medium">Shop by:</span>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Shop by Category
+            </h2>
+            <p className="text-gray-600 text-lg">
+              Find the perfect vehicle that matches your needs
+            </p>
+          </div>
+
+          {/* Grid of Large Feature Boxes */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {shopByCategories.map((cat) => (
               <Link
                 key={cat.label}
                 href={cat.href}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm font-medium text-gray-700 transition-colors"
+                className="group flex flex-col items-center justify-center p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-200 hover:border-primary hover:from-blue-50 hover:to-blue-100 transition-all duration-300 hover:shadow-lg hover:scale-105"
               >
-                <cat.icon className={`w-4 h-4 ${cat.iconColor}`} />
-                {cat.label}
+                {/* Large Icon */}
+                <div className="mb-4 p-4 bg-white rounded-xl group-hover:bg-primary/10 transition-colors">
+                  <cat.icon className={`w-12 h-12 ${cat.iconColor}`} />
+                </div>
+                
+                {/* Category Label */}
+                <h3 className="text-xl font-bold text-gray-900 group-hover:text-primary transition-colors text-center">
+                  {cat.label}
+                </h3>
+                
+                {/* Arrow on hover */}
+                <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary mt-3 transition-all opacity-0 group-hover:opacity-100" />
               </Link>
             ))}
           </div>
