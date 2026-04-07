@@ -3,18 +3,38 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ChevronRight, Shield, RotateCcw, CheckCircle, Star, ArrowRight, Menu, Phone, MapPin } from "lucide-react"
+import { 
+  ChevronRight, Shield, RotateCcw, CheckCircle, Star, ArrowRight, Menu, Phone, MapPin, 
+  Car, Zap, Battery, DollarSign, Truck, BadgeCheck, X
+} from "lucide-react"
 
-// Mockup: Trust-First Homepage Design for Planet Motors
-// Inspired by Clutch.ca's award-winning UX
+// Mockup V2: Trust-First Homepage Design for Planet Motors
+// Broader positioning: "Ontario's trusted used vehicle dealership specializing in EVs"
+// Brand colors: Navy Blue #1e3a8a, Red #dc2626
 
-export default function HomepageMockup() {
+export default function HomepageMockupV2() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState("all")
+
+  const vehicles = [
+    { id: 1, name: "Tesla Model 3", year: 2023, price: "$42,900", monthly: "$399/mo", range: "358 km", type: "electric", badge: "Popular", isEV: true },
+    { id: 2, name: "Toyota RAV4 Hybrid", year: 2024, price: "$38,500", monthly: "$349/mo", mpg: "41 MPG", type: "suv", badge: "Fuel Saver", isEV: false },
+    { id: 3, name: "Hyundai Ioniq 5", year: 2024, price: "$48,500", monthly: "$449/mo", range: "488 km", type: "electric", badge: "New Arrival", isEV: true },
+    { id: 4, name: "Honda CR-V", year: 2023, price: "$34,900", monthly: "$319/mo", mpg: "30 MPG", type: "suv", badge: null, isEV: false },
+    { id: 5, name: "Ford Mustang Mach-E", year: 2023, price: "$52,900", monthly: "$489/mo", range: "402 km", type: "electric", badge: "Premium", isEV: true },
+    { id: 6, name: "BMW X3", year: 2022, price: "$44,900", monthly: "$419/mo", mpg: "26 MPG", type: "suv", badge: "Luxury", isEV: false },
+  ]
+
+  const filteredVehicles = activeTab === "all" 
+    ? vehicles 
+    : activeTab === "electric" 
+      ? vehicles.filter(v => v.type === "electric")
+      : vehicles.filter(v => v.type === "suv")
 
   return (
-    <div className="min-h-screen bg-background font-sans">
+    <div className="min-h-screen bg-white font-sans">
       {/* Top Bar - Contact Info */}
-      <div className="bg-[#1a1a2e] text-white/80 text-sm py-2">
+      <div className="bg-[#1e3a8a] text-white/90 text-sm py-2">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           <div className="flex items-center gap-6">
             <a href="tel:+14165551234" className="flex items-center gap-1.5 hover:text-white transition-colors">
@@ -23,52 +43,58 @@ export default function HomepageMockup() {
             </a>
             <span className="hidden sm:flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5" />
-              Toronto, ON
+              Scarborough, ON
             </span>
           </div>
           <div className="flex items-center gap-4">
             <span className="hidden md:inline">Mon-Sat: 9AM-7PM</span>
-            <span className="text-orange-400 font-medium">OMVIC Licensed</span>
+            <span className="bg-white/20 px-3 py-0.5 rounded-full font-medium">OMVIC Licensed</span>
           </div>
         </div>
       </div>
 
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">PM</span>
-            </div>
-            <div>
-              <span className="font-bold text-xl text-[#1a1a2e]">Planet Motors</span>
-              <span className="hidden sm:inline text-xs text-gray-500 ml-2">Electric Vehicles</span>
-            </div>
-          </div>
+          <Link href="/" className="flex items-center gap-3">
+            <Image 
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Planet-Motors---Logo-Final%20Transp%20Back-lBOeordAvQp4WQW3K6p5yxuD3w9XwL.jpeg"
+              alt="Planet Motors"
+              width={60}
+              height={60}
+              className="h-12 w-auto"
+            />
+          </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center gap-8">
-            <Link href="#" className="text-gray-700 hover:text-[#1a1a2e] font-medium transition-colors">
-              Browse EVs
+          <nav className="hidden lg:flex items-center gap-1">
+            <Link href="#" className="px-4 py-2 text-gray-700 hover:text-[#1e3a8a] hover:bg-gray-50 font-medium rounded-lg transition-colors">
+              Shop Cars
             </Link>
-            <Link href="#" className="text-gray-700 hover:text-[#1a1a2e] font-medium transition-colors">
-              How It Works
+            <Link href="#" className="px-4 py-2 text-gray-700 hover:text-[#1e3a8a] hover:bg-gray-50 font-medium rounded-lg transition-colors">
+              EVs & Hybrids
             </Link>
-            <Link href="#" className="text-gray-700 hover:text-[#1a1a2e] font-medium transition-colors">
+            <Link href="#" className="px-4 py-2 text-gray-700 hover:text-[#1e3a8a] hover:bg-gray-50 font-medium rounded-lg transition-colors">
+              Sell / Trade
+            </Link>
+            <Link href="#" className="px-4 py-2 text-gray-700 hover:text-[#1e3a8a] hover:bg-gray-50 font-medium rounded-lg transition-colors">
               Financing
             </Link>
-            <Link href="#" className="text-gray-700 hover:text-[#1a1a2e] font-medium transition-colors">
-              About Us
+            <Link href="#" className="px-4 py-2 text-gray-700 hover:text-[#1e3a8a] hover:bg-gray-50 font-medium rounded-lg transition-colors">
+              How It Works
+            </Link>
+            <Link href="#" className="px-4 py-2 text-gray-700 hover:text-[#1e3a8a] hover:bg-gray-50 font-medium rounded-lg transition-colors">
+              Reviews
             </Link>
           </nav>
 
           {/* CTA Buttons */}
           <div className="flex items-center gap-3">
-            <button className="hidden sm:block px-4 py-2 text-[#1a1a2e] font-medium hover:bg-gray-100 rounded-lg transition-colors">
+            <button className="hidden sm:block px-4 py-2 text-[#1e3a8a] font-medium hover:bg-gray-50 rounded-lg transition-colors">
               Sign In
             </button>
-            <button className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-colors shadow-md shadow-orange-500/20">
+            <button className="px-5 py-2.5 bg-[#dc2626] hover:bg-[#b91c1c] text-white font-semibold rounded-lg transition-colors shadow-md">
               Get Pre-Approved
             </button>
             <button 
@@ -80,66 +106,85 @@ export default function HomepageMockup() {
           </div>
         </div>
 
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden fixed inset-0 z-50 bg-white">
+            <div className="p-4 flex justify-between items-center border-b">
+              <span className="font-bold text-xl">Menu</span>
+              <button onClick={() => setMobileMenuOpen(false)}>
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <nav className="p-4 space-y-2">
+              {["Shop Cars", "EVs & Hybrids", "Sell / Trade", "Financing", "How It Works", "Reviews"].map(item => (
+                <Link key={item} href="#" className="block px-4 py-3 text-lg font-medium hover:bg-gray-50 rounded-lg">
+                  {item}
+                </Link>
+              ))}
+            </nav>
+          </div>
+        )}
+
         {/* Trust Bar */}
-        <div className="bg-[#f8f9fa] border-t border-gray-100">
-          <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-center gap-6 md:gap-12 text-sm overflow-x-auto">
+        <div className="bg-gray-50 border-t border-gray-100">
+          <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-center gap-4 md:gap-10 text-sm overflow-x-auto">
             <div className="flex items-center gap-2 whitespace-nowrap">
-              <RotateCcw className="w-4 h-4 text-green-600" />
+              <RotateCcw className="w-4 h-4 text-[#1e3a8a]" />
               <span className="font-medium">10-Day Returns</span>
             </div>
             <div className="flex items-center gap-2 whitespace-nowrap">
-              <CheckCircle className="w-4 h-4 text-green-600" />
+              <CheckCircle className="w-4 h-4 text-[#1e3a8a]" />
               <span className="font-medium">210-Point Inspection</span>
             </div>
             <div className="flex items-center gap-2 whitespace-nowrap">
-              <Shield className="w-4 h-4 text-green-600" />
+              <Shield className="w-4 h-4 text-[#1e3a8a]" />
               <span className="font-medium">No Hidden Fees</span>
             </div>
             <div className="hidden md:flex items-center gap-2 whitespace-nowrap">
-              <Star className="w-4 h-4 text-green-600" />
-              <span className="font-medium">4.9/5 Google Rating</span>
+              <Truck className="w-4 h-4 text-[#1e3a8a]" />
+              <span className="font-medium">Free Delivery</span>
             </div>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative bg-[#1a1a2e] text-white overflow-hidden">
+      <section className="relative bg-gradient-to-br from-[#1e3a8a] via-[#1e3a8a] to-[#172554] text-white overflow-hidden">
         {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+            backgroundSize: '32px 32px'
           }} />
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 py-16 md:py-24 lg:py-32 relative">
+        <div className="max-w-7xl mx-auto px-4 py-16 md:py-20 lg:py-24 relative">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Hero Text */}
             <div className="text-center lg:text-left">
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-sm mb-6">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                Now Available: 2024 Models
+                50+ Vehicles In Stock
               </div>
               
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-                Buy Your Next
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-500">
-                  Electric Vehicle
+                Buy Your Next Vehicle
+                <span className="block text-[#dc2626]">
+                  With Confidence
                 </span>
-                With Confidence
               </h1>
               
-              <p className="text-lg md:text-xl text-white/70 mb-8 max-w-lg mx-auto lg:mx-0">
-                Ontario&apos;s trusted online EV dealership. Browse, finance, and get your car delivered - all from home.
+              <p className="text-lg md:text-xl text-white/80 mb-8 max-w-lg mx-auto lg:mx-0">
+                Ontario&apos;s trusted online dealership specializing in EVs, hybrids, and quality used vehicles. Browse, finance, and get your car delivered.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <button className="px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition-all shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2 group">
+                <button className="px-8 py-4 bg-[#dc2626] hover:bg-[#b91c1c] text-white font-semibold rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 group">
                   Browse Inventory
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl transition-colors backdrop-blur-sm border border-white/20">
-                  How It Works
+                  Sell / Trade Your Car
                 </button>
               </div>
 
@@ -160,28 +205,26 @@ export default function HomepageMockup() {
               </div>
             </div>
 
-            {/* Hero Image Placeholder */}
-            <div className="relative">
+            {/* Hero Image */}
+            <div className="relative hidden lg:block">
               <div className="aspect-[4/3] bg-gradient-to-br from-white/10 to-white/5 rounded-3xl border border-white/10 flex items-center justify-center overflow-hidden">
                 <div className="text-center p-8">
                   <div className="w-32 h-32 mx-auto mb-4 bg-white/10 rounded-full flex items-center justify-center">
-                    <svg className="w-16 h-16 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
+                    <Car className="w-16 h-16 text-white/40" />
                   </div>
                   <p className="text-white/40">Featured Vehicle Image</p>
-                  <p className="text-white/30 text-sm">e.g., Tesla Model 3</p>
+                  <p className="text-white/30 text-sm">Tesla, SUV, or Hybrid showcase</p>
                 </div>
               </div>
 
               {/* Floating Price Tag */}
-              <div className="absolute -bottom-4 -left-4 bg-white text-[#1a1a2e] px-6 py-4 rounded-2xl shadow-xl">
-                <div className="text-sm text-gray-500">Starting from</div>
+              <div className="absolute -bottom-4 -left-4 bg-white text-[#1e3a8a] px-6 py-4 rounded-2xl shadow-xl">
+                <div className="text-sm text-gray-500">Financing from</div>
                 <div className="text-2xl font-bold">$299/mo</div>
               </div>
 
               {/* Floating Badge */}
-              <div className="absolute -top-4 -right-4 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+              <div className="absolute -top-4 -right-4 bg-[#dc2626] text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
                 Low Rates Available
               </div>
             </div>
@@ -189,181 +232,90 @@ export default function HomepageMockup() {
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-20 bg-white">
+      {/* Shop by Need - Discovery Chips */}
+      <section className="py-8 bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#1a1a2e] mb-4">
-              How It Works
-            </h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Buy your next car in 3 simple steps - no dealership visits required
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
-            {/* Step 1 */}
-            <div className="text-center group">
-              <div className="w-20 h-20 mx-auto mb-6 bg-orange-100 rounded-2xl flex items-center justify-center group-hover:bg-orange-500 transition-colors">
-                <span className="text-3xl font-bold text-orange-500 group-hover:text-white transition-colors">1</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-3 text-[#1a1a2e]">Browse & Select</h3>
-              <p className="text-gray-600">
-                Explore our curated inventory of quality EVs. Every vehicle includes detailed photos, history report, and 210-point inspection results.
-              </p>
-            </div>
-
-            {/* Step 2 */}
-            <div className="text-center group">
-              <div className="w-20 h-20 mx-auto mb-6 bg-orange-100 rounded-2xl flex items-center justify-center group-hover:bg-orange-500 transition-colors">
-                <span className="text-3xl font-bold text-orange-500 group-hover:text-white transition-colors">2</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-3 text-[#1a1a2e]">Get Approved</h3>
-              <p className="text-gray-600">
-                Apply for financing in minutes. We work with 20+ lenders to find you the best rate, regardless of credit history.
-              </p>
-            </div>
-
-            {/* Step 3 */}
-            <div className="text-center group">
-              <div className="w-20 h-20 mx-auto mb-6 bg-orange-100 rounded-2xl flex items-center justify-center group-hover:bg-orange-500 transition-colors">
-                <span className="text-3xl font-bold text-orange-500 group-hover:text-white transition-colors">3</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-3 text-[#1a1a2e]">Delivery or Pickup</h3>
-              <p className="text-gray-600">
-                Get your car delivered to your door or pick it up at our location. Either way, you have 10 days to make sure you love it.
-              </p>
-            </div>
+          <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            <span className="text-gray-500 font-medium whitespace-nowrap">Shop by:</span>
+            {[
+              { label: "Under $30k", icon: DollarSign },
+              { label: "SUVs", icon: Car },
+              { label: "Electric", icon: Zap },
+              { label: "Hybrids", icon: Battery },
+              { label: "Luxury", icon: BadgeCheck },
+              { label: "Family", icon: Car },
+            ].map((chip, i) => (
+              <button 
+                key={i}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-[#1e3a8a] hover:text-white rounded-full text-sm font-medium whitespace-nowrap transition-colors"
+              >
+                <chip.icon className="w-4 h-4" />
+                {chip.label}
+              </button>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Trust Section */}
-      <section className="py-20 bg-[#f8f9fa]">
+      {/* Featured Inventory with Tabs */}
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-[#1a1a2e] mb-6">
-                Why 500+ Customers
-                <span className="block text-orange-500">Trust Planet Motors</span>
-              </h2>
-              <p className="text-gray-600 text-lg mb-8">
-                We&apos;re not just another dealership. We&apos;re building a new way to buy cars - transparent, fair, and designed around you.
-              </p>
-
-              <div className="space-y-6">
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <RotateCcw className="w-6 h-6 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-[#1a1a2e] mb-1">10-Day Money-Back Guarantee</h3>
-                    <p className="text-gray-600 text-sm">Not happy? Return it within 10 days for a full refund. No questions asked.</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <CheckCircle className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-[#1a1a2e] mb-1">210-Point Inspection</h3>
-                    <p className="text-gray-600 text-sm">Every vehicle undergoes rigorous inspection. We fix issues before you see it.</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Shield className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-[#1a1a2e] mb-1">No Hidden Fees</h3>
-                    <p className="text-gray-600 text-sm">The price you see is the price you pay. Transparent pricing, always.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Testimonial Card */}
-            <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
-              <div className="flex items-center gap-1 mb-4">
-                {[1,2,3,4,5].map(i => (
-                  <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                ))}
-              </div>
-              <blockquote className="text-xl text-[#1a1a2e] mb-6 leading-relaxed">
-                &quot;I was skeptical about buying a car online, but Planet Motors made it incredibly easy. The car arrived exactly as described, and the 10-day return policy gave me peace of mind.&quot;
-              </blockquote>
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center">
-                  <span className="text-xl font-semibold text-gray-500">JD</span>
-                </div>
-                <div>
-                  <div className="font-semibold text-[#1a1a2e]">James D.</div>
-                  <div className="text-gray-500 text-sm">Toronto, ON - Purchased Tesla Model Y</div>
-                </div>
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Image 
-                    src="/google-logo.svg" 
-                    alt="Google" 
-                    width={24} 
-                    height={24}
-                    className="opacity-70"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none'
-                    }}
-                  />
-                  <span className="text-gray-500 text-sm">4.9/5 from 200+ reviews</span>
-                </div>
-                <Link href="#" className="text-orange-500 font-medium text-sm hover:underline">
-                  Read all reviews
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Inventory */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-end justify-between mb-12">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-[#1a1a2e] mb-2">
+              <h2 className="text-3xl md:text-4xl font-bold text-[#1e3a8a] mb-2">
                 Featured Vehicles
               </h2>
-              <p className="text-gray-600">Hand-picked EVs ready for delivery</p>
+              <p className="text-gray-600">Quality vehicles ready for delivery</p>
             </div>
-            <Link href="#" className="hidden md:flex items-center gap-2 text-orange-500 font-semibold hover:gap-3 transition-all">
-              View All Inventory
-              <ChevronRight className="w-5 h-5" />
-            </Link>
+            
+            {/* Tabs */}
+            <div className="flex gap-2 bg-gray-100 p-1 rounded-lg">
+              {[
+                { id: "all", label: "All" },
+                { id: "electric", label: "Electric" },
+                { id: "suv", label: "SUVs" },
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === tab.id 
+                      ? "bg-white text-[#1e3a8a] shadow-sm" 
+                      : "text-gray-600 hover:text-[#1e3a8a]"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Vehicle Card 1 */}
-            {[
-              { name: "Tesla Model 3", year: 2023, price: "$42,900", monthly: "$399/mo", range: "358 km", badge: "Popular" },
-              { name: "Hyundai Ioniq 5", year: 2024, price: "$48,500", monthly: "$449/mo", range: "488 km", badge: "New Arrival" },
-              { name: "Ford Mustang Mach-E", year: 2023, price: "$52,900", monthly: "$489/mo", range: "402 km", badge: null },
-            ].map((car, i) => (
-              <div key={i} className="group bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl hover:border-orange-200 transition-all">
+            {filteredVehicles.slice(0, 6).map((car) => (
+              <div key={car.id} className="group bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl hover:border-[#1e3a8a]/30 transition-all">
                 {/* Image */}
                 <div className="relative aspect-[16/10] bg-gray-100">
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center">
-                      <svg className="w-12 h-12 mx-auto text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
+                      <Car className="w-12 h-12 mx-auto text-gray-300" />
                       <p className="text-gray-400 text-sm mt-2">Vehicle Image</p>
                     </div>
                   </div>
                   {car.badge && (
-                    <div className="absolute top-3 left-3 bg-orange-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                    <div className={`absolute top-3 left-3 text-white text-xs font-semibold px-3 py-1 rounded-full ${
+                      car.badge === "Popular" ? "bg-[#dc2626]" : 
+                      car.badge === "New Arrival" ? "bg-green-500" : 
+                      car.badge === "Luxury" ? "bg-purple-600" : 
+                      "bg-[#1e3a8a]"
+                    }`}>
                       {car.badge}
+                    </div>
+                  )}
+                  {/* Aviloo Badge for EVs */}
+                  {car.isEV && (
+                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md flex items-center gap-1 text-xs font-medium text-green-700">
+                      <Battery className="w-3 h-3" />
+                      Aviloo Certified
                     </div>
                   )}
                 </div>
@@ -372,19 +324,27 @@ export default function HomepageMockup() {
                 <div className="p-5">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="font-semibold text-lg text-[#1a1a2e] group-hover:text-orange-500 transition-colors">
+                      <h3 className="font-semibold text-lg text-[#1e3a8a] group-hover:text-[#dc2626] transition-colors">
                         {car.year} {car.name}
                       </h3>
-                      <p className="text-gray-500 text-sm">{car.range} range</p>
+                      <p className="text-gray-500 text-sm">
+                        {car.isEV ? `${car.range} range` : car.mpg}
+                      </p>
                     </div>
+                    {car.isEV && (
+                      <div className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                        <Zap className="w-3 h-3" />
+                        EV
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-end justify-between pt-3 border-t border-gray-100">
                     <div>
-                      <div className="text-2xl font-bold text-[#1a1a2e]">{car.price}</div>
+                      <div className="text-2xl font-bold text-[#1e3a8a]">{car.price}</div>
                       <div className="text-sm text-gray-500">or {car.monthly}</div>
                     </div>
-                    <button className="px-4 py-2 bg-[#1a1a2e] hover:bg-orange-500 text-white font-medium rounded-lg transition-colors text-sm">
+                    <button className="px-4 py-2 bg-[#1e3a8a] hover:bg-[#172554] text-white text-sm font-medium rounded-lg transition-colors">
                       View Details
                     </button>
                   </div>
@@ -393,8 +353,8 @@ export default function HomepageMockup() {
             ))}
           </div>
 
-          <div className="mt-8 text-center md:hidden">
-            <Link href="#" className="inline-flex items-center gap-2 text-orange-500 font-semibold">
+          <div className="text-center mt-10">
+            <Link href="#" className="inline-flex items-center gap-2 px-6 py-3 border-2 border-[#1e3a8a] text-[#1e3a8a] font-semibold rounded-xl hover:bg-[#1e3a8a] hover:text-white transition-colors">
               View All Inventory
               <ChevronRight className="w-5 h-5" />
             </Link>
@@ -402,82 +362,221 @@ export default function HomepageMockup() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-[#1a1a2e] text-white">
+      {/* Why Planet Motors - Comparison */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-[#1e3a8a] mb-4">
+              Why Choose Planet Motors?
+            </h2>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              We&apos;re building a better way to buy cars - transparent, fair, and designed around you.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { icon: RotateCcw, title: "10-Day Returns", desc: "Not happy? Full refund, no questions asked." },
+              { icon: CheckCircle, title: "210-Point Inspection", desc: "Every vehicle rigorously inspected and certified." },
+              { icon: Battery, title: "Aviloo Battery Health", desc: "EV battery certified by independent experts." },
+              { icon: Shield, title: "No Hidden Fees", desc: "The price you see is the price you pay." },
+            ].map((item, i) => (
+              <div key={i} className="bg-white p-6 rounded-2xl border border-gray-200 hover:shadow-lg hover:border-[#1e3a8a]/30 transition-all">
+                <div className="w-12 h-12 bg-[#1e3a8a]/10 rounded-xl flex items-center justify-center mb-4">
+                  <item.icon className="w-6 h-6 text-[#1e3a8a]" />
+                </div>
+                <h3 className="font-semibold text-lg text-[#1e3a8a] mb-2">{item.title}</h3>
+                <p className="text-gray-600 text-sm">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Sell / Trade Section */}
+      <section className="py-16 bg-[#1e3a8a] text-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Have a Vehicle to Sell or Trade?
+              </h2>
+              <p className="text-white/80 text-lg mb-6">
+                Get a competitive offer in minutes. We buy all makes and models - you don&apos;t need to purchase from us to sell to us.
+              </p>
+              <ul className="space-y-3 mb-8">
+                {["Instant online offer", "Free vehicle pickup", "Same-day payment available", "No obligation to buy from us"].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <button className="px-8 py-4 bg-white text-[#1e3a8a] font-semibold rounded-xl hover:bg-gray-100 transition-colors">
+                Get Your Offer
+              </button>
+            </div>
+            <div className="bg-white/10 rounded-3xl p-8 backdrop-blur-sm border border-white/20">
+              <h3 className="text-xl font-semibold mb-6">Quick Estimate</h3>
+              <div className="space-y-4">
+                <input type="text" placeholder="Year, Make, Model" className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:border-white/40" />
+                <input type="text" placeholder="Mileage (km)" className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:border-white/40" />
+                <button className="w-full px-6 py-3 bg-[#dc2626] hover:bg-[#b91c1c] text-white font-semibold rounded-xl transition-colors">
+                  Get Instant Offer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-[#1e3a8a] mb-4">
+              How It Works
+            </h2>
+            <p className="text-gray-600 text-lg">
+              Buy your next car in 3 simple steps
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { num: "1", title: "Browse & Select", desc: "Explore our inventory with detailed photos, history, and inspection reports." },
+              { num: "2", title: "Get Approved", desc: "Apply for financing in minutes. We work with 20+ lenders for the best rate." },
+              { num: "3", title: "Delivery or Pickup", desc: "Get your car delivered or pick it up. 10-day return guarantee included." },
+            ].map((step, i) => (
+              <div key={i} className="text-center">
+                <div className="w-16 h-16 mx-auto mb-6 bg-[#1e3a8a] rounded-2xl flex items-center justify-center">
+                  <span className="text-2xl font-bold text-white">{step.num}</span>
+                </div>
+                <h3 className="text-xl font-semibold mb-3 text-[#1e3a8a]">{step.title}</h3>
+                <p className="text-gray-600">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <div className="flex items-center justify-center gap-1 mb-4">
+              {[1,2,3,4,5].map(i => (
+                <Star key={i} className="w-6 h-6 fill-yellow-400 text-yellow-400" />
+              ))}
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-[#1e3a8a] mb-2">
+              4.9/5 from 200+ Reviews
+            </h2>
+            <p className="text-gray-600">See what our customers say</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { name: "James D.", location: "Toronto", car: "Tesla Model Y", text: "Planet Motors made buying a car online incredibly easy. The 10-day return policy gave me peace of mind." },
+              { name: "Sarah M.", location: "Mississauga", car: "Hyundai Ioniq 5", text: "Best car buying experience ever. No pressure, transparent pricing, and the car was exactly as described." },
+              { name: "Michael K.", location: "Scarborough", car: "Toyota RAV4", text: "Traded in my old car and got a great deal. The whole process took less than an hour!" },
+            ].map((review, i) => (
+              <div key={i} className="bg-white p-6 rounded-2xl border border-gray-200">
+                <div className="flex items-center gap-1 mb-4">
+                  {[1,2,3,4,5].map(j => (
+                    <Star key={j} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <p className="text-gray-700 mb-4">&quot;{review.text}&quot;</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#1e3a8a] rounded-full flex items-center justify-center text-white font-semibold">
+                    {review.name.charAt(0)}
+                  </div>
+                  <div>
+                    <div className="font-medium text-[#1e3a8a]">{review.name}</div>
+                    <div className="text-gray-500 text-sm">{review.location} - {review.car}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-16 bg-[#1e3a8a] text-white">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Ready to Find Your Perfect EV?
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Ready to Find Your Next Vehicle?
           </h2>
-          <p className="text-white/70 text-lg mb-8 max-w-2xl mx-auto">
-            Get pre-approved in minutes with no impact to your credit score. See your real rate and monthly payment before you shop.
+          <p className="text-white/80 text-lg mb-8">
+            Browse our inventory or get pre-approved in minutes
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition-all shadow-lg shadow-orange-500/30">
-              Get Pre-Approved Now
-            </button>
-            <button className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl transition-colors border border-white/20">
+            <button className="px-8 py-4 bg-[#dc2626] hover:bg-[#b91c1c] text-white font-semibold rounded-xl transition-colors">
               Browse Inventory
+            </button>
+            <button className="px-8 py-4 bg-white text-[#1e3a8a] font-semibold rounded-xl hover:bg-gray-100 transition-colors">
+              Get Pre-Approved
             </button>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#0f0f1a] text-white/60 py-16">
+      <footer className="bg-[#0f172a] text-white py-12">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8 mb-12">
+          <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">PM</span>
-                </div>
-                <span className="font-bold text-xl text-white">Planet Motors</span>
-              </div>
-              <p className="text-sm mb-4">
-                Ontario&apos;s trusted online EV dealership. Buy with confidence.
+              <Image 
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Planet-Motors---Logo-Final%20Transp%20Back-lBOeordAvQp4WQW3K6p5yxuD3w9XwL.jpeg"
+                alt="Planet Motors"
+                width={120}
+                height={60}
+                className="h-12 w-auto mb-4 brightness-0 invert"
+              />
+              <p className="text-gray-400 text-sm">
+                Ontario&apos;s trusted online dealership. Fairness. Integrity.
               </p>
-              <div className="flex items-center gap-4">
-                <div className="text-xs">OMVIC Licensed</div>
-                <div className="text-xs">UCDA Member</div>
-              </div>
             </div>
-
             <div>
-              <h4 className="font-semibold text-white mb-4">Shop</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="#" className="hover:text-white transition-colors">Browse Inventory</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Financing</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Trade-In</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">How It Works</Link></li>
+              <h4 className="font-semibold mb-4">Shop</h4>
+              <ul className="space-y-2 text-gray-400 text-sm">
+                <li><Link href="#" className="hover:text-white">All Vehicles</Link></li>
+                <li><Link href="#" className="hover:text-white">Electric Vehicles</Link></li>
+                <li><Link href="#" className="hover:text-white">SUVs</Link></li>
+                <li><Link href="#" className="hover:text-white">Sell Your Car</Link></li>
               </ul>
             </div>
-
             <div>
-              <h4 className="font-semibold text-white mb-4">Company</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="#" className="hover:text-white transition-colors">About Us</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Reviews</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Careers</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Contact</Link></li>
+              <h4 className="font-semibold mb-4">Company</h4>
+              <ul className="space-y-2 text-gray-400 text-sm">
+                <li><Link href="#" className="hover:text-white">About Us</Link></li>
+                <li><Link href="#" className="hover:text-white">Reviews</Link></li>
+                <li><Link href="#" className="hover:text-white">Financing</Link></li>
+                <li><Link href="#" className="hover:text-white">Contact</Link></li>
               </ul>
             </div>
-
             <div>
-              <h4 className="font-semibold text-white mb-4">Support</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="#" className="hover:text-white transition-colors">FAQ</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">10-Day Returns</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Warranty</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+              <h4 className="font-semibold mb-4">Contact</h4>
+              <ul className="space-y-2 text-gray-400 text-sm">
+                <li>(416) 555-1234</li>
+                <li>info@planetmotors.ca</li>
+                <li>Scarborough, ON</li>
+                <li>Mon-Sat: 9AM-7PM</li>
               </ul>
             </div>
           </div>
+          
+          {/* Certifications */}
+          <div className="flex flex-wrap items-center justify-center gap-6 py-6 border-t border-gray-800">
+            <span className="text-gray-500 text-sm">OMVIC Licensed</span>
+            <span className="text-gray-500 text-sm">UCDA Member</span>
+            <span className="text-gray-500 text-sm">BBB Accredited</span>
+          </div>
 
-          <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-sm">
-            <div>&copy; 2026 Planet Motors. All rights reserved.</div>
-            <div className="flex items-center gap-6">
-              <span>Made with trust in Toronto</span>
-            </div>
+          <div className="text-center text-gray-500 text-sm pt-6 border-t border-gray-800">
+            © 2026 Planet Motors. All rights reserved. | Privacy Policy | Terms of Service
           </div>
         </div>
       </footer>
