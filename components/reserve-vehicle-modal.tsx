@@ -192,7 +192,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="416-985-2277"
+                  placeholder="(416) 555-0123"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 />

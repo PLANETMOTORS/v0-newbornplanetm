@@ -78,11 +78,11 @@ function DesktopNav({
           {/* Dropdown menu with stable hover */}
           {item.submenu && activeSubmenu === item.name && (
             <div 
-              className="absolute top-full left-0 pt-2 min-w-[220px] z-[9999]"
+              className="absolute top-full left-0 pt-1 min-w-[220px] z-[99999]"
               onMouseEnter={() => handleMouseEnter(item.name, true)}
               onMouseLeave={handleMouseLeave}
             >
-              <div className="bg-white rounded-xl shadow-xl border border-gray-200 py-2">
+              <div className="bg-white rounded-xl shadow-2xl border border-gray-200 py-2">
               {item.submenu.map((subitem) => (
                 <Link
                   key={subitem.name}
@@ -177,7 +177,10 @@ export function Header() {
       >
         Skip to main content
       </a>
-      
+
+      {/* Sticky wrapper for all header bars */}
+      <div className="sticky top-0 z-[60]">
+
       {/* Top bar with contact info */}
       <div className={`bg-primary text-primary-foreground text-sm transition-all duration-300 overflow-hidden ${scrolled ? "max-h-0 py-0" : "max-h-12 py-2"}`}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-2">
@@ -209,14 +212,14 @@ export function Header() {
               className="hidden lg:flex items-center gap-1.5 hover:text-primary-foreground/80 transition-colors"
             >
               <MapPin className="w-3.5 h-3.5" />
-              <span>30 Major Mackenzie E, Richmond Hill, ON L4C 1G7</span>
+              <span>30 Major Mackenzie Dr E, Richmond Hill, ON L4C 1G7</span>
             </a>
           </div>
         </div>
       </div>
 
       {/* Main header */}
-      <header className={`sticky top-0 z-[60] bg-background/95 backdrop-blur-md border-b border-border transition-shadow duration-300 will-change-transform ${scrolled ? "shadow-sm" : ""}`} role="banner">
+      <header className={`bg-background/95 backdrop-blur-md border-b border-border transition-shadow duration-300 will-change-transform ${scrolled ? "shadow-sm" : ""}`} role="banner">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-3 lg:px-8" aria-label="Main navigation">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0 min-w-[120px]">
@@ -268,7 +271,7 @@ export function Header() {
               </svg>
             </a>
             <a 
-              href="https://www.youtube.com/@planetmotorscanada" 
+              href="https://www.youtube.com/@PlanetMotors_ca" 
               target="_blank" 
               rel="noopener noreferrer"
               className="p-2 text-muted-foreground hover:text-foreground transition-colors"
@@ -381,6 +384,8 @@ export function Header() {
           </div>
         </div>
       </div>
+
+      </div>{/* end sticky wrapper */}
     </>
   )
 }

@@ -56,10 +56,11 @@ export function OrganizationJsonLd() {
       "name": "Canada"
     },
     "sameAs": [
-      "https://www.facebook.com/planetmotors",
-      "https://www.instagram.com/planetmotors",
-      "https://www.youtube.com/@planetmotors",
-      "https://twitter.com/planetmotors"
+      "https://www.facebook.com/people/Planet-Motors/61563743413155/",
+      "https://www.instagram.com/planetmotors.ca",
+      "https://www.youtube.com/@PlanetMotors_ca",
+      "https://www.tiktok.com/@planetmotors.ca",
+      "https://x.com/planetmotors_ca"
     ],
     "hasOfferCatalog": {
       "@type": "OfferCatalog",

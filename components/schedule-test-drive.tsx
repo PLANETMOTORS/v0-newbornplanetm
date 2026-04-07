@@ -27,7 +27,7 @@ const timeSlots = [
 ]
 
 const locations = [
-  { id: "richmond-hill", name: "Richmond Hill Showroom", address: "30 Major Mackenzie E, Richmond Hill, ON" },
+  { id: "richmond-hill", name: "Richmond Hill Showroom", address: "30 Major Mackenzie Dr E, Richmond Hill, ON" },
   { id: "home", name: "At Your Home/Office", address: "We come to you (GTA only)" },
 ]
 
@@ -109,7 +109,7 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
       
       setIsSubmitted(true)
     } catch {
-      setError("Failed to schedule. Please try again or call us at 416-985-2277.")
+      setError("Failed to schedule. Please call us at 1-866-797-3332 or visit our Contact page.")
     } finally {
       setIsSubmitting(false)
     }
