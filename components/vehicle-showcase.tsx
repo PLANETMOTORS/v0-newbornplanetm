@@ -327,7 +327,24 @@ export function VehicleShowcase() {
 
       {/* Thumbnail navigation */}
       <div className="mt-4 flex items-center justify-between gap-2">
-        <div className="flex gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide">
+        {/* Left arrow - scroll thumbnails left */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="flex-shrink-0 h-9 w-9 rounded-lg hover:bg-gray-200"
+          onClick={() => {
+            const container = document.querySelector('.thumbnail-scroll-container')
+            if (container) {
+              container.scrollLeft -= 80
+            }
+          }}
+          aria-label="Scroll thumbnails left"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </Button>
+
+        {/* Thumbnail scroll container */}
+        <div className="thumbnail-scroll-container flex gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide flex-1">
           {showcaseVehicles.slice(0, 5).map((vehicle, index) => (
             <button
               key={vehicle.id}
@@ -348,6 +365,22 @@ export function VehicleShowcase() {
             </button>
           ))}
         </div>
+
+        {/* Right arrow - scroll thumbnails right */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="flex-shrink-0 h-9 w-9 rounded-lg hover:bg-gray-200"
+          onClick={() => {
+            const container = document.querySelector('.thumbnail-scroll-container')
+            if (container) {
+              container.scrollLeft += 80
+            }
+          }}
+          aria-label="Scroll thumbnails right"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </Button>
       </div>
     </div>
   )
