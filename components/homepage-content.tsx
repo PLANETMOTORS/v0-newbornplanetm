@@ -1,13 +1,12 @@
 "use client"
 
 // Planet Motors Homepage Content - Trust-First Design (Clutch/Carvana Style)
+// Section Order: Hero -> 4-Step Process -> Featured Vehicles -> Why Choose Us -> Sell/Trade -> Reviews -> Protection Plans -> CTA -> The Promise -> Footer
 import Link from "next/link"
 import { useState } from "react"
-import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin, TrendingUp, Award, Sparkles, DollarSign, Truck, Users, Leaf } from "lucide-react"
+import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin, Award, DollarSign, Truck, Users, Leaf, Search, CreditCard, FileCheck, Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { VehicleShowcase } from "@/components/vehicle-showcase"
-import { HowItWorks } from "@/components/how-it-works"
 import { TrustBadges } from "@/components/trust-badges"
 
 export type HomepageProps = {
@@ -65,6 +64,38 @@ const shopByCategories = [
   { icon: Leaf, label: "Hybrids", href: "/inventory?fuelType=Hybrid" },
   { icon: Star, label: "Luxury", href: "/inventory?category=Luxury" },
   { icon: Users, label: "Family", href: "/inventory?category=Family" },
+]
+
+// 4-Step Process (Box 9) - with colorful icons
+const processSteps = [
+  {
+    icon: Search,
+    color: "bg-blue-500",
+    title: "Browse & Select",
+    description: "Explore our inventory of quality pre-owned vehicles with detailed photos, Carfax reports, and 360° views.",
+    features: ["360° Interactive Viewer", "Full Carfax History", "210-Point Inspection Report", "Price Match Guarantee"],
+  },
+  {
+    icon: CreditCard,
+    color: "bg-green-500",
+    title: "Get Pre-Approved",
+    description: "Apply for financing in minutes with 20+ lending partners. Get competitive rates without affecting your credit.",
+    features: ["Soft Credit Check", "No Credit Impact", "Rates from 4.99%", "Instant Decision"],
+  },
+  {
+    icon: FileCheck,
+    color: "bg-purple-500",
+    title: "Complete Purchase",
+    description: "Finalize your purchase online or in-person. We handle all the paperwork including licensing, taxes, and warranty options.",
+    features: ["Digital Paperwork", "Flexible Payments", "Tax & Licensing Included", "Warranty Options"],
+  },
+  {
+    icon: Home,
+    color: "bg-orange-500",
+    title: "Delivery or Pickup",
+    description: "Choose free home delivery anywhere in Ontario or pick up from our Richmond Hill showroom at your convenience.",
+    features: ["Free Home Delivery", "Ontario-Wide Coverage", "10-Day Returns", "Next-Day Pickup"],
+  },
 ]
 
 // Featured vehicles data (mock - replace with real data)
@@ -194,6 +225,16 @@ const protectionPlans = [
   },
 ]
 
+// The Promise items (Box 10)
+const promiseItems = [
+  { icon: CheckCircle, title: "210-Point Inspection", description: "Every vehicle thoroughly checked" },
+  { icon: RotateCw, title: "10-Day Returns", description: "No questions asked" },
+  { icon: Truck, title: "Free Ontario Delivery", description: "Right to your door" },
+  { icon: Shield, title: "Warranty Included", description: "Comprehensive coverage" },
+  { icon: BadgeCheck, title: "Carfax Verified", description: "Full history report" },
+  { icon: Phone, title: "24/7 Support", description: "We're here for you" },
+]
+
 export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
   const [activeTab, setActiveTab] = useState<"all" | "electric" | "suvs">("all")
 
@@ -245,7 +286,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
 
   return (
     <main id="main-content" role="main" aria-label="Home page content">
-      {/* Trust Bar */}
+      {/* Trust Bar - White Background */}
       <div className="bg-white border-b border-gray-200 py-3">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center gap-4 sm:gap-8 flex-wrap">
@@ -259,8 +300,8 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
         </div>
       </div>
 
-      {/* Hero Section - Light Background (Clutch/Carvana Style) */}
-      <section className="relative bg-gradient-to-b from-gray-50 to-white overflow-hidden">
+      {/* ========== BOX 2: HERO SECTION - Off-White #F9FAFB ========== */}
+      <section className="relative overflow-hidden" style={{ backgroundColor: "#F9FAFB" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Hero Text */}
@@ -331,7 +372,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
         </div>
       </section>
 
-      {/* Shop By Category */}
+      {/* Shop By Category - stays between Hero and Process */}
       <section className="py-6 border-b border-gray-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4 flex-wrap">
@@ -350,8 +391,83 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
         </div>
       </section>
 
-      {/* Featured Vehicles Section */}
-      <section className="py-16 bg-gray-50">
+      {/* ========== BOX 9: 4-STEP PROCESS - Pure White #FFFFFF ========== */}
+      <section className="py-16" style={{ backgroundColor: "#FFFFFF" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+              <Award className="w-4 h-4" />
+              Simple 4-Step Process
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+              Buy Your Car 100% Online
+            </h2>
+            <p className="mt-4 text-gray-600 text-lg">
+              From browsing to delivery, complete your entire car purchase from the comfort of your home. Most customers complete the process in under 30 minutes.
+            </p>
+          </div>
+
+          {/* Process Steps with Colorful Icons */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {processSteps.map((step, index) => (
+              <div key={step.title} className="relative">
+                {/* Connector Line */}
+                {index < processSteps.length - 1 && (
+                  <div className="hidden lg:block absolute top-12 left-full w-full h-0.5 bg-gray-200 -translate-y-1/2 z-0" />
+                )}
+                
+                <div className="bg-white border border-gray-200 rounded-2xl p-6 relative z-10 h-full hover:shadow-lg transition-shadow">
+                  {/* Step Number & Icon */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`w-12 h-12 ${step.color} rounded-xl flex items-center justify-center shadow-lg`}>
+                      <step.icon className="w-6 h-6 text-white" />
+                    </div>
+                    <span className="text-sm font-medium text-gray-400">Step {index + 1}</span>
+                  </div>
+                  
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">{step.title}</h3>
+                  <p className="text-gray-600 text-sm mb-4">{step.description}</p>
+                  
+                  <ul className="space-y-2">
+                    {step.features.map((feature) => (
+                      <li key={feature} className="flex items-center gap-2 text-sm text-gray-600">
+                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Money Back Guarantee Badge */}
+          <div className="text-center mt-10">
+            <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm font-medium">
+              <Shield className="w-4 h-4" />
+              Backed by our 10-Day Money-Back Guarantee
+            </div>
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
+            <Button size="lg" className="bg-[#1e3a8a] hover:bg-[#172554] text-white px-8" asChild>
+              <Link href="/inventory">
+                Start Shopping
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Link>
+            </Button>
+            <Button size="lg" variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50" asChild>
+              <Link href="/how-it-works">
+                Learn More
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* ========== BOX 3: FEATURED VEHICLES - Pure White #FFFFFF ========== */}
+      <section className="py-16" style={{ backgroundColor: "#FFFFFF" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
             <div>
@@ -360,7 +476,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
             </div>
             
             {/* Tabs */}
-            <div className="flex items-center gap-1 bg-white rounded-lg p-1 border border-gray-200">
+            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
               {[
                 { key: "all", label: "All" },
                 { key: "electric", label: "Electric" },
@@ -372,7 +488,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                   className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                     activeTab === tab.key
                       ? "bg-[#1e3a8a] text-white"
-                      : "text-gray-600 hover:bg-gray-100"
+                      : "text-gray-600 hover:bg-gray-200"
                   }`}
                 >
                   {tab.label}
@@ -438,8 +554,8 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                       <div className="text-xl font-bold text-[#1e3a8a]">
                         ${vehicle.price.toLocaleString()}
                       </div>
-                      <div className="text-sm text-gray-500">
-                        or ${vehicle.monthlyPayment}/mo
+                      <div className="text-sm font-medium text-gray-700">
+                        or <span className="font-bold">${vehicle.monthlyPayment}/mo</span>
                       </div>
                     </div>
                     <Button size="sm" className="bg-[#1e3a8a] hover:bg-[#172554]" asChild>
@@ -465,8 +581,8 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
         </div>
       </section>
 
-      {/* Why Planet Motors Section */}
-      <section className="py-16 bg-white">
+      {/* ========== BOX 4: WHY CHOOSE US - Very Light Grey #F3F4F6 ========== */}
+      <section className="py-16" style={{ backgroundColor: "#F3F4F6" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="text-3xl font-bold text-gray-900">Why Choose {siteSettings.dealerName}?</h2>
@@ -498,7 +614,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
             ].map((feature) => (
               <div
                 key={feature.title}
-                className="text-center p-6 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                className="text-center p-6 rounded-xl bg-white hover:shadow-md transition-shadow"
               >
                 <div className="w-14 h-14 mx-auto bg-[#1e3a8a]/10 rounded-xl flex items-center justify-center mb-4">
                   <feature.icon className="w-7 h-7 text-[#1e3a8a]" />
@@ -511,8 +627,8 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
         </div>
       </section>
 
-      {/* Sell/Trade Section */}
-      <section className="py-16 bg-gradient-to-br from-green-50 to-emerald-50 border-y border-green-100">
+      {/* ========== BOX 5: SELL OR TRADE - Soft Mint #E6FFFA ========== */}
+      <section className="py-16" style={{ backgroundColor: "#E6FFFA" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -536,7 +652,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
               </ul>
               <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white" asChild>
                 <Link href="/trade-in">
-                  Get Your Offer
+                  Get My Offer
                 </Link>
               </Button>
             </div>
@@ -567,8 +683,8 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
         </div>
       </section>
 
-      {/* Reviews Section */}
-      <section className="py-16 bg-white">
+      {/* ========== BOX 6: CUSTOMER REVIEWS - Pure White #FFFFFF ========== */}
+      <section className="py-16" style={{ backgroundColor: "#FFFFFF" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="text-3xl font-bold text-gray-900">What Our Customers Say</h2>
@@ -607,12 +723,12 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
         </div>
       </section>
 
-      {/* Protection Plans Section */}
-      <section id="protection-plans" className="py-16 bg-gray-50">
+      {/* ========== BOX 7: PROTECTION PLANS - Deep Navy #1A202C ========== */}
+      <section id="protection-plans" className="py-16" style={{ backgroundColor: "#1A202C" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">Protection Plans</h2>
-            <p className="mt-3 text-gray-600">
+            <h2 className="text-3xl font-bold text-white">Protection Plans</h2>
+            <p className="mt-3 text-gray-400">
               Choose the coverage that fits your needs. All plans include our satisfaction guarantee.
             </p>
           </div>
@@ -621,32 +737,32 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
             {protectionPlans.map((plan) => (
               <div
                 key={plan.name}
-                className={`rounded-xl p-8 border ${
+                className={`rounded-xl p-8 ${
                   plan.highlighted
-                    ? "bg-[#1e3a8a] text-white border-[#1e3a8a] ring-2 ring-[#1e3a8a] ring-offset-2"
-                    : "bg-white border-gray-200"
+                    ? "bg-white text-gray-900 ring-2 ring-white ring-offset-2 ring-offset-[#1A202C]"
+                    : "bg-white/10 text-white border border-white/20"
                 }`}
               >
                 <h3 className="font-semibold text-lg">{plan.name}</h3>
-                <p className={`mt-2 text-sm ${plan.highlighted ? "text-white/80" : "text-gray-500"}`}>
+                <p className={`mt-2 text-sm ${plan.highlighted ? "text-gray-500" : "text-gray-400"}`}>
                   {plan.description}
                 </p>
                 <div className="mt-6 flex items-baseline gap-1">
                   <span className="text-4xl font-bold">${plan.price}</span>
-                  <span className={`text-sm ${plan.highlighted ? "text-white/80" : "text-gray-500"}`}>
+                  <span className={`text-sm ${plan.highlighted ? "text-gray-500" : "text-gray-400"}`}>
                     {plan.period}
                   </span>
                 </div>
                 <ul className="mt-8 space-y-3">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-3 text-sm">
-                      <CheckCircle className={`w-5 h-5 flex-shrink-0 ${plan.highlighted ? "text-white" : "text-[#1e3a8a]"}`} />
+                      <CheckCircle className={`w-5 h-5 flex-shrink-0 ${plan.highlighted ? "text-[#1e3a8a]" : "text-green-400"}`} />
                       <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
                 <Button
-                  className={`w-full mt-8 ${plan.highlighted ? "bg-white text-[#1e3a8a] hover:bg-gray-100" : "bg-[#1e3a8a] text-white hover:bg-[#172554]"}`}
+                  className={`w-full mt-8 ${plan.highlighted ? "bg-[#1e3a8a] text-white hover:bg-[#172554]" : "bg-white text-[#1A202C] hover:bg-gray-100"}`}
                   asChild
                 >
                   <Link href={`/protection-plans#${plan.name.toLowerCase().replace(" ", "-")}`}>
@@ -659,19 +775,19 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 bg-[#1e3a8a] text-white">
+      {/* ========== BOX 8: FINAL CTA - Brand Blue #2B6CB0 ========== */}
+      <section className="py-16" style={{ backgroundColor: "#2B6CB0" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold">
+              <h2 className="text-3xl font-bold text-white">
                 Ready to find your perfect vehicle?
               </h2>
               <p className="mt-4 text-white/80 max-w-xl">
                 Browse our inventory of certified pre-owned vehicles. Get pre-approved for financing in minutes with rates from {lowestRate}% APR.
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
-                <Button size="lg" className="bg-white text-[#1e3a8a] hover:bg-gray-100" asChild>
+                <Button size="lg" className="bg-white text-[#2B6CB0] hover:bg-gray-100" asChild>
                   <Link href="/inventory">
                     Browse Inventory
                     <ArrowRight className="ml-2 w-4 h-4" />
@@ -686,19 +802,19 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-white/10 rounded-xl p-6">
-                <Phone className="w-8 h-8 mb-4" />
-                <h3 className="font-semibold">Call Us</h3>
+                <Phone className="w-8 h-8 text-white mb-4" />
+                <h3 className="font-semibold text-white">Call Us</h3>
                 <p className="text-sm text-white/80 mt-1">{siteSettings.phone}</p>
               </div>
               <div className="bg-white/10 rounded-xl p-6">
-                <MapPin className="w-8 h-8 mb-4" />
-                <h3 className="font-semibold">Visit Us</h3>
+                <MapPin className="w-8 h-8 text-white mb-4" />
+                <h3 className="font-semibold text-white">Visit Us</h3>
                 <p className="text-sm text-white/80 mt-1">{siteSettings.streetAddress}</p>
                 <p className="text-sm text-white/80">{siteSettings.city}, {siteSettings.province?.slice(0, 2)}</p>
               </div>
               <div className="bg-white/10 rounded-xl p-6">
-                <Clock className="w-8 h-8 mb-4" />
-                <h3 className="font-semibold">Hours</h3>
+                <Clock className="w-8 h-8 text-white mb-4" />
+                <h3 className="font-semibold text-white">Hours</h3>
                 <p className="text-sm text-white/80 mt-1">
                   Mon-Fri: {weekdayHours?.open || "9AM"}-{weekdayHours?.close || "7PM"}
                 </p>
@@ -707,8 +823,8 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                 </p>
               </div>
               <div className="bg-white/10 rounded-xl p-6">
-                <BadgeCheck className="w-8 h-8 mb-4" />
-                <h3 className="font-semibold">Licensed</h3>
+                <BadgeCheck className="w-8 h-8 text-white mb-4" />
+                <h3 className="font-semibold text-white">Licensed</h3>
                 <p className="text-sm text-white/80 mt-1">OMVIC Registered</p>
                 <p className="text-sm text-white/80">Ontario Dealer</p>
               </div>
@@ -717,7 +833,29 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
         </div>
       </section>
 
-      <HowItWorks />
+      {/* ========== BOX 10: THE PROMISE - Very Light Grey #F3F4F6 ========== */}
+      <section className="py-16" style={{ backgroundColor: "#F3F4F6" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <p className="text-sm font-medium text-[#1e3a8a] mb-2">Why Customers Trust Us</p>
+            <h2 className="text-3xl font-bold text-gray-900">The {siteSettings.dealerName} Promise</h2>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            {promiseItems.map((item) => (
+              <div key={item.title} className="text-center">
+                <div className="w-14 h-14 mx-auto bg-[#1e3a8a] rounded-xl flex items-center justify-center mb-3">
+                  <item.icon className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="font-semibold text-gray-900 text-sm mb-1">{item.title}</h3>
+                <p className="text-xs text-gray-500">{item.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Badges (OMVIC, etc.) */}
       <TrustBadges />
     </main>
   )
