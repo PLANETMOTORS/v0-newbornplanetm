@@ -278,11 +278,6 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Hero Text */}
             <div className="text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full text-sm mb-6 shadow-sm border border-gray-200">
-                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <span className="text-green-600 font-medium">50+ Vehicles In Stock</span>
-              </div>
-              
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-gray-900">
                 The Smarter Way to
                 <span className="block text-[#1e3a8a]">

@@ -349,11 +349,6 @@ export function VehicleShowcase() {
             </button>
           ))}
         </div>
-        
-        <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
-          <Eye className="w-4 h-4" />
-          <span>{viewCount} viewing</span>
-        </div>
       </div>
     </div>
   )

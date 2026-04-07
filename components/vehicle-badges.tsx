@@ -129,14 +129,7 @@ export function PriceDropBadge({ amount }: { amount?: number }) {
   )
 }
 
-export function ViewCountBadge({ count }: { count: number }) {
-  return (
-    <Badge variant="secondary">
-      <Eye className="w-3 h-3 mr-1" />
-      {count} viewing
-    </Badge>
-  )
-}
+
 
 export function SalePendingBadge() {
   return (
