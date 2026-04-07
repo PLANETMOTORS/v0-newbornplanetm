@@ -288,20 +288,22 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                 Ontario&apos;s trusted destination for premium pre-owned vehicles. 210-point inspection, 10-day money-back guarantee, and the best multi-lender financing rates.
               </p>
 
-              <div className="mt-8 flex flex-col sm:flex-row gap-6 justify-center lg:justify-start items-center">
-                <Button size="xl" className="bg-[#dc2626] hover:bg-[#b91c1c] text-white px-12 py-6 h-auto flex items-center gap-3 text-lg font-semibold" asChild>
-                  <Link href="/inventory">
-                    <Tag className="w-6 h-6" />
-                    Shop Great Deals
-                    <ArrowRight className="w-6 h-6" />
-                  </Link>
-                </Button>
-                <Button size="xl" variant="outline" className="border-3 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white px-12 py-6 h-auto flex items-center gap-3 text-lg font-semibold" asChild>
-                  <Link href="/trade-in">
-                    <Handshake className="w-6 h-6" />
-                    Sell or Trade Your Car
-                  </Link>
-                </Button>
+              <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <Link
+                  href="/inventory"
+                  className="inline-flex items-center gap-3 bg-[#dc2626] hover:bg-[#b91c1c] text-white text-lg font-semibold px-8 py-4 rounded-lg transition-colors"
+                >
+                  <Tag className="w-6 h-6 flex-shrink-0" />
+                  <span>Shop Great Deals</span>
+                  <ArrowRight className="w-6 h-6 flex-shrink-0" />
+                </Link>
+                <Link
+                  href="/trade-in"
+                  className="inline-flex items-center gap-3 border-2 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white text-lg font-semibold px-8 py-4 rounded-lg transition-colors"
+                >
+                  <Handshake className="w-6 h-6 flex-shrink-0" />
+                  <span>Sell or Trade Your Car</span>
+                </Link>
               </div>
 
 
