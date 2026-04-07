@@ -344,16 +344,16 @@ export function VehicleShowcase() {
         </Button>
 
         {/* Thumbnail scroll container */}
-        <div className="thumbnail-scroll-container flex gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide flex-1">
+        <div className="thumbnail-scroll-container flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide flex-1 px-1 py-1">
           {showcaseVehicles.slice(0, 5).map((vehicle, index) => (
             <button
               key={vehicle.id}
               onClick={() => setCurrentIndex(index)}
               className={cn(
-                "relative w-12 h-9 sm:w-16 sm:h-12 rounded-lg overflow-hidden transition-all duration-200 flex-shrink-0",
+                "relative w-12 h-9 sm:w-16 sm:h-12 rounded-lg overflow-hidden transition-all duration-200 flex-shrink-0 border-2",
                 index === currentIndex 
-                  ? "ring-2 ring-primary ring-offset-2 ring-offset-background" 
-                  : "opacity-60 hover:opacity-100"
+                  ? "border-primary shadow-md" 
+                  : "border-transparent opacity-60 hover:opacity-100 hover:border-gray-300"
               )}
               aria-label={`View ${vehicle.name}`}
             >
