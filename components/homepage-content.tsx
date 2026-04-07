@@ -288,17 +288,17 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                 Ontario&apos;s trusted destination for premium pre-owned vehicles. 210-point inspection, 10-day money-back guarantee, and the best multi-lender financing rates.
               </p>
 
-              <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center">
-                <Button size="lg" className="bg-[#dc2626] hover:bg-[#b91c1c] text-white px-8 flex items-center gap-2" asChild>
+              <div className="mt-8 flex flex-col sm:flex-row gap-6 justify-center lg:justify-start items-center">
+                <Button size="xl" className="bg-[#dc2626] hover:bg-[#b91c1c] text-white px-12 py-6 h-auto flex items-center gap-3 text-lg font-semibold" asChild>
                   <Link href="/inventory">
-                    <Tag className="w-4 h-4" />
+                    <Tag className="w-6 h-6" />
                     Shop Great Deals
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-6 h-6" />
                   </Link>
                 </Button>
-                <Button size="lg" variant="outline" className="border-2 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white px-8 flex items-center gap-2" asChild>
+                <Button size="xl" variant="outline" className="border-3 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white px-12 py-6 h-auto flex items-center gap-3 text-lg font-semibold" asChild>
                   <Link href="/trade-in">
-                    <Handshake className="w-4 h-4" />
+                    <Handshake className="w-6 h-6" />
                     Sell or Trade Your Car
                   </Link>
                 </Button>
@@ -332,26 +332,23 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
             </p>
           </div>
 
-          {/* Grid of Large Feature Boxes */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Grid of 6 Boxes in Single Row */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {shopByCategories.map((cat) => (
               <Link
                 key={cat.label}
                 href={cat.href}
-                className="group flex flex-col items-center justify-center p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-200 hover:border-primary hover:from-blue-50 hover:to-blue-100 transition-all duration-300 hover:shadow-lg hover:scale-105"
+                className="group flex flex-col items-center justify-center p-5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-gray-200 hover:border-primary hover:from-blue-50 hover:to-blue-100 transition-all duration-300 hover:shadow-md hover:scale-103"
               >
-                {/* Large Icon */}
-                <div className="mb-4 p-4 bg-white rounded-xl group-hover:bg-primary/10 transition-colors">
-                  <cat.icon className={`w-12 h-12 ${cat.iconColor}`} />
+                {/* Medium Icon */}
+                <div className="mb-2 p-3 bg-white rounded-lg group-hover:bg-primary/10 transition-colors">
+                  <cat.icon className={`w-8 h-8 ${cat.iconColor}`} />
                 </div>
                 
                 {/* Category Label */}
-                <h3 className="text-xl font-bold text-gray-900 group-hover:text-primary transition-colors text-center">
+                <h3 className="text-sm font-bold text-gray-900 group-hover:text-primary transition-colors text-center leading-tight">
                   {cat.label}
                 </h3>
-                
-                {/* Arrow on hover */}
-                <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary mt-3 transition-all opacity-0 group-hover:opacity-100" />
               </Link>
             ))}
           </div>
