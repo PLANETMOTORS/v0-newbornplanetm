@@ -109,7 +109,7 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
       
       setIsSubmitted(true)
     } catch {
-      setError("Failed to schedule. Please try again or call us at 416-985-2277.")
+      setError("Failed to schedule. Please call us at 1-866-797-3332 or visit our Contact page.")
     } finally {
       setIsSubmitting(false)
     }

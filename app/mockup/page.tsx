@@ -450,7 +450,7 @@ export default function HomepageMockupV2() {
               ))}
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-[#1e3a8a] mb-2">
-              4.9/5 from 200+ Reviews
+              4.8 Star Rating
             </h2>
             <p className="text-gray-600">See what our customers say</p>
           </div>

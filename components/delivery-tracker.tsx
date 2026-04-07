@@ -309,7 +309,7 @@ export function DeliveryTracker({
             </Button>
           )}
           <Button variant="outline" className="flex-1" asChild>
-            <a href="tel:416-985-2277">
+            <a href="/contact">
               <Phone className="w-4 h-4 mr-2" />
               Contact Support
             </a>

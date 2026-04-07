@@ -97,13 +97,6 @@ export function FooterContent({ siteSettings }: FooterProps) {
                 <span>{siteSettings.phone} (Toll Free)</span>
               </a>
               <a 
-                href="tel:416-985-2277" 
-                className="flex items-center gap-3 text-sm text-background/70 hover:text-background transition-colors"
-              >
-                <Phone className="w-4 h-4" />
-                <span>416-985-2277 (Local)</span>
-              </a>
-              <a 
                 href={`mailto:${siteSettings.email}`}
                 className="flex items-center gap-3 text-sm text-background/70 hover:text-background transition-colors"
               >
