@@ -296,18 +296,8 @@ export function Header() {
             </a>
           </div>
 
-          {/* CTA Buttons & Sign In */}
+          {/* CTA Buttons */}
           <div className="hidden lg:flex lg:items-center lg:gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                console.log("[v0] Sign In button clicked, current state:", signInPanelOpen)
-                setSignInPanelOpen(true)
-              }}
-            >
-              Sign In
-            </Button>
             <Button variant="outline" size="sm" asChild>
               <Link href="/financing">Get Pre-Approved</Link>
             </Button>
@@ -315,6 +305,18 @@ export function Header() {
               <Link href="/inventory">Browse Inventory</Link>
             </Button>
           </div>
+
+          {/* Sign In Button - Always Visible */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setSignInPanelOpen(true)
+            }}
+            className="ml-2"
+          >
+            Sign In
+          </Button>
 
           {/* Mobile menu button */}
           <Button

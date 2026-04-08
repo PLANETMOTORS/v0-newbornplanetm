@@ -18,8 +18,6 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState<"welcome" | "login">("welcome")
 
-  console.log("[v0] SignInPanel render, isOpen:", isOpen)
-
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
