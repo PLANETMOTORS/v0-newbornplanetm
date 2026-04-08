@@ -296,38 +296,39 @@ export function Header() {
             </a>
           </div>
 
-          {/* CTA Buttons */}
-          <div className="hidden lg:flex lg:items-center lg:gap-3">
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/financing">Get Pre-Approved</Link>
+          {/* CTA Buttons & Sign In */}
+          <div className="flex items-center gap-2 lg:gap-3">
+            {/* Sign In Button - Visible on ALL screen sizes */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSignInPanelOpen(true)}
+              className="font-medium"
+            >
+              Sign In
             </Button>
-            <Button size="sm" asChild>
-              <Link href="/inventory">Browse Inventory</Link>
+            
+            {/* Desktop only buttons */}
+            <div className="hidden lg:flex lg:items-center lg:gap-3">
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/financing">Get Pre-Approved</Link>
+              </Button>
+              <Button size="sm" asChild>
+                <Link href="/inventory">Browse Inventory</Link>
+              </Button>
+            </div>
+
+            {/* Mobile menu button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
           </div>
-
-          {/* Sign In Button - Always Visible */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setSignInPanelOpen(true)
-            }}
-            className="ml-2"
-          >
-            Sign In
-          </Button>
-
-          {/* Mobile menu button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </Button>
         </nav>
 
         {/* Mobile Navigation */}
