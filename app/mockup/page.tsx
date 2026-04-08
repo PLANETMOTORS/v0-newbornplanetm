@@ -47,7 +47,7 @@ export default function HomepageMockupV2() {
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="hidden md:inline">Mon-Sat: 9AM-7PM</span>
+            <span className="hidden md:inline">Mon-Fri: 9AM-7PM | Sat: 9AM-6PM</span>
             <span className="bg-white/20 px-3 py-0.5 rounded-full font-medium">OMVIC Licensed</span>
           </div>
         </div>
@@ -543,7 +543,7 @@ export default function HomepageMockupV2() {
                 <li>(416) 555-1234</li>
                 <li>info@planetmotors.ca</li>
                 <li>Scarborough, ON</li>
-                <li>Mon-Sat: 9AM-6PM</li>
+                <li>Mon-Fri: 9AM-7PM | Sat: 9AM-6PM</li>
               </ul>
             </div>
           </div>

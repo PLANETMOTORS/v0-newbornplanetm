@@ -785,7 +785,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                   Mon-Fri: {weekdayHours?.open || "9AM"}-{weekdayHours?.close || "7PM"}
                 </p>
                 <p className="text-sm text-white/80">
-                  Sat: {saturdayHours?.open || "10AM"}-{saturdayHours?.close || "5PM"}
+                  Sat: {saturdayHours?.open || "9AM"}-{saturdayHours?.close || "6PM"}
                 </p>
               </div>
               <div className="bg-white/10 rounded-xl p-6">

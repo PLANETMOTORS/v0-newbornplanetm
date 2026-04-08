@@ -76,7 +76,7 @@ export const siteSettings = defineType({
       type: 'object',
       group: 'hours',
       fields: [
-        { name: 'weekdays', title: 'Weekdays', type: 'string', initialValue: '9:00 AM - 8:00 PM' },
+        { name: 'weekdays', title: 'Weekdays', type: 'string', initialValue: '9:00 AM - 7:00 PM' },
         { name: 'saturday', title: 'Saturday', type: 'string', initialValue: '9:00 AM - 6:00 PM' },
         { name: 'sunday', title: 'Sunday', type: 'string', initialValue: 'Closed' },
       ],
