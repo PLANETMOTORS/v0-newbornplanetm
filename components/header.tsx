@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
-import { Menu, X, ChevronDown, Phone, MapPin, Star, CheckCircle, Shield, Truck, Award } from "lucide-react"
+import { Menu, X, ChevronDown, Phone, MapPin, Star, Award } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import { GoogleReviewsBadge } from "@/components/google-reviews-badge"
@@ -10,105 +10,13 @@ import { SignInPanel } from "@/components/sign-in-panel"
 import NavButton from "@/components/nav-button"
 import { useAuth } from "@/contexts/auth-context"
 
-// Navigation item type
 type NavItem = {
   name: string
   href: string
   submenu?: { name: string; href: string }[]
 }
 
-// Desktop Navigation with stable dropdown behavior
-function DesktopNav({ 
-  navigation, 
-  activeSubmenu, 
-  setActiveSubmenu 
-}: { 
-  navigation: NavItem[]
-  activeSubmenu: string | null
-  setActiveSubmenu: (name: string | null) => void
-}) {
-  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const isHoveringRef = useRef(false)
-
-  const handleMouseEnter = (itemName: string, hasSubmenu: boolean) => {
-    console.log("[v0] CLIENT: Mouse enter on", itemName, "hasSubmenu:", hasSubmenu)
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current)
-    }
-    isHoveringRef.current = true
-    if (hasSubmenu) {
-      console.log("[v0] CLIENT: Setting activeSubmenu to", itemName)
-      setActiveSubmenu(itemName)
-    }
-  }
-
-  const handleMouseLeave = () => {
-    isHoveringRef.current = false
-    // Longer delay to prevent accidental closes
-    closeTimeoutRef.current = setTimeout(() => {
-      if (!isHoveringRef.current) {
-        setActiveSubmenu(null)
-      }
-    }, 800)
-  }
-
-  console.log("[v0] CLIENT: DesktopNav rendering, activeSubmenu:", activeSubmenu)
-  
-  return (
-    <div className="hidden lg:flex lg:items-center lg:gap-1">
-      {navigation.map((item) => (
-        <div
-          key={item.name}
-          className="relative"
-          onMouseEnter={() => handleMouseEnter(item.name, !!item.submenu)}
-          onMouseLeave={handleMouseLeave}
-        >
-          {item.submenu ? (
-            <button
-              type="button"
-              className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
-              onClick={() => setActiveSubmenu(activeSubmenu === item.name ? null : item.name)}
-            >
-              {item.name}
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${activeSubmenu === item.name ? 'rotate-180' : ''}`} />
-            </button>
-          ) : (
-            <Link
-              href={item.href}
-              className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
-            >
-              {item.name}
-            </Link>
-          )}
-
-          {/* Dropdown menu with stable hover */}
-          {item.submenu && activeSubmenu === item.name && (
-            <div 
-              className="absolute top-full left-0 pt-1 min-w-[220px] z-[99999]"
-              onMouseEnter={() => handleMouseEnter(item.name, true)}
-              onMouseLeave={handleMouseLeave}
-            >
-              <div className="bg-white rounded-xl shadow-2xl border border-gray-200 py-2">
-              {item.submenu.map((subitem) => (
-                <Link
-                  key={subitem.name}
-                  href={subitem.href}
-                  className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-                  onClick={() => setActiveSubmenu(null)}
-                >
-                  {subitem.name}
-                </Link>
-              ))}
-              </div>
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-const navigation = [
+const navigation: NavItem[] = [
   { 
     name: "Shop Inventory",
     href: "/inventory",
@@ -154,6 +62,88 @@ const navigation = [
   },
 ]
 
+function DesktopNav({ 
+  activeSubmenu, 
+  setActiveSubmenu 
+}: { 
+  activeSubmenu: string | null
+  setActiveSubmenu: (name: string | null) => void
+}) {
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const isHoveringRef = useRef(false)
+
+  const handleMouseEnter = (itemName: string, hasSubmenu: boolean) => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current)
+    }
+    isHoveringRef.current = true
+    if (hasSubmenu) {
+      setActiveSubmenu(itemName)
+    }
+  }
+
+  const handleMouseLeave = () => {
+    isHoveringRef.current = false
+    closeTimeoutRef.current = setTimeout(() => {
+      if (!isHoveringRef.current) {
+        setActiveSubmenu(null)
+      }
+    }, 800)
+  }
+
+  return (
+    <div className="hidden lg:flex lg:items-center lg:gap-1">
+      {navigation.map((item) => (
+        <div
+          key={item.name}
+          className="relative"
+          onMouseEnter={() => handleMouseEnter(item.name, !!item.submenu)}
+          onMouseLeave={handleMouseLeave}
+        >
+          {item.submenu ? (
+            <button
+              type="button"
+              className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
+              onClick={() => setActiveSubmenu(activeSubmenu === item.name ? null : item.name)}
+            >
+              {item.name}
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${activeSubmenu === item.name ? 'rotate-180' : ''}`} />
+            </button>
+          ) : (
+            <Link
+              href={item.href}
+              className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
+            >
+              {item.name}
+            </Link>
+          )}
+
+          {item.submenu && activeSubmenu === item.name && (
+            <div 
+              className="absolute top-full left-0 pt-1 min-w-[220px] z-[99999]"
+              onMouseEnter={() => handleMouseEnter(item.name, true)}
+              onMouseLeave={handleMouseLeave}
+            >
+              <div className="bg-white rounded-xl shadow-2xl border border-gray-200 py-2">
+                {item.submenu.map((subitem) => (
+                  <Link
+                    key={subitem.name}
+                    href={subitem.href}
+                    className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                    onClick={() => setActiveSubmenu(null)}
+                  >
+                    {subitem.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export function Header() {
   const { user } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -161,7 +151,6 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false)
   const [signInPanelOpen, setSignInPanelOpen] = useState(false)
   
-  // Get user name and initials from auth
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || ""
   const userInitials = userName ? userName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : ""
 
@@ -182,7 +171,6 @@ export function Header() {
 
   return (
     <>
-      {/* Skip to main content link for accessibility */}
       <a 
         href="#main-content" 
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-md"
@@ -190,10 +178,8 @@ export function Header() {
         Skip to main content
       </a>
 
-      {/* Sticky wrapper for all header bars */}
       <div className="sticky top-0 z-[60]">
 
-      {/* Top bar with contact info */}
       <div className={`bg-primary text-primary-foreground text-sm overflow-hidden ${scrolled ? "hidden" : "py-2"}`}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-4 sm:gap-6">
@@ -230,27 +216,21 @@ export function Header() {
         </div>
       </div>
 
-      {/* Main header */}
       <header className={`bg-background/95 backdrop-blur-md border-b border-border ${scrolled ? "shadow-sm" : ""}`} role="banner">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-2 lg:px-8" aria-label="Main navigation">
-          {/* Left side: Logo + Navigation (like Clutch) */}
           <div className="flex items-center gap-6">
-            {/* Logo */}
             <Link href="/" className="flex-shrink-0 min-w-[100px]">
               <div className="transition-transform duration-300 origin-left" style={{ transform: scrolled ? 'scale(0.75)' : 'scale(0.9)' }}>
                 <PlanetMotorsLogo size="sm" showTagline={false} />
               </div>
             </Link>
 
-            {/* Desktop Navigation - Close to logo */}
             <DesktopNav 
-              navigation={navigation} 
               activeSubmenu={activeSubmenu} 
               setActiveSubmenu={setActiveSubmenu} 
             />
           </div>
 
-          {/* Social Media Icons */}
           <div className="hidden lg:flex items-center gap-2">
             <a 
               href="https://x.com/PlanetMotorsCA" 
@@ -309,9 +289,7 @@ export function Header() {
             </a>
           </div>
 
-          {/* CTA & Sign In */}
           <div className="flex items-center gap-2">
-            {/* NavButton with professional design */}
             <NavButton
               onSignInClick={() => setSignInPanelOpen(true)}
               onMenuClick={() => {
@@ -324,7 +302,6 @@ export function Header() {
               isOnline={!!user}
             />
             
-            {/* Mobile menu button */}
             <Button
               variant="ghost"
               size="icon"
@@ -337,89 +314,78 @@ export function Header() {
           </div>
         </nav>
 
-        {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <div className="lg:hidden border-t border-border bg-background">
             <div className="px-6 py-4 space-y-1">
               {navigation.map((item) => (
                 <div key={item.name}>
-                  <Link
-                    href={item.href}
-                    className="block text-base font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {item.name}
-                  </Link>
-                  {item.submenu && (
-                    <div className="pl-4 space-y-1 mb-2">
-                      {item.submenu.map((subitem) => (
-                        <Link
-                          key={subitem.name}
-                          href={subitem.href}
-                          className="block text-sm text-muted-foreground py-2 px-3 rounded-lg hover:bg-muted transition-colors"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          {subitem.name}
-                        </Link>
-                      ))}
-                    </div>
+                  {item.submenu ? (
+                    <>
+                      <button
+                        className="w-full text-left px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded"
+                        onClick={() => setActiveSubmenu(activeSubmenu === item.name ? null : item.name)}
+                      >
+                        {item.name}
+                      </button>
+                      {activeSubmenu === item.name && (
+                        <div className="pl-4 space-y-1">
+                          {item.submenu.map((subitem) => (
+                            <Link
+                              key={subitem.name}
+                              href={subitem.href}
+                              className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded"
+                            >
+                              {subitem.name}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded"
+                    >
+                      {item.name}
+                    </Link>
                   )}
                 </div>
               ))}
-              <div className="pt-4 flex flex-col gap-3">
-                <Button 
-                  variant="outline" 
-                  className="w-full" 
-                  onClick={() => {
-                    setMobileMenuOpen(false)
-                    setSignInPanelOpen(true)
-                  }}
-                >
-                  Sign In
-                </Button>
-                <Button variant="outline" className="w-full" asChild>
-                  <Link href="/financing">Get Pre-Approved</Link>
-                </Button>
-                <Button className="w-full" asChild>
-                  <Link href="/inventory">Browse Inventory</Link>
-                </Button>
-              </div>
             </div>
           </div>
         )}
       </header>
 
-      {/* Trust Bar - Value Propositions (Light Gray - Professional) */}
-      <div className={`bg-gray-100 border-b border-gray-200 text-gray-700 text-sm overflow-hidden ${scrolled ? "hidden" : "py-2.5"}`}>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center gap-3 sm:gap-6 md:gap-10 overflow-x-auto scrollbar-hide">
-            <div className="flex items-center gap-2 whitespace-nowrap">
+      {/* Offer banner below main header */}
+      {!scrolled && (
+        <div className="bg-muted/50 border-b border-border py-2">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-wrap gap-6 justify-center text-sm">
+            <div className="flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-green-600" />
-              <span className="font-medium text-xs sm:text-sm">10-Day Money Back Guarantee</span>
+              <span>10-Day Money Back Guarantee</span>
             </div>
-            <span className="hidden sm:block text-gray-300">|</span>
-            <div className="flex items-center gap-2 whitespace-nowrap">
+            <div className="flex items-center gap-2">
               <Shield className="w-4 h-4 text-blue-600" />
-              <span className="font-medium text-xs sm:text-sm">$250 Refundable Deposit</span>
+              <span>$250 Refundable Deposit</span>
             </div>
-            <span className="hidden sm:block text-gray-300">|</span>
-            <div className="hidden sm:flex items-center gap-2 whitespace-nowrap">
+            <div className="flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-green-600" />
-              <span className="font-medium text-xs sm:text-sm">210-Point Inspection</span>
+              <span>210-Point Inspection</span>
             </div>
-            <span className="hidden md:block text-gray-300">|</span>
-            <div className="hidden md:flex items-center gap-2 whitespace-nowrap">
+            <div className="flex items-center gap-2">
               <Truck className="w-4 h-4 text-blue-600" />
-              <span className="font-medium text-xs sm:text-sm">Canada-Wide Delivery</span>
+              <span>Canada-Wide Delivery</span>
             </div>
           </div>
         </div>
+      )}
+
       </div>
 
-      </div>{/* end sticky wrapper */}
-
-      {/* Sign In Panel */}
-      <SignInPanel isOpen={signInPanelOpen} onClose={() => setSignInPanelOpen(false)} />
+      <SignInPanel 
+        isOpen={signInPanelOpen} 
+        onClose={() => setSignInPanelOpen(false)} 
+      />
     </>
   )
 }
