@@ -2,7 +2,11 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { Resend } from "resend"
 
-const resend = new Resend(process.env.API_KEY_RESEND || process.env.RESEND_API_KEY)
+function getResendClient() {
+  const apiKey = process.env.API_KEY_RESEND || process.env.RESEND_API_KEY
+  if (!apiKey) return null
+  return new Resend(apiKey)
+}
 
 export async function POST(req: Request) {
   try {
@@ -41,9 +45,10 @@ export async function POST(req: Request) {
     if (error) throw error
 
     // Send confirmation email (non-blocking - alert is saved regardless)
-    if (process.env.API_KEY_RESEND || process.env.RESEND_API_KEY) {
+    const resendClient = getResendClient()
+    if (resendClient) {
       try {
-        await resend.emails.send({
+        await resendClient.emails.send({
           from: process.env.FROM_EMAIL || "Planet Motors <notifications@planetmotors.ca>",
           to: email,
           subject: `Price Alert Set - ${vehicleName || "Vehicle"}`,

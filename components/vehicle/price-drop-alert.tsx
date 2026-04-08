@@ -13,9 +13,19 @@ interface PriceDropAlertProps {
   vehicleId: string
   vehicleName: string
   currentPrice: number
+  triggerLabel?: string
+  triggerVariant?: "default" | "outline" | "ghost" | "secondary" | "destructive" | "link"
+  triggerClassName?: string
 }
 
-export function PriceDropAlert({ vehicleId, vehicleName, currentPrice }: PriceDropAlertProps) {
+export function PriceDropAlert({
+  vehicleId,
+  vehicleName,
+  currentPrice,
+  triggerLabel = "Price Alert",
+  triggerVariant = "ghost",
+  triggerClassName,
+}: PriceDropAlertProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
@@ -66,9 +76,9 @@ export function PriceDropAlert({ vehicleId, vehicleName, currentPrice }: PriceDr
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-1">
+        <Button variant={triggerVariant} size="sm" className={triggerClassName ?? "gap-1"}>
           <Bell className="w-4 h-4" />
-          Price Alert
+          {triggerLabel}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">

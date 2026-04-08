@@ -6,10 +6,11 @@ const DEFAULT_SITE_SETTINGS = {
   dealerName: "Planet Motors",
   phone: "1-866-797-3332",
   email: "info@planetmotors.ca",
-  streetAddress: "1234 Auto Drive",
-  city: "Toronto",
+  streetAddress: "30 Major Mackenzie Dr E",
+  city: "Richmond Hill",
   province: "ON",
-  postalCode: "M1M 1M1",
+  postalCode: "L4C 1G7",
+  googleMapsUrl: "https://share.google/YAlbvyp4und6Nrka",
 }
 
 export async function Footer() {

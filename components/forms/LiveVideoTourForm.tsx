@@ -205,8 +205,12 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVid
         <DateSlotPicker
           selectedDate={formData.selectedDate}
           selectedTime={formData.selectedTime}
-          onDateChange={(date) => setFormData({ ...formData, selectedDate: date })}
-          onTimeChange={(time) => setFormData({ ...formData, selectedTime: time })}
+          onDateChange={(date) =>
+            setFormData((prev) => ({ ...prev, selectedDate: date }))
+          }
+          onTimeChange={(time) =>
+            setFormData((prev) => ({ ...prev, selectedTime: time }))
+          }
         />
 
         <div className="space-y-1.5">
