@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
-import { Menu, X, ChevronDown, Phone, MapPin, Star, CheckCircle, Shield, Truck, Award } from "lucide-react"
+import { Menu, X, ChevronDown, Phone, MapPin, Star, Award, CheckCircle, Shield, Truck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import { SignInPanel } from "@/components/sign-in-panel"
