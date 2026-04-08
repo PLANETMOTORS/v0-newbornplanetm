@@ -60,12 +60,12 @@ export function NavButton({
           e.stopPropagation()
           onSignInClick()
         }}
-        className="inline-flex items-center gap-4 rounded-full pl-1 pr-2 text-white focus:outline-none focus:ring-2 focus:ring-white/40"
+        className="inline-flex items-center gap-2 rounded-full pl-1 pr-2 text-white focus:outline-none focus:ring-2 focus:ring-white/40"
       >
         <span
           className={cx(
-            "min-w-[118px] text-left font-semibold tracking-[-0.02em] text-white",
-            isLoggedIn ? "text-lg sm:text-xl" : "text-xl sm:text-2xl"
+            "text-left font-semibold tracking-[-0.02em] text-white",
+            isLoggedIn ? "text-base sm:text-lg" : "text-lg sm:text-xl"
           )}
         >
           {label}
