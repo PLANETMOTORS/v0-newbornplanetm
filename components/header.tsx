@@ -150,7 +150,6 @@ const navigation = [
 ]
 
 export function Header() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
   const [scrolled, setScrolled] = useState(false)
   const [signInPanelOpen, setSignInPanelOpen] = useState(false)
@@ -223,10 +222,22 @@ export function Header() {
       {/* Main header */}
       <header className={`bg-background/95 backdrop-blur-md border-b border-border transition-shadow duration-300 will-change-transform ${scrolled ? "shadow-sm" : ""}`} role="banner">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-3 lg:px-8" aria-label="Main navigation">
-          {/* Logo */}
-          <Link href="/" className="flex-shrink-0 min-w-[120px]">
-            <div className="transition-transform duration-300 origin-left" style={{ transform: scrolled ? 'scale(0.85)' : 'scale(1)' }}>
-              <PlanetMotorsLogo size="md" showTagline={!scrolled} />
+          {/* Left side: Logo + Navigation (like Clutch) */}
+          <div className="flex items-center gap-6">
+            {/* Logo */}
+            <Link href="/" className="flex-shrink-0 min-w-[120px]">
+              <div className="transition-transform duration-300 origin-left" style={{ transform: scrolled ? 'scale(0.85)' : 'scale(1)' }}>
+                <PlanetMotorsLogo size="md" showTagline={!scrolled} />
+              </div>
+            </Link>
+
+            {/* Desktop Navigation - Close to logo */}
+            <div className="hidden lg:block">
+              <DesktopNav 
+                navigation={navigation} 
+                activeSubmenu={activeSubmenu} 
+                setActiveSubmenu={setActiveSubmenu} 
+              />
             </div>
           </Link>
 
