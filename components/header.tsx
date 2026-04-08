@@ -301,7 +301,10 @@ export function Header() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setSignInPanelOpen(true)}
+              onClick={() => {
+                console.log("[v0] Sign In button clicked, current state:", signInPanelOpen)
+                setSignInPanelOpen(true)
+              }}
             >
               Sign In
             </Button>
