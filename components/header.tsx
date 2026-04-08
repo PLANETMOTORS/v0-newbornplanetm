@@ -6,6 +6,7 @@ import { Menu, X, ChevronDown, Phone, MapPin, Star, CheckCircle, Shield, Truck, 
 import { Button } from "@/components/ui/button"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import { GoogleReviewsBadge } from "@/components/google-reviews-badge"
+import { SignInPanel } from "@/components/sign-in-panel"
 
 // Navigation item type
 type NavItem = {
@@ -152,6 +153,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
   const [scrolled, setScrolled] = useState(false)
+  const [signInPanelOpen, setSignInPanelOpen] = useState(false)
 
   useEffect(() => {
     let ticking = false
@@ -294,8 +296,14 @@ export function Header() {
             </a>
           </div>
 
-          {/* CTA Buttons */}
+          {/* CTA Buttons & Sign In */}
           <div className="hidden lg:flex lg:items-center lg:gap-3">
+            <button
+              onClick={() => setSignInPanelOpen(true)}
+              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
+            >
+              Sign In
+            </button>
             <Button variant="outline" size="sm" asChild>
               <Link href="/financing">Get Pre-Approved</Link>
             </Button>
@@ -346,6 +354,9 @@ export function Header() {
                 </div>
               ))}
               <div className="pt-4 flex flex-col gap-3">
+                <Button variant="outline" className="w-full" onClick={() => setSignInPanelOpen(true)}>
+                  Sign In
+                </Button>
                 <Button variant="outline" className="w-full" asChild>
                   <Link href="/financing">Get Pre-Approved</Link>
                 </Button>
@@ -386,6 +397,9 @@ export function Header() {
       </div>
 
       </div>{/* end sticky wrapper */}
+
+      {/* Sign In Panel */}
+      <SignInPanel isOpen={signInPanelOpen} onClose={() => setSignInPanelOpen(false)} />
     </>
   )
 }
