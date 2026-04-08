@@ -223,13 +223,13 @@ export function Header() {
 
       {/* Main header */}
       <header className={`bg-background/95 backdrop-blur-md border-b border-border ${scrolled ? "shadow-sm" : ""}`} role="banner">
-        <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-3 lg:px-8" aria-label="Main navigation">
+        <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-2 lg:px-8" aria-label="Main navigation">
           {/* Left side: Logo + Navigation (like Clutch) */}
           <div className="flex items-center gap-6">
             {/* Logo */}
-            <Link href="/" className="flex-shrink-0 min-w-[120px]">
-              <div className="transition-transform duration-300 origin-left" style={{ transform: scrolled ? 'scale(0.85)' : 'scale(1)' }}>
-                <PlanetMotorsLogo size="md" showTagline={!scrolled} />
+            <Link href="/" className="flex-shrink-0 min-w-[100px]">
+              <div className="transition-transform duration-300 origin-left" style={{ transform: scrolled ? 'scale(0.75)' : 'scale(0.9)' }}>
+                <PlanetMotorsLogo size="sm" showTagline={false} />
               </div>
             </Link>
 
