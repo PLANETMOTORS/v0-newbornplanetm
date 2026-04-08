@@ -26,6 +26,20 @@ html {
   -webkit-backface-visibility: hidden;
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
+  contain: layout style;
+}
+
+/* Prevent header bar height transitions from causing vibration */
+.sticky > div {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* CRITICAL: Remove all max-height transitions - they cause vibration */
+.sticky [class*="max-h-"] {
+  transition: none !important;
 }
 
 /* Stable card layouts - contain prevents content from pushing boundaries */
