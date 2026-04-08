@@ -31,11 +31,13 @@ function DesktopNav({
   const isHoveringRef = useRef(false)
 
   const handleMouseEnter = (itemName: string, hasSubmenu: boolean) => {
+    console.log("[v0] CLIENT: Mouse enter on", itemName, "hasSubmenu:", hasSubmenu)
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current)
     }
     isHoveringRef.current = true
     if (hasSubmenu) {
+      console.log("[v0] CLIENT: Setting activeSubmenu to", itemName)
       setActiveSubmenu(itemName)
     }
   }
@@ -50,6 +52,8 @@ function DesktopNav({
     }, 800)
   }
 
+  console.log("[v0] CLIENT: DesktopNav rendering, activeSubmenu:", activeSubmenu)
+  
   return (
     <div className="hidden lg:flex lg:items-center lg:gap-1">
       {navigation.map((item) => (
