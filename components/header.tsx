@@ -151,7 +151,7 @@ export function Header() {
   const [signInPanelOpen, setSignInPanelOpen] = useState(false)
   
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || ""
-  const userInitials = userName ? userName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : ""
+  const userInitials = userName ? userName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase() : ""
 
   useEffect(() => {
     let ticking = false
