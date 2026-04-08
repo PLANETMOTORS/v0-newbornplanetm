@@ -31,11 +31,16 @@ function DesktopNav({
   const isHoveringRef = useRef(false)
 
   const handleMouseEnter = (itemName: string, hasSubmenu: boolean) => {
-    isHoveringRef.current = true
+    console.log("[v0] Dropdown hover - item:", itemName, "hasSubmenu:", hasSubmenu)
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current)
-      closeTimeoutRef.current = null
     }
+    isHoveringRef.current = true
+    if (hasSubmenu) {
+      console.log("[v0] Opening dropdown for:", itemName)
+      setActiveSubmenu(itemName)
+    }
+  }
     if (hasSubmenu) {
       setActiveSubmenu(itemName)
     }
@@ -82,7 +87,10 @@ function DesktopNav({
           {item.submenu && activeSubmenu === item.name && (
             <div 
               className="absolute top-full left-0 pt-1 min-w-[220px] z-[99999]"
-              onMouseEnter={() => handleMouseEnter(item.name, true)}
+              onMouseEnter={() => {
+                console.log("[v0] Mouse entered dropdown menu for:", item.name)
+                handleMouseEnter(item.name, true)
+              }}
               onMouseLeave={handleMouseLeave}
             >
               <div className="bg-white rounded-xl shadow-2xl border border-gray-200 py-2">
@@ -157,6 +165,8 @@ export function Header() {
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
   const [scrolled, setScrolled] = useState(false)
   const [signInPanelOpen, setSignInPanelOpen] = useState(false)
+  
+  console.log("[v0] Header render - activeSubmenu:", activeSubmenu)
   
   // Get user name and initials from auth
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || ""
