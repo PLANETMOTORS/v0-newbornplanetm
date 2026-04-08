@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getAvailableDates, getAvailableSlots } from "@/lib/liveVideoTour/availability"
+import { getAvailableDates, getAvailableSlots, normalizeIsoDate } from "@/lib/liveVideoTour/availability"
 
 // GET /api/live-video-tour/availability
 // Returns available dates and time slots
@@ -11,18 +11,18 @@ export async function GET(req: Request) {
 
     if (specificDate) {
       // Return slots for a specific date
-      const date = new Date(specificDate)
-      if (isNaN(date.getTime())) {
+      const normalizedDate = normalizeIsoDate(specificDate)
+      if (!normalizedDate) {
         return NextResponse.json(
           { ok: false, error: "Invalid date format" },
           { status: 400 }
         )
       }
 
-      const slots = getAvailableSlots(date)
+      const slots = getAvailableSlots(normalizedDate)
       return NextResponse.json({
         ok: true,
-        date: specificDate,
+        date: normalizedDate,
         slots: slots.filter(s => s.available),
       })
     }
