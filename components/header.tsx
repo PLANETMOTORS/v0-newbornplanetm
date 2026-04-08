@@ -6,6 +6,7 @@ import { Menu, X, ChevronDown, Phone, MapPin, Star, CheckCircle, Shield, Truck, 
 import { Button } from "@/components/ui/button"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import { GoogleReviewsBadge } from "@/components/google-reviews-badge"
+import { SignInPanel } from "@/components/sign-in-panel"
 
 // Navigation item type
 type NavItem = {
@@ -152,6 +153,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
   const [scrolled, setScrolled] = useState(false)
+  const [signInPanelOpen, setSignInPanelOpen] = useState(false)
 
   useEffect(() => {
     let ticking = false
@@ -238,21 +240,21 @@ export function Header() {
           {/* Social Media Icons */}
           <div className="hidden lg:flex items-center gap-2">
             <a 
-              href="https://x.com/planetmotorsca" 
+              href="https://x.com/PlanetMotorsCA" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="p-2 text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="X (Twitter)"
+              className="hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="X"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.6l-5.165-6.75-5.913 6.75h-3.308l7.73-8.835L.424 2.25h6.7l4.676 6.188 5.368-6.188zM17.55 19.5h1.828L5.88 4.24H4.02L17.55 19.5z"/>
               </svg>
             </a>
             <a 
               href="https://www.facebook.com/PlanetMotors.ca" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+              className="hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Facebook"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -263,7 +265,7 @@ export function Header() {
               href="https://www.instagram.com/planetmotors.ca" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+              className="hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Instagram"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -274,7 +276,7 @@ export function Header() {
               href="https://www.youtube.com/@PlanetMotors_ca" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+              className="hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
               aria-label="YouTube"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -285,7 +287,7 @@ export function Header() {
               href="https://www.tiktok.com/@planetmotors.ca" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+              className="hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
               aria-label="TikTok"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -294,26 +296,29 @@ export function Header() {
             </a>
           </div>
 
-          {/* CTA Buttons */}
-          <div className="hidden lg:flex lg:items-center lg:gap-3">
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/financing">Get Pre-Approved</Link>
+          {/* CTA & Sign In */}
+          <div className="flex items-center gap-2">
+            {/* Sign In Button - Always Visible */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSignInPanelOpen(true)}
+              className="font-medium"
+            >
+              Sign In
             </Button>
-            <Button size="sm" asChild>
-              <Link href="/inventory">Browse Inventory</Link>
+            
+            {/* Mobile menu button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
           </div>
-
-          {/* Mobile menu button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </Button>
         </nav>
 
         {/* Mobile Navigation */}
@@ -346,6 +351,16 @@ export function Header() {
                 </div>
               ))}
               <div className="pt-4 flex flex-col gap-3">
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    setSignInPanelOpen(true)
+                  }}
+                >
+                  Sign In
+                </Button>
                 <Button variant="outline" className="w-full" asChild>
                   <Link href="/financing">Get Pre-Approved</Link>
                 </Button>
@@ -386,6 +401,9 @@ export function Header() {
       </div>
 
       </div>{/* end sticky wrapper */}
+
+      {/* Sign In Panel */}
+      <SignInPanel isOpen={signInPanelOpen} onClose={() => setSignInPanelOpen(false)} />
     </>
   )
 }
