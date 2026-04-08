@@ -4,7 +4,6 @@ import { LiveChatWidget } from "@/components/live-chat-widget"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { FinanceApplicationForm } from "@/components/finance-application-form"
-import { FinanceCalculator } from "@/components/finance-calculator"
 import { CheckCircle, ArrowRight, Shield, Clock, BadgeCheck, User, Calculator } from "lucide-react"
 import Link from "next/link"
 

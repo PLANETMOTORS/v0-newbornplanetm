@@ -10,6 +10,7 @@ import { CompareProvider } from '@/lib/compare-context'
 import { FavoritesProvider } from '@/lib/favorites-context'
 import { AuthProvider } from '@/contexts/auth-context'
 import { CompareBar } from '@/components/compare-bar'
+import { Toaster } from '@/components/ui/sonner'
 import { OrganizationJsonLd, LocalBusinessJsonLd, WebsiteSearchJsonLd } from '@/components/seo/json-ld'
 import './globals.css'
 import './stability-fixes.css'
@@ -119,6 +120,7 @@ export default function RootLayout({
               {children}
               <CompareBar />
               <LiveChatWidget />
+              <Toaster richColors position="top-right" />
             </CompareProvider>
           </FavoritesProvider>
         </AuthProvider>

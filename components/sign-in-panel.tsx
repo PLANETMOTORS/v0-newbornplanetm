@@ -1,8 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
-import { X, Mail, Lock, ArrowRight, LogIn, Car, DollarSign, FileText, ChevronRight, Phone, MapPin } from "lucide-react"
+import { X, Mail, Lock, ArrowRight, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,15 +11,6 @@ interface SignInPanelProps {
   isOpen: boolean
   onClose: () => void
 }
-
-const menuLinks = [
-  { name: "Shop Inventory", href: "/inventory", icon: Car },
-  { name: "Sell Your Car", href: "/sell-your-car", icon: DollarSign },
-  { name: "Trade-In", href: "/trade-in", icon: DollarSign },
-  { name: "Financing", href: "/financing", icon: FileText },
-  { name: "About Us", href: "/about", icon: null },
-  { name: "Contact", href: "/contact", icon: Phone },
-]
 
 export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
   const [email, setEmail] = useState("")
@@ -54,7 +44,7 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
         className="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl z-[9999] transform transition-transform duration-300 ease-in-out overflow-y-auto animate-in slide-in-from-right"
       >
         {/* Header */}
-        <div className="sticky top-0 flex items-center justify-between p-6 border-b bg-white z-10">
+        <div className="sticky top-0 flex items-center justify-between p-6 border-b bg-white">
           <h2 className="text-xl font-bold">Welcome to Planet Motors</h2>
           <button
             onClick={onClose}
@@ -69,64 +59,58 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
         <div className="p-6 space-y-6">
           {step === "welcome" ? (
             <>
-              {/* Sign In CTA */}
-              <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-5 border border-primary/20">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <LogIn className="w-6 h-6 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900">Sign in to your account</p>
-                    <p className="text-sm text-gray-600">Access saved vehicles and more</p>
-                  </div>
-                  <Button onClick={() => setStep("login")} size="sm">
-                    Sign In
-                  </Button>
+              {/* Welcome Section */}
+              <div className="space-y-4">
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 text-center">
+                  <LogIn className="w-12 h-12 text-primary mx-auto mb-3" />
+                  <p className="text-gray-600 font-medium">Sign in to your account</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Access your saved vehicles, applications, and more
+                  </p>
                 </div>
-              </div>
 
-              {/* Navigation Links */}
-              <div className="space-y-1">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Menu</p>
-                {menuLinks.map((link) => (
-                  <Link
-                    key={link.name}
-                    href={link.href}
-                    onClick={onClose}
-                    className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors group"
-                  >
-                    <span className="font-medium text-gray-900">{link.name}</span>
-                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
-                  </Link>
-                ))}
+                <Button
+                  onClick={() => setStep("login")}
+                  className="w-full h-12 text-base font-semibold"
+                >
+                  Sign In
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
               </div>
 
               <Separator className="my-4" />
 
               {/* Quick Actions */}
               <div className="space-y-3">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Quick Actions</p>
-                
-                <Link href="/financing" onClick={onClose} className="block p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 hover:border-green-300 hover:shadow-sm transition-all">
+                <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 hover:border-green-300 transition-colors cursor-pointer">
                   <h3 className="font-semibold text-gray-900 mb-1">Get Pre-Qualified</h3>
                   <p className="text-sm text-gray-600">
-                    Financing pre-approval without affecting your credit
+                    Get financing pre-approval without affecting your credit
                   </p>
-                </Link>
+                  <Button variant="ghost" size="sm" className="mt-2 h-8 text-xs">
+                    Learn More →
+                  </Button>
+                </div>
 
-                <Link href="/trade-in" onClick={onClose} className="block p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200 hover:border-blue-300 hover:shadow-sm transition-all">
+                <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200 hover:border-blue-300 transition-colors cursor-pointer">
                   <h3 className="font-semibold text-gray-900 mb-1">Get Your Offer</h3>
                   <p className="text-sm text-gray-600">
                     Get a real offer for your car in less than 2 minutes
                   </p>
-                </Link>
+                  <Button variant="ghost" size="sm" className="mt-2 h-8 text-xs">
+                    Get Offer →
+                  </Button>
+                </div>
 
-                <Link href="/contact" onClick={onClose} className="block p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200 hover:border-purple-300 hover:shadow-sm transition-all">
+                <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200 hover:border-purple-300 transition-colors cursor-pointer">
                   <h3 className="font-semibold text-gray-900 mb-1">Schedule Tour</h3>
                   <p className="text-sm text-gray-600">
                     Book a virtual or in-person tour of a vehicle
                   </p>
-                </Link>
+                  <Button variant="ghost" size="sm" className="mt-2 h-8 text-xs">
+                    Schedule →
+                  </Button>
+                </div>
               </div>
 
               <Separator className="my-4" />

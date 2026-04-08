@@ -3,7 +3,11 @@ import { DEALERSHIP_TIMEZONE } from "./constants"
 import { Resend } from "resend"
 
 // Notification service for live video tour bookings
-const resend = new Resend(process.env.API_KEY_RESEND || process.env.RESEND_API_KEY)
+function getResendClient(): Resend | null {
+  const apiKey = process.env.API_KEY_RESEND || process.env.RESEND_API_KEY
+  if (!apiKey) return null
+  return new Resend(apiKey)
+}
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "toni@planetmotors.ca"
 const FROM_EMAIL = process.env.FROM_EMAIL || "Planet Motors <notifications@planetmotors.ca>"
@@ -175,8 +179,9 @@ export async function sendLiveVideoTourNotifications(
 
   // 1. Send email confirmation to customer
   try {
-    if (process.env.API_KEY_RESEND || process.env.RESEND_API_KEY) {
-      const { error } = await resend.emails.send({
+    const resendClient = getResendClient()
+    if (resendClient) {
+      const { error } = await resendClient.emails.send({
         from: FROM_EMAIL,
         to: booking.customerEmail,
         subject: `Video Tour Confirmed - ${booking.vehicleName}`,
@@ -207,8 +212,9 @@ export async function sendLiveVideoTourNotifications(
 
   // 3. Notify dealership staff via email
   try {
-    if (process.env.API_KEY_RESEND || process.env.RESEND_API_KEY) {
-      const { error } = await resend.emails.send({
+    const resendClient = getResendClient()
+    if (resendClient) {
+      const { error } = await resendClient.emails.send({
         from: FROM_EMAIL,
         to: ADMIN_EMAIL,
         subject: `New Video Tour Booking - ${booking.customerName} - ${booking.vehicleName}`,
@@ -236,12 +242,13 @@ export async function sendTourReminder(booking: LiveVideoTourBooking): Promise<b
   const { formattedDate, formattedTime } = formatBookingDateTime(booking)
 
   try {
-    if (!(process.env.API_KEY_RESEND || process.env.RESEND_API_KEY)) {
+    const resendClient = getResendClient()
+    if (!resendClient) {
       console.warn("[liveVideoTour] Resend not configured for reminder")
       return false
     }
 
-    const { error } = await resend.emails.send({
+    const { error } = await resendClient.emails.send({
       from: FROM_EMAIL,
       to: booking.customerEmail,
       subject: `Reminder: Video Tour in 1 Hour - ${booking.vehicleName}`,
@@ -292,12 +299,13 @@ export async function sendCancellationNotification(booking: LiveVideoTourBooking
   const { formattedDate, formattedTime } = formatBookingDateTime(booking)
 
   try {
-    if (!(process.env.API_KEY_RESEND || process.env.RESEND_API_KEY)) {
+    const resendClient = getResendClient()
+    if (!resendClient) {
       return false
     }
 
     // Email to customer
-    await resend.emails.send({
+    await resendClient.emails.send({
       from: FROM_EMAIL,
       to: booking.customerEmail,
       subject: `Video Tour Cancelled - ${booking.vehicleName}`,
@@ -316,7 +324,7 @@ export async function sendCancellationNotification(booking: LiveVideoTourBooking
     })
 
     // Notify staff
-    await resend.emails.send({
+    await resendClient.emails.send({
       from: FROM_EMAIL,
       to: ADMIN_EMAIL,
       subject: `Video Tour Cancelled - ${booking.customerName}`,

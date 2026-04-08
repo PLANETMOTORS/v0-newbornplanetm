@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Clock } from "lucide-react"
 import type { LiveVideoTourAvailability, LiveVideoTourSlot } from "@/types/liveVideoTour"
@@ -67,27 +66,25 @@ export function DateSlotPicker({
         <Label className="text-sm font-medium">
           Select Date <span className="text-destructive">*</span>
         </Label>
-        <Select
+        <select
           value={selectedDate}
-          onValueChange={handleDateChange}
+          onChange={(e) => handleDateChange(e.target.value)}
           disabled={disabled || loading}
+          className="w-full h-12 rounded-md border border-input bg-background px-3 text-base"
         >
-          <SelectTrigger className="w-full h-12 text-base touch-manipulation min-h-[48px]">
-            <SelectValue placeholder={loading ? "Loading..." : "Choose a date"} />
-          </SelectTrigger>
-          <SelectContent 
-            className="max-h-[50vh]"
-            position="popper"
-            sideOffset={4}
-            style={{ zIndex: 99999 }}
-          >
-            {availability.map(({ date, dayLabel }) => (
-              <SelectItem key={date} value={date} className="py-3 text-base cursor-pointer min-h-[48px]">
+          <option value="" disabled>
+            {loading ? "Loading..." : "Choose a date"}
+          </option>
+          {availability.length > 0 ? (
+            availability.map(({ date, dayLabel }) => (
+              <option key={date} value={date}>
                 {dayLabel}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+              </option>
+            ))
+          ) : (
+            <option value="" disabled>No dates available right now</option>
+          )}
+        </select>
         {selectedDate && (
           <p className="text-sm text-green-600 font-medium mt-1">
             Selected: {availability.find(a => a.date === selectedDate)?.dayLabel}
@@ -100,35 +97,25 @@ export function DateSlotPicker({
         <Label className="text-sm font-medium">
           Select Time <span className="text-destructive">*</span>
         </Label>
-        <Select
+        <select
           value={selectedTime}
-          onValueChange={onTimeChange}
+          onChange={(e) => onTimeChange(e.target.value)}
           disabled={disabled || !selectedDate}
+          className="w-full h-12 rounded-md border border-input bg-background px-3 text-base"
         >
-          <SelectTrigger className="w-full h-12 text-base touch-manipulation min-h-[48px]">
-            <SelectValue 
-              placeholder={
-                !selectedDate 
-                  ? "Select date first" 
-                  : slots.length === 0 
-                    ? "No slots available" 
-                    : "Choose a time"
-              } 
-            />
-          </SelectTrigger>
-          <SelectContent 
-            className="max-h-[50vh]"
-            position="popper"
-            sideOffset={4}
-            style={{ zIndex: 99999 }}
-          >
-            {slots.map(({ time, label }) => (
-              <SelectItem key={time} value={time} className="py-3 text-base cursor-pointer min-h-[48px]">
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <option value="" disabled>
+            {!selectedDate
+              ? "Select date first"
+              : slots.length === 0
+                ? "No slots available"
+                : "Choose a time"}
+          </option>
+          {slots.map(({ time, label }) => (
+            <option key={time} value={time}>
+              {label}
+            </option>
+          ))}
+        </select>
         {selectedTime && (
           <p className="text-sm text-green-600 font-medium mt-1">
             Selected: {slots.find(s => s.time === selectedTime)?.label}

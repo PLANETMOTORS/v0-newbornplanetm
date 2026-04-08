@@ -7,6 +7,9 @@ __v0_jsx-dev-runtime.ts
 .vercel/
 next.user-config.*
 
+# TypeScript incremental build info
+tsconfig.tsbuildinfo
+
 # Environment variables
 .env*.local
 
