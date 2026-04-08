@@ -1,18 +1,13 @@
-import { fileURLToPath } from 'url'
-import { dirname } from 'path'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
 /** @type {import('next').NextConfig} */
-// Planet Motors - Next.js Config v331 - Turbopack Absolute Root
+// Planet Motors - Next.js Config
 const nextConfig = {
   // CRITICAL: Transpile Sanity packages to prevent duplicate bundling
   transpilePackages: ['sanity', 'next-sanity', '@sanity/vision', '@sanity/ui', '@sanity/client'],
   
-  // Turbopack configuration - use absolute path for root
+  // Turbopack: explicitly set the workspace root so Turbopack doesn't
+  // incorrectly infer the Next.js app directory as the project root.
   turbopack: {
-    root: __dirname,
+    root: process.cwd(),
   },
   
   experimental: {
