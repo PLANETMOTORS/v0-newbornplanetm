@@ -1,11 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { X, Mail, Lock, ArrowRight, LogIn } from "lucide-react"
+import { X, Mail, Lock, ArrowRight, LogIn, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { createClient } from "@/lib/supabase/client"
 
 interface SignInPanelProps {
   isOpen: boolean
@@ -17,15 +18,46 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState<"welcome" | "login">("welcome")
+  const [error, setError] = useState<string | null>(null)
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    // TODO: Implement actual authentication
-    setTimeout(() => {
+    setError(null)
+    try {
+      const supabase = createClient()
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+      if (signInError) {
+        setError(signInError.message)
+      } else {
+        onClose()
+      }
+    } catch (err) {
+      console.error("Sign in error:", err)
+      setError("Sign in is unavailable right now. Please try again later.")
+    } finally {
       setIsLoading(false)
-      // Handle sign-in logic here
-    }, 1500)
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const supabase = createClient()
+      await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/auth/callback` } })
+    } catch (err) {
+      console.error("Google sign-in error:", err)
+      setError("Google sign in is unavailable right now.")
+    }
+  }
+
+  const handleFacebookSignIn = async () => {
+    try {
+      const supabase = createClient()
+      await supabase.auth.signInWithOAuth({ provider: "facebook", options: { redirectTo: `${window.location.origin}/auth/callback` } })
+    } catch (err) {
+      console.error("Facebook sign-in error:", err)
+      setError("Facebook sign in is unavailable right now.")
+    }
   }
 
   if (!isOpen) return null
@@ -177,6 +209,13 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
                 >
                   {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
+
+                {error && (
+                  <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    {error}
+                  </div>
+                )}
               </form>
 
               <Separator className="my-4" />
@@ -184,7 +223,7 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
               {/* Social Login */}
               <div className="space-y-3">
                 <p className="text-center text-sm text-gray-600">Or continue with</p>
-                <Button variant="outline" className="w-full h-10">
+                <Button variant="outline" className="w-full h-10" onClick={handleGoogleSignIn} type="button">
                   <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
                     <path
                       fill="currentColor"
@@ -205,7 +244,7 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
                   </svg>
                   Sign in with Google
                 </Button>
-                <Button variant="outline" className="w-full h-10">
+                <Button variant="outline" className="w-full h-10" onClick={handleFacebookSignIn} type="button">
                   <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                   </svg>
