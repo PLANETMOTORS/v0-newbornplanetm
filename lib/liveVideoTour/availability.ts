@@ -30,6 +30,15 @@ function parseIsoDate(dateStr: string): { year: number; month: number; day: numb
   const day = Number(match[3])
   if (!year || month < 1 || month > 12 || day < 1 || day > 31) return null
 
+  const utc = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0))
+  if (
+    utc.getUTCFullYear() !== year ||
+    utc.getUTCMonth() + 1 !== month ||
+    utc.getUTCDate() !== day
+  ) {
+    return null
+  }
+
   return { year, month, day }
 }
 
@@ -38,6 +47,12 @@ function getDateAtUtcNoon(dateStr: string): Date | null {
   if (!parsed) return null
 
   return new Date(Date.UTC(parsed.year, parsed.month - 1, parsed.day, 12, 0, 0, 0))
+}
+
+export function normalizeIsoDate(dateStr: string): string | null {
+  const parsed = parseIsoDate(dateStr)
+  if (!parsed) return null
+  return `${parsed.year}-${pad2(parsed.month)}-${pad2(parsed.day)}`
 }
 
 function getDateStrFromUtcDate(date: Date): string {
@@ -136,7 +151,8 @@ export function getAvailableDates(): LiveVideoTourAvailability[] {
       timeZone: DEALERSHIP_TIMEZONE,
     }).format(getDateAtUtcNoon(dateStr) ?? new Date())
 
-    const slots = getAvailableSlots(dateStr)
+    const slots = getAvailableSlots(dateStr).filter((slot) => slot.available)
+    if (slots.length === 0) continue
 
     dates.push({
       date: dateStr,
@@ -191,7 +207,11 @@ export function isWithinBusinessHours(dateTime: Date): { valid: boolean; error?:
   const hours = BUSINESS_HOURS[dayOfWeek]
 
   if (!hours) {
-    return { valid: false, error: "We are closed on Sundays. Please select another day." }
+    const dayName = new Intl.DateTimeFormat("en-CA", {
+      weekday: "long",
+      timeZone: DEALERSHIP_TIMEZONE,
+    }).format(dateTime)
+    return { valid: false, error: `We are closed on ${dayName}s. Please select another day.` }
   }
 
   const zoned = getZonedParts(dateTime)
