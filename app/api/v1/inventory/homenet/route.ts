@@ -1,7 +1,13 @@
 import { neon } from "@neondatabase/serverless"
 import { NextResponse } from "next/server"
 
-const sql = neon(process.env.DATABASE_URL!)
+// Lazy database connection - only created when route is called
+function getDb() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL environment variable is not set")
+  }
+  return neon(process.env.DATABASE_URL)
+}
 
 // API Key for HomenetIOL webhook authentication
 const HOMENET_API_KEY = process.env.HOMENET_API_KEY || "pm_homenet_2024_secure"
@@ -102,6 +108,7 @@ export async function POST(request: Request) {
 
 // GET endpoint - returns feed status and instructions
 export async function GET() {
+  const sql = getDb()
   const vehicleCount = await sql`SELECT COUNT(*) as count FROM vehicles`
   const lastUpdated = await sql`SELECT MAX(updated_at) as last_updated FROM vehicles`
   
@@ -400,6 +407,7 @@ function parseCSVLine(line: string): string[] {
 // ==================== DATABASE SYNC ====================
 
 async function syncVehiclesToDatabase(vehicles: VehicleData[]) {
+  const sql = getDb()
   let inserted = 0
   let updated = 0
   const errors: { vin: string; error: string }[] = []
