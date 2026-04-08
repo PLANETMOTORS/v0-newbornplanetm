@@ -380,7 +380,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
     <div className="min-h-screen bg-background">
       <Header />
 
-<main className="pt-20 pb-20">
+<main className="pt-20 pb-20 overflow-x-hidden max-w-full">
   {/* Trade-In Banner */}
   {tradeInInfo && tradeInInfo.value > 0 && (
     <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3">

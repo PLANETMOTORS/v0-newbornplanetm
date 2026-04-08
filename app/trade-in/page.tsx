@@ -559,10 +559,10 @@ function TradeInContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <Header />
       
-      <main>
+      <main className="overflow-x-hidden max-w-full">
         {/* Instant Quote Banner - Shows when coming from AI Quote */}
         {instantQuote && (
           <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4">
