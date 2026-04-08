@@ -15,7 +15,8 @@ interface SignInPanelProps {
 
 const menuLinks = [
   { name: "Shop Inventory", href: "/inventory", icon: Car },
-  { name: "Sell or Trade", href: "/sell-trade", icon: DollarSign },
+  { name: "Sell Your Car", href: "/sell-your-car", icon: DollarSign },
+  { name: "Trade-In", href: "/trade-in", icon: DollarSign },
   { name: "Financing", href: "/financing", icon: FileText },
   { name: "About Us", href: "/about", icon: null },
   { name: "Contact", href: "/contact", icon: Phone },
@@ -113,7 +114,7 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
                   </p>
                 </Link>
 
-                <Link href="/sell-trade" onClick={onClose} className="block p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200 hover:border-blue-300 hover:shadow-sm transition-all">
+                <Link href="/trade-in" onClick={onClose} className="block p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200 hover:border-blue-300 hover:shadow-sm transition-all">
                   <h3 className="font-semibold text-gray-900 mb-1">Get Your Offer</h3>
                   <p className="text-sm text-gray-600">
                     Get a real offer for your car in less than 2 minutes
