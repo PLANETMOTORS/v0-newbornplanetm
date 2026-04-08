@@ -19,7 +19,7 @@ import {
   FileText, History, Zap, RotateCcw, DollarSign, CreditCard,
   Phone, MessageCircle, Star, Clock, TrendingUp, Eye, Users,
   Award, Battery, Thermometer, LockKeyhole, Truck, ArrowRight, Play,
-  Download, ExternalLink, Check, X, AlertCircle, Bell, Expand,
+  Download, ExternalLink, Check, X, AlertCircle, Expand,
   Key, Sofa, Cog, Info
 } from "lucide-react"
 import { ScheduleTestDrive } from "@/components/schedule-test-drive"
@@ -31,6 +31,7 @@ import { PriceNegotiator } from "@/components/vehicle/price-negotiator"
 import { LiveVideoCall } from "@/components/vehicle/live-video-call"
 import { PriceDropAlert } from "@/components/vehicle/price-drop-alert"
 import { AddToCompare } from "@/components/vehicle/add-to-compare"
+import { toast } from "sonner"
 import {
   Dialog,
   DialogContent,
@@ -364,6 +365,17 @@ export default function VehicleDetailPage() {
   const [activeTab, setActiveTab] = useState("photos")
   const [imageType, setImageType] = useState<"exterior" | "interior">("exterior")
   const [postalCode, setPostalCode] = useState("")
+  const [isCheckingDelivery, setIsCheckingDelivery] = useState(false)
+  const [deliveryError, setDeliveryError] = useState("")
+  const [deliveryQuote, setDeliveryQuote] = useState<{
+    postalCode: string
+    province: string
+    distanceKm: number
+    deliveryCost: number
+    isFreeDelivery: boolean
+    isDeliveryAvailable: boolean
+    isDistanceEstimate?: boolean
+  } | null>(null)
 
   const [showInspectionModal, setShowInspectionModal] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
@@ -453,6 +465,63 @@ export default function VehicleDetailPage() {
       setShowAuthModal(true)
     } else if (callback) {
       callback()
+    }
+  }
+
+  const handleShare = async () => {
+    const shareUrl = typeof window !== "undefined" ? window.location.href : ""
+    const shareTitle = `${vehicle.year} ${vehicle.make} ${vehicle.model} at Planet Motors`
+    const shareText = `Check out this ${vehicle.year} ${vehicle.make} ${vehicle.model} for $${vehicle.price.toLocaleString()}.`
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl,
+        })
+        return
+      }
+
+      await navigator.clipboard.writeText(shareUrl)
+      toast.success("Vehicle link copied to clipboard")
+    } catch (error) {
+      console.error("Share failed:", error)
+      toast.error("Unable to share right now. Please try again.")
+    }
+  }
+
+  const normalizePostalCode = (value: string) =>
+    value.toUpperCase().replace(/\s/g, "").slice(0, 6)
+
+  const handleDeliveryCheck = async () => {
+    const cleaned = normalizePostalCode(postalCode)
+    const postalRegex = /^[A-Z]\d[A-Z]\d[A-Z]\d$/
+
+    setDeliveryError("")
+    setDeliveryQuote(null)
+
+    if (!postalRegex.test(cleaned)) {
+      setDeliveryError("Enter a valid Canadian postal code (example: L4C1G7).")
+      return
+    }
+
+    setIsCheckingDelivery(true)
+    try {
+      const response = await fetch(`/api/v1/deliveries/quote?postalCode=${encodeURIComponent(cleaned)}`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        setDeliveryError(data?.error || "Unable to calculate delivery right now.")
+        return
+      }
+
+      setDeliveryQuote(data)
+    } catch (error) {
+      console.error("Delivery quote failed:", error)
+      setDeliveryError("Unable to calculate delivery right now.")
+    } finally {
+      setIsCheckingDelivery(false)
     }
   }
 
@@ -1749,7 +1818,7 @@ export default function VehicleDetailPage() {
 
                   {/* Action Buttons */}
                   <div className="flex justify-center gap-4 mt-4 pt-4 border-t">
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" onClick={handleShare}>
                       <Share2 className="w-4 h-4 mr-1" />
                       Share
                     </Button>
@@ -1762,10 +1831,14 @@ export default function VehicleDetailPage() {
                       <Heart className={`w-4 h-4 mr-1 ${isFavorite ? "fill-current" : ""}`} />
                       Save
                     </Button>
-                    <Button variant="ghost" size="sm">
-                      <Bell className="w-4 h-4 mr-1" />
-                      Notify
-                    </Button>
+                    <PriceDropAlert
+                      vehicleId={vehicle.id}
+                      vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                      currentPrice={vehicle.price}
+                      triggerLabel="Notify"
+                      triggerVariant="ghost"
+                      triggerClassName="gap-1"
+                    />
                   </div>
 
                   {/* CARFAX */}
@@ -1788,11 +1861,37 @@ export default function VehicleDetailPage() {
                       <Input 
                         placeholder="Enter postal code (e.g. L4C 1G7)" 
                         value={postalCode}
-                        onChange={(e) => setPostalCode(e.target.value)}
+                        onChange={(e) => setPostalCode(normalizePostalCode(e.target.value))}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault()
+                            handleDeliveryCheck()
+                          }
+                        }}
                         className="flex-1"
                       />
-                      <Button variant="secondary" size="sm">Check</Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={handleDeliveryCheck}
+                        disabled={isCheckingDelivery}
+                      >
+                        {isCheckingDelivery ? "Checking..." : "Check"}
+                      </Button>
                     </div>
+                    {deliveryError && (
+                      <p className="text-xs text-red-600 mt-2">{deliveryError}</p>
+                    )}
+                    {deliveryQuote && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {deliveryQuote.isDeliveryAvailable
+                          ? deliveryQuote.isFreeDelivery
+                            ? `Free delivery to ${deliveryQuote.postalCode} (${deliveryQuote.distanceKm} km).`
+                            : `Delivery to ${deliveryQuote.postalCode}: $${deliveryQuote.deliveryCost.toFixed(2)} (${deliveryQuote.distanceKm} km).`
+                          : `Delivery is not available for ${deliveryQuote.postalCode} right now.`}
+                      </p>
+                    )}
                   </div>
 
                   {/* Phone */}

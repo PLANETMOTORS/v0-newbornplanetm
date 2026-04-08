@@ -8,6 +8,8 @@ import { TestimonialsSection } from '@/components/sell-your-car/testimonials-sec
 import { CTASection } from '@/components/sell-your-car/cta-section'
 import { FAQSection } from '@/components/sell-your-car/faq-section'
 import { SellYourCarForm } from '@/components/sell-your-car/form'
+import { Header } from '@/components/header'
+import { Footer } from '@/components/footer'
 
 export const metadata: Metadata = {
   title: 'Sell Your Car | Planet Motors',
@@ -54,62 +56,66 @@ export default async function SellYourCarPage() {
   ]
 
   return (
-    <main className="min-h-screen bg-background">
-      {/* Hero Section with Form */}
-      <section className="relative bg-gradient-to-br from-primary/10 via-background to-background">
-        <div className="container mx-auto px-4 py-12 md:py-20">
-          <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
-            <SellYourCarHero
-              headline={heroContent.headline}
-              subheadline={heroContent.subheadline}
-              highlightText={heroContent.highlightText}
-            />
-            <SellYourCarForm />
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main>
+        {/* Hero Section with Form */}
+        <section className="relative bg-gradient-to-br from-primary/10 via-background to-background">
+          <div className="container mx-auto px-4 py-12 md:py-20">
+            <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
+              <SellYourCarHero
+                headline={heroContent.headline}
+                subheadline={heroContent.subheadline}
+                highlightText={heroContent.highlightText}
+              />
+              <SellYourCarForm />
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Benefits Section */}
-      <BenefitsSection
-        title={pageData?.benefitsTitle || pageData?.whySellToUs?.sectionTitle || 'Why Sell to Planet Motors?'}
-        benefits={benefits}
-      />
-
-      {/* How It Works */}
-      <ProcessSteps
-        title={pageData?.processTitle || pageData?.howItWorks?.sectionTitle || 'How It Works'}
-        steps={processSteps}
-      />
-
-      {/* Comparison Table */}
-      <ComparisonTable
-        title={pageData?.comparisonTitle || pageData?.comparisonTable?.sectionTitle || 'Planet Motors vs. Other Options'}
-        rows={comparisonRows}
-        usLabel={pageData?.comparisonTable?.ourColumnTitle || 'Planet Motors'}
-        othersLabel={pageData?.comparisonTable?.othersColumnTitle || 'Private Sale / Other Dealers'}
-      />
-
-      {/* Testimonials */}
-      {testimonials.length > 0 && (
-        <TestimonialsSection
-          title={pageData?.testimonialsTitle || pageData?.testimonialsSection?.sectionTitle || 'What Our Sellers Say'}
-          testimonials={testimonials}
+        {/* Benefits Section */}
+        <BenefitsSection
+          title={pageData?.benefitsTitle || pageData?.whySellToUs?.sectionTitle || 'Why Sell to Planet Motors?'}
+          benefits={benefits}
         />
-      )}
 
-      {/* FAQ */}
-      <FAQSection
-        title={pageData?.faqTitle || 'Frequently Asked Questions'}
-        faqs={faqs}
-      />
+        {/* How It Works */}
+        <ProcessSteps
+          title={pageData?.processTitle || pageData?.howItWorks?.sectionTitle || 'How It Works'}
+          steps={processSteps}
+        />
 
-      {/* CTA Section */}
-      <CTASection
-        headline={pageData?.ctaHeadline || pageData?.ctaSection?.headline || 'Ready to Sell Your Car?'}
-        subheadline={pageData?.ctaSubheadline || pageData?.ctaSection?.subheadline || 'Get your free, no-obligation quote in minutes'}
-        ctaText={pageData?.ctaButton?.text || pageData?.ctaSection?.ctaText || 'Get Your Offer'}
-        ctaLink={pageData?.ctaButton?.url || pageData?.ctaSection?.ctaLink || '#quote-form'}
-      />
-    </main>
+        {/* Comparison Table */}
+        <ComparisonTable
+          title={pageData?.comparisonTitle || pageData?.comparisonTable?.sectionTitle || 'Planet Motors vs. Other Options'}
+          rows={comparisonRows}
+          usLabel={pageData?.comparisonTable?.ourColumnTitle || 'Planet Motors'}
+          othersLabel={pageData?.comparisonTable?.othersColumnTitle || 'Private Sale / Other Dealers'}
+        />
+
+        {/* Testimonials */}
+        {testimonials.length > 0 && (
+          <TestimonialsSection
+            title={pageData?.testimonialsTitle || pageData?.testimonialsSection?.sectionTitle || 'What Our Sellers Say'}
+            testimonials={testimonials}
+          />
+        )}
+
+        {/* FAQ */}
+        <FAQSection
+          title={pageData?.faqTitle || 'Frequently Asked Questions'}
+          faqs={faqs}
+        />
+
+        {/* CTA Section */}
+        <CTASection
+          headline={pageData?.ctaHeadline || pageData?.ctaSection?.headline || 'Ready to Sell Your Car?'}
+          subheadline={pageData?.ctaSubheadline || pageData?.ctaSection?.subheadline || 'Get your free, no-obligation quote in minutes'}
+          ctaText={pageData?.ctaButton?.text || pageData?.ctaSection?.ctaText || 'Get Your Offer'}
+          ctaLink={pageData?.ctaButton?.url || pageData?.ctaSection?.ctaLink || '#quote-form'}
+        />
+      </main>
+      <Footer />
+    </div>
   )
 }

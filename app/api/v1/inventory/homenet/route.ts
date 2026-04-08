@@ -1,7 +1,11 @@
 import { neon } from "@neondatabase/serverless"
 import { NextResponse } from "next/server"
 
-const sql = neon(process.env.DATABASE_URL!)
+function getSql() {
+  const url = process.env.DATABASE_URL
+  if (!url) return null
+  return neon(url)
+}
 
 // API Key for HomenetIOL webhook authentication
 const HOMENET_API_KEY = process.env.HOMENET_API_KEY || "pm_homenet_2024_secure"
@@ -16,6 +20,11 @@ const HOMENET_API_KEY = process.env.HOMENET_API_KEY || "pm_homenet_2024_secure"
  */
 
 export async function POST(request: Request) {
+  const sql = getSql()
+  if (!sql) {
+    return NextResponse.json({ error: "Database not configured" }, { status: 503 })
+  }
+
   try {
     // Authenticate the request
     const authHeader = request.headers.get("authorization")
@@ -78,7 +87,7 @@ export async function POST(request: Request) {
     console.log(`[HomenetIOL] Processing ${vehicles.length} vehicles`)
 
     // Sync to database
-    const result = await syncVehiclesToDatabase(vehicles)
+    const result = await syncVehiclesToDatabase(sql, vehicles)
 
     console.log(`[HomenetIOL] Sync complete: ${result.inserted} inserted, ${result.updated} updated, ${result.errors.length} errors`)
 
@@ -102,6 +111,11 @@ export async function POST(request: Request) {
 
 // GET endpoint - returns feed status and instructions
 export async function GET() {
+  const sql = getSql()
+  if (!sql) {
+    return NextResponse.json({ error: "Database not configured" }, { status: 503 })
+  }
+
   const vehicleCount = await sql`SELECT COUNT(*) as count FROM vehicles`
   const lastUpdated = await sql`SELECT MAX(updated_at) as last_updated FROM vehicles`
   
@@ -399,7 +413,7 @@ function parseCSVLine(line: string): string[] {
 
 // ==================== DATABASE SYNC ====================
 
-async function syncVehiclesToDatabase(vehicles: VehicleData[]) {
+async function syncVehiclesToDatabase(sql: ReturnType<typeof neon>, vehicles: VehicleData[]) {
   let inserted = 0
   let updated = 0
   const errors: { vin: string; error: string }[] = []

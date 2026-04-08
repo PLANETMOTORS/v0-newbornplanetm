@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server"
 import { Redis } from "@upstash/redis"
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-})
+function getRedis() {
+  const url = process.env.UPSTASH_REDIS_REST_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN
+  if (!url || !token) return null
+  return new Redis({ url, token })
+}
 
 const CACHE_KEY = "google_reviews_data"
 const CACHE_TTL = 3600 // 1 hour in seconds
@@ -16,9 +18,10 @@ interface GoogleReviewsData {
 }
 
 export async function GET() {
+  const redis = getRedis()
   try {
     // Check cache first
-    const cachedData = await redis.get<GoogleReviewsData>(CACHE_KEY)
+    const cachedData = redis ? await redis.get<GoogleReviewsData>(CACHE_KEY) : null
     
     if (cachedData) {
       return NextResponse.json({
@@ -63,7 +66,7 @@ export async function GET() {
     }
 
     // Cache the data
-    await redis.set(CACHE_KEY, reviewsData, { ex: CACHE_TTL })
+    if (redis) await redis.set(CACHE_KEY, reviewsData, { ex: CACHE_TTL })
 
     return NextResponse.json({
       ...reviewsData,
@@ -84,6 +87,7 @@ export async function GET() {
 
 // Endpoint to manually refresh cache (can be called by cron job)
 export async function POST(request: Request) {
+  const redis = getRedis()
   try {
     const refreshSecret = process.env.INTERNAL_API_SECRET
     if (!refreshSecret) {
@@ -103,7 +107,7 @@ export async function POST(request: Request) {
     }
 
     // Clear cache to force refresh on next GET
-    await redis.del(CACHE_KEY)
+    if (redis) await redis.del(CACHE_KEY)
     
     return NextResponse.json({ 
       success: true, 

@@ -13,6 +13,7 @@ export type FooterProps = {
     city: string
     province: string
     postalCode: string
+    googleMapsUrl?: string
     facebookUrl?: string
     instagramUrl?: string
     twitterUrl?: string
@@ -104,7 +105,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
                 <span>{siteSettings.email}</span>
               </a>
               <a 
-                href={`https://maps.google.com/?q=${encodeURIComponent(`${siteSettings.streetAddress} ${siteSettings.city} ${siteSettings.province}`)}`}
+                href={siteSettings.googleMapsUrl || `https://maps.google.com/?q=${encodeURIComponent(`${siteSettings.streetAddress} ${siteSettings.city} ${siteSettings.province}`)}`}
                 target="_blank"
                 rel="noopener noreferrer" 
                 className="flex items-start gap-3 text-sm text-background/70 hover:text-background transition-colors"

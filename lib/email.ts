@@ -1,6 +1,10 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.API_KEY_RESEND || process.env.RESEND_API_KEY)
+function getResendClient(): Resend | null {
+  const apiKey = process.env.API_KEY_RESEND || process.env.RESEND_API_KEY
+  if (!apiKey) return null
+  return new Resend(apiKey)
+}
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'toni@planetmotors.ca'
 // Domain verified in Resend - emails now come from planetmotors.ca
@@ -224,7 +228,8 @@ const templates: Record<NotificationType, (data: EmailData) => { subject: string
 
 export async function sendNotificationEmail(data: EmailData): Promise<{ success: boolean; error?: string }> {
   try {
-    if (!process.env.API_KEY_RESEND && !process.env.RESEND_API_KEY) {
+    const resendClient = getResendClient()
+    if (!resendClient) {
       return { success: false, error: 'Email not configured - missing RESEND_API_KEY' }
     }
 
@@ -233,7 +238,7 @@ export async function sendNotificationEmail(data: EmailData): Promise<{ success:
     // Send to customer for verification codes, otherwise send to admin
     const recipient = data.type === 'verification_code' ? data.customerEmail : ADMIN_EMAIL
     
-    const { error } = await resend.emails.send({
+    const { error } = await resendClient.emails.send({
       from: FROM_EMAIL,
       to: recipient,
       subject: template.subject,
@@ -257,7 +262,8 @@ export async function sendCustomerConfirmationEmail(
   data: { customerName: string; referenceId?: string; vehicleInfo?: string; offerAmount?: number }
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    if (!process.env.API_KEY_RESEND && !process.env.RESEND_API_KEY) {
+    const resendClient = getResendClient()
+    if (!resendClient) {
       return { success: false, error: 'Email not configured' }
     }
 
@@ -319,7 +325,7 @@ export async function sendCustomerConfirmationEmail(
       `
     }
 
-    const { error } = await resend.emails.send({
+    const { error } = await resendClient.emails.send({
       from: FROM_EMAIL,
       to: customerEmail,
       subject,
