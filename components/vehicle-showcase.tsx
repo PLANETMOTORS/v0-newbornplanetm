@@ -243,6 +243,10 @@ export function VehicleShowcase() {
               <RotateCw className="w-4 h-4 text-primary animate-spin-slow" />
               <span>360° View</span>
             </div>
+            <div className="bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-2 text-sm">
+              <Eye className="w-4 h-4 text-primary" />
+              <span>{viewCount} viewing</span>
+            </div>
           </div>
           
           <div className="flex gap-2">

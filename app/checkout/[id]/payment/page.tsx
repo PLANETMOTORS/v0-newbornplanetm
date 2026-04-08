@@ -20,13 +20,13 @@ export default function PaymentPage() {
   const getClientSecret = useCallback(
     async (): Promise<string> => {
       try {
-        setIsLoading(false)
         const secret = await startVehicleCheckout({
           vehicleId: params.id as string,
           vehicleName: "Vehicle Deposit",
           vehiclePriceCents: 25000, // $250 deposit
           depositOnly: true,
         })
+        setIsLoading(false)
         return secret ?? ""
       } catch (error) {
         console.error("Failed to create checkout session:", error)
