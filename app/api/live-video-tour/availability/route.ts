@@ -10,20 +10,21 @@ export async function GET(req: Request) {
     const specificDate = searchParams.get("date")
 
     if (specificDate) {
-      // Return slots for a specific date
-      const date = new Date(specificDate)
-      if (isNaN(date.getTime())) {
+      // Validate YYYY-MM-DD format and that it is a real calendar date
+      const dateFormatOk = /^\d{4}-\d{2}-\d{2}$/.test(specificDate)
+      if (!dateFormatOk || isNaN(new Date(`${specificDate}T12:00:00Z`).getTime())) {
         return NextResponse.json(
-          { ok: false, error: "Invalid date format" },
+          { ok: false, error: "Invalid date format. Use YYYY-MM-DD." },
           { status: 400 }
         )
       }
 
-      const slots = getAvailableSlots(date)
+      // Pass the date string directly so availability is evaluated in dealership timezone
+      const slots = getAvailableSlots(specificDate)
       return NextResponse.json({
         ok: true,
         date: specificDate,
-        slots: slots.filter(s => s.available),
+        slots: slots.filter((s) => s.available),
       })
     }
 
