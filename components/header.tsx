@@ -242,6 +242,13 @@ export function Header() {
             </div>
           </div>
 
+          {/* Desktop Navigation */}
+          <DesktopNav 
+            navigation={navigation} 
+            activeSubmenu={activeSubmenu} 
+            setActiveSubmenu={setActiveSubmenu} 
+          />
+
           {/* Social Media Icons */}
           <div className="hidden lg:flex items-center gap-2">
             <a 
