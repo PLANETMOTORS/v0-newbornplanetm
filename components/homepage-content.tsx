@@ -297,13 +297,13 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                   <span>Shop Great Deals</span>
                   <ArrowRight className="w-6 h-6 flex-shrink-0" />
                 </Link>
-                <Link
-                  href="/trade-in"
-                  className="inline-flex items-center gap-3 border-2 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white text-lg font-semibold px-8 py-4 rounded-lg transition-colors"
-                >
-                  <Handshake className="w-6 h-6 flex-shrink-0" />
-                  <span>Sell or Trade Your Car</span>
-                </Link>
+  <Link
+  href="/trade-in"
+  className="inline-flex items-center gap-3 border-2 border-primary text-primary hover:bg-primary hover:text-white text-lg font-semibold px-8 py-4 rounded-lg transition-colors"
+  >
+  <Handshake className="w-6 h-6 flex-shrink-0" />
+  <span>Sell or Trade Your Car</span>
+  </Link>
               </div>
 
 
