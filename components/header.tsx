@@ -299,7 +299,10 @@ export function Header() {
           {/* CTA Buttons & Sign In */}
           <div className="hidden lg:flex lg:items-center lg:gap-3">
             <button
-              onClick={() => setSignInPanelOpen(true)}
+              onClick={() => {
+                console.log("[v0] Sign In button clicked")
+                setSignInPanelOpen(true)
+              }}
               className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
             >
               Sign In
