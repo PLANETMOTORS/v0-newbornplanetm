@@ -39,7 +39,7 @@ export function NavButton({
   const label = isLoggedIn ? safeName : "Sign In";
 
   return (
-    <div className={cx("inline-flex items-center rounded-full bg-[#1E3799] p-2 shadow-lg transition-all duration-200 hover:bg-[#2541B2]", className)}>
+    <div className={cx("inline-flex items-center rounded-full bg-[#1E3799] p-1.5 shadow-lg transition-all duration-200 hover:bg-[#2541B2]", className)}>
       <button
         type="button"
         onClick={(e) => {
@@ -48,9 +48,9 @@ export function NavButton({
           onMenuClick()
         }}
         aria-label="Open menu"
-        className="inline-flex h-14 w-14 items-center justify-center rounded-full text-white transition-colors duration-200 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-full text-white transition-colors duration-200 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40"
       >
-        <Menu className="h-8 w-8" strokeWidth={2.4} />
+        <Menu className="h-6 w-6" strokeWidth={2.4} />
       </button>
 
       <button
@@ -60,24 +60,24 @@ export function NavButton({
           e.stopPropagation()
           onSignInClick()
         }}
-        className="inline-flex items-center gap-2 rounded-full pl-1 pr-2 text-white focus:outline-none focus:ring-2 focus:ring-white/40"
+        className="inline-flex items-center gap-2 rounded-full pl-1 pr-1.5 text-white focus:outline-none focus:ring-2 focus:ring-white/40"
       >
         <span
           className={cx(
             "text-left font-semibold tracking-[-0.02em] text-white",
-            isLoggedIn ? "text-base sm:text-lg" : "text-lg sm:text-xl"
+            isLoggedIn ? "text-sm sm:text-base" : "text-base sm:text-lg"
           )}
         >
           {label}
         </span>
 
-        <span className="relative inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#FB923C] text-white shadow-md ring-1 ring-white/10">
+        <span className="relative inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#FB923C] text-white shadow-md ring-1 ring-white/10">
           {isLoggedIn ? (
-            <span className="text-base font-semibold tracking-wide text-white">
+            <span className="text-xs font-semibold tracking-wide text-white">
               {safeInitials}
             </span>
           ) : (
-            <UserRound className="h-[22px] w-[22px] text-white" strokeWidth={2.5} />
+            <UserRound className="h-5 w-5 text-white" strokeWidth={2.5} />
           )}
 
           {isLoggedIn && isOnline && (
