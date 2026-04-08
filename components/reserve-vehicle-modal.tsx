@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import Image from "next/image"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -9,12 +9,12 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { LockKeyhole, Shield, Clock, CheckCircle, CreditCard, ArrowRight, Sparkles } from "lucide-react"
+import { LockKeyhole, Shield, Clock, CheckCircle, CreditCard, ArrowRight, Sparkles, Loader2 } from "lucide-react"
 import { loadStripe } from "@stripe/stripe-js"
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js"
 import { startVehicleCheckout } from "@/app/actions/stripe"
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 interface ReserveVehicleModalProps {
   vehicle: {
@@ -42,25 +42,44 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
   })
 
   const [showStripeCheckout, setShowStripeCheckout] = useState(false)
+  const [clientSecret, setClientSecret] = useState<string | null>(null)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
 
-  const getClientSecret = useCallback(
-    () => startVehicleCheckout({
-      vehicleId: vehicle.id,
-      vehicleName: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
-      vehiclePriceCents: depositAmount * 100,
-      depositOnly: true,
-      customerEmail: formData.email,
-    }),
-    [vehicle, formData.email]
-  )
+  const depositAmount = 250
+
+  // Fetch client secret when showing Stripe checkout
+  useEffect(() => {
+    if (showStripeCheckout && !clientSecret) {
+      const fetchClientSecret = async () => {
+        try {
+          setCheckoutError(null)
+          const secret = await startVehicleCheckout({
+            vehicleId: vehicle.id,
+            vehicleName: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+            vehiclePriceCents: depositAmount * 100,
+            depositOnly: true,
+            customerEmail: formData.email,
+          })
+          if (secret) {
+            setClientSecret(secret)
+          } else {
+            setCheckoutError("Failed to initialize payment. Please try again.")
+          }
+        } catch (error) {
+          console.error("Error fetching client secret:", error)
+          setCheckoutError("Failed to initialize payment. Please try again.")
+        }
+      }
+      fetchClientSecret()
+    }
+  }, [showStripeCheckout, clientSecret, vehicle, formData.email, depositAmount])
 
   const handleSubmit = async () => {
     setIsProcessing(true)
+    setClientSecret(null) // Reset to fetch fresh secret
     setShowStripeCheckout(true)
     setIsProcessing(false)
   }
-
-  const depositAmount = 250
 
   return (
     <Dialog>
@@ -286,10 +305,24 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
       {showStripeCheckout && (
           <div className="py-4">
             <h3 className="font-medium mb-4">Complete Your ${depositAmount} Deposit</h3>
-            <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret: getClientSecret }}>
-              <EmbeddedCheckout />
-            </EmbeddedCheckoutProvider>
-            <Button variant="ghost" className="w-full mt-4" onClick={() => setShowStripeCheckout(false)}>
+            {checkoutError ? (
+              <div className="text-center py-8">
+                <p className="text-destructive mb-4">{checkoutError}</p>
+                <Button onClick={() => { setCheckoutError(null); setClientSecret(null); }}>
+                  Try Again
+                </Button>
+              </div>
+            ) : !clientSecret ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-primary mr-2" />
+                <span>Initializing payment...</span>
+              </div>
+            ) : (
+              <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret }}>
+                <EmbeddedCheckout />
+              </EmbeddedCheckoutProvider>
+            )}
+            <Button variant="ghost" className="w-full mt-4" onClick={() => { setShowStripeCheckout(false); setClientSecret(null); }}>
               Cancel
             </Button>
           </div>
