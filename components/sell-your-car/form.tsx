@@ -5,12 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { ArrowRight, Car } from 'lucide-react'
 
 const currentYear = new Date().getFullYear()
-const years = Array.from({ length: 25 }, (_, i) => currentYear - i)
+const earliestYear = 1980
+const years = Array.from({ length: currentYear - earliestYear + 1 }, (_, i) => currentYear - i)
 
 const popularMakes = [
   'Toyota', 'Honda', 'Ford', 'Chevrolet', 'BMW', 'Mercedes-Benz', 
@@ -39,6 +39,18 @@ export function SellYourCarForm() {
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+
+  const canContinue =
+    Boolean(formData.year) &&
+    Boolean(formData.make) &&
+    Boolean(formData.model.trim())
+
+  const handleStepOneSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (canContinue) {
+      setStep(2)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -88,33 +100,41 @@ export function SellYourCarForm() {
       </CardHeader>
       <CardContent>
         {step === 1 && (
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleStepOneSubmit} autoComplete="off">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="year">Year</Label>
-                <Select value={formData.year} onValueChange={(v) => handleChange('year', v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {years.map((year) => (
-                      <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <select
+                  id="year"
+                  name="year"
+                  value={formData.year}
+                  onChange={(e) => handleChange('year', e.target.value)}
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="">Select year</option>
+                  {years.map((year) => (
+                    <option key={year} value={year.toString()}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="make">Make</Label>
-                <Select value={formData.make} onValueChange={(v) => handleChange('make', v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select make" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {popularMakes.map((make) => (
-                      <SelectItem key={make} value={make}>{make}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <select
+                  id="make"
+                  name="make"
+                  value={formData.make}
+                  onChange={(e) => handleChange('make', e.target.value)}
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="">Select make</option>
+                  {popularMakes.map((make) => (
+                    <option key={make} value={make}>
+                      {make}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -122,18 +142,22 @@ export function SellYourCarForm() {
                 <Label htmlFor="model">Model</Label>
                 <Input
                   id="model"
+                  name="model"
                   placeholder="e.g., Camry, Civic, F-150"
                   value={formData.model}
                   onChange={(e) => handleChange('model', e.target.value)}
+                  autoComplete="off"
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="trim">Trim Level</Label>
                 <Input
                   id="trim"
+                  name="trim"
                   placeholder="e.g., SE, LX, XLT, Sport"
                   value={formData.trim}
                   onChange={(e) => handleChange('trim', e.target.value)}
+                  autoComplete="off"
                 />
               </div>
             </div>
@@ -142,33 +166,37 @@ export function SellYourCarForm() {
                 <Label htmlFor="mileage">Mileage (km)</Label>
                 <Input
                   id="mileage"
+                  name="mileage"
                   type="number"
                   placeholder="e.g., 75000"
                   value={formData.mileage}
                   onChange={(e) => handleChange('mileage', e.target.value)}
+                  inputMode="numeric"
+                  autoComplete="off"
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="condition">Condition</Label>
-                <Select value={formData.condition} onValueChange={(v) => handleChange('condition', v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select condition" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="excellent">Excellent</SelectItem>
-                    <SelectItem value="good">Good</SelectItem>
-                    <SelectItem value="fair">Fair</SelectItem>
-                    <SelectItem value="poor">Poor</SelectItem>
-                  </SelectContent>
-                </Select>
+                <select
+                  id="condition"
+                  name="condition"
+                  value={formData.condition}
+                  onChange={(e) => handleChange('condition', e.target.value)}
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="">Select condition</option>
+                  <option value="excellent">Excellent</option>
+                  <option value="good">Good</option>
+                  <option value="fair">Fair</option>
+                  <option value="poor">Poor</option>
+                </select>
               </div>
             </div>
             <Button 
-              type="button" 
+              type="submit" 
               className="w-full" 
               size="lg"
-              onClick={() => setStep(2)}
-              disabled={!formData.year || !formData.make || !formData.model}
+              disabled={!canContinue}
             >
               Continue <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
