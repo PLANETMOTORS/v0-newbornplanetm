@@ -35,7 +35,7 @@ export function Vehicle360ViewerDemo() {
   // Preload images
   useEffect(() => {
     demoFrames.forEach((src, index) => {
-      const img = new Image()
+      const img = new window.Image()
       img.crossOrigin = "anonymous"
       img.src = src
       img.onload = () => {

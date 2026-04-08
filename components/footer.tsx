@@ -14,5 +14,5 @@ const DEFAULT_SITE_SETTINGS = {
 }
 
 export async function Footer() {
-  return <FooterContent siteSettings={DEFAULT_SITE_SETTINGS} navigation={null} />
+  return <FooterContent siteSettings={DEFAULT_SITE_SETTINGS} />
 }

@@ -52,6 +52,12 @@ export interface SiteSettings {
     ratingValue: number
     reviewCount: number
   }
+  ratingDisplay?: {
+    ratingValue: number
+    reviewCount: number
+  }
+  phoneSecondary?: string
+  omvicNumber?: string
   defaultSeo?: {
     metaTitle: string
     metaDescription: string
@@ -136,9 +142,40 @@ export interface SellYourCarPage {
     trustBadges?: { label: string; icon?: string }[]
     backgroundImage?: string
   }
+  // Flat field aliases (some CMS schemas use these directly)
+  heroHeadline?: string
+  heroSubheadline?: string
+  heroHighlightText?: string
+  heroImage?: string
+  benefitsTitle?: string
+  processTitle?: string
+  comparisonTitle?: string
+  testimonialsTitle?: string
+  faqTitle?: string
+  ctaHeadline?: string
+  ctaSubheadline?: string
+  ctaButton?: { text?: string; url?: string }
+  faqs?: { question: string; answer: string }[]
+  // Section objects used by some schemas
+  whySellToUs?: {
+    sectionTitle?: string
+    benefitItems?: { icon?: string; title: string; description: string }[]
+  }
+  howItWorks?: {
+    sectionTitle?: string
+    steps?: { stepNumber: number; title: string; description: string; icon?: string }[]
+  }
+  comparisonRows?: { feature: string; us: string; others: string }[]
+  testimonialsSection?: {
+    sectionTitle?: string
+    testimonials?: Testimonial[]
+  }
   benefits?: { title: string; description: string; icon?: string }[]
   comparisonTable?: {
     headline?: string
+    sectionTitle?: string
+    ourColumnTitle?: string
+    othersColumnTitle?: string
     rows?: { feature: string; planetMotors: string; competitors: string }[]
   }
   processSteps?: { stepNumber: number; title: string; description: string; icon?: string }[]
@@ -146,6 +183,8 @@ export interface SellYourCarPage {
   ctaSection?: {
     headline?: string
     subheadline?: string
+    ctaText?: string
+    ctaLink?: string
     buttonLabel?: string
     buttonUrl?: string
   }

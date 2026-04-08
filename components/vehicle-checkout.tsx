@@ -63,14 +63,15 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
   const totalDeposit = 250 + (selectedPlan ? 250 : 0)
   const totalFull = vehiclePrice + (selectedPlan ? PROTECTION_PLANS.find(p => p.id === selectedPlan)?.price || 0 : 0)
 
-  const fetchClientSecret = useCallback(() => {
-    return startVehicleCheckout({
+  const fetchClientSecret = useCallback(async (): Promise<string> => {
+    const secret = await startVehicleCheckout({
       vehicleId,
       vehicleName,
       vehiclePriceCents: Math.round(vehiclePrice * 100),
       protectionPlanId: selectedPlan || undefined,
       depositOnly,
     })
+    return secret ?? ""
   }, [vehicleId, vehicleName, vehiclePrice, selectedPlan, depositOnly])
 
   if (showCheckout) {
@@ -95,7 +96,7 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
         </div>
         <EmbeddedCheckoutProvider
           stripe={stripePromise}
-          options={{ clientSecret: fetchClientSecret }}
+          options={{ fetchClientSecret }}
         >
           <EmbeddedCheckout />
         </EmbeddedCheckoutProvider>

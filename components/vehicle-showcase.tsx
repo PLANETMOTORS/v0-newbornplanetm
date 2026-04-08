@@ -139,6 +139,7 @@ export function VehicleShowcase() {
   const [isAnimating, setIsAnimating] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
   const [imageError, setImageError] = useState(false)
+  const [viewCount, setViewCount] = useState(50)
 
   // Fetch vehicles from Supabase
   const { data: dbVehicles, isLoading, error } = useSWR('showcase-vehicles', fetcher, {

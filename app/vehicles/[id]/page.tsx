@@ -43,6 +43,7 @@ import {
 // Mock vehicle data
 const vehicleData = {
   id: "2024-tesla-model-3",
+  title: "2024 Tesla Model 3 Long Range AWD",
   year: 2024,
   make: "Tesla",
   model: "Model 3",
@@ -734,7 +735,7 @@ export default function VehicleDetailPage() {
 
                   {/* Thumbnails */}
                   <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                    {currentImages.map((img, i) => (
+                    {currentImages.map((img: string, i: number) => (
                       <button
                         key={i}
                         onClick={() => setCurrentImageIndex(i)}

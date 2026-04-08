@@ -40,14 +40,26 @@ export default async function SellYourCarPage() {
     { stepNumber: 3, title: 'Get Paid', description: 'Accept the offer and get paid same day' },
   ]
 
-  const comparisonRows = pageData?.comparisonRows || pageData?.comparisonTable?.rows || [
-    { feature: 'Instant Offer', us: 'Yes', others: 'Days/Weeks' },
-    { feature: 'Hidden Fees', us: 'None', others: 'Many' },
-    { feature: 'Payment Speed', us: 'Same Day', others: '1-2 Weeks' },
-    { feature: 'Free Pickup', us: 'Yes', others: 'Rarely' },
+  const rawRows = pageData?.comparisonRows || pageData?.comparisonTable?.rows || [
+    { feature: 'Instant Offer', planetMotors: 'Yes', competitors: 'Days/Weeks' },
+    { feature: 'Hidden Fees', planetMotors: 'None', competitors: 'Many' },
+    { feature: 'Payment Speed', planetMotors: 'Same Day', competitors: '1-2 Weeks' },
+    { feature: 'Free Pickup', planetMotors: 'Yes', competitors: 'Rarely' },
   ]
+  const comparisonRows = rawRows.map((r) => ({
+    feature: r.feature,
+    us: 'us' in r ? (r as { feature: string; us: string; others: string }).us : (r as { feature: string; planetMotors: string; competitors: string }).planetMotors,
+    others: 'others' in r ? (r as { feature: string; us: string; others: string }).others : (r as { feature: string; planetMotors: string; competitors: string }).competitors,
+  }))
 
-  const testimonials = pageData?.testimonials || pageData?.testimonialsSection?.testimonials || []
+  const rawTestimonials = pageData?.testimonials || pageData?.testimonialsSection?.testimonials || []
+  const testimonials = rawTestimonials.map((t) => ({
+    name: 'name' in t ? (t as { name: string }).name : (t as { customerName: string }).customerName,
+    quote: 'quote' in t ? (t as { quote: string }).quote : (t as { review: string }).review,
+    rating: t.rating,
+    vehiclePurchased: t.vehiclePurchased,
+    location: 'location' in t ? (t as { location?: string }).location : undefined,
+  }))
 
   const faqs = pageData?.faqs || [
     { question: 'How long does the process take?', answer: 'Most sales are completed within 24 hours from initial quote to payment.' },

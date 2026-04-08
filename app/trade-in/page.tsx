@@ -422,17 +422,18 @@ function TradeInContent() {
   
   // Offer
   interface TradeInOffer {
-    offerNumber: string
+    quoteId?: string
+    offerNumber?: string
     vehicle: string
     mileage: string
     condition: string
-    cbbValue: { low: number; mid: number; high: number }
-    adjustments: Array<{ reason: string; amount: number } | false>
+    cbbValue?: { low: number; mid: number; high: number }
+    adjustments?: Array<{ reason: string; amount: number } | false>
     offerAmount: number
-    payoff: number
-    equity: number
+    payoff?: number
+    equity?: number
     validUntil: string
-    comparison: { privateSale: number; dealerTrade: number }
+    comparison?: { privateSale: number; dealerTrade: number }
   }
   const [offer, setOffer] = useState<TradeInOffer | null>(null)
   
@@ -771,7 +772,7 @@ function TradeInContent() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <Tabs value={lookupMethod} onValueChange={(v: "plate" | "vin" | "manual") => setLookupMethod(v)}>
+                      <Tabs value={lookupMethod} onValueChange={(v: string) => setLookupMethod(v as "plate" | "vin" | "manual")}>
                         <TabsList className="grid w-full grid-cols-3 mb-6 h-auto gap-1">
                           <TabsTrigger value="plate" className="text-xs sm:text-sm px-2 sm:px-4 py-2.5 min-h-[44px]">Plate</TabsTrigger>
                           <TabsTrigger value="vin" className="text-xs sm:text-sm px-2 sm:px-4 py-2.5 min-h-[44px]">VIN</TabsTrigger>
@@ -1305,6 +1306,7 @@ function TradeInContent() {
                     </div>
 
                     {/* CBB Value Range */}
+                    {offer.cbbValue && (
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">CBB Value Range</span>
@@ -1317,9 +1319,10 @@ function TradeInContent() {
                         />
                       </div>
                     </div>
+                    )}
 
                     {/* Payoff/Equity */}
-                    {offer.payoff > 0 && (
+                    {(offer.payoff ?? 0) > 0 && (
                       <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg space-y-2">
                         <div className="flex justify-between">
                           <span>Trade-In Offer</span>
@@ -1327,19 +1330,20 @@ function TradeInContent() {
                         </div>
                         <div className="flex justify-between text-red-600">
                           <span>Loan Payoff</span>
-                          <span className="font-medium">-${offer.payoff.toLocaleString()}</span>
+                          <span className="font-medium">-${(offer.payoff ?? 0).toLocaleString()}</span>
                         </div>
                         <div className="border-t pt-2 flex justify-between font-bold text-lg">
                           <span>Your Equity</span>
-                          <span className={offer.equity >= 0 ? "text-green-600" : "text-red-600"}>
-                            ${Math.abs(offer.equity).toLocaleString()}
-                            {offer.equity < 0 && " owed"}
+                          <span className={(offer.equity ?? 0) >= 0 ? "text-green-600" : "text-red-600"}>
+                            ${Math.abs(offer.equity ?? 0).toLocaleString()}
+                            {(offer.equity ?? 0) < 0 && " owed"}
                           </span>
                         </div>
                       </div>
                     )}
 
                     {/* Comparison */}
+                    {offer.comparison && (
                     <div className="grid grid-cols-3 gap-2 sm:gap-4 p-3 sm:p-4 bg-muted/30 rounded-lg">
                       <div className="text-center">
                         <p className="text-xs sm:text-sm text-muted-foreground mb-1">Dealer</p>
@@ -1354,6 +1358,7 @@ function TradeInContent() {
                         <p className="font-medium text-xs sm:text-base text-muted-foreground">${offer.comparison.privateSale.toLocaleString()}</p>
                       </div>
                     </div>
+                    )}
 
                     {/* Why Planet Motors */}
                     <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center text-xs sm:text-sm">

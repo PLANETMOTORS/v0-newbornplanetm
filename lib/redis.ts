@@ -23,7 +23,7 @@ async function getRedis(): Promise<RedisClient | null> {
     redisClient = new Redis({
       url: process.env.KV_REST_API_URL,
       token: process.env.KV_REST_API_TOKEN,
-    })
+    }) as unknown as RedisClient
     return redisClient
   } catch {
     return null

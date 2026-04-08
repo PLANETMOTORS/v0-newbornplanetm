@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, Shield, Loader2 } from "lucide-react"
 import Link from "next/link"
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "")
 
 export default function PaymentPage() {
   const params = useParams()
@@ -18,23 +18,26 @@ export default function PaymentPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   const getClientSecret = useCallback(
-    () => startVehicleCheckout({
-      vehicleId: params.id as string,
-      vehicleName: "Vehicle Deposit",
-      vehiclePriceCents: 25000, // $250 deposit
-      depositOnly: true,
-    }).then((secret) => {
-      setIsLoading(false)
-      return secret
-    }).catch((error) => {
-      console.error("Failed to create checkout session:", error)
-      setIsLoading(false)
-      return null as any
-    }),
+    async (): Promise<string> => {
+      try {
+        setIsLoading(false)
+        const secret = await startVehicleCheckout({
+          vehicleId: params.id as string,
+          vehicleName: "Vehicle Deposit",
+          vehiclePriceCents: 25000, // $250 deposit
+          depositOnly: true,
+        })
+        return secret ?? ""
+      } catch (error) {
+        console.error("Failed to create checkout session:", error)
+        setIsLoading(false)
+        return ""
+      }
+    },
     [params.id]
   )
 
-  const options = { clientSecret: getClientSecret }
+  const options = { fetchClientSecret: getClientSecret }
 
   return (
     <div className="min-h-screen bg-muted/30 py-8">

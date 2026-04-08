@@ -5,7 +5,9 @@ import {
   Clock,
   AlertCircle,
   CheckCircle2,
-  Battery
+  Battery,
+  Zap,
+  Shield
 } from "lucide-react"
 
 interface VehicleBadgesProps {

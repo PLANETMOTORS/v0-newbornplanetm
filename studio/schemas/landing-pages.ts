@@ -106,7 +106,7 @@ const processStep = {
       title: 'title',
       stepNumber: 'stepNumber',
     },
-    prepare({ title, stepNumber }) {
+    prepare({ title, stepNumber }: { title?: string; stepNumber?: number }) {
       return {
         title: `${stepNumber ? `Step ${stepNumber}: ` : ''}${title || 'Untitled'}`,
       }
@@ -469,7 +469,7 @@ export const landingPage = defineType({
       group: 'process',
       fields: [
         { name: 'sectionTitle', title: 'Section Title', type: 'string' },
-        { name: 'steps', title: 'Steps', type: 'array', of: [processStep] },
+        { name: 'steps', title: 'Steps', type: 'array', of: [defineArrayMember(processStep)] },
       ],
     }),
     
@@ -614,7 +614,7 @@ export const financingPage = defineType({
       group: 'process',
       fields: [
         { name: 'sectionTitle', title: 'Section Title', type: 'string' },
-        { name: 'steps', title: 'Steps', type: 'array', of: [processStep] },
+        { name: 'steps', title: 'Steps', type: 'array', of: [defineArrayMember(processStep)] },
       ],
     }),
     
@@ -747,7 +747,7 @@ export const sellYourCarPage = defineType({
       group: 'process',
       fields: [
         { name: 'sectionTitle', title: 'Section Title', type: 'string' },
-        { name: 'steps', title: 'Steps', type: 'array', of: [processStep] },
+        { name: 'steps', title: 'Steps', type: 'array', of: [defineArrayMember(processStep)] },
       ],
     }),
     

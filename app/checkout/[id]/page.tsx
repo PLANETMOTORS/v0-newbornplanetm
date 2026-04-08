@@ -229,19 +229,6 @@ const handleSubmit = async () => {
     setIsSubmitting(false)
   }
 
-  // Stripe client secret fetcher for embedded checkout
-  const fetchClientSecret = useCallback(async () => {
-    const protectionPlan = PROTECTION_PLANS.find(p => p.id === selectedProtection)
-    const protectionPrice = protectionPlan?.price || 0
-    return await startVehicleCheckout({
-      vehicleId: params.id as string,
-      vehicleName: `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`,
-      vehiclePriceCents: (total + protectionPrice) * 100,
-      protectionPlanId: selectedProtection !== "none" ? selectedProtection : undefined,
-      customerEmail: formData.email,
-    })
-  }, [params.id, total, selectedProtection, formData.email])
-
   const vehiclePrice = vehicleData.price
   const protectionPrice = PROTECTION_PLANS.find(p => p.id === selectedProtection)?.price || 0
   const omvicFee = 22 // OMVIC regulatory fee
@@ -258,6 +245,20 @@ const handleSubmit = async () => {
   const hst = Math.round(subtotalBeforeHst * 0.13)
   // Total with HST
   const total = subtotalBeforeHst + hst
+
+  // Stripe client secret fetcher for embedded checkout
+  const fetchClientSecret = useCallback(async (): Promise<string> => {
+    const protectionPlan = PROTECTION_PLANS.find(p => p.id === selectedProtection)
+    const protectionPlanPrice = protectionPlan?.price || 0
+    const secret = await startVehicleCheckout({
+      vehicleId: params.id as string,
+      vehicleName: `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`,
+      vehiclePriceCents: (total + protectionPlanPrice) * 100,
+      protectionPlanId: selectedProtection !== "none" ? selectedProtection : undefined,
+      customerEmail: formData.email,
+    })
+    return secret ?? ""
+  }, [params.id, total, selectedProtection, formData.email])
 
   return (
     <div className="min-h-screen bg-muted/30">

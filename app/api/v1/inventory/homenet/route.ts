@@ -411,7 +411,7 @@ function parseCSVLine(line: string): string[] {
 
 // ==================== DATABASE SYNC ====================
 
-async function syncVehiclesToDatabase(sql: ReturnType<typeof neon>, vehicles: VehicleData[]) {
+async function syncVehiclesToDatabase(sql: NonNullable<ReturnType<typeof getSql>>, vehicles: VehicleData[]) {
   let inserted = 0
   let updated = 0
   const errors: { vin: string; error: string }[] = []
@@ -423,7 +423,7 @@ async function syncVehiclesToDatabase(sql: ReturnType<typeof neon>, vehicles: Ve
         SELECT id FROM vehicles WHERE vin = ${vehicle.vin}
       `
 
-      if (existing.length > 0) {
+      if ((existing as Record<string, unknown>[]).length > 0) {
         // Update existing vehicle
         await sql`
           UPDATE vehicles SET
