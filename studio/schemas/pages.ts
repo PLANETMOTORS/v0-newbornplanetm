@@ -11,6 +11,8 @@ export const trustBadge = defineType({
   fields: [
     defineField({ name: 'icon', title: 'Icon', type: 'string' }),
     defineField({ name: 'text', title: 'Text', type: 'string' }),
+    defineField({ name: 'title', title: 'Title (Legacy)', type: 'string', hidden: true }),
+    defineField({ name: 'description', title: 'Description (Legacy)', type: 'string', hidden: true }),
     defineField({ name: 'label', title: 'Label', type: 'string' }),
     defineField({ name: 'value', title: 'Value', type: 'string' }),
   ],
@@ -53,9 +55,20 @@ export const homepage = defineType({
           { name: 'label', title: 'Label', type: 'string' },
           { name: 'url', title: 'URL', type: 'string' },
         ]},
+        { name: 'highlightCta', title: 'Highlight CTA (Legacy)', type: 'object', hidden: true, fields: [
+          { name: 'label', title: 'Label', type: 'string' },
+          { name: 'url', title: 'URL', type: 'string' },
+        ]},
       ],
     }),
     defineField({ name: 'trustBadges', title: 'Trust Badges', type: 'array', of: [{ type: 'trustBadge' }]}),
+    defineField({ name: 'promoBanner', title: 'Promo Banner (Legacy)', type: 'object', hidden: true, fields: [
+      { name: 'enabled', title: 'Enabled', type: 'boolean' },
+      { name: 'text', title: 'Text', type: 'string' },
+      { name: 'ctaLabel', title: 'CTA Label', type: 'string' },
+      { name: 'ctaUrl', title: 'CTA URL', type: 'string' },
+      { name: 'backgroundColor', title: 'Background Color', type: 'string' },
+    ]}),
     defineField({ name: 'quickFilters', title: 'Quick Filters', type: 'array', of: [{ type: 'object', fields: [
       { name: 'label', title: 'Label', type: 'string' },
       { name: 'url', title: 'URL', type: 'string' },
@@ -98,6 +111,10 @@ export const financingPage = defineType({
         { name: 'label', title: 'Label', type: 'string' },
         { name: 'url', title: 'URL', type: 'string' },
       ]},
+      { name: 'secondaryCta', title: 'Secondary CTA (Legacy)', type: 'object', hidden: true, fields: [
+        { name: 'label', title: 'Label', type: 'string' },
+        { name: 'url', title: 'URL', type: 'string' },
+      ]},
     ]}),
     defineField({ name: 'benefits', title: 'Benefits', type: 'array', of: [{ type: 'object', fields: [
       { name: 'icon', title: 'Icon', type: 'string' },
@@ -108,6 +125,7 @@ export const financingPage = defineType({
       { name: 'defaultVehiclePrice', title: 'Default Vehicle Price', type: 'number' },
       { name: 'defaultDownPayment', title: 'Default Down Payment', type: 'number' },
       { name: 'defaultTerm', title: 'Default Term', type: 'number' },
+      { name: 'defaultInterestRate', title: 'Default Interest Rate (Legacy)', type: 'number', hidden: true },
       { name: 'termOptions', title: 'Term Options', type: 'array', of: [{ type: 'number' }] },
     ]}),
     defineField({ name: 'processSteps', title: 'Process Steps', type: 'array', of: [{ type: 'object', fields: [
@@ -148,9 +166,27 @@ export const sellYourCarPage = defineType({
       { name: 'description', title: 'Description', type: 'text' },
     ]}]}),
     defineField({ name: 'comparisonTable', title: 'Comparison Table', type: 'object', fields: [
-      { name: 'headers', title: 'Headers', type: 'array', of: [{ type: 'string' }] },
-      { name: 'rows', title: 'Rows', type: 'array', of: [{ type: 'array', of: [{ type: 'string' }] }] },
+      { name: 'sectionTitle', title: 'Section Title', type: 'string' },
+      { name: 'ourColumnTitle', title: 'Our Column Title', type: 'string' },
+      { name: 'othersColumnTitle', title: 'Others Column Title', type: 'string' },
+      { name: 'headers', title: 'Headers (Legacy)', type: 'array', of: [{ type: 'string' }] },
+      { name: 'rows', title: 'Rows', type: 'array', of: [{ type: 'object', name: 'sellComparisonRow', fields: [
+        { name: 'feature', title: 'Feature', type: 'string' },
+        { name: 'us', title: 'Us', type: 'string' },
+        { name: 'others', title: 'Others', type: 'string' },
+        { name: 'tradeIn', title: 'Trade-In (Legacy)', type: 'string', hidden: true },
+        { name: 'planetMotors', title: 'Planet Motors (Legacy)', type: 'string' },
+        { name: 'competitors', title: 'Competitors (Legacy)', type: 'string' },
+        { name: 'columns', title: 'Columns (Legacy Import)', type: 'array', of: [{ type: 'string' }] },
+      ] }] },
     ]}),
+    defineField({ name: 'processSteps', title: 'Process Steps (Legacy)', type: 'array', hidden: true, of: [{ type: 'object', fields: [
+      { name: 'step', title: 'Step (Legacy)', type: 'number', hidden: true },
+      { name: 'stepNumber', title: 'Step Number', type: 'number' },
+      { name: 'title', title: 'Title', type: 'string' },
+      { name: 'description', title: 'Description', type: 'text' },
+      { name: 'icon', title: 'Icon', type: 'string' },
+    ] }]}),
     defineField({ name: 'avilooBattery', title: 'Aviloo Battery SOH', type: 'object', fields: [
       { name: 'enabled', title: 'Enabled', type: 'boolean' },
       { name: 'title', title: 'Title', type: 'string' },
@@ -177,6 +213,8 @@ export const sellPage = defineType({
     defineField({ name: 'hero', title: 'Hero', type: 'object', fields: [
       { name: 'headline', title: 'Headline', type: 'string' },
       { name: 'subheadline', title: 'Subheadline', type: 'text' },
+      { name: 'highlightText', title: 'Highlight Text (Legacy)', type: 'string', hidden: true },
+      { name: 'trustBadges', title: 'Trust Badges (Legacy)', type: 'array', hidden: true, of: [{ type: 'trustBadge' }] },
       { name: 'form', title: 'Form', type: 'object', fields: [
         { name: 'placeholderVin', title: 'VIN Placeholder', type: 'string' },
         { name: 'placeholderPlate', title: 'Plate Placeholder', type: 'string' },
@@ -193,9 +231,38 @@ export const sellPage = defineType({
     ]}),
     defineField({ name: 'cta', title: 'CTA', type: 'object', fields: [
       { name: 'headline', title: 'Headline', type: 'string' },
+      { name: 'subheadline', title: 'Subheadline (Legacy)', type: 'string', hidden: true },
       { name: 'bonusText', title: 'Bonus Text', type: 'string' },
       { name: 'buttonText', title: 'Button Text', type: 'string' },
       { name: 'buttonUrl', title: 'Button URL', type: 'string' },
+    ]}),
+    defineField({ name: 'comparison', title: 'Comparison (Legacy)', type: 'object', hidden: true, fields: [
+      { name: 'sectionTitle', title: 'Section Title', type: 'string', hidden: true },
+      { name: 'sectionSubtitle', title: 'Section Subtitle', type: 'string', hidden: true },
+      { name: 'headers', title: 'Headers', type: 'array', of: [{ type: 'string' }] },
+      { name: 'competitors', title: 'Competitors', type: 'array', hidden: true, of: [{ type: 'object', fields: [
+        { name: 'name', title: 'Name', type: 'string' },
+        { name: 'isUs', title: 'Is Us', type: 'boolean' },
+      ]}] },
+      { name: 'rows', title: 'Rows', type: 'array', of: [{ type: 'object', fields: [
+        { name: 'feature', title: 'Feature', type: 'string' },
+        { name: 'us', title: 'Us', type: 'string' },
+        { name: 'others', title: 'Others', type: 'string' },
+        { name: 'values', title: 'Values', type: 'array', hidden: true, of: [{ type: 'object', fields: [
+          { name: 'value', title: 'Value', type: 'string' },
+          { name: 'status', title: 'Status', type: 'string' },
+        ]}] },
+      ]}] },
+    ]}),
+    defineField({ name: 'process', title: 'Process (Legacy)', type: 'object', hidden: true, fields: [
+      { name: 'sectionTitle', title: 'Section Title', type: 'string', hidden: true },
+      { name: 'steps', title: 'Steps', type: 'array', of: [{ type: 'object', fields: [
+        { name: 'step', title: 'Step', type: 'number' },
+        { name: 'stepNumber', title: 'Step Number', type: 'string', hidden: true },
+        { name: 'title', title: 'Title', type: 'string' },
+        { name: 'description', title: 'Description', type: 'text' },
+        { name: 'icon', title: 'Icon', type: 'string', hidden: true },
+      ]}] },
     ]}),
   ],
   preview: { prepare() { return { title: 'Sell Page (Legacy)' } } },
@@ -222,6 +289,7 @@ export const aiSettings = defineType({
     ]}),
     defineField({ name: 'priceNegotiator', title: 'Price Negotiator', type: 'object', fields: [
       { name: 'enabled', title: 'Enabled', type: 'boolean' },
+      { name: 'requireVerification', title: 'Require Verification (Legacy)', type: 'boolean', hidden: true },
       { name: 'negotiationRules', title: 'Rules', type: 'object', fields: [
         { name: 'lowPriceThreshold', title: 'Low Price Threshold', type: 'number' },
         { name: 'lowPriceMaxDiscount_0_31days', title: 'Low 0-31 days %', type: 'number' },
@@ -235,17 +303,21 @@ export const aiSettings = defineType({
       { name: 'enabled', title: 'Enabled', type: 'boolean' },
       { name: 'offerValidDays', title: 'Offer Valid Days', type: 'number' },
       { name: 'hstRate', title: 'HST Rate', type: 'number' },
+      { name: 'dataSources', title: 'Data Sources (Legacy)', type: 'array', hidden: true, of: [{ type: 'string' }] },
+      { name: 'requireVerification', title: 'Require Verification (Legacy)', type: 'boolean', hidden: true },
     ]}),
     defineField({ name: 'fees', title: 'Fees', type: 'object', fields: [
       { name: 'adminFee', title: 'Admin Fee', type: 'number' },
       { name: 'certification', title: 'Certification', type: 'number' },
       { name: 'licensing', title: 'Licensing', type: 'number' },
       { name: 'omvic', title: 'OMVIC', type: 'number' },
+      { name: 'financeDocFee', title: 'Finance Doc Fee (Legacy)', type: 'number', hidden: true },
     ]}),
     defineField({ name: 'financing', title: 'Financing', type: 'object', fields: [
       { name: 'lowestRate', title: 'Lowest Rate', type: 'number' },
       { name: 'numberOfLenders', title: 'Number of Lenders', type: 'number' },
       { name: 'terms', title: 'Terms', type: 'array', of: [{ type: 'number' }] },
+      { name: 'paymentFrequencies', title: 'Payment Frequencies (Legacy)', type: 'array', hidden: true, of: [{ type: 'string' }] },
     ]}),
   ],
   preview: { prepare() { return { title: 'AI Settings' } } },

@@ -1,17 +1,11 @@
 // Redis utilities - only initializes when env vars are present
 // These functions gracefully degrade when Redis is not configured
 
-type RedisClient = {
-  incr: (key: string) => Promise<number>
-  expire: (key: string, seconds: number) => Promise<number>
-  set: (key: string, value: string, options?: { ex?: number; nx?: boolean }) => Promise<string | null>
-  get: <T = string>(key: string) => Promise<T | null>
-  del: (key: string) => Promise<number>
-}
+import type { Redis } from "@upstash/redis"
 
-let redisClient: RedisClient | null = null
+let redisClient: Redis | null = null
 
-async function getRedis(): Promise<RedisClient | null> {
+async function getRedis(): Promise<Redis | null> {
   if (redisClient) return redisClient
   
   if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
@@ -19,11 +13,11 @@ async function getRedis(): Promise<RedisClient | null> {
   }
   
   try {
-    const { Redis } = await import('@upstash/redis')
-    redisClient = new Redis({
+    const { Redis: UpstashRedis } = await import('@upstash/redis')
+    redisClient = new UpstashRedis({
       url: process.env.KV_REST_API_URL,
       token: process.env.KV_REST_API_TOKEN,
-    })
+    }) as Redis
     return redisClient
   } catch {
     return null
@@ -124,7 +118,7 @@ export async function lockVehicle(
   try {
     const key = `vehicle_lock:${stockNumber}`
     const result = await redis.set(key, userId, { nx: true, ex: lockDurationSeconds })
-    return result === 'OK'
+    return result === "OK"
   } catch {
     return true
   }

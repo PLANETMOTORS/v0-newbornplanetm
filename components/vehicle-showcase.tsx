@@ -170,17 +170,6 @@ export function VehicleShowcase() {
     return currentVehicle.image
   }
 
-  // Simulates live view count - stable effect with empty dependency array
-  useEffect(() => {
-    let count = 0
-    const viewTimer = setInterval(() => {
-      count += 1
-      const adjustment = (count % 3) - 1
-      setViewCount((current) => Math.max(40, Math.min(60, current + adjustment)))
-    }, 5000)
-    return () => clearInterval(viewTimer)
-  }, [])
-
   // Carousel auto-rotation - depends only on hover state and vehicle count
   useEffect(() => {
     if (isHovering || showcaseVehicles.length === 0) return

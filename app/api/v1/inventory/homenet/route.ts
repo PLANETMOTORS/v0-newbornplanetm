@@ -7,6 +7,8 @@ function getSql() {
   return neon(url)
 }
 
+type SqlClient = NonNullable<ReturnType<typeof getSql>>
+
 // API Key for HomenetIOL webhook authentication
 const HOMENET_API_KEY = process.env.HOMENET_API_KEY || "pm_homenet_2024_secure"
 
@@ -411,7 +413,7 @@ function parseCSVLine(line: string): string[] {
 
 // ==================== DATABASE SYNC ====================
 
-async function syncVehiclesToDatabase(sql: ReturnType<typeof neon>, vehicles: VehicleData[]) {
+async function syncVehiclesToDatabase(sql: SqlClient, vehicles: VehicleData[]) {
   let inserted = 0
   let updated = 0
   const errors: { vin: string; error: string }[] = []

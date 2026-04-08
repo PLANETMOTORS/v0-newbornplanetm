@@ -328,11 +328,24 @@ function TradeInContent() {
         // Set up the offer object for the modal
         const offerData = {
           quoteId,
+          offerNumber: `PM-${Date.now().toString(36).toUpperCase()}`,
           vehicle: decodeURIComponent(vehicle),
           offerAmount: parseInt(value) || 0,
           validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
           mileage: mileage || "N/A",
-          condition: "good"
+          condition: "good",
+          cbbValue: {
+            low: parseInt(value) || 0,
+            mid: parseInt(value) || 0,
+            high: parseInt(value) || 0,
+          },
+          adjustments: [],
+          payoff: 0,
+          equity: parseInt(value) || 0,
+          comparison: {
+            privateSale: Math.round((parseInt(value) || 0) * 1.1),
+            dealerTrade: Math.round((parseInt(value) || 0) * 0.9),
+          },
         }
         setOffer(offerData)
         setShowOffer(true)
@@ -422,6 +435,7 @@ function TradeInContent() {
   
   // Offer
   interface TradeInOffer {
+    quoteId?: string
     offerNumber: string
     vehicle: string
     mileage: string
@@ -771,7 +785,10 @@ function TradeInContent() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <Tabs value={lookupMethod} onValueChange={(v: "plate" | "vin" | "manual") => setLookupMethod(v)}>
+                      <Tabs
+                        value={lookupMethod}
+                        onValueChange={(value: string) => setLookupMethod(value as "plate" | "vin" | "manual")}
+                      >
                         <TabsList className="grid w-full grid-cols-3 mb-6 h-auto gap-1">
                           <TabsTrigger value="plate" className="text-xs sm:text-sm px-2 sm:px-4 py-2.5 min-h-[44px]">Plate</TabsTrigger>
                           <TabsTrigger value="vin" className="text-xs sm:text-sm px-2 sm:px-4 py-2.5 min-h-[44px]">VIN</TabsTrigger>

@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     // Revalidate all relevant tags
     for (const tag of tagsToRevalidate) {
-      revalidateTag(tag)
+      revalidateTag(tag, "max")
     }
 
     console.log(`[Sanity Webhook] Revalidated tags for ${documentType}:`, tagsToRevalidate)
