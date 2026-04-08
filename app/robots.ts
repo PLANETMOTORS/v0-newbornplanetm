@@ -34,8 +34,7 @@ export default function robots(): MetadataRoute.Robots {
       },
       {
         userAgent: 'Googlebot-Image',
-        allow: '/images/',
-        allow: '/vehicles/',
+        allow: ['/images/', '/vehicles/'],
       },
       {
         userAgent: 'Bingbot',
