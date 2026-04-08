@@ -18,8 +18,6 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState<"welcome" | "login">("welcome")
 
-  console.log("[v0] SignInPanel isOpen:", isOpen)
-
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -30,22 +28,20 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
     }, 1500)
   }
 
+  if (!isOpen) return null
+
   return (
     <>
       {/* Overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-40 transition-opacity"
-          onClick={onClose}
-          aria-hidden="true"
-        />
-      )}
+      <div
+        className="fixed inset-0 bg-black/50 z-[9998] transition-opacity"
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
       {/* Side Panel */}
       <div
-        className={`fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out overflow-y-auto ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl z-[9999] transform transition-transform duration-300 ease-in-out overflow-y-auto animate-in slide-in-from-right"
       >
         {/* Header */}
         <div className="sticky top-0 flex items-center justify-between p-6 border-b bg-white">

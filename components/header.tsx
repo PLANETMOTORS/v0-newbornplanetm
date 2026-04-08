@@ -298,15 +298,13 @@ export function Header() {
 
           {/* CTA Buttons & Sign In */}
           <div className="hidden lg:flex lg:items-center lg:gap-3">
-            <button
-              onClick={() => {
-                console.log("[v0] Sign In button clicked")
-                setSignInPanelOpen(true)
-              }}
-              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSignInPanelOpen(true)}
             >
               Sign In
-            </button>
+            </Button>
             <Button variant="outline" size="sm" asChild>
               <Link href="/financing">Get Pre-Approved</Link>
             </Button>
@@ -357,7 +355,14 @@ export function Header() {
                 </div>
               ))}
               <div className="pt-4 flex flex-col gap-3">
-                <Button variant="outline" className="w-full" onClick={() => setSignInPanelOpen(true)}>
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    setSignInPanelOpen(true)
+                  }}
+                >
                   Sign In
                 </Button>
                 <Button variant="outline" className="w-full" asChild>
