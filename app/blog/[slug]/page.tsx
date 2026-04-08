@@ -8,6 +8,14 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { PortableText } from "@portabletext/react"
+import { getBlogPost } from "@/lib/sanity/fetch"
+
+function getSlugString(slug: string | { current: string } | undefined, fallback = ""): string {
+  if (!slug) return fallback
+  if (typeof slug === "string") return slug
+  return slug.current ?? fallback
+}
 
 // Blog post data with full content
 const blogPosts: Record<string, {
@@ -1601,6 +1609,16 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
+
+  // Try Sanity first
+  const sanityPost = await getBlogPost(slug)
+  if (sanityPost) {
+    return {
+      title: `${sanityPost.seo?.metaTitle ?? sanityPost.title} | Planet Motors Blog`,
+      description: sanityPost.seo?.metaDescription ?? sanityPost.excerpt,
+    }
+  }
+
   const post = blogPosts[slug]
   
   if (!post) {
@@ -1617,6 +1635,85 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
+
+  // Try Sanity first
+  const sanityPost = await getBlogPost(slug)
+  if (sanityPost) {
+    const sanitySlug = getSlugString(sanityPost.slug as string | { current: string } | undefined, slug)
+    const postDate = sanityPost.publishedAt
+      ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" })
+      : ""
+
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-24 pb-20">
+          <div className="mx-auto max-w-4xl px-6 lg:px-8 py-4">
+            <Link href="/blog" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Blog
+            </Link>
+          </div>
+          <div className="relative w-full h-[300px] md:h-[400px] lg:h-[500px]">
+            <Image
+              src={sanityPost.coverImage ?? "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200&h=600&fit=crop"}
+              alt={sanityPost.title}
+              fill
+              priority
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10 lg:p-16">
+              <div className="mx-auto max-w-4xl">
+                <Badge className="mb-4">Article</Badge>
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
+                  {sanityPost.title}
+                </h1>
+                <div className="flex flex-wrap items-center gap-4 text-white/80 text-sm">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    {postDate}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <article className="mx-auto max-w-4xl px-6 lg:px-8 py-12">
+            {sanityPost.body ? (
+              <div className="prose prose-lg max-w-none prose-headings:font-semibold prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3 prose-p:text-muted-foreground prose-p:leading-relaxed prose-li:text-muted-foreground prose-strong:text-foreground">
+                <PortableText value={sanityPost.body} />
+              </div>
+            ) : (
+              <p className="text-muted-foreground">{sanityPost.excerpt}</p>
+            )}
+            <Separator className="my-12" />
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <span className="font-medium">Share this article:</span>
+              <div className="flex items-center gap-3">
+                <Button variant="outline" size="icon"><Facebook className="w-4 h-4" /></Button>
+                <Button variant="outline" size="icon"><Twitter className="w-4 h-4" /></Button>
+                <Button variant="outline" size="icon"><Linkedin className="w-4 h-4" /></Button>
+                <Button variant="outline" size="icon"><Share2 className="w-4 h-4" /></Button>
+              </div>
+            </div>
+          </article>
+          <section className="py-16">
+            <div className="mx-auto max-w-3xl px-6 lg:px-8 text-center">
+              <h2 className="text-2xl font-semibold mb-4">Ready to Find Your Next Vehicle?</h2>
+              <p className="text-muted-foreground mb-8">Browse our inventory of quality pre-owned vehicles or get a free trade-in appraisal today.</p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button size="lg" asChild><Link href="/inventory">Browse Inventory</Link></Button>
+                <Button size="lg" variant="outline" asChild><Link href="/trade-in">Get Trade-In Value</Link></Button>
+              </div>
+            </div>
+          </section>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
+  // Fall back to static data
   const post = blogPosts[slug]
 
   if (!post) {

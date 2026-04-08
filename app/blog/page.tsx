@@ -1,12 +1,13 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Calendar, Clock, ArrowRight, Search, Tag } from "lucide-react"
+import { Calendar, Clock, ArrowRight, Search } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
+import { getBlogPosts } from "@/lib/sanity/fetch"
 
 export const metadata = {
   title: "Blog | Planet Motors - Car Buying Tips & Industry News",
@@ -271,7 +272,43 @@ const categories = [
   "Company",
 ]
 
-export default function BlogPage() {
+function getSlugString(slug: string | { current: string } | undefined): string {
+  if (!slug) return ""
+  if (typeof slug === "string") return slug
+  return slug.current ?? ""
+}
+
+export default async function BlogPage() {
+  // Try to fetch from Sanity CMS; fall back to static data
+  const { posts: sanityPosts } = await getBlogPosts(1, 50)
+
+  // Normalise Sanity posts to the same shape as the static list
+  const dynamicPosts = sanityPosts.length > 0
+    ? sanityPosts.map((p) => ({
+        slug: getSlugString(p.slug as string | { current: string } | undefined),
+        title: p.title,
+        excerpt: p.excerpt ?? "",
+        date: p.publishedAt ? new Date(p.publishedAt).toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" }) : "",
+        readTime: "5 min read",
+        category: "Article",
+        image: p.coverImage ?? "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=250&fit=crop",
+      }))
+    : posts
+
+  const displayFeatured = sanityPosts.length > 0
+    ? {
+        slug: getSlugString(sanityPosts[0].slug as string | { current: string } | undefined),
+        title: sanityPosts[0].title,
+        excerpt: sanityPosts[0].excerpt ?? "",
+        date: sanityPosts[0].publishedAt ? new Date(sanityPosts[0].publishedAt).toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" }) : "",
+        readTime: "5 min read",
+        category: "Article",
+        image: sanityPosts[0].coverImage ?? featuredPost.image,
+      }
+    : featuredPost
+
+  const displayPosts = sanityPosts.length > 0 ? dynamicPosts.slice(1) : dynamicPosts
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -319,13 +356,13 @@ export default function BlogPage() {
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <h2 className="font-semibold text-xl mb-6">Featured Article</h2>
             
-            <Link href={`/blog/${featuredPost.slug}`} className="group">
+            <Link href={`/blog/${displayFeatured.slug}`} className="group">
               <Card className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="grid md:grid-cols-2 gap-0">
                   <div className="aspect-video md:aspect-auto relative">
                     <Image 
-                      src={featuredPost.image} 
-                      alt={featuredPost.title}
+                      src={displayFeatured.image} 
+                      alt={displayFeatured.title}
                       fill
                       sizes="(max-width: 768px) 100vw, 50vw"
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -333,22 +370,22 @@ export default function BlogPage() {
                   </div>
                   <CardContent className="p-8 flex flex-col justify-center">
                     <Badge variant="secondary" className="w-fit mb-4">
-                      {featuredPost.category}
+                      {displayFeatured.category}
                     </Badge>
                     <h3 className="font-serif text-2xl md:text-3xl font-semibold mb-4 group-hover:text-primary transition-colors">
-                      {featuredPost.title}
+                      {displayFeatured.title}
                     </h3>
                     <p className="text-muted-foreground mb-6">
-                      {featuredPost.excerpt}
+                      {displayFeatured.excerpt}
                     </p>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
-                        {featuredPost.date}
+                        {displayFeatured.date}
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
-                        {featuredPost.readTime}
+                        {displayFeatured.readTime}
                       </span>
                     </div>
                   </CardContent>
@@ -364,7 +401,7 @@ export default function BlogPage() {
             <h2 className="font-semibold text-xl mb-8">Latest Articles</h2>
             
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {posts.map((post) => (
+              {displayPosts.map((post) => (
                 <Link key={post.slug} href={`/blog/${post.slug}`} className="group">
                   <Card className="overflow-hidden h-full hover:shadow-lg transition-shadow">
                     <div className="aspect-video overflow-hidden relative">
