@@ -270,7 +270,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
   const saturdayHours = siteSettings.businessHours?.find(h => h.day === "Saturday")
 
   return (
-    <main id="main-content" role="main" aria-label="Home page content">
+    <main id="main-content" role="main" aria-label="Home page content" className="overflow-x-hidden max-w-full">
       {/* ========== BOX 2: HERO SECTION - Off-White #F9FAFB ========== */}
       <section className="relative overflow-hidden" style={{ backgroundColor: "#F9FAFB" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">

@@ -56,7 +56,7 @@ export default async function FinancingPage() {
   const lowestRate = 6.29
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <Header />
 
       {/* Hero */}

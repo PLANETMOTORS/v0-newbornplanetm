@@ -567,7 +567,7 @@ export default function VehicleDetailPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-<main className="pb-20 md:pb-20 pb-32" role="main" aria-label="Vehicle details">
+<main className="pb-32 md:pb-20 overflow-x-hidden max-w-full" role="main" aria-label="Vehicle details">
   {/* Trade-In Banner */}
   {tradeInValue && parseInt(tradeInValue) > 0 && (
     <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3">
@@ -642,8 +642,8 @@ export default function VehicleDetailPage() {
           <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
         </div>
 
-        <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="container mx-auto px-4 py-8 overflow-x-hidden max-w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 overflow-x-hidden">
             {/* Left Column - Content */}
             <div className="lg:col-span-2">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

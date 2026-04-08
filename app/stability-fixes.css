@@ -1,9 +1,31 @@
 /* === CRITICAL LAYOUT STABILITY FIXES === */
+/* Prevents vibration, flickering, and layout shifts */
+
+/* GPU acceleration for smoother rendering */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Global page wrapper containment - prevents overflow on all pages */
+[class*="min-h-screen"] {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
 
 /* Prevent grid/flex children from causing overflow and vibration */
 .grid > *, .flex > * {
   min-width: 0;
   min-height: 0;
+}
+
+/* Sticky header stability - critical for preventing vibration */
+.sticky {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 /* Stable card layouts - contain prevents content from pushing boundaries */
@@ -55,15 +77,41 @@ header, nav {
   will-change: transform, opacity;
 }
 
+/* === FORM INPUT STABILITY === */
+/* Prevent iOS zoom on input focus which causes vibration */
+input, select, textarea {
+  font-size: 16px !important; /* Prevents iOS zoom */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Prevent autofill causing layout shifts */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 /* Mobile viewport fixes */
 @media (max-width: 768px) {
   body {
     overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
   }
   
   .container {
     max-width: 100vw;
     padding-left: 1rem;
     padding-right: 1rem;
+  }
+  
+  /* Prevent header bars from causing vibration on mobile */
+  .sticky > div {
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
 }
