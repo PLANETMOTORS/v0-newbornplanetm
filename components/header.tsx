@@ -304,11 +304,10 @@ export function Header() {
           <div className="flex items-center gap-2">
             {/* NavButton with professional design */}
             <NavButton
-              isLoggedIn={false}
-              userName="Sign In"
-              size="md"
               onSignInClick={() => setSignInPanelOpen(true)}
               onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              isLoggedIn={false}
+              userName=""
               className="hidden lg:flex"
             />
             
