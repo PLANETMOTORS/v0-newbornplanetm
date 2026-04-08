@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -23,6 +23,9 @@ interface LiveVideoTourFormProps {
 export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVideoTourFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const nameInputRef = useRef<HTMLInputElement | null>(null)
+  const emailInputRef = useRef<HTMLInputElement | null>(null)
+  const phoneInputRef = useRef<HTMLInputElement | null>(null)
 
   const [formData, setFormData] = useState({
     customerName: "",
@@ -36,15 +39,33 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVid
 
   const isOpen = isDealershipOpen()
 
+  const effectiveName = formData.customerName.trim() || nameInputRef.current?.value.trim() || ""
+  const effectiveEmail = formData.customerEmail.trim() || emailInputRef.current?.value.trim() || ""
+  const effectivePhone = formData.customerPhone.trim() || phoneInputRef.current?.value.trim() || ""
   const isFormValid =
-    formData.customerName.trim() !== "" &&
-    formData.customerEmail.includes("@") &&
-    isValidPhone(formData.customerPhone) &&
+    effectiveName !== "" &&
+    effectiveEmail.includes("@") &&
+    isValidPhone(effectivePhone) &&
     formData.selectedDate !== "" &&
     formData.selectedTime !== ""
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const customerName = formData.customerName.trim() || nameInputRef.current?.value.trim() || ""
+    const customerEmail = formData.customerEmail.trim() || emailInputRef.current?.value.trim() || ""
+    const customerPhone = formData.customerPhone.trim() || phoneInputRef.current?.value.trim() || ""
+
+    if (
+      customerName === "" ||
+      !customerEmail.includes("@") ||
+      !isValidPhone(customerPhone) ||
+      formData.selectedDate === "" ||
+      formData.selectedTime === ""
+    ) {
+      setError("Please fill all required fields (name, email, phone, date, and time).")
+      return
+    }
+
     setIsSubmitting(true)
     setError(null)
 
@@ -60,9 +81,9 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVid
         body: JSON.stringify({
           vehicleId,
           vehicleName,
-          customerName: formData.customerName,
-          customerEmail: formData.customerEmail,
-          customerPhone: formData.customerPhone,
+          customerName,
+          customerEmail,
+          customerPhone,
           preferredTime,
           provider: formData.provider,
           notes: formData.notes,
@@ -118,9 +139,12 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVid
           </Label>
           <Input
             id="name"
+            name="name"
+            ref={nameInputRef}
             required
             value={formData.customerName}
             onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+            onInput={(e) => setFormData((prev) => ({ ...prev, customerName: e.currentTarget.value }))}
             placeholder="John Smith"
             className="h-12 text-base"
             autoComplete="name"
@@ -133,10 +157,13 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVid
           </Label>
           <Input
             id="email"
+            name="email"
+            ref={emailInputRef}
             type="email"
             required
             value={formData.customerEmail}
             onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
+            onInput={(e) => setFormData((prev) => ({ ...prev, customerEmail: e.currentTarget.value }))}
             placeholder="john@example.com"
             className="h-12 text-base"
             autoComplete="email"
@@ -149,12 +176,17 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVid
           </Label>
           <Input
             id="phone"
+            name="tel"
+            ref={phoneInputRef}
             type="tel"
             inputMode="tel"
             required
             value={formData.customerPhone}
             onChange={(e) =>
               setFormData({ ...formData, customerPhone: formatPhoneNumber(e.target.value) })
+            }
+            onInput={(e) =>
+              setFormData((prev) => ({ ...prev, customerPhone: formatPhoneNumber(e.currentTarget.value) }))
             }
             placeholder="(416) 985-2277"
             className="h-12 text-base"
@@ -233,10 +265,15 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVid
         <Button
           type="submit"
           className="w-full h-12 text-base font-semibold"
-          disabled={isSubmitting || !isFormValid}
+          disabled={isSubmitting}
         >
           {isSubmitting ? "Scheduling..." : "Schedule Video Tour"}
         </Button>
+        {!isFormValid && (
+          <p className="text-xs text-center text-muted-foreground">
+            Fill required fields to schedule.
+          </p>
+        )}
 
         <p className="text-xs text-center text-muted-foreground">
           Free service.{" "}
