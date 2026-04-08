@@ -299,7 +299,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                 </Link>
                 <Link
                   href="/trade-in"
-                  className="inline-flex items-center gap-3 bg-[#1e3a8a] text-white hover:bg-[#1e3a8a]/90 text-lg font-semibold px-8 py-4 rounded-lg transition-colors"
+                  className="inline-flex items-center gap-3 bg-[#e8eef5] text-[#1e3a8a] hover:bg-[#dce3ed] text-lg font-semibold px-8 py-4 rounded-lg transition-colors"
                 >
                   <Handshake className="w-6 h-6 flex-shrink-0" />
                   <span>Sell or Trade Your Car</span>
