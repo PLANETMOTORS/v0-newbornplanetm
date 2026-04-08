@@ -323,7 +323,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
       </section>
 
       {/* Shop By Category - Carvana Style Large Boxes */}
-      <section className="py-16 bg-white border-b border-gray-200">
+      <section className="py-16 bg-white border-b border-[#dce3ed]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -340,7 +340,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
               <Link
                 key={cat.label}
                 href={cat.href}
-                className="group flex flex-col items-center justify-center p-5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-gray-200 hover:border-primary hover:from-blue-50 hover:to-blue-100 transition-colors duration-300 hover:shadow-md"
+                className="group flex flex-col items-center justify-center p-5 bg-gradient-to-br from-[#f0f4f8] to-[#e8eef5] rounded-xl border-2 border-[#dce3ed] hover:border-primary hover:from-blue-50 hover:to-blue-100 transition-colors duration-300 hover:shadow-md"
               >
                 {/* Medium Icon */}
                 <div className="mb-2 p-3 bg-white rounded-lg group-hover:bg-primary/10 transition-colors">
@@ -379,10 +379,10 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
               <div key={step.title} className="relative">
                 {/* Connector Line */}
                 {index < processSteps.length - 1 && (
-                  <div className="hidden lg:block absolute top-12 left-full w-full h-0.5 bg-gray-200 -translate-y-1/2 z-0" />
+                  <div className="hidden lg:block absolute top-12 left-full w-full h-0.5 bg-[#dce3ed] -translate-y-1/2 z-0" />
                 )}
                 
-                <div className="bg-white border border-gray-200 rounded-2xl p-6 relative z-10 h-full hover:shadow-lg transition-shadow">
+                <div className="bg-white border border-[#dce3ed] rounded-2xl p-6 relative z-10 h-full hover:shadow-lg transition-shadow">
                   {/* Step Number & Icon */}
                   <div className="flex items-center gap-3 mb-4">
                     <div className={`w-12 h-12 ${step.color} rounded-xl flex items-center justify-center shadow-lg`}>
@@ -423,7 +423,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50" asChild>
+            <Button size="lg" variant="outline" className="border-[#c5d0de] text-gray-700 hover:bg-[#f0f4f8]" asChild>
               <Link href="/how-it-works">
                 Learn More
               </Link>
@@ -442,7 +442,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
             </div>
             
             {/* Tabs */}
-            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+            <div className="flex items-center gap-1 bg-[#eef2f7] rounded-lg p-1">
               {[
                 { key: "all", label: "All" },
                 { key: "electric", label: "Electric" },
@@ -454,7 +454,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                   className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                     activeTab === tab.key
                       ? "bg-[#1e3a8a] text-white"
-                      : "text-gray-600 hover:bg-gray-200"
+                      : "text-gray-600 hover:bg-[#e4eaf2]"
                   }`}
                 >
                   {tab.label}
@@ -468,10 +468,10 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
             {filteredVehicles.map((vehicle) => (
               <div
                 key={vehicle.id}
-                className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow group"
+                className="bg-white rounded-xl border border-[#dce3ed] overflow-hidden hover:shadow-lg transition-shadow group"
               >
                 {/* Image */}
-                <div className="relative aspect-[4/3] bg-gray-100">
+                <div className="relative aspect-[4/3] bg-[#eef2f7]">
                   {/* Badge */}
                   <div className="absolute top-3 left-3">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -622,23 +622,23 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                 </Link>
               </Button>
             </div>
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200">
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-[#dce3ed]">
               <h3 className="text-xl font-semibold text-gray-900 mb-6">Quick Estimate</h3>
               <div className="space-y-4">
                 <input 
                   type="text" 
                   placeholder="Year, Make, Model" 
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20" 
+                  className="w-full px-4 py-3 bg-[#f0f4f8] border border-[#dce3ed] rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20" 
                 />
                 <input 
                   type="text" 
                   placeholder="Mileage (km)" 
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20" 
+                  className="w-full px-4 py-3 bg-[#f0f4f8] border border-[#dce3ed] rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20" 
                 />
                 <input 
                   type="email" 
                   placeholder="Your Email" 
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20" 
+                  className="w-full px-4 py-3 bg-[#f0f4f8] border border-[#dce3ed] rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20" 
                 />
                 <Button className="w-full bg-[#1e3a8a] hover:bg-[#172554]">
                   Get Instant Offer
@@ -666,7 +666,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
 
           <div className="grid md:grid-cols-3 gap-6">
             {displayReviews.map((review, index) => (
-              <div key={index} className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+              <div key={index} className="bg-[#f0f4f8] rounded-xl p-6 border border-[#dce3ed]">
                 <div className="flex items-center gap-1 mb-4">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star 
@@ -728,7 +728,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                   ))}
                 </ul>
                 <Button
-                  className={`w-full mt-8 ${plan.highlighted ? "bg-[#1e3a8a] text-white hover:bg-[#172554]" : "bg-white text-[#1A202C] hover:bg-gray-100"}`}
+                  className={`w-full mt-8 ${plan.highlighted ? "bg-[#1e3a8a] text-white hover:bg-[#172554]" : "bg-white text-[#1A202C] hover:bg-[#eef2f7]"}`}
                   asChild
                 >
                   <Link href={`/protection-plans#${plan.name.toLowerCase().replace(" ", "-")}`}>
@@ -753,7 +753,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                 Browse our inventory of certified pre-owned vehicles. Get pre-approved for financing in minutes with rates from {lowestRate}% APR.
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
-                <Button size="lg" className="bg-white text-[#2B6CB0] hover:bg-gray-100" asChild>
+                <Button size="lg" className="bg-white text-[#2B6CB0] hover:bg-[#eef2f7]" asChild>
                   <Link href="/inventory">
                     Browse Inventory
                     <ArrowRight className="ml-2 w-4 h-4" />
