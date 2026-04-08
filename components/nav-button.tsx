@@ -42,7 +42,11 @@ export function NavButton({
     <div className={cx("inline-flex items-center rounded-full bg-[#1E3799] p-2 shadow-lg transition-all duration-200 hover:bg-[#2541B2]", className)}>
       <button
         type="button"
-        onClick={onMenuClick}
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          onMenuClick()
+        }}
         aria-label="Open menu"
         className="inline-flex h-14 w-14 items-center justify-center rounded-full text-white transition-colors duration-200 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40"
       >
@@ -51,7 +55,11 @@ export function NavButton({
 
       <button
         type="button"
-        onClick={onSignInClick}
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          onSignInClick()
+        }}
         className="inline-flex items-center gap-4 rounded-full pl-1 pr-2 text-white focus:outline-none focus:ring-2 focus:ring-white/40"
       >
         <span

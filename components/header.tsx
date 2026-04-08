@@ -305,7 +305,10 @@ export function Header() {
             {/* NavButton with professional design */}
             <NavButton
               onSignInClick={() => setSignInPanelOpen(true)}
-              onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              onMenuClick={() => {
+                setMobileMenuOpen(!mobileMenuOpen)
+                setActiveSubmenu(null) // Close dropdown when opening mobile menu
+              }}
               isLoggedIn={false}
               userName=""
               className="hidden lg:flex"
