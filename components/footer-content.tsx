@@ -89,6 +89,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
               Canada&apos;s trusted destination for premium pre-owned vehicles with nationwide delivery. 210-point inspection, 10-day money-back guarantee, and competitive multi-lender financing.
             </p>
             
+            <h3 className="font-semibold mb-4">Contact Us</h3>
             <div className="space-y-3">
               <a 
                 href={`tel:${siteSettings.phone.replace(/[^0-9]/g, '')}`}
