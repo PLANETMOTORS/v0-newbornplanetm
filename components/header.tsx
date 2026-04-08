@@ -184,7 +184,7 @@ export function Header() {
       <div className="sticky top-0 z-[60]">
 
       {/* Top bar with contact info */}
-      <div className={`bg-primary text-primary-foreground text-sm transition-all duration-300 overflow-hidden ${scrolled ? "max-h-0 py-0" : "max-h-12 py-2"}`}>
+      <div className={`bg-primary text-primary-foreground text-sm overflow-hidden ${scrolled ? "hidden" : "py-2"}`}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-4 sm:gap-6">
             <a 
@@ -221,7 +221,7 @@ export function Header() {
       </div>
 
       {/* Main header */}
-      <header className={`bg-background/95 backdrop-blur-md border-b border-border transition-shadow duration-300 will-change-transform ${scrolled ? "shadow-sm" : ""}`} role="banner">
+      <header className={`bg-background/95 backdrop-blur-md border-b border-border ${scrolled ? "shadow-sm" : ""}`} role="banner">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-3 lg:px-8" aria-label="Main navigation">
           {/* Left side: Logo + Navigation (like Clutch) */}
           <div className="flex items-center gap-6">
@@ -233,21 +233,12 @@ export function Header() {
             </Link>
 
             {/* Desktop Navigation - Close to logo */}
-            <div className="hidden lg:block">
-              <DesktopNav 
-                navigation={navigation} 
-                activeSubmenu={activeSubmenu} 
-                setActiveSubmenu={setActiveSubmenu} 
-              />
-            </div>
+            <DesktopNav 
+              navigation={navigation} 
+              activeSubmenu={activeSubmenu} 
+              setActiveSubmenu={setActiveSubmenu} 
+            />
           </div>
-
-          {/* Desktop Navigation */}
-          <DesktopNav 
-            navigation={navigation} 
-            activeSubmenu={activeSubmenu} 
-            setActiveSubmenu={setActiveSubmenu} 
-          />
 
           {/* Social Media Icons */}
           <div className="hidden lg:flex items-center gap-2">
@@ -310,14 +301,19 @@ export function Header() {
 
           {/* CTA & Sign In */}
           <div className="flex items-center gap-2">
-            {/* Sign In Button - Always Visible */}
+            {/* Sign In Button with Hamburger Icon - Like Carvana */}
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSignInPanelOpen(true)}
-              className="font-medium"
+              className="hidden lg:flex items-center gap-2 font-medium px-3 py-2 rounded-full border border-gray-200 hover:shadow-md transition-shadow"
             >
-              Sign In
+              <Menu className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                <svg className="w-5 h-5 text-gray-600" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+              </div>
             </Button>
             
             {/* Mobile menu button */}
@@ -386,7 +382,7 @@ export function Header() {
       </header>
 
       {/* Trust Bar - Value Propositions (Light Gray - Professional) */}
-      <div className={`bg-gray-100 border-b border-gray-200 text-gray-700 text-sm transition-all duration-300 overflow-hidden ${scrolled ? "max-h-0 py-0" : "max-h-14 py-2.5"}`}>
+      <div className={`bg-gray-100 border-b border-gray-200 text-gray-700 text-sm overflow-hidden ${scrolled ? "hidden" : "py-2.5"}`}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center gap-3 sm:gap-6 md:gap-10 overflow-x-auto scrollbar-hide">
             <div className="flex items-center gap-2 whitespace-nowrap">

@@ -141,9 +141,15 @@
   }
   
   /* Prevent horizontal overflow from any element */
-  main, section, article, aside, header, footer, nav {
+  main, section, article, aside, footer {
     max-width: 100vw;
     overflow-x: hidden;
+  }
+  
+  /* Header and nav need overflow visible for dropdowns */
+  header, nav {
+    max-width: 100vw;
+    overflow: visible;
   }
   
   /* Touch target sizes for mobile - only for primary interactive elements */
