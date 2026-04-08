@@ -239,7 +239,7 @@ export function Header() {
                 setActiveSubmenu={setActiveSubmenu} 
               />
             </div>
-          </Link>
+          </div>
 
           {/* Desktop Navigation */}
           <DesktopNav 
