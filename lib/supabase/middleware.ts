@@ -3,6 +3,11 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 // Hardcoded correct Supabase URL - env var keeps getting wrong value
 const SUPABASE_URL = 'https://ldervbcvkoawwknsemuz.supabase.co'
+type CookieMutation = {
+  name: string
+  value: string
+  options?: Parameters<NextResponse["cookies"]["set"]>[2]
+}
 
 export async function updateSession(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -18,7 +23,7 @@ export async function updateSession(request: NextRequest) {
       getAll() {
         return request.cookies.getAll()
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet: CookieMutation[]) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
         supabaseResponse = NextResponse.next({ request })
         cookiesToSet.forEach(({ name, value, options }) =>

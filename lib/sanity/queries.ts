@@ -60,7 +60,7 @@ export const VEHICLES_BY_STOCK_NUMBERS_QUERY = `
 // ==========================================
 
 export const SITE_SETTINGS_QUERY = `
-  *[_type == "siteSettings"][0] {
+  *[_type == "siteSettings"] | order(_updatedAt desc)[0] {
     dealerName, phone, email, streetAddress, city, province, postalCode, latitude, longitude,
     omvicNumber, businessHours, facebookUrl, instagramUrl, twitterUrl, youtubeUrl,
     googleMapsEmbedUrl, announcementBar, mainNavigation, financingDefaults,
@@ -69,7 +69,7 @@ export const SITE_SETTINGS_QUERY = `
 `
 
 export const NAVIGATION_QUERY = `
-  *[_type == "navigation"][0] {
+  *[_type == "navigation"] | order(_updatedAt desc)[0] {
     topBar { showTopBar, phoneNumber, phoneDisplayText, address, addressLink, trustBadges },
     mainNavigation,
     headerCta { showCta, buttonLabel, buttonUrl, buttonStyle },
@@ -83,7 +83,7 @@ export const NAVIGATION_QUERY = `
 // ==========================================
 
 export const HOMEPAGE_QUERY = `
-  *[_type == "homepage"][0] {
+  *[_type == "homepage"] | order(_updatedAt desc)[0] {
     heroSection { headline, subheadline, primaryCta, secondaryCta, "backgroundImage": backgroundImage.asset->url, altText, trustBadges },
     featuredVehicleStockNumbers,
     promoBanner { showBanner, headline, bodyText, ctaLabel, ctaUrl, backgroundColor },
@@ -106,7 +106,7 @@ export const FINANCING_PAGE_QUERY = `
 `
 
 export const INVENTORY_SETTINGS_QUERY = `
-  *[_type == "inventorySettings"][0] {
+  *[_type == "inventorySettings"] | order(_updatedAt desc)[0] {
     title, showFiltersSidebar, itemsPerPage, defaultSortOrder,
     showComparisonTool, showQuickView, filterOptions, priceDisplay,
     taxRate, defaultDownPayment, averageTradeInValue, defaultTerm,
@@ -118,7 +118,7 @@ export const INVENTORY_SETTINGS_QUERY = `
 // Fetches vehicles with global settings for accurate payment calculations
 export const VEHICLES_WITH_PAYMENT_CALC_QUERY = `
 {
-  "settings": *[_type == "inventorySettings"][0] {
+  "settings": *[_type == "inventorySettings"] | order(_updatedAt desc)[0] {
     taxRate,
     defaultTerm,
     defaultDownPayment,
@@ -148,7 +148,7 @@ export const VEHICLES_WITH_PAYMENT_CALC_QUERY = `
 // Single vehicle with full payment calculation context
 export const VEHICLE_WITH_PAYMENT_CONTEXT_QUERY = `
 {
-  "settings": *[_type == "inventorySettings"][0] {
+  "settings": *[_type == "inventorySettings"] | order(_updatedAt desc)[0] {
     taxRate,
     defaultTerm,
     defaultDownPayment,
@@ -251,7 +251,7 @@ export const VEHICLES_BY_PAYMENT_QUERY = `
 // Pre-calculates payments using "Excellent" (lowest APR) tier for "Starting at" display
 export const VEHICLES_WITH_DYNAMIC_PAYMENTS_QUERY = `
 {
-  "finance": *[_type == "inventorySettings"][0] {
+  "finance": *[_type == "inventorySettings"] | order(_updatedAt desc)[0] {
     taxRate,
     defaultTerm,
     defaultDownPayment,
@@ -282,7 +282,7 @@ export const VEHICLES_WITH_DYNAMIC_PAYMENTS_QUERY = `
 // Vehicle detail with full finance context for PaymentCalculator component
 export const VEHICLE_DETAIL_WITH_FINANCE_QUERY = `
 {
-  "finance": *[_type == "inventorySettings"][0] {
+  "finance": *[_type == "inventorySettings"] | order(_updatedAt desc)[0] {
     taxRate,
     defaultTerm,
     defaultDownPayment,

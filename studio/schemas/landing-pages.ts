@@ -68,7 +68,7 @@ const benefitItem = {
 }
 
 // Process Step for arrays
-const processStep = {
+const processStep = defineArrayMember({
   name: 'processStep',
   title: 'Process Step',
   type: 'object',
@@ -106,13 +106,15 @@ const processStep = {
       title: 'title',
       stepNumber: 'stepNumber',
     },
-    prepare({ title, stepNumber }) {
+    prepare(value: Record<string, unknown>) {
+      const title = typeof value.title === "string" ? value.title : ""
+      const stepNumber = typeof value.stepNumber === "number" ? value.stepNumber : undefined
       return {
         title: `${stepNumber ? `Step ${stepNumber}: ` : ''}${title || 'Untitled'}`,
       }
     },
   },
-}
+})
 
 // Comparison Row for tables
 const comparisonRow = {

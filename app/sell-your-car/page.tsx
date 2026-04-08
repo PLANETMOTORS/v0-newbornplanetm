@@ -10,14 +10,120 @@ import { FAQSection } from '@/components/sell-your-car/faq-section'
 import { SellYourCarForm } from '@/components/sell-your-car/form'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
+import type { SellYourCarPage as SellYourCarPageType } from '@/lib/sanity/types'
 
 export const metadata: Metadata = {
   title: 'Sell Your Car | Planet Motors',
   description: 'Get the best price for your vehicle. No hassle, no hidden fees. Get an instant offer and same-day payment.',
 }
 
+type ComparisonRow = {
+  feature: string
+  us: string
+  others: string
+}
+
+type TestimonialCard = {
+  name: string
+  quote: string
+  location?: string
+  rating?: number
+  vehiclePurchased?: string
+}
+
+type SellYourCarPageCompat = SellYourCarPageType & {
+  heroHeadline?: string
+  heroSubheadline?: string
+  heroHighlightText?: string
+  heroImage?: string
+  benefitsTitle?: string
+  processTitle?: string
+  comparisonTitle?: string
+  testimonialsTitle?: string
+  faqTitle?: string
+  ctaHeadline?: string
+  ctaSubheadline?: string
+  ctaButton?: { text?: string; url?: string }
+  whySellToUs?: {
+    sectionTitle?: string
+    benefitItems?: SellYourCarPageType["benefits"]
+  }
+  howItWorks?: {
+    sectionTitle?: string
+    steps?: SellYourCarPageType["processSteps"]
+  }
+  comparisonRows?: unknown
+  testimonialsSection?: {
+    sectionTitle?: string
+    testimonials?: SellYourCarPageType["testimonials"]
+  }
+  faqs?: Array<{ question: string; answer: string }>
+}
+
+function normalizeComparisonRows(input: unknown): ComparisonRow[] {
+  if (!Array.isArray(input)) return []
+
+  return input
+    .map((row): ComparisonRow | null => {
+      if (!row) return null
+
+      if (Array.isArray(row)) {
+        const [feature = '', us = '', others = ''] = row
+        return { feature: String(feature), us: String(us), others: String(others) }
+      }
+
+      if (typeof row === 'object') {
+        const record = row as Record<string, unknown>
+
+        if (Array.isArray(record.columns)) {
+          const [feature = '', us = '', others = ''] = record.columns
+          return { feature: String(feature), us: String(us), others: String(others) }
+        }
+
+        const feature = record.feature
+        const us = record.us ?? record.planetMotors
+        const others = record.others ?? record.competitors
+
+        if (feature || us || others) {
+          return {
+            feature: String(feature ?? ''),
+            us: String(us ?? ''),
+            others: String(others ?? ''),
+          }
+        }
+      }
+
+      return null
+    })
+    .filter((row): row is ComparisonRow => Boolean(row))
+}
+
+function normalizeTestimonials(input: unknown): TestimonialCard[] {
+  if (!Array.isArray(input)) return []
+
+  return input
+    .map((item): TestimonialCard | null => {
+      if (!item || typeof item !== "object") return null
+
+      const record = item as Record<string, unknown>
+      const name = record.name ?? record.customerName
+      const quote = record.quote ?? record.review
+
+      if (!name || !quote) return null
+
+      return {
+        name: String(name),
+        quote: String(quote),
+        location: typeof record.location === "string" ? record.location : undefined,
+        rating: typeof record.rating === "number" ? record.rating : undefined,
+        vehiclePurchased: typeof record.vehiclePurchased === "string" ? record.vehiclePurchased : undefined,
+      }
+    })
+    .filter((item): item is TestimonialCard => Boolean(item))
+}
+
 export default async function SellYourCarPage() {
-  const pageData = await getSellYourCarPage()
+  const pageData = await getSellYourCarPage() as SellYourCarPageCompat | null
 
   // Default content if CMS data is not available
   const heroContent = {
@@ -40,14 +146,16 @@ export default async function SellYourCarPage() {
     { stepNumber: 3, title: 'Get Paid', description: 'Accept the offer and get paid same day' },
   ]
 
-  const comparisonRows = pageData?.comparisonRows || pageData?.comparisonTable?.rows || [
+  const normalizedComparisonRows = normalizeComparisonRows(pageData?.comparisonRows || pageData?.comparisonTable?.rows)
+  const comparisonRows = normalizedComparisonRows.length > 0 ? normalizedComparisonRows : [
     { feature: 'Instant Offer', us: 'Yes', others: 'Days/Weeks' },
     { feature: 'Hidden Fees', us: 'None', others: 'Many' },
     { feature: 'Payment Speed', us: 'Same Day', others: '1-2 Weeks' },
     { feature: 'Free Pickup', us: 'Yes', others: 'Rarely' },
   ]
 
-  const testimonials = pageData?.testimonials || pageData?.testimonialsSection?.testimonials || []
+  const testimonialsRaw = pageData?.testimonials || pageData?.testimonialsSection?.testimonials || []
+  const testimonials = normalizeTestimonials(testimonialsRaw)
 
   const faqs = pageData?.faqs || [
     { question: 'How long does the process take?', answer: 'Most sales are completed within 24 hours from initial quote to payment.' },
@@ -87,10 +195,10 @@ export default async function SellYourCarPage() {
 
         {/* Comparison Table */}
         <ComparisonTable
-          title={pageData?.comparisonTitle || pageData?.comparisonTable?.sectionTitle || 'Planet Motors vs. Other Options'}
+          title={pageData?.comparisonTitle || pageData?.comparisonTable?.headline || 'Planet Motors vs. Other Options'}
           rows={comparisonRows}
-          usLabel={pageData?.comparisonTable?.ourColumnTitle || 'Planet Motors'}
-          othersLabel={pageData?.comparisonTable?.othersColumnTitle || 'Private Sale / Other Dealers'}
+          usLabel={(pageData?.comparisonTable as { ourColumnTitle?: string; planetMotorsLabel?: string } | undefined)?.ourColumnTitle || (pageData?.comparisonTable as { ourColumnTitle?: string; planetMotorsLabel?: string } | undefined)?.planetMotorsLabel || 'Planet Motors'}
+          othersLabel={(pageData?.comparisonTable as { othersColumnTitle?: string; othersLabel?: string } | undefined)?.othersColumnTitle || (pageData?.comparisonTable as { othersColumnTitle?: string; othersLabel?: string } | undefined)?.othersLabel || 'Private Sale / Other Dealers'}
         />
 
         {/* Testimonials */}
@@ -111,8 +219,8 @@ export default async function SellYourCarPage() {
         <CTASection
           headline={pageData?.ctaHeadline || pageData?.ctaSection?.headline || 'Ready to Sell Your Car?'}
           subheadline={pageData?.ctaSubheadline || pageData?.ctaSection?.subheadline || 'Get your free, no-obligation quote in minutes'}
-          ctaText={pageData?.ctaButton?.text || pageData?.ctaSection?.ctaText || 'Get Your Offer'}
-          ctaLink={pageData?.ctaButton?.url || pageData?.ctaSection?.ctaLink || '#quote-form'}
+          ctaText={pageData?.ctaButton?.text || pageData?.ctaSection?.buttonLabel || 'Get Your Offer'}
+          ctaLink={pageData?.ctaButton?.url || pageData?.ctaSection?.buttonUrl || '#quote-form'}
         />
       </main>
       <Footer />

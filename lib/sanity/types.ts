@@ -19,6 +19,7 @@ export interface LeadRoutingRule {
 export interface SiteSettings {
   dealerName: string
   phone: string
+  phoneSecondary?: string
   email: string
   streetAddress: string
   city: string
@@ -26,6 +27,7 @@ export interface SiteSettings {
   postalCode: string
   latitude?: number
   longitude?: number
+  omvicNumber?: string
   omvicRegistration?: string
   businessHours?: BusinessHour[]
   facebookUrl?: string
@@ -51,6 +53,10 @@ export interface SiteSettings {
   aggregateRating?: {
     ratingValue: number
     reviewCount: number
+  }
+  ratingDisplay?: {
+    ratingValue?: string
+    reviewCount?: string
   }
   defaultSeo?: {
     metaTitle: string

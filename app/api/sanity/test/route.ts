@@ -39,7 +39,7 @@ export async function GET() {
     }
 
     // Test basic connection
-    const connectionTest = await sanityClient.fetch(groq`*[_type == "siteSettings"][0]{ dealerName }`)
+    const connectionTest = await sanityClient.fetch(groq`*[_type == "siteSettings"] | order(_updatedAt desc)[0]{ dealerName }`)
     
     // Count documents
     const counts = await sanityClient.fetch(groq`{
@@ -57,7 +57,7 @@ export async function GET() {
     }`)
     
     // Get site settings
-    const siteSettings = await sanityClient.fetch(groq`*[_type == "siteSettings"][0]{
+    const siteSettings = await sanityClient.fetch(groq`*[_type == "siteSettings"] | order(_updatedAt desc)[0]{
       dealerName,
       phone,
       email,

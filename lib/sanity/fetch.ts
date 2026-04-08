@@ -17,17 +17,17 @@ import type {
 } from "./types"
 
 // GROQ Queries - inline definitions
-const SITE_SETTINGS_QUERY = `*[_type == "siteSettings"][0] { dealerName, phone, email, streetAddress, city, province, postalCode, latitude, longitude, omvicNumber, businessHours, facebookUrl, instagramUrl, twitterUrl, youtubeUrl, googleMapsEmbedUrl, announcementBar, mainNavigation, financingDefaults, deliveryConfiguration, aggregateRating, defaultSeo, leadRoutingRules, depositAmount }`
+const SITE_SETTINGS_QUERY = `*[_type == "siteSettings"] | order(_updatedAt desc)[0] { dealerName, phone, email, streetAddress, city, province, postalCode, latitude, longitude, omvicNumber, businessHours, facebookUrl, instagramUrl, twitterUrl, youtubeUrl, googleMapsEmbedUrl, announcementBar, mainNavigation, financingDefaults, deliveryConfiguration, aggregateRating, defaultSeo, leadRoutingRules, depositAmount }`
 
-const NAVIGATION_QUERY = `*[_type == "navigation"][0] { topBar { showTopBar, phoneNumber, phoneDisplayText, address, addressLink, trustBadges }, mainNavigation, headerCta { showCta, buttonLabel, buttonUrl, buttonStyle }, footerLinkColumns, footerBottom { copyrightText, legalLinks } }`
+const NAVIGATION_QUERY = `*[_type == "navigation"] | order(_updatedAt desc)[0] { topBar { showTopBar, phoneNumber, phoneDisplayText, address, addressLink, trustBadges }, mainNavigation, headerCta { showCta, buttonLabel, buttonUrl, buttonStyle }, footerLinkColumns, footerBottom { copyrightText, legalLinks } }`
 
-const HOMEPAGE_QUERY = `*[_type == "homepage"][0] { heroSection { headline, subheadline, primaryCta, secondaryCta, "backgroundImage": backgroundImage.asset->url, altText, trustBadges }, featuredVehicleStockNumbers, promoBanner { showBanner, headline, bodyText, ctaLabel, ctaUrl, backgroundColor }, testimonials, faqHighlights }`
+const HOMEPAGE_QUERY = `*[_type == "homepage"] | order(_updatedAt desc)[0] { heroSection { headline, subheadline, primaryCta, secondaryCta, "backgroundImage": backgroundImage.asset->url, altText, trustBadges }, featuredVehicleStockNumbers, promoBanner { showBanner, headline, bodyText, ctaLabel, ctaUrl, backgroundColor }, testimonials, faqHighlights }`
 
 const SELL_YOUR_CAR_PAGE_QUERY = `*[_type == "sellYourCar"][0] { heroSection { headline, subheadline, highlightText, formSettings, trustBadges, "backgroundImage": backgroundImage.asset->url }, benefits, comparisonTable, processSteps, testimonials, ctaSection, seo }`
 
 const FINANCING_PAGE_QUERY = `*[_type == "financing"][0] { heroSection { headline, subheadline, featuredRateText, rateSubtext, primaryCta, secondaryCta, heroStats }, lenders, calculator, processSteps, benefits, faqs, seo }`
 
-const INVENTORY_SETTINGS_QUERY = `*[_type == "inventorySettings"][0] { displaySettings { pageTitle, pageSubtitle, defaultView, itemsPerPage, showFiltersSidebar }, filterConfiguration, sortingOptions, vehicleBadges, seo }`
+const INVENTORY_SETTINGS_QUERY = `*[_type == "inventorySettings"] | order(_updatedAt desc)[0] { displaySettings { pageTitle, pageSubtitle, defaultView, itemsPerPage, showFiltersSidebar }, filterConfiguration, sortingOptions, vehicleBadges, seo }`
 
 const VEHICLES_QUERY = `*[_type == "vehicle" && status == "available"] | order(_createdAt desc) { _id, year, make, model, trim, vin, stockNumber, price, msrp, specialPrice, status, condition, featured, mileage, exteriorColor, interiorColor, bodyStyle, fuelType, transmission, drivetrain, engine, horsepower, doors, seats, evRange, batteryCapacity, features, safetyFeatures, "mainImage": mainImage.asset->url, "images": images[].asset->url, description, highlights, carfaxUrl, previousOwners, accidentFree, serviceHistory, slug, seoTitle, seoDescription }`
 

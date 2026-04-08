@@ -553,7 +553,7 @@ export default function VehicleDetailPage() {
     )
   }
 
-  const currentImages = imageType === "exterior" ? vehicle.images : vehicleData.interiorImages
+  const currentImages: string[] = imageType === "exterior" ? vehicle.images : vehicleData.interiorImages
   const savings = (vehicleData.originalPrice || vehicle.price * 1.1) - vehicle.price
   
   // Finance calculation: Vehicle Price + $895 Admin Fee (Finance Docs Set-up)
@@ -704,7 +704,7 @@ export default function VehicleDetailPage() {
                       </DialogTrigger>
                       <DialogContent className="max-w-4xl">
                         <DialogHeader>
-                          <DialogTitle>Video Walkaround - {vehicleData.title}</DialogTitle>
+                          <DialogTitle>Video Walkaround - {vehicleData.year} {vehicleData.make} {vehicleData.model}</DialogTitle>
                         </DialogHeader>
                         <div className="aspect-video bg-black rounded-lg flex items-center justify-center">
                           <div className="text-center text-white">
@@ -734,7 +734,7 @@ export default function VehicleDetailPage() {
 
                   {/* Thumbnails */}
                   <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                    {currentImages.map((img, i) => (
+                    {currentImages.map((img: string, i: number) => (
                       <button
                         key={i}
                         onClick={() => setCurrentImageIndex(i)}

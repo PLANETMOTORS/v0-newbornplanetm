@@ -17,6 +17,46 @@ export const siteSettings = defineType({
     // Hidden compatibility fields
     defineField({ name: 'title', title: 'Title', type: 'string', hidden: true }),
     defineField({ name: 'showFiltersSidebar', title: 'Show Filters Sidebar', type: 'boolean', initialValue: true, hidden: true }),
+    defineField({ name: 'streetAddress', title: 'Street Address (Legacy)', type: 'string', hidden: true, group: 'contact' }),
+    defineField({ name: 'city', title: 'City (Legacy)', type: 'string', hidden: true, group: 'contact' }),
+    defineField({ name: 'province', title: 'Province (Legacy)', type: 'string', hidden: true, group: 'contact' }),
+    defineField({ name: 'postalCode', title: 'Postal Code (Legacy)', type: 'string', hidden: true, group: 'contact' }),
+    defineField({ name: 'phoneSecondary', title: 'Secondary Phone (Legacy)', type: 'string', hidden: true, group: 'contact' }),
+    defineField({ name: 'googleMapsEmbedUrl', title: 'Google Maps Embed URL (Legacy)', type: 'url', hidden: true, group: 'contact' }),
+    defineField({ name: 'lat', title: 'Latitude (Legacy)', type: 'number', hidden: true, group: 'contact' }),
+    defineField({ name: 'lng', title: 'Longitude (Legacy)', type: 'number', hidden: true, group: 'contact' }),
+    defineField({ name: 'omvicNumber', title: 'OMVIC Number (Legacy)', type: 'string', hidden: true, group: 'dealer' }),
+    defineField({ name: 'depositAmountCad', title: 'Deposit Amount CAD (Legacy)', type: 'number', hidden: true, group: 'delivery' }),
+    defineField({ name: 'navigationItems', title: 'Navigation Items (Legacy)', type: 'array', hidden: true, of: [{ type: 'object', fields: [
+      { name: 'label', title: 'Label', type: 'string' },
+      { name: 'href', title: 'Href', type: 'string' },
+      { name: 'external', title: 'External', type: 'boolean' },
+    ] }]}),
+    defineField({ name: 'ratingDisplay', title: 'Rating Display (Legacy)', type: 'object', hidden: true, fields: [
+      { name: 'ratingValue', title: 'Rating Value', type: 'string' },
+      { name: 'reviewCount', title: 'Review Count', type: 'string' },
+    ]}),
+    defineField({ name: 'mandatoryFees', title: 'Mandatory Fees (Legacy)', type: 'object', hidden: true, fields: [
+      { name: 'adminFee', title: 'Admin Fee', type: 'number' },
+      { name: 'certification', title: 'Certification', type: 'number' },
+      { name: 'financeDocFee', title: 'Finance Doc Fee', type: 'number' },
+      { name: 'licensing', title: 'Licensing', type: 'number' },
+      { name: 'omvic', title: 'OMVIC', type: 'number' },
+    ]}),
+    defineField({ name: 'negotiationRules', title: 'Negotiation Rules (Legacy)', type: 'object', hidden: true, fields: [
+      { name: 'lowPriceThreshold', title: 'Low Price Threshold', type: 'number' },
+      { name: 'lowPrice_0to31_discount', title: 'Low 0-31', type: 'number' },
+      { name: 'lowPrice_32to46_discount', title: 'Low 32-46', type: 'number' },
+      { name: 'lowPrice_47plus_discount', title: 'Low 47+', type: 'number' },
+      { name: 'highPrice_0to46_discount', title: 'High 0-46', type: 'number' },
+      { name: 'highPrice_47plus_discount', title: 'High 47+', type: 'number' },
+    ]}),
+    defineField({ name: 'deliveryConfig', title: 'Delivery Config (Legacy)', type: 'object', hidden: true, fields: [
+      { name: 'originPostalCode', title: 'Origin Postal Code', type: 'string' },
+      { name: 'originLabel', title: 'Origin Label', type: 'string' },
+      { name: 'maxDeliveryKm', title: 'Max Delivery (km)', type: 'number' },
+      { name: 'freeDeliveryKm', title: 'Free Delivery (km)', type: 'number' },
+    ]}),
     
     // Dealer Info
     defineField({ name: 'dealerName', title: 'Dealer Name', type: 'string', initialValue: 'Planet Motors', group: 'dealer' }),
@@ -29,19 +69,7 @@ export const siteSettings = defineType({
     defineField({ name: 'phone', title: 'Phone', type: 'string', group: 'contact' }),
     defineField({ name: 'tollFree', title: 'Toll Free', type: 'string', group: 'contact' }),
     defineField({ name: 'email', title: 'Email', type: 'string', group: 'contact' }),
-    defineField({
-      name: 'address',
-      title: 'Address',
-      type: 'object',
-      group: 'contact',
-      fields: [
-        { name: 'street', title: 'Street', type: 'string' },
-        { name: 'city', title: 'City', type: 'string' },
-        { name: 'province', title: 'Province', type: 'string' },
-        { name: 'postalCode', title: 'Postal Code', type: 'string' },
-        { name: 'country', title: 'Country', type: 'string', initialValue: 'Canada' },
-      ],
-    }),
+    defineField({ name: 'address', title: 'Address (Legacy)', type: 'string', group: 'contact' }),
     defineField({ name: 'googleMapsUrl', title: 'Google Maps URL', type: 'url', group: 'contact' }),
     defineField({ name: 'latitude', title: 'Latitude', type: 'number', group: 'contact' }),
     defineField({ name: 'longitude', title: 'Longitude', type: 'number', group: 'contact' }),
@@ -73,12 +101,16 @@ export const siteSettings = defineType({
     defineField({
       name: 'hours',
       title: 'Hours (Simple)',
-      type: 'object',
+      type: 'array',
       group: 'hours',
-      fields: [
-        { name: 'weekdays', title: 'Weekdays', type: 'string', initialValue: '9:00 AM - 8:00 PM' },
-        { name: 'saturday', title: 'Saturday', type: 'string', initialValue: '9:00 AM - 6:00 PM' },
-        { name: 'sunday', title: 'Sunday', type: 'string', initialValue: 'Closed' },
+      of: [
+        {
+          type: 'object',
+          fields: [
+            { name: 'day', title: 'Day', type: 'string' },
+            { name: 'hours', title: 'Hours', type: 'string' },
+          ],
+        },
       ],
     }),
     
@@ -101,6 +133,7 @@ export const siteSettings = defineType({
       group: 'financing',
       fields: [
         { name: 'annualInterestRate', title: 'Annual Interest Rate (%)', type: 'number', initialValue: 6.99 },
+        { name: 'annualRatePercent', title: 'Annual Rate Percent (Legacy)', type: 'number', hidden: true },
         { name: 'amortizationMonths', title: 'Amortization (months)', type: 'number', initialValue: 60 },
       ],
     }),
@@ -177,7 +210,9 @@ export const siteSettings = defineType({
       type: 'object',
       fields: [
         { name: 'showBar', title: 'Show Bar', type: 'boolean' },
+        { name: 'enabled', title: 'Enabled (Legacy)', type: 'boolean', hidden: true },
         { name: 'message', title: 'Message', type: 'string' },
+        { name: 'link', title: 'Link (Legacy)', type: 'string', hidden: true },
         { name: 'linkUrl', title: 'Link URL', type: 'string' },
       ],
     }),
@@ -188,6 +223,8 @@ export const siteSettings = defineType({
       title: 'Default SEO',
       type: 'object',
       fields: [
+        { name: 'title', title: 'Title (Legacy)', type: 'string', hidden: true },
+        { name: 'description', title: 'Description (Legacy)', type: 'text', hidden: true },
         { name: 'metaTitle', title: 'Meta Title', type: 'string' },
         { name: 'metaDescription', title: 'Meta Description', type: 'text' },
       ],
@@ -239,10 +276,15 @@ export const navigation = defineType({
       type: 'object',
       fields: [
         { name: 'showTopBar', title: 'Show Top Bar', type: 'boolean', initialValue: true },
+        { name: 'enabled', title: 'Enabled (Legacy)', type: 'boolean', hidden: true },
         { name: 'phoneNumber', title: 'Phone Number', type: 'string' },
+        { name: 'phone', title: 'Phone (Legacy)', type: 'string', hidden: true },
         { name: 'phoneDisplayText', title: 'Phone Display Text', type: 'string' },
+        { name: 'phoneDisplay', title: 'Phone Display (Legacy)', type: 'string', hidden: true },
         { name: 'address', title: 'Address', type: 'string' },
         { name: 'addressLink', title: 'Address Link (Google Maps)', type: 'url' },
+        { name: 'addressUrl', title: 'Address URL (Legacy)', type: 'url', hidden: true },
+        { name: 'trustBadges', title: 'Trust Badges (Legacy)', type: 'array', hidden: true, of: [{ type: 'trustBadge' }] },
       ],
     }),
     // Trust Badges in Header - references trustBadge type from pages.ts
@@ -264,6 +306,9 @@ export const navigation = defineType({
           fields: [
             { name: 'label', title: 'Label', type: 'string' },
             { name: 'url', title: 'URL', type: 'string' },
+            { name: 'href', title: 'Href (Legacy)', type: 'string', hidden: true },
+            { name: 'external', title: 'External (Legacy)', type: 'boolean', hidden: true },
+            { name: 'highlight', title: 'Highlight (Legacy)', type: 'boolean', hidden: true },
             {
               name: 'children',
               title: 'Dropdown Items',
@@ -296,6 +341,65 @@ export const navigation = defineType({
       ],
     }),
     // Footer Link Columns
+    defineField({
+      name: 'mainNav',
+      title: 'Main Nav (Legacy)',
+      type: 'array',
+      hidden: true,
+      of: [
+        {
+          type: 'object',
+          fields: [
+            { name: 'label', title: 'Label', type: 'string' },
+            { name: 'url', title: 'URL', type: 'string' },
+            { name: 'href', title: 'Href (Legacy)', type: 'string' },
+            { name: 'external', title: 'External (Legacy)', type: 'boolean' },
+            { name: 'highlight', title: 'Highlight (Legacy)', type: 'boolean' },
+          ],
+        },
+      ],
+    }),
+    defineField({
+      name: 'ctaButton',
+      title: 'CTA Button (Legacy)',
+      type: 'object',
+      hidden: true,
+      fields: [
+        { name: 'enabled', title: 'Enabled', type: 'boolean' },
+        { name: 'label', title: 'Label', type: 'string' },
+        { name: 'href', title: 'Href', type: 'string' },
+        { name: 'style', title: 'Style', type: 'string' },
+      ],
+    }),
+    defineField({
+      name: 'footerColumns',
+      title: 'Footer Columns (Legacy)',
+      type: 'array',
+      hidden: true,
+      of: [
+        {
+          type: 'object',
+          fields: [
+            { name: 'title', title: 'Title', type: 'string' },
+            {
+              name: 'links',
+              title: 'Links',
+              type: 'array',
+              of: [
+                {
+                  type: 'object',
+                  fields: [
+                    { name: 'label', title: 'Label', type: 'string' },
+                    { name: 'href', title: 'Href', type: 'string' },
+                    { name: 'external', title: 'External', type: 'boolean' },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    }),
     defineField({
       name: 'footerLinkColumns',
       title: 'Footer Link Columns',
@@ -340,6 +444,7 @@ export const navigation = defineType({
               fields: [
                 { name: 'label', title: 'Label', type: 'string' },
                 { name: 'url', title: 'URL', type: 'string' },
+                { name: 'href', title: 'Href (Legacy)', type: 'string', hidden: true },
               ],
             },
           ],

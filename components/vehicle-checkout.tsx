@@ -63,14 +63,18 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
   const totalDeposit = 250 + (selectedPlan ? 250 : 0)
   const totalFull = vehiclePrice + (selectedPlan ? PROTECTION_PLANS.find(p => p.id === selectedPlan)?.price || 0 : 0)
 
-  const fetchClientSecret = useCallback(() => {
-    return startVehicleCheckout({
+  const fetchClientSecret = useCallback(async () => {
+    const clientSecret = await startVehicleCheckout({
       vehicleId,
       vehicleName,
       vehiclePriceCents: Math.round(vehiclePrice * 100),
       protectionPlanId: selectedPlan || undefined,
       depositOnly,
     })
+    if (!clientSecret) {
+      throw new Error("Failed to create vehicle checkout session")
+    }
+    return clientSecret
   }, [vehicleId, vehicleName, vehiclePrice, selectedPlan, depositOnly])
 
   if (showCheckout) {
@@ -95,7 +99,7 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
         </div>
         <EmbeddedCheckoutProvider
           stripe={stripePromise}
-          options={{ clientSecret: fetchClientSecret }}
+          options={{ fetchClientSecret }}
         >
           <EmbeddedCheckout />
         </EmbeddedCheckoutProvider>
