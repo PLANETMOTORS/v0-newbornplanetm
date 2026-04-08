@@ -11,15 +11,15 @@ export async function GET(req: Request) {
 
     if (specificDate) {
       // Return slots for a specific date
-      const date = new Date(specificDate)
-      if (isNaN(date.getTime())) {
+      const isIsoDate = /^\d{4}-\d{2}-\d{2}$/.test(specificDate)
+      if (!isIsoDate) {
         return NextResponse.json(
           { ok: false, error: "Invalid date format" },
           { status: 400 }
         )
       }
 
-      const slots = getAvailableSlots(date)
+      const slots = getAvailableSlots(specificDate)
       return NextResponse.json({
         ok: true,
         date: specificDate,
