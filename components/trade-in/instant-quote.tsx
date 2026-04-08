@@ -177,6 +177,7 @@ interface FormData {
   name: string
   email: string
   phone: string
+  condition: string
 }
 
 export function InstantQuote() {
@@ -193,6 +194,7 @@ export function InstantQuote() {
     name: '',
     email: '',
     phone: '',
+    condition: 'good',
   })
   
   const [availableModels, setAvailableModels] = useState<string[]>([])

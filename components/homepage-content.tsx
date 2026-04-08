@@ -340,7 +340,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
               <Link
                 key={cat.label}
                 href={cat.href}
-                className="group flex flex-col items-center justify-center p-5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-gray-200 hover:border-primary hover:from-blue-50 hover:to-blue-100 transition-all duration-300 hover:shadow-md hover:scale-103"
+                className="group flex flex-col items-center justify-center p-5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-gray-200 hover:border-primary hover:from-blue-50 hover:to-blue-100 transition-colors duration-300 hover:shadow-md"
               >
                 {/* Medium Icon */}
                 <div className="mb-2 p-3 bg-white rounded-lg group-hover:bg-primary/10 transition-colors">

@@ -170,6 +170,11 @@ export default function SchedulePage() {
                 <div className="space-y-6">
                   <h2 className="text-xl font-semibold text-center mb-6">
                     Select Date & Time
+                    {appointmentType === "virtual" && (
+                      <span className="block text-sm font-normal text-muted-foreground mt-1">
+                        Virtual Tour via Google Meet
+                      </span>
+                    )}
                   </h2>
                   <div className="grid md:grid-cols-2 gap-8">
                     <div>
@@ -178,8 +183,12 @@ export default function SchedulePage() {
                         type="date" 
                         value={selectedDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
-                        min="2026-03-29"
+                        min={new Date().toISOString().split('T')[0]}
+                        className="cursor-pointer"
                       />
+                      {!selectedDate && (
+                        <p className="text-xs text-muted-foreground mt-2">Click to choose a date</p>
+                      )}
                     </div>
                     <div>
                       <Label className="mb-3 block">Select Time</Label>
@@ -190,8 +199,12 @@ export default function SchedulePage() {
                             type="button"
                             variant={selectedTime === time ? "default" : "outline"}
                             size="sm"
-                            className="min-h-[44px]"
-                            onClick={() => setSelectedTime(time)}
+                            className="min-h-[44px] cursor-pointer"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              setSelectedTime(time)
+                            }}
                           >
                             {time}
                           </Button>
@@ -199,11 +212,15 @@ export default function SchedulePage() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex justify-between">
-                    <Button type="button" variant="outline" onClick={() => setStep(1)}>
+                  <div className="flex justify-between pt-4">
+                    <Button type="button" variant="outline" onClick={(e) => { e.preventDefault(); setStep(1); }}>
                       Back
                     </Button>
-                    <Button type="button" onClick={() => setStep(3)}>
+                    <Button 
+                      type="button" 
+                      onClick={(e) => { e.preventDefault(); setStep(3); }}
+                      disabled={!selectedDate || !selectedTime}
+                    >
                       Continue
                     </Button>
                   </div>
