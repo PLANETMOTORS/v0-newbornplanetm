@@ -8,6 +8,7 @@ import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import { GoogleReviewsBadge } from "@/components/google-reviews-badge"
 import { SignInPanel } from "@/components/sign-in-panel"
 import NavButton from "@/components/nav-button"
+import { useAuth } from "@/contexts/auth-context"
 
 // Navigation item type
 type NavItem = {
@@ -151,10 +152,15 @@ const navigation = [
 ]
 
 export function Header() {
+  const { user } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
   const [scrolled, setScrolled] = useState(false)
   const [signInPanelOpen, setSignInPanelOpen] = useState(false)
+  
+  // Get user name and initials from auth
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || ""
+  const userInitials = userName ? userName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : ""
 
   useEffect(() => {
     let ticking = false
@@ -309,8 +315,10 @@ export function Header() {
                 setMobileMenuOpen(!mobileMenuOpen)
                 setActiveSubmenu(null)
               }}
-              isLoggedIn={false}
-              userName=""
+              isLoggedIn={!!user}
+              userName={userName}
+              userInitials={userInitials}
+              isOnline={!!user}
             />
             
             {/* Mobile menu button */}
