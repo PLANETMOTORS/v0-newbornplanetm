@@ -150,6 +150,7 @@ const navigation = [
 ]
 
 export function Header() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
   const [scrolled, setScrolled] = useState(false)
   const [signInPanelOpen, setSignInPanelOpen] = useState(false)
