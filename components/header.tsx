@@ -307,11 +307,10 @@ export function Header() {
               onSignInClick={() => setSignInPanelOpen(true)}
               onMenuClick={() => {
                 setMobileMenuOpen(!mobileMenuOpen)
-                setActiveSubmenu(null) // Close dropdown when opening mobile menu
+                setActiveSubmenu(null)
               }}
               isLoggedIn={false}
               userName=""
-              className="hidden lg:flex"
             />
             
             {/* Mobile menu button */}

@@ -1,10 +1,6 @@
 import React from "react";
 import { Menu, UserRound } from "lucide-react";
 
-function cx(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(" ");
-}
-
 function getInitials(name = "") {
   return name
     .trim()
@@ -22,7 +18,6 @@ interface NavButtonProps {
   userName?: string;
   userInitials?: string;
   isOnline?: boolean;
-  className?: string;
 }
 
 export function NavButton({
@@ -32,56 +27,42 @@ export function NavButton({
   userName = "",
   userInitials = "",
   isOnline = false,
-  className = "",
 }: NavButtonProps) {
   const safeName = userName.trim() || "Client";
   const safeInitials = (userInitials.trim() || getInitials(safeName) || "CL").slice(0, 2);
   const label = isLoggedIn ? safeName : "Sign In";
 
   return (
-    <div className={cx("inline-flex items-center rounded-full bg-[#1E3799] p-1.5 shadow-lg transition-all duration-200 hover:bg-[#2541B2]", className)}>
+    <div className="inline-flex h-[56px] items-center rounded-full bg-[#1E3799] pr-[6px] shadow-sm transition-colors duration-200 hover:bg-[#2541B2]">
       <button
         type="button"
-        onClick={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          onMenuClick()
-        }}
+        onClick={onMenuClick}
         aria-label="Open menu"
-        className="inline-flex h-11 w-11 items-center justify-center rounded-full text-white transition-colors duration-200 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40"
+        className="inline-flex h-[56px] w-[56px] items-center justify-center rounded-full text-white focus:outline-none"
       >
-        <Menu className="h-6 w-6" strokeWidth={2.4} />
+        <Menu className="h-[22px] w-[22px]" strokeWidth={2.5} />
       </button>
 
       <button
         type="button"
-        onClick={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          onSignInClick()
-        }}
-        className="inline-flex items-center gap-2 rounded-full pl-1 pr-1.5 text-white focus:outline-none focus:ring-2 focus:ring-white/40"
+        onClick={onSignInClick}
+        className="inline-flex h-[56px] items-center gap-[10px] rounded-full pr-[2px] text-white focus:outline-none"
       >
-        <span
-          className={cx(
-            "text-left font-semibold tracking-[-0.02em] text-white",
-            isLoggedIn ? "text-sm sm:text-base" : "text-base sm:text-lg"
-          )}
-        >
+        <span className="min-w-[92px] text-left text-[16px] font-semibold leading-none tracking-[-0.02em] text-white">
           {label}
         </span>
 
-        <span className="relative inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#FB923C] text-white shadow-md ring-1 ring-white/10">
+        <span className="relative inline-flex h-[40px] w-[40px] items-center justify-center rounded-full bg-[#FB923C] text-white">
           {isLoggedIn ? (
-            <span className="text-xs font-semibold tracking-wide text-white">
+            <span className="text-[13px] font-semibold tracking-wide text-white">
               {safeInitials}
             </span>
           ) : (
-            <UserRound className="h-5 w-5 text-white" strokeWidth={2.5} />
+            <UserRound className="h-[17px] w-[17px] text-white" strokeWidth={2.4} />
           )}
 
           {isLoggedIn && isOnline && (
-            <span className="absolute bottom-0.5 right-0.5 h-3.5 w-3.5 rounded-full border-2 border-[#1E3799] bg-emerald-400" />
+            <span className="absolute bottom-0 right-0 h-[10px] w-[10px] rounded-full border-2 border-[#1E3799] bg-emerald-400" />
           )}
         </span>
       </button>
