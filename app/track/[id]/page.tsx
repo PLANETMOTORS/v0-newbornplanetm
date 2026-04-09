@@ -160,7 +160,7 @@ export default function DeliveryTrackingPage({ params }: { params: Promise<{ id:
               <CardContent className="p-0">
                 <div className="relative aspect-[16/9] bg-muted rounded-lg overflow-hidden">
                   <iframe
-                    src={`https://www.google.com/maps/embed/v1/directions?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || 'AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8'}&origin=${delivery.currentLocation.lat},${delivery.currentLocation.lng}&destination=${delivery.destination.lat},${delivery.destination.lng}&mode=driving`}
+                    src={`https://www.google.com/maps/embed/v1/directions?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || ''}&origin=${delivery.currentLocation.lat},${delivery.currentLocation.lng}&destination=${delivery.destination.lat},${delivery.destination.lng}&mode=driving`}
                     width="100%"
                     height="100%"
                     style={{ border: 0 }}
