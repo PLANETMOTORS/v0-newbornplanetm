@@ -133,27 +133,27 @@ const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
       model: String(vehicle.model || ""),
       priceCents,
       monthlyPayment,
-      mileageLabel: isEV
-        ? `${Math.max(0, Math.round(Number(vehicle.mileage || 0) / 2))} km range`
-        : `${Math.max(0, Math.round(Number(vehicle.mileage || 0))).toLocaleString()} km`,
+      mileageLabel: `${Math.max(0, Math.round(Number(vehicle.mileage || 0))).toLocaleString()} km`,
       badge: vehicle.featured ? "Popular" : (isEV ? "Electric" : "Certified"),
       isEV,
       isAvilooCertified: isEV && Number(vehicle.inspection_score || 0) >= 200,
     }
   })
 
-  return mapped.length > 0 ? mapped.slice(0, 6) : fallbackVehicles
+  return mapped.slice(0, 6)
 }
 
 export function HomepageFeaturedVehicles() {
   const [activeTab, setActiveTab] = useState<FeaturedTab>("all")
-  const { data } = useSWR("homepage-featured-vehicles", featuredFetcher, {
+  const { data, error } = useSWR("homepage-featured-vehicles", featuredFetcher, {
     refreshInterval: 120000,
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
   })
 
-  const vehicles = data && data.length > 0 ? data : fallbackVehicles
+  // Only use fallback vehicles when the fetch actually fails.
+  // On initial load (data === undefined, no error) or empty results, skip fallback.
+  const vehicles = error ? fallbackVehicles : (data ?? [])
 
   const filteredVehicles = useMemo(() => {
     return vehicles.filter((vehicle) => {

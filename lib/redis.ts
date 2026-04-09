@@ -150,12 +150,22 @@ export async function unlockVehicle(stockNumber: string, userId: string): Promis
   
   try {
     const key = `vehicle_lock:${stockNumber}`
-    const currentHolder = await redis.get<string>(key)
-    if (currentHolder === userId) {
-      await redis.del(key)
-      return true
-    }
-    return false
+
+    // Atomic compare-and-delete: only delete the key if the stored value matches userId.
+    // Prevents a key-expiry race where GET succeeds but the lock has since been acquired
+    // by another user before DEL executes.
+    const compareAndDeleteScript = `
+      if redis.call('GET', KEYS[1]) == ARGV[1] then
+        return redis.call('DEL', KEYS[1])
+      end
+      return 0
+    `
+
+    const deleted = await (redis as unknown as {
+      eval: (script: string, keys: string[], args: string[]) => Promise<number>
+    }).eval(compareAndDeleteScript, [key], [userId])
+
+    return deleted === 1
   } catch {
     return true
   }

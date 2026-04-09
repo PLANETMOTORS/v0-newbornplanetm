@@ -145,7 +145,9 @@ export async function POST(request: NextRequest) {
       .limit(1)
       .maybeSingle()
 
-    if (!activeReservation || activeReservation.user_id !== user.id) {
+    // Allow if the caller owns the reservation OR it was a guest reservation (user_id is null).
+    // Guest reservations have no associated auth user; the first authenticated user to order may claim it.
+    if (!activeReservation || (activeReservation.user_id !== null && activeReservation.user_id !== user.id)) {
       return NextResponse.json(
         { success: false, error: { code: 'VEHICLE_UNAVAILABLE', message: 'Vehicle is reserved by another customer' } },
         { status: 409 }
@@ -173,6 +175,21 @@ export async function POST(request: NextRequest) {
   }
 
   const vehiclePriceCents = validateCentsAmount(vehicle.price)
+
+  if (vehiclePriceCents <= 0) {
+    // Rollback the provisional vehicle status lock.
+    await adminClient
+      .from('vehicles')
+      .update({ status: currentVehicleStatus, updated_at: new Date().toISOString() })
+      .eq('id', vehicleId)
+      .eq('status', 'pending')
+
+    return NextResponse.json(
+      { success: false, error: { code: 'INVALID_VEHICLE', message: 'Vehicle does not have a valid price' } },
+      { status: 400 }
+    )
+  }
+
   const documentationFeeCents = 49900
   const omvicFeeCents = 1000
   const deliveryFeeCents = normalizedDeliveryType === 'delivery' ? 0 : 0
