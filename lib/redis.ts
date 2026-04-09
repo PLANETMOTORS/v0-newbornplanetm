@@ -181,3 +181,88 @@ export async function getVehicleLock(stockNumber: string): Promise<string | null
     return null
   }
 }
+
+// Inventory list caching — keyed by sorted query params string
+export async function cacheInventory(
+  cacheKey: string,
+  data: unknown,
+  ttlSeconds: number = 300
+): Promise<void> {
+  const redis = await getRedis()
+  if (!redis) return
+
+  try {
+    await redis.set(`inventory:${cacheKey}`, JSON.stringify(data), { ex: ttlSeconds })
+  } catch {
+    // Silently fail
+  }
+}
+
+export async function getCachedInventory(cacheKey: string): Promise<unknown | null> {
+  const redis = await getRedis()
+  if (!redis) return null
+
+  try {
+    const data = await redis.get<string>(`inventory:${cacheKey}`)
+    return data ? JSON.parse(data) : null
+  } catch {
+    return null
+  }
+}
+
+// Vehicle filter/facet aggregation caching (expensive to compute, changes infrequently)
+export async function cacheVehicleFilters(
+  status: string,
+  data: unknown,
+  ttlSeconds: number = 600
+): Promise<void> {
+  const redis = await getRedis()
+  if (!redis) return
+
+  try {
+    await redis.set(`vehicle_filters:${status}`, JSON.stringify(data), { ex: ttlSeconds })
+  } catch {
+    // Silently fail
+  }
+}
+
+export async function getCachedVehicleFilters(status: string): Promise<unknown | null> {
+  const redis = await getRedis()
+  if (!redis) return null
+
+  try {
+    const data = await redis.get<string>(`vehicle_filters:${status}`)
+    return data ? JSON.parse(data) : null
+  } catch {
+    return null
+  }
+}
+
+// Raw aggregation row caching for the POST /search endpoint.
+// Uses a dedicated key so it never pollutes the GET filter-facet cache.
+export async function cacheVehicleAggs(
+  status: string,
+  data: unknown,
+  ttlSeconds: number = 600
+): Promise<void> {
+  const redis = await getRedis()
+  if (!redis) return
+
+  try {
+    await redis.set(`vehicle_aggs:${status}`, JSON.stringify(data), { ex: ttlSeconds })
+  } catch {
+    // Silently fail
+  }
+}
+
+export async function getCachedVehicleAggs(status: string): Promise<unknown | null> {
+  const redis = await getRedis()
+  if (!redis) return null
+
+  try {
+    const data = await redis.get<string>(`vehicle_aggs:${status}`)
+    return data ? JSON.parse(data) : null
+  } catch {
+    return null
+  }
+}
