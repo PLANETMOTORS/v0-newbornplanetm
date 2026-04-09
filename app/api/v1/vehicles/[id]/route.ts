@@ -108,13 +108,29 @@ export async function GET(
   }
 }
 
-// PATCH /api/v1/vehicles/:id/status - Update vehicle status (internal)
+// Admin emails authorised to mutate vehicle status directly via this endpoint.
+// In production this list should be stored in the database (user roles table).
+const ADMIN_EMAILS = new Set(["admin@planetmotors.ca", "toni@planetmotors.ca"])
+
+// PATCH /api/v1/vehicles/:id/status - Update vehicle status (admin only)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
+
+    const supabase = await createClient()
+
+    // Require an authenticated admin user before accepting any mutations.
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user || !ADMIN_EMAILS.has(user.email ?? "")) {
+      return NextResponse.json(
+        { success: false, error: { code: "UNAUTHORIZED", message: "Admin authentication required" } },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
     const status = String(body?.status || "")
 
@@ -124,8 +140,6 @@ export async function PATCH(
         { status: 400 }
       )
     }
-
-    const supabase = await createClient()
     const { data, error } = await supabase
       .from("vehicles")
       .update({ status, updated_at: new Date().toISOString() })

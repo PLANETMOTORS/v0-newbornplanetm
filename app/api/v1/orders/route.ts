@@ -7,6 +7,23 @@ const PROTECTION_PLAN_PRICES_CENTS: Record<string, number> = {
   lifeproof: 485000,
 }
 
+// Canadian tax rates by province — kept in sync with financing calculator.
+const PROVINCE_TAX_RATES: Record<string, { gst: number; pst: number; hst: number; total: number }> = {
+  ON: { gst: 0,    pst: 0,       hst: 0.13, total: 0.13    },
+  BC: { gst: 0.05, pst: 0.07,    hst: 0,    total: 0.12    },
+  AB: { gst: 0.05, pst: 0,       hst: 0,    total: 0.05    },
+  QC: { gst: 0.05, pst: 0.09975, hst: 0,    total: 0.14975 },
+  NS: { gst: 0,    pst: 0,       hst: 0.15, total: 0.15    },
+  NB: { gst: 0,    pst: 0,       hst: 0.15, total: 0.15    },
+  PE: { gst: 0,    pst: 0,       hst: 0.15, total: 0.15    },
+  MB: { gst: 0.05, pst: 0.07,    hst: 0,    total: 0.12    },
+  SK: { gst: 0.05, pst: 0.06,    hst: 0,    total: 0.11    },
+  NL: { gst: 0,    pst: 0,       hst: 0.15, total: 0.15    },
+  NT: { gst: 0.05, pst: 0,       hst: 0,    total: 0.05    },
+  YT: { gst: 0.05, pst: 0,       hst: 0,    total: 0.05    },
+  NU: { gst: 0.05, pst: 0,       hst: 0,    total: 0.05    },
+}
+
 function toCents(value: unknown): number {
   const numericValue = typeof value === 'string' ? Number.parseFloat(value) : Number(value)
   if (!Number.isFinite(numericValue) || numericValue < 0) {
@@ -48,7 +65,22 @@ export async function POST(request: NextRequest) {
     preferredTimeSlot,
     protectionPlanId,
     downPayment,
+    province,
   } = body
+
+  // Validate province and resolve tax rate.
+  // Resolve province to a known 2-letter Canadian province code.
+  // Callers should always supply a valid province; defaulting to ON is a
+  // backward-compat fallback only — a warning is emitted so it can be fixed.
+  const upperProvince = typeof province === 'string' ? province.toUpperCase() : ''
+  const isValidProvince = upperProvince in PROVINCE_TAX_RATES
+  if (!isValidProvince) {
+    console.warn(
+      `[orders] Invalid or missing province "${province}" for order by user ${user.id}. Defaulting to ON.`
+    )
+  }
+  const resolvedProvince = isValidProvince ? upperProvince : 'ON'
+  const taxInfo = PROVINCE_TAX_RATES[resolvedProvince]
 
   if (!vehicleId || !paymentMethod) {
     return NextResponse.json(
@@ -118,10 +150,11 @@ export async function POST(request: NextRequest) {
   const omvicFeeCents = 1000
   const deliveryFeeCents = normalizedDeliveryType === 'delivery' ? 0 : 0
   const protectionPlanFeeCents = protectionPlanId ? (PROTECTION_PLAN_PRICES_CENTS[String(protectionPlanId)] || 0) : 0
-  const taxRatePercent = 13
+  // Tax rate is province-specific. taxInfo.total is already a decimal (e.g. 0.13 for ON).
+  const taxRatePercent = Math.round(taxInfo.total * 10000) / 100  // e.g. 13.00 or 14.975
 
   const subtotalCents = vehiclePriceCents + documentationFeeCents + omvicFeeCents + deliveryFeeCents + protectionPlanFeeCents
-  const taxAmountCents = Math.round(subtotalCents * (taxRatePercent / 100))
+  const taxAmountCents = Math.round(subtotalCents * taxInfo.total)
   const totalBeforeCreditsCents = subtotalCents + taxAmountCents
 
   const tradeInCreditCents = 0
@@ -232,7 +265,13 @@ export async function POST(request: NextRequest) {
           deliveryFee: fromCents(deliveryFeeCents),
           protectionPlanPrice: fromCents(protectionPlanFeeCents),
           subtotal: fromCents(subtotalCents),
+          province: resolvedProvince,
           taxRate: taxRatePercent / 100,
+          taxBreakdown: {
+            gst: taxInfo.gst,
+            pst: taxInfo.pst,
+            hst: taxInfo.hst,
+          },
           taxAmount: fromCents(taxAmountCents),
           totalBeforeCredits: fromCents(totalBeforeCreditsCents),
           tradeInCredit: fromCents(tradeInCreditCents),

@@ -7,35 +7,54 @@ import { createClient } from '@/lib/supabase/server'
 // Stripe requires raw body for signature verification — Next.js must NOT parse it.
 export const dynamic = 'force-dynamic'
 
-async function markEventProcessed(
+/**
+ * Atomically claim a Stripe event for processing.
+ *
+ * Uses INSERT … ON CONFLICT DO NOTHING (ignoreDuplicates: true) so that
+ * only the first concurrent worker wins the row. The second concurrent
+ * worker gets back an empty array and should skip processing.
+ *
+ * Returns true when this worker successfully claimed the event (i.e. the
+ * INSERT happened), false when the event was already claimed by another
+ * worker or was previously processed/failed.
+ */
+async function claimEvent(
   supabase: Awaited<ReturnType<typeof createClient>>,
   eventId: string,
-  eventType: string,
-  status: 'processed' | 'failed',
-  errorMessage?: string
-) {
-  await supabase.from('stripe_webhook_events').upsert(
-    {
-      stripe_event_id: eventId,
-      event_type: eventType,
-      status,
-      error_message: errorMessage || null,
-      processed_at: new Date().toISOString(),
-    },
-    { onConflict: 'stripe_event_id', ignoreDuplicates: false }
-  )
-}
-
-async function isAlreadyProcessed(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  eventId: string
+  eventType: string
 ): Promise<boolean> {
   const { data } = await supabase
     .from('stripe_webhook_events')
-    .select('status')
+    .upsert(
+      {
+        stripe_event_id: eventId,
+        event_type: eventType,
+        status: 'processed',
+        processed_at: new Date().toISOString(),
+      },
+      { onConflict: 'stripe_event_id', ignoreDuplicates: true }
+    )
+    .select('stripe_event_id')
+
+  // ignoreDuplicates: true means PostgREST returns the inserted row only when
+  // the INSERT actually wrote a new row.  An empty array means the row already
+  // existed (duplicate) and this worker should not process the event.
+  return Array.isArray(data) && data.length > 0
+}
+
+async function markEventFailed(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  eventId: string,
+  errorMessage: string
+) {
+  await supabase
+    .from('stripe_webhook_events')
+    .update({
+      status: 'failed',
+      error_message: errorMessage,
+      processed_at: new Date().toISOString(),
+    })
     .eq('stripe_event_id', eventId)
-    .maybeSingle()
-  return data?.status === 'processed'
 }
 
 async function handleCheckoutSessionCompleted(
@@ -168,7 +187,9 @@ async function handlePaymentIntentSucceeded(
 }
 
 export async function POST(request: NextRequest) {
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || process.env.STRIPE_MCP_KEY
+  // Only accept Stripe endpoint signing secrets (whsec_...).
+  // Never fall back to other key types such as STRIPE_MCP_KEY.
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 
   if (!webhookSecret) {
     console.error('[webhook] Stripe webhook secret is not set')
@@ -204,8 +225,11 @@ export async function POST(request: NextRequest) {
 
   const supabase = await createClient()
 
-  // Idempotency: skip replayed events.
-  if (await isAlreadyProcessed(supabase, event.id)) {
+  // Atomic idempotency claim: only one concurrent worker can INSERT the row.
+  // claimEvent uses ignoreDuplicates:true so the second worker gets back 0 rows
+  // and skips processing, preventing double-execution on Stripe re-deliveries.
+  const claimed = await claimEvent(supabase, event.id, event.type)
+  if (!claimed) {
     return NextResponse.json({ received: true, skipped: 'already_processed' })
   }
 
@@ -228,12 +252,13 @@ export async function POST(request: NextRequest) {
         console.log(`[webhook] Unhandled event type: ${event.type}`)
     }
 
-    await markEventProcessed(supabase, event.id, event.type, 'processed')
+    // Row was already written as 'processed' by claimEvent; nothing more to do.
     return NextResponse.json({ received: true })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown handler error'
     console.error(`[webhook] Handler error for ${event.type} (${event.id}): ${message}`)
-    await markEventProcessed(supabase, event.id, event.type, 'failed', message)
+    // Mark the event as failed so Stripe retries it and the operator can investigate.
+    await markEventFailed(supabase, event.id, message)
     // Return 500 so Stripe retries the event.
     return NextResponse.json({ error: 'Handler error' }, { status: 500 })
   }
