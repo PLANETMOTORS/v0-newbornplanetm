@@ -625,7 +625,7 @@ if (errors.length > 0) {
     setIsSubmitting(true)
     setSubmitError(null)
     try {
-      const response = await fetch("/api/v1/financing/applications", {
+      const response = await fetch("/api/v1/financing/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
