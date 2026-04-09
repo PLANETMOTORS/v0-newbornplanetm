@@ -168,11 +168,19 @@ async function handlePaymentIntentSucceeded(
 }
 
 export async function POST(request: NextRequest) {
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || process.env.STRIPE_MCP_KEY
 
   if (!webhookSecret) {
-    console.error('[webhook] STRIPE_WEBHOOK_SECRET is not set')
+    console.error('[webhook] Stripe webhook secret is not set')
     return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
+  }
+
+  if (!webhookSecret.startsWith('whsec_')) {
+    console.error('[webhook] Configured webhook secret is not a Stripe endpoint signing secret')
+    return NextResponse.json(
+      { error: 'Webhook secret must be a Stripe endpoint signing secret (whsec_...)' },
+      { status: 500 }
+    )
   }
 
   const headersList = await headers()
