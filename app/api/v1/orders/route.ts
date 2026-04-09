@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
 const PROTECTION_PLAN_PRICES_CENTS: Record<string, number> = {
@@ -7,12 +8,20 @@ const PROTECTION_PLAN_PRICES_CENTS: Record<string, number> = {
   lifeproof: 485000,
 }
 
-function toCents(value: unknown): number {
+function parseDollarsToCents(value: unknown): number {
   const numericValue = typeof value === 'string' ? Number.parseFloat(value) : Number(value)
   if (!Number.isFinite(numericValue) || numericValue < 0) {
     return 0
   }
-  return numericValue >= 1_000_000 ? Math.round(numericValue) : Math.round(numericValue * 100)
+  return Math.round(numericValue * 100)
+}
+
+function validateCentsAmount(value: unknown): number {
+  const numericValue = typeof value === 'string' ? Number.parseFloat(value) : Number(value)
+  if (!Number.isFinite(numericValue) || numericValue < 0) {
+    return 0
+  }
+  return Math.round(numericValue)
 }
 
 function fromCents(value: number | null | undefined): number {
@@ -28,6 +37,16 @@ function generateOrderNumber() {
 // POST /api/v1/orders - Create order
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
+  let adminClient: ReturnType<typeof createAdminClient>
+  try {
+    adminClient = createAdminClient()
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Admin client is not configured'
+    return NextResponse.json(
+      { success: false, error: { code: 'CONFIG_ERROR', message } },
+      { status: 500 }
+    )
+  }
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
     return NextResponse.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } }, { status: 401 })
@@ -106,6 +125,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: { code: 'NOT_FOUND', message: 'Vehicle not found' } }, { status: 404 })
   }
 
+  const currentVehicleStatus = String(vehicle.status || '')
+
   if (!['available', 'reserved'].includes(String(vehicle.status || ''))) {
     return NextResponse.json(
       { success: false, error: { code: 'VEHICLE_UNAVAILABLE', message: 'Vehicle is not available for ordering' } },
@@ -113,7 +134,45 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const vehiclePriceCents = toCents(vehicle.price)
+  if (currentVehicleStatus === 'reserved') {
+    const { data: activeReservation } = await supabase
+      .from('reservations')
+      .select('id, user_id, status, expires_at')
+      .eq('vehicle_id', vehicleId)
+      .in('status', ['pending', 'confirmed'])
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (!activeReservation || activeReservation.user_id !== user.id) {
+      return NextResponse.json(
+        { success: false, error: { code: 'VEHICLE_UNAVAILABLE', message: 'Vehicle is reserved by another customer' } },
+        { status: 409 }
+      )
+    }
+  }
+
+  const { data: statusLock, error: statusLockError } = await adminClient
+    .from('vehicles')
+    .update({ status: 'pending', updated_at: new Date().toISOString() })
+    .eq('id', vehicleId)
+    .eq('status', currentVehicleStatus)
+    .select('id')
+    .maybeSingle()
+
+  if (statusLockError) {
+    return NextResponse.json({ success: false, error: { code: 'DB_ERROR', message: statusLockError.message } }, { status: 500 })
+  }
+
+  if (!statusLock) {
+    return NextResponse.json(
+      { success: false, error: { code: 'VEHICLE_UNAVAILABLE', message: 'Vehicle was taken by another request' } },
+      { status: 409 }
+    )
+  }
+
+  const vehiclePriceCents = validateCentsAmount(vehicle.price)
   const documentationFeeCents = 49900
   const omvicFeeCents = 1000
   const deliveryFeeCents = normalizedDeliveryType === 'delivery' ? 0 : 0
@@ -125,7 +184,7 @@ export async function POST(request: NextRequest) {
   const totalBeforeCreditsCents = subtotalCents + taxAmountCents
 
   const tradeInCreditCents = 0
-  const downPaymentCents = toCents(downPayment)
+  const downPaymentCents = parseDollarsToCents(downPayment)
   const totalCreditsCents = tradeInCreditCents + downPaymentCents
   const totalPriceCents = Math.max(0, totalBeforeCreditsCents - totalCreditsCents)
   const amountFinancedCents = paymentMethod === 'financing' ? totalPriceCents : 0
@@ -196,6 +255,26 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (insertError || !insertedOrder) {
+    // Best-effort rollback of the provisional vehicle status lock.
+    await adminClient
+      .from('vehicles')
+      .update({ status: currentVehicleStatus, updated_at: new Date().toISOString() })
+      .eq('id', vehicleId)
+      .eq('status', 'pending')
+
+    if (insertError?.code === '23505') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VEHICLE_UNAVAILABLE',
+            message: 'An active order already exists for this vehicle',
+          },
+        },
+        { status: 409 }
+      )
+    }
+
     return NextResponse.json(
       {
         success: false,

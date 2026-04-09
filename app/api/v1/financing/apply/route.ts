@@ -26,6 +26,13 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
     const {
       customerId,
@@ -103,13 +110,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (customerId) {
-      if (!user) {
-        return NextResponse.json(
-          { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required when customerId is provided' } },
-          { status: 401 }
-        )
-      }
-
       if (customerId !== user.id) {
         return NextResponse.json(
           { success: false, error: { code: 'FORBIDDEN', message: 'customerId must match authenticated user' } },
@@ -117,6 +117,8 @@ export async function POST(request: NextRequest) {
         )
       }
     }
+
+    const effectiveCustomerId = customerId || user.id
 
     if (vehicleId) {
       const { data: vehicle, error: vehicleError } = await supabase
@@ -150,8 +152,8 @@ export async function POST(request: NextRequest) {
       .from('finance_applications_v2')
       .insert({
         application_number: applicationNumber,
-        user_id: user?.id || null,
-        customer_id: customerId || null,
+        user_id: user.id,
+        customer_id: effectiveCustomerId,
         vehicle_id: vehicleId || null,
         status: 'submitted',
         agreement_type: 'finance',
@@ -199,7 +201,7 @@ export async function POST(request: NextRequest) {
         application_id: application.id,
         from_status: null,
         to_status: 'submitted',
-        changed_by: user?.id || null,
+        changed_by: user.id,
         notes: 'Application submitted for manual/compliance review',
       })
 

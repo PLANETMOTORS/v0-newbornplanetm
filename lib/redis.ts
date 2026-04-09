@@ -118,10 +118,22 @@ export async function lockVehicle(
   try {
     const key = `vehicle_lock:${stockNumber}`
 
-    // Treat repeated lock attempts from the same user as successful idempotent retries.
-    const currentHolder = await redis.get<string>(key)
-    if (currentHolder === userId) {
-      await redis.expire(key, lockDurationSeconds)
+    // Treat repeated lock attempts from the same user as successful idempotent retries,
+    // but refresh TTL atomically to avoid extending a lock acquired by another user.
+    const refreshTtlScript = `
+      local current = redis.call('GET', KEYS[1])
+      if current == ARGV[1] then
+        redis.call('EXPIRE', KEYS[1], tonumber(ARGV[2]))
+        return 1
+      end
+      return 0
+    `
+
+    const refreshed = await (redis as unknown as {
+      eval: (script: string, keys: string[], args: string[]) => Promise<number>
+    }).eval(refreshTtlScript, [key], [userId, String(lockDurationSeconds)])
+
+    if (refreshed === 1) {
       return true
     }
 

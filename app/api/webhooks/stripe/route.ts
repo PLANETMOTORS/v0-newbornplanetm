@@ -2,19 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 // Stripe requires raw body for signature verification — Next.js must NOT parse it.
 export const dynamic = 'force-dynamic'
 
 async function markEventProcessed(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ReturnType<typeof createAdminClient>,
   eventId: string,
   eventType: string,
   status: 'processed' | 'failed',
   errorMessage?: string
 ) {
-  await supabase.from('stripe_webhook_events').upsert(
+  const { error } = await supabase.from('stripe_webhook_events').upsert(
     {
       stripe_event_id: eventId,
       event_type: eventType,
@@ -24,22 +24,31 @@ async function markEventProcessed(
     },
     { onConflict: 'stripe_event_id', ignoreDuplicates: false }
   )
+
+  if (error) {
+    throw new Error(`Failed to record webhook event ${eventId}: ${error.message}`)
+  }
 }
 
 async function isAlreadyProcessed(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ReturnType<typeof createAdminClient>,
   eventId: string
 ): Promise<boolean> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('stripe_webhook_events')
     .select('status')
     .eq('stripe_event_id', eventId)
     .maybeSingle()
+
+  if (error) {
+    throw new Error(`Failed to check webhook idempotency for ${eventId}: ${error.message}`)
+  }
+
   return data?.status === 'processed'
 }
 
 async function handleCheckoutSessionCompleted(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ReturnType<typeof createAdminClient>,
   session: Stripe.Checkout.Session
 ) {
   const { reservationId, vehicleId, type } = session.metadata || {}
@@ -62,11 +71,15 @@ async function handleCheckoutSessionCompleted(
 
     // Mark vehicle as reserved
     if (vehicleId) {
-      await supabase
+      const { error: vehicleError } = await supabase
         .from('vehicles')
         .update({ status: 'reserved', updated_at: new Date().toISOString() })
         .eq('id', vehicleId)
         .in('status', ['available', 'reserved'])
+
+      if (vehicleError) {
+        throw new Error(`Failed to update vehicle ${vehicleId} after reservation confirmation: ${vehicleError.message}`)
+      }
     }
 
     console.log(`[webhook] Reservation ${reservationId} confirmed, vehicle ${vehicleId} reserved.`)
@@ -76,29 +89,37 @@ async function handleCheckoutSessionCompleted(
   if (type !== 'vehicle-reservation' && vehicleId) {
     // Full vehicle checkout: mark order payment as confirmed.
     // Orders are created separately; link via Stripe session metadata.
-    await supabase
+    const { error: orderError } = await supabase
       .from('orders')
       .update({ status: 'confirmed', updated_at: new Date().toISOString() })
       .eq('vehicle_id', vehicleId)
       .eq('status', 'created')
 
-    await supabase
+    if (orderError) {
+      throw new Error(`Failed to confirm order for vehicle ${vehicleId}: ${orderError.message}`)
+    }
+
+    const { error: vehicleError } = await supabase
       .from('vehicles')
       .update({ status: 'pending', updated_at: new Date().toISOString() })
       .eq('id', vehicleId)
+
+    if (vehicleError) {
+      throw new Error(`Failed to transition vehicle ${vehicleId} after order confirmation: ${vehicleError.message}`)
+    }
 
     console.log(`[webhook] Vehicle ${vehicleId} order confirmed.`)
   }
 }
 
 async function handleCheckoutSessionExpired(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ReturnType<typeof createAdminClient>,
   session: Stripe.Checkout.Session
 ) {
   const { reservationId, vehicleId } = session.metadata || {}
 
   if (reservationId) {
-    await supabase
+    const { error: reservationError } = await supabase
       .from('reservations')
       .update({
         status: 'expired',
@@ -108,27 +129,35 @@ async function handleCheckoutSessionExpired(
       .eq('id', reservationId)
       .in('status', ['pending'])
 
+    if (reservationError) {
+      throw new Error(`Failed to expire reservation ${reservationId}: ${reservationError.message}`)
+    }
+
     console.log(`[webhook] Reservation ${reservationId} expired.`)
   }
 
   if (vehicleId) {
     // Only release lock if vehicle is still in reserved state from this reservation
-    await supabase
+    const { error: vehicleError } = await supabase
       .from('vehicles')
       .update({ status: 'available', updated_at: new Date().toISOString() })
       .eq('id', vehicleId)
       .eq('status', 'reserved')
+
+    if (vehicleError) {
+      throw new Error(`Failed to release vehicle ${vehicleId} after session expiration: ${vehicleError.message}`)
+    }
   }
 }
 
 async function handlePaymentIntentFailed(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ReturnType<typeof createAdminClient>,
   paymentIntent: Stripe.PaymentIntent
 ) {
   const { reservationId, vehicleId } = paymentIntent.metadata || {}
 
   if (reservationId) {
-    await supabase
+    const { error: reservationError } = await supabase
       .from('reservations')
       .update({
         deposit_status: 'failed',
@@ -137,27 +166,35 @@ async function handlePaymentIntentFailed(
       .eq('id', reservationId)
       .in('deposit_status', ['pending'])
 
+    if (reservationError) {
+      throw new Error(`Failed to mark reservation ${reservationId} payment failure: ${reservationError.message}`)
+    }
+
     console.log(`[webhook] Payment failed for reservation ${reservationId}.`)
   }
 
   if (vehicleId) {
-    await supabase
+    const { error: vehicleError } = await supabase
       .from('vehicles')
       .update({ status: 'available', updated_at: new Date().toISOString() })
       .eq('id', vehicleId)
       .eq('status', 'reserved')
+
+    if (vehicleError) {
+      throw new Error(`Failed to release vehicle ${vehicleId} after payment failure: ${vehicleError.message}`)
+    }
   }
 }
 
 async function handlePaymentIntentSucceeded(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ReturnType<typeof createAdminClient>,
   paymentIntent: Stripe.PaymentIntent
 ) {
   // Idempotent backup confirmation — checkout.session.completed is the primary trigger.
   const { reservationId } = paymentIntent.metadata || {}
   if (!reservationId) return
 
-  await supabase
+  const { error } = await supabase
     .from('reservations')
     .update({
       deposit_status: 'paid',
@@ -165,6 +202,10 @@ async function handlePaymentIntentSucceeded(
     })
     .eq('id', reservationId)
     .in('deposit_status', ['pending'])
+
+  if (error) {
+    throw new Error(`Failed to mark reservation ${reservationId} as paid: ${error.message}`)
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -202,7 +243,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: `Webhook signature invalid: ${message}` }, { status: 400 })
   }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Idempotency: skip replayed events.
   if (await isAlreadyProcessed(supabase, event.id)) {

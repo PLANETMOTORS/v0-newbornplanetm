@@ -1,86 +1,101 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useMemo, useState } from "react"
+import useSWR from "swr"
 import { ArrowRight, Battery, Car, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { createClient } from "@/lib/supabase/client"
 
 type FeaturedTab = "all" | "electric" | "suvs"
 
-const featuredVehicles = [
+type FeaturedVehicle = {
+  id: string
+  year: number
+  make: string
+  model: string
+  priceCents: number
+  monthlyPayment: number
+  mileageLabel: string
+  badge: string
+  isEV: boolean
+  isAvilooCertified: boolean
+}
+
+const fallbackVehicles: FeaturedVehicle[] = [
   {
-    id: "1",
-    year: 2023,
+    id: "fallback-1",
+    year: 2024,
     make: "Tesla",
     model: "Model 3",
-    price: 42900,
+    priceCents: 4290000,
     monthlyPayment: 399,
-    mileage: "358 km range",
+    mileageLabel: "358 km range",
     badge: "Popular",
     isEV: true,
     isAvilooCertified: true,
   },
   {
-    id: "2",
+    id: "fallback-2",
     year: 2024,
     make: "Toyota",
     model: "RAV4 Hybrid",
-    price: 38500,
+    priceCents: 3850000,
     monthlyPayment: 349,
-    mileage: "41 MPG",
+    mileageLabel: "41 MPG",
     badge: "Fuel Saver",
     isEV: false,
     isAvilooCertified: false,
   },
   {
-    id: "3",
+    id: "fallback-3",
     year: 2024,
     make: "Hyundai",
     model: "Ioniq 5",
-    price: 48500,
+    priceCents: 4850000,
     monthlyPayment: 449,
-    mileage: "488 km range",
+    mileageLabel: "488 km range",
     badge: "New Arrival",
     isEV: true,
     isAvilooCertified: true,
   },
   {
-    id: "4",
+    id: "fallback-4",
     year: 2023,
     make: "Honda",
     model: "CR-V",
-    price: 34900,
+    priceCents: 3490000,
     monthlyPayment: 319,
-    mileage: "30 MPG",
+    mileageLabel: "30 MPG",
     badge: "Popular",
     isEV: false,
     isAvilooCertified: false,
   },
   {
-    id: "5",
+    id: "fallback-5",
     year: 2023,
     make: "Ford",
     model: "Mustang Mach-E",
-    price: 52900,
+    priceCents: 5290000,
     monthlyPayment: 489,
-    mileage: "402 km range",
+    mileageLabel: "402 km range",
     badge: "Premium",
     isEV: true,
     isAvilooCertified: true,
   },
   {
-    id: "6",
+    id: "fallback-6",
     year: 2022,
     make: "BMW",
     model: "X3",
-    price: 44900,
+    priceCents: 4490000,
     monthlyPayment: 419,
-    mileage: "26 MPG",
+    mileageLabel: "26 MPG",
     badge: "Luxury",
     isEV: false,
     isAvilooCertified: false,
   },
-] as const
+]
 
 function getBadgeClassName(badge: string) {
   if (badge === "Popular") return "bg-[#1e3a8a] text-white"
@@ -91,16 +106,64 @@ function getBadgeClassName(badge: string) {
   return "bg-gray-600 text-white"
 }
 
+const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from("vehicles")
+    .select("id, year, make, model, price, mileage, fuel_type, featured, inspection_score")
+    .eq("status", "available")
+    .order("featured", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(12)
+
+  if (error) {
+    throw error
+  }
+
+  const mapped = (data || []).map((vehicle) => {
+    const priceCents = Number(vehicle.price || 0)
+    const monthlyPayment = Math.max(1, Math.round((priceCents / 100) / 108))
+    const fuelType = String(vehicle.fuel_type || "")
+    const isEV = fuelType.toLowerCase() === "electric"
+
+    return {
+      id: String(vehicle.id),
+      year: Number(vehicle.year || 0),
+      make: String(vehicle.make || ""),
+      model: String(vehicle.model || ""),
+      priceCents,
+      monthlyPayment,
+      mileageLabel: isEV
+        ? `${Math.max(0, Math.round(Number(vehicle.mileage || 0) / 2))} km range`
+        : `${Math.max(0, Math.round(Number(vehicle.mileage || 0))).toLocaleString()} km`,
+      badge: vehicle.featured ? "Popular" : (isEV ? "Electric" : "Certified"),
+      isEV,
+      isAvilooCertified: isEV && Number(vehicle.inspection_score || 0) >= 200,
+    }
+  })
+
+  return mapped.length > 0 ? mapped.slice(0, 6) : fallbackVehicles
+}
+
 export function HomepageFeaturedVehicles() {
   const [activeTab, setActiveTab] = useState<FeaturedTab>("all")
-
-  const filteredVehicles = featuredVehicles.filter((vehicle) => {
-    if (activeTab === "electric") return vehicle.isEV
-    if (activeTab === "suvs") {
-      return vehicle.model.includes("CR-V") || vehicle.model.includes("X3") || vehicle.model.includes("RAV4")
-    }
-    return true
+  const { data } = useSWR("homepage-featured-vehicles", featuredFetcher, {
+    refreshInterval: 120000,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
   })
+
+  const vehicles = data && data.length > 0 ? data : fallbackVehicles
+
+  const filteredVehicles = useMemo(() => {
+    return vehicles.filter((vehicle) => {
+      if (activeTab === "electric") return vehicle.isEV
+      if (activeTab === "suvs") {
+        return vehicle.model.includes("CR-V") || vehicle.model.includes("X3") || vehicle.model.includes("RAV4")
+      }
+      return true
+    })
+  }, [activeTab, vehicles])
 
   return (
     <section className="py-16" style={{ backgroundColor: "#FFFFFF" }}>
@@ -168,12 +231,12 @@ export function HomepageFeaturedVehicles() {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-500 mt-1">{vehicle.mileage}</p>
+                <p className="text-sm text-gray-500 mt-1">{vehicle.mileageLabel}</p>
 
                 <div className="flex items-center justify-between mt-4">
                   <div>
                     <div className="text-xl font-bold text-[#1e3a8a]">
-                      ${vehicle.price.toLocaleString()}
+                      ${(vehicle.priceCents / 100).toLocaleString()}
                     </div>
                     <div className="text-sm font-medium text-gray-700">
                       or <span className="font-bold">${vehicle.monthlyPayment}/mo</span>
