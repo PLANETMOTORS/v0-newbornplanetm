@@ -40,6 +40,10 @@ export async function GET(_request: NextRequest) {
   }
 }
 
+// Validation helpers
+const NAME_RE = /^[^<>{}[\]]*$/ // disallow common HTML/script injection chars
+const PHONE_RE = /^[+\d\s().\-]{0,20}$/
+
 // PUT /api/v1/customers/me - Update customer profile
 export async function PUT(request: NextRequest) {
   try {
@@ -52,14 +56,34 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const { firstName, lastName, phone, notificationPreferences } = body
 
+    // Validate provided fields
+    if (firstName !== undefined) {
+      const name = String(firstName).trim()
+      if (name.length > 50 || !NAME_RE.test(name)) {
+        return NextResponse.json({ error: "Invalid firstName" }, { status: 400 })
+      }
+    }
+    if (lastName !== undefined) {
+      const name = String(lastName).trim()
+      if (name.length > 50 || !NAME_RE.test(name)) {
+        return NextResponse.json({ error: "Invalid lastName" }, { status: 400 })
+      }
+    }
+    if (phone !== undefined && phone !== null) {
+      const ph = String(phone).trim()
+      if (!PHONE_RE.test(ph)) {
+        return NextResponse.json({ error: "Invalid phone number format" }, { status: 400 })
+      }
+    }
+
     const updates: Record<string, unknown> = {
       id: user.id,
       email: user.email,
       updated_at: new Date().toISOString(),
     }
-    if (firstName !== undefined) updates.first_name = String(firstName).slice(0, 50)
-    if (lastName !== undefined) updates.last_name = String(lastName).slice(0, 50)
-    if (phone !== undefined) updates.phone = String(phone).slice(0, 20)
+    if (firstName !== undefined) updates.first_name = String(firstName).trim().slice(0, 50)
+    if (lastName !== undefined) updates.last_name = String(lastName).trim().slice(0, 50)
+    if (phone !== undefined) updates.phone = phone !== null ? String(phone).trim().slice(0, 20) : null
     if (notificationPreferences !== undefined) updates.notification_preferences = notificationPreferences
 
     const { data: row, error: upsertError } = await supabase

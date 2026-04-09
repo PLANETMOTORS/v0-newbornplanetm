@@ -15,7 +15,11 @@ function asInt(value: string | null, fallback: number) {
 }
 
 function hashParams(params: Record<string, unknown>): string {
-  return createHash('sha256').update(JSON.stringify(params)).digest('hex').slice(0, 16)
+  // Normalize: remove null/undefined values so absent params produce the same key
+  const normalized = Object.fromEntries(
+    Object.entries(params).filter(([, v]) => v !== null && v !== undefined)
+  )
+  return createHash('sha256').update(JSON.stringify(normalized)).digest('hex').slice(0, 16)
 }
 
 // GET /api/v1/vehicles - List vehicles with filtering
@@ -111,26 +115,26 @@ export async function GET(request: NextRequest) {
         supabase.from('vehicles').select('make').eq('status', 'available').not('make', 'is', null).order('make'),
         supabase.from('vehicles').select('body_style').eq('status', 'available').not('body_style', 'is', null).order('body_style'),
         supabase.from('vehicles').select('fuel_type').eq('status', 'available').not('fuel_type', 'is', null).order('fuel_type'),
-        supabase.from('vehicles').select('price, year').eq('status', 'available').limit(10000),
+        // Use SQL aggregate functions to avoid fetching all rows for range computation
+        supabase.from('vehicles').select('price.min(),price.max(),year.min(),year.max()').eq('status', 'available').limit(1),
       ])
 
       const makes = [...new Set(makesRes.data?.map(v => v.make) || [])].sort() as string[]
       const bodyStyles = [...new Set(bodyStylesRes.data?.map(v => v.body_style) || [])].sort() as string[]
       const fuelTypes = [...new Set(fuelTypesRes.data?.map(v => v.fuel_type) || [])].sort() as string[]
-      const prices = rangesRes.data?.map(v => v.price / 100) || []
-      const years = rangesRes.data?.map(v => v.year) || []
+      const rangeRow = rangesRes.data?.[0] as { price: { min: number | null; max: number | null }; year: { min: number | null; max: number | null } } | undefined
 
       filters = {
         makes,
         bodyStyles,
         fuelTypes,
         priceRange: {
-          min: prices.length > 0 ? Math.min(...prices) : 0,
-          max: prices.length > 0 ? Math.max(...prices) : 100000,
+          min: rangeRow?.price?.min != null ? rangeRow.price.min / 100 : 0,
+          max: rangeRow?.price?.max != null ? rangeRow.price.max / 100 : 100000,
         },
         yearRange: {
-          min: years.length > 0 ? Math.min(...years) : 2018,
-          max: years.length > 0 ? Math.max(...years) : new Date().getFullYear(),
+          min: rangeRow?.year?.min ?? 2018,
+          max: rangeRow?.year?.max ?? new Date().getFullYear(),
         },
       }
 
@@ -233,19 +237,27 @@ export async function POST(request: NextRequest) {
 
   const [{ data: vehicles, error, count }, aggregationsResult] = await Promise.all([
     query,
-    // Use a separate optimised aggregation query instead of fetching all rows
-    supabase
-      .from('vehicles')
-      .select('make, body_style, price')
-      .eq('status', 'available')
-      .limit(10000),
+    // Fetch aggregation data from Redis cache if available; only fetch from DB if uncached.
+    // This avoids a full-table scan on every search request.
+    getCachedSearchResults('vehicles:search:aggregations').then(async (hit) => {
+      if (hit) return { data: hit as Array<{ make: string; body_style: string; price: number }>, fromCache: true }
+      const res = await supabase
+        .from('vehicles')
+        .select('make, body_style, price')
+        .eq('status', 'available')
+        .limit(10000)
+      if (res.data) {
+        await cacheSearchResults('vehicles:search:aggregations', res.data, FACETS_TTL)
+      }
+      return { data: res.data ?? [], fromCache: false }
+    }),
   ])
 
   if (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
 
-  const allVehicles = aggregationsResult.data ?? []
+  const allVehicles = (aggregationsResult.data ?? []) as Array<{ make: string; body_style: string; price: number }>
 
   const responseBody = {
     success: true,
