@@ -41,9 +41,11 @@ export async function GET(_request: NextRequest) {
 }
 
 // Validation helpers
-// Unicode allowlist covers Latin, Cyrillic, Arabic, CJK, etc. to support all customer names
-// (appropriate for a Canadian multi-cultural customer base).
-const NAME_RE = /^[\p{L}\p{M}'\-\s]{1,50}$/u
+// Unicode allowlist covers all letters from all scripts (Latin, Cyrillic, CJK, etc.)
+// to support diverse customer names. NFC normalization is applied before matching so
+// pre-composed characters (e.g. "ắ") are matched as a single \p{L} code point;
+// combining marks (\p{M}) are intentionally excluded to prevent homograph attacks.
+const NAME_RE = /^[\p{L}'\-\s]{1,50}$/u
 const PHONE_RE = /^[+\d\s().\-]{0,20}$/
 
 // PUT /api/v1/customers/me - Update customer profile

@@ -15,9 +15,11 @@ function asInt(value: string | null, fallback: number) {
 }
 
 function hashParams(params: Record<string, unknown>): string {
-  // Normalize: remove null/undefined values so absent params produce the same key
+  // Normalize: remove null/undefined and sort keys for deterministic hashing
   const normalized = Object.fromEntries(
-    Object.entries(params).filter(([, v]) => v !== null && v !== undefined)
+    Object.entries(params)
+      .filter(([, v]) => v !== null && v !== undefined)
+      .sort(([a], [b]) => a.localeCompare(b))
   )
   return createHash('sha256').update(JSON.stringify(normalized)).digest('hex').slice(0, 16)
 }
@@ -112,7 +114,9 @@ export async function GET(request: NextRequest) {
     } else {
       // Use SQL aggregations instead of fetching all rows into JS
       const [makesRes, bodyStylesRes, fuelTypesRes, minPriceRes, maxPriceRes, minYearRes, maxYearRes] = await Promise.all([
-        // Limit to 200: no real inventory will have more than 200 distinct makes/styles/fuel types
+        // Limit to 200: covers any realistic vehicle inventory (200 distinct makes is far above real world).
+        // If the limit is ever approached, results will be silently truncated; add an alert if
+        // `makesRes.data?.length === 200` is observed in production logs.
         supabase.from('vehicles').select('make').eq('status', 'available').not('make', 'is', null).order('make').limit(200),
         supabase.from('vehicles').select('body_style').eq('status', 'available').not('body_style', 'is', null).order('body_style').limit(200),
         supabase.from('vehicles').select('fuel_type').eq('status', 'available').not('fuel_type', 'is', null).order('fuel_type').limit(200),
