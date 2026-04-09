@@ -81,6 +81,23 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       return { error: 'This vehicle is not available for reservation.' }
     }
 
+    // Enforce exclusivity at the reservation-record level, not just Redis lock TTL.
+    const { data: conflictingReservation } = await supabase
+      .from('reservations')
+      .select('id, customer_email, status, expires_at')
+      .eq('vehicle_id', input.vehicleId)
+      .neq('customer_email', input.customerEmail)
+      .in('status', ['pending', 'confirmed'])
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (conflictingReservation) {
+      await unlockVehicle(input.stockNumber, input.customerEmail)
+      return { error: 'This vehicle already has an active reservation.' }
+    }
+
     // Get product for $250 reservation
     const product = getProductById('vehicle-reservation')
     if (!product) {
@@ -131,8 +148,9 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
 
     // Create Stripe Checkout session
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://planetmotors.ca'
+    const checkoutAttemptWindow = Math.floor(Date.now() / (15 * 60 * 1000))
     const idempotencyKey = createHash('sha256')
-      .update(`reservation:${reservationId}:${input.customerEmail}:${input.stockNumber}`)
+      .update(`reservation:${reservationId}:${input.customerEmail}:${input.stockNumber}:${checkoutAttemptWindow}`)
       .digest('hex')
     
     const session = await stripe.checkout.sessions.create({

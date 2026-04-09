@@ -643,10 +643,19 @@ if (errors.length > 0) {
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(result?.error || result?.message || "Failed to submit application")
+        throw new Error(
+          result?.error?.message ||
+          result?.error ||
+          result?.message ||
+          JSON.stringify(result) ||
+          "Failed to submit application"
+        )
       }
 
-      const applicationId = result.data?.id || result.data?.applicationId
+      const applicationId =
+        result.data?.application?.id ||
+        result.data?.applicationId ||
+        result.data?.id
   
   // Upload documents to private Blob storage
   if (applicationId && documents.length > 0) {

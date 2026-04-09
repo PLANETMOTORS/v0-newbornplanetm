@@ -55,18 +55,18 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              // Scripts: self + Stripe + Sanity + Vercel Analytics
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://cdn.sanity.io https://va.vercel-scripts.com",
+              // Scripts: self + Stripe + Sanity + Vercel + GTM/GA + Meta Pixel
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://cdn.sanity.io https://va.vercel-scripts.com https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net",
               // Styles: self + inline (Tailwind/shadcn)
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               // Fonts
               "font-src 'self' https://fonts.gstatic.com data:",
               // Images: self + blob + Stripe CDN + all configured image hosts
-              "img-src 'self' blob: data: https://*.stripe.com https://hebbkx1anhila5yf.public.blob.vercel-storage.com https://cdn.planetmotors.ca https://planetmotors.imgix.net https://images.unsplash.com https://media.cpsimg.com https://cdn.sanity.io",
+              "img-src 'self' blob: data: https://*.stripe.com https://hebbkx1anhila5yf.public.blob.vercel-storage.com https://cdn.planetmotors.ca https://planetmotors.imgix.net https://images.unsplash.com https://media.cpsimg.com https://cdn.sanity.io https://www.google-analytics.com https://www.googletagmanager.com https://www.facebook.com",
               // Frames: only Stripe
               "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
               // Connect: self + Supabase + Stripe + Sanity + Upstash
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://cdn.sanity.io https://*.upstash.io",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://cdn.sanity.io https://*.upstash.io https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://graph.facebook.com https://www.facebook.com",
               // Workers for Sanity vision
               "worker-src 'self' blob:",
               // Base URI
