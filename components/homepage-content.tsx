@@ -1,11 +1,9 @@
-"use client"
-
 // Planet Motors Homepage Content - Trust-First Design (Clutch/Carvana Style)
 // Section Order: Hero -> 4-Step Process -> Featured Vehicles -> Why Choose Us -> Sell/Trade -> Reviews -> Protection Plans -> CTA -> The Promise -> Footer
 import Link from "next/link"
-import { useState } from "react"
 import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin, Award, DollarSign, Truck, Users, Leaf, Search, CreditCard, FileCheck, Home, Tag, Handshake } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { HomepageFeaturedVehicles } from "@/components/homepage-featured-vehicles"
 import { VehicleShowcase } from "@/components/vehicle-showcase"
 
 
@@ -92,88 +90,6 @@ const processSteps = [
   },
 ]
 
-// Featured vehicles data (mock - replace with real data)
-const featuredVehicles = [
-  {
-    id: "1",
-    year: 2023,
-    make: "Tesla",
-    model: "Model 3",
-    price: 42900,
-    monthlyPayment: 399,
-    mileage: "358 km range",
-    image: "/placeholder-car.jpg",
-    badge: "Popular",
-    isEV: true,
-    isAvilooCertified: true,
-  },
-  {
-    id: "2",
-    year: 2024,
-    make: "Toyota",
-    model: "RAV4 Hybrid",
-    price: 38500,
-    monthlyPayment: 349,
-    mileage: "41 MPG",
-    image: "/placeholder-car.jpg",
-    badge: "Fuel Saver",
-    isEV: false,
-    isAvilooCertified: false,
-  },
-  {
-    id: "3",
-    year: 2024,
-    make: "Hyundai",
-    model: "Ioniq 5",
-    price: 48500,
-    monthlyPayment: 449,
-    mileage: "488 km range",
-    image: "/placeholder-car.jpg",
-    badge: "New Arrival",
-    isEV: true,
-    isAvilooCertified: true,
-  },
-  {
-    id: "4",
-    year: 2023,
-    make: "Honda",
-    model: "CR-V",
-    price: 34900,
-    monthlyPayment: 319,
-    mileage: "30 MPG",
-    image: "/placeholder-car.jpg",
-    badge: "Popular",
-    isEV: false,
-    isAvilooCertified: false,
-  },
-  {
-    id: "5",
-    year: 2023,
-    make: "Ford",
-    model: "Mustang Mach-E",
-    price: 52900,
-    monthlyPayment: 489,
-    mileage: "402 km range",
-    image: "/placeholder-car.jpg",
-    badge: "Premium",
-    isEV: true,
-    isAvilooCertified: true,
-  },
-  {
-    id: "6",
-    year: 2022,
-    make: "BMW",
-    model: "X3",
-    price: 44900,
-    monthlyPayment: 419,
-    mileage: "26 MPG",
-    image: "/placeholder-car.jpg",
-    badge: "Luxury",
-    isEV: false,
-    isAvilooCertified: false,
-  },
-]
-
 const protectionPlans = [
   {
     name: "Basic Coverage",
@@ -222,15 +138,6 @@ const protectionPlans = [
 
 
 export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
-  const [activeTab, setActiveTab] = useState<"all" | "electric" | "suvs">("all")
-
-  // Filter vehicles based on active tab
-  const filteredVehicles = featuredVehicles.filter(v => {
-    if (activeTab === "electric") return v.isEV
-    if (activeTab === "suvs") return v.model.includes("CR-V") || v.model.includes("X3") || v.model.includes("RAV4")
-    return true
-  })
-
   // Use Sanity testimonials or fallback to default
   const displayReviews = testimonials.length > 0 ? testimonials.slice(0, 3).map(t => ({
     name: t.customerName,
@@ -433,119 +340,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
       </section>
 
       {/* ========== BOX 3: FEATURED VEHICLES - Pure White #FFFFFF ========== */}
-      <section className="py-16" style={{ backgroundColor: "#FFFFFF" }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-            <div>
-              <h2 className="text-3xl font-bold text-[#1e3a8a]">Featured Vehicles</h2>
-              <p className="text-gray-600 mt-1">Quality vehicles ready for delivery</p>
-            </div>
-            
-            {/* Tabs */}
-            <div className="flex items-center gap-1 bg-[#eef2f7] rounded-lg p-1">
-              {[
-                { key: "all", label: "All" },
-                { key: "electric", label: "Electric" },
-                { key: "suvs", label: "SUVs" },
-              ].map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key as "all" | "electric" | "suvs")}
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                    activeTab === tab.key
-                      ? "bg-[#1e3a8a] text-white"
-                      : "text-gray-600 hover:bg-[#e4eaf2]"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Vehicle Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredVehicles.map((vehicle) => (
-              <div
-                key={vehicle.id}
-                className="bg-white rounded-xl border border-[#dce3ed] overflow-hidden hover:shadow-lg transition-shadow group"
-              >
-                {/* Image */}
-                <div className="relative aspect-[4/3] bg-[#eef2f7]">
-                  {/* Badge */}
-                  <div className="absolute top-3 left-3">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      vehicle.badge === "Popular" ? "bg-[#1e3a8a] text-white" :
-                      vehicle.badge === "Fuel Saver" ? "bg-green-600 text-white" :
-                      vehicle.badge === "New Arrival" ? "bg-orange-500 text-white" :
-                      vehicle.badge === "Premium" ? "bg-purple-600 text-white" :
-                      vehicle.badge === "Luxury" ? "bg-amber-600 text-white" :
-                      "bg-gray-600 text-white"
-                    }`}>
-                      {vehicle.badge}
-                    </span>
-                  </div>
-                  
-                  {/* Aviloo Certified Badge */}
-                  {vehicle.isAvilooCertified && (
-                    <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-green-700">
-                      <Battery className="w-3 h-3" />
-                      Aviloo Certified
-                    </div>
-                  )}
-
-                  {/* Placeholder */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Car className="w-16 h-16 text-gray-300" />
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-gray-900">
-                      {vehicle.year} {vehicle.make} {vehicle.model}
-                    </h3>
-                    {vehicle.isEV && (
-                      <span className="flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
-                        <Zap className="w-3 h-3" />
-                        EV
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-500 mt-1">{vehicle.mileage}</p>
-
-                  <div className="flex items-center justify-between mt-4">
-                    <div>
-                      <div className="text-xl font-bold text-[#1e3a8a]">
-                        ${vehicle.price.toLocaleString()}
-                      </div>
-                      <div className="text-sm font-medium text-gray-700">
-                        or <span className="font-bold">${vehicle.monthlyPayment}/mo</span>
-                      </div>
-                    </div>
-                    <Button size="sm" className="bg-[#1e3a8a] hover:bg-[#172554]" asChild>
-                      <Link href={`/vehicles/${vehicle.id}`}>
-                        View Details
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* View All Button */}
-          <div className="text-center mt-10">
-            <Button variant="outline" size="lg" className="border-2 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white" asChild>
-              <Link href="/inventory">
-                View All Inventory
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+      <HomepageFeaturedVehicles />
 
       {/* ========== BOX 4: WHY CHOOSE US - Very Light Grey #F3F4F6 ========== */}
       <section className="py-16" style={{ backgroundColor: "#F3F4F6" }}>

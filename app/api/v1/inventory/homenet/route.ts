@@ -417,90 +417,91 @@ async function syncVehiclesToDatabase(sql: SqlClient, vehicles: VehicleData[]) {
   let inserted = 0
   let updated = 0
   const errors: { vin: string; error: string }[] = []
+  const BATCH_SIZE = 100
 
-  for (const vehicle of vehicles) {
-    try {
-      // Check if vehicle exists
-      const existing = await sql`
-        SELECT id FROM vehicles WHERE vin = ${vehicle.vin}
-      `
+  for (let i = 0; i < vehicles.length; i += BATCH_SIZE) {
+    const batch = vehicles.slice(i, i + BATCH_SIZE)
 
-      if (existing.length > 0) {
-        // Update existing vehicle
-        await sql`
-          UPDATE vehicles SET
-            stock_number = ${vehicle.stock_number},
-            year = ${vehicle.year},
-            make = ${vehicle.make},
-            model = ${vehicle.model},
-            trim = ${vehicle.trim || null},
-            body_style = ${vehicle.body_style || null},
-            exterior_color = ${vehicle.exterior_color || null},
-            interior_color = ${vehicle.interior_color || null},
-            price = ${vehicle.price},
-            msrp = ${vehicle.msrp || null},
-            mileage = ${vehicle.mileage},
-            drivetrain = ${vehicle.drivetrain || null},
-            transmission = ${vehicle.transmission || null},
-            engine = ${vehicle.engine || null},
-            fuel_type = ${vehicle.fuel_type || null},
-            fuel_economy_city = ${vehicle.fuel_economy_city || null},
-            fuel_economy_highway = ${vehicle.fuel_economy_highway || null},
-            is_ev = ${vehicle.is_ev || false},
-            battery_capacity_kwh = ${vehicle.battery_capacity_kwh || null},
-            range_miles = ${vehicle.range_miles || null},
-            status = ${vehicle.status || 'available'},
-            is_certified = ${vehicle.is_certified || true},
-            is_new_arrival = ${vehicle.is_new_arrival || false},
-            featured = ${vehicle.featured || false},
-            inspection_score = ${vehicle.inspection_score || 210},
-            primary_image_url = ${vehicle.primary_image_url || null},
-            image_urls = ${vehicle.image_urls || []},
-            has_360_spin = ${vehicle.has_360_spin || false},
-            video_url = ${vehicle.video_url || null},
-            location = ${vehicle.location || 'Richmond Hill, ON'},
-            updated_at = NOW()
-          WHERE vin = ${vehicle.vin}
-        `
-        updated++
-      } else {
-        // Insert new vehicle
-        await sql`
-          INSERT INTO vehicles (
-            stock_number, vin, year, make, model, trim, body_style,
-            exterior_color, interior_color, price, msrp, mileage,
-            drivetrain, transmission, engine, fuel_type,
-            fuel_economy_city, fuel_economy_highway, is_ev,
-            battery_capacity_kwh, range_miles, status, is_certified,
-            is_new_arrival, featured, inspection_score,
-            primary_image_url, image_urls, has_360_spin, video_url, location
-          ) VALUES (
-            ${vehicle.stock_number}, ${vehicle.vin}, ${vehicle.year},
-            ${vehicle.make}, ${vehicle.model}, ${vehicle.trim || null},
-            ${vehicle.body_style || null}, ${vehicle.exterior_color || null},
-            ${vehicle.interior_color || null}, ${vehicle.price},
-            ${vehicle.msrp || null}, ${vehicle.mileage},
-            ${vehicle.drivetrain || null}, ${vehicle.transmission || null},
-            ${vehicle.engine || null}, ${vehicle.fuel_type || null},
-            ${vehicle.fuel_economy_city || null}, ${vehicle.fuel_economy_highway || null},
-            ${vehicle.is_ev || false}, ${vehicle.battery_capacity_kwh || null},
-            ${vehicle.range_miles || null}, ${vehicle.status || 'available'},
-            ${vehicle.is_certified || true}, ${vehicle.is_new_arrival || false},
-            ${vehicle.featured || false}, ${vehicle.inspection_score || 210},
-            ${vehicle.primary_image_url || null}, ${vehicle.image_urls || []},
-            ${vehicle.has_360_spin || false}, ${vehicle.video_url || null},
-            ${vehicle.location || 'Richmond Hill, ON'}
-          )
-        `
-        inserted++
-      }
-    } catch (error) {
-      console.error(`[HomenetIOL] Error syncing VIN ${vehicle.vin}:`, error)
-      errors.push({ 
-        vin: vehicle.vin, 
-        error: error instanceof Error ? error.message : "Unknown error" 
+    await Promise.all(
+      batch.map(async (vehicle) => {
+        try {
+          const result = await sql`
+            INSERT INTO vehicles (
+              stock_number, vin, year, make, model, trim, body_style,
+              exterior_color, interior_color, price, msrp, mileage,
+              drivetrain, transmission, engine, fuel_type,
+              fuel_economy_city, fuel_economy_highway, is_ev,
+              battery_capacity_kwh, range_miles, status, is_certified,
+              is_new_arrival, featured, inspection_score,
+              primary_image_url, image_urls, has_360_spin, video_url, location
+            ) VALUES (
+              ${vehicle.stock_number}, ${vehicle.vin}, ${vehicle.year},
+              ${vehicle.make}, ${vehicle.model}, ${vehicle.trim || null},
+              ${vehicle.body_style || null}, ${vehicle.exterior_color || null},
+              ${vehicle.interior_color || null}, ${vehicle.price},
+              ${vehicle.msrp || null}, ${vehicle.mileage},
+              ${vehicle.drivetrain || null}, ${vehicle.transmission || null},
+              ${vehicle.engine || null}, ${vehicle.fuel_type || null},
+              ${vehicle.fuel_economy_city || null}, ${vehicle.fuel_economy_highway || null},
+              ${vehicle.is_ev || false}, ${vehicle.battery_capacity_kwh || null},
+              ${vehicle.range_miles || null}, ${vehicle.status || 'available'},
+              ${vehicle.is_certified || true}, ${vehicle.is_new_arrival || false},
+              ${vehicle.featured || false}, ${vehicle.inspection_score || 210},
+              ${vehicle.primary_image_url || null}, ${vehicle.image_urls || []},
+              ${vehicle.has_360_spin || false}, ${vehicle.video_url || null},
+              ${vehicle.location || 'Richmond Hill, ON'}
+            )
+            ON CONFLICT (vin)
+            DO UPDATE SET
+              stock_number = EXCLUDED.stock_number,
+              year = EXCLUDED.year,
+              make = EXCLUDED.make,
+              model = EXCLUDED.model,
+              trim = EXCLUDED.trim,
+              body_style = EXCLUDED.body_style,
+              exterior_color = EXCLUDED.exterior_color,
+              interior_color = EXCLUDED.interior_color,
+              price = EXCLUDED.price,
+              msrp = EXCLUDED.msrp,
+              mileage = EXCLUDED.mileage,
+              drivetrain = EXCLUDED.drivetrain,
+              transmission = EXCLUDED.transmission,
+              engine = EXCLUDED.engine,
+              fuel_type = EXCLUDED.fuel_type,
+              fuel_economy_city = EXCLUDED.fuel_economy_city,
+              fuel_economy_highway = EXCLUDED.fuel_economy_highway,
+              is_ev = EXCLUDED.is_ev,
+              battery_capacity_kwh = EXCLUDED.battery_capacity_kwh,
+              range_miles = EXCLUDED.range_miles,
+              status = EXCLUDED.status,
+              is_certified = EXCLUDED.is_certified,
+              is_new_arrival = EXCLUDED.is_new_arrival,
+              featured = EXCLUDED.featured,
+              inspection_score = EXCLUDED.inspection_score,
+              primary_image_url = EXCLUDED.primary_image_url,
+              image_urls = EXCLUDED.image_urls,
+              has_360_spin = EXCLUDED.has_360_spin,
+              video_url = EXCLUDED.video_url,
+              location = EXCLUDED.location,
+              updated_at = NOW()
+            RETURNING (xmax = 0) AS inserted
+          `
+
+          if (result?.[0]?.inserted) {
+            inserted++
+          } else {
+            updated++
+          }
+        } catch (error) {
+          console.error(`[HomenetIOL] Error syncing VIN ${vehicle.vin}:`, error)
+          errors.push({
+            vin: vehicle.vin,
+            error: error instanceof Error ? error.message : "Unknown error",
+          })
+        }
       })
-    }
+    )
+
   }
 
   return { inserted, updated, errors }

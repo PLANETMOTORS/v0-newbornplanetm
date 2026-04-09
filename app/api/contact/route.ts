@@ -1,8 +1,19 @@
 import { NextResponse } from "next/server"
 import { sendNotificationEmail } from "@/lib/email"
+import { rateLimit } from "@/lib/redis"
 
 export async function POST(request: Request) {
   try {
+    const forwarded = request.headers.get("x-forwarded-for") || ""
+    const ip = forwarded.split(",")[0]?.trim() || "unknown"
+    const limiter = await rateLimit(`contact:${ip}`, 5, 3600)
+    if (!limiter.success) {
+      return NextResponse.json(
+        { success: false, error: "Too many requests. Please try again later." },
+        { status: 429 }
+      )
+    }
+
     const body = await request.json()
     const { firstName, lastName, email, phone, postalCode, subject, message } = body
 

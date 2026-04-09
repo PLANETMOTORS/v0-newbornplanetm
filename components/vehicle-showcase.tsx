@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import useSWR from "swr"
-import { ChevronLeft, ChevronRight, RotateCw, Shield, Eye, Heart, Share2, Fuel, Gauge, Calendar, Loader2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, RotateCw, Shield, Heart, Share2, Fuel, Gauge, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
@@ -15,7 +14,7 @@ const fetcher = async () => {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('vehicles')
-    .select('*')
+    .select('id, year, make, model, trim, price, mileage, fuel_type, inspection_score, is_new_arrival')
     .eq('status', 'available')
     .order('price', { ascending: false })
     .limit(6)
@@ -141,8 +140,10 @@ export function VehicleShowcase() {
   const [imageError, setImageError] = useState(false)
 
   // Fetch vehicles from Supabase
-  const { data: dbVehicles, isLoading, error } = useSWR('showcase-vehicles', fetcher, {
-    refreshInterval: 60000
+  const { data: dbVehicles } = useSWR('showcase-vehicles', fetcher, {
+    refreshInterval: 120000,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
   })
 
   // Transform to showcase format - use fallback if no DB data

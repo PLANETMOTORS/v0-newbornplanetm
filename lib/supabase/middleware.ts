@@ -1,8 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabase/config'
 
-// Hardcoded correct Supabase URL - env var keeps getting wrong value
-const SUPABASE_URL = 'https://ldervbcvkoawwknsemuz.supabase.co'
 type CookieMutation = {
   name: string
   value: string
@@ -10,7 +9,8 @@ type CookieMutation = {
 }
 
 export async function updateSession(request: NextRequest) {
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const supabaseUrl = getSupabaseUrl()
+  const supabaseAnonKey = getSupabaseAnonKey()
 
   if (!supabaseAnonKey) {
     return NextResponse.next({ request })
@@ -18,7 +18,7 @@ export async function updateSession(request: NextRequest) {
 
   let supabaseResponse = NextResponse.next({ request })
 
-  const supabase = createServerClient(SUPABASE_URL, supabaseAnonKey, {
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll()

@@ -18,6 +18,7 @@ interface NavButtonProps {
   userName?: string;
   userInitials?: string;
   isOnline?: boolean;
+  showMenuButton?: boolean;
 }
 
 export function NavButton({
@@ -27,6 +28,7 @@ export function NavButton({
   userName = "",
   userInitials = "",
   isOnline = false,
+  showMenuButton = true,
 }: NavButtonProps) {
   const safeName = userName.trim() || "Client";
   const safeInitials = (userInitials.trim() || getInitials(safeName) || "CL").slice(0, 2);
@@ -34,14 +36,16 @@ export function NavButton({
 
   return (
     <div className="inline-flex h-[56px] items-center rounded-full bg-[#1E3799] pr-[6px] shadow-sm transition-colors duration-200 hover:bg-[#2541B2]">
-      <button
-        type="button"
-        onClick={onMenuClick}
-        aria-label="Open menu"
-        className="inline-flex h-[56px] w-[56px] items-center justify-center rounded-full text-white focus:outline-none"
-      >
-        <Menu className="h-[22px] w-[22px]" strokeWidth={2.5} />
-      </button>
+      {showMenuButton ? (
+        <button
+          type="button"
+          onClick={onMenuClick}
+          aria-label="Open menu"
+          className="inline-flex h-[56px] w-[56px] items-center justify-center rounded-full text-white focus:outline-none lg:hidden"
+        >
+          <Menu className="h-[22px] w-[22px]" strokeWidth={2.5} />
+        </button>
+      ) : null}
 
       <button
         type="button"

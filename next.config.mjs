@@ -16,7 +16,6 @@ const nextConfig = {
     optimizePackageImports: ['sanity', '@sanity/ui', 'lucide-react', '@radix-ui/react-icons'],
   },
   
-  typescript: { ignoreBuildErrors: true },
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
@@ -27,6 +26,63 @@ const nextConfig = {
       { protocol: 'https', hostname: 'media.cpsimg.com' },
       { protocol: 'https', hostname: 'cdn.sanity.io' },
     ],
+  },
+
+  // OWASP security headers applied to all routes.
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          // Prevent clickjacking
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          // Disable MIME sniffing
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          // Referrer leakage control  
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          // Force HTTPS for 1 year (Strict-Transport-Security)
+          { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains; preload' },
+          // XSS protection (legacy browsers)
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+          // Restrict powerful browser features
+          {
+            key: 'Permissions-Policy',
+            value:
+              'camera=(), microphone=(), geolocation=(self), payment=(self "https://js.stripe.com"), interest-cohort=()',
+          },
+          // Content-Security-Policy — strict but compatible with Stripe Embedded Checkout + Sanity Studio
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              // Scripts: self + Stripe + Sanity + Vercel Analytics
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://cdn.sanity.io https://va.vercel-scripts.com",
+              // Styles: self + inline (Tailwind/shadcn)
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              // Fonts
+              "font-src 'self' https://fonts.gstatic.com data:",
+              // Images: self + blob + Stripe CDN + all configured image hosts
+              "img-src 'self' blob: data: https://*.stripe.com https://hebbkx1anhila5yf.public.blob.vercel-storage.com https://cdn.planetmotors.ca https://planetmotors.imgix.net https://images.unsplash.com https://media.cpsimg.com https://cdn.sanity.io",
+              // Frames: only Stripe
+              "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
+              // Connect: self + Supabase + Stripe + Sanity + Upstash
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://cdn.sanity.io https://*.upstash.io",
+              // Workers for Sanity vision
+              "worker-src 'self' blob:",
+              // Base URI
+              "base-uri 'self'",
+              // Allow forms only from self
+              "form-action 'self'",
+            ].join('; '),
+          },
+        ],
+      },
+      // Stripe webhook must receive raw body — no transform
+      {
+        source: '/api/webhooks/stripe',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex' }],
+      },
+    ]
   },
 }
 export default nextConfig

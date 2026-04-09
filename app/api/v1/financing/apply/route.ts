@@ -2,210 +2,256 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { sendNotificationEmail } from '@/lib/email'
 
-// POST /api/v1/financing/apply - Full application (hard pull)
+function asNumber(value: unknown, fallback = 0): number {
+  const parsed = typeof value === 'string' ? Number.parseFloat(value) : Number(value)
+  if (!Number.isFinite(parsed)) {
+    return fallback
+  }
+  return parsed
+}
+
+function validateEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+function generateApplicationNumber(): string {
+  const ts = Date.now().toString(36).toUpperCase()
+  const rand = Math.floor(Math.random() * 36 ** 4).toString(36).toUpperCase().padStart(4, '0')
+  return `PM-FA-${ts}-${rand}`
+}
+
+// POST /api/v1/financing/apply - Full application submission (review pipeline)
 export async function POST(request: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-  const body = await request.json()
-  
-  const {
-    customerId,
-    vehicleId,
-    prequalificationId,
-    selectedLenderIds,
-    
-    // Personal Info
-    firstName,
-    lastName,
-    email,
-    phone,
-    dateOfBirth,
-    sin, // Social Insurance Number (encrypted in production)
-    
-    // Address
-    streetAddress,
-    city,
-    province,
-    postalCode,
-    residenceStatus, // own, rent, other
-    monthlyPayment,
-    yearsAtAddress,
-    
-    // Employment
-    employmentStatus, // employed, self-employed, retired, other
-    employerName,
-    jobTitle,
-    employmentYears,
-    annualIncome,
-    
-    // Loan Details
-    requestedAmount,
-    requestedTerm,
-    downPayment,
-    tradeInId,
-  } = body
+    const body = await request.json()
+    const {
+      customerId,
+      vehicleId,
+      selectedLenderIds,
+      firstName,
+      lastName,
+      email,
+      phone,
+      dateOfBirth,
+      sin,
+      streetAddress,
+      city,
+      province,
+      postalCode,
+      residenceStatus,
+      monthlyPayment,
+      yearsAtAddress,
+      employmentStatus,
+      employerName,
+      jobTitle,
+      employmentYears,
+      annualIncome,
+      requestedAmount,
+      requestedTerm,
+      downPayment,
+      tradeInId,
+    } = body
 
-  // Validate required fields
-  const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'annualIncome', 'requestedAmount']
-  const missingFields = requiredFields.filter((field) => !body[field])
-  
-  if (missingFields.length > 0) {
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: { 
-          code: 'MISSING_FIELDS', 
-          message: `Missing required fields: ${missingFields.join(', ')}` 
-        } 
+    const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'annualIncome', 'requestedAmount']
+    const missingFields = requiredFields.filter((field) => !body[field])
+
+    if (missingFields.length > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'MISSING_FIELDS',
+            message: `Missing required fields: ${missingFields.join(', ')}`,
+          },
+        },
+        { status: 400 }
+      )
+    }
+
+    if (!validateEmail(String(email))) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'INVALID_EMAIL',
+            message: 'Invalid email format',
+          },
+        },
+        { status: 400 }
+      )
+    }
+
+    const requestedAmountValue = asNumber(requestedAmount)
+    const annualIncomeValue = asNumber(annualIncome)
+    const downPaymentValue = Math.max(0, asNumber(downPayment))
+    const requestedTermValue = Math.max(24, Math.min(96, Math.round(asNumber(requestedTerm, 72))))
+
+    if (requestedAmountValue <= 0 || annualIncomeValue <= 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'INVALID_FINANCIAL_INPUT',
+            message: 'requestedAmount and annualIncome must be greater than 0',
+          },
+        },
+        { status: 400 }
+      )
+    }
+
+    if (customerId) {
+      if (!user) {
+        return NextResponse.json(
+          { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required when customerId is provided' } },
+          { status: 401 }
+        )
+      }
+
+      if (customerId !== user.id) {
+        return NextResponse.json(
+          { success: false, error: { code: 'FORBIDDEN', message: 'customerId must match authenticated user' } },
+          { status: 403 }
+        )
+      }
+    }
+
+    if (vehicleId) {
+      const { data: vehicle, error: vehicleError } = await supabase
+        .from('vehicles')
+        .select('id, status')
+        .eq('id', vehicleId)
+        .maybeSingle()
+
+      if (vehicleError) {
+        return NextResponse.json(
+          { success: false, error: { code: 'DB_ERROR', message: vehicleError.message } },
+          { status: 500 }
+        )
+      }
+
+      if (!vehicle) {
+        return NextResponse.json(
+          { success: false, error: { code: 'NOT_FOUND', message: 'Vehicle not found' } },
+          { status: 404 }
+        )
+      }
+    }
+
+    const applicationNumber = generateApplicationNumber()
+    const submittedAt = new Date().toISOString()
+    const estimatedMonthlyPayment = requestedAmountValue > 0
+      ? Math.round((requestedAmountValue / requestedTermValue) * 100) / 100
+      : 0
+
+    const { data: application, error: appError } = await supabase
+      .from('finance_applications_v2')
+      .insert({
+        application_number: applicationNumber,
+        user_id: user?.id || null,
+        customer_id: customerId || null,
+        vehicle_id: vehicleId || null,
+        status: 'submitted',
+        agreement_type: 'finance',
+        requested_amount: requestedAmountValue,
+        down_payment: downPaymentValue,
+        loan_term_months: requestedTermValue,
+        payment_frequency: 'monthly',
+        has_trade_in: Boolean(tradeInId),
+        trade_in_vehicle_id: tradeInId || null,
+        estimated_payment: estimatedMonthlyPayment,
+        additional_notes: [
+          `Applicant: ${firstName} ${lastName}`,
+          `Email: ${email}`,
+          `Phone: ${phone}`,
+          `DOB: ${dateOfBirth || 'not provided'}`,
+          `Address: ${streetAddress || ''} ${city || ''} ${province || ''} ${postalCode || ''}`.trim(),
+          `Residence: ${residenceStatus || 'not provided'} (${yearsAtAddress || '0'} years)`,
+          `Employment: ${employmentStatus || 'not provided'} / ${employerName || 'not provided'} / ${jobTitle || 'not provided'} (${employmentYears || '0'} years)`,
+          `Annual Income: ${annualIncomeValue}`,
+          `Selected lenders: ${(selectedLenderIds || []).join(', ') || 'none'}`,
+          `SIN provided: ${sin ? 'yes' : 'no'}`,
+          'Note: credit bureau and lender decisions must occur in secured lender integration workflow.',
+        ].join('\n'),
+        submitted_at: submittedAt,
+      })
+      .select('id, application_number, status, submitted_at, requested_amount, down_payment, loan_term_months, estimated_payment')
+      .single()
+
+    if (appError || !application) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'DB_ERROR',
+            message: appError?.message || 'Failed to create application',
+          },
+        },
+        { status: 500 }
+      )
+    }
+
+    await supabase
+      .from('finance_application_history')
+      .insert({
+        application_id: application.id,
+        from_status: null,
+        to_status: 'submitted',
+        changed_by: user?.id || null,
+        notes: 'Application submitted for manual/compliance review',
+      })
+
+    // Fire-and-forget notification pattern.
+    try {
+      await sendNotificationEmail({
+        type: 'finance_application',
+        customerName: `${firstName} ${lastName}`,
+        customerEmail: email,
+        customerPhone: phone,
+        vehicleInfo: vehicleId,
+        applicationId: application.application_number,
+        additionalData: {
+          annualIncome: annualIncomeValue,
+          requestedAmount: requestedAmountValue,
+          complianceReviewRequired: true,
+        },
+      })
+    } catch (notifyError) {
+      console.error('Finance application notification failed:', notifyError)
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        application: {
+          id: application.id,
+          applicationNumber: application.application_number,
+          status: application.status,
+          requestedAmount: application.requested_amount,
+          downPayment: application.down_payment,
+          requestedTerm: application.loan_term_months,
+          submittedAt: application.submitted_at,
+          review: {
+            stage: 'manual_review',
+            decision: 'pending',
+          },
+          offers: [],
+        },
+        message: `Your application ${application.application_number} has been submitted for review.`,
+        nextSteps: [
+          'Our finance team will review your application',
+          'You may be contacted for additional documents',
+          'You will be notified when lender responses are available',
+        ],
       },
-      { status: 400 }
+    })
+  } catch (error) {
+    console.error('Finance application error:', error)
+    return NextResponse.json(
+      { error: 'Failed to process application' },
+      { status: 500 }
     )
   }
-
-  if (customerId) {
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required when customerId is provided' } },
-        { status: 401 }
-      )
-    }
-
-    if (customerId !== user.id) {
-      return NextResponse.json(
-        { success: false, error: { code: 'FORBIDDEN', message: 'customerId must match authenticated user' } },
-        { status: 403 }
-      )
-    }
-  }
-
-  // Hard credit pull - estimate based on income and employment
-  const creditScore = annualIncome >= 100000 ? 780 : annualIncome >= 70000 ? 730 : annualIncome >= 50000 ? 700 : 670
-  const creditReport = {
-    score: creditScore,
-    bureau: 'Equifax',
-    pullType: 'hard',
-    pullDate: new Date().toISOString(),
-    accounts: 6,
-    inquiries: 1,
-    derogatory: 0,
-    utilizationRate: 22,
-  }
-
-  // Create application
-  const applicationNumber = `PM-${Date.now().toString(36).toUpperCase()}`
-  
-  // Simulate submitting to selected lenders and getting offers
-  const offers = (selectedLenderIds || ['lender_a', 'lender_b', 'lender_c']).map((lenderId: string) => {
-    const lenderConfig: Record<string, any> = {
-      lender_a: { name: 'Partner Lender A', baseRate: 6.29, maxTerm: 84 },
-      lender_b: { name: 'Partner Lender B', baseRate: 6.49, maxTerm: 84 },
-      lender_c: { name: 'Partner Lender C', baseRate: 6.79, maxTerm: 84 },
-      lender_d: { name: 'Partner Lender D', baseRate: 6.99, maxTerm: 72 },
-      lender_e: { name: 'Partner Lender E', baseRate: 7.29, maxTerm: 84 },
-      lender_f: { name: 'Partner Lender F', baseRate: 7.49, maxTerm: 96 },
-    }
-    
-    const lender = lenderConfig[lenderId] || lenderConfig.lender_a
-    
-    // Calculate rate based on credit score
-    let rate = lender.baseRate
-    if (creditScore >= 750) rate -= 0.75
-    else if (creditScore >= 700) rate -= 0.5
-    else if (creditScore >= 650) rate -= 0.25
-    else if (creditScore < 620) rate += 1.0
-    
-    const term = Math.min(requestedTerm || 72, lender.maxTerm)
-    const amount = requestedAmount - (downPayment || 0)
-    const monthlyRate = rate / 100 / 12
-    const monthlyPayment = (amount * monthlyRate * Math.pow(1 + monthlyRate, term)) / 
-                           (Math.pow(1 + monthlyRate, term) - 1)
-    const totalInterest = (monthlyPayment * term) - amount
-    const totalCost = monthlyPayment * term
-
-    return {
-      id: `offer-${lenderId}-${Date.now()}`,
-      lenderId,
-      lenderName: lender.name,
-      status: creditScore >= 650 ? 'approved' : 'pending',
-      approvedAmount: amount,
-      interestRate: Math.round(rate * 100) / 100,
-      termMonths: term,
-      monthlyPayment: Math.round(monthlyPayment * 100) / 100,
-      totalInterest: Math.round(totalInterest * 100) / 100,
-      totalCost: Math.round(totalCost * 100) / 100,
-      downPaymentRequired: downPayment || 0,
-      conditions: creditScore < 650 ? ['Proof of income required', 'Additional references needed'] : [],
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      receivedAt: new Date().toISOString(),
-    }
-  }).sort((a: any, b: any) => a.interestRate - b.interestRate)
-
-  const application = {
-    id: `app-${Date.now()}`,
-    applicationNumber,
-    customerId: user?.id || null,
-    vehicleId,
-    status: 'submitted',
-    applicationType: 'full',
-    
-    // Credit
-    creditScore: creditReport.score,
-    creditBureau: creditReport.bureau,
-    creditPullType: creditReport.pullType,
-    creditPullDate: creditReport.pullDate,
-    
-    // Employment
-    employmentStatus,
-    employerName,
-    jobTitle,
-    employmentYears,
-    annualIncome,
-    
-    // Residence
-    residenceStatus,
-    monthlyRent: monthlyPayment,
-    residenceYears: yearsAtAddress,
-    
-    // Loan
-    requestedAmount,
-    requestedTerm,
-    downPayment: downPayment || 0,
-    tradeInId,
-    
-    // Offers
-    offers,
-    bestOffer: offers[0],
-    
-    // Timestamps
-    submittedAt: new Date().toISOString(),
-    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  }
-
-  // Send notification email to admin
-  await sendNotificationEmail({
-    type: 'finance_application',
-    customerName: `${firstName} ${lastName}`,
-    customerEmail: email,
-    customerPhone: phone,
-    vehicleInfo: vehicleId,
-    applicationId: applicationNumber,
-    additionalData: { annualIncome, requestedAmount, creditScore },
-  })
-
-  return NextResponse.json({
-    success: true,
-    data: {
-      application,
-      message: `Your application ${applicationNumber} has been submitted to ${offers.length} lender(s).`,
-      nextSteps: [
-        'Review your offers below',
-        'Select the best offer for you',
-        'Complete e-signature documents',
-        'Schedule your delivery',
-      ],
-    },
-  })
 }

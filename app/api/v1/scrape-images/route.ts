@@ -2,6 +2,10 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
 const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
+const DEFAULT_BATCH_LIMIT = 50
+const MAX_BATCH_LIMIT = 100
+const SCRAPE_CONCURRENCY = 5
+const FETCH_TIMEOUT_MS = 5000
 
 async function requireAdmin() {
   const supabase = await createClient()
@@ -18,11 +22,15 @@ async function scrapeVehicleImages(vdpUrl: string): Promise<{
   has360: boolean
   spinUrl?: string
 }> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+
   try {
     const response = await fetch(vdpUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
-      }
+      },
+      signal: controller.signal,
     })
     
     if (!response.ok) {
@@ -74,38 +82,64 @@ async function scrapeVehicleImages(vdpUrl: string): Promise<{
   } catch (error) {
     console.error(`[v0] Error scraping ${vdpUrl}:`, error)
     return { images: [], has360: false }
+  } finally {
+    clearTimeout(timeout)
   }
 }
 
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  worker: (item: T) => Promise<R>
+): Promise<R[]> {
+  const results: R[] = []
+  let index = 0
+
+  async function runWorker() {
+    while (index < items.length) {
+      const currentIndex = index++
+      results[currentIndex] = await worker(items[currentIndex])
+    }
+  }
+
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, () => runWorker())
+  await Promise.all(workers)
+  return results
+}
+
 // GET - Scrape images for all vehicles
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const { supabase, error } = await requireAdmin()
     if (error) {
       return error
     }
+
+    const { searchParams } = new URL(request.url)
+    const rawLimit = Number.parseInt(searchParams.get("limit") || String(DEFAULT_BATCH_LIMIT), 10)
+    const limit = Math.min(Math.max(1, Number.isNaN(rawLimit) ? DEFAULT_BATCH_LIMIT : rawLimit), MAX_BATCH_LIMIT)
+    const rawOffset = Number.parseInt(searchParams.get("offset") || "0", 10)
+    const offset = Math.max(0, Number.isNaN(rawOffset) ? 0 : rawOffset)
     
     // Get all vehicles with VDP URLs
     const { data: vehicles, error: vehiclesError } = await supabase
       .from('vehicles')
       .select('id, stock_number, make, model, primary_image_url')
       .eq('status', 'available')
+      .range(offset, offset + limit - 1)
     
     if (vehiclesError) throw vehiclesError
-    
-    const results = []
-    
-    for (const vehicle of vehicles || []) {
+
+    const results = await mapWithConcurrency(vehicles || [], SCRAPE_CONCURRENCY, async (vehicle) => {
       // Skip if primary_image_url is already a real image
       if (vehicle.primary_image_url?.includes('.jpg') || 
           vehicle.primary_image_url?.includes('.png') ||
           vehicle.primary_image_url?.includes('.webp')) {
-        results.push({
+        return {
           id: vehicle.id,
           stock: vehicle.stock_number,
           status: 'already_has_image'
-        })
-        continue
+        }
       }
       
       // Scrape images from VDP URL
@@ -122,27 +156,44 @@ export async function GET() {
               has_360_spin: scraped.has360
             })
             .eq('id', vehicle.id)
+
+          if (updateError) {
+            return {
+              id: vehicle.id,
+              stock: vehicle.stock_number,
+              status: 'update_failed',
+              error: updateError.message,
+            }
+          }
           
-          results.push({
+          return {
             id: vehicle.id,
             stock: vehicle.stock_number,
             status: 'scraped',
             imageCount: scraped.images.length,
             has360: scraped.has360
-          })
+          }
         } else {
-          results.push({
+          return {
             id: vehicle.id,
             stock: vehicle.stock_number,
             status: 'no_images_found'
-          })
+          }
         }
       }
-    }
+
+      return {
+        id: vehicle.id,
+        stock: vehicle.stock_number,
+        status: 'skipped',
+      }
+    })
     
     return NextResponse.json({
       success: true,
       processed: results.length,
+      offset,
+      limit,
       results
     })
   } catch (error) {
