@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState } from "react"
 import Image from "next/image"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator"
 import { LockKeyhole, Shield, Clock, CheckCircle, CreditCard, ArrowRight, Sparkles, Loader2 } from "lucide-react"
 import { loadStripe } from "@stripe/stripe-js"
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js"
-import { startVehicleCheckout } from "@/app/actions/stripe"
+import { createReservation } from "@/app/actions/reservation"
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -47,38 +47,33 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
 
   const depositAmount = 250
 
-  // Fetch client secret when showing Stripe checkout
-  useEffect(() => {
-    if (showStripeCheckout && !clientSecret) {
-      const fetchClientSecret = async () => {
-        try {
-          setCheckoutError(null)
-          const secret = await startVehicleCheckout({
-            vehicleId: vehicle.id,
-            vehicleName: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
-            vehiclePriceCents: depositAmount * 100,
-            depositOnly: true,
-            customerEmail: formData.email,
-          })
-          if (secret) {
-            setClientSecret(secret)
-          } else {
-            setCheckoutError("Failed to initialize payment. Please try again.")
-          }
-        } catch (error) {
-          console.error("Error fetching client secret:", error)
-          setCheckoutError("Failed to initialize payment. Please try again.")
-        }
-      }
-      fetchClientSecret()
-    }
-  }, [showStripeCheckout, clientSecret, vehicle, formData.email, depositAmount])
-
   const handleSubmit = async () => {
-    setIsProcessing(true)
-    setClientSecret(null) // Reset to fetch fresh secret
-    setShowStripeCheckout(true)
-    setIsProcessing(false)
+    try {
+      setIsProcessing(true)
+      setCheckoutError(null)
+      setClientSecret(null)
+
+      const result = await createReservation({
+        vehicleId: vehicle.id,
+        stockNumber: vehicle.stockNumber,
+        customerEmail: formData.email,
+        customerPhone: formData.phone,
+        customerName: `${formData.firstName} ${formData.lastName}`.trim(),
+      })
+
+      if (!result.success || !result.clientSecret) {
+        setCheckoutError(result.error || "Failed to initialize payment. Please try again.")
+        return
+      }
+
+      setClientSecret(result.clientSecret)
+      setShowStripeCheckout(true)
+    } catch (error) {
+      console.error("Error creating reservation:", error)
+      setCheckoutError("Failed to initialize payment. Please try again.")
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   return (

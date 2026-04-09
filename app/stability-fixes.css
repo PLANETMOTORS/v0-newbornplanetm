@@ -1,131 +1,43 @@
-/* === CRITICAL LAYOUT STABILITY FIXES === */
-/* Prevents vibration, flickering, and layout shifts */
+/* Planet Motors stability fixes */
+/* Keep this file conservative: avoid global contain/transform hacks that can trigger flicker on mobile browsers. */
 
-/* GPU acceleration for smoother rendering */
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
-/* Global page wrapper containment - prevents overflow on all pages */
-[class*="min-h-screen"] {
+body {
   overflow-x: hidden;
-  max-width: 100vw;
 }
 
-/* Prevent grid/flex children from causing overflow and vibration */
-.grid > *, .flex > * {
-  min-width: 0;
-  min-height: 0;
+main,
+section,
+article,
+aside,
+footer {
+  overflow-x: clip;
 }
 
-/* Sticky header stability - critical for preventing vibration */
-.sticky {
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-  contain: layout style;
-}
-
-/* Prevent header bar height transitions from causing vibration */
-.sticky > div {
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-/* CRITICAL: Remove all max-height transitions - they cause vibration */
-.sticky [class*="max-h-"] {
-  transition: none !important;
-}
-
-/* Stable card layouts - contain prevents content from pushing boundaries */
-[class*="Card"], [class*="card"], .card {
-  contain: layout style;
-  isolation: isolate;
-}
-
-/* Prevent text overflow causing horizontal scroll */
-h1, h2, h3, h4, h5, h6, p, span {
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-}
-
-/* Fix for absolute positioned elements causing overflow */
-.relative {
-  isolation: isolate;
-}
-
-/* Prevent images from causing layout shift */
-img, video, iframe {
+img,
+video,
+iframe {
   max-width: 100%;
   height: auto;
 }
 
-/* Fixed elements need contain for better performance */
-.fixed {
-  contain: layout style;
-  will-change: transform;
-}
-
-/* Use clip instead of hidden for sections - prevents dropdown issues */
-main, section, article, aside, footer {
-  overflow-x: clip;
-}
-
-/* Prevent dropdown menus from being cut off */
-header, nav {
-  overflow: visible;
-}
-
-/* Stable grid layouts */
-.grid {
-  contain: layout;
-}
-
-/* Prevent layout thrashing */
-.animate-pulse, .animate-spin, .animate-bounce {
-  will-change: transform, opacity;
-}
-
-/* === FORM INPUT STABILITY === */
-/* Prevent iOS zoom on input focus which causes vibration */
-input, select, textarea {
-  font-size: 16px !important; /* Prevents iOS zoom */
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
+/* Prevent iOS zoom/flicker on focus by keeping input font-size >= 16px */
+input,
+select,
+textarea {
+  font-size: 16px;
   -webkit-appearance: none;
   appearance: none;
 }
 
-/* Prevent autofill causing layout shifts */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-textarea:-webkit-autofill,
-select:-webkit-autofill {
-  transition: background-color 5000s ease-in-out 0s;
-}
-
-/* Mobile viewport fixes */
 @media (max-width: 768px) {
-  body {
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-  }
-  
   .container {
     max-width: 100vw;
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-  
-  /* Prevent header bars from causing vibration on mobile */
-  .sticky > div {
-    transform: translateZ(0);
-    backface-visibility: hidden;
+    overflow-x: hidden;
   }
 }

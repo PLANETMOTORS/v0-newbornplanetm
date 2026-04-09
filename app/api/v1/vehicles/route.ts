@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
+const ALLOWED_SORT_COLUMNS = new Set(['created_at', 'price', 'year', 'mileage', 'make', 'model'])
+
+function asInt(value: string | null, fallback: number) {
+  const parsed = Number.parseInt(value || '', 10)
+  return Number.isNaN(parsed) ? fallback : parsed
+}
+
 // GET /api/v1/vehicles - List vehicles with filtering
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -18,13 +25,13 @@ export async function GET(request: NextRequest) {
   const transmission = searchParams.get('transmission')
   const drivetrain = searchParams.get('drivetrain')
   const status = searchParams.get('status') || 'available'
-  const ALLOWED_SORT_COLUMNS = new Set(['created_at', 'price', 'year', 'mileage', 'make', 'model'])
   const rawSort = searchParams.get('sort') || 'created_at'
   const sort = ALLOWED_SORT_COLUMNS.has(rawSort) ? rawSort : 'created_at'
   const order = searchParams.get('order') || 'desc'
-  const page = Math.max(1, parseInt(searchParams.get('page') || '1') || 1)
-  const rawLimit = parseInt(searchParams.get('limit') || '20') || 20
+  const page = Math.max(1, asInt(searchParams.get('page'), 1))
+  const rawLimit = asInt(searchParams.get('limit'), 20)
   const limit = Math.min(Math.max(1, rawLimit), 100)
+  const includeFilters = searchParams.get('includeFilters') === 'true'
 
   // Build query
   let query = supabase
@@ -58,17 +65,42 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
 
-  // Get aggregations for filters
-  const { data: allVehicles } = await supabase
-    .from('vehicles')
-    .select('make, body_style, fuel_type, price, year')
-    .eq('status', 'available')
+  let filters: {
+    makes: string[]
+    bodyStyles: string[]
+    fuelTypes: string[]
+    priceRange: { min: number; max: number }
+    yearRange: { min: number; max: number }
+  } | undefined
 
-  const makes = [...new Set(allVehicles?.map(v => v.make) || [])]
-  const bodyStyles = [...new Set(allVehicles?.map(v => v.body_style).filter(Boolean) || [])]
-  const fuelTypes = [...new Set(allVehicles?.map(v => v.fuel_type).filter(Boolean) || [])]
-  const prices = allVehicles?.map(v => v.price / 100) || []
-  const years = allVehicles?.map(v => v.year) || []
+  // Computing facets can be expensive on large inventories, so keep it opt-in.
+  if (includeFilters) {
+    const { data: allVehicles } = await supabase
+      .from('vehicles')
+      .select('make, body_style, fuel_type, price, year')
+      .eq('status', 'available')
+      .limit(1000)
+
+    const makes = [...new Set(allVehicles?.map(v => v.make).filter(Boolean) || [])]
+    const bodyStyles = [...new Set(allVehicles?.map(v => v.body_style).filter(Boolean) || [])]
+    const fuelTypes = [...new Set(allVehicles?.map(v => v.fuel_type).filter(Boolean) || [])]
+    const prices = allVehicles?.map(v => v.price / 100) || []
+    const years = allVehicles?.map(v => v.year) || []
+
+    filters = {
+      makes: makes.sort(),
+      bodyStyles: bodyStyles.sort(),
+      fuelTypes: fuelTypes.sort(),
+      priceRange: {
+        min: prices.length > 0 ? Math.min(...prices) : 0,
+        max: prices.length > 0 ? Math.max(...prices) : 100000,
+      },
+      yearRange: {
+        min: years.length > 0 ? Math.min(...years) : 2018,
+        max: years.length > 0 ? Math.max(...years) : new Date().getFullYear(),
+      },
+    }
+  }
 
   return NextResponse.json({
     success: true,
@@ -85,19 +117,11 @@ export async function GET(request: NextRequest) {
         totalPages: Math.ceil((count || 0) / limit),
         hasMore: startIndex + limit < (count || 0),
       },
-      filters: {
-        makes: makes.sort(),
-        bodyStyles: bodyStyles.sort(),
-        fuelTypes: fuelTypes.sort(),
-        priceRange: {
-          min: prices.length > 0 ? Math.min(...prices) : 0,
-          max: prices.length > 0 ? Math.max(...prices) : 100000,
-        },
-        yearRange: {
-          min: years.length > 0 ? Math.min(...years) : 2018,
-          max: years.length > 0 ? Math.max(...years) : new Date().getFullYear(),
-        },
-      },
+      ...(filters ? { filters } : {}),
+    },
+  }, {
+    headers: {
+      'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=120',
     },
   })
 }
@@ -113,6 +137,11 @@ export async function POST(request: NextRequest) {
     sort = { field: 'created_at', order: 'desc' },
     pagination = { page: 1, limit: 20 },
   } = body
+
+  const safeSortField = ALLOWED_SORT_COLUMNS.has(sort.field) ? sort.field : 'created_at'
+  const safeSortOrder = sort.order === 'asc' ? 'asc' : 'desc'
+  const safeLimit = Math.min(Math.max(1, asInt(String(pagination.limit || 20), 20)), 100)
+  const safePage = Math.max(1, asInt(String(pagination.page || 1), 1))
 
   // Build base query
   let query = supabase
@@ -145,12 +174,12 @@ export async function POST(request: NextRequest) {
   }
 
   // Apply sorting
-  const ascending = sort.order === 'asc'
-  query = query.order(sort.field, { ascending })
+  const ascending = safeSortOrder === 'asc'
+  query = query.order(safeSortField, { ascending })
 
   // Apply pagination
-  const startIndex = (pagination.page - 1) * pagination.limit
-  query = query.range(startIndex, startIndex + pagination.limit - 1)
+  const startIndex = (safePage - 1) * safeLimit
+  query = query.range(startIndex, startIndex + safeLimit - 1)
 
   const { data: vehicles, error, count } = await query
 
@@ -163,6 +192,7 @@ export async function POST(request: NextRequest) {
     .from('vehicles')
     .select('make, body_style, price')
     .eq('status', 'available')
+    .limit(1000)
 
   return NextResponse.json({
     success: true,

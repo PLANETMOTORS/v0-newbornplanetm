@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react"
 import { createClient } from "@/lib/supabase/client"
 import type { User } from "@supabase/supabase-js"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 interface AuthContextType {
   user: User | null
@@ -17,13 +18,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const supabase = createClient()
+    let supabase: SupabaseClient | null = null
+    try {
+      supabase = createClient()
+    } catch (error) {
+      console.error("Failed to initialize auth client:", error)
+      setIsLoading(false)
+      return
+    }
 
     // Get initial user
     const getUser = async () => {
       try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+          setUser(session.user)
+        }
+
         const { data: { user } } = await supabase.auth.getUser()
-        setUser(user)
+        if (user) {
+          setUser(user)
+        }
       } catch (error) {
         console.error("Error getting user:", error)
       } finally {
@@ -47,9 +62,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const signOut = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    setUser(null)
+    try {
+      const supabase = createClient()
+      await supabase.auth.signOut()
+      setUser(null)
+    } catch (error) {
+      console.error("Sign out failed:", error)
+    }
   }
 
   return (

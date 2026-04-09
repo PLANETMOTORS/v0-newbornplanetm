@@ -2,8 +2,7 @@
 
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
-import { Menu, X, ChevronDown, Phone, MapPin, Star, Award, CheckCircle, Shield, Truck } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { ChevronDown, Phone, MapPin, Star, Award, CheckCircle, Shield, Truck } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import { SignInPanel } from "@/components/sign-in-panel"
 import NavButton from "@/components/nav-button"
@@ -179,8 +178,7 @@ export function Header() {
 
       <div className="sticky top-0 z-[100]">
 
-      {!scrolled && (
-        <div className="bg-primary text-primary-foreground text-sm py-2">
+      <div className="bg-primary text-primary-foreground text-sm py-2">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-4 sm:gap-6">
               <a 
@@ -215,7 +213,6 @@ export function Header() {
             </div>
           </div>
         </div>
-      )}
 
       <header className={`bg-background/95 backdrop-blur-md border-b border-border ${scrolled ? "shadow-sm" : ""}`} role="banner">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-2 lg:px-8" aria-label="Main navigation">
@@ -301,17 +298,8 @@ export function Header() {
               userName={userName}
               userInitials={userInitials}
               isOnline={!!user}
+              showMenuButton
             />
-            
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle menu"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </Button>
           </div>
         </nav>
 
@@ -362,8 +350,7 @@ export function Header() {
         )}
       </header>
 
-      {!scrolled && (
-        <div className="pointer-events-none bg-gray-100 border-b border-gray-200 text-gray-700 text-sm py-2.5">
+      <div className="pointer-events-none bg-gray-100 border-b border-gray-200 text-gray-700 text-sm py-2.5">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-center gap-3 sm:gap-6 md:gap-10 overflow-x-auto scrollbar-hide">
               <div className="flex items-center gap-2 whitespace-nowrap">
@@ -388,7 +375,6 @@ export function Header() {
             </div>
           </div>
         </div>
-      )}
 
       </div>
 

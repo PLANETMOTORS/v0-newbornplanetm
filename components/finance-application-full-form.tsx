@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -175,10 +176,13 @@ interface FinanceApplicationFullFormProps {
 }
 
 export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData }: FinanceApplicationFullFormProps) {
-  console.log("[v0] FinanceApplicationFullForm MOUNTED with props:", { vehicleId, vehicleData, tradeInData })
+  const router = useRouter()
+  const draftLoadedRef = useRef(false)
+  const draftKey = useMemo(() => `pm:finance-draft:${vehicleId || "general"}`, [vehicleId])
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   
   // Form state
   const [primaryApplicant, setPrimaryApplicant] = useState<ApplicantData>(emptyApplicant)
@@ -255,11 +259,8 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
   }, [primaryApplicant.grossIncome, primaryApplicant.incomeFrequency, primaryApplicant.otherIncomeAmount, primaryApplicant.otherIncomeFrequency])
   
   const [tradeIn, setTradeIn] = useState<TradeInInfo>(() => {
-    // Initialize from tradeInData prop if provided
-    console.log("[v0] TradeIn Initialization - tradeInData prop:", tradeInData)
     if (tradeInData && tradeInData.value > 0) {
       const vehicleParts = tradeInData.vehicle?.split(' ') || []
-      console.log("[v0] TradeIn FOUND - value:", tradeInData.value, "vehicle:", tradeInData.vehicle)
       return {
         hasTradeIn: true, 
         vin: "", 
@@ -276,7 +277,6 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
         lienAmount: ""
       }
     }
-    console.log("[v0] TradeIn NOT provided - defaulting to empty")
     return {
       hasTradeIn: false, vin: "", year: "", make: "", model: "", trim: "",
       color: "", mileage: "", condition: "", estimatedValue: "",
@@ -300,6 +300,71 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   
   const [documents, setDocuments] = useState<DocumentUpload[]>([])
   const [additionalNotes, setAdditionalNotes] = useState("")
+
+  // Recover in-progress form data if user was interrupted or page refreshed.
+  useEffect(() => {
+    if (draftLoadedRef.current) return
+    try {
+      const raw = window.localStorage.getItem(draftKey)
+      if (!raw) {
+        draftLoadedRef.current = true
+        return
+      }
+      const draft = JSON.parse(raw) as Record<string, unknown>
+      if (typeof draft.currentStep === "number") setCurrentStep(draft.currentStep)
+      if (draft.primaryApplicant) setPrimaryApplicant(draft.primaryApplicant as ApplicantData)
+      if (typeof draft.includeCoApplicant === "boolean") setIncludeCoApplicant(draft.includeCoApplicant)
+      if (draft.coApplicant) setCoApplicant(draft.coApplicant as ApplicantData)
+      if (typeof draft.coApplicantRelation === "string") setCoApplicantRelation(draft.coApplicantRelation)
+      if (draft.vehicleInfo) setVehicleInfo(draft.vehicleInfo as VehicleInfo)
+      if (draft.tradeIn) setTradeIn(draft.tradeIn as TradeInInfo)
+      if (draft.financingTerms) setFinancingTerms(draft.financingTerms as FinancingTerms)
+      if (typeof draft.additionalNotes === "string") setAdditionalNotes(draft.additionalNotes)
+    } catch (error) {
+      console.error("Failed to restore finance draft:", error)
+    } finally {
+      draftLoadedRef.current = true
+    }
+  }, [draftKey])
+
+  // Persist in-progress form data to protect users from accidental session drops.
+  useEffect(() => {
+    if (!draftLoadedRef.current || isSubmitted) return
+
+    const timeout = window.setTimeout(() => {
+      try {
+        const payload = {
+          currentStep,
+          primaryApplicant,
+          includeCoApplicant,
+          coApplicant,
+          coApplicantRelation,
+          vehicleInfo,
+          tradeIn,
+          financingTerms,
+          additionalNotes,
+          savedAt: new Date().toISOString(),
+        }
+        window.localStorage.setItem(draftKey, JSON.stringify(payload))
+      } catch (error) {
+        console.error("Failed to save finance draft:", error)
+      }
+    }, 250)
+
+    return () => window.clearTimeout(timeout)
+  }, [
+    draftKey,
+    isSubmitted,
+    currentStep,
+    primaryApplicant,
+    includeCoApplicant,
+    coApplicant,
+    coApplicantRelation,
+    vehicleInfo,
+    tradeIn,
+    financingTerms,
+    additionalNotes,
+  ])
   
   const steps = [
     { number: 1, title: "Applicant", icon: User },
@@ -534,11 +599,10 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   
 // Handle step navigation with validation
   const handleNextStep = () => {
-  console.log("[v0] handleNextStep called - currentStep:", currentStep)
+    setSubmitError(null)
   let errors: string[] = []
   
   if (currentStep === 1) {
-    console.log("[v0] Validating Step 1 - primaryApplicant:", primaryApplicant)
       errors = validateStep1()
     } else if (currentStep === 2) {
       errors = validateStep2()
@@ -547,13 +611,11 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     }
     
 if (errors.length > 0) {
-  console.log("[v0] Validation FAILED - errors:", errors)
   setValidationErrors(errors)
   // Scroll to top to show errors
   window.scrollTo({ top: 0, behavior: 'smooth' })
   return
   }
-  console.log("[v0] Validation PASSED - proceeding to step:", currentStep + 1)
     
     setValidationErrors([])
     setCurrentStep(prev => prev + 1)
@@ -561,6 +623,7 @@ if (errors.length > 0) {
   
   const handleSubmit = async () => {
     setIsSubmitting(true)
+    setSubmitError(null)
     try {
       const response = await fetch("/api/v1/financing/applications", {
         method: "POST",
@@ -577,13 +640,16 @@ if (errors.length > 0) {
         })
       })
       
-if (response.ok) {
-  const result = await response.json()
-  const applicationId = result.data?.id
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result?.error || result?.message || "Failed to submit application")
+      }
+
+      const applicationId = result.data?.id || result.data?.applicationId
   
   // Upload documents to private Blob storage
   if (applicationId && documents.length > 0) {
-    console.log("[v0] Uploading documents for application:", applicationId)
     for (const doc of documents) {
       if (doc.file) {
         const formData = new FormData()
@@ -596,24 +662,27 @@ if (response.ok) {
             method: "POST",
             body: formData
           })
-          if (uploadRes.ok) {
-            console.log("[v0] Document uploaded:", doc.type)
-          } else {
-            console.error("[v0] Document upload failed:", doc.type)
+          if (!uploadRes.ok) {
+            console.error("Document upload failed:", doc.type)
           }
         } catch (uploadErr) {
-          console.error("[v0] Document upload error:", uploadErr)
+          console.error("Document upload error:", uploadErr)
         }
       }
     }
   }
   
-  setIsSubmitted(true)
-  }
+      try {
+        window.localStorage.removeItem(draftKey)
+      } catch {
+        // Ignore localStorage failures.
+      }
+      setIsSubmitted(true)
   } catch (error) {
-  console.error("Submit error:", error)
+      console.error("Submit error:", error)
+      setSubmitError(error instanceof Error ? error.message : "Unable to submit application right now.")
   } finally {
-  setIsSubmitting(false)
+    setIsSubmitting(false)
   }
   }
   
@@ -629,11 +698,11 @@ if (response.ok) {
           Your finance application has been saved. Complete identity verification to finalize your application.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button onClick={() => window.location.href = `/financing/verification?vehicleId=${vehicleId}`}>
+          <Button onClick={() => router.push(`/financing/verification?vehicleId=${vehicleId || ""}`)}>
             <Shield className="w-4 h-4 mr-2" />
             Continue to ID Verification
           </Button>
-          <Button variant="outline" onClick={() => window.location.href = "/inventory"}>
+          <Button variant="outline" onClick={() => router.push("/inventory")}>
             Complete Later
           </Button>
         </div>
@@ -689,6 +758,12 @@ if (response.ok) {
       {/* Step Content */}
       <Card>
         <CardContent className="p-6">
+          {submitError ? (
+            <div className="mb-6 rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
+              {submitError}
+            </div>
+          ) : null}
+
           {/* STEP 1: Primary Applicant */}
           {currentStep === 1 && (
 <ApplicantForm

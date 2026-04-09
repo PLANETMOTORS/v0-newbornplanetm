@@ -117,6 +117,14 @@ export async function lockVehicle(
   
   try {
     const key = `vehicle_lock:${stockNumber}`
+
+    // Treat repeated lock attempts from the same user as successful idempotent retries.
+    const currentHolder = await redis.get<string>(key)
+    if (currentHolder === userId) {
+      await redis.expire(key, lockDurationSeconds)
+      return true
+    }
+
     const result = await redis.set(key, userId, { nx: true, ex: lockDurationSeconds })
     return result === "OK"
   } catch {

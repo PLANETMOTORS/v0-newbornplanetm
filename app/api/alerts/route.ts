@@ -46,6 +46,9 @@ export async function POST(req: Request) {
 
     // Send confirmation email (non-blocking - alert is saved regardless)
     const resendClient = getResendClient()
+    let emailSent = false
+    let emailErrorMessage: string | null = null
+
     if (resendClient) {
       try {
         await resendClient.emails.send({
@@ -69,13 +72,22 @@ export async function POST(req: Request) {
             </div>
           `,
         })
+        emailSent = true
       } catch (emailError) {
         // Log but don't fail - alert is already saved
         console.error("Email send failed (alert still saved):", emailError)
+        emailErrorMessage = emailError instanceof Error ? emailError.message : "Unknown email error"
       }
     }
 
-    return NextResponse.json({ success: true, alertId: alert.id })
+    return NextResponse.json({
+      success: true,
+      alertId: alert.id,
+      email: {
+        sent: emailSent,
+        error: emailErrorMessage,
+      },
+    })
   } catch (error) {
     console.error("Price alert error:", error)
     return NextResponse.json({ error: "Failed to create alert" }, { status: 500 })

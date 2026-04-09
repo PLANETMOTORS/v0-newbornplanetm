@@ -1,6 +1,9 @@
 'use server'
 
+import { createHash } from 'node:crypto'
+import type Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
+import { createClient } from '@/lib/supabase/server'
 
 const PROTECTION_PLANS: Record<string, { name: string; priceInCents: number }> = {
   'essential': { name: 'PlanetCare Essential', priceInCents: 195000 },
@@ -17,18 +20,58 @@ interface VehicleCheckoutData {
   customerEmail?: string
 }
 
+function normalizeAmountToCents(value: unknown): number {
+  const numericValue = typeof value === 'string' ? Number.parseFloat(value) : Number(value)
+
+  if (!Number.isFinite(numericValue) || numericValue <= 0) {
+    throw new Error('Invalid vehicle price')
+  }
+
+  // Support databases storing either dollars or cents.
+  return numericValue >= 1_000_000 ? Math.round(numericValue) : Math.round(numericValue * 100)
+}
+
 export async function startVehicleCheckout(data: VehicleCheckoutData) {
   const stripe = getStripe()
-  const lineItems: any[] = []
-  
+  const supabase = await createClient()
+  const { data: vehicle, error } = await supabase
+    .from('vehicles')
+    .select('id, year, make, model, price, status')
+    .eq('id', data.vehicleId)
+    .maybeSingle()
+
+  if (error) {
+    throw new Error(`Failed to load vehicle: ${error.message}`)
+  }
+
+  if (!vehicle) {
+    throw new Error('Vehicle not found')
+  }
+
+  if (!['available', 'reserved'].includes(String(vehicle.status || ''))) {
+    throw new Error('Vehicle is not available for checkout')
+  }
+
+  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
+  const serverVehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`.trim() || data.vehicleName
+  const vehicleAmount = data.depositOnly ? 25000 : normalizeAmountToCents(vehicle.price)
+  const idempotencyKey = createHash('sha256')
+    .update([
+      data.vehicleId,
+      data.protectionPlanId || 'none',
+      data.depositOnly ? 'deposit' : 'full',
+      data.customerEmail || 'guest',
+    ].join(':'))
+    .digest('hex')
+
   lineItems.push({
     price_data: {
       currency: 'cad',
       product_data: {
-        name: data.depositOnly ? `Deposit - ${data.vehicleName}` : data.vehicleName,
+        name: data.depositOnly ? `Deposit - ${serverVehicleName}` : serverVehicleName,
         description: data.depositOnly ? 'Refundable vehicle deposit' : 'Vehicle purchase',
       },
-      unit_amount: data.vehiclePriceCents,
+      unit_amount: vehicleAmount,
     },
     quantity: 1,
   })
@@ -50,8 +93,15 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
     redirect_on_completion: 'never',
     line_items: lineItems,
     mode: 'payment',
-    metadata: { vehicleId: data.vehicleId, depositOnly: String(data.depositOnly || false) },
+    metadata: {
+      vehicleId: data.vehicleId,
+      depositOnly: String(data.depositOnly || false),
+      protectionPlanId: data.protectionPlanId || '',
+      amountSource: 'server',
+    },
     ...(data.customerEmail && { customer_email: data.customerEmail }),
+  }, {
+    idempotencyKey,
   })
 
   return session.client_secret
