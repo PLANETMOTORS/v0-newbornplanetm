@@ -16,7 +16,6 @@ const nextConfig = {
     optimizePackageImports: ['sanity', '@sanity/ui', 'lucide-react', '@radix-ui/react-icons'],
   },
   
-  typescript: { ignoreBuildErrors: true },
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
