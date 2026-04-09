@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server"
 type DocumentWithFileAndApplication = {
   id: string
   file_url: string
-  finance_applications_v2: { user_id: string }
+  finance_applications_v2: { user_id: string }[]
 }
 
 // GET /api/v1/financing/documents/download?pathname=xxx&documentId=xxx
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Document not found" }, { status: 404 })
       }
       
-      if ((document as DocumentWithFileAndApplication).finance_applications_v2.user_id !== user.id) {
+      if ((document as DocumentWithFileAndApplication).finance_applications_v2[0]?.user_id !== user.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
       }
       

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
 // GET /api/v1/customers/me - Get current customer profile
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -10,21 +10,43 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // TODO: fetch real profile from DB; returning stub until profiles table is wired up
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id, email, first_name, last_name, phone, notification_preferences, created_at, updated_at")
+      .eq("id", user.id)
+      .maybeSingle()
+
+    if (profileError) {
+      return NextResponse.json({ error: "Failed to fetch customer" }, { status: 500 })
+    }
+
     const customer = {
       id: user.id,
-      email: user.email,
-      createdAt: user.created_at,
+      email: profile?.email ?? user.email,
+      firstName: profile?.first_name ?? null,
+      lastName: profile?.last_name ?? null,
+      phone: profile?.phone ?? null,
+      notificationPreferences: profile?.notification_preferences ?? { email: true, sms: false },
+      createdAt: profile?.created_at ?? user.created_at,
+      updatedAt: profile?.updated_at ?? null,
     }
 
     return NextResponse.json({ customer })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch customer" },
       { status: 500 }
     )
   }
 }
+
+// Validation helpers
+// Unicode allowlist covers all letters from all scripts (Latin, Cyrillic, CJK, etc.)
+// to support diverse customer names. NFC normalization is applied before matching so
+// pre-composed characters (e.g. "ắ") are matched as a single \p{L} code point;
+// combining marks (\p{M}) are intentionally excluded to prevent homograph attacks.
+const NAME_RE = /^[\p{L}'\-\s]{1,50}$/u
+const PHONE_RE = /^[+\d\s().\-]{0,20}$/
 
 // PUT /api/v1/customers/me - Update customer profile
 export async function PUT(request: NextRequest) {
@@ -36,19 +58,63 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
+    const { firstName, lastName, phone, notificationPreferences } = body
 
-    // TODO: persist update to profiles table
-    const updatedCustomer = {
+    // Validate provided fields
+    if (firstName !== undefined) {
+      // Normalize to NFC to prevent homograph attacks with lookalike Unicode characters
+      const name = String(firstName).normalize('NFC').trim()
+      if (name.length === 0 || name.length > 50 || !NAME_RE.test(name)) {
+        return NextResponse.json({ error: "Invalid firstName: must be 1-50 characters containing only letters, spaces, hyphens, or apostrophes" }, { status: 400 })
+      }
+    }
+    if (lastName !== undefined) {
+      const name = String(lastName).normalize('NFC').trim()
+      if (name.length === 0 || name.length > 50 || !NAME_RE.test(name)) {
+        return NextResponse.json({ error: "Invalid lastName: must be 1-50 characters containing only letters, spaces, hyphens, or apostrophes" }, { status: 400 })
+      }
+    }
+    if (phone !== undefined && phone !== null) {
+      const ph = String(phone).trim()
+      if (!PHONE_RE.test(ph)) {
+        return NextResponse.json({ error: "Invalid phone number format" }, { status: 400 })
+      }
+    }
+
+    const updates: Record<string, unknown> = {
       id: user.id,
-      ...body,
-      updatedAt: new Date().toISOString(),
+      email: user.email,
+      updated_at: new Date().toISOString(),
+    }
+    if (firstName !== undefined) updates.first_name = String(firstName).normalize('NFC').trim()
+    if (lastName !== undefined) updates.last_name = String(lastName).normalize('NFC').trim()
+    if (phone !== undefined) updates.phone = phone !== null ? String(phone).trim() : null
+    if (notificationPreferences !== undefined) updates.notification_preferences = notificationPreferences
+
+    const { data: row, error: upsertError } = await supabase
+      .from("profiles")
+      .upsert(updates)
+      .select("id, email, first_name, last_name, phone, notification_preferences, created_at, updated_at")
+      .single()
+
+    if (upsertError) {
+      return NextResponse.json({ error: "Failed to update customer" }, { status: 500 })
     }
 
     return NextResponse.json({
       success: true,
-      customer: updatedCustomer,
+      customer: {
+        id: row.id,
+        email: row.email ?? user.email,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        phone: row.phone,
+        notificationPreferences: row.notification_preferences,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      },
     })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to update customer" },
       { status: 500 }

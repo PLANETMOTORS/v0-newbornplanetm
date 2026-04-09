@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
+import { getCachedSearchResults, cacheSearchResults } from "@/lib/redis"
 
 const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
+const VEHICLE_DETAIL_TTL = 120 // 2 minutes
 
 const ALLOWED_STATUSES = new Set([
   "available",
@@ -30,6 +32,18 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+
+    const cacheKey = `vehicle:detail:${id}`
+    const cached = await getCachedSearchResults(cacheKey)
+    if (cached) {
+      return NextResponse.json(cached, {
+        headers: {
+          'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600',
+          'X-Cache': 'HIT',
+        },
+      })
+    }
+
     const supabase = await createClient()
 
     const { data: vehicle, error } = await supabase
@@ -52,10 +66,19 @@ export async function GET(
       )
     }
 
-    return NextResponse.json({
+    const responseBody = {
       success: true,
       data: {
         vehicle: toPublicVehicle(vehicle),
+      },
+    }
+
+    await cacheSearchResults(cacheKey, responseBody, VEHICLE_DETAIL_TTL)
+
+    return NextResponse.json(responseBody, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600',
+        'X-Cache': 'MISS',
       },
     })
   } catch (error) {

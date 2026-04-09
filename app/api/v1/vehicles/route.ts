@@ -1,11 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getCachedSearchResults, cacheSearchResults } from '@/lib/redis'
+import { createHash } from 'crypto'
 
 const ALLOWED_SORT_COLUMNS = new Set(['created_at', 'price', 'year', 'mileage', 'make', 'model'])
+
+// Cache TTLs in seconds
+const VEHICLE_LIST_TTL = 60       // 1 minute for paginated results
+const FACETS_TTL = 300            // 5 minutes for filter facets
 
 function asInt(value: string | null, fallback: number) {
   const parsed = Number.parseInt(value || '', 10)
   return Number.isNaN(parsed) ? fallback : parsed
+}
+
+function hashParams(params: Record<string, unknown>): string {
+  // Normalize: remove null/undefined and sort keys for deterministic hashing
+  const normalized = Object.fromEntries(
+    Object.entries(params)
+      .filter(([, v]) => v !== null && v !== undefined)
+      .sort(([a], [b]) => a.localeCompare(b))
+  )
+  return createHash('sha256').update(JSON.stringify(normalized)).digest('hex').slice(0, 16)
 }
 
 // GET /api/v1/vehicles - List vehicles with filtering
@@ -32,6 +48,20 @@ export async function GET(request: NextRequest) {
   const rawLimit = asInt(searchParams.get('limit'), 20)
   const limit = Math.min(Math.max(1, rawLimit), 100)
   const includeFilters = searchParams.get('includeFilters') === 'true'
+
+  // Build a cache key from all query params
+  const cacheParams = { make, model, minYear, maxYear, minPrice, maxPrice, bodyStyle, fuelType, transmission, drivetrain, status, sort, order, page, limit, includeFilters }
+  const cacheKey = `vehicles:list:${hashParams(cacheParams)}`
+
+  const cached = await getCachedSearchResults(cacheKey)
+  if (cached) {
+    return NextResponse.json(cached, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        'X-Cache': 'HIT',
+      },
+    })
+  }
 
   // Build query
   let query = supabase
@@ -74,35 +104,51 @@ export async function GET(request: NextRequest) {
   } | undefined
 
   // Computing facets can be expensive on large inventories, so keep it opt-in.
+  // Use a separate Redis cache for facets since they change less frequently.
   if (includeFilters) {
-    const { data: allVehicles } = await supabase
-      .from('vehicles')
-      .select('make, body_style, fuel_type, price, year')
-      .eq('status', 'available')
-      .limit(1000)
+    const facetsCacheKey = 'vehicles:facets:available'
+    const cachedFacets = await getCachedSearchResults(facetsCacheKey)
 
-    const makes = [...new Set(allVehicles?.map(v => v.make).filter(Boolean) || [])]
-    const bodyStyles = [...new Set(allVehicles?.map(v => v.body_style).filter(Boolean) || [])]
-    const fuelTypes = [...new Set(allVehicles?.map(v => v.fuel_type).filter(Boolean) || [])]
-    const prices = allVehicles?.map(v => v.price / 100) || []
-    const years = allVehicles?.map(v => v.year) || []
+    if (cachedFacets && typeof cachedFacets === 'object' && 'makes' in cachedFacets) {
+      filters = cachedFacets as typeof filters
+    } else {
+      // Use SQL aggregations instead of fetching all rows into JS
+      const [makesRes, bodyStylesRes, fuelTypesRes, minPriceRes, maxPriceRes, minYearRes, maxYearRes] = await Promise.all([
+        // Limit to 200: covers any realistic vehicle inventory (200 distinct makes is far above real world).
+        // If the limit is ever approached, results will be silently truncated; add an alert if
+        // `makesRes.data?.length === 200` is observed in production logs.
+        supabase.from('vehicles').select('make').eq('status', 'available').not('make', 'is', null).order('make').limit(200),
+        supabase.from('vehicles').select('body_style').eq('status', 'available').not('body_style', 'is', null).order('body_style').limit(200),
+        supabase.from('vehicles').select('fuel_type').eq('status', 'available').not('fuel_type', 'is', null).order('fuel_type').limit(200),
+        supabase.from('vehicles').select('price').eq('status', 'available').order('price', { ascending: true }).limit(1),
+        supabase.from('vehicles').select('price').eq('status', 'available').order('price', { ascending: false }).limit(1),
+        supabase.from('vehicles').select('year').eq('status', 'available').order('year', { ascending: true }).limit(1),
+        supabase.from('vehicles').select('year').eq('status', 'available').order('year', { ascending: false }).limit(1),
+      ])
 
-    filters = {
-      makes: makes.sort(),
-      bodyStyles: bodyStyles.sort(),
-      fuelTypes: fuelTypes.sort(),
-      priceRange: {
-        min: prices.length > 0 ? Math.min(...prices) : 0,
-        max: prices.length > 0 ? Math.max(...prices) : 100000,
-      },
-      yearRange: {
-        min: years.length > 0 ? Math.min(...years) : 2018,
-        max: years.length > 0 ? Math.max(...years) : new Date().getFullYear(),
-      },
+      const makes = [...new Set(makesRes.data?.map(v => v.make) || [])].sort() as string[]
+      const bodyStyles = [...new Set(bodyStylesRes.data?.map(v => v.body_style) || [])].sort() as string[]
+      const fuelTypes = [...new Set(fuelTypesRes.data?.map(v => v.fuel_type) || [])].sort() as string[]
+
+      filters = {
+        makes,
+        bodyStyles,
+        fuelTypes,
+        priceRange: {
+          min: minPriceRes.data?.[0]?.price != null ? minPriceRes.data[0].price / 100 : 0,
+          max: maxPriceRes.data?.[0]?.price != null ? maxPriceRes.data[0].price / 100 : 100000,
+        },
+        yearRange: {
+          min: minYearRes.data?.[0]?.year ?? 2018,
+          max: maxYearRes.data?.[0]?.year ?? new Date().getFullYear(),
+        },
+      }
+
+      await cacheSearchResults(facetsCacheKey, filters, FACETS_TTL)
     }
   }
 
-  return NextResponse.json({
+  const responseBody = {
     success: true,
     data: {
       vehicles: vehicles?.map(v => ({
@@ -119,9 +165,14 @@ export async function GET(request: NextRequest) {
       },
       ...(filters ? { filters } : {}),
     },
-  }, {
+  }
+
+  await cacheSearchResults(cacheKey, responseBody, VEHICLE_LIST_TTL)
+
+  return NextResponse.json(responseBody, {
     headers: {
-      'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=120',
+      'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+      'X-Cache': 'MISS',
     },
   })
 }
@@ -142,6 +193,15 @@ export async function POST(request: NextRequest) {
   const safeSortOrder = sort.order === 'asc' ? 'asc' : 'desc'
   const safeLimit = Math.min(Math.max(1, asInt(String(pagination.limit || 20), 20)), 100)
   const safePage = Math.max(1, asInt(String(pagination.page || 1), 1))
+
+  // Cache key for this search
+  const cacheKey = `vehicles:search:${hashParams({ searchQuery, filters, sort, pagination: { page: safePage, limit: safeLimit } })}`
+  const cached = await getCachedSearchResults(cacheKey)
+  if (cached) {
+    return NextResponse.json(cached, {
+      headers: { 'X-Cache': 'HIT' },
+    })
+  }
 
   // Build base query
   let query = supabase
@@ -181,20 +241,38 @@ export async function POST(request: NextRequest) {
   const startIndex = (safePage - 1) * safeLimit
   query = query.range(startIndex, startIndex + safeLimit - 1)
 
-  const { data: vehicles, error, count } = await query
+  const [{ data: vehicles, error, count }, aggregationsResult] = await Promise.all([
+    query,
+    // Use a Redis-cached RPC call for aggregations to avoid repeated full-table scans.
+    // The RPC function uses DB-level GROUP BY / COUNT, which is far more efficient than
+    // fetching all rows. Cache TTL matches FACETS_TTL (5 minutes).
+    getCachedSearchResults('vehicles:search:aggregations').then(async (hit) => {
+      if (hit) return hit
+      const { data } = await supabase.rpc('get_vehicle_aggregations')
+      if (data) {
+        await cacheSearchResults('vehicles:search:aggregations', data, FACETS_TTL)
+      }
+      return data ?? null
+    }),
+  ])
 
   if (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
 
-  // Get aggregations
-  const { data: allVehicles } = await supabase
-    .from('vehicles')
-    .select('make, body_style, price')
-    .eq('status', 'available')
-    .limit(1000)
+  type AggregationResult = {
+    makes: Array<{ key: string; count: number }>
+    bodyStyles: Array<{ key: string; count: number }>
+    priceRanges: Array<{ key: string; count: number }>
+  }
 
-  return NextResponse.json({
+  const aggregations = (aggregationsResult as AggregationResult | null) ?? {
+    makes: [],
+    bodyStyles: [],
+    priceRanges: [],
+  }
+
+  const responseBody = {
     success: true,
     data: {
       vehicles: vehicles?.map(v => ({
@@ -203,23 +281,13 @@ export async function POST(request: NextRequest) {
         msrp: v.msrp ? v.msrp / 100 : null
       })),
       total: count || 0,
-      aggregations: {
-        makes: [...new Set(allVehicles?.map(v => v.make) || [])].map(make => ({
-          key: make,
-          count: allVehicles?.filter(v => v.make === make).length || 0,
-        })),
-        bodyStyles: [...new Set(allVehicles?.map(v => v.body_style).filter(Boolean) || [])].map(style => ({
-          key: style,
-          count: allVehicles?.filter(v => v.body_style === style).length || 0,
-        })),
-        priceRanges: [
-          { key: 'Under $30k', count: allVehicles?.filter(v => v.price < 3000000).length || 0 },
-          { key: '$30k-$50k', count: allVehicles?.filter(v => v.price >= 3000000 && v.price < 5000000).length || 0 },
-          { key: '$50k-$75k', count: allVehicles?.filter(v => v.price >= 5000000 && v.price < 7500000).length || 0 },
-          { key: '$75k-$100k', count: allVehicles?.filter(v => v.price >= 7500000 && v.price < 10000000).length || 0 },
-          { key: 'Over $100k', count: allVehicles?.filter(v => v.price >= 10000000).length || 0 },
-        ],
-      },
+      aggregations,
     },
+  }
+
+  await cacheSearchResults(cacheKey, responseBody, VEHICLE_LIST_TTL)
+
+  return NextResponse.json(responseBody, {
+    headers: { 'X-Cache': 'MISS' },
   })
 }
