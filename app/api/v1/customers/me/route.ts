@@ -40,8 +40,8 @@ export async function GET(_request: NextRequest) {
   }
 }
 
-// Validation helpers
-const NAME_RE = /^[^<>{}[\]]*$/ // disallow common HTML/script injection chars
+// Validation helpers - allowlist only safe characters for human names
+const NAME_RE = /^[\p{L}\p{M}'\-\s]{1,50}$/u // Unicode letters, marks, apostrophe, hyphen, space
 const PHONE_RE = /^[+\d\s().\-]{0,20}$/
 
 // PUT /api/v1/customers/me - Update customer profile
@@ -59,14 +59,14 @@ export async function PUT(request: NextRequest) {
     // Validate provided fields
     if (firstName !== undefined) {
       const name = String(firstName).trim()
-      if (name.length > 50 || !NAME_RE.test(name)) {
-        return NextResponse.json({ error: "Invalid firstName" }, { status: 400 })
+      if (name.length === 0 || name.length > 50 || !NAME_RE.test(name)) {
+        return NextResponse.json({ error: "Invalid firstName: must be 1-50 characters containing only letters, spaces, hyphens, or apostrophes" }, { status: 400 })
       }
     }
     if (lastName !== undefined) {
       const name = String(lastName).trim()
-      if (name.length > 50 || !NAME_RE.test(name)) {
-        return NextResponse.json({ error: "Invalid lastName" }, { status: 400 })
+      if (name.length === 0 || name.length > 50 || !NAME_RE.test(name)) {
+        return NextResponse.json({ error: "Invalid lastName: must be 1-50 characters containing only letters, spaces, hyphens, or apostrophes" }, { status: 400 })
       }
     }
     if (phone !== undefined && phone !== null) {

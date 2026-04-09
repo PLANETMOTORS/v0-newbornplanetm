@@ -111,30 +111,31 @@ export async function GET(request: NextRequest) {
       filters = cachedFacets as typeof filters
     } else {
       // Use SQL aggregations instead of fetching all rows into JS
-      const [makesRes, bodyStylesRes, fuelTypesRes, rangesRes] = await Promise.all([
+      const [makesRes, bodyStylesRes, fuelTypesRes, minPriceRes, maxPriceRes, minYearRes, maxYearRes] = await Promise.all([
         supabase.from('vehicles').select('make').eq('status', 'available').not('make', 'is', null).order('make'),
         supabase.from('vehicles').select('body_style').eq('status', 'available').not('body_style', 'is', null).order('body_style'),
         supabase.from('vehicles').select('fuel_type').eq('status', 'available').not('fuel_type', 'is', null).order('fuel_type'),
-        // Use SQL aggregate functions to avoid fetching all rows for range computation
-        supabase.from('vehicles').select('price.min(),price.max(),year.min(),year.max()').eq('status', 'available').limit(1),
+        supabase.from('vehicles').select('price').eq('status', 'available').order('price', { ascending: true }).limit(1),
+        supabase.from('vehicles').select('price').eq('status', 'available').order('price', { ascending: false }).limit(1),
+        supabase.from('vehicles').select('year').eq('status', 'available').order('year', { ascending: true }).limit(1),
+        supabase.from('vehicles').select('year').eq('status', 'available').order('year', { ascending: false }).limit(1),
       ])
 
       const makes = [...new Set(makesRes.data?.map(v => v.make) || [])].sort() as string[]
       const bodyStyles = [...new Set(bodyStylesRes.data?.map(v => v.body_style) || [])].sort() as string[]
       const fuelTypes = [...new Set(fuelTypesRes.data?.map(v => v.fuel_type) || [])].sort() as string[]
-      const rangeRow = rangesRes.data?.[0] as { price: { min: number | null; max: number | null }; year: { min: number | null; max: number | null } } | undefined
 
       filters = {
         makes,
         bodyStyles,
         fuelTypes,
         priceRange: {
-          min: rangeRow?.price?.min != null ? rangeRow.price.min / 100 : 0,
-          max: rangeRow?.price?.max != null ? rangeRow.price.max / 100 : 100000,
+          min: minPriceRes.data?.[0]?.price != null ? minPriceRes.data[0].price / 100 : 0,
+          max: maxPriceRes.data?.[0]?.price != null ? maxPriceRes.data[0].price / 100 : 100000,
         },
         yearRange: {
-          min: rangeRow?.year?.min ?? 2018,
-          max: rangeRow?.year?.max ?? new Date().getFullYear(),
+          min: minYearRes.data?.[0]?.year ?? 2018,
+          max: maxYearRes.data?.[0]?.year ?? new Date().getFullYear(),
         },
       }
 
