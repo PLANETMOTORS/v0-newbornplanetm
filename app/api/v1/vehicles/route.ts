@@ -14,6 +14,8 @@ function asInt(value: string | null, fallback: number) {
   return Number.isNaN(parsed) ? fallback : parsed
 }
 
+// 32 hex chars (128 bits) provides ample collision resistance for Redis cache keys
+// while keeping key lengths compact compared to the full 64-char digest.
 function hashKey(input: string): string {
   return createHash('sha256').update(input).digest('hex').slice(0, 32)
 }
@@ -252,31 +254,37 @@ export async function POST(request: NextRequest) {
       .eq('status', 'available')
       .limit(1000)
 
+    // Price thresholds in cents
+    const PRICE_30K_CENTS  = 3_000_000
+    const PRICE_50K_CENTS  = 5_000_000
+    const PRICE_75K_CENTS  = 7_500_000
+    const PRICE_100K_CENTS = 10_000_000
+
     // Build count maps in a single O(n) pass
     const makeCounts = new Map<string, number>()
     const bodyStyleCounts = new Map<string, number>()
-    let under30k = 0, from30to50k = 0, from50to75k = 0, from75to100k = 0, over100k = 0
+    let under30kCount = 0, from30to50kCount = 0, from50to75kCount = 0, from75to100kCount = 0, over100kCount = 0
 
     for (const v of allVehicles ?? []) {
       if (v.make) makeCounts.set(v.make, (makeCounts.get(v.make) || 0) + 1)
       if (v.body_style) bodyStyleCounts.set(v.body_style, (bodyStyleCounts.get(v.body_style) || 0) + 1)
       const p = v.price
-      if (p < 3000000) under30k++
-      else if (p < 5000000) from30to50k++
-      else if (p < 7500000) from50to75k++
-      else if (p < 10000000) from75to100k++
-      else over100k++
+      if (p < PRICE_30K_CENTS) under30kCount++
+      else if (p < PRICE_50K_CENTS) from30to50kCount++
+      else if (p < PRICE_75K_CENTS) from50to75kCount++
+      else if (p < PRICE_100K_CENTS) from75to100kCount++
+      else over100kCount++
     }
 
     aggregations = {
       makes: Array.from(makeCounts.entries()).map(([key, count]) => ({ key, count })),
       bodyStyles: Array.from(bodyStyleCounts.entries()).map(([key, count]) => ({ key, count })),
       priceRanges: [
-        { key: 'Under $30k', count: under30k },
-        { key: '$30k-$50k', count: from30to50k },
-        { key: '$50k-$75k', count: from50to75k },
-        { key: '$75k-$100k', count: from75to100k },
-        { key: 'Over $100k', count: over100k },
+        { key: 'Under $30k', count: under30kCount },
+        { key: '$30k-$50k', count: from30to50kCount },
+        { key: '$50k-$75k', count: from50to75kCount },
+        { key: '$75k-$100k', count: from75to100kCount },
+        { key: 'Over $100k', count: over100kCount },
       ],
     }
 
