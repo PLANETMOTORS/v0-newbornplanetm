@@ -85,4 +85,4 @@ DROP POLICY IF EXISTS "Users can update own open orders" ON public.orders;
 CREATE POLICY "Users can update own open orders"
   ON public.orders FOR UPDATE
   USING (auth.uid() = customer_id AND status IN ('created', 'confirmed'))
-  WITH CHECK (auth.uid() = customer_id);
+  WITH CHECK (auth.uid() = customer_id AND status IN ('created', 'confirmed'));

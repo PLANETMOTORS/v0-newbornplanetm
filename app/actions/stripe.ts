@@ -20,15 +20,15 @@ interface VehicleCheckoutData {
   customerEmail?: string
 }
 
-function normalizeAmountToCents(value: unknown): number {
+function validateCentsAmount(value: unknown): number {
   const numericValue = typeof value === 'string' ? Number.parseFloat(value) : Number(value)
 
   if (!Number.isFinite(numericValue) || numericValue <= 0) {
     throw new Error('Invalid vehicle price')
   }
 
-  // Support databases storing either dollars or cents.
-  return numericValue >= 1_000_000 ? Math.round(numericValue) : Math.round(numericValue * 100)
+  // Prices in `vehicles` are persisted in cents; do not apply dollar->cent conversion.
+  return Math.round(numericValue)
 }
 
 export async function startVehicleCheckout(data: VehicleCheckoutData) {
@@ -54,7 +54,7 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
 
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
   const serverVehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`.trim() || data.vehicleName
-  const vehicleAmount = data.depositOnly ? 25000 : normalizeAmountToCents(vehicle.price)
+  const vehicleAmount = data.depositOnly ? 25000 : validateCentsAmount(vehicle.price)
   const idempotencyKey = createHash('sha256')
     .update([
       data.vehicleId,
