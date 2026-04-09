@@ -38,8 +38,10 @@ export async function GET(_request: NextRequest) {
   }
 }
 
-// Validation helpers - allowlist only safe characters for human names
-const NAME_RE = /^[\p{L}\p{M}'\-\s]{1,50}$/u // Unicode letters, marks, apostrophe, hyphen, space
+// Validation helpers
+// Unicode allowlist covers Latin, Cyrillic, Arabic, CJK, etc. to support all customer names
+// (appropriate for a Canadian multi-cultural customer base).
+const NAME_RE = /^[\p{L}\p{M}'\-\s]{1,50}$/u
 const PHONE_RE = /^[+\d\s().\-]{0,20}$/
 
 // PUT /api/v1/customers/me - Update customer profile
@@ -79,9 +81,9 @@ export async function PUT(request: NextRequest) {
       email: user.email,
       updated_at: new Date().toISOString(),
     }
-    if (firstName !== undefined) updates.first_name = String(firstName).trim().slice(0, 50)
-    if (lastName !== undefined) updates.last_name = String(lastName).trim().slice(0, 50)
-    if (phone !== undefined) updates.phone = phone !== null ? String(phone).trim().slice(0, 20) : null
+    if (firstName !== undefined) updates.first_name = String(firstName).trim()
+    if (lastName !== undefined) updates.last_name = String(lastName).trim()
+    if (phone !== undefined) updates.phone = phone !== null ? String(phone).trim() : null
     if (notificationPreferences !== undefined) updates.notification_preferences = notificationPreferences
 
     const { data: row, error: upsertError } = await supabase

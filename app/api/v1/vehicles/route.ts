@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
   if (q) query = query.or(`make.ilike.%${q}%,model.ilike.%${q}%,trim.ilike.%${q}%`)
   if (minYear) query = query.gte('year', parseInt(minYear))
   if (maxYear) query = query.lte('year', parseInt(maxYear))
-  if (minPrice) query = query.gte('price', parseInt(minPrice) * 100) // Convert to cents
+  if (minPrice) query = query.gte('price', parseInt(minPrice) * 100)
   if (maxPrice) query = query.lte('price', parseInt(maxPrice) * 100)
   if (minMileage) query = query.gte('mileage', parseInt(minMileage))
   if (maxMileage) query = query.lte('mileage', parseInt(maxMileage))
@@ -331,11 +331,11 @@ export async function POST(request: NextRequest) {
       makes: Array.from(makeCounts.entries()).map(([key, count]) => ({ key, count })),
       bodyStyles: Array.from(bodyStyleCounts.entries()).map(([key, count]) => ({ key, count })),
       priceRanges: [
-        { key: 'Under \$30k', count: under30kCount },
-        { key: '\$30k-\$50k', count: from30to50kCount },
-        { key: '\$50k-\$75k', count: from50to75kCount },
-        { key: '\$75k-\$100k', count: from75to100kCount },
-        { key: 'Over \$100k', count: over100kCount },
+        { key: 'Under $30k', count: under30kCount },
+        { key: '$30k-$50k', count: from30to50kCount },
+        { key: '$50k-$75k', count: from50to75kCount },
+        { key: '$75k-$100k', count: from75to100kCount },
+        { key: 'Over $100k', count: over100kCount },
       ],
     }
 
