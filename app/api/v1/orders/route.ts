@@ -70,16 +70,27 @@ export async function POST(request: NextRequest) {
 
   // Validate province and resolve tax rate.
   // Resolve province to a known 2-letter Canadian province code.
-  // Callers should always supply a valid province; defaulting to ON is a
-  // backward-compat fallback only — a warning is emitted so it can be fixed.
-  const upperProvince = typeof province === 'string' ? province.toUpperCase() : ''
-  const isValidProvince = upperProvince in PROVINCE_TAX_RATES
-  if (!isValidProvince) {
-    console.warn(
-      `[orders] Invalid or missing province "${province}" for order by user ${user.id}. Defaulting to ON.`
+  // If province is explicitly provided but unrecognised, reject immediately.
+  // If province is absent, default to ON for backward-compat and log a warning.
+  const hasProvince = typeof province === 'string' && province.trim() !== ''
+  if (hasProvince && !(province.toUpperCase() in PROVINCE_TAX_RATES)) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'INVALID_PROVINCE',
+          message: `Unknown province code "${province}". Use a valid 2-letter Canadian province code (e.g. ON, BC, AB).`,
+        },
+      },
+      { status: 400 }
     )
   }
-  const resolvedProvince = isValidProvince ? upperProvince : 'ON'
+  if (!hasProvince) {
+    console.warn(
+      `[orders] Province not provided for order by user ${user.id}. Defaulting to ON.`
+    )
+  }
+  const resolvedProvince = hasProvince ? province.toUpperCase() : 'ON'
   const taxInfo = PROVINCE_TAX_RATES[resolvedProvince]
 
   if (!vehicleId || !paymentMethod) {
