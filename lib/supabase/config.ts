@@ -1,7 +1,9 @@
-const FALLBACK_SUPABASE_URL = "https://ldervbcvkoawwknsemuz.supabase.co"
-
 export function getSupabaseUrl(): string {
-  return process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_SUPABASE_URL
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+  if (!supabaseUrl) {
+    throw new Error("NEXT_PUBLIC_SUPABASE_URL (or SUPABASE_URL) is required")
+  }
+  return supabaseUrl
 }
 
 export function getSupabaseAnonKey(): string | undefined {
