@@ -177,7 +177,7 @@ export function Header() {
         Skip to main content
       </a>
 
-      <div className="sticky top-0 z-[60]">
+      <div className="sticky top-0 z-[100]">
 
       {!scrolled && (
         <div className="bg-primary text-primary-foreground text-sm py-2">
