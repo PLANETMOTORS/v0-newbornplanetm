@@ -363,7 +363,7 @@ export function Header() {
       </header>
 
       {!scrolled && (
-        <div className="relative z-[10] bg-gray-100 border-b border-gray-200 text-gray-700 text-sm py-2.5">
+        <div className="bg-gray-100 border-b border-gray-200 text-gray-700 text-sm py-2.5">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-center gap-3 sm:gap-6 md:gap-10 overflow-x-auto scrollbar-hide">
               <div className="flex items-center gap-2 whitespace-nowrap">
