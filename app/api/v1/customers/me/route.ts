@@ -58,13 +58,14 @@ export async function PUT(request: NextRequest) {
 
     // Validate provided fields
     if (firstName !== undefined) {
-      const name = String(firstName).trim()
+      // Normalize to NFC to prevent homograph attacks with lookalike Unicode characters
+      const name = String(firstName).normalize('NFC').trim()
       if (name.length === 0 || name.length > 50 || !NAME_RE.test(name)) {
         return apiError(ErrorCode.VALIDATION_ERROR, "Invalid firstName: must be 1-50 characters containing only letters, spaces, hyphens, or apostrophes", 400)
       }
     }
     if (lastName !== undefined) {
-      const name = String(lastName).trim()
+      const name = String(lastName).normalize('NFC').trim()
       if (name.length === 0 || name.length > 50 || !NAME_RE.test(name)) {
         return apiError(ErrorCode.VALIDATION_ERROR, "Invalid lastName: must be 1-50 characters containing only letters, spaces, hyphens, or apostrophes", 400)
       }
@@ -81,8 +82,8 @@ export async function PUT(request: NextRequest) {
       email: user.email,
       updated_at: new Date().toISOString(),
     }
-    if (firstName !== undefined) updates.first_name = String(firstName).trim()
-    if (lastName !== undefined) updates.last_name = String(lastName).trim()
+    if (firstName !== undefined) updates.first_name = String(firstName).normalize('NFC').trim()
+    if (lastName !== undefined) updates.last_name = String(lastName).normalize('NFC').trim()
     if (phone !== undefined) updates.phone = phone !== null ? String(phone).trim() : null
     if (notificationPreferences !== undefined) updates.notification_preferences = notificationPreferences
 

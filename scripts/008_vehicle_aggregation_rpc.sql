@@ -29,12 +29,26 @@ AS $$
         GROUP BY body_style
       ) t
     ),
-    'priceRanges', json_build_array(
-      json_build_object('key', 'Under $30k',   'count', (SELECT COUNT(*)::int FROM vehicles WHERE status = 'available' AND price < 3000000)),
-      json_build_object('key', '$30k-$50k',    'count', (SELECT COUNT(*)::int FROM vehicles WHERE status = 'available' AND price >= 3000000 AND price < 5000000)),
-      json_build_object('key', '$50k-$75k',    'count', (SELECT COUNT(*)::int FROM vehicles WHERE status = 'available' AND price >= 5000000 AND price < 7500000)),
-      json_build_object('key', '$75k-$100k',   'count', (SELECT COUNT(*)::int FROM vehicles WHERE status = 'available' AND price >= 7500000 AND price < 10000000)),
-      json_build_object('key', 'Over $100k',   'count', (SELECT COUNT(*)::int FROM vehicles WHERE status = 'available' AND price >= 10000000))
+    'priceRanges', (
+      SELECT json_agg(row_to_json(t))
+      FROM (
+        SELECT
+          range_label AS key,
+          COUNT(*)::int AS count
+        FROM vehicles
+        CROSS JOIN LATERAL (
+          SELECT CASE
+            WHEN price < 3000000                       THEN 'Under $30k'
+            WHEN price >= 3000000 AND price < 5000000  THEN '$30k-$50k'
+            WHEN price >= 5000000 AND price < 7500000  THEN '$50k-$75k'
+            WHEN price >= 7500000 AND price < 10000000 THEN '$75k-$100k'
+            ELSE 'Over $100k'
+          END AS range_label
+        ) r
+        WHERE status = 'available'
+        GROUP BY range_label
+        ORDER BY MIN(price)
+      ) t
     )
   );
 $$;
