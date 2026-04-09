@@ -15,7 +15,7 @@ function asInt(value: string | null, fallback: number) {
 }
 
 function hashKey(input: string): string {
-  return createHash('sha256').update(input).digest('hex').slice(0, 16)
+  return createHash('sha256').update(input).digest('hex').slice(0, 32)
 }
 
 // GET /api/v1/vehicles - List vehicles with filtering
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
       const { data: allVehicles } = await supabase
         .from('vehicles')
         .select('make, body_style, fuel_type, price, year')
-        .eq('status', 'available')
+        .eq('status', status)
         .limit(1000)
 
       const makes = [...new Set(allVehicles?.map(v => v.make).filter(Boolean) || [])]
@@ -252,21 +252,31 @@ export async function POST(request: NextRequest) {
       .eq('status', 'available')
       .limit(1000)
 
+    // Build count maps in a single O(n) pass
+    const makeCounts = new Map<string, number>()
+    const bodyStyleCounts = new Map<string, number>()
+    let under30k = 0, from30to50k = 0, from50to75k = 0, from75to100k = 0, over100k = 0
+
+    for (const v of allVehicles ?? []) {
+      if (v.make) makeCounts.set(v.make, (makeCounts.get(v.make) || 0) + 1)
+      if (v.body_style) bodyStyleCounts.set(v.body_style, (bodyStyleCounts.get(v.body_style) || 0) + 1)
+      const p = v.price
+      if (p < 3000000) under30k++
+      else if (p < 5000000) from30to50k++
+      else if (p < 7500000) from50to75k++
+      else if (p < 10000000) from75to100k++
+      else over100k++
+    }
+
     aggregations = {
-      makes: [...new Set(allVehicles?.map(v => v.make) || [])].map(make => ({
-        key: make,
-        count: allVehicles?.filter(v => v.make === make).length || 0,
-      })),
-      bodyStyles: [...new Set(allVehicles?.map(v => v.body_style).filter(Boolean) || [])].map(style => ({
-        key: style,
-        count: allVehicles?.filter(v => v.body_style === style).length || 0,
-      })),
+      makes: Array.from(makeCounts.entries()).map(([key, count]) => ({ key, count })),
+      bodyStyles: Array.from(bodyStyleCounts.entries()).map(([key, count]) => ({ key, count })),
       priceRanges: [
-        { key: 'Under $30k', count: allVehicles?.filter(v => v.price < 3000000).length || 0 },
-        { key: '$30k-$50k', count: allVehicles?.filter(v => v.price >= 3000000 && v.price < 5000000).length || 0 },
-        { key: '$50k-$75k', count: allVehicles?.filter(v => v.price >= 5000000 && v.price < 7500000).length || 0 },
-        { key: '$75k-$100k', count: allVehicles?.filter(v => v.price >= 7500000 && v.price < 10000000).length || 0 },
-        { key: 'Over $100k', count: allVehicles?.filter(v => v.price >= 10000000).length || 0 },
+        { key: 'Under $30k', count: under30k },
+        { key: '$30k-$50k', count: from30to50k },
+        { key: '$50k-$75k', count: from50to75k },
+        { key: '$75k-$100k', count: from75to100k },
+        { key: 'Over $100k', count: over100k },
       ],
     }
 
