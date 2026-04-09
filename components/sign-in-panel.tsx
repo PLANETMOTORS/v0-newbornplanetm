@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { X, Mail, Lock, ArrowRight, LogIn } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,16 +17,26 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [step, setStep] = useState<"welcome" | "login">("welcome")
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    // TODO: Implement actual authentication
-    setTimeout(() => {
+    setError(null)
+    try {
+      const supabase = createClient()
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+      if (signInError) {
+        setError(signInError.message)
+      } else {
+        onClose()
+      }
+    } catch {
+      setError("Sign in failed. Please try again.")
+    } finally {
       setIsLoading(false)
-      // Handle sign-in logic here
-    }, 1500)
+    }
   }
 
   if (!isOpen) return null
@@ -169,6 +180,10 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
                     />
                   </div>
                 </div>
+
+                {error && (
+                  <p className="text-sm text-red-600 text-center">{error}</p>
+                )}
 
                 <Button
                   type="submit"
