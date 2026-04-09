@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { put } from "@vercel/blob"
 
+type DocumentWithApplication = {
+  id: string
+  finance_applications_v2: { user_id: string }
+}
+
 // POST /api/v1/financing/documents - Upload document
 export async function POST(request: NextRequest) {
   try {
@@ -157,7 +162,7 @@ export async function DELETE(request: NextRequest) {
       .eq("id", documentId)
       .single()
     
-    if (!document || (document as any).finance_applications_v2.user_id !== user.id) {
+    if (!document || (document as DocumentWithApplication).finance_applications_v2.user_id !== user.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
     
