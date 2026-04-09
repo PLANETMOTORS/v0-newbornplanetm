@@ -112,9 +112,10 @@ export async function GET(request: NextRequest) {
     } else {
       // Use SQL aggregations instead of fetching all rows into JS
       const [makesRes, bodyStylesRes, fuelTypesRes, minPriceRes, maxPriceRes, minYearRes, maxYearRes] = await Promise.all([
-        supabase.from('vehicles').select('make').eq('status', 'available').not('make', 'is', null).order('make'),
-        supabase.from('vehicles').select('body_style').eq('status', 'available').not('body_style', 'is', null).order('body_style'),
-        supabase.from('vehicles').select('fuel_type').eq('status', 'available').not('fuel_type', 'is', null).order('fuel_type'),
+        // Limit to 200: no real inventory will have more than 200 distinct makes/styles/fuel types
+        supabase.from('vehicles').select('make').eq('status', 'available').not('make', 'is', null).order('make').limit(200),
+        supabase.from('vehicles').select('body_style').eq('status', 'available').not('body_style', 'is', null).order('body_style').limit(200),
+        supabase.from('vehicles').select('fuel_type').eq('status', 'available').not('fuel_type', 'is', null).order('fuel_type').limit(200),
         supabase.from('vehicles').select('price').eq('status', 'available').order('price', { ascending: true }).limit(1),
         supabase.from('vehicles').select('price').eq('status', 'available').order('price', { ascending: false }).limit(1),
         supabase.from('vehicles').select('year').eq('status', 'available').order('year', { ascending: true }).limit(1),
@@ -238,19 +239,16 @@ export async function POST(request: NextRequest) {
 
   const [{ data: vehicles, error, count }, aggregationsResult] = await Promise.all([
     query,
-    // Fetch aggregation data from Redis cache if available; only fetch from DB if uncached.
-    // This avoids a full-table scan on every search request.
+    // Use a Redis-cached RPC call for aggregations to avoid repeated full-table scans.
+    // The RPC function uses DB-level GROUP BY / COUNT, which is far more efficient than
+    // fetching all rows. Cache TTL matches FACETS_TTL (5 minutes).
     getCachedSearchResults('vehicles:search:aggregations').then(async (hit) => {
-      if (hit) return { data: hit as Array<{ make: string; body_style: string; price: number }>, fromCache: true }
-      const res = await supabase
-        .from('vehicles')
-        .select('make, body_style, price')
-        .eq('status', 'available')
-        .limit(10000)
-      if (res.data) {
-        await cacheSearchResults('vehicles:search:aggregations', res.data, FACETS_TTL)
+      if (hit) return hit
+      const { data } = await supabase.rpc('get_vehicle_aggregations')
+      if (data) {
+        await cacheSearchResults('vehicles:search:aggregations', data, FACETS_TTL)
       }
-      return { data: res.data ?? [], fromCache: false }
+      return data ?? null
     }),
   ])
 
@@ -258,7 +256,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
 
-  const allVehicles = (aggregationsResult.data ?? []) as Array<{ make: string; body_style: string; price: number }>
+  type AggregationResult = {
+    makes: Array<{ key: string; count: number }>
+    bodyStyles: Array<{ key: string; count: number }>
+    priceRanges: Array<{ key: string; count: number }>
+  }
+
+  const aggregations = (aggregationsResult as AggregationResult | null) ?? {
+    makes: [],
+    bodyStyles: [],
+    priceRanges: [],
+  }
 
   const responseBody = {
     success: true,
@@ -269,23 +277,7 @@ export async function POST(request: NextRequest) {
         msrp: v.msrp ? v.msrp / 100 : null
       })),
       total: count || 0,
-      aggregations: {
-        makes: [...new Set(allVehicles.map(v => v.make))].filter(Boolean).sort().map(make => ({
-          key: make,
-          count: allVehicles.filter(v => v.make === make).length,
-        })),
-        bodyStyles: [...new Set(allVehicles.map(v => v.body_style))].filter(Boolean).sort().map(style => ({
-          key: style,
-          count: allVehicles.filter(v => v.body_style === style).length,
-        })),
-        priceRanges: [
-          { key: 'Under $30k', count: allVehicles.filter(v => v.price < 3000000).length },
-          { key: '$30k-$50k', count: allVehicles.filter(v => v.price >= 3000000 && v.price < 5000000).length },
-          { key: '$50k-$75k', count: allVehicles.filter(v => v.price >= 5000000 && v.price < 7500000).length },
-          { key: '$75k-$100k', count: allVehicles.filter(v => v.price >= 7500000 && v.price < 10000000).length },
-          { key: 'Over $100k', count: allVehicles.filter(v => v.price >= 10000000).length },
-        ],
-      },
+      aggregations,
     },
   }
 
