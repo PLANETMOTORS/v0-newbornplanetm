@@ -153,10 +153,29 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       .update(`reservation:${reservationId}:${input.customerEmail}:${input.stockNumber}:${checkoutAttemptWindow}`)
       .digest('hex')
     
+    const enableAcssDebit = process.env.STRIPE_ENABLE_ACSS_DEBIT === 'true'
+    const paymentMethodTypes: Array<'card' | 'acss_debit'> = enableAcssDebit
+      ? ['card', 'acss_debit']
+      : ['card']
+
     const session = await stripe.checkout.sessions.create({
       ui_mode: 'embedded',
       redirect_on_completion: 'never',
       mode: 'payment',
+      payment_method_types: paymentMethodTypes,
+      ...(enableAcssDebit
+        ? {
+            payment_method_options: {
+              acss_debit: {
+                currency: 'cad',
+                mandate_options: {
+                  payment_schedule: 'sporadic',
+                  transaction_type: 'personal',
+                },
+              },
+            },
+          }
+        : {}),
       line_items: [
         {
           price_data: {
@@ -179,6 +198,15 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
         customerPhone: input.customerPhone || '',
         customerName: input.customerName || '',
         type: 'vehicle-reservation',
+      },
+      payment_intent_data: {
+        metadata: {
+          reservationId,
+          vehicleId: input.vehicleId,
+          stockNumber: input.stockNumber,
+          customerEmail: input.customerEmail,
+          type: 'vehicle-reservation',
+        },
       },
       return_url: `${baseUrl}/vehicles/${input.vehicleId}?reservation=complete`,
       expires_at: Math.floor(Date.now() / 1000) + 900, // 15 minutes
