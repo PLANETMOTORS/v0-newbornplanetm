@@ -2,61 +2,54 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
 // GET /api/v1/customers/me/favorites - Get customer's favorite vehicles
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  // TODO: fetch real favorites from DB for user.id
-  const favorites = [
-    {
-      id: "fav_001",
-      vehicleId: "veh_001",
-      vehicle: {
-        id: "veh_001",
-        year: 2023,
-        make: "Tesla",
-        model: "Model Y",
-        trim: "Long Range AWD",
-        price: 52995,
-        originalPrice: 55995,
-        mileage: 12500,
-        image: "https://cdn.planetmotors.ca/vehicles/tesla-model-y-2023.jpg",
-        status: "available",
-      },
-      addedAt: "2024-03-15T10:00:00Z",
-      priceAtSave: 55995,
-      priceChange: -3000,
-      alerts: {
-        priceDropEnabled: true,
-        soldAlertEnabled: true,
-      },
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("saved_vehicles")
+    .eq("id", user.id)
+    .maybeSingle()
+
+  if (profileError) {
+    return NextResponse.json({ error: "Failed to fetch favorites" }, { status: 500 })
+  }
+
+  const savedVehicleIds: string[] = profile?.saved_vehicles ?? []
+
+  if (savedVehicleIds.length === 0) {
+    return NextResponse.json({ favorites: [], count: 0 })
+  }
+
+  const { data: vehicles, error: vehiclesError } = await supabase
+    .from("vehicles")
+    .select("id, year, make, model, trim, price, mileage, status")
+    .in("id", savedVehicleIds)
+
+  if (vehiclesError) {
+    return NextResponse.json({ error: "Failed to fetch vehicle details" }, { status: 500 })
+  }
+
+  const favorites = (vehicles ?? []).map((v) => ({
+    id: `fav_${v.id}`,
+    vehicleId: String(v.id),
+    vehicle: {
+      id: String(v.id),
+      year: v.year,
+      make: v.make,
+      model: v.model,
+      trim: v.trim,
+      // price stored in cents in DB; convert to dollars for the API response
+      price: typeof v.price === "number" ? v.price / 100 : Number(v.price || 0),
+      mileage: v.mileage,
+      status: v.status,
     },
-    {
-      id: "fav_002",
-      vehicleId: "veh_002",
-      vehicle: {
-        id: "veh_002",
-        year: 2022,
-        make: "BMW",
-        model: "X5",
-        trim: "xDrive40i",
-        price: 68995,
-        mileage: 28000,
-        image: "https://cdn.planetmotors.ca/vehicles/bmw-x5-2022.jpg",
-        status: "available",
-      },
-      addedAt: "2024-03-10T14:30:00Z",
-      priceAtSave: 68995,
-      priceChange: 0,
-      alerts: {
-        priceDropEnabled: true,
-        soldAlertEnabled: false,
-      },
-    },
-  ]
+    addedAt: new Date().toISOString(),
+  }))
 
   return NextResponse.json({ favorites, count: favorites.length })
 }
@@ -70,26 +63,52 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { vehicleId, alerts } = body
+  const { vehicleId } = body
 
   if (!vehicleId) {
-    return NextResponse.json(
-      { error: "Vehicle ID is required" },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: "Vehicle ID is required" }, { status: 400 })
   }
 
-  const favorite = {
-    id: "fav_" + Date.now(),
-    vehicleId,
-    addedAt: new Date().toISOString(),
-    alerts: alerts || {
-      priceDropEnabled: true,
-      soldAlertEnabled: true,
-    },
+  // Confirm the vehicle actually exists before saving
+  const { data: vehicle, error: vehicleError } = await supabase
+    .from("vehicles")
+    .select("id")
+    .eq("id", vehicleId)
+    .maybeSingle()
+
+  if (vehicleError || !vehicle) {
+    return NextResponse.json({ error: "Vehicle not found" }, { status: 404 })
   }
 
-  return NextResponse.json({ success: true, favorite })
+  // Fetch current saved list to avoid duplicates
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("saved_vehicles")
+    .eq("id", user.id)
+    .maybeSingle()
+
+  const current: string[] = profile?.saved_vehicles ?? []
+
+  if (current.includes(String(vehicleId))) {
+    return NextResponse.json({ success: true, message: "Already in favorites" })
+  }
+
+  const { error: updateError } = await supabase
+    .from("profiles")
+    .upsert({
+      id: user.id,
+      saved_vehicles: [...current, String(vehicleId)],
+      updated_at: new Date().toISOString(),
+    })
+
+  if (updateError) {
+    return NextResponse.json({ error: "Failed to add to favorites" }, { status: 500 })
+  }
+
+  return NextResponse.json({
+    success: true,
+    favorite: { id: `fav_${vehicleId}`, vehicleId: String(vehicleId), addedAt: new Date().toISOString() },
+  })
 }
 
 // DELETE is handled by /api/v1/customers/me/favorites/[id]/route.ts
