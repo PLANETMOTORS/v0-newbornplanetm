@@ -57,6 +57,10 @@ function toPublicVehicle(vehicle: Record<string, unknown>) {
   }
 }
 
+function isVehicleRecord(value: unknown): value is Record<string, unknown> {
+  return Object.prototype.toString.call(value) === "[object Object]"
+}
+
 // GET /api/v1/vehicles/:id - Get vehicle details
 export async function GET(
   _request: NextRequest,
@@ -83,6 +87,13 @@ export async function GET(
       return NextResponse.json(
         { success: false, error: { code: "NOT_FOUND", message: "Vehicle not found" } },
         { status: 404 }
+      )
+    }
+
+    if (!isVehicleRecord(vehicle)) {
+      return NextResponse.json(
+        { success: false, error: { code: "INVALID_DATA", message: "Vehicle payload is malformed" } },
+        { status: 500 }
       )
     }
 
