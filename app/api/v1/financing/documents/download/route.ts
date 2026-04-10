@@ -8,6 +8,34 @@ type DocumentWithFileAndApplication = {
   finance_applications_v2: { user_id: string }[]
 }
 
+function errorResponse(status: number, code: string, message: string) {
+  return NextResponse.json(
+    { success: false, error: { code, message } },
+    { status }
+  )
+}
+
+function isDocumentWithFileAndApplication(value: unknown): value is DocumentWithFileAndApplication {
+  if (Object.prototype.toString.call(value) !== "[object Object]") {
+    return false
+  }
+
+  const record = value as Record<string, unknown>
+  if (typeof record.id !== "string" || typeof record.file_url !== "string") {
+    return false
+  }
+
+  const applications = record.finance_applications_v2
+  if (!Array.isArray(applications)) {
+    return false
+  }
+
+  return applications.every(item => (
+    Object.prototype.toString.call(item) === "[object Object]" &&
+    typeof (item as Record<string, unknown>).user_id === "string"
+  ))
+}
+
 // GET /api/v1/financing/documents/download?pathname=xxx&documentId=xxx
 // Secure route to serve private blob files
 export async function GET(request: NextRequest) {
@@ -21,13 +49,13 @@ export async function GET(request: NextRequest) {
     const isAdmin = searchParams.get("admin") === "true"
     
     if (!pathname) {
-      return NextResponse.json({ error: "Missing pathname" }, { status: 400 })
+      return errorResponse(400, "MISSING_PATHNAME", "Missing pathname")
     }
     
     // For admin access, check if user is admin
     if (isAdmin) {
       if (!user) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        return errorResponse(401, "UNAUTHORIZED", "Unauthorized")
       }
       
       // Check if user has admin role
@@ -38,16 +66,16 @@ export async function GET(request: NextRequest) {
         .single()
       
       if (!profile || (profile.role !== "admin" && profile.role !== "staff")) {
-        return NextResponse.json({ error: "Admin access required" }, { status: 403 })
+        return errorResponse(403, "FORBIDDEN", "Admin access required")
       }
     } else {
       // For regular users, verify they own the document
       if (!user) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        return errorResponse(401, "UNAUTHORIZED", "Unauthorized")
       }
       
       if (!documentId) {
-        return NextResponse.json({ error: "Document ID required" }, { status: 400 })
+        return errorResponse(400, "MISSING_DOCUMENT_ID", "Document ID required")
       }
       
       // Verify document belongs to user's application
@@ -62,16 +90,20 @@ export async function GET(request: NextRequest) {
         .single()
       
       if (!document) {
-        return NextResponse.json({ error: "Document not found" }, { status: 404 })
+        return errorResponse(404, "DOCUMENT_NOT_FOUND", "Document not found")
+      }
+
+      if (!isDocumentWithFileAndApplication(document)) {
+        return errorResponse(500, "MALFORMED_DOCUMENT_PAYLOAD", "Document payload is malformed")
       }
       
-      if ((document as unknown as DocumentWithFileAndApplication).finance_applications_v2[0]?.user_id !== user.id) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+      if (document.finance_applications_v2[0]?.user_id !== user.id) {
+        return errorResponse(403, "FORBIDDEN", "Unauthorized")
       }
       
       // Verify pathname matches stored file_url
       if (document.file_url !== pathname) {
-        return NextResponse.json({ error: "Invalid pathname" }, { status: 400 })
+        return errorResponse(400, "INVALID_PATHNAME", "Invalid pathname")
       }
     }
     
@@ -108,6 +140,6 @@ export async function GET(request: NextRequest) {
     
   } catch (error) {
     console.error("Error serving document:", error)
-    return NextResponse.json({ error: "Failed to serve document" }, { status: 500 })
+    return errorResponse(500, "SERVE_DOCUMENT_FAILED", "Failed to serve document")
   }
 }

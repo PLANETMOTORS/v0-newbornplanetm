@@ -22,6 +22,32 @@ function asInt(value: string | null, fallback: number) {
   return Number.isNaN(parsed) ? fallback : parsed
 }
 
+type VehicleListRow = Record<string, unknown> & {
+  price: number
+  msrp?: number | null
+}
+
+function isVehicleListRow(value: unknown): value is VehicleListRow {
+  if (Object.prototype.toString.call(value) !== '[object Object]') {
+    return false
+  }
+
+  const record = value as Record<string, unknown>
+  return typeof record.price === 'number' && (typeof record.msrp === 'number' || record.msrp === null || record.msrp === undefined)
+}
+
+function toPublicVehicleListItem(value: unknown): Record<string, unknown> | null {
+  if (!isVehicleListRow(value)) {
+    return null
+  }
+
+  return {
+    ...value,
+    price: value.price / 100,
+    msrp: typeof value.msrp === 'number' ? value.msrp / 100 : null,
+  }
+}
+
 // 32 hex chars (128 bits) provides ample collision resistance for Redis cache keys
 // while keeping key lengths compact compared to the full 64-char digest.
 function hashKey(input: string): string {
@@ -149,11 +175,9 @@ export async function GET(request: NextRequest) {
   const responseBody = {
     success: true,
     data: {
-      vehicles: (vehicles as unknown as { price: number; msrp?: number }[])?.map(v => ({
-        ...v,
-        price: v.price / 100, // Convert from cents to dollars
-        msrp: v.msrp ? v.msrp / 100 : null
-      })),
+      vehicles: (vehicles ?? [])
+        .map(toPublicVehicleListItem)
+        .filter((vehicle): vehicle is Record<string, unknown> => vehicle !== null),
       pagination: {
         page,
         limit,
@@ -302,11 +326,9 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     success: true,
     data: {
-      vehicles: (vehicles as unknown as { price: number; msrp?: number }[])?.map(v => ({
-        ...v,
-        price: v.price / 100,
-        msrp: v.msrp ? v.msrp / 100 : null
-      })),
+      vehicles: (vehicles ?? [])
+        .map(toPublicVehicleListItem)
+        .filter((vehicle): vehicle is Record<string, unknown> => vehicle !== null),
       total: count || 0,
       aggregations,
     },
