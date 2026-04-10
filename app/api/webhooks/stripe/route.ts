@@ -209,17 +209,17 @@ async function handlePaymentIntentSucceeded(
 }
 
 export async function POST(request: NextRequest) {
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || process.env.STRIPE_MCP_KEY
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 
   if (!webhookSecret) {
-    console.error('[webhook] Stripe webhook secret is not set')
+    console.error('[webhook] STRIPE_WEBHOOK_SECRET is not set — cannot verify Stripe signatures')
     return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
   }
 
   if (!webhookSecret.startsWith('whsec_')) {
-    console.error('[webhook] Configured webhook secret is not a Stripe endpoint signing secret')
+    console.error('[webhook] STRIPE_WEBHOOK_SECRET does not look like a Stripe endpoint signing secret (must start with whsec_)')
     return NextResponse.json(
-      { error: 'Webhook secret must be a Stripe endpoint signing secret (whsec_...)' },
+      { error: 'Webhook secret misconfigured' },
       { status: 500 }
     )
   }
@@ -246,8 +246,14 @@ export async function POST(request: NextRequest) {
   const supabase = createAdminClient()
 
   // Idempotency: skip replayed events.
-  if (await isAlreadyProcessed(supabase, event.id)) {
-    return NextResponse.json({ received: true, skipped: 'already_processed' })
+  // If the idempotency check itself fails, log and continue — better to risk
+  // a duplicate handler run than to drop the event with a 500.
+  try {
+    if (await isAlreadyProcessed(supabase, event.id)) {
+      return NextResponse.json({ received: true, skipped: 'already_processed' })
+    }
+  } catch (idempotencyError) {
+    console.error(`[webhook] Idempotency check failed for ${event.id}, processing anyway:`, idempotencyError)
   }
 
   try {
@@ -274,7 +280,12 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown handler error'
     console.error(`[webhook] Handler error for ${event.type} (${event.id}): ${message}`)
-    await markEventProcessed(supabase, event.id, event.type, 'failed', message)
+    // Best-effort audit record — must not throw and mask the original error.
+    try {
+      await markEventProcessed(supabase, event.id, event.type, 'failed', message)
+    } catch (auditError) {
+      console.error(`[webhook] Failed to record audit for ${event.id}:`, auditError)
+    }
     // Return 500 so Stripe retries the event.
     return NextResponse.json({ error: 'Handler error' }, { status: 500 })
   }
