@@ -25,6 +25,8 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: 'media.cpsimg.com' },
       { protocol: 'https', hostname: 'cdn.sanity.io' },
+      { protocol: 'https', hostname: 'photos.homenetiol.com' },
+      { protocol: 'https', hostname: 'www.carpages.ca' },
     ],
   },
 
@@ -62,7 +64,7 @@ const nextConfig = {
               // Fonts
               "font-src 'self' https://fonts.gstatic.com data:",
               // Images: self + blob + Stripe CDN + all configured image hosts
-              "img-src 'self' blob: data: https://*.stripe.com https://hebbkx1anhila5yf.public.blob.vercel-storage.com https://cdn.planetmotors.ca https://planetmotors.imgix.net https://images.unsplash.com https://media.cpsimg.com https://cdn.sanity.io https://www.google-analytics.com https://www.googletagmanager.com https://www.facebook.com",
+              "img-src 'self' blob: data: https://*.stripe.com https://hebbkx1anhila5yf.public.blob.vercel-storage.com https://cdn.planetmotors.ca https://planetmotors.imgix.net https://images.unsplash.com https://media.cpsimg.com https://cdn.sanity.io https://photos.homenetiol.com https://www.carpages.ca https://www.google-analytics.com https://www.googletagmanager.com https://www.facebook.com",
               // Frames: only Stripe
               "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://www.googletagmanager.com https://www.facebook.com",
               // Connect: self + Supabase + Stripe + Sanity + Upstash

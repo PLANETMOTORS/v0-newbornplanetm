@@ -50,11 +50,11 @@ export function Vehicle360Viewer({
 
   // AVIF-first frame URL via imgix + CloudFront
   const frameUrl = imgix(`vehicles/${stockNumber}/360/frame-${String(currentFrame).padStart(3, '0')}.jpg`, {
-    w: 1920, h: 1080, q: 85
+    w: 1280, h: 720, q: 72
   })
 
   const previewUrl = imgix(`vehicles/${stockNumber}/360/frame-000.jpg`, {
-    w: 800, h: 600, q: 75
+    w: 640, h: 360, q: 60
   })
 
   // Not visible - placeholder
@@ -70,7 +70,7 @@ export function Vehicle360Viewer({
         className={`relative aspect-video bg-muted rounded-lg overflow-hidden cursor-pointer group ${className}`}
         onClick={() => setIsActivated(true)}
       >
-        <Image src={previewUrl} alt={`${stockNumber} 360 preview`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" unoptimized />
+        <Image src={previewUrl} alt={`${stockNumber} 360 preview`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/50 transition-colors">
           <div className="text-center text-white">
             <RotateCcw className="w-12 h-12 mx-auto mb-2 animate-spin" style={{ animationDuration: "3s" }} />
@@ -90,7 +90,7 @@ export function Vehicle360Viewer({
       {...handlers}
       onPointerLeave={handlers.onPointerUp}
     >
-      <Image src={frameUrl} alt={`${stockNumber} 360 frame ${currentFrame + 1}`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" draggable={false} unoptimized />
+      <Image src={frameUrl} alt={`${stockNumber} 360 frame ${currentFrame + 1}`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" draggable={false} />
       
       {/* Controls */}
       <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
