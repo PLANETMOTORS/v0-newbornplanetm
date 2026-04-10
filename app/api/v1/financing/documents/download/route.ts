@@ -5,7 +5,25 @@ import { createClient } from "@/lib/supabase/server"
 type DocumentWithFileAndApplication = {
   id: string
   file_url: string
-  finance_applications_v2: { user_id: string }
+  finance_applications_v2: { user_id: string } | Array<{ user_id: string }>
+}
+
+function isDocumentWithFileAndApplication(value: unknown): value is DocumentWithFileAndApplication {
+  if (Object.prototype.toString.call(value) !== "[object Object]") {
+    return false
+  }
+
+  const record = value as Record<string, unknown>
+  if (typeof record.id !== "string" || typeof record.file_url !== "string") {
+    return false
+  }
+
+  const application = record.finance_applications_v2
+  if (Array.isArray(application)) {
+    return application.every(item => Object.prototype.toString.call(item) === "[object Object]" && typeof (item as Record<string, unknown>).user_id === "string")
+  }
+
+  return Object.prototype.toString.call(application) === "[object Object]" && typeof (application as Record<string, unknown>).user_id === "string"
 }
 
 // GET /api/v1/financing/documents/download?pathname=xxx&documentId=xxx
@@ -64,8 +82,16 @@ export async function GET(request: NextRequest) {
       if (!document) {
         return NextResponse.json({ error: "Document not found" }, { status: 404 })
       }
+
+      if (!isDocumentWithFileAndApplication(document)) {
+        return NextResponse.json({ error: "Document payload is malformed" }, { status: 500 })
+      }
+
+      const application = Array.isArray(document.finance_applications_v2)
+        ? document.finance_applications_v2[0]
+        : document.finance_applications_v2
       
-      if ((document as DocumentWithFileAndApplication).finance_applications_v2.user_id !== user.id) {
+      if (!application || application.user_id !== user.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
       }
       
