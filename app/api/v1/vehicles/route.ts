@@ -2,10 +2,53 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 const ALLOWED_SORT_COLUMNS = new Set(['created_at', 'price', 'year', 'mileage', 'make', 'model'])
+const VEHICLE_LIST_FIELDS = [
+  'id',
+  'stock_number',
+  'vin',
+  'year',
+  'make',
+  'model',
+  'trim',
+  'body_style',
+  'exterior_color',
+  'interior_color',
+  'price',
+  'msrp',
+  'mileage',
+  'drivetrain',
+  'transmission',
+  'engine',
+  'fuel_type',
+  'status',
+  'location',
+  'primary_image_url',
+  'is_certified',
+  'is_new_arrival',
+  'featured',
+  'inspection_score',
+  'is_ev',
+  'battery_capacity_kwh',
+  'range_miles',
+  'ev_battery_health_percent',
+  'created_at',
+].join(',')
 
 function asInt(value: string | null, fallback: number) {
   const parsed = Number.parseInt(value || '', 10)
   return Number.isNaN(parsed) ? fallback : parsed
+}
+
+function toVehicleListItem(row: unknown) {
+  const vehicle = row as Record<string, unknown>
+  const rawPrice = typeof vehicle.price === 'number' ? vehicle.price : Number(vehicle.price || 0)
+  const rawMsrp = typeof vehicle.msrp === 'number' ? vehicle.msrp : Number(vehicle.msrp || 0)
+
+  return {
+    ...vehicle,
+    price: rawPrice / 100,
+    msrp: rawMsrp > 0 ? rawMsrp / 100 : null,
+  }
 }
 
 // GET /api/v1/vehicles - List vehicles with filtering
@@ -20,32 +63,40 @@ export async function GET(request: NextRequest) {
   const maxYear = searchParams.get('maxYear')
   const minPrice = searchParams.get('minPrice')
   const maxPrice = searchParams.get('maxPrice')
+  const minMileage = searchParams.get('minMileage')
+  const maxMileage = searchParams.get('maxMileage')
+  const exteriorColor = searchParams.get('exteriorColor')
   const bodyStyle = searchParams.get('bodyStyle')
   const fuelType = searchParams.get('fuelType')
   const transmission = searchParams.get('transmission')
   const drivetrain = searchParams.get('drivetrain')
+  const q = searchParams.get('q')
   const status = searchParams.get('status') || 'available'
   const rawSort = searchParams.get('sort') || 'created_at'
   const sort = ALLOWED_SORT_COLUMNS.has(rawSort) ? rawSort : 'created_at'
   const order = searchParams.get('order') || 'desc'
   const page = Math.max(1, asInt(searchParams.get('page'), 1))
   const rawLimit = asInt(searchParams.get('limit'), 20)
-  const limit = Math.min(Math.max(1, rawLimit), 100)
+  const limit = Math.min(Math.max(1, rawLimit), 250)
   const includeFilters = searchParams.get('includeFilters') === 'true'
 
   // Build query
   let query = supabase
     .from('vehicles')
-    .select('*', { count: 'exact' })
+    .select(VEHICLE_LIST_FIELDS, { count: 'exact' })
 
   // Apply filters
   if (status) query = query.eq('status', status)
   if (make) query = query.ilike('make', make)
   if (model) query = query.ilike('model', `%${model}%`)
+  if (q) query = query.or(`make.ilike.%${q}%,model.ilike.%${q}%,trim.ilike.%${q}%`)
   if (minYear) query = query.gte('year', parseInt(minYear))
   if (maxYear) query = query.lte('year', parseInt(maxYear))
   if (minPrice) query = query.gte('price', parseInt(minPrice) * 100) // Convert to cents
   if (maxPrice) query = query.lte('price', parseInt(maxPrice) * 100)
+  if (minMileage) query = query.gte('mileage', parseInt(minMileage))
+  if (maxMileage) query = query.lte('mileage', parseInt(maxMileage))
+  if (exteriorColor) query = query.ilike('exterior_color', exteriorColor)
   if (bodyStyle) query = query.ilike('body_style', bodyStyle)
   if (fuelType) query = query.ilike('fuel_type', fuelType)
   if (transmission) query = query.ilike('transmission', `%${transmission}%`)
@@ -105,11 +156,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     success: true,
     data: {
-      vehicles: vehicles?.map(v => ({
-        ...v,
-        price: v.price / 100, // Convert from cents to dollars
-        msrp: v.msrp ? v.msrp / 100 : null
-      })),
+      vehicles: vehicles?.map((v) => toVehicleListItem(v)),
       pagination: {
         page,
         limit,
@@ -121,7 +168,7 @@ export async function GET(request: NextRequest) {
     },
   }, {
     headers: {
-      'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=120',
+      'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600',
     },
   })
 }
@@ -146,7 +193,7 @@ export async function POST(request: NextRequest) {
   // Build base query
   let query = supabase
     .from('vehicles')
-    .select('*', { count: 'exact' })
+    .select(VEHICLE_LIST_FIELDS, { count: 'exact' })
     .eq('status', 'available')
 
   // Text search across multiple fields
@@ -194,32 +241,35 @@ export async function POST(request: NextRequest) {
     .eq('status', 'available')
     .limit(1000)
 
-  return NextResponse.json({
-    success: true,
-    data: {
-      vehicles: vehicles?.map(v => ({
-        ...v,
-        price: v.price / 100,
-        msrp: v.msrp ? v.msrp / 100 : null
-      })),
-      total: count || 0,
-      aggregations: {
-        makes: [...new Set(allVehicles?.map(v => v.make) || [])].map(make => ({
-          key: make,
-          count: allVehicles?.filter(v => v.make === make).length || 0,
-        })),
-        bodyStyles: [...new Set(allVehicles?.map(v => v.body_style).filter(Boolean) || [])].map(style => ({
-          key: style,
-          count: allVehicles?.filter(v => v.body_style === style).length || 0,
-        })),
-        priceRanges: [
-          { key: 'Under $30k', count: allVehicles?.filter(v => v.price < 3000000).length || 0 },
-          { key: '$30k-$50k', count: allVehicles?.filter(v => v.price >= 3000000 && v.price < 5000000).length || 0 },
-          { key: '$50k-$75k', count: allVehicles?.filter(v => v.price >= 5000000 && v.price < 7500000).length || 0 },
-          { key: '$75k-$100k', count: allVehicles?.filter(v => v.price >= 7500000 && v.price < 10000000).length || 0 },
-          { key: 'Over $100k', count: allVehicles?.filter(v => v.price >= 10000000).length || 0 },
-        ],
+  return NextResponse.json(
+    {
+      success: true,
+      data: {
+        vehicles: vehicles?.map((v) => toVehicleListItem(v)),
+        total: count || 0,
+        aggregations: {
+          makes: [...new Set(allVehicles?.map(v => v.make) || [])].map(make => ({
+            key: make,
+            count: allVehicles?.filter(v => v.make === make).length || 0,
+          })),
+          bodyStyles: [...new Set(allVehicles?.map(v => v.body_style).filter(Boolean) || [])].map(style => ({
+            key: style,
+            count: allVehicles?.filter(v => v.body_style === style).length || 0,
+          })),
+          priceRanges: [
+            { key: 'Under $30k', count: allVehicles?.filter(v => v.price < 3000000).length || 0 },
+            { key: '$30k-$50k', count: allVehicles?.filter(v => v.price >= 3000000 && v.price < 5000000).length || 0 },
+            { key: '$50k-$75k', count: allVehicles?.filter(v => v.price >= 5000000 && v.price < 7500000).length || 0 },
+            { key: '$75k-$100k', count: allVehicles?.filter(v => v.price >= 7500000 && v.price < 10000000).length || 0 },
+            { key: 'Over $100k', count: allVehicles?.filter(v => v.price >= 10000000).length || 0 },
+          ],
+        },
       },
     },
-  })
+    {
+      headers: {
+        'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=900',
+      },
+    }
+  )
 }

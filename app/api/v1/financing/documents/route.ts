@@ -4,7 +4,7 @@ import { put } from "@vercel/blob"
 
 type DocumentWithApplication = {
   id: string
-  finance_applications_v2: { user_id: string }
+  finance_applications_v2: { user_id: string } | Array<{ user_id: string }>
 }
 
 // POST /api/v1/financing/documents - Upload document
@@ -161,8 +161,13 @@ export async function DELETE(request: NextRequest) {
       `)
       .eq("id", documentId)
       .single()
-    
-    if (!document || (document as DocumentWithApplication).finance_applications_v2.user_id !== user.id) {
+
+    const application = document
+      ? (document as DocumentWithApplication).finance_applications_v2
+      : null
+    const ownerId = Array.isArray(application) ? application[0]?.user_id : application?.user_id
+
+    if (!document || !ownerId || ownerId !== user.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
     
