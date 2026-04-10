@@ -13,6 +13,26 @@ interface Vehicle360ViewerProps {
   className?: string
 }
 
+/** Number of evenly-spaced frames to fetch in phase 1 of preloading (provides full-rotation coverage quickly). */
+const PHASE1_TARGET_FRAMES = 12
+/** Milliseconds to wait before starting phase 2 (full) preload, giving phase 1 requests priority bandwidth. */
+const PHASE2_DELAY_MS = 500
+function spinFrameUrl(stockNumber: string, frame: number, opts: { w: number; h: number; q: number }) {
+  return imgix(`vehicles/${stockNumber}/360/frame-${String(frame).padStart(3, '0')}.jpg`, opts)
+}
+
+/**
+ * Preload a batch of frame images into the browser HTTP cache so that
+ * subsequent renders of <Image> with the same URLs are instant.
+ */
+function preloadFrames(urls: string[]): void {
+  if (typeof window === 'undefined') return
+  for (const url of urls) {
+    const img = new window.Image()
+    img.src = url
+  }
+}
+
 export function Vehicle360Viewer({ 
   stockNumber, 
   totalFrames = 72,
@@ -21,6 +41,7 @@ export function Vehicle360Viewer({
   const containerRef = useRef<HTMLDivElement>(null)
   const [isVisible, setIsVisible] = useState(false)
   const [isActivated, setIsActivated] = useState(false)
+  const preloadedRef = useRef(false)
 
   const { currentFrame, isPlaying, toggle, handlers } = use360Spin({ 
     totalFrames,
@@ -38,6 +59,33 @@ export function Vehicle360Viewer({
     return () => observer.disconnect()
   }, [])
 
+  // On activation, progressively preload frames so dragging feels instant.
+  // Phase 1 (immediate): every 6th frame covers a full rotation at low cost.
+  // Phase 2 (deferred): fill in the remaining frames after the initial burst.
+  useEffect(() => {
+    if (!isActivated || preloadedRef.current) return
+    preloadedRef.current = true
+
+    const frameOpts = { w: 1920, h: 1080, q: 85 }
+
+    // Phase 1 — evenly-spaced frames based on PHASE1_TARGET_FRAMES
+    const stride = Math.max(1, Math.floor(totalFrames / PHASE1_TARGET_FRAMES))
+    const phase1 = Array.from({ length: Math.ceil(totalFrames / stride) }, (_, i) =>
+      spinFrameUrl(stockNumber, i * stride, frameOpts)
+    )
+    preloadFrames(phase1)
+
+    // Phase 2 — remaining frames, slightly delayed so phase 1 requests go first
+    const timer = window.setTimeout(() => {
+      const all = Array.from({ length: totalFrames }, (_, i) =>
+        spinFrameUrl(stockNumber, i, frameOpts)
+      )
+      preloadFrames(all)
+    }, PHASE2_DELAY_MS)
+
+    return () => window.clearTimeout(timer)
+  }, [isActivated, stockNumber, totalFrames])
+
   // Fullscreen toggle
   const toggleFullscreen = () => {
     if (!containerRef.current) return
@@ -49,13 +97,9 @@ export function Vehicle360Viewer({
   }
 
   // AVIF-first frame URL via imgix + CloudFront
-  const frameUrl = imgix(`vehicles/${stockNumber}/360/frame-${String(currentFrame).padStart(3, '0')}.jpg`, {
-    w: 1920, h: 1080, q: 85
-  })
+  const frameUrl = spinFrameUrl(stockNumber, currentFrame, { w: 1920, h: 1080, q: 85 })
 
-  const previewUrl = imgix(`vehicles/${stockNumber}/360/frame-000.jpg`, {
-    w: 800, h: 600, q: 75
-  })
+  const previewUrl = spinFrameUrl(stockNumber, 0, { w: 800, h: 600, q: 75 })
 
   // Not visible - placeholder
   if (!isVisible) {

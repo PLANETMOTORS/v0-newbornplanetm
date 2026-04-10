@@ -4,7 +4,25 @@ import { put } from "@vercel/blob"
 
 type DocumentWithApplication = {
   id: string
-  finance_applications_v2: { user_id: string }
+  finance_applications_v2: { user_id: string } | Array<{ user_id: string }>
+}
+
+function isDocumentWithApplication(value: unknown): value is DocumentWithApplication {
+  if (Object.prototype.toString.call(value) !== "[object Object]") {
+    return false
+  }
+
+  const record = value as Record<string, unknown>
+  if (typeof record.id !== "string") {
+    return false
+  }
+
+  const application = record.finance_applications_v2
+  if (Array.isArray(application)) {
+    return application.every(item => Object.prototype.toString.call(item) === "[object Object]" && typeof (item as Record<string, unknown>).user_id === "string")
+  }
+
+  return Object.prototype.toString.call(application) === "[object Object]" && typeof (application as Record<string, unknown>).user_id === "string"
 }
 
 // POST /api/v1/financing/documents - Upload document
@@ -162,7 +180,15 @@ export async function DELETE(request: NextRequest) {
       .eq("id", documentId)
       .single()
     
-    if (!document || (document as DocumentWithApplication).finance_applications_v2.user_id !== user.id) {
+    if (!document || !isDocumentWithApplication(document)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+    }
+
+    const application = Array.isArray(document.finance_applications_v2)
+      ? document.finance_applications_v2[0]
+      : document.finance_applications_v2
+
+    if (!application || application.user_id !== user.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
     
