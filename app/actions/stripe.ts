@@ -33,6 +33,10 @@ function validateCentsAmount(value: unknown): number {
 
 export async function startVehicleCheckout(data: VehicleCheckoutData) {
   const stripe = getStripe()
+  const enableAcssDebit = process.env.STRIPE_ENABLE_ACSS_DEBIT === 'true'
+  const paymentMethodTypes: Array<'card' | 'acss_debit'> = enableAcssDebit
+    ? ['card', 'acss_debit']
+    : ['card']
   const supabase = await createClient()
   const { data: vehicle, error } = await supabase
     .from('vehicles')
@@ -93,11 +97,34 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
     redirect_on_completion: 'never',
     line_items: lineItems,
     mode: 'payment',
+    payment_method_types: paymentMethodTypes,
+    ...(enableAcssDebit
+      ? {
+          payment_method_options: {
+            acss_debit: {
+              currency: 'cad',
+              mandate_options: {
+                payment_schedule: 'sporadic',
+                transaction_type: 'personal',
+              },
+            },
+          },
+        }
+      : {}),
     metadata: {
       vehicleId: data.vehicleId,
       depositOnly: String(data.depositOnly || false),
       protectionPlanId: data.protectionPlanId || '',
       amountSource: 'server',
+    },
+    payment_intent_data: {
+      metadata: {
+        vehicleId: data.vehicleId,
+        depositOnly: String(data.depositOnly || false),
+        protectionPlanId: data.protectionPlanId || '',
+        amountSource: 'server',
+        type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
+      },
     },
     ...(data.customerEmail && { customer_email: data.customerEmail }),
   }, {
@@ -115,6 +142,10 @@ export async function startCheckoutSession(productId: string) {
   if (!product) throw new Error(`Product "${productId}" not found`)
 
   const stripe = getStripe()
+  const enableAcssDebit = process.env.STRIPE_ENABLE_ACSS_DEBIT === 'true'
+  const paymentMethodTypes: Array<'card' | 'acss_debit'> = enableAcssDebit
+    ? ['card', 'acss_debit']
+    : ['card']
   const session = await stripe.checkout.sessions.create({
     ui_mode: 'embedded',
     redirect_on_completion: 'never',
@@ -127,6 +158,26 @@ export async function startCheckoutSession(productId: string) {
       quantity: 1,
     }],
     mode: 'payment',
+    payment_intent_data: {
+      metadata: {
+        productId,
+        type: productId === 'deposit' ? 'vehicle-reservation' : 'product-purchase',
+      },
+    },
+    payment_method_types: paymentMethodTypes,
+    ...(enableAcssDebit
+      ? {
+          payment_method_options: {
+            acss_debit: {
+              currency: 'cad',
+              mandate_options: {
+                payment_schedule: 'sporadic',
+                transaction_type: 'personal',
+              },
+            },
+          },
+        }
+      : {}),
   })
 
   return session.client_secret

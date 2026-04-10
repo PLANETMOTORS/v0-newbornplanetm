@@ -52,8 +52,28 @@ async function handleCheckoutSessionCompleted(
   session: Stripe.Checkout.Session
 ) {
   const { reservationId, vehicleId, type } = session.metadata || {}
+  const isSettled = session.payment_status === 'paid'
 
   if (type === 'vehicle-reservation' && reservationId) {
+    if (!isSettled) {
+      // Delayed payment methods (e.g. ACSS debit) may complete checkout before settlement.
+      // Keep the reservation pending until async success confirms funds.
+      if (vehicleId) {
+        const { error: holdVehicleError } = await supabase
+          .from('vehicles')
+          .update({ status: 'reserved', updated_at: new Date().toISOString() })
+          .eq('id', vehicleId)
+          .in('status', ['available', 'reserved'])
+
+        if (holdVehicleError) {
+          throw new Error(`Failed to hold vehicle ${vehicleId} while payment is pending: ${holdVehicleError.message}`)
+        }
+      }
+
+      console.log(`[webhook] Reservation ${reservationId} checkout completed with unsettled funds (payment_status=${session.payment_status}).`)
+      return
+    }
+
     // Confirm the reservation deposit
     const { error: reservationError } = await supabase
       .from('reservations')
@@ -87,6 +107,11 @@ async function handleCheckoutSessionCompleted(
   }
 
   if (type !== 'vehicle-reservation' && vehicleId) {
+    if (!isSettled) {
+      console.log(`[webhook] Vehicle checkout completed with unsettled funds for ${vehicleId} (payment_status=${session.payment_status}).`)
+      return
+    }
+
     // Full vehicle checkout: mark order payment as confirmed.
     // Orders are created separately; link via Stripe session metadata.
     const { error: orderError } = await supabase
@@ -109,6 +134,43 @@ async function handleCheckoutSessionCompleted(
     }
 
     console.log(`[webhook] Vehicle ${vehicleId} order confirmed.`)
+  }
+}
+
+async function handleCheckoutSessionAsyncPaymentFailed(
+  supabase: ReturnType<typeof createAdminClient>,
+  session: Stripe.Checkout.Session
+) {
+  const { reservationId, vehicleId } = session.metadata || {}
+
+  if (reservationId) {
+    const { error: reservationError } = await supabase
+      .from('reservations')
+      .update({
+        status: 'expired',
+        deposit_status: 'failed',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', reservationId)
+      .in('deposit_status', ['pending'])
+
+    if (reservationError) {
+      throw new Error(`Failed to mark reservation ${reservationId} async payment failure: ${reservationError.message}`)
+    }
+
+    console.log(`[webhook] Async payment failed for reservation ${reservationId}.`)
+  }
+
+  if (vehicleId) {
+    const { error: vehicleError } = await supabase
+      .from('vehicles')
+      .update({ status: 'available', updated_at: new Date().toISOString() })
+      .eq('id', vehicleId)
+      .eq('status', 'reserved')
+
+    if (vehicleError) {
+      throw new Error(`Failed to release vehicle ${vehicleId} after async payment failure: ${vehicleError.message}`)
+    }
   }
 }
 
@@ -190,21 +252,92 @@ async function handlePaymentIntentSucceeded(
   supabase: ReturnType<typeof createAdminClient>,
   paymentIntent: Stripe.PaymentIntent
 ) {
-  // Idempotent backup confirmation — checkout.session.completed is the primary trigger.
-  const { reservationId } = paymentIntent.metadata || {}
-  if (!reservationId) return
+  // Idempotent backup confirmation when checkout-session events are delayed/missed.
+  const { reservationId, vehicleId, type } = paymentIntent.metadata || {}
 
-  const { error } = await supabase
-    .from('reservations')
-    .update({
-      deposit_status: 'paid',
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', reservationId)
-    .in('deposit_status', ['pending'])
+  if (reservationId) {
+    const { error } = await supabase
+      .from('reservations')
+      .update({
+        deposit_status: 'paid',
+        status: 'confirmed',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', reservationId)
+      .in('deposit_status', ['pending'])
 
-  if (error) {
-    throw new Error(`Failed to mark reservation ${reservationId} as paid: ${error.message}`)
+    if (error) {
+      throw new Error(`Failed to mark reservation ${reservationId} as paid: ${error.message}`)
+    }
+
+    if (vehicleId) {
+      const { error: vehicleError } = await supabase
+        .from('vehicles')
+        .update({ status: 'reserved', updated_at: new Date().toISOString() })
+        .eq('id', vehicleId)
+        .in('status', ['available', 'reserved'])
+
+      if (vehicleError) {
+        throw new Error(`Failed to hold vehicle ${vehicleId} after payment success: ${vehicleError.message}`)
+      }
+    }
+
+    return
+  }
+
+  if (vehicleId && type !== 'vehicle-reservation') {
+    const { error: orderError } = await supabase
+      .from('orders')
+      .update({ status: 'confirmed', updated_at: new Date().toISOString() })
+      .eq('vehicle_id', vehicleId)
+      .eq('status', 'created')
+
+    if (orderError) {
+      throw new Error(`Failed to confirm order from payment intent for vehicle ${vehicleId}: ${orderError.message}`)
+    }
+
+    const { error: vehicleError } = await supabase
+      .from('vehicles')
+      .update({ status: 'pending', updated_at: new Date().toISOString() })
+      .eq('id', vehicleId)
+
+    if (vehicleError) {
+      throw new Error(`Failed to transition vehicle ${vehicleId} after payment intent success: ${vehicleError.message}`)
+    }
+  }
+}
+
+async function hydrateCheckoutSession(
+  stripe: Stripe,
+  session: Stripe.Checkout.Session
+): Promise<Stripe.Checkout.Session> {
+  const hasMetadata = session.metadata && Object.keys(session.metadata).length > 0
+  if (hasMetadata) return session
+
+  if (!session.id) return session
+
+  try {
+    return await stripe.checkout.sessions.retrieve(session.id)
+  } catch (error) {
+    console.error(`[webhook] Failed to hydrate checkout session ${session.id}:`, error)
+    return session
+  }
+}
+
+async function hydratePaymentIntent(
+  stripe: Stripe,
+  paymentIntent: Stripe.PaymentIntent
+): Promise<Stripe.PaymentIntent> {
+  const hasMetadata = paymentIntent.metadata && Object.keys(paymentIntent.metadata).length > 0
+  if (hasMetadata) return paymentIntent
+
+  if (!paymentIntent.id) return paymentIntent
+
+  try {
+    return await stripe.paymentIntents.retrieve(paymentIntent.id)
+  } catch (error) {
+    console.error(`[webhook] Failed to hydrate payment intent ${paymentIntent.id}:`, error)
+    return paymentIntent
   }
 }
 
@@ -234,8 +367,8 @@ export async function POST(request: NextRequest) {
   const rawBody = await request.text()
 
   let event: Stripe.Event
+  const stripe = getStripe()
   try {
-    const stripe = getStripe()
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
@@ -258,18 +391,42 @@ export async function POST(request: NextRequest) {
 
   try {
     switch (event.type) {
-      case 'checkout.session.completed':
-        await handleCheckoutSessionCompleted(supabase, event.data.object as Stripe.Checkout.Session)
+      case 'checkout.session.completed': {
+        const rawSession = event.data.object as Stripe.Checkout.Session
+        const session = await hydrateCheckoutSession(stripe, rawSession)
+        await handleCheckoutSessionCompleted(supabase, session)
         break
-      case 'checkout.session.expired':
-        await handleCheckoutSessionExpired(supabase, event.data.object as Stripe.Checkout.Session)
+      }
+      case 'checkout.session.expired': {
+        const rawSession = event.data.object as Stripe.Checkout.Session
+        const session = await hydrateCheckoutSession(stripe, rawSession)
+        await handleCheckoutSessionExpired(supabase, session)
         break
-      case 'payment_intent.succeeded':
-        await handlePaymentIntentSucceeded(supabase, event.data.object as Stripe.PaymentIntent)
+      }
+      case 'checkout.session.async_payment_succeeded': {
+        const rawSession = event.data.object as Stripe.Checkout.Session
+        const session = await hydrateCheckoutSession(stripe, rawSession)
+        await handleCheckoutSessionCompleted(supabase, session)
         break
-      case 'payment_intent.payment_failed':
-        await handlePaymentIntentFailed(supabase, event.data.object as Stripe.PaymentIntent)
+      }
+      case 'checkout.session.async_payment_failed': {
+        const rawSession = event.data.object as Stripe.Checkout.Session
+        const session = await hydrateCheckoutSession(stripe, rawSession)
+        await handleCheckoutSessionAsyncPaymentFailed(supabase, session)
         break
+      }
+      case 'payment_intent.succeeded': {
+        const rawPaymentIntent = event.data.object as Stripe.PaymentIntent
+        const paymentIntent = await hydratePaymentIntent(stripe, rawPaymentIntent)
+        await handlePaymentIntentSucceeded(supabase, paymentIntent)
+        break
+      }
+      case 'payment_intent.payment_failed': {
+        const rawPaymentIntent = event.data.object as Stripe.PaymentIntent
+        const paymentIntent = await hydratePaymentIntent(stripe, rawPaymentIntent)
+        await handlePaymentIntentFailed(supabase, paymentIntent)
+        break
+      }
       default:
         // Log unhandled event types but still return 200 so Stripe doesn't retry.
         console.log(`[webhook] Unhandled event type: ${event.type}`)
