@@ -5,6 +5,14 @@ import { createHash } from 'crypto'
 
 const ALLOWED_SORT_COLUMNS = new Set(['created_at', 'price', 'year', 'mileage', 'make', 'model'])
 
+// Only fetch the fields the inventory card actually renders — skips large text/JSON columns
+const VEHICLE_LIST_FIELDS = [
+  'id', 'year', 'make', 'model', 'trim', 'price', 'msrp',
+  'mileage', 'fuel_type', 'body_style', 'transmission', 'drivetrain',
+  'exterior_color', 'primary_image_url', 'status', 'stock_number',
+  'created_at', 'vin', 'is_new_arrival', 'is_certified',
+].join(', ')
+
 // TTLs (seconds)
 const VEHICLE_LIST_TTL = 300   // 5 minutes
 const FACETS_TTL = 600          // 10 minutes
@@ -62,7 +70,7 @@ export async function GET(request: NextRequest) {
   // Build query
   let query = supabase
     .from('vehicles')
-    .select('*', { count: 'exact' })
+    .select(VEHICLE_LIST_FIELDS, { count: 'exact' })
 
   // Apply filters
   if (status) query = query.eq('status', status)
@@ -141,7 +149,7 @@ export async function GET(request: NextRequest) {
   const responseBody = {
     success: true,
     data: {
-      vehicles: vehicles?.map(v => ({
+      vehicles: (vehicles as unknown as { price: number; msrp?: number }[])?.map(v => ({
         ...v,
         price: v.price / 100, // Convert from cents to dollars
         msrp: v.msrp ? v.msrp / 100 : null
@@ -188,7 +196,7 @@ export async function POST(request: NextRequest) {
   // Build base query
   let query = supabase
     .from('vehicles')
-    .select('*', { count: 'exact' })
+    .select(VEHICLE_LIST_FIELDS, { count: 'exact' })
     .eq('status', 'available')
 
   // Text search across multiple fields
@@ -294,7 +302,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     success: true,
     data: {
-      vehicles: vehicles?.map(v => ({
+      vehicles: (vehicles as unknown as { price: number; msrp?: number }[])?.map(v => ({
         ...v,
         price: v.price / 100,
         msrp: v.msrp ? v.msrp / 100 : null
