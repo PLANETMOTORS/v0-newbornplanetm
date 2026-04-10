@@ -208,6 +208,40 @@ async function handlePaymentIntentSucceeded(
   }
 }
 
+async function hydrateCheckoutSession(
+  stripe: Stripe,
+  session: Stripe.Checkout.Session
+): Promise<Stripe.Checkout.Session> {
+  const hasMetadata = session.metadata && Object.keys(session.metadata).length > 0
+  if (hasMetadata) return session
+
+  if (!session.id) return session
+
+  try {
+    return await stripe.checkout.sessions.retrieve(session.id)
+  } catch (error) {
+    console.error(`[webhook] Failed to hydrate checkout session ${session.id}:`, error)
+    return session
+  }
+}
+
+async function hydratePaymentIntent(
+  stripe: Stripe,
+  paymentIntent: Stripe.PaymentIntent
+): Promise<Stripe.PaymentIntent> {
+  const hasMetadata = paymentIntent.metadata && Object.keys(paymentIntent.metadata).length > 0
+  if (hasMetadata) return paymentIntent
+
+  if (!paymentIntent.id) return paymentIntent
+
+  try {
+    return await stripe.paymentIntents.retrieve(paymentIntent.id)
+  } catch (error) {
+    console.error(`[webhook] Failed to hydrate payment intent ${paymentIntent.id}:`, error)
+    return paymentIntent
+  }
+}
+
 export async function POST(request: NextRequest) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 
@@ -234,8 +268,8 @@ export async function POST(request: NextRequest) {
   const rawBody = await request.text()
 
   let event: Stripe.Event
+  const stripe = getStripe()
   try {
-    const stripe = getStripe()
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
@@ -258,18 +292,30 @@ export async function POST(request: NextRequest) {
 
   try {
     switch (event.type) {
-      case 'checkout.session.completed':
-        await handleCheckoutSessionCompleted(supabase, event.data.object as Stripe.Checkout.Session)
+      case 'checkout.session.completed': {
+        const rawSession = event.data.object as Stripe.Checkout.Session
+        const session = await hydrateCheckoutSession(stripe, rawSession)
+        await handleCheckoutSessionCompleted(supabase, session)
         break
-      case 'checkout.session.expired':
-        await handleCheckoutSessionExpired(supabase, event.data.object as Stripe.Checkout.Session)
+      }
+      case 'checkout.session.expired': {
+        const rawSession = event.data.object as Stripe.Checkout.Session
+        const session = await hydrateCheckoutSession(stripe, rawSession)
+        await handleCheckoutSessionExpired(supabase, session)
         break
-      case 'payment_intent.succeeded':
-        await handlePaymentIntentSucceeded(supabase, event.data.object as Stripe.PaymentIntent)
+      }
+      case 'payment_intent.succeeded': {
+        const rawPaymentIntent = event.data.object as Stripe.PaymentIntent
+        const paymentIntent = await hydratePaymentIntent(stripe, rawPaymentIntent)
+        await handlePaymentIntentSucceeded(supabase, paymentIntent)
         break
-      case 'payment_intent.payment_failed':
-        await handlePaymentIntentFailed(supabase, event.data.object as Stripe.PaymentIntent)
+      }
+      case 'payment_intent.payment_failed': {
+        const rawPaymentIntent = event.data.object as Stripe.PaymentIntent
+        const paymentIntent = await hydratePaymentIntent(stripe, rawPaymentIntent)
+        await handlePaymentIntentFailed(supabase, paymentIntent)
         break
+      }
       default:
         // Log unhandled event types but still return 200 so Stripe doesn't retry.
         console.log(`[webhook] Unhandled event type: ${event.type}`)
