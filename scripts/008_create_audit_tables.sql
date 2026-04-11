@@ -46,7 +46,7 @@ CREATE POLICY "No direct user access to admin_audit_events"
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.negotiation_audits (
   id                    UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id               UUID        NOT NULL REFERENCES auth.users(id) ON DELETE SET NULL,
+  user_id               UUID        REFERENCES auth.users(id) ON DELETE SET NULL,
   vehicle_id            TEXT        NOT NULL,
   listing_price_cents   BIGINT      NOT NULL CHECK (listing_price_cents > 0),
   customer_offer_cents  BIGINT      NOT NULL CHECK (customer_offer_cents > 0),
@@ -117,7 +117,7 @@ CREATE POLICY "No direct user access to finance_calc_audits"
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.offer_access_audits (
   id               UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id          UUID        NOT NULL REFERENCES auth.users(id) ON DELETE SET NULL,
+  user_id          UUID        REFERENCES auth.users(id) ON DELETE SET NULL,
   application_id   UUID        NOT NULL,       -- FK to finance_applications
   action           TEXT        NOT NULL DEFAULT 'offers_retrieved',
   offer_count      INT         NOT NULL DEFAULT 0 CHECK (offer_count >= 0),
@@ -146,7 +146,7 @@ CREATE POLICY "No direct user access to offer_access_audits"
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.offer_selection_audits (
   id               UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id          UUID        NOT NULL REFERENCES auth.users(id) ON DELETE SET NULL,
+  user_id          UUID        REFERENCES auth.users(id) ON DELETE SET NULL,
   application_id   UUID        NOT NULL,       -- FK to finance_applications
   offer_id         TEXT        NOT NULL,       -- lender-assigned offer identifier
   action           TEXT        NOT NULL,       -- e.g. 'selection_attempted_unavailable_offer'
