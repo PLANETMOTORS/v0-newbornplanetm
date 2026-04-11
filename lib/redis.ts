@@ -181,3 +181,30 @@ export async function getVehicleLock(stockNumber: string): Promise<string | null
     return null
   }
 }
+
+export async function cacheIdempotentResponse(
+  key: string,
+  payload: unknown,
+  ttlSeconds: number = 300
+): Promise<void> {
+  const redis = await getRedis()
+  if (!redis) return
+
+  try {
+    await redis.set(`idempotency:${key}`, JSON.stringify(payload), { ex: ttlSeconds })
+  } catch {
+    // Silently fail; idempotency caching is best-effort.
+  }
+}
+
+export async function getCachedIdempotentResponse<T = unknown>(key: string): Promise<T | null> {
+  const redis = await getRedis()
+  if (!redis) return null
+
+  try {
+    const data = await redis.get<string>(`idempotency:${key}`)
+    return data ? (JSON.parse(data) as T) : null
+  } catch {
+    return null
+  }
+}

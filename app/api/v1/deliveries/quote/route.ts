@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { cacheIdempotentResponse, getCachedIdempotentResponse } from "@/lib/redis"
 
 // Origin location: Planet Motors, Richmond Hill, Ontario (L4B postal code area)
 const ORIGIN_POSTAL = "L4B"
@@ -241,6 +242,7 @@ function calculateDeliveryCost(distanceKm: number): { cost: number; isFree: bool
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const postalCode = searchParams.get("postalCode")
+  const idempotencyKeyHeader = request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key")
 
   if (!postalCode) {
     return NextResponse.json(
@@ -270,23 +272,63 @@ export async function GET(request: NextRequest) {
     )
   }
 
+  const replayCacheKey = idempotencyKeyHeader
+    ? `delivery-quote:${idempotencyKeyHeader}:${cleanPostal}`
+    : null
+
+  if (replayCacheKey) {
+    const cached = await getCachedIdempotentResponse<Record<string, unknown>>(replayCacheKey)
+    if (cached) {
+      return NextResponse.json(
+        {
+          ...cached,
+          idempotency: {
+            key: idempotencyKeyHeader,
+            replay: true,
+          },
+        },
+        {
+          headers: {
+            "x-idempotent-replay": "true",
+          },
+        }
+      )
+    }
+  }
+
   const fsa = cleanPostal.slice(0, 3)
   const province = getProvinceFromPostal(fsa)
   const { distance, isEstimate } = getDistanceFromPostalCode(cleanPostal)
   const { cost, isFree } = calculateDeliveryCost(distance)
+  const deliveryCostCents = Math.round(cost * 100)
+  const quoteSource = isEstimate
+    ? province === "ON"
+      ? "heuristic_ontario_fallback"
+      : "heuristic_province_fallback"
+    : "heuristic_fsa_table"
 
   // Check if delivery is available (max 5000km)
   const isDeliveryAvailable = distance <= 5000
 
-  return NextResponse.json({
+  const payload = {
     postalCode: cleanPostal,
     province,
     distanceKm: distance,
     isDistanceEstimate: isEstimate,
+    quoteSource,
+    quoteSourceType: "heuristic",
     deliveryCost: cost,
+    deliveryCostCents,
+    currency: "CAD",
+    amount: {
+      value: deliveryCostCents / 100,
+      cents: deliveryCostCents,
+      currency: "CAD",
+    },
     isFreeDelivery: isFree,
     isDeliveryAvailable,
     freeDeliveryThreshold: 300,
+    quotedAt: new Date().toISOString(),
     message: !isDeliveryAvailable
       ? `Delivery not available to ${province} (${distance}km)`
       : isFree 
@@ -297,5 +339,11 @@ export async function GET(request: NextRequest) {
       chargeableDistance: distance - 300,
       ratePerKm: distance <= 500 ? 0.70 : distance <= 1000 ? 0.75 : 0.80,
     }
-  })
+  }
+
+  if (replayCacheKey) {
+    await cacheIdempotentResponse(replayCacheKey, payload, 300)
+  }
+
+  return NextResponse.json(payload)
 }
