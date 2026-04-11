@@ -27,12 +27,22 @@ export interface ReservationResult {
 
 export async function createReservation(input: ReservationInput): Promise<ReservationResult> {
   const headersList = await headers()
-  const ip = headersList.get('x-forwarded-for') || 'unknown'
+  const forwardedFor = headersList.get('x-forwarded-for')
+  const realIp = headersList.get('x-real-ip')
+  const cfConnectingIp = headersList.get('cf-connecting-ip')
+  const ipCandidate = forwardedFor?.split(',')[0]?.trim() || realIp || cfConnectingIp || 'unknown'
+  const normalizedIp = ipCandidate.toLowerCase()
+  const normalizedEmail = input.customerEmail.trim().toLowerCase()
+  const rateLimitScopeHash = createHash('sha256')
+    .update(`${normalizedIp}:${normalizedEmail}`)
+    .digest('hex')
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   
-  // Rate limit: 5 reservations per hour per IP
-  const rateLimitResult = await rateLimit(`reservation:${ip}`, 5, 3600)
+  // Rate limit: 12 reservation attempts per hour per user+network scope.
+  // This avoids blocking legitimate retries from shared proxy IPs while still curbing abuse.
+  const rateLimitResult = await rateLimit(`reservation:${rateLimitScopeHash}`, 12, 3600)
   if (!rateLimitResult.success) {
     return { 
       error: 'Too many reservation attempts. Please try again later.',
@@ -147,30 +157,29 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
     }
 
     // Create Stripe Checkout session
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://planetmotors.ca'
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://ev.planetmotors.ca'
     const checkoutAttemptWindow = Math.floor(Date.now() / (15 * 60 * 1000))
     const idempotencyKey = createHash('sha256')
       .update(`reservation:${reservationId}:${input.customerEmail}:${input.stockNumber}:${checkoutAttemptWindow}`)
       .digest('hex')
     
     const enableAcssDebit = process.env.STRIPE_ENABLE_ACSS_DEBIT === 'true'
-    const paymentMethodTypes: Array<'card' | 'acss_debit'> = enableAcssDebit
-      ? ['card', 'acss_debit']
-      : ['card']
 
-    const session = await stripe.checkout.sessions.create({
-      ui_mode: 'embedded',
-      redirect_on_completion: 'never',
-      mode: 'payment',
-      payment_method_types: paymentMethodTypes,
-      ...(enableAcssDebit
+    const createSessionParams = (includeAcssDebit: boolean) => ({
+      ui_mode: 'embedded' as const,
+      redirect_on_completion: 'never' as const,
+      mode: 'payment' as const,
+      payment_method_types: includeAcssDebit
+        ? (['card', 'acss_debit'] as Array<'card' | 'acss_debit'>)
+        : (['card'] as Array<'card' | 'acss_debit'>),
+      ...(includeAcssDebit
         ? {
             payment_method_options: {
               acss_debit: {
-                currency: 'cad',
+                currency: 'cad' as const,
                 mandate_options: {
-                  payment_schedule: 'sporadic',
-                  transaction_type: 'personal',
+                  payment_schedule: 'sporadic' as const,
+                  transaction_type: 'personal' as const,
                 },
               },
             },
@@ -210,9 +219,31 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       },
       return_url: `${baseUrl}/vehicles/${input.vehicleId}?reservation=complete`,
       expires_at: Math.floor(Date.now() / 1000) + 900, // 15 minutes
-    }, {
-      idempotencyKey,
     })
+
+    let session
+    try {
+      session = await stripe.checkout.sessions.create(createSessionParams(enableAcssDebit), {
+        idempotencyKey,
+      })
+    } catch (sessionError) {
+      const sessionErrorMessage = sessionError instanceof Error ? sessionError.message.toLowerCase() : ''
+      const canRetryCardOnly = enableAcssDebit && (sessionErrorMessage.includes('acss') || sessionErrorMessage.includes('payment_method_options'))
+
+      if (!canRetryCardOnly) {
+        throw sessionError
+      }
+
+      console.warn('ACSS checkout session failed, retrying with card only', {
+        reservationId,
+        stockNumber: input.stockNumber,
+        error: sessionErrorMessage,
+      })
+
+      session = await stripe.checkout.sessions.create(createSessionParams(false), {
+        idempotencyKey: `${idempotencyKey}:card-only`,
+      })
+    }
 
     const { error: updateError } = await supabase
       .from('reservations')
@@ -234,8 +265,47 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       sessionId: session.id,
     }
   } catch (error) {
-    console.error('Reservation error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorMessageLower = errorMessage.toLowerCase()
+    const isStripeLike =
+      typeof error === 'object' &&
+      error !== null &&
+      'type' in error &&
+      typeof (error as { type?: unknown }).type === 'string'
+
+    console.error('Reservation error:', {
+      error: errorMessage,
+      vehicleId: input.vehicleId,
+      stockNumber: input.stockNumber,
+      email: input.customerEmail,
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     await unlockVehicle(input.stockNumber, input.customerEmail)
+    
+    // Return more specific error messages to help with debugging
+    if (
+      isStripeLike ||
+      errorMessageLower.includes('stripe') ||
+      errorMessageLower.includes('payment_method') ||
+      errorMessageLower.includes('checkout') ||
+      errorMessageLower.includes('acss')
+    ) {
+      return { error: 'Payment system error. Please try again in a moment.' }
+    }
+    if (errorMessageLower.includes('vehicle')) {
+      return { error: 'Unable to verify vehicle details. Please refresh and try again.' }
+    }
+    if (
+      errorMessageLower.includes('database') ||
+      errorMessageLower.includes('supabase') ||
+      errorMessageLower.includes('permission') ||
+      errorMessageLower.includes('relation') ||
+      errorMessageLower.includes('column') ||
+      errorMessageLower.includes('row-level security')
+    ) {
+      return { error: 'Database error. Please try again shortly.' }
+    }
+    
     return { error: 'An unexpected error occurred. Please try again.' }
   }
 }
