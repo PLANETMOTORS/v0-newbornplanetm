@@ -33,6 +33,9 @@ ALTER TABLE public.admin_audit_events ENABLE ROW LEVEL SECURITY;
 
 -- Service-role key bypasses RLS and may insert/read.
 -- Deny all direct access by authenticated or anonymous users.
+DROP POLICY IF EXISTS "No direct user access to admin_audit_events"
+  ON public.admin_audit_events;
+
 CREATE POLICY "No direct user access to admin_audit_events"
   ON public.admin_audit_events
   FOR ALL
@@ -64,11 +67,17 @@ CREATE INDEX IF NOT EXISTS negotiation_audits_vehicle_idx
 ALTER TABLE public.negotiation_audits ENABLE ROW LEVEL SECURITY;
 
 -- Users may read their own negotiation history; service-role may do anything.
+DROP POLICY IF EXISTS "Users read own negotiation audits"
+  ON public.negotiation_audits;
+
 CREATE POLICY "Users read own negotiation audits"
   ON public.negotiation_audits
   FOR SELECT
   TO authenticated
   USING (user_id = auth.uid());
+
+DROP POLICY IF EXISTS "No user inserts to negotiation_audits"
+  ON public.negotiation_audits;
 
 CREATE POLICY "No user inserts to negotiation_audits"
   ON public.negotiation_audits
@@ -104,6 +113,9 @@ CREATE INDEX IF NOT EXISTS finance_calc_audits_created_idx
 
 ALTER TABLE public.finance_calc_audits ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "No direct user access to finance_calc_audits"
+  ON public.finance_calc_audits;
+
 CREATE POLICY "No direct user access to finance_calc_audits"
   ON public.finance_calc_audits
   FOR ALL
@@ -133,6 +145,9 @@ CREATE INDEX IF NOT EXISTS offer_access_audits_application_idx
 
 ALTER TABLE public.offer_access_audits ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "No direct user access to offer_access_audits"
+  ON public.offer_access_audits;
+
 CREATE POLICY "No direct user access to offer_access_audits"
   ON public.offer_access_audits
   FOR ALL
@@ -161,6 +176,9 @@ CREATE INDEX IF NOT EXISTS offer_selection_audits_application_idx
   ON public.offer_selection_audits (application_id, created_at DESC);
 
 ALTER TABLE public.offer_selection_audits ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "No direct user access to offer_selection_audits"
+  ON public.offer_selection_audits;
 
 CREATE POLICY "No direct user access to offer_selection_audits"
   ON public.offer_selection_audits
