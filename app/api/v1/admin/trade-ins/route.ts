@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-
-// Admin emails - in production, check against database role
-const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
+import { requireAdminUser } from "@/lib/auth/admin"
 
 // GET /api/v1/admin/trade-ins - Get all trade-in quotes for admin
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const adminCheck = await requireAdminUser(supabase)
+    if (!adminCheck.ok) {
+      return adminCheck.response
     }
 
     const { searchParams } = new URL(request.url)

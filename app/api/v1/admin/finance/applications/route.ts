@@ -1,28 +1,20 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-
-// Admin emails - in production, check against database role
-const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
+import { getAdminDataClient, requireAdminUser } from "@/lib/auth/admin"
 
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
-    
-    // Verify admin access
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+    const adminCheck = await requireAdminUser(supabase)
+    if (!adminCheck.ok) {
+      return adminCheck.response
     }
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get("status")
 
-    // Use service role for admin queries to bypass RLS
-    const { createClient: createServiceClient } = await import("@supabase/supabase-js")
-    const serviceClient = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const serviceClient = getAdminDataClient()
 
     // Build query
     let query = serviceClient

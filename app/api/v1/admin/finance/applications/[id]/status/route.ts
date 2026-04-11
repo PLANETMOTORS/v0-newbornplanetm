@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { getAdminDataClient, recordAdminAuditEvent, requireAdminUser } from "@/lib/auth/admin"
 
-// Admin emails - in production, check against database role
-const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
+const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  draft: ["submitted", "cancelled"],
+  submitted: ["under_review", "declined", "cancelled"],
+  under_review: ["approved", "declined", "cancelled"],
+  approved: ["funded", "cancelled"],
+  declined: [],
+  funded: [],
+  cancelled: [],
+}
 
 export async function PATCH(
   request: NextRequest,
@@ -11,12 +19,12 @@ export async function PATCH(
   try {
     const { id } = await params
     const supabase = await createClient()
-    
-    // Verify admin access
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+    const adminCheck = await requireAdminUser(supabase)
+    if (!adminCheck.ok) {
+      return adminCheck.response
     }
+    const { user } = adminCheck
 
     const body = await request.json()
     const { status, notes } = body
@@ -27,12 +35,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Invalid status" }, { status: 400 })
     }
 
-    // Use service role for admin updates
-    const { createClient: createServiceClient } = await import("@supabase/supabase-js")
-    const serviceClient = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const serviceClient = getAdminDataClient()
 
     // Get current application state
     const { data: currentApp } = await serviceClient
@@ -43,6 +46,15 @@ export async function PATCH(
 
     if (!currentApp) {
       return NextResponse.json({ error: "Application not found" }, { status: 404 })
+    }
+
+    const currentStatus = String(currentApp.status || "")
+    const allowedNextStatuses = ALLOWED_TRANSITIONS[currentStatus] || []
+    if (!allowedNextStatuses.includes(status)) {
+      return NextResponse.json(
+        { error: `Invalid transition from ${currentStatus} to ${status}` },
+        { status: 409 }
+      )
     }
 
     // Update application status
@@ -79,6 +91,16 @@ export async function PATCH(
         changed_by: user.id,
         notes: notes || `Status changed from ${currentApp.status} to ${status}`
       })
+
+    await recordAdminAuditEvent({
+      actorId: user.id,
+      action: "finance.application.status.update",
+      entityType: "finance_application",
+      entityId: id,
+      beforeState: currentStatus,
+      afterState: status,
+      notes: typeof notes === "string" ? notes : null,
+    })
 
     // Get applicant info for notification
     const { data: applicant } = await serviceClient

@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { recordAdminAuditEvent, requireAdminUser } from "@/lib/auth/admin"
 
-// Admin emails - in production, check against database role
-const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
+const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  pending: ["quoted", "cancelled", "expired"],
+  quoted: ["accepted", "expired", "cancelled"],
+  accepted: ["completed", "cancelled"],
+  completed: [],
+  expired: [],
+  cancelled: [],
+}
 
 // PATCH /api/v1/admin/trade-ins/[id]/status - Update trade-in quote status
 export async function PATCH(
@@ -13,10 +20,11 @@ export async function PATCH(
     const { id } = await params
     const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const adminCheck = await requireAdminUser(supabase)
+    if (!adminCheck.ok) {
+      return adminCheck.response
     }
+    const { user } = adminCheck
 
     const body = await request.json()
     const { status } = body
@@ -29,7 +37,29 @@ export async function PATCH(
       )
     }
     
-    const updateData: Record<string, any> = {
+    const { data: currentQuote, error: currentQuoteError } = await supabase
+      .from("trade_in_quotes")
+      .select("id, status")
+      .eq("id", id)
+      .single()
+
+    if (currentQuoteError || !currentQuote) {
+      return NextResponse.json(
+        { error: "Trade-in quote not found" },
+        { status: 404 }
+      )
+    }
+
+    const currentStatus = String(currentQuote.status || "")
+    const allowedNextStatuses = ALLOWED_TRANSITIONS[currentStatus] || []
+    if (!allowedNextStatuses.includes(status)) {
+      return NextResponse.json(
+        { error: `Invalid transition from ${currentStatus} to ${status}` },
+        { status: 409 }
+      )
+    }
+
+    const updateData: Record<string, unknown> = {
       status,
       updated_at: new Date().toISOString()
     }
@@ -52,6 +82,15 @@ export async function PATCH(
         { status: 500 }
       )
     }
+
+    await recordAdminAuditEvent({
+      actorId: user.id,
+      action: "tradein.quote.status.update",
+      entityType: "trade_in_quote",
+      entityId: id,
+      beforeState: currentStatus,
+      afterState: status,
+    })
     
     return NextResponse.json({
       success: true,
