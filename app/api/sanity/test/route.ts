@@ -2,8 +2,7 @@ import { NextResponse } from "next/server"
 import { createClient as createSanityClient } from "next-sanity"
 import { groq } from "next-sanity"
 import { createClient } from "@/lib/supabase/server"
-
-const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
+import { requireAdminUser } from "@/lib/auth/admin"
 
 // Force dynamic to prevent build-time errors
 export const dynamic = "force-dynamic"
@@ -33,9 +32,9 @@ export async function GET() {
   })
   try {
     const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
+    const adminCheck = await requireAdminUser(supabase)
+    if (!adminCheck.ok) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: adminCheck.response.status })
     }
 
     // Test basic connection

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { requireAdminUser } from "@/lib/auth/admin"
 
-const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
 const DEFAULT_BATCH_LIMIT = 50
 const MAX_BATCH_LIMIT = 100
 const SCRAPE_CONCURRENCY = 5
@@ -9,9 +9,9 @@ const FETCH_TIMEOUT_MS = 5000
 
 async function requireAdmin() {
   const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-  if (error || !user || !ADMIN_EMAILS.includes(user.email || "")) {
-    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
+  const adminCheck = await requireAdminUser(supabase)
+  if (!adminCheck.ok) {
+    return { error: adminCheck.response }
   }
   return { supabase }
 }
