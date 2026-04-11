@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { cacheIdempotentResponse, getCachedIdempotentResponse, rateLimit } from '@/lib/redis'
 
 // Canadian tax rates by province
 const taxRates: Record<string, { gst: number; pst: number; hst: number; total: number }> = {
@@ -17,8 +19,22 @@ const taxRates: Record<string, { gst: number; pst: number; hst: number; total: n
   NU: { gst: 0.05, pst: 0, hst: 0, total: 0.05 },
 }
 
+const ALLOWED_PROVINCES = new Set(Object.keys(taxRates))
+
 // POST /api/v1/financing/calculator - Calculate payments
 export async function POST(request: NextRequest) {
+  const forwarded = request.headers.get('x-forwarded-for') || ''
+  const ip = forwarded.split(',')[0]?.trim() || 'unknown'
+  const idempotencyKey = request.headers.get('idempotency-key') || request.headers.get('x-idempotency-key')
+  const limiter = await rateLimit(`finance-calc:${ip}`, 20, 3600)
+
+  if (!limiter.success) {
+    return NextResponse.json(
+      { success: false, error: { code: 'RATE_LIMITED', message: 'Too many calculation requests. Please try again later.' } },
+      { status: 429 }
+    )
+  }
+
   const body = await request.json()
   
   const {
@@ -41,6 +57,24 @@ export async function POST(request: NextRequest) {
   const numericTermMonths = Number(termMonths)
   const numericWarrantyPrice = Number(warrantyPrice)
   const numericProtectionPrice = Number(protectionPrice)
+  const normalizedProvince = typeof province === 'string' ? province.trim().toUpperCase() : 'ON'
+
+  const replayCacheKey = idempotencyKey
+    ? `finance-calc:${normalizedProvince}:${numericVehiclePrice}:${numericTradeInValue}:${numericDownPayment}:${numericInterestRate}:${numericTermMonths}:${numericWarrantyPrice}:${numericProtectionPrice}:${includeWarranty ? 'warranty' : 'no-warranty'}:${includeProtection ? 'protection' : 'no-protection'}:${idempotencyKey}`
+    : null
+
+  if (replayCacheKey) {
+    const cached = await getCachedIdempotentResponse<Record<string, unknown>>(replayCacheKey)
+    if (cached) {
+      return NextResponse.json(
+        {
+          ...cached,
+          idempotency: { key: idempotencyKey, replay: true },
+        },
+        { headers: { 'x-idempotent-replay': 'true' } }
+      )
+    }
+  }
 
   // Validate
   if (!Number.isFinite(numericVehiclePrice) || numericVehiclePrice <= 0) {
@@ -71,7 +105,35 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const tax = taxRates[province] || taxRates.ON
+  if (!ALLOWED_PROVINCES.has(normalizedProvince)) {
+    return NextResponse.json(
+      { success: false, error: { code: 'INVALID_PROVINCE', message: 'Province must be a valid Canadian province code' } },
+      { status: 400 }
+    )
+  }
+
+  if (numericTradeInValue > numericVehiclePrice * 1.5) {
+    return NextResponse.json(
+      { success: false, error: { code: 'INVALID_TRADE_IN', message: 'Trade-in value exceeds supported bounds' } },
+      { status: 400 }
+    )
+  }
+
+  if (numericDownPayment > numericVehiclePrice) {
+    return NextResponse.json(
+      { success: false, error: { code: 'INVALID_DOWN_PAYMENT', message: 'Down payment cannot exceed vehicle price' } },
+      { status: 400 }
+    )
+  }
+
+  if (numericTradeInValue + numericDownPayment > numericVehiclePrice * 1.2) {
+    return NextResponse.json(
+      { success: false, error: { code: 'INVALID_CREDITS', message: 'Combined trade-in and down payment exceed supported bounds' } },
+      { status: 400 }
+    )
+  }
+
+  const tax = taxRates[normalizedProvince]
   
   // Calculate fees
   const documentationFee = 499
@@ -131,9 +193,14 @@ export async function POST(request: NextRequest) {
     })
   }
 
-  return NextResponse.json({
+  const payload = {
     success: true,
     data: {
+      source: 'finance_calculator_heuristic',
+      sourceType: 'heuristic',
+      confidence: 'medium',
+      disclaimer: 'This calculator is an estimate only. Final payment depends on approved APR, lender decision, taxes, and selected products.',
+      calculatedAt: new Date().toISOString(),
       calculation: {
         // Vehicle
         vehiclePrice: numericVehiclePrice,
@@ -151,7 +218,7 @@ export async function POST(request: NextRequest) {
         subtotal,
         
         // Taxes
-        province,
+        province: normalizedProvince,
         taxRate: tax.total,
         taxBreakdown: {
           gst: tax.gst > 0 ? Math.round(taxableAmount * tax.gst * 100) / 100 : 0,
@@ -216,5 +283,35 @@ export async function POST(request: NextRequest) {
           : null,
       ].filter(Boolean),
     },
-  })
+  }
+
+  if (replayCacheKey) {
+    await cacheIdempotentResponse(replayCacheKey, payload, 600)
+  }
+
+  ;(async () => {
+    try {
+      const supabase = await createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      await supabase.from('finance_calc_audits').insert({
+        user_id: user?.id || null,
+        client_ip: ip,
+        vehicle_price_cents: Math.round(numericVehiclePrice * 100),
+        trade_in_cents: Math.round(numericTradeInValue * 100),
+        down_payment_cents: Math.round(numericDownPayment * 100),
+        interest_rate_bps: Math.round(numericInterestRate * 100),
+        term_months: numericTermMonths,
+        province: normalizedProvince,
+        monthly_payment_cents: Math.round(monthlyPayment * 100),
+        created_at: new Date().toISOString(),
+      })
+    } catch {
+      // Do not block calculator response if optional audit sink is unavailable.
+    }
+  })()
+
+  return NextResponse.json(payload)
 }
