@@ -7,6 +7,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { createClient } from "@/lib/supabase/client"
 import type { OAuthProvider } from "@/lib/auth/oauth-providers"
+import { useAuth } from "@/contexts/auth-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,12 +16,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { 
-  User, Mail, Phone, MapPin, CreditCard, Bell, Shield, LogOut, 
-  Heart, Car, FileText, Clock, CheckCircle, Settings, Eye,
-  Calendar, DollarSign, Truck, Star
+  User, Mail, Phone, CreditCard, Shield, LogOut,
+  Heart, Car, CheckCircle, Settings, Eye
 } from "lucide-react"
 
-// API-ready interfaces
 interface UserProfile {
   id: string
   email: string
@@ -36,113 +35,92 @@ interface UserProfile {
   phoneVerified: boolean
 }
 
-interface SavedVehicle {
-  id: string
-  vehicleId: string
-  vehicleName: string
-  price: number
-  image: string
-  savedAt: string
-}
-
-interface PreApproval {
-  id: string
-  status: "pending" | "approved" | "declined"
-  amount: number
-  rate: number
-  term: number
-  lender: string
-  expiresAt: string
-}
-
-interface OrderHistory {
-  id: string
-  vehicleName: string
-  orderDate: string
-  status: "pending" | "processing" | "delivered" | "completed"
-  totalAmount: number
-}
-
-// Mock user data - will be replaced with API calls
-const mockUser: UserProfile = {
-  id: "usr_123456",
-  email: "john.smith@example.com",
-  firstName: "John",
-  lastName: "Smith",
-  phone: "416-985-2277",
-  address: "123 Main Street",
-  postalCode: "M5V 1K4",
-  city: "Toronto",
-  province: "ON",
-  createdAt: "2024-01-15",
-  emailVerified: true,
-  phoneVerified: true
-}
-
-const mockSavedVehicles: SavedVehicle[] = [
-  {
-    id: "sv_001",
-    vehicleId: "2024-tesla-model-y",
-    vehicleName: "2024 Tesla Model Y Long Range",
-    price: 64990,
-    image: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=200&h=150&fit=crop",
-    savedAt: "2024-03-20"
-  },
-  {
-    id: "sv_002",
-    vehicleId: "2024-porsche-taycan",
-    vehicleName: "2024 Porsche Taycan 4S",
-    price: 134500,
-    image: "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=200&h=150&fit=crop",
-    savedAt: "2024-03-18"
-  }
-]
-
-const mockPreApproval: PreApproval = {
-  id: "pa_789",
-  status: "approved",
-  amount: 75000,
-  rate: 6.29,
-  term: 72,
-  lender: "Credit Union",
-  expiresAt: "2024-04-28"
+interface RegistrationInput {
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  password: string
 }
 
 export default function AccountPage() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const { user, isLoading: isAuthLoading, signOut } = useAuth()
   const [activeTab, setActiveTab] = useState("profile")
   const [isLoading, setIsLoading] = useState(false)
   const [loginError, setLoginError] = useState("")
+  const [authMessage, setAuthMessage] = useState("")
   const [oauthLoading, setOauthLoading] = useState<OAuthProvider | null>(null)
 
-  // Mock login function - will be replaced with API call
+  const userProfile: UserProfile = {
+    id: user?.id ?? "",
+    email: user?.email ?? "",
+    firstName: String(user?.user_metadata?.first_name ?? user?.user_metadata?.firstName ?? ""),
+    lastName: String(user?.user_metadata?.last_name ?? user?.user_metadata?.lastName ?? ""),
+    phone: String(user?.user_metadata?.phone ?? ""),
+    address: "",
+    postalCode: "",
+    city: "",
+    province: "",
+    createdAt: user?.created_at ?? "",
+    emailVerified: Boolean(user?.email_confirmed_at),
+    phoneVerified: Boolean(user?.phone_confirmed_at),
+  }
+
   const handleLogin = async (email: string, password: string) => {
     setIsLoading(true)
     setLoginError("")
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // For demo, accept any credentials
-    if (email && password) {
-      setIsLoggedIn(true)
-    } else {
-      setLoginError("Please enter your email and password")
+
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+
+      if (error) {
+        setLoginError(error.message)
+      }
+    } catch {
+      setLoginError("Sign in failed. Please try again.")
     }
+
     setIsLoading(false)
   }
 
-  // Mock register function - will be replaced with API call
-  const handleRegister = async (data: any) => {
+  const handleRegister = async (data: RegistrationInput) => {
     setIsLoading(true)
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    setIsLoggedIn(true)
+    setLoginError("")
+    setAuthMessage("")
+
+    try {
+      const supabase = createClient()
+      const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=%2Faccount`
+      const { data: signUpData, error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          emailRedirectTo: callbackUrl,
+          data: {
+            first_name: data.firstName,
+            last_name: data.lastName,
+            phone: data.phone,
+          },
+        },
+      })
+
+      if (error) {
+        setLoginError(error.message)
+      } else if (!signUpData.session) {
+        setAuthMessage("Check your email to confirm your account, then sign in.")
+      }
+    } catch {
+      setLoginError("Registration failed. Please try again.")
+    }
+
     setIsLoading(false)
   }
 
   const handleOAuthLogin = async (provider: OAuthProvider) => {
     setOauthLoading(provider)
     setLoginError("")
+    setAuthMessage("")
 
     try {
       const supabase = createClient()
@@ -171,7 +149,27 @@ export default function AccountPage() {
     }
   }
 
-  if (!isLoggedIn) {
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+
+        <main className="pt-32 pb-16">
+          <div className="container mx-auto px-4 max-w-md">
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                Loading your account...
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+
+        <Footer />
+      </div>
+    )
+  }
+
+  if (!user) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -209,6 +207,9 @@ export default function AccountPage() {
                         </div>
                         {loginError && (
                           <p className="text-sm text-destructive">{loginError}</p>
+                        )}
+                        {authMessage && (
+                          <p className="text-sm text-green-700">{authMessage}</p>
                         )}
                         <Button type="submit" className="w-full" disabled={isLoading}>
                           {isLoading ? "Signing in..." : "Sign In"}
@@ -258,7 +259,14 @@ export default function AccountPage() {
                   <TabsContent value="register" className="space-y-4 mt-6">
                     <form onSubmit={(e) => {
                       e.preventDefault()
-                      handleRegister({})
+                      const form = e.target as HTMLFormElement
+                      handleRegister({
+                        firstName: (form.elements.namedItem("firstName") as HTMLInputElement).value,
+                        lastName: (form.elements.namedItem("lastName") as HTMLInputElement).value,
+                        email: (form.elements.namedItem("registerEmail") as HTMLInputElement).value,
+                        phone: (form.elements.namedItem("registerPhone") as HTMLInputElement).value,
+                        password: (form.elements.namedItem("registerPassword") as HTMLInputElement).value,
+                      })
                     }}>
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
@@ -284,6 +292,12 @@ export default function AccountPage() {
                           <Input id="registerPassword" name="registerPassword" type="password" required minLength={8} />
                           <p className="text-xs text-muted-foreground">Must be at least 8 characters</p>
                         </div>
+                        {loginError && (
+                          <p className="text-sm text-destructive">{loginError}</p>
+                        )}
+                        {authMessage && (
+                          <p className="text-sm text-green-700">{authMessage}</p>
+                        )}
                         <Button type="submit" className="w-full" disabled={isLoading}>
                           {isLoading ? "Creating Account..." : "Create Account"}
                         </Button>
@@ -334,7 +348,7 @@ export default function AccountPage() {
                 >
                   <Heart className="w-4 h-4 mr-2" />
                   Saved
-                  <Badge className="ml-2">{mockSavedVehicles.length}</Badge>
+                  <Badge className="ml-2">0</Badge>
                 </Button>
                 <Button 
                   variant={activeTab === "preapproval" ? "secondary" : "ghost"} 
@@ -364,7 +378,7 @@ export default function AccountPage() {
                 <Button 
                   variant="ghost" 
                   className="shrink-0 md:w-full justify-start text-destructive min-h-[44px]"
-                  onClick={() => setIsLoggedIn(false)}
+                  onClick={() => void signOut()}
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
@@ -383,7 +397,7 @@ export default function AccountPage() {
                           <CardDescription>Update your personal details</CardDescription>
                         </div>
                         <div className="flex gap-2">
-                          {mockUser.emailVerified && (
+                          {userProfile.emailVerified && (
                             <Badge variant="outline" className="text-green-600 border-green-600">
                               <CheckCircle className="w-3 h-3 mr-1" /> Email Verified
                             </Badge>
@@ -395,11 +409,11 @@ export default function AccountPage() {
                       <div className="grid md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="profileFirstName">First Name</Label>
-                          <Input id="profileFirstName" defaultValue={mockUser.firstName} />
+                          <Input id="profileFirstName" defaultValue={userProfile.firstName} />
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="profileLastName">Last Name</Label>
-                          <Input id="profileLastName" defaultValue={mockUser.lastName} />
+                          <Input id="profileLastName" defaultValue={userProfile.lastName} />
                         </div>
                       </div>
                       
@@ -407,7 +421,7 @@ export default function AccountPage() {
                         <Label htmlFor="profileEmail">Email</Label>
                         <div className="relative">
                           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                          <Input id="profileEmail" className="pl-10" defaultValue={mockUser.email} />
+                          <Input id="profileEmail" className="pl-10" defaultValue={userProfile.email} />
                         </div>
                       </div>
                       
@@ -415,29 +429,29 @@ export default function AccountPage() {
                         <Label htmlFor="profilePhone">Phone</Label>
                         <div className="relative">
                           <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                          <Input id="profilePhone" className="pl-10" defaultValue={mockUser.phone} />
+                          <Input id="profilePhone" className="pl-10" defaultValue={userProfile.phone} />
                         </div>
                       </div>
                       
                       <div className="grid md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="profileAddress">Street Address</Label>
-                          <Input id="profileAddress" defaultValue={mockUser.address} />
+                          <Input id="profileAddress" defaultValue={userProfile.address} />
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="profileCity">City</Label>
-                          <Input id="profileCity" defaultValue={mockUser.city} />
+                          <Input id="profileCity" defaultValue={userProfile.city} />
                         </div>
                       </div>
                       
                       <div className="grid md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="profileProvince">Province</Label>
-                          <Input id="profileProvince" defaultValue={mockUser.province} />
+                          <Input id="profileProvince" defaultValue={userProfile.province} />
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="profilePostal">Postal Code</Label>
-                          <Input id="profilePostal" defaultValue={mockUser.postalCode} />
+                          <Input id="profilePostal" defaultValue={userProfile.postalCode} />
                         </div>
                       </div>
                       
@@ -454,44 +468,13 @@ export default function AccountPage() {
                       <CardDescription>Vehicles you&apos;ve added to your favorites</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      {mockSavedVehicles.length > 0 ? (
-                        <div className="space-y-4">
-                          {mockSavedVehicles.map(vehicle => (
-                            <div key={vehicle.id} className="flex items-center gap-4 p-4 border rounded-lg">
-                              <Image 
-                                src={vehicle.image} 
-                                alt={vehicle.vehicleName}
-                                width={96}
-                                height={64}
-                                className="object-cover rounded"
-                              />
-                              <div className="flex-1">
-                                <h4 className="font-semibold">{vehicle.vehicleName}</h4>
-                                <p className="text-lg font-bold text-primary">${vehicle.price.toLocaleString()}</p>
-                                <p className="text-xs text-muted-foreground">Saved on {vehicle.savedAt}</p>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button size="sm" asChild>
-                                  <Link href={`/vehicles/${vehicle.vehicleId}`}>
-                                    <Eye className="w-4 h-4 mr-1" /> View
-                                  </Link>
-                                </Button>
-                                <Button size="sm" variant="outline">
-                                  <Heart className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-8">
-                          <Heart className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                          <p className="text-muted-foreground">No saved vehicles yet</p>
-                          <Button className="mt-4" asChild>
-                            <Link href="/inventory">Browse Inventory</Link>
-                          </Button>
-                        </div>
-                      )}
+                      <div className="text-center py-8">
+                        <Heart className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                        <p className="text-muted-foreground">No saved vehicles yet</p>
+                        <Button className="mt-4" asChild>
+                          <Link href="/inventory">Browse Inventory</Link>
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 )}
@@ -504,44 +487,13 @@ export default function AccountPage() {
                       <CardDescription>Your financing status and options</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      {mockPreApproval.status === "approved" ? (
-                        <div className="space-y-6">
-                          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-                            <div className="flex items-center gap-2 mb-4">
-                              <CheckCircle className="w-6 h-6 text-green-600" />
-                              <span className="text-lg font-semibold text-green-800">Pre-Approved!</span>
-                            </div>
-                            <div className="grid md:grid-cols-3 gap-4">
-                              <div>
-                                <p className="text-sm text-green-700">Approved Amount</p>
-                                <p className="text-2xl font-bold text-green-800">${mockPreApproval.amount.toLocaleString()}</p>
-                              </div>
-                              <div>
-                                <p className="text-sm text-green-700">Interest Rate</p>
-                                <p className="text-2xl font-bold text-green-800">{mockPreApproval.rate}%</p>
-                              </div>
-                              <div>
-                                <p className="text-sm text-green-700">Term</p>
-                                <p className="text-2xl font-bold text-green-800">{mockPreApproval.term} months</p>
-                              </div>
-                            </div>
-                            <p className="text-sm text-green-700 mt-4">
-                              Lender: {mockPreApproval.lender} | Valid until: {mockPreApproval.expiresAt}
-                            </p>
-                          </div>
-                          <Button size="lg" className="w-full" asChild>
-                            <Link href="/inventory">Shop Within Your Budget</Link>
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="text-center py-8">
-                          <CreditCard className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                          <p className="text-muted-foreground mb-4">Get pre-approved in minutes</p>
-                          <Button asChild>
-                            <Link href="/financing">Apply for Pre-Approval</Link>
-                          </Button>
-                        </div>
-                      )}
+                      <div className="text-center py-8">
+                        <CreditCard className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                        <p className="text-muted-foreground mb-4">No active pre-approval found</p>
+                        <Button asChild>
+                          <Link href="/financing">Apply for Pre-Approval</Link>
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 )}
