@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { requireAdminUser } from "@/lib/auth/admin"
 import { createClient } from "@/lib/supabase/server"
-
-const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
 
 const ALLOWED_STATUSES = new Set([
   "available",
@@ -129,18 +128,18 @@ export async function PATCH(
     }
 
     const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
+    const adminCheck = await requireAdminUser(supabase)
+    if (!adminCheck.ok) {
+      const status = adminCheck.response.status
       return NextResponse.json(
-        { success: false, error: { code: "UNAUTHORIZED", message: "Authentication required" } },
-        { status: 401 }
-      )
-    }
-
-    if (!ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json(
-        { success: false, error: { code: "FORBIDDEN", message: "Admin access required" } },
-        { status: 403 }
+        {
+          success: false,
+          error: {
+            code: status === 401 ? "UNAUTHORIZED" : "FORBIDDEN",
+            message: status === 401 ? "Authentication required" : "Admin access required",
+          },
+        },
+        { status }
       )
     }
 
