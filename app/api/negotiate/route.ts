@@ -1,9 +1,47 @@
+import { createHash } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
-import { streamText, Output } from "ai"
+import { generateObject } from "ai"
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
-import { rateLimit } from "@/lib/redis"
+import { cacheIdempotentResponse, getCachedIdempotentResponse, rateLimit } from "@/lib/redis"
 import { getAISettings } from "@/lib/sanity/fetch"
+
+type NegotiationResult = {
+  response: string
+  counterOffer: number | null
+  status: "negotiating" | "accepted" | "declined" | "escalate"
+  confidence: number
+  vehicleId: string
+  listingPrice: number
+  customerOffer: number
+  minAcceptablePrice: number
+  negotiationSource: "bounded_llm_negotiator"
+  negotiatedAt: string
+}
+
+function createNegotiationStreamResponse(payload: NegotiationResult, replay: boolean = false) {
+  const encoder = new TextEncoder()
+  const serialized = JSON.stringify(payload)
+
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(
+        encoder.encode(`data: ${JSON.stringify({ type: "text-delta", delta: serialized })}\n\n`)
+      )
+      controller.enqueue(encoder.encode("data: [DONE]\n\n"))
+      controller.close()
+    },
+  })
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+      ...(replay ? { "x-idempotent-replay": "true" } : {}),
+    },
+  })
+}
 
 // POST /api/negotiate - AI price negotiation (authenticated, DB-backed pricing)
 export async function POST(req: NextRequest) {
@@ -46,6 +84,29 @@ export async function POST(req: NextRequest) {
         { error: "Customer offer exceeds reasonable bounds" },
         { status: 400 }
       )
+    }
+
+    const normalizedCustomerMessage =
+      typeof customerMessage === "string" && customerMessage.trim().length > 0
+        ? customerMessage.trim()
+        : `I'd like to offer $${customerOffer.toLocaleString()} for this vehicle.`
+
+    const idempotencyHeader = req.headers.get("idempotency-key") || req.headers.get("x-idempotency-key")
+    const replayFingerprint = createHash("sha256")
+      .update(
+        JSON.stringify({
+          userId: user.id,
+          vehicleId,
+          customerOffer,
+          customerMessage: normalizedCustomerMessage,
+        })
+      )
+      .digest("hex")
+    const replayCacheKey = `negotiate:${idempotencyHeader || replayFingerprint}`
+
+    const cached = await getCachedIdempotentResponse<NegotiationResult>(replayCacheKey)
+    if (cached) {
+      return createNegotiationStreamResponse(cached, true)
     }
 
     // CRITICAL: Load authoritative vehicle from DB (not client-supplied price)
@@ -162,7 +223,7 @@ FEES TO MENTION: Certification $${fees?.certification || 595}, Doc $${fees?.fina
 VALUE: 210-point inspection, 10-day guarantee, free delivery 300km, financing from ${aiSettings?.financing?.lowestRate || 4.79}%`
 
     // Bounded schema: counterOffer must be null or within explicit min/max bounds
-    const result = streamText({
+    const result = await generateObject({
       model: "openai/gpt-4o-mini",
       system: systemPrompt,
       messages: [
@@ -171,40 +232,47 @@ VALUE: 210-point inspection, 10-day guarantee, free delivery 300km, financing fr
           content: customerMessage || `I'd like to offer $${customerOffer.toLocaleString()} for this vehicle.`,
         },
       ],
-      output: Output.object({
-        schema: z.object({
-          response: z.string().describe("Your response message"),
-          counterOffer: z
-            .number()
-            .nullable()
-            .refine(
-              (val) =>
-                val === null ||
-                (Number.isFinite(val) && val >= minCounterBound && val <= maxCounterBound),
-              {
-                message: `Counter offer must be null or between $${minCounterBound} and $${maxCounterBound}`,
-              }
-            )
-            .describe(
-              offerIsAcceptable
-                ? "MUST BE null - you are accepting their offer"
-                : `Your counter offer - must be between $${minCounterBound} and $${maxCounterBound}`
-            ),
-          status: z
-            .enum(["negotiating", "accepted", "declined", "escalate"])
-            .refine((val) => (offerIsAcceptable ? val === "accepted" : val !== "accepted"), {
-              message: offerIsAcceptable
-                ? 'Status must be "accepted" when offer is acceptable'
-                : 'Status cannot be "accepted" when offer is below minimum',
-            })
-            .describe(offerIsAcceptable ? "MUST BE 'accepted'" : "'negotiating'"),
-          confidence: z.number().min(0).max(100),
-        }),
+      schema: z.object({
+        response: z.string().describe("Your response message"),
+        counterOffer: z
+          .number()
+          .nullable()
+          .refine(
+            (val) =>
+              val === null ||
+              (Number.isFinite(val) && val >= minCounterBound && val <= maxCounterBound),
+            {
+              message: `Counter offer must be null or between $${minCounterBound} and $${maxCounterBound}`,
+            }
+          )
+          .describe(
+            offerIsAcceptable
+              ? "MUST BE null - you are accepting their offer"
+              : `Your counter offer - must be between $${minCounterBound} and $${maxCounterBound}`
+          ),
+        status: z
+          .enum(["negotiating", "accepted", "declined", "escalate"])
+          .refine((val) => (offerIsAcceptable ? val === "accepted" : val !== "accepted"), {
+            message: offerIsAcceptable
+              ? 'Status must be "accepted" when offer is acceptable'
+              : 'Status cannot be "accepted" when offer is below minimum',
+          })
+          .describe(offerIsAcceptable ? "MUST BE 'accepted'" : "'negotiating'"),
+        confidence: z.number().min(0).max(100),
       }),
     })
 
-    // Stream response + capture for audit logging
-    const streamResponse = result.toUIMessageStreamResponse()
+    const payload: NegotiationResult = {
+      ...result.object,
+      vehicleId,
+      listingPrice: vehiclePrice,
+      customerOffer,
+      minAcceptablePrice: Math.round(minAcceptablePrice * 100) / 100,
+      negotiationSource: "bounded_llm_negotiator",
+      negotiatedAt: new Date().toISOString(),
+    }
+
+    await cacheIdempotentResponse(replayCacheKey, payload, 300)
 
     // Audit trail: log negotiation (fire-and-forget)
     ;(async () => {
@@ -223,7 +291,7 @@ VALUE: 210-point inspection, 10-day guarantee, free delivery 300km, financing fr
       }
     })()
 
-    return streamResponse
+    return createNegotiationStreamResponse(payload)
   } catch (err) {
     console.error("[negotiate] Unexpected error:", err)
     return NextResponse.json(
