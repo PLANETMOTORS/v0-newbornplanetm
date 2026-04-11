@@ -7,7 +7,7 @@ export async function GET() {
   const supabase = await createClient()
   const adminCheck = await requireAdminUser(supabase)
   if (!adminCheck.ok) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
+    return adminCheck.response
   }
 
   // Get API key from environment
@@ -20,13 +20,18 @@ export async function GET() {
       hint: "Add API_KEY_RESEND to your environment variables"
     }, { status: 500 })
   }
+
+  const adminEmail = adminCheck.user.email || process.env.ADMIN_EMAIL
+  if (!adminEmail) {
+    return NextResponse.json({ success: false, error: "No admin recipient email available" }, { status: 500 })
+  }
   
   const resend = new Resend(apiKey)
   
   try {
     const { data, error } = await resend.emails.send({
       from: 'onboarding@resend.dev',
-      to: 'toni@planetmotors.ca',
+      to: adminEmail,
       subject: 'Planet Motors - Test Email',
       html: '<p>Congrats on sending your <strong>first email</strong> from Planet Motors!</p>'
     })
@@ -42,7 +47,7 @@ export async function GET() {
       success: true,
       message: "Email sent successfully!",
       data: data,
-      sentTo: "toni@planetmotors.ca"
+      sentTo: adminEmail
     })
   } catch (err: any) {
     return NextResponse.json({

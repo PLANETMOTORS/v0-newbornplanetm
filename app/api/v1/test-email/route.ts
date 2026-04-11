@@ -8,14 +8,18 @@ export async function GET() {
   const supabase = await createClient()
   const adminCheck = await requireAdminUser(supabase)
   if (!adminCheck.ok) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
+    return adminCheck.response
   }
 
   const apiKey = process.env.API_KEY_RESEND || process.env.RESEND_API_KEY
-  const adminEmail = process.env.ADMIN_EMAIL || "toni@planetmotors.ca"
+  const adminEmail = adminCheck.user.email || process.env.ADMIN_EMAIL
   
   if (!apiKey) {
     return NextResponse.json({ success: false, error: "No API key configured" }, { status: 500 })
+  }
+
+  if (!adminEmail) {
+    return NextResponse.json({ success: false, error: "No admin recipient email available" }, { status: 500 })
   }
   
   const resend = new Resend(apiKey)

@@ -1,12 +1,24 @@
 import { NextResponse } from "next/server"
 import { sendNotificationEmail, sendCustomerConfirmationEmail } from "@/lib/email"
+import { createClient } from "@/lib/supabase/server"
+import { requireAdminUser } from "@/lib/auth/admin"
 
 // Test endpoint to verify all email notifications are working
 // GET /api/test-emails?type=all or ?type=finance_application
 export async function GET(req: Request) {
+  const supabase = await createClient()
+  const adminCheck = await requireAdminUser(supabase)
+  if (!adminCheck.ok) {
+    return adminCheck.response
+  }
+
   const { searchParams } = new URL(req.url)
   const type = searchParams.get("type") || "all"
-  const testEmail = searchParams.get("email") || "toni@planetmotors.ca"
+  const testEmail = searchParams.get("email") || adminCheck.user.email || process.env.ADMIN_EMAIL
+
+  if (!testEmail) {
+    return NextResponse.json({ success: false, error: "No test email recipient available" }, { status: 500 })
+  }
   
   const results: Record<string, { success: boolean; error?: string }> = {}
 
