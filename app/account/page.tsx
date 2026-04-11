@@ -46,6 +46,7 @@ interface RegistrationInput {
 export default function AccountPage() {
   const { user, isLoading: isAuthLoading, signOut } = useAuth()
   const [activeTab, setActiveTab] = useState("profile")
+  const [authTab, setAuthTab] = useState("signin")
   const [isLoading, setIsLoading] = useState(false)
   const [loginError, setLoginError] = useState("")
   const [authMessage, setAuthMessage] = useState("")
@@ -79,9 +80,9 @@ export default function AccountPage() {
       }
     } catch {
       setLoginError("Sign in failed. Please try again.")
+    } finally {
+      setIsLoading(false)
     }
-
-    setIsLoading(false)
   }
 
   const handleRegister = async (data: RegistrationInput) => {
@@ -91,7 +92,10 @@ export default function AccountPage() {
 
     try {
       const supabase = createClient()
-      const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=%2Faccount`
+      const callbackUrl =
+        typeof window !== "undefined" && window.location?.origin
+          ? `${window.location.origin}/auth/callback?redirectTo=%2Faccount`
+          : (process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || "https://www.planetmotors.ca/auth/callback?redirectTo=%2Faccount")
       const { data: signUpData, error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -112,9 +116,9 @@ export default function AccountPage() {
       }
     } catch {
       setLoginError("Registration failed. Please try again.")
+    } finally {
+      setIsLoading(false)
     }
-
-    setIsLoading(false)
   }
 
   const handleOAuthLogin = async (provider: OAuthProvider) => {
@@ -182,7 +186,15 @@ export default function AccountPage() {
                 <CardDescription>Sign in to your Planet Motors account</CardDescription>
               </CardHeader>
               <CardContent>
-                <Tabs defaultValue="signin" className="w-full">
+                <Tabs
+                  value={authTab}
+                  onValueChange={(value) => {
+                    setAuthTab(value)
+                    setLoginError("")
+                    setAuthMessage("")
+                  }}
+                  className="w-full"
+                >
                   <TabsList className="grid w-full grid-cols-2 h-auto">
                     <TabsTrigger value="signin" className="px-4 py-2.5 min-h-[44px]">Sign In</TabsTrigger>
                     <TabsTrigger value="register" className="px-4 py-2.5 min-h-[44px]">Register</TabsTrigger>

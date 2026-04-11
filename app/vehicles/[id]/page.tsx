@@ -360,6 +360,7 @@ export default function VehicleDetailPage() {
   const { user } = useAuth()
   const [vehicle, setVehicle] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isFavorite, setIsFavorite] = useState(false)
   const [activeTab, setActiveTab] = useState("photos")
@@ -409,6 +410,13 @@ export default function VehicleDetailPage() {
         .select("*")
         .eq("id", vehicleId)
         .single()
+
+      if (error || !data) {
+        setVehicle(null)
+        setLoadError("Vehicle not found or no longer available.")
+        setIsLoading(false)
+        return
+      }
       
       if (data) {
         // Transform database vehicle to page format
@@ -447,9 +455,6 @@ export default function VehicleDetailPage() {
             totalWithHst: Math.round(priceInDollars + hst + 22 + 595 + 59)
           }
         })
-      } else {
-        // Fallback to mock data if vehicle not found
-        setVehicle(vehicleData)
       }
       setIsLoading(false)
     }
@@ -528,17 +533,39 @@ export default function VehicleDetailPage() {
 
 
   const nextImage = () => {
-    const images = imageType === "exterior" ? vehicleData.images : vehicleData.interiorImages
+    const images = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
     setCurrentImageIndex((prev) => (prev + 1) % images.length)
   }
 
   const prevImage = () => {
-    const images = imageType === "exterior" ? vehicleData.images : vehicleData.interiorImages
+    const images = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
   }
 
   // Show loading state
   if (isLoading || !vehicle) {
+    if (!isLoading && loadError) {
+      return (
+        <div className="min-h-screen bg-background">
+          <Header />
+          <div className="container mx-auto px-4 py-24">
+            <Card className="max-w-xl mx-auto">
+              <CardHeader>
+                <CardTitle>Vehicle unavailable</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">{loadError}</p>
+                <Button className="mt-6" asChild>
+                  <Link href="/inventory">Return to inventory</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+          <Footer />
+        </div>
+      )
+    }
+
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -553,7 +580,7 @@ export default function VehicleDetailPage() {
     )
   }
 
-  const currentImages: string[] = imageType === "exterior" ? vehicle.images : vehicleData.interiorImages
+  const currentImages: string[] = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
   const savings = (vehicleData.originalPrice || vehicle.price * 1.1) - vehicle.price
   
   // Finance calculation: Vehicle Price + $895 Admin Fee (Finance Docs Set-up)

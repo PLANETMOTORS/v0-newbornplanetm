@@ -12,6 +12,7 @@ import { AuthProvider } from '@/contexts/auth-context'
 import { CompareBar } from '@/components/compare-bar'
 import { Toaster } from '@/components/ui/sonner'
 import { OrganizationJsonLd, LocalBusinessJsonLd, WebsiteSearchJsonLd } from '@/components/seo/json-ld'
+import { getPublicSiteUrl } from '@/lib/site-url'
 import './globals.css'
 import './stability-fixes.css'
 
@@ -26,6 +27,8 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: '--font-playfair'
 });
+
+const SITE_URL = getPublicSiteUrl()
 
 export const metadata: Metadata = {
   title: 'Planet Motors | Premium Used Car Dealership - Nationwide Delivery',
@@ -46,7 +49,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Planet Motors | Premium Used Car Dealership',
     description: 'Shop certified pre-owned vehicles with free Carfax reports and nationwide delivery across Canada.',
-    url: 'https://www.planetmotors.ca',
+    url: SITE_URL,
     siteName: 'Planet Motors',
     locale: 'en_CA',
     type: 'website',
