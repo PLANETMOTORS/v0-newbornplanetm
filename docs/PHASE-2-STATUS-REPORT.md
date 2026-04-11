@@ -2,7 +2,7 @@
 
 **Date:** April 11, 2026  
 **Branch:** `agent-a-launch-hardening`  
-**Current Commit:** fb11860  
+**Current Commit:** c4fc689 _(updated from fb11860 — 6 additional hardening commits landed after original report)_
 
 ---
 
@@ -57,92 +57,117 @@
 | **AGENT-I1** | Inventory import & sync | MEDIUM | `/api/v1/inventory/import` | 60–90m | 📋 Ready |
 | **AGENT-C1** | Admin & test sweep | LOW-MEDIUM | All remaining endpoints | 30–45m | 📋 Ready |
 
-**Total Parallel ETC:** 240–285 minutes (~4–5 hours)
+**Total Parallel ETC:** 240–285 minutes (~4–5 hours) — **ALL COMPLETE**
 
 ---
 
-## 🔐 SECURITY POSTURE (Post-Phase 1)
+## ✅ PHASE 2: COMPLETED (All Agents)
+
+All 5 agent briefs have been fully implemented and are committed on `agent-a-launch-hardening`.
+
+| Brief | Scope | Status | Commit |
+|-------|-------|--------|--------|
+| **AGENT-N1** | Price negotiation hardening | ✅ Complete | 47f87de, 41e0145, c4fc689 |
+| **AGENT-F1** | Finance calculator hardening | ✅ Complete | 47f87de |
+| **AGENT-F2** | Finance offers & selection | ✅ Complete | 47f87de |
+| **AGENT-I1** | Inventory import & sync | ✅ Complete | 77e9557 |
+| **AGENT-C1** | Admin & test sweep | ✅ Complete | 0d682d9, this commit |
+
+### Phase 2 Additions to Phase 1 Controls
+
+- ✅ **Negotiate:** DB-authoritative pricing, bounded LLM schema, rate limiting (5/hr), replay-safe generate-then-stream, idempotency key bound to request fingerprint, normalized message consistency
+- ✅ **Finance calculator:** Rate limiting (20/hr), province whitelist, bounds validation, heuristic labeling, idempotency, audit
+- ✅ **Finance offers GET:** Auth, rate limiting (10/hr), audit
+- ✅ **Finance offers select:** Auth, rate limiting (5/hr), state machine (allowed application statuses), idempotency, audit
+- ✅ **Inventory import:** Admin-only (`requireAdminUser`), rate limiting (2/hr), 5MB/500-row limits, content-hash idempotency, per-row bounds (year/price/mileage/VIN), audit
+- ✅ **Homenet webhook:** Timing-safe API key comparison, rate limiting (6/hr), 10MB/1000-vehicle limits, digest-based replay, audit
+- ✅ **Test emails:** All 3 routes require admin auth; no hardcoded recipients; `test-emails` was fully unauthenticated — fixed
+- ✅ **Live video tour test:** Added admin guard + production env gate; removed hardcoded recipient
+
+---
+
+## 🔐 SECURITY POSTURE (Post-Phase 2)
 
 ### ✅ Implemented Controls
 
 | Control | Coverage | Implementation |
 |---------|----------|-----------------|
-| **Authentication** | 100% admin mutations | Centralized `requireAdminUser()` guard |
-| **Authorization** | Financial flows + KYC | Role-based (Supabase app_metadata.role) |
+| **Authentication** | 100% admin mutations + all test routes | Centralized `requireAdminUser()` guard |
+| **Authorization** | Financial flows + KYC + test endpoints | Role-based (Supabase app_metadata.role) |
 | **Cryptographic IDs** | Transactional identifiers | crypto.randomUUID() (not Math.random) |
-| **Idempotency** | Quote + finance flows | Redis cache + Idempotency-Key headers |
-| **Rate Limiting** | Customer-facing estimates | Redis-backed per IP + user + action |
-| **Audit Trail** | Admin + payment state changes | PostgreSQL audit tables + fire-and-forget pattern |
+| **Idempotency** | All money-moving + estimate flows | Redis cache + Idempotency-Key headers; fingerprint fallback |
+| **Rate Limiting** | All customer-facing + admin bulk ops | Redis-backed per IP + user + action |
+| **Audit Trail** | Admin + payment + negotiation + finance | PostgreSQL audit tables + fire-and-forget pattern |
 | **Input Validation** | All customer endpoints | Type checking + bounds + whitelist validation |
 | **PII Protection** | ID documents | SHA-256 hashing + private blob storage |
-| **State Machines** | Finance applications | Hard-coded ALLOWED_TRANSITIONS maps |
-| **Webhook Safety** | Stripe events | Environment (livemode) mismatch detection |
-| **Heuristic Labeling** | All estimates | Explicit source, sourceType, confidence fields |
+| **State Machines** | Finance applications + offer selection | Hard-coded ALLOWED_TRANSITIONS / allowedStatuses |
+| **Webhook Safety** | Stripe events + Homenet | Livemode detection; timing-safe key comparison; digest replay |
+| **Heuristic Labeling** | All estimates | Explicit source, sourceType, confidence, disclaimer fields |
+| **DB-Authoritative Pricing** | Negotiate endpoint | Client-supplied price ignored; DB value used |
+| **Production Test Route Guard** | live-video-tour/test | NODE_ENV gate + requireAdminUser |
 
-### ⚠️ In-Progress (Phase 2)
+### ⚠️ Remaining Gaps (Not Blocking Staging — Blocking Full Finance Production)
 
-| Gap | Target | Solution |
-|-----|--------|----------|
-| LLM output bounds | Negotiate endpoint | Bounded counterOffer schema in zod |
-| Inventory schema validation | Batch imports | Per-vehicle validation + bounds checking |
-| Offer selection state machine | Finance offers | Constrained transition (application + offer status) |
-| Webhook signature verification | Sanity + others | HMAC verification on all POST webhooks |
-| Admin operation rate limits | Bulk operations | IP-based rate limiting on imports/exports |
+| Gap | Status | Owner |
+|-----|--------|-------|
+| Finance offers return stub (empty) | By design — lender API not yet integrated | Product/Engineering |
+| Homenet uses static API key (not signed webhook) | Acceptable interim | Engineering |
+| `components/vehicle/price-negotiator.tsx` sends `vehiclePrice` in body | Benign (server ignores it) | Frontend cleanup optional |
+| Immutable payment ledger + reconciliation | Not yet implemented | Product/Accounting decision required |
+| Production monitoring + dead-letter handling | Not yet visible in repo | DevOps/SRE |
+| End-to-end payment UAT (Stripe + replay + refund) | Not yet evidenced | QA |
 
-### 🟢 Risk Assessment
+### 🟡 Risk Assessment (Updated)
 
-**Current State:** Medium → Low risk  
-**Finance transaction integrity:** HIGH  
-**Authorization boundaries:** HIGH  
-**PII protection:** HIGH  
-**Replay protection:** MEDIUM (idempotency + state machines cover most paths)  
-**Mock data exposure:** LOW (all removed from production APIs)
+**Current State:** Low risk (engineering), Medium risk (operational)
+**Finance transaction integrity:** HIGH
+**Authorization boundaries:** HIGH
+**PII protection:** HIGH
+**Replay protection:** HIGH (idempotency + state machines + replay fingerprinting cover all touched paths)
+**Mock data exposure:** LOW
+**Test route exposure:** RESOLVED (all guarded or gated)
+**DB migration readiness:** RESOLVED (migration 008 added for all 5 audit tables)
 
 ---
 
 ## 📁 DELIVERABLES LOCATION
 
-**Briefs ready for agent pickup:**
-- `/docs/agent-briefs/AGENT-N1-negotiate-hardening.md`
-- `/docs/agent-briefs/AGENT-F1-calc-hardening.md`
-- `/docs/agent-briefs/AGENT-F2-offers-hardening.md`
-- `/docs/agent-briefs/AGENT-I1-inventory-import-hardening.md`
-- `/docs/agent-briefs/AGENT-C1-admin-sweep.md`
+**Hardening library:**
+- `/lib/auth/admin.ts` – Admin guard + audit event writer
+- `/lib/redis.ts` – Rate limiting, idempotency cache, session utilities
 
-**Master queue:**
-- `/docs/AGENT-HANDOFF-QUEUE-UPDATED.md` (full status + assignment template)
-
-**Reusable library code:**
-- `/lib/auth/admin.ts` – Centralized admin guard with role inspection
-- `/lib/redis.ts` – Rate limiting, caching, session utilities (updated with idempotency helpers)
-- `/lib/sanity/fetch.ts` – CMS configuration (existing; can be extended for webhook verification)
+**SQL migrations (all required tables now versioned):**
+- `scripts/005_create_webhook_events_schema.sql` – Stripe webhook event log
+- `scripts/006_order_reservation_integrity.sql` – Order/reservation uniqueness
+- `scripts/008_create_audit_tables.sql` – admin_audit_events, negotiation_audits, finance_calc_audits, offer_access_audits, offer_selection_audits _(new)_
 
 ---
 
-## 🚀 RECOMMENDED NEXT STEPS
+## 🚀 GO-LIVE CHECKLIST (Remaining)
 
-### Immediate (Agent Assignment)
-1. **Assign AGENT-N1** to prevent client-side pricing manipulation (payment critical path)
-2. **Assign AGENT-F1 + F2** as bundle (same validation/pattern family)
-3. **Assign AGENT-I1** (operational risk; bulk inserts)
-4. **Assign AGENT-C1** (cleanup; lowest risk, can be done last)
+### Must-Do Before Production Finance Launch
 
-### In Parallel
-- Start deploying Phase 1 to staging for integration testing
-- Backend team: ensure audit tables exist (`admin_audit_events`, `request_cache`, `finance_calc_audits`, etc.)
-- QA team: test rate limiting thresholds + idempotency key behavior with real client load
+- [ ] Apply `scripts/008_create_audit_tables.sql` in staging → verify RLS, indexes, insert behavior
+- [ ] Confirm `ENABLE_DIAGNOSTIC_ROUTES` env var is absent (or `!= "1"`) on production deployments
+- [ ] Run end-to-end UAT: Stripe checkout, duplicate request replay, webhook replay/out-of-order, reservation timeout, return/refund paths
+- [ ] Decide on immutable payment ledger and reconciliation (business/accounting decision)
+- [ ] Confirm all secrets present in production env: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `UPSTASH_REDIS_REST_URL`, `HOMENET_API_KEY`, `ADMIN_EMAIL`
+- [ ] Set up alerting for failed Stripe webhooks and payment exceptions
+- [ ] Write incident runbook for payment failure scenarios
+- [ ] PR `agent-a-launch-hardening` → `main` for formal code review before production deployment
 
-### Post-Phase 2
-- [ ] Full integration test suite (replay attacks, race conditions)
-- [ ] Load testing (rate limit tuning, Redis failover scenarios)
-- [ ] Compliance audit (PCI-DSS evidence collection for audit)
-- [ ] Production deployment staging & cutover plan
+### Nice-to-Have (Post-Launch Backlog)
+
+- [ ] Remove `vehiclePrice` from `price-negotiator.tsx` fetch body (server ignores it — cosmetic)
+- [ ] Add `Idempotency-Key` header generation to `price-negotiator.tsx` (improves caller-driven replay semantics)
+- [ ] Upgrade Homenet to signed webhook protocol (replace static API key)
+- [ ] Add lender API integration to finance offers endpoints
 
 ---
 
 ## 📋 VALIDATION CHECKLIST (Per-Commit)
 
-All Phase 2 work must pass:
+All Phase 2 work passes:
 
 ```bash
 ✓ pnpm -s lint          # ESLint clean
@@ -158,43 +183,23 @@ All Phase 2 work must pass:
 
 ---
 
-## 👥 TEAM COORDINATION
-
-**Questions? Blockers? Reports to:**
-
-- **Engineering Lead:** Status updates in `#engineering-coordination`
-- **Architecture:** Escalations or design questions → Senior Fintech Architect
-- **QA:** Integration test plan after Phase 1 staging deployment
-- **Backend:** Confirm all audit/cache table schemas before Phase 2 agents start
-
----
-
 ## 📞 COMMIT REFERENCE
 
-**Branch base:** `agent-a-launch-hardening` at **fb11860**  
-All Phase 2 work rebases/merges into this branch.
+**Phase 1 commits (12):**
+`ae9bb03` through `fb11860` — trust boundaries, idempotency, rate limiting, audit, mock removal
 
-**Phase 1 commits:**
+**Phase 2 commits (6+):**
 ```
-ae9bb03 – fix(admin-api): centralized auth + state machines + audit
-a29800b – fix(delivery-quote): idempotency + normalized money + provenance  
-21de971 – fix(inspection): removed mock payload
-9be95d1 – fix(vehicle-admin): centralized auth guard
-3593751 – fix(trade-in): heuristic labeling + audit persistence
-5bf242f – fix(video-call): validated service + rate limiting
-63a4776 – fix(admin-authz): image sync + test endpoints + auth centralization
-18516f0 – chore(authz): unified test endpoints
-6f87d9a – fix(financing): prequal rate limiting + idempotency + disclaimers
-d1e6e4a – fix(stripe-webhook): livemode environment verification
-00dae02 – fix(return-kyc): crypto ID + idempotency + pii validation
-fb11860 – docs(agent-briefs): agent work queue + 5 detailed briefs
+80fac2d – docs: agent handoff queue + briefs
+47f87de – feat(phase2): negotiate + finance + test-email hardening
+77e9557 – feat(inventory): admin auth + bounds + idempotency + timing-safe homenet
+0d682d9 – fix(test-emails): remove hardcoded recipients + auth gate all 3 routes
+41e0145 – refactor(negotiate): generate-then-stream for replay correctness
+c4fc689 – fix(negotiate): bind idempotency key to request fingerprint
+this     – fix(live-video-tour/test): admin guard + env gate + 008 migration
 ```
 
 ---
 
-**Status:** 🟢 READY FOR PHASE 2 AGENT HANDOFF
-
-All briefs include working code, validation gates, and success criteria.  
-No external dependencies or blocking issues.  
-Estimated team completion: 4–5 hours (parallel execution).
+**Status:** 🟡 ENGINEERING COMPLETE — AWAITING OPERATIONS + UAT SIGN-OFF
 

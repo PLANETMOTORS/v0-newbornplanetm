@@ -1,9 +1,22 @@
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
+import { createClient } from "@/lib/supabase/server"
+import { requireAdminUser } from "@/lib/auth/admin"
 
 // GET /api/live-video-tour/test
-// Sends a direct test email to verify Resend is working
+// Admin-only diagnostic – verifies Resend connectivity.
+// Disabled in production; enable only in non-production environments.
 export async function GET() {
+  // Hard-disable in production to prevent accidental live-email triggering.
+  if (process.env.NODE_ENV === "production" && process.env.ENABLE_DIAGNOSTIC_ROUTES !== "1") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
+
+  const supabase = await createClient()
+  const adminCheck = await requireAdminUser(supabase)
+  if (!adminCheck.ok) {
+    return adminCheck.response
+  }
   const apiKey = process.env.API_KEY_RESEND || process.env.RESEND_API_KEY
   
   console.log("[v0] API Key exists:", !!apiKey)
@@ -17,6 +30,11 @@ export async function GET() {
     }, { status: 500 })
   }
 
+  const recipient = adminCheck.user.email || process.env.ADMIN_EMAIL
+  if (!recipient) {
+    return NextResponse.json({ success: false, error: "No recipient email available" }, { status: 500 })
+  }
+
   const resend = new Resend(apiKey)
   
   try {
@@ -24,7 +42,7 @@ export async function GET() {
     
     const { data, error } = await resend.emails.send({
       from: "onboarding@resend.dev", // Use Resend's test domain
-      to: "info@planetmotors.ca",
+      to: recipient,
       subject: "Live Video Tour Test - " + new Date().toISOString(),
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
@@ -53,7 +71,7 @@ export async function GET() {
       success: true,
       message: "Test email sent successfully",
       emailId: data?.id,
-      sentTo: "info@planetmotors.ca",
+      sentTo: recipient,
       timestamp: new Date().toISOString()
     })
   } catch (error) {
