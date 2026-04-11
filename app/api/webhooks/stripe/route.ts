@@ -7,6 +7,13 @@ import { createAdminClient } from '@/lib/supabase/admin'
 // Stripe requires raw body for signature verification — Next.js must NOT parse it.
 export const dynamic = 'force-dynamic'
 
+function getExpectedStripeLivemode(): boolean {
+  const explicit = process.env.STRIPE_EXPECT_LIVEMODE
+  if (explicit === 'true') return true
+  if (explicit === 'false') return false
+  return process.env.NODE_ENV === 'production'
+}
+
 async function markEventProcessed(
   supabase: ReturnType<typeof createAdminClient>,
   eventId: string,
@@ -377,6 +384,18 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = createAdminClient()
+
+  const expectedLivemode = getExpectedStripeLivemode()
+  if (event.livemode !== expectedLivemode) {
+    const mismatchMessage = `Ignored webhook ${event.id}: livemode mismatch (event=${event.livemode}, expected=${expectedLivemode})`
+    console.warn(`[webhook] ${mismatchMessage}`)
+    try {
+      await markEventProcessed(supabase, event.id, event.type, 'failed', mismatchMessage)
+    } catch (auditError) {
+      console.error(`[webhook] Failed to record livemode mismatch audit for ${event.id}:`, auditError)
+    }
+    return NextResponse.json({ received: true, skipped: 'livemode_mismatch' })
+  }
 
   // Idempotency: skip replayed events.
   // If the idempotency check itself fails, log and continue — better to risk
