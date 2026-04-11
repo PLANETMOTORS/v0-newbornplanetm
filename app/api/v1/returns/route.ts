@@ -1,98 +1,196 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
+function isUuid(value: string): boolean {
+  return /^[0-9a-fA-F-]{36}$/.test(value)
+}
+
+function toDateOnly(input: Date): string {
+  return input.toISOString().split("T")[0]
+}
+
+function returnNumber(): string {
+  const stamp = Date.now().toString(36).toUpperCase()
+  const rand = Math.floor(Math.random() * 36 ** 3)
+    .toString(36)
+    .toUpperCase()
+    .padStart(3, "0")
+  return `RET-${stamp}-${rand}`
+}
+
 // POST /api/v1/returns - Initiate 10-day return
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const body = await request.json()
-    const { orderId, reason, additionalComments, preferredPickupDate } = body
+    const orderIdRaw = String(body?.orderId || "").trim()
+    const reason = typeof body?.reason === "string" ? body.reason.trim() : ""
+    const additionalComments = typeof body?.additionalComments === "string" ? body.additionalComments.trim() : ""
+    const preferredPickupDate = typeof body?.preferredPickupDate === "string" ? body.preferredPickupDate.trim() : ""
 
-    if (!orderId || !reason) {
-      return NextResponse.json(
-        { error: "Order ID and reason are required" },
-        { status: 400 }
-      )
+    if (!orderIdRaw || !reason) {
+      return NextResponse.json({ error: "Order ID and reason are required" }, { status: 400 })
     }
 
-    // Check if within 10-day return window and validate eligibility
-    const orderDate = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) // Mock: 5 days ago
-    const daysSincePurchase = Math.floor((Date.now() - orderDate.getTime()) / (1000 * 60 * 60 * 24))
-    
-    if (daysSincePurchase > 10) {
+    let orderQuery = supabase
+      .from("orders")
+      .select("id, order_number, customer_id, created_at, total_price_cents")
+      .eq("customer_id", user.id)
+      .limit(1)
+
+    orderQuery = isUuid(orderIdRaw)
+      ? orderQuery.eq("id", orderIdRaw)
+      : orderQuery.eq("order_number", orderIdRaw)
+
+    const { data: orderRows, error: orderError } = await orderQuery
+    if (orderError) {
+      return NextResponse.json({ error: "Failed to validate order" }, { status: 500 })
+    }
+
+    const order = orderRows?.[0]
+    if (!order) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 })
+    }
+
+    const { data: deliveryRows } = await supabase
+      .from("deliveries")
+      .select("delivered_at, scheduled_date")
+      .eq("order_id", order.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+
+    const latestDelivery = deliveryRows?.[0]
+    const effectiveDeliveryDate = latestDelivery?.delivered_at
+      ? new Date(latestDelivery.delivered_at)
+      : latestDelivery?.scheduled_date
+        ? new Date(`${latestDelivery.scheduled_date}T00:00:00.000Z`)
+        : new Date(order.created_at)
+
+    const now = new Date()
+    const daysSinceDelivery = Math.floor((now.getTime() - effectiveDeliveryDate.getTime()) / (1000 * 60 * 60 * 24))
+
+    if (daysSinceDelivery > 10) {
       return NextResponse.json(
         { error: "Return window has expired. Returns must be initiated within 10 days of delivery." },
         { status: 400 }
       )
     }
 
-    const returnRequest = {
-      id: "ret_" + Date.now(),
-      orderId,
-      reason,
-      additionalComments,
-      status: "pending",
-      statusLabel: "Return Requested",
-      daysSincePurchase,
-      daysRemaining: 10 - daysSincePurchase,
-      eligibleForReturn: true,
-      returnPolicy: {
-        maxDays: 10,
-        maxKilometers: 750,
-        conditions: [
-          "Vehicle must be in same condition as delivered",
-          "No modifications or aftermarket additions",
-          "All original documentation must be returned",
-          "Maximum 750 km driven since delivery",
-        ]
-      },
-      refund: {
-        estimatedAmount: 45995, // Fetched from order
-        processingTime: "5-7 business days",
-        method: "Original payment method",
-      },
-      pickup: {
-        preferredDate: preferredPickupDate,
-        status: "pending_schedule",
-        address: null, // Will be confirmed
-      },
-      timeline: [
-        {
-          step: "Return requested",
-          status: "completed",
-          timestamp: new Date().toISOString(),
-        },
-        {
-          step: "Review & approval",
-          status: "pending",
-          estimatedTime: "1-2 business days",
-        },
-        {
-          step: "Pickup scheduled",
-          status: "upcoming",
-        },
-        {
-          step: "Vehicle inspection",
-          status: "upcoming",
-        },
-        {
-          step: "Refund processed",
-          status: "upcoming",
-        },
-      ],
-      createdAt: new Date().toISOString(),
+    const { data: existingReturns, error: existingError } = await supabase
+      .from("returns")
+      .select("id, status, created_at, order_id")
+      .eq("order_id", order.id)
+      .in("status", ["requested", "approved", "pickup_scheduled", "vehicle_received", "inspected"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+
+    if (existingError) {
+      return NextResponse.json({ error: "Failed to verify existing return requests" }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, return: returnRequest })
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to initiate return" },
-      { status: 500 }
-    )
+    const activeReturn = existingReturns?.[0]
+    if (activeReturn) {
+      return NextResponse.json(
+        {
+          error: "An active return request already exists for this order",
+          returnId: activeReturn.id,
+          status: activeReturn.status,
+        },
+        { status: 409 }
+      )
+    }
+
+    const returnDeadline = new Date(effectiveDeliveryDate)
+    returnDeadline.setUTCDate(returnDeadline.getUTCDate() + 10)
+
+    const noteParts = [
+      additionalComments || null,
+      preferredPickupDate ? `Preferred pickup date: ${preferredPickupDate}` : null,
+    ].filter(Boolean)
+    const reasonDetails = noteParts.length > 0 ? noteParts.join(" | ") : null
+
+    const primaryInsertPayload = {
+      order_id: order.id,
+      reason,
+      reason_details: reasonDetails,
+      status: "requested",
+      delivery_date: toDateOnly(effectiveDeliveryDate),
+      return_deadline: toDateOnly(returnDeadline),
+      mileage_at_delivery: 0,
+    }
+
+    let insertedReturn: Record<string, unknown> | null = null
+
+    const primaryInsert = await supabase
+      .from("returns")
+      .insert(primaryInsertPayload)
+      .select("*")
+      .single()
+
+    if (!primaryInsert.error && primaryInsert.data) {
+      insertedReturn = primaryInsert.data
+    } else {
+      const fallbackInsertPayload = {
+        order_id: order.id,
+        customer_id: user.id,
+        return_number: returnNumber(),
+        reason,
+        reason_details: reasonDetails,
+        purchase_date: toDateOnly(effectiveDeliveryDate),
+        return_deadline: toDateOnly(returnDeadline),
+        mileage_at_purchase: 0,
+        status: "requested",
+      }
+
+      const fallbackInsert = await supabase
+        .from("returns")
+        .insert(fallbackInsertPayload)
+        .select("*")
+        .single()
+
+      if (fallbackInsert.error || !fallbackInsert.data) {
+        return NextResponse.json({ error: "Failed to initiate return" }, { status: 500 })
+      }
+
+      insertedReturn = fallbackInsert.data
+    }
+
+    if (!insertedReturn) {
+      return NextResponse.json({ error: "Failed to initiate return" }, { status: 500 })
+    }
+
+    const responseReturnId = String(insertedReturn.id || "")
+    const responseStatus = String(insertedReturn.status || "requested")
+
+    return NextResponse.json({
+      success: true,
+      return: {
+        id: responseReturnId,
+        orderId: order.order_number || order.id,
+        status: responseStatus,
+        statusLabel: responseStatus.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+        reason,
+        daysSinceDelivery,
+        daysRemaining: Math.max(0, 10 - daysSinceDelivery),
+        returnDeadline: toDateOnly(returnDeadline),
+        refund: {
+          estimatedAmount: Math.round((Number(order.total_price_cents || 0) / 100) * 100) / 100,
+          processingTime: "5-7 business days",
+          method: "Original payment method",
+        },
+        createdAt: insertedReturn.created_at || new Date().toISOString(),
+      },
+    })
+  } catch (_error) {
+    return NextResponse.json({ error: "Failed to initiate return" }, { status: 500 })
   }
 }
