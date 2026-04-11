@@ -1,7 +1,9 @@
 import { MetadataRoute } from 'next'
+import { createClient } from '@/lib/supabase/server'
+import { getPublicSiteUrl } from '@/lib/site-url'
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://www.planetmotors.ca'
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const baseUrl = getPublicSiteUrl()
   const currentDate = new Date().toISOString()
   
   // Core pages - highest priority
@@ -150,26 +152,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: filter.priority,
   }))
 
-  // Vehicle detail pages
-  // In production, fetch actual vehicle IDs from database
-  const vehicleIds = [
-    '2024-tesla-model-y',
-    '2024-tesla-model-3',
-    '2024-bmw-m4',
-    '2024-porsche-taycan',
-    '2023-mercedes-eqs',
-    '2024-honda-crv',
-    '2024-toyota-rav4',
-    '2023-audi-etron-gt',
-    '2024-ford-f150',
-  ]
-  
-  const vehicleRoutes = vehicleIds.map(id => ({
-    url: `${baseUrl}/vehicles/${id}`,
-    lastModified: currentDate,
-    changeFrequency: 'daily' as const,
-    priority: 0.75,
-  }))
+  let vehicleRoutes: MetadataRoute.Sitemap = []
+  try {
+    const supabase = await createClient()
+    const { data: inventoryVehicles } = await supabase
+      .from('vehicles')
+      .select('id, updated_at')
+      .eq('status', 'available')
+      .order('updated_at', { ascending: false })
+      .limit(10000)
+
+    vehicleRoutes = (inventoryVehicles || []).map((vehicle) => ({
+      url: `${baseUrl}/vehicles/${vehicle.id}`,
+      lastModified: vehicle.updated_at || currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.75,
+    }))
+  } catch {
+    vehicleRoutes = []
+  }
 
   // Blog post routes
   // In production, fetch from Sanity CMS

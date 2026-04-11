@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
+import { getPublicSiteUrl } from "@/lib/site-url"
 
-const BASE_URL = "https://www.planetmotors.ca"
+const BASE_URL = getPublicSiteUrl()
 const SITE_NAME = "Planet Motors"
 const DEFAULT_DESCRIPTION = "Canada's trusted destination for premium pre-owned vehicles with nationwide delivery. 210-point inspection, 10-day money-back guarantee, and competitive multi-lender financing."
 

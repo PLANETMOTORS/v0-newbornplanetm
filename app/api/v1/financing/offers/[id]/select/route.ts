@@ -14,74 +14,39 @@ export async function POST(
 
   const { id: offerId } = await params
   const body = await request.json()
-  const { vehicleId, customerId, downPayment, tradeInValue } = body
+  const { applicationId, customerId } = body
 
   if (customerId && customerId !== user.id) {
     return NextResponse.json({ error: "customerId must match authenticated user" }, { status: 403 })
   }
 
-  // Validate offer exists and is still valid
-  // In production, fetch from database
-
-  const selection = {
-    id: "sel_" + Date.now(),
-    offerId,
-    vehicleId,
-    customerId: user.id,
-    status: "pending_documents",
-    selectedAt: new Date().toISOString(),
-    offer: {
-      lenderId: "premier",
-      lenderName: "Premier Auto Finance",
-      rate: 6.29,
-      term: 72,
-      monthlyPayment: 749.99,
-    },
-    financing: {
-      vehiclePrice: 48200,
-      downPayment: downPayment || 5000,
-      tradeInValue: tradeInValue || 0,
-      amountFinanced: 48200 - (downPayment || 5000) - (tradeInValue || 0),
-      totalInterest: 5999.28,
-      totalCost: 53999.28,
-    },
-    requiredDocuments: [
-      {
-        type: "proof_of_income",
-        name: "Proof of Income",
-        description: "Recent pay stubs (last 2) or T4/NOA",
-        status: "required",
-        uploadUrl: null,
-      },
-      {
-        type: "drivers_license",
-        name: "Driver's License",
-        description: "Valid Canadian driver's license (front & back)",
-        status: "required",
-        uploadUrl: null,
-      },
-      {
-        type: "proof_of_address",
-        name: "Proof of Address",
-        description: "Utility bill or bank statement (within 90 days)",
-        status: "required",
-        uploadUrl: null,
-      },
-      {
-        type: "void_cheque",
-        name: "Void Cheque or Bank Letter",
-        description: "For pre-authorized payment setup",
-        status: "required",
-        uploadUrl: null,
-      },
-    ],
-    nextSteps: [
-      "Upload required documents",
-      "Sign financing agreement",
-      "Schedule delivery or pickup",
-    ],
-    expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // 48 hours
+  if (!applicationId) {
+    return NextResponse.json({ error: "applicationId is required" }, { status: 400 })
   }
 
-  return NextResponse.json({ success: true, selection })
+  const { data: application, error } = await supabase
+    .from("finance_applications_v2")
+    .select("id, application_number, status")
+    .eq("user_id", user.id)
+    .or(`id.eq.${applicationId},application_number.eq.${applicationId}`)
+    .maybeSingle()
+
+  if (error) {
+    return NextResponse.json({ error: "Failed to validate application" }, { status: 500 })
+  }
+
+  if (!application) {
+    return NextResponse.json({ error: "Application not found" }, { status: 404 })
+  }
+
+  return NextResponse.json(
+    {
+      success: false,
+      error: "Selected lender offer is not available yet",
+      applicationId: application.id,
+      applicationStatus: application.status,
+      offerId,
+    },
+    { status: 409 }
+  )
 }

@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { X, Mail, Lock, ArrowRight, LogIn } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import type { OAuthProvider } from "@/lib/auth/oauth-providers"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -20,9 +21,9 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [step, setStep] = useState<"welcome" | "login">("welcome")
-  const [oauthLoading, setOauthLoading] = useState<"google" | "facebook" | null>(null)
+  const [oauthLoading, setOauthLoading] = useState<OAuthProvider | null>(null)
 
-  const handleOAuthLogin = async (provider: "google" | "facebook") => {
+  const handleOAuthLogin = async (provider: OAuthProvider) => {
     setOauthLoading(provider)
     setError(null)
     try {
@@ -32,13 +33,22 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
         provider,
         options: { redirectTo: callbackUrl },
       })
-      if (oauthError) setError(oauthError.message)
+
+      if (oauthError) {
+        setError(oauthError.message)
+        setOauthLoading(null)
+        return
+      }
+
       if (data?.url) {
         window.location.assign(data.url)
+        return
       }
+
+      setError("OAuth sign-in failed. Please try again.")
+      setOauthLoading(null)
     } catch {
       setError("OAuth sign-in failed. Please try again.")
-    } finally {
       setOauthLoading(null)
     }
   }

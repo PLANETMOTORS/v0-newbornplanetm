@@ -1,5 +1,7 @@
-// Typesense search utilities - Returns mock data
-// Note: Typesense integration disabled - using Supabase directly for vehicle search
+// Typesense search utilities
+// Note: Typesense integration is disabled; this module now proxies to Supabase search.
+
+import { createClient } from '@supabase/supabase-js'
 
 export interface VehicleSearchParams {
   query?: string
@@ -49,132 +51,123 @@ interface SearchResponse {
   }>
 }
 
-// Mock search results
-function getMockResults(params: VehicleSearchParams): SearchResponse {
-  const mockVehicles: VehicleSearchResult[] = [
-    {
-      id: '1',
-      stock_number: 'PM73254025',
-      year: 2021,
-      make: 'Jeep',
-      model: 'Wrangler 4xe',
-      trim: 'Unlimited Sahara',
-      body_style: 'SUV',
-      exterior_color: 'Black',
-      price: 52995,
-      mileage: 45000,
-      drivetrain: '4WD',
-      fuel_type: 'Hybrid',
-      is_ev: false,
-      is_certified: true,
-      status: 'available',
-      primary_image_url: '/placeholder.svg?height=400&width=600',
-    },
-    {
-      id: '2',
-      stock_number: 'PM73254026',
-      year: 2023,
-      make: 'Tesla',
-      model: 'Model Y',
-      trim: 'Long Range',
-      body_style: 'SUV',
-      exterior_color: 'White',
-      price: 61990,
-      mileage: 12000,
-      drivetrain: 'AWD',
-      fuel_type: 'Electric',
-      is_ev: true,
-      is_certified: true,
-      status: 'available',
-      primary_image_url: '/placeholder.svg?height=400&width=600',
-    },
-    {
-      id: '3',
-      stock_number: 'PM73254027',
-      year: 2022,
-      make: 'BMW',
-      model: 'X5',
-      trim: 'xDrive40i',
-      body_style: 'SUV',
-      exterior_color: 'Blue',
-      price: 68500,
-      mileage: 28000,
-      drivetrain: 'AWD',
-      fuel_type: 'Gasoline',
-      is_ev: false,
-      is_certified: true,
-      status: 'available',
-      primary_image_url: '/placeholder.svg?height=400&width=600',
-    },
-  ]
-
-  // Simple filtering
-  let filtered = mockVehicles
-  
-  if (params.make) {
-    const makes = Array.isArray(params.make) ? params.make : [params.make]
-    filtered = filtered.filter(v => makes.includes(v.make))
-  }
-  
-  if (params.is_ev !== undefined) {
-    filtered = filtered.filter(v => v.is_ev === params.is_ev)
-  }
-  
-  if (params.price_max) {
-    filtered = filtered.filter(v => v.price <= params.price_max!)
-  }
-
-  return {
-    hits: filtered.map(doc => ({ document: doc })),
-    found: filtered.length,
-    page: params.page || 1,
-    facet_counts: [
-      {
-        field_name: 'make',
-        counts: [
-          { value: 'Jeep', count: 1 },
-          { value: 'Tesla', count: 1 },
-          { value: 'BMW', count: 1 },
-        ],
-      },
-      {
-        field_name: 'fuel_type',
-        counts: [
-          { value: 'Electric', count: 1 },
-          { value: 'Hybrid', count: 1 },
-          { value: 'Gasoline', count: 1 },
-        ],
-      },
-    ],
-  }
+interface FacetCount {
+  value: string
+  count: number
 }
 
-// Search vehicles - returns mock data (Typesense disabled)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null
+
+function asArray(value?: string | string[]): string[] {
+  if (!value) return []
+  return Array.isArray(value) ? value : [value]
+}
+
+function buildFacetCounts(values: Array<string | null | undefined>): FacetCount[] {
+  const counts = new Map<string, number>()
+  for (const value of values) {
+    if (!value) continue
+    counts.set(value, (counts.get(value) || 0) + 1)
+  }
+  return Array.from(counts.entries())
+    .map(([value, count]) => ({ value, count }))
+    .sort((a, b) => b.count - a.count)
+}
+
 export async function searchVehicles(params: VehicleSearchParams): Promise<SearchResponse> {
-  return getMockResults(params)
-}
+  if (!supabase) {
+    return { hits: [], found: 0, page: params.page || 1, facet_counts: [] }
+  }
 
-// Get facets for filters - returns mock data
-export async function getVehicleFacets() {
-  return [
+  const page = Math.max(1, params.page || 1)
+  const perPage = Math.min(Math.max(1, params.per_page || 20), 100)
+  const start = (page - 1) * perPage
+  const end = start + perPage - 1
+
+  let query = supabase
+    .from('vehicles')
+    .select('id, stock_number, year, make, model, trim, body_style, exterior_color, price, mileage, drivetrain, fuel_type, is_ev, is_certified, status, primary_image_url', { count: 'exact' })
+    .eq('status', 'available')
+
+  if (params.query) {
+    query = query.or(`make.ilike.%${params.query}%,model.ilike.%${params.query}%,trim.ilike.%${params.query}%`)
+  }
+
+  const makes = asArray(params.make)
+  if (makes.length > 0) query = query.in('make', makes)
+
+  const models = asArray(params.model)
+  if (models.length > 0) query = query.in('model', models)
+
+  const bodyStyles = asArray(params.body_style)
+  if (bodyStyles.length > 0) query = query.in('body_style', bodyStyles)
+
+  const fuelTypes = asArray(params.fuel_type)
+  if (fuelTypes.length > 0) query = query.in('fuel_type', fuelTypes)
+
+  const drivetrains = asArray(params.drivetrain)
+  if (drivetrains.length > 0) query = query.in('drivetrain', drivetrains)
+
+  if (typeof params.is_ev === 'boolean') query = query.eq('is_ev', params.is_ev)
+  if (typeof params.is_certified === 'boolean') query = query.eq('is_certified', params.is_certified)
+  if (typeof params.year_min === 'number') query = query.gte('year', params.year_min)
+  if (typeof params.year_max === 'number') query = query.lte('year', params.year_max)
+  if (typeof params.price_min === 'number') query = query.gte('price', params.price_min * 100)
+  if (typeof params.price_max === 'number') query = query.lte('price', params.price_max * 100)
+  if (typeof params.mileage_max === 'number') query = query.lte('mileage', params.mileage_max)
+
+  const [sortField, sortDirection] = (params.sort_by || 'created_at:desc').split(':') as [string, 'asc' | 'desc']
+  query = query.order(sortField, { ascending: sortDirection === 'asc' })
+
+  const { data, count } = await query.range(start, end)
+  const vehicles = (data || []) as VehicleSearchResult[]
+
+  const facet_counts = [
     {
       field_name: 'make',
-      counts: [
-        { value: 'BMW', count: 45 },
-        { value: 'Tesla', count: 38 },
-        { value: 'Mercedes-Benz', count: 32 },
-        { value: 'Audi', count: 28 },
-        { value: 'Jeep', count: 25 },
-      ],
+      counts: buildFacetCounts(vehicles.map((vehicle) => vehicle.make)),
     },
     {
       field_name: 'fuel_type',
-      counts: [
-        { value: 'Gasoline', count: 120 },
-        { value: 'Electric', count: 45 },
-        { value: 'Hybrid', count: 30 },
-        { value: 'Diesel', count: 12 },
-      ],
+      counts: buildFacetCounts(vehicles.map((vehicle) => vehicle.fuel_type || null)),
+    },
+  ]
+
+  return {
+    hits: vehicles.map((document) => ({
+      document: {
+        ...document,
+        price: Math.round(Number(document.price || 0) / 100),
+      },
+    })),
+    found: count || 0,
+    page,
+    facet_counts,
+  }
+}
+
+export async function getVehicleFacets() {
+  if (!supabase) {
+    return []
+  }
+
+  const { data } = await supabase
+    .from('vehicles')
+    .select('make, fuel_type')
+    .eq('status', 'available')
+    .limit(5000)
+
+  const rows = data || []
+  return [
+    {
+      field_name: 'make',
+      counts: buildFacetCounts(rows.map((vehicle) => vehicle.make || null)),
+    },
+    {
+      field_name: 'fuel_type',
+      counts: buildFacetCounts(rows.map((vehicle) => vehicle.fuel_type || null)),
     },
   ]
 }
