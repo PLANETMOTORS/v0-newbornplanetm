@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { sendNotificationEmail } from "@/lib/email"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 // Vehicle value estimation algorithm
 function estimateTradeInValue(data: {
@@ -80,6 +81,45 @@ function estimateTradeInValue(data: {
   }
 }
 
+async function persistQuoteAudit(entry: {
+  quoteId: string
+  year: number
+  make: string
+  model: string
+  mileage: number
+  condition: string
+  vin?: string
+  customerName?: string
+  customerEmail?: string
+  customerPhone?: string
+  offerLow: number
+  offerAverage: number
+  offerHigh: number
+}) {
+  try {
+    const adminClient = createAdminClient()
+    await adminClient.from("trade_in_quotes").insert({
+      quote_id: entry.quoteId,
+      vehicle_year: entry.year,
+      vehicle_make: entry.make,
+      vehicle_model: entry.model,
+      mileage: entry.mileage,
+      condition: entry.condition,
+      vin: entry.vin || null,
+      customer_name: entry.customerName || null,
+      customer_email: entry.customerEmail || null,
+      customer_phone: entry.customerPhone || null,
+      offer_amount: entry.offerAverage,
+      offer_low: entry.offerLow,
+      offer_high: entry.offerHigh,
+      status: "quoted",
+      valid_until: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    })
+  } catch {
+    // Best-effort persistence only.
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const data = await req.json()
@@ -119,6 +159,22 @@ export async function POST(req: Request) {
       })
     }
 
+    await persistQuoteAudit({
+      quoteId,
+      year: parseInt(year),
+      make,
+      model,
+      mileage: parseInt(mileage),
+      condition,
+      vin,
+      customerName,
+      customerEmail,
+      customerPhone,
+      offerLow: estimate.lowEstimate,
+      offerAverage: estimate.averageEstimate,
+      offerHigh: estimate.highEstimate,
+    })
+
     return NextResponse.json({
       success: true,
       quoteId,
@@ -135,6 +191,14 @@ export async function POST(req: Request) {
         high: estimate.highEstimate,
         average: estimate.averageEstimate,
         currency: "CAD",
+        cents: {
+          low: Math.round(estimate.lowEstimate * 100),
+          high: Math.round(estimate.highEstimate * 100),
+          average: Math.round(estimate.averageEstimate * 100),
+        },
+        source: "heuristic_market_model",
+        sourceType: "heuristic",
+        confidence: "medium",
       },
       validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
       message: "This is an estimated value. Final offer subject to in-person inspection.",

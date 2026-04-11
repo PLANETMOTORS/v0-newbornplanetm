@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotificationEmail } from '@/lib/email'
+import { createAdminClient } from '@/lib/supabase/admin'
 
-// Mock CBB valuation data
+// Heuristic valuation model (not an external appraisal provider)
 const getVehicleValue = (year: number, make: string, model: string, mileage: number, condition: string) => {
   // Base values by segment (simplified)
   const baseValues: Record<string, number> = {
@@ -56,6 +57,46 @@ const getVehicleValue = (year: number, make: string, model: string, mileage: num
   }
 }
 
+async function persistQuoteAudit(entry: {
+  quoteId: string
+  year: number
+  make: string
+  model: string
+  trim?: string | null
+  mileage?: number | null
+  condition?: string | null
+  vin?: string | null
+  customerEmail?: string | null
+  customerPhone?: string | null
+  offerAmount: number
+  offerLow: number
+  offerHigh: number
+  status?: string
+}) {
+  try {
+    const adminClient = createAdminClient()
+    await adminClient.from('trade_in_quotes').insert({
+      quote_id: entry.quoteId,
+      vehicle_year: entry.year,
+      vehicle_make: entry.make,
+      vehicle_model: entry.model,
+      vehicle_trim: entry.trim || null,
+      mileage: entry.mileage || null,
+      condition: entry.condition || null,
+      vin: entry.vin || null,
+      customer_email: entry.customerEmail || null,
+      customer_phone: entry.customerPhone || null,
+      offer_amount: entry.offerAmount,
+      offer_low: entry.offerLow,
+      offer_high: entry.offerHigh,
+      status: entry.status || 'quoted',
+      valid_until: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    })
+  } catch {
+    // Audit persistence is best-effort and must not block quote responses.
+  }
+}
+
 // POST /api/v1/trade-in/instant-offer - Get instant offer
 export async function POST(request: NextRequest) {
   const body = await request.json()
@@ -102,7 +143,7 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Get CBB valuation
+  // Get heuristic valuation estimate
   const cbbValue = getVehicleValue(year, make, model, mileage, condition || 'good')
   
   // Adjust for condition factors
@@ -154,7 +195,9 @@ export async function POST(request: NextRequest) {
       low: cbbValue.low,
       mid: cbbValue.mid,
       high: cbbValue.high,
-      source: 'Canadian Black Book',
+      source: 'heuristic_market_model',
+      sourceType: 'heuristic',
+      confidence: 'medium',
       date: new Date().toISOString(),
     },
     
@@ -194,6 +237,22 @@ export async function POST(request: NextRequest) {
     createdAt: new Date().toISOString(),
   }
 
+  await persistQuoteAudit({
+    quoteId: offerNumber,
+    year,
+    make,
+    model,
+    trim,
+    mileage,
+    condition,
+    vin,
+    customerEmail: email || null,
+    customerPhone: phone || null,
+    offerAmount: offer.offerAmount,
+    offerLow: cbbValue.low,
+    offerHigh: cbbValue.high,
+  })
+
   // Send notification email to admin
   if (email) {
     await sendNotificationEmail({
@@ -212,6 +271,12 @@ export async function POST(request: NextRequest) {
     data: {
       offer,
       message: `Your ${year} ${make} ${model} is worth approximately $${offer.offerAmount.toLocaleString()} CAD`,
+      estimateSource: 'heuristic_market_model',
+      amount: {
+        value: offer.offerAmount,
+        cents: Math.round(offer.offerAmount * 100),
+        currency: 'CAD',
+      },
       comparison: {
         vsPrivateSale: Math.round(offer.offerAmount * 1.15), // Private sale usually higher
         vsDealerTrade: Math.round(offer.offerAmount * 0.9), // Traditional dealer usually lower
@@ -256,7 +321,9 @@ export async function GET(request: NextRequest) {
         mileage,
         condition,
         value,
-        source: 'Canadian Black Book',
+        source: 'heuristic_market_model',
+        sourceType: 'heuristic',
+        confidence: 'medium',
         date: new Date().toISOString(),
       },
     },
