@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Document not found" }, { status: 404 })
       }
 
-      const application = (document as DocumentWithFileAndApplication).finance_applications_v2
+      const application = (document as unknown as DocumentWithFileAndApplication).finance_applications_v2
       const ownerId = Array.isArray(application) ? application[0]?.user_id : application?.user_id
 
       if (!ownerId || ownerId !== user.id) {

@@ -63,6 +63,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
 
       if (!result.success || !result.clientSecret) {
         setCheckoutError(result.error || "Failed to initialize payment. Please try again.")
+        setShowStripeCheckout(false)
         return
       }
 
@@ -71,6 +72,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
     } catch (error) {
       console.error("Error creating reservation:", error)
       setCheckoutError("Failed to initialize payment. Please try again.")
+      setShowStripeCheckout(false)
     } finally {
       setIsProcessing(false)
     }
@@ -87,7 +89,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
-        {step === 1 && (
+        {step === 1 && !showStripeCheckout && (
           <>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
@@ -159,7 +161,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
           </>
         )}
 
-        {step === 2 && (
+        {step === 2 && !showStripeCheckout && (
           <>
             <DialogHeader>
               <DialogTitle>Complete Your Reservation</DialogTitle>
@@ -225,6 +227,12 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
 
               <Separator />
 
+              {checkoutError ? (
+                <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  {checkoutError}
+                </div>
+              ) : null}
+
               <div className="flex justify-between items-center text-sm">
                 <span>Refundable Deposit</span>
                 <span className="font-bold">${depositAmount} CAD</span>
@@ -258,7 +266,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
           </>
         )}
 
-        {step === 3 && (
+        {step === 3 && !showStripeCheckout && (
           <>
             <div className="text-center py-6">
               <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">

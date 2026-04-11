@@ -163,7 +163,7 @@ export async function DELETE(request: NextRequest) {
       .single()
 
     const application = document
-      ? (document as DocumentWithApplication).finance_applications_v2
+      ? (document as unknown as DocumentWithApplication).finance_applications_v2
       : null
     const ownerId = Array.isArray(application) ? application[0]?.user_id : application?.user_id
 

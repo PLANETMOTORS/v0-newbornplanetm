@@ -27,20 +27,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    // Get initial user
+    // Get initial user — use getUser() which validates against the server,
+    // not getSession() which can return stale cached data from an old Supabase URL.
     const getUser = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session?.user) {
-          setUser(session.user)
-        }
-
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          setUser(user)
+        const { data: { user }, error } = await supabase.auth.getUser()
+        if (error) {
+          // Session is invalid or from wrong project — clear it so the UI resets.
+          await supabase.auth.signOut()
+          setUser(null)
+        } else {
+          setUser(user ?? null)
         }
       } catch (error) {
         console.error("Error getting user:", error)
+        setUser(null)
       } finally {
         setIsLoading(false)
       }
