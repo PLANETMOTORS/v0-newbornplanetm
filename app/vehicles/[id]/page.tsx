@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/client"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -400,63 +399,70 @@ export default function VehicleDetailPage() {
     return `/finance/${vehicleId}`
   }
   
-  // Fetch vehicle from database
+  // Fetch vehicle from API — benefits from CDN s-maxage=300 caching
   useEffect(() => {
-    async function fetchVehicle() {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from("vehicles")
-        .select("*")
-        .eq("id", vehicleId)
-        .single()
-      
-      if (data) {
-        // Transform database vehicle to page format
-        const priceInDollars = data.price / 100
-        // Calculate subtotal (vehicle + all fees) for HST
-        const omvicFee = 22
-        const certificationFee = 595
-        const licensingFee = 59
-        const subtotalForHst = priceInDollars + omvicFee + certificationFee + licensingFee
-        const hst = subtotalForHst * 0.13
-        setVehicle({
-          ...vehicleData, // Keep mock inspection data etc.
-          id: data.id,
-          year: data.year,
-          make: data.make,
-          model: data.model,
-          trim: data.trim || "",
-          price: priceInDollars,
-          mileage: data.mileage,
-          exteriorColor: data.exterior_color,
-          interiorColor: data.interior_color,
-          fuelType: data.fuel_type,
-          transmission: data.transmission,
-          drivetrain: data.drivetrain,
-          bodyStyle: data.body_style,
-          vin: data.vin,
-          stockNumber: data.stock_number,
-          images: data.primary_image_url ? [data.primary_image_url] : vehicleData.images,
-          pricing: {
-            vehiclePrice: priceInDollars,
-            deliveryFee: 0,
-            hst: Math.round(hst),
-            omvicFee: omvicFee,
-            certificationFee: 595,
-            licensingReg: 59,
-            totalWithHst: Math.round(priceInDollars + hst + 22 + 595 + 59)
-          }
-        })
-      } else {
-        // Fallback to mock data if vehicle not found
-        setVehicle(vehicleData)
-      }
-      setIsLoading(false)
-    }
-    
-    if (vehicleId) {
-      fetchVehicle()
-    }
+    if (!vehicleId) return
+    let cancelled = false
+    setIsLoading(true)
+    fetch(`/api/v1/vehicles/${encodeURIComponent(vehicleId)}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(json => {
+        if (cancelled) return
+        const data = json?.data?.vehicle
+        if (data) {
+          // API already returns price in dollars (divided by 100 server-side)
+          const price = typeof data.price === 'number' ? data.price : 0
+          const omvicFee = 22
+          const certificationFee = 595
+          const licensingFee = 59
+          const subtotalForHst = price + omvicFee + certificationFee + licensingFee
+          const hst = subtotalForHst * 0.13
+          // Build image list: prefer image_urls array, fall back to primary_image_url, then mocks
+          const rawImages: string[] = Array.isArray(data.image_urls) && data.image_urls.length > 0
+            ? data.image_urls
+            : data.primary_image_url
+              ? [data.primary_image_url]
+              : vehicleData.images
+          setVehicle({
+            ...vehicleData, // Keep mock inspection data as fallback
+            id: data.id,
+            year: data.year,
+            make: data.make,
+            model: data.model,
+            trim: data.trim || '',
+            price,
+            mileage: data.mileage,
+            exteriorColor: data.exterior_color,
+            interiorColor: data.interior_color,
+            fuelType: data.fuel_type,
+            transmission: data.transmission,
+            drivetrain: data.drivetrain,
+            bodyStyle: data.body_style,
+            vin: data.vin,
+            stockNumber: data.stock_number,
+            images: rawImages,
+            pricing: {
+              vehiclePrice: price,
+              deliveryFee: 0,
+              hst: Math.round(hst),
+              omvicFee,
+              certificationFee,
+              licensingReg: licensingFee,
+              totalWithHst: Math.round(price + hst + omvicFee + certificationFee + licensingFee)
+            }
+          })
+        } else {
+          setVehicle(vehicleData)
+        }
+        setIsLoading(false)
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setVehicle(vehicleData)
+          setIsLoading(false)
+        }
+      })
+    return () => { cancelled = true }
   }, [vehicleId])
 
   const handleProtectedAction = (action: string, callback?: () => void) => {

@@ -2,10 +2,11 @@
 
 import Link from "next/link"
 import Image from "next/image"
+import useSWR from "swr"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Heart, Gauge, Fuel, Battery, ChevronRight, MapPin, Truck } from "lucide-react"
+import { Heart, Gauge, Fuel, Battery, ChevronRight, Truck } from "lucide-react"
 
 interface SimilarVehicle {
   id: string
@@ -27,128 +28,56 @@ interface SimilarVehiclesProps {
   priceRange: number
 }
 
-const similarVehicles: SimilarVehicle[] = [
-  {
-    id: "2024-tesla-model-y",
-    year: 2024,
-    make: "Tesla",
-    model: "Model Y",
-    trim: "Long Range AWD",
-    price: 64990,
-    mileage: 12450,
-    fuelType: "Electric",
-    image: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400&auto=format&fit=crop&q=80",
-    batteryHealth: 98,
-    range: "533 km"
-  },
-  {
-    id: "2024-tesla-model-3",
-    year: 2024,
-    make: "Tesla",
-    model: "Model 3",
-    trim: "Performance AWD",
-    price: 58990,
-    mileage: 8200,
-    fuelType: "Electric",
-    image: "https://images.unsplash.com/photo-1536700503339-1e4b06520771?w=400&auto=format&fit=crop&q=80",
-    batteryHealth: 99,
-    range: "547 km"
-  },
-  {
-    id: "2024-porsche-taycan",
-    year: 2024,
-    make: "Porsche",
-    model: "Taycan",
-    trim: "4S Performance",
-    price: 134500,
-    mileage: 5600,
-    fuelType: "Electric",
-    image: "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=400&auto=format&fit=crop&q=80",
-    batteryHealth: 100,
-    range: "464 km"
-  },
-  {
-    id: "2023-mercedes-eqs",
-    year: 2023,
-    make: "Mercedes-Benz",
-    model: "EQS",
-    trim: "580 4MATIC",
-    price: 156900,
-    mileage: 3200,
-    fuelType: "Electric",
-    image: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=400&auto=format&fit=crop&q=80",
-    batteryHealth: 99,
-    range: "547 km"
-  },
-  {
-    id: "2023-audi-etron-gt",
-    year: 2023,
-    make: "Audi",
-    model: "e-tron GT",
-    trim: "RS",
-    price: 178900,
-    mileage: 4200,
-    fuelType: "Electric",
-    image: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400&auto=format&fit=crop&q=80",
-    batteryHealth: 100,
-    range: "383 km"
-  },
-  {
-    id: "2024-bmw-m4",
-    year: 2024,
-    make: "BMW",
-    model: "M4",
-    trim: "Competition xDrive",
-    price: 89900,
-    mileage: 6500,
-    fuelType: "Gasoline",
-    image: "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?w=400&auto=format&fit=crop&q=80"
-  },
-  {
-    id: "2024-honda-crv",
-    year: 2024,
-    make: "Honda",
-    model: "CR-V",
-    trim: "Touring AWD",
-    price: 42990,
-    mileage: 18500,
-    fuelType: "Hybrid",
-    image: "https://images.unsplash.com/photo-1568844293986-8c8e6f1a5f04?w=400&auto=format&fit=crop&q=80"
-  },
-  {
-    id: "2024-toyota-rav4",
-    year: 2024,
-    make: "Toyota",
-    model: "RAV4",
-    trim: "Prime XSE",
-    price: 54990,
-    mileage: 11200,
-    fuelType: "PHEV",
-    image: "https://images.unsplash.com/photo-1581540222194-0def2dda95b8?w=400&auto=format&fit=crop&q=80",
-    batteryHealth: 98,
-    range: "68 km (electric)"
-  },
-  {
-    id: "2024-ford-f150",
-    year: 2024,
-    make: "Ford",
-    model: "F-150",
-    trim: "Lightning Platinum",
-    price: 98990,
-    mileage: 2800,
-    fuelType: "Electric",
-    image: "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400&auto=format&fit=crop&q=80",
-    batteryHealth: 100,
-    range: "483 km"
+interface ApiVehicle {
+  id: string
+  year: number
+  make: string
+  model: string
+  trim: string | null
+  price: number
+  mileage: number
+  fuel_type: string | null
+  primary_image_url: string | null
+  battery_health?: number | null
+  range_km?: number | null
+}
+
+async function fetcher(url: string) {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error("Failed to load similar vehicles")
+  return res.json()
+}
+
+function toSimilarVehicle(v: ApiVehicle): SimilarVehicle {
+  return {
+    id: v.id,
+    year: v.year,
+    make: v.make,
+    model: v.model,
+    trim: v.trim ?? "",
+    price: v.price,
+    mileage: v.mileage,
+    fuelType: v.fuel_type ?? "Gasoline",
+    image: v.primary_image_url ?? "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400&auto=format&fit=crop&q=80",
+    batteryHealth: v.battery_health ?? undefined,
+    range: v.range_km ? `${v.range_km} km` : undefined,
   }
-]
+}
 
 export function SimilarVehicles({ currentVehicleId, make, priceRange }: SimilarVehiclesProps) {
-  // Filter similar vehicles (same make or similar price range, excluding current)
-  const filtered = similarVehicles
+  // Fetch similar vehicles from the API — benefits from CDN caching
+  const apiUrl = `/api/v1/vehicles?make=${encodeURIComponent(make)}&status=available&limit=8&sort=created_at&order=desc`
+  const { data } = useSWR(make ? apiUrl : null, fetcher, {
+    dedupingInterval: 300_000, // 5 min — same as CDN TTL
+    revalidateOnFocus: false,
+  })
+
+  const rawVehicles: ApiVehicle[] = data?.data?.vehicles ?? []
+  const filtered: SimilarVehicle[] = rawVehicles
     .filter(v => v.id !== currentVehicleId)
-    .filter(v => v.make === make || (v.price >= priceRange * 0.7 && v.price <= priceRange * 1.3))
+    .filter(v => v.price >= priceRange * 0.7 && v.price <= priceRange * 1.3)
     .slice(0, 4)
+    .map(toSimilarVehicle)
 
   if (filtered.length === 0) return null
 

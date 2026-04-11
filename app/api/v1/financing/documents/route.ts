@@ -7,6 +7,34 @@ type DocumentWithApplication = {
   finance_applications_v2: { user_id: string }[]
 }
 
+function errorResponse(status: number, code: string, message: string) {
+  return NextResponse.json(
+    { success: false, error: { code, message } },
+    { status }
+  )
+}
+
+function isDocumentWithApplication(value: unknown): value is DocumentWithApplication {
+  if (Object.prototype.toString.call(value) !== "[object Object]") {
+    return false
+  }
+
+  const record = value as Record<string, unknown>
+  if (typeof record.id !== "string") {
+    return false
+  }
+
+  const applications = record.finance_applications_v2
+  if (!Array.isArray(applications)) {
+    return false
+  }
+
+  return applications.every(item => (
+    Object.prototype.toString.call(item) === "[object Object]" &&
+    typeof (item as Record<string, unknown>).user_id === "string"
+  ))
+}
+
 // POST /api/v1/financing/documents - Upload document
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +42,7 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return errorResponse(401, "UNAUTHORIZED", "Unauthorized")
     }
     
     const formData = await request.formData()
@@ -24,10 +52,7 @@ export async function POST(request: NextRequest) {
     const documentType = formData.get("documentType") as string
     
     if (!file || !applicationId || !documentType) {
-      return NextResponse.json(
-        { error: "Missing required fields: file, applicationId, documentType" },
-        { status: 400 }
-      )
+      return errorResponse(400, "MISSING_REQUIRED_FIELDS", "Missing required fields: file, applicationId, documentType")
     }
     
     // Verify application belongs to user
@@ -38,11 +63,11 @@ export async function POST(request: NextRequest) {
       .single()
     
     if (appError || !application) {
-      return NextResponse.json({ error: "Application not found" }, { status: 404 })
+      return errorResponse(404, "APPLICATION_NOT_FOUND", "Application not found")
     }
     
     if (application.user_id !== user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+      return errorResponse(403, "FORBIDDEN", "Unauthorized")
     }
     
     // Upload file to Vercel Blob (PRIVATE storage for security)
@@ -70,7 +95,7 @@ export async function POST(request: NextRequest) {
     
     if (docError) {
       console.error("Document insert error:", docError)
-      return NextResponse.json({ error: "Failed to save document record" }, { status: 500 })
+      return errorResponse(500, "DOCUMENT_SAVE_FAILED", "Failed to save document record")
     }
     
     return NextResponse.json({
@@ -85,7 +110,7 @@ export async function POST(request: NextRequest) {
     
   } catch (error) {
     console.error("Document upload error:", error)
-    return NextResponse.json({ error: "Failed to upload document" }, { status: 500 })
+    return errorResponse(500, "DOCUMENT_UPLOAD_FAILED", "Failed to upload document")
   }
 }
 
@@ -96,14 +121,14 @@ export async function GET(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return errorResponse(401, "UNAUTHORIZED", "Unauthorized")
     }
     
     const { searchParams } = new URL(request.url)
     const applicationId = searchParams.get("applicationId")
     
     if (!applicationId) {
-      return NextResponse.json({ error: "applicationId required" }, { status: 400 })
+      return errorResponse(400, "MISSING_APPLICATION_ID", "applicationId required")
     }
     
     // Verify application belongs to user
@@ -114,7 +139,7 @@ export async function GET(request: NextRequest) {
       .single()
     
     if (!application || application.user_id !== user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+      return errorResponse(403, "FORBIDDEN", "Unauthorized")
     }
     
     const { data: documents, error } = await supabase
@@ -124,14 +149,14 @@ export async function GET(request: NextRequest) {
       .order("uploaded_at", { ascending: false })
     
     if (error) {
-      return NextResponse.json({ error: "Failed to fetch documents" }, { status: 500 })
+      return errorResponse(500, "FETCH_DOCUMENTS_FAILED", "Failed to fetch documents")
     }
     
     return NextResponse.json({ success: true, data: documents })
     
   } catch (error) {
     console.error("Get documents error:", error)
-    return NextResponse.json({ error: "Failed to fetch documents" }, { status: 500 })
+    return errorResponse(500, "FETCH_DOCUMENTS_FAILED", "Failed to fetch documents")
   }
 }
 
@@ -142,14 +167,14 @@ export async function DELETE(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return errorResponse(401, "UNAUTHORIZED", "Unauthorized")
     }
     
     const { searchParams } = new URL(request.url)
     const documentId = searchParams.get("id")
     
     if (!documentId) {
-      return NextResponse.json({ error: "Document ID required" }, { status: 400 })
+      return errorResponse(400, "MISSING_DOCUMENT_ID", "Document ID required")
     }
     
     // Verify document belongs to user's application
@@ -162,8 +187,8 @@ export async function DELETE(request: NextRequest) {
       .eq("id", documentId)
       .single()
     
-    if (!document || (document as unknown as DocumentWithApplication).finance_applications_v2[0]?.user_id !== user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+    if (!document || !isDocumentWithApplication(document) || document.finance_applications_v2[0]?.user_id !== user.id) {
+      return errorResponse(403, "FORBIDDEN", "Unauthorized")
     }
     
     const { error } = await supabase
@@ -172,13 +197,13 @@ export async function DELETE(request: NextRequest) {
       .eq("id", documentId)
     
     if (error) {
-      return NextResponse.json({ error: "Failed to delete document" }, { status: 500 })
+      return errorResponse(500, "DELETE_DOCUMENT_FAILED", "Failed to delete document")
     }
     
     return NextResponse.json({ success: true })
     
   } catch (error) {
     console.error("Delete document error:", error)
-    return NextResponse.json({ error: "Failed to delete document" }, { status: 500 })
+    return errorResponse(500, "DELETE_DOCUMENT_FAILED", "Failed to delete document")
   }
 }
