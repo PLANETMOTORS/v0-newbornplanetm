@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { del, put } from "@vercel/blob"
 import { createClient } from "@/lib/supabase/server"
+import { rateLimit } from "@/lib/redis"
 
 const MAX_ID_IMAGE_SIZE_BYTES = 10 * 1024 * 1024 // 10MB
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
+const ALLOWED_ID_TYPES = new Set(["driver_license", "passport", "provincial_id"])
+const ALLOWED_PROVINCES = new Set(["ON", "QC", "BC", "AB", "MB", "SK", "NS", "NB", "PE", "NL", "NT", "NU", "YT"])
+const MAX_ID_VERIFICATION_REQUESTS_PER_HOUR = 3 // Prevent spam
 
 export async function POST(request: NextRequest) {
   const uploadedBlobPaths: string[] = []
@@ -15,6 +19,18 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Rate limiting: max 3 submissions per hour per user
+    const clientIp = request.headers.get("x-forwarded-for") || "unknown"
+    const rateLimitKey = `id-verification:${user.id}:${clientIp}`
+    const rateLimitResult = await rateLimit(rateLimitKey, MAX_ID_VERIFICATION_REQUESTS_PER_HOUR, 3600)
+    
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: "Too many ID verification submissions. Please try again in 1 hour." },
+        { status: 429 }
+      )
     }
 
     const formData = await request.formData()
@@ -33,12 +49,72 @@ export async function POST(request: NextRequest) {
     const secondaryFrontImage = formData.get("secondaryFrontImage") as File | null
     const secondaryBackImage = formData.get("secondaryBackImage") as File | null
 
-    // Validate required fields
+    // Validate required fields and format
     if (!primaryIdType || !primaryIdNumber || !primaryFrontImage) {
       return NextResponse.json(
         { error: "Primary ID type, number, and front image are required" },
         { status: 400 }
       )
+    }
+
+    // Validate ID type (whitelist)
+    if (!ALLOWED_ID_TYPES.has(primaryIdType)) {
+      return NextResponse.json(
+        { error: `Invalid primary ID type. Allowed: ${Array.from(ALLOWED_ID_TYPES).join(", ")}` },
+        { status: 400 }
+      )
+    }
+
+    if (secondaryIdType && !ALLOWED_ID_TYPES.has(secondaryIdType)) {
+      return NextResponse.json(
+        { error: `Invalid secondary ID type. Allowed: ${Array.from(ALLOWED_ID_TYPES).join(", ")}` },
+        { status: 400 }
+      )
+    }
+
+    // Validate province (whitelist)
+    if (primaryIssuingProvince && !ALLOWED_PROVINCES.has(primaryIssuingProvince.toUpperCase())) {
+      return NextResponse.json(
+        { error: `Invalid province code. Must be a valid Canadian province.` },
+        { status: 400 }
+      )
+    }
+
+    // Validate ID number format (basic: not empty, reasonable length)
+    if (!primaryIdNumber || primaryIdNumber.length < 5 || primaryIdNumber.length > 20) {
+      return NextResponse.json(
+        { error: "Invalid ID number format" },
+        { status: 400 }
+      )
+    }
+
+    if (secondaryIdNumber && (secondaryIdNumber.length < 5 || secondaryIdNumber.length > 20)) {
+      return NextResponse.json(
+        { error: "Invalid secondary ID number format" },
+        { status: 400 }
+      )
+    }
+
+    // Validate expiry date format (YYYY-MM-DD or ISO)
+    if (primaryExpiryDate) {
+      try {
+        const expiryParsed = new Date(primaryExpiryDate)
+        if (isNaN(expiryParsed.getTime())) {
+          throw new Error("Invalid date")
+        }
+        // Check not in past
+        if (expiryParsed < new Date()) {
+          return NextResponse.json(
+            { error: "ID is expired" },
+            { status: 400 }
+          )
+        }
+      } catch {
+        return NextResponse.json(
+          { error: "Invalid expiry date format. Use YYYY-MM-DD." },
+          { status: 400 }
+        )
+      }
     }
 
     const filesToValidate: Array<{ file: File | null; label: string }> = [
@@ -198,6 +274,26 @@ export async function POST(request: NextRequest) {
         )
       }
     }
+
+    // Record audit trail for ID verification submission (fire-and-forget)
+    ;(async () => {
+      try {
+        await supabase
+          .from("id_verification_audits")
+          .insert({
+            user_id: user.id,
+            verification_id: verificationId,
+            action: "submitted",
+            id_type_submitted: primaryIdType,
+            has_secondary: !!secondaryIdType,
+            documents_count: uploadedDocuments.length,
+            client_ip: clientIp,
+            submitted_at: new Date().toISOString(),
+          })
+      } catch {
+        console.warn("[audit] Failed to record ID verification submission")
+      }
+    })()
 
     return NextResponse.json({
       success: true,

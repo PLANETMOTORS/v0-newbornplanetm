@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { randomUUID } from "crypto"
 import { createClient } from "@/lib/supabase/server"
 
 function isUuid(value: string): boolean {
@@ -7,15 +8,6 @@ function isUuid(value: string): boolean {
 
 function toDateOnly(input: Date): string {
   return input.toISOString().split("T")[0]
-}
-
-function returnNumber(): string {
-  const stamp = Date.now().toString(36).toUpperCase()
-  const rand = Math.floor(Math.random() * 36 ** 3)
-    .toString(36)
-    .toUpperCase()
-    .padStart(3, "0")
-  return `RET-${stamp}-${rand}`
 }
 
 // POST /api/v1/returns - Initiate 10-day return
@@ -29,6 +21,25 @@ export async function POST(request: NextRequest) {
 
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Idempotency: check for request replay or duplicate submission
+    const idempotencyKey = request.headers.get("Idempotency-Key")
+    if (idempotencyKey) {
+      const { data: existingIdempotent } = await supabase
+        .from("request_cache")
+        .select("response")
+        .eq("key", `returns-${idempotencyKey}`)
+        .eq("user_id", user.id)
+        .single()
+
+      if (existingIdempotent?.response) {
+        try {
+          return NextResponse.json(JSON.parse(existingIdempotent.response))
+        } catch {
+          // Cached response malformed; continue with new processing
+        }
+      }
     }
 
     const body = await request.json()
@@ -142,7 +153,7 @@ export async function POST(request: NextRequest) {
       const fallbackInsertPayload = {
         order_id: order.id,
         customer_id: user.id,
-        return_number: returnNumber(),
+        return_number: `RET-${randomUUID()}`,
         reason,
         reason_details: reasonDetails,
         purchase_date: toDateOnly(effectiveDeliveryDate),
@@ -171,7 +182,7 @@ export async function POST(request: NextRequest) {
     const responseReturnId = String(insertedReturn.id || "")
     const responseStatus = String(insertedReturn.status || "requested")
 
-    return NextResponse.json({
+    const responseBody = {
       success: true,
       return: {
         id: responseReturnId,
@@ -189,7 +200,28 @@ export async function POST(request: NextRequest) {
         },
         createdAt: insertedReturn.created_at || new Date().toISOString(),
       },
-    })
+    }
+
+    // Cache response for idempotency (fire-and-forget)
+    if (idempotencyKey) {
+      ;(async () => {
+        try {
+          await supabase
+            .from("request_cache")
+            .insert({
+              key: `returns-${idempotencyKey}`,
+              user_id: user.id,
+              response: JSON.stringify(responseBody),
+              ttl_minutes: 10,
+              created_at: new Date().toISOString(),
+            })
+        } catch {
+          // Cache write failure; safe to ignore for this response
+        }
+      })()
+    }
+
+    return NextResponse.json(responseBody)
   } catch (_error) {
     return NextResponse.json({ error: "Failed to initiate return" }, { status: 500 })
   }
