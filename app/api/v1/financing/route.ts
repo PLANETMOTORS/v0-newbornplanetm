@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { cacheIdempotentResponse, getCachedIdempotentResponse, rateLimit } from '@/lib/redis'
 
 // Partner lenders configuration
 const lenders = [
@@ -17,6 +18,9 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   const body = await request.json()
+  const forwarded = request.headers.get('x-forwarded-for') || ''
+  const ip = forwarded.split(',')[0]?.trim() || 'unknown'
+  const idempotencyKey = request.headers.get('idempotency-key') || request.headers.get('x-idempotency-key')
   
   const {
     customerId,
@@ -26,7 +30,19 @@ export async function POST(request: NextRequest) {
     monthlyRent,
     requestedAmount,
     requestedTerm,
+    email,
   } = body
+
+  const limiterIdentity = typeof email === 'string' && email.trim().length > 0
+    ? `financing-prequal:${ip}:${email.trim().toLowerCase()}`
+    : `financing-prequal:${ip}`
+  const limiter = await rateLimit(limiterIdentity, 12, 3600)
+  if (!limiter.success) {
+    return NextResponse.json(
+      { success: false, error: { code: 'RATE_LIMITED', message: 'Too many requests. Please try again later.' } },
+      { status: 429 }
+    )
+  }
 
   // Validate required fields
   if (!annualIncome || !requestedAmount) {
@@ -52,14 +68,48 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // Soft credit pull (calls Equifax/TransUnion in production)
-  // Use income-based estimation for pre-qualification
-  const creditScore = annualIncome >= 80000 ? 750 : annualIncome >= 50000 ? 700 : 680
-  const creditBureau = 'Equifax'
+  const normalizedTerm = Math.max(12, Math.min(Number(requestedTerm || 72), 96))
+  const normalizedRequestedAmount = Number(requestedAmount || 0)
+  const normalizedIncome = Number(annualIncome || 0)
+
+  if (!Number.isFinite(normalizedRequestedAmount) || normalizedRequestedAmount <= 0) {
+    return NextResponse.json(
+      { success: false, error: { code: 'INVALID_AMOUNT', message: 'Requested amount must be a positive number' } },
+      { status: 400 }
+    )
+  }
+
+  if (!Number.isFinite(normalizedIncome) || normalizedIncome <= 0) {
+    return NextResponse.json(
+      { success: false, error: { code: 'INVALID_INCOME', message: 'Annual income must be a positive number' } },
+      { status: 400 }
+    )
+  }
+
+  const replayCacheKey = idempotencyKey
+    ? `financing-prequal:${idempotencyKey}:${normalizedRequestedAmount}:${normalizedIncome}:${normalizedTerm}`
+    : null
+
+  if (replayCacheKey) {
+    const cached = await getCachedIdempotentResponse<Record<string, unknown>>(replayCacheKey)
+    if (cached) {
+      return NextResponse.json(
+        {
+          ...cached,
+          idempotency: { key: idempotencyKey, replay: true },
+        },
+        { headers: { 'x-idempotent-replay': 'true' } }
+      )
+    }
+  }
+
+  // Heuristic income-based prequalification estimate. No bureau pull is performed here.
+  const creditScore = normalizedIncome >= 80000 ? 750 : normalizedIncome >= 50000 ? 700 : 680
+  const creditBureau = null
 
   // Calculate debt-to-income ratio
-  const monthlyIncome = annualIncome / 12
-  const estimatedPayment = requestedAmount / (requestedTerm || 72)
+  const monthlyIncome = normalizedIncome / 12
+  const estimatedPayment = normalizedRequestedAmount / normalizedTerm
   const dti = ((monthlyRent || 0) + estimatedPayment) / monthlyIncome
 
   // Determine eligibility for each lender
@@ -72,9 +122,9 @@ export async function POST(request: NextRequest) {
       else if (creditScore >= 700) rate -= 0.25
       else if (creditScore < 650) rate += 0.5
 
-      const term = Math.min(requestedTerm || 72, lender.maxTerm)
+      const term = Math.min(normalizedTerm, lender.maxTerm)
       const monthlyRate = rate / 100 / 12
-      const monthlyPayment = (requestedAmount * monthlyRate * Math.pow(1 + monthlyRate, term)) / 
+      const monthlyPayment = (normalizedRequestedAmount * monthlyRate * Math.pow(1 + monthlyRate, term)) / 
                              (Math.pow(1 + monthlyRate, term) - 1)
 
       return {
@@ -86,6 +136,7 @@ export async function POST(request: NextRequest) {
         estimatedMonthlyPayment: Math.round(monthlyPayment * 100) / 100,
         prequalified: true,
         confidence: creditScore >= 700 ? 'high' : creditScore >= 650 ? 'medium' : 'low',
+        source: 'heuristic_prequalification_model',
       }
     })
     .sort((a, b) => a.estimatedRate - b.estimatedRate)
@@ -98,7 +149,8 @@ export async function POST(request: NextRequest) {
     status: eligibleLenders.length > 0 ? 'prequalified' : 'declined',
     creditScore,
     creditBureau,
-    creditPullType: 'soft',
+    creditPullType: 'none',
+    qualificationSource: 'heuristic_prequalification_model',
     creditPullDate: new Date().toISOString(),
     dti: Math.round(dti * 100) / 100,
     eligibleLenders,
@@ -107,7 +159,7 @@ export async function POST(request: NextRequest) {
     createdAt: new Date().toISOString(),
   }
 
-  return NextResponse.json({
+  const payload = {
     success: true,
     data: {
       prequalification,
@@ -117,8 +169,15 @@ export async function POST(request: NextRequest) {
       nextSteps: eligibleLenders.length > 0
         ? ['Review your offers', 'Select a lender', 'Complete full application']
         : ['Improve credit score', 'Add co-applicant', 'Increase down payment'],
+      disclaimer: 'Prequalification is an estimate only and does not represent a lender credit decision.',
     },
-  })
+  }
+
+  if (replayCacheKey) {
+    await cacheIdempotentResponse(replayCacheKey, payload, 600)
+  }
+
+  return NextResponse.json(payload)
 }
 
 // GET /api/v1/financing/lenders - List available lenders
@@ -135,11 +194,10 @@ export async function GET() {
         maxTermMonths: l.maxTerm,
         rateFrom: l.baseRate - 0.5,
         rateTo: l.baseRate + 1.5,
-        features: l.code === 'TD' 
-          ? ['Lowest rates', 'No prepayment penalty', 'Flexible terms']
-          : l.code === 'DESJ'
-          ? ['Longest terms available', 'Credit union rates', 'Quebec specialty']
-          : ['Competitive rates', 'Fast approval', 'Online management'],
+        features: l.type === 'credit_union'
+          ? ['Community lending', 'Flexible terms', 'Relationship banking']
+          : ['Competitive rates', 'Fast review', 'Digital servicing'],
+        source: 'internal_partner_program_catalog',
       })),
     },
   })
