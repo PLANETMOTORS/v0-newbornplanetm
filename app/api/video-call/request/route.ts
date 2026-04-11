@@ -1,9 +1,25 @@
 import { NextResponse } from "next/server"
-import { sendNotificationEmail } from "@/lib/email"
+import { rateLimit } from "@/lib/redis"
+import { createLiveVideoTourBooking } from "@/lib/liveVideoTour/service"
 
 export async function POST(req: Request) {
   try {
-    const { vehicleId, vehicleName, customerName, customerEmail, customerPhone, preferredTime, notes } = await req.json()
+    const forwarded = req.headers.get("x-forwarded-for") || ""
+    const ip = forwarded.split(",")[0]?.trim() || "unknown"
+    const body = await req.json()
+
+    const customerEmail = typeof body?.customerEmail === "string" ? body.customerEmail.trim().toLowerCase() : ""
+    const limiterKey = customerEmail ? `video-call:${ip}:${customerEmail}` : `video-call:${ip}`
+    const limiter = await rateLimit(limiterKey, 8, 3600)
+
+    if (!limiter.success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429 }
+      )
+    }
+
+    const { vehicleId, vehicleName, customerName, customerPhone, preferredTime, notes } = body
 
     // Validate required fields
     if (!vehicleId || !customerName || !customerEmail || !customerPhone || !preferredTime) {
@@ -13,46 +29,33 @@ export async function POST(req: Request) {
       )
     }
 
-    // Generate a unique call ID
-    const callId = `VC-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-
-    // In production, this would:
-    // 1. Save to database
-    // 2. Send email/SMS to customer with join link
-    // 3. Notify sales team
-    // 4. Schedule in calendar
-
-    const videoCallRequest = {
-      callId,
+    const bookingResult = await createLiveVideoTourBooking({
       vehicleId,
       vehicleName,
       customerName,
       customerEmail,
       customerPhone,
       preferredTime,
+      timezone: "America/Toronto",
+      provider: "google_meet",
       notes,
-      status: "scheduled",
-      joinLink: `https://meet.planetmotors.ca/${callId}`,
-      createdAt: new Date().toISOString(),
-    }
-
-    // Send notification email to admin
-    await sendNotificationEmail({
-      type: 'test_drive_request',
-      customerName,
-      customerEmail,
-      customerPhone,
-      vehicleInfo: vehicleName,
-      additionalData: { callId, preferredTime, notes, type: 'Video Call Request' },
     })
+
+    if (!bookingResult.ok) {
+      return NextResponse.json(
+        { error: bookingResult.error || "Unable to schedule video call" },
+        { status: 400 }
+      )
+    }
 
     return NextResponse.json({
       success: true,
       message: "Video call scheduled successfully",
       data: {
-        callId,
-        joinLink: videoCallRequest.joinLink,
-        scheduledTime: preferredTime,
+        callId: bookingResult.bookingId,
+        joinLink: bookingResult.joinUrl,
+        scheduledTime: bookingResult.scheduledTime,
+        provider: bookingResult.provider,
       },
     })
   } catch (error) {
