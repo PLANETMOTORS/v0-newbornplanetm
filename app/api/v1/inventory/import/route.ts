@@ -1,15 +1,29 @@
+import { createHash } from "crypto"
 import { createClient } from "@/lib/supabase/server"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
+import { cacheIdempotentResponse, getCachedIdempotentResponse, rateLimit } from "@/lib/redis"
+import { recordAdminAuditEvent, requireAdminUser } from "@/lib/auth/admin"
+
+const MAX_IMPORT_FILE_BYTES = 5 * 1024 * 1024
+const MAX_IMPORT_ROWS = 500
+const MIN_SUPPORTED_YEAR = 1990
+const MAX_SUPPORTED_YEAR = new Date().getUTCFullYear() + 1
 
 // CSV Import endpoint for vehicle inventory
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
-    
-    // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+    const adminCheck = await requireAdminUser(supabase)
+    if (!adminCheck.ok) {
+      return adminCheck.response
+    }
+
+    const forwarded = request.headers.get("x-forwarded-for") || ""
+    const ip = forwarded.split(",")[0]?.trim() || "unknown"
+    const limiter = await rateLimit(`inventory-import:${adminCheck.user.id}:${ip}`, 2, 3600)
+    if (!limiter.success) {
+      return NextResponse.json({ error: "Too many inventory import requests. Please try again later." }, { status: 429 })
     }
 
     const formData = await request.formData()
@@ -19,8 +33,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
 
+    if (file.size > MAX_IMPORT_FILE_BYTES) {
+      return NextResponse.json({ error: "CSV file exceeds 5MB upload limit" }, { status: 400 })
+    }
+
     const text = await file.text()
     const lines = text.split("\n").filter(line => line.trim())
+
+    if (lines.length - 1 > MAX_IMPORT_ROWS) {
+      return NextResponse.json({ error: `CSV exceeds maximum supported size of ${MAX_IMPORT_ROWS} vehicles` }, { status: 400 })
+    }
+
+    const idempotencyDigest = createHash("sha256").update(text).digest("hex")
+    const replayCacheKey = `inventory-import:${adminCheck.user.id}:${idempotencyDigest}`
+    const cached = await getCachedIdempotentResponse<Record<string, unknown>>(replayCacheKey)
+    if (cached) {
+      return NextResponse.json(
+        {
+          ...cached,
+          idempotency: { digest: idempotencyDigest, replay: true },
+        },
+        { headers: { "x-idempotent-replay": "true" } }
+      )
+    }
     
     if (lines.length < 2) {
       return NextResponse.json({ error: "CSV file must have headers and at least one data row" }, { status: 400 })
@@ -112,9 +147,28 @@ export async function POST(request: Request) {
         continue
       }
 
-      // Validate VIN length
+      // Validate VIN length and core monetary bounds
       if (vehicle.vin && String(vehicle.vin).length !== 17) {
         errors.push({ row: i + 1, error: `Invalid VIN length: ${String(vehicle.vin).length} (must be 17)` })
+        continue
+      }
+
+      const year = Number(vehicle.year)
+      const price = Number(vehicle.price)
+      const mileage = Number(vehicle.mileage)
+
+      if (!Number.isFinite(year) || year < MIN_SUPPORTED_YEAR || year > MAX_SUPPORTED_YEAR) {
+        errors.push({ row: i + 1, error: `Invalid year: ${vehicle.year}` })
+        continue
+      }
+
+      if (!Number.isFinite(price) || price <= 0 || price > 100000000) {
+        errors.push({ row: i + 1, error: `Invalid price cents value: ${vehicle.price}` })
+        continue
+      }
+
+      if (!Number.isFinite(mileage) || mileage < 0 || mileage > 2000000) {
+        errors.push({ row: i + 1, error: `Invalid mileage value: ${vehicle.mileage}` })
         continue
       }
 
@@ -145,12 +199,27 @@ export async function POST(request: Request) {
       }, { status: 500 })
     }
 
-    return NextResponse.json({
+    const payload = {
       success: true,
       imported: vehicles.length,
       errors: errors.length > 0 ? errors : undefined,
-      message: `Successfully imported ${vehicles.length} vehicles${errors.length > 0 ? ` (${errors.length} rows skipped)` : ""}`
-    })
+      message: `Successfully imported ${vehicles.length} vehicles${errors.length > 0 ? ` (${errors.length} rows skipped)` : ""}`,
+    }
+
+    await cacheIdempotentResponse(replayCacheKey, payload, 3600)
+
+    ;(async () => {
+      await recordAdminAuditEvent({
+        actorId: adminCheck.user.id,
+        action: "inventory_import_csv",
+        entityType: "vehicle_inventory",
+        entityId: idempotencyDigest,
+        afterState: `imported:${vehicles.length}`,
+        notes: `rows=${lines.length - 1};errors=${errors.length};ip=${ip}`,
+      })
+    })()
+
+    return NextResponse.json(payload)
 
   } catch (error) {
     console.error("CSV Import error:", error)

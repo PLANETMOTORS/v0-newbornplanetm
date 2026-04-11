@@ -1,5 +1,8 @@
+import { createHash, timingSafeEqual } from "crypto"
 import { neon } from "@neondatabase/serverless"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
+import { cacheIdempotentResponse, getCachedIdempotentResponse, rateLimit } from "@/lib/redis"
+import { recordAdminAuditEvent } from "@/lib/auth/admin"
 
 function getSql() {
   const url = process.env.DATABASE_URL
@@ -12,6 +15,19 @@ type SqlClient = NonNullable<ReturnType<typeof getSql>>
 // API Key for HomenetIOL webhook authentication
 const HOMENET_API_KEY = process.env.HOMENET_API_KEY
 
+const MAX_FEED_BYTES = 10 * 1024 * 1024
+const MAX_FEED_VEHICLES = 1000
+
+function apiKeysMatch(provided: string | null | undefined, expected: string): boolean {
+  if (!provided) return false
+
+  const providedBuffer = Buffer.from(provided)
+  const expectedBuffer = Buffer.from(expected)
+  if (providedBuffer.length !== expectedBuffer.length) return false
+
+  return timingSafeEqual(providedBuffer, expectedBuffer)
+}
+
 /**
  * HomenetIOL Inventory Feed Webhook
  * 
@@ -21,7 +37,7 @@ const HOMENET_API_KEY = process.env.HOMENET_API_KEY
  * Flow: HomenetIOL -> This Webhook -> Parse XML/CSV -> Upsert to Neon -> Response
  */
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const sql = getSql()
   if (!sql) {
     return NextResponse.json({ error: "Database not configured" }, { status: 503 })
@@ -30,18 +46,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "HOMENET_API_KEY is not configured" }, { status: 503 })
   }
   try {
+    const forwarded = request.headers.get("x-forwarded-for") || ""
+    const ip = forwarded.split(",")[0]?.trim() || "unknown"
+    const limiter = await rateLimit(`inventory-homenet:${ip}`, 6, 3600)
+    if (!limiter.success) {
+      return NextResponse.json({ error: "Too many feed sync requests. Please try again later." }, { status: 429 })
+    }
+
     // Authenticate the request
     const authHeader = request.headers.get("authorization")
     const apiKeyHeader = request.headers.get("x-api-key")
     const apiKey = apiKeyHeader || authHeader?.replace("Bearer ", "")
     
-    if (apiKey !== HOMENET_API_KEY) {
+    if (!apiKeysMatch(apiKey, HOMENET_API_KEY)) {
       console.log("[HomenetIOL] Unauthorized request attempt")
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const contentType = request.headers.get("content-type") || ""
     let vehicles: VehicleData[] = []
+    let digestSource = ""
 
     // Handle different content types
     if (contentType.includes("multipart/form-data")) {
@@ -53,8 +77,13 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "No file provided" }, { status: 400 })
       }
 
+      if (file.size > MAX_FEED_BYTES) {
+        return NextResponse.json({ error: "Feed payload exceeds 10MB limit" }, { status: 400 })
+      }
+
       const text = await file.text()
       const filename = file.name.toLowerCase()
+      digestSource = text
 
       if (filename.endsWith(".xml")) {
         vehicles = parseHomenetXML(text)
@@ -66,19 +95,35 @@ export async function POST(request: Request) {
     } else if (contentType.includes("application/xml") || contentType.includes("text/xml")) {
       // Direct XML body
       const text = await request.text()
+      digestSource = text
       vehicles = parseHomenetXML(text)
     } else if (contentType.includes("application/json")) {
       // JSON payload (alternative)
       const json = await request.json()
+      digestSource = JSON.stringify(json)
       vehicles = Array.isArray(json) ? json : json.vehicles || []
     } else {
       // Try to parse as text (CSV or XML)
       const text = await request.text()
+      digestSource = text
       if (text.trim().startsWith("<?xml") || text.trim().startsWith("<")) {
         vehicles = parseHomenetXML(text)
       } else {
         vehicles = parseHomenetCSV(text)
       }
+    }
+
+    const feedDigest = createHash("sha256").update(digestSource).digest("hex")
+    const replayCacheKey = `inventory-homenet:${feedDigest}`
+    const cached = await getCachedIdempotentResponse<Record<string, unknown>>(replayCacheKey)
+    if (cached) {
+      return NextResponse.json(
+        {
+          ...cached,
+          idempotency: { digest: feedDigest, replay: true },
+        },
+        { headers: { "x-idempotent-replay": "true" } }
+      )
     }
 
     if (vehicles.length === 0) {
@@ -88,6 +133,10 @@ export async function POST(request: Request) {
       }, { status: 400 })
     }
 
+    if (vehicles.length > MAX_FEED_VEHICLES) {
+      return NextResponse.json({ error: `Feed exceeds maximum supported size of ${MAX_FEED_VEHICLES} vehicles` }, { status: 400 })
+    }
+
     console.log(`[HomenetIOL] Processing ${vehicles.length} vehicles`)
 
     // Sync to database
@@ -95,14 +144,29 @@ export async function POST(request: Request) {
 
     console.log(`[HomenetIOL] Sync complete: ${result.inserted} inserted, ${result.updated} updated, ${result.errors.length} errors`)
 
-    return NextResponse.json({
+    const payload = {
       success: true,
       message: `Processed ${vehicles.length} vehicles`,
       inserted: result.inserted,
       updated: result.updated,
       errors: result.errors.length > 0 ? result.errors : undefined,
       timestamp: new Date().toISOString()
-    })
+    }
+
+    await cacheIdempotentResponse(replayCacheKey, payload, 3600)
+
+    ;(async () => {
+      await recordAdminAuditEvent({
+        actorId: "system:homenet",
+        action: "inventory_homenet_sync",
+        entityType: "vehicle_inventory",
+        entityId: feedDigest,
+        afterState: `inserted:${result.inserted};updated:${result.updated}`,
+        notes: `vehicles=${vehicles.length};errors=${result.errors.length};ip=${ip}`,
+      })
+    })()
+
+    return NextResponse.json(payload)
 
   } catch (error) {
     console.error("[HomenetIOL] Error processing feed:", error)
