@@ -102,7 +102,9 @@ export async function POST(req: NextRequest) {
         })
       )
       .digest("hex")
-    const replayCacheKey = `negotiate:${idempotencyHeader || replayFingerprint}`
+    const replayCacheKey = idempotencyHeader
+      ? `negotiate:${idempotencyHeader}:${replayFingerprint}`
+      : `negotiate:${replayFingerprint}`
 
     const cached = await getCachedIdempotentResponse<NegotiationResult>(replayCacheKey)
     if (cached) {
@@ -229,7 +231,7 @@ VALUE: 210-point inspection, 10-day guarantee, free delivery 300km, financing fr
       messages: [
         {
           role: "user",
-          content: customerMessage || `I'd like to offer $${customerOffer.toLocaleString()} for this vehicle.`,
+          content: normalizedCustomerMessage,
         },
       ],
       schema: z.object({
