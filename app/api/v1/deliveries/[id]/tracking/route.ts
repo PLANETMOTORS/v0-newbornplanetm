@@ -1,6 +1,19 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
+function buildTimeline(status: string, createdAt: string | null) {
+  const statusOrder = ["created", "processing", "ready", "in_transit", "delivered"]
+  const statusIndex = Math.max(statusOrder.indexOf(status), 0)
+
+  return [
+    { status: "Order confirmed", completed: statusIndex >= 0, timestamp: createdAt },
+    { status: "Preparing vehicle", completed: statusIndex >= 1, timestamp: null },
+    { status: "Ready for dispatch", completed: statusIndex >= 2, timestamp: null },
+    { status: "In transit", completed: statusIndex >= 3, timestamp: null, current: statusIndex === 3 },
+    { status: "Delivered", completed: statusIndex >= 4, timestamp: null, current: statusIndex === 4 },
+  ]
+}
+
 // GET /api/v1/deliveries/:id/tracking - Get real-time tracking
 export async function GET(
   request: NextRequest,
@@ -14,25 +27,38 @@ export async function GET(
 
   const { id } = await params
 
-  // Mock tracking data - in production this would come from delivery partner API
+  const { data: order, error } = await supabase
+    .from("orders")
+    .select("id, order_number, status, delivery_type, preferred_date, preferred_time_slot, created_at")
+    .eq("customer_id", user.id)
+    .or(`id.eq.${id},order_number.eq.${id}`)
+    .maybeSingle()
+
+  if (error) {
+    return NextResponse.json({ error: "Unable to fetch tracking information" }, { status: 500 })
+  }
+
+  if (!order) {
+    return NextResponse.json({ error: "Delivery not found" }, { status: 404 })
+  }
+
+  if (order.delivery_type !== "delivery") {
+    return NextResponse.json({ error: "Tracking is available for delivery orders only" }, { status: 400 })
+  }
+
+  const status = String(order.status || "created").toLowerCase()
+  const statusLabel = status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+  const estimatedArrival = order.preferred_date && order.preferred_time_slot
+    ? `${order.preferred_date} ${order.preferred_time_slot}`
+    : order.preferred_date || "Pending scheduling"
+
   const tracking = {
-    deliveryId: id,
-    status: "in_transit",
-    statusLabel: "In Transit",
-    estimatedArrival: "Today, 2:00 PM - 4:00 PM",
-    driver: {
-      name: "Mike T.",
-      phone: "+1 (416) 555-XXXX", // Masked for privacy
-      rating: 4.9,
-      vehicleType: "Car hauler",
-    },
-    currentLocation: {
-      lat: 43.7615,
-      lng: -79.4111,
-      city: "North York",
-      province: "ON",
-      lastUpdate: new Date().toISOString(),
-    },
+    deliveryId: order.order_number || order.id,
+    status,
+    statusLabel,
+    estimatedArrival,
+    driver: null,
+    currentLocation: null,
     route: {
       origin: {
         lat: 43.8828,
@@ -40,53 +66,15 @@ export async function GET(
         address: "Richmond Hill, ON",
       },
       destination: {
-        lat: 43.6532,
-        lng: -79.3832,
-        address: "Toronto, ON",
+        lat: 0,
+        lng: 0,
+        address: "Customer delivery address",
       },
-      distanceRemaining: "15 km",
-      etaMinutes: 25,
+      distanceRemaining: "Pending carrier dispatch",
+      etaMinutes: null,
     },
-    timeline: [
-      {
-        status: "Order confirmed",
-        timestamp: "2024-03-20T09:00:00Z",
-        completed: true,
-      },
-      {
-        status: "Vehicle inspected",
-        timestamp: "2024-03-20T10:30:00Z",
-        completed: true,
-      },
-      {
-        status: "Loaded for delivery",
-        timestamp: "2024-03-20T11:00:00Z",
-        completed: true,
-      },
-      {
-        status: "In transit",
-        timestamp: "2024-03-20T11:30:00Z",
-        completed: true,
-        current: true,
-      },
-      {
-        status: "Delivered",
-        timestamp: null,
-        completed: false,
-      },
-    ],
-    updates: [
-      {
-        message: "Your vehicle is on the way! Driver Mike is 15 km away.",
-        timestamp: new Date().toISOString(),
-        type: "info",
-      },
-      {
-        message: "Vehicle loaded and departed from Planet Motors facility.",
-        timestamp: new Date(Date.now() - 1800000).toISOString(),
-        type: "update",
-      },
-    ],
+    timeline: buildTimeline(status, order.created_at),
+    updates: [],
   }
 
   return NextResponse.json({ tracking })
