@@ -147,7 +147,7 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
     }
 
     // Create Stripe Checkout session
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://planetmotors.ca'
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://ev.planetmotors.ca'
     const checkoutAttemptWindow = Math.floor(Date.now() / (15 * 60 * 1000))
     const idempotencyKey = createHash('sha256')
       .update(`reservation:${reservationId}:${input.customerEmail}:${input.stockNumber}:${checkoutAttemptWindow}`)
@@ -234,8 +234,27 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       sessionId: session.id,
     }
   } catch (error) {
-    console.error('Reservation error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    console.error('Reservation error:', {
+      error: errorMessage,
+      vehicleId: input.vehicleId,
+      stockNumber: input.stockNumber,
+      email: input.customerEmail,
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     await unlockVehicle(input.stockNumber, input.customerEmail)
+    
+    // Return more specific error messages to help with debugging
+    if (errorMessage.includes('Stripe')) {
+      return { error: 'Payment system error. Please try again in a moment.' }
+    }
+    if (errorMessage.includes('vehicle')) {
+      return { error: 'Unable to verify vehicle details. Please refresh and try again.' }
+    }
+    if (errorMessage.includes('database') || errorMessage.includes('supabase')) {
+      return { error: 'Database error. Please try again shortly.' }
+    }
+    
     return { error: 'An unexpected error occurred. Please try again.' }
   }
 }
