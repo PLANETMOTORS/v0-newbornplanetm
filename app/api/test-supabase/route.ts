@@ -1,13 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
-
-const ADMIN_EMAILS = ['admin@planetmotors.ca', 'toni@planetmotors.ca']
+import { requireAdminUser } from '@/lib/auth/admin'
 
 export async function GET() {
   const serverClient = await createServerClient()
-  const { data: { user }, error: authError } = await serverClient.auth.getUser()
-  if (authError || !user || !ADMIN_EMAILS.includes(user.email || '')) {
+  const adminCheck = await requireAdminUser(serverClient)
+  if (!adminCheck.ok) {
     return NextResponse.json({ status: 'error', message: 'Unauthorized' }, { status: 401 })
   }
 

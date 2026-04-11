@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
 import { createClient } from "@/lib/supabase/server"
-
-const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
+import { requireAdminUser } from "@/lib/auth/admin"
 
 // Test email endpoint - uses verified planetmotors.ca domain
 export async function GET() {
   const supabase = await createClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user || !ADMIN_EMAILS.includes(user.email || "")) {
+  const adminCheck = await requireAdminUser(supabase)
+  if (!adminCheck.ok) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
   }
 
