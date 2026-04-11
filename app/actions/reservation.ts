@@ -27,12 +27,22 @@ export interface ReservationResult {
 
 export async function createReservation(input: ReservationInput): Promise<ReservationResult> {
   const headersList = await headers()
-  const ip = headersList.get('x-forwarded-for') || 'unknown'
+  const forwardedFor = headersList.get('x-forwarded-for')
+  const realIp = headersList.get('x-real-ip')
+  const cfConnectingIp = headersList.get('cf-connecting-ip')
+  const ipCandidate = forwardedFor?.split(',')[0]?.trim() || realIp || cfConnectingIp || 'unknown'
+  const normalizedIp = ipCandidate.toLowerCase()
+  const normalizedEmail = input.customerEmail.trim().toLowerCase()
+  const rateLimitScopeHash = createHash('sha256')
+    .update(`${normalizedIp}:${normalizedEmail}`)
+    .digest('hex')
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   
-  // Rate limit: 5 reservations per hour per IP
-  const rateLimitResult = await rateLimit(`reservation:${ip}`, 5, 3600)
+  // Rate limit: 12 reservation attempts per hour per user+network scope.
+  // This avoids blocking legitimate retries from shared proxy IPs while still curbing abuse.
+  const rateLimitResult = await rateLimit(`reservation:${rateLimitScopeHash}`, 12, 3600)
   if (!rateLimitResult.success) {
     return { 
       error: 'Too many reservation attempts. Please try again later.',
