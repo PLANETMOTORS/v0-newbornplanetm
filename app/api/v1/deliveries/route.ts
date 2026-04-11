@@ -53,9 +53,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Calculate distance using Google Maps API
-    const estimatedDistanceKm = 250 // Mock
-    const deliveryCost = calculateDeliveryCost(estimatedDistanceKm)
+    const quoteUrl = new URL(`/api/v1/deliveries/quote?postalCode=${encodeURIComponent(destinationPostalCode)}`, request.url)
+    const quoteResponse = await fetch(quoteUrl, { cache: "no-store" })
+
+    if (!quoteResponse.ok) {
+      const quoteError = await quoteResponse.json().catch(() => ({ error: "Invalid postal code" }))
+      return NextResponse.json(
+        { error: quoteError?.error || "Unable to calculate delivery quote" },
+        { status: 400 }
+      )
+    }
+
+    const quote = await quoteResponse.json()
+    const estimatedDistanceKm = Number(quote.distanceKm || 0)
+    const deliveryCost = Number(quote.deliveryCost ?? calculateDeliveryCost(estimatedDistanceKm))
 
     const delivery = {
       id: "del_" + Date.now(),

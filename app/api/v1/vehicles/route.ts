@@ -139,13 +139,14 @@ export async function GET(request: NextRequest) {
       .from('vehicles')
       .select('make, body_style, fuel_type, price, year')
       .eq('status', 'available')
-      .limit(1000)
+      .limit(5000)
 
-    const makes = [...new Set(allVehicles?.map(v => v.make).filter(Boolean) || [])]
-    const bodyStyles = [...new Set(allVehicles?.map(v => v.body_style).filter(Boolean) || [])]
-    const fuelTypes = [...new Set(allVehicles?.map(v => v.fuel_type).filter(Boolean) || [])]
-    const prices = allVehicles?.map(v => v.price / 100) || []
-    const years = allVehicles?.map(v => v.year) || []
+    const all = allVehicles || []
+    const makes = buildCountMap(all.map((v) => v.make)).map((entry) => entry.key)
+    const bodyStyles = buildCountMap(all.map((v) => v.body_style)).map((entry) => entry.key)
+    const fuelTypes = buildCountMap(all.map((v) => v.fuel_type)).map((entry) => entry.key)
+    const prices = all.map(v => Number(v.price || 0) / 100).filter((value) => Number.isFinite(value) && value >= 0)
+    const years = all.map(v => Number(v.year || 0)).filter((value) => Number.isFinite(value) && value > 0)
 
     filters = {
       makes: makes.sort(),
