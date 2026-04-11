@@ -28,12 +28,14 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
     try {
       const supabase = createClient()
       const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=%2Faccount`
-      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
         provider,
         options: { redirectTo: callbackUrl },
       })
       if (oauthError) setError(oauthError.message)
-      // On success Supabase redirects away automatically
+      if (data?.url) {
+        window.location.assign(data.url)
+      }
     } catch {
       setError("OAuth sign-in failed. Please try again.")
     } finally {
