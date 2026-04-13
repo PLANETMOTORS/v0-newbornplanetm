@@ -1,0 +1,43 @@
+reviews:
+  path_filters:
+    - "!**/node_modules/**"
+    - "!**/.next/**"
+    - "!**/dist/**"
+    - "!**/*.lock"
+
+  path_instructions:
+    - path: "app/api/webhooks/stripe/route.ts"
+      instructions: |
+        Treat Stripe webhook state transitions as high risk.
+        - For hydration helpers, do not skip hydration based only on Object.keys(metadata).length > 0.
+        - Require domain-relevant keys before skipping hydration.
+          For checkout session: reservationId OR vehicleId OR type.
+          For payment intent: reservationId OR vehicleId.
+        - Flag logic that can acknowledge/process events with missing mapping metadata.
+        - Preserve idempotency and replay-safe behavior.
+
+    - path: "app/actions/reservation.ts"
+      instructions: |
+        Enforce privacy and payment safety in reservation flows.
+        - Flag any raw PII in server logs (email/phone/name). Require hashed or redacted identifiers.
+        - Prefer normalized/lowercased comparisons for message-based error branching.
+        - Prefer structured error properties/codes over brittle substring checks when available.
+        - Verify retry/fallback payment logic does not break idempotency keys.
+
+    - path: "app/account/page.tsx"
+      instructions: |
+        For OAuth callback URL construction:
+        - Do not hardcode URL-encoded redirect values like %2Faccount.
+        - Build redirectTo with encodeURIComponent for maintainability and encoding safety.
+
+    - path: "components/sign-in-panel.tsx"
+      instructions: |
+        For OAuth callback URL construction:
+        - Do not hardcode URL-encoded redirect values like %2Faccount.
+        - Build redirectTo with encodeURIComponent for maintainability and encoding safety.
+
+    - path: "**/*.ts"
+      instructions: |
+        Security and reliability baseline:
+        - Flag logging of secrets, tokens, or customer PII.
+        - Prefer explicit typed guards over broad truthy checks for critical state transitions.
