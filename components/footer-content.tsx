@@ -111,7 +111,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
               <PlanetMotorsLogo size="lg" />
             </div>
             <p className="text-[15px] text-background/60 leading-relaxed mb-6">
-              Your trusted partner for certified pre-owned vehicles in Ontario. Every car passes our rigorous inspection before it reaches you.
+              Ontario&rsquo;s destination for certified pre-owned vehicles. Every car clears our 210-point inspection and comes with a 10-day money-back guarantee&mdash;so you buy with confidence.
             </p>
 
             <h3 className="font-serif text-lg font-semibold mb-4 tracking-tight">Get in Touch</h3>
@@ -207,7 +207,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
         <div className="mt-10 pt-8 border-t border-background/10">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             <p className="text-[15px] text-background/50">Follow us</p>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               {[
                 { href: "https://www.facebook.com/PlanetMotors.ca", label: "Facebook", d: "M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" },
                 { href: "https://x.com/PlanetMotorsCA", label: "X", d: "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.6l-5.165-6.75-5.913 6.75h-3.308l7.73-8.835L.424 2.25h6.7l4.676 6.188 5.368-6.188zM17.55 19.5h1.828L5.88 4.24H4.02L17.55 19.5z" },
@@ -221,10 +221,10 @@ export function FooterContent({ siteSettings }: FooterProps) {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-11 h-11 rounded-full bg-background/10 flex items-center justify-center text-background/60 hover:bg-[#1e3a8a] hover:text-white transition-all"
+                  className="w-12 h-12 rounded-full bg-background/10 flex items-center justify-center text-background/60 hover:bg-[#1e3a8a] hover:text-white transition-all"
                   aria-label={social.label}
                 >
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                     <path d={social.d} />
                   </svg>
                 </a>
