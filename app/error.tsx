@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
+import { reportError } from "@/lib/error-reporting"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, RefreshCw, Home, Phone } from "lucide-react"
 
@@ -12,8 +13,7 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-    // Log the error to an error reporting service
-    console.error(error)
+    reportError(error)
   }, [error])
 
   return (
