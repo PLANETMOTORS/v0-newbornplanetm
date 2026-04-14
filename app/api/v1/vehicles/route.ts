@@ -346,6 +346,7 @@ export async function POST(request: NextRequest) {
     {
       headers: {
         'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=900',
+        'X-Cache': cachedAgg ? 'HIT' : 'MISS',
       },
     }
   )

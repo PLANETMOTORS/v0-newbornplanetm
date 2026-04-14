@@ -102,7 +102,7 @@ export function Vehicle360Viewer({
         className={`relative aspect-video bg-muted rounded-lg overflow-hidden cursor-pointer group ${className}`}
         onClick={() => setIsActivated(true)}
       >
-        <Image src={previewUrl} alt={`${stockNumber} 360 preview`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
+        <Image src={previewUrl} alt={`${stockNumber} 360 preview`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" unoptimized />
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/50 transition-colors">
           <div className="text-center text-white">
             <RotateCcw className="w-12 h-12 mx-auto mb-2 animate-spin" style={{ animationDuration: "3s" }} />
@@ -122,7 +122,7 @@ export function Vehicle360Viewer({
       {...handlers}
       onPointerLeave={handlers.onPointerUp}
     >
-      <Image src={frameUrl} alt={`${stockNumber} 360 frame ${currentFrame + 1}`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" draggable={false} />
+      <Image src={frameUrl} alt={`${stockNumber} 360 frame ${currentFrame + 1}`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" draggable={false} unoptimized />
       
       {/* Controls */}
       <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">

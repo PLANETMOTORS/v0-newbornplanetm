@@ -37,8 +37,8 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_vehicles_status_transmission_drivetr
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_vehicles_status_exterior_color
   ON vehicles (status, exterior_color);
 
--- 9. Full-text search on make, model, trim (used by ?q= param)
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_vehicles_fts
-  ON vehicles USING GIN (
-    to_tsvector('english', coalesce(make, '') || ' ' || coalesce(model, '') || ' ' || coalesce(trim, ''))
-  );
+-- 9. Full-text search on make, model, trim
+-- The base schema (001_create_vehicles_schema.sql) already defines a generated
+-- TSVECTOR column `search_vector` with a GIN index `idx_vehicles_search`.
+-- A second expression-based GIN index here would be redundant, increase write
+-- overhead, and consume extra storage.  Use the existing `idx_vehicles_search`.

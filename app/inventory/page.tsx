@@ -260,7 +260,6 @@ function InventoryContent() {
 
   // Reset to page 1 whenever filters or sort change (not currentPage itself)
   const filterKey = `${sortBy}|${evOnly}|${selectedFuelType}|${selectedMake}|${selectedBodyType}|${selectedYear}|${selectedTransmission}|${selectedColor}|${selectedDrivetrain}|${priceRange[0]}|${priceRange[1]}|${mileageRange[0]}|${mileageRange[1]}|${searchQuery}`
-  const prevFilterKey = useMemo(() => filterKey, [filterKey]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     setCurrentPage(1)
     setAccumulatedVehicles([])

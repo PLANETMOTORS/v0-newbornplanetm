@@ -90,8 +90,8 @@ export async function GET() {
     transmissions: [...transmissionsSet].sort(),
     drivetrains: [...drivetrainsSet].sort(),
     priceRange: {
-      min: minPrice === Infinity ? 0 : minPrice,
-      max: maxPrice === -Infinity ? 0 : maxPrice,
+      min: minPrice === Infinity ? 0 : minPrice / 100,
+      max: maxPrice === -Infinity ? 0 : maxPrice / 100,
     },
     yearRange: {
       min: minYear === Infinity ? 0 : minYear,

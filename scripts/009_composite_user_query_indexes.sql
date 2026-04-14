@@ -59,7 +59,7 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_trade_in_quotes_user_date
 -- vehicles  (supplement to 008_inventory_performance_indexes.sql)
 -- ─────────────────────────────────────────────────────────────────
 
--- Stock-number lookup used by VDP routes, admin search, and order joins.
--- UNIQUE constraint may already exist on some deployments; IF NOT EXISTS is safe.
-CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_vehicles_stock_number
-  ON vehicles (stock_number);
+-- Stock-number lookup is already covered by the UNIQUE NOT NULL constraint declared
+-- in 001_create_vehicles_schema.sql, which implicitly creates a unique index
+-- (vehicles_stock_number_key).  A second unique index here would be redundant,
+-- increase write overhead, and consume extra storage.  Use the existing constraint index.
