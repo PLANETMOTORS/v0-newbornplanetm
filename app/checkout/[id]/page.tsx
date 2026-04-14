@@ -30,7 +30,8 @@ import { loadStripe } from "@stripe/stripe-js"
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js"
 import { startVehicleCheckout } from "@/app/actions/stripe"
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "")
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null
 
 // Protection Plans
 const PROTECTION_PLANS = [

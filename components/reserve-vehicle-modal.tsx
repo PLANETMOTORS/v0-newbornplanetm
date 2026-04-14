@@ -14,7 +14,8 @@ import { loadStripe } from "@stripe/stripe-js"
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js"
 import { createReservation } from "@/app/actions/reservation"
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "")
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null
 
 interface ReserveVehicleModalProps {
   vehicle: {
