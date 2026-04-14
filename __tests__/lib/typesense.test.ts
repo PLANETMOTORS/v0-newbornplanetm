@@ -13,17 +13,23 @@ const { mockChain, mockCreateClient } = vi.hoisted(() => {
   const calls: CallRecord[] = []
   let resolveData: unknown[] = []
   let resolveCount = 0
+  let limitData: unknown[] = []
 
   function makeChain(): Record<string, unknown> {
     const chain: Record<string, unknown> = {}
     for (const method of [
       'select', 'eq', 'neq', 'gte', 'lte', 'in', 'or',
-      'order', 'limit', 'ilike',
+      'order', 'ilike',
     ]) {
       chain[method] = (...args: unknown[]) => {
         calls.push({ method, args })
         return makeChain()
       }
+    }
+    // `limit` terminates the chain (used by getVehicleFacets)
+    chain['limit'] = (...args: unknown[]) => {
+      calls.push({ method: 'limit', args })
+      return Promise.resolve({ data: limitData, error: null })
     }
     // `range` terminates the chain and resolves the promise
     chain['range'] = (...args: unknown[]) => {
@@ -35,10 +41,11 @@ const { mockChain, mockCreateClient } = vi.hoisted(() => {
 
   const mockChain = {
     calls,
-    reset(data: unknown[] = [], count = 0) {
+    reset(data: unknown[] = [], count = 0, facetsData: unknown[] = []) {
       calls.length = 0
       resolveData = data
       resolveCount = count
+      limitData = facetsData
     },
     getCallArgs(method: string) {
       return calls.filter(c => c.method === method).map(c => c.args)
@@ -417,41 +424,16 @@ describe('searchVehicles — when Supabase is not configured', () => {
 // ---------------------------------------------------------------------------
 describe('getVehicleFacets', () => {
   it('returns make and fuel_type facet fields', async () => {
-    // getVehicleFacets uses .select().eq().limit() — the mock chain returns
-    // data: [] by default (no range terminator), so we need to handle the
-    // limit() terminal.  The chain's limit() is not thenable by default in the
-    // mock, so we reset mockChain to return data from range AND also patch the
-    // chain to resolve on limit().
-    //
-    // Because getVehicleFacets uses a different chain terminator (implicitly
-    // awaiting the result after .limit()), we need to make the chain thenable.
-    //
-    // We re-import a fresh module here to get proper resolution.
-    vi.resetModules()
-    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
-
+    // Seed limitData via the third arg so the hoisted mock chain's limit()
+    // resolves with this data (no second vi.mock needed).
     const mockData = [
       { make: 'Toyota', fuel_type: 'Gasoline' },
       { make: 'Toyota', fuel_type: 'Gasoline' },
       { make: 'Tesla', fuel_type: 'Electric' },
     ]
+    mockChain.reset([], 0, mockData)
 
-    vi.mock('@supabase/supabase-js', () => {
-      const chain: Record<string, unknown> = {}
-      for (const m of ['select', 'eq', 'neq', 'gte', 'lte', 'in', 'or', 'order', 'ilike']) {
-        chain[m] = () => chain
-      }
-      chain['range'] = () => Promise.resolve({ data: mockData, count: 3, error: null })
-      chain['limit'] = () => Promise.resolve({ data: mockData, error: null })
-      const clientInstance = { from: vi.fn().mockReturnValue(chain) }
-      return { createClient: vi.fn().mockReturnValue(clientInstance) }
-    })
-
-    const freshMod = await import('@/lib/typesense')
-    const facets = await freshMod.getVehicleFacets()
-
-    vi.resetModules()
+    const facets = await getVehicleFacets()
 
     expect(facets).toHaveLength(2)
     expect(facets[0].field_name).toBe('make')
