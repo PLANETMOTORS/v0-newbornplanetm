@@ -25,6 +25,8 @@ const nextConfig = {
 
       { protocol: 'https', hostname: 'media.cpsimg.com' },
       { protocol: 'https', hostname: 'cdn.sanity.io' },
+      { protocol: 'https', hostname: 'photos.homenetiol.com' },
+      { protocol: 'https', hostname: 'www.carpages.ca' },
     ],
   },
 
@@ -97,4 +99,18 @@ const nextConfig = {
     ]
   },
 }
-export default nextConfig
+
+// Sentry wrapper — only applied when @sentry/nextjs is installed
+let finalConfig = nextConfig
+try {
+  const { withSentryConfig } = await import("@sentry/nextjs")
+  finalConfig = withSentryConfig(nextConfig, {
+    org: "planet-motors",
+    project: "nextjs",
+    silent: true,
+  })
+} catch {
+  // @sentry/nextjs not installed — skip Sentry integration
+}
+
+export default finalConfig

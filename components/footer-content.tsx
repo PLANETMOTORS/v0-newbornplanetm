@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { Phone, MapPin, Mail, Clock, Shield } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
+import { trackPhoneClick } from "@/components/analytics/google-tag-manager"
 
 export type FooterProps = {
   siteSettings: {
@@ -78,13 +79,13 @@ export function FooterContent({ siteSettings }: FooterProps) {
 
   return (
     <footer className="bg-foreground text-background" role="contentinfo" aria-label="Site footer">
-      {/* ── Row 1: Trust Bar Accent ── */}
-      <div className="bg-[#1e3a8a]">
+      {/* ── Row 1: Trust Bar — gradient bridge from CTA blue → footer black ── */}
+      <div className="bg-gradient-to-b from-[#1e3a8a] to-[#0a0a0a]">
         <div className="mx-auto max-w-7xl px-6 py-5 lg:px-8">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
             <div>
-              <p className="text-xl sm:text-2xl font-bold text-white">210</p>
-              <p className="text-xs text-white/70">Point Inspection</p>
+              <p className="text-xl sm:text-2xl font-bold text-white">210-Point</p>
+              <p className="text-xs text-white/70">Inspection</p>
             </div>
             <div>
               <p className="text-xl sm:text-2xl font-bold text-white">10-Day</p>
@@ -95,119 +96,143 @@ export function FooterContent({ siteSettings }: FooterProps) {
               <p className="text-xs text-white/70">Refundable Deposit</p>
             </div>
             <div>
-              <p className="text-xl sm:text-2xl font-bold text-white">Canada</p>
-              <p className="text-xs text-white/70">Wide Delivery</p>
+              <p className="text-xl sm:text-2xl font-bold text-white">Canada-Wide</p>
+              <p className="text-xs text-white/70">Delivery</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Row 2: Main Footer Content ── */}
-      <div className="mx-auto max-w-7xl px-6 py-14 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-10">
-          {/* Brand & Contact */}
-          <div className="lg:col-span-2">
-            <div className="mb-5">
-              <PlanetMotorsLogo size="lg" />
-            </div>
-            <p className="text-[15px] text-background/60 leading-relaxed mb-6">
-              Your trusted partner for certified pre-owned vehicles in Ontario. Every car passes our rigorous inspection before it reaches you.
-            </p>
+      {/* ── Row 2: Main Footer Content (Carvana-style dark) ── */}
+      <div className="bg-[#0a0a0a]">
+        <div className="mx-auto max-w-7xl px-6 py-14 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-14">
 
-            <h3 className="font-serif text-lg font-semibold mb-4 tracking-tight">Get in Touch</h3>
-            <div className="space-y-3">
-              <a
-                href={`tel:${siteSettings.phone.replace(/[^0-9]/g, '')}`}
-                className="flex items-center gap-3 text-[15px] text-background/70 hover:text-background transition-colors"
-              >
-                <Phone className="w-4 h-4 shrink-0" />
-                <span>{siteSettings.phone} (Toll Free)</span>
-              </a>
-              <a
-                href={`mailto:${siteSettings.email}`}
-                className="flex items-center gap-3 text-[15px] text-background/70 hover:text-background transition-colors"
-              >
-                <Mail className="w-4 h-4 shrink-0" />
-                <span>{siteSettings.email}</span>
-              </a>
-              <a
-                href={siteSettings.googleMapsUrl || `https://maps.google.com/?q=${encodeURIComponent(`${siteSettings.streetAddress} ${siteSettings.city} ${siteSettings.province}`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-start gap-3 text-[15px] text-background/70 hover:text-background transition-colors"
-              >
-                <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
-                <span>{siteSettings.streetAddress}<br />{siteSettings.city}, {siteSettings.province?.slice(0, 2)} {siteSettings.postalCode}</span>
-              </a>
-              <div className="flex items-center gap-3 text-[15px] text-background/70">
-                <Clock className="w-4 h-4 shrink-0" />
-                <span>{formatHoursDisplay()}</span>
+            {/* ── Brand Column: Logo + Reviews + Contact + Newsletter ── */}
+            <div className="lg:col-span-1">
+              <div className="mb-5">
+                <PlanetMotorsLogo size="lg" />
+              </div>
+
+              {/* Star Rating */}
+              <div className="flex items-center gap-2 mb-5">
+                <div className="flex gap-0.5 text-yellow-400 text-lg" aria-label="4.8 out of 5 stars">
+                  {"★★★★★"}
+                </div>
+                <span className="text-white text-sm font-medium">4.8 Star Rating</span>
+              </div>
+
+              <p className="text-sm text-white/80 leading-relaxed mb-6">
+                Ontario&rsquo;s destination for certified pre-owned vehicles. Buy with confidence.
+              </p>
+
+              {/* Contact */}
+              <div className="space-y-2.5 mb-8">
+                <a
+                  href={`tel:${siteSettings.phone.replace(/[^0-9]/g, '')}`}
+                  className="flex items-center gap-2.5 text-sm text-white/80 hover:text-white transition-colors"
+                  onClick={() => trackPhoneClick(siteSettings.phone)}
+                >
+                  <Phone className="w-4 h-4 shrink-0" />
+                  <span>{siteSettings.phone}</span>
+                </a>
+                <a
+                  href={`mailto:${siteSettings.email}`}
+                  className="flex items-center gap-2.5 text-sm text-white/80 hover:text-white transition-colors"
+                >
+                  <Mail className="w-4 h-4 shrink-0" />
+                  <span>{siteSettings.email}</span>
+                </a>
+                <a
+                  href={siteSettings.googleMapsUrl || `https://maps.google.com/?q=${encodeURIComponent(`${siteSettings.streetAddress} ${siteSettings.city} ${siteSettings.province}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 text-sm text-white/80 hover:text-white transition-colors"
+                >
+                  <MapPin className="w-4 h-4 shrink-0" />
+                  <span>{siteSettings.streetAddress}, {siteSettings.city}</span>
+                </a>
+              </div>
+
+              {/* Newsletter Signup */}
+              <div>
+                <p className="text-white/80 text-xs font-semibold uppercase tracking-wider mb-2.5">Get deals in your inbox</p>
+                <form className="flex max-w-xs" onSubmit={(e) => e.preventDefault()}>
+                  <input
+                    type="email"
+                    placeholder="your@email.com"
+                    className="flex-1 px-3.5 py-2.5 bg-white/5 border border-white/10 border-r-0 rounded-l-lg text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-[#1e3a8a] transition-colors"
+                  />
+                  <button
+                    type="submit"
+                    className="px-4 py-2.5 bg-[#1e3a8a] hover:bg-[#1e40af] text-white text-sm font-semibold rounded-r-lg transition-colors"
+                  >
+                    Subscribe
+                  </button>
+                </form>
               </div>
             </div>
+
+            {/* ── Vehicles ── */}
+            <div>
+              <h4 className="font-serif text-base font-semibold text-white mb-5 tracking-tight">Vehicles</h4>
+              <ul className="space-y-3">
+                {footerLinks.vehicles.map((link) => (
+                  <li key={link.name}>
+                    <Link href={link.href} className="text-sm text-white/45 hover:text-white transition-colors">
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* ── Services ── */}
+            <div>
+              <h4 className="font-serif text-base font-semibold text-white mb-5 tracking-tight">Services</h4>
+              <ul className="space-y-3">
+                {footerLinks.services.map((link) => (
+                  <li key={link.name}>
+                    <Link href={link.href} className="text-sm text-white/45 hover:text-white transition-colors">
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* ── Company ── */}
+            <div>
+              <h4 className="font-serif text-base font-semibold text-white mb-5 tracking-tight">Company</h4>
+              <ul className="space-y-3">
+                {footerLinks.company.map((link) => (
+                  <li key={link.name}>
+                    <Link href={link.href} className="text-sm text-white/45 hover:text-white transition-colors">
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* ── Legal ── */}
+            <div>
+              <h4 className="font-serif text-base font-semibold text-white mb-5 tracking-tight">Legal</h4>
+              <ul className="space-y-3">
+                {footerLinks.legal.map((link) => (
+                  <li key={link.name}>
+                    <Link href={link.href} className="text-sm text-white/45 hover:text-white transition-colors">
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
-          {/* Vehicles */}
-          <div>
-            <h3 className="font-serif text-lg font-semibold mb-4 tracking-tight">Vehicles</h3>
-            <ul className="space-y-2.5">
-              {footerLinks.vehicles.map((link) => (
-                <li key={link.name}>
-                  <Link href={link.href} className="text-[15px] text-background/60 hover:text-background transition-colors">
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Services */}
-          <div>
-            <h3 className="font-serif text-lg font-semibold mb-4 tracking-tight">Services</h3>
-            <ul className="space-y-2.5">
-              {footerLinks.services.map((link) => (
-                <li key={link.name}>
-                  <Link href={link.href} className="text-[15px] text-background/60 hover:text-background transition-colors">
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Company */}
-          <div>
-            <h3 className="font-serif text-lg font-semibold mb-4 tracking-tight">Company</h3>
-            <ul className="space-y-2.5">
-              {footerLinks.company.map((link) => (
-                <li key={link.name}>
-                  <Link href={link.href} className="text-[15px] text-background/60 hover:text-background transition-colors">
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Legal */}
-          <div>
-            <h3 className="font-serif text-lg font-semibold mb-4 tracking-tight">Legal</h3>
-            <ul className="space-y-2.5">
-              {footerLinks.legal.map((link) => (
-                <li key={link.name}>
-                  <Link href={link.href} className="text-[15px] text-background/60 hover:text-background transition-colors">
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        {/* ── Social Row ── */}
-        <div className="mt-10 pt-8 border-t border-background/10">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-            <p className="text-[15px] text-background/50">Follow us</p>
-            <div className="flex items-center gap-3">
+          {/* ── Social Icons + Hours Row ── */}
+          <div className="mt-12 pt-7 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-5">
+            <div className="flex items-center gap-4">
               {[
                 { href: "https://www.facebook.com/PlanetMotors.ca", label: "Facebook", d: "M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" },
                 { href: "https://x.com/PlanetMotorsCA", label: "X", d: "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.6l-5.165-6.75-5.913 6.75h-3.308l7.73-8.835L.424 2.25h6.7l4.676 6.188 5.368-6.188zM17.55 19.5h1.828L5.88 4.24H4.02L17.55 19.5z" },
@@ -221,7 +246,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-11 h-11 rounded-full bg-background/10 flex items-center justify-center text-background/60 hover:bg-[#1e3a8a] hover:text-white transition-all"
+                  className="w-11 h-11 rounded-full bg-white/[0.06] flex items-center justify-center text-white/50 hover:bg-[#1e3a8a] hover:text-white transition-all"
                   aria-label={social.label}
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -230,18 +255,29 @@ export function FooterContent({ siteSettings }: FooterProps) {
                 </a>
               ))}
             </div>
+            <div className="flex items-center gap-1.5 text-white/70 text-xs font-medium">
+              <Clock className="w-3.5 h-3.5" />
+              <span>{formatHoursDisplay()}</span>
+            </div>
           </div>
-        </div>
 
-        {/* ── Copyright + OMVIC inline ── */}
-        <div className="mt-8 pt-6 border-t border-background/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-background/50">
-            <Shield className="w-4 h-4 shrink-0" />
-            <span className="text-sm">OMVIC Registered Dealer</span>
+          {/* ── Bottom Bar: OMVIC + Legal + Copyright ── */}
+          <div className="mt-6 pt-5 pb-16 sm:pb-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-white/70">
+              <Shield className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-xs font-medium">OMVIC Registered Dealer</span>
+            </div>
+            <div className="flex items-center gap-4">
+              {footerLinks.legal.map((link) => (
+                <Link key={link.name} href={link.href} className="text-xs font-medium text-white/70 hover:text-white transition-colors">
+                  {link.name}
+                </Link>
+              ))}
+            </div>
+            <p className="text-xs font-medium text-white/70">
+              &copy; {new Date().getFullYear()} {siteSettings.dealerName}. All rights reserved.
+            </p>
           </div>
-          <p className="text-sm text-background/40">
-            &copy; {new Date().getFullYear()} {siteSettings.dealerName}. All rights reserved.
-          </p>
         </div>
       </div>
     </footer>

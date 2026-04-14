@@ -1,0 +1,736 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to main content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - generic [ref=e4]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "1-866-797-3332" [ref=e8] [cursor=pointer]:
+            - /url: tel:1-866-797-3332
+            - img [ref=e9]
+            - generic [ref=e11]: 1-866-797-3332
+          - generic [ref=e12]: Mon-Fri 9AM-7PM | Sat 9AM-6PM
+        - generic [ref=e13]:
+          - generic [ref=e14]:
+            - img [ref=e15]
+            - generic [ref=e17]: 4.8 Star Rating
+          - generic [ref=e18]:
+            - img [ref=e19]
+            - text: OMVIC Licensed
+          - link "30 Major Mackenzie Dr E, Richmond Hill, ON L4C 1G7" [ref=e22] [cursor=pointer]:
+            - /url: https://maps.google.com/?q=30+Major+Mackenzie+E+Richmond+Hill+ON
+            - img [ref=e23]
+            - generic [ref=e26]: 30 Major Mackenzie Dr E, Richmond Hill, ON L4C 1G7
+      - banner [ref=e27]:
+        - navigation "Main navigation" [ref=e28]:
+          - generic [ref=e29]:
+            - link "Planet Motors - Fairness Integrity" [ref=e30] [cursor=pointer]:
+              - /url: /
+              - img "Planet Motors - Fairness Integrity" [ref=e33]
+            - generic [ref=e34]:
+              - button "Shop Inventory" [ref=e36]:
+                - text: Shop Inventory
+                - img [ref=e37]
+              - button "Sell or Trade" [ref=e40]:
+                - text: Sell or Trade
+                - img [ref=e41]
+              - button "Finance" [ref=e44]:
+                - text: Finance
+                - img [ref=e45]
+              - button "More" [ref=e48]:
+                - text: More
+                - img [ref=e49]
+          - button "Sign In" [ref=e54]:
+            - generic [ref=e55]: Sign In
+            - img [ref=e57]
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - img
+              - generic: 10-Day Money Back Guarantee
+            - generic: "|"
+            - generic:
+              - img
+              - generic: $250 Refundable Deposit
+            - generic: "|"
+            - generic:
+              - img
+              - generic: 210-Point Inspection
+            - generic: "|"
+            - generic:
+              - img
+              - generic: Canada-Wide Delivery
+    - main [ref=e60]:
+      - main "Home page content" [ref=e61]:
+        - generic [ref=e63]:
+          - img [ref=e64]
+          - generic [ref=e66]: "Spring Sale:"
+          - generic [ref=e67]: 0% financing on select vehicles + free Ontario-wide delivery
+          - link "Shop Now" [ref=e68] [cursor=pointer]:
+            - /url: /inventory
+          - button "Dismiss banner" [ref=e69]:
+            - img [ref=e70]
+        - generic [ref=e75]:
+          - generic [ref=e76]:
+            - generic [ref=e77]:
+              - generic [ref=e78]:
+                - generic [ref=e79]:
+                  - img [ref=e80]
+                  - text: OMVIC Licensed
+                - generic [ref=e83]:
+                  - img [ref=e84]
+                  - text: 4.8/5 Rating
+              - heading "Right Car. Right Price. Delivered to Your Door." [level=1] [ref=e86]:
+                - text: Right Car. Right Price.
+                - generic [ref=e87]: Delivered to Your Door.
+              - paragraph [ref=e88]: Ontario's trusted destination for quality pre-owned vehicles. 210-point inspected, 10-day returns, and financing from 6.29% APR.
+              - generic [ref=e89]:
+                - generic [ref=e90]:
+                  - generic [ref=e91]:
+                    - img [ref=e92]
+                    - textbox "Search by make, model, or keyword..." [ref=e95]
+                  - button "Search" [ref=e96]:
+                    - img [ref=e97]
+                    - generic [ref=e100]: Search
+                - generic [ref=e101]:
+                  - link "SUVs" [ref=e102] [cursor=pointer]:
+                    - /url: /inventory?search=SUVs
+                  - link "Electric" [ref=e103] [cursor=pointer]:
+                    - /url: /inventory?search=Electric
+                  - link "Under $30K" [ref=e104] [cursor=pointer]:
+                    - /url: /inventory?search=Under%20%2430K
+                  - link "Trucks" [ref=e105] [cursor=pointer]:
+                    - /url: /inventory?search=Trucks
+            - generic [ref=e106]:
+              - generic [ref=e107]:
+                - generic [ref=e109]:
+                  - img "2024 Tesla Model Y Long Range" [ref=e110]
+                  - generic [ref=e112]:
+                    - generic [ref=e113]:
+                      - generic [ref=e114]: Electric
+                      - generic [ref=e115]:
+                        - img [ref=e116]
+                        - generic [ref=e119]: 360° View
+                    - generic [ref=e120]:
+                      - button "Add to favorites" [ref=e121]:
+                        - img
+                      - button "Share vehicle" [ref=e122]:
+                        - img
+                  - generic [ref=e123]:
+                    - generic [ref=e124]:
+                      - img [ref=e125]
+                      - generic [ref=e127]: 210/210 Inspection Score
+                    - heading "2024 Tesla Model Y Long Range" [level=3] [ref=e128]
+                    - generic [ref=e129]:
+                      - generic [ref=e130]:
+                        - img [ref=e131]
+                        - text: 12,500 km
+                      - generic [ref=e134]:
+                        - img [ref=e135]
+                        - text: Electric
+                      - generic [ref=e138]:
+                        - img [ref=e139]
+                        - text: "2024"
+                    - generic [ref=e141]:
+                      - generic [ref=e142]:
+                        - paragraph [ref=e143]: $54,990
+                        - paragraph [ref=e144]: Est. $654/mo at 6.29% APR
+                      - link "View Details" [ref=e145] [cursor=pointer]:
+                        - /url: /inventory
+                  - button "Previous vehicle" [ref=e147]:
+                    - img
+                  - button "Next vehicle" [ref=e149]:
+                    - img
+                - generic [ref=e150]:
+                  - button "Scroll thumbnails left" [ref=e151]:
+                    - img
+                  - generic [ref=e152]:
+                    - button "View 2024 Tesla Model Y Long Range" [ref=e153]:
+                      - img "2024 Tesla Model Y Long Range" [ref=e154]
+                    - button "View 2023 BMW X5 xDrive40i" [ref=e155]:
+                      - img "2023 BMW X5 xDrive40i" [ref=e156]
+                    - button "View 2024 Toyota RAV4 Hybrid XLE" [ref=e157]:
+                      - img "2024 Toyota RAV4 Hybrid XLE" [ref=e158]
+                    - button "View 2023 Audi Q5 Sportback" [ref=e159]:
+                      - img "2023 Audi Q5 Sportback" [ref=e160]
+                  - button "Scroll thumbnails right" [ref=e161]:
+                    - img
+              - generic [ref=e162]: 🔥 Spring Sale
+          - generic [ref=e163]:
+            - generic [ref=e164]:
+              - img [ref=e165]
+              - generic [ref=e167]: 210-Point Inspection
+            - generic [ref=e168]:
+              - img [ref=e169]
+              - generic [ref=e172]: 10-Day Money Back
+            - generic [ref=e173]:
+              - img [ref=e174]
+              - generic [ref=e179]: Free Ontario Delivery
+            - generic [ref=e180]:
+              - img [ref=e181]
+              - generic [ref=e184]: Price Match Guarantee
+        - generic [ref=e186]:
+          - generic [ref=e187]:
+            - heading "Browse by Type" [level=2] [ref=e188]
+            - link "View All" [ref=e189] [cursor=pointer]:
+              - /url: /inventory
+              - text: View All
+              - img [ref=e190]
+          - generic [ref=e192]:
+            - link "SUVs" [ref=e193] [cursor=pointer]:
+              - /url: /inventory?bodyType=SUV
+              - img [ref=e195]
+              - generic [ref=e199]: SUVs
+            - link "Sedans" [ref=e200] [cursor=pointer]:
+              - /url: /inventory?bodyType=Sedan
+              - img [ref=e202]
+              - generic [ref=e206]: Sedans
+            - link "Trucks" [ref=e207] [cursor=pointer]:
+              - /url: /inventory?bodyType=Truck
+              - img [ref=e209]
+              - generic [ref=e214]: Trucks
+            - link "Electric" [ref=e215] [cursor=pointer]:
+              - /url: /inventory?fuelType=Electric
+              - img [ref=e217]
+              - generic [ref=e219]: Electric
+            - link "Hybrids" [ref=e220] [cursor=pointer]:
+              - /url: /inventory?fuelType=Hybrid
+              - img [ref=e222]
+              - generic [ref=e225]: Hybrids
+            - link "Luxury" [ref=e226] [cursor=pointer]:
+              - /url: /inventory?category=Luxury
+              - img [ref=e228]
+              - generic [ref=e230]: Luxury
+            - link "Under $30K" [ref=e231] [cursor=pointer]:
+              - /url: /inventory?maxPrice=30000
+              - img [ref=e233]
+              - generic [ref=e235]: Under $30K
+            - link "Family" [ref=e236] [cursor=pointer]:
+              - /url: /inventory?category=Family
+              - img [ref=e238]
+              - generic [ref=e243]: Family
+        - generic [ref=e245]:
+          - generic [ref=e246]:
+            - generic [ref=e247]:
+              - img [ref=e248]
+              - text: Simple 4-Step Process
+            - heading "Buy Your Car 100% Online" [level=2] [ref=e251]
+            - paragraph [ref=e252]: Complete your entire purchase from home in under 30 minutes.
+          - generic [ref=e253]:
+            - generic [ref=e256]:
+              - generic [ref=e257]:
+                - img [ref=e259]
+                - generic [ref=e262]: Step 1
+              - heading "Browse & Select" [level=3] [ref=e263]
+              - paragraph [ref=e264]: Explore our inventory with detailed photos, Carfax reports, and 360° views.
+              - list [ref=e265]:
+                - listitem [ref=e266]:
+                  - img [ref=e267]
+                  - text: 360° Interactive Viewer
+                - listitem [ref=e270]:
+                  - img [ref=e271]
+                  - text: Full Carfax History
+                - listitem [ref=e274]:
+                  - img [ref=e275]
+                  - text: 210-Point Inspection Report
+                - listitem [ref=e278]:
+                  - img [ref=e279]
+                  - text: Price Match Guarantee
+            - generic [ref=e284]:
+              - generic [ref=e285]:
+                - img [ref=e287]
+                - generic [ref=e289]: Step 2
+              - heading "Get Pre-Approved" [level=3] [ref=e290]
+              - paragraph [ref=e291]: Apply for financing in minutes with 20+ lending partners.
+              - list [ref=e292]:
+                - listitem [ref=e293]:
+                  - img [ref=e294]
+                  - text: Soft Credit Check
+                - listitem [ref=e297]:
+                  - img [ref=e298]
+                  - text: No Credit Impact
+                - listitem [ref=e301]:
+                  - img [ref=e302]
+                  - text: Rates from 4.99%
+                - listitem [ref=e305]:
+                  - img [ref=e306]
+                  - text: Instant Decision
+            - generic [ref=e311]:
+              - generic [ref=e312]:
+                - img [ref=e314]
+                - generic [ref=e318]: Step 3
+              - heading "Complete Purchase" [level=3] [ref=e319]
+              - paragraph [ref=e320]: Finalize online or in-person. We handle all the paperwork.
+              - list [ref=e321]:
+                - listitem [ref=e322]:
+                  - img [ref=e323]
+                  - text: Digital Paperwork
+                - listitem [ref=e326]:
+                  - img [ref=e327]
+                  - text: Flexible Payments
+                - listitem [ref=e330]:
+                  - img [ref=e331]
+                  - text: Tax & Licensing Included
+                - listitem [ref=e334]:
+                  - img [ref=e335]
+                  - text: Warranty Options
+            - generic [ref=e339]:
+              - generic [ref=e340]:
+                - img [ref=e342]
+                - generic [ref=e345]: Step 4
+              - heading "Delivery or Pickup" [level=3] [ref=e346]
+              - paragraph [ref=e347]: Free home delivery across Ontario or pick up from our showroom.
+              - list [ref=e348]:
+                - listitem [ref=e349]:
+                  - img [ref=e350]
+                  - text: Free Home Delivery
+                - listitem [ref=e353]:
+                  - img [ref=e354]
+                  - text: Ontario-Wide Coverage
+                - listitem [ref=e357]:
+                  - img [ref=e358]
+                  - text: 10-Day Returns
+                - listitem [ref=e361]:
+                  - img [ref=e362]
+                  - text: Next-Day Pickup
+          - generic [ref=e366]:
+            - img [ref=e367]
+            - text: Backed by our 10-Day Money-Back Guarantee
+          - generic [ref=e369]:
+            - link "Start Shopping" [ref=e370] [cursor=pointer]:
+              - /url: /inventory
+              - text: Start Shopping
+              - img
+            - link "Learn More" [ref=e371] [cursor=pointer]:
+              - /url: /how-it-works
+        - generic [ref=e373]:
+          - generic [ref=e374]:
+            - generic [ref=e375]:
+              - heading "Featured Vehicles" [level=2] [ref=e376]
+              - paragraph [ref=e377]: Quality vehicles ready for delivery
+            - generic [ref=e378]:
+              - button "All" [ref=e379]
+              - button "Electric" [ref=e380]
+              - button "SUVs" [ref=e381]
+          - link "View All Inventory" [ref=e383] [cursor=pointer]:
+            - /url: /inventory
+            - text: View All Inventory
+            - img
+        - generic [ref=e385]:
+          - generic [ref=e386]:
+            - heading "Why Choose Planet Motors?" [level=2] [ref=e387]
+            - paragraph [ref=e388]: See how we compare to other dealers
+          - table [ref=e390]:
+            - rowgroup [ref=e391]:
+              - row "Feature Planet Motors Traditional Dealer Private Sale" [ref=e392]:
+                - columnheader "Feature" [ref=e393]
+                - columnheader "Planet Motors" [ref=e394]:
+                  - generic [ref=e395]: Planet Motors
+                - columnheader "Traditional Dealer" [ref=e396]
+                - columnheader "Private Sale" [ref=e397]
+            - rowgroup [ref=e398]:
+              - row "210-Point Inspection Varies" [ref=e399]:
+                - cell "210-Point Inspection" [ref=e400]
+                - cell [ref=e401]:
+                  - img [ref=e402]
+                - cell "Varies" [ref=e404]
+                - cell [ref=e405]:
+                  - img [ref=e406]
+              - row "10-Day Money Back" [ref=e409]:
+                - cell "10-Day Money Back" [ref=e410]
+                - cell [ref=e411]:
+                  - img [ref=e412]
+                - cell [ref=e414]:
+                  - img [ref=e415]
+                - cell [ref=e418]:
+                  - img [ref=e419]
+              - row "Free Ontario Delivery" [ref=e422]:
+                - cell "Free Ontario Delivery" [ref=e423]
+                - cell [ref=e424]:
+                  - img [ref=e425]
+                - cell [ref=e427]:
+                  - img [ref=e428]
+                - cell [ref=e431]:
+                  - img [ref=e432]
+              - row "Carfax Report Included Extra Cost" [ref=e435]:
+                - cell "Carfax Report Included" [ref=e436]
+                - cell [ref=e437]:
+                  - img [ref=e438]
+                - cell "Extra Cost" [ref=e440]
+                - cell [ref=e441]:
+                  - img [ref=e442]
+              - row "EV Battery Certification" [ref=e445]:
+                - cell "EV Battery Certification" [ref=e446]
+                - cell [ref=e447]:
+                  - img [ref=e448]
+                - cell [ref=e450]:
+                  - img [ref=e451]
+                - cell [ref=e454]:
+                  - img [ref=e455]
+              - row "No-Haggle Pricing" [ref=e458]:
+                - cell "No-Haggle Pricing" [ref=e459]
+                - cell [ref=e460]:
+                  - img [ref=e461]
+                - cell [ref=e463]:
+                  - img [ref=e464]
+                - cell [ref=e467]:
+                  - img [ref=e468]
+              - row "Multi-Lender Financing Limited" [ref=e471]:
+                - cell "Multi-Lender Financing" [ref=e472]
+                - cell [ref=e473]:
+                  - img [ref=e474]
+                - cell "Limited" [ref=e476]
+                - cell [ref=e477]:
+                  - img [ref=e478]
+              - row "Online Purchase Option Partial" [ref=e481]:
+                - cell "Online Purchase Option" [ref=e482]
+                - cell [ref=e483]:
+                  - img [ref=e484]
+                - cell "Partial" [ref=e486]
+                - cell [ref=e487]:
+                  - img [ref=e488]
+        - generic [ref=e493]:
+          - generic [ref=e494]:
+            - generic [ref=e495]:
+              - img [ref=e496]
+              - text: Sell or Trade
+            - heading "Have a Vehicle to Sell or Trade?" [level=2] [ref=e498]
+            - paragraph [ref=e499]: Get a competitive offer in minutes. We buy all makes and models — you don't need to purchase from us to sell to us.
+            - list [ref=e500]:
+              - listitem [ref=e501]:
+                - img [ref=e502]
+                - generic [ref=e505]: Instant online offer
+              - listitem [ref=e506]:
+                - img [ref=e507]
+                - generic [ref=e510]: Free vehicle pickup
+              - listitem [ref=e511]:
+                - img [ref=e512]
+                - generic [ref=e515]: Same-day payment available
+              - listitem [ref=e516]:
+                - img [ref=e517]
+                - generic [ref=e520]: No obligation to buy from us
+            - link "Get My Offer" [ref=e521] [cursor=pointer]:
+              - /url: /trade-in
+              - text: Get My Offer
+              - img
+          - generic [ref=e522]:
+            - heading "Quick Estimate" [level=3] [ref=e523]
+            - generic [ref=e524]:
+              - textbox "Year, Make, Model (e.g. 2021 Honda Civic)" [ref=e525]
+              - textbox "Mileage (km)" [ref=e526]
+              - textbox "Your Email (optional)" [ref=e527]
+              - button "Get Instant Offer" [ref=e528]:
+                - text: Get Instant Offer
+                - img
+        - generic [ref=e530]:
+          - generic [ref=e531]:
+            - heading "What Our Customers Say" [level=2] [ref=e532]
+            - generic [ref=e533]:
+              - generic [ref=e534]:
+                - img [ref=e535]
+                - img [ref=e537]
+                - img [ref=e539]
+                - img [ref=e541]
+                - img [ref=e543]
+              - generic [ref=e545]: 4.8/5 Star Rating
+          - generic [ref=e546]:
+            - generic [ref=e547]:
+              - generic [ref=e548]:
+                - img [ref=e549]
+                - img [ref=e551]
+                - img [ref=e553]
+                - img [ref=e555]
+                - img [ref=e557]
+              - paragraph [ref=e559]: "\"Incredible experience! Got approved for financing within hours and drove home in my dream Tesla. The 210-point inspection gave me complete peace of mind.\""
+              - generic [ref=e560]:
+                - generic [ref=e561]:
+                  - paragraph [ref=e562]: Sarah M.
+                  - paragraph [ref=e563]: Toronto, ON
+                - generic [ref=e564]: 4/2/2026
+            - generic [ref=e565]:
+              - generic [ref=e566]:
+                - img [ref=e567]
+                - img [ref=e569]
+                - img [ref=e571]
+                - img [ref=e573]
+                - img [ref=e575]
+              - paragraph [ref=e577]: "\"\""
+              - generic [ref=e578]:
+                - generic [ref=e579]:
+                  - paragraph [ref=e580]: Michael T.
+                  - paragraph [ref=e581]: Ontario
+                - generic [ref=e582]: 3/31/2026
+            - generic [ref=e583]:
+              - generic [ref=e584]:
+                - img [ref=e585]
+                - img [ref=e587]
+                - img [ref=e589]
+                - img [ref=e591]
+                - img [ref=e593]
+              - paragraph [ref=e595]: "\"Exceptional service from start to finish. The team at Planet Motors made buying my BMW X5 a breeze. Their 210-point inspection gave me complete confidence in my purchase.\""
+              - generic [ref=e596]:
+                - generic [ref=e597]:
+                  - paragraph [ref=e598]: Michael T.
+                  - paragraph [ref=e599]: Toronto, ON
+                - generic [ref=e600]: 3/31/2026
+        - generic [ref=e602]:
+          - generic [ref=e603]:
+            - heading "Protection Plans" [level=2] [ref=e604]
+            - paragraph [ref=e605]: Choose the coverage that fits your needs. All plans include our satisfaction guarantee.
+          - generic [ref=e606]:
+            - generic [ref=e607]:
+              - heading "Basic Coverage" [level=3] [ref=e608]
+              - paragraph [ref=e609]: Essential protection for peace of mind
+              - generic [ref=e610]:
+                - generic [ref=e611]: $29
+                - generic [ref=e612]: /month
+              - list [ref=e613]:
+                - listitem [ref=e614]:
+                  - img [ref=e615]
+                  - generic [ref=e618]: Powertrain coverage
+                - listitem [ref=e619]:
+                  - img [ref=e620]
+                  - generic [ref=e623]: 24/7 roadside assistance
+                - listitem [ref=e624]:
+                  - img [ref=e625]
+                  - generic [ref=e628]: Trip interruption coverage
+                - listitem [ref=e629]:
+                  - img [ref=e630]
+                  - generic [ref=e633]: Rental car reimbursement
+              - link "Get Started" [ref=e634] [cursor=pointer]:
+                - /url: /protection-plans#basic-coverage
+            - generic [ref=e635]:
+              - generic [ref=e636]: Most Popular
+              - heading "Premium Coverage" [level=3] [ref=e637]
+              - paragraph [ref=e638]: Comprehensive protection for your vehicle
+              - generic [ref=e639]:
+                - generic [ref=e640]: $59
+                - generic [ref=e641]: /month
+              - list [ref=e642]:
+                - listitem [ref=e643]:
+                  - img [ref=e644]
+                  - generic [ref=e647]: Everything in Basic
+                - listitem [ref=e648]:
+                  - img [ref=e649]
+                  - generic [ref=e652]: Electrical system coverage
+                - listitem [ref=e653]:
+                  - img [ref=e654]
+                  - generic [ref=e657]: Air conditioning coverage
+                - listitem [ref=e658]:
+                  - img [ref=e659]
+                  - generic [ref=e662]: Suspension coverage
+                - listitem [ref=e663]:
+                  - img [ref=e664]
+                  - generic [ref=e667]: Brake system coverage
+              - link "Get Started" [ref=e668] [cursor=pointer]:
+                - /url: /protection-plans#premium-coverage
+            - generic [ref=e669]:
+              - heading "Ultimate Coverage" [level=3] [ref=e670]
+              - paragraph [ref=e671]: Complete bumper-to-bumper protection
+              - generic [ref=e672]:
+                - generic [ref=e673]: $99
+                - generic [ref=e674]: /month
+              - list [ref=e675]:
+                - listitem [ref=e676]:
+                  - img [ref=e677]
+                  - generic [ref=e680]: Everything in Premium
+                - listitem [ref=e681]:
+                  - img [ref=e682]
+                  - generic [ref=e685]: Full mechanical coverage
+                - listitem [ref=e686]:
+                  - img [ref=e687]
+                  - generic [ref=e690]: Electronics & technology
+                - listitem [ref=e691]:
+                  - img [ref=e692]
+                  - generic [ref=e695]: Interior components
+                - listitem [ref=e696]:
+                  - img [ref=e697]
+                  - generic [ref=e700]: Appearance protection
+                - listitem [ref=e701]:
+                  - img [ref=e702]
+                  - generic [ref=e705]: Zero deductible option
+              - link "Get Started" [ref=e706] [cursor=pointer]:
+                - /url: /protection-plans#ultimate-coverage
+        - generic [ref=e709]:
+          - generic [ref=e710]:
+            - heading "Ready to find your perfect vehicle?" [level=2] [ref=e711]
+            - paragraph [ref=e712]: Browse our inventory of certified pre-owned vehicles. Financing from 6.29% APR.
+            - generic [ref=e713]:
+              - link "Browse Inventory" [ref=e714] [cursor=pointer]:
+                - /url: /inventory
+                - text: Browse Inventory
+                - img
+              - link "Get Pre-Approved" [ref=e715] [cursor=pointer]:
+                - /url: /financing
+          - generic [ref=e716]:
+            - generic [ref=e717]:
+              - img [ref=e718]
+              - heading "Call Us" [level=3] [ref=e720]
+              - paragraph [ref=e721]: 1-866-797-3332
+            - generic [ref=e722]:
+              - img [ref=e723]
+              - heading "Visit Us" [level=3] [ref=e726]
+              - paragraph
+              - paragraph [ref=e727]: Richmond Hill, On
+            - generic [ref=e728]:
+              - img [ref=e729]
+              - heading "Hours" [level=3] [ref=e732]
+              - paragraph [ref=e733]: "Mon-Fri: 9AM-7PM"
+              - paragraph [ref=e734]: "Sat: 10AM-5PM"
+            - generic [ref=e735]:
+              - img [ref=e736]
+              - heading "Licensed" [level=3] [ref=e739]
+              - paragraph [ref=e740]: OMVIC Registered
+              - paragraph [ref=e741]: Ontario Dealer
+        - generic [ref=e743]:
+          - heading "Popular Models" [level=3] [ref=e744]
+          - generic [ref=e745]:
+            - link "Honda Civic" [ref=e746] [cursor=pointer]:
+              - /url: /inventory?make=Honda&model=Civic
+            - link "Toyota Corolla" [ref=e747] [cursor=pointer]:
+              - /url: /inventory?make=Toyota&model=Corolla
+            - link "Toyota RAV4" [ref=e748] [cursor=pointer]:
+              - /url: /inventory?make=Toyota&model=RAV4
+            - link "Honda CR-V" [ref=e749] [cursor=pointer]:
+              - /url: /inventory?make=Honda&model=CR-V
+            - link "Tesla Model 3" [ref=e750] [cursor=pointer]:
+              - /url: /inventory?make=Tesla&model=Model+3
+            - link "Hyundai Tucson" [ref=e751] [cursor=pointer]:
+              - /url: /inventory?make=Hyundai&model=Tucson
+            - link "Mazda CX-5" [ref=e752] [cursor=pointer]:
+              - /url: /inventory?make=Mazda&model=CX-5
+            - link "BMW X3" [ref=e753] [cursor=pointer]:
+              - /url: /inventory?make=BMW&model=X3
+    - contentinfo "Site footer" [ref=e754]:
+      - generic [ref=e755]:
+        - generic [ref=e756]:
+          - generic [ref=e757]:
+            - img "Planet Motors - Fairness Integrity" [ref=e760]
+            - paragraph [ref=e761]: Canada's trusted destination for premium pre-owned vehicles with nationwide delivery. 210-point inspection, 10-day money-back guarantee, and competitive multi-lender financing.
+            - heading "Contact Us" [level=3] [ref=e762]
+            - generic [ref=e763]:
+              - link "1-866-797-3332 (Toll Free)" [ref=e764] [cursor=pointer]:
+                - /url: tel:18667973332
+                - img [ref=e765]
+                - generic [ref=e767]: 1-866-797-3332 (Toll Free)
+              - link "info@planetmotors.ca" [ref=e768] [cursor=pointer]:
+                - /url: mailto:info@planetmotors.ca
+                - img [ref=e769]
+                - generic [ref=e772]: info@planetmotors.ca
+              - link "30 Major Mackenzie Dr E Richmond Hill, ON L4C 1G7" [ref=e773] [cursor=pointer]:
+                - /url: https://share.google/YAlbvyp4und6Nrka
+                - img [ref=e774]
+                - generic [ref=e777]:
+                  - text: 30 Major Mackenzie Dr E
+                  - text: Richmond Hill, ON L4C 1G7
+              - generic [ref=e778]:
+                - img [ref=e779]
+                - generic [ref=e782]: "Mon-Fri: 9AM-7PM | Sat: 9AM-6PM"
+          - generic [ref=e783]:
+            - heading "Vehicles" [level=3] [ref=e784]
+            - list [ref=e785]:
+              - listitem [ref=e786]:
+                - link "Browse Inventory" [ref=e787] [cursor=pointer]:
+                  - /url: /inventory
+              - listitem [ref=e788]:
+                - link "Certified Pre-Owned" [ref=e789] [cursor=pointer]:
+                  - /url: /inventory?condition=cpo
+              - listitem [ref=e790]:
+                - link "360 Spin Viewer" [ref=e791] [cursor=pointer]:
+                  - /url: /viewer
+              - listitem [ref=e792]:
+                - link "New Arrivals" [ref=e793] [cursor=pointer]:
+                  - /url: /inventory?sort=newest
+              - listitem [ref=e794]:
+                - link "Electric Vehicles" [ref=e795] [cursor=pointer]:
+                  - /url: /inventory?type=electric
+          - generic [ref=e796]:
+            - heading "Services" [level=3] [ref=e797]
+            - list [ref=e798]:
+              - listitem [ref=e799]:
+                - link "Protection Plans" [ref=e800] [cursor=pointer]:
+                  - /url: /protection-plans
+              - listitem [ref=e801]:
+                - link "Financing" [ref=e802] [cursor=pointer]:
+                  - /url: /financing
+              - listitem [ref=e803]:
+                - link "Trade-In" [ref=e804] [cursor=pointer]:
+                  - /url: /trade-in
+              - listitem [ref=e805]:
+                - link "Service Center" [ref=e806] [cursor=pointer]:
+                  - /url: /contact
+          - generic [ref=e807]:
+            - heading "Company" [level=3] [ref=e808]
+            - list [ref=e809]:
+              - listitem [ref=e810]:
+                - link "About Us" [ref=e811] [cursor=pointer]:
+                  - /url: /about
+              - listitem [ref=e812]:
+                - link "Careers" [ref=e813] [cursor=pointer]:
+                  - /url: /careers
+              - listitem [ref=e814]:
+                - link "Contact" [ref=e815] [cursor=pointer]:
+                  - /url: /contact
+              - listitem [ref=e816]:
+                - link "Blog" [ref=e817] [cursor=pointer]:
+                  - /url: /blog
+          - generic [ref=e818]:
+            - heading "Legal" [level=3] [ref=e819]
+            - list [ref=e820]:
+              - listitem [ref=e821]:
+                - link "Privacy Policy" [ref=e822] [cursor=pointer]:
+                  - /url: /privacy
+              - listitem [ref=e823]:
+                - link "Terms of Service" [ref=e824] [cursor=pointer]:
+                  - /url: /terms
+              - listitem [ref=e825]:
+                - link "Accessibility" [ref=e826] [cursor=pointer]:
+                  - /url: /accessibility
+              - listitem [ref=e827]:
+                - link "Sitemap" [ref=e828] [cursor=pointer]:
+                  - /url: /sitemap
+        - generic [ref=e830]:
+          - paragraph [ref=e831]: Follow us on social media
+          - generic [ref=e832]:
+            - link "Facebook" [ref=e833] [cursor=pointer]:
+              - /url: https://www.facebook.com/PlanetMotors.ca
+              - img [ref=e834]
+            - link "X" [ref=e836] [cursor=pointer]:
+              - /url: https://x.com/PlanetMotorsCA
+              - img [ref=e837]
+            - link "Instagram" [ref=e839] [cursor=pointer]:
+              - /url: https://www.instagram.com/planetmotors.ca
+              - img [ref=e840]
+            - link "YouTube" [ref=e842] [cursor=pointer]:
+              - /url: https://www.youtube.com/@PlanetMotors_ca
+              - img [ref=e843]
+            - link "TikTok" [ref=e845] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@planetmotors.ca
+              - img [ref=e846]
+            - link "LinkedIn" [ref=e848] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/planetmotors
+              - img [ref=e849]
+        - generic [ref=e852]:
+          - generic [ref=e853]:
+            - img [ref=e854]
+            - generic [ref=e856]:
+              - paragraph [ref=e857]: OMVIC Registered Dealer
+              - paragraph [ref=e858]: Ontario Motor Vehicle Industry Council Licensed
+          - generic [ref=e859]:
+            - generic [ref=e860]:
+              - paragraph [ref=e861]: "210"
+              - paragraph [ref=e862]: Point Inspection
+            - generic [ref=e863]:
+              - paragraph [ref=e864]: 10-Day
+              - paragraph [ref=e865]: Money Back
+            - generic [ref=e866]:
+              - paragraph [ref=e867]: $250
+              - paragraph [ref=e868]: Refundable Deposit
+            - generic [ref=e869]:
+              - paragraph [ref=e870]: Canada
+              - paragraph [ref=e871]: Wide Delivery
+        - paragraph [ref=e873]: © 2026 Planet Motors. All rights reserved.
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e879] [cursor=pointer]:
+    - img [ref=e880]

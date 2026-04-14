@@ -26,26 +26,26 @@ const { mockChain, mockCreateClient } = vi.hoisted(() => {
         return makeChain()
       }
     }
-    // `limit` terminates the chain (used by getVehicleFacets)
-    chain['limit'] = (...args: unknown[]) => {
-      calls.push({ method: 'limit', args })
-      return Promise.resolve({ data: limitData, error: null })
-    }
     // `range` terminates the chain and resolves the promise
     chain['range'] = (...args: unknown[]) => {
       calls.push({ method: 'range', args })
       return Promise.resolve({ data: resolveData, count: resolveCount, error: null })
+    }
+    // `limit` terminates the chain and resolves the promise (used by getVehicleFacets)
+    chain['limit'] = (...args: unknown[]) => {
+      calls.push({ method: 'limit', args })
+      return Promise.resolve({ data: limitData, error: null })
     }
     return chain
   }
 
   const mockChain = {
     calls,
-    reset(data: unknown[] = [], count = 0, facetsData: unknown[] = []) {
+    reset(data: unknown[] = [], count = 0, facets: unknown[] = []) {
       calls.length = 0
       resolveData = data
       resolveCount = count
-      limitData = facetsData
+      limitData = facets
     },
     getCallArgs(method: string) {
       return calls.filter(c => c.method === method).map(c => c.args)

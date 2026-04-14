@@ -578,8 +578,6 @@ INSERT INTO tax_rates (province, province_name, gst_rate, pst_rate, hst_rate, qs
 ('NU', 'Nunavut', 5.0, 0, 0, 0, 5.0, '2024-01-01');
 ```
 
----
-
 ## 2. 210-POINT INSPECTION TEMPLATE
 
 ### 2.1 Inspection Categories Table

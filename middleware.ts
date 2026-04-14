@@ -6,7 +6,7 @@ const ADMIN_EMAILS: readonly string[] = process.env.ADMIN_EMAILS
   ? process.env.ADMIN_EMAILS.split(',').map((e) => e.trim())
   : ['admin@planetmotors.ca', 'toni@planetmotors.ca']
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   // 1. Refresh Supabase auth session (also protects /protected routes)
   const { response, user } = await updateSession(request)
 

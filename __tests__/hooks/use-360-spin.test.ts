@@ -25,7 +25,8 @@ function calcDragFrame(
 ): number {
   let newFrame =
     (dragStartFrame + Math.floor(deltaX / sensitivity)) % totalFrames
-  return newFrame < 0 ? newFrame + totalFrames : newFrame
+  // Coerce -0 to +0: JS modulo can produce -0 (e.g. -36 % 36 = -0)
+  return (newFrame < 0 ? newFrame + totalFrames : newFrame) || 0
 }
 
 /**

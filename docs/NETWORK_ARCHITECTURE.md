@@ -2,20 +2,16 @@
 
 ## DOCUMENT 2: ENTERPRISE ARCHITECTURE & SYSTEM DESIGN
 
----
-
 ## 1. ARCHITECTURE PRINCIPLES
 
 | Principle | Description |
-|-----------|-------------|
-| **Simplicity First** | ECS over Kubernetes, single database, REST APIs |
-| **Scale When Needed** | Auto-scaling, multi-tenancy, start horizontal when required |
-| **Security Always** | Multi-layer security, encryption everywhere |
-| **Customer-Centric** | 10-day returns, 210-point inspection, multi-lender financing |
-| **Data-Driven** | FullStory for UX, Optimizely for experiments |
-| **Canadian-First** | Data residency, provincial taxes, local lenders |
-
----
+| --- | --- |
+| Simplicity First | ECS over Kubernetes, single database, REST APIs |
+| Scale When Needed | Auto-scaling, multi-tenancy, start horizontal when required |
+| Security Always | Multi-layer security, encryption everywhere |
+| Customer-Centric | 10-day returns, 210-point inspection, multi-lender financing |
+| Data-Driven | FullStory for UX, Optimizely for experiments |
+| Canadian-First | Data residency, provincial taxes, local lenders |
 
 ## 2. SYSTEM CONTEXT DIAGRAM
 
@@ -44,8 +40,6 @@
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
-
----
 
 ## 3. NETWORK ARCHITECTURE
 
@@ -103,8 +97,6 @@
 - opensearch-sg: 443 from ecs-sg
 - mq-sg: 5672 from ecs-sg
 ```
-
----
 
 ## 4. DATA FLOW DIAGRAMS
 
@@ -184,8 +176,6 @@
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
-
----
 
 ## 5. MICROSERVICES ARCHITECTURE
 
