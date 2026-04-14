@@ -254,13 +254,13 @@ export function VehicleShowcase() {
         {/* Bottom info overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
           <div className="flex items-center gap-2 mb-2">
-            <Shield className="w-4 h-4 text-green-400" />
-            <span className="text-sm text-green-400 font-medium">
+            <Shield className="w-4 h-4 text-green-300" />
+            <span className="text-sm text-green-300 font-medium">
               {currentVehicle.inspectionScore}/210 Inspection Score
             </span>
           </div>
-          <h3 className="font-semibold text-xl mb-1">{currentVehicle.name}</h3>
-          <div className="flex items-center gap-4 text-sm text-white/80 mb-3">
+          <h2 className="font-semibold text-xl mb-1">{currentVehicle.name}</h2>
+          <div className="flex items-center gap-4 text-sm text-white/90 mb-3">
             <span className="flex items-center gap-1">
               <Gauge className="w-3.5 h-3.5" />
               {currentVehicle.mileage}
@@ -277,7 +277,7 @@ export function VehicleShowcase() {
           <div className="flex items-end justify-between">
             <div>
               <p className="text-2xl font-bold">{currentVehicle.price}</p>
-              <p className="text-sm text-white/70">
+              <p className="text-sm text-white/90">
                 Est. {currentVehicle.monthlyPayment}/mo at 6.29% APR
               </p>
             </div>
