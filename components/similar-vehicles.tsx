@@ -6,7 +6,7 @@ import useSWR from "swr"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Heart, Gauge, Fuel, Battery, ChevronRight, Truck } from "lucide-react"
+import { Heart, Gauge, Fuel, Battery, ChevronRight, Truck, Car } from "lucide-react"
 
 interface SimilarVehicle {
   id: string
@@ -58,7 +58,7 @@ function toSimilarVehicle(v: ApiVehicle): SimilarVehicle {
     price: v.price,
     mileage: v.mileage,
     fuelType: v.fuel_type ?? "Gasoline",
-    image: v.primary_image_url ?? "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400&auto=format&fit=crop&q=80",
+    image: v.primary_image_url ?? "",
     batteryHealth: v.battery_health ?? undefined,
     range: v.range_km ? `${v.range_km} km` : undefined,
   }
@@ -101,14 +101,20 @@ export function SimilarVehicles({ currentVehicleId, make, priceRange }: SimilarV
           {filtered.map((vehicle) => (
             <Link key={vehicle.id} href={`/vehicles/${vehicle.id}`}>
               <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  <Image
-                    src={vehicle.image}
-                    alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
+                <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5]">
+                  {vehicle.image ? (
+                    <Image
+                      src={vehicle.image}
+                      alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Car className="w-12 h-12 text-[#1e3a8a]/15" />
+                    </div>
+                  )}
                   {vehicle.fuelType === "Electric" && (
                     <Badge className="absolute top-2 left-2 bg-green-500">
                       <Battery className="h-3 w-3 mr-1" />

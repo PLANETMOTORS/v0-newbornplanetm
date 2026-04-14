@@ -94,6 +94,17 @@ export async function cacheSearchResults(
   }
 }
 
+export async function deleteCachedSearchResults(queryHash: string): Promise<void> {
+  const redis = await getRedis()
+  if (!redis) return
+
+  try {
+    await redis.del(`search:${queryHash}`)
+  } catch {
+    // Silently fail — cache will expire naturally
+  }
+}
+
 export async function getCachedSearchResults(queryHash: string): Promise<unknown | null> {
   const redis = await getRedis()
   if (!redis) return null

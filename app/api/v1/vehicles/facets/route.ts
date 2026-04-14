@@ -49,6 +49,7 @@ export async function GET() {
     .from('vehicles')
     .select('make, body_style, fuel_type, transmission, drivetrain, price, year')
     .eq('status', 'available')
+    .limit(5000)
 
   if (error) {
     return NextResponse.json({ error: 'Failed to load facets' }, { status: 500 })

@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server"
 type DocumentWithFileAndApplication = {
   id: string
   file_url: string
-  finance_applications_v2: { user_id: string }[]
+  finance_applications_v2: { user_id: string }
 }
 
 function errorResponse(status: number, code: string, message: string) {
@@ -25,15 +25,12 @@ function isDocumentWithFileAndApplication(value: unknown): value is DocumentWith
     return false
   }
 
-  const applications = record.finance_applications_v2
-  if (!Array.isArray(applications)) {
+  const application = record.finance_applications_v2
+  if (Object.prototype.toString.call(application) !== "[object Object]") {
     return false
   }
 
-  return applications.every(item => (
-    Object.prototype.toString.call(item) === "[object Object]" &&
-    typeof (item as Record<string, unknown>).user_id === "string"
-  ))
+  return typeof (application as Record<string, unknown>).user_id === "string"
 }
 
 // GET /api/v1/financing/documents/download?pathname=xxx&documentId=xxx
@@ -97,7 +94,7 @@ export async function GET(request: NextRequest) {
         return errorResponse(500, "MALFORMED_DOCUMENT_PAYLOAD", "Document payload is malformed")
       }
       
-      if (document.finance_applications_v2[0]?.user_id !== user.id) {
+      if (document.finance_applications_v2.user_id !== user.id) {
         return errorResponse(403, "FORBIDDEN", "Unauthorized")
       }
       

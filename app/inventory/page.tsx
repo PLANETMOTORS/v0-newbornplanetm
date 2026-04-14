@@ -77,10 +77,8 @@ const fetcher = async (url: string): Promise<VehiclesApiResponse> => {
 // Transform API vehicle to display format
 // NOTE: API already returns price in dollars (route.ts divides by 100)
 function transformVehicle(v: Vehicle) {
-  const priceInDollars = typeof v.price === 'number' && v.price > 10000 ? v.price / 100 : v.price
-  const msrpInDollars = v.msrp
-    ? (typeof v.msrp === 'number' && v.msrp > 10000 ? v.msrp / 100 : v.msrp)
-    : priceInDollars * 1.1
+  const priceInDollars = v.price
+  const msrpInDollars = v.msrp ?? priceInDollars * 1.1
   
   // Determine badge based on vehicle attributes
   let badge = ""

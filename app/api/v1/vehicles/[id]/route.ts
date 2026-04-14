@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
-import { getCachedSearchResults, cacheSearchResults } from "@/lib/redis"
+import { getCachedSearchResults, cacheSearchResults, deleteCachedSearchResults } from "@/lib/redis"
 
 const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
 const VEHICLE_DETAIL_TTL = 300 // 5 minutes
@@ -146,6 +146,12 @@ export async function PATCH(
         { status: 404 }
       )
     }
+
+    // Invalidate cached vehicle detail and facets so stale data isn't served
+    await Promise.allSettled([
+      deleteCachedSearchResults(`vehicles:detail:${id}`),
+      deleteCachedSearchResults('vehicles:facets:snapshot'),
+    ])
 
     return NextResponse.json({
       success: true,

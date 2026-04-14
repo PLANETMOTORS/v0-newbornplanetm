@@ -4,7 +4,7 @@ import { put } from "@vercel/blob"
 
 type DocumentWithApplication = {
   id: string
-  finance_applications_v2: { user_id: string }[]
+  finance_applications_v2: { user_id: string }
 }
 
 function errorResponse(status: number, code: string, message: string) {
@@ -24,15 +24,12 @@ function isDocumentWithApplication(value: unknown): value is DocumentWithApplica
     return false
   }
 
-  const applications = record.finance_applications_v2
-  if (!Array.isArray(applications)) {
+  const application = record.finance_applications_v2
+  if (Object.prototype.toString.call(application) !== "[object Object]") {
     return false
   }
 
-  return applications.every(item => (
-    Object.prototype.toString.call(item) === "[object Object]" &&
-    typeof (item as Record<string, unknown>).user_id === "string"
-  ))
+  return typeof (application as Record<string, unknown>).user_id === "string"
 }
 
 // POST /api/v1/financing/documents - Upload document
@@ -187,7 +184,7 @@ export async function DELETE(request: NextRequest) {
       .eq("id", documentId)
       .single()
     
-    if (!document || !isDocumentWithApplication(document) || document.finance_applications_v2[0]?.user_id !== user.id) {
+    if (!document || !isDocumentWithApplication(document) || document.finance_applications_v2.user_id !== user.id) {
       return errorResponse(403, "FORBIDDEN", "Unauthorized")
     }
     

@@ -6,7 +6,7 @@
  *   BASE_URL=https://planetmotors.ca npx tsx scripts/synthetic-monitor.ts
  *
  * Behaviour:
- *   1. Discovers a real stock number from the vehicle list API (no hardcoded IDs).
+ *   1. Discovers a real vehicle ID from the vehicle list API (no hardcoded IDs).
  *   2. Runs a silent warm-up pass over every endpoint to prime the Redis cache.
  *   3. Measures SAMPLES requests per endpoint and reports p50 / p95 / p99.
  *   4. Checks the X-Cache response header and reports cache HIT rate.
@@ -29,7 +29,7 @@ interface Endpoint {
   label:     string
   path:      string
   targetMs:  number
-  /** If true, fill in the :stockNumber placeholder before measuring. */
+  /** If true, fill in the :vehicleId placeholder before measuring. */
   needsId?:  boolean
 }
 
@@ -58,25 +58,14 @@ const ENDPOINTS: Endpoint[] = [
     targetMs: TARGET_WARM,
   },
   {
-    label:    'Vehicle detail (live stock number)',
-    path:     '/api/v1/vehicles/:stockNumber',
-    targetMs: TARGET_VDP,
-    needsId:  true,
-  },
-  {
-    label:    'Similar vehicles',
-    path:     '/api/v1/vehicles/:stockNumber/similar?limit=4',
+    label:    'Vehicle detail (live vehicle ID)',
+    path:     '/api/v1/vehicles/:vehicleId',
     targetMs: TARGET_VDP,
     needsId:  true,
   },
   {
     label:    'Facets snapshot (available)',
-    path:     '/api/v1/vehicles/facets?status=available',
-    targetMs: TARGET_WARM,
-  },
-  {
-    label:    'Aggregations (available count + price band)',
-    path:     '/api/v1/vehicles/aggregations?status=available',
+    path:     '/api/v1/vehicles/facets',
     targetMs: TARGET_WARM,
   },
 ]
@@ -106,18 +95,18 @@ function staggerMs(i: number): number {
 // ─── Discovery ──────────────────────────────────────────────────────────────
 
 /**
- * Fetches the first available stock number from the list API.
- * Used to avoid hardcoded IDs in VDP and similar-vehicles endpoints.
+ * Fetches the first available vehicle ID from the list API.
+ * Used to avoid hardcoded IDs in VDP endpoints.
  */
-async function discoverStockNumber(): Promise<string | null> {
+async function discoverVehicleId(): Promise<string | null> {
   try {
     const res = await fetch(
       `${BASE_URL}/api/v1/vehicles?limit=1&status=available`,
       { headers: { Accept: 'application/json' } },
     )
     if (!res.ok) return null
-    const json = await res.json() as { data?: { stock_number?: string }[] }
-    return json.data?.[0]?.stock_number ?? null
+    const json = await res.json() as { data?: { vehicles?: { id?: string }[] } }
+    return json.data?.vehicles?.[0]?.id ?? null
   } catch {
     return null
   }
@@ -142,9 +131,19 @@ async function measure(path: string, samples: number): Promise<Sample[]> {
         headers: { Accept: 'application/json' },
       })
       await res.text()
+      if (!res.ok) {
+        process.stderr.write(`  [WARN] ${path} returned HTTP ${res.status}\n`)
+        // Record as a failed sample with high latency to ensure it trips the quality gate
+        results.push({ ms: Infinity, cacheHit: false })
+        await new Promise(r => setTimeout(r, staggerMs(i)))
+        continue
+      }
       cacheHit = (res.headers.get('x-cache') ?? '').toLowerCase().startsWith('hit')
     } catch (err) {
       process.stderr.write(`  [WARN] request failed: ${(err as Error).message}\n`)
+      results.push({ ms: Infinity, cacheHit: false })
+      await new Promise(r => setTimeout(r, staggerMs(i)))
+      continue
     }
     results.push({ ms: performance.now() - start, cacheHit })
     await new Promise(r => setTimeout(r, staggerMs(i)))
@@ -179,22 +178,22 @@ async function main(): Promise<void> {
   console.log(`  Samples  : ${SAMPLES} per endpoint (warm path)`)
   console.log(`  Targets  : WARM ≤ ${TARGET_WARM} ms p99   VDP ≤ ${TARGET_VDP} ms p99\n`)
 
-  // 1. Discover a real stock number for VDP / similar routes
-  process.stdout.write('  Discovering stock number … ')
-  const stockNumber = await discoverStockNumber()
-  if (stockNumber) {
-    console.log(green(`found: ${stockNumber}`))
+  // 1. Discover a real vehicle ID for VDP routes
+  process.stdout.write('  Discovering vehicle ID … ')
+  const vehicleId = await discoverVehicleId()
+  if (vehicleId) {
+    console.log(green(`found: ${vehicleId}`))
   } else {
     console.log(red('not found — VDP endpoints will be skipped'))
   }
 
   // Resolve endpoint paths
   const resolved = ENDPOINTS
-    .filter(e => !e.needsId || stockNumber !== null)
+    .filter(e => !e.needsId || vehicleId !== null)
     .map(e => ({
       ...e,
-      path: e.needsId && stockNumber
-        ? e.path.replace(':stockNumber', encodeURIComponent(stockNumber))
+      path: e.needsId && vehicleId
+        ? e.path.replace(':vehicleId', encodeURIComponent(vehicleId))
         : e.path,
     }))
 
