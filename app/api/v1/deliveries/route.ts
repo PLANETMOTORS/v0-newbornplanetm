@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
 
 // POST /api/v1/deliveries - Schedule delivery
 export async function POST(request: NextRequest) {
@@ -7,17 +8,14 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return apiError(ErrorCode.UNAUTHORIZED, "Authentication required", 401)
     }
 
     const body = await request.json()
     const { orderId, vehicleId, destinationPostalCode, scheduledDate, timeSlot, specialInstructions, addressId } = body
 
     if (!orderId || !destinationPostalCode || !scheduledDate) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      )
+      return apiError(ErrorCode.VALIDATION_ERROR, "Missing required fields: orderId, destinationPostalCode, scheduledDate", 400)
     }
 
     const quoteUrl = new URL(`/api/v1/deliveries/quote?postalCode=${encodeURIComponent(destinationPostalCode)}`, request.url)
@@ -25,10 +23,7 @@ export async function POST(request: NextRequest) {
 
     if (!quoteResponse.ok) {
       const quoteError = await quoteResponse.json().catch(() => ({ error: "Invalid postal code" }))
-      return NextResponse.json(
-        { error: quoteError?.error || "Unable to calculate delivery quote" },
-        { status: 400 }
-      )
+      return apiError(ErrorCode.VALIDATION_ERROR, quoteError?.error || "Unable to calculate delivery quote", 400)
     }
 
     const quote = await quoteResponse.json()
@@ -52,16 +47,16 @@ export async function POST(request: NextRequest) {
 
     const { data: orderRows, error: orderError } = await orderQuery
     if (orderError) {
-      return NextResponse.json({ error: "Failed to schedule delivery" }, { status: 500 })
+      return apiError(ErrorCode.INTERNAL_ERROR, "Failed to schedule delivery")
     }
 
     const order = orderRows?.[0]
     if (!order) {
-      return NextResponse.json({ error: "Order not found" }, { status: 404 })
+      return apiError(ErrorCode.NOT_FOUND, "Order not found", 404)
     }
 
     if (vehicleId && order.vehicle_id && vehicleId !== order.vehicle_id) {
-      return NextResponse.json({ error: "Vehicle does not match order" }, { status: 409 })
+      return apiError(ErrorCode.VALIDATION_ERROR, "Vehicle does not match order", 409)
     }
 
     const { data: existingRows, error: existingError } = await supabase
@@ -73,7 +68,7 @@ export async function POST(request: NextRequest) {
       .limit(1)
 
     if (existingError) {
-      return NextResponse.json({ error: "Failed to schedule delivery" }, { status: 500 })
+      return apiError(ErrorCode.INTERNAL_ERROR, "Failed to schedule delivery")
     }
 
     const existing = existingRows?.[0]
@@ -83,8 +78,7 @@ export async function POST(request: NextRequest) {
         String(existing.scheduled_time_slot || "") === String(normalizedTimeSlot || "")
 
       if (isSameSchedule) {
-        return NextResponse.json({
-          success: true,
+        return apiSuccess({
           idempotentReplay: true,
           delivery: {
             id: existing.id,
@@ -101,10 +95,7 @@ export async function POST(request: NextRequest) {
         })
       }
 
-      return NextResponse.json(
-        { error: "An active delivery already exists for this order" },
-        { status: 409 }
-      )
+      return apiError(ErrorCode.VALIDATION_ERROR, "An active delivery already exists for this order", 409)
     }
 
     const notes = [
@@ -134,11 +125,10 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (insertError || !insertedRows) {
-      return NextResponse.json({ error: "Failed to schedule delivery" }, { status: 500 })
+      return apiError(ErrorCode.INTERNAL_ERROR, "Failed to schedule delivery")
     }
 
-    return NextResponse.json({
-      success: true,
+    return apiSuccess({
       delivery: {
         id: insertedRows.id,
         orderId: order.order_number || order.id,
@@ -153,10 +143,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (_error) {
-    return NextResponse.json(
-      { error: "Failed to schedule delivery" },
-      { status: 500 }
-    )
+    return apiError(ErrorCode.INTERNAL_ERROR, "Failed to schedule delivery")
   }
 }
 
@@ -187,5 +174,5 @@ export async function GET(request: NextRequest) {
     })
   }
 
-  return NextResponse.json({ availableSlots: slots })
+  return apiSuccess({ availableSlots: slots })
 }

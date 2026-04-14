@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Shield, CheckCircle2, Phone, FileText } from "lucide-react"
 import Link from "next/link"
+import { WarrantyPageJsonLd } from "@/components/seo/json-ld"
 
 const warrantyPlans = [
   {
@@ -82,6 +83,7 @@ const coverageDetails = [
 export default function WarrantyPage() {
   return (
     <div className="min-h-screen bg-background">
+      <WarrantyPageJsonLd />
       <Header />
 
       <main className="pt-32 pb-16">

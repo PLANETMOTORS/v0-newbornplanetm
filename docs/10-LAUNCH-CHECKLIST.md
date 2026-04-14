@@ -1,15 +1,13 @@
 # Planet Motors - Launch Readiness Checklist
 
-## Domain: www.planetmotors.ca
-
----
+## Domain: [www.planetmotors.ca](http://www.planetmotors.ca)
 
 ## Pre-Launch Status
 
 ### Technical Readiness: 95%
 
 | Component | Status | Notes |
-|-----------|--------|-------|
+| --- | --- | --- |
 | Frontend Build | Complete | Next.js 16, fully responsive |
 | Homepage | Complete | Hero, featured vehicles, testimonials |
 | Inventory Page | Complete | Filters, search, grid/list view |
@@ -26,15 +24,13 @@
 ### Integration Readiness
 
 | Integration | Status | Action Needed |
-|-------------|--------|---------------|
+| --- | --- | --- |
 | Supabase | Connected | Run database migrations |
 | Stripe | Ready | Add API keys |
 | Sanity CMS | Ready | Deploy studio, add content |
 | Google Analytics | Ready | Add GA_MEASUREMENT_ID |
 | GTM | Ready | Add GTM_ID |
 | Meta Pixel | Ready | Add META_PIXEL_ID |
-
----
 
 ## Environment Variables Needed
 
@@ -65,8 +61,6 @@ UPSTASH_REDIS_REST_URL=your-url
 UPSTASH_REDIS_REST_TOKEN=your-token
 ```
 
----
-
 ## Launch Checklist
 
 ### Week -2 (Staging)
@@ -89,9 +83,9 @@ UPSTASH_REDIS_REST_TOKEN=your-token
 - [ ] Claim Google Business Profile
 - [ ] Submit to Google Search Console
 - [ ] Submit to Bing Webmaster Tools
-- [ ] Configure DNS for www.planetmotors.ca
+- [ ] Configure DNS for [www.planetmotors.ca](http://www.planetmotors.ca)
 - [ ] Set up SSL certificate (automatic with Vercel)
-- [ ] Configure email (info@planetmotors.ca)
+- [ ] Configure email ([info@planetmotors.ca](mailto:info@planetmotors.ca))
 - [ ] Set up error monitoring (Sentry)
 - [ ] Set up uptime monitoring
 - [ ] Prepare press release
@@ -119,12 +113,10 @@ UPSTASH_REDIS_REST_TOKEN=your-token
 - [ ] Submit to local directories
 - [ ] Respond to customer inquiries promptly
 
----
-
 ## Launch Timeline
 
 | Phase | Duration | Status |
-|-------|----------|--------|
+| --- | --- | --- |
 | Development | 8 weeks | Complete |
 | Staging & QA | 1 week | Ready to start |
 | Pre-launch prep | 1 week | Pending |
@@ -133,46 +125,43 @@ UPSTASH_REDIS_REST_TOKEN=your-token
 
 **Estimated Launch Date**: 2-3 weeks from today (April 11-18, 2026)
 
----
-
 ## Risk Assessment
 
 | Risk | Impact | Mitigation |
-|------|--------|------------|
+| --- | --- | --- |
 | Database migration fails | High | Test on staging first, have rollback plan |
 | Payment integration issues | High | Test with Stripe test mode thoroughly |
 | High traffic overwhelms server | Medium | Vercel auto-scales, monitor closely |
 | SEO indexing delayed | Low | Submit manually, be patient |
 | Content missing | Low | Sanity CMS allows live updates |
 
----
-
 ## Post-Launch Roadmap
 
 ### Month 1
+
 - [ ] Monitor and fix bugs
 - [ ] Gather user feedback
 - [ ] Optimize conversion funnel
 - [ ] Begin SEO content strategy
 
 ### Month 2
+
 - [ ] Add recently viewed carousel
 - [ ] Add referral program
 - [ ] Implement saved searches
 - [ ] Virtual appointment booking
 
 ### Month 3
+
 - [ ] CARFAX API integration
 - [ ] SMS/WhatsApp notifications
 - [ ] Mobile app consideration
 - [ ] Advanced analytics dashboard
 
----
-
 ## Success Metrics
 
 | Metric | Launch Target | 30-Day Target |
-|--------|---------------|---------------|
+| --- | --- | --- |
 | Page Load Time | < 3s | < 2s |
 | Uptime | 99.9% | 99.9% |
 | Bounce Rate | < 60% | < 50% |
@@ -180,15 +169,10 @@ UPSTASH_REDIS_REST_TOKEN=your-token
 | Organic Traffic | 500 visits | 2,000 visits |
 | Leads Generated | 50 | 200 |
 
----
-
 ## Contact for Launch Issues
 
-- **Technical Lead**: dev@planetmotors.ca
+- **Technical Lead**: [dev@planetmotors.ca](mailto:dev@planetmotors.ca)
 - **Emergency Hotline**: 1-866-797-3332
-- **Vercel Support**: support@vercel.com
+- **Vercel Support**: [support@vercel.com](mailto:support@vercel.com)
 
----
-
-*Document Version: 1.0*
-*Last Updated: March 28, 2026*
+*Document Version: 1.0**Last Updated: March 28, 2026*

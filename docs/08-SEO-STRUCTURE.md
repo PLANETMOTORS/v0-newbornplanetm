@@ -4,8 +4,6 @@
 
 Comprehensive SEO implementation for maximum search engine visibility and rich results.
 
----
-
 ## SEO Files Structure
 
 ```
@@ -20,8 +18,6 @@ Comprehensive SEO implementation for maximum search engine visibility and rich r
 /lib/seo
   metadata.ts         # Metadata generation utilities
 ```
-
----
 
 ## 1. Metadata Configuration
 
@@ -66,8 +62,6 @@ export const metadata = pageMetadata.tradeIn
 export const metadata = pageMetadata.about
 // etc.
 ```
-
----
 
 ## 2. JSON-LD Structured Data
 
@@ -132,14 +126,12 @@ import { BreadcrumbJsonLd } from '@/components/seo/json-ld'
 ]} />
 ```
 
----
-
 ## 3. Sitemap Configuration
 
 ### Static Pages
 
 | Page | Priority | Frequency |
-|------|----------|-----------|
+| --- | --- | --- |
 | Homepage | 1.0 | Daily |
 | Inventory | 0.95 | Hourly |
 | Financing | 0.9 | Weekly |
@@ -172,8 +164,6 @@ async function getBlogSlugs() {
 }
 ```
 
----
-
 ## 4. Robots.txt Rules
 
 ### Allowed
@@ -195,11 +185,10 @@ async function getBlogSlugs() {
 - AhrefsBot (aggressive crawler)
 - SemrushBot (high request volume)
 
----
-
 ## 5. Page-by-Page SEO Checklist
 
 ### Homepage
+
 - [x] Title: "Planet Motors | Premium Used Car Dealership"
 - [x] Meta description with call-to-action
 - [x] OrganizationJsonLd
@@ -207,6 +196,7 @@ async function getBlogSlugs() {
 - [x] WebsiteSearchJsonLd for sitelinks
 
 ### Vehicle Detail Page (VDP)
+
 - [x] Dynamic title: "{Year} {Make} {Model} | Planet Motors"
 - [x] Price and mileage in description
 - [x] VehicleJsonLd schema
@@ -215,47 +205,50 @@ async function getBlogSlugs() {
 - [x] OpenGraph image (vehicle photo)
 
 ### Inventory
+
 - [x] Filter-specific meta (for /inventory?fuelType=Electric)
 - [x] ItemList schema (optional)
 - [x] Pagination meta (rel=next/prev)
 
 ### Blog
+
 - [x] ArticleJsonLd for each post
 - [x] Author markup
 - [x] Published/modified dates
 - [x] Category tags
 
 ### FAQ
+
 - [x] FAQJsonLd for rich snippets
 - [x] One Q&A per topic
-
----
 
 ## 6. Technical SEO
 
 ### Performance
+
 - Next.js Image optimization
 - Font preloading (Inter, Playfair)
 - Code splitting
 - Vercel Edge caching
 
 ### Mobile
+
 - Responsive viewport meta
 - Touch-friendly buttons
 - Mobile-first design
 
 ### Accessibility
+
 - Semantic HTML (main, nav, article)
 - ARIA labels
 - Alt text for images
 - Skip links
 
 ### Security
+
 - HTTPS enforced
 - CSP headers
 - No mixed content
-
----
 
 ## 7. Environment Variables
 
@@ -265,8 +258,6 @@ NEXT_PUBLIC_SITE_URL=https://planetmotors.ca
 NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX      # Google Analytics
 NEXT_PUBLIC_GTM_ID=GTM-XXXXXXX      # Google Tag Manager
 ```
-
----
 
 ## 8. Testing & Validation
 
@@ -284,8 +275,6 @@ https://search.google.com/test/rich-results?url=https://planetmotors.ca
 https://validator.schema.org/#url=https://planetmotors.ca
 ```
 
----
-
 ## 9. Future Enhancements
 
 - [ ] Dynamic OG images per vehicle
@@ -294,7 +283,5 @@ https://validator.schema.org/#url=https://planetmotors.ca
 - [ ] Review schema from Google Business
 - [ ] Product schema for protection plans
 - [ ] Event schema for sales/promotions
-
----
 
 *Last Updated: March 28, 2026*

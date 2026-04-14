@@ -140,11 +140,11 @@ export function VehicleJsonLd({ vehicle }: VehicleJsonLdProps) {
     "color": vehicle.color,
     "fuelType": vehicle.fuelType,
     "vehicleTransmission": vehicle.transmission,
-    "itemCondition": vehicle.condition === "new" 
-      ? "https://schema.org/NewCondition" 
+    "itemCondition": vehicle.condition === "new"
+      ? "https://schema.org/NewCondition"
       : "https://schema.org/UsedCondition",
-    "image": vehicle.image.startsWith("http") 
-      ? vehicle.image 
+    "image": vehicle.image.startsWith("http")
+      ? vehicle.image
       : `https://www.planetmotors.ca${vehicle.image}`,
     "url": `https://www.planetmotors.ca/vehicles/${vehicle.id}`,
     "offers": {
@@ -220,8 +220,8 @@ export function ArticleJsonLd({ article }: ArticleJsonLdProps) {
     "@type": "Article",
     "headline": article.title,
     "description": article.excerpt,
-    "image": article.coverImage.startsWith("http") 
-      ? article.coverImage 
+    "image": article.coverImage.startsWith("http")
+      ? article.coverImage
       : `https://www.planetmotors.ca${article.coverImage}`,
     "datePublished": article.publishedAt,
     "dateModified": article.modifiedAt || article.publishedAt,
@@ -312,6 +312,115 @@ export function LocalBusinessJsonLd() {
   )
 }
 
+// Financial Service Schema - for financing page
+export function FinancialServiceJsonLd() {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "FinancialService",
+    "name": "Planet Motors Auto Financing",
+    "description": "Get pre-approved for auto financing in minutes. Compare rates from 20+ major Canadian lenders with no impact on your credit score.",
+    "url": "https://www.planetmotors.ca/financing",
+    "provider": {
+      "@type": "AutoDealer",
+      "name": "Planet Motors",
+      "url": "https://www.planetmotors.ca",
+      "@id": "https://www.planetmotors.ca/#organization"
+    },
+    "areaServed": {
+      "@type": "Country",
+      "name": "Canada"
+    },
+    "serviceType": "Auto Financing",
+    "offers": {
+      "@type": "Offer",
+      "description": "Auto loan rates starting from 6.29% APR with terms from 24 to 96 months",
+      "priceCurrency": "CAD"
+    },
+    "telephone": "+1-866-797-3332",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "30 Major Mackenzie Dr E",
+      "addressLocality": "Richmond Hill",
+      "addressRegion": "ON",
+      "postalCode": "L4C 1G7",
+      "addressCountry": "CA"
+    }
+  }
+
+  return (
+    <Script
+      id="financial-service-jsonld"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
+
+// Contact Page Schema - for contact page
+export function ContactPageJsonLd() {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "AutoDealer",
+    "name": "Planet Motors",
+    "url": "https://www.planetmotors.ca/contact",
+    "@id": "https://www.planetmotors.ca/#organization",
+    "telephone": "+1-866-797-3332",
+    "email": "info@planetmotors.ca",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "30 Major Mackenzie Dr E",
+      "addressLocality": "Richmond Hill",
+      "addressRegion": "ON",
+      "postalCode": "L4C 1G7",
+      "addressCountry": "CA"
+    },
+    "contactPoint": [
+      {
+        "@type": "ContactPoint",
+        "telephone": "+1-866-797-3332",
+        "contactType": "sales",
+        "email": "sales@planetmotors.ca",
+        "availableLanguage": "English",
+        "hoursAvailable": {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          "opens": "09:00",
+          "closes": "19:00"
+        }
+      },
+      {
+        "@type": "ContactPoint",
+        "telephone": "+1-416-985-2277",
+        "contactType": "customer service",
+        "email": "info@planetmotors.ca",
+        "availableLanguage": "English"
+      }
+    ],
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "opens": "09:00",
+        "closes": "19:00"
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": "Saturday",
+        "opens": "09:00",
+        "closes": "18:00"
+      }
+    ]
+  }
+
+  return (
+    <Script
+      id="contact-page-jsonld"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
+
 // Website Search Action (for Google Sitelinks Searchbox)
 export function WebsiteSearchJsonLd() {
   const schema = {
@@ -332,6 +441,87 @@ export function WebsiteSearchJsonLd() {
   return (
     <Script
       id="website-search-jsonld"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
+
+
+export function InventoryPageJsonLd() {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Pre-Owned Vehicle Inventory | Planet Motors",
+    "description": "Browse our certified pre-owned vehicle inventory. Quality inspected vehicles with warranty and financing available.",
+    "url": "https://www.planetmotors.ca/inventory",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "Planet Motors",
+      "url": "https://www.planetmotors.ca"
+    },
+    "provider": {
+      "@type": "AutoDealer",
+      "name": "Planet Motors",
+      "url": "https://www.planetmotors.ca"
+    }
+  }
+
+  return (
+    <Script
+      id="inventory-page-jsonld"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
+
+export function TradeInPageJsonLd() {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": "Vehicle Trade-In Valuation",
+    "description": "Get an instant trade-in value for your vehicle. Fair market pricing powered by Canadian Black Book.",
+    "url": "https://www.planetmotors.ca/trade-in",
+    "provider": {
+      "@type": "AutoDealer",
+      "name": "Planet Motors",
+      "url": "https://www.planetmotors.ca",
+      "telephone": "+18667973332"
+    },
+    "serviceType": "Vehicle Trade-In"
+  }
+
+  return (
+    <Script
+      id="trade-in-page-jsonld"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
+
+export function WarrantyPageJsonLd() {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "Planet Motors Vehicle Warranty",
+    "description": "Comprehensive warranty coverage for your certified pre-owned vehicle purchase.",
+    "url": "https://www.planetmotors.ca/warranty",
+    "brand": {
+      "@type": "Brand",
+      "name": "Planet Motors"
+    },
+    "offers": {
+      "@type": "Offer",
+      "availability": "https://schema.org/InStock",
+      "priceCurrency": "CAD"
+    }
+  }
+
+  return (
+    <Script
+      id="warranty-page-jsonld"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
     />

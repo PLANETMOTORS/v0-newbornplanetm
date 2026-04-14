@@ -1,13 +1,14 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { sendNotificationEmail } from "@/lib/email"
 import { validateOrigin } from "@/lib/csrf"
+import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
 
 // POST /api/v1/financing/applications - Create new finance application
 export async function POST(request: NextRequest) {
   try {
     if (!validateOrigin(request)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      return apiError(ErrorCode.FORBIDDEN, "Forbidden", 403)
     }
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest) {
     
     if (appError) {
       console.error("Application insert error:", appError)
-      return NextResponse.json({ error: "Failed to create application", details: appError.message }, { status: 500 })
+      return apiError(ErrorCode.INTERNAL_ERROR, "Failed to create application", 500, appError.message)
     }
     
     // Create primary applicant
@@ -294,21 +295,15 @@ export async function POST(request: NextRequest) {
       },
     })
     
-    return NextResponse.json({
-      success: true,
-      data: {
-        applicationId: application.id,
-        applicationNumber: application.application_number,
-        status: application.status
-      }
+    return apiSuccess({
+      applicationId: application.id,
+      applicationNumber: application.application_number,
+      status: application.status
     })
     
   } catch (error) {
     console.error("Finance application error:", error)
-    return NextResponse.json(
-      { error: "Failed to process application" },
-      { status: 500 }
-    )
+    return apiError(ErrorCode.INTERNAL_ERROR, "Failed to process application")
   }
 }
 
@@ -319,7 +314,7 @@ export async function GET(_request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return apiError(ErrorCode.UNAUTHORIZED, "Authentication required", 401)
     }
     
     const { data: applications, error } = await supabase
@@ -346,13 +341,13 @@ export async function GET(_request: NextRequest) {
       .order("created_at", { ascending: false })
     
     if (error) {
-      return NextResponse.json({ error: "Failed to fetch applications" }, { status: 500 })
+      return apiError(ErrorCode.INTERNAL_ERROR, "Failed to fetch applications")
     }
-    
-    return NextResponse.json({ success: true, data: applications })
+
+    return apiSuccess(applications)
     
   } catch (error) {
     console.error("Get applications error:", error)
-    return NextResponse.json({ error: "Failed to fetch applications" }, { status: 500 })
+    return apiError(ErrorCode.INTERNAL_ERROR, "Failed to fetch applications")
   }
 }

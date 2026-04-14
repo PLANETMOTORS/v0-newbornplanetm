@@ -97,6 +97,17 @@ export async function cacheSearchResults(
   }
 }
 
+export async function deleteCachedSearchResults(queryHash: string): Promise<void> {
+  const redis = await getRedis()
+  if (!redis) return
+
+  try {
+    await redis.del(`search:${queryHash}`)
+  } catch (error) {
+    console.warn("[Redis] Failed to delete cached search results:", (error as Error).message)
+  }
+}
+
 export async function getCachedSearchResults(queryHash: string): Promise<unknown | null> {
   const redis = await getRedis()
   if (!redis) return null

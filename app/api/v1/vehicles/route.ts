@@ -1,63 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getCachedSearchResults, cacheSearchResults } from '@/lib/redis'
+import { createHash } from 'crypto'
 
 const ALLOWED_SORT_COLUMNS = new Set(['created_at', 'price', 'year', 'mileage', 'make', 'model'])
+
+// Only fetch the fields the inventory card actually renders — skips large text/JSON columns
 const VEHICLE_LIST_FIELDS = [
-  'id',
-  'stock_number',
-  'vin',
-  'year',
-  'make',
-  'model',
-  'trim',
-  'body_style',
-  'exterior_color',
-  'interior_color',
-  'price',
-  'msrp',
-  'mileage',
-  'drivetrain',
-  'transmission',
-  'engine',
-  'fuel_type',
-  'status',
-  'location',
-  'primary_image_url',
-  'is_certified',
-  'is_new_arrival',
-  'featured',
-  'inspection_score',
-  'is_ev',
-  'battery_capacity_kwh',
-  'range_miles',
-  'ev_battery_health_percent',
-  'created_at',
-].join(',')
+  'id', 'year', 'make', 'model', 'trim', 'price', 'msrp',
+  'mileage', 'fuel_type', 'body_style', 'transmission', 'drivetrain',
+  'exterior_color', 'primary_image_url', 'status', 'stock_number',
+  'created_at', 'vin', 'is_new_arrival', 'is_certified',
+].join(', ')
+
+// TTLs (seconds)
+const VEHICLE_LIST_TTL = 300   // 5 minutes
+const FACETS_TTL = 600          // 10 minutes
 
 function asInt(value: string | null, fallback: number) {
   const parsed = Number.parseInt(value || '', 10)
   return Number.isNaN(parsed) ? fallback : parsed
 }
 
-function toVehicleListItem(row: unknown) {
-  const vehicle = row as Record<string, unknown>
-  const rawPrice = typeof vehicle.price === 'number' ? vehicle.price : Number(vehicle.price || 0)
-  const rawMsrp = typeof vehicle.msrp === 'number' ? vehicle.msrp : Number(vehicle.msrp || 0)
+type VehicleListRow = Record<string, unknown> & {
+  price: number
+  msrp?: number | null
+}
+
+function isVehicleListRow(value: unknown): value is VehicleListRow {
+  if (Object.prototype.toString.call(value) !== '[object Object]') {
+    return false
+  }
+
+  const record = value as Record<string, unknown>
+  return typeof record.price === 'number' && (typeof record.msrp === 'number' || record.msrp === null || record.msrp === undefined)
+}
+
+function toPublicVehicleListItem(value: unknown): Record<string, unknown> | null {
+  if (!isVehicleListRow(value)) {
+    return null
+  }
 
   return {
-    ...vehicle,
-    price: rawPrice / 100,
-    msrp: rawMsrp > 0 ? rawMsrp / 100 : null,
+    ...value,
+    price: value.price / 100,
+    msrp: typeof value.msrp === 'number' ? value.msrp / 100 : null,
   }
 }
 
-function buildCountMap(values: Array<string | null | undefined>) {
-  const counts = new Map<string, number>()
-  for (const value of values) {
-    if (!value) continue
-    counts.set(value, (counts.get(value) || 0) + 1)
-  }
-  return Array.from(counts.entries()).map(([key, count]) => ({ key, count }))
+// 32 hex chars (128 bits) provides ample collision resistance for Redis cache keys
+// while keeping key lengths compact compared to the full 64-char digest.
+function hashKey(input: string): string {
+  return createHash('sha256').update(input).digest('hex').slice(0, 32)
 }
 
 // GET /api/v1/vehicles - List vehicles with filtering
@@ -88,6 +82,20 @@ export async function GET(request: NextRequest) {
   const rawLimit = asInt(searchParams.get('limit'), 20)
   const limit = Math.min(Math.max(1, rawLimit), 250)
   const includeFilters = searchParams.get('includeFilters') === 'true'
+
+  // Build a deterministic cache key from all query params
+  const cacheKey = `vehicles:list:${hashKey(searchParams.toString())}`
+
+  // Try Redis cache first
+  const cached = await getCachedSearchResults(cacheKey)
+  if (cached) {
+    return NextResponse.json(cached, {
+      headers: {
+        'Cache-Control': `public, s-maxage=${VEHICLE_LIST_TTL}, stale-while-revalidate=${VEHICLE_LIST_TTL * 2}`,
+        'X-Cache': 'HIT',
+      },
+    })
+  }
 
   // Build query
   let query = supabase
@@ -135,38 +143,49 @@ export async function GET(request: NextRequest) {
 
   // Computing facets can be expensive on large inventories, so keep it opt-in.
   if (includeFilters) {
-    const { data: allVehicles } = await supabase
-      .from('vehicles')
-      .select('make, body_style, fuel_type, price, year')
-      .eq('status', 'available')
-      .limit(5000)
+    const facetsCacheKey = `vehicles:facets:${status}`
+    const cachedFacets = await getCachedSearchResults(facetsCacheKey) as typeof filters | null
 
-    const all = allVehicles || []
-    const makes = buildCountMap(all.map((v) => v.make)).map((entry) => entry.key)
-    const bodyStyles = buildCountMap(all.map((v) => v.body_style)).map((entry) => entry.key)
-    const fuelTypes = buildCountMap(all.map((v) => v.fuel_type)).map((entry) => entry.key)
-    const prices = all.map(v => Number(v.price || 0) / 100).filter((value) => Number.isFinite(value) && value >= 0)
-    const years = all.map(v => Number(v.year || 0)).filter((value) => Number.isFinite(value) && value > 0)
+    if (cachedFacets) {
+      filters = cachedFacets
+    } else {
+      const { data: allVehicles } = await supabase
+        .from('vehicles')
+        .select('make, body_style, fuel_type, price, year')
+        .eq('status', status)
+        .limit(1000)
 
-    filters = {
-      makes: makes.sort(),
-      bodyStyles: bodyStyles.sort(),
-      fuelTypes: fuelTypes.sort(),
-      priceRange: {
-        min: prices.length > 0 ? Math.min(...prices) : 0,
-        max: prices.length > 0 ? Math.max(...prices) : 100000,
-      },
-      yearRange: {
-        min: years.length > 0 ? Math.min(...years) : 2018,
-        max: years.length > 0 ? Math.max(...years) : new Date().getFullYear(),
-      },
+      const makes = [...new Set(allVehicles?.map(v => v.make).filter(Boolean) || [])]
+      const bodyStyles = [...new Set(allVehicles?.map(v => v.body_style).filter(Boolean) || [])]
+      const fuelTypes = [...new Set(allVehicles?.map(v => v.fuel_type).filter(Boolean) || [])]
+      const prices = allVehicles?.map(v => v.price / 100) || []
+      const years = allVehicles?.map(v => v.year) || []
+
+      filters = {
+        makes: makes.sort(),
+        bodyStyles: bodyStyles.sort(),
+        fuelTypes: fuelTypes.sort(),
+        priceRange: {
+          min: prices.length > 0 ? Math.min(...prices) : 0,
+          max: prices.length > 0 ? Math.max(...prices) : 100000,
+        },
+        yearRange: {
+          min: years.length > 0 ? Math.min(...years) : 2018,
+          max: years.length > 0 ? Math.max(...years) : new Date().getFullYear(),
+        },
+      }
+
+      // Cache facets independently with longer TTL
+      await cacheSearchResults(facetsCacheKey, filters, FACETS_TTL)
     }
   }
 
-  return NextResponse.json({
+  const responseBody = {
     success: true,
     data: {
-      vehicles: vehicles?.map((v) => toVehicleListItem(v)),
+      vehicles: (vehicles ?? [])
+        .map(toPublicVehicleListItem)
+        .filter((vehicle): vehicle is Record<string, unknown> => vehicle !== null),
       pagination: {
         page,
         limit,
@@ -176,9 +195,15 @@ export async function GET(request: NextRequest) {
       },
       ...(filters ? { filters } : {}),
     },
-  }, {
+  }
+
+  // Persist to Redis
+  await cacheSearchResults(cacheKey, responseBody, VEHICLE_LIST_TTL)
+
+  return NextResponse.json(responseBody, {
     headers: {
-      'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600',
+      'Cache-Control': `public, s-maxage=${VEHICLE_LIST_TTL}, stale-while-revalidate=${VEHICLE_LIST_TTL * 2}`,
+      'X-Cache': 'MISS',
     },
   })
 }
@@ -193,7 +218,7 @@ export async function POST(request: NextRequest) {
     filters = {},
     sort = { field: 'created_at', order: 'desc' },
     pagination = { page: 1, limit: 20 },
-    includeAggregations = false,
+    includeAggregations: _includeAggregations = false,
   } = body
 
   const safeSortField = ALLOWED_SORT_COLUMNS.has(sort.field) ? sort.field : 'created_at'
@@ -239,53 +264,89 @@ export async function POST(request: NextRequest) {
   const startIndex = (safePage - 1) * safeLimit
   query = query.range(startIndex, startIndex + safeLimit - 1)
 
-  const { data: vehicles, error, count } = await query
+  // Run vehicle fetch and aggregation in parallel, with the aggregation served
+  // from Redis when available to avoid the repeated full-table scan.
+  const aggCacheKey = 'vehicles:aggregations:available'
+  const [vehicleResult, cachedAgg] = await Promise.all([
+    query,
+    getCachedSearchResults(aggCacheKey),
+  ])
+
+  const { data: vehicles, error, count } = vehicleResult
 
   if (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
 
-  let aggregations:
-    | {
-        makes: Array<{ key: string; count: number }>
-        bodyStyles: Array<{ key: string; count: number }>
-        priceRanges: Array<{ key: string; count: number }>
-      }
-    | undefined
+  type Aggregations = {
+    makes: { key: string; count: number }[]
+    bodyStyles: { key: string; count: number }[]
+    priceRanges: { key: string; count: number }[]
+  }
 
-  if (includeAggregations) {
+  let aggregations: Aggregations
+
+  if (cachedAgg) {
+    aggregations = cachedAgg as Aggregations
+  } else {
     const { data: allVehicles } = await supabase
       .from('vehicles')
       .select('make, body_style, price')
       .eq('status', 'available')
-      .limit(5000)
+      .limit(1000)
 
-    const records = allVehicles || []
+    // Price thresholds in cents
+    const PRICE_30K_CENTS  = 3_000_000
+    const PRICE_50K_CENTS  = 5_000_000
+    const PRICE_75K_CENTS  = 7_500_000
+    const PRICE_100K_CENTS = 10_000_000
+
+    // Build count maps in a single O(n) pass
+    const makeCounts = new Map<string, number>()
+    const bodyStyleCounts = new Map<string, number>()
+    let under30kCount = 0, from30to50kCount = 0, from50to75kCount = 0, from75to100kCount = 0, over100kCount = 0
+
+    for (const v of allVehicles ?? []) {
+      if (v.make) makeCounts.set(v.make, (makeCounts.get(v.make) || 0) + 1)
+      if (v.body_style) bodyStyleCounts.set(v.body_style, (bodyStyleCounts.get(v.body_style) || 0) + 1)
+      const p = v.price
+      if (p < PRICE_30K_CENTS) under30kCount++
+      else if (p < PRICE_50K_CENTS) from30to50kCount++
+      else if (p < PRICE_75K_CENTS) from50to75kCount++
+      else if (p < PRICE_100K_CENTS) from75to100kCount++
+      else over100kCount++
+    }
+
     aggregations = {
-      makes: buildCountMap(records.map((v) => v.make)),
-      bodyStyles: buildCountMap(records.map((v) => v.body_style)),
+      makes: Array.from(makeCounts.entries()).map(([key, count]) => ({ key, count })),
+      bodyStyles: Array.from(bodyStyleCounts.entries()).map(([key, count]) => ({ key, count })),
       priceRanges: [
-        { key: 'Under $30k', count: records.filter(v => Number(v.price || 0) < 3000000).length },
-        { key: '$30k-$50k', count: records.filter(v => Number(v.price || 0) >= 3000000 && Number(v.price || 0) < 5000000).length },
-        { key: '$50k-$75k', count: records.filter(v => Number(v.price || 0) >= 5000000 && Number(v.price || 0) < 7500000).length },
-        { key: '$75k-$100k', count: records.filter(v => Number(v.price || 0) >= 7500000 && Number(v.price || 0) < 10000000).length },
-        { key: 'Over $100k', count: records.filter(v => Number(v.price || 0) >= 10000000).length },
+        { key: 'Under $30k', count: under30kCount },
+        { key: '$30k-$50k', count: from30to50kCount },
+        { key: '$50k-$75k', count: from50to75kCount },
+        { key: '$75k-$100k', count: from75to100kCount },
+        { key: 'Over $100k', count: over100kCount },
       ],
     }
+
+    await cacheSearchResults(aggCacheKey, aggregations, FACETS_TTL)
   }
 
   return NextResponse.json(
     {
       success: true,
       data: {
-        vehicles: vehicles?.map((v) => toVehicleListItem(v)),
+        vehicles: (vehicles ?? [])
+          .map(toPublicVehicleListItem)
+          .filter((vehicle): vehicle is Record<string, unknown> => vehicle !== null),
         total: count || 0,
-        ...(aggregations ? { aggregations } : {}),
+        aggregations,
       },
     },
     {
       headers: {
         'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=900',
+        'X-Cache': cachedAgg ? 'HIT' : 'MISS',
       },
     }
   )
