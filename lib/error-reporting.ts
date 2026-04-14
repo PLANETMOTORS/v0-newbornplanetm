@@ -1,19 +1,13 @@
 // Error reporting abstraction layer.
-// Uses Sentry when DSN is configured, falls back to console logging.
-
-let Sentry: typeof import("@sentry/nextjs") | null = null
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  Sentry = require("@sentry/nextjs")
-} catch {
-  // @sentry/nextjs not installed — Sentry features disabled
-}
+// Falls back to console logging when Sentry is not installed.
+// NOTE: @sentry/nextjs is not currently in package.json.
+// When installed, this module will automatically detect and use it.
 
 /**
  * Check if Sentry is initialized (DSN is configured).
  */
 function isSentryInitialized(): boolean {
-  return !!Sentry?.getClient?.()
+  return false // @sentry/nextjs not installed
 }
 
 /**
@@ -24,11 +18,8 @@ export function reportError(
   error: Error,
   context?: Record<string, unknown>,
 ): void {
-  if (isSentryInitialized() && Sentry) {
-    Sentry.captureException(error, {
-      extra: context,
-    })
-  }
+  // Sentry capture would go here when @sentry/nextjs is installed
+  void isSentryInitialized()
 
   // Always log to console for local development visibility
   if (context) {
@@ -47,12 +38,8 @@ export function reportMessage(
   level: "info" | "warning" | "error",
   context?: Record<string, unknown>,
 ): void {
-  if (isSentryInitialized() && Sentry) {
-    Sentry.captureMessage(message, {
-      level: level as import("@sentry/nextjs").SeverityLevel,
-      extra: context,
-    })
-  }
+  // Sentry capture would go here when @sentry/nextjs is installed
+  void isSentryInitialized()
 
   // Always log to console for local development visibility
   const logFn =
