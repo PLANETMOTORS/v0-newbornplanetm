@@ -1,7 +1,7 @@
 "use client"
 
 import { Star } from "lucide-react"
-import { useGoogleReviews } from "@/lib/hooks/use-google-reviews"
+import { useGoogleReviews } from "@/hooks/use-google-reviews"
 
 interface GoogleReviewsBadgeProps {
   variant?: "default" | "compact" | "inline"

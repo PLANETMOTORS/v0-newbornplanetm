@@ -103,8 +103,8 @@ export async function deleteCachedSearchResults(queryHash: string): Promise<void
 
   try {
     await redis.del(`search:${queryHash}`)
-  } catch {
-    // Silently fail — cache will expire naturally
+  } catch (error) {
+    console.warn("[Redis] Failed to delete cached search results:", (error as Error).message)
   }
 }
 

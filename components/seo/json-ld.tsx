@@ -140,11 +140,11 @@ export function VehicleJsonLd({ vehicle }: VehicleJsonLdProps) {
     "color": vehicle.color,
     "fuelType": vehicle.fuelType,
     "vehicleTransmission": vehicle.transmission,
-    "itemCondition": vehicle.condition === "new" 
-      ? "https://schema.org/NewCondition" 
+    "itemCondition": vehicle.condition === "new"
+      ? "https://schema.org/NewCondition"
       : "https://schema.org/UsedCondition",
-    "image": vehicle.image.startsWith("http") 
-      ? vehicle.image 
+    "image": vehicle.image.startsWith("http")
+      ? vehicle.image
       : `https://www.planetmotors.ca${vehicle.image}`,
     "url": `https://www.planetmotors.ca/vehicles/${vehicle.id}`,
     "offers": {
@@ -220,8 +220,8 @@ export function ArticleJsonLd({ article }: ArticleJsonLdProps) {
     "@type": "Article",
     "headline": article.title,
     "description": article.excerpt,
-    "image": article.coverImage.startsWith("http") 
-      ? article.coverImage 
+    "image": article.coverImage.startsWith("http")
+      ? article.coverImage
       : `https://www.planetmotors.ca${article.coverImage}`,
     "datePublished": article.publishedAt,
     "dateModified": article.modifiedAt || article.publishedAt,
@@ -441,6 +441,87 @@ export function WebsiteSearchJsonLd() {
   return (
     <Script
       id="website-search-jsonld"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
+
+
+export function InventoryPageJsonLd() {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Pre-Owned Vehicle Inventory | Planet Motors",
+    "description": "Browse our certified pre-owned vehicle inventory. Quality inspected vehicles with warranty and financing available.",
+    "url": "https://www.planetmotors.ca/inventory",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "Planet Motors",
+      "url": "https://www.planetmotors.ca"
+    },
+    "provider": {
+      "@type": "AutoDealer",
+      "name": "Planet Motors",
+      "url": "https://www.planetmotors.ca"
+    }
+  }
+
+  return (
+    <Script
+      id="inventory-page-jsonld"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
+
+export function TradeInPageJsonLd() {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": "Vehicle Trade-In Valuation",
+    "description": "Get an instant trade-in value for your vehicle. Fair market pricing powered by Canadian Black Book.",
+    "url": "https://www.planetmotors.ca/trade-in",
+    "provider": {
+      "@type": "AutoDealer",
+      "name": "Planet Motors",
+      "url": "https://www.planetmotors.ca",
+      "telephone": "+18667973332"
+    },
+    "serviceType": "Vehicle Trade-In"
+  }
+
+  return (
+    <Script
+      id="trade-in-page-jsonld"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
+
+export function WarrantyPageJsonLd() {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "Planet Motors Vehicle Warranty",
+    "description": "Comprehensive warranty coverage for your certified pre-owned vehicle purchase.",
+    "url": "https://www.planetmotors.ca/warranty",
+    "brand": {
+      "@type": "Brand",
+      "name": "Planet Motors"
+    },
+    "offers": {
+      "@type": "Offer",
+      "availability": "https://schema.org/InStock",
+      "priceCurrency": "CAD"
+    }
+  }
+
+  return (
+    <Script
+      id="warranty-page-jsonld"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
     />

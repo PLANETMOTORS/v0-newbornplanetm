@@ -10,8 +10,6 @@ test.describe("Contact Page", () => {
   })
 
   test("displays contact methods", async ({ page }) => {
-    // Scope to main content area to avoid header/footer duplicates
-    const main = page.locator("section").first()
     await expect(page.getByText("1-866-797-3332").first()).toBeVisible()
     await expect(page.getByText("info@planetmotors.ca").first()).toBeVisible()
   })

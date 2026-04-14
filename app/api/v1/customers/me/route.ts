@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
 
 // GET /api/v1/customers/me - Get current customer profile
 export async function GET(_request: NextRequest) {
@@ -7,7 +8,7 @@ export async function GET(_request: NextRequest) {
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return apiError(ErrorCode.UNAUTHORIZED, "Authentication required", 401)
     }
 
     const metadata = user.user_metadata ?? {}
@@ -20,12 +21,9 @@ export async function GET(_request: NextRequest) {
       phone: metadata.phone ?? null,
     }
 
-    return NextResponse.json({ customer })
+    return apiSuccess({ customer })
   } catch (_error) {
-    return NextResponse.json(
-      { error: "Failed to fetch customer" },
-      { status: 500 }
-    )
+    return apiError(ErrorCode.INTERNAL_ERROR, "Failed to fetch customer")
   }
 }
 
@@ -35,7 +33,7 @@ export async function PUT(request: NextRequest) {
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return apiError(ErrorCode.UNAUTHORIZED, "Authentication required", 401)
     }
 
     const body = await request.json()
@@ -68,8 +66,7 @@ export async function PUT(request: NextRequest) {
     }
 
     if (Object.keys(updatePayload).length === 0) {
-      return NextResponse.json({
-        success: true,
+      return apiSuccess({
         customer: {
           id: user.id,
           email: user.email,
@@ -80,14 +77,13 @@ export async function PUT(request: NextRequest) {
 
     const { data: updatedUserData, error: updateError } = await supabase.auth.updateUser(updatePayload)
     if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 400 })
+      return apiError(ErrorCode.VALIDATION_ERROR, updateError.message, 400)
     }
 
     const updatedUser = updatedUserData.user
     const updatedMetadata = updatedUser?.user_metadata ?? user.user_metadata ?? {}
 
-    return NextResponse.json({
-      success: true,
+    return apiSuccess({
       customer: {
         id: updatedUser?.id ?? user.id,
         email: updatedUser?.email ?? user.email,
@@ -98,9 +94,6 @@ export async function PUT(request: NextRequest) {
       },
     })
   } catch (_error) {
-    return NextResponse.json(
-      { error: "Failed to update customer" },
-      { status: 500 }
-    )
+    return apiError(ErrorCode.INTERNAL_ERROR, "Failed to update customer")
   }
 }
