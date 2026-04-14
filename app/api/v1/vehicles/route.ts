@@ -218,7 +218,7 @@ export async function POST(request: NextRequest) {
     filters = {},
     sort = { field: 'created_at', order: 'desc' },
     pagination = { page: 1, limit: 20 },
-    includeAggregations = false,
+    includeAggregations: _includeAggregations = false,
   } = body
 
   const safeSortField = ALLOWED_SORT_COLUMNS.has(sort.field) ? sort.field : 'created_at'

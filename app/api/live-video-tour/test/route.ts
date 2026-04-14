@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
+import { createClient } from "@/lib/supabase/server"
+
+const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
 
 // GET /api/live-video-tour/test
 // Sends a direct test email to verify Resend is working
 export async function GET() {
   if (process.env.NODE_ENV === 'production') return NextResponse.json({ error: 'Not available' }, { status: 404 })
+
+  const supabase = await createClient()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user || !ADMIN_EMAILS.includes(user.email || "")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
 
   const apiKey = process.env.API_KEY_RESEND || process.env.RESEND_API_KEY
 

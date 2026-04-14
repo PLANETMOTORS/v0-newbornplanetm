@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server"
 import { sendNotificationEmail, sendCustomerConfirmationEmail } from "@/lib/email"
+import { createClient } from "@/lib/supabase/server"
+
+const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
 
 // Test endpoint to verify all email notifications are working
 // GET /api/test-emails?type=all or ?type=finance_application
 export async function GET(req: Request) {
   if (process.env.NODE_ENV === 'production') return NextResponse.json({ error: 'Not available' }, { status: 404 })
+
+  const supabase = await createClient()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user || !ADMIN_EMAILS.includes(user.email || "")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
 
   const { searchParams } = new URL(req.url)
   const type = searchParams.get("type") || "all"

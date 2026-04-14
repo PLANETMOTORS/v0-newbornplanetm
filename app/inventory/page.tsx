@@ -256,16 +256,20 @@ function InventoryContent() {
   const dynamicYears = apiFilters?.yearRange
     ? ['All Years', ...Array.from({ length: apiFilters.yearRange.max - apiFilters.yearRange.min + 1 }, (_, i) => String(apiFilters.yearRange.max - i))]
     : ['All Years']
-  const dynamicBodyTypes = apiFilters?.bodyStyles?.length
+  const _dynamicBodyTypes = apiFilters?.bodyStyles?.length
     ? ['All Body Types', ...apiFilters.bodyStyles]
     : ['All Body Types']
 
   // Reset to page 1 whenever filters or sort change (not currentPage itself)
   const filterKey = `${sortBy}|${evOnly}|${selectedFuelType}|${selectedMake}|${selectedBodyType}|${selectedYear}|${selectedTransmission}|${selectedColor}|${selectedDrivetrain}|${priceRange[0]}|${priceRange[1]}|${mileageRange[0]}|${mileageRange[1]}|${searchQuery}`
+<<<<<<< HEAD
+=======
+  const _prevFilterKey = useMemo(() => filterKey, [filterKey])
+>>>>>>> 2b572bd (feat(auth): add middleware for session management and admin route protec)
   useEffect(() => {
     setCurrentPage(1)
     setAccumulatedVehicles([])
-  }, [filterKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [filterKey])
 
   // Read URL parameters and set filters
   useEffect(() => {
