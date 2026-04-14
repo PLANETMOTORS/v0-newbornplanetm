@@ -5,13 +5,11 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import { 
-  LayoutDashboard, Car, Users, FileText, DollarSign, 
-  MessageSquare, Settings, LogOut, Menu, X, ChevronDown,
+  LayoutDashboard, Car, Users, FileText, DollarSign,
+  MessageSquare, Settings, LogOut, Menu, X,
   BarChart3, Bell, Search, Shield
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },

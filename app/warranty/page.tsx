@@ -1,3 +1,10 @@
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Warranty & Protection Plans | Planet Motors",
+  description: "Drive with confidence. Explore extended warranty and protection plans from Planet Motors. Coverage options for every budget.",
+}
+
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -76,7 +83,7 @@ export default function WarrantyPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="pt-32 pb-16">
         {/* Hero */}
         <section className="bg-gradient-to-br from-primary/10 via-background to-accent/5 py-16">
@@ -89,7 +96,7 @@ export default function WarrantyPage() {
               Drive with Confidence
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Every vehicle includes our standard warranty. Upgrade to extended protection 
+              Every vehicle includes our standard warranty. Upgrade to extended protection
               for complete peace of mind on the road.
             </p>
           </div>
@@ -99,8 +106,8 @@ export default function WarrantyPage() {
         <section className="py-16 container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 max-w-5xl mx-auto">
             {warrantyPlans.map((plan) => (
-              <Card 
-                key={plan.name} 
+              <Card
+                key={plan.name}
                 className={`relative ${plan.highlighted ? "border-primary shadow-lg scale-105" : ""}`}
               >
                 {plan.highlighted && (

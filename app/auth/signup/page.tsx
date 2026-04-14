@@ -87,7 +87,7 @@ function SignUpForm() {
       const supabase = createClient()
       const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`
       
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: callbackUrl,
@@ -95,7 +95,9 @@ function SignUpForm() {
       })
       
       if (error) throw error
-      // Supabase will automatically redirect to OAuth provider
+      if (data?.url) {
+        window.location.assign(data.url)
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "OAuth signup failed")
       setIsLoading(false)

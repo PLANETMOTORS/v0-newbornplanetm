@@ -183,8 +183,7 @@ export async function DELETE(request: NextRequest) {
       `)
       .eq("id", documentId)
       .single()
-    
-    if (!document || !isDocumentWithApplication(document) || document.finance_applications_v2.user_id !== user.id) {
+    if (!document || !isDocumentWithApplication(document) || (document as unknown as DocumentWithApplication).finance_applications_v2.user_id !== user.id) {
       return errorResponse(403, "FORBIDDEN", "Unauthorized")
     }
     

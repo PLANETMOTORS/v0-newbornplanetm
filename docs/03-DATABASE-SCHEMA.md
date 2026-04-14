@@ -4,8 +4,6 @@
 
 Planet Motors uses **Supabase PostgreSQL** as the primary database with **Row Level Security (RLS)** enabled on all tables.
 
----
-
 ## 1. Customers Table
 
 ```sql
@@ -43,8 +41,6 @@ CREATE POLICY "Users can update own profile"
   USING (auth.uid() = auth_user_id);
 ```
 
----
-
 ## 2. Customer Addresses Table
 
 ```sql
@@ -75,8 +71,6 @@ CREATE POLICY "Users can manage own addresses"
     SELECT id FROM customers WHERE auth_user_id = auth.uid()
   ));
 ```
-
----
 
 ## 3. Vehicles Table
 
@@ -147,8 +141,6 @@ CREATE POLICY "Anyone can view available vehicles"
   USING (status IN ('available', 'reserved'));
 ```
 
----
-
 ## 4. Vehicle Photos Table
 
 ```sql
@@ -173,8 +165,6 @@ CREATE POLICY "Anyone can view vehicle photos"
   ON vehicle_photos FOR SELECT 
   USING (true);
 ```
-
----
 
 ## 5. Inspections Table (210-Point)
 
@@ -219,8 +209,6 @@ CREATE POLICY "Anyone can view inspections"
   ON inspections FOR SELECT 
   USING (true);
 ```
-
----
 
 ## 6. Orders Table
 
@@ -293,8 +281,6 @@ CREATE POLICY "Users can view own orders"
   ));
 ```
 
----
-
 ## 7. Financing Applications Table
 
 ```sql
@@ -360,8 +346,6 @@ CREATE POLICY "Users can manage own applications"
   ));
 ```
 
----
-
 ## 8. Financing Offers Table
 
 ```sql
@@ -407,8 +391,6 @@ CREATE POLICY "Users can view own offers"
   ));
 ```
 
----
-
 ## 9. Lenders Table
 
 ```sql
@@ -440,8 +422,6 @@ CREATE TABLE lenders (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
-
----
 
 ## 10. Trade-Ins Table
 
@@ -497,8 +477,6 @@ CREATE POLICY "Users can manage own trade-ins"
     SELECT id FROM customers WHERE auth_user_id = auth.uid()
   ));
 ```
-
----
 
 ## 11. Deliveries Table
 
@@ -563,8 +541,6 @@ CREATE POLICY "Users can view own deliveries"
   ));
 ```
 
----
-
 ## 12. Returns Table (10-Day Policy)
 
 ```sql
@@ -617,8 +593,6 @@ CREATE POLICY "Users can view own returns"
   ));
 ```
 
----
-
 ## 13. Hubs Table
 
 ```sql
@@ -656,8 +630,6 @@ CREATE TABLE hubs (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
-
----
 
 ## 14. Payments Table
 
@@ -714,8 +686,6 @@ CREATE POLICY "Users can view own payments"
   ));
 ```
 
----
-
 ## Schema Diagram
 
 ```
@@ -742,7 +712,4 @@ CREATE POLICY "Users can view own payments"
    └───────────┘     └────────────┘     └────────┘
 ```
 
----
-
-*Document Version: 1.0*
-*Last Updated: March 28, 2026*
+*Document Version: 1.0**Last Updated: March 28, 2026*

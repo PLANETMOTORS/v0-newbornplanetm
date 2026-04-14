@@ -6,7 +6,7 @@ import type { LiveVideoTourProviderAdapter } from "./index"
 // This provider just tracks the booking and notifies staff
 
 // Dealership WhatsApp Business number
-const DEALERSHIP_WHATSAPP = process.env.DEALERSHIP_WHATSAPP_NUMBER || "+14169852277"
+
 
 export const whatsappProvider: LiveVideoTourProviderAdapter = {
   async createMeeting(booking: LiveVideoTourBooking): Promise<LiveVideoTourProviderResult> {

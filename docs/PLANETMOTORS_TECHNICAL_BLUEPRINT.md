@@ -4,12 +4,10 @@
 
 This document provides a comprehensive technical blueprint for Planet Motors, a Canadian online used car retailer. The architecture is designed to handle 9,500+ vehicles with optimized 360-degree spin viewers, multi-lender financing, and province-specific tax calculations.
 
----
-
 ## 1. Company Overview
 
 | Metric | Value |
-|--------|-------|
+| --- | --- |
 | Founded | 2015 |
 | Headquarters | Toronto, Ontario, Canada |
 | Employees | Target: 200+ |
@@ -19,14 +17,12 @@ This document provides a comprehensive technical blueprint for Planet Motors, a 
 | Return Policy | 10-Day Return |
 | Inspection | 210-point |
 
----
-
 ## 2. Technology Stack
 
 ### 2.1 Frontend
 
 | Component | Technology |
-|-----------|------------|
+| --- | --- |
 | UI Framework | React 19 |
 | Language | TypeScript |
 | State Management | Context API + SWR |
@@ -41,7 +37,7 @@ This document provides a comprehensive technical blueprint for Planet Motors, a 
 ### 2.2 Backend
 
 | Component | Technology |
-|-----------|------------|
+| --- | --- |
 | Primary Language | TypeScript (Node.js) |
 | Primary Framework | Express.js 4.x |
 | Secondary Language | Python 3.11+ |
@@ -53,7 +49,7 @@ This document provides a comprehensive technical blueprint for Planet Motors, a 
 ### 2.3 Databases
 
 | Component | Technology |
-|-----------|------------|
+| --- | --- |
 | Primary RDBMS | PostgreSQL (AWS RDS) |
 | Caching | ElastiCache (Redis) |
 | Search Engine | PostgreSQL Full-Text |
@@ -62,7 +58,7 @@ This document provides a comprehensive technical blueprint for Planet Motors, a 
 ### 2.4 Message Queues
 
 | Component | Technology |
-|-----------|------------|
+| --- | --- |
 | Event Streaming | Apache Kafka |
 | Task Queue | RabbitMQ |
 | Enterprise Messaging | RabbitMQ |
@@ -70,7 +66,7 @@ This document provides a comprehensive technical blueprint for Planet Motors, a 
 ### 2.5 Infrastructure
 
 | Component | Technology |
-|-----------|------------|
+| --- | --- |
 | Primary Cloud | Amazon Web Services (AWS) |
 | Container Orchestration | AWS ECS (Fargate) |
 | Container Runtime | Docker |
@@ -81,14 +77,12 @@ This document provides a comprehensive technical blueprint for Planet Motors, a 
 ### 2.6 CDN & Edge
 
 | Component | Technology |
-|-----------|------------|
+| --- | --- |
 | Primary CDN | Amazon CloudFront |
 | Secondary CDN | Fastly |
 | DDoS Protection | AWS Shield |
 | WAF | AWS WAF |
 | Image CDN | imgix + CloudFront |
-
----
 
 ## 3. Microservices Architecture
 
@@ -145,7 +139,7 @@ This document provides a comprehensive technical blueprint for Planet Motors, a 
 ### Service Configuration
 
 | Service | Technology | CPU | Memory | Min/Max Instances |
-|---------|------------|-----|--------|-------------------|
+| --- | --- | --- | --- | --- |
 | API Gateway | Express.js | 512 | 1024 | 3-10 |
 | Inventory | Express.js | 256 | 512 | 2-8 |
 | Pricing | Express.js | 256 | 512 | 2-6 |
@@ -160,8 +154,6 @@ This document provides a comprehensive technical blueprint for Planet Motors, a 
 | Auth | Express.js | 256 | 512 | 2-6 |
 | Media | Express.js | 512 | 1024 | 2-8 |
 | Analytics | Python FastAPI | 1024 | 2048 | 1-4 |
-
----
 
 ## 4. API Architecture
 
@@ -248,14 +240,12 @@ POST   /api/v1/returns/:id/schedule-pickup  Schedule vehicle pickup
 GET    /api/v1/returns/:id/refund    Get refund details
 ```
 
----
-
 ## 5. Security Architecture
 
 ### Security Layers
 
 | Layer | Implementation | Description |
-|-------|---------------|-------------|
+| --- | --- | --- |
 | Edge | AWS Shield Advanced | DDoS protection, managed WAF |
 | Application | Express middleware | Helmet.js, express-validator, rate limiting |
 | Data | AWS KMS | Encryption at rest, column-level PII encryption |
@@ -279,6 +269,7 @@ GET    /api/v1/returns/:id/refund    Get refund details
 ### Auth Endpoints
 
 **1. Customer Login**
+
 ```
 POST /api/v1/auth/login
 ├── Validate credentials
@@ -288,6 +279,7 @@ POST /api/v1/auth/login
 ```
 
 **2. OAuth 2.0 Login (Google)**
+
 ```
 GET /api/v1/auth/google
 ├── Redirect to Google
@@ -297,6 +289,7 @@ GET /api/v1/auth/google
 ```
 
 **3. Token Refresh**
+
 ```
 POST /api/v1/auth/refresh
 ├── Validate refresh token
@@ -305,6 +298,7 @@ POST /api/v1/auth/refresh
 ```
 
 **4. Logout**
+
 ```
 POST /api/v1/auth/logout
 ├── Revoke refresh token
@@ -315,20 +309,18 @@ POST /api/v1/auth/logout
 ### Compliance
 
 | Regulation | Requirement | Implementation |
-|------------|-------------|----------------|
-| **PIPEDA** | Canadian privacy | Data residency in ca-central-1 |
-| **PCI DSS** | Payment security | Stripe tokenization, no card storage |
-| **OMVIC** | Ontario dealer regulations | Documentation, disclosures |
-| **AMVIC** | Alberta dealer regulations | Documentation, disclosures |
-
----
+| --- | --- | --- |
+| PIPEDA | Canadian privacy | Data residency in ca-central-1 |
+| PCI DSS | Payment security | Stripe tokenization, no card storage |
+| OMVIC | Ontario dealer regulations | Documentation, disclosures |
+| AMVIC | Alberta dealer regulations | Documentation, disclosures |
 
 ## 6. Third-Party Integrations
 
 ### Vehicle Data
 
 | Service | Provider | Purpose |
-|---------|----------|---------|
+| --- | --- | --- |
 | Vehicle History | Carfax | Accident history, ownership |
 | Vehicle Valuation | Canadian Black Book | Market value |
 | VIN Decoding | DataOne | Vehicle specs |
@@ -336,7 +328,7 @@ POST /api/v1/auth/logout
 ### Credit & Financing (Multi-Lender)
 
 | Service | Provider | Purpose |
-|---------|----------|---------|
+| --- | --- | --- |
 | Credit Bureau | Equifax Canada | Credit reports |
 | Credit Bureau | TransUnion Canada | Credit reports |
 | Lender | TD Auto Finance | Vehicle financing |
@@ -349,7 +341,7 @@ POST /api/v1/auth/logout
 ### Payments
 
 | Service | Provider | Purpose |
-|---------|----------|---------|
+| --- | --- | --- |
 | Card Processing | Stripe | Credit/debit payments |
 | Bank Verification | Plaid | Bank account verification |
 | Canadian Payments | Interac e-Transfer | EFT payments |
@@ -357,7 +349,7 @@ POST /api/v1/auth/logout
 ### Communications
 
 | Service | Provider | Purpose |
-|---------|----------|---------|
+| --- | --- | --- |
 | SMS/Voice | Twilio | Customer notifications |
 | Transactional Email | SendGrid | Order confirmations |
 | Marketing Email | HubSpot | Marketing automation |
@@ -365,7 +357,7 @@ POST /api/v1/auth/logout
 ### CRM & Analytics
 
 | Service | Provider | Purpose |
-|---------|----------|---------|
+| --- | --- | --- |
 | CRM | HubSpot | Customer management |
 | Web Analytics | Google Analytics 4 | Traffic analysis |
 | Session Replay | FullStory | UX insights |
@@ -374,18 +366,16 @@ POST /api/v1/auth/logout
 ### Insurance & Warranty
 
 | Service | Provider | Purpose |
-|---------|----------|---------|
+| --- | --- | --- |
 | Insurance Quotes | Sonnet | Auto insurance |
 | Extended Warranty | Lubrico | Vehicle service contracts |
-
----
 
 ## 7. Cost Estimation (Monthly CAD)
 
 ### AWS Services
 
 | Service | Configuration | Cost |
-|---------|---------------|------|
+| --- | --- | --- |
 | ECS Fargate | 14 services, auto-scaling | $3,500 |
 | RDS PostgreSQL | db.r6g.xlarge, Multi-AZ | $1,200 |
 | ElastiCache Redis | cache.r6g.large | $400 |
@@ -398,12 +388,12 @@ POST /api/v1/auth/logout
 | Secrets Manager | 50 secrets | $50 |
 | CloudWatch | Logs, metrics, alarms | $400 |
 | Data Transfer | Inter-region, internet | $1,500 |
-| **AWS Subtotal** | | **$14,050** |
+| AWS Subtotal |  | $14,050 |
 
 ### Third-Party Services
 
 | Service | Configuration | Cost |
-|---------|---------------|------|
+| --- | --- | --- |
 | Stripe | 2.9% + $0.30 per transaction | Variable |
 | Twilio | SMS + Voice | $500 |
 | SendGrid | Pro plan | $200 |
@@ -412,23 +402,17 @@ POST /api/v1/auth/logout
 | Optimizely | Web experimentation | $2,000 |
 | Carfax API | Per-report | $500 |
 | CBB API | Subscription | $800 |
-| **Third-Party Subtotal** | | **$10,000** |
+| Third-Party Subtotal |  | $10,000 |
 
 ### **TOTAL ESTIMATED: ~$24,050 CAD/month**
-
----
 
 ## 8. Implementation Roadmap
 
 | Phase | Duration | Deliverables |
-|-------|----------|--------------|
+| --- | --- | --- |
 | Phase 1 | Months 1-3 | Core Infrastructure, Auth, Search |
 | Phase 2 | Months 4-6 | Orders, Payments, Financing |
 | Phase 3 | Months 7-9 | Multi-lender, Trade-In, Delivery |
 | Phase 4 | Months 10-12 | Analytics, A/B Testing, Mobile App |
 
----
-
-*Document Version: 1.0*
-*Last Updated: March 2026*
-*Classification: Internal Use Only*
+*Document Version: 1.0****Last Updated: March 2026****Classification: Internal Use Only*

@@ -7,8 +7,8 @@
 
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 
 const supabase = createClient(supabaseUrl, supabaseKey)
 
@@ -41,7 +41,7 @@ function constructImageUrls(vehicleId: string, photoCount: number = 20): string[
 }
 
 // Alternative: Fetch from Planet Motors CDN
-function constructPlanetMotorsImageUrls(vehicleId: string, stockNumber: string): {
+function _constructPlanetMotorsImageUrls(vehicleId: string, stockNumber: string): {
   primary: string
   gallery: string[]
   spin360Url?: string

@@ -50,8 +50,9 @@ async function verifySchemas() {
       if (hasUnknownFields?.keys) {
         console.log(`   Fields: ${hasUnknownFields.keys.slice(0, 10).join(', ')}${hasUnknownFields.keys.length > 10 ? '...' : ''}`)
       }
-    } catch (error: any) {
-      console.log(`❌ ${type}: Error - ${error.message}`)
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Unknown error"
+      console.log(`❌ ${type}: Error - ${msg}`)
     }
   }
   
@@ -68,8 +69,9 @@ async function verifySchemas() {
     } else {
       console.log('⚠️ No homepage document found')
     }
-  } catch (error: any) {
-    console.log(`❌ Homepage check error: ${error.message}`)
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Unknown error"
+    console.log(`❌ Homepage check error: ${msg}`)
   }
   
   try {
@@ -82,8 +84,9 @@ async function verifySchemas() {
     } else {
       console.log('⚠️ No financingPage document found')
     }
-  } catch (error: any) {
-    console.log(`❌ Financing Page check error: ${error.message}`)
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Unknown error"
+    console.log(`❌ Financing Page check error: ${msg}`)
   }
   
   console.log('\n✅ Verification complete!')

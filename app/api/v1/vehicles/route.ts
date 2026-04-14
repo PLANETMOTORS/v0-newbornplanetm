@@ -66,17 +66,21 @@ export async function GET(request: NextRequest) {
   const maxYear = searchParams.get('maxYear')
   const minPrice = searchParams.get('minPrice')
   const maxPrice = searchParams.get('maxPrice')
+  const minMileage = searchParams.get('minMileage')
+  const maxMileage = searchParams.get('maxMileage')
+  const exteriorColor = searchParams.get('exteriorColor')
   const bodyStyle = searchParams.get('bodyStyle')
   const fuelType = searchParams.get('fuelType')
   const transmission = searchParams.get('transmission')
   const drivetrain = searchParams.get('drivetrain')
+  const q = searchParams.get('q')
   const status = searchParams.get('status') || 'available'
   const rawSort = searchParams.get('sort') || 'created_at'
   const sort = ALLOWED_SORT_COLUMNS.has(rawSort) ? rawSort : 'created_at'
   const order = searchParams.get('order') || 'desc'
   const page = Math.max(1, asInt(searchParams.get('page'), 1))
   const rawLimit = asInt(searchParams.get('limit'), 20)
-  const limit = Math.min(Math.max(1, rawLimit), 100)
+  const limit = Math.min(Math.max(1, rawLimit), 250)
   const includeFilters = searchParams.get('includeFilters') === 'true'
 
   // Build a deterministic cache key from all query params
@@ -102,10 +106,14 @@ export async function GET(request: NextRequest) {
   if (status) query = query.eq('status', status)
   if (make) query = query.ilike('make', make)
   if (model) query = query.ilike('model', `%${model}%`)
+  if (q) query = query.or(`make.ilike.%${q}%,model.ilike.%${q}%,trim.ilike.%${q}%`)
   if (minYear) query = query.gte('year', parseInt(minYear))
   if (maxYear) query = query.lte('year', parseInt(maxYear))
   if (minPrice) query = query.gte('price', parseInt(minPrice) * 100) // Convert to cents
   if (maxPrice) query = query.lte('price', parseInt(maxPrice) * 100)
+  if (minMileage) query = query.gte('mileage', parseInt(minMileage))
+  if (maxMileage) query = query.lte('mileage', parseInt(maxMileage))
+  if (exteriorColor) query = query.ilike('exterior_color', exteriorColor)
   if (bodyStyle) query = query.ilike('body_style', bodyStyle)
   if (fuelType) query = query.ilike('fuel_type', fuelType)
   if (transmission) query = query.ilike('transmission', `%${transmission}%`)
@@ -210,6 +218,7 @@ export async function POST(request: NextRequest) {
     filters = {},
     sort = { field: 'created_at', order: 'desc' },
     pagination = { page: 1, limit: 20 },
+    includeAggregations = false,
   } = body
 
   const safeSortField = ALLOWED_SORT_COLUMNS.has(sort.field) ? sort.field : 'created_at'
@@ -323,14 +332,21 @@ export async function POST(request: NextRequest) {
     await cacheSearchResults(aggCacheKey, aggregations, FACETS_TTL)
   }
 
-  return NextResponse.json({
-    success: true,
-    data: {
-      vehicles: (vehicles ?? [])
-        .map(toPublicVehicleListItem)
-        .filter((vehicle): vehicle is Record<string, unknown> => vehicle !== null),
-      total: count || 0,
-      aggregations,
+  return NextResponse.json(
+    {
+      success: true,
+      data: {
+        vehicles: (vehicles ?? [])
+          .map(toPublicVehicleListItem)
+          .filter((vehicle): vehicle is Record<string, unknown> => vehicle !== null),
+        total: count || 0,
+        aggregations,
+      },
     },
-  })
+    {
+      headers: {
+        'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=900',
+      },
+    }
+  )
 }

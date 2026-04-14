@@ -81,16 +81,6 @@ export default function imgixLoader({ src, width, quality = 75 }: ImageLoaderPro
     return url.toString()
   }
 
-  // Pass through Unsplash URLs directly (they have their own CDN optimization)
-  if (src.includes('images.unsplash.com')) {
-    const url = new URL(src)
-    url.searchParams.set('w', width.toString())
-    url.searchParams.set('q', quality.toString())
-    url.searchParams.set('auto', 'format')
-    url.searchParams.set('fit', 'crop')
-    return url.toString()
-  }
-
   // Pass through Vercel Blob URLs directly
   if (src.includes('blob.vercel-storage.com')) {
     return src

@@ -6,12 +6,13 @@ import { GoogleAnalytics } from '@/components/analytics/google-analytics'
 import { GoogleTagManager, GoogleTagManagerNoScript } from '@/components/analytics/google-tag-manager'
 import { MetaPixel } from '@/components/analytics/meta-pixel'
 import { LiveChatWidget } from '@/components/live-chat-widget'
-import { CompareProvider } from '@/lib/compare-context'
-import { FavoritesProvider } from '@/lib/favorites-context'
+import { CompareProvider } from '@/contexts/compare-context'
+import { FavoritesProvider } from '@/contexts/favorites-context'
 import { AuthProvider } from '@/contexts/auth-context'
 import { CompareBar } from '@/components/compare-bar'
 import { Toaster } from '@/components/ui/sonner'
 import { OrganizationJsonLd, LocalBusinessJsonLd, WebsiteSearchJsonLd } from '@/components/seo/json-ld'
+import { getPublicSiteUrl } from '@/lib/site-url'
 import './globals.css'
 import './stability-fixes.css'
 
@@ -26,6 +27,8 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: '--font-playfair'
 });
+
+const SITE_URL = getPublicSiteUrl()
 
 export const metadata: Metadata = {
   title: 'Planet Motors | Premium Used Car Dealership - Nationwide Delivery',
@@ -46,15 +49,24 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Planet Motors | Premium Used Car Dealership',
     description: 'Shop certified pre-owned vehicles with free Carfax reports and nationwide delivery across Canada.',
-    url: 'https://www.planetmotors.ca',
+    url: SITE_URL,
     siteName: 'Planet Motors',
     locale: 'en_CA',
     type: 'website',
+    images: [
+      {
+        url: `${SITE_URL}/images/planet-motors-logo.png`,
+        width: 800,
+        height: 320,
+        alt: 'Planet Motors - Fairness & Integrity',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Planet Motors | Premium Used Car Dealership',
     description: 'Shop certified pre-owned vehicles with free Carfax reports and nationwide delivery.',
+    images: [`${SITE_URL}/images/planet-motors-logo.png`],
   },
   robots: {
     index: true,
@@ -86,8 +98,6 @@ export const viewport: Viewport = {
   ],
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 }
 
 export default function RootLayout({

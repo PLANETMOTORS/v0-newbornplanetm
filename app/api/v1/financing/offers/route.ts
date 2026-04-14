@@ -20,97 +20,39 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  // Mock offers from multiple lenders
-  const offers = [
-    {
-      id: "offer_premier_001",
-      lenderId: "premier",
-      lenderName: "Premier Auto Finance",
-      lenderLogo: "/lenders/premier-logo.png",
-      status: "approved",
-      rate: 6.29,
-      rateType: "fixed",
-      term: 72,
-      monthlyPayment: 749.99,
-      totalInterest: 5999.28,
-      totalCost: 53999.28,
-      downPaymentRequired: 5000,
-      features: [
-        "No prepayment penalty",
-        "Rate lock for 7 days",
-        "Same-day funding available",
-      ],
-      conditions: [
-        "Proof of income required",
-        "Valid driver's license",
-      ],
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      recommended: true,
-      savings: 1200, // vs average
-    },
-    {
-      id: "offer_capital_001",
-      lenderId: "capital",
-      lenderName: "Capital Auto Credit",
-      lenderLogo: "/lenders/capital-logo.png",
-      status: "approved",
-      rate: 6.79,
-      rateType: "fixed",
-      term: 72,
-      monthlyPayment: 762.45,
-      totalInterest: 6496.40,
-      totalCost: 54896.40,
-      downPaymentRequired: 5000,
-      features: [
-        "Rewards points eligible",
-        "Flexible payment dates",
-      ],
-      conditions: [
-        "Proof of income required",
-        "Valid driver's license",
-      ],
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      recommended: false,
-    },
-    {
-      id: "offer_community_001",
-      lenderId: "community",
-      lenderName: "Community Auto Loans",
-      lenderLogo: "/lenders/community-logo.png",
-      status: "approved",
-      rate: 6.49,
-      rateType: "fixed",
-      term: 84,
-      monthlyPayment: 658.99,
-      totalInterest: 7155.16,
-      totalCost: 55355.16,
-      downPaymentRequired: 3000,
-      features: [
-        "Lowest monthly payment",
-        "Extended term available",
-        "Lower down payment",
-      ],
-      conditions: [
-        "Proof of income required",
-        "Valid driver's license",
-        "Quebec or Ontario resident",
-      ],
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      recommended: false,
-      badge: "Lowest Payment",
-    },
-  ]
+  const id = applicationId || prequalificationId
+
+  const { data: application, error } = await supabase
+    .from("finance_applications_v2")
+    .select("id, application_number, status")
+    .eq("user_id", user.id)
+    .or(`id.eq.${id},application_number.eq.${id}`)
+    .maybeSingle()
+
+  if (error) {
+    return NextResponse.json({ error: "Failed to fetch financing application" }, { status: 500 })
+  }
+
+  if (!application) {
+    return NextResponse.json({ error: "Application not found" }, { status: 404 })
+  }
+
+  const offers: Array<Record<string, unknown>> = []
 
   return NextResponse.json({
     success: true,
     data: {
+      applicationId: application.id,
+      applicationNumber: application.application_number,
+      applicationStatus: application.status,
       offers,
       summary: {
-        totalOffers: offers.length,
-        bestRate: Math.min(...offers.map(o => o.rate)),
-        lowestPayment: Math.min(...offers.map(o => o.monthlyPayment)),
-        recommendedOfferId: offers.find(o => o.recommended)?.id,
+        totalOffers: 0,
+        bestRate: null,
+        lowestPayment: null,
+        recommendedOfferId: null,
       },
+      message: "No lender offers available yet. Your application is still being reviewed.",
     },
   })
 }

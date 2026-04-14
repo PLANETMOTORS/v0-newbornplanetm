@@ -21,32 +21,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let supabase: SupabaseClient | null = null
     try {
       supabase = createClient()
-    } catch (error) {
-      console.error("Failed to initialize auth client:", error)
+    } catch {
+      // Supabase credentials not configured — auth features disabled.
+      // This is expected in local dev without a .env file.
       setIsLoading(false)
       return
     }
 
-    // Get initial user
-    const getUser = async () => {
+    // Two-step auth check to avoid unnecessary network calls:
+    // 1. getSession() reads from local storage (no network request) — if there's
+    //    no session, we know the visitor is unauthenticated and can skip the server call.
+    // 2. If a session exists, we call getUser() to server-validate it, ensuring
+    //    stale or cross-project tokens are caught and cleared.
+    const initAuth = async () => {
+      if (!supabase) return
       try {
         const { data: { session } } = await supabase.auth.getSession()
-        if (session?.user) {
-          setUser(session.user)
+
+        if (!session) {
+          // No local session — user is unauthenticated, skip the network call.
+          setUser(null)
+          setIsLoading(false)
+          return
         }
 
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          setUser(user)
+        // Session exists — validate it against the server.
+        const { data: { user }, error } = await supabase.auth.getUser()
+        if (error) {
+          // Session is invalid or from wrong project — clear it so the UI resets.
+          await supabase.auth.signOut()
+          setUser(null)
+        } else {
+          setUser(user ?? null)
         }
       } catch (error) {
         console.error("Error getting user:", error)
+        setUser(null)
       } finally {
         setIsLoading(false)
       }
     }
 
-    getUser()
+    initAuth()
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(

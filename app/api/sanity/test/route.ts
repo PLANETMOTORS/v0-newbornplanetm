@@ -14,6 +14,8 @@ function isValidDataset(dataset: string): boolean {
 }
 
 export async function GET() {
+  if (process.env.NODE_ENV === 'production') return NextResponse.json({ error: 'Not available' }, { status: 404 })
+
   // Get and validate environment variables
   const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "4588vjsz"
   let dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || "production"

@@ -28,7 +28,7 @@ export function VehicleBadges({
   isNew,
   isPriceDrop,
   priceDropAmount,
-  isPopular,
+  isPopular: _isPopular,
   daysOnLot,
   isSalePending,
   hasCarfax,
@@ -49,7 +49,7 @@ export function VehicleBadges({
 
       {/* Just Arrived */}
       {isNew && daysOnLot && daysOnLot <= 3 && (
-        <Badge className="bg-blue-500">
+        <Badge className="bg-teal-500">
           <Sparkles className="w-3 h-3 mr-1" />
           Just Arrived
         </Badge>
@@ -81,7 +81,7 @@ export function VehicleBadges({
 
       {/* Carfax */}
       {hasCarfax && (
-        <Badge variant="outline" className="border-blue-500 text-blue-600">
+        <Badge variant="outline" className="border-teal-500 text-teal-600">
           <CheckCircle2 className="w-3 h-3 mr-1" />
           Carfax
         </Badge>
@@ -101,7 +101,7 @@ export function VehicleBadges({
 // Individual badge components for flexible use
 export function NewArrivalBadge() {
   return (
-    <Badge className="bg-blue-500">
+    <Badge className="bg-teal-500">
       <Sparkles className="w-3 h-3 mr-1" />
       Just Arrived
     </Badge>
@@ -130,7 +130,7 @@ export function SalePendingBadge() {
 
 export function CarfaxBadge() {
   return (
-    <Badge variant="outline" className="border-blue-500 text-blue-600 bg-blue-50">
+    <Badge variant="outline" className="border-teal-500 text-teal-600 bg-teal-50">
       <CheckCircle2 className="w-3 h-3 mr-1" />
       Carfax Verified
     </Badge>

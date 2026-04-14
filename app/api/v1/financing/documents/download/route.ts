@@ -93,8 +93,8 @@ export async function GET(request: NextRequest) {
       if (!isDocumentWithFileAndApplication(document)) {
         return errorResponse(500, "MALFORMED_DOCUMENT_PAYLOAD", "Document payload is malformed")
       }
-      
-      if (document.finance_applications_v2.user_id !== user.id) {
+      const validatedDoc = document as unknown as DocumentWithFileAndApplication
+      if (validatedDoc.finance_applications_v2.user_id !== user.id) {
         return errorResponse(403, "FORBIDDEN", "Unauthorized")
       }
       

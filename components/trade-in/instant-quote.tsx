@@ -11,15 +11,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { 
-  Car, Sparkles, TrendingUp, Shield, Clock, CheckCircle, 
-  DollarSign, ArrowRight, Star, Zap, AlertCircle, Mail, Phone, Loader2
+  Car, Sparkles, TrendingUp, Shield, Clock, CheckCircle,
+  ArrowRight, Star, Zap, AlertCircle, Mail, Phone, Loader2
 } from "lucide-react"
 import {
   isValidEmail,
   isValidCanadianPhoneNumber,
-  isValidCanadianPostalCode,
   formatCanadianPhoneNumber,
-  formatCanadianPostalCode,
   ValidationMessages
 } from "@/lib/validation"
 
@@ -430,72 +428,50 @@ export function InstantQuote() {
     setIsCalculating(true)
     setCalculationProgress(0)
     
-    // Simulate calculation with progress
-    const steps = [
-      "Checking Canadian Black Book values...",
-      "Analyzing current market demand...",
-      "Reviewing auction data...",
-      "Calculating regional adjustments...",
-      "Generating your instant offer..."
-    ]
-    
     // Call AI-powered valuation API
-    let lowValue = 0
-    let midValue = 0
-    let highValue = 0
-    let valuationFactors: string[] = []
-    
-    try {
-      // Start progress animation
-      const progressInterval = setInterval(() => {
-        setCalculationProgress(prev => Math.min(prev + 5, 90))
-      }, 300)
-      
-      const response = await fetch("/api/vehicle-valuation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          year: formData.year,
-          make: formData.make,
-          model: formData.model,
-          trim: formData.trim,
-          mileage: formData.mileage,
-          condition: formData.condition,
-        }),
-      })
-      
-      clearInterval(progressInterval)
-      setCalculationProgress(100)
-      
-      if (response.ok) {
-        const valuation = await response.json()
-        lowValue = valuation.lowValue
-        midValue = valuation.midValue
-        highValue = valuation.highValue
-        valuationFactors = valuation.factors || []
-      } else {
+    const result = await (async () => {
+      try {
+        // Start progress animation
+        const progressInterval = setInterval(() => {
+          setCalculationProgress(prev => Math.min(prev + 5, 90))
+        }, 300)
+
+        const response = await fetch("/api/vehicle-valuation", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            year: formData.year,
+            make: formData.make,
+            model: formData.model,
+            trim: formData.trim,
+            mileage: formData.mileage,
+            condition: formData.condition,
+          }),
+        })
+
+        clearInterval(progressInterval)
+        setCalculationProgress(100)
+
+        if (response.ok) {
+          const valuation = await response.json()
+          return { lowValue: valuation.lowValue as number, midValue: valuation.midValue as number, highValue: valuation.highValue as number }
+        }
         // Fallback to local calculation if API fails
-        const fallbackResult = calculateLocalValue(formData)
-        lowValue = fallbackResult.lowValue
-        midValue = fallbackResult.midValue
-        highValue = fallbackResult.highValue
+        return calculateLocalValue(formData)
+      } catch {
+        // Fallback to local calculation on network error
+        setCalculationProgress(100)
+        return calculateLocalValue(formData)
       }
-    } catch {
-      // Fallback to local calculation on network error
-      setCalculationProgress(100)
-      const fallbackResult = calculateLocalValue(formData)
-      lowValue = fallbackResult.lowValue
-      midValue = fallbackResult.midValue
-      highValue = fallbackResult.highValue
-    }
-    
+    })()
+
     const quoteId = `PQ-${Date.now().toString(36).toUpperCase()}`
-    
+
     setQuoteResult({
       quoteId,
-      lowValue,
-      midValue,
-      highValue,
+      lowValue: result.lowValue,
+      midValue: result.midValue,
+      highValue: result.highValue,
       vehicle: `${formData.year} ${formData.make} ${formData.model} ${formData.trim}`,
     })
     

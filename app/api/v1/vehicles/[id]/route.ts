@@ -14,6 +14,43 @@ const ALLOWED_STATUSES = new Set([
   "maintenance",
 ])
 
+const VEHICLE_DETAIL_FIELDS = [
+  'id',
+  'stock_number',
+  'vin',
+  'year',
+  'make',
+  'model',
+  'trim',
+  'body_style',
+  'exterior_color',
+  'interior_color',
+  'price',
+  'msrp',
+  'mileage',
+  'drivetrain',
+  'transmission',
+  'engine',
+  'fuel_type',
+  'status',
+  'location',
+  'primary_image_url',
+  'image_urls',
+  'has_360_spin',
+  'video_url',
+  'is_certified',
+  'is_new_arrival',
+  'featured',
+  'inspection_score',
+  'inspection_date',
+  'is_ev',
+  'battery_capacity_kwh',
+  'range_miles',
+  'ev_battery_health_percent',
+  'created_at',
+  'updated_at',
+].join(',')
+
 function toPublicVehicle(vehicle: Record<string, unknown>) {
   const price = typeof vehicle.price === "number" ? vehicle.price / 100 : null
   const msrp = typeof vehicle.msrp === "number" ? vehicle.msrp / 100 : null
@@ -49,7 +86,7 @@ export async function GET(
 
     const { data: vehicle, error } = await supabase
       .from("vehicles")
-      .select("*")
+      .select(VEHICLE_DETAIL_FIELDS)
       .eq("id", id)
       .maybeSingle()
 
@@ -70,7 +107,7 @@ export async function GET(
     const responseBody = {
       success: true,
       data: {
-        vehicle: toPublicVehicle(vehicle),
+        vehicle: toPublicVehicle(vehicle as unknown as Record<string, unknown>),
       },
     }
 

@@ -3,8 +3,8 @@
 import { useState } from "react"
 import Link from "next/link"
 import { 
-  Car, Users, DollarSign, TrendingUp, ArrowUpRight, ArrowDownRight,
-  Eye, Heart, MessageSquare, Clock, CheckCircle, AlertCircle,
+  Car, DollarSign, TrendingUp, ArrowUpRight, ArrowDownRight,
+  Eye, Heart, MessageSquare, Clock,
   Calendar, ChevronRight
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"

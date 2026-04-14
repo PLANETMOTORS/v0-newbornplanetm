@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { sendNotificationEmail } from '@/lib/email'
+import { validateOrigin } from '@/lib/csrf'
 
 function asNumber(value: unknown, fallback = 0): number {
   const parsed = typeof value === 'string' ? Number.parseFloat(value) : Number(value)
@@ -23,6 +24,12 @@ function generateApplicationNumber(): string {
 // POST /api/v1/financing/apply - Full application submission (review pipeline)
 export async function POST(request: NextRequest) {
   try {
+    if (!validateOrigin(request)) {
+      return NextResponse.json(
+        { success: false, error: { code: 'FORBIDDEN', message: 'Forbidden' } },
+        { status: 403 }
+      )
+    }
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -49,7 +56,7 @@ export async function POST(request: NextRequest) {
       province,
       postalCode,
       residenceStatus,
-      monthlyPayment,
+      monthlyPayment: _monthlyPayment,
       yearsAtAddress,
       employmentStatus,
       employerName,

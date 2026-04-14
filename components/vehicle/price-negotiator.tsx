@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { MessageSquare, Send, Bot, User, Sparkles, Mail, Phone, CheckCircle, Loader2 } from "lucide-react"
+import { Send, Bot, User, Sparkles, Mail, Phone, CheckCircle, Loader2 } from "lucide-react"
 
 interface Message {
   role: "user" | "assistant"
@@ -136,7 +136,7 @@ export function PriceNegotiator({
             try {
               const parsed = JSON.parse(data)
               if (parsed.type === "text-delta" && parsed.delta) fullContent += parsed.delta
-            } catch {}
+            } catch { /* ignore parse errors for streaming chunks */ }
           }
         }
       }

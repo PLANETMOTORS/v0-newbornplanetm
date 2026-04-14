@@ -1,0 +1,34 @@
+{
+  "scripts": [
+    {
+      "name": "dev",
+      "command": "pnpm dev",
+      "mode": "service",
+      "category": "dev"
+    },
+    {
+      "name": "build",
+      "command": "pnpm build",
+      "mode": "command",
+      "category": "build"
+    },
+    {
+      "name": "start",
+      "command": "pnpm start",
+      "mode": "service",
+      "category": "dev"
+    },
+    {
+      "name": "lint",
+      "command": "pnpm lint",
+      "mode": "command",
+      "category": "lint"
+    },
+    {
+      "name": "clean",
+      "command": "pnpm clean",
+      "mode": "command",
+      "category": "other"
+    }
+  ]
+}

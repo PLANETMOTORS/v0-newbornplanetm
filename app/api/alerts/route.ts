@@ -10,7 +10,7 @@ function getResendClient() {
 
 export async function POST(req: Request) {
   try {
-    const { vehicleId, vehicleName, currentPrice, email, phone, make, model, maxPrice, preferences } = await req.json()
+    const { vehicleId, vehicleName, currentPrice, email, make, model, maxPrice, preferences } = await req.json()
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 })

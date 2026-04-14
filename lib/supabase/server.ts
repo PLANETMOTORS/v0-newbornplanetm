@@ -12,9 +12,9 @@ export async function createClient() {
   const supabaseUrl = getSupabaseUrl()
   const supabaseAnonKey = getSupabaseAnonKey()
 
-  if (!supabaseAnonKey) {
+  if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(
-      'Missing Supabase anon key. Please connect Supabase in Settings.'
+      'Missing Supabase credentials. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.'
     )
   }
 
