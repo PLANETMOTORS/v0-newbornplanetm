@@ -262,7 +262,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
           </div>
 
           {/* ── Bottom Bar: OMVIC + Legal + Copyright ── */}
-          <div className="mt-6 pt-5 pb-2 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="mt-6 pt-5 pb-16 sm:pb-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-white/70">
               <Shield className="w-3.5 h-3.5 shrink-0" />
               <span className="text-xs font-medium">OMVIC Registered Dealer</span>
