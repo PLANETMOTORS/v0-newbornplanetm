@@ -5,6 +5,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Phone, MapPin, Award, DollarSign, Truck, Users, Leaf, Search, CreditCard, FileCheck, Home, ChevronRight, X, Check } from "lucide-react"
@@ -226,9 +227,20 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
       )}
 
       {/* ═══════ HERO SECTION — Carvana-style with search ═══════ */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#0f172a] via-[#1e3a8a] to-[#1e40af]">
+      <section className="relative overflow-hidden bg-[#0f172a]">
+        {/* Background Image */}
+        <Image
+          src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1920&auto=format&fit=crop&q=80"
+          alt="Luxury car on open road"
+          fill
+          priority
+          className="object-cover object-center"
+          sizes="100vw"
+        />
+        {/* Dark overlay gradient for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0f172a]/95 via-[#0f172a]/80 to-[#0f172a]/60" />
         {/* Subtle pattern overlay */}
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 25% 50%, white 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+        <div className="absolute inset-0 opacity-5" style={{ backgroundImage: "radial-gradient(circle at 25% 50%, white 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-28">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
