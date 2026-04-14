@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { sendNotificationEmail } from "@/lib/email"
+import { validateOrigin } from "@/lib/csrf"
 
 // POST /api/v1/financing/applications - Create new finance application
 export async function POST(request: NextRequest) {
   try {
+    if (!validateOrigin(request)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     

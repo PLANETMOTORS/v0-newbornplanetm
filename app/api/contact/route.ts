@@ -2,9 +2,13 @@ import { NextResponse } from "next/server"
 import { sendNotificationEmail } from "@/lib/email"
 import { rateLimit } from "@/lib/redis"
 import { isValidEmail, isValidCanadianPhoneNumber, isValidCanadianPostalCode } from "@/lib/validation"
+import { validateOrigin } from "@/lib/csrf"
 
 export async function POST(request: Request) {
   try {
+    if (!validateOrigin(request)) {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 })
+    }
     const forwarded = request.headers.get("x-forwarded-for") || ""
     const ip = forwarded.split(",")[0]?.trim() || "unknown"
     const limiter = await rateLimit(`contact:${ip}`, 5, 3600)

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { sendNotificationEmail } from "@/lib/email"
+import { validateOrigin } from "@/lib/csrf"
 
 // Vehicle value estimation algorithm
 function estimateTradeInValue(data: {
@@ -82,6 +83,9 @@ function estimateTradeInValue(data: {
 
 export async function POST(req: Request) {
   try {
+    if (!validateOrigin(req)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
     const data = await req.json()
     const { year, make, model, mileage, condition, vin, customerName, customerEmail, customerPhone } = data
 
