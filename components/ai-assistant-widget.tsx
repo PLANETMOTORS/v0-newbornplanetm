@@ -78,7 +78,7 @@ export function AIAssistantWidget() {
                   </div>
                   <div>
                     <CardTitle className="text-lg">AI Assistant</CardTitle>
-                    <p className="text-xs text-white/80">Powered by Planet Motors</p>
+                    <p className="text-xs text-white/90">Powered by Planet Motors</p>
                   </div>
                 </div>
                 <Button 
