@@ -22,6 +22,7 @@ import {
   Key
 } from "lucide-react"
 
+import { VehicleJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
 import { SimilarVehicles } from "@/components/similar-vehicles"
 import { ReserveVehicleModal } from "@/components/reserve-vehicle-modal"
 import { AuthRequiredModal } from "@/components/auth-required-modal"
@@ -38,6 +39,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { trackProductView, trackPhoneClick } from "@/components/analytics/google-tag-manager"
+import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
+import { trackMetaViewContent, trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
 
 // Mock vehicle data
 const vehicleData = {
@@ -457,6 +461,34 @@ export default function VehicleDetailPage() {
     return () => { cancelled = true }
   }, [vehicleId])
 
+  // Track product view when vehicle data loads
+  useEffect(() => {
+    if (!vehicle || isLoading) return
+    const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.trim ? ` ${vehicle.trim}` : ""}`
+    trackProductView({
+      id: vehicle.id,
+      name,
+      price: vehicle.price,
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      fuelType: vehicle.fuelType || "Unknown",
+    })
+    trackViewItem({
+      id: vehicle.id,
+      name,
+      price: vehicle.price,
+      make: vehicle.make,
+      model: vehicle.model,
+    })
+    trackMetaViewContent({
+      id: vehicle.id,
+      name,
+      price: vehicle.price,
+      make: vehicle.make,
+    })
+  }, [vehicle, isLoading])
+
   const handleProtectedAction = (action: string, callback?: () => void) => {
     if (!user) {
       setAuthAction(action)
@@ -585,8 +617,34 @@ export default function VehicleDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <VehicleJsonLd
+        vehicle={{
+          id: vehicle.id,
+          year: vehicle.year,
+          make: vehicle.make,
+          model: vehicle.model,
+          trim: vehicle.trim,
+          price: vehicle.price,
+          mileage: vehicle.mileage,
+          vin: vehicle.vin,
+          color: vehicle.exteriorColor,
+          fuelType: vehicle.fuelType,
+          transmission: vehicle.transmission,
+          image: vehicle.images?.[0] || "",
+          description: `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim || ""} for sale at Planet Motors`.trim(),
+          condition: "used",
+        }}
+      />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", url: "/" },
+          { name: "Inventory", url: "/inventory" },
+          { name: `${vehicle.make}`, url: `/inventory?make=${vehicle.make}` },
+          { name: `${vehicle.year} ${vehicle.make} ${vehicle.model}`, url: `/vehicles/${vehicle.id}` },
+        ]}
+      />
       <Header />
-      
+
 <main className="pb-32 md:pb-20 overflow-x-hidden max-w-full" role="main" aria-label="Vehicle details">
   {/* Trade-In Banner */}
   {tradeInValue && parseInt(tradeInValue) > 0 && (
@@ -1860,7 +1918,14 @@ export default function VehicleDetailPage() {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => setIsFavorite(!isFavorite)}
+                      onClick={() => {
+                        if (!isFavorite && vehicle) {
+                          const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
+                          trackAddToWishlist({ id: vehicle.id, name, price: vehicle.price })
+                          trackMetaAddToWishlist({ id: vehicle.id, name, price: vehicle.price })
+                        }
+                        setIsFavorite(!isFavorite)
+                      }}
                       className={isFavorite ? "text-red-500" : ""}
                     >
                       <Heart className={`w-4 h-4 mr-1 ${isFavorite ? "fill-current" : ""}`} />
@@ -1933,7 +1998,7 @@ export default function VehicleDetailPage() {
                   <div className="mt-4 pt-4 border-t text-center">
                     <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
                       <Phone className="w-4 h-4" />
-                      Questions? <Link href="tel:416-985-2277" className="font-semibold text-foreground">416-985-2277</Link>
+                      Questions? <Link href="tel:416-985-2277" className="font-semibold text-foreground" onClick={() => trackPhoneClick("416-985-2277")}>416-985-2277</Link>
                     </p>
                   </div>
                 </CardContent>

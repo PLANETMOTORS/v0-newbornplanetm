@@ -7,6 +7,7 @@ import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import { SignInPanel } from "@/components/sign-in-panel"
 import NavButton from "@/components/nav-button"
 import { useAuth } from "@/contexts/auth-context"
+import { trackPhoneClick } from "@/components/analytics/google-tag-manager"
 
 type NavItem = {
   name: string
@@ -181,9 +182,10 @@ export function Header() {
       <div className="bg-primary text-primary-foreground text-sm py-2">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-4 sm:gap-6">
-              <a 
-                href="tel:1-866-797-3332" 
+              <a
+                href="tel:1-866-797-3332"
                 className="flex items-center gap-1.5 hover:text-primary-foreground/80 transition-colors"
+                onClick={() => trackPhoneClick("1-866-797-3332")}
               >
                 <Phone className="w-3.5 h-3.5" />
                 <span className="font-medium">1-866-797-3332</span>

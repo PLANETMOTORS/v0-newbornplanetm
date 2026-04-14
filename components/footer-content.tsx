@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { Phone, MapPin, Mail, Clock, Shield } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
+import { trackPhoneClick } from "@/components/analytics/google-tag-manager"
 
 export type FooterProps = {
   siteSettings: {
@@ -119,6 +120,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
               <a
                 href={`tel:${siteSettings.phone.replace(/[^0-9]/g, '')}`}
                 className="flex items-center gap-3 text-[15px] text-background/70 hover:text-background transition-colors"
+                onClick={() => trackPhoneClick(siteSettings.phone)}
               >
                 <Phone className="w-4 h-4 shrink-0" />
                 <span>{siteSettings.phone} (Toll Free)</span>
