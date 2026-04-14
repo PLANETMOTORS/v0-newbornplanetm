@@ -49,7 +49,7 @@ export function isDocumentWithApplication(
 export function isDocumentWithFileAndApplication(
   value: unknown
 ): value is DocumentWithFileAndApplication {
-  if (!isRecordWithString(value, "id") || !isRecordWithString(value, "file_url")) {
+  if (!isPlainObject(value) || typeof value.id !== "string" || typeof value.file_url !== "string") {
     return false
   }
 
