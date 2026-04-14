@@ -126,7 +126,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
                   <span>100% Refundable</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-blue-600" />
+                  <Clock className="w-4 h-4 text-teal-600" />
                   <span>48-Hour Hold</span>
                 </div>
                 <div className="flex items-center gap-2">

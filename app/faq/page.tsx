@@ -1,3 +1,10 @@
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "FAQ | Planet Motors - Frequently Asked Questions",
+  description: "Find answers to common questions about buying, financing, trade-ins, delivery, warranties, and returns at Planet Motors.",
+}
+
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
@@ -122,7 +129,7 @@ export default function FAQPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main>
         {/* Hero Section */}
         <section className="bg-primary py-16">
@@ -134,8 +141,8 @@ export default function FAQPage() {
               Find answers to common questions about buying, financing, and delivery.
             </p>
             <div className="max-w-md mx-auto flex gap-2">
-              <Input 
-                placeholder="Search FAQs..." 
+              <Input
+                placeholder="Search FAQs..."
                 className="bg-background"
               />
               <Button variant="secondary" aria-label="Search FAQs">

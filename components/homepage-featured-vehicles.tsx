@@ -98,7 +98,7 @@ const fallbackVehicles: FeaturedVehicle[] = [
 ]
 
 function getBadgeClassName(badge: string) {
-  if (badge === "Popular") return "bg-teal-600 text-white"
+  if (badge === "Popular") return "bg-[#1e3a8a] text-white"
   if (badge === "Fuel Saver") return "bg-green-600 text-white"
   if (badge === "New Arrival") return "bg-orange-500 text-white"
   if (badge === "Premium") return "bg-purple-600 text-white"
@@ -151,12 +151,11 @@ export function HomepageFeaturedVehicles() {
     revalidateOnReconnect: false,
   })
 
-  // Track whether we're using fallback (non-DB) data
-  const isFallback = !!error || (!data && !error) || (data && data.length === 0)
+  // Only use fallback vehicles when the fetch actually fails.
+  // On initial load (data === undefined, no error) or empty results, skip fallback.
+  const isFallback = !!error
 
   const filteredVehicles = useMemo(() => {
-    // Only use fallback vehicles when the fetch actually fails.
-    // On initial load (data === undefined, no error) or empty results, skip fallback.
     const vehicles = error ? fallbackVehicles : (data ?? [])
     return vehicles.filter((vehicle) => {
       if (activeTab === "electric") return vehicle.isEV
@@ -172,7 +171,7 @@ export function HomepageFeaturedVehicles() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900">Featured Vehicles</h2>
+            <h2 className="text-3xl font-bold text-[#1e3a8a]">Featured Vehicles</h2>
             <p className="text-gray-600 mt-1">Quality vehicles ready for delivery</p>
           </div>
 
@@ -186,7 +185,7 @@ export function HomepageFeaturedVehicles() {
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as FeaturedTab)}
                 className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                  activeTab === tab.key ? "bg-teal-600 text-white" : "text-gray-600 hover:bg-gray-100"
+                  activeTab === tab.key ? "bg-[#1e3a8a] text-white" : "text-gray-600 hover:bg-[#e4eaf2]"
                 }`}
                 type="button"
               >
@@ -237,14 +236,14 @@ export function HomepageFeaturedVehicles() {
 
                 <div className="flex items-center justify-between mt-4">
                   <div>
-                    <div className="text-xl font-bold text-gray-900">
+                    <div className="text-xl font-bold text-[#1e3a8a]">
                       ${(vehicle.priceCents / 100).toLocaleString()}
                     </div>
                     <div className="text-sm font-medium text-gray-700">
                       or <span className="font-bold">${vehicle.monthlyPayment}/mo</span>
                     </div>
                   </div>
-                  <Button size="sm" className="bg-teal-600 hover:bg-teal-700" asChild>
+                  <Button size="sm" className="bg-[#1e3a8a] hover:bg-[#172554]" asChild>
                     <Link href={isFallback ? "/inventory" : `/vehicles/${vehicle.id}`}>
                       View Details
                     </Link>
@@ -256,7 +255,7 @@ export function HomepageFeaturedVehicles() {
         </div>
 
         <div className="text-center mt-10">
-          <Button variant="outline" size="lg" className="border-2 border-teal-600 text-teal-700 hover:bg-teal-600 hover:text-white" asChild>
+          <Button variant="outline" size="lg" className="border-2 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white" asChild>
             <Link href="/inventory">
               View All Inventory
               <ArrowRight className="ml-2 w-4 h-4" />

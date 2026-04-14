@@ -1142,12 +1142,12 @@ function TradeInContent() {
                         ))}
                       </div>
 
-                      <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <div className="p-4 bg-teal-50 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-800 rounded-lg">
                         <div className="flex items-start gap-3">
-                          <TrendingUp className="h-5 w-5 text-blue-600 mt-0.5" />
+                          <TrendingUp className="h-5 w-5 text-teal-600 mt-0.5" />
                           <div>
-                            <p className="font-medium text-blue-900 dark:text-blue-100">Photos boost your offer!</p>
-                            <p className="text-sm text-blue-700 dark:text-blue-300">
+                            <p className="font-medium text-teal-900 dark:text-teal-100">Photos boost your offer!</p>
+                            <p className="text-sm text-teal-700 dark:text-teal-300">
                               Vehicles with photos typically receive offers 5-10% higher than those without.
                             </p>
                           </div>
@@ -1645,7 +1645,7 @@ function TradeInContent() {
         <section id="instant-quote" className="py-16 bg-gradient-to-b from-background to-muted/30 scroll-mt-20">
           <div className="container mx-auto px-4">
             <div className="text-center mb-8">
-              <Badge className="mb-3 bg-blue-500">
+              <Badge className="mb-3 bg-teal-500">
                 <Sparkles className="w-3 h-3 mr-1" />
                 AI-Powered
               </Badge>

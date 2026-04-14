@@ -83,7 +83,7 @@ function transformVehicle(v: Vehicle) {
     badgeColor = "bg-green-500"
   } else if (v.fuel_type === "Electric") {
     badge = "Electric"
-    badgeColor = "bg-blue-500"
+    badgeColor = "bg-teal-500"
   } else if (v.is_certified) {
     badge = "PM Certified"
     badgeColor = "bg-primary"
@@ -787,7 +787,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                       </Badge>
                     )}
                     {/* PM Certified Badge */}
-                    <Badge className="bg-blue-600 text-white shadow-lg">
+                    <Badge className="bg-teal-600 text-white shadow-lg">
                       <Shield className="w-3 h-3 mr-1" />
                       PM Certified
                     </Badge>

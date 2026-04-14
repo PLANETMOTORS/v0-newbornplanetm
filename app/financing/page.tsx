@@ -1,3 +1,10 @@
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Auto Financing & Pre-Approval | Planet Motors",
+  description: "Get pre-approved for auto financing in minutes. No impact on your credit score. Competitive rates from multiple lenders. Apply online today.",
+}
+
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { LiveChatWidget } from "@/components/live-chat-widget"
@@ -68,7 +75,7 @@ export default async function FinancingPage() {
                 <BadgeCheck className="w-4 h-4" />
                 <span>Rates from {lowestRate}% APR</span>
               </div>
-              
+
               <h1 className="font-serif text-4xl md:text-5xl font-semibold tracking-tight text-balance">
                 Get Pre-Approved for Auto Financing
               </h1>
@@ -104,9 +111,9 @@ export default async function FinancingPage() {
               <p className="text-muted-foreground text-sm mb-6">
                 Takes less than 5 minutes. No commitment required.
               </p>
-              
+
               <FinanceApplicationForm />
-              
+
               <div className="mt-6 pt-6 border-t border-border">
                 <p className="text-sm text-muted-foreground mb-3">Already have a vehicle in mind?</p>
                 <Button variant="outline" className="w-full" asChild>
@@ -150,7 +157,7 @@ export default async function FinancingPage() {
           {/* Financing Flow Diagram */}
           <div className="mt-16 bg-background rounded-2xl border border-border p-8">
             <h3 className="font-semibold text-xl mb-8 text-center">Multi-Lender Financing Flow</h3>
-            
+
             <div className="relative">
               {/* Flow diagram */}
               <div className="flex flex-col md:flex-row items-center justify-center gap-4">
@@ -158,19 +165,19 @@ export default async function FinancingPage() {
                   <p className="font-medium">CUSTOMER</p>
                   <p className="text-sm text-muted-foreground">Submits financing application</p>
                 </div>
-                
+
                 <ArrowRight className="w-6 h-6 text-muted-foreground hidden md:block" />
                 <div className="w-0.5 h-8 bg-muted-foreground/30 md:hidden" />
-                
+
                 <div className="bg-primary/10 rounded-lg p-4 text-center border border-primary/30">
                   <p className="font-medium text-primary">FINANCING SERVICE</p>
                   <p className="text-sm text-muted-foreground">Equifax API</p>
                   <p className="text-xs text-muted-foreground mt-1">1. Soft credit pull (no score impact)</p>
                 </div>
-                
+
                 <ArrowRight className="w-6 h-6 text-muted-foreground hidden md:block" />
                 <div className="w-0.5 h-8 bg-muted-foreground/30 md:hidden" />
-                
+
                 <div className="bg-muted rounded-lg p-4 text-center">
                   <p className="font-medium">CREDIT BUREAU</p>
                   <p className="text-sm text-muted-foreground">Equifax + TransUnion</p>

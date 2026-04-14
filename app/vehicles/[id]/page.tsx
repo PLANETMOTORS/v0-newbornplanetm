@@ -1139,7 +1139,7 @@ export default function VehicleDetailPage() {
 
                       {/* VIN & History — Items 1-10 */}
                       <div className="space-y-1">
-                        <div className="bg-blue-600 text-white p-2 rounded-t-lg flex items-center gap-2">
+                        <div className="bg-teal-600 text-white p-2 rounded-t-lg flex items-center gap-2">
                           <span className="text-sm font-medium">VIN & History ��� Items 1-10</span>
                         </div>
                         <div className="border rounded-b-lg">
@@ -1196,7 +1196,7 @@ export default function VehicleDetailPage() {
 
                       {/* Tyres & Wheels — Items 46-53 */}
                       <div className="space-y-1 mt-4">
-                        <div className="bg-blue-500 text-white p-2 rounded-t-lg flex items-center gap-2">
+                        <div className="bg-teal-500 text-white p-2 rounded-t-lg flex items-center gap-2">
                           <span className="text-sm font-medium">Tyres & Wheels — Items 46-53</span>
                         </div>
                         <div className="border rounded-b-lg">

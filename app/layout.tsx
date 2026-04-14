@@ -53,11 +53,20 @@ export const metadata: Metadata = {
     siteName: 'Planet Motors',
     locale: 'en_CA',
     type: 'website',
+    images: [
+      {
+        url: `${SITE_URL}/images/planet-motors-logo.png`,
+        width: 800,
+        height: 320,
+        alt: 'Planet Motors - Fairness & Integrity',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Planet Motors | Premium Used Car Dealership',
     description: 'Shop certified pre-owned vehicles with free Carfax reports and nationwide delivery.',
+    images: [`${SITE_URL}/images/planet-motors-logo.png`],
   },
   robots: {
     index: true,

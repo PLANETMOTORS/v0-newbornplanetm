@@ -365,7 +365,7 @@ export function Header() {
               </div>
               <span className="hidden sm:block text-gray-300">|</span>
               <div className="flex items-center gap-2 whitespace-nowrap">
-                <Shield className="w-4 h-4 text-blue-600" />
+                <Shield className="w-4 h-4 text-teal-600" />
                 <span className="font-medium text-xs sm:text-sm">$250 Refundable Deposit</span>
               </div>
               <span className="hidden sm:block text-gray-300">|</span>
@@ -375,7 +375,7 @@ export function Header() {
               </div>
               <span className="hidden md:block text-gray-300">|</span>
               <div className="hidden md:flex items-center gap-2 whitespace-nowrap">
-                <Truck className="w-4 h-4 text-blue-600" />
+                <Truck className="w-4 h-4 text-teal-600" />
                 <span className="font-medium text-xs sm:text-sm">Canada-Wide Delivery</span>
               </div>
             </div>

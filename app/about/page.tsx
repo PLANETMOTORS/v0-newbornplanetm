@@ -1,3 +1,10 @@
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "About Planet Motors | OMVIC Licensed Dealer - Richmond Hill, ON",
+  description: "Planet Motors is an OMVIC-licensed dealer in Richmond Hill, Ontario. Fairness, integrity, and premium pre-owned vehicles with nationwide delivery.",
+}
+
 import Image from "next/image"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
@@ -48,7 +55,7 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main>
         {/* Hero Section */}
         <section className="bg-primary py-20">
@@ -58,8 +65,8 @@ export default function AboutPage() {
               Fairness &amp; Integrity
             </h1>
             <p className="text-xl text-primary-foreground/80 max-w-3xl mx-auto">
-              At Planet Motors, we believe buying a used car should be simple, transparent, and stress-free. 
-              Our mission is to provide Canadians with the best selection of quality pre-owned vehicles 
+              At Planet Motors, we believe buying a used car should be simple, transparent, and stress-free.
+              Our mission is to provide Canadians with the best selection of quality pre-owned vehicles
               backed by our 210-point inspection and 10-day money-back guarantee.
             </p>
           </div>

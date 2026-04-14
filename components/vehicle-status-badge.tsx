@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils"
 // Vehicle status badge styles and labels
 export const statusBadgeStyles: Record<string, string> = {
   'available': '',
-  'in-transit': 'bg-blue-600 text-white',
+  'in-transit': 'bg-teal-600 text-white',
   'reserved': 'bg-yellow-600 text-white',
   'pending': 'bg-orange-600 text-white',
   'sold': 'bg-red-600 text-white',
