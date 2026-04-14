@@ -66,18 +66,8 @@ const vehicleData = {
   batteryHealth: 98,
   batteryCapacity: "82 kWh",
   chargingSpeed: "250 kW DC",
-  images: [
-    "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1536700503339-1e4b06520771?w=800&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1571127236794-81c0bbfe1ce3?w=800&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1536700503339-1e4b06520771?w=800&h=600&fit=crop"
-  ],
-  interiorImages: [
-    "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1571127236794-81c0bbfe1ce3?w=800&h=600&fit=crop"
-  ],
+  images: [] as string[],
+  interiorImages: [] as string[],
   features: {
     comfortConvenience: ["Heated Seats", "Power Liftgate", "Wireless Charging", "Premium Audio"],
     safetySecurity: ["Autopilot", "Collision Avoidance", "Blind Spot Monitoring", "360 Camera"],
@@ -454,7 +444,7 @@ export default function VehicleDetailPage() {
           bodyStyle: data.body_style,
           vin: data.vin,
           stockNumber: data.stock_number,
-          images: data.primary_image_url ? [data.primary_image_url] : vehicleData.images,
+          images: data.primary_image_url && !data.primary_image_url.includes('unsplash.com') ? [data.primary_image_url] : [],
           pricing: {
             vehiclePrice: priceInDollars,
             deliveryFee: 0,
@@ -649,7 +639,7 @@ export default function VehicleDetailPage() {
         {/* Vehicle Title Bar */}
         <div className="border-b py-4">
           <div className="container mx-auto px-4">
-            <h1 className="text-xl sm:text-2xl font-bold truncate">
+            <h1 className="font-serif text-xl sm:text-2xl font-bold truncate">
               {vehicle.year} {vehicle.make} {vehicle.model}
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground">
@@ -686,24 +676,35 @@ export default function VehicleDetailPage() {
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
-                  <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-muted group">
-                    <Image
-                      src={currentImages[currentImageIndex]}
-                      alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                      fill
-                      className="object-cover"
-                      priority
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
-                    />
-                    
-                    {/* Expand Button — opens image in new tab */}
-                    <button
-                      onClick={() => window.open(currentImages[currentImageIndex], "_blank")}
-                      className="absolute top-4 right-4 w-10 h-10 bg-background/80 backdrop-blur rounded-lg flex items-center justify-center hover:bg-background transition"
-                      aria-label="View full-size image"
-                    >
-                      <Expand className="w-5 h-5" />
-                    </button>
+                  <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] group">
+                    {currentImages.length > 0 && currentImages[currentImageIndex] ? (
+                      <>
+                        <Image
+                          src={currentImages[currentImageIndex]}
+                          alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                          fill
+                          className="object-cover"
+                          priority
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = "none"
+                          }}
+                        />
+                        {/* Expand Button — opens image in new tab */}
+                        <button
+                          onClick={() => window.open(currentImages[currentImageIndex], "_blank")}
+                          className="absolute top-4 right-4 w-10 h-10 bg-background/80 backdrop-blur rounded-lg flex items-center justify-center hover:bg-background transition"
+                          aria-label="View full-size image"
+                        >
+                          <Expand className="w-5 h-5" />
+                        </button>
+                      </>
+                    ) : (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                        <Car className="w-20 h-20 text-[#1e3a8a]/15" />
+                        <p className="text-sm text-muted-foreground">Photos coming soon</p>
+                      </div>
+                    )}
                     
                     {/* Navigation Arrows */}
                     <button
@@ -1076,7 +1077,7 @@ export default function VehicleDetailPage() {
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full border-4 border-primary flex items-center justify-center">
                       <span className="text-2xl font-bold text-primary">{vehicleData.inspectionScore}</span>
                     </div>
-                    <h2 className="text-2xl font-bold">210-Point Inspection</h2>
+                    <h2 className="font-serif text-2xl font-bold">210-Point Inspection</h2>
                     <p className="text-muted-foreground mt-2 max-w-md mx-auto">
                       This vehicle has been carefully inspected and reconditioned to ensure it meets our high safety and performance standards.
                     </p>
@@ -1385,7 +1386,7 @@ export default function VehicleDetailPage() {
 
                 {/* Pricing Tab */}
                 <TabsContent value="pricing" className="mt-0 space-y-6">
-                  <h2 className="text-2xl font-bold text-center">Price Details</h2>
+                  <h2 className="font-serif text-2xl font-bold text-center">Price Details</h2>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Pay Over Time - Includes $895 Finance Docs Fee */}

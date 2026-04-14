@@ -98,36 +98,21 @@ function transformVehicle(v: Vehicle) {
   else if (displayFuelType === "Hybrid") displayFuelType = "Hybrid"
   else displayFuelType = "Gasoline"
   
-  // Check if primary_image_url is a valid image URL (not a VDP page URL)
-  // Valid sources: cpsimg.com (carpages CDN), unsplash, direct image files
-  const isValidImageUrl = v.primary_image_url && 
-    !v.primary_image_url.includes('planetmotors.ca') &&
-    (v.primary_image_url.includes('.jpg') || 
-     v.primary_image_url.includes('.png') || 
+  // Check if primary_image_url is a real hosted image (not an Unsplash placeholder or VDP page URL)
+  // Valid sources: cdn.planetmotors.ca, planetmotors.imgix.net, HomeNet IOL, direct image files
+  const hasRealImage = v.primary_image_url &&
+    !v.primary_image_url.includes('planetmotors.ca/inventory') &&
+    !v.primary_image_url.includes('unsplash.com') &&
+    (v.primary_image_url.includes('.jpg') ||
+     v.primary_image_url.includes('.png') ||
      v.primary_image_url.includes('.webp') ||
-     v.primary_image_url.includes('unsplash.com') ||
-     v.primary_image_url.includes('carpages.ca') ||
+     v.primary_image_url.includes('cdn.planetmotors.ca') ||
+     v.primary_image_url.includes('imgix.net') ||
+     v.primary_image_url.includes('homenetiol.com') ||
      v.primary_image_url.includes('cpsimg.com'))
-  
-  // Make-specific placeholder images
-  const makePlaceholders: Record<string, string> = {
-    'Tesla': 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&auto=format&fit=crop&q=80',
-    'BMW': 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&auto=format&fit=crop&q=80',
-    'Audi': 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&auto=format&fit=crop&q=80',
-    'Toyota': 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&auto=format&fit=crop&q=80',
-    'Hyundai': 'https://images.unsplash.com/photo-1629897048514-3dd7414fe72a?w=800&auto=format&fit=crop&q=80',
-    'Kia': 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&auto=format&fit=crop&q=80',
-    'Chevrolet': 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&auto=format&fit=crop&q=80',
-    'Volkswagen': 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&auto=format&fit=crop&q=80',
-    'Jeep': 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&auto=format&fit=crop&q=80',
-    'Honda': 'https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=800&auto=format&fit=crop&q=80',
-    'default': 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&auto=format&fit=crop&q=80'
-  }
-  
-  // Use valid image URL or fall back to make-specific placeholder
-  const imageUrl = isValidImageUrl
-    ? (v.primary_image_url ?? makePlaceholders['default'])
-    : (makePlaceholders[v.make] || makePlaceholders['default'])
+
+  // Use real image URL or null (gradient fallback will show in the card)
+  const imageUrl = hasRealImage ? v.primary_image_url : null
   
   return {
     id: v.id,
@@ -302,7 +287,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
         price: vehicleData.price,
         originalPrice: vehicleData.originalPrice,
         mileage: vehicleData.mileage,
-        image: vehicleData.image
+        image: vehicleData.image || ""
       })
     }
   }
@@ -759,21 +744,25 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                   viewMode === "list" ? "flex flex-col sm:flex-row" : ""
                 }`}
               >
-                {/* Image */}
-                <div className={`relative ${viewMode === "list" ? "w-full sm:w-48 md:w-72 flex-shrink-0 aspect-[4/3] sm:aspect-auto" : "aspect-[4/3]"}`}>
-                  <Image
-                    src={vehicle.image}
-                    alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    unoptimized={vehicle.image.includes('cpsimg.com') || vehicle.image.includes('carpages.ca')}
-                    onError={(e) => {
-                      // Fallback to placeholder if image fails to load
-                      const target = e.target as HTMLImageElement
-                      target.src = 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&auto=format&fit=crop&q=80'
-                    }}
-                  />
+                {/* Image with gradient fallback */}
+                <div className={`relative bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] ${viewMode === "list" ? "w-full sm:w-48 md:w-72 flex-shrink-0 aspect-[4/3] sm:aspect-auto" : "aspect-[4/3]"}`}>
+                  {vehicle.image ? (
+                    <Image
+                      src={vehicle.image}
+                      alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      onError={(e) => {
+                        // Hide broken image — gradient + icon shows through
+                        (e.target as HTMLImageElement).style.display = "none"
+                      }}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Car className="w-16 h-16 text-[#1e3a8a]/15" />
+                    </div>
+                  )}
                   
                   {/* Badges */}
                   <div className="absolute top-3 left-3 flex flex-col gap-2">
