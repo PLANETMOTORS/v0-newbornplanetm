@@ -25,8 +25,9 @@ test.describe("Homepage", () => {
   })
 
   test("renders hero section", async ({ page }) => {
-    const main = page.locator("main")
-    await expect(main).toBeVisible()
+    // There are two <main> elements (outer flex-1 wrapper + inner #main-content), use the labeled one
+    const main = page.getByLabel("Home page content")
+    await expect(main).toBeVisible({ timeout: 15_000 })
     // Homepage content should load
     await expect(main.locator("text=Planet Motors").first()).toBeVisible({ timeout: 15_000 })
   })

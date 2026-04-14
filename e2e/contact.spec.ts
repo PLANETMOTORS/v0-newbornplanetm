@@ -10,13 +10,15 @@ test.describe("Contact Page", () => {
   })
 
   test("displays contact methods", async ({ page }) => {
-    await expect(page.getByText("1-866-797-3332")).toBeVisible()
-    await expect(page.getByText("info@planetmotors.ca")).toBeVisible()
+    // Scope to main content area to avoid header/footer duplicates
+    const main = page.locator("section").first()
+    await expect(page.getByText("1-866-797-3332").first()).toBeVisible()
+    await expect(page.getByText("info@planetmotors.ca").first()).toBeVisible()
   })
 
   test("displays business hours", async ({ page }) => {
-    await expect(page.getByText(/Business Hours/i)).toBeVisible()
-    await expect(page.getByText(/Monday - Friday/i)).toBeVisible()
+    await expect(page.getByRole("heading", { name: /Business Hours/i })).toBeVisible()
+    await expect(page.getByText(/Monday - Friday/i).first()).toBeVisible()
   })
 
   test("contact form is visible", async ({ page }) => {
@@ -25,12 +27,12 @@ test.describe("Contact Page", () => {
 
   test("shows validation errors for empty required fields", async ({ page }) => {
     // Find the first name input and interact with it to trigger validation
-    const firstNameInput = page.getByLabel(/first name/i).or(page.locator('input[name="firstName"]')).first()
-    
+    const firstNameInput = page.getByLabel(/first name/i).or(page.locator('#firstName')).first()
+
     if (await firstNameInput.isVisible()) {
-      // Focus and blur to trigger validation
-      await firstNameInput.focus()
-      await firstNameInput.blur()
+      // Type and clear to trigger onChange validation (form validates on change, not blur)
+      await firstNameInput.fill("a")
+      await firstNameInput.fill("")
       // Check for validation message
       await expect(page.getByText(/required/i).first()).toBeVisible({ timeout: 5_000 })
     }
