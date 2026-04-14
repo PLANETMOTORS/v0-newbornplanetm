@@ -18,7 +18,7 @@ export function generateSEOMetadata({
   title,
   description = DEFAULT_DESCRIPTION,
   path = "",
-  image = "/images/og-default.jpg",
+  image = "/images/planet-motors-logo.png",
   noIndex = false,
   keywords = [],
 }: GenerateMetadataParams): Metadata {
