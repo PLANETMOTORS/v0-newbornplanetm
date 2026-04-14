@@ -7,6 +7,7 @@ export const metadata: Metadata = {
 
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import { FAQJsonLd } from "@/components/seo/json-ld"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -125,9 +126,13 @@ const faqCategories = [
   }
 ]
 
+// Flatten all FAQ items for JSON-LD
+const allFaqs = faqCategories.flatMap(category => category.faqs)
+
 export default function FAQPage() {
   return (
     <div className="min-h-screen bg-background">
+      <FAQJsonLd faqs={allFaqs} />
       <Header />
 
       <main>

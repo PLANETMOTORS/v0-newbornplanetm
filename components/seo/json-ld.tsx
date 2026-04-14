@@ -312,6 +312,115 @@ export function LocalBusinessJsonLd() {
   )
 }
 
+// Financial Service Schema - for financing page
+export function FinancialServiceJsonLd() {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "FinancialService",
+    "name": "Planet Motors Auto Financing",
+    "description": "Get pre-approved for auto financing in minutes. Compare rates from 20+ major Canadian lenders with no impact on your credit score.",
+    "url": "https://www.planetmotors.ca/financing",
+    "provider": {
+      "@type": "AutoDealer",
+      "name": "Planet Motors",
+      "url": "https://www.planetmotors.ca",
+      "@id": "https://www.planetmotors.ca/#organization"
+    },
+    "areaServed": {
+      "@type": "Country",
+      "name": "Canada"
+    },
+    "serviceType": "Auto Financing",
+    "offers": {
+      "@type": "Offer",
+      "description": "Auto loan rates starting from 6.29% APR with terms from 24 to 96 months",
+      "priceCurrency": "CAD"
+    },
+    "telephone": "+1-866-797-3332",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "30 Major Mackenzie Dr E",
+      "addressLocality": "Richmond Hill",
+      "addressRegion": "ON",
+      "postalCode": "L4C 1G7",
+      "addressCountry": "CA"
+    }
+  }
+
+  return (
+    <Script
+      id="financial-service-jsonld"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
+
+// Contact Page Schema - for contact page
+export function ContactPageJsonLd() {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "AutoDealer",
+    "name": "Planet Motors",
+    "url": "https://www.planetmotors.ca/contact",
+    "@id": "https://www.planetmotors.ca/#organization",
+    "telephone": "+1-866-797-3332",
+    "email": "info@planetmotors.ca",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "30 Major Mackenzie Dr E",
+      "addressLocality": "Richmond Hill",
+      "addressRegion": "ON",
+      "postalCode": "L4C 1G7",
+      "addressCountry": "CA"
+    },
+    "contactPoint": [
+      {
+        "@type": "ContactPoint",
+        "telephone": "+1-866-797-3332",
+        "contactType": "sales",
+        "email": "sales@planetmotors.ca",
+        "availableLanguage": "English",
+        "hoursAvailable": {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          "opens": "09:00",
+          "closes": "19:00"
+        }
+      },
+      {
+        "@type": "ContactPoint",
+        "telephone": "+1-416-985-2277",
+        "contactType": "customer service",
+        "email": "info@planetmotors.ca",
+        "availableLanguage": "English"
+      }
+    ],
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "opens": "09:00",
+        "closes": "19:00"
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": "Saturday",
+        "opens": "09:00",
+        "closes": "18:00"
+      }
+    ]
+  }
+
+  return (
+    <Script
+      id="contact-page-jsonld"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
+
 // Website Search Action (for Google Sitelinks Searchbox)
 export function WebsiteSearchJsonLd() {
   const schema = {
