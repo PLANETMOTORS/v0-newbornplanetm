@@ -84,8 +84,8 @@ export function FooterContent({ siteSettings }: FooterProps) {
         <div className="mx-auto max-w-7xl px-6 py-5 lg:px-8">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
             <div>
-              <p className="text-xl sm:text-2xl font-bold text-white">210</p>
-              <p className="text-xs text-white/70">Point Inspection</p>
+              <p className="text-xl sm:text-2xl font-bold text-white">210-Point</p>
+              <p className="text-xs text-white/70">Inspection</p>
             </div>
             <div>
               <p className="text-xl sm:text-2xl font-bold text-white">10-Day</p>
@@ -96,8 +96,8 @@ export function FooterContent({ siteSettings }: FooterProps) {
               <p className="text-xs text-white/70">Refundable Deposit</p>
             </div>
             <div>
-              <p className="text-xl sm:text-2xl font-bold text-white">Canada</p>
-              <p className="text-xs text-white/70">Wide Delivery</p>
+              <p className="text-xl sm:text-2xl font-bold text-white">Canada-Wide</p>
+              <p className="text-xs text-white/70">Delivery</p>
             </div>
           </div>
         </div>
