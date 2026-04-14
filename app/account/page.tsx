@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import Image from "next/image"
+
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { createClient } from "@/lib/supabase/client"
@@ -17,7 +17,7 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { 
   User, Mail, Phone, CreditCard, Shield, LogOut,
-  Heart, Car, CheckCircle, Settings, Eye
+  Heart, Car, CheckCircle, Settings
 } from "lucide-react"
 
 interface UserProfile {

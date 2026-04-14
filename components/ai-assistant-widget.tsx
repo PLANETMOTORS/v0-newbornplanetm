@@ -13,7 +13,7 @@ import Link from "next/link"
 
 export function AIAssistantWidget() {
   const [isOpen, setIsOpen] = useState(false)
-  const [activeFeature, setActiveFeature] = useState<string | null>(null)
+
 
   const features = [
     {

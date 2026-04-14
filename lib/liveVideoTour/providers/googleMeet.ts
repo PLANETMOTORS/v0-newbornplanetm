@@ -13,7 +13,7 @@ function generateMeetCode(): string {
 }
 
 export const googleMeetProvider: LiveVideoTourProviderAdapter = {
-  async createMeeting(booking: LiveVideoTourBooking): Promise<LiveVideoTourProviderResult> {
+  async createMeeting(_booking: LiveVideoTourBooking): Promise<LiveVideoTourProviderResult> {
     try {
       // In production, this would:
       // 1. Use Google Calendar API with service account

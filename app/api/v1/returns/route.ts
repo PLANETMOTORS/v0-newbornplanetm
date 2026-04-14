@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, return: returnRequest })
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to initiate return" },
       { status: 500 }

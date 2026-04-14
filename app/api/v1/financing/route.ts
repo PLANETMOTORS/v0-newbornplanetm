@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
   const {
     customerId,
     vehicleId,
-    employmentStatus,
+    employmentStatus: _employmentStatus,
     annualIncome,
     monthlyRent,
     requestedAmount,

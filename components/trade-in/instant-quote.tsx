@@ -11,15 +11,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { 
-  Car, Sparkles, TrendingUp, Shield, Clock, CheckCircle, 
-  DollarSign, ArrowRight, Star, Zap, AlertCircle, Mail, Phone, Loader2
+  Car, Sparkles, TrendingUp, Shield, Clock, CheckCircle,
+  ArrowRight, Star, Zap, AlertCircle, Mail, Phone, Loader2
 } from "lucide-react"
 import {
   isValidEmail,
   isValidCanadianPhoneNumber,
-  isValidCanadianPostalCode,
   formatCanadianPhoneNumber,
-  formatCanadianPostalCode,
   ValidationMessages
 } from "@/lib/validation"
 
@@ -430,20 +428,10 @@ export function InstantQuote() {
     setIsCalculating(true)
     setCalculationProgress(0)
     
-    // Simulate calculation with progress
-    const steps = [
-      "Checking Canadian Black Book values...",
-      "Analyzing current market demand...",
-      "Reviewing auction data...",
-      "Calculating regional adjustments...",
-      "Generating your instant offer..."
-    ]
-    
     // Call AI-powered valuation API
     let lowValue = 0
     let midValue = 0
     let highValue = 0
-    let valuationFactors: string[] = []
     
     try {
       // Start progress animation
@@ -472,7 +460,7 @@ export function InstantQuote() {
         lowValue = valuation.lowValue
         midValue = valuation.midValue
         highValue = valuation.highValue
-        valuationFactors = valuation.factors || []
+
       } else {
         // Fallback to local calculation if API fails
         const fallbackResult = calculateLocalValue(formData)

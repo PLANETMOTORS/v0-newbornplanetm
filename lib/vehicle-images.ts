@@ -21,12 +21,6 @@ export function constructImageUrls(listingId: string, photoCount: number = 20): 
   const images: string[] = []
   
   // Common carpages.ca image CDN patterns
-  const cdnPatterns = [
-    `https://media.carpages.ca/inventory/${listingId}/photo_`,
-    `https://img.carpages.ca/inventory/${listingId}/`,
-    `https://media.cpsimg.com/inventory/${listingId}/photo_`
-  ]
-  
   // Try to construct up to photoCount images
   for (let i = 1; i <= photoCount; i++) {
     const paddedIndex = i.toString()

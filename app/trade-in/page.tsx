@@ -11,22 +11,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Slider } from "@/components/ui/slider"
+
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { 
-  Car, CreditCard, FileText, Search, CheckCircle, ArrowRight, DollarSign, Clock, Shield, 
-  Camera, Upload, Zap, TrendingUp, Star, Truck, Phone, MessageSquare, ChevronRight,
-  AlertCircle, Sparkles, Target, Award, MapPin, Calendar, Users, ThumbsUp
+import {
+  Car, CreditCard, Search, CheckCircle, ArrowRight, DollarSign, Shield,
+  Camera, Upload, Zap, TrendingUp, Star, Truck,
+  AlertCircle, Sparkles, Target, Award, ThumbsUp
 } from "lucide-react"
 import { InstantQuote } from "@/components/trade-in/instant-quote"
 import {
   isValidEmail,
   isValidCanadianPhoneNumber,
   isValidCanadianPostalCode,
-  isValidName,
   formatCanadianPhoneNumber,
   formatCanadianPostalCode,
   ValidationMessages
@@ -380,7 +379,8 @@ function TradeInContent() {
   const [additionalNotes, setAdditionalNotes] = useState("")
   
   // Photos
-  const [photos, setPhotos] = useState<string[]>([])
+  // TODO: Wire up photo upload functionality
+  const [_photos, _setPhotos] = useState<string[]>([])
   
   // Contact info
   const [email, setEmail] = useState("")
@@ -1114,7 +1114,7 @@ function TradeInContent() {
                     <CardContent className="space-y-6">
                       {/* Photo Upload Grid */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {["Front", "Back", "Interior", "Dashboard"].map((angle, i) => (
+                        {["Front", "Back", "Interior", "Dashboard"].map((angle) => (
                           <div 
                             key={angle}
                             className="aspect-video border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-primary/5 cursor-pointer transition-all"

@@ -313,7 +313,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET /api/v1/financing/applications - Get user's applications
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

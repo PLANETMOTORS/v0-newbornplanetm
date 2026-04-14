@@ -2,7 +2,7 @@
 
 // Planet Motors Live Chat Widget - Anna AI Assistant (AI SDK 6)
 import { useState, useEffect, useRef } from "react"
-import { MessageCircle, X, Send, Minimize2, Bot, Sparkles, Loader2 } from "lucide-react"
+import { X, Send, Minimize2, Bot, Sparkles, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useChat } from "@ai-sdk/react"

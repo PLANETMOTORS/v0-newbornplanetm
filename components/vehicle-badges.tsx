@@ -28,7 +28,7 @@ export function VehicleBadges({
   isNew,
   isPriceDrop,
   priceDropAmount,
-  isPopular,
+  isPopular: _isPopular,
   daysOnLot,
   isSalePending,
   hasCarfax,

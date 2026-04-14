@@ -6,14 +6,14 @@ import Link from "next/link"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
 import { 
-  Battery, BatteryCharging, Zap, Shield, CheckCircle, ThermometerSun,
-  Gauge, Calendar, FileCheck, Award, TrendingUp, Clock, Wrench,
-  AlertTriangle, Info, Car, ArrowRight, Phone, ChevronDown
+  Battery, BatteryCharging, Zap, Shield, ThermometerSun,
+  Gauge, FileCheck, Award, TrendingUp,
+  Car, ArrowRight, Phone
 } from "lucide-react"
 import {
   Accordion,
@@ -23,30 +23,6 @@ import {
 } from "@/components/ui/accordion"
 
 // API-ready interface for battery health data
-interface BatteryHealthReport {
-  vehicleId: string
-  vehicleName: string
-  testDate: string
-  batteryHealth: number
-  originalCapacity: number
-  currentCapacity: number
-  estimatedRange: number
-  originalRange: number
-  degradationRate: number
-  cycleCount: number
-  cellBalance: "Excellent" | "Good" | "Fair" | "Poor"
-  thermalHealth: "Optimal" | "Normal" | "Monitor" | "Service Required"
-  chargingCapability: {
-    dcFastCharge: boolean
-    maxChargingSpeed: number
-  }
-  warranty: {
-    remaining: string
-    coverage: number
-  }
-  recommendations: string[]
-}
-
 // Sample EV vehicles with battery health data
 const evVehicles = [
   {

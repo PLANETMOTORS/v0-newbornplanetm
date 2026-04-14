@@ -11,17 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { 
-  ArrowLeft, 
-  Shield, 
-  Upload, 
-  Camera, 
-  CheckCircle2, 
+  ArrowLeft,
+  Shield,
+  Upload,
+  CheckCircle2,
   AlertCircle,
   FileText,
   CreditCard,
-  User,
-  Calendar,
-  MapPin,
   Loader2,
   X
 } from "lucide-react"
@@ -54,13 +50,12 @@ interface IDDocument {
 }
 
 function IDVerificationContent() {
-  const router = useRouter()
+  useRouter()
   const searchParams = useSearchParams()
   const applicationId = searchParams.get("applicationId")
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isVerified, setIsVerified] = useState(false)
-  const [verificationMethod, setVerificationMethod] = useState<"upload" | "camera" | null>(null)
   
   const [primaryID, setPrimaryID] = useState<IDDocument>({
     type: "",

@@ -11,18 +11,18 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Slider } from "@/components/ui/slider"
+
 import { Input } from "@/components/ui/input"
 import { 
-  ChevronLeft, ChevronRight, Heart, Share2, MapPin, Fuel, Gauge, 
-  Calendar, Settings, Shield, CheckCircle, Calculator, Car, 
-  FileText, History, Zap, RotateCcw, DollarSign, CreditCard,
-  Phone, MessageCircle, Star, Clock, TrendingUp, Eye, Users,
-  Award, Battery, Thermometer, LockKeyhole, Truck, ArrowRight, Play,
-  Download, ExternalLink, Check, X, AlertCircle, Expand,
-  Key, Sofa, Cog, Info
+  ChevronLeft, ChevronRight, Heart, Share2, Fuel, Gauge,
+  Settings, Shield, CheckCircle, Car,
+  FileText, Zap, DollarSign, CreditCard,
+  Phone, Star, TrendingUp, Users,
+  Battery, LockKeyhole, Truck, ArrowRight, Play,
+  Download, ExternalLink, Check, Expand,
+  Key
 } from "lucide-react"
-import { ScheduleTestDrive } from "@/components/schedule-test-drive"
+
 import { SimilarVehicles } from "@/components/similar-vehicles"
 import { ReserveVehicleModal } from "@/components/reserve-vehicle-modal"
 import { AuthRequiredModal } from "@/components/auth-required-modal"
@@ -381,7 +381,7 @@ export default function VehicleDetailPage() {
   const [showInspectionModal, setShowInspectionModal] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [authAction, setAuthAction] = useState("")
-  const [showReserveModal, setShowReserveModal] = useState(false)
+
   
   // Trade-in from AI Quote
   const tradeInValue = searchParams.get("tradeIn")
@@ -581,7 +581,7 @@ export default function VehicleDetailPage() {
   }
 
   const currentImages: string[] = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
-  const savings = (vehicleData.originalPrice || vehicle.price * 1.1) - vehicle.price
+
   
   // Finance calculation: Vehicle Price + $895 Admin Fee (Finance Docs Set-up)
   const FINANCE_ADMIN_FEE = 895

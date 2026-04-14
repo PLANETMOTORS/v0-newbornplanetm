@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       province,
       postalCode,
       residenceStatus,
-      monthlyPayment,
+      monthlyPayment: _monthlyPayment,
       yearsAtAddress,
       employmentStatus,
       employerName,

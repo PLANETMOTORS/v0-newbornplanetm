@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { 
-  MapPin, Car, Shield, Truck, Star, CheckCircle, 
-  ArrowRight, Phone, Clock, Battery 
+  Car, Shield, Truck, Star, CheckCircle,
+  ArrowRight, Phone, Battery
 } from "lucide-react"
 
 // City data for SEO

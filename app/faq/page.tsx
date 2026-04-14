@@ -2,7 +2,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Search, ShoppingCart, CreditCard, Truck, RotateCcw, Shield, Wrench, HelpCircle } from "lucide-react"

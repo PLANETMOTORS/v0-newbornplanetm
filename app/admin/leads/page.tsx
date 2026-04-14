@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { 
-  Search, Filter, Phone, Mail, MessageSquare, Clock, 
-  CheckCircle, AlertCircle, User, Car, ChevronRight
+  Search, Phone, Mail, MessageSquare,
+  User, Car
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

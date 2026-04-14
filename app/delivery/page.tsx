@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Truck, MapPin, Clock, CheckCircle, Calculator, Info } from "lucide-react"
+import { Truck, MapPin, Clock, CheckCircle, Calculator } from "lucide-react"
 
 // Planet Motors shipping location: L4C 1G7, Richmond Hill, Ontario
-const ORIGIN_POSTAL_CODE = "L4C1G7"
+
 
 // Delivery pricing tiers based on distance from Richmond Hill, ON (L4C 1G7)
 // Updated transportation rules:
@@ -21,7 +21,7 @@ const ORIGIN_POSTAL_CODE = "L4C1G7"
 // 2001-9999 km: $0.65/km (bulk rate for long distance)
 // Max delivery distance: 9,999 km
 const MAX_DELIVERY_DISTANCE = 9999
-const FREE_DELIVERY_THRESHOLD = 300
+
 
 const DELIVERY_TIERS = [
   { minKm: 0, maxKm: 300, cost: 0, label: "FREE" },

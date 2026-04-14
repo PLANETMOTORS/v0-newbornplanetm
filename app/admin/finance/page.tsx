@@ -1,12 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
+
 import { 
   DollarSign, Search, Filter, Download, Eye, CheckCircle, 
   XCircle, Clock, FileText, User, Car, Phone, Mail,
-  ChevronDown, ChevronRight, AlertCircle, RefreshCw,
-  Calendar, Building, CreditCard, Truck
+  RefreshCw,
+  CreditCard
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"

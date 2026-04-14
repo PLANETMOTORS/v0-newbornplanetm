@@ -21,7 +21,7 @@ async function fixCmsContent() {
   try {
     await client.delete({ query: '*[_type == "homepage"]' })
     console.log('Deleted old homepage documents')
-  } catch (e) {
+  } catch (_e) {
     console.log('No existing homepage to delete')
   }
 
@@ -81,7 +81,7 @@ async function fixCmsContent() {
   try {
     await client.delete({ query: '*[_type == "financingPage"]' })
     console.log('Deleted old financing page')
-  } catch (e) {
+  } catch (_e) {
     console.log('No existing financing page to delete')
   }
 
@@ -122,7 +122,7 @@ async function fixCmsContent() {
   try {
     await client.delete({ query: '*[_type == "sellYourCarPage"]' })
     console.log('Deleted old sell your car page')
-  } catch (e) {
+  } catch (_e) {
     console.log('No existing sell your car page to delete')
   }
 
@@ -217,7 +217,7 @@ async function fixCmsContent() {
 
   for (const testimonial of testimonials) {
     try {
-      const result = await client.createOrReplace(testimonial)
+      await client.createOrReplace(testimonial)
       console.log('Testimonial created:', testimonial.customerName)
     } catch (error) {
       console.error('Error creating testimonial:', testimonial.customerName, error.message)
@@ -368,7 +368,7 @@ async function fixCmsContent() {
 
   for (const faq of faqs) {
     try {
-      const result = await client.createOrReplace(faq)
+      await client.createOrReplace(faq)
       console.log('FAQ created:', faq.question.substring(0, 40) + '...')
     } catch (error) {
       console.error('Error creating FAQ:', faq.question.substring(0, 40), error.message)

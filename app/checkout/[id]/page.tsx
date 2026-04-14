@@ -23,8 +23,7 @@ import {
   Truck,
   FileText,
   Phone,
-  AlertCircle,
-  Loader2
+  AlertCircle
 } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import { loadStripe } from "@stripe/stripe-js"
@@ -414,7 +413,7 @@ const handleSubmit = async () => {
                                   }))
                                   return
                                 }
-                              } catch (error) {
+                              } catch (_error) {
                                 // Fallback to local lookup
                               }
                               

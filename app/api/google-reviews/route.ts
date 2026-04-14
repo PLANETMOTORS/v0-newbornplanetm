@@ -113,7 +113,7 @@ export async function POST(request: Request) {
       success: true, 
       message: "Cache cleared, next request will fetch fresh data" 
     })
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { success: false, error: "Failed to clear cache" },
       { status: 500 }

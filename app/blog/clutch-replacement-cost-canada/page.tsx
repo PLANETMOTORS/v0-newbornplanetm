@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import Image from "next/image"
+
 import { Calendar, Clock, User, ChevronRight, DollarSign, MapPin, Car, Wrench } from "lucide-react"
 
 export default function ClutchReplacementCostCanadaPage() {

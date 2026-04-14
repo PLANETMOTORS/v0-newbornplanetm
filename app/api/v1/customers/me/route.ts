@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
 // GET /api/v1/customers/me - Get current customer profile
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ customer })
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to fetch customer" },
       { status: 500 }
@@ -97,7 +97,7 @@ export async function PUT(request: NextRequest) {
         updatedAt: new Date().toISOString(),
       },
     })
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to update customer" },
       { status: 500 }

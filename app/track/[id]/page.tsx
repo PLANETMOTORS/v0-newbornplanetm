@@ -10,7 +10,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import {
   MapPin, Phone, Clock, Truck, CheckCircle, Circle,
-  ArrowLeft, RefreshCw, Navigation, User
+  ArrowLeft, RefreshCw, Navigation
 } from "lucide-react"
 
 interface DeliveryData {

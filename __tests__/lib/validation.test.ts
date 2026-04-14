@@ -3,12 +3,9 @@ import {
   isValidCanadianPostalCode,
   formatCanadianPostalCode,
   isValidCanadianPhoneNumber,
-  formatCanadianPhoneNumber,
   isValidEmail,
   isValidName,
   isValidVIN,
-  isValidMileage,
-  formatMileage,
 } from '@/lib/validation'
 
 describe('isValidCanadianPostalCode', () => {

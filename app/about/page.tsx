@@ -3,7 +3,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Shield, Award, Users, MapPin, Heart, Target, Star, Globe, Trophy } from "lucide-react"
+import { Shield, Award, MapPin, Heart, Target, Star, Globe, Trophy } from "lucide-react"
 
 export default function AboutPage() {
   // Real team members from Planet Motors

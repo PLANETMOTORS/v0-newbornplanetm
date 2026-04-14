@@ -2,9 +2,9 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { LiveChatWidget } from "@/components/live-chat-widget"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+
 import { FinanceApplicationForm } from "@/components/finance-application-form"
-import { CheckCircle, ArrowRight, Shield, Clock, BadgeCheck, User, Calculator } from "lucide-react"
+import { CheckCircle, ArrowRight, Shield, Clock, BadgeCheck, User } from "lucide-react"
 import Link from "next/link"
 
 // Default lenders fallback - Generic lender partners

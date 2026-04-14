@@ -21,7 +21,11 @@ export default [
     ...js.configs.recommended,
     rules: {
       ...js.configs.recommended.rules,
-      'no-unused-vars': 'warn',
+      'no-unused-vars': ['warn', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+      }],
       'no-undef': 'off', // TypeScript handles this
       'no-empty': 'warn',
       'no-useless-escape': 'warn',
@@ -42,7 +46,11 @@ export default [
       '@typescript-eslint': tsPlugin,
     },
     rules: {
-      '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/no-unused-vars': ['warn', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+      }],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-empty-interface': 'warn',
       '@typescript-eslint/no-non-null-assertion': 'warn',

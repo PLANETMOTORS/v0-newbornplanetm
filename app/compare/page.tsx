@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Plus, X, CheckCircle, XCircle, Minus, ArrowRight, Share2, Printer, Download } from "lucide-react"
+import { Plus, X, CheckCircle, ArrowRight, Share2, Printer } from "lucide-react"
 import { useCompare, type CompareVehicle } from "@/contexts/compare-context"
 
 // Sample vehicles for comparison - will be replaced with API call: GET /api/vehicles/compare
@@ -428,7 +428,7 @@ export default function ComparePage() {
                       {selectedVehicleData.some(v => v.batteryHealth) && (
                         <tr className="border-b">
                           <td className="p-4 font-medium">Battery Health</td>
-                          {selectedVehicleData.map((vehicle, i) => {
+                          {selectedVehicleData.map((vehicle) => {
                             const evVehicles = selectedVehicleData.filter(v => v.batteryHealth)
                             const isBest = vehicle.batteryHealth && evVehicles.length > 1 
                               ? compareValue(evVehicles.map(v => v.batteryHealth!), "higher")[evVehicles.indexOf(vehicle)]
