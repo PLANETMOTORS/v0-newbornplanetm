@@ -16,4 +16,5 @@ tsconfig.tsbuildinfo
 # Common ignores
 node_modules
 .next/
-.DS_Storepackage-lock.json
+.DS_Store
+package-lock.json
