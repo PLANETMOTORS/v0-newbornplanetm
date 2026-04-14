@@ -1,30 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { get } from "@vercel/blob"
 import { createClient } from "@/lib/supabase/server"
-
-type DocumentWithFileAndApplication = {
-  id: string
-  file_url: string
-  finance_applications_v2: { user_id: string } | Array<{ user_id: string }>
-}
-
-function isDocumentWithFileAndApplication(value: unknown): value is DocumentWithFileAndApplication {
-  if (Object.prototype.toString.call(value) !== "[object Object]") {
-    return false
-  }
-
-  const record = value as Record<string, unknown>
-  if (typeof record.id !== "string" || typeof record.file_url !== "string") {
-    return false
-  }
-
-  const application = record.finance_applications_v2
-  if (Array.isArray(application)) {
-    return application.every(item => Object.prototype.toString.call(item) === "[object Object]" && typeof (item as Record<string, unknown>).user_id === "string")
-  }
-
-  return Object.prototype.toString.call(application) === "[object Object]" && typeof (application as Record<string, unknown>).user_id === "string"
-}
+import { isDocumentWithFileAndApplication } from "@/lib/financing/guards"
 
 // GET /api/v1/financing/documents/download?pathname=xxx&documentId=xxx
 // Secure route to serve private blob files

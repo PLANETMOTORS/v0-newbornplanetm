@@ -1,29 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { put } from "@vercel/blob"
-
-type DocumentWithApplication = {
-  id: string
-  finance_applications_v2: { user_id: string } | Array<{ user_id: string }>
-}
-
-function isDocumentWithApplication(value: unknown): value is DocumentWithApplication {
-  if (Object.prototype.toString.call(value) !== "[object Object]") {
-    return false
-  }
-
-  const record = value as Record<string, unknown>
-  if (typeof record.id !== "string") {
-    return false
-  }
-
-  const application = record.finance_applications_v2
-  if (Array.isArray(application)) {
-    return application.every(item => Object.prototype.toString.call(item) === "[object Object]" && typeof (item as Record<string, unknown>).user_id === "string")
-  }
-
-  return Object.prototype.toString.call(application) === "[object Object]" && typeof (application as Record<string, unknown>).user_id === "string"
-}
+import { isDocumentWithApplication } from "@/lib/financing/guards"
 
 // POST /api/v1/financing/documents - Upload document
 export async function POST(request: NextRequest) {
