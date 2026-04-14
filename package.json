@@ -50,6 +50,7 @@
     "@sanity/client": "^6.24.0",
     "@sanity/image-url": "^1.1.0",
     "@sanity/vision": "^3.72.0",
+    "@sentry/nextjs": "^10.48.0",
     "@stripe/react-stripe-js": "^3.6.1",
     "@stripe/stripe-js": "^7.5.0",
     "@supabase/ssr": "^0.6.1",
