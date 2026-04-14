@@ -264,18 +264,18 @@ export function FooterContent({ siteSettings }: FooterProps) {
 
           {/* ── Bottom Bar: OMVIC + Legal + Copyright ── */}
           <div className="mt-6 pt-5 pb-2 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-white/35">
+            <div className="flex items-center gap-2 text-white/70">
               <Shield className="w-3.5 h-3.5 shrink-0" />
-              <span className="text-xs">OMVIC Registered Dealer</span>
+              <span className="text-xs font-medium">OMVIC Registered Dealer</span>
             </div>
             <div className="flex items-center gap-4">
               {footerLinks.legal.map((link) => (
-                <Link key={link.name} href={link.href} className="text-xs text-white/25 hover:text-white/60 transition-colors">
+                <Link key={link.name} href={link.href} className="text-xs font-medium text-white/70 hover:text-white transition-colors">
                   {link.name}
                 </Link>
               ))}
             </div>
-            <p className="text-xs text-white/25">
+            <p className="text-xs font-medium text-white/70">
               &copy; {new Date().getFullYear()} {siteSettings.dealerName}. All rights reserved.
             </p>
           </div>
