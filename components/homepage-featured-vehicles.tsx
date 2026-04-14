@@ -1,11 +1,13 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { useMemo, useState } from "react"
 import useSWR from "swr"
 import { ArrowRight, Battery, Car, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
+import { getVehicleImage } from "@/lib/vehicle-images"
 
 type FeaturedTab = "all" | "electric" | "suvs"
 
@@ -20,6 +22,7 @@ type FeaturedVehicle = {
   badge: string
   isEV: boolean
   isAvilooCertified: boolean
+  imageUrl: string | null
 }
 
 const fallbackVehicles: FeaturedVehicle[] = [
@@ -34,6 +37,7 @@ const fallbackVehicles: FeaturedVehicle[] = [
     badge: "Popular",
     isEV: true,
     isAvilooCertified: true,
+    imageUrl: null,
   },
   {
     id: "fallback-2",
@@ -46,6 +50,7 @@ const fallbackVehicles: FeaturedVehicle[] = [
     badge: "Fuel Saver",
     isEV: false,
     isAvilooCertified: false,
+    imageUrl: null,
   },
   {
     id: "fallback-3",
@@ -58,6 +63,7 @@ const fallbackVehicles: FeaturedVehicle[] = [
     badge: "New Arrival",
     isEV: true,
     isAvilooCertified: true,
+    imageUrl: null,
   },
   {
     id: "fallback-4",
@@ -70,6 +76,7 @@ const fallbackVehicles: FeaturedVehicle[] = [
     badge: "Popular",
     isEV: false,
     isAvilooCertified: false,
+    imageUrl: null,
   },
   {
     id: "fallback-5",
@@ -82,6 +89,7 @@ const fallbackVehicles: FeaturedVehicle[] = [
     badge: "Premium",
     isEV: true,
     isAvilooCertified: true,
+    imageUrl: null,
   },
   {
     id: "fallback-6",
@@ -94,6 +102,7 @@ const fallbackVehicles: FeaturedVehicle[] = [
     badge: "Luxury",
     isEV: false,
     isAvilooCertified: false,
+    imageUrl: null,
   },
 ]
 
@@ -110,7 +119,7 @@ const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
   const supabase = createClient()
   const { data, error } = await supabase
     .from("vehicles")
-    .select("id, year, make, model, price, mileage, fuel_type, featured, inspection_score")
+    .select("id, year, make, model, price, mileage, fuel_type, featured, inspection_score, primary_image_url, image_urls")
     .eq("status", "available")
     .order("featured", { ascending: false })
     .order("created_at", { ascending: false })
@@ -126,6 +135,13 @@ const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
     const fuelType = String(vehicle.fuel_type || "")
     const isEV = fuelType.toLowerCase() === "electric"
 
+    // Get the best available image using the helper
+    const imageUrl = getVehicleImage({
+      primary_image_url: vehicle.primary_image_url,
+      image_urls: vehicle.image_urls,
+      make: String(vehicle.make || ""),
+    })
+
     return {
       id: String(vehicle.id),
       year: Number(vehicle.year || 0),
@@ -137,6 +153,7 @@ const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
       badge: vehicle.featured ? "Popular" : (isEV ? "Electric" : "Certified"),
       isEV,
       isAvilooCertified: isEV && Number(vehicle.inspection_score || 0) >= 200,
+      imageUrl: imageUrl || null,
     }
   })
 
@@ -201,23 +218,39 @@ export function HomepageFeaturedVehicles() {
               key={vehicle.id}
               className="bg-white rounded-xl border border-[#dce3ed] overflow-hidden hover:shadow-lg transition-shadow group"
             >
-              <div className="relative aspect-[4/3] bg-[#eef2f7]">
-                <div className="absolute top-3 left-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getBadgeClassName(vehicle.badge)}`}>
+              <div className="relative aspect-[4/3] bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] overflow-hidden">
+                {/* Vehicle image or gradient fallback */}
+                {vehicle.imageUrl ? (
+                  <Image
+                    src={vehicle.imageUrl}
+                    alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    onError={(e) => {
+                      // Hide broken image, fallback gradient + icon shows through
+                      (e.target as HTMLImageElement).style.display = "none"
+                    }}
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Car className="w-16 h-16 text-[#1e3a8a]/15" />
+                  </div>
+                )}
+
+                {/* Badges */}
+                <div className="absolute top-3 left-3 z-10">
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm ${getBadgeClassName(vehicle.badge)}`}>
                     {vehicle.badge}
                   </span>
                 </div>
 
                 {vehicle.isAvilooCertified && (
-                  <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-green-700">
+                  <div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-green-700 shadow-sm">
                     <Battery className="w-3 h-3" />
                     Aviloo Certified
                   </div>
                 )}
-
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Car className="w-16 h-16 text-gray-300" />
-                </div>
               </div>
 
               <div className="p-5">

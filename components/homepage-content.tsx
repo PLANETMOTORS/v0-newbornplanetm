@@ -192,7 +192,9 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
               </h1>
               
               <p className="mt-6 text-lg text-gray-600 max-w-lg mx-auto lg:mx-0">
-                Ontario&apos;s #1 certified pre-owned marketplace. 210-point inspected. Delivered to your door.
+                Ontario&apos;s #1 certified pre-owned marketplace.
+                <br className="hidden sm:block" />
+                <span className="font-semibold text-gray-800">210-point inspected.</span> Delivered to your door.
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
