@@ -27,14 +27,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    // Get initial user — use getUser() which validates against the server,
-    // not getSession() which can return stale cached data from an old Supabase URL.
-    const getUser = async () => {
+    // Two-step auth check to avoid unnecessary network calls:
+    // 1. getSession() reads from local storage (no network request) — if there's
+    //    no session, we know the visitor is unauthenticated and can skip the server call.
+    // 2. If a session exists, we call getUser() to server-validate it, ensuring
+    //    stale or cross-project tokens are caught and cleared.
+    const initAuth = async () => {
       try {
-        const { data: { user }, error } = await supabase.auth.getUser()
+        const { data: { session } } = await supabase!.auth.getSession()
+
+        if (!session) {
+          // No local session — user is unauthenticated, skip the network call.
+          setUser(null)
+          setIsLoading(false)
+          return
+        }
+
+        // Session exists — validate it against the server.
+        const { data: { user }, error } = await supabase!.auth.getUser()
         if (error) {
           // Session is invalid or from wrong project — clear it so the UI resets.
-          await supabase.auth.signOut()
+          await supabase!.auth.signOut()
           setUser(null)
         } else {
           setUser(user ?? null)
@@ -47,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    getUser()
+    initAuth()
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
