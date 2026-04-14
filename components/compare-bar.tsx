@@ -1,6 +1,6 @@
 "use client"
 
-import { useCompare } from "@/lib/compare-context"
+import { useCompare } from "@/contexts/compare-context"
 import { Button } from "@/components/ui/button"
 import { X, GitCompare, ChevronUp } from "lucide-react"
 import Link from "next/link"

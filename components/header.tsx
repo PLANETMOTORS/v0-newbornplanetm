@@ -101,7 +101,7 @@ function DesktopNav({
           {item.submenu ? (
             <button
               type="button"
-              className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
+              className="flex items-center gap-1 px-4 py-2 text-[15px] font-medium text-gray-800 hover:text-[#1e3a8a] transition-colors"
               onClick={() => setActiveSubmenu(activeSubmenu === item.name ? null : item.name)}
             >
               {item.name}
@@ -110,7 +110,7 @@ function DesktopNav({
           ) : (
             <Link
               href={item.href}
-              className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
+              className="flex items-center gap-1 px-4 py-2 text-[15px] font-medium text-gray-800 hover:text-[#1e3a8a] transition-colors"
             >
               {item.name}
             </Link>
@@ -356,7 +356,7 @@ export function Header() {
         )}
       </header>
 
-      <div className="pointer-events-none bg-gray-100 border-b border-gray-200 text-gray-700 text-sm py-2.5">
+      <div className="pointer-events-none bg-[#f0f4ff] border-b border-[#e0e7f5] text-gray-700 text-sm py-2.5">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-center gap-3 sm:gap-6 md:gap-10 overflow-x-auto scrollbar-hide">
               <div className="flex items-center gap-2 whitespace-nowrap">
@@ -365,7 +365,7 @@ export function Header() {
               </div>
               <span className="hidden sm:block text-gray-300">|</span>
               <div className="flex items-center gap-2 whitespace-nowrap">
-                <Shield className="w-4 h-4 text-blue-600" />
+                <Shield className="w-4 h-4 text-teal-600" />
                 <span className="font-medium text-xs sm:text-sm">$250 Refundable Deposit</span>
               </div>
               <span className="hidden sm:block text-gray-300">|</span>
@@ -375,7 +375,7 @@ export function Header() {
               </div>
               <span className="hidden md:block text-gray-300">|</span>
               <div className="hidden md:flex items-center gap-2 whitespace-nowrap">
-                <Truck className="w-4 h-4 text-blue-600" />
+                <Truck className="w-4 h-4 text-teal-600" />
                 <span className="font-medium text-xs sm:text-sm">Canada-Wide Delivery</span>
               </div>
             </div>

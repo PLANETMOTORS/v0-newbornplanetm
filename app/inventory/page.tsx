@@ -12,14 +12,14 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
-import { Checkbox } from "@/components/ui/checkbox"
+
 import { 
-  Search, SlidersHorizontal, Grid3X3, List, Heart, Share2, 
-  Gauge, Fuel, Calendar, MapPin, Shield, Zap, ChevronDown,
-  X, RotateCcw, TrendingUp, Eye, Clock, CheckCircle, Star,
-  ArrowUpDown, Filter, Sparkles, Battery, Car, ExternalLink, Bell, Loader2
+  Search, SlidersHorizontal, Grid3X3, List, Heart,
+  Gauge, Fuel, Shield, Zap, ChevronDown,
+  X, RotateCcw, TrendingUp, CheckCircle,
+  Filter, Battery, Car, ExternalLink, Bell, Loader2, Clock
 } from "lucide-react"
-import { useFavorites } from "@/lib/favorites-context"
+import { useFavorites } from "@/contexts/favorites-context"
 import { PriceAlertModal } from "@/components/price-alert-modal"
 import { createClient } from "@/lib/supabase/client"
 
@@ -83,7 +83,7 @@ function transformVehicle(v: Vehicle) {
     badgeColor = "bg-green-500"
   } else if (v.fuel_type === "Electric") {
     badge = "Electric"
-    badgeColor = "bg-blue-500"
+    badgeColor = "bg-teal-500"
   } else if (v.is_certified) {
     badge = "PM Certified"
     badgeColor = "bg-primary"
@@ -125,8 +125,8 @@ function transformVehicle(v: Vehicle) {
   }
   
   // Use valid image URL or fall back to make-specific placeholder
-  const imageUrl = isValidImageUrl 
-    ? v.primary_image_url! 
+  const imageUrl = isValidImageUrl
+    ? (v.primary_image_url ?? makePlaceholders['default'])
     : (makePlaceholders[v.make] || makePlaceholders['default'])
   
   return {
@@ -160,10 +160,7 @@ function transformVehicle(v: Vehicle) {
   }
 }
 
-const makes = ["All Makes", "Audi", "BMW", "Ford", "Honda", "Mercedes-Benz", "Porsche", "Tesla", "Toyota"]
-const bodyTypes = ["All Types", "SUV", "Sedan", "Truck", "Coupe", "Hatchback", "Convertible"]
 const fuelTypes = ["All Fuel Types", "Electric", "Hybrid", "Plug-in Hybrid", "Gasoline", "Premium"]
-const years = ["All Years", "2024", "2023", "2022", "2021", "2020", "2019", "2018"]
 const transmissions = ["All Transmissions", "Automatic", "Manual", "CVT", "Dual-Clutch"]
 const colors = ["All Colors", "White", "Black", "Silver", "Blue", "Red", "Gray", "Green"]
 const drivetrains = ["All Drivetrains", "AWD", "FWD", "RWD", "4WD"]
@@ -183,7 +180,7 @@ function InventoryContent() {
   const [showFilters, setShowFilters] = useState(false)
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [sortBy, setSortBy] = useState("featured")
-  const { favorites, addFavorite, removeFavorite, isFavorite } = useFavorites()
+  const { addFavorite, removeFavorite, isFavorite } = useFavorites()
   const [evOnly, setEvOnly] = useState(false)
   
   // Trade-in from AI Quote
@@ -217,11 +214,7 @@ function InventoryContent() {
     return ["All Years", ...uniqueYears]
   }, [vehicles])
 
-  // Get unique body types from actual data
-  const dynamicBodyTypes = useMemo(() => {
-    const uniqueTypes = [...new Set(vehicles.map(v => v.bodyType))].sort()
-    return ["All Types", ...uniqueTypes]
-  }, [vehicles])
+
 
   // Read URL parameters and set filters
   useEffect(() => {
@@ -794,7 +787,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                       </Badge>
                     )}
                     {/* PM Certified Badge */}
-                    <Badge className="bg-blue-600 text-white shadow-lg">
+                    <Badge className="bg-teal-600 text-white shadow-lg">
                       <Shield className="w-3 h-3 mr-1" />
                       PM Certified
                     </Badge>

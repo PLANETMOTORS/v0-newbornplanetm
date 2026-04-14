@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
 import { gateway } from "@ai-sdk/gateway"
+import { apiError, ErrorCode } from "@/lib/api-response"
 
 export async function POST(request: NextRequest) {
   try {
     const { year, make, model, trim, mileage, condition } = await request.json()
 
     if (!year || !make || !model || !mileage) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+      return apiError(ErrorCode.VALIDATION_ERROR, "Missing required fields", 400)
     }
 
     const mileageNum = parseInt(String(mileage).replace(/,/g, ""))
@@ -97,7 +98,7 @@ Respond ONLY with a JSON object (no markdown, no explanation):
       const fallback = calculateFallbackValue(year, make, model, parseInt(String(mileage).replace(/,/g, "")), condition)
       return NextResponse.json({ ...fallback, source: "fallback-algorithm" })
     } catch {
-      return NextResponse.json({ error: "Valuation failed" }, { status: 500 })
+      return apiError(ErrorCode.INTERNAL_ERROR, "Valuation failed")
     }
   }
 }

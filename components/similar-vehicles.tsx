@@ -5,7 +5,7 @@ import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Heart, Gauge, Fuel, Battery, ChevronRight, MapPin, Truck } from "lucide-react"
+import { Heart, Gauge, Fuel, Battery, ChevronRight, Truck } from "lucide-react"
 
 interface SimilarVehicle {
   id: string

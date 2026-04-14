@@ -1,14 +1,52 @@
 import { updateSession } from '@/lib/supabase/middleware'
-import { type NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
+
+// Admin emails — env var takes precedence, falls back to hardcoded list
+const ADMIN_EMAILS: readonly string[] = process.env.ADMIN_EMAILS
+  ? process.env.ADMIN_EMAILS.split(',').map((e) => e.trim())
+  : ['admin@planetmotors.ca', 'toni@planetmotors.ca']
 
 export async function proxy(request: NextRequest) {
-  return await updateSession(request)
+  // 1. Refresh Supabase auth session (also protects /protected routes)
+  const { response, user } = await updateSession(request)
+
+  // If updateSession already issued a redirect (e.g. /protected without auth), honour it
+  if (response.status >= 300 && response.status < 400) {
+    return response
+  }
+
+  // 2. Server-side admin route protection
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    if (!user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/auth/login'
+      url.searchParams.set('redirectTo', request.nextUrl.pathname)
+      return NextResponse.redirect(url)
+    }
+
+    const isAdmin =
+      ADMIN_EMAILS.includes(user.email ?? '') ||
+      user.user_metadata?.is_admin === true
+
+    if (!isAdmin) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/'
+      return NextResponse.redirect(url)
+    }
+  }
+
+  return response
 }
 
 export const config = {
   matcher: [
-    // Only run proxy on specific routes if needed
-    // For now, this is a pass-through to prevent initialization errors
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    /*
+     * Run on all routes EXCEPT:
+     *  - _next/static, _next/image (Next.js internals)
+     *  - favicon.ico, static assets (svg|png|jpg|jpeg|gif|webp|ico)
+     *  - /api/webhooks/*  (Stripe — uses its own signature verification)
+     *  - /api/sanity-webhook (Sanity — uses its own signature verification)
+     */
+    '/((?!_next/static|_next/image|favicon\\.ico|api/webhooks/|api/sanity-webhook|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 }

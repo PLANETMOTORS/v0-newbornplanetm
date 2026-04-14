@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { GitCompare, Check } from "lucide-react"
-import { useCompare, CompareVehicle } from "@/lib/compare-context"
+import { useCompare, CompareVehicle } from "@/contexts/compare-context"
 import { toast } from "sonner"
 
 interface PartialVehicle {

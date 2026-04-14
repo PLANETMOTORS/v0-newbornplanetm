@@ -2,8 +2,8 @@ import Link from "next/link"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { 
-  Car, DollarSign, FileText, HelpCircle, Shield, 
-  Users, Phone, MapPin, Scale, LockKeyhole, Building2
+  Car, DollarSign, FileText, HelpCircle, Shield,
+  Scale, LockKeyhole, Building2
 } from "lucide-react"
 
 export const metadata = {

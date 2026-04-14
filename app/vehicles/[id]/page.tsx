@@ -11,18 +11,18 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Slider } from "@/components/ui/slider"
+
 import { Input } from "@/components/ui/input"
 import { 
-  ChevronLeft, ChevronRight, Heart, Share2, MapPin, Fuel, Gauge, 
-  Calendar, Settings, Shield, CheckCircle, Calculator, Car, 
-  FileText, History, Zap, RotateCcw, DollarSign, CreditCard,
-  Phone, MessageCircle, Star, Clock, TrendingUp, Eye, Users,
-  Award, Battery, Thermometer, LockKeyhole, Truck, ArrowRight, Play,
-  Download, ExternalLink, Check, X, AlertCircle, Expand,
-  Key, Sofa, Cog, Info
+  ChevronLeft, ChevronRight, Heart, Share2, Fuel, Gauge,
+  Settings, Shield, CheckCircle, Car,
+  FileText, Zap, DollarSign, CreditCard,
+  Phone, Star, TrendingUp, Users,
+  Battery, LockKeyhole, Truck, ArrowRight, Play,
+  Download, ExternalLink, Check, Expand,
+  Key
 } from "lucide-react"
-import { ScheduleTestDrive } from "@/components/schedule-test-drive"
+
 import { SimilarVehicles } from "@/components/similar-vehicles"
 import { ReserveVehicleModal } from "@/components/reserve-vehicle-modal"
 import { AuthRequiredModal } from "@/components/auth-required-modal"
@@ -358,8 +358,10 @@ export default function VehicleDetailPage() {
   const searchParams = useSearchParams()
   const vehicleId = params.id as string
   const { user } = useAuth()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Complex merged mock+DB vehicle shape
   const [vehicle, setVehicle] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isFavorite, setIsFavorite] = useState(false)
   const [activeTab, setActiveTab] = useState("photos")
@@ -380,7 +382,7 @@ export default function VehicleDetailPage() {
   const [showInspectionModal, setShowInspectionModal] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [authAction, setAuthAction] = useState("")
-  const [showReserveModal, setShowReserveModal] = useState(false)
+
   
   // Trade-in from AI Quote
   const tradeInValue = searchParams.get("tradeIn")
@@ -403,12 +405,28 @@ export default function VehicleDetailPage() {
   // Fetch vehicle from database
   useEffect(() => {
     async function fetchVehicle() {
-      const supabase = createClient()
+      let supabase
+      try {
+        supabase = createClient()
+      } catch {
+        // Supabase not configured — show error
+        setVehicle(null)
+        setLoadError("Database connection not available. Please try again later.")
+        setIsLoading(false)
+        return
+      }
       const { data, error } = await supabase
         .from("vehicles")
         .select("*")
         .eq("id", vehicleId)
         .single()
+
+      if (error || !data) {
+        setVehicle(null)
+        setLoadError("Vehicle not found or no longer available.")
+        setIsLoading(false)
+        return
+      }
       
       if (data) {
         // Transform database vehicle to page format
@@ -447,9 +465,6 @@ export default function VehicleDetailPage() {
             totalWithHst: Math.round(priceInDollars + hst + 22 + 595 + 59)
           }
         })
-      } else {
-        // Fallback to mock data if vehicle not found
-        setVehicle(vehicleData)
       }
       setIsLoading(false)
     }
@@ -528,17 +543,39 @@ export default function VehicleDetailPage() {
 
 
   const nextImage = () => {
-    const images = imageType === "exterior" ? vehicleData.images : vehicleData.interiorImages
+    const images = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
     setCurrentImageIndex((prev) => (prev + 1) % images.length)
   }
 
   const prevImage = () => {
-    const images = imageType === "exterior" ? vehicleData.images : vehicleData.interiorImages
+    const images = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
   }
 
   // Show loading state
   if (isLoading || !vehicle) {
+    if (!isLoading && loadError) {
+      return (
+        <div className="min-h-screen bg-background">
+          <Header />
+          <div className="container mx-auto px-4 py-24">
+            <Card className="max-w-xl mx-auto">
+              <CardHeader>
+                <CardTitle>Vehicle unavailable</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">{loadError}</p>
+                <Button className="mt-6" asChild>
+                  <Link href="/inventory">Return to inventory</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+          <Footer />
+        </div>
+      )
+    }
+
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -553,8 +590,8 @@ export default function VehicleDetailPage() {
     )
   }
 
-  const currentImages: string[] = imageType === "exterior" ? vehicle.images : vehicleData.interiorImages
-  const savings = (vehicleData.originalPrice || vehicle.price * 1.1) - vehicle.price
+  const currentImages: string[] = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
+
   
   // Finance calculation: Vehicle Price + $895 Admin Fee (Finance Docs Set-up)
   const FINANCE_ADMIN_FEE = 895
@@ -659,8 +696,12 @@ export default function VehicleDetailPage() {
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
                     />
                     
-                    {/* Expand Button */}
-                    <button className="absolute top-4 right-4 w-10 h-10 bg-background/80 backdrop-blur rounded-lg flex items-center justify-center hover:bg-background transition">
+                    {/* Expand Button — opens image in new tab */}
+                    <button
+                      onClick={() => window.open(currentImages[currentImageIndex], "_blank")}
+                      className="absolute top-4 right-4 w-10 h-10 bg-background/80 backdrop-blur rounded-lg flex items-center justify-center hover:bg-background transition"
+                      aria-label="View full-size image"
+                    >
                       <Expand className="w-5 h-5" />
                     </button>
                     
@@ -704,7 +745,7 @@ export default function VehicleDetailPage() {
                       </DialogTrigger>
                       <DialogContent className="max-w-4xl">
                         <DialogHeader>
-                          <DialogTitle>Video Walkaround - {vehicleData.year} {vehicleData.make} {vehicleData.model}</DialogTitle>
+                          <DialogTitle>Video Walkaround - {vehicle.year} {vehicle.make} {vehicle.model}</DialogTitle>
                         </DialogHeader>
                         <div className="aspect-video bg-black rounded-lg flex items-center justify-center">
                           <div className="text-center text-white">
@@ -771,9 +812,9 @@ export default function VehicleDetailPage() {
                     </div>
                   </div>
 
-                  <Link href="#" className="text-primary text-sm flex items-center gap-1 hover:underline">
+                  <Link href={`https://www.planetmotors.ca/inventory/${vehicle.stockNumber || vehicle.id}`} target="_blank" className="text-primary text-sm flex items-center gap-1 hover:underline">
                     <ExternalLink className="w-4 h-4" />
-                    View Full Listing on planetmotors.app →
+                    View Full Listing on planetmotors.ca →
                   </Link>
 
                   {/* Vehicle Details Icons */}
@@ -797,21 +838,21 @@ export default function VehicleDetailPage() {
                         <Zap className="w-5 h-5" />
                       </div>
                       <span className="text-xs text-muted-foreground">ENGINE</span>
-                      <span className="text-sm font-medium">{vehicleData.engine}</span>
+                      <span className="text-sm font-medium">{vehicle.engine || "N/A"}</span>
                     </div>
                     <div className="flex flex-col items-center text-center">
                       <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center mb-1">
                         <Users className="w-5 h-5" />
                       </div>
                       <span className="text-xs text-muted-foreground">SEATS</span>
-                      <span className="text-sm font-medium">{vehicleData.seats} seats</span>
+                      <span className="text-sm font-medium">{vehicle.seats || 5} seats</span>
                     </div>
                     <div className="flex flex-col items-center text-center">
                       <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center mb-1">
                         <Key className="w-5 h-5" />
                       </div>
                       <span className="text-xs text-muted-foreground">KEYS</span>
-                      <span className="text-sm font-medium">{vehicleData.keys} keys</span>
+                      <span className="text-sm font-medium">{vehicle.keys || 2} keys</span>
                     </div>
                     <div className="flex flex-col items-center text-center">
                       <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center mb-1">
@@ -974,7 +1015,7 @@ export default function VehicleDetailPage() {
                           <span className="text-muted-foreground">Braking & Traction</span>
                           <span className="font-medium">Brake Assist</span>
                         </div>
-                        <Button variant="link" className="p-0 h-auto text-primary">
+                        <Button variant="link" className="p-0 h-auto text-primary" onClick={() => setActiveTab("features")}>
                           View all features →
                         </Button>
                       </CardContent>
@@ -988,7 +1029,7 @@ export default function VehicleDetailPage() {
                       <CardContent className="space-y-3">
                         <div className="flex justify-between py-2 border-b">
                           <span className="text-muted-foreground">Range</span>
-                          <span className="font-medium">{vehicleData.range}</span>
+                          <span className="font-medium">{vehicle.range || "N/A"}</span>
                         </div>
                         <div className="flex justify-between py-2 border-b">
                           <span className="text-muted-foreground">Exterior</span>
@@ -1002,7 +1043,7 @@ export default function VehicleDetailPage() {
                           <span className="text-muted-foreground">Drive</span>
                           <span className="font-medium">{vehicle.drivetrain}</span>
                         </div>
-                        <Button variant="link" className="p-0 h-auto text-primary">
+                        <Button variant="link" className="p-0 h-auto text-primary" onClick={() => setActiveTab("features")}>
                           View all specs →
                         </Button>
                       </CardContent>
@@ -1019,8 +1060,8 @@ export default function VehicleDetailPage() {
                         <div key={i} className="py-3 border-b last:border-b-0">
                           <div className="flex justify-between items-center">
                             <span className="font-medium">{pkg}</span>
-                            <Button variant="link" className="p-0 h-auto text-primary text-sm">
-                              3 features →
+                            <Button variant="link" className="p-0 h-auto text-primary text-sm" onClick={() => setActiveTab("features")}>
+                              View details →
                             </Button>
                           </div>
                         </div>
@@ -1098,7 +1139,7 @@ export default function VehicleDetailPage() {
 
                       {/* VIN & History — Items 1-10 */}
                       <div className="space-y-1">
-                        <div className="bg-blue-600 text-white p-2 rounded-t-lg flex items-center gap-2">
+                        <div className="bg-teal-600 text-white p-2 rounded-t-lg flex items-center gap-2">
                           <span className="text-sm font-medium">VIN & History ��� Items 1-10</span>
                         </div>
                         <div className="border rounded-b-lg">
@@ -1155,7 +1196,7 @@ export default function VehicleDetailPage() {
 
                       {/* Tyres & Wheels — Items 46-53 */}
                       <div className="space-y-1 mt-4">
-                        <div className="bg-blue-500 text-white p-2 rounded-t-lg flex items-center gap-2">
+                        <div className="bg-teal-500 text-white p-2 rounded-t-lg flex items-center gap-2">
                           <span className="text-sm font-medium">Tyres & Wheels — Items 46-53</span>
                         </div>
                         <div className="border rounded-b-lg">
@@ -1272,9 +1313,9 @@ export default function VehicleDetailPage() {
                         <Shield className="w-8 h-8 mx-auto mb-2 text-primary" />
                         <p className="text-xl font-bold">210 Points — All Passed</p>
                         <p className="text-sm text-slate-300 mt-1">Planet Motors Inc. · Richmond Hill, ON · OMVIC Reg.</p>
-                        <Button className="mt-4" variant="outline">
+                        <Button className="mt-4" variant="outline" onClick={() => window.print()}>
                           <Download className="w-4 h-4 mr-2" />
-                          Download Full PDF Report
+                          Print Inspection Report
                         </Button>
                       </div>
                     </DialogContent>
@@ -1287,7 +1328,7 @@ export default function VehicleDetailPage() {
                         CARFAX
                       </Badge>
                       <Button variant="link" className="text-primary" asChild>
-                        <Link href={vehicleData.carfaxUrl} target="_blank">
+                        <Link href={`https://www.carfax.ca/vehicle/${vehicle.vin}`} target="_blank">
                           View report <ExternalLink className="w-4 h-4 ml-1" />
                         </Link>
                       </Button>
@@ -1303,26 +1344,24 @@ export default function VehicleDetailPage() {
                             <Battery className="w-5 h-5 text-green-600" />
                             <span className="font-semibold text-green-800 dark:text-green-400">Battery Health</span>
                           </div>
-                          <Badge className="bg-green-500">{vehicleData.batteryHealth}% SOH</Badge>
+                          <Badge className="bg-green-500">{vehicle.batteryHealth || 95}% SOH</Badge>
                         </div>
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Estimated Range</span>
-                            <span className="font-medium">{vehicleData.range}</span>
+                            <span className="font-medium">{vehicle.range || "N/A"}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Battery Capacity</span>
-                            <span className="font-medium">{vehicleData.batteryCapacity}</span>
+                            <span className="font-medium">{vehicle.batteryCapacity || "N/A"}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Fast Charging</span>
-                            <span className="font-medium">{vehicleData.chargingSpeed}</span>
+                            <span className="font-medium">{vehicle.chargingSpeed || "N/A"}</span>
                           </div>
                         </div>
-                        <Button variant="outline" size="sm" className="w-full mt-3 border-green-300 text-green-700 hover:bg-green-100" asChild>
-                          <Link href="/ev-battery-health">
-                            View Full Battery Report <ArrowRight className="w-4 h-4 ml-1" />
-                          </Link>
+                        <Button variant="outline" size="sm" className="w-full mt-3 border-green-300 text-green-700 hover:bg-green-100" onClick={() => setActiveTab("inspection")}>
+                          View Full Battery Report <ArrowRight className="w-4 h-4 ml-1" />
                         </Button>
                       </CardContent>
                     </Card>
@@ -1428,7 +1467,9 @@ export default function VehicleDetailPage() {
                             <span>${vehicle.pricing.totalWithHst.toLocaleString()}</span>
                           </div>
                         </div>
-                        <Button className="w-full mt-4">Start your purchase</Button>
+                        <Button className="w-full mt-4" onClick={() => handleProtectedAction("start your purchase", () => {
+                          window.location.href = `/checkout/${vehicle.id}`
+                        })}>Start your purchase</Button>
                       </CardContent>
                     </Card>
                   </div>
@@ -1739,13 +1780,13 @@ export default function VehicleDetailPage() {
                     {user ? (
                       <ReserveVehicleModal
                         vehicle={{
-                          id: vehicleData.id,
+                          id: vehicle.id,
                           year: vehicle.year,
                           make: vehicle.make,
                           model: vehicle.model,
                           trim: vehicle.trim,
                           price: vehicle.price,
-                          image: vehicleData.images[0],
+                          image: vehicle.images?.[0] || "/placeholder.jpg",
                           stockNumber: vehicle.stockNumber
                         }}
                         trigger={
@@ -1768,7 +1809,7 @@ export default function VehicleDetailPage() {
                       className="w-full h-11" 
                       variant="secondary"
                       onClick={() => handleProtectedAction("start your purchase", () => {
-                        window.location.href = `/checkout/${vehicleData.id}`
+                        window.location.href = `/checkout/${vehicle.id}`
                       })}
                     >
                       Start full purchase
@@ -1809,7 +1850,7 @@ export default function VehicleDetailPage() {
                         id: vehicle.id,
                         name: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
                         price: vehicle.price,
-                        image: vehicleData.images[0],
+                        image: vehicle.images?.[0] || "/placeholder.jpg",
                         mileage: vehicle.mileage,
                         year: vehicle.year
                       }} 
@@ -1845,7 +1886,7 @@ export default function VehicleDetailPage() {
                   <div className="flex items-center justify-between mt-4 pt-4 border-t">
                     <Badge variant="outline" className="border-red-500 text-red-600">CARFAX</Badge>
                     <Button variant="link" className="text-primary p-0 h-auto" asChild>
-                      <Link href={vehicleData.carfaxUrl} target="_blank">
+                      <Link href={`https://www.carfax.ca/vehicle/${vehicle.vin}`} target="_blank">
                         View report <ExternalLink className="w-3 h-3 ml-1" />
                       </Link>
                     </Button>
@@ -1911,7 +1952,7 @@ export default function VehicleDetailPage() {
         <div className="container mx-auto px-4 py-8 border-t">
           <h2 className="text-xl font-semibold mb-4">Other cars you might like</h2>
           <SimilarVehicles 
-            currentVehicleId={vehicleData.id}
+            currentVehicleId={vehicle.id}
             make={vehicle.make}
             priceRange={vehicle.price}
           />
@@ -1942,7 +1983,7 @@ export default function VehicleDetailPage() {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         action={authAction}
-        redirectTo={`/vehicles/${vehicleData.id}`}
+        redirectTo={`/vehicles/${vehicle.id}`}
       />
     </div>
   )

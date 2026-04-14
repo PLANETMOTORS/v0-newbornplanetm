@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
+import { reportError } from "@/lib/error-reporting"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, RefreshCw, Home, Phone } from "lucide-react"
 
@@ -12,8 +13,7 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-    // Log the error to an error reporting service
-    console.error(error)
+    reportError(error)
   }, [error])
 
   return (
@@ -37,11 +37,9 @@ export default function Error({
             <RefreshCw className="w-4 h-4 mr-2" />
             Try Again
           </Button>
-          <Button variant="outline" asChild>
-            <a href="/">
-              <Home className="w-4 h-4 mr-2" />
-              Go Home
-            </a>
+          <Button variant="outline" onClick={() => window.location.href = "/"}>
+            <Home className="w-4 h-4 mr-2" />
+            Go Home
           </Button>
         </div>
 

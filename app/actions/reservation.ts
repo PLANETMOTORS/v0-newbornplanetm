@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto'
 import { lockVehicle, unlockVehicle, getVehicleLock, rateLimit } from '@/lib/redis'
 import { getStripe } from '@/lib/stripe'
 import { getProductById } from '@/lib/products'
+import { getPublicSiteUrl } from '@/lib/site-url'
 import { createClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
 
@@ -157,7 +158,7 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
     }
 
     // Create Stripe Checkout session
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://ev.planetmotors.ca'
+    const baseUrl = getPublicSiteUrl()
     const checkoutAttemptWindow = Math.floor(Date.now() / (15 * 60 * 1000))
     const idempotencyKey = createHash('sha256')
       .update(`reservation:${reservationId}:${input.customerEmail}:${input.stockNumber}:${checkoutAttemptWindow}`)
@@ -227,8 +228,22 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
         idempotencyKey,
       })
     } catch (sessionError) {
+      const stripeErrorCode =
+        typeof sessionError === 'object' &&
+        sessionError !== null &&
+        'code' in sessionError &&
+        typeof (sessionError as { code?: unknown }).code === 'string'
+          ? (sessionError as { code: string }).code
+          : ''
       const sessionErrorMessage = sessionError instanceof Error ? sessionError.message.toLowerCase() : ''
-      const canRetryCardOnly = enableAcssDebit && (sessionErrorMessage.includes('acss') || sessionErrorMessage.includes('payment_method_options'))
+      const canRetryCardOnly =
+        enableAcssDebit &&
+        (
+          stripeErrorCode === 'payment_method_not_available' ||
+          stripeErrorCode === 'payment_method_invalid_parameter' ||
+          sessionErrorMessage.includes('acss') ||
+          sessionErrorMessage.includes('payment_method_options')
+        )
 
       if (!canRetryCardOnly) {
         throw sessionError
@@ -237,6 +252,7 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       console.warn('ACSS checkout session failed, retrying with card only', {
         reservationId,
         stockNumber: input.stockNumber,
+        errorCode: stripeErrorCode || undefined,
         error: sessionErrorMessage,
       })
 
@@ -273,11 +289,16 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       'type' in error &&
       typeof (error as { type?: unknown }).type === 'string'
 
+    const customerEmailHash = createHash('sha256')
+      .update(input.customerEmail.trim().toLowerCase())
+      .digest('hex')
+      .slice(0, 12)
+
     console.error('Reservation error:', {
       error: errorMessage,
       vehicleId: input.vehicleId,
       stockNumber: input.stockNumber,
-      email: input.customerEmail,
+      customerEmailHash,
       stack: error instanceof Error ? error.stack : undefined,
     })
     await unlockVehicle(input.stockNumber, input.customerEmail)

@@ -271,7 +271,7 @@ export interface BlogPost {
   publishedAt: string
   excerpt?: string
   coverImage?: string
-  body?: any[] // Portable Text
+  body?: Record<string, unknown>[] // Portable Text blocks
   seo?: SeoFields
 }
 

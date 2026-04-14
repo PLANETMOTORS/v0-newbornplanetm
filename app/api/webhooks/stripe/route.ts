@@ -47,7 +47,7 @@ async function isAlreadyProcessed(
   return data?.status === 'processed'
 }
 
-async function handleCheckoutSessionCompleted(
+export async function handleCheckoutSessionCompleted(
   supabase: ReturnType<typeof createAdminClient>,
   session: Stripe.Checkout.Session
 ) {
@@ -137,7 +137,7 @@ async function handleCheckoutSessionCompleted(
   }
 }
 
-async function handleCheckoutSessionAsyncPaymentFailed(
+export async function handleCheckoutSessionAsyncPaymentFailed(
   supabase: ReturnType<typeof createAdminClient>,
   session: Stripe.Checkout.Session
 ) {
@@ -174,7 +174,7 @@ async function handleCheckoutSessionAsyncPaymentFailed(
   }
 }
 
-async function handleCheckoutSessionExpired(
+export async function handleCheckoutSessionExpired(
   supabase: ReturnType<typeof createAdminClient>,
   session: Stripe.Checkout.Session
 ) {
@@ -212,7 +212,7 @@ async function handleCheckoutSessionExpired(
   }
 }
 
-async function handlePaymentIntentFailed(
+export async function handlePaymentIntentFailed(
   supabase: ReturnType<typeof createAdminClient>,
   paymentIntent: Stripe.PaymentIntent
 ) {
@@ -248,7 +248,7 @@ async function handlePaymentIntentFailed(
   }
 }
 
-async function handlePaymentIntentSucceeded(
+export async function handlePaymentIntentSucceeded(
   supabase: ReturnType<typeof createAdminClient>,
   paymentIntent: Stripe.PaymentIntent
 ) {
@@ -311,8 +311,10 @@ async function hydrateCheckoutSession(
   stripe: Stripe,
   session: Stripe.Checkout.Session
 ): Promise<Stripe.Checkout.Session> {
-  const hasMetadata = session.metadata && Object.keys(session.metadata).length > 0
-  if (hasMetadata) return session
+  const hasRequiredMetadata =
+    !!session.metadata &&
+    (!!session.metadata.reservationId || !!session.metadata.vehicleId || !!session.metadata.type)
+  if (hasRequiredMetadata) return session
 
   if (!session.id) return session
 
@@ -328,8 +330,10 @@ async function hydratePaymentIntent(
   stripe: Stripe,
   paymentIntent: Stripe.PaymentIntent
 ): Promise<Stripe.PaymentIntent> {
-  const hasMetadata = paymentIntent.metadata && Object.keys(paymentIntent.metadata).length > 0
-  if (hasMetadata) return paymentIntent
+  const hasRequiredMetadata =
+    !!paymentIntent.metadata &&
+    (!!paymentIntent.metadata.reservationId || !!paymentIntent.metadata.vehicleId)
+  if (hasRequiredMetadata) return paymentIntent
 
   if (!paymentIntent.id) return paymentIntent
 

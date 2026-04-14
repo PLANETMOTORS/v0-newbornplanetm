@@ -1,3 +1,10 @@
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Contact Us | Planet Motors - Phone, Email, Live Chat",
+  description: "Get in touch with Planet Motors. Call 1-866-797-3332, email info@planetmotors.ca, or visit us at 30 Major Mackenzie Dr E, Richmond Hill, ON.",
+}
+
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { LiveChatWidget } from "@/components/live-chat-widget"
@@ -91,7 +98,7 @@ export default function ContactPage() {
                   <p className="text-muted-foreground">30 Major Mackenzie Dr E</p>
                   <p className="text-muted-foreground">Richmond Hill, ON L4C 1G7</p>
                   <Button variant="outline" size="sm" className="mt-4" asChild>
-                    <a 
+                    <a
                       href="https://maps.google.com/?q=30+Major+Mackenzie+Dr+E+Richmond+Hill+ON"
                       target="_blank"
                       rel="noopener noreferrer"

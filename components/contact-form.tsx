@@ -6,13 +6,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AlertCircle, CheckCircle, Loader2 } from "lucide-react"
-import { 
-  isValidEmail, 
-  isValidCanadianPhone, 
-  formatCanadianPhone, 
-  isValidCanadianPostalCode, 
-  formatCanadianPostalCode 
-} from "@/lib/form-validation"
+import {
+  isValidEmail,
+  isValidCanadianPhone,
+  formatCanadianPhone,
+  isValidCanadianPostalCode,
+  formatCanadianPostalCode
+} from "@/lib/validation"
 
 interface ContactFormProps {
   onSuccess?: () => void

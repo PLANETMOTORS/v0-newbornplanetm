@@ -3,16 +3,14 @@ import { z } from "zod"
 import { getAISettings } from "@/lib/sanity/fetch"
 
 export async function POST(req: Request) {
-  const { vehicleId, vehiclePrice, customerOffer, customerMessage, vehicleInfo } = await req.json()
+  const { vehiclePrice, customerOffer, customerMessage, vehicleInfo } = await req.json()
 
   // Fetch AI settings from CMS
   const aiSettings = await getAISettings()
   const rules = aiSettings?.priceNegotiator?.negotiationRules
   const fees = aiSettings?.fees
 
-  const offerPercentage = (customerOffer / vehiclePrice) * 100
   const daysListed = vehicleInfo?.daysListed || 30
-  const isHotSeller = vehicleInfo?.viewsLastWeek > 50
   
   // Calculate max discount based on CMS rules
   const isLowPrice = vehiclePrice < (rules?.lowPriceThreshold || 30000)

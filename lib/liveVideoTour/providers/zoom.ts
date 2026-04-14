@@ -6,7 +6,7 @@ import type { LiveVideoTourProviderAdapter } from "./index"
 // https://developers.zoom.us/docs/api/rest/reference/zoom-api/methods/#operation/meetingCreate
 
 export const zoomProvider: LiveVideoTourProviderAdapter = {
-  async createMeeting(booking: LiveVideoTourBooking): Promise<LiveVideoTourProviderResult> {
+  async createMeeting(_booking: LiveVideoTourBooking): Promise<LiveVideoTourProviderResult> {
     try {
       const hasZoomCredentials = !!(
         process.env.ZOOM_CLIENT_ID &&
