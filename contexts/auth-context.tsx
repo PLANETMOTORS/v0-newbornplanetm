@@ -21,8 +21,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let supabase: SupabaseClient | null = null
     try {
       supabase = createClient()
-    } catch (error) {
-      console.error("Failed to initialize auth client:", error)
+    } catch {
+      // Supabase credentials not configured — auth features disabled.
+      // This is expected in local dev without a .env file.
       setIsLoading(false)
       return
     }

@@ -12,7 +12,7 @@ export async function updateSession(request: NextRequest) {
   const supabaseUrl = getSupabaseUrl()
   const supabaseAnonKey = getSupabaseAnonKey()
 
-  if (!supabaseAnonKey) {
+  if (!supabaseUrl || !supabaseAnonKey) {
     return { response: NextResponse.next({ request }), user: null }
   }
 
