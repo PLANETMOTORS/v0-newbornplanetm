@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
+import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
 
 const SUPABASE_URL = "https://ldervbcvkoawwknsemuz.supabase.co"
 
@@ -10,26 +11,22 @@ export async function POST(request: NextRequest) {
     const { email, password } = body
 
     if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required" },
-        { status: 400 }
-      )
+      return apiError(ErrorCode.VALIDATION_ERROR, "Email and password are required", 400)
     }
 
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     if (!supabaseAnonKey) {
-      return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
+      return apiError(ErrorCode.CONFIG_ERROR, "Server configuration error")
     }
 
     const supabase = createSupabaseClient(SUPABASE_URL, supabaseAnonKey)
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error || !data.session) {
-      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 })
+      return apiError(ErrorCode.UNAUTHORIZED, "Invalid email or password", 401)
     }
 
-    return NextResponse.json({
-      success: true,
+    return apiSuccess({
       user: {
         id: data.user.id,
         email: data.user.email,
@@ -42,9 +39,6 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    return NextResponse.json(
-      { error: "Authentication failed" },
-      { status: 500 }
-    )
+    return apiError(ErrorCode.INTERNAL_ERROR, "Authentication failed")
   }
 }
