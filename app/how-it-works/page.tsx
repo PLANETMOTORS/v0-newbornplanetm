@@ -1,13 +1,20 @@
-import Image from "next/image"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "How It Works | Planet Motors - Buy a Car Online in 4 Steps",
+  description: "Browse, finance, and get your car delivered to your door. 210-point inspection, 10-day money-back guarantee, and nationwide delivery included.",
+}
+
+
 import Link from "next/link"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Search, CreditCard, FileCheck, Truck, Car, Shield, 
-  CheckCircle, ArrowRight, RotateCcw, Heart, Star
+import {
+  Search, CreditCard, FileCheck, Truck, Car, Shield,
+  CheckCircle, ArrowRight, RotateCcw, Star
 } from "lucide-react"
 
 const buyingSteps = [
@@ -70,7 +77,7 @@ export default function HowItWorksPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main>
         {/* Hero Section */}
         <section className="bg-primary py-20">
@@ -80,7 +87,7 @@ export default function HowItWorksPage() {
               How Planet Motors Works
             </h1>
             <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
-              Buying or selling a car has never been easier. Our streamlined process 
+              Buying or selling a car has never been easier. Our streamlined process
               takes the stress out of car shopping.
             </p>
           </div>

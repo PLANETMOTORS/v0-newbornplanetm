@@ -1,6 +1,6 @@
 import type { StructureBuilder } from 'sanity/structure'
 import { 
-  Car, Home, Settings, HelpCircle, DollarSign, LayoutGrid, Megaphone, FileStack, Receipt, Menu, Bot, ArrowRightLeft, Phone, Users, BookOpen, Wrench, CheckCircle, Tags, Calculator, Truck
+  Car, Home, Settings, HelpCircle, DollarSign, Megaphone, FileStack, Receipt, Menu, Bot, ArrowRightLeft, Phone, Users, BookOpen, Wrench, CheckCircle, Calculator, Truck
 } from 'lucide-react'
 
 export const structure = (S: StructureBuilder) =>

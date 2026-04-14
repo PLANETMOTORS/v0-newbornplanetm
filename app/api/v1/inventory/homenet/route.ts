@@ -10,7 +10,7 @@ function getSql() {
 type SqlClient = NonNullable<ReturnType<typeof getSql>>
 
 // API Key for HomenetIOL webhook authentication
-const HOMENET_API_KEY = process.env.HOMENET_API_KEY || "pm_homenet_2024_secure"
+const HOMENET_API_KEY = process.env.HOMENET_API_KEY
 
 /**
  * HomenetIOL Inventory Feed Webhook
@@ -25,6 +25,9 @@ export async function POST(request: Request) {
   const sql = getSql()
   if (!sql) {
     return NextResponse.json({ error: "Database not configured" }, { status: 503 })
+  }
+  if (!HOMENET_API_KEY) {
+    return NextResponse.json({ error: "HOMENET_API_KEY is not configured" }, { status: 503 })
   }
   try {
     // Authenticate the request
@@ -116,6 +119,9 @@ export async function GET() {
   if (!sql) {
     return NextResponse.json({ error: "Database not configured" }, { status: 503 })
   }
+  if (!HOMENET_API_KEY) {
+    return NextResponse.json({ error: "HOMENET_API_KEY is not configured" }, { status: 503 })
+  }
   const vehicleCount = await sql`SELECT COUNT(*) as count FROM vehicles`
   const lastUpdated = await sql`SELECT MAX(updated_at) as last_updated FROM vehicles`
   
@@ -201,7 +207,7 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
     // Try multiple tag name variations (HomenetIOL field mapping)
     const variations = getTagVariations(tag)
     for (const variant of variations) {
-      const match = xml.match(new RegExp(`<${variant}[^>]*>([^<]*)<\/${variant}>`, "i"))
+      const match = xml.match(new RegExp(`<${variant}[^>]*>([^<]*)</${variant}>`, "i"))
       if (match && match[1]) return match[1].trim()
     }
     return ""

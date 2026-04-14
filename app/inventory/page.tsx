@@ -12,14 +12,14 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
-import { Checkbox } from "@/components/ui/checkbox"
+
 import { 
-  Search, SlidersHorizontal, Grid3X3, List, Heart, Share2, 
-  Gauge, Fuel, Calendar, MapPin, Shield, Zap, ChevronDown,
-  X, RotateCcw, TrendingUp, Eye, Clock, CheckCircle, Star,
-  ArrowUpDown, Filter, Sparkles, Battery, Car, ExternalLink, Bell, Loader2
+  Search, SlidersHorizontal, Grid3X3, List, Heart,
+  Gauge, Fuel, Shield, Zap, ChevronDown,
+  X, RotateCcw, TrendingUp, CheckCircle,
+  Filter, Battery, Car, ExternalLink, Bell, Loader2, Clock
 } from "lucide-react"
-import { useFavorites } from "@/lib/favorites-context"
+import { useFavorites } from "@/contexts/favorites-context"
 import { PriceAlertModal } from "@/components/price-alert-modal"
 import { createClient } from "@/lib/supabase/client"
 
@@ -83,7 +83,7 @@ function transformVehicle(v: Vehicle) {
     badgeColor = "bg-green-500"
   } else if (v.fuel_type === "Electric") {
     badge = "Electric"
-    badgeColor = "bg-blue-500"
+    badgeColor = "bg-teal-500"
   } else if (v.is_certified) {
     badge = "PM Certified"
     badgeColor = "bg-primary"
@@ -98,36 +98,21 @@ function transformVehicle(v: Vehicle) {
   else if (displayFuelType === "Hybrid") displayFuelType = "Hybrid"
   else displayFuelType = "Gasoline"
   
-  // Check if primary_image_url is a valid image URL (not a VDP page URL)
-  // Valid sources: cpsimg.com (carpages CDN), unsplash, direct image files
-  const isValidImageUrl = v.primary_image_url && 
-    !v.primary_image_url.includes('planetmotors.ca') &&
-    (v.primary_image_url.includes('.jpg') || 
-     v.primary_image_url.includes('.png') || 
+  // Check if primary_image_url is a real hosted image (not an Unsplash placeholder or VDP page URL)
+  // Valid sources: cdn.planetmotors.ca, planetmotors.imgix.net, HomeNet IOL, direct image files
+  const hasRealImage = v.primary_image_url &&
+    !v.primary_image_url.includes('planetmotors.ca/inventory') &&
+    !v.primary_image_url.includes('unsplash.com') &&
+    (v.primary_image_url.includes('.jpg') ||
+     v.primary_image_url.includes('.png') ||
      v.primary_image_url.includes('.webp') ||
-     v.primary_image_url.includes('unsplash.com') ||
-     v.primary_image_url.includes('carpages.ca') ||
+     v.primary_image_url.includes('cdn.planetmotors.ca') ||
+     v.primary_image_url.includes('imgix.net') ||
+     v.primary_image_url.includes('homenetiol.com') ||
      v.primary_image_url.includes('cpsimg.com'))
-  
-  // Make-specific placeholder images
-  const makePlaceholders: Record<string, string> = {
-    'Tesla': 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&auto=format&fit=crop&q=80',
-    'BMW': 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&auto=format&fit=crop&q=80',
-    'Audi': 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&auto=format&fit=crop&q=80',
-    'Toyota': 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&auto=format&fit=crop&q=80',
-    'Hyundai': 'https://images.unsplash.com/photo-1629897048514-3dd7414fe72a?w=800&auto=format&fit=crop&q=80',
-    'Kia': 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&auto=format&fit=crop&q=80',
-    'Chevrolet': 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&auto=format&fit=crop&q=80',
-    'Volkswagen': 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&auto=format&fit=crop&q=80',
-    'Jeep': 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&auto=format&fit=crop&q=80',
-    'Honda': 'https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=800&auto=format&fit=crop&q=80',
-    'default': 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&auto=format&fit=crop&q=80'
-  }
-  
-  // Use valid image URL or fall back to make-specific placeholder
-  const imageUrl = isValidImageUrl 
-    ? v.primary_image_url! 
-    : (makePlaceholders[v.make] || makePlaceholders['default'])
+
+  // Use real image URL or null (gradient fallback will show in the card)
+  const imageUrl = hasRealImage ? v.primary_image_url : null
   
   return {
     id: v.id,
@@ -160,10 +145,7 @@ function transformVehicle(v: Vehicle) {
   }
 }
 
-const makes = ["All Makes", "Audi", "BMW", "Ford", "Honda", "Mercedes-Benz", "Porsche", "Tesla", "Toyota"]
-const bodyTypes = ["All Types", "SUV", "Sedan", "Truck", "Coupe", "Hatchback", "Convertible"]
 const fuelTypes = ["All Fuel Types", "Electric", "Hybrid", "Plug-in Hybrid", "Gasoline", "Premium"]
-const years = ["All Years", "2024", "2023", "2022", "2021", "2020", "2019", "2018"]
 const transmissions = ["All Transmissions", "Automatic", "Manual", "CVT", "Dual-Clutch"]
 const colors = ["All Colors", "White", "Black", "Silver", "Blue", "Red", "Gray", "Green"]
 const drivetrains = ["All Drivetrains", "AWD", "FWD", "RWD", "4WD"]
@@ -183,7 +165,7 @@ function InventoryContent() {
   const [showFilters, setShowFilters] = useState(false)
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [sortBy, setSortBy] = useState("featured")
-  const { favorites, addFavorite, removeFavorite, isFavorite } = useFavorites()
+  const { addFavorite, removeFavorite, isFavorite } = useFavorites()
   const [evOnly, setEvOnly] = useState(false)
   
   // Trade-in from AI Quote
@@ -217,11 +199,7 @@ function InventoryContent() {
     return ["All Years", ...uniqueYears]
   }, [vehicles])
 
-  // Get unique body types from actual data
-  const dynamicBodyTypes = useMemo(() => {
-    const uniqueTypes = [...new Set(vehicles.map(v => v.bodyType))].sort()
-    return ["All Types", ...uniqueTypes]
-  }, [vehicles])
+
 
   // Read URL parameters and set filters
   useEffect(() => {
@@ -309,7 +287,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
         price: vehicleData.price,
         originalPrice: vehicleData.originalPrice,
         mileage: vehicleData.mileage,
-        image: vehicleData.image
+        image: vehicleData.image || ""
       })
     }
   }
@@ -766,21 +744,25 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                   viewMode === "list" ? "flex flex-col sm:flex-row" : ""
                 }`}
               >
-                {/* Image */}
-                <div className={`relative ${viewMode === "list" ? "w-full sm:w-48 md:w-72 flex-shrink-0 aspect-[4/3] sm:aspect-auto" : "aspect-[4/3]"}`}>
-                  <Image
-                    src={vehicle.image}
-                    alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    unoptimized={vehicle.image.includes('cpsimg.com') || vehicle.image.includes('carpages.ca')}
-                    onError={(e) => {
-                      // Fallback to placeholder if image fails to load
-                      const target = e.target as HTMLImageElement
-                      target.src = 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&auto=format&fit=crop&q=80'
-                    }}
-                  />
+                {/* Image with gradient fallback */}
+                <div className={`relative bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] ${viewMode === "list" ? "w-full sm:w-48 md:w-72 flex-shrink-0 aspect-[4/3] sm:aspect-auto" : "aspect-[4/3]"}`}>
+                  {vehicle.image ? (
+                    <Image
+                      src={vehicle.image}
+                      alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      onError={(e) => {
+                        // Hide broken image — gradient + icon shows through
+                        (e.target as HTMLImageElement).style.display = "none"
+                      }}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Car className="w-16 h-16 text-[#1e3a8a]/15" />
+                    </div>
+                  )}
                   
                   {/* Badges */}
                   <div className="absolute top-3 left-3 flex flex-col gap-2">
@@ -794,7 +776,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                       </Badge>
                     )}
                     {/* PM Certified Badge */}
-                    <Badge className="bg-blue-600 text-white shadow-lg">
+                    <Badge className="bg-teal-600 text-white shadow-lg">
                       <Shield className="w-3 h-3 mr-1" />
                       PM Certified
                     </Badge>

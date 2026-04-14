@@ -129,7 +129,7 @@ export async function POST(request: Request) {
     }
 
     // Upsert vehicles (update existing by VIN, insert new)
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("vehicles")
       .upsert(vehicles, { 
         onConflict: "vin",

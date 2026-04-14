@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
+
+const ADMIN_EMAILS = new Set(["admin@planetmotors.ca", "toni@planetmotors.ca"])
 
 const ALLOWED_STATUSES = new Set([
   "available",
@@ -151,7 +154,7 @@ export async function PATCH(
         { status: 400 }
       )
     }
-    const { data, error } = await supabase
+    const { data, error } = await createAdminClient()
       .from("vehicles")
       .update({ status, updated_at: new Date().toISOString() })
       .eq("id", id)

@@ -12,8 +12,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Calendar, Clock, MapPin, Car, CheckCircle, Phone, AlertCircle } from "lucide-react"
-import { isValidEmail, isValidCanadianPhone, formatCanadianPhone, isValidCanadianPostalCode, formatCanadianPostalCode } from "@/lib/form-validation"
+import { Calendar, MapPin, Car, CheckCircle, Phone, AlertCircle } from "lucide-react"
+import { isValidEmail, isValidCanadianPhone, formatCanadianPhone, isValidCanadianPostalCode, formatCanadianPostalCode } from "@/lib/validation"
 
 interface ScheduleTestDriveProps {
   vehicleTitle: string

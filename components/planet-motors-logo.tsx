@@ -10,7 +10,7 @@ interface PlanetMotorsLogoProps {
 
 export function PlanetMotorsLogo({ 
   className = "", 
-  showTagline = false,
+  showTagline: _showTagline = false,
   size = "md" 
 }: PlanetMotorsLogoProps) {
   const sizes = {

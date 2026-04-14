@@ -1,86 +1,110 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
-import { useState } from "react"
+import { useMemo, useState } from "react"
+import useSWR from "swr"
 import { ArrowRight, Battery, Car, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { createClient } from "@/lib/supabase/client"
+import { getVehicleImage } from "@/lib/vehicle-images"
 
 type FeaturedTab = "all" | "electric" | "suvs"
 
-const featuredVehicles = [
+type FeaturedVehicle = {
+  id: string
+  year: number
+  make: string
+  model: string
+  priceCents: number
+  monthlyPayment: number
+  mileageLabel: string
+  badge: string
+  isEV: boolean
+  isAvilooCertified: boolean
+  imageUrl: string | null
+}
+
+const fallbackVehicles: FeaturedVehicle[] = [
   {
-    id: "1",
-    year: 2023,
+    id: "fallback-1",
+    year: 2024,
     make: "Tesla",
     model: "Model 3",
-    price: 42900,
+    priceCents: 4290000,
     monthlyPayment: 399,
-    mileage: "358 km range",
+    mileageLabel: "358 km range",
     badge: "Popular",
     isEV: true,
     isAvilooCertified: true,
+    imageUrl: null,
   },
   {
-    id: "2",
+    id: "fallback-2",
     year: 2024,
     make: "Toyota",
     model: "RAV4 Hybrid",
-    price: 38500,
+    priceCents: 3850000,
     monthlyPayment: 349,
-    mileage: "41 MPG",
+    mileageLabel: "41 MPG",
     badge: "Fuel Saver",
     isEV: false,
     isAvilooCertified: false,
+    imageUrl: null,
   },
   {
-    id: "3",
+    id: "fallback-3",
     year: 2024,
     make: "Hyundai",
     model: "Ioniq 5",
-    price: 48500,
+    priceCents: 4850000,
     monthlyPayment: 449,
-    mileage: "488 km range",
+    mileageLabel: "488 km range",
     badge: "New Arrival",
     isEV: true,
     isAvilooCertified: true,
+    imageUrl: null,
   },
   {
-    id: "4",
+    id: "fallback-4",
     year: 2023,
     make: "Honda",
     model: "CR-V",
-    price: 34900,
+    priceCents: 3490000,
     monthlyPayment: 319,
-    mileage: "30 MPG",
+    mileageLabel: "30 MPG",
     badge: "Popular",
     isEV: false,
     isAvilooCertified: false,
+    imageUrl: null,
   },
   {
-    id: "5",
+    id: "fallback-5",
     year: 2023,
     make: "Ford",
     model: "Mustang Mach-E",
-    price: 52900,
+    priceCents: 5290000,
     monthlyPayment: 489,
-    mileage: "402 km range",
+    mileageLabel: "402 km range",
     badge: "Premium",
     isEV: true,
     isAvilooCertified: true,
+    imageUrl: null,
   },
   {
-    id: "6",
+    id: "fallback-6",
     year: 2022,
     make: "BMW",
     model: "X3",
-    price: 44900,
+    priceCents: 4490000,
     monthlyPayment: 419,
-    mileage: "26 MPG",
+    mileageLabel: "26 MPG",
     badge: "Luxury",
     isEV: false,
     isAvilooCertified: false,
+    imageUrl: null,
   },
-] as const
+]
 
 function getBadgeClassName(badge: string) {
   if (badge === "Popular") return "bg-[#1e3a8a] text-white"
@@ -91,16 +115,73 @@ function getBadgeClassName(badge: string) {
   return "bg-gray-600 text-white"
 }
 
+const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from("vehicles")
+    .select("id, year, make, model, price, mileage, fuel_type, featured, inspection_score, primary_image_url, image_urls")
+    .eq("status", "available")
+    .order("featured", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(12)
+
+  if (error) {
+    throw error
+  }
+
+  const mapped = (data || []).map((vehicle) => {
+    const priceCents = Number(vehicle.price || 0)
+    const monthlyPayment = Math.max(1, Math.round((priceCents / 100) / 108))
+    const fuelType = String(vehicle.fuel_type || "")
+    const isEV = fuelType.toLowerCase() === "electric"
+
+    // Get the best available image using the helper
+    const imageUrl = getVehicleImage({
+      primary_image_url: vehicle.primary_image_url,
+      image_urls: vehicle.image_urls,
+      make: String(vehicle.make || ""),
+    })
+
+    return {
+      id: String(vehicle.id),
+      year: Number(vehicle.year || 0),
+      make: String(vehicle.make || ""),
+      model: String(vehicle.model || ""),
+      priceCents,
+      monthlyPayment,
+      mileageLabel: `${Math.max(0, Math.round(Number(vehicle.mileage || 0))).toLocaleString()} km`,
+      badge: vehicle.featured ? "Popular" : (isEV ? "Electric" : "Certified"),
+      isEV,
+      isAvilooCertified: isEV && Number(vehicle.inspection_score || 0) >= 200,
+      imageUrl: imageUrl || null,
+    }
+  })
+
+  return mapped.slice(0, 6)
+}
+
 export function HomepageFeaturedVehicles() {
   const [activeTab, setActiveTab] = useState<FeaturedTab>("all")
-
-  const filteredVehicles = featuredVehicles.filter((vehicle) => {
-    if (activeTab === "electric") return vehicle.isEV
-    if (activeTab === "suvs") {
-      return vehicle.model.includes("CR-V") || vehicle.model.includes("X3") || vehicle.model.includes("RAV4")
-    }
-    return true
+  const { data, error } = useSWR("homepage-featured-vehicles", featuredFetcher, {
+    refreshInterval: 120000,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
   })
+
+  // Only use fallback vehicles when the fetch actually fails.
+  // On initial load (data === undefined, no error) or empty results, skip fallback.
+  const isFallback = !!error
+
+  const filteredVehicles = useMemo(() => {
+    const vehicles = error ? fallbackVehicles : (data ?? [])
+    return vehicles.filter((vehicle) => {
+      if (activeTab === "electric") return vehicle.isEV
+      if (activeTab === "suvs") {
+        return vehicle.model.includes("CR-V") || vehicle.model.includes("X3") || vehicle.model.includes("RAV4")
+      }
+      return true
+    })
+  }, [activeTab, data, error])
 
   return (
     <section className="py-16" style={{ backgroundColor: "#FFFFFF" }}>
@@ -137,23 +218,39 @@ export function HomepageFeaturedVehicles() {
               key={vehicle.id}
               className="bg-white rounded-xl border border-[#dce3ed] overflow-hidden hover:shadow-lg transition-shadow group"
             >
-              <div className="relative aspect-[4/3] bg-[#eef2f7]">
-                <div className="absolute top-3 left-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getBadgeClassName(vehicle.badge)}`}>
+              <div className="relative aspect-[4/3] bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] overflow-hidden">
+                {/* Vehicle image or gradient fallback */}
+                {vehicle.imageUrl ? (
+                  <Image
+                    src={vehicle.imageUrl}
+                    alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    onError={(e) => {
+                      // Hide broken image, fallback gradient + icon shows through
+                      (e.target as HTMLImageElement).style.display = "none"
+                    }}
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Car className="w-16 h-16 text-[#1e3a8a]/15" />
+                  </div>
+                )}
+
+                {/* Badges */}
+                <div className="absolute top-3 left-3 z-10">
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm ${getBadgeClassName(vehicle.badge)}`}>
                     {vehicle.badge}
                   </span>
                 </div>
 
                 {vehicle.isAvilooCertified && (
-                  <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-green-700">
+                  <div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-green-700 shadow-sm">
                     <Battery className="w-3 h-3" />
                     Aviloo Certified
                   </div>
                 )}
-
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Car className="w-16 h-16 text-gray-300" />
-                </div>
               </div>
 
               <div className="p-5">
@@ -168,19 +265,19 @@ export function HomepageFeaturedVehicles() {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-500 mt-1">{vehicle.mileage}</p>
+                <p className="text-sm text-gray-500 mt-1">{vehicle.mileageLabel}</p>
 
                 <div className="flex items-center justify-between mt-4">
                   <div>
                     <div className="text-xl font-bold text-[#1e3a8a]">
-                      ${vehicle.price.toLocaleString()}
+                      ${(vehicle.priceCents / 100).toLocaleString()}
                     </div>
                     <div className="text-sm font-medium text-gray-700">
                       or <span className="font-bold">${vehicle.monthlyPayment}/mo</span>
                     </div>
                   </div>
                   <Button size="sm" className="bg-[#1e3a8a] hover:bg-[#172554]" asChild>
-                    <Link href={`/vehicles/${vehicle.id}`}>
+                    <Link href={isFallback ? "/inventory" : `/vehicles/${vehicle.id}`}>
                       View Details
                     </Link>
                   </Button>

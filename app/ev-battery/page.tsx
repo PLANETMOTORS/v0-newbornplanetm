@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+
 import Link from "next/link"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
-import { Battery, Zap, ThermometerSun, Clock, Shield, CheckCircle2, AlertTriangle, Info, ArrowRight, FileText, Download } from "lucide-react"
+import { Battery, Zap, ThermometerSun, Shield, CheckCircle2, AlertTriangle, Info, ArrowRight, Download } from "lucide-react"
 
 // API-ready interface for EV battery data
 interface EVBatteryData {

@@ -2,6 +2,12 @@
 
 import Script from "next/script"
 
+declare global {
+  interface Window {
+    dataLayer?: Record<string, unknown>[]
+  }
+}
+
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID
 
 export function GoogleTagManager() {
@@ -36,10 +42,10 @@ export function GoogleTagManagerNoScript() {
 }
 
 // DataLayer push helper
-export function pushToDataLayer(data: Record<string, any>) {
+export function pushToDataLayer(data: Record<string, unknown>) {
   if (typeof window !== "undefined") {
-    (window as any).dataLayer = (window as any).dataLayer || []
-    ;(window as any).dataLayer.push(data)
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push(data)
   }
 }
 
@@ -94,7 +100,7 @@ export function trackProductClick(vehicle: {
   })
 }
 
-export function trackFormSubmission(formName: string, formData?: Record<string, any>) {
+export function trackFormSubmission(formName: string, formData?: Record<string, unknown>) {
   pushToDataLayer({
     event: "form_submission",
     form_name: formName,

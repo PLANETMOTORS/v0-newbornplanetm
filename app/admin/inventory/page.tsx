@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -102,7 +102,7 @@ export default function AdminInventoryPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [selectedVehicles, setSelectedVehicles] = useState<string[]>([])
-  const [currentPage, setCurrentPage] = useState(1)
+
 
   const filteredInventory = inventoryData.filter(vehicle => {
     const matchesSearch = `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim}`

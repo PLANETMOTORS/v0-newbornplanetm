@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
@@ -51,7 +51,7 @@ interface Vehicle {
 
 export default function FinanceCalculatorPage() {
   const params = useParams()
-  const router = useRouter()
+  useRouter()
   const searchParams = useSearchParams()
   const vehicleId = params.vehicleId as string
 
@@ -73,10 +73,9 @@ export default function FinanceCalculatorPage() {
   const [interestRate, setInterestRate] = useState(7.99)
   const [adminFee, setAdminFee] = useState(895) // Finance Docs Fee
   const [omvicFee] = useState(22) // OMVIC Fee - fixed
-  const [certificationFee, setCertificationFee] = useState(595) // Certification Fee
+  const [certificationFee] = useState(595) // Certification Fee
   const [licensingFee] = useState(59) // Licensing Fee - fixed
-  const [deliveryFee, setDeliveryFee] = useState(0) // Delivery Fee - conditional
-  const [deliveryPostalCode, setDeliveryPostalCode] = useState("")
+  const [deliveryFee] = useState(0) // Delivery Fee - conditional
   const [loanTerm, setLoanTerm] = useState(60)
   const [paymentFrequency, setPaymentFrequency] = useState("biweekly")
   const [showAmortization, setShowAmortization] = useState(false)

@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server"
 const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
 
 export async function GET() {
+  if (process.env.NODE_ENV === 'production') return NextResponse.json({ error: 'Not available' }, { status: 404 })
+
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user || !ADMIN_EMAILS.includes(user.email || "")) {
@@ -45,10 +47,11 @@ export async function GET() {
       data: data,
       sentTo: "toni@planetmotors.ca"
     })
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error"
     return NextResponse.json({
       success: false,
-      error: err.message
+      error: message
     }, { status: 500 })
   }
 }

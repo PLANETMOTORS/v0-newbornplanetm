@@ -147,19 +147,26 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     if (insertError) {
-      // Distinguish between "table not yet migrated" (42P01) and other DB errors.
+      // Distinguish between "table not yet migrated" (42P01), duplicate active returns
+      // (23505), and other DB errors.
       // 42P01 = undefined_table; allow phased rollout without breaking the UI.
-      // Any other DB error is a real failure and should be surfaced to the caller.
-      if (insertError.code !== '42P01') {
+      // 23505 = unique_violation; return a client-meaningful conflict response.
+      if (insertError.code === "42P01") {
+        console.warn(
+          "[returns] 'returns' table not found (42P01). Run scripts/006_create_returns_schema.sql to enable persistence."
+        )
+      } else if (insertError.code === "23505") {
+        return NextResponse.json(
+          { error: "Return already requested for this order" },
+          { status: 409 }
+        )
+      } else {
         console.error("[returns] Failed to persist return record:", insertError)
         return NextResponse.json(
           { error: "Failed to create return record. Please try again." },
           { status: 500 }
         )
       }
-      console.warn(
-        "[returns] 'returns' table not found (42P01). Run scripts/006_create_returns_schema.sql to enable persistence."
-      )
     }
 
     return NextResponse.json({

@@ -2,6 +2,12 @@
 
 import Script from "next/script"
 
+declare global {
+  interface Window {
+    fbq?: (...args: [string, ...unknown[]]) => void
+  }
+}
+
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID
 
 export function MetaPixel() {
@@ -38,9 +44,9 @@ export function MetaPixel() {
 }
 
 // Meta Pixel event helpers
-export function trackMetaEvent(event: string, data?: Record<string, any>) {
-  if (typeof window !== "undefined" && (window as any).fbq) {
-    (window as any).fbq("track", event, data)
+export function trackMetaEvent(event: string, data?: Record<string, unknown>) {
+  if (typeof window !== "undefined" && window.fbq) {
+    window.fbq("track", event, data)
   }
 }
 

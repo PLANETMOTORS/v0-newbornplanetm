@@ -19,7 +19,8 @@ async function getRedis(): Promise<Redis | null> {
       token: process.env.KV_REST_API_TOKEN,
     }) as Redis
     return redisClient
-  } catch {
+  } catch (error) {
+    console.warn("[Redis] Failed to initialize client:", (error as Error).message)
     return null
   }
 }
@@ -45,7 +46,8 @@ export async function rateLimit(
       success: current <= limit,
       remaining: Math.max(0, limit - current)
     }
-  } catch {
+  } catch (error) {
+    console.warn("[Redis] Rate limit check failed, allowing request:", (error as Error).message)
     return { success: true, remaining: limit }
   }
 }
@@ -61,8 +63,8 @@ export async function setSession(
   
   try {
     await redis.set(`session:${sessionId}`, JSON.stringify(data), { ex: expiresInSeconds })
-  } catch {
-    // Silently fail
+  } catch (error) {
+    console.warn("[Redis] Failed to set session:", (error as Error).message)
   }
 }
 
@@ -73,7 +75,8 @@ export async function getSession(sessionId: string): Promise<Record<string, unkn
   try {
     const data = await redis.get<string>(`session:${sessionId}`)
     return data ? JSON.parse(data) : null
-  } catch {
+  } catch (error) {
+    console.warn("[Redis] Failed to get session:", (error as Error).message)
     return null
   }
 }
@@ -89,8 +92,8 @@ export async function cacheSearchResults(
   
   try {
     await redis.set(`search:${queryHash}`, JSON.stringify(results), { ex: ttlSeconds })
-  } catch {
-    // Silently fail
+  } catch (error) {
+    console.warn("[Redis] Failed to cache search results:", (error as Error).message)
   }
 }
 
@@ -101,7 +104,8 @@ export async function getCachedSearchResults(queryHash: string): Promise<unknown
   try {
     const data = await redis.get<string>(`search:${queryHash}`)
     return data ? JSON.parse(data) : null
-  } catch {
+  } catch (error) {
+    console.warn("[Redis] Failed to get cached search results:", (error as Error).message)
     return null
   }
 }
@@ -118,16 +122,29 @@ export async function lockVehicle(
   try {
     const key = `vehicle_lock:${stockNumber}`
 
-    // Treat repeated lock attempts from the same user as successful idempotent retries.
-    const currentHolder = await redis.get<string>(key)
-    if (currentHolder === userId) {
-      await redis.expire(key, lockDurationSeconds)
+    // Treat repeated lock attempts from the same user as successful idempotent retries,
+    // but refresh TTL atomically to avoid extending a lock acquired by another user.
+    const refreshTtlScript = `
+      local current = redis.call('GET', KEYS[1])
+      if current == ARGV[1] then
+        redis.call('EXPIRE', KEYS[1], tonumber(ARGV[2]))
+        return 1
+      end
+      return 0
+    `
+
+    const refreshed = await (redis as unknown as {
+      eval: (script: string, keys: string[], args: string[]) => Promise<number>
+    }).eval(refreshTtlScript, [key], [userId, String(lockDurationSeconds)])
+
+    if (refreshed === 1) {
       return true
     }
 
     const result = await redis.set(key, userId, { nx: true, ex: lockDurationSeconds })
     return result === "OK"
-  } catch {
+  } catch (error) {
+    console.warn("[Redis] Failed to lock vehicle:", (error as Error).message)
     return true
   }
 }
@@ -138,13 +155,24 @@ export async function unlockVehicle(stockNumber: string, userId: string): Promis
   
   try {
     const key = `vehicle_lock:${stockNumber}`
-    const currentHolder = await redis.get<string>(key)
-    if (currentHolder === userId) {
-      await redis.del(key)
-      return true
-    }
-    return false
-  } catch {
+
+    // Atomic compare-and-delete: only delete the key if the stored value matches userId.
+    // Prevents a key-expiry race where GET succeeds but the lock has since been acquired
+    // by another user before DEL executes.
+    const compareAndDeleteScript = `
+      if redis.call('GET', KEYS[1]) == ARGV[1] then
+        return redis.call('DEL', KEYS[1])
+      end
+      return 0
+    `
+
+    const deleted = await (redis as unknown as {
+      eval: (script: string, keys: string[], args: string[]) => Promise<number>
+    }).eval(compareAndDeleteScript, [key], [userId])
+
+    return deleted === 1
+  } catch (error) {
+    console.warn("[Redis] Failed to unlock vehicle:", (error as Error).message)
     return true
   }
 }
@@ -155,7 +183,8 @@ export async function getVehicleLock(stockNumber: string): Promise<string | null
   
   try {
     return await redis.get<string>(`vehicle_lock:${stockNumber}`)
-  } catch {
+  } catch (error) {
+    console.warn("[Redis] Failed to get vehicle lock:", (error as Error).message)
     return null
   }
 }

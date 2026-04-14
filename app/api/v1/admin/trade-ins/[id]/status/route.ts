@@ -29,7 +29,7 @@ export async function PATCH(
       )
     }
     
-    const updateData: Record<string, any> = {
+    const updateData: Record<string, string | number | boolean> = {
       status,
       updated_at: new Date().toISOString()
     }

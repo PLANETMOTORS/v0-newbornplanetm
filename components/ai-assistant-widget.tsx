@@ -13,7 +13,7 @@ import Link from "next/link"
 
 export function AIAssistantWidget() {
   const [isOpen, setIsOpen] = useState(false)
-  const [activeFeature, setActiveFeature] = useState<string | null>(null)
+
 
   const features = [
     {
@@ -29,7 +29,7 @@ export function AIAssistantWidget() {
       icon: Video,
       title: "Live Video Tour",
       description: "Schedule a live video walkthrough",
-      color: "bg-blue-500",
+      color: "bg-teal-500",
       href: "/inventory?ai=video"
     },
     {

@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { 
   User, MapPin, Home, Briefcase, DollarSign, Car, FileText, Upload,
@@ -394,13 +394,13 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     
     // For Finance: Price + All Fees + Tax - Down Payment - Trade
     // For Cash: Price + fees (no admin fee) + Tax - Down Payment - Trade
-    const subtotalBeforeTax = price + totalFees - downPayment - netTrade
+
     const tax = (price + totalFees) * taxRate // Tax on price + fees before credits
     const amountFinanced = price + totalFees + tax - downPayment - netTrade
     
     // Calculate payment
     const rate = (parseFloat(financingTerms.interestRate) || 8.99) / 100
-    const monthlyRate = rate / 12
+
     const term = financingTerms.loanTermMonths
     
     let paymentsPerYear = 12
@@ -442,20 +442,7 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   
   // Helper to check if a field has an error and return the error class
-  const getFieldErrorClass = (fieldName: string): string => {
-    const hasError = validationErrors.some(err => 
-      err.toLowerCase().includes(fieldName.toLowerCase())
-    )
-    return hasError ? "border-destructive ring-1 ring-destructive bg-destructive/5" : ""
-  }
-  
-  // Helper to get Label class with error styling
-  const getLabelErrorClass = (fieldName: string): string => {
-    const hasError = validationErrors.some(err => 
-      err.toLowerCase().includes(fieldName.toLowerCase())
-    )
-    return hasError ? "text-destructive" : ""
-  }
+
   
   // Phone number validation - strict rules for real Canadian phone numbers
   const validatePhone = (phone: string): { valid: boolean; error?: string } => {
@@ -518,16 +505,7 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     return { valid: true }
   }
   
-  // Simple boolean check for backward compatibility
-  const isPhoneValid = (phone: string): boolean => validatePhone(phone).valid
-  
-  // Format phone number as (XXX) XXX-XXXX
-  const formatPhone = (value: string): string => {
-    const digits = value.replace(/\D/g, '').slice(0, 10)
-    if (digits.length <= 3) return digits
-    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
-    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
-  }
+
   
   // Validate Step 1 - Primary Applicant
   const validateStep1 = (): string[] => {
@@ -625,7 +603,7 @@ if (errors.length > 0) {
     setIsSubmitting(true)
     setSubmitError(null)
     try {
-      const response = await fetch("/api/v1/financing/applications", {
+      const response = await fetch("/api/v1/financing/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -643,10 +621,19 @@ if (errors.length > 0) {
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(result?.error || result?.message || "Failed to submit application")
+        throw new Error(
+          result?.error?.message ||
+          result?.error ||
+          result?.message ||
+          JSON.stringify(result) ||
+          "Failed to submit application"
+        )
       }
 
-      const applicationId = result.data?.id || result.data?.applicationId
+      const applicationId =
+        result.data?.application?.id ||
+        result.data?.applicationId ||
+        result.data?.id
   
   // Upload documents to private Blob storage
   if (applicationId && documents.length > 0) {
@@ -1072,8 +1059,8 @@ onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
   )
 }
 
-function ApplicantForm({ title, description, data, onChange, isPrimary, validationErrors = [] }: ApplicantFormProps) {
-  const updateField = (field: keyof ApplicantData, value: any) => {
+function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrimary, validationErrors = [] }: ApplicantFormProps) {
+  const updateField = (field: keyof ApplicantData, value: string | boolean | { day: string; month: string; year: string }) => {
     onChange({ ...data, [field]: value })
   }
   
@@ -1611,20 +1598,33 @@ interface VehicleFinancingFormProps {
   setTradeIn: (t: TradeInInfo) => void
   financingTerms: FinancingTerms
   setFinancingTerms: (f: FinancingTerms) => void
-  financing: ReturnType<typeof calculateFinancing>
+  financing: FinancingResult
   additionalNotes: string
   setAdditionalNotes: (n: string) => void
 }
 
-function calculateFinancing(): { price: number; downPayment: number; netTrade: number; adminFee: number; omvicFee: number; certificationFee: number; licensingFee: number; deliveryFee: number; totalFees: number; tax: number; amountFinanced: number; payment: number; totalToRepay: number; totalInterest: number; totalPayments: number } {
-  return { price: 0, downPayment: 0, netTrade: 0, adminFee: 0, omvicFee: 0, certificationFee: 0, licensingFee: 0, deliveryFee: 0, totalFees: 0, tax: 0, amountFinanced: 0, payment: 0, totalToRepay: 0, totalInterest: 0, totalPayments: 0 }
-  }
+interface FinancingResult {
+  price: number; downPayment: number; netTrade: number; adminFee: number; omvicFee: number; certificationFee: number; licensingFee: number; deliveryFee: number; totalFees: number; tax: number; amountFinanced: number; payment: number; totalToRepay: number; totalInterest: number; totalPayments: number
+}
 
 function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn, financingTerms, setFinancingTerms, financing, additionalNotes, setAdditionalNotes }: VehicleFinancingFormProps) {
   // Check if vehicle data was pre-filled (has year and make)
   const isVehicleSelected = Boolean(vehicleInfo.year && vehicleInfo.make && vehicleInfo.totalPrice)
   const [showInventoryModal, setShowInventoryModal] = useState(false)
-  const [inventoryVehicles, setInventoryVehicles] = useState<any[]>([])
+  interface InventoryVehicle {
+    id: string
+    year: number
+    make: string
+    model: string
+    trim?: string
+    price: number
+    vin?: string
+    mileage?: number
+    exterior_color?: string
+    primary_image_url?: string
+    stock_number?: string
+  }
+  const [inventoryVehicles, setInventoryVehicles] = useState<InventoryVehicle[]>([])
   const [isLoadingInventory, setIsLoadingInventory] = useState(false)
   const [inventorySearch, setInventorySearch] = useState("")
   
@@ -1633,6 +1633,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
     if (showInventoryModal && inventoryVehicles.length === 0) {
       fetchInventory()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showInventoryModal])
   
   const fetchInventory = async () => {
@@ -1640,7 +1641,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
     try {
       const { createClient } = await import("@/lib/supabase/client")
       const supabase = createClient()
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("vehicles")
         .select("id, year, make, model, trim, price, vin, mileage, exterior_color, primary_image_url, stock_number")
         .eq("status", "available")
@@ -1657,7 +1658,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
     }
   }
   
-  const handleSelectVehicle = (vehicle: any) => {
+  const handleSelectVehicle = (vehicle: InventoryVehicle) => {
     setVehicleInfo({
       ...vehicleInfo,
       vin: vehicle.vin || "",
@@ -1722,8 +1723,9 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                     >
                       <div className="w-24 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
                         {vehicle.primary_image_url ? (
-                          <img 
-                            src={vehicle.primary_image_url} 
+                          /* eslint-disable-next-line @next/next/no-img-element -- External CDN URL in modal */
+                          <img
+                            src={vehicle.primary_image_url}
                             alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                             className="w-full h-full object-cover"
                           />
@@ -2066,18 +2068,18 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
               <div className="mb-6">
                 <Label className="text-xs uppercase text-muted-foreground">Payment Frequency</Label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
-                  {[
-                    { value: "weekly", label: "Weekly" },
-                    { value: "bi-weekly", label: "Bi-Weekly" },
-                    { value: "semi-monthly", label: "Semi-Mo" },
-                    { value: "monthly", label: "Monthly" },
-                  ].map((freq) => (
+                  {([
+                    { value: "weekly" as const, label: "Weekly" },
+                    { value: "bi-weekly" as const, label: "Bi-Weekly" },
+                    { value: "semi-monthly" as const, label: "Semi-Mo" },
+                    { value: "monthly" as const, label: "Monthly" },
+                  ]).map((freq) => (
                     <Button
                       key={freq.value}
                       type="button"
                       size="sm"
                       variant={financingTerms.paymentFrequency === freq.value ? "default" : "outline"}
-                      onClick={() => setFinancingTerms({ ...financingTerms, paymentFrequency: freq.value as any })}
+                      onClick={() => setFinancingTerms({ ...financingTerms, paymentFrequency: freq.value })}
                     >
                       {freq.label}
                     </Button>
@@ -2185,7 +2187,22 @@ interface ReviewStepProps {
   vehicleInfo: VehicleInfo
   tradeIn: TradeInInfo
   financingTerms: FinancingTerms
-  financing: any
+  financing: {
+    price: number
+    adminFee: number
+    omvicFee: number
+    certificationFee: number
+    licensingFee: number
+    deliveryFee: number
+    tax: number
+    downPayment: number
+    netTrade: number
+    amountFinanced: number
+    totalPayments: number
+    payment: number
+    totalToRepay: number
+    totalInterest: number
+  }
 }
 
 function ReviewStep({ primaryApplicant, coApplicant, vehicleInfo, tradeIn, financingTerms, financing }: ReviewStepProps) {
@@ -2271,7 +2288,7 @@ interface DocumentsStepProps {
   isSubmitting: boolean
 }
 
-function DocumentsStep({ documents, setDocuments, onSubmit, isSubmitting }: DocumentsStepProps) {
+function DocumentsStep({ documents, setDocuments, onSubmit: _onSubmit, isSubmitting: _isSubmitting }: DocumentsStepProps) {
   const documentTypes = [
     { value: "drivers_license", label: "Driver's License", required: true },
     { value: "proof_of_income", label: "Proof of Income (Pay Stub/T4)", required: true },

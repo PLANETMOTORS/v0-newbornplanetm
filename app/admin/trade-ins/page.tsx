@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
 import {
   Table,
   TableBody,
@@ -29,18 +29,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { 
-  Search, 
-  RefreshCw, 
-  Car, 
-  DollarSign, 
-  Clock, 
-  CheckCircle, 
+  Search,
+  RefreshCw,
+  Car,
+  CheckCircle,
   XCircle,
   Phone,
   Mail,
-  MapPin,
-  Calendar,
-  ArrowUpDown
+  MapPin
 } from "lucide-react"
 
 interface TradeInQuote {

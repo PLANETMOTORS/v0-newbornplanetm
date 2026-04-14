@@ -11,17 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { 
-  ArrowLeft, 
-  Shield, 
-  Upload, 
-  Camera, 
-  CheckCircle2, 
+  ArrowLeft,
+  Shield,
+  Upload,
+  CheckCircle2,
   AlertCircle,
   FileText,
   CreditCard,
-  User,
-  Calendar,
-  MapPin,
   Loader2,
   X
 } from "lucide-react"
@@ -54,13 +50,12 @@ interface IDDocument {
 }
 
 function IDVerificationContent() {
-  const router = useRouter()
+  useRouter()
   const searchParams = useSearchParams()
   const applicationId = searchParams.get("applicationId")
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isVerified, setIsVerified] = useState(false)
-  const [verificationMethod, setVerificationMethod] = useState<"upload" | "camera" | null>(null)
   
   const [primaryID, setPrimaryID] = useState<IDDocument>({
     type: "",
@@ -345,9 +340,10 @@ function IDVerificationContent() {
                       <p className="text-sm text-muted-foreground mb-2">Front of ID</p>
                       {primaryID.frontPreview ? (
                         <div className="relative aspect-[1.6] rounded-lg overflow-hidden bg-muted">
-                          <img 
-                            src={primaryID.frontPreview} 
-                            alt="ID Front" 
+                          {/* eslint-disable-next-line @next/next/no-img-element -- Blob URL from file upload */}
+                          <img
+                            src={primaryID.frontPreview}
+                            alt="ID Front"
                             className="w-full h-full object-cover"
                           />
                           <button
@@ -376,9 +372,10 @@ function IDVerificationContent() {
                       <p className="text-sm text-muted-foreground mb-2">Back of ID</p>
                       {primaryID.backPreview ? (
                         <div className="relative aspect-[1.6] rounded-lg overflow-hidden bg-muted">
-                          <img 
-                            src={primaryID.backPreview} 
-                            alt="ID Back" 
+                          {/* eslint-disable-next-line @next/next/no-img-element -- Blob URL from file upload */}
+                          <img
+                            src={primaryID.backPreview}
+                            alt="ID Back"
                             className="w-full h-full object-cover"
                           />
                           <button

@@ -63,9 +63,10 @@ function toPublicVehicleListItem(value: unknown): Record<string, unknown> | null
   return {
     ...baseVehicle,
     price: value.price / 100,
-    msrp: value.msrp ? value.msrp / 100 : null,
+    msrp: value.msrp === null ? null : value.msrp / 100,
   }
 }
+
 
 // GET /api/v1/vehicles - List vehicles with filtering
 export async function GET(request: NextRequest) {
@@ -105,7 +106,14 @@ export async function GET(request: NextRequest) {
   if (status) query = query.eq('status', status)
   if (make) query = query.ilike('make', make)
   if (model) query = query.ilike('model', `%${model}%`)
-  if (q) query = query.or(`make.ilike.%${q}%,model.ilike.%${q}%,trim.ilike.%${q}%`)
+  if (q) {
+    // Use the pre-built tsvector GIN index for safe, efficient full-text search.
+    // .or() with user input can be manipulated via special chars (commas, parens).
+    const sanitizedQ = q.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s-]/g, '').trim()
+    if (sanitizedQ) {
+      query = query.textSearch('search_vector', sanitizedQ, { type: 'websearch', config: 'english' })
+    }
+  }
   if (minYear) query = query.gte('year', parseInt(minYear))
   if (maxYear) query = query.lte('year', parseInt(maxYear))
   if (minPrice) query = query.gte('price', parseInt(minPrice) * 100) // Convert to cents
@@ -146,13 +154,14 @@ export async function GET(request: NextRequest) {
       .from('vehicles')
       .select('make, body_style, fuel_type, price, year')
       .eq('status', 'available')
-      .limit(1000)
+      .limit(5000)
 
-    const makes = [...new Set(allVehicles?.map(v => v.make).filter(Boolean) || [])]
-    const bodyStyles = [...new Set(allVehicles?.map(v => v.body_style).filter(Boolean) || [])]
-    const fuelTypes = [...new Set(allVehicles?.map(v => v.fuel_type).filter(Boolean) || [])]
-    const prices = allVehicles?.map(v => v.price / 100) || []
-    const years = allVehicles?.map(v => v.year) || []
+    const all = allVehicles || []
+    const makes = buildCountMap(all.map((v) => v.make)).map((entry) => entry.key)
+    const bodyStyles = buildCountMap(all.map((v) => v.body_style)).map((entry) => entry.key)
+    const fuelTypes = buildCountMap(all.map((v) => v.fuel_type)).map((entry) => entry.key)
+    const prices = all.map(v => Number(v.price || 0) / 100).filter((value) => Number.isFinite(value) && value >= 0)
+    const years = all.map(v => Number(v.year || 0)).filter((value) => Number.isFinite(value) && value > 0)
 
     filters = {
       makes: makes.sort(),
@@ -201,6 +210,7 @@ export async function POST(request: NextRequest) {
     filters = {},
     sort = { field: 'created_at', order: 'desc' },
     pagination = { page: 1, limit: 20 },
+    includeAggregations = false,
   } = body
 
   const safeSortField = ALLOWED_SORT_COLUMNS.has(sort.field) ? sort.field : 'created_at'
@@ -214,9 +224,12 @@ export async function POST(request: NextRequest) {
     .select(VEHICLE_LIST_FIELDS, { count: 'exact' })
     .eq('status', 'available')
 
-  // Text search across multiple fields
+  // Text search across multiple fields using the pre-built tsvector GIN index.
   if (searchQuery) {
-    query = query.or(`make.ilike.%${searchQuery}%,model.ilike.%${searchQuery}%,trim.ilike.%${searchQuery}%`)
+    const sanitizedQuery = String(searchQuery).trim().slice(0, 200).replace(/[^a-zA-Z0-9\s-]/g, '').trim()
+    if (sanitizedQuery) {
+      query = query.textSearch('search_vector', sanitizedQuery, { type: 'websearch', config: 'english' })
+    }
   }
 
   // Apply filters
@@ -252,37 +265,56 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
 
-  // Get aggregations
-  const { data: allVehicles } = await supabase
-    .from('vehicles')
-    .select('make, body_style, price')
-    .eq('status', 'available')
-    .limit(1000)
+  let aggregations:
+    | {
+        makes: Array<{ key: string; count: number }>
+        bodyStyles: Array<{ key: string; count: number }>
+        priceRanges: Array<{ key: string; count: number }>
+      }
+    | undefined
 
-  return NextResponse.json({
-    success: true,
-    data: {
-      vehicles: (vehicles ?? [])
-        .map(toPublicVehicleListItem)
-        .filter((vehicle): vehicle is Record<string, unknown> => vehicle !== null),
-      total: count || 0,
-      aggregations: {
-        makes: [...new Set(allVehicles?.map(v => v.make) || [])].map(make => ({
-          key: make,
-          count: allVehicles?.filter(v => v.make === make).length || 0,
-        })),
-        bodyStyles: [...new Set(allVehicles?.map(v => v.body_style).filter(Boolean) || [])].map(style => ({
-          key: style,
-          count: allVehicles?.filter(v => v.body_style === style).length || 0,
-        })),
-        priceRanges: [
-          { key: 'Under $30k', count: allVehicles?.filter(v => v.price < 3000000).length || 0 },
-          { key: '$30k-$50k', count: allVehicles?.filter(v => v.price >= 3000000 && v.price < 5000000).length || 0 },
-          { key: '$50k-$75k', count: allVehicles?.filter(v => v.price >= 5000000 && v.price < 7500000).length || 0 },
-          { key: '$75k-$100k', count: allVehicles?.filter(v => v.price >= 7500000 && v.price < 10000000).length || 0 },
-          { key: 'Over $100k', count: allVehicles?.filter(v => v.price >= 10000000).length || 0 },
-        ],
+  if (includeAggregations) {
+    const { data: allVehicles } = await supabase
+      .from('vehicles')
+      .select('make, body_style, price')
+      .eq('status', 'available')
+      .limit(5000)
+
+    const records = allVehicles || []
+    aggregations = {
+      makes: [...new Set(records.map(v => v.make).filter(Boolean))].map(make => ({
+        key: make,
+        count: records.filter(v => v.make === make).length,
+      })),
+      bodyStyles: [...new Set(records.map(v => v.body_style).filter(Boolean))].map(style => ({
+        key: style,
+        count: records.filter(v => v.body_style === style).length,
+      })),
+      priceRanges: [
+        { key: 'Under $30k', count: records.filter(v => Number(v.price || 0) < 3000000).length },
+        { key: '$30k-$50k', count: records.filter(v => Number(v.price || 0) >= 3000000 && Number(v.price || 0) < 5000000).length },
+        { key: '$50k-$75k', count: records.filter(v => Number(v.price || 0) >= 5000000 && Number(v.price || 0) < 7500000).length },
+        { key: '$75k-$100k', count: records.filter(v => Number(v.price || 0) >= 7500000 && Number(v.price || 0) < 10000000).length },
+        { key: 'Over $100k', count: records.filter(v => Number(v.price || 0) >= 10000000).length },
+      ],
+    }
+  }
+
+  return NextResponse.json(
+    {
+      success: true,
+      data: {
+        vehicles: (vehicles ?? [])
+          .map(toPublicVehicleListItem)
+          .filter((vehicle): vehicle is Record<string, unknown> => vehicle !== null),
+        total: count || 0,
+        ...(aggregations ? { aggregations } : {}),
       },
     },
-  })
+    {
+      headers: {
+        'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=900',
+      },
+    }
+  )
 }
