@@ -11,14 +11,25 @@ export async function GET(_request: NextRequest) {
       return apiError(ErrorCode.UNAUTHORIZED, "Authentication required", 401)
     }
 
-    const metadata = user.user_metadata ?? {}
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id, email, first_name, last_name, phone, notification_preferences, created_at, updated_at")
+      .eq("id", user.id)
+      .maybeSingle()
+
+    if (profileError) {
+      return apiError(ErrorCode.INTERNAL_ERROR, "Failed to fetch customer")
+    }
+
     const customer = {
       id: user.id,
-      email: user.email,
-      createdAt: user.created_at,
-      firstName: metadata.first_name ?? metadata.firstName ?? null,
-      lastName: metadata.last_name ?? metadata.lastName ?? null,
-      phone: metadata.phone ?? null,
+      email: profile?.email ?? user.email,
+      firstName: profile?.first_name ?? null,
+      lastName: profile?.last_name ?? null,
+      phone: profile?.phone ?? null,
+      notificationPreferences: profile?.notification_preferences ?? { email: true, sms: false },
+      createdAt: profile?.created_at ?? user.created_at,
+      updatedAt: profile?.updated_at ?? null,
     }
 
     return apiSuccess({ customer })
@@ -26,6 +37,14 @@ export async function GET(_request: NextRequest) {
     return apiError(ErrorCode.INTERNAL_ERROR, "Failed to fetch customer")
   }
 }
+
+// Validation helpers
+// Unicode allowlist covers all letters from all scripts (Latin, Cyrillic, CJK, etc.)
+// to support diverse customer names. NFC normalization is applied before matching so
+// pre-composed characters (e.g. "ắ") are matched as a single \p{L} code point;
+// combining marks (\p{M}) are intentionally excluded to prevent homograph attacks.
+const NAME_RE = /^[\p{L}'\s-]{1,50}$/u
+const PHONE_RE = /^[+\d\s().\-]{0,20}$/
 
 // PUT /api/v1/customers/me - Update customer profile
 export async function PUT(request: NextRequest) {
@@ -37,60 +56,59 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const allowedKeys = ["firstName", "lastName", "phone"] as const
-    const profileUpdates: Record<string, string> = {}
+    const { firstName, lastName, phone, notificationPreferences } = body
 
-    for (const key of allowedKeys) {
-      const rawValue = body?.[key]
-      if (typeof rawValue === "string") {
-        const trimmed = rawValue.trim()
-        if (trimmed.length > 0) {
-          profileUpdates[key] = trimmed
-        }
+    // Validate provided fields
+    if (firstName !== undefined) {
+      // Normalize to NFC to prevent homograph attacks with lookalike Unicode characters
+      const name = String(firstName).normalize('NFC').trim()
+      if (name.length === 0 || name.length > 50 || !NAME_RE.test(name)) {
+        return apiError(ErrorCode.VALIDATION_ERROR, "Invalid firstName: must be 1-50 characters containing only letters, spaces, hyphens, or apostrophes", 400)
+      }
+    }
+    if (lastName !== undefined) {
+      const name = String(lastName).normalize('NFC').trim()
+      if (name.length === 0 || name.length > 50 || !NAME_RE.test(name)) {
+        return apiError(ErrorCode.VALIDATION_ERROR, "Invalid lastName: must be 1-50 characters containing only letters, spaces, hyphens, or apostrophes", 400)
+      }
+    }
+    if (phone !== undefined && phone !== null) {
+      const ph = String(phone).trim()
+      if (!PHONE_RE.test(ph)) {
+        return apiError(ErrorCode.VALIDATION_ERROR, "Invalid phone number format", 400)
       }
     }
 
-    const metadataPatch: Record<string, string> = {}
-    if (profileUpdates.firstName) metadataPatch.first_name = profileUpdates.firstName
-    if (profileUpdates.lastName) metadataPatch.last_name = profileUpdates.lastName
-    if (profileUpdates.phone) metadataPatch.phone = profileUpdates.phone
-
-    const emailUpdate = typeof body?.email === "string" ? body.email.trim() : ""
-    const updatePayload: { email?: string; data?: Record<string, string> } = {}
-
-    if (emailUpdate && emailUpdate !== user.email) {
-      updatePayload.email = emailUpdate
+    const updates: Record<string, unknown> = {
+      id: user.id,
+      email: user.email,
+      updated_at: new Date().toISOString(),
     }
-    if (Object.keys(metadataPatch).length > 0) {
-      updatePayload.data = metadataPatch
-    }
+    if (firstName !== undefined) updates.first_name = String(firstName).normalize('NFC').trim()
+    if (lastName !== undefined) updates.last_name = String(lastName).normalize('NFC').trim()
+    if (phone !== undefined) updates.phone = phone !== null ? String(phone).trim() : null
+    if (notificationPreferences !== undefined) updates.notification_preferences = notificationPreferences
 
-    if (Object.keys(updatePayload).length === 0) {
-      return apiSuccess({
-        customer: {
-          id: user.id,
-          email: user.email,
-          updatedAt: new Date().toISOString(),
-        },
-      })
-    }
+    const { data: row, error: upsertError } = await supabase
+      .from("profiles")
+      .upsert(updates)
+      .select("id, email, first_name, last_name, phone, notification_preferences, created_at, updated_at")
+      .single()
 
-    const { data: updatedUserData, error: updateError } = await supabase.auth.updateUser(updatePayload)
-    if (updateError) {
-      return apiError(ErrorCode.VALIDATION_ERROR, updateError.message, 400)
+    if (upsertError) {
+      return apiError(ErrorCode.INTERNAL_ERROR, "Failed to update customer")
     }
-
-    const updatedUser = updatedUserData.user
-    const updatedMetadata = updatedUser?.user_metadata ?? user.user_metadata ?? {}
 
     return apiSuccess({
       customer: {
-        id: updatedUser?.id ?? user.id,
-        email: updatedUser?.email ?? user.email,
-        firstName: updatedMetadata.first_name ?? updatedMetadata.firstName ?? null,
-        lastName: updatedMetadata.last_name ?? updatedMetadata.lastName ?? null,
-        phone: updatedMetadata.phone ?? null,
-        updatedAt: new Date().toISOString(),
+        id: row.id,
+        email: row.email ?? user.email,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        phone: row.phone,
+        notificationPreferences: row.notification_preferences,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
       },
     })
   } catch (_error) {

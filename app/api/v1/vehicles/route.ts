@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
   if (q) query = query.or(`make.ilike.%${q}%,model.ilike.%${q}%,trim.ilike.%${q}%`)
   if (minYear) query = query.gte('year', parseInt(minYear))
   if (maxYear) query = query.lte('year', parseInt(maxYear))
-  if (minPrice) query = query.gte('price', parseInt(minPrice) * 100) // Convert to cents
+  if (minPrice) query = query.gte('price', parseInt(minPrice) * 100)
   if (maxPrice) query = query.lte('price', parseInt(maxPrice) * 100)
   if (minMileage) query = query.gte('mileage', parseInt(minMileage))
   if (maxMileage) query = query.lte('mileage', parseInt(maxMileage))
@@ -142,6 +142,7 @@ export async function GET(request: NextRequest) {
   } | undefined
 
   // Computing facets can be expensive on large inventories, so keep it opt-in.
+  // Use a separate Redis cache for facets since they change less frequently.
   if (includeFilters) {
     const facetsCacheKey = `vehicles:facets:${status}`
     const cachedFacets = await getCachedSearchResults(facetsCacheKey) as typeof filters | null
@@ -225,6 +226,15 @@ export async function POST(request: NextRequest) {
   const safeSortOrder = sort.order === 'asc' ? 'asc' : 'desc'
   const safeLimit = Math.min(Math.max(1, asInt(String(pagination.limit || 20), 20)), 100)
   const safePage = Math.max(1, asInt(String(pagination.page || 1), 1))
+
+  // Cache key for this search
+  const cacheKey = `vehicles:search:${hashKey(JSON.stringify({ searchQuery, filters, sort, pagination: { page: safePage, limit: safeLimit } }))}`
+  const cached = await getCachedSearchResults(cacheKey)
+  if (cached) {
+    return NextResponse.json(cached, {
+      headers: { 'X-Cache': 'HIT' },
+    })
+  }
 
   // Build base query
   let query = supabase
