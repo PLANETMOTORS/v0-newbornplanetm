@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { Calendar, Clock, ArrowLeft, Share2, Facebook, Twitter, Linkedin } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import { ArticleJsonLd } from "@/components/seo/json-ld"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -1635,6 +1636,16 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   return (
     <div className="min-h-screen bg-background">
+      <ArticleJsonLd
+        article={{
+          title: post.title,
+          slug,
+          publishedAt: post.date,
+          excerpt: post.excerpt,
+          coverImage: post.image,
+          author: post.author,
+        }}
+      />
       <Header />
 
       <main className="pt-24 pb-20">

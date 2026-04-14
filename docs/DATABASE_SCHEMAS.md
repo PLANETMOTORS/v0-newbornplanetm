@@ -231,7 +231,7 @@ CREATE INDEX idx_vehicles_price ON vehicles(listed_value);
 ### Metrics Dashboard
 
 | Metric | Warning | Critical | Action |
-|--------|---------|----------|--------|
+| --- | --- | --- | --- |
 | API Response Time (p95) | > 500ms | > 1000ms | Scale up, optimize queries |
 | Error Rate | > 1% | > 5% | Alert on-call, investigate |
 | CPU Utilization | > 70% | > 85% | Auto-scale triggers |

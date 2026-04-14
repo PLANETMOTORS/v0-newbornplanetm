@@ -4,16 +4,12 @@
 
 Planet Motors exposes a RESTful API at `/api/v1/*` for all client-server communication.
 
----
-
 ## Base URL
 
 ```
 Production: https://planetmotors.app/api/v1
 Staging:    https://staging.planetmotors.app/api/v1
 ```
-
----
 
 ## Authentication
 
@@ -23,23 +19,22 @@ All protected endpoints require a valid Supabase JWT token.
 Authorization: Bearer <supabase_access_token>
 ```
 
----
-
 ## API Endpoints
 
 ### Vehicles
 
 | Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/vehicles` | List all vehicles | Public |
-| GET | `/vehicles/:id` | Get vehicle details | Public |
-| GET | `/vehicles/:id/photos` | Get vehicle photos | Public |
-| GET | `/vehicles/:id/inspection` | Get inspection report | Public |
-| POST | `/vehicles/:id/inquire` | Submit inquiry | Public |
+| --- | --- | --- | --- |
+| GET | /vehicles | List all vehicles | Public |
+| GET | /vehicles/:id | Get vehicle details | Public |
+| GET | /vehicles/:id/photos | Get vehicle photos | Public |
+| GET | /vehicles/:id/inspection | Get inspection report | Public |
+| POST | /vehicles/:id/inquire | Submit inquiry | Public |
 
 #### GET /vehicles
 
 Query Parameters:
+
 ```
 ?make=Tesla
 &model=Model+3
@@ -59,6 +54,7 @@ Query Parameters:
 ```
 
 Response:
+
 ```json
 {
   "vehicles": [...],
@@ -71,34 +67,31 @@ Response:
 }
 ```
 
----
-
 ### Customers
 
 | Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/customers/me` | Get current user profile | Required |
-| PUT | `/customers/me` | Update profile | Required |
-| GET | `/customers/me/addresses` | List addresses | Required |
-| POST | `/customers/me/addresses` | Add address | Required |
-| PUT | `/customers/me/addresses/:id` | Update address | Required |
-| DELETE | `/customers/me/addresses/:id` | Delete address | Required |
-
----
+| --- | --- | --- | --- |
+| GET | /customers/me | Get current user profile | Required |
+| PUT | /customers/me | Update profile | Required |
+| GET | /customers/me/addresses | List addresses | Required |
+| POST | /customers/me/addresses | Add address | Required |
+| PUT | /customers/me/addresses/:id | Update address | Required |
+| DELETE | /customers/me/addresses/:id | Delete address | Required |
 
 ### Orders
 
 | Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/orders` | List user's orders | Required |
-| GET | `/orders/:id` | Get order details | Required |
-| POST | `/orders` | Create order/reservation | Required |
-| PUT | `/orders/:id` | Update order | Required |
-| POST | `/orders/:id/cancel` | Cancel order | Required |
+| --- | --- | --- | --- |
+| GET | /orders | List user's orders | Required |
+| GET | /orders/:id | Get order details | Required |
+| POST | /orders | Create order/reservation | Required |
+| PUT | /orders/:id | Update order | Required |
+| POST | /orders/:id/cancel | Cancel order | Required |
 
 #### POST /orders
 
 Request Body:
+
 ```json
 {
   "vehicle_id": "uuid",
@@ -112,23 +105,22 @@ Request Body:
 }
 ```
 
----
-
 ### Financing
 
 | Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/financing/applications` | List user's applications | Required |
-| GET | `/financing/applications/:id` | Get application details | Required |
-| POST | `/financing/applications` | Submit application | Required |
-| PUT | `/financing/applications/:id` | Update application | Required |
-| GET | `/financing/applications/:id/offers` | Get loan offers | Required |
-| POST | `/financing/applications/:id/offers/:offerId/select` | Select offer | Required |
-| GET | `/financing/calculator` | Calculate payments | Public |
+| --- | --- | --- | --- |
+| GET | /financing/applications | List user's applications | Required |
+| GET | /financing/applications/:id | Get application details | Required |
+| POST | /financing/applications | Submit application | Required |
+| PUT | /financing/applications/:id | Update application | Required |
+| GET | /financing/applications/:id/offers | Get loan offers | Required |
+| POST | /financing/applications/:id/offers/:offerId/select | Select offer | Required |
+| GET | /financing/calculator | Calculate payments | Public |
 
 #### POST /financing/applications
 
 Request Body:
+
 ```json
 {
   "vehicle_id": "uuid",
@@ -150,6 +142,7 @@ Request Body:
 #### GET /financing/calculator
 
 Query Parameters:
+
 ```
 ?amount=45000
 &down_payment=5000
@@ -158,6 +151,7 @@ Query Parameters:
 ```
 
 Response:
+
 ```json
 {
   "monthly_payment": 869.32,
@@ -167,22 +161,21 @@ Response:
 }
 ```
 
----
-
 ### Trade-Ins
 
 | Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/trade-ins` | List user's trade-ins | Required |
-| GET | `/trade-ins/:id` | Get trade-in details | Required |
-| POST | `/trade-ins` | Submit trade-in request | Required |
-| PUT | `/trade-ins/:id` | Update trade-in | Required |
-| POST | `/trade-ins/estimate` | Get instant estimate | Public |
-| POST | `/trade-ins/:id/accept` | Accept offer | Required |
+| --- | --- | --- | --- |
+| GET | /trade-ins | List user's trade-ins | Required |
+| GET | /trade-ins/:id | Get trade-in details | Required |
+| POST | /trade-ins | Submit trade-in request | Required |
+| PUT | /trade-ins/:id | Update trade-in | Required |
+| POST | /trade-ins/estimate | Get instant estimate | Public |
+| POST | /trade-ins/:id/accept | Accept offer | Required |
 
 #### POST /trade-ins/estimate
 
 Request Body:
+
 ```json
 {
   "year": 2020,
@@ -196,6 +189,7 @@ Request Body:
 ```
 
 Response:
+
 ```json
 {
   "estimated_value": {
@@ -212,19 +206,18 @@ Response:
 }
 ```
 
----
-
 ### Deliveries
 
 | Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/deliveries/:orderId` | Get delivery status | Required |
-| POST | `/deliveries/calculate` | Calculate delivery cost | Public |
-| PUT | `/deliveries/:id/schedule` | Schedule delivery/pickup | Required |
+| --- | --- | --- | --- |
+| GET | /deliveries/:orderId | Get delivery status | Required |
+| POST | /deliveries/calculate | Calculate delivery cost | Public |
+| PUT | /deliveries/:id/schedule | Schedule delivery/pickup | Required |
 
 #### POST /deliveries/calculate
 
 Request Body:
+
 ```json
 {
   "postal_code": "V6B 1A1",
@@ -233,6 +226,7 @@ Request Body:
 ```
 
 Response:
+
 ```json
 {
   "available": true,
@@ -247,20 +241,19 @@ Response:
 }
 ```
 
----
-
 ### Payments
 
 | Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| POST | `/payments/create-intent` | Create Stripe PaymentIntent | Required |
-| POST | `/payments/confirm` | Confirm payment | Required |
-| GET | `/payments/:orderId` | Get payment history | Required |
-| POST | `/payments/refund` | Request refund | Required |
+| --- | --- | --- | --- |
+| POST | /payments/create-intent | Create Stripe PaymentIntent | Required |
+| POST | /payments/confirm | Confirm payment | Required |
+| GET | /payments/:orderId | Get payment history | Required |
+| POST | /payments/refund | Request refund | Required |
 
 #### POST /payments/create-intent
 
 Request Body:
+
 ```json
 {
   "order_id": "uuid",
@@ -270,6 +263,7 @@ Request Body:
 ```
 
 Response:
+
 ```json
 {
   "client_secret": "pi_xxx_secret_xxx",
@@ -277,17 +271,13 @@ Response:
 }
 ```
 
----
-
 ### Webhooks
 
 | Endpoint | Source | Description |
-|----------|--------|-------------|
-| `/webhooks/stripe` | Stripe | Payment events |
-| `/webhooks/sanity` | Sanity | Content updates |
-| `/webhooks/cbb` | Canadian Black Book | Valuation updates |
-
----
+| --- | --- | --- |
+| /webhooks/stripe | Stripe | Payment events |
+| /webhooks/sanity | Sanity | Content updates |
+| /webhooks/cbb | Canadian Black Book | Valuation updates |
 
 ## Error Responses
 
@@ -311,33 +301,30 @@ All errors follow this format:
 ### Error Codes
 
 | Code | HTTP Status | Description |
-|------|-------------|-------------|
-| `VALIDATION_ERROR` | 400 | Invalid request data |
-| `UNAUTHORIZED` | 401 | Missing/invalid auth token |
-| `FORBIDDEN` | 403 | Insufficient permissions |
-| `NOT_FOUND` | 404 | Resource not found |
-| `CONFLICT` | 409 | Resource conflict (e.g., vehicle already reserved) |
-| `RATE_LIMITED` | 429 | Too many requests |
-| `INTERNAL_ERROR` | 500 | Server error |
-
----
+| --- | --- | --- |
+| VALIDATION_ERROR | 400 | Invalid request data |
+| UNAUTHORIZED | 401 | Missing/invalid auth token |
+| FORBIDDEN | 403 | Insufficient permissions |
+| NOT_FOUND | 404 | Resource not found |
+| CONFLICT | 409 | Resource conflict (e.g., vehicle already reserved) |
+| RATE_LIMITED | 429 | Too many requests |
+| INTERNAL_ERROR | 500 | Server error |
 
 ## Rate Limiting
 
 | Endpoint Type | Limit |
-|---------------|-------|
+| --- | --- |
 | Public endpoints | 100 req/min |
 | Authenticated endpoints | 200 req/min |
 | Webhooks | 1000 req/min |
 
 Rate limit headers:
+
 ```http
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 95
 X-RateLimit-Reset: 1679529600
 ```
-
----
 
 ## Pagination
 
@@ -348,6 +335,7 @@ All list endpoints support pagination:
 ```
 
 Response includes:
+
 ```json
 {
   "pagination": {
@@ -361,15 +349,10 @@ Response includes:
 }
 ```
 
----
-
 ## Versioning
 
 API version is included in the URL path: `/api/v1/*`
 
 Breaking changes will increment the version number. Previous versions will be supported for 12 months after a new version is released.
 
----
-
-*Document Version: 1.0*
-*Last Updated: March 28, 2026*
+*Document Version: 1.0**Last Updated: March 28, 2026*

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
+import { getCachedSearchResults, cacheSearchResults, deleteCachedSearchResults } from "@/lib/redis"
 
 const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
+const VEHICLE_DETAIL_TTL = 300 // 5 minutes
 
 const ALLOWED_STATUSES = new Set([
   "available",
@@ -67,6 +69,19 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+    const cacheKey = `vehicles:detail:${id}`
+
+    // Serve from Redis when available
+    const cached = await getCachedSearchResults(cacheKey)
+    if (cached) {
+      return NextResponse.json(cached, {
+        headers: {
+          'Cache-Control': `public, s-maxage=${VEHICLE_DETAIL_TTL}, stale-while-revalidate=${VEHICLE_DETAIL_TTL * 2}`,
+          'X-Cache': 'HIT',
+        },
+      })
+    }
+
     const supabase = await createClient()
 
     const { data: vehicle, error } = await supabase
@@ -89,19 +104,22 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(
-      {
-        success: true,
-        data: {
-          vehicle: toPublicVehicle(vehicle as unknown as Record<string, unknown>),
-        },
+    const responseBody = {
+      success: true,
+      data: {
+        vehicle: toPublicVehicle(vehicle as unknown as Record<string, unknown>),
       },
-      {
-        headers: {
-          'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=1800',
-        },
-      }
-    )
+    }
+
+    // Cache the result
+    await cacheSearchResults(cacheKey, responseBody, VEHICLE_DETAIL_TTL)
+
+    return NextResponse.json(responseBody, {
+      headers: {
+        'Cache-Control': `public, s-maxage=${VEHICLE_DETAIL_TTL}, stale-while-revalidate=${VEHICLE_DETAIL_TTL * 2}`,
+        'X-Cache': 'MISS',
+      },
+    })
   } catch (error) {
     console.error("Vehicle details error:", error)
     return NextResponse.json(
@@ -165,6 +183,12 @@ export async function PATCH(
         { status: 404 }
       )
     }
+
+    // Invalidate cached vehicle detail and facets so stale data isn't served
+    await Promise.allSettled([
+      deleteCachedSearchResults(`vehicles:detail:${id}`),
+      deleteCachedSearchResults('vehicles:facets:snapshot'),
+    ])
 
     return NextResponse.json({
       success: true,

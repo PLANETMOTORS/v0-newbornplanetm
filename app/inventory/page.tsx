@@ -20,10 +20,12 @@ import {
   Filter, Battery, Car, ExternalLink, Bell, Loader2, Clock
 } from "lucide-react"
 import { useFavorites } from "@/contexts/favorites-context"
+import { InventoryPageJsonLd } from "@/components/seo/json-ld"
 import { PriceAlertModal } from "@/components/price-alert-modal"
-import { createClient } from "@/lib/supabase/client"
+import { trackAddToWishlist } from "@/components/analytics/google-analytics"
+import { trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
 
-// Vehicle type from database
+// Vehicle type from inventory API
 interface Vehicle {
   id: string
   stock_number: string
@@ -56,23 +58,37 @@ interface Vehicle {
   created_at: string
 }
 
-// Fetcher for SWR
-const fetcher = async () => {
-  const supabase = createClient()
-  const { data, error } = await supabase
-    .from('vehicles')
-    .select('*')
-    .eq('status', 'available')
-    .order('created_at', { ascending: false })
-  
-  if (error) throw error
-  return data as Vehicle[]
+// API page size — matches Clutch/Carvana 48-per-page pattern
+const API_PAGE_SIZE = 48
+
+// API response shape
+interface VehiclesApiResponse {
+  success: boolean
+  data: {
+    vehicles: Vehicle[]
+    pagination: { page: number; limit: number; total: number; totalPages: number; hasMore: boolean }
+    filters?: {
+      makes: string[]
+      bodyStyles: string[]
+      fuelTypes: string[]
+      priceRange: { min: number; max: number }
+      yearRange: { min: number; max: number }
+    }
+  }
 }
 
-// Transform database vehicle to display format
+// API fetcher — server handles filtering, sorting, pagination
+const fetcher = async (url: string): Promise<VehiclesApiResponse> => {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error('Failed to fetch inventory')
+  return res.json()
+}
+
+// Transform API vehicle to display format
+// NOTE: API already returns price in dollars (route.ts divides by 100)
 function transformVehicle(v: Vehicle) {
-  const priceInDollars = v.price / 100
-  const msrpInDollars = v.msrp ? v.msrp / 100 : priceInDollars * 1.1
+  const priceInDollars = v.price
+  const msrpInDollars = v.msrp ?? priceInDollars * 1.1
   
   // Determine badge based on vehicle attributes
   let badge = ""
@@ -167,6 +183,10 @@ function InventoryContent() {
   const [sortBy, setSortBy] = useState("featured")
   const { addFavorite, removeFavorite, isFavorite } = useFavorites()
   const [evOnly, setEvOnly] = useState(false)
+
+  // Load More pagination state (Clutch/Carvana pattern)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [accumulatedVehicles, setAccumulatedVehicles] = useState<ReturnType<typeof transformVehicle>[]>([])
   
   // Trade-in from AI Quote
   const [tradeInInfo, setTradeInInfo] = useState<{
@@ -175,31 +195,78 @@ function InventoryContent() {
     vehicle: string
   } | null>(null)
 
-  // Fetch vehicles from Supabase
-  const { data: dbVehicles, error, isLoading } = useSWR('vehicles', fetcher, {
-    refreshInterval: 30000, // Refresh every 30 seconds
-    revalidateOnFocus: true
+  // Build server-side query URL from all filter states
+  const vehiclesApiUrl = useMemo(() => {
+    const params = new URLSearchParams()
+    params.set('limit', String(API_PAGE_SIZE))
+    params.set('page', String(currentPage))
+
+    // Sort mapping
+    if (sortBy === 'price-low') { params.set('sort', 'price'); params.set('order', 'asc') }
+    else if (sortBy === 'price-high') { params.set('sort', 'price'); params.set('order', 'desc') }
+    else if (sortBy === 'mileage-low') { params.set('sort', 'mileage'); params.set('order', 'asc') }
+    else if (sortBy === 'newest') { params.set('sort', 'year'); params.set('order', 'desc') }
+    else { params.set('sort', 'created_at'); params.set('order', 'desc') }
+
+    // Filters
+    if (evOnly) { params.set('fuelType', 'Electric') }
+    else if (selectedFuelType !== 'All Fuel Types') { params.set('fuelType', selectedFuelType) }
+    if (selectedMake !== 'All Makes') params.set('make', selectedMake)
+    if (selectedBodyType !== 'All Types') params.set('bodyStyle', selectedBodyType)
+    if (selectedYear !== 'All Years') { params.set('minYear', selectedYear); params.set('maxYear', selectedYear) }
+    if (selectedTransmission !== 'All Transmissions') params.set('transmission', selectedTransmission)
+    if (selectedColor !== 'All Colors') params.set('exteriorColor', selectedColor)
+    if (selectedDrivetrain !== 'All Drivetrains') params.set('drivetrain', selectedDrivetrain)
+    if (priceRange[0] > 0) params.set('minPrice', String(priceRange[0]))
+    if (priceRange[1] < 400000) params.set('maxPrice', String(priceRange[1]))
+    if (mileageRange[0] > 0) params.set('minMileage', String(mileageRange[0]))
+    if (mileageRange[1] < 200000) params.set('maxMileage', String(mileageRange[1]))
+    if (searchQuery.trim()) params.set('q', searchQuery.trim())
+    params.set('includeFilters', 'true')
+
+    return `/api/v1/vehicles?${params.toString()}`
+  }, [currentPage, sortBy, evOnly, selectedFuelType, selectedMake, selectedBodyType, selectedYear,
+      selectedTransmission, selectedColor, selectedDrivetrain, priceRange, mileageRange, searchQuery])
+
+  // Fetch vehicles from API — SWR key is the full URL
+  const { data: apiResponse, error, isLoading, isValidating } = useSWR(vehiclesApiUrl, fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000,
+    keepPreviousData: true,
   })
 
-  // Transform database vehicles to display format
-  const vehicles = useMemo(() => {
-    if (!dbVehicles) return []
-    return dbVehicles.map(transformVehicle)
-  }, [dbVehicles])
+  // Accumulate pages — page 1 replaces, page 2+ appends (Load More pattern)
+  useEffect(() => {
+    if (!apiResponse?.data?.vehicles) return
+    const transformed = apiResponse.data.vehicles.map(transformVehicle)
+    if (currentPage === 1) {
+      setAccumulatedVehicles(transformed)
+    } else {
+      setAccumulatedVehicles(prev => [...prev, ...transformed])
+    }
+  }, [apiResponse, currentPage])
 
-  // Get unique makes from actual data for filters
-  const dynamicMakes = useMemo(() => {
-    const uniqueMakes = [...new Set(vehicles.map(v => v.make))].sort()
-    return ["All Makes", ...uniqueMakes]
-  }, [vehicles])
+  const totalVehicles = apiResponse?.data?.pagination?.total ?? 0
+  const hasMore = accumulatedVehicles.length < totalVehicles
 
-  // Get unique years from actual data for filters
-  const dynamicYears = useMemo(() => {
-    const uniqueYears = [...new Set(vehicles.map(v => v.year.toString()))].sort((a, b) => Number(b) - Number(a))
-    return ["All Years", ...uniqueYears]
-  }, [vehicles])
+  // Derive dropdown values from API response filters, falling back to sensible defaults
+  const apiFilters = apiResponse?.data?.filters
+  const dynamicMakes = apiFilters?.makes?.length
+    ? ['All Makes', ...apiFilters.makes]
+    : ['All Makes']
+  const dynamicYears = apiFilters?.yearRange
+    ? ['All Years', ...Array.from({ length: apiFilters.yearRange.max - apiFilters.yearRange.min + 1 }, (_, i) => String(apiFilters.yearRange.max - i))]
+    : ['All Years']
+  const _dynamicBodyTypes = apiFilters?.bodyStyles?.length
+    ? ['All Body Types', ...apiFilters.bodyStyles]
+    : ['All Body Types']
 
-
+  // Reset to page 1 whenever filters or sort change (not currentPage itself)
+  const filterKey = `${sortBy}|${evOnly}|${selectedFuelType}|${selectedMake}|${selectedBodyType}|${selectedYear}|${selectedTransmission}|${selectedColor}|${selectedDrivetrain}|${priceRange[0]}|${priceRange[1]}|${mileageRange[0]}|${mileageRange[1]}|${searchQuery}`
+  useEffect(() => {
+    setCurrentPage(1)
+    setAccumulatedVehicles([])
+  }, [filterKey])
 
   // Read URL parameters and set filters
   useEffect(() => {
@@ -236,49 +303,16 @@ function InventoryContent() {
     }
   }, [searchParams])
 
-  // Filter vehicles
-  const filteredVehicles = useMemo(() => {
-    return vehicles.filter(vehicle => {
-      const matchesSearch = searchQuery === "" || 
-        `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim}`.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesMake = selectedMake === "All Makes" || vehicle.make === selectedMake
-      const matchesBodyType = selectedBodyType === "All Types" || vehicle.bodyType === selectedBodyType
-      const matchesFuel = selectedFuelType === "All Fuel Types" || vehicle.fuelType === selectedFuelType
-      const matchesYear = selectedYear === "All Years" || vehicle.year.toString() === selectedYear
-      const matchesTransmission = selectedTransmission === "All Transmissions" || vehicle.transmission === selectedTransmission
-      const matchesColor = selectedColor === "All Colors" || vehicle.exteriorColor === selectedColor
-      const matchesDrivetrain = selectedDrivetrain === "All Drivetrains" || vehicle.drivetrain === selectedDrivetrain
-      const matchesPrice = vehicle.price >= priceRange[0] && vehicle.price <= priceRange[1]
-      const matchesMileage = vehicle.mileage >= mileageRange[0] && vehicle.mileage <= mileageRange[1]
-      const matchesEV = !evOnly || vehicle.fuelType === "Electric"
-      
-      return matchesSearch && matchesMake && matchesBodyType && matchesFuel && matchesYear && matchesTransmission && matchesColor && matchesDrivetrain && matchesPrice && matchesMileage && matchesEV
-    })
-  }, [vehicles, searchQuery, selectedMake, selectedBodyType, selectedFuelType, selectedYear, selectedTransmission, selectedColor, selectedDrivetrain, priceRange, mileageRange, evOnly])
+  // Final display list comes from the accumulator
+  const sortedVehicles = accumulatedVehicles
 
-  // Sort vehicles
-  const sortedVehicles = useMemo(() => {
-    const sorted = [...filteredVehicles]
-    switch (sortBy) {
-      case "price-low":
-        return sorted.sort((a, b) => a.price - b.price)
-      case "price-high":
-        return sorted.sort((a, b) => b.price - a.price)
-      case "mileage-low":
-        return sorted.sort((a, b) => a.mileage - b.mileage)
-      case "newest":
-        return sorted.sort((a, b) => b.year - a.year)
-      case "popular":
-        return sorted.sort((a, b) => b.views - a.views)
-      default:
-        return sorted
-    }
-  }, [filteredVehicles, sortBy])
-
-const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
+const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
     if (isFavorite(vehicleData.id)) {
       removeFavorite(vehicleData.id)
     } else {
+      const name = `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`
+      trackAddToWishlist({ id: vehicleData.id, name, price: vehicleData.price })
+      trackMetaAddToWishlist({ id: vehicleData.id, name, price: vehicleData.price })
       addFavorite({
         id: vehicleData.id,
         year: vehicleData.year,
@@ -391,7 +425,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
                     </span>
-                    {vehicles.length.toLocaleString()} vehicles available
+                    {totalVehicles.toLocaleString()} vehicles available
                   </span>
                   <span className="text-muted-foreground/50">|</span>
                   <span className="flex items-center gap-1 text-sm">
@@ -405,7 +439,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
               <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm">
                 <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-primary/10 rounded-lg">
                   <Zap className="w-3 sm:w-4 h-3 sm:h-4 text-primary" />
-                  <span className="text-primary text-xs sm:text-sm">{vehicles.filter(v => v.fuelType === "Electric").length} EVs</span>
+                  <span className="text-primary text-xs sm:text-sm">{accumulatedVehicles.filter(v => v.fuelType === "Electric").length} EVs</span>
                 </div>
                 <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-muted rounded-lg">
                   <Car className="w-3 sm:w-4 h-3 sm:h-4 text-muted-foreground" />
@@ -723,10 +757,11 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
             )}
           </div>
 
-          {/* Results Summary */}
+          {/* Results Summary — Clutch/Carvana style counter */}
           <div className="flex items-center justify-between py-4 border-b border-border">
             <p className="text-muted-foreground">
-              Showing <span className="font-semibold text-foreground">{sortedVehicles.length}</span> vehicles
+              Showing <span className="font-semibold text-foreground">{sortedVehicles.length.toLocaleString()}</span>{totalVehicles > sortedVehicles.length ? <> of <span className="font-semibold text-foreground">{totalVehicles.toLocaleString()}</span></> : ""} vehicles
+              {isValidating && <Loader2 className="inline w-3 h-3 ml-2 animate-spin" />}
             </p>
             {activeFilterCount > 0 && (
               <Button variant="ghost" size="sm" onClick={clearFilters} className="text-primary">
@@ -923,7 +958,7 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
           </div>
 
           {/* No Results */}
-          {sortedVehicles.length === 0 && (
+          {!isLoading && sortedVehicles.length === 0 && (
             <div className="py-20 text-center">
               <Car className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-xl font-semibold mb-2">No vehicles found</h3>
@@ -936,12 +971,24 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
             </div>
           )}
 
-          {/* Load More */}
-          {sortedVehicles.length > 0 && (
-            <div className="text-center py-8">
-              <Button variant="outline" size="lg">
-                Load More Vehicles
-                <ChevronDown className="w-4 h-4 ml-2" />
+          {/* Load More — Clutch/Carvana style */}
+          {hasMore && (
+            <div className="text-center py-10">
+              <p className="text-sm text-muted-foreground mb-4">
+                Showing {sortedVehicles.length.toLocaleString()} of {totalVehicles.toLocaleString()} vehicles
+              </p>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => setCurrentPage(p => p + 1)}
+                disabled={isValidating}
+                className="min-w-[200px]"
+              >
+                {isValidating ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Loading...</>
+                ) : (
+                  <>Load More Vehicles<ChevronDown className="w-4 h-4 ml-2" /></>
+                )}
               </Button>
             </div>
           )}
@@ -955,8 +1002,11 @@ const toggleFavorite = (vehicleData: typeof vehicles[0]) => {
 
 export default function InventoryPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>}>
-      <InventoryContent />
-    </Suspense>
+    <>
+      <InventoryPageJsonLd />
+      <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>}>
+        <InventoryContent />
+      </Suspense>
+    </>
   )
 }

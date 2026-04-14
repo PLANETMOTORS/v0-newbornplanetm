@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/client"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -23,6 +22,7 @@ import {
   Key
 } from "lucide-react"
 
+import { VehicleJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
 import { SimilarVehicles } from "@/components/similar-vehicles"
 import { ReserveVehicleModal } from "@/components/reserve-vehicle-modal"
 import { AuthRequiredModal } from "@/components/auth-required-modal"
@@ -39,6 +39,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { trackProductView, trackPhoneClick } from "@/components/analytics/google-tag-manager"
+import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
+import { trackMetaViewContent, trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
 
 // Mock vehicle data
 const vehicleData = {
@@ -351,7 +354,7 @@ export default function VehicleDetailPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Complex merged mock+DB vehicle shape
   const [vehicle, setVehicle] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [loadError, setLoadError] = useState<string | null>(null)
+  const [loadError, _setLoadError] = useState<string | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isFavorite, setIsFavorite] = useState(false)
   const [activeTab, setActiveTab] = useState("photos")
@@ -392,77 +395,99 @@ export default function VehicleDetailPage() {
     return `/finance/${vehicleId}`
   }
   
-  // Fetch vehicle from database
+  // Fetch vehicle from API — benefits from CDN s-maxage=300 caching
   useEffect(() => {
-    async function fetchVehicle() {
-      let supabase
-      try {
-        supabase = createClient()
-      } catch {
-        // Supabase not configured — show error
-        setVehicle(null)
-        setLoadError("Database connection not available. Please try again later.")
+    if (!vehicleId) return
+    let cancelled = false
+    setIsLoading(true)
+    fetch(`/api/v1/vehicles/${encodeURIComponent(vehicleId)}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(json => {
+        if (cancelled) return
+        const data = json?.data?.vehicle
+        if (data) {
+          // API already returns price in dollars (divided by 100 server-side)
+          const price = typeof data.price === 'number' ? data.price : 0
+          const omvicFee = 22
+          const certificationFee = 595
+          const licensingFee = 59
+          const subtotalForHst = price + omvicFee + certificationFee + licensingFee
+          const hst = subtotalForHst * 0.13
+          // Build image list: prefer image_urls array, fall back to primary_image_url, then mocks
+          const rawImages: string[] = Array.isArray(data.image_urls) && data.image_urls.length > 0
+            ? data.image_urls
+            : data.primary_image_url
+              ? [data.primary_image_url]
+              : vehicleData.images
+          setVehicle({
+            ...vehicleData, // Keep mock inspection data as fallback
+            id: data.id,
+            year: data.year,
+            make: data.make,
+            model: data.model,
+            trim: data.trim || '',
+            price,
+            mileage: data.mileage,
+            exteriorColor: data.exterior_color,
+            interiorColor: data.interior_color,
+            fuelType: data.fuel_type,
+            transmission: data.transmission,
+            drivetrain: data.drivetrain,
+            bodyStyle: data.body_style,
+            vin: data.vin,
+            stockNumber: data.stock_number,
+            images: rawImages,
+            pricing: {
+              vehiclePrice: price,
+              deliveryFee: 0,
+              hst: Math.round(hst),
+              omvicFee,
+              certificationFee,
+              licensingReg: licensingFee,
+              totalWithHst: Math.round(price + hst + omvicFee + certificationFee + licensingFee)
+            }
+          })
+        } else {
+          setVehicle(vehicleData)
+        }
         setIsLoading(false)
-        return
-      }
-      const { data, error } = await supabase
-        .from("vehicles")
-        .select("*")
-        .eq("id", vehicleId)
-        .single()
-
-      if (error || !data) {
-        setVehicle(null)
-        setLoadError("Vehicle not found or no longer available.")
-        setIsLoading(false)
-        return
-      }
-      
-      if (data) {
-        // Transform database vehicle to page format
-        const priceInDollars = data.price / 100
-        // Calculate subtotal (vehicle + all fees) for HST
-        const omvicFee = 22
-        const certificationFee = 595
-        const licensingFee = 59
-        const subtotalForHst = priceInDollars + omvicFee + certificationFee + licensingFee
-        const hst = subtotalForHst * 0.13
-        setVehicle({
-          ...vehicleData, // Keep mock inspection data etc.
-          id: data.id,
-          year: data.year,
-          make: data.make,
-          model: data.model,
-          trim: data.trim || "",
-          price: priceInDollars,
-          mileage: data.mileage,
-          exteriorColor: data.exterior_color,
-          interiorColor: data.interior_color,
-          fuelType: data.fuel_type,
-          transmission: data.transmission,
-          drivetrain: data.drivetrain,
-          bodyStyle: data.body_style,
-          vin: data.vin,
-          stockNumber: data.stock_number,
-          images: data.primary_image_url && !data.primary_image_url.includes('unsplash.com') ? [data.primary_image_url] : [],
-          pricing: {
-            vehiclePrice: priceInDollars,
-            deliveryFee: 0,
-            hst: Math.round(hst),
-            omvicFee: omvicFee,
-            certificationFee: 595,
-            licensingReg: 59,
-            totalWithHst: Math.round(priceInDollars + hst + 22 + 595 + 59)
-          }
-        })
-      }
-      setIsLoading(false)
-    }
-    
-    if (vehicleId) {
-      fetchVehicle()
-    }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setVehicle(vehicleData)
+          setIsLoading(false)
+        }
+      })
+    return () => { cancelled = true }
   }, [vehicleId])
+
+  // Track product view when vehicle data loads
+  useEffect(() => {
+    if (!vehicle || isLoading) return
+    const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.trim ? ` ${vehicle.trim}` : ""}`
+    trackProductView({
+      id: vehicle.id,
+      name,
+      price: vehicle.price,
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      fuelType: vehicle.fuelType || "Unknown",
+    })
+    trackViewItem({
+      id: vehicle.id,
+      name,
+      price: vehicle.price,
+      make: vehicle.make,
+      model: vehicle.model,
+    })
+    trackMetaViewContent({
+      id: vehicle.id,
+      name,
+      price: vehicle.price,
+      make: vehicle.make,
+    })
+  }, [vehicle, isLoading])
 
   const handleProtectedAction = (action: string, callback?: () => void) => {
     if (!user) {
@@ -592,8 +617,34 @@ export default function VehicleDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <VehicleJsonLd
+        vehicle={{
+          id: vehicle.id,
+          year: vehicle.year,
+          make: vehicle.make,
+          model: vehicle.model,
+          trim: vehicle.trim,
+          price: vehicle.price,
+          mileage: vehicle.mileage,
+          vin: vehicle.vin,
+          color: vehicle.exteriorColor,
+          fuelType: vehicle.fuelType,
+          transmission: vehicle.transmission,
+          image: vehicle.images?.[0] || "",
+          description: `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim || ""} for sale at Planet Motors`.trim(),
+          condition: "used",
+        }}
+      />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", url: "/" },
+          { name: "Inventory", url: "/inventory" },
+          { name: `${vehicle.make}`, url: `/inventory?make=${vehicle.make}` },
+          { name: `${vehicle.year} ${vehicle.make} ${vehicle.model}`, url: `/vehicles/${vehicle.id}` },
+        ]}
+      />
       <Header />
-      
+
 <main className="pb-32 md:pb-20 overflow-x-hidden max-w-full" role="main" aria-label="Vehicle details">
   {/* Trade-In Banner */}
   {tradeInValue && parseInt(tradeInValue) > 0 && (
@@ -1867,7 +1918,14 @@ export default function VehicleDetailPage() {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => setIsFavorite(!isFavorite)}
+                      onClick={() => {
+                        if (!isFavorite && vehicle) {
+                          const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
+                          trackAddToWishlist({ id: vehicle.id, name, price: vehicle.price })
+                          trackMetaAddToWishlist({ id: vehicle.id, name, price: vehicle.price })
+                        }
+                        setIsFavorite(!isFavorite)
+                      }}
                       className={isFavorite ? "text-red-500" : ""}
                     >
                       <Heart className={`w-4 h-4 mr-1 ${isFavorite ? "fill-current" : ""}`} />
@@ -1940,7 +1998,7 @@ export default function VehicleDetailPage() {
                   <div className="mt-4 pt-4 border-t text-center">
                     <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
                       <Phone className="w-4 h-4" />
-                      Questions? <Link href="tel:416-985-2277" className="font-semibold text-foreground">416-985-2277</Link>
+                      Questions? <Link href="tel:416-985-2277" className="font-semibold text-foreground" onClick={() => trackPhoneClick("416-985-2277")}>416-985-2277</Link>
                     </p>
                   </div>
                 </CardContent>

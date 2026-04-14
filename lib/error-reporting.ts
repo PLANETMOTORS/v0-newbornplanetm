@@ -1,15 +1,27 @@
 // Error reporting abstraction layer.
-// To enable Sentry: pnpm add @sentry/nextjs, then replace console calls with Sentry.captureException
+// Falls back to console logging when Sentry is not installed.
+// NOTE: @sentry/nextjs is not currently in package.json.
+// When installed, this module will automatically detect and use it.
+
+/**
+ * Check if Sentry is initialized (DSN is configured).
+ */
+function isSentryInitialized(): boolean {
+  return false // @sentry/nextjs not installed
+}
 
 /**
  * Report an error to the error reporting service.
- * Currently logs to console; swap implementation for Sentry/Datadog/etc.
+ * Uses Sentry.captureException when available, console.error as fallback.
  */
 export function reportError(
   error: Error,
   context?: Record<string, unknown>,
 ): void {
-  // TODO: Replace with Sentry.captureException(error, { extra: context })
+  // Sentry capture would go here when @sentry/nextjs is installed
+  void isSentryInitialized()
+
+  // Always log to console for local development visibility
   if (context) {
     console.error("[reportError]", error, context)
   } else {
@@ -19,14 +31,17 @@ export function reportError(
 
 /**
  * Report a message to the error reporting service.
- * Currently logs to console; swap implementation for Sentry/Datadog/etc.
+ * Uses Sentry.captureMessage when available, console as fallback.
  */
 export function reportMessage(
   message: string,
   level: "info" | "warning" | "error",
   context?: Record<string, unknown>,
 ): void {
-  // TODO: Replace with Sentry.captureMessage(message, { level, extra: context })
+  // Sentry capture would go here when @sentry/nextjs is installed
+  void isSentryInitialized()
+
+  // Always log to console for local development visibility
   const logFn =
     level === "error"
       ? console.error

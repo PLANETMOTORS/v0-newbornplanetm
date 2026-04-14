@@ -22,6 +22,7 @@ import {
   AlertCircle, Sparkles, Target, Award, ThumbsUp
 } from "lucide-react"
 import { InstantQuote } from "@/components/trade-in/instant-quote"
+import { TradeInPageJsonLd } from "@/components/seo/json-ld"
 import {
   isValidEmail,
   isValidCanadianPhoneNumber,
@@ -1897,15 +1898,18 @@ function TradeInContent() {
 // Wrap with Suspense for useSearchParams
 export default function TradeInPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading trade-in...</p>
+    <>
+      <TradeInPageJsonLd />
+      <Suspense fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading trade-in...</p>
+          </div>
         </div>
-      </div>
-    }>
-      <TradeInContent />
-    </Suspense>
+      }>
+        <TradeInContent />
+      </Suspense>
+    </>
   )
 }
