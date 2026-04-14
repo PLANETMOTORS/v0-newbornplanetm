@@ -1,5 +1,72 @@
 import { streamText, convertToModelMessages, UIMessage, consumeStream } from "ai"
+import { NextResponse } from "next/server"
 import { getAISettings, getSiteSettings } from "@/lib/sanity/fetch"
+import { rateLimit } from "@/lib/redis"
+
+// Allowed origins for the AI assistant endpoint
+const ALLOWED_ORIGINS = [
+  process.env.NEXT_PUBLIC_BASE_URL,
+  "https://planetmotors.ca",
+  "https://www.planetmotors.ca",
+].filter(Boolean)
+
+function isAllowedOrigin(request: Request): boolean {
+  const origin = request.headers.get("origin")
+  const referer = request.headers.get("referer")
+
+  // In development, allow localhost
+  if (process.env.NODE_ENV === "development") return true
+
+  if (origin && ALLOWED_ORIGINS.some((allowed) => origin.startsWith(allowed!))) {
+    return true
+  }
+  if (referer && ALLOWED_ORIGINS.some((allowed) => referer.startsWith(allowed!))) {
+    return true
+  }
+  return false
+}
+
+// Types for AI settings from Sanity CMS
+interface QuickAction {
+  label: string
+  prompt: string
+}
+
+interface AnnaAssistant {
+  displayName?: string
+  welcomeMessage?: string
+  quickActions?: QuickAction[]
+}
+
+interface AIFees {
+  certification?: number
+  financeDocFee?: number
+  omvic?: number
+  licensing?: number
+}
+
+interface AIFinancing {
+  lowestRate?: number
+  numberOfLenders?: number
+  terms?: number[]
+  paymentFrequencies?: string[]
+}
+
+interface AISettings {
+  annaAssistant?: AnnaAssistant
+  priceNegotiator?: {
+    negotiationRules?: Record<string, unknown>
+  }
+  fees?: AIFees
+  financing?: AIFinancing
+}
+
+interface VehicleContext {
+  name?: string
+  price?: number
+  year?: number
+  mileage?: number
+}
 
 // Check if current time is within business hours (Eastern Time)
 function isWithinBusinessHours(): { isOpen: boolean; currentDay: string; message: string } {
@@ -57,9 +124,28 @@ function generatePaymentTable(vehiclePrice: number, rate: number = 6.29): string
 }
 
 export async function POST(req: Request) {
-  const { messages, vehicleContext }: { messages: UIMessage[]; vehicleContext?: any } = await req.json()
+  // Origin/Referer validation
+  if (!isAllowedOrigin(req)) {
+    return NextResponse.json(
+      { error: "Forbidden: invalid origin" },
+      { status: 403 }
+    )
+  }
 
-  const aiSettings = await getAISettings()
+  // IP-based rate limiting: 20 requests per hour
+  const forwarded = req.headers.get("x-forwarded-for") || ""
+  const ip = forwarded.split(",")[0]?.trim() || "unknown"
+  const limiter = await rateLimit(`anna:${ip}`, 20, 3600)
+  if (!limiter.success) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429 }
+    )
+  }
+
+  const { messages, vehicleContext }: { messages: UIMessage[]; vehicleContext?: VehicleContext } = await req.json()
+
+  const aiSettings: AISettings | null = await getAISettings()
   const siteSettings = await getSiteSettings()
   const anna = aiSettings?.annaAssistant
   const fees = aiSettings?.fees
@@ -82,7 +168,7 @@ WELCOME MESSAGE (use on first interaction):
 ${anna?.welcomeMessage || "Hi! I'm Anna from Planet Motors. How can I help you today?"}
 
 QUICK ACTIONS YOU CAN HELP WITH:
-${anna?.quickActions?.map((qa: any) => `- ${qa.label}: ${qa.prompt}`).join('\n') || '- Calculate payments\n- Get trade value\n- Book test drive\n- Find a car'}
+${anna?.quickActions?.map((qa: QuickAction) => `- ${qa.label}: ${qa.prompt}`).join('\n') || '- Calculate payments\n- Get trade value\n- Book test drive\n- Find a car'}
 
 =============================================
 DEALERSHIP INFORMATION:
