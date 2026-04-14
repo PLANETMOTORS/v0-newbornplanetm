@@ -37,7 +37,7 @@ async function runTests() {
   
   for (const email of testEmails) {
     try {
-      const { data, error } = await resend.emails.send({
+      const { error } = await resend.emails.send({
         from: FROM_EMAIL,
         to: ADMIN_EMAIL,
         subject: email.subject,

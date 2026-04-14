@@ -799,14 +799,12 @@ export default function DeliveryPage() {
       const fsa = postalCode.replace(/\s/g, "").substring(0, 3).toUpperCase()
       
       // Find matching city or estimate distance
-      let distance = 500 // Default distance
-      let city = "Your Area"
-      let province = ""
-      
+      const city = CITY_DISTANCES[fsa]?.city ?? "Your Area"
+      const province = CITY_DISTANCES[fsa]?.province ?? ""
+
+      let distance: number
       if (CITY_DISTANCES[fsa]) {
         distance = CITY_DISTANCES[fsa].km
-        city = CITY_DISTANCES[fsa].city
-        province = CITY_DISTANCES[fsa].province
       } else {
         // Estimate based on first letter (province indicator)
         const firstLetter = fsa[0]
@@ -853,11 +851,10 @@ export default function DeliveryPage() {
       }
 
       // Estimate delivery days
-      let deliveryDays = "2-3 business days"
-      if (distance <= 300) deliveryDays = "1-2 business days"
-      else if (distance <= 1000) deliveryDays = "3-5 business days"
-      else if (distance <= 2500) deliveryDays = "5-7 business days"
-      else deliveryDays = "7-10 business days"
+      const deliveryDays = distance <= 300 ? "1-2 business days"
+        : distance <= 1000 ? "3-5 business days"
+        : distance <= 2500 ? "5-7 business days"
+        : "7-10 business days"
 
       setDeliveryEstimate({ distance, cost, city, province, deliveryDays })
       setIsCalculating(false)

@@ -352,6 +352,7 @@ function TradeInContent() {
         setTimeout(() => setShowApplyModal(true), 100)
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, user])
   
   // Vehicle details

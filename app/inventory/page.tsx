@@ -125,8 +125,8 @@ function transformVehicle(v: Vehicle) {
   }
   
   // Use valid image URL or fall back to make-specific placeholder
-  const imageUrl = isValidImageUrl 
-    ? v.primary_image_url! 
+  const imageUrl = isValidImageUrl
+    ? (v.primary_image_url ?? makePlaceholders['default'])
     : (makePlaceholders[v.make] || makePlaceholders['default'])
   
   return {

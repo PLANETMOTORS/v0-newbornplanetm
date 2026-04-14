@@ -33,8 +33,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // 2. If a session exists, we call getUser() to server-validate it, ensuring
     //    stale or cross-project tokens are caught and cleared.
     const initAuth = async () => {
+      if (!supabase) return
       try {
-        const { data: { session } } = await supabase!.auth.getSession()
+        const { data: { session } } = await supabase.auth.getSession()
 
         if (!session) {
           // No local session — user is unauthenticated, skip the network call.
@@ -44,10 +45,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         // Session exists — validate it against the server.
-        const { data: { user }, error } = await supabase!.auth.getUser()
+        const { data: { user }, error } = await supabase.auth.getUser()
         if (error) {
           // Session is invalid or from wrong project — clear it so the UI resets.
-          await supabase!.auth.signOut()
+          await supabase.auth.signOut()
           setUser(null)
         } else {
           setUser(user ?? null)

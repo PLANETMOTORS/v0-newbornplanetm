@@ -72,7 +72,7 @@ export function getVehicleImage(vehicle: {
 }): string {
   // First try primary_image_url if it's a valid image
   if (isValidImageUrl(vehicle.primary_image_url)) {
-    return vehicle.primary_image_url!
+    return vehicle.primary_image_url as string
   }
   
   // Try image_urls array

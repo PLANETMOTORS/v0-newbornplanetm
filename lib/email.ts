@@ -39,6 +39,7 @@ interface EmailData {
   applicationId?: string
   quoteId?: string
   tradeInValue?: number
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Template values of mixed types
   additionalData?: Record<string, any>
 }
 

@@ -1060,7 +1060,7 @@ onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
 }
 
 function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrimary, validationErrors = [] }: ApplicantFormProps) {
-  const updateField = (field: keyof ApplicantData, value: any) => {
+  const updateField = (field: keyof ApplicantData, value: string | boolean | { day: string; month: string; year: string }) => {
     onChange({ ...data, [field]: value })
   }
   
@@ -1611,7 +1611,20 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
   // Check if vehicle data was pre-filled (has year and make)
   const isVehicleSelected = Boolean(vehicleInfo.year && vehicleInfo.make && vehicleInfo.totalPrice)
   const [showInventoryModal, setShowInventoryModal] = useState(false)
-  const [inventoryVehicles, setInventoryVehicles] = useState<any[]>([])
+  interface InventoryVehicle {
+    id: string
+    year: number
+    make: string
+    model: string
+    trim?: string
+    price: number
+    vin?: string
+    mileage?: number
+    exterior_color?: string
+    primary_image_url?: string
+    stock_number?: string
+  }
+  const [inventoryVehicles, setInventoryVehicles] = useState<InventoryVehicle[]>([])
   const [isLoadingInventory, setIsLoadingInventory] = useState(false)
   const [inventorySearch, setInventorySearch] = useState("")
   
@@ -1620,6 +1633,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
     if (showInventoryModal && inventoryVehicles.length === 0) {
       fetchInventory()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showInventoryModal])
   
   const fetchInventory = async () => {
@@ -1644,7 +1658,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
     }
   }
   
-  const handleSelectVehicle = (vehicle: any) => {
+  const handleSelectVehicle = (vehicle: InventoryVehicle) => {
     setVehicleInfo({
       ...vehicleInfo,
       vin: vehicle.vin || "",
@@ -1709,8 +1723,9 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                     >
                       <div className="w-24 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
                         {vehicle.primary_image_url ? (
-                          <img 
-                            src={vehicle.primary_image_url} 
+                          /* eslint-disable-next-line @next/next/no-img-element -- External CDN URL in modal */
+                          <img
+                            src={vehicle.primary_image_url}
                             alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                             className="w-full h-full object-cover"
                           />
@@ -2053,18 +2068,18 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
               <div className="mb-6">
                 <Label className="text-xs uppercase text-muted-foreground">Payment Frequency</Label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
-                  {[
-                    { value: "weekly", label: "Weekly" },
-                    { value: "bi-weekly", label: "Bi-Weekly" },
-                    { value: "semi-monthly", label: "Semi-Mo" },
-                    { value: "monthly", label: "Monthly" },
-                  ].map((freq) => (
+                  {([
+                    { value: "weekly" as const, label: "Weekly" },
+                    { value: "bi-weekly" as const, label: "Bi-Weekly" },
+                    { value: "semi-monthly" as const, label: "Semi-Mo" },
+                    { value: "monthly" as const, label: "Monthly" },
+                  ]).map((freq) => (
                     <Button
                       key={freq.value}
                       type="button"
                       size="sm"
                       variant={financingTerms.paymentFrequency === freq.value ? "default" : "outline"}
-                      onClick={() => setFinancingTerms({ ...financingTerms, paymentFrequency: freq.value as any })}
+                      onClick={() => setFinancingTerms({ ...financingTerms, paymentFrequency: freq.value })}
                     >
                       {freq.label}
                     </Button>
@@ -2172,7 +2187,22 @@ interface ReviewStepProps {
   vehicleInfo: VehicleInfo
   tradeIn: TradeInInfo
   financingTerms: FinancingTerms
-  financing: any
+  financing: {
+    price: number
+    adminFee: number
+    omvicFee: number
+    certificationFee: number
+    licensingFee: number
+    deliveryFee: number
+    tax: number
+    downPayment: number
+    netTrade: number
+    amountFinanced: number
+    totalPayments: number
+    payment: number
+    totalToRepay: number
+    totalInterest: number
+  }
 }
 
 function ReviewStep({ primaryApplicant, coApplicant, vehicleInfo, tradeIn, financingTerms, financing }: ReviewStepProps) {

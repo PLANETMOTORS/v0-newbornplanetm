@@ -151,11 +151,10 @@ export function HomepageFeaturedVehicles() {
     revalidateOnReconnect: false,
   })
 
-  // Only use fallback vehicles when the fetch actually fails.
-  // On initial load (data === undefined, no error) or empty results, skip fallback.
-  const vehicles = error ? fallbackVehicles : (data ?? [])
-
   const filteredVehicles = useMemo(() => {
+    // Only use fallback vehicles when the fetch actually fails.
+    // On initial load (data === undefined, no error) or empty results, skip fallback.
+    const vehicles = error ? fallbackVehicles : (data ?? [])
     return vehicles.filter((vehicle) => {
       if (activeTab === "electric") return vehicle.isEV
       if (activeTab === "suvs") {
@@ -163,7 +162,7 @@ export function HomepageFeaturedVehicles() {
       }
       return true
     })
-  }, [activeTab, vehicles])
+  }, [activeTab, data, error])
 
   return (
     <section className="py-16" style={{ backgroundColor: "#FFFFFF" }}>

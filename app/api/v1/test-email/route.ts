@@ -58,10 +58,11 @@ export async function GET() {
       emailId: data?.id,
       sentTo: adminEmail
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error"
     return NextResponse.json({
       success: false,
-      error: error.message
+      error: message
     }, { status: 500 })
   }
 }

@@ -207,7 +207,7 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
     // Try multiple tag name variations (HomenetIOL field mapping)
     const variations = getTagVariations(tag)
     for (const variant of variations) {
-      const match = xml.match(new RegExp(`<${variant}[^>]*>([^<]*)<\/${variant}>`, "i"))
+      const match = xml.match(new RegExp(`<${variant}[^>]*>([^<]*)</${variant}>`, "i"))
       if (match && match[1]) return match[1].trim()
     }
     return ""

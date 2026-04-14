@@ -96,7 +96,21 @@ const fallbackVehicles = [
 ]
 
 // Transform database vehicle to showcase format
-function transformToShowcase(v: any) {
+interface DbVehicle {
+  id: string
+  year: number
+  make: string
+  model: string
+  trim?: string
+  price: number
+  mileage: number
+  fuel_type?: string
+  is_new_arrival?: boolean
+  inspection_score?: number
+  primary_image_url?: string
+}
+
+function transformToShowcase(v: DbVehicle) {
   const priceInDollars = v.price / 100
   
   // Determine badge
@@ -207,7 +221,7 @@ export function VehicleShowcase() {
       <div className="w-full max-w-6xl mx-auto px-2 sm:px-4">
         {/* Main image container */}
         <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted shadow-2xl">
-        {/* Use native img for maximum compatibility with external URLs */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- External URLs with onError fallback */}
         <img
           src={getImageSrc()}
           alt={currentVehicle.name}
@@ -351,6 +365,7 @@ export function VehicleShowcase() {
               )}
               aria-label={`View ${vehicle.name}`}
             >
+              {/* eslint-disable-next-line @next/next/no-img-element -- External CDN thumbnail */}
               <img
                 src={vehicle.image}
                 alt={vehicle.name}

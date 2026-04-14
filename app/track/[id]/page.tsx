@@ -68,6 +68,7 @@ export default function DeliveryTrackingPage({ params }: { params: Promise<{ id:
     // Auto-refresh every 30 seconds
     const interval = setInterval(fetchDelivery, 30000)
     return () => clearInterval(interval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
   const getStatusColor = (status: string) => {

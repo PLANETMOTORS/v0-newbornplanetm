@@ -363,7 +363,30 @@ const AI_SETTINGS_QUERY = `*[_type == "aiSettings"][0] {
   }
 }`
 
-export async function getAISettings(): Promise<any> {
+export interface AISettings {
+  annaAssistant?: {
+    displayName: string
+    welcomeMessage: string
+    quickActions: { label: string; prompt: string }[]
+  }
+  priceNegotiator?: {
+    negotiationRules: Record<string, number>
+  }
+  fees?: {
+    certification: number
+    financeDocFee: number
+    omvic: number
+    licensing: number
+  }
+  financing?: {
+    lowestRate: number
+    numberOfLenders: number
+    terms?: number[]
+    paymentFrequencies?: string[]
+  }
+}
+
+export async function getAISettings(): Promise<AISettings> {
   try {
     return await sanityClient.fetch(AI_SETTINGS_QUERY, {}, {
       next: { tags: ["sanity-ai-settings"], revalidate: 3600 }

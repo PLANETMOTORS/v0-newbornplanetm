@@ -15,13 +15,25 @@ interface QuickAction {
   icon: string
 }
 
+interface ChatMessagePart {
+  type: string
+  text?: string
+}
+
+interface ChatMessage {
+  id: string
+  role: string
+  content?: string
+  parts?: ChatMessagePart[]
+}
+
 // Helper to extract text from message parts (AI SDK 6 format)
-function getMessageText(message: any): string {
+function getMessageText(message: ChatMessage): string {
   if (message.content) return message.content // Backwards compat
   if (!message.parts || !Array.isArray(message.parts)) return ""
   return message.parts
-    .filter((p: any) => p.type === "text")
-    .map((p: any) => p.text)
+    .filter((p) => p.type === "text")
+    .map((p) => p.text ?? "")
     .join("")
 }
 
@@ -142,7 +154,7 @@ export function LiveChatWidget() {
         <>
           {/* Messages */}
           <div className="flex-1 p-4 space-y-4 overflow-y-auto min-h-[200px] max-h-[300px]">
-            {displayMessages.map((message: any) => (
+            {displayMessages.map((message: ChatMessage) => (
               <div
                 key={message.id}
                 className={cn(

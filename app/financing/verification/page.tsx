@@ -340,9 +340,10 @@ function IDVerificationContent() {
                       <p className="text-sm text-muted-foreground mb-2">Front of ID</p>
                       {primaryID.frontPreview ? (
                         <div className="relative aspect-[1.6] rounded-lg overflow-hidden bg-muted">
-                          <img 
-                            src={primaryID.frontPreview} 
-                            alt="ID Front" 
+                          {/* eslint-disable-next-line @next/next/no-img-element -- Blob URL from file upload */}
+                          <img
+                            src={primaryID.frontPreview}
+                            alt="ID Front"
                             className="w-full h-full object-cover"
                           />
                           <button
@@ -371,9 +372,10 @@ function IDVerificationContent() {
                       <p className="text-sm text-muted-foreground mb-2">Back of ID</p>
                       {primaryID.backPreview ? (
                         <div className="relative aspect-[1.6] rounded-lg overflow-hidden bg-muted">
-                          <img 
-                            src={primaryID.backPreview} 
-                            alt="ID Back" 
+                          {/* eslint-disable-next-line @next/next/no-img-element -- Blob URL from file upload */}
+                          <img
+                            src={primaryID.backPreview}
+                            alt="ID Back"
                             className="w-full h-full object-cover"
                           />
                           <button

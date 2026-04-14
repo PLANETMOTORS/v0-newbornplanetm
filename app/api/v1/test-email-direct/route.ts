@@ -47,10 +47,11 @@ export async function GET() {
       data: data,
       sentTo: "toni@planetmotors.ca"
     })
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error"
     return NextResponse.json({
       success: false,
-      error: err.message
+      error: message
     }, { status: 500 })
   }
 }

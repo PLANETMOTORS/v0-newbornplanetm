@@ -40,7 +40,7 @@ export async function GET(req: Request) {
     "ico_confirmed",
   ] as const
 
-  if (type === "all" || adminEmailTypes.includes(type as any)) {
+  if (type === "all" || (adminEmailTypes as readonly string[]).includes(type)) {
     for (const emailType of adminEmailTypes) {
       if (type !== "all" && type !== emailType) continue
       
@@ -58,7 +58,7 @@ export async function GET(req: Request) {
     }
   }
 
-  if (type === "all" || customerEmailTypes.includes(type as any)) {
+  if (type === "all" || (customerEmailTypes as readonly string[]).includes(type)) {
     for (const emailType of customerEmailTypes) {
       if (type !== "all" && type !== emailType) continue
       

@@ -95,6 +95,7 @@ export default function AdminFinancePage() {
 
   useEffect(() => {
     fetchApplications()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter])
 
   const fetchApplications = async () => {

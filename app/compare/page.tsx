@@ -181,7 +181,7 @@ export default function ComparePage() {
     if (fromContext) return fromContext
     return availableVehicles.find(v => v.id === id)
   }
-  const selectedVehicleData = selectedVehicles.map(id => getVehicle(id)!).filter(Boolean)
+  const selectedVehicleData = selectedVehicles.map(id => getVehicle(id)).filter((v): v is NonNullable<typeof v> => Boolean(v))
 
   const compareValue = (values: (string | number)[], type: "lower" | "higher" = "higher") => {
     const numericValues = values.map(v => typeof v === "string" ? parseFloat(v) : v)
@@ -431,7 +431,7 @@ export default function ComparePage() {
                           {selectedVehicleData.map((vehicle) => {
                             const evVehicles = selectedVehicleData.filter(v => v.batteryHealth)
                             const isBest = vehicle.batteryHealth && evVehicles.length > 1 
-                              ? compareValue(evVehicles.map(v => v.batteryHealth!), "higher")[evVehicles.indexOf(vehicle)]
+                              ? compareValue(evVehicles.map(v => v.batteryHealth ?? 0), "higher")[evVehicles.indexOf(vehicle)]
                               : false
                             return (
                               <td key={vehicle.id} className="p-4 text-center">

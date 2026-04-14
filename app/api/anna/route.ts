@@ -17,10 +17,10 @@ function isAllowedOrigin(request: Request): boolean {
   // In development, allow localhost
   if (process.env.NODE_ENV === "development") return true
 
-  if (origin && ALLOWED_ORIGINS.some((allowed) => origin.startsWith(allowed!))) {
+  if (origin && ALLOWED_ORIGINS.some((allowed) => allowed && origin.startsWith(allowed))) {
     return true
   }
-  if (referer && ALLOWED_ORIGINS.some((allowed) => referer.startsWith(allowed!))) {
+  if (referer && ALLOWED_ORIGINS.some((allowed) => allowed && referer.startsWith(allowed))) {
     return true
   }
   return false
