@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
+import * as Sentry from "@sentry/nextjs"
 import { reportError } from "@/lib/error-reporting"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, RefreshCw, Home, Phone } from "lucide-react"
@@ -13,6 +14,8 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
+    // Capture in Sentry error boundary (ensures client-side errors are tracked)
+    Sentry.captureException(error)
     reportError(error)
   }, [error])
 
