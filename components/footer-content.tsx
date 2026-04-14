@@ -79,8 +79,8 @@ export function FooterContent({ siteSettings }: FooterProps) {
 
   return (
     <footer className="bg-foreground text-background" role="contentinfo" aria-label="Site footer">
-      {/* ── Row 1: Trust Bar Accent ── */}
-      <div className="bg-[#1e3a8a]">
+      {/* ── Row 1: Trust Bar — gradient bridge from CTA blue → footer black ── */}
+      <div className="bg-gradient-to-b from-[#1e3a8a] to-[#0a0a0a]">
         <div className="mx-auto max-w-7xl px-6 py-5 lg:px-8">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
             <div>
