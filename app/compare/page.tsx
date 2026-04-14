@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Plus, X, CheckCircle, XCircle, Minus, ArrowRight, Share2, Printer, Download } from "lucide-react"
-import { useCompare, type CompareVehicle } from "@/lib/compare-context"
+import { useCompare, type CompareVehicle } from "@/contexts/compare-context"
 
 // Sample vehicles for comparison - will be replaced with API call: GET /api/vehicles/compare
 const availableVehicles: CompareVehicle[] = [

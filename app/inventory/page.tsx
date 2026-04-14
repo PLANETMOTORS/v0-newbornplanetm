@@ -19,7 +19,7 @@ import {
   X, RotateCcw, TrendingUp, Eye, Clock, CheckCircle, Star,
   ArrowUpDown, Filter, Sparkles, Battery, Car, ExternalLink, Bell, Loader2
 } from "lucide-react"
-import { useFavorites } from "@/lib/favorites-context"
+import { useFavorites } from "@/contexts/favorites-context"
 import { PriceAlertModal } from "@/components/price-alert-modal"
 import { createClient } from "@/lib/supabase/client"
 

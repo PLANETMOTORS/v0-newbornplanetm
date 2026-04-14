@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Heart, Trash2, Share2, Bell, Car, Clock, TrendingDown } from "lucide-react"
 import Link from "next/link"
-import { useFavorites } from "@/lib/favorites-context"
+import { useFavorites } from "@/contexts/favorites-context"
 
 export default function FavoritesPage() {
   const { favorites, removeFavorite } = useFavorites()
