@@ -299,7 +299,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                     <div className={`w-12 h-12 ${step.color} rounded-xl flex items-center justify-center shadow-lg`}>
                       <step.icon className="w-6 h-6 text-white" />
                     </div>
-                    <span className="text-sm font-medium text-gray-400">Step {index + 1}</span>
+                    <span className="text-sm font-medium text-gray-500">Step {index + 1}</span>
                   </div>
                   
                   <h3 className="text-lg font-bold text-gray-900 mb-2">{step.title}</h3>
@@ -336,7 +336,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
             </Button>
             <Button size="lg" variant="outline" className="border-[#c5d0de] text-gray-700 hover:bg-[#f0f4f8]" asChild>
               <Link href="/how-it-works">
-                Learn More
+                Learn how it works
               </Link>
             </Button>
           </div>
@@ -480,7 +480,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                     <p className="font-medium text-gray-900">{review.name}</p>
                     <p className="text-sm text-gray-500">{review.location}</p>
                   </div>
-                  <span className="text-xs text-gray-400">{review.date}</span>
+                  <span className="text-xs text-gray-500">{review.date}</span>
                 </div>
               </div>
             ))}
@@ -493,7 +493,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="text-3xl font-bold text-white">Protection Plans</h2>
-            <p className="mt-3 text-gray-400">
+            <p className="mt-3 text-gray-300">
               Choose the coverage that fits your needs. All plans include our satisfaction guarantee.
             </p>
           </div>
@@ -509,12 +509,12 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                 }`}
               >
                 <h3 className="font-semibold text-lg">{plan.name}</h3>
-                <p className={`mt-2 text-sm ${plan.highlighted ? "text-gray-500" : "text-gray-400"}`}>
+                <p className={`mt-2 text-sm ${plan.highlighted ? "text-gray-500" : "text-gray-300"}`}>
                   {plan.description}
                 </p>
                 <div className="mt-6 flex items-baseline gap-1">
                   <span className="text-4xl font-bold">${plan.price}</span>
-                  <span className={`text-sm ${plan.highlighted ? "text-gray-500" : "text-gray-400"}`}>
+                  <span className={`text-sm ${plan.highlighted ? "text-gray-500" : "text-gray-300"}`}>
                     {plan.period}
                   </span>
                 </div>
@@ -548,7 +548,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
               <h2 className="text-3xl font-bold text-white">
                 Ready to find your perfect vehicle?
               </h2>
-              <p className="mt-4 text-white/80 max-w-xl">
+              <p className="mt-4 text-white/90 max-w-xl">
                 Browse our inventory of certified pre-owned vehicles. Get pre-approved for financing in minutes with rates from {lowestRate}% APR.
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
@@ -569,29 +569,29 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
               <div className="bg-white/10 rounded-xl p-6">
                 <Phone className="w-8 h-8 text-white mb-4" />
                 <h3 className="font-semibold text-white">Call Us</h3>
-                <p className="text-sm text-white/80 mt-1">{siteSettings.phone}</p>
+                <p className="text-sm text-white/90 mt-1">{siteSettings.phone}</p>
               </div>
               <div className="bg-white/10 rounded-xl p-6">
                 <MapPin className="w-8 h-8 text-white mb-4" />
                 <h3 className="font-semibold text-white">Visit Us</h3>
-                <p className="text-sm text-white/80 mt-1">{siteSettings.streetAddress}</p>
-                <p className="text-sm text-white/80">{siteSettings.city}, {siteSettings.province?.slice(0, 2)}</p>
+                <p className="text-sm text-white/90 mt-1">{siteSettings.streetAddress}</p>
+                <p className="text-sm text-white/90">{siteSettings.city}, {siteSettings.province?.slice(0, 2)}</p>
               </div>
               <div className="bg-white/10 rounded-xl p-6">
                 <Clock className="w-8 h-8 text-white mb-4" />
                 <h3 className="font-semibold text-white">Hours</h3>
-                <p className="text-sm text-white/80 mt-1">
+                <p className="text-sm text-white/90 mt-1">
                   Mon-Fri: {weekdayHours?.open || "9AM"}-{weekdayHours?.close || "7PM"}
                 </p>
-                <p className="text-sm text-white/80">
+                <p className="text-sm text-white/90">
                   Sat: {saturdayHours?.open || "10AM"}-{saturdayHours?.close || "5PM"}
                 </p>
               </div>
               <div className="bg-white/10 rounded-xl p-6">
                 <BadgeCheck className="w-8 h-8 text-white mb-4" />
                 <h3 className="font-semibold text-white">Licensed</h3>
-                <p className="text-sm text-white/80 mt-1">OMVIC Registered</p>
-                <p className="text-sm text-white/80">Ontario Dealer</p>
+                <p className="text-sm text-white/90 mt-1">OMVIC Registered</p>
+                <p className="text-sm text-white/90">Ontario Dealer</p>
               </div>
             </div>
           </div>
