@@ -1,15 +1,22 @@
 export async function register() {
-  if (process.env.NEXT_RUNTIME === "nodejs") {
-    await import("./sentry.server.config")
-  }
-
-  if (process.env.NEXT_RUNTIME === "edge") {
-    await import("./sentry.edge.config")
+  try {
+    if (process.env.NEXT_RUNTIME === "nodejs") {
+      await import("./sentry.server.config")
+    }
+    if (process.env.NEXT_RUNTIME === "edge") {
+      await import("./sentry.edge.config")
+    }
+  } catch {
+    // @sentry/nextjs not installed — skip Sentry instrumentation
   }
 }
 
 export const onRequestError = async (...args: unknown[]) => {
-  const { captureRequestError } = await import("@sentry/nextjs")
-  // @ts-expect-error -- Sentry's captureRequestError expects specific args from Next.js
-  return captureRequestError(...args)
+  try {
+    const { captureRequestError } = await import("@sentry/nextjs")
+    // @ts-expect-error -- Sentry's captureRequestError expects specific args from Next.js
+    return captureRequestError(...args)
+  } catch {
+    // @sentry/nextjs not installed — skip error capture
+  }
 }
