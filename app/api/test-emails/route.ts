@@ -4,6 +4,8 @@ import { sendNotificationEmail, sendCustomerConfirmationEmail } from "@/lib/emai
 // Test endpoint to verify all email notifications are working
 // GET /api/test-emails?type=all or ?type=finance_application
 export async function GET(req: Request) {
+  if (process.env.NODE_ENV === 'production') return NextResponse.json({ error: 'Not available' }, { status: 404 })
+
   const { searchParams } = new URL(req.url)
   const type = searchParams.get("type") || "all"
   const testEmail = searchParams.get("email") || "toni@planetmotors.ca"

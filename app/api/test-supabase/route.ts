@@ -5,6 +5,8 @@ import { createClient as createServerClient } from '@/lib/supabase/server'
 const ADMIN_EMAILS = ['admin@planetmotors.ca', 'toni@planetmotors.ca']
 
 export async function GET() {
+  if (process.env.NODE_ENV === 'production') return NextResponse.json({ error: 'Not available' }, { status: 404 })
+
   const serverClient = await createServerClient()
   const { data: { user }, error: authError } = await serverClient.auth.getUser()
   if (authError || !user || !ADMIN_EMAILS.includes(user.email || '')) {
