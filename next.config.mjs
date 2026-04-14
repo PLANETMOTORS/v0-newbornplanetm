@@ -1,5 +1,3 @@
-import { withSentryConfig } from "@sentry/nextjs"
-
 /** @type {import('next').NextConfig} */
 // Planet Motors - Next.js Config
 const nextConfig = {
@@ -101,14 +99,18 @@ const nextConfig = {
     ]
   },
 }
-export default withSentryConfig(nextConfig, {
-  // For all available options, see:
-  // https://www.npmjs.com/package/@sentry/webpack-plugin#options
-  org: "planet-motors",
-  project: "nextjs",
 
-  // Suppresses source map uploading logs during build
-  silent: true,
+// Sentry wrapper — only applied when @sentry/nextjs is installed
+let finalConfig = nextConfig
+try {
+  const { withSentryConfig } = await import("@sentry/nextjs")
+  finalConfig = withSentryConfig(nextConfig, {
+    org: "planet-motors",
+    project: "nextjs",
+    silent: true,
+  })
+} catch {
+  // @sentry/nextjs not installed — skip Sentry integration
+}
 
-  // Pass the auth token via SENTRY_AUTH_TOKEN environment variable
-})
+export default finalConfig
