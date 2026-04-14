@@ -17,3 +17,6 @@ tsconfig.tsbuildinfo
 node_modules
 .next/
 .DS_Store
+
+# Playwright MCP snapshots
+.playwright-mcp/
