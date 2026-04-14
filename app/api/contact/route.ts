@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { sendNotificationEmail } from "@/lib/email"
 import { rateLimit } from "@/lib/redis"
+import { isValidEmail, isValidCanadianPhoneNumber, isValidCanadianPostalCode } from "@/lib/validation"
 
 export async function POST(request: Request) {
   try {
@@ -26,17 +27,15 @@ export async function POST(request: Request) {
     }
 
     // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
+    if (!isValidEmail(email)) {
       return NextResponse.json(
         { success: false, error: "Invalid email format" },
         { status: 400 }
       )
     }
 
-    // Validate phone (10 digits)
-    const phoneDigits = phone.replace(/\D/g, "")
-    if (phoneDigits.length < 10) {
+    // Validate phone
+    if (!isValidCanadianPhoneNumber(phone)) {
       return NextResponse.json(
         { success: false, error: "Invalid phone number" },
         { status: 400 }
@@ -44,8 +43,7 @@ export async function POST(request: Request) {
     }
 
     // Validate Canadian postal code
-    const postalCodeRegex = /^[A-Za-z]\d[A-Za-z][\s-]?\d[A-Za-z]\d$/i
-    if (!postalCodeRegex.test(postalCode)) {
+    if (!isValidCanadianPostalCode(postalCode)) {
       return NextResponse.json(
         { success: false, error: "Invalid Canadian postal code" },
         { status: 400 }
