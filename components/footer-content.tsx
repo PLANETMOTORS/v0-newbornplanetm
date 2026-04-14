@@ -114,16 +114,15 @@ export function FooterContent({ siteSettings }: FooterProps) {
                 <PlanetMotorsLogo size="lg" />
               </div>
 
-              {/* Google Reviews */}
+              {/* Star Rating */}
               <div className="flex items-center gap-2 mb-5">
-                <div className="flex gap-0.5 text-yellow-400 text-lg" aria-label="4.9 out of 5 stars">
+                <div className="flex gap-0.5 text-yellow-400 text-lg" aria-label="4.8 out of 5 stars">
                   {"★★★★★"}
                 </div>
-                <span className="text-white/70 text-sm font-medium">4.9</span>
-                <span className="text-white/40 text-sm">&middot; 340+ Google Reviews</span>
+                <span className="text-white text-sm font-medium">4.8 Star Rating</span>
               </div>
 
-              <p className="text-sm text-white/45 leading-relaxed mb-6">
+              <p className="text-sm text-white/80 leading-relaxed mb-6">
                 Ontario&rsquo;s destination for certified pre-owned vehicles. Buy with confidence.
               </p>
 
@@ -131,7 +130,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
               <div className="space-y-2.5 mb-8">
                 <a
                   href={`tel:${siteSettings.phone.replace(/[^0-9]/g, '')}`}
-                  className="flex items-center gap-2.5 text-sm text-white/55 hover:text-white transition-colors"
+                  className="flex items-center gap-2.5 text-sm text-white/80 hover:text-white transition-colors"
                   onClick={() => trackPhoneClick(siteSettings.phone)}
                 >
                   <Phone className="w-4 h-4 shrink-0" />
@@ -139,7 +138,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
                 </a>
                 <a
                   href={`mailto:${siteSettings.email}`}
-                  className="flex items-center gap-2.5 text-sm text-white/55 hover:text-white transition-colors"
+                  className="flex items-center gap-2.5 text-sm text-white/80 hover:text-white transition-colors"
                 >
                   <Mail className="w-4 h-4 shrink-0" />
                   <span>{siteSettings.email}</span>
@@ -148,7 +147,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
                   href={siteSettings.googleMapsUrl || `https://maps.google.com/?q=${encodeURIComponent(`${siteSettings.streetAddress} ${siteSettings.city} ${siteSettings.province}`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2.5 text-sm text-white/55 hover:text-white transition-colors"
+                  className="flex items-center gap-2.5 text-sm text-white/80 hover:text-white transition-colors"
                 >
                   <MapPin className="w-4 h-4 shrink-0" />
                   <span>{siteSettings.streetAddress}, {siteSettings.city}</span>
@@ -157,7 +156,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
 
               {/* Newsletter Signup */}
               <div>
-                <p className="text-white/65 text-xs font-semibold uppercase tracking-wider mb-2.5">Get deals in your inbox</p>
+                <p className="text-white/80 text-xs font-semibold uppercase tracking-wider mb-2.5">Get deals in your inbox</p>
                 <form className="flex max-w-xs" onSubmit={(e) => e.preventDefault()}>
                   <input
                     type="email"
@@ -256,7 +255,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
                 </a>
               ))}
             </div>
-            <div className="flex items-center gap-1.5 text-white/30 text-xs">
+            <div className="flex items-center gap-1.5 text-white/70 text-xs font-medium">
               <Clock className="w-3.5 h-3.5" />
               <span>{formatHoursDisplay()}</span>
             </div>
