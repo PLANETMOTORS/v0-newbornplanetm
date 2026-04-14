@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 // Origin location: Planet Motors, Richmond Hill, Ontario (L4B postal code area)
-const ORIGIN_POSTAL = "L4B"
+
 
 // Canadian postal code distance estimates (simplified - in production use Google Maps API)
 // First 3 characters of postal code (FSA) mapped to approximate distance from Richmond Hill

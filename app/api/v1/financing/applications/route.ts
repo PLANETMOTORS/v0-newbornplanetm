@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { sendNotificationEmail } from "@/lib/email"
+import { validateOrigin } from "@/lib/csrf"
 
 // POST /api/v1/financing/applications - Create new finance application
 export async function POST(request: NextRequest) {
   try {
+    if (!validateOrigin(request)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     
@@ -309,7 +313,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET /api/v1/financing/applications - Get user's applications
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

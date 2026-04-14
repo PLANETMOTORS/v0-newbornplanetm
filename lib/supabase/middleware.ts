@@ -12,8 +12,8 @@ export async function updateSession(request: NextRequest) {
   const supabaseUrl = getSupabaseUrl()
   const supabaseAnonKey = getSupabaseAnonKey()
 
-  if (!supabaseAnonKey) {
-    return NextResponse.next({ request })
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return { response: NextResponse.next({ request }), user: null }
   }
 
   let supabaseResponse = NextResponse.next({ request })
@@ -40,8 +40,8 @@ export async function updateSession(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/protected') && !user) {
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
-    return NextResponse.redirect(url)
+    return { response: NextResponse.redirect(url), user: null }
   }
 
-  return supabaseResponse
+  return { response: supabaseResponse, user }
 }

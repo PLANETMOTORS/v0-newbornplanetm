@@ -6,6 +6,8 @@ const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
 
 // Test email endpoint - uses verified planetmotors.ca domain
 export async function GET() {
+  if (process.env.NODE_ENV === 'production') return NextResponse.json({ error: 'Not available' }, { status: 404 })
+
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user || !ADMIN_EMAILS.includes(user.email || "")) {
@@ -56,10 +58,11 @@ export async function GET() {
       emailId: data?.id,
       sentTo: adminEmail
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error"
     return NextResponse.json({
       success: false,
-      error: error.message
+      error: message
     }, { status: 500 })
   }
 }

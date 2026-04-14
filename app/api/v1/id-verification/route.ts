@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Save verification record to Supabase
-    const { data: verification, error: insertError } = await supabase
+    const { error: insertError } = await supabase
       .from("id_verifications")
       .insert({
         id: verificationId,

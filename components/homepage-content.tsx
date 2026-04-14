@@ -1,7 +1,7 @@
 // Planet Motors Homepage Content - Trust-First Design (Clutch/Carvana Style)
 // Section Order: Hero -> 4-Step Process -> Featured Vehicles -> Why Choose Us -> Sell/Trade -> Reviews -> Protection Plans -> CTA -> The Promise -> Footer
 import Link from "next/link"
-import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin, Award, DollarSign, Truck, Users, Leaf, Search, CreditCard, FileCheck, Home, Tag, Handshake } from "lucide-react"
+import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin, Award, DollarSign, Truck, Users, Leaf, Search, CreditCard, FileCheck, Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { HomepageFeaturedVehicles } from "@/components/homepage-featured-vehicles"
 import { VehicleShowcase } from "@/components/vehicle-showcase"
@@ -179,12 +179,12 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
   return (
     <main id="main-content" role="main" aria-label="Home page content" className="overflow-x-hidden max-w-full">
       {/* ========== BOX 2: HERO SECTION - Off-White #F9FAFB ========== */}
-      <section className="relative overflow-hidden" style={{ backgroundColor: "#F9FAFB" }}>
+      <section className="relative overflow-hidden" style={{ backgroundColor: "#F1F5F9" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Hero Text */}
             <div className="text-center lg:text-left">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-gray-900">
+              <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight text-gray-900 text-balance">
                 The Smarter Way to
                 <span className="block text-[#1e3a8a]">
                   Buy or Sell Your Car
@@ -192,24 +192,25 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
               </h1>
               
               <p className="mt-6 text-lg text-gray-600 max-w-lg mx-auto lg:mx-0">
-                Ontario&apos;s trusted destination for premium pre-owned vehicles. 210-point inspection, 10-day money-back guarantee, and the best multi-lender financing rates.
+                Ontario&apos;s #1 certified pre-owned marketplace.
+                <br className="hidden sm:block" />
+                <span className="font-semibold text-gray-800">210-point inspected.</span> Delivered to your door.
               </p>
 
-              <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
                 <Link
                   href="/inventory"
-                  className="inline-flex items-center gap-3 bg-[#dc2626] hover:bg-[#b91c1c] text-white text-lg font-semibold px-8 py-4 rounded-lg transition-colors"
+                  className="inline-flex items-center gap-3 bg-[#dc2626] hover:bg-[#b91c1c] text-white text-lg font-semibold px-8 py-4 rounded-full shadow-lg shadow-red-600/25 transition-all hover:shadow-xl hover:shadow-red-600/30"
                 >
-                  <Tag className="w-6 h-6 flex-shrink-0" />
-                  <span>Shop Great Deals</span>
-                  <ArrowRight className="w-6 h-6 flex-shrink-0" />
+                  <span>Find Your Car</span>
+                  <ArrowRight className="w-5 h-5 flex-shrink-0" />
                 </Link>
                 <Link
                   href="/trade-in"
-                  className="inline-flex items-center gap-3 bg-[#1e3a8a] text-white hover:bg-[#152a66] text-lg font-semibold px-8 py-4 rounded-lg transition-colors"
+                  className="inline-flex items-center gap-3 border-2 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white text-lg font-semibold px-8 py-[14px] rounded-full transition-all"
                 >
-                  <Handshake className="w-6 h-6 flex-shrink-0" />
-                  <span>Sell or Trade Your Car</span>
+                  <span>Get Trade-In Value</span>
+                  <ArrowRight className="w-5 h-5 flex-shrink-0" />
                 </Link>
               </div>
 
@@ -232,13 +233,10 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
       {/* Shop By Category - Carvana Style Large Boxes */}
       <section className="py-16 bg-white border-b border-[#dce3ed]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Shop by Category
+          <div className="text-center mb-10">
+            <h2 className="font-serif text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
+              What Are You Looking For?
             </h2>
-            <p className="text-gray-600 text-lg">
-              Find the perfect vehicle that matches your needs
-            </p>
           </div>
 
           {/* Grid of 6 Boxes in Single Row */}
@@ -247,15 +245,21 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
               <Link
                 key={cat.label}
                 href={cat.href}
-                className="group flex flex-col items-center justify-center p-5 bg-gradient-to-br from-[#f0f4f8] to-[#e8eef5] rounded-xl border-2 border-[#dce3ed] hover:border-primary hover:from-blue-50 hover:to-blue-100 transition-colors duration-300 hover:shadow-md"
+                className="group relative flex flex-col items-center justify-center p-5 bg-white rounded-xl border-2 border-[#e5e7eb] hover:border-[#1e3a8a] hover:bg-[#f0f4ff] transition-all duration-200 hover:shadow-md"
               >
-                {/* Medium Icon */}
-                <div className="mb-2 p-3 bg-white rounded-lg group-hover:bg-primary/10 transition-colors">
+                {/* Popular badge for SUVs */}
+                {cat.label === "SUVs" && (
+                  <span className="absolute -top-2.5 -right-2 bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    Popular
+                  </span>
+                )}
+                {/* Icon */}
+                <div className="mb-2 p-3 bg-gray-50 rounded-lg group-hover:bg-[#1e3a8a]/10 transition-colors">
                   <cat.icon className={`w-8 h-8 ${cat.iconColor}`} />
                 </div>
-                
+
                 {/* Category Label */}
-                <h3 className="text-sm font-bold text-gray-900 group-hover:text-primary transition-colors text-center leading-tight">
+                <h3 className="text-sm font-bold text-gray-900 group-hover:text-[#1e3a8a] transition-colors text-center leading-tight">
                   {cat.label}
                 </h3>
               </Link>

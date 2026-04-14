@@ -60,16 +60,16 @@ export function NavButton({
   };
 
   return (
-    <div className="relative inline-flex h-[56px] items-center" ref={dropdownRef}>
-      <div className="inline-flex h-[56px] items-center rounded-full bg-[#1E3799] pr-[6px] shadow-sm transition-colors duration-200 hover:bg-[#2541B2]">
+    <div className="relative inline-flex h-[44px] items-center" ref={dropdownRef}>
+      <div className="inline-flex h-[44px] items-center rounded-full bg-[#1E3799] pr-[4px] shadow-sm transition-colors duration-200 hover:bg-[#2541B2]">
         {showMenuButton ? (
           <button
             type="button"
             onClick={onMenuClick}
             aria-label="Open menu"
-            className="inline-flex h-[56px] w-[56px] items-center justify-center rounded-full text-white focus:outline-none lg:hidden"
+            className="inline-flex h-[44px] w-[44px] items-center justify-center rounded-full text-white focus:outline-none lg:hidden"
           >
-            <Menu className="h-[22px] w-[22px]" strokeWidth={2.5} />
+            <Menu className="h-[20px] w-[20px]" strokeWidth={2.5} />
           </button>
         ) : null}
 
@@ -78,13 +78,13 @@ export function NavButton({
           onClick={handleAvatarClick}
           aria-haspopup={isLoggedIn ? "menu" : undefined}
           aria-expanded={isLoggedIn ? dropdownOpen : undefined}
-          className="inline-flex h-[56px] items-center gap-[10px] rounded-full pr-[2px] text-white focus:outline-none"
+          className="inline-flex h-[44px] items-center gap-[8px] rounded-full pl-4 pr-[2px] text-white focus:outline-none"
         >
-          <span className="min-w-[92px] text-left text-[16px] font-semibold leading-none tracking-[-0.02em] text-white">
+          <span className="text-left text-[14px] font-semibold leading-none tracking-[-0.02em] text-white">
             {label}
           </span>
 
-          <span className="relative inline-flex h-[40px] w-[40px] items-center justify-center rounded-full bg-[#FB923C] text-white">
+          <span className="relative inline-flex h-[36px] w-[36px] items-center justify-center rounded-full bg-[#FB923C] text-white">
             {isLoggedIn ? (
               <span className="text-[13px] font-semibold tracking-wide text-white">
                 {safeInitials}
@@ -103,7 +103,7 @@ export function NavButton({
       {isLoggedIn && dropdownOpen && (
         <div
           role="menu"
-          className="absolute right-0 top-[64px] z-50 min-w-[180px] rounded-xl border border-border bg-background py-1 shadow-lg"
+          className="absolute right-0 top-[52px] z-50 min-w-[180px] rounded-xl border border-border bg-background py-1 shadow-lg"
         >
           <div className="px-4 py-2 border-b border-border">
             <p className="text-sm font-semibold truncate">{safeName}</p>

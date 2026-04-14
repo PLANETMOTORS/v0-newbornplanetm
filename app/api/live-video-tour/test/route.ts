@@ -4,11 +4,10 @@ import { Resend } from "resend"
 // GET /api/live-video-tour/test
 // Sends a direct test email to verify Resend is working
 export async function GET() {
+  if (process.env.NODE_ENV === 'production') return NextResponse.json({ error: 'Not available' }, { status: 404 })
+
   const apiKey = process.env.API_KEY_RESEND || process.env.RESEND_API_KEY
-  
-  console.log("[v0] API Key exists:", !!apiKey)
-  console.log("[v0] API Key prefix:", apiKey?.substring(0, 10))
-  
+
   if (!apiKey) {
     return NextResponse.json({
       success: false,

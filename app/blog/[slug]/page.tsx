@@ -1,7 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
-import { Calendar, Clock, ArrowLeft, Share2, Facebook, Twitter, Linkedin, Tag } from "lucide-react"
+import { Calendar, Clock, ArrowLeft, Share2, Facebook, Twitter, Linkedin } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -1577,7 +1577,15 @@ const blogPosts: Record<string, {
 }
 
 // Get related posts data
-function getRelatedPosts(slugs: string[]) {
+interface RelatedPost {
+  slug: string
+  title: string
+  image: string
+  category: string
+  date: string
+}
+
+function getRelatedPosts(slugs: string[]): RelatedPost[] {
   return slugs
     .map(slug => {
       const post = blogPosts[slug]
@@ -1590,7 +1598,7 @@ function getRelatedPosts(slugs: string[]) {
         date: post.date,
       }
     })
-    .filter(Boolean)
+    .filter((post): post is RelatedPost => post !== null)
 }
 
 export async function generateStaticParams() {
@@ -1708,12 +1716,12 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               <h2 className="text-2xl font-semibold mb-8">Related Articles</h2>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {relatedPosts.map((relatedPost) => (
-                  <Link key={relatedPost!.slug} href={`/blog/${relatedPost!.slug}`} className="group">
+                  <Link key={relatedPost.slug} href={`/blog/${relatedPost.slug}`} className="group">
                     <Card className="overflow-hidden h-full hover:shadow-lg transition-shadow">
                       <div className="aspect-video overflow-hidden relative">
-                        <Image 
-                          src={relatedPost!.image} 
-                          alt={relatedPost!.title}
+                        <Image
+                          src={relatedPost.image}
+                          alt={relatedPost.title}
                           fill
                           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                           className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -1721,13 +1729,13 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                       </div>
                       <CardContent className="p-6">
                         <Badge variant="outline" className="mb-3 text-xs">
-                          {relatedPost!.category}
+                          {relatedPost.category}
                         </Badge>
                         <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors line-clamp-2">
-                          {relatedPost!.title}
+                          {relatedPost.title}
                         </h3>
                         <span className="text-xs text-muted-foreground">
-                          {relatedPost!.date}
+                          {relatedPost.date}
                         </span>
                       </CardContent>
                     </Card>

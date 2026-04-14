@@ -13,6 +13,6 @@ const DEFAULT_SITE_SETTINGS = {
   googleMapsUrl: "https://share.google/YAlbvyp4und6Nrka",
 }
 
-export async function Footer() {
+export function Footer() {
   return <FooterContent siteSettings={DEFAULT_SITE_SETTINGS} />
 }

@@ -152,7 +152,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: filter.priority,
   }))
 
-  let vehicleRoutes: MetadataRoute.Sitemap = []
+  let vehicleRoutes: MetadataRoute.Sitemap
   try {
     const supabase = await createClient()
     const { data: inventoryVehicles } = await supabase

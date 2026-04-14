@@ -197,6 +197,90 @@ export function formatMileage(mileage: string | number): string {
   return num.toLocaleString()
 }
 
+// Aliases for backward compatibility (used by contact-form and schedule-test-drive)
+export const isValidCanadianPhone = isValidCanadianPhoneNumber
+export const formatCanadianPhone = formatCanadianPhoneNumber
+
+// Generic form validation utilities
+export interface ValidationRule {
+  required?: boolean
+  minLength?: number
+  maxLength?: number
+  pattern?: RegExp
+  custom?: (value: string) => boolean
+  message?: string
+}
+
+export interface ValidationResult {
+  isValid: boolean
+  errors: Record<string, string>
+}
+
+export function validateForm(
+  data: Record<string, string>,
+  rules: Record<string, ValidationRule>
+): ValidationResult {
+  const errors: Record<string, string> = {}
+
+  for (const [field, rule] of Object.entries(rules)) {
+    const value = data[field] || ''
+
+    if (rule.required && !value.trim()) {
+      errors[field] = rule.message || `${field} is required`
+      continue
+    }
+
+    if (value && rule.minLength && value.length < rule.minLength) {
+      errors[field] = rule.message || `${field} must be at least ${rule.minLength} characters`
+      continue
+    }
+
+    if (value && rule.maxLength && value.length > rule.maxLength) {
+      errors[field] = rule.message || `${field} must be at most ${rule.maxLength} characters`
+      continue
+    }
+
+    if (value && rule.pattern && !rule.pattern.test(value)) {
+      errors[field] = rule.message || `${field} is invalid`
+      continue
+    }
+
+    if (value && rule.custom && !rule.custom(value)) {
+      errors[field] = rule.message || `${field} is invalid`
+      continue
+    }
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors
+  }
+}
+
+// Common validation rules
+export const VALIDATION_RULES = {
+  email: {
+    required: true,
+    custom: isValidEmail,
+    message: 'Please enter a valid email address'
+  },
+  phone: {
+    required: true,
+    custom: isValidCanadianPhone,
+    message: 'Please enter a valid 10-digit phone number'
+  },
+  postalCode: {
+    required: true,
+    custom: isValidCanadianPostalCode,
+    message: 'Please enter a valid Canadian postal code (e.g., M5V 3L9)'
+  },
+  name: {
+    required: true,
+    minLength: 2,
+    message: 'Please enter your full name'
+  }
+}
+
 // Validation error messages
 export const ValidationMessages = {
   postalCode: 'Please enter a valid Canadian postal code (e.g., M5V 3A1)',

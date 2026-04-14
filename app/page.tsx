@@ -2,8 +2,9 @@
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { HomepageContent } from "@/components/homepage-content"
+import { getSiteSettings, getTestimonials, getFaqs } from "@/lib/sanity/fetch"
 
-// Default site settings - no external imports needed
+// Default site settings - fallback when CMS is unavailable
 const DEFAULT_SITE_SETTINGS = {
   dealerName: "Planet Motors",
   phone: "1-866-797-3332",
@@ -15,14 +16,20 @@ const DEFAULT_SITE_SETTINGS = {
 }
 
 export default async function HomePage() {
+  const [siteSettings, testimonials, faqs] = await Promise.all([
+    getSiteSettings(),
+    getTestimonials(),
+    getFaqs(),
+  ])
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
-        <HomepageContent 
-          siteSettings={DEFAULT_SITE_SETTINGS}
-          testimonials={[]}
-          faqs={[]}
+        <HomepageContent
+          siteSettings={siteSettings ?? DEFAULT_SITE_SETTINGS}
+          testimonials={testimonials ?? []}
+          faqs={faqs ?? []}
         />
       </main>
       <Footer />

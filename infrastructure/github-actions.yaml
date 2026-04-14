@@ -1,3 +1,7 @@
+# ⚠️ ASPIRATIONAL: This is a planned CI/CD pipeline for AWS deployment.
+# The active CI pipeline is at .github/workflows/ci.yml
+
+
 # .github/workflows/deploy-production.yml
 # Planet Motors CI/CD Pipeline
 

@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server"
 import { sendNotificationEmail } from "@/lib/email"
+import { validateOrigin } from "@/lib/csrf"
+import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
 
 // Vehicle value estimation algorithm
 function estimateTradeInValue(data: {
@@ -82,15 +83,15 @@ function estimateTradeInValue(data: {
 
 export async function POST(req: Request) {
   try {
+    if (!validateOrigin(req)) {
+      return apiError(ErrorCode.FORBIDDEN, "Forbidden", 403)
+    }
     const data = await req.json()
     const { year, make, model, mileage, condition, vin, customerName, customerEmail, customerPhone } = data
 
     // Validate required fields
     if (!year || !make || !model || !mileage || !condition) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      )
+      return apiError(ErrorCode.VALIDATION_ERROR, "Missing required fields", 400)
     }
 
     // Calculate estimate
@@ -119,8 +120,7 @@ export async function POST(req: Request) {
       })
     }
 
-    return NextResponse.json({
-      success: true,
+    return apiSuccess({
       quoteId,
       vehicle: {
         year,
@@ -141,9 +141,6 @@ export async function POST(req: Request) {
     })
   } catch (error) {
     console.error("Trade-in quote error:", error)
-    return NextResponse.json(
-      { error: "Failed to generate quote" },
-      { status: 500 }
-    )
+    return apiError(ErrorCode.INTERNAL_ERROR, "Failed to generate quote")
   }
 }

@@ -23,15 +23,15 @@ import {
   Truck,
   FileText,
   Phone,
-  AlertCircle,
-  Loader2
+  AlertCircle
 } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import { loadStripe } from "@stripe/stripe-js"
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js"
 import { startVehicleCheckout } from "@/app/actions/stripe"
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null
 
 // Protection Plans
 const PROTECTION_PLANS = [
@@ -72,25 +72,6 @@ export default function CheckoutPage() {
   } | null>(null)
   const [isCalculatingDelivery, setIsCalculatingDelivery] = useState(false)
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isLoading && !user) {
-      router.push(`/auth/login?redirectTo=${encodeURIComponent(`/checkout/${params.id}`)}`)
-    }
-  }, [user, isLoading, router, params.id])
-
-  // Show loading while checking auth
-  if (isLoading || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-  
   const [formData, setFormData] = useState({
     // Personal Info
     firstName: "",
@@ -109,9 +90,97 @@ export default function CheckoutPage() {
     agreeToTerms: false,
     agreeToCredit: false,
   })
-  
+
   const [validationErrors, setValidationErrors] = useState<string[]>([])
-  
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push(`/auth/login?redirectTo=${encodeURIComponent(`/checkout/${params.id}`)}`)
+    }
+  }, [user, isLoading, router, params.id])
+
+  // Calculate delivery cost when postal code changes
+  const calculateDelivery = async (postalCode: string) => {
+    if (!postalCode || postalCode.length < 3) {
+      setDeliveryQuote(null)
+      return
+    }
+
+    setIsCalculatingDelivery(true)
+    try {
+      const response = await fetch(`/api/v1/deliveries/quote?postalCode=${encodeURIComponent(postalCode)}`)
+      if (response.ok) {
+        const data = await response.json()
+        setDeliveryQuote({
+          cost: data.deliveryCost,
+          isFree: data.isFreeDelivery,
+          distance: data.distanceKm,
+          message: data.message
+        })
+      }
+    } catch {
+      // Fallback to default pricing if API fails
+      setDeliveryQuote({ cost: 0, isFree: true, distance: 0, message: "Free delivery" })
+    } finally {
+      setIsCalculatingDelivery(false)
+    }
+  }
+
+  // Recalculate delivery when postal code changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (formData.postalCode) {
+        calculateDelivery(formData.postalCode)
+      }
+    }, 500) // Debounce
+    return () => clearTimeout(timer)
+  }, [formData.postalCode])
+
+  const vehiclePrice = vehicleData.price
+  const protectionPrice = PROTECTION_PLANS.find(p => p.id === selectedProtection)?.price || 0
+  const omvicFee = 22 // OMVIC regulatory fee
+  const certificationFee = 595 // Safety certification
+  const financeDocsFee = 895 // Finance docs fee (only applies if financing)
+  const licensingFee = 59 // Ontario licensing & registration (estimated)
+  // Dynamic delivery fee based on postal code distance (free within 300km)
+  const deliveryFee = deliveryType === "delivery"
+    ? (deliveryQuote?.cost ?? 299)
+    : 0
+  // Subtotal before HST (vehicle + all fees + protection)
+  const subtotalBeforeHst = vehiclePrice + protectionPrice + omvicFee + certificationFee + (purchaseType === "finance" ? financeDocsFee : 0) + licensingFee + deliveryFee
+  // HST applies to FULL subtotal (13%)
+  const hst = Math.round(subtotalBeforeHst * 0.13)
+  // Total with HST
+  const total = subtotalBeforeHst + hst
+
+  // Stripe client secret fetcher for embedded checkout
+  const fetchClientSecret = useCallback(async () => {
+    const clientSecret = await startVehicleCheckout({
+      vehicleId: params.id as string,
+      vehicleName: `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`,
+      vehiclePriceCents: total * 100,
+      protectionPlanId: selectedProtection !== "none" ? selectedProtection : undefined,
+      customerEmail: formData.email,
+    })
+    if (!clientSecret) {
+      throw new Error("Failed to create checkout session")
+    }
+    return clientSecret
+  }, [params.id, total, selectedProtection, formData.email])
+
+  // Show loading while checking auth
+  if (isLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
   // Validation functions
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -172,46 +241,9 @@ export default function CheckoutPage() {
     setStep(2)
   }
 
-  // Calculate delivery cost when postal code changes
-  const calculateDelivery = async (postalCode: string) => {
-    if (!postalCode || postalCode.length < 3) {
-      setDeliveryQuote(null)
-      return
-    }
-    
-    setIsCalculatingDelivery(true)
-    try {
-      const response = await fetch(`/api/v1/deliveries/quote?postalCode=${encodeURIComponent(postalCode)}`)
-      if (response.ok) {
-        const data = await response.json()
-        setDeliveryQuote({
-          cost: data.deliveryCost,
-          isFree: data.isFreeDelivery,
-          distance: data.distanceKm,
-          message: data.message
-        })
-      }
-    } catch {
-      // Fallback to default pricing if API fails
-      setDeliveryQuote({ cost: 0, isFree: true, distance: 0, message: "Free delivery" })
-    } finally {
-      setIsCalculatingDelivery(false)
-    }
-  }
-
-  // Recalculate delivery when postal code changes
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (formData.postalCode) {
-        calculateDelivery(formData.postalCode)
-      }
-    }, 500) // Debounce
-    return () => clearTimeout(timer)
-  }, [formData.postalCode])
-
 const handleSubmit = async () => {
     setIsSubmitting(true)
-    
+
     // If financing, redirect to full finance application
     if (purchaseType === "finance") {
       sessionStorage.setItem('checkoutData', JSON.stringify({
@@ -223,43 +255,11 @@ const handleSubmit = async () => {
       window.location.href = `/financing/application?vehicleId=${params.id}`
       return
     }
-    
+
     // For cash purchases, show Stripe checkout
     setShowStripeCheckout(true)
     setIsSubmitting(false)
   }
-
-  const vehiclePrice = vehicleData.price
-  const protectionPrice = PROTECTION_PLANS.find(p => p.id === selectedProtection)?.price || 0
-  const omvicFee = 22 // OMVIC regulatory fee
-  const certificationFee = 595 // Safety certification
-  const financeDocsFee = 895 // Finance docs fee (only applies if financing)
-  const licensingFee = 59 // Ontario licensing & registration (estimated)
-  // Dynamic delivery fee based on postal code distance (free within 300km)
-  const deliveryFee = deliveryType === "delivery" 
-    ? (deliveryQuote?.cost ?? 299)
-    : 0
-  // Subtotal before HST (vehicle + all fees + protection)
-  const subtotalBeforeHst = vehiclePrice + protectionPrice + omvicFee + certificationFee + (purchaseType === "finance" ? financeDocsFee : 0) + licensingFee + deliveryFee
-  // HST applies to FULL subtotal (13%)
-  const hst = Math.round(subtotalBeforeHst * 0.13)
-  // Total with HST
-  const total = subtotalBeforeHst + hst
-
-  // Stripe client secret fetcher for embedded checkout
-  const fetchClientSecret = useCallback(async () => {
-    const clientSecret = await startVehicleCheckout({
-      vehicleId: params.id as string,
-      vehicleName: `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`,
-      vehiclePriceCents: total * 100,
-      protectionPlanId: selectedProtection !== "none" ? selectedProtection : undefined,
-      customerEmail: formData.email,
-    })
-    if (!clientSecret) {
-      throw new Error("Failed to create checkout session")
-    }
-    return clientSecret
-  }, [params.id, total, selectedProtection, formData.email])
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -414,7 +414,7 @@ const handleSubmit = async () => {
                                   }))
                                   return
                                 }
-                              } catch (error) {
+                              } catch (_error) {
                                 // Fallback to local lookup
                               }
                               

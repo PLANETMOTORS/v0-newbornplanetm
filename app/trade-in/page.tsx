@@ -11,22 +11,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Slider } from "@/components/ui/slider"
+
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { 
-  Car, CreditCard, FileText, Search, CheckCircle, ArrowRight, DollarSign, Clock, Shield, 
-  Camera, Upload, Zap, TrendingUp, Star, Truck, Phone, MessageSquare, ChevronRight,
-  AlertCircle, Sparkles, Target, Award, MapPin, Calendar, Users, ThumbsUp
+import {
+  Car, CreditCard, Search, CheckCircle, ArrowRight, DollarSign, Shield,
+  Camera, Upload, Zap, TrendingUp, Star, Truck,
+  AlertCircle, Sparkles, Target, Award, ThumbsUp
 } from "lucide-react"
 import { InstantQuote } from "@/components/trade-in/instant-quote"
 import {
   isValidEmail,
   isValidCanadianPhoneNumber,
   isValidCanadianPostalCode,
-  isValidName,
   formatCanadianPhoneNumber,
   formatCanadianPostalCode,
   ValidationMessages
@@ -311,7 +310,7 @@ function TradeInContent() {
         vehicle: decodeURIComponent(vehicle),
         value: parsedValue
       })
-      
+
       // Parse vehicle info and pre-fill form
       const parts = decodeURIComponent(vehicle).split(" ")
       if (parts.length >= 3) {
@@ -319,10 +318,10 @@ function TradeInContent() {
         setSelectedMake(parts[1])
         setSelectedModel(parts.slice(2).join(" "))
       }
-      
+
       // Skip to step 2 since we already have vehicle info
       goToStep(2)
-      
+
       // If user just signed in and has action=apply, open the apply modal
       if (action === "apply" && user) {
         // Set up the offer object for the modal
@@ -352,7 +351,24 @@ function TradeInContent() {
         // Small delay to ensure state is set
         setTimeout(() => setShowApplyModal(true), 100)
       }
+    } else if (vehicle && !quoteId) {
+      // Quick Estimate from homepage — pre-fill vehicle info
+      const vehicleStr = decodeURIComponent(vehicle)
+      const parts = vehicleStr.split(" ")
+      if (parts.length >= 3) {
+        setSelectedYear(parts[0])
+        setSelectedMake(parts[1])
+        setSelectedModel(parts.slice(2).join(" "))
+      } else if (parts.length === 2) {
+        setSelectedMake(parts[0])
+        setSelectedModel(parts[1])
+      }
+      const mileageParam = searchParams.get("mileage")
+      if (mileageParam) {
+        setMileage(mileageParam.replace(/[^0-9]/g, ""))
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, user])
   
   // Vehicle details
@@ -380,7 +396,8 @@ function TradeInContent() {
   const [additionalNotes, setAdditionalNotes] = useState("")
   
   // Photos
-  const [photos, setPhotos] = useState<string[]>([])
+  // TODO: Wire up photo upload functionality
+  const [_photos, _setPhotos] = useState<string[]>([])
   
   // Contact info
   const [email, setEmail] = useState("")
@@ -1114,7 +1131,7 @@ function TradeInContent() {
                     <CardContent className="space-y-6">
                       {/* Photo Upload Grid */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {["Front", "Back", "Interior", "Dashboard"].map((angle, i) => (
+                        {["Front", "Back", "Interior", "Dashboard"].map((angle) => (
                           <div 
                             key={angle}
                             className="aspect-video border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-primary/5 cursor-pointer transition-all"
@@ -1125,12 +1142,12 @@ function TradeInContent() {
                         ))}
                       </div>
 
-                      <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <div className="p-4 bg-teal-50 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-800 rounded-lg">
                         <div className="flex items-start gap-3">
-                          <TrendingUp className="h-5 w-5 text-blue-600 mt-0.5" />
+                          <TrendingUp className="h-5 w-5 text-teal-600 mt-0.5" />
                           <div>
-                            <p className="font-medium text-blue-900 dark:text-blue-100">Photos boost your offer!</p>
-                            <p className="text-sm text-blue-700 dark:text-blue-300">
+                            <p className="font-medium text-teal-900 dark:text-teal-100">Photos boost your offer!</p>
+                            <p className="text-sm text-teal-700 dark:text-teal-300">
                               Vehicles with photos typically receive offers 5-10% higher than those without.
                             </p>
                           </div>
@@ -1628,7 +1645,7 @@ function TradeInContent() {
         <section id="instant-quote" className="py-16 bg-gradient-to-b from-background to-muted/30 scroll-mt-20">
           <div className="container mx-auto px-4">
             <div className="text-center mb-8">
-              <Badge className="mb-3 bg-blue-500">
+              <Badge className="mb-3 bg-teal-500">
                 <Sparkles className="w-3 h-3 mr-1" />
                 AI-Powered
               </Badge>

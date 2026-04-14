@@ -4,6 +4,8 @@ import { sendNotificationEmail, sendCustomerConfirmationEmail } from "@/lib/emai
 // Test endpoint to verify all email notifications are working
 // GET /api/test-emails?type=all or ?type=finance_application
 export async function GET(req: Request) {
+  if (process.env.NODE_ENV === 'production') return NextResponse.json({ error: 'Not available' }, { status: 404 })
+
   const { searchParams } = new URL(req.url)
   const type = searchParams.get("type") || "all"
   const testEmail = searchParams.get("email") || "toni@planetmotors.ca"
@@ -38,7 +40,7 @@ export async function GET(req: Request) {
     "ico_confirmed",
   ] as const
 
-  if (type === "all" || adminEmailTypes.includes(type as any)) {
+  if (type === "all" || (adminEmailTypes as readonly string[]).includes(type)) {
     for (const emailType of adminEmailTypes) {
       if (type !== "all" && type !== emailType) continue
       
@@ -56,7 +58,7 @@ export async function GET(req: Request) {
     }
   }
 
-  if (type === "all" || customerEmailTypes.includes(type as any)) {
+  if (type === "all" || (customerEmailTypes as readonly string[]).includes(type)) {
     for (const emailType of customerEmailTypes) {
       if (type !== "all" && type !== emailType) continue
       
