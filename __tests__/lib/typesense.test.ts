@@ -424,6 +424,8 @@ describe('searchVehicles — when Supabase is not configured', () => {
 // ---------------------------------------------------------------------------
 describe('getVehicleFacets', () => {
   it('returns make and fuel_type facet fields', async () => {
+    // Seed limitData via the third arg so the hoisted mock chain's limit()
+    // resolves with this data (no second vi.mock needed).
     const mockData = [
       { make: 'Toyota', fuel_type: 'Gasoline' },
       { make: 'Toyota', fuel_type: 'Gasoline' },
