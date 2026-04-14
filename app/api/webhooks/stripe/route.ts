@@ -10,36 +10,99 @@ export const dynamic = 'force-dynamic'
 /**
  * Atomically claim a Stripe event for processing.
  *
- * Uses INSERT … ON CONFLICT DO NOTHING (ignoreDuplicates: true) so that
- * only the first concurrent worker wins the row. The second concurrent
- * worker gets back an empty array and should skip processing.
+ * Status lifecycle:  processing → processed (success) | failed (error)
  *
- * Returns true when this worker successfully claimed the event (i.e. the
- * INSERT happened), false when the event was already claimed by another
- * worker or was previously processed/failed.
+ * Strategy:
+ * 1. INSERT with status='processing' using ignoreDuplicates:true.
+ *    - If the INSERT writes a new row (data is non-empty), this worker owns the event.
+ *    - If the INSERT conflicts (data is empty), check the existing row's status:
+ *      - 'processed'  → skip; event already handled.
+ *      - 'processing' → skip; another worker is currently handling it.
+ *      - 'failed'     → Stripe retry allowed: UPDATE status back to 'processing'
+ *                       using a conditional update (.eq('status', 'failed')) to
+ *                       avoid racing with another concurrent retry.
+ * 2. Any DB / network error is thrown so the caller returns 500 and Stripe retries.
+ *
+ * Returns true when this worker successfully claimed the event, false to skip.
  */
 async function claimEvent(
   supabase: Awaited<ReturnType<typeof createClient>>,
   eventId: string,
   eventType: string
 ): Promise<boolean> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('stripe_webhook_events')
     .upsert(
       {
         stripe_event_id: eventId,
         event_type: eventType,
-        status: 'processed',
+        status: 'processing',
         processed_at: new Date().toISOString(),
       },
       { onConflict: 'stripe_event_id', ignoreDuplicates: true }
     )
     .select('stripe_event_id')
 
-  // ignoreDuplicates: true means PostgREST returns the inserted row only when
-  // the INSERT actually wrote a new row.  An empty array means the row already
-  // existed (duplicate) and this worker should not process the event.
-  return Array.isArray(data) && data.length > 0
+  if (error) {
+    // DB / network failure — throw so the caller returns 500 and Stripe retries.
+    throw new Error(`[webhook] Failed to claim event ${eventId}: ${error.message}`)
+  }
+
+  // New row was inserted: this worker owns the event.
+  if (Array.isArray(data) && data.length > 0) {
+    return true
+  }
+
+  // Row already existed — inspect its status to decide if a retry is allowed.
+  const { data: existing, error: fetchError } = await supabase
+    .from('stripe_webhook_events')
+    .select('status')
+    .eq('stripe_event_id', eventId)
+    .maybeSingle()
+
+  if (fetchError) {
+    throw new Error(`[webhook] Failed to read event status ${eventId}: ${fetchError.message}`)
+  }
+
+  if (existing?.status === 'failed') {
+    // Previous attempt failed — Stripe is retrying. Re-claim by updating back to
+    // 'processing', but only if still 'failed' so two concurrent retries don't
+    // both claim the event.
+    const { data: updated, error: updateError } = await supabase
+      .from('stripe_webhook_events')
+      .update({
+        status: 'processing',
+        error_message: null,
+        processed_at: new Date().toISOString(),
+      })
+      .eq('stripe_event_id', eventId)
+      .eq('status', 'failed')
+      .select('stripe_event_id')
+
+    if (updateError) {
+      throw new Error(`[webhook] Failed to re-claim failed event ${eventId}: ${updateError.message}`)
+    }
+
+    // If the update returned a row, this worker won the re-claim race.
+    return Array.isArray(updated) && updated.length > 0
+  }
+
+  // Status is 'processing' (another worker) or 'processed' (done) — skip.
+  return false
+}
+
+async function markEventProcessed(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  eventId: string
+) {
+  await supabase
+    .from('stripe_webhook_events')
+    .update({
+      status: 'processed',
+      processed_at: new Date().toISOString(),
+    })
+    .eq('stripe_event_id', eventId)
+    .eq('status', 'processing')
 }
 
 async function markEventFailed(
@@ -55,6 +118,7 @@ async function markEventFailed(
       processed_at: new Date().toISOString(),
     })
     .eq('stripe_event_id', eventId)
+    .eq('status', 'processing')
 }
 
 async function handleCheckoutSessionCompleted(
@@ -225,9 +289,10 @@ export async function POST(request: NextRequest) {
 
   const supabase = await createClient()
 
-  // Atomic idempotency claim: only one concurrent worker can INSERT the row.
-  // claimEvent uses ignoreDuplicates:true so the second worker gets back 0 rows
-  // and skips processing, preventing double-execution on Stripe re-deliveries.
+  // Atomic idempotency claim: only one concurrent worker can INSERT the row
+  // (status='processing'). The handler then transitions it to 'processed' on
+  // success or 'failed' on error, allowing Stripe retries for failed events.
+  // Any DB error in claimEvent throws and returns 500 so Stripe retries.
   const claimed = await claimEvent(supabase, event.id, event.type)
   if (!claimed) {
     return NextResponse.json({ received: true, skipped: 'already_processed' })
@@ -252,7 +317,8 @@ export async function POST(request: NextRequest) {
         console.log(`[webhook] Unhandled event type: ${event.type}`)
     }
 
-    // Row was already written as 'processed' by claimEvent; nothing more to do.
+    // Mark the event as fully processed only after the handler succeeded.
+    await markEventProcessed(supabase, event.id)
     return NextResponse.json({ received: true })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown handler error'

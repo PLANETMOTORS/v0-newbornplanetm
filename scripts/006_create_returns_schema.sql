@@ -68,9 +68,12 @@ CREATE POLICY "Users can create own returns"
   ON public.returns FOR INSERT
   WITH CHECK (auth.uid() = customer_id);
 
--- Service-role and admin can update/delete.
+-- Service-role key bypasses RLS by design; this explicit policy restricts ALL
+-- access (update/delete/admin) to service_role only, preventing anon/authenticated
+-- roles from acquiring full access through this policy.
 DROP POLICY IF EXISTS "Service role full access to returns" ON public.returns;
 CREATE POLICY "Service role full access to returns"
   ON public.returns FOR ALL
+  TO service_role
   USING (true)
   WITH CHECK (true);
