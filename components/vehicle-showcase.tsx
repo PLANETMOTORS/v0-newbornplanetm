@@ -161,6 +161,7 @@ export function VehicleShowcase() {
   })
 
   // Transform to showcase format - use fallback if no DB data
+  const isFallback = !dbVehicles || dbVehicles.length === 0
   const showcaseVehicles = useMemo(() => {
     if (!dbVehicles || dbVehicles.length === 0) return fallbackVehicles
     return dbVehicles.map(transformToShowcase)
@@ -299,7 +300,7 @@ export function VehicleShowcase() {
               </p>
             </div>
             <Button size="sm" className="bg-white text-primary hover:bg-white/90" asChild>
-              <Link href={`/vehicles/${currentVehicle.id}`}>
+              <Link href={isFallback ? "/inventory" : `/vehicles/${currentVehicle.id}`}>
                 View Details
               </Link>
             </Button>

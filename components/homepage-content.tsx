@@ -5,7 +5,7 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
+// Image import removed — hero uses CSS gradient background instead of next/image
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Phone, MapPin, Award, DollarSign, Truck, Users, Leaf, Search, CreditCard, FileCheck, Home, ChevronRight, X, Check } from "lucide-react"
@@ -207,12 +207,12 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
 
       {/* ═══════ PROMO ANNOUNCEMENT BANNER ═══════ */}
       {promoBannerVisible && (
-        <div className="relative bg-[#1e3a8a] text-white">
+        <div className="relative bg-gradient-to-r from-teal-600 to-teal-700 text-white">
           <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-center gap-3 text-sm">
-            <Zap className="w-4 h-4 text-yellow-300 flex-shrink-0" />
+            <Zap className="w-4 h-4 text-amber-300 flex-shrink-0" />
             <span className="font-medium">Spring Sale:</span>
             <span>0% financing on select vehicles + free Ontario-wide delivery</span>
-            <Link href="/inventory" className="ml-2 underline underline-offset-2 font-semibold hover:text-yellow-200 transition-colors">
+            <Link href="/inventory" className="ml-2 underline underline-offset-2 font-semibold hover:text-teal-100 transition-colors">
               Shop Now
             </Link>
             <button
@@ -226,51 +226,40 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
         </div>
       )}
 
-      {/* ═══════ HERO SECTION — Carvana-style with search ═══════ */}
-      <section className="relative overflow-hidden bg-[#0f172a]">
-        {/* Background Image */}
-        <Image
-          src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1920&auto=format&fit=crop&q=80"
-          alt="Luxury car on open road"
-          fill
-          priority
-          className="object-cover object-center"
-          sizes="100vw"
-        />
-        {/* Dark overlay gradient for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0f172a]/95 via-[#0f172a]/80 to-[#0f172a]/60" />
-        {/* Subtle pattern overlay */}
-        <div className="absolute inset-0 opacity-5" style={{ backgroundImage: "radial-gradient(circle at 25% 50%, white 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+      {/* ═══════ HERO SECTION — Clean, trustworthy, Carvana/Clutch inspired ═══════ */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-teal-50/30">
+        {/* Subtle geometric accent */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 70% 30%, #0d9488 1px, transparent 1px)", backgroundSize: "48px 48px" }} />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-28">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 lg:py-24">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Hero Text + Search */}
             <div className="text-center lg:text-left">
               {/* Trust badges row */}
               <div className="flex items-center gap-3 justify-center lg:justify-start mb-6">
-                <span className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur text-white/90 px-3 py-1 rounded-full text-xs font-medium">
-                  <BadgeCheck className="w-3.5 h-3.5 text-green-400" /> OMVIC Licensed
+                <span className="inline-flex items-center gap-1.5 bg-teal-50 text-teal-700 border border-teal-200 px-3 py-1 rounded-full text-xs font-medium">
+                  <BadgeCheck className="w-3.5 h-3.5 text-teal-600" /> OMVIC Licensed
                 </span>
-                <span className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur text-white/90 px-3 py-1 rounded-full text-xs font-medium">
-                  <Star className="w-3.5 h-3.5 text-yellow-400" /> {ratingValue}/5 Rating
+                <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-full text-xs font-medium">
+                  <Star className="w-3.5 h-3.5 text-amber-500" /> {ratingValue}/5 Rating
                 </span>
               </div>
 
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-white">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-gray-900">
                 Right Car.{" "}
-                <span className="text-[#dc2626]">Right Price.</span>
-                <span className="block text-2xl md:text-3xl lg:text-4xl mt-2 font-normal text-white/80">
+                <span className="text-teal-600">Right Price.</span>
+                <span className="block text-2xl md:text-3xl lg:text-4xl mt-2 font-normal text-gray-500">
                   Delivered to Your Door.
                 </span>
               </h1>
 
-              <p className="mt-6 text-lg text-white/70 max-w-lg mx-auto lg:mx-0">
+              <p className="mt-6 text-lg text-gray-600 max-w-lg mx-auto lg:mx-0">
                 Ontario&apos;s trusted destination for quality pre-owned vehicles. 210-point inspected, 10-day returns, and financing from {lowestRate}% APR.
               </p>
 
               {/* Hero Search Bar */}
               <form onSubmit={handleHeroSearch} className="mt-8 max-w-xl mx-auto lg:mx-0">
-                <div className="relative flex">
+                <div className="relative flex shadow-lg shadow-gray-200/50 rounded-xl">
                   <div className="relative flex-1">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
@@ -278,12 +267,12 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                       value={heroSearch}
                       onChange={(e) => setHeroSearch(e.target.value)}
                       placeholder="Search by make, model, or keyword..."
-                      className="w-full pl-12 pr-4 py-4 rounded-l-xl text-gray-900 bg-white text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#dc2626] border-0"
+                      className="w-full pl-12 pr-4 py-4 rounded-l-xl text-gray-900 bg-white text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 border border-gray-200 border-r-0"
                     />
                   </div>
                   <button
                     type="submit"
-                    className="px-6 bg-[#dc2626] hover:bg-[#b91c1c] text-white font-semibold rounded-r-xl transition-colors flex items-center gap-2 whitespace-nowrap"
+                    className="px-6 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-r-xl transition-colors flex items-center gap-2 whitespace-nowrap"
                   >
                     <Search className="w-5 h-5" />
                     <span className="hidden sm:inline">Search</span>
@@ -295,7 +284,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                     <Link
                       key={tag}
                       href={`/inventory?search=${encodeURIComponent(tag)}`}
-                      className="text-xs bg-white/10 hover:bg-white/20 text-white/80 px-3 py-1.5 rounded-full transition-colors"
+                      className="text-xs bg-gray-100 hover:bg-teal-50 text-gray-600 hover:text-teal-700 px-3 py-1.5 rounded-full transition-colors border border-gray-200 hover:border-teal-200"
                     >
                       {tag}
                     </Link>
@@ -307,23 +296,23 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
             {/* Hero Right: Vehicle Showcase */}
             <div className="relative">
               <VehicleShowcase />
-              <div className="absolute top-4 right-4 bg-[#dc2626] text-white px-4 py-1.5 rounded-full text-sm font-medium shadow-lg z-10 animate-pulse">
+              <div className="absolute top-4 right-4 bg-teal-600 text-white px-4 py-1.5 rounded-full text-sm font-medium shadow-lg z-10">
                 🔥 Spring Sale
               </div>
             </div>
           </div>
 
           {/* Trust strip */}
-          <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { icon: Shield, text: "210-Point Inspection" },
               { icon: RotateCw, text: "10-Day Money Back" },
               { icon: Truck, text: "Free Ontario Delivery" },
               { icon: Award, text: "Price Match Guarantee" },
             ].map(({ icon: Icon, text }) => (
-              <div key={text} className="flex items-center justify-center gap-2 text-white/70 text-sm">
-                <Icon className="w-5 h-5 text-white/50" />
-                <span>{text}</span>
+              <div key={text} className="flex items-center justify-center gap-2.5 text-gray-600 text-sm bg-white/80 backdrop-blur rounded-lg py-3 px-4 border border-gray-100">
+                <Icon className="w-5 h-5 text-teal-600" />
+                <span className="font-medium">{text}</span>
               </div>
             ))}
           </div>
@@ -335,7 +324,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Browse by Type</h2>
-            <Link href="/inventory" className="text-[#1e3a8a] hover:text-[#dc2626] font-medium text-sm flex items-center gap-1 transition-colors">
+            <Link href="/inventory" className="text-teal-600 hover:text-teal-800 font-medium text-sm flex items-center gap-1 transition-colors">
               View All <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
@@ -345,12 +334,12 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
               <Link
                 key={style.label}
                 href={style.href}
-                className="group flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-100 hover:border-[#1e3a8a] hover:shadow-md bg-gray-50 hover:bg-blue-50/50 transition-all duration-200"
+                className="group flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-100 hover:border-teal-300 hover:shadow-md bg-white hover:bg-teal-50/50 transition-all duration-200"
               >
-                <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center group-hover:bg-[#1e3a8a]/10 transition-colors shadow-sm">
-                  <style.icon className="w-6 h-6 text-[#1e3a8a]" />
+                <div className="w-12 h-12 rounded-lg bg-gray-50 flex items-center justify-center group-hover:bg-teal-100/60 transition-colors shadow-sm">
+                  <style.icon className="w-6 h-6 text-gray-600 group-hover:text-teal-700 transition-colors" />
                 </div>
-                <span className="text-sm font-semibold text-gray-700 group-hover:text-[#1e3a8a] transition-colors">{style.label}</span>
+                <span className="text-sm font-semibold text-gray-700 group-hover:text-teal-700 transition-colors">{style.label}</span>
               </Link>
             ))}
           </div>
@@ -361,7 +350,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-12">
-            <span className="inline-flex items-center gap-2 bg-blue-50 text-[#1e3a8a] px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+            <span className="inline-flex items-center gap-2 bg-teal-50 text-teal-700 border border-teal-200 px-4 py-1.5 rounded-full text-sm font-medium mb-4">
               <Award className="w-4 h-4" /> Simple 4-Step Process
             </span>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Buy Your Car 100% Online</h2>
@@ -401,7 +390,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
             </div>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
-            <Button size="lg" className="bg-[#1e3a8a] hover:bg-[#172554] text-white px-8" asChild>
+            <Button size="lg" className="bg-teal-600 hover:bg-teal-700 text-white px-8" asChild>
               <Link href="/inventory">Start Shopping <ArrowRight className="ml-2 w-4 h-4" /></Link>
             </Button>
             <Button size="lg" variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50" asChild>
@@ -429,7 +418,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                 <tr className="border-b-2 border-gray-200">
                   <th className="py-4 pr-4 text-sm font-medium text-gray-500 w-1/3">Feature</th>
                   <th className="py-4 px-4 text-center">
-                    <span className="inline-block bg-[#1e3a8a] text-white px-4 py-1.5 rounded-full text-sm font-bold">Planet Motors</span>
+                    <span className="inline-block bg-teal-600 text-white px-4 py-1.5 rounded-full text-sm font-bold">Planet Motors</span>
                   </th>
                   <th className="py-4 px-4 text-center text-sm font-medium text-gray-500">Traditional Dealer</th>
                   <th className="py-4 px-4 text-center text-sm font-medium text-gray-500">Private Sale</th>
@@ -498,7 +487,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                   value={estimateVehicle}
                   onChange={(e) => setEstimateVehicle(e.target.value)}
                   required
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
                 />
                 <input
                   type="text"
@@ -506,16 +495,16 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                   placeholder="Mileage (km)"
                   value={estimateMileage}
                   onChange={(e) => setEstimateMileage(e.target.value.replace(/[^0-9]/g, ""))}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
                 />
                 <input
                   type="email"
                   placeholder="Your Email (optional)"
                   value={estimateEmail}
                   onChange={(e) => setEstimateEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
                 />
-                <Button type="submit" className="w-full bg-[#1e3a8a] hover:bg-[#172554]">
+                <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700">
                   Get Instant Offer <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </div>
@@ -555,31 +544,31 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
       </section>
 
       {/* ═══════ PROTECTION PLANS ═══════ */}
-      <section id="protection-plans" className="py-16 bg-[#0f172a]">
+      <section id="protection-plans" className="py-16 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="text-3xl font-bold text-white">Protection Plans</h2>
-            <p className="mt-3 text-gray-400">Choose the coverage that fits your needs.</p>
+            <h2 className="text-3xl font-bold text-gray-900">Protection Plans</h2>
+            <p className="mt-3 text-gray-500">Choose the coverage that fits your needs. All plans include our satisfaction guarantee.</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {protectionPlans.map((plan) => (
-              <div key={plan.name} className={`rounded-xl p-8 ${plan.highlighted ? "bg-white text-gray-900 ring-2 ring-[#dc2626] scale-105" : "bg-white/5 text-white border border-white/10"}`}>
-                {plan.highlighted && <span className="inline-block bg-[#dc2626] text-white text-xs font-bold px-3 py-1 rounded-full mb-4">Most Popular</span>}
-                <h3 className="font-semibold text-lg">{plan.name}</h3>
-                <p className={`mt-2 text-sm ${plan.highlighted ? "text-gray-500" : "text-gray-400"}`}>{plan.description}</p>
+              <div key={plan.name} className={`rounded-xl p-8 ${plan.highlighted ? "bg-white text-gray-900 ring-2 ring-teal-500 shadow-xl scale-105" : "bg-white text-gray-900 border border-gray-200 shadow-sm"}`}>
+                {plan.highlighted && <span className="inline-block bg-teal-600 text-white text-xs font-bold px-3 py-1 rounded-full mb-4">Most Popular</span>}
+                <h3 className="font-semibold text-lg text-gray-900">{plan.name}</h3>
+                <p className="mt-2 text-sm text-gray-500">{plan.description}</p>
                 <div className="mt-6 flex items-baseline gap-1">
-                  <span className="text-4xl font-bold">${plan.price}</span>
-                  <span className={`text-sm ${plan.highlighted ? "text-gray-500" : "text-gray-400"}`}>{plan.period}</span>
+                  <span className="text-4xl font-bold text-gray-900">${plan.price}</span>
+                  <span className="text-sm text-gray-500">{plan.period}</span>
                 </div>
                 <ul className="mt-8 space-y-3">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-start gap-3 text-sm">
-                      <CheckCircle className={`w-5 h-5 flex-shrink-0 ${plan.highlighted ? "text-[#1e3a8a]" : "text-green-400"}`} />
-                      <span>{f}</span>
+                      <CheckCircle className={`w-5 h-5 flex-shrink-0 ${plan.highlighted ? "text-teal-600" : "text-teal-500"}`} />
+                      <span className="text-gray-700">{f}</span>
                     </li>
                   ))}
                 </ul>
-                <Button className={`w-full mt-8 ${plan.highlighted ? "bg-[#1e3a8a] text-white hover:bg-[#172554]" : "bg-white text-[#0f172a] hover:bg-gray-100"}`} asChild>
+                <Button className={`w-full mt-8 ${plan.highlighted ? "bg-teal-600 text-white hover:bg-teal-700" : "bg-gray-900 text-white hover:bg-gray-800"}`} asChild>
                   <Link href={`/protection-plans#${plan.name.toLowerCase().replace(" ", "-")}`}>Get Started</Link>
                 </Button>
               </div>
@@ -589,16 +578,16 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
       </section>
 
       {/* ═══════ FINAL CTA ═══════ */}
-      <section className="py-16 bg-[#1e3a8a]">
+      <section className="py-16 bg-gradient-to-br from-teal-700 to-teal-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl font-bold text-white">Ready to find your perfect vehicle?</h2>
-              <p className="mt-4 text-white/80 max-w-xl">
+              <p className="mt-4 text-teal-100/80 max-w-xl">
                 Browse our inventory of certified pre-owned vehicles. Financing from {lowestRate}% APR.
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
-                <Button size="lg" className="bg-[#dc2626] hover:bg-[#b91c1c] text-white" asChild>
+                <Button size="lg" className="bg-white text-teal-800 hover:bg-teal-50 font-semibold" asChild>
                   <Link href="/inventory">Browse Inventory <ArrowRight className="ml-2 w-4 h-4" /></Link>
                 </Button>
                 <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10" asChild>
@@ -607,28 +596,28 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white/10 rounded-xl p-6">
-                <Phone className="w-8 h-8 text-white mb-4" />
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+                <Phone className="w-8 h-8 text-teal-200 mb-4" />
                 <h3 className="font-semibold text-white">Call Us</h3>
-                <p className="text-sm text-white/80 mt-1">{siteSettings.phone}</p>
+                <p className="text-sm text-teal-100/80 mt-1">{siteSettings.phone}</p>
               </div>
-              <div className="bg-white/10 rounded-xl p-6">
-                <MapPin className="w-8 h-8 text-white mb-4" />
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+                <MapPin className="w-8 h-8 text-teal-200 mb-4" />
                 <h3 className="font-semibold text-white">Visit Us</h3>
-                <p className="text-sm text-white/80 mt-1">{siteSettings.streetAddress}</p>
-                <p className="text-sm text-white/80">{siteSettings.city}, {siteSettings.province?.slice(0, 2)}</p>
+                <p className="text-sm text-teal-100/80 mt-1">{siteSettings.streetAddress}</p>
+                <p className="text-sm text-teal-100/80">{siteSettings.city}, {siteSettings.province?.slice(0, 2)}</p>
               </div>
-              <div className="bg-white/10 rounded-xl p-6">
-                <Clock className="w-8 h-8 text-white mb-4" />
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+                <Clock className="w-8 h-8 text-teal-200 mb-4" />
                 <h3 className="font-semibold text-white">Hours</h3>
-                <p className="text-sm text-white/80 mt-1">Mon-Fri: {weekdayHours?.open ?? "9AM"}-{weekdayHours?.close ?? "7PM"}</p>
-                <p className="text-sm text-white/80">Sat: {saturdayHours?.open ?? "10AM"}-{saturdayHours?.close ?? "5PM"}</p>
+                <p className="text-sm text-teal-100/80 mt-1">Mon-Fri: {weekdayHours?.open ?? "9AM"}-{weekdayHours?.close ?? "7PM"}</p>
+                <p className="text-sm text-teal-100/80">Sat: {saturdayHours?.open ?? "10AM"}-{saturdayHours?.close ?? "5PM"}</p>
               </div>
-              <div className="bg-white/10 rounded-xl p-6">
-                <BadgeCheck className="w-8 h-8 text-white mb-4" />
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+                <BadgeCheck className="w-8 h-8 text-teal-200 mb-4" />
                 <h3 className="font-semibold text-white">Licensed</h3>
-                <p className="text-sm text-white/80 mt-1">OMVIC Registered</p>
-                <p className="text-sm text-white/80">Ontario Dealer</p>
+                <p className="text-sm text-teal-100/80 mt-1">OMVIC Registered</p>
+                <p className="text-sm text-teal-100/80">Ontario Dealer</p>
               </div>
             </div>
           </div>
@@ -641,7 +630,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
           <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Popular Models</h3>
           <div className="flex flex-wrap gap-2">
             {popularModels.map((m) => (
-              <Link key={m.name} href={m.href} className="text-sm text-[#1e3a8a] hover:text-[#dc2626] bg-white border border-gray-200 px-3 py-1.5 rounded-full hover:shadow-sm transition-all">
+              <Link key={m.name} href={m.href} className="text-sm text-teal-700 hover:text-teal-900 bg-white border border-gray-200 px-3 py-1.5 rounded-full hover:shadow-sm hover:border-teal-200 transition-all">
                 {m.name}
               </Link>
             ))}
