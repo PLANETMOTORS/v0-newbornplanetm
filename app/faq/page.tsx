@@ -138,7 +138,7 @@ export default function FAQPage() {
                 placeholder="Search FAQs..." 
                 className="bg-background"
               />
-              <Button variant="secondary">
+              <Button variant="secondary" aria-label="Search FAQs">
                 <Search className="h-4 w-4" />
               </Button>
             </div>

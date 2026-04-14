@@ -40,7 +40,7 @@ const footerLinks = {
     { name: "Protection Plans", href: "/protection-plans" },
     { name: "Financing", href: "/financing" },
     { name: "Trade-In", href: "/trade-in" },
-    { name: "Service Center", href: "/service" },
+    { name: "Service Center", href: "/contact" },
   ],
   company: [
     { name: "About Us", href: "/about" },
