@@ -310,7 +310,7 @@ function TradeInContent() {
         vehicle: decodeURIComponent(vehicle),
         value: parsedValue
       })
-      
+
       // Parse vehicle info and pre-fill form
       const parts = decodeURIComponent(vehicle).split(" ")
       if (parts.length >= 3) {
@@ -318,10 +318,10 @@ function TradeInContent() {
         setSelectedMake(parts[1])
         setSelectedModel(parts.slice(2).join(" "))
       }
-      
+
       // Skip to step 2 since we already have vehicle info
       goToStep(2)
-      
+
       // If user just signed in and has action=apply, open the apply modal
       if (action === "apply" && user) {
         // Set up the offer object for the modal
@@ -350,6 +350,22 @@ function TradeInContent() {
         setShowOffer(true)
         // Small delay to ensure state is set
         setTimeout(() => setShowApplyModal(true), 100)
+      }
+    } else if (vehicle && !quoteId) {
+      // Quick Estimate from homepage — pre-fill vehicle info
+      const vehicleStr = decodeURIComponent(vehicle)
+      const parts = vehicleStr.split(" ")
+      if (parts.length >= 3) {
+        setSelectedYear(parts[0])
+        setSelectedMake(parts[1])
+        setSelectedModel(parts.slice(2).join(" "))
+      } else if (parts.length === 2) {
+        setSelectedMake(parts[0])
+        setSelectedModel(parts[1])
+      }
+      const mileageParam = searchParams.get("mileage")
+      if (mileageParam) {
+        setMileage(mileageParam.replace(/[^0-9]/g, ""))
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -178,11 +178,27 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
   const weekdayHours = siteSettings.businessHours?.find(h => h.day === "Monday")
   const saturdayHours = siteSettings.businessHours?.find(h => h.day === "Saturday")
 
+  // Quick Estimate form state
+  const [estimateVehicle, setEstimateVehicle] = useState("")
+  const [estimateMileage, setEstimateMileage] = useState("")
+  const [estimateEmail, setEstimateEmail] = useState("")
+
   const handleHeroSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (heroSearch.trim()) {
       router.push(`/inventory?search=${encodeURIComponent(heroSearch.trim())}`)
     }
+  }
+
+  const handleQuickEstimate = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!estimateVehicle.trim()) return
+    // Navigate to trade-in page — the user will fill full details there
+    const params = new URLSearchParams()
+    if (estimateVehicle.trim()) params.set("vehicle", estimateVehicle.trim())
+    if (estimateMileage.trim()) params.set("mileage", estimateMileage.trim())
+    if (estimateEmail.trim()) params.set("email", estimateEmail.trim())
+    router.push(`/trade-in?${params.toString()}`)
   }
 
   return (
@@ -461,15 +477,37 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                 <Link href="/trade-in">Get My Offer <ArrowRight className="ml-2 w-4 h-4" /></Link>
               </Button>
             </div>
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200">
+            <form onSubmit={handleQuickEstimate} className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200">
               <h3 className="text-xl font-semibold text-gray-900 mb-6">Quick Estimate</h3>
               <div className="space-y-4">
-                <input type="text" placeholder="Year, Make, Model" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20" />
-                <input type="text" placeholder="Mileage (km)" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20" />
-                <input type="email" placeholder="Your Email" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20" />
-                <Button className="w-full bg-[#1e3a8a] hover:bg-[#172554]">Get Instant Offer</Button>
+                <input
+                  type="text"
+                  placeholder="Year, Make, Model (e.g. 2021 Honda Civic)"
+                  value={estimateVehicle}
+                  onChange={(e) => setEstimateVehicle(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20"
+                />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Mileage (km)"
+                  value={estimateMileage}
+                  onChange={(e) => setEstimateMileage(e.target.value.replace(/[^0-9]/g, ""))}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20"
+                />
+                <input
+                  type="email"
+                  placeholder="Your Email (optional)"
+                  value={estimateEmail}
+                  onChange={(e) => setEstimateEmail(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20"
+                />
+                <Button type="submit" className="w-full bg-[#1e3a8a] hover:bg-[#172554]">
+                  Get Instant Offer <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       </section>
