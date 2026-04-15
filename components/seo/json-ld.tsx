@@ -1,4 +1,5 @@
 import Script from "next/script"
+import { calculateAllInPrice } from "@/lib/pricing/format"
 
 // Organization Schema - for the business
 export function OrganizationJsonLd() {
@@ -113,14 +114,58 @@ interface VehicleJsonLdProps {
     color?: string
     fuelType?: string
     transmission?: string
+    engine?: string
+    drivetrain?: string
+    bodyStyle?: string
+    stockNumber?: string
     image: string
     description?: string
     condition?: string
   }
 }
 
+/** Infer number of doors from body style. */
+function inferNumberOfDoors(bodyStyle?: string): number | undefined {
+  if (!bodyStyle) return undefined
+  const bs = bodyStyle.toLowerCase()
+  if (bs.includes("coupe")) return 2
+  if (bs.includes("sedan")) return 4
+  if (bs.includes("suv") || bs.includes("crossover")) return 4
+  if (bs.includes("truck") || bs.includes("pickup")) return 4
+  if (bs.includes("hatchback")) return 4
+  if (bs.includes("van") || bs.includes("minivan")) return 4
+  return undefined
+}
+
+/** Infer seating capacity from body style. */
+function inferSeatingCapacity(bodyStyle?: string): number | undefined {
+  if (!bodyStyle) return undefined
+  const bs = bodyStyle.toLowerCase()
+  if (bs.includes("coupe")) return 4
+  if (bs.includes("sedan")) return 5
+  if (bs.includes("suv") || bs.includes("crossover")) return 5
+  if (bs.includes("truck") || bs.includes("pickup")) return 5
+  if (bs.includes("hatchback")) return 5
+  if (bs.includes("van") || bs.includes("minivan")) return 7
+  return undefined
+}
+
+/** Map drivetrain value to schema.org DriveWheelConfigurationValue. */
+function mapDriveWheelConfiguration(drivetrain?: string): string | undefined {
+  if (!drivetrain) return undefined
+  const dt = drivetrain.toUpperCase()
+  if (dt === "FWD" || dt.includes("FRONT")) return "https://schema.org/FrontWheelDriveConfiguration"
+  if (dt === "RWD" || dt.includes("REAR")) return "https://schema.org/RearWheelDriveConfiguration"
+  if (dt === "AWD" || dt === "4WD" || dt.includes("ALL")) return "https://schema.org/AllWheelDriveConfiguration"
+  if (dt.includes("FOUR") || dt.includes("4X4")) return "https://schema.org/FourWheelDriveConfiguration"
+  return drivetrain
+}
+
 export function VehicleJsonLd({ vehicle }: VehicleJsonLdProps) {
-  const schema = {
+  // Use OMVIC all-in price (subtotal before HST) for the advertised price
+  const allInPrice = calculateAllInPrice(vehicle.price)
+
+  const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Car",
     "name": `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim || ""}`.trim(),
@@ -149,8 +194,14 @@ export function VehicleJsonLd({ vehicle }: VehicleJsonLdProps) {
     "url": `https://www.planetmotors.ca/vehicles/${vehicle.id}`,
     "offers": {
       "@type": "Offer",
-      "price": vehicle.price,
+      "price": allInPrice.subtotal,
       "priceCurrency": "CAD",
+      "priceSpecification": {
+        "@type": "UnitPriceSpecification",
+        "price": allInPrice.subtotal,
+        "priceCurrency": "CAD",
+        "valueAddedTaxIncluded": false
+      },
       "availability": "https://schema.org/InStock",
       "seller": {
         "@type": "AutoDealer",
@@ -162,6 +213,29 @@ export function VehicleJsonLd({ vehicle }: VehicleJsonLdProps) {
         "warrantyScope": "10-Day Money Back Guarantee"
       }
     }
+  }
+
+  // Add enriched schema.org/Car fields when data is available
+  if (vehicle.engine) {
+    schema["vehicleEngine"] = {
+      "@type": "EngineSpecification",
+      "name": vehicle.engine
+    }
+  }
+
+  const driveConfig = mapDriveWheelConfiguration(vehicle.drivetrain)
+  if (driveConfig) {
+    schema["driveWheelConfiguration"] = driveConfig
+  }
+
+  const doors = inferNumberOfDoors(vehicle.bodyStyle)
+  if (doors) {
+    schema["numberOfDoors"] = doors
+  }
+
+  const seating = inferSeatingCapacity(vehicle.bodyStyle)
+  if (seating) {
+    schema["vehicleSeatingCapacity"] = seating
   }
 
   return (
