@@ -22,8 +22,12 @@ function createMockSupabase(queryResult: { data?: unknown; error?: unknown } = {
 
   const proxyBuilder = () => new Proxy({}, handler)
 
+  // rpc() resolves to { data: true, error: null } by default (transition_vehicle_status returns boolean)
+  const rpcResult = { data: true, error: null }
+
   return {
     from: vi.fn().mockImplementation(() => proxyBuilder()),
+    rpc: vi.fn().mockResolvedValue(rpcResult),
   } as unknown as ReturnType<typeof import('@/lib/supabase/admin').createAdminClient>
 }
 
@@ -75,15 +79,21 @@ describe('handleCheckoutSessionCompleted', () => {
   it('confirms reservation and reserves vehicle when payment is settled', async () => {
     const session = makeSession({ payment_status: 'paid' })
     await handleCheckoutSessionCompleted(supabase, session)
-    // from() should be called for reservations and vehicles
+    // from() should be called for reservations; vehicle status now via rpc
     expect(supabase.from).toHaveBeenCalledWith('reservations')
-    expect(supabase.from).toHaveBeenCalledWith('vehicles')
+    expect(supabase.rpc).toHaveBeenCalledWith('transition_vehicle_status', expect.objectContaining({
+      p_vehicle_id: 'veh-1',
+      p_to_status: 'reserved',
+    }))
   })
 
   it('only holds vehicle when payment is unsettled', async () => {
     const session = makeSession({ payment_status: 'unpaid' })
     await handleCheckoutSessionCompleted(supabase, session)
-    expect(supabase.from).toHaveBeenCalledWith('vehicles')
+    expect(supabase.rpc).toHaveBeenCalledWith('transition_vehicle_status', expect.objectContaining({
+      p_vehicle_id: 'veh-1',
+      p_to_status: 'reserved',
+    }))
   })
 
   it('confirms order for non-reservation checkout', async () => {
@@ -93,7 +103,10 @@ describe('handleCheckoutSessionCompleted', () => {
     })
     await handleCheckoutSessionCompleted(supabase, session)
     expect(supabase.from).toHaveBeenCalledWith('orders')
-    expect(supabase.from).toHaveBeenCalledWith('vehicles')
+    expect(supabase.rpc).toHaveBeenCalledWith('transition_vehicle_status', expect.objectContaining({
+      p_vehicle_id: 'veh-2',
+      p_to_status: 'pending',
+    }))
   })
 })
 
@@ -103,7 +116,10 @@ describe('handleCheckoutSessionExpired', () => {
     const session = makeSession()
     await handleCheckoutSessionExpired(supabase, session)
     expect(supabase.from).toHaveBeenCalledWith('reservations')
-    expect(supabase.from).toHaveBeenCalledWith('vehicles')
+    expect(supabase.rpc).toHaveBeenCalledWith('transition_vehicle_status', expect.objectContaining({
+      p_vehicle_id: 'veh-1',
+      p_to_status: 'available',
+    }))
   })
 })
 
@@ -113,7 +129,10 @@ describe('handleCheckoutSessionAsyncPaymentFailed', () => {
     const session = makeSession()
     await handleCheckoutSessionAsyncPaymentFailed(supabase, session)
     expect(supabase.from).toHaveBeenCalledWith('reservations')
-    expect(supabase.from).toHaveBeenCalledWith('vehicles')
+    expect(supabase.rpc).toHaveBeenCalledWith('transition_vehicle_status', expect.objectContaining({
+      p_vehicle_id: 'veh-1',
+      p_to_status: 'available',
+    }))
   })
 })
 
@@ -123,7 +142,10 @@ describe('handlePaymentIntentFailed', () => {
     const pi = makePaymentIntent()
     await handlePaymentIntentFailed(supabase, pi)
     expect(supabase.from).toHaveBeenCalledWith('reservations')
-    expect(supabase.from).toHaveBeenCalledWith('vehicles')
+    expect(supabase.rpc).toHaveBeenCalledWith('transition_vehicle_status', expect.objectContaining({
+      p_vehicle_id: 'veh-1',
+      p_to_status: 'available',
+    }))
   })
 })
 
@@ -133,7 +155,10 @@ describe('handlePaymentIntentSucceeded', () => {
     const pi = makePaymentIntent()
     await handlePaymentIntentSucceeded(supabase, pi)
     expect(supabase.from).toHaveBeenCalledWith('reservations')
-    expect(supabase.from).toHaveBeenCalledWith('vehicles')
+    expect(supabase.rpc).toHaveBeenCalledWith('transition_vehicle_status', expect.objectContaining({
+      p_vehicle_id: 'veh-1',
+      p_to_status: 'reserved',
+    }))
   })
 
   it('confirms order for non-reservation payment', async () => {
@@ -143,5 +168,9 @@ describe('handlePaymentIntentSucceeded', () => {
     })
     await handlePaymentIntentSucceeded(supabase, pi)
     expect(supabase.from).toHaveBeenCalledWith('orders')
+    expect(supabase.rpc).toHaveBeenCalledWith('transition_vehicle_status', expect.objectContaining({
+      p_vehicle_id: 'veh-2',
+      p_to_status: 'pending',
+    }))
   })
 })
