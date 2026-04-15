@@ -369,16 +369,24 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
     evOnly
   ].filter(Boolean).length
 
-  // Show loading state
+  // Show loading state — use skeleton cards to minimize CLS
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
         <main className="pt-20 pb-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col items-center justify-center py-20">
-              <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
-              <p className="text-muted-foreground">Loading inventory...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 py-8">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="rounded-xl border overflow-hidden animate-pulse">
+                  <div className="aspect-[4/3] bg-muted" />
+                  <div className="p-4 space-y-3">
+                    <div className="h-5 bg-muted rounded w-3/4" />
+                    <div className="h-4 bg-muted rounded w-1/2" />
+                    <div className="h-6 bg-muted rounded w-1/3 mt-4" />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </main>
