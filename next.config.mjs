@@ -1,3 +1,9 @@
+import withBundleAnalyzer from '@next/bundle-analyzer'
+
+const analyzeBundles = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+})
+
 /** @type {import('next').NextConfig} */
 // Planet Motors - Next.js Config
 const nextConfig = {
@@ -101,10 +107,10 @@ const nextConfig = {
 }
 
 // Sentry wrapper — only applied when @sentry/nextjs is installed
-let finalConfig = nextConfig
+let finalConfig = analyzeBundles(nextConfig)
 try {
   const { withSentryConfig } = await import("@sentry/nextjs")
-  finalConfig = withSentryConfig(nextConfig, {
+  finalConfig = withSentryConfig(analyzeBundles(nextConfig), {
     org: "planet-motors",
     project: "nextjs",
     silent: true,

@@ -78,7 +78,7 @@ export function SearchAutocomplete() {
       </div>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-background border rounded-lg shadow-lg z-50 overflow-hidden">
+        <div aria-live="polite" className="absolute top-full left-0 right-0 mt-2 bg-background border rounded-lg shadow-lg z-50 overflow-hidden">
           {query.length < 2 ? (
             <div className="p-4">
               {/* Recent Searches */}

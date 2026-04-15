@@ -249,7 +249,7 @@ export function SellYourCarForm() {
                 rows={3}
               />
             </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
             <div className="flex gap-3">
               <Button type="button" variant="outline" onClick={() => setStep(1)} disabled={isSubmitting}>
                 Back
@@ -262,7 +262,7 @@ export function SellYourCarForm() {
         )}
 
         {step === 3 && (
-          <div className="text-center py-6 space-y-4">
+          <div role="status" aria-live="polite" className="text-center py-6 space-y-4">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
               <svg className="h-8 w-8 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
