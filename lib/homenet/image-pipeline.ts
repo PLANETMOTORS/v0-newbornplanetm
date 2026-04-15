@@ -117,7 +117,7 @@ async function downloadAndUpload(
     return { pathname: blob.pathname, url: blob.url }
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Unknown error"
-    throw new Error(`Failed to download ${sourceUrl}: ${msg}`)
+    throw new Error(`Failed to download ${sourceUrl}: ${msg}`, { cause: error })
   } finally {
     clearTimeout(timeout)
   }
