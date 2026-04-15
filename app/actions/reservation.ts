@@ -77,9 +77,10 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
     let adminClient: ReturnType<typeof createAdminClient>
     try {
       adminClient = createAdminClient()
-    } catch {
-      // Fall back to user-scoped client if admin is not configured (dev/preview).
-      adminClient = supabase as unknown as ReturnType<typeof createAdminClient>
+    } catch (e) {
+      console.error('Admin client not configured — SUPABASE_SERVICE_ROLE_KEY is required for reservation RPC:', e)
+      await unlockVehicle(input.stockNumber, input.customerEmail)
+      return { error: 'Service configuration error. Please try again later.' }
     }
 
     const { data: claimResult, error: claimError } = await adminClient

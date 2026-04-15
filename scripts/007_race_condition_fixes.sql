@@ -138,10 +138,13 @@ BEGIN
      LIMIT 1
        FOR UPDATE;
 
-    IF FOUND AND v_active_reservation.user_id IS NOT NULL
-       AND v_active_reservation.user_id <> p_user_id THEN
-      RETURN jsonb_build_object('success', false, 'error',
-        'Vehicle is reserved by another customer');
+    IF FOUND THEN
+      -- If reservation has no user_id or belongs to a different user, block the claim.
+      IF v_active_reservation.user_id IS NULL
+         OR v_active_reservation.user_id <> p_user_id THEN
+        RETURN jsonb_build_object('success', false, 'error',
+          'Vehicle is reserved by another customer');
+      END IF;
     END IF;
   END IF;
 
@@ -223,6 +226,13 @@ BEGIN
     RETURN jsonb_build_object('success', false, 'error',
       format('Vehicle is %s, not available for checkout', v_vehicle.status));
   END IF;
+
+  -- Transition to 'pending' immediately so the lock persists beyond this transaction.
+  -- Without this, the FOR UPDATE lock releases on COMMIT and concurrent requests can
+  -- slip through before the Stripe session completes.
+  UPDATE public.vehicles
+     SET status = 'pending', updated_at = NOW()
+   WHERE id = p_vehicle_id;
 
   RETURN jsonb_build_object(
     'success', true,

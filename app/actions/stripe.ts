@@ -43,9 +43,9 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
   let adminClient: ReturnType<typeof createAdminClient>
   try {
     adminClient = createAdminClient()
-  } catch {
-    const supabase = await createClient()
-    adminClient = supabase as unknown as ReturnType<typeof createAdminClient>
+  } catch (e) {
+    console.error('Admin client not configured — SUPABASE_SERVICE_ROLE_KEY is required for checkout RPC:', e)
+    throw new Error('Service configuration error. Please try again later.')
   }
 
   const { data: lockResult, error: lockError } = await adminClient
