@@ -89,9 +89,10 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
     } catch (error) {
       console.error("Error creating reservation:", error)
       const message = error instanceof Error ? error.message : "Unknown error"
-      if (message.includes("not available") || message.includes("not found")) {
+      const normalizedMessage = message.toLowerCase()
+      if (normalizedMessage.includes("not available") || normalizedMessage.includes("not found")) {
         setCheckoutError("This vehicle is no longer available for reservation.")
-      } else if (message.includes("rate limit") || message.includes("Too many")) {
+      } else if (normalizedMessage.includes("rate limit") || normalizedMessage.includes("too many")) {
         setCheckoutError("Too many attempts. Please wait a few minutes and try again.")
       } else {
         setCheckoutError("Unable to process your reservation right now. Please try again or call us at 416-985-2277.")
@@ -338,8 +339,16 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
                   <p className="text-sm text-destructive">{checkoutError}</p>
                 </div>
                 <div className="flex gap-3 justify-center">
-                  <Button onClick={() => { setCheckoutError(null); setClientSecret(null); handleSubmit(); }}>
-                    Try Again
+                  <Button
+                    disabled={isProcessing}
+                    onClick={async () => {
+                      if (isProcessing) return
+                      setCheckoutError(null)
+                      setClientSecret(null)
+                      await handleSubmit()
+                    }}
+                  >
+                    {isProcessing ? "Retrying..." : "Try Again"}
                   </Button>
                   <Button variant="outline" asChild>
                     <a href="tel:416-985-2277">Call Support</a>

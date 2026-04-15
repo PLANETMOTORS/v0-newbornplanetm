@@ -98,7 +98,7 @@ export default function CheckoutPage() {
     // Address
     address: "",
     city: "",
-    province: "ON",
+    province: "Ontario",
     postalCode: "",
     // Financing
     downPayment: "0",
@@ -239,6 +239,7 @@ export default function CheckoutPage() {
     }
     if (!formData.address.trim()) errors.push("Street Address is required")
     if (!formData.city.trim()) errors.push("City is required")
+    if (!formData.province.trim()) errors.push("Province is required")
     if (!formData.postalCode.trim()) {
       errors.push("Postal Code is required")
     } else if (!validatePostalCode(formData.postalCode)) {
@@ -489,7 +490,7 @@ const handleSubmit = () => {
                         )}
                         {formData.city && (
                           <p className="text-xs text-green-600 mt-1 font-medium">
-                            {formData.city}, {formData.province === "ON" ? "Ontario" : formData.province}
+                            {formData.city}, {formData.province}
                           </p>
                         )}
                       </div>
@@ -522,7 +523,7 @@ const handleSubmit = () => {
                         <Label htmlFor="province">Province * <span className="text-xs text-muted-foreground">(Auto-filled, editable)</span></Label>
                         <Input 
                           id="province" 
-                          value={formData.province === "ON" ? "Ontario" : formData.province} 
+                          value={formData.province} 
                           onChange={(e) => setFormData({ ...formData, province: e.target.value })}
                           placeholder="Enter province"
                         />

@@ -7,6 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider"
 import { Calculator } from "lucide-react"
 
+const VEHICLE_PRICE_MIN = 0
+const VEHICLE_PRICE_MAX = 120000
+const DOWN_PAYMENT_CAP = 50000
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
+
 export function FinancingCalculator() {
   const [vehiclePrice, setVehiclePrice] = useState(35000)
   const [downPayment, setDownPayment] = useState(5000)
@@ -36,15 +41,20 @@ export function FinancingCalculator() {
           <Input
             type="number"
             value={vehiclePrice}
-            onChange={(e) => setVehiclePrice(Math.max(0, parseInt(e.target.value) || 0))}
-            min={0}
+            onChange={(e) => {
+              const nextVehiclePrice = clamp(parseInt(e.target.value) || 0, VEHICLE_PRICE_MIN, VEHICLE_PRICE_MAX)
+              setVehiclePrice(nextVehiclePrice)
+              setDownPayment((prev) => clamp(prev, 0, Math.min(nextVehiclePrice, DOWN_PAYMENT_CAP)))
+            }}
+            min={VEHICLE_PRICE_MIN}
+            max={VEHICLE_PRICE_MAX}
           />
         </div>
         <Slider
           value={[vehiclePrice]}
           onValueChange={([v]) => setVehiclePrice(v)}
           min={5000}
-          max={120000}
+          max={VEHICLE_PRICE_MAX}
           step={1000}
           className="mt-2"
         />
@@ -61,15 +71,18 @@ export function FinancingCalculator() {
           <Input
             type="number"
             value={downPayment}
-            onChange={(e) => setDownPayment(Math.max(0, parseInt(e.target.value) || 0))}
+            onChange={(e) =>
+              setDownPayment(clamp(parseInt(e.target.value) || 0, 0, Math.min(vehiclePrice, DOWN_PAYMENT_CAP)))
+            }
             min={0}
+            max={Math.min(vehiclePrice, DOWN_PAYMENT_CAP)}
           />
         </div>
         <Slider
           value={[downPayment]}
           onValueChange={([v]) => setDownPayment(v)}
           min={0}
-          max={Math.min(vehiclePrice, 50000)}
+          max={Math.min(vehiclePrice, DOWN_PAYMENT_CAP)}
           step={500}
           className="mt-2"
         />
@@ -81,7 +94,7 @@ export function FinancingCalculator() {
           <Input
             type="number"
             value={interestRate}
-            onChange={(e) => setInterestRate(Math.max(0, parseFloat(e.target.value) || 0))}
+            onChange={(e) => setInterestRate(clamp(parseFloat(e.target.value) || 0, 0, 30))}
             min={0}
             max={30}
             step={0.1}

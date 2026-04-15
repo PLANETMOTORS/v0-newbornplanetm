@@ -403,6 +403,39 @@ function TradeInContent() {
   const [photos, setPhotos] = useState<Record<string, { file: File; preview: string }>>({})
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
   
+  // Restore form data from localStorage on mount (skip if URL has prefill params)
+  useEffect(() => {
+    const hasPrefillParams =
+      Boolean(searchParams.get("quote")) ||
+      Boolean(searchParams.get("vehicle")) ||
+      Boolean(searchParams.get("mileage"))
+
+    if (hasPrefillParams) return
+
+    try {
+      const saved = window.localStorage.getItem(TRADE_IN_DRAFT_KEY)
+      if (saved) {
+        const draft = JSON.parse(saved)
+        if (draft.selectedYear) setSelectedYear(draft.selectedYear)
+        if (draft.selectedMake) setSelectedMake(draft.selectedMake)
+        if (draft.selectedModel) setSelectedModel(draft.selectedModel)
+        if (draft.selectedTrim) setSelectedTrim(draft.selectedTrim)
+        if (draft.mileage) setMileage(draft.mileage)
+        if (draft.condition) setCondition(draft.condition)
+        if (draft.hasAccident !== undefined) setHasAccident(draft.hasAccident)
+        if (draft.hasMechanicalIssues !== undefined) setHasMechanicalIssues(draft.hasMechanicalIssues)
+        if (draft.hasLien !== undefined) setHasLien(draft.hasLien)
+        if (draft.payoffAmount) setPayoffAmount(draft.payoffAmount)
+        if (draft.additionalNotes) setAdditionalNotes(draft.additionalNotes)
+        if (typeof draft.step === "number") {
+          setStep(Math.min(Math.max(draft.step, 1), 4))
+        }
+      }
+    } catch {
+      // Ignore localStorage failures
+    }
+  }, [searchParams])
+  
   // Contact info
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
@@ -1255,7 +1288,10 @@ function TradeInContent() {
                               accept="image/*"
                               className="hidden"
                               ref={(el) => { fileInputRefs.current[angle] = el }}
-                              onChange={(e) => handlePhotoUpload(angle, e.target.files?.[0] || null)}
+                              onChange={(e) => {
+                                handlePhotoUpload(angle, e.target.files?.[0] || null)
+                                e.currentTarget.value = ""
+                              }}
                             />
                             {photos[angle] ? (
                               <div className="aspect-video rounded-lg overflow-hidden relative group/photo border-2 border-green-500">
@@ -1269,6 +1305,7 @@ function TradeInContent() {
                                     Replace
                                   </button>
                                   <button
+                                    aria-label={`Remove ${angle} photo`}
                                     onClick={() => removePhoto(angle)}
                                     className="bg-red-500 text-white px-2 py-1 rounded text-xs font-medium"
                                   >

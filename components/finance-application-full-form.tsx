@@ -1407,9 +1407,9 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label className={getLabelClass("Employment")}>Employment Type *</Label>
+            <Label className={getLabelClass("Employment Type")}>Employment Type *</Label>
             <Select value={data.employmentCategory} onValueChange={(v) => updateField("employmentCategory", v)}>
-              <SelectTrigger className={getInputErrorClass("Employment")}><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectTrigger className={getInputErrorClass("Employment Type")}><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="full_time">Full-Time</SelectItem>
                 <SelectItem value="part_time">Part-Time</SelectItem>
