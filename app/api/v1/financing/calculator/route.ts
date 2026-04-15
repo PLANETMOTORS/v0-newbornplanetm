@@ -1,21 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-// Canadian tax rates by province
-const taxRates: Record<string, { gst: number; pst: number; hst: number; total: number }> = {
-  ON: { gst: 0, pst: 0, hst: 0.13, total: 0.13 },
-  BC: { gst: 0.05, pst: 0.07, hst: 0, total: 0.12 },
-  AB: { gst: 0.05, pst: 0, hst: 0, total: 0.05 },
-  QC: { gst: 0.05, pst: 0.09975, hst: 0, total: 0.14975 },
-  NS: { gst: 0, pst: 0, hst: 0.15, total: 0.15 },
-  NB: { gst: 0, pst: 0, hst: 0.15, total: 0.15 },
-  PE: { gst: 0, pst: 0, hst: 0.15, total: 0.15 },
-  MB: { gst: 0.05, pst: 0.07, hst: 0, total: 0.12 },
-  SK: { gst: 0.05, pst: 0.06, hst: 0, total: 0.11 },
-  NL: { gst: 0, pst: 0, hst: 0.15, total: 0.15 },
-  NT: { gst: 0.05, pst: 0, hst: 0, total: 0.05 },
-  YT: { gst: 0.05, pst: 0, hst: 0, total: 0.05 },
-  NU: { gst: 0.05, pst: 0, hst: 0, total: 0.05 },
-}
+import { PROVINCE_TAX_RATES as taxRates } from '@/lib/tax/canada'
 
 // POST /api/v1/financing/calculator - Calculate payments
 export async function POST(request: NextRequest) {
