@@ -52,7 +52,7 @@ export function FinancingCalculator() {
         </div>
         <Slider
           value={[vehiclePrice]}
-          onValueChange={([v]) => setVehiclePrice(v)}
+          onValueChange={([v]) => { setVehiclePrice(v); setDownPayment((prev) => clamp(prev, 0, Math.min(v, DOWN_PAYMENT_CAP))) }}
           min={5000}
           max={VEHICLE_PRICE_MAX}
           step={1000}

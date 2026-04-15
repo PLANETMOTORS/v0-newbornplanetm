@@ -164,12 +164,26 @@ export default function CheckoutPage() {
   const deliveryFee = deliveryType === "delivery"
     ? (deliveryQuote?.cost ?? 299)
     : 0
-  // Subtotal before HST (vehicle + all fees + protection)
-  const subtotalBeforeHst = vehiclePrice + protectionPrice + omvicFee + certificationFee + (purchaseType === "finance" ? financeDocsFee : 0) + licensingFee + deliveryFee
-  // HST applies to FULL subtotal
-  const hst = Math.round(subtotalBeforeHst * PROVINCE_TAX_RATES.ON.hst)
-  // Total with HST
-  const total = subtotalBeforeHst + hst
+  // Subtotal before tax (vehicle + all fees + protection)
+  const subtotalBeforeTax = vehiclePrice + protectionPrice + omvicFee + certificationFee + (purchaseType === "finance" ? financeDocsFee : 0) + licensingFee + deliveryFee
+  // Province name → abbreviation mapping for tax lookup
+  const provinceNameToCode: Record<string, string> = {
+    'Ontario': 'ON', 'British Columbia': 'BC', 'Alberta': 'AB', 'Quebec': 'QC',
+    'Nova Scotia': 'NS', 'New Brunswick': 'NB', 'Prince Edward Island': 'PE',
+    'Manitoba': 'MB', 'Saskatchewan': 'SK', 'Newfoundland and Labrador': 'NL',
+    'Northwest Territories': 'NT', 'Yukon': 'YT', 'Nunavut': 'NU',
+  }
+  const provinceCode = provinceNameToCode[formData.province] || 'ON'
+  const provinceTax = PROVINCE_TAX_RATES[provinceCode] || PROVINCE_TAX_RATES.ON
+  const taxRate = provinceTax.total
+  const taxLabel = provinceTax.hst > 0
+    ? `HST (${(provinceTax.hst * 100).toFixed(0)}%)`
+    : provinceTax.pst > 0
+      ? `GST+PST (${(provinceTax.total * 100).toFixed(1)}%)`
+      : `GST (${(provinceTax.gst * 100).toFixed(0)}%)`
+  const tax = Math.round(subtotalBeforeTax * taxRate)
+  // Total with tax
+  const total = subtotalBeforeTax + tax
 
   // Stripe client secret fetcher for embedded checkout
   const fetchClientSecret = useCallback(async () => {
@@ -930,8 +944,8 @@ const handleSubmit = () => {
                     <span>~${licensingFee}</span>
                   </div>
                   <div className="flex justify-between text-muted-foreground">
-                    <span>HST ({(PROVINCE_TAX_RATES.ON.hst * 100).toFixed(0)}%)</span>
-                    <span>${hst.toLocaleString()}</span>
+                    <span>{taxLabel}</span>
+                    <span>${tax.toLocaleString()}</span>
                   </div>
                 </div>
 
