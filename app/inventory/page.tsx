@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect, Suspense } from "react"
+import { useState, useMemo, useEffect, useRef, useCallback, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -169,6 +169,22 @@ const drivetrains = ["All Drivetrains", "AWD", "FWD", "RWD", "4WD"]
 function InventoryContent() {
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState("")
+  const [searchInput, setSearchInput] = useState("")
+  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Debounce search input — only update the actual search query after 400ms of no typing
+  const handleSearchInput = useCallback((value: string) => {
+    setSearchInput(value)
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
+    searchDebounceRef.current = setTimeout(() => {
+      setSearchQuery(value)
+    }, 400)
+  }, [])
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => { if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current) }
+  }, [])
   const [selectedMake, setSelectedMake] = useState("All Makes")
   const [selectedBodyType, setSelectedBodyType] = useState("All Types")
   const [selectedFuelType, setSelectedFuelType] = useState("All Fuel Types")
@@ -328,6 +344,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
   const clearFilters = () => {
     setSearchQuery("")
+    setSearchInput("")
     setSelectedMake("All Makes")
     setSelectedBodyType("All Types")
     setSelectedFuelType("All Fuel Types")
@@ -457,13 +474,13 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Search vehicles..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={searchInput}
+                  onChange={(e) => handleSearchInput(e.target.value)}
                   className="pl-10 h-11 text-base"
                 />
-                {searchQuery && (
+                {searchInput && (
                   <button
-                    onClick={() => setSearchQuery("")}
+                    onClick={() => { setSearchQuery(""); setSearchInput("") }}
                     className="absolute right-3 top-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center"
                   >
                     <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
@@ -523,13 +540,13 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   placeholder="Search by make, model, or keyword..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={searchInput}
+                  onChange={(e) => handleSearchInput(e.target.value)}
                   className="pl-12 h-12 text-lg"
                 />
-                {searchQuery && (
+                {searchInput && (
                   <button
-                    onClick={() => setSearchQuery("")}
+                    onClick={() => { setSearchQuery(""); setSearchInput("") }}
                     className="absolute right-4 top-1/2 -translate-y-1/2"
                   >
                     <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
@@ -784,8 +801,14 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   viewMode === "list" ? "flex flex-col sm:flex-row" : ""
                 }`}
               >
-                {/* Image with gradient fallback */}
+                {/* Image with gradient fallback — entire image area is clickable */}
                 <div className={`relative bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] ${viewMode === "list" ? "w-full sm:w-48 md:w-72 flex-shrink-0 aspect-[4/3] sm:aspect-auto" : "aspect-[4/3]"}`}>
+                  {/* Clickable image link to VDP */}
+                  <Link
+                    href={tradeInInfo ? `/vehicles/${vehicle.id}?tradeIn=${tradeInInfo.value}&quoteId=${tradeInInfo.quoteId}&tradeInVehicle=${encodeURIComponent(tradeInInfo.vehicle)}` : `/vehicles/${vehicle.id}`}
+                    className="absolute inset-0 z-[1]"
+                    aria-label={`View ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                  />
                   {vehicle.image ? (
                     <Image
                       src={vehicle.image}
@@ -804,8 +827,8 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     </div>
                   )}
                   
-                  {/* Badges */}
-                  <div className="absolute top-3 left-3 flex flex-col gap-2">
+                  {/* Badges — z-[2] to sit above the image link */}
+                  <div className="absolute top-3 left-3 flex flex-col gap-2 z-[2] pointer-events-none">
                     <Badge className={`${vehicle.badgeColor} text-white shadow-lg`}>
                       {vehicle.badge}
                     </Badge>
@@ -822,8 +845,8 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     </Badge>
                   </div>
 
-                  {/* Actions */}
-                  <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {/* Actions — z-[2] to sit above the image link */}
+                  <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-[2]">
                     <button
                       onClick={() => toggleFavorite(vehicle)}
                       aria-label={isFavorite(vehicle.id) ? "Remove from favorites" : "Add to favorites"}

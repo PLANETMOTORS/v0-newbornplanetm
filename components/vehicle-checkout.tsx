@@ -176,25 +176,29 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
       <div>
         <h4 className="font-medium mb-3 flex items-center gap-2">
           <CreditCard className="w-4 h-4 text-primary" />
-          Payment Option
+          How would you like to pay?
         </h4>
         <div className="grid grid-cols-2 gap-3">
           <Card
-            className={`cursor-pointer transition-all ${depositOnly ? 'ring-2 ring-primary' : ''}`}
+            className={`cursor-pointer transition-all ${depositOnly ? 'ring-2 ring-primary bg-primary/5' : 'hover:border-primary/50'}`}
             onClick={() => setDepositOnly(true)}
           >
-            <CardContent className="py-4 text-center">
-              <p className="font-semibold">${totalDeposit.toLocaleString()}</p>
+            <CardContent className="py-4 text-center space-y-1">
+              {depositOnly && <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">Recommended</span>}
+              <p className="font-bold text-lg">${totalDeposit.toLocaleString()}</p>
               <p className="text-xs text-muted-foreground">Refundable Deposit</p>
+              <p className="text-[10px] text-muted-foreground">Secures the vehicle • Applied to purchase</p>
             </CardContent>
           </Card>
           <Card
-            className={`cursor-pointer transition-all ${!depositOnly ? 'ring-2 ring-primary' : ''}`}
+            className={`cursor-pointer transition-all ${!depositOnly ? 'ring-2 ring-primary bg-primary/5' : 'hover:border-primary/50'}`}
             onClick={() => setDepositOnly(false)}
           >
-            <CardContent className="py-4 text-center">
-              <p className="font-semibold">${totalFull.toLocaleString()}</p>
+            <CardContent className="py-4 text-center space-y-1">
+              {!depositOnly && <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">Selected</span>}
+              <p className="font-bold text-lg">${totalFull.toLocaleString()}</p>
               <p className="text-xs text-muted-foreground">Pay in Full</p>
+              <p className="text-[10px] text-muted-foreground">Complete purchase now</p>
             </CardContent>
           </Card>
         </div>

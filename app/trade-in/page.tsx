@@ -396,9 +396,9 @@ function TradeInContent() {
   const [payoffAmount, setPayoffAmount] = useState("")
   const [additionalNotes, setAdditionalNotes] = useState("")
   
-  // Photos
-  // TODO: Wire up photo upload functionality
-  const [_photos, _setPhotos] = useState<string[]>([])
+  // Photos — keyed by angle name for the upload grid
+  const [photos, setPhotos] = useState<Record<string, { file: File; preview: string }>>({})
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
   
   // Contact info
   const [email, setEmail] = useState("")
@@ -451,6 +451,31 @@ function TradeInContent() {
     }
   }
   
+  // Photo upload handler
+  const handlePhotoUpload = (angle: string, file: File | null) => {
+    if (!file) return
+    // Validate file type and size (max 10MB)
+    if (!file.type.startsWith('image/')) return
+    if (file.size > 10 * 1024 * 1024) return
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setPhotos(prev => ({
+        ...prev,
+        [angle]: { file, preview: reader.result as string }
+      }))
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const removePhoto = (angle: string) => {
+    setPhotos(prev => {
+      const next = { ...prev }
+      delete next[angle]
+      return next
+    })
+  }
+
   // Offer
   interface TradeInOffer {
     quoteId?: string
@@ -1133,15 +1158,51 @@ function TradeInContent() {
                       {/* Photo Upload Grid */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {["Front", "Back", "Interior", "Dashboard"].map((angle) => (
-                          <div 
-                            key={angle}
-                            className="aspect-video border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-primary/5 cursor-pointer transition-all"
-                          >
-                            <Upload className="h-8 w-8 text-muted-foreground" />
-                            <span className="text-sm text-muted-foreground">{angle}</span>
+                          <div key={angle} className="relative">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              ref={(el) => { fileInputRefs.current[angle] = el }}
+                              onChange={(e) => handlePhotoUpload(angle, e.target.files?.[0] || null)}
+                            />
+                            {photos[angle] ? (
+                              <div className="aspect-video rounded-lg overflow-hidden relative group/photo border-2 border-green-500">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={photos[angle].preview} alt={angle} className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/photo:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                  <button
+                                    onClick={() => fileInputRefs.current[angle]?.click()}
+                                    className="bg-white text-black px-2 py-1 rounded text-xs font-medium"
+                                  >
+                                    Replace
+                                  </button>
+                                  <button
+                                    onClick={() => removePhoto(angle)}
+                                    className="bg-red-500 text-white px-2 py-1 rounded text-xs font-medium"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                                <CheckCircle className="absolute top-2 right-2 w-5 h-5 text-green-500" />
+                              </div>
+                            ) : (
+                              <div
+                                onClick={() => fileInputRefs.current[angle]?.click()}
+                                className="aspect-video border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-primary/5 cursor-pointer transition-all"
+                              >
+                                <Upload className="h-8 w-8 text-muted-foreground" />
+                                <span className="text-sm text-muted-foreground">{angle}</span>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
+                      {Object.keys(photos).length > 0 && (
+                        <p className="text-sm text-green-600 font-medium">
+                          ✓ {Object.keys(photos).length} photo{Object.keys(photos).length > 1 ? 's' : ''} added
+                        </p>
+                      )}
 
                       <div className="p-4 bg-teal-50 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-800 rounded-lg">
                         <div className="flex items-start gap-3">

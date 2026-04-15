@@ -554,7 +554,7 @@ export default function EVBatteryHealthPage() {
                 </Button>
               </Link>
               <Link href="/trade-in">
-                <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-white/30 text-white hover:bg-white/10">
+                <Button size="lg" variant="secondary" className="h-14 px-8 text-lg">
                   Trade In Your Gas Car
                 </Button>
               </Link>

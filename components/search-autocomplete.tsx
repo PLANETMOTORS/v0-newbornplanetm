@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Search, TrendingUp, Clock, Car } from "lucide-react"
@@ -52,35 +52,54 @@ export function SearchAutocomplete() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  useEffect(() => {
-    if (query.length >= 2) {
-      // Call search API (backed by Typesense) and fallback to local filter
+  // Debounced search — waits 300ms after last keystroke before firing API call
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
+
+  const debouncedSearch = useCallback((q: string) => {
+    // Clear previous debounce timer
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    // Abort previous in-flight request
+    if (abortRef.current) abortRef.current.abort()
+
+    if (q.length < 2) {
+      setResults([])
+      return
+    }
+
+    debounceRef.current = setTimeout(() => {
       const controller = new AbortController()
-      fetch(`/api/search?q=${encodeURIComponent(query)}`, { signal: controller.signal })
+      abortRef.current = controller
+      fetch(`/api/search?q=${encodeURIComponent(q)}`, { signal: controller.signal })
         .then(res => res.ok ? res.json() : null)
         .then(data => {
           if (data?.results?.length) {
             setResults(data.results as SearchResult[])
           } else {
-            // Fallback to local filter
             const filtered = sampleResults.filter(r =>
-              r.title.toLowerCase().includes(query.toLowerCase())
+              r.title.toLowerCase().includes(q.toLowerCase())
             )
             setResults(filtered)
           }
         })
         .catch(() => {
-          // Fallback to local filter on network error
-          const filtered = sampleResults.filter(r =>
-            r.title.toLowerCase().includes(query.toLowerCase())
-          )
-          setResults(filtered)
+          if (!controller.signal.aborted) {
+            const filtered = sampleResults.filter(r =>
+              r.title.toLowerCase().includes(q.toLowerCase())
+            )
+            setResults(filtered)
+          }
         })
-      return () => controller.abort()
-    } else {
-      setResults([])
+    }, 300)
+  }, [])
+
+  useEffect(() => {
+    debouncedSearch(query)
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      if (abortRef.current) abortRef.current.abort()
     }
-  }, [query])
+  }, [query, debouncedSearch])
 
   return (
     <div ref={containerRef} className="relative w-full max-w-xl">
