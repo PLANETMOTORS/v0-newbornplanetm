@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { sendNotificationEmail } from "@/lib/email"
 import { validateOrigin } from "@/lib/csrf"
 import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
+import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 
 // POST /api/v1/financing/applications - Create new finance application
 export async function POST(request: NextRequest) {
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
     const lienAmount = tradeIn?.hasLien ? (parseFloat(tradeIn.lienAmount) || 0) : 0
     const netTrade = tradeValue - lienAmount
     const adminFee = parseFloat(financingTerms.adminFee) || 895
-    const taxRate = parseFloat(financingTerms.salesTaxRate) / 100 || 0.13
+    const taxRate = parseFloat(financingTerms.salesTaxRate) / 100 || PROVINCE_TAX_RATES.ON.total
     
     const subtotal = price + adminFee - downPayment - netTrade
     const tax = subtotal * taxRate

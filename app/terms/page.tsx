@@ -40,7 +40,7 @@ export default function TermsOfServicePage() {
               
               <h3 className="text-xl font-medium mb-3">3.1 Pricing</h3>
               <p className="text-muted-foreground mb-4">
-                All vehicle prices displayed on our website are in Canadian dollars and include applicable fees unless otherwise noted. Prices are subject to change without notice until a binding purchase agreement is signed. HST (13%) will be added at checkout.
+                All vehicle prices displayed on our website are in Canadian dollars and include applicable fees unless otherwise noted. Prices are subject to change without notice until a binding purchase agreement is signed. Applicable sales tax will be added at checkout.
               </p>
               
               <h3 className="text-xl font-medium mb-3">3.2 Refundable Deposit</h3>
