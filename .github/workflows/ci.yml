@@ -72,7 +72,7 @@ jobs:
       - name: Build with bundle stats
         run: pnpm build
 
-      - name: Check bundle budget (150 KB per page)
+      - name: Check bundle budget (1700 KB first-load JS per page)
         run: node scripts/check-bundle-size.mjs
 
   e2e:
