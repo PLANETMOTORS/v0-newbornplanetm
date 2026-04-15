@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotificationEmail } from '@/lib/email'
+import { rateLimit } from '@/lib/redis'
+import { validateOrigin } from '@/lib/csrf'
 
 // Mock CBB valuation data
 const getVehicleValue = (year: number, make: string, model: string, mileage: number, condition: string) => {
@@ -58,6 +60,25 @@ const getVehicleValue = (year: number, make: string, model: string, mileage: num
 
 // POST /api/v1/trade-in/instant-offer - Get instant offer
 export async function POST(request: NextRequest) {
+  // CSRF protection
+  if (!validateOrigin(request)) {
+    return NextResponse.json(
+      { success: false, error: { code: 'FORBIDDEN', message: 'Forbidden' } },
+      { status: 403 }
+    )
+  }
+
+  // Rate limit: 10 trade-in valuations per hour per IP
+  const forwarded = request.headers.get("x-forwarded-for") || ""
+  const ip = forwarded.split(",")[0]?.trim() || "unknown"
+  const limiter = await rateLimit(`trade-in:${ip}`, 10, 3600)
+  if (!limiter.success) {
+    return NextResponse.json(
+      { success: false, error: { code: 'RATE_LIMITED', message: 'Too many requests. Please try again later.' } },
+      { status: 429 }
+    )
+  }
+
   const body = await request.json()
   
   const {

@@ -15,13 +15,15 @@ function getAllowedOrigins(): string[] {
     origins.push(baseUrl.replace(/\/+$/, ""))
   }
 
-  // Always allow localhost variants during development
-  origins.push(
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:3001",
-    "http://127.0.0.1:3001",
-  )
+  // Only allow localhost variants in development — never in production
+  if (process.env.NODE_ENV !== "production") {
+    origins.push(
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
+      "http://localhost:3001",
+      "http://127.0.0.1:3001",
+    )
+  }
 
   return origins
 }

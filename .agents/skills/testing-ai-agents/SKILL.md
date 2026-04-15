@@ -1,4 +1,4 @@
-# Testing AI Agent Security — Planet Motors
+# Testing Planet Motors — AI Agents & E2E Suite
 
 ## Overview
 Planet Motors has 3 AI agents that need security testing:
@@ -8,13 +8,64 @@ Planet Motors has 3 AI agents that need security testing:
 
 Security layers: CSRF origin validation (`lib/csrf.ts`), IP-based rate limiting (`lib/redis.ts`), server-side verification codes (`/api/verify/send-code` + `/api/verify/check-code`).
 
+## E2E Test Suite (human-click-timing-debug.spec.ts)
+
+### Overview
+The main E2E spec has 40 tests across 3 sections:
+- **Section A** — Human Click Simulation (15 tests)
+- **Section B** — Tab & Keyboard Navigation (13 tests)
+- **Section C** — Page Load Timing (12 tests)
+
+### CRITICAL: BASE_URL Configuration
+The spec defaults to `BASE_URL=https://ev.planetmotors.ca` (live production). However, `data-testid` attributes were added in PR #226 and may not exist on the live site yet. **Always run against the branch that has the data-testid attributes:**
+
+```bash
+# Run against local dev server (recommended)
+BASE_URL=http://localhost:3000 npx playwright test e2e/human-click-timing-debug.spec.ts --reporter=list
+
+# Run against Vercel preview (if accessible)
+BASE_URL=https://your-preview-url.vercel.app npx playwright test e2e/human-click-timing-debug.spec.ts --reporter=list
+```
+
+If you run against the live site without the data-testid attributes, you will get 34+ timeout failures — this is NOT a code bug, it's a targeting issue.
+
+### Playwright Config WebServer
+The `playwright.config.ts` starts a dev server on `localhost:3000` via `webServer`. If a dev server is already running on port 3000, playwright reuses it (`reuseExistingServer: !process.env.CI`). Start the dev server before running tests:
+
+```bash
+pnpm dev &  # Start dev server in background
+# Wait for it to be ready, then run tests
+BASE_URL=http://localhost:3000 npx playwright test e2e/human-click-timing-debug.spec.ts
+```
+
+### Known Credential-Dependent Failures
+4 tests require real Supabase inventory data and will fail without credentials:
+
+| Test | Reason |
+|------|--------|
+| A03 — inventory card click → VDP | No `inventory-card` elements without Supabase data |
+| A04 — VDP "Start Purchase" | Depends on A03 |
+| A13 — right-click vehicle image | No `vdp-hero-image` without vehicle data |
+| B12 — VDP gallery arrow keys | No `vdp-image-gallery` without vehicle data |
+
+With placeholder `.env.local` values, expect **36/40 passed**. With real Supabase credentials, expect **40/40**.
+
+### Key Test Assertions
+- **A15** (`line 333`): `expect(clickLog.length).toBe(4)` — there are exactly 4 `logClick()` calls in the checkout walkthrough
+- **C09** (`line 648`): `test.skip(!fs.existsSync(DL_FRONT))` — requires `e2e/fixtures/dl-front.jpg` to exist (valid JFIF JPEG)
+
+### CI E2E Job
+The CI e2e job runs ALL spec files (not just human-click-timing-debug.spec.ts). Other specs (contact, homepage, inventory, vehicle-detail, etc.) run against `localhost:3000` and need real Supabase/Typesense data to pass. Without credentials in CI secrets, these specs will fail. This is a pre-existing issue and not caused by PR changes.
+
+The CI workflow (`.github/workflows/ci.yml`) must include a `pnpm build` step before e2e tests, since `pnpm test:e2e` starts a production server that needs `.next/` build output.
+
 ## Local Production Build for CSRF Testing
 
 CSRF validation is **bypassed in development mode** (`NODE_ENV=development`). To test CSRF:
 
 1. Create minimal `.env.local`:
    ```
-   NEXT_PUBLIC_BASE_URL=http://localhost:3000
+   NEXT_PUBLIC_BASE_URL=http://localhost:3001
    NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder
    NEXT_PUBLIC_SANITY_PROJECT_ID=placeholder
@@ -79,18 +130,19 @@ Expected: `{"success":true,"method":"email"}` — the `code` field is ignored.
 
 ## Vercel Preview Deployment Protection
 
-Vercel previews may have deployment protection enabled, blocking direct curl access. Options:
+Vercel previews may have deployment protection enabled (returns HTTP 401). Options:
 1. Use `vercel curl` (requires Vercel CLI authenticated)
 2. Use Vercel MCP server's `get_access_to_vercel_url` function
 3. Use bypass token (see Vercel docs on protection bypass automation)
 4. Test locally in production mode instead (recommended for CSRF testing)
+5. Use Netlify preview instead (`https://deploy-preview-{PR_NUMBER}--planetnewborn-v0-newbornplanetm.netlify.app`) — these are accessible without auth but are static exports (no API routes)
 
 ## Devin Secrets Needed
 
 - `KV_REST_API_URL` — Upstash Redis URL (for rate limiting tests)
 - `KV_REST_API_TOKEN` — Upstash Redis token (for rate limiting tests)
-- `NEXT_PUBLIC_SUPABASE_URL` — Supabase project URL (for inventory/VDP UI tests)
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase anon key (for inventory/VDP UI tests)
+- `NEXT_PUBLIC_SUPABASE_URL` — Supabase project URL (for inventory/VDP UI tests + 4 E2E tests)
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase anon key (for inventory/VDP UI tests + 4 E2E tests)
 - OpenAI/AI Gateway key — only needed for full end-to-end AI response testing
 
 ## Build & Lint Commands
@@ -98,8 +150,8 @@ Vercel previews may have deployment protection enabled, blocking direct curl acc
 ```bash
 pnpm build          # Next.js production build
 pnpm lint           # ESLint
-pnpm run typecheck  # TypeScript strict check (if configured)
-npx tsc --noEmit    # Manual TypeScript check
+npx tsc --noEmit    # TypeScript strict check
+pnpm test:e2e       # Run ALL E2E specs (needs local server)
 ```
 
 ## Key Files
@@ -108,9 +160,9 @@ npx tsc --noEmit    # Manual TypeScript check
 - `lib/redis.ts` — Rate limiting + verification code storage
 - `app/api/negotiate/route.ts` — Price Negotiator endpoint
 - `app/api/vehicle-valuation/route.ts` — Vehicle Valuator endpoint
-- `app/api/anna/route.ts` — Anna chat endpoint
-- `app/api/verify/send-code/route.ts` — Server-side code generation
-- `app/api/verify/check-code/route.ts` — Server-side code verification
-- `components/vehicle/price-negotiator.tsx` — PriceNegotiator UI
-- `components/trade-in/instant-quote.tsx` — InstantQuote UI
-- `components/trade-in/ico-verification-dialog.tsx` — Verification dialog UI
+- `app/api/verify/send-code/route.ts` — Server-side verification code generation
+- `app/api/verify/check-code/route.ts` — Timing-safe code verification
+- `e2e/human-click-timing-debug.spec.ts` — Main 40-test E2E spec
+- `e2e/fixtures/dl-front.jpg` — Required fixture for C09 Vercel Blob upload test
+- `.github/workflows/ci.yml` — CI pipeline (lint-and-build, bundle-check, e2e)
+- `playwright.config.ts` — Playwright configuration (webServer on port 3000)

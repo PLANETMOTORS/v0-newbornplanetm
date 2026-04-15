@@ -129,8 +129,8 @@ export async function POST(request: Request) {
   }
 }
 
-// GET endpoint - returns feed status and instructions
-export async function GET() {
+// GET endpoint - returns feed status and instructions (requires API key)
+export async function GET(request: Request) {
   const sql = getSql()
   if (!sql) {
     return NextResponse.json({ error: "Database not configured" }, { status: 503 })
@@ -138,6 +138,16 @@ export async function GET() {
   if (!HOMENET_API_KEY) {
     return NextResponse.json({ error: "HOMENET_API_KEY is not configured" }, { status: 503 })
   }
+
+  // Authenticate — same API key check as POST
+  const authHeader = request.headers.get("authorization")
+  const apiKeyHeader = request.headers.get("x-api-key")
+  const apiKey = apiKeyHeader || authHeader?.replace("Bearer ", "")
+
+  if (apiKey !== HOMENET_API_KEY) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   const vehicleCount = await sql`SELECT COUNT(*) as count FROM vehicles` as Record<string, unknown>[]
   const lastUpdated = await sql`SELECT MAX(updated_at) as last_updated FROM vehicles` as Record<string, unknown>[]
 
