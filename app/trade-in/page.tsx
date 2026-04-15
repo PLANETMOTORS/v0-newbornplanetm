@@ -1917,7 +1917,7 @@ function TradeInContent() {
                   const data = await response.json()
                   
                   if (data.success) {
-                    try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch {}
+                    try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
                     setShowAcceptModal(false)
                     alert(`Offer Accepted!\n\nYou will receive a confirmation email and SMS shortly.\n\nOur team will contact you within 2 hours to schedule your free pickup.\n\nQuote ID: ${offer?.quoteId}`)
                   } else {
@@ -1926,7 +1926,7 @@ function TradeInContent() {
                 } catch (error) {
                   console.error('Error accepting offer:', error)
                   // Still show success to user - fallback for API errors
-                  try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch {}
+                  try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
                   setShowAcceptModal(false)
                   alert(`Offer Accepted!\n\nOur team will contact you within 2 hours to schedule your free pickup.\n\nQuote ID: ${offer?.quoteId}`)
                 }
@@ -2019,7 +2019,7 @@ function TradeInContent() {
                   console.error('Error saving trade-in:', error)
                 }
                 
-                try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch {}
+                try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
                 setShowApplyModal(false)
                 // Redirect to inventory with full trade-in info
                 const params = new URLSearchParams({
