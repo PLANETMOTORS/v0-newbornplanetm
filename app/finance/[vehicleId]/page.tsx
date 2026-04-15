@@ -15,9 +15,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { createClient } from "@/lib/supabase/client"
+import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 
-// Ontario HST rate
-const HST_RATE = 0.13
+const HST_RATE = PROVINCE_TAX_RATES.ON.hst
 
 // Loan term options in months
 const LOAN_TERMS = [24, 36, 48, 60, 72, 84, 96]
@@ -606,7 +606,7 @@ export default function FinanceCalculatorPage() {
                       </div>
                     )}
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">HST (13%)</span>
+                      <span className="text-muted-foreground">HST ({(HST_RATE * 100).toFixed(0)}%)</span>
                       <span>+${financeDetails.hstAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                     <Separator />

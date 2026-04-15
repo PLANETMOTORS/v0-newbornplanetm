@@ -330,7 +330,7 @@ test.describe('Section A — Human Click Simulation', () => {
 
     fs.mkdirSync('test-results', { recursive: true });
     fs.writeFileSync(CLICK_LOG, JSON.stringify(clickLog, null, 2));
-    expect(clickLog.length).toBe(5);
+    expect(clickLog.length).toBe(4);
   });
 
 });

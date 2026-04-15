@@ -217,7 +217,7 @@ export function InstantQuote() {
   const [verificationStep, setVerificationStep] = useState<"form" | "verify" | "result">("form")
   const [verifyMethod, setVerifyMethod] = useState<"email" | "phone">("email")
   const [verificationCode, setVerificationCode] = useState("")
-  const [sentCode, setSentCode] = useState("")
+
   const [isSendingCode, setIsSendingCode] = useState(false)
   const [isVerifyingCode, setIsVerifyingCode] = useState(false)
   
@@ -326,8 +326,6 @@ export function InstantQuote() {
     if (!isFormValid()) return
     
     setIsSendingCode(true)
-    const code = Math.floor(100000 + Math.random() * 900000).toString()
-    setSentCode(code)
     
     try {
       await fetch("/api/verify/send-code", {
@@ -336,29 +334,40 @@ export function InstantQuote() {
         body: JSON.stringify({
           method: verifyMethod,
           destination: verifyMethod === "email" ? formData.email : formData.phone,
-          code,
           purpose: "instant_cash_offer",
           vehicleInfo: `${formData.year} ${formData.make} ${formData.model}`,
         }),
       })
     } catch {
-      // Continue anyway for demo
+      // Continue anyway — server generates and stores the code
     } finally {
       setIsSendingCode(false)
       setVerificationStep("verify")
     }
   }
 
-  // Verify code and calculate quote
+  // Verify code server-side and calculate quote
   const verifyAndCalculate = async () => {
-    if (verificationCode !== sentCode && verificationCode !== "123456") {
-      return // Invalid code
-    }
-    
     setIsVerifyingCode(true)
-    setVerificationStep("result")
-    await calculateQuote()
-    setIsVerifyingCode(false)
+    try {
+      const destination = verifyMethod === "email" ? formData.email : formData.phone
+      const response = await fetch("/api/verify/check-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ destination, code: verificationCode }),
+      })
+      const result = await response.json()
+      if (!result.verified) {
+        setIsVerifyingCode(false)
+        return // Invalid code
+      }
+      setVerificationStep("result")
+      await calculateQuote()
+    } catch {
+      // Verification failed — user can retry
+    } finally {
+      setIsVerifyingCode(false)
+    }
   }
   
   // Local fallback valuation calculation (used if API fails)

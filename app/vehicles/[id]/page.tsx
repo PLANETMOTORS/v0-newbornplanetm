@@ -28,6 +28,7 @@ import { ReserveVehicleModal } from "@/components/reserve-vehicle-modal"
 import { AuthRequiredModal } from "@/components/auth-required-modal"
 import { useAuth } from "@/contexts/auth-context"
 import { PriceNegotiator } from "@/components/vehicle/price-negotiator"
+import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 import { LiveVideoCall } from "@/components/vehicle/live-video-call"
 import { PriceDropAlert } from "@/components/vehicle/price-drop-alert"
 import { AddToCompare } from "@/components/vehicle/add-to-compare"
@@ -612,7 +613,7 @@ export default function VehicleDetailPage() {
   // Finance calculation: Vehicle Price + $895 Admin Fee (Finance Docs Set-up)
   const FINANCE_ADMIN_FEE = 895
   const financeSubtotal = vehicle.price + FINANCE_ADMIN_FEE
-  const financeTax = financeSubtotal * 0.13
+  const financeTax = financeSubtotal * PROVINCE_TAX_RATES.ON.hst
   const financeTotal = financeSubtotal + financeTax
   const biweeklyPayment = Math.round(financeTotal / 208) // 8 years bi-weekly (26 payments x 8)
 
@@ -1478,7 +1479,7 @@ export default function VehicleDetailPage() {
                             <span>+${FINANCE_ADMIN_FEE}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>HST (13%)</span>
+                            <span>HST ({(PROVINCE_TAX_RATES.ON.hst * 100).toFixed(0)}%)</span>
                             <span>+${Math.round(financeTax).toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between font-semibold text-foreground pt-1 border-t">
@@ -1521,7 +1522,7 @@ export default function VehicleDetailPage() {
                             <span>${vehicle.pricing.deliveryFee}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-muted-foreground">Estimated HST (13%)</span>
+                            <span className="text-muted-foreground">Estimated HST ({(PROVINCE_TAX_RATES.ON.hst * 100).toFixed(0)}%)</span>
                             <span>${vehicle.pricing.hst.toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between">
@@ -1561,7 +1562,7 @@ export default function VehicleDetailPage() {
                         <span className="font-medium">${vehicle.price.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between py-2 border-b">
-                        <span>HST (13%)</span>
+                        <span>HST ({(PROVINCE_TAX_RATES.ON.hst * 100).toFixed(0)}%)</span>
                         <span className="font-medium">${vehicle.pricing.hst.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between py-2 border-b">

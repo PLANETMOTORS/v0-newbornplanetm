@@ -27,6 +27,7 @@ import {
 } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import { loadStripe } from "@stripe/stripe-js"
+import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js"
 import { startVehicleCheckout } from "@/app/actions/stripe"
 import { OMVIC_FEE, CERTIFICATION_FEE, LICENSING_FEE, HST_RATE } from "@/lib/pricing/format"
@@ -150,8 +151,8 @@ export default function CheckoutPage() {
     : 0
   // Subtotal before HST (vehicle + all fees + protection)
   const subtotalBeforeHst = vehiclePrice + protectionPrice + omvicFee + certificationFee + (purchaseType === "finance" ? financeDocsFee : 0) + licensingFee + deliveryFee
-  // HST applies to FULL subtotal (13%)
-  const hst = Math.round(subtotalBeforeHst * HST_RATE)
+  // HST applies to FULL subtotal
+  const hst = Math.round(subtotalBeforeHst * PROVINCE_TAX_RATES.ON.hst)
   // Total with HST
   const total = subtotalBeforeHst + hst
 
@@ -914,7 +915,7 @@ const handleSubmit = () => {
                     <span>~${licensingFee}</span>
                   </div>
                   <div className="flex justify-between text-muted-foreground">
-                    <span>HST (13%)</span>
+                    <span>HST ({(PROVINCE_TAX_RATES.ON.hst * 100).toFixed(0)}%)</span>
                     <span>${hst.toLocaleString()}</span>
                   </div>
                 </div>
