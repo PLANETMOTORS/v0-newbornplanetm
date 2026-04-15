@@ -177,6 +177,8 @@ interface VehicleData {
   video_url?: string
   location?: string
   description?: string
+  source_vdp_url?: string
+  title_status?: string
 }
 
 // ==================== XML PARSER ====================
@@ -304,14 +306,56 @@ function getTagVariations(tag: string): string[] {
 
 // ==================== CSV PARSER ====================
 
+// All CSV column names we intentionally map or skip
+const KNOWN_CSV_COLUMNS = new Set([
+  "vin", "stock_number", "stocknumber", "dealerstocknum", "stock",
+  "year", "make", "model", "trim", "series",
+  "body_style", "bodystyle", "body", "bodytype",
+  "exterior_color", "exteriorcolor", "color", "extcolor",
+  "interior_color", "interiorcolor", "intcolor",
+  "price", "sellingprice", "internetprice",
+  "msrp", "retailprice",
+  "mileage", "odometer",
+  "drivetrain", "drivetype",
+  "transmission", "trans",
+  "engine", "enginedescription",
+  "fuel_type", "fueltype", "fuel",
+  "fuel_economy_city", "citympg",
+  "fuel_economy_highway", "highwaympg",
+  "is_ev", "isev",
+  "battery_capacity_kwh", "batterycapacity",
+  "range_miles", "range", "evrange",
+  "status",
+  "is_certified", "certified", "cpo", "condition",
+  "is_new_arrival", "newarrival",
+  "featured",
+  "inspection_score", "inspectionscore",
+  "primary_image_url", "mainphoto",
+  "image_urls", "photos", "images", "photo",
+  "has_360_spin", "has360",
+  "video_url", "video",
+  "location", "dealerlocation",
+  "comments", "description",
+  "vdplink", "vdp_link",
+  "titlestatus", "title_status",
+])
+
 function parseHomenetCSV(csvText: string): VehicleData[] {
   const vehicles: VehicleData[] = []
   const lines = csvText.split("\n").filter(line => line.trim())
-  
+
   if (lines.length < 2) return vehicles
 
-  const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().replace(/[^a-z0-9]/g, "_"))
-  
+  // Normalize headers: strip spaces, lowercase, replace non-alphanumeric with underscore
+  const rawHeaders = parseCSVLine(lines[0])
+  const headers = rawHeaders.map(h => h.trim().toLowerCase().replace(/[^a-z0-9]/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, ""))
+
+  // Log unmapped columns for debugging
+  const unmappedColumns = headers.filter(h => h && !KNOWN_CSV_COLUMNS.has(h))
+  if (unmappedColumns.length > 0) {
+    console.warn(`[HomenetIOL] Unmapped CSV columns (${unmappedColumns.length}): ${unmappedColumns.join(", ")}`)
+  }
+
   for (let i = 1; i < lines.length; i++) {
     const values = parseCSVLine(lines[i])
     if (values.length !== headers.length) continue
@@ -325,7 +369,7 @@ function parseHomenetCSV(csvText: string): VehicleData[] {
       vehicles.push(vehicle)
     }
   }
-  
+
   return vehicles
 }
 
@@ -350,12 +394,28 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
 
   const vin = get(["vin"])
   const stockNumber = get(["stock_number", "stocknumber", "dealerstocknum", "stock"])
-  
+
   if (!vin || vin.length !== 17) return null
   if (!stockNumber) return null
 
   const fuelType = get(["fuel_type", "fueltype", "fuel"])
-  const images = get(["image_urls", "photos", "images"]).split("|").filter(Boolean)
+
+  // Image parsing: detect separator (pipe vs comma)
+  // HomenetIOL CSV uses comma-separated URLs inside quoted fields: "url1,url2,url3"
+  const rawImages = get(["image_urls", "photos", "images", "photo"])
+  const images = parseImageUrls(rawImages)
+
+  // Map Condition field to is_certified
+  const condition = get(["condition"]).toLowerCase()
+  let isCertified = getBool(["is_certified", "certified", "cpo"])
+  if (condition === "cpo") {
+    isCertified = true
+  } else if (condition === "used" || condition === "new") {
+    // Only override if not already set by explicit certified/cpo field
+    if (!get(["is_certified", "certified", "cpo"])) {
+      isCertified = false
+    }
+  }
 
   return {
     stock_number: stockNumber,
@@ -380,7 +440,7 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
     battery_capacity_kwh: getNum(["battery_capacity_kwh", "batterycapacity"]),
     range_miles: getNum(["range_miles", "range", "evrange"]),
     status: get(["status"]) || "available",
-    is_certified: getBool(["is_certified", "certified", "cpo"]),
+    is_certified: isCertified,
     is_new_arrival: getBool(["is_new_arrival", "newarrival"]),
     featured: getBool(["featured"]),
     inspection_score: getNum(["inspection_score", "inspectionscore"]) || 210,
@@ -388,8 +448,28 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
     image_urls: images,
     has_360_spin: getBool(["has_360_spin", "has360"]),
     video_url: get(["video_url", "video"]),
-    location: get(["location", "dealerlocation"]) || "Richmond Hill, ON"
+    location: get(["location", "dealerlocation"]) || "Richmond Hill, ON",
+    description: get(["comments", "description"]) || undefined,
+    source_vdp_url: get(["vdplink", "vdp_link"]) || undefined,
+    title_status: get(["titlestatus", "title_status"]) || undefined,
   }
+}
+
+/**
+ * Parse image URLs from a string that may use pipe (|) or comma (,) as separator.
+ * HomenetIOL CSV typically uses comma-separated URLs inside quoted fields.
+ * Detects the separator by checking for pipe first (legacy), then falls back to comma.
+ */
+function parseImageUrls(raw: string): string[] {
+  if (!raw) return []
+
+  // If the string contains pipe separators, use those (legacy format)
+  if (raw.includes("|")) {
+    return raw.split("|").map(u => u.trim()).filter(u => u.startsWith("http"))
+  }
+
+  // Otherwise split by comma (HomenetIOL format: "url1,url2,url3")
+  return raw.split(",").map(u => u.trim()).filter(u => u.startsWith("http"))
 }
 
 function parseCSVLine(line: string): string[] {
@@ -439,7 +519,8 @@ async function syncVehiclesToDatabase(sql: SqlClient, vehicles: VehicleData[]) {
               fuel_economy_city, fuel_economy_highway, is_ev,
               battery_capacity_kwh, range_miles, status, is_certified,
               is_new_arrival, featured, inspection_score,
-              primary_image_url, image_urls, has_360_spin, video_url, location
+              primary_image_url, image_urls, has_360_spin, video_url, location,
+              description, source_vdp_url, title_status
             ) VALUES (
               ${vehicle.stock_number}, ${vehicle.vin}, ${vehicle.year},
               ${vehicle.make}, ${vehicle.model}, ${vehicle.trim || null},
@@ -455,7 +536,9 @@ async function syncVehiclesToDatabase(sql: SqlClient, vehicles: VehicleData[]) {
               ${vehicle.featured || false}, ${vehicle.inspection_score || 210},
               ${vehicle.primary_image_url || null}, ${vehicle.image_urls || []},
               ${vehicle.has_360_spin || false}, ${vehicle.video_url || null},
-              ${vehicle.location || 'Richmond Hill, ON'}
+              ${vehicle.location || 'Richmond Hill, ON'},
+              ${vehicle.description || null}, ${vehicle.source_vdp_url || null},
+              ${vehicle.title_status || null}
             )
             ON CONFLICT (vin)
             DO UPDATE SET
@@ -489,6 +572,9 @@ async function syncVehiclesToDatabase(sql: SqlClient, vehicles: VehicleData[]) {
               has_360_spin = EXCLUDED.has_360_spin,
               video_url = EXCLUDED.video_url,
               location = EXCLUDED.location,
+              description = EXCLUDED.description,
+              source_vdp_url = EXCLUDED.source_vdp_url,
+              title_status = EXCLUDED.title_status,
               updated_at = NOW()
             RETURNING (xmax = 0) AS inserted
           `
