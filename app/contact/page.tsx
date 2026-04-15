@@ -3,6 +3,9 @@ import { Metadata } from "next"
 export const metadata: Metadata = {
   title: "Contact Us | Planet Motors - Phone, Email, Live Chat",
   description: "Get in touch with Planet Motors. Call 1-866-797-3332, email info@planetmotors.ca, or visit us at 30 Major Mackenzie Dr E, Richmond Hill, ON.",
+  alternates: {
+    canonical: '/contact',
+  },
 }
 
 import { Header } from "@/components/header"

@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 // Planet Motors - Next.js Config
 const nextConfig = {
+  // SEC-06: Remove x-powered-by: Next.js header (OWASP WSTG-CONF-08)
+  poweredByHeader: false,
+
   // CRITICAL: Transpile Sanity packages to prevent duplicate bundling
   transpilePackages: ['sanity', 'next-sanity', '@sanity/vision', '@sanity/ui', '@sanity/client'],
   

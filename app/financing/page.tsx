@@ -3,6 +3,9 @@ import { Metadata } from "next"
 export const metadata: Metadata = {
   title: "Auto Financing & Pre-Approval | Planet Motors",
   description: "Get pre-approved for auto financing in minutes. No impact on your credit score. Competitive rates from multiple lenders. Apply online today.",
+  alternates: {
+    canonical: '/financing',
+  },
 }
 
 import { Header } from "@/components/header"

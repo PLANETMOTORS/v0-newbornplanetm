@@ -18,7 +18,11 @@ import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 function SignUpForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectTo = searchParams.get("redirectTo") || "/account"
+  const rawRedirectTo = searchParams.get("redirectTo")
+  // Sanitize redirectTo to prevent open redirect (OWASP WSTG-SESS-04)
+  const redirectTo = (rawRedirectTo && /^\/[^/]/.test(rawRedirectTo) && !/[\r\n\t]/.test(rawRedirectTo))
+    ? rawRedirectTo
+    : "/account"
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
