@@ -2,6 +2,7 @@ import { streamText, convertToModelMessages, UIMessage, consumeStream } from "ai
 import { NextResponse } from "next/server"
 import { getAISettings, getSiteSettings } from "@/lib/sanity/fetch"
 import { rateLimit } from "@/lib/redis"
+import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 
 // Allowed origins for the AI assistant endpoint
 const ALLOWED_ORIGINS = [
@@ -254,25 +255,25 @@ EXAMPLE ($35,000 at ${baseRate}%):
 =============================================
 PRICING & HST STRUCTURE:
 =============================================
-HST (13%) is NEVER included - add 13% to EVERYTHING!
+HST (${(PROVINCE_TAX_RATES.ON.hst * 100).toFixed(0)}%) is NEVER included - add ${(PROVINCE_TAX_RATES.ON.hst * 100).toFixed(0)}% to EVERYTHING!
 
 VEHICLE PRICE:
 - Listed Price does NOT include HST
-- Add 13% HST to vehicle price
+- Add ${(PROVINCE_TAX_RATES.ON.hst * 100).toFixed(0)}% HST to vehicle price
 
-ALL FEES (add 13% HST to each):
-- Finance/Doc Fee: $${fees?.financeDocFee || 895} + HST = $${Math.round((fees?.financeDocFee || 895) * 1.13)}
-- OMVIC Fee: $${fees?.omvic || 22} + HST = $${Math.round((fees?.omvic || 22) * 1.13)}
-- Licensing Fee: $${fees?.licensing || 59} + HST = $${Math.round((fees?.licensing || 59) * 1.13)}
+ALL FEES (add ${(PROVINCE_TAX_RATES.ON.hst * 100).toFixed(0)}% HST to each):
+- Finance/Doc Fee: $${fees?.financeDocFee || 895} + HST = $${Math.round((fees?.financeDocFee || 895) * (1 + PROVINCE_TAX_RATES.ON.hst))}
+- OMVIC Fee: $${fees?.omvic || 22} + HST = $${Math.round((fees?.omvic || 22) * (1 + PROVINCE_TAX_RATES.ON.hst))}
+- Licensing Fee: $${fees?.licensing || 59} + HST = $${Math.round((fees?.licensing || 59) * (1 + PROVINCE_TAX_RATES.ON.hst))}
 
-TOTAL FEES WITH HST: $${Math.round(((fees?.financeDocFee || 895) + (fees?.omvic || 22) + (fees?.licensing || 59)) * 1.13)}
+TOTAL FEES WITH HST: $${Math.round(((fees?.financeDocFee || 895) + (fees?.omvic || 22) + (fees?.licensing || 59)) * (1 + PROVINCE_TAX_RATES.ON.hst))}
 
 OUT-THE-DOOR EXAMPLE ($35,000 vehicle):
-- Vehicle: $35,000 + $4,550 HST = $39,550
-- Finance Doc: $895 + $116 HST = $1,011
-- OMVIC: $22 + $3 HST = $25
-- Licensing: $59 + $8 HST = $67
-- TOTAL: $40,653
+- Vehicle: $35,000 + $${Math.round(35000 * PROVINCE_TAX_RATES.ON.hst).toLocaleString()} HST = $${Math.round(35000 * (1 + PROVINCE_TAX_RATES.ON.hst)).toLocaleString()}
+- Finance Doc: $895 + $${Math.round(895 * PROVINCE_TAX_RATES.ON.hst)} HST = $${Math.round(895 * (1 + PROVINCE_TAX_RATES.ON.hst))}
+- OMVIC: $22 + $${Math.round(22 * PROVINCE_TAX_RATES.ON.hst)} HST = $${Math.round(22 * (1 + PROVINCE_TAX_RATES.ON.hst))}
+- Licensing: $59 + $${Math.round(59 * PROVINCE_TAX_RATES.ON.hst)} HST = $${Math.round(59 * (1 + PROVINCE_TAX_RATES.ON.hst))}
+- TOTAL: $${Math.round((35000 + 895 + 22 + 59) * (1 + PROVINCE_TAX_RATES.ON.hst)).toLocaleString()}
 
 KEY SELLING POINTS:
 - 210-point inspection on every vehicle
