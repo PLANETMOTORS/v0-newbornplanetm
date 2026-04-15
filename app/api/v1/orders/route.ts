@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
 
   const currentVehicleStatus = String(vehicle.status || '')
 
-  if (!['available', 'reserved'].includes(String(vehicle.status || ''))) {
+  if (!['available', 'reserved', 'checkout_in_progress'].includes(String(vehicle.status || ''))) {
     return NextResponse.json(
       { success: false, error: { code: 'VEHICLE_UNAVAILABLE', message: 'Vehicle is not available for ordering' } },
       { status: 409 }

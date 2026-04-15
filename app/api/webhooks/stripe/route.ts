@@ -198,13 +198,21 @@ export async function handleCheckoutSessionCompleted(
       throw new Error(`Failed to confirm order for vehicle ${vehicleId}: ${orderError.message}`)
     }
 
-    const { error: vehicleError } = await supabase
+    // CAS update: only transition if vehicle is still in checkout_in_progress or pending
+    const { data: vehicleLock, error: vehicleError } = await supabase
       .from('vehicles')
       .update({ status: 'pending', updated_at: new Date().toISOString() })
       .eq('id', vehicleId)
+      .in('status', ['checkout_in_progress', 'pending', 'available'])
+      .select('id')
+      .maybeSingle()
 
     if (vehicleError) {
       throw new Error(`Failed to transition vehicle ${vehicleId} after order confirmation: ${vehicleError.message}`)
+    }
+
+    if (!vehicleLock) {
+      console.warn(`[webhook] Vehicle ${vehicleId} status was already changed — possible duplicate webhook or race.`)
     }
 
     console.log(`[webhook] Vehicle ${vehicleId} order confirmed.`)
@@ -240,7 +248,7 @@ export async function handleCheckoutSessionAsyncPaymentFailed(
       .from('vehicles')
       .update({ status: 'available', updated_at: new Date().toISOString() })
       .eq('id', vehicleId)
-      .eq('status', 'reserved')
+      .in('status', ['reserved', 'checkout_in_progress'])
 
     if (vehicleError) {
       throw new Error(`Failed to release vehicle ${vehicleId} after async payment failure: ${vehicleError.message}`)
@@ -273,12 +281,12 @@ export async function handleCheckoutSessionExpired(
   }
 
   if (vehicleId) {
-    // Only release lock if vehicle is still in reserved state from this reservation
+    // Release lock if vehicle is in reserved OR checkout_in_progress state
     const { error: vehicleError } = await supabase
       .from('vehicles')
       .update({ status: 'available', updated_at: new Date().toISOString() })
       .eq('id', vehicleId)
-      .eq('status', 'reserved')
+      .in('status', ['reserved', 'checkout_in_progress'])
 
     if (vehicleError) {
       throw new Error(`Failed to release vehicle ${vehicleId} after session expiration: ${vehicleError.message}`)
@@ -314,7 +322,7 @@ export async function handlePaymentIntentFailed(
       .from('vehicles')
       .update({ status: 'available', updated_at: new Date().toISOString() })
       .eq('id', vehicleId)
-      .eq('status', 'reserved')
+      .in('status', ['reserved', 'checkout_in_progress'])
 
     if (vehicleError) {
       throw new Error(`Failed to release vehicle ${vehicleId} after payment failure: ${vehicleError.message}`)
