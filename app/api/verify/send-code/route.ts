@@ -1,13 +1,31 @@
 import { NextRequest, NextResponse } from "next/server"
+import { randomInt } from "crypto"
 import { sendNotificationEmail } from "@/lib/email"
+import { rateLimit } from "@/lib/redis"
+import { validateOrigin } from "@/lib/csrf"
 
 export async function POST(req: NextRequest) {
   try {
-    const { method, destination, code, purpose, vehicleName, vehicleInfo } = await req.json()
+    if (!validateOrigin(req)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
 
-    if (!destination || !code) {
+    // Rate limit: 5 verification code requests per hour per IP
+    const forwarded = req.headers.get("x-forwarded-for") || ""
+    const ip = forwarded.split(",")[0]?.trim() || "unknown"
+    const limiter = await rateLimit(`verify:${ip}`, 5, 3600)
+    if (!limiter.success) {
+      return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 })
+    }
+
+    const { method, destination, purpose, vehicleName, vehicleInfo } = await req.json()
+
+    if (!destination) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
+
+    // Server generates the verification code — never trust client-supplied codes
+    const code = String(randomInt(100000, 999999))
 
     if (method === "email") {
       // Send verification code via email
@@ -26,13 +44,13 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      return NextResponse.json({ success: true, method: "email" })
+      return NextResponse.json({ success: true, method: "email", code })
     } else if (method === "phone") {
       // For SMS, you would integrate with Twilio here
       // For demo purposes, we'll just log it
-      console.log(`[SMS] Verification code ${code} would be sent to ${destination}`)
+      console.log(`[SMS] Verification code would be sent to ${destination}`)
       
-      return NextResponse.json({ success: true, method: "sms", demo: true })
+      return NextResponse.json({ success: true, method: "sms", demo: true, code })
     }
 
     return NextResponse.json({ error: "Invalid method" }, { status: 400 })

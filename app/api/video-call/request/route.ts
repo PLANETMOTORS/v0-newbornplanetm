@@ -1,8 +1,23 @@
 import { NextResponse } from "next/server"
 import { sendNotificationEmail } from "@/lib/email"
+import { rateLimit } from "@/lib/redis"
+import { validateOrigin } from "@/lib/csrf"
 
 export async function POST(req: Request) {
   try {
+    // CSRF protection
+    if (!validateOrigin(req)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    // Rate limit: 5 video call requests per hour per IP
+    const forwarded = req.headers.get("x-forwarded-for") || ""
+    const ip = forwarded.split(",")[0]?.trim() || "unknown"
+    const limiter = await rateLimit(`video-call:${ip}`, 5, 3600)
+    if (!limiter.success) {
+      return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 })
+    }
+
     const { vehicleId, vehicleName, customerName, customerEmail, customerPhone, preferredTime, notes } = await req.json()
 
     // Validate required fields

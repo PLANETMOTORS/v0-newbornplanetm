@@ -54,21 +54,20 @@ export function PriceNegotiator({
 
   const sendVerificationCode = async () => {
     setIsSendingCode(true)
-    const code = Math.floor(100000 + Math.random() * 900000).toString()
-    setSentCode(code)
     
     try {
-      await fetch("/api/verify/send-code", {
+      const res = await fetch("/api/verify/send-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           method: verifyMethod,
           destination: verifyMethod === "email" ? contactInfo.email : contactInfo.phone,
-          code,
           purpose: "price_negotiation",
           vehicleName,
         }),
       })
+      const data = await res.json()
+      if (data.code) setSentCode(data.code)
     } catch {
       // Continue anyway for demo
     }
@@ -79,7 +78,7 @@ export function PriceNegotiator({
   const verifyCode = () => {
     setIsVerifying(true)
     setTimeout(() => {
-      if (verificationCode === sentCode || verificationCode === "123456") {
+      if (verificationCode === sentCode) {
         setStep("negotiate")
         setMessages([{
           role: "assistant",

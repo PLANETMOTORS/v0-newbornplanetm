@@ -326,21 +326,20 @@ export function InstantQuote() {
     if (!isFormValid()) return
     
     setIsSendingCode(true)
-    const code = Math.floor(100000 + Math.random() * 900000).toString()
-    setSentCode(code)
     
     try {
-      await fetch("/api/verify/send-code", {
+      const res = await fetch("/api/verify/send-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           method: verifyMethod,
           destination: verifyMethod === "email" ? formData.email : formData.phone,
-          code,
           purpose: "instant_cash_offer",
           vehicleInfo: `${formData.year} ${formData.make} ${formData.model}`,
         }),
       })
+      const data = await res.json()
+      if (data.code) setSentCode(data.code)
     } catch {
       // Continue anyway for demo
     } finally {
@@ -351,7 +350,7 @@ export function InstantQuote() {
 
   // Verify code and calculate quote
   const verifyAndCalculate = async () => {
-    if (verificationCode !== sentCode && verificationCode !== "123456") {
+    if (verificationCode !== sentCode) {
       return // Invalid code
     }
     

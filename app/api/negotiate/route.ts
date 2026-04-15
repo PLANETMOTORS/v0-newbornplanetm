@@ -1,8 +1,24 @@
 import { streamText, Output } from "ai"
 import { z } from "zod"
+import { NextResponse } from "next/server"
 import { getAISettings } from "@/lib/sanity/fetch"
+import { rateLimit } from "@/lib/redis"
+import { validateOrigin } from "@/lib/csrf"
 
 export async function POST(req: Request) {
+  // CSRF protection
+  if (!validateOrigin(req)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+
+  // Rate limit: 10 negotiations per hour per IP
+  const forwarded = req.headers.get("x-forwarded-for") || ""
+  const ip = forwarded.split(",")[0]?.trim() || "unknown"
+  const limiter = await rateLimit(`negotiate:${ip}`, 10, 3600)
+  if (!limiter.success) {
+    return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 })
+  }
+
   const { vehiclePrice, customerOffer, customerMessage, vehicleInfo } = await req.json()
 
   // Fetch AI settings from CMS

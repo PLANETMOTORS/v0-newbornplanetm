@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PROVINCE_TAX_RATES as taxRates } from '@/lib/tax/canada'
+import { rateLimit } from '@/lib/redis'
 
 // POST /api/v1/financing/calculator - Calculate payments
 export async function POST(request: NextRequest) {
+  // Rate limit: 30 calculations per hour per IP
+  const forwarded = request.headers.get("x-forwarded-for") || ""
+  const ip = forwarded.split(",")[0]?.trim() || "unknown"
+  const limiter = await rateLimit(`calc:${ip}`, 30, 3600)
+  if (!limiter.success) {
+    return NextResponse.json(
+      { success: false, error: { code: 'RATE_LIMITED', message: 'Too many requests. Please try again later.' } },
+      { status: 429 }
+    )
+  }
+
   const body = await request.json()
   
   const {
