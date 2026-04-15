@@ -56,6 +56,8 @@ export default function robots(): MetadataRoute.Robots {
         disallow: '/',
       },
     ],
+    // Next.js generates a sitemap index at /sitemap.xml with child sitemaps
+    // at /sitemap/0.xml (pages), /sitemap/1.xml (vehicles), /sitemap/2.xml (blog)
     sitemap: `${baseUrl}/sitemap.xml`,
     host: baseUrl,
   }

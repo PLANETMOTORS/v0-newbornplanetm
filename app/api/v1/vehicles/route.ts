@@ -5,6 +5,20 @@ import { createHash } from 'crypto'
 
 const ALLOWED_SORT_COLUMNS = new Set(['created_at', 'price', 'year', 'mileage', 'make', 'model'])
 
+// ─── TSVECTOR Full-Text Search (DB Fallback) ────────────────────────────────
+// Primary search is handled by Typesense (see /api/typesense and lib/typesense/).
+// The vehicles table also has a `search_vector` TSVECTOR column populated by a
+// trigger on INSERT/UPDATE. This column is available as a fallback if Typesense
+// is unavailable or for server-side search that doesn't need ranking/typo
+// tolerance. To use it:
+//
+//   SELECT * FROM vehicles
+//   WHERE search_vector @@ plainto_tsquery('english', 'tesla model 3')
+//   ORDER BY ts_rank(search_vector, plainto_tsquery('english', 'tesla model 3')) DESC;
+//
+// A GIN index on search_vector is created in scripts/001_create_vehicles_schema.sql.
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Only fetch the fields the inventory card actually renders — skips large text/JSON columns
 const VEHICLE_LIST_FIELDS = [
   'id', 'year', 'make', 'model', 'trim', 'price', 'msrp',
@@ -83,6 +97,12 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(Math.max(1, rawLimit), 250)
   const includeFilters = searchParams.get('includeFilters') === 'true'
 
+  // Cursor-based pagination: pass `cursor_id` + `cursor_created_at` to skip
+  // expensive OFFSET scans on large tables. When present, these override page-based
+  // pagination. The composite cursor uses (created_at, id) to guarantee stable ordering.
+  const cursorId = searchParams.get('cursor_id')
+  const cursorCreatedAt = searchParams.get('cursor_created_at')
+
   // Build a deterministic cache key from all query params
   const cacheKey = `vehicles:list:${hashKey(searchParams.toString())}`
 
@@ -122,10 +142,30 @@ export async function GET(request: NextRequest) {
   // Apply sorting
   const ascending = order === 'asc'
   query = query.order(sort, { ascending })
+  // Secondary sort on id guarantees deterministic ordering for cursor pagination
+  query = query.order('id', { ascending })
 
-  // Apply pagination
-  const startIndex = (page - 1) * limit
-  query = query.range(startIndex, startIndex + limit - 1)
+  // Cursor-based pagination: when a cursor is provided, use a composite
+  // (created_at, id) filter instead of OFFSET to avoid scanning skipped rows.
+  const useCursor = cursorId && cursorCreatedAt && sort === 'created_at'
+  if (useCursor) {
+    if (ascending) {
+      // Next page: created_at > cursor OR (created_at == cursor AND id > cursorId)
+      query = query.or(
+        `created_at.gt.${cursorCreatedAt},and(created_at.eq.${cursorCreatedAt},id.gt.${cursorId})`
+      )
+    } else {
+      // Next page (desc): created_at < cursor OR (created_at == cursor AND id < cursorId)
+      query = query.or(
+        `created_at.lt.${cursorCreatedAt},and(created_at.eq.${cursorCreatedAt},id.lt.${cursorId})`
+      )
+    }
+    query = query.limit(limit)
+  } else {
+    // Fallback: traditional offset pagination
+    const startIndex = (page - 1) * limit
+    query = query.range(startIndex, startIndex + limit - 1)
+  }
 
   const { data: vehicles, error, count } = await query
 
@@ -180,18 +220,32 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Build cursor for the last item so the client can request the next page
+  const vehicleList = (vehicles ?? [])
+    .map(toPublicVehicleListItem)
+    .filter((vehicle): vehicle is Record<string, unknown> => vehicle !== null)
+
+  const lastRaw = vehicles && vehicles.length > 0 ? vehicles[vehicles.length - 1] : null
+  const lastVehicle = lastRaw as unknown as Record<string, unknown> | null
+  const nextCursor = lastVehicle
+    ? { cursor_id: lastVehicle.id as string, cursor_created_at: lastVehicle.created_at as string }
+    : null
+
+  const hasMore = useCursor
+    ? vehicleList.length === limit
+    : (page - 1) * limit + limit < (count || 0)
+
   const responseBody = {
     success: true,
     data: {
-      vehicles: (vehicles ?? [])
-        .map(toPublicVehicleListItem)
-        .filter((vehicle): vehicle is Record<string, unknown> => vehicle !== null),
+      vehicles: vehicleList,
       pagination: {
         page,
         limit,
         total: count || 0,
         totalPages: Math.ceil((count || 0) / limit),
-        hasMore: startIndex + limit < (count || 0),
+        hasMore,
+        ...(nextCursor ? { nextCursor } : {}),
       },
       ...(filters ? { filters } : {}),
     },
