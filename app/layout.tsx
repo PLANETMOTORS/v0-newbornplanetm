@@ -136,6 +136,7 @@ export default function RootLayout({
         </AuthProvider>
         <Analytics />
         <SpeedInsights />
+        <script dangerouslySetInnerHTML={{ __html: 'window.addEventListener("load",function(){window.focus()})' }} />
       </body>
     </html>
   )

@@ -177,7 +177,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
   const saturdayHours = siteSettings.businessHours?.find(h => h.day === "Saturday")
 
   return (
-    <section id="main-content" aria-label="Home page content" className="overflow-x-hidden max-w-full">
+    <section id="main-content" tabIndex={-1} aria-label="Home page content" className="overflow-x-hidden max-w-full">
       {/* ========== BOX 2: HERO SECTION - Off-White #F9FAFB ========== */}
       <section className="relative overflow-hidden" style={{ backgroundColor: "#F1F5F9" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
@@ -198,13 +198,14 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
-                <Link
+                <a
                   href="/inventory"
+                  data-testid="hero-cta-btn"
                   className="inline-flex items-center gap-3 bg-[#dc2626] hover:bg-[#b91c1c] text-white text-lg font-semibold px-8 py-4 rounded-full shadow-lg shadow-red-600/25 transition-all hover:shadow-xl hover:shadow-red-600/30"
                 >
                   <span>Find Your Car</span>
                   <ArrowRight className="w-5 h-5 flex-shrink-0" />
-                </Link>
+                </a>
                 <Link
                   href="/trade-in"
                   className="inline-flex items-center gap-3 border-2 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white text-lg font-semibold px-8 py-[14px] rounded-full transition-all"

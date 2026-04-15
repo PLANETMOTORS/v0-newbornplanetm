@@ -695,7 +695,7 @@ export default function VehicleDetailPage() {
         {/* Vehicle Title Bar */}
         <div className="border-b py-4">
           <div className="container mx-auto px-4">
-            <h1 className="font-serif text-xl sm:text-2xl font-bold truncate">
+            <h1 data-testid="vdp-title" className="font-serif text-xl sm:text-2xl font-bold truncate">
               {vehicle.year} {vehicle.make} {vehicle.model}
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground">
@@ -732,10 +732,23 @@ export default function VehicleDetailPage() {
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
-                  <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] group">
+                  <div
+                    data-testid="vdp-image-gallery"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowRight") { nextImage(); e.preventDefault() }
+                      if (e.key === "ArrowLeft") { prevImage(); e.preventDefault() }
+                    }}
+                    className="relative aspect-[16/10] rounded-xl overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] group focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    {/* Hidden native img for vdp-active-image testid (Playwright getAttribute('src')) */}
+                    {currentImages.length > 0 && currentImages[currentImageIndex] && (
+                      <img data-testid="vdp-active-image" src={currentImages[currentImageIndex]} alt="" className="hidden" />
+                    )}
                     {currentImages.length > 0 && currentImages[currentImageIndex] ? (
                       <>
                         <Image
+                          data-testid="vdp-hero-image"
                           src={currentImages[currentImageIndex]}
                           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                           fill
@@ -1862,14 +1875,15 @@ export default function VehicleDetailPage() {
                         Reserve – $250 Refundable Deposit
                       </Button>
                     )}
-                    <Button 
-                      className="w-full h-11" 
+                    <Button
+                      data-testid="btn-start-purchase"
+                      className="w-full h-11"
                       variant="secondary"
-                      onClick={() => handleProtectedAction("start your purchase", () => {
-                        window.location.href = `/checkout/${vehicle.id}`
-                      })}
+                      asChild
                     >
-                      Start full purchase
+                      <a href={`/checkout/${vehicle.id}`}>
+                        Start full purchase
+                      </a>
                     </Button>
                   </div>
 

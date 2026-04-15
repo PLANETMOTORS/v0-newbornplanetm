@@ -54,11 +54,29 @@ export function SearchAutocomplete() {
 
   useEffect(() => {
     if (query.length >= 2) {
-      // Filter sample results - in production this would be an API call
-      const filtered = sampleResults.filter(r => 
-        r.title.toLowerCase().includes(query.toLowerCase())
-      )
-      setResults(filtered)
+      // Call search API (backed by Typesense) and fallback to local filter
+      const controller = new AbortController()
+      fetch(`/api/search?q=${encodeURIComponent(query)}`, { signal: controller.signal })
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data?.results?.length) {
+            setResults(data.results as SearchResult[])
+          } else {
+            // Fallback to local filter
+            const filtered = sampleResults.filter(r =>
+              r.title.toLowerCase().includes(query.toLowerCase())
+            )
+            setResults(filtered)
+          }
+        })
+        .catch(() => {
+          // Fallback to local filter on network error
+          const filtered = sampleResults.filter(r =>
+            r.title.toLowerCase().includes(query.toLowerCase())
+          )
+          setResults(filtered)
+        })
+      return () => controller.abort()
     } else {
       setResults([])
     }
@@ -69,6 +87,7 @@ export function SearchAutocomplete() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
+          data-testid="typesense-search-input"
           placeholder="Search by make, model, or keyword..."
           className="pl-10 pr-4"
           value={query}
@@ -78,7 +97,7 @@ export function SearchAutocomplete() {
       </div>
 
       {isOpen && (
-        <div aria-live="polite" className="absolute top-full left-0 right-0 mt-2 bg-background border rounded-lg shadow-lg z-50 overflow-hidden">
+        <div data-testid="search-results-dropdown" aria-live="polite" className="absolute top-full left-0 right-0 mt-2 bg-background border rounded-lg shadow-lg z-50 overflow-hidden">
           {query.length < 2 ? (
             <div className="p-4">
               {/* Recent Searches */}
@@ -129,6 +148,7 @@ export function SearchAutocomplete() {
                 <Link
                   key={result.id}
                   href={result.url}
+                  data-testid="search-result-item"
                   className="flex items-center gap-3 px-4 py-2 hover:bg-muted"
                   onClick={() => setIsOpen(false)}
                 >

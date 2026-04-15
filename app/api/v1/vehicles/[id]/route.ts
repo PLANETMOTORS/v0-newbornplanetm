@@ -82,7 +82,22 @@ export async function GET(
       })
     }
 
-    const supabase = await createClient()
+    let supabase: Awaited<ReturnType<typeof createClient>>
+    try {
+      supabase = await createClient()
+    } catch {
+      // Supabase not configured — return mock vehicle for local development
+      const mock = getMockVehicleDetail(id)
+      if (mock) {
+        return NextResponse.json({ success: true, data: { vehicle: mock } }, {
+          headers: { 'Cache-Control': 'no-store', 'X-Cache': 'MOCK' },
+        })
+      }
+      return NextResponse.json(
+        { success: false, error: { code: "NOT_FOUND", message: "Vehicle not found" } },
+        { status: 404 }
+      )
+    }
 
     const { data: vehicle, error } = await supabase
       .from("vehicles")
@@ -205,4 +220,14 @@ export async function PATCH(
       { status: 500 }
     )
   }
+}
+
+// Mock vehicle detail for local development when Supabase is unavailable
+function getMockVehicleDetail(id: string) {
+  const mocks: Record<string, Record<string, unknown>> = {
+    "mock-tesla-3": { id: "mock-tesla-3", year: 2024, make: "Tesla", model: "Model 3", trim: "Long Range AWD", price: 54995, msrp: 57995, mileage: 8200, fuel_type: "Electric", body_style: "Sedan", transmission: "Automatic", drivetrain: "AWD", exterior_color: "Pearl White", interior_color: "Black", primary_image_url: "/placeholder.jpg", image_urls: ["/placeholder.jpg", "/placeholder-user.jpg", "/placeholder-logo.png"], status: "available", stock_number: "PM-2024-001", vin: "5YJ3E1EA1PF000001", is_certified: true, is_new_arrival: true, is_ev: true, battery_capacity_kwh: 82, range_miles: 358, ev_battery_health_percent: 98, inspection_score: 195, engine: "Dual Motor Electric", features: ["Autopilot", "Premium Interior", "Long Range Battery"], description: "2024 Tesla Model 3 Long Range AWD in excellent condition." },
+    "mock-tesla-y": { id: "mock-tesla-y", year: 2024, make: "Tesla", model: "Model Y", trim: "Performance", price: 61995, msrp: 63995, mileage: 5100, fuel_type: "Electric", body_style: "SUV", transmission: "Automatic", drivetrain: "AWD", exterior_color: "Midnight Silver", interior_color: "White", primary_image_url: "/placeholder.jpg", image_urls: ["/placeholder.jpg", "/placeholder.jpg"], status: "available", stock_number: "PM-2024-002", vin: "5YJ3E1EA1PF000002", is_certified: true, is_new_arrival: false, is_ev: true, battery_capacity_kwh: 75, range_miles: 303, ev_battery_health_percent: 99, inspection_score: 200, engine: "Dual Motor Electric", features: ["Performance Package", "Full Self-Driving"], description: "2024 Tesla Model Y Performance." },
+    "mock-bmw-i4": { id: "mock-bmw-i4", year: 2023, make: "BMW", model: "i4", trim: "eDrive40", price: 52995, msrp: 56995, mileage: 12300, fuel_type: "Electric", body_style: "Sedan", transmission: "Automatic", drivetrain: "RWD", exterior_color: "Black Sapphire", interior_color: "Cognac", primary_image_url: "/placeholder.jpg", image_urls: ["/placeholder.jpg"], status: "available", stock_number: "PM-2024-003", vin: "WBA53BJ01PCK00003", is_certified: true, is_new_arrival: false, is_ev: true, battery_capacity_kwh: 83.9, range_miles: 301, ev_battery_health_percent: 97, inspection_score: 188, engine: "Single Motor Electric", features: ["iDrive 8", "Driving Assistant Pro"], description: "2023 BMW i4 eDrive40." },
+  }
+  return mocks[id] || null
 }

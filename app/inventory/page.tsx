@@ -773,8 +773,9 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
           {/* Vehicle Grid */}
           <div aria-live="polite" className={`py-8 ${viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "space-y-4"}`}>
             {sortedVehicles.map((vehicle) => (
-              <Card 
-                key={vehicle.id} 
+              <Card
+                key={vehicle.id}
+                data-testid="inventory-card"
                 className={`group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${
                   viewMode === "list" ? "flex flex-col sm:flex-row" : ""
                 }`}
@@ -859,7 +860,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   <div>
                     {/* Title */}
                     <Link href={tradeInInfo ? `/vehicles/${vehicle.id}?tradeIn=${tradeInInfo.value}&quoteId=${tradeInInfo.quoteId}&tradeInVehicle=${encodeURIComponent(tradeInInfo.vehicle)}` : `/vehicles/${vehicle.id}`} className="block group/link">
-                      <h3 className="font-semibold text-lg group-hover/link:text-primary transition-colors">
+                      <h3 data-testid="card-title" className="font-semibold text-lg group-hover/link:text-primary transition-colors">
                         {vehicle.year} {vehicle.make} {vehicle.model}
                       </h3>
                       <p className="text-sm text-muted-foreground">{vehicle.trim}</p>

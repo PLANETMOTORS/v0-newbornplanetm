@@ -6,6 +6,7 @@ import { ChevronDown, Phone, MapPin, Star, Award, CheckCircle, Shield, Truck } f
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import { SignInPanel } from "@/components/sign-in-panel"
 import NavButton from "@/components/nav-button"
+import { SearchAutocomplete } from "@/components/search-autocomplete"
 import { useAuth } from "@/contexts/auth-context"
 import { trackPhoneClick } from "@/components/analytics/google-tag-manager"
 
@@ -170,8 +171,9 @@ export function Header() {
 
   return (
     <>
-      <a 
-        href="#main-content" 
+      <a
+        href="#main-content"
+        data-testid="skip-nav-link"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-md"
       >
         Skip to main content
@@ -225,10 +227,14 @@ export function Header() {
               </div>
             </Link>
 
-            <DesktopNav 
-              activeSubmenu={activeSubmenu} 
-              setActiveSubmenu={setActiveSubmenu} 
+            <DesktopNav
+              activeSubmenu={activeSubmenu}
+              setActiveSubmenu={setActiveSubmenu}
             />
+          </div>
+
+          <div className="hidden md:flex flex-1 max-w-sm mx-4">
+            <SearchAutocomplete />
           </div>
 
           <div className="hidden lg:flex items-center gap-2">

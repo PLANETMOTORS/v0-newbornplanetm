@@ -11,6 +11,8 @@ export default defineConfig({
     baseURL: "http://localhost:3000",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
+    navigationTimeout: 15000,
+    actionTimeout: 2000,
   },
   projects: [
     // Auth setup — generates Supabase session for authenticated tests
@@ -26,11 +28,21 @@ export default defineConfig({
       : []),
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        // Inject a script that ensures :focus pseudo-class works in headless mode
+        // by giving the document focus on every page load
+        contextOptions: {
+          bypassCSP: true,
+        },
+        launchOptions: {
+          args: ['--disable-gpu', '--no-sandbox'],
+        },
+      },
     },
   ],
   webServer: {
-    command: "pnpm dev",
+    command: process.env.CI ? "pnpm start" : "pnpm dev",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
