@@ -238,7 +238,7 @@ function calculateDeliveryCost(distanceKm: number): { cost: number; isFree: bool
 }
 
 // GET /api/v1/deliveries/quote?postalCode=M5V1A1
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const postalCode = searchParams.get("postalCode")
 

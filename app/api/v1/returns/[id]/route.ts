@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 
 // GET /api/v1/returns/:id - Get return status
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient()

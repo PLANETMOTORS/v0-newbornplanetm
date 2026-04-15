@@ -242,7 +242,7 @@ export default function CheckoutPage() {
     setStep(2)
   }
 
-const handleSubmit = async () => {
+const handleSubmit = () => {
     setIsSubmitting(true)
 
     // If financing, redirect to full finance application

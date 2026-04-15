@@ -161,7 +161,7 @@ export async function POST(request: Request) {
 }
 
 // GET endpoint to download CSV template
-export async function GET() {
+export function GET() {
   const headers = [
     "stock_number",
     "vin",

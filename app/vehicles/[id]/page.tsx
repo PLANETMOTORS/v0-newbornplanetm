@@ -355,6 +355,7 @@ export default function VehicleDetailPage() {
   const searchParams = useSearchParams()
   const vehicleId = params.id as string
   const { user } = useAuth()
+  // deno-lint-ignore no-explicit-any
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Complex merged mock+DB vehicle shape
   const [vehicle, setVehicle] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)

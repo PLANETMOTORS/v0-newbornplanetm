@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET /api/v1/financing/lenders - List available lenders
-export async function GET() {
+export function GET() {
   return NextResponse.json({
     success: true,
     data: {

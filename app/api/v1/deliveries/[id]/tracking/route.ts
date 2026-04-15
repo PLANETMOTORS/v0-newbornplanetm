@@ -22,7 +22,7 @@ function toStatusLabel(status: string): string {
 
 // GET /api/v1/deliveries/:id/tracking - Get real-time tracking
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient()
