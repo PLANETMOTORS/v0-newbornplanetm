@@ -1,0 +1,25 @@
+# Sauce Labs ignore file - exclude unnecessary files from upload
+.git/
+.next/
+.vercel/
+.netlify/
+out/
+coverage/
+test-results/
+playwright-report/
+studio/
+scripts/
+__tests__/
+*.md
+*.log
+*.map
+.env*
+node_modules/.cache/
+node_modules/@next/swc*
+node_modules/@swc*
+node_modules/sharp/
+node_modules/esbuild/
+node_modules/@esbuild/
+node_modules/turbo*/
+node_modules/typescript/
+node_modules/prettier/
