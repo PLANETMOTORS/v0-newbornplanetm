@@ -9,6 +9,9 @@ const analyzeBundles = withBundleAnalyzer({
 const nextConfig = {
   // CRITICAL: Transpile Sanity packages to prevent duplicate bundling
   transpilePackages: ['sanity', 'next-sanity', '@sanity/vision', '@sanity/ui', '@sanity/client'],
+
+  // Exclude native Node.js modules from bundling (required for ssh2/sftp in API routes)
+  serverExternalPackages: ['ssh2', 'ssh2-sftp-client', 'cpu-features'],
   
   // Turbopack: explicitly set the workspace root so Turbopack doesn't
   // incorrectly infer the Next.js app directory as the project root.
