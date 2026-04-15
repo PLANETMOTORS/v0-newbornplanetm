@@ -1,13 +1,13 @@
-import { neon } from "@neondatabase/serverless"
 import { NextResponse } from "next/server"
-
-function getSql() {
-  const url = process.env.DATABASE_URL
-  if (!url) return null
-  return neon(url)
-}
-
-type SqlClient = NonNullable<ReturnType<typeof getSql>>
+import { triggerImagePipelineAsync, type ImagePipelineVehicle } from "@/lib/homenet/image-pipeline"
+import {
+  type VehicleData,
+  getSql,
+  parseHomenetCSV,
+  parseHomenetXML,
+  parseCSVLine,
+  syncVehiclesToDatabase,
+} from "@/lib/homenet/parser"
 
 // API Key for HomenetIOL webhook authentication
 const HOMENET_API_KEY = process.env.HOMENET_API_KEY
@@ -95,11 +95,27 @@ export async function POST(request: Request) {
 
     console.log(`[HomenetIOL] Sync complete: ${result.inserted} inserted, ${result.updated} updated, ${result.errors.length} errors`)
 
+    // Trigger image pipeline async (don't block the cron response)
+    const pipelineVehicles: ImagePipelineVehicle[] = vehicles
+      .filter((v) => v.image_urls && v.image_urls.length > 0)
+      .map((v) => ({
+        stock_number: v.stock_number,
+        vin: v.vin,
+        image_urls: v.image_urls || [],
+        has_360_spin: v.has_360_spin || false,
+      }))
+
+    if (pipelineVehicles.length > 0) {
+      console.log(`[HomenetIOL] Triggering image pipeline for ${pipelineVehicles.length} vehicles with images`)
+      triggerImagePipelineAsync(pipelineVehicles)
+    }
+
     return NextResponse.json({
       success: true,
       message: `Processed ${vehicles.length} vehicles`,
       inserted: result.inserted,
       updated: result.updated,
+      imagePipelineTriggered: pipelineVehicles.length,
       errors: result.errors.length > 0 ? result.errors : undefined,
       timestamp: new Date().toISOString()
     })
@@ -141,9 +157,8 @@ export async function GET() {
   })
 }
 
-// ==================== TYPES ====================
-
-interface VehicleData {
+// Types, parsers, and DB sync are now imported from @/lib/homenet/parser
+// Legacy local definitions removed — see lib/homenet/parser.ts
   stock_number: string
   vin: string
   year: number
