@@ -114,8 +114,8 @@ function VehicleCard({ vehicle }: VehicleCardProps) {
 
   return (
     <div className="group bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg transition-shadow min-w-0" style={{ contain: 'layout style' }}>
-      {/* Image */}
-      <div className="relative aspect-[4/3] overflow-hidden">
+      {/* Image - clickable to vehicle detail page */}
+      <Link href={`/viewer/${vehicle.id}`} className="relative aspect-[4/3] overflow-hidden block">
         <Image
           src={vehicle.image}
           alt={vehicle.name}
@@ -156,7 +156,7 @@ function VehicleCard({ vehicle }: VehicleCardProps) {
             )}
           />
         </button>
-      </div>
+      </Link>
 
       {/* Content */}
       <div className="p-4">

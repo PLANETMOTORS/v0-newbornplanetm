@@ -15,6 +15,7 @@ import { LiveChatWidget } from "@/components/live-chat-widget"
 import { Button } from "@/components/ui/button"
 
 import { FinanceApplicationForm } from "@/components/finance-application-form"
+import { FinancingCalculator } from "@/components/financing-calculator"
 import { CheckCircle, ArrowRight, Shield, Clock, BadgeCheck, User } from "lucide-react"
 import Link from "next/link"
 
@@ -229,6 +230,24 @@ export default async function FinancingPage() {
                 <p className="text-center text-sm text-muted-foreground mt-4">3. Aggregate and rank offers</p>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Financing Calculator */}
+      <section id="calculator" className="py-16 lg:py-24">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <h2 className="font-serif text-3xl md:text-4xl font-semibold">
+              Financing Calculator
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              Estimate your monthly payments before you apply. This calculator is for planning only — get pre-approved above for your actual rate.
+            </p>
+          </div>
+
+          <div className="max-w-xl mx-auto bg-card rounded-2xl border border-border p-8 shadow-lg">
+            <FinancingCalculator />
           </div>
         </div>
       </section>

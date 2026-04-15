@@ -507,25 +507,24 @@ const handleSubmit = () => {
                       />
                     </div>
                     
-                    {/* City and Province - Auto-filled from Postal Code */}
+                    {/* City and Province - Auto-filled from Postal Code but manually editable */}
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="city">City * <span className="text-xs text-muted-foreground">(Auto-filled)</span></Label>
+                        <Label htmlFor="city">City * <span className="text-xs text-muted-foreground">(Auto-filled, editable)</span></Label>
                         <Input
                           id="city"
                           value={formData.city}
-                          readOnly
-                          className="bg-muted"
-                          placeholder="Enter postal code first"
+                          onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                          placeholder="Enter city"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="province">Province <span className="text-xs text-muted-foreground">(Auto-filled)</span></Label>
+                        <Label htmlFor="province">Province * <span className="text-xs text-muted-foreground">(Auto-filled, editable)</span></Label>
                         <Input 
                           id="province" 
                           value={formData.province === "ON" ? "Ontario" : formData.province} 
-                          readOnly 
-                          className="bg-muted" 
+                          onChange={(e) => setFormData({ ...formData, province: e.target.value })}
+                          placeholder="Enter province"
                         />
                       </div>
                     </div>
@@ -542,7 +541,7 @@ const handleSubmit = () => {
                   </CardHeader>
                   <CardContent>
                     <RadioGroup value={deliveryType} onValueChange={(v) => setDeliveryType(v as "pickup" | "delivery")}>
-                      <div className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50">
+                      <div className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-all ${deliveryType === "pickup" ? "ring-2 ring-primary" : ""}`} onClick={() => setDeliveryType("pickup")}>
                         <RadioGroupItem value="pickup" id="pickup" />
                         <Label htmlFor="pickup" className="flex-1 cursor-pointer">
                           <div className="font-medium">Pickup at Dealership</div>
@@ -550,7 +549,7 @@ const handleSubmit = () => {
                         </Label>
                         <Badge variant="secondary">FREE</Badge>
                       </div>
-                      <div className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 mt-2">
+                      <div className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 mt-2 transition-all ${deliveryType === "delivery" ? "ring-2 ring-primary" : ""}`} onClick={() => setDeliveryType("delivery")}>
                         <RadioGroupItem value="delivery" id="delivery" />
                         <Label htmlFor="delivery" className="flex-1 cursor-pointer">
                           <div className="font-medium">Home Delivery</div>
@@ -625,7 +624,7 @@ const handleSubmit = () => {
                   </CardHeader>
                   <CardContent>
                     <RadioGroup value={purchaseType} onValueChange={(v) => setPurchaseType(v as "finance" | "cash")}>
-                      <div className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50">
+                      <div className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-all ${purchaseType === "finance" ? "ring-2 ring-primary" : ""}`} onClick={() => setPurchaseType("finance")}>
                         <RadioGroupItem value="finance" id="finance" />
                         <Label htmlFor="finance" className="flex-1 cursor-pointer">
                           <div className="font-medium">Finance</div>
@@ -633,7 +632,7 @@ const handleSubmit = () => {
                         </Label>
                         <Badge className="bg-green-600">Popular</Badge>
                       </div>
-                      <div className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 mt-2">
+                      <div className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 mt-2 transition-all ${purchaseType === "cash" ? "ring-2 ring-primary" : ""}`} onClick={() => setPurchaseType("cash")}>
                         <RadioGroupItem value="cash" id="cash" />
                         <Label htmlFor="cash" className="flex-1 cursor-pointer">
                           <div className="font-medium">Pay in Full</div>
@@ -655,7 +654,7 @@ const handleSubmit = () => {
                   <CardContent>
                     <RadioGroup value={selectedProtection} onValueChange={setSelectedProtection}>
                       {PROTECTION_PLANS.map((plan) => (
-                        <div key={plan.id} className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 ${plan.id === "lifeproof" ? "border-primary bg-primary/5" : ""} ${plan.id !== "none" ? "mt-2" : ""}`}>
+                        <div key={plan.id} className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 ${plan.id === "lifeproof" ? "border-primary bg-primary/5" : ""} ${selectedProtection === plan.id ? "ring-2 ring-primary" : ""} ${plan.id !== "none" ? "mt-2" : ""}`} onClick={() => setSelectedProtection(plan.id)}>
                           <RadioGroupItem value={plan.id} id={`plan-${plan.id}`} />
                           <Label htmlFor={`plan-${plan.id}`} className="flex-1 cursor-pointer">
                             <div className="flex items-center gap-2">
