@@ -712,4 +712,93 @@ CREATE POLICY "Users can view own payments"
    └───────────┘     └────────────┘     └────────┘
 ```
 
-*Document Version: 1.0**Last Updated: March 28, 2026*
+## 15. Profiles Table
+
+Extended user profile data stored alongside Supabase Auth. Keyed by `auth.users.id`. Used by `GET /api/v1/customers/me` and `PUT /api/v1/customers/me`.
+
+```sql
+CREATE TABLE public.profiles (
+  id         UUID        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email      TEXT,
+  first_name TEXT,
+  last_name  TEXT,
+  phone      TEXT,
+  notification_preferences JSONB DEFAULT '{"email": true, "sms": false}',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- RLS Policies
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own profile"
+  ON public.profiles FOR SELECT
+  USING (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile"
+  ON public.profiles FOR ALL
+  USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);
+```
+
+## 16. Database Functions (RPC)
+
+### get_vehicle_aggregations()
+
+Returns make/body-style counts and price-bucket counts for all `available` vehicles in a single database round-trip. Used by `POST /api/v1/vehicles/search` when aggregations are not already cached in Redis.
+
+```sql
+CREATE OR REPLACE FUNCTION public.get_vehicle_aggregations()
+RETURNS JSON
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT json_build_object(
+    'makes', (
+      SELECT json_agg(row_to_json(t) ORDER BY t.key)
+      FROM (
+        SELECT make AS key, COUNT(*)::int AS count
+        FROM vehicles
+        WHERE status = 'available' AND make IS NOT NULL
+        GROUP BY make
+      ) t
+    ),
+    'bodyStyles', (
+      SELECT json_agg(row_to_json(t) ORDER BY t.key)
+      FROM (
+        SELECT body_style AS key, COUNT(*)::int AS count
+        FROM vehicles
+        WHERE status = 'available' AND body_style IS NOT NULL
+        GROUP BY body_style
+      ) t
+    ),
+    'priceRanges', (
+      SELECT json_agg(row_to_json(t))
+      FROM (
+        SELECT range_label AS key, COUNT(*)::int AS count
+        FROM vehicles
+        CROSS JOIN LATERAL (
+          SELECT CASE
+            WHEN price < 3000000                       THEN 'Under $30k'
+            WHEN price >= 3000000 AND price < 5000000  THEN '$30k-$50k'
+            WHEN price >= 5000000 AND price < 7500000  THEN '$50k-$75k'
+            WHEN price >= 7500000 AND price < 10000000 THEN '$75k-$100k'
+            ELSE 'Over $100k'
+          END AS range_label
+        ) r
+        WHERE status = 'available'
+        GROUP BY range_label
+        ORDER BY MIN(price)
+      ) t
+    )
+  );
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_vehicle_aggregations() TO anon, authenticated;
+```
+
+> **Note:** Prices in this function are stored as integers in cents (e.g. `3000000` = $30,000). Results are cached by the application layer in Redis for 10 minutes under the key `vehicles:aggregations:available`.
+
+*Document Version: 1.1**Last Updated: April 15, 2026*

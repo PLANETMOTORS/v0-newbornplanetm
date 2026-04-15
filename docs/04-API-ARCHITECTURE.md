@@ -26,6 +26,7 @@ Authorization: Bearer <supabase_access_token>
 | Method | Endpoint | Description | Auth |
 | --- | --- | --- | --- |
 | GET | /vehicles | List all vehicles | Public |
+| POST | /vehicles/search | Advanced vehicle search with aggregations | Public |
 | GET | /vehicles/:id | Get vehicle details | Public |
 | GET | /vehicles/:id/photos | Get vehicle photos | Public |
 | GET | /vehicles/:id/inspection | Get inspection report | Public |
@@ -38,34 +39,98 @@ Query Parameters:
 ```
 ?make=Tesla
 &model=Model+3
-&year_min=2022
-&year_max=2024
-&price_min=30000
-&price_max=60000
-&fuel_type=Electric
-&body_type=Sedan
+&minYear=2022
+&maxYear=2024
+&minPrice=30000
+&maxPrice=60000
+&fuelType=Electric
+&bodyStyle=Sedan
 &transmission=Automatic
 &drivetrain=AWD
+&exteriorColor=White
 &status=available
-&is_certified=true
-&sort=price_asc
+&q=model+3          (text search across make/model/trim)
+&sort=price         (created_at | price | year | mileage | make | model)
+&order=asc          (asc | desc, default: desc)
 &page=1
-&limit=20
+&limit=20           (max 250)
+&includeFilters=true  (return facet values for filter UI)
 ```
 
 Response:
 
 ```json
 {
-  "vehicles": [...],
-  "pagination": {
-    "page": 1,
-    "limit": 20,
-    "total": 156,
-    "totalPages": 8
+  "success": true,
+  "data": {
+    "vehicles": [...],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 156,
+      "totalPages": 8,
+      "hasMore": true
+    },
+    "filters": {
+      "makes": ["Audi", "BMW", "Tesla"],
+      "bodyStyles": ["Sedan", "SUV"],
+      "fuelTypes": ["Electric", "Gasoline"],
+      "priceRange": { "min": 18000, "max": 120000 },
+      "yearRange": { "min": 2018, "max": 2026 }
+    }
   }
 }
 ```
+
+> `filters` is only included when `includeFilters=true`. Prices are returned in dollars (converted from the internal cent storage).
+
+**Caching:** Responses are cached in Redis for 5 minutes (`Cache-Control: public, s-maxage=300, stale-while-revalidate=600`). The `X-Cache` response header indicates `HIT` or `MISS`. Facets are cached separately for 10 minutes per `status` value.
+
+#### POST /vehicles/search
+
+Advanced search with aggregations for the filter sidebar.
+
+Request Body:
+
+```json
+{
+  "query": "tesla model 3",
+  "filters": {
+    "makes": ["Tesla"],
+    "bodyStyles": ["Sedan"],
+    "fuelTypes": ["Electric"],
+    "priceRange": { "min": 30000, "max": 60000 },
+    "yearRange": { "min": 2022, "max": 2024 }
+  },
+  "sort": { "field": "price", "order": "asc" },
+  "pagination": { "page": 1, "limit": 20 }
+}
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "vehicles": [...],
+    "total": 12,
+    "aggregations": {
+      "makes": [{ "key": "Tesla", "count": 12 }],
+      "bodyStyles": [{ "key": "Sedan", "count": 8 }, { "key": "SUV", "count": 4 }],
+      "priceRanges": [
+        { "key": "Under $30k", "count": 0 },
+        { "key": "$30k-$50k", "count": 7 },
+        { "key": "$50k-$75k", "count": 5 },
+        { "key": "$75k-$100k", "count": 0 },
+        { "key": "Over $100k", "count": 0 }
+      ]
+    }
+  }
+}
+```
+
+Aggregations are computed from all `available` vehicles (not just the current page) and cached in Redis for 10 minutes.
 
 ### Customers
 
@@ -77,6 +142,49 @@ Response:
 | POST | /customers/me/addresses | Add address | Required |
 | PUT | /customers/me/addresses/:id | Update address | Required |
 | DELETE | /customers/me/addresses/:id | Delete address | Required |
+
+#### GET /customers/me
+
+Returns the authenticated user's profile from the `profiles` table.
+
+Response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "customer": {
+      "id": "uuid",
+      "email": "user@example.com",
+      "firstName": "Jane",
+      "lastName": "Doe",
+      "phone": "+1 416-555-0100",
+      "notificationPreferences": { "email": true, "sms": false },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-04-14T12:00:00.000Z"
+    }
+  }
+}
+```
+
+#### PUT /customers/me
+
+Upserts the authenticated user's profile. Only the fields provided are updated.
+
+Request Body (all fields optional):
+
+```json
+{
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "phone": "+1 416-555-0100",
+  "notificationPreferences": { "email": true, "sms": false }
+}
+```
+
+Validation rules:
+- `firstName` / `lastName`: 1–50 characters; letters (any Unicode script), spaces, hyphens, and apostrophes only. Input is NFC-normalized before validation.
+- `phone`: up to 20 characters; digits, spaces, `+`, `(`, `)`, `.`, `-` only.
 
 ### Orders
 
@@ -355,4 +463,4 @@ API version is included in the URL path: `/api/v1/*`
 
 Breaking changes will increment the version number. Previous versions will be supported for 12 months after a new version is released.
 
-*Document Version: 1.0**Last Updated: March 28, 2026*
+*Document Version: 1.1**Last Updated: April 15, 2026*
