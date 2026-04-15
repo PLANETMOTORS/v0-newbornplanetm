@@ -29,6 +29,7 @@ import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import { loadStripe } from "@stripe/stripe-js"
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js"
 import { startVehicleCheckout } from "@/app/actions/stripe"
+import { OMVIC_FEE, CERTIFICATION_FEE, LICENSING_FEE, HST_RATE } from "@/lib/pricing/format"
 
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null
@@ -139,10 +140,10 @@ export default function CheckoutPage() {
 
   const vehiclePrice = vehicleData.price
   const protectionPrice = PROTECTION_PLANS.find(p => p.id === selectedProtection)?.price || 0
-  const omvicFee = 22 // OMVIC regulatory fee
-  const certificationFee = 595 // Safety certification
+  const omvicFee = OMVIC_FEE
+  const certificationFee = CERTIFICATION_FEE
   const financeDocsFee = 895 // Finance docs fee (only applies if financing)
-  const licensingFee = 59 // Ontario licensing & registration (estimated)
+  const licensingFee = LICENSING_FEE
   // Dynamic delivery fee based on postal code distance (free within 300km)
   const deliveryFee = deliveryType === "delivery"
     ? (deliveryQuote?.cost ?? 299)
@@ -150,7 +151,7 @@ export default function CheckoutPage() {
   // Subtotal before HST (vehicle + all fees + protection)
   const subtotalBeforeHst = vehiclePrice + protectionPrice + omvicFee + certificationFee + (purchaseType === "finance" ? financeDocsFee : 0) + licensingFee + deliveryFee
   // HST applies to FULL subtotal (13%)
-  const hst = Math.round(subtotalBeforeHst * 0.13)
+  const hst = Math.round(subtotalBeforeHst * HST_RATE)
   // Total with HST
   const total = subtotalBeforeHst + hst
 

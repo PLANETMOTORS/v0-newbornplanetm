@@ -19,7 +19,6 @@ export default function robots(): MetadataRoute.Robots {
           '/auth/callback',
           '/auth/error',
           '/auth/verify-email',
-          '/*.json$',
           '/private/',
         ],
       },

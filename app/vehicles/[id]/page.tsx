@@ -40,6 +40,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { trackProductView, trackPhoneClick } from "@/components/analytics/google-tag-manager"
+import { calculateAllInPrice } from "@/lib/pricing/format"
 import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
 import { trackMetaViewContent, trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
 
@@ -329,15 +330,18 @@ const vehicleData = {
       price: "$4,850"
     }
   ],
-  pricing: {
-    vehiclePrice: 52990,
-    deliveryFee: 0,
-    hst: 6889,
-    omvicFee: 22,
-    certificationFee: 595,
-    licensingReg: 59,
-    totalWithHst: 60555
-  },
+  pricing: (() => {
+    const breakdown = calculateAllInPrice(52990)
+    return {
+      vehiclePrice: breakdown.vehiclePrice,
+      deliveryFee: 0,
+      hst: breakdown.hst,
+      omvicFee: breakdown.omvicFee,
+      certificationFee: breakdown.certificationFee,
+      licensingReg: breakdown.licensingFee,
+      totalWithHst: breakdown.total,
+    }
+  })(),
   history: {
     owners: 1,
     accidents: 0,
@@ -408,11 +412,7 @@ export default function VehicleDetailPage() {
         if (data) {
           // API already returns price in dollars (divided by 100 server-side)
           const price = typeof data.price === 'number' ? data.price : 0
-          const omvicFee = 22
-          const certificationFee = 595
-          const licensingFee = 59
-          const subtotalForHst = price + omvicFee + certificationFee + licensingFee
-          const hst = subtotalForHst * 0.13
+          const breakdown = calculateAllInPrice(price)
           // Build image list: prefer image_urls array, fall back to primary_image_url, then mocks
           const rawImages: string[] = Array.isArray(data.image_urls) && data.image_urls.length > 0
             ? data.image_urls
@@ -438,13 +438,13 @@ export default function VehicleDetailPage() {
             stockNumber: data.stock_number,
             images: rawImages,
             pricing: {
-              vehiclePrice: price,
+              vehiclePrice: breakdown.vehiclePrice,
               deliveryFee: 0,
-              hst: Math.round(hst),
-              omvicFee,
-              certificationFee,
-              licensingReg: licensingFee,
-              totalWithHst: Math.round(price + hst + omvicFee + certificationFee + licensingFee)
+              hst: breakdown.hst,
+              omvicFee: breakdown.omvicFee,
+              certificationFee: breakdown.certificationFee,
+              licensingReg: breakdown.licensingFee,
+              totalWithHst: breakdown.total,
             }
           })
         } else {
