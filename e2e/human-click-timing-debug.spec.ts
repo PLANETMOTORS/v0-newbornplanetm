@@ -44,7 +44,7 @@ const BUDGET = {
 
 // ── Report output paths ──
 const TIMING_LOG = path.join('test-results', 'timing-report.json');
-const DEBUG_LOG  = path.join('test-results', 'debug-report.json');
+const _DEBUG_LOG = path.join('test-results', 'debug-report.json');
 const CLICK_LOG  = path.join('test-results', 'click-report.json');
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
@@ -85,7 +85,7 @@ async function captureWebVitals(page: Page): Promise<Record<string, number>> {
     }).observe({ type: 'paint', buffered: true });
     let clsValue = 0;
     new PerformanceObserver(list => {
-      list.getEntries().forEach((e: any) => { clsValue += e.value; });
+      list.getEntries().forEach((e: PerformanceEntry & { value?: number }) => { clsValue += (e.value ?? 0); });
       vitals.cls = clsValue;
     }).observe({ type: 'layout-shift', buffered: true });
     setTimeout(() => { clearTimeout(timeout); resolve(vitals); }, 4000);
@@ -128,6 +128,7 @@ async function humanClick(page: Page, selector: string | ReturnType<Page['getByT
 
 // ─── Shared debug log collectors ──────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- utility kept for debug sessions
 function attachDebugCollectors(page: Page) {
   const log = {
     consoleErrors:       [] as string[],
@@ -667,7 +668,7 @@ test.describe('Section C — Page Load Timing', () => {
     if (duration > 0) expect(duration).toBeLessThan(BUDGET.BLOB_UPLOAD);
   });
 
-  test('C10 — Upstash Redis cache hit vs miss timing comparison', async ({ page, request }) => {
+  test('C10 — Upstash Redis cache hit vs miss timing comparison', async ({ request }) => {
     const t1Start   = Date.now();
     await request.get(`${BASE_URL}/api/inventory?make=Tesla&model=Model+3`);
     const cacheMiss = Date.now() - t1Start;

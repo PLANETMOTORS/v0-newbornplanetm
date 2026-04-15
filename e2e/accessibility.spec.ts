@@ -97,7 +97,7 @@ test.describe("Section A11Y — Accessibility (WCAG 2.2 AA)", () => {
       "/checkout/financing",
     ]
 
-    const allViolations: { step: string; violations: any[] }[] = []
+    const allViolations: { step: string; violations: Record<string, unknown>[] }[] = []
 
     for (const path of checkoutPaths) {
       await page.goto(`${BASE_URL}${path}`, { waitUntil: "networkidle" })

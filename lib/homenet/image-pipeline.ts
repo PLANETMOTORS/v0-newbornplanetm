@@ -42,7 +42,7 @@ const SPIN_URL_PATTERN = /spin|360|pano/i
 // ==================== HELPERS ====================
 
 /** Generate a short hash of a source URL for dedup */
-function urlHash(url: string): string {
+export function urlHash(url: string): string {
   return crypto.createHash("md5").update(url).digest("hex").slice(0, 12)
 }
 

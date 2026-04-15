@@ -30,7 +30,7 @@ import { loadStripe } from "@stripe/stripe-js"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js"
 import { startVehicleCheckout } from "@/app/actions/stripe"
-import { OMVIC_FEE, CERTIFICATION_FEE, LICENSING_FEE, HST_RATE } from "@/lib/pricing/format"
+import { OMVIC_FEE, CERTIFICATION_FEE, LICENSING_FEE } from "@/lib/pricing/format"
 
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null

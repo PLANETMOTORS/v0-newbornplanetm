@@ -392,7 +392,7 @@ test.describe("Step 5 — IDV: API Submission", () => {
 
     // Intercept API with a delayed response using a promise
     let resolveRoute: (() => void) | null = null
-    const routeReady = new Promise<void>((r) => { resolveRoute = r })
+    void new Promise<void>((r) => { resolveRoute = r })
 
     await page.route("**/api/v1/id-verification", async (route) => {
       // Signal that route was hit

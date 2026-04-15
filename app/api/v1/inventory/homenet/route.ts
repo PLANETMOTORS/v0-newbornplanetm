@@ -5,7 +5,6 @@ import {
   getSql,
   parseHomenetCSV,
   parseHomenetXML,
-  parseCSVLine,
   syncVehiclesToDatabase,
 } from "@/lib/homenet/parser"
 

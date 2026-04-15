@@ -15,7 +15,7 @@
  * Sanity Studio routes (/studio) are excluded — they are internal-only.
  */
 
-import { readFileSync, statSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const BUDGET_KB = Number(process.env.BUNDLE_BUDGET_KB ?? 1700);
@@ -35,7 +35,7 @@ try {
   stats = JSON.parse(readFileSync(STATS_PATH, "utf-8"));
 } catch {
   console.error(`❌  Could not read ${STATS_PATH}`);
-  console.error("    Run \`pnpm build\` first to generate route bundle stats.");
+  console.error("    Run `pnpm build` first to generate route bundle stats.");
   process.exit(1);
 }
 

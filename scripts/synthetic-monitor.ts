@@ -125,7 +125,6 @@ async function measure(path: string, samples: number): Promise<Sample[]> {
   const results: Sample[] = []
   for (let i = 0; i < samples; i++) {
     const start = performance.now()
-    let cacheHit = false
     try {
       const res = await fetch(`${BASE_URL}${path}`, {
         headers: { Accept: 'application/json' },
@@ -138,14 +137,14 @@ async function measure(path: string, samples: number): Promise<Sample[]> {
         await new Promise(r => setTimeout(r, staggerMs(i)))
         continue
       }
-      cacheHit = (res.headers.get('x-cache') ?? '').toLowerCase().startsWith('hit')
+      const cacheHit = (res.headers.get('x-cache') ?? '').toLowerCase().startsWith('hit')
+      results.push({ ms: performance.now() - start, cacheHit })
     } catch (err) {
       process.stderr.write(`  [WARN] request failed: ${(err as Error).message}\n`)
       results.push({ ms: Infinity, cacheHit: false })
       await new Promise(r => setTimeout(r, staggerMs(i)))
       continue
     }
-    results.push({ ms: performance.now() - start, cacheHit })
     await new Promise(r => setTimeout(r, staggerMs(i)))
   }
   return results

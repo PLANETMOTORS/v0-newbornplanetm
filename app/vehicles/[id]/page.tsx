@@ -744,6 +744,7 @@ export default function VehicleDetailPage() {
                   >
                     {/* Hidden native img for vdp-active-image testid (Playwright getAttribute('src')) */}
                     {currentImages.length > 0 && currentImages[currentImageIndex] && (
+                      // eslint-disable-next-line @next/next/no-img-element -- intentional: Playwright tests read src via getAttribute
                       <img data-testid="vdp-active-image" src={currentImages[currentImageIndex]} alt="" className="hidden" />
                     )}
                     {currentImages.length > 0 && currentImages[currentImageIndex] ? (
