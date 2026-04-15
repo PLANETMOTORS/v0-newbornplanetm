@@ -217,6 +217,7 @@ export function InstantQuote() {
   const [verificationStep, setVerificationStep] = useState<"form" | "verify" | "result">("form")
   const [verifyMethod, setVerifyMethod] = useState<"email" | "phone">("email")
   const [verificationCode, setVerificationCode] = useState("")
+
   const [isSendingCode, setIsSendingCode] = useState(false)
   const [isVerifyingCode, setIsVerifyingCode] = useState(false)
   
@@ -338,7 +339,7 @@ export function InstantQuote() {
         }),
       })
     } catch {
-      // Continue anyway for demo
+      // Continue anyway — server generates and stores the code
     } finally {
       setIsSendingCode(false)
       setVerificationStep("verify")
@@ -347,25 +348,26 @@ export function InstantQuote() {
 
   // Verify code server-side and calculate quote
   const verifyAndCalculate = async () => {
+    setIsVerifyingCode(true)
     try {
-      const res = await fetch("/api/verify/check-code", {
+      const destination = verifyMethod === "email" ? formData.email : formData.phone
+      const response = await fetch("/api/verify/check-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          destination: verifyMethod === "email" ? formData.email : formData.phone,
-          code: verificationCode,
-        }),
+        body: JSON.stringify({ destination, code: verificationCode }),
       })
-      const data = await res.json()
-      if (!data.success) return
+      const result = await response.json()
+      if (!result.verified) {
+        setIsVerifyingCode(false)
+        return // Invalid code
+      }
+      setVerificationStep("result")
+      await calculateQuote()
     } catch {
-      return
+      // Verification failed — user can retry
+    } finally {
+      setIsVerifyingCode(false)
     }
-    
-    setIsVerifyingCode(true)
-    setVerificationStep("result")
-    await calculateQuote()
-    setIsVerifyingCode(false)
   }
   
   // Local fallback valuation calculation (used if API fails)

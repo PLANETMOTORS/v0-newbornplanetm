@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import sanitizeHtml from "sanitize-html"
 
 // Blog post data with full content
 const blogPosts: Record<string, {
@@ -1695,7 +1696,18 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         <article className="mx-auto max-w-4xl px-6 lg:px-8 py-12">
           <div 
             className="prose prose-lg max-w-none prose-headings:font-semibold prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3 prose-p:text-muted-foreground prose-p:leading-relaxed prose-li:text-muted-foreground prose-strong:text-foreground"
-            dangerouslySetInnerHTML={{ __html: post.content }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content, {
+              allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'iframe', 'video', 'source']),
+              allowedAttributes: {
+                ...sanitizeHtml.defaults.allowedAttributes,
+                img: ['src', 'alt', 'width', 'height', 'loading', 'class'],
+                iframe: ['src', 'width', 'height', 'frameborder', 'allow', 'allowfullscreen', 'title'],
+                video: ['src', 'controls', 'width', 'height', 'poster'],
+                source: ['src', 'type'],
+                '*': ['class', 'id', 'style'],
+              },
+              allowedIframeHostnames: ['www.youtube.com', 'player.vimeo.com'],
+            }) }}
           />
 
           {/* Share Section */}

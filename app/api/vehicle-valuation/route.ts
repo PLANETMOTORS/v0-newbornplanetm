@@ -2,24 +2,24 @@ import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
 import { gateway } from "@ai-sdk/gateway"
 import { apiError, ErrorCode } from "@/lib/api-response"
-import { rateLimit } from "@/lib/redis"
 import { validateOrigin } from "@/lib/csrf"
+import { rateLimit } from "@/lib/redis"
 
 export async function POST(request: NextRequest) {
+  // CSRF origin validation
+  if (!validateOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden: invalid origin" }, { status: 403 })
+  }
+
+  // IP-based rate limiting: 10 valuations per hour per IP
+  const forwarded = request.headers.get("x-forwarded-for") || ""
+  const ip = forwarded.split(",")[0]?.trim() || "unknown"
+  const limiter = await rateLimit(`valuation:${ip}`, 10, 3600)
+  if (!limiter.success) {
+    return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 })
+  }
+
   try {
-    // CSRF protection
-    if (!validateOrigin(request)) {
-      return apiError(ErrorCode.FORBIDDEN, "Forbidden", 403)
-    }
-
-    // Rate limit: 10 valuations per hour per IP
-    const forwarded = request.headers.get("x-forwarded-for") || ""
-    const ip = forwarded.split(",")[0]?.trim() || "unknown"
-    const limiter = await rateLimit(`valuation:${ip}`, 10, 3600)
-    if (!limiter.success) {
-      return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 })
-    }
-
     const { year, make, model, trim, mileage, condition } = await request.json()
 
     if (!year || !make || !model || !mileage) {

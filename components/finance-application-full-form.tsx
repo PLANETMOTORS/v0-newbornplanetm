@@ -15,6 +15,7 @@ import {
   ArrowRight, ArrowLeft, CheckCircle, Loader2, Shield, AlertCircle, X
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 
 // =====================================================
 // TYPES
@@ -387,7 +388,7 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     const certificationFee = parseFloat(financingTerms.certificationFee) || 595
     const licensingFee = parseFloat(financingTerms.licensingFee) || 59
     const deliveryFee = parseFloat(financingTerms.deliveryFee) || 0
-    const taxRate = parseFloat(financingTerms.salesTaxRate) / 100 || 0.13
+    const taxRate = parseFloat(financingTerms.salesTaxRate) / 100 || PROVINCE_TAX_RATES.ON.total
     
     // All fees: Admin Fee (finance only) + OMVIC + Certification + Licensing + Delivery
     const totalFees = adminFee + omvicFee + certificationFee + licensingFee + deliveryFee

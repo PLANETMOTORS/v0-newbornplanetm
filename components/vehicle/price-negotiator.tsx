@@ -66,7 +66,7 @@ export function PriceNegotiator({
         }),
       })
     } catch {
-      // Continue anyway for demo
+      // Continue anyway — server generates and stores the code
     }
     setStep("verify")
     setIsSendingCode(false)
@@ -75,16 +75,14 @@ export function PriceNegotiator({
   const verifyCode = async () => {
     setIsVerifying(true)
     try {
-      const res = await fetch("/api/verify/check-code", {
+      const destination = verifyMethod === "email" ? contactInfo.email : contactInfo.phone
+      const response = await fetch("/api/verify/check-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          destination: verifyMethod === "email" ? contactInfo.email : contactInfo.phone,
-          code: verificationCode,
-        }),
+        body: JSON.stringify({ destination, code: verificationCode }),
       })
-      const data = await res.json()
-      if (data.success) {
+      const result = await response.json()
+      if (result.verified) {
         setStep("negotiate")
         setMessages([{
           role: "assistant",
@@ -92,9 +90,10 @@ export function PriceNegotiator({
         }])
       }
     } catch {
-      // Verification failed
+      // Verification failed — user can retry
+    } finally {
+      setIsVerifying(false)
     }
-    setIsVerifying(false)
   }
 
   const handleSubmitOffer = async () => {

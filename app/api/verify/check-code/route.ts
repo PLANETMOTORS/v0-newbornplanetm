@@ -1,43 +1,55 @@
 import { NextRequest, NextResponse } from "next/server"
-import { rateLimit, getVerificationCode, deleteVerificationCode } from "@/lib/redis"
 import { validateOrigin } from "@/lib/csrf"
+import { rateLimit, getVerificationCode, deleteVerificationCode } from "@/lib/redis"
 
 export async function POST(req: NextRequest) {
+  // CSRF origin validation
+  if (!validateOrigin(req)) {
+    return NextResponse.json({ error: "Forbidden: invalid origin" }, { status: 403 })
+  }
+
+  // Rate limiting: 10 verification attempts per hour per IP
+  const forwarded = req.headers.get("x-forwarded-for") || ""
+  const ip = forwarded.split(",")[0]?.trim() || "unknown"
+  const limiter = await rateLimit(`verify-check:${ip}`, 10, 3600)
+  if (!limiter.success) {
+    return NextResponse.json({ error: "Too many attempts. Please try again later." }, { status: 429 })
+  }
+
   try {
-    if (!validateOrigin(req)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-    }
-
-    // Rate limit: 10 verification attempts per hour per IP
-    const forwarded = req.headers.get("x-forwarded-for") || ""
-    const ip = forwarded.split(",")[0]?.trim() || "unknown"
-    const limiter = await rateLimit(`verify-check:${ip}`, 10, 3600)
-    if (!limiter.success) {
-      return NextResponse.json({ error: "Too many attempts. Please try again later." }, { status: 429 })
-    }
-
     const { destination, code } = await req.json()
 
     if (!destination || !code) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
+    // Look up the server-generated code from Redis
     const storedCode = await getVerificationCode(destination)
 
     if (!storedCode) {
-      return NextResponse.json({ success: false, error: "Code expired or not found. Please request a new code." }, { status: 400 })
+      return NextResponse.json({ error: "Code expired or not found. Please request a new code." }, { status: 410 })
     }
 
-    if (storedCode !== code) {
-      return NextResponse.json({ success: false, error: "Invalid code" }, { status: 400 })
+    // Constant-time comparison to prevent timing attacks
+    const codeBuffer = Buffer.from(code)
+    const storedBuffer = Buffer.from(storedCode)
+
+    if (codeBuffer.length !== storedBuffer.length) {
+      return NextResponse.json({ verified: false, error: "Invalid code" }, { status: 401 })
     }
 
-    // Code is valid — delete it so it can't be reused
-    await deleteVerificationCode(destination)
+    const { timingSafeEqual } = await import("crypto")
+    const isValid = timingSafeEqual(codeBuffer, storedBuffer)
 
-    return NextResponse.json({ success: true })
+    if (isValid) {
+      // Delete the code after successful verification (one-time use)
+      await deleteVerificationCode(destination)
+      return NextResponse.json({ verified: true })
+    }
+
+    return NextResponse.json({ verified: false, error: "Invalid code" }, { status: 401 })
   } catch (error) {
     console.error("Verification check error:", error)
-    return NextResponse.json({ error: "Failed to verify code" }, { status: 500 })
+    return NextResponse.json({ error: "Verification failed" }, { status: 500 })
   }
 }

@@ -1,38 +1,42 @@
 import { NextRequest, NextResponse } from "next/server"
-import { randomInt } from "crypto"
 import { sendNotificationEmail } from "@/lib/email"
-import { rateLimit, storeVerificationCode } from "@/lib/redis"
 import { validateOrigin } from "@/lib/csrf"
+import { rateLimit, storeVerificationCode } from "@/lib/redis"
+import crypto from "crypto"
 
 export async function POST(req: NextRequest) {
+  // CSRF origin validation
+  if (!validateOrigin(req)) {
+    return NextResponse.json({ error: "Forbidden: invalid origin" }, { status: 403 })
+  }
+
+  // Rate limiting: 5 verification codes per hour per IP
+  const forwarded = req.headers.get("x-forwarded-for") || ""
+  const ip = forwarded.split(",")[0]?.trim() || "unknown"
+  const limiter = await rateLimit(`verify:${ip}`, 5, 3600)
+  if (!limiter.success) {
+    return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 })
+  }
+
   try {
-    if (!validateOrigin(req)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-    }
-
-    // Rate limit: 5 verification code requests per hour per IP
-    const forwarded = req.headers.get("x-forwarded-for") || ""
-    const ip = forwarded.split(",")[0]?.trim() || "unknown"
-    const limiter = await rateLimit(`verify:${ip}`, 5, 3600)
-    if (!limiter.success) {
-      return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 })
-    }
-
     const { method, destination, purpose, vehicleName, vehicleInfo } = await req.json()
 
-    if (!destination) {
+    if (!destination || !method) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    // Server generates the verification code — never trust client-supplied codes
-    const code = String(randomInt(100000, 999999))
+    // Generate verification code SERVER-SIDE using cryptographic randomness
+    const code = crypto.randomInt(100000, 999999).toString()
 
-    // Store code server-side with 10-minute TTL
-    await storeVerificationCode(destination, code, 600)
+    // Store the code in Redis with 10-minute TTL
+    const stored = await storeVerificationCode(destination, code, 600)
+    if (!stored) {
+      // If Redis is unavailable, still allow the flow but log a warning
+      console.warn("[Verify] Redis unavailable — verification code not persisted")
+    }
 
     if (method === "email") {
-      // Send verification code via email
-      const purposeText = purpose === "price_negotiation" 
+      const purposeText = purpose === "price_negotiation"
         ? `negotiate on ${vehicleName}`
         : `get your instant cash offer for ${vehicleInfo || "your vehicle"}`
 
@@ -50,9 +54,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, method: "email" })
     } else if (method === "phone") {
       // For SMS, you would integrate with Twilio here
-      // For demo purposes, we'll just log it
       console.log(`[SMS] Verification code would be sent to ${destination}`)
-      
+
       return NextResponse.json({ success: true, method: "sms", demo: true })
     }
 
