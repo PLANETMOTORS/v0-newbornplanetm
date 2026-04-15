@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { randomInt } from "crypto"
 import { sendNotificationEmail } from "@/lib/email"
-import { rateLimit } from "@/lib/redis"
+import { rateLimit, storeVerificationCode } from "@/lib/redis"
 import { validateOrigin } from "@/lib/csrf"
 
 export async function POST(req: NextRequest) {
@@ -27,6 +27,9 @@ export async function POST(req: NextRequest) {
     // Server generates the verification code — never trust client-supplied codes
     const code = String(randomInt(100000, 999999))
 
+    // Store code server-side with 10-minute TTL
+    await storeVerificationCode(destination, code, 600)
+
     if (method === "email") {
       // Send verification code via email
       const purposeText = purpose === "price_negotiation" 
@@ -44,13 +47,13 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      return NextResponse.json({ success: true, method: "email", code })
+      return NextResponse.json({ success: true, method: "email" })
     } else if (method === "phone") {
       // For SMS, you would integrate with Twilio here
       // For demo purposes, we'll just log it
       console.log(`[SMS] Verification code would be sent to ${destination}`)
       
-      return NextResponse.json({ success: true, method: "sms", demo: true, code })
+      return NextResponse.json({ success: true, method: "sms", demo: true })
     }
 
     return NextResponse.json({ error: "Invalid method" }, { status: 400 })

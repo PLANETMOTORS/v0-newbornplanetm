@@ -199,3 +199,44 @@ export async function getVehicleLock(stockNumber: string): Promise<string | null
     return null
   }
 }
+
+// Verification code storage
+export async function storeVerificationCode(
+  destination: string,
+  code: string,
+  ttlSeconds: number = 600
+): Promise<boolean> {
+  const redis = await getRedis()
+  if (!redis) return false
+
+  try {
+    await redis.set(`verify:${destination}`, code, { ex: ttlSeconds })
+    return true
+  } catch (error) {
+    console.warn("[Redis] Failed to store verification code:", (error as Error).message)
+    return false
+  }
+}
+
+export async function getVerificationCode(destination: string): Promise<string | null> {
+  const redis = await getRedis()
+  if (!redis) return null
+
+  try {
+    return await redis.get<string>(`verify:${destination}`)
+  } catch (error) {
+    console.warn("[Redis] Failed to get verification code:", (error as Error).message)
+    return null
+  }
+}
+
+export async function deleteVerificationCode(destination: string): Promise<void> {
+  const redis = await getRedis()
+  if (!redis) return
+
+  try {
+    await redis.del(`verify:${destination}`)
+  } catch (error) {
+    console.warn("[Redis] Failed to delete verification code:", (error as Error).message)
+  }
+}

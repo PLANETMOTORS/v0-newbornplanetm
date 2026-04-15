@@ -33,7 +33,6 @@ export function PriceNegotiator({
   const [step, setStep] = useState<"contact" | "verify" | "negotiate">("contact")
   const [contactInfo, setContactInfo] = useState({ name: "", email: "", phone: "" })
   const [verificationCode, setVerificationCode] = useState("")
-  const [sentCode, setSentCode] = useState("")
   const [isVerifying, setIsVerifying] = useState(false)
   const [isSendingCode, setIsSendingCode] = useState(false)
   const [verifyMethod, setVerifyMethod] = useState<"email" | "phone">("email")
@@ -56,7 +55,7 @@ export function PriceNegotiator({
     setIsSendingCode(true)
     
     try {
-      const res = await fetch("/api/verify/send-code", {
+      await fetch("/api/verify/send-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -66,8 +65,6 @@ export function PriceNegotiator({
           vehicleName,
         }),
       })
-      const data = await res.json()
-      if (data.code) setSentCode(data.code)
     } catch {
       // Continue anyway for demo
     }
@@ -75,18 +72,29 @@ export function PriceNegotiator({
     setIsSendingCode(false)
   }
 
-  const verifyCode = () => {
+  const verifyCode = async () => {
     setIsVerifying(true)
-    setTimeout(() => {
-      if (verificationCode === sentCode) {
+    try {
+      const res = await fetch("/api/verify/check-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          destination: verifyMethod === "email" ? contactInfo.email : contactInfo.phone,
+          code: verificationCode,
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
         setStep("negotiate")
         setMessages([{
           role: "assistant",
           content: `Hi ${contactInfo.name}! I'm the Planet Motors AI negotiator. I see you're interested in the ${vehicleName} listed at $${vehiclePrice.toLocaleString()}. What offer would you like to make?`,
         }])
       }
-      setIsVerifying(false)
-    }, 1000)
+    } catch {
+      // Verification failed
+    }
+    setIsVerifying(false)
   }
 
   const handleSubmitOffer = async () => {

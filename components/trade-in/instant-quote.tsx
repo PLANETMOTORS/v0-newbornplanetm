@@ -217,7 +217,6 @@ export function InstantQuote() {
   const [verificationStep, setVerificationStep] = useState<"form" | "verify" | "result">("form")
   const [verifyMethod, setVerifyMethod] = useState<"email" | "phone">("email")
   const [verificationCode, setVerificationCode] = useState("")
-  const [sentCode, setSentCode] = useState("")
   const [isSendingCode, setIsSendingCode] = useState(false)
   const [isVerifyingCode, setIsVerifyingCode] = useState(false)
   
@@ -328,7 +327,7 @@ export function InstantQuote() {
     setIsSendingCode(true)
     
     try {
-      const res = await fetch("/api/verify/send-code", {
+      await fetch("/api/verify/send-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -338,8 +337,6 @@ export function InstantQuote() {
           vehicleInfo: `${formData.year} ${formData.make} ${formData.model}`,
         }),
       })
-      const data = await res.json()
-      if (data.code) setSentCode(data.code)
     } catch {
       // Continue anyway for demo
     } finally {
@@ -348,10 +345,21 @@ export function InstantQuote() {
     }
   }
 
-  // Verify code and calculate quote
+  // Verify code server-side and calculate quote
   const verifyAndCalculate = async () => {
-    if (verificationCode !== sentCode) {
-      return // Invalid code
+    try {
+      const res = await fetch("/api/verify/check-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          destination: verifyMethod === "email" ? formData.email : formData.phone,
+          code: verificationCode,
+        }),
+      })
+      const data = await res.json()
+      if (!data.success) return
+    } catch {
+      return
     }
     
     setIsVerifyingCode(true)
