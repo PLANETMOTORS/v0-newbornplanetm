@@ -1602,7 +1602,7 @@ function getRelatedPosts(slugs: string[]): RelatedPost[] {
     .filter((post): post is RelatedPost => post !== null)
 }
 
-export async function generateStaticParams() {
+export function generateStaticParams() {
   return Object.keys(blogPosts).map((slug) => ({
     slug,
   }))
