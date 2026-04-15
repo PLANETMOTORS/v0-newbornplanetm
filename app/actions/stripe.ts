@@ -3,7 +3,6 @@
 import { createHash } from 'node:crypto'
 import type Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 const PROTECTION_PLANS: Record<string, { name: string; priceInCents: number }> = {
@@ -45,7 +44,7 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
     adminClient = createAdminClient()
   } catch (e) {
     console.error('Admin client not configured — SUPABASE_SERVICE_ROLE_KEY is required for checkout RPC:', e)
-    throw new Error('Service configuration error. Please try again later.')
+    throw new Error('Service configuration error. Please try again later.', { cause: e })
   }
 
   const { data: lockResult, error: lockError } = await adminClient
