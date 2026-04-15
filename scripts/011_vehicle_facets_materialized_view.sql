@@ -16,24 +16,29 @@
 DROP MATERIALIZED VIEW IF EXISTS vehicle_facets_mv;
 
 -- Create the materialized view with pre-aggregated facet counts
+-- Note: COALESCE is used for nullable columns to ensure the unique index works
+-- correctly with REFRESH MATERIALIZED VIEW CONCURRENTLY. In PostgreSQL < 15,
+-- NULL values are considered distinct in unique indexes, which would break
+-- concurrent refresh. Using COALESCE ensures consistent NULL handling.
 CREATE MATERIALIZED VIEW vehicle_facets_mv AS
 SELECT
   make,
   model,
   year,
-  body_style,
-  fuel_type,
-  transmission,
-  drivetrain,
+  COALESCE(body_style, '') AS body_style,
+  COALESCE(fuel_type, '') AS fuel_type,
+  COALESCE(transmission, '') AS transmission,
+  COALESCE(drivetrain, '') AS drivetrain,
   COUNT(*)::int AS vehicle_count,
   MIN(price)::bigint AS min_price_cents,
   MAX(price)::bigint AS max_price_cents
 FROM vehicles
 WHERE status = 'available'
-GROUP BY make, model, year, body_style, fuel_type, transmission, drivetrain
+GROUP BY make, model, year, COALESCE(body_style, ''), COALESCE(fuel_type, ''), COALESCE(transmission, ''), COALESCE(drivetrain, '')
 ORDER BY make, model, year;
 
 -- Unique index required for REFRESH MATERIALIZED VIEW CONCURRENTLY
+-- All columns are now guaranteed non-NULL due to COALESCE in the view definition
 CREATE UNIQUE INDEX idx_vehicle_facets_mv_unique
   ON vehicle_facets_mv (make, model, year, body_style, fuel_type, transmission, drivetrain);
 
