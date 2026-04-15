@@ -56,12 +56,12 @@ const KNOWN_CSV_COLUMNS = new Set([
   "body_style", "bodystyle", "body", "bodytype",
   "exterior_color", "exteriorcolor", "color", "extcolor",
   "interior_color", "interiorcolor", "intcolor",
-  "price", "sellingprice", "internetprice",
-  "msrp", "retailprice",
-  "mileage", "odometer",
+  "price", "sellingprice", "internetprice", "internet_price",
+  "msrp", "retailprice", "originalmsrp",
+  "mileage", "odometer", "miles",
   "drivetrain", "drivetype",
   "transmission", "trans",
-  "engine", "enginedescription",
+  "engine", "enginedescription", "enginecylinders", "enginedisplacement",
   "fuel_type", "fueltype", "fuel",
   "fuel_economy_city", "citympg",
   "fuel_economy_highway", "highwaympg",
@@ -74,13 +74,18 @@ const KNOWN_CSV_COLUMNS = new Set([
   "featured",
   "inspection_score", "inspectionscore",
   "primary_image_url", "mainphoto",
-  "image_urls", "photos", "images", "photo",
+  "image_urls", "photos", "images", "photo", "imagelist",
   "has_360_spin", "has360",
   "video_url", "video",
   "location", "dealerlocation",
   "comments", "description",
   "vdplink", "vdp_link",
   "titlestatus", "title_status",
+  // HomeNet metadata columns (not directly mapped to DB but recognized)
+  "dealername", "type", "modelnumber", "doors", "bookvalue", "invoice",
+  "misc_price1", "misc_price2", "misc_price3", "flooring",
+  "dateinstock", "options",
+  "comment1", "comment2", "comment3", "comment4",
 ])
 
 export function parseHomenetCSV(csvText: string): VehicleData[] {
@@ -132,8 +137,17 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
   if (!stockNumber) return null
 
   const fuelType = get(["fuel_type", "fueltype", "fuel"])
-  const rawImages = get(["image_urls", "photos", "images", "photo"])
+  const rawImages = get(["image_urls", "photos", "images", "photo", "imagelist"])
   const images = parseImageUrls(rawImages)
+
+  // Compose engine string from cylinders + displacement if "engine" column is absent
+  let engineStr = get(["engine", "enginedescription"])
+  if (!engineStr) {
+    const cyl = get(["enginecylinders"])
+    const disp = get(["enginedisplacement"])
+    if (disp) engineStr = disp + (cyl ? ` ${cyl}-Cylinder` : "")
+    else if (cyl) engineStr = `${cyl}-Cylinder`
+  }
 
   const condition = get(["condition"]).toLowerCase()
   let isCertified = getBool(["is_certified", "certified", "cpo"])
@@ -156,10 +170,10 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
     // HomeNet sends prices in dollars; DB stores in cents
     price: (getNum(["price", "sellingprice", "internetprice"]) || 0) * 100,
     msrp: (() => { const v = getNum(["msrp", "retailprice"]); return v != null ? v * 100 : undefined })(),
-    mileage: getNum(["mileage", "odometer"]) || 0,
+    mileage: getNum(["mileage", "odometer", "miles"]) || 0,
     drivetrain: get(["drivetrain", "drivetype"]),
     transmission: get(["transmission", "trans"]),
-    engine: get(["engine", "enginedescription"]),
+    engine: engineStr,
     fuel_type: fuelType,
     fuel_economy_city: getNum(["fuel_economy_city", "citympg"]),
     fuel_economy_highway: getNum(["fuel_economy_highway", "highwaympg"]),
