@@ -38,7 +38,7 @@ const fallbackVehicles = [
     year: "2024",
     inspectionScore: 210,
     badge: "Electric",
-    badgeColor: "bg-blue-500"
+    badgeColor: "bg-blue-700"
   },
   {
     id: "featured-2",
@@ -51,7 +51,7 @@ const fallbackVehicles = [
     year: "2023",
     inspectionScore: 208,
     badge: "Premium",
-    badgeColor: "bg-purple-500"
+    badgeColor: "bg-purple-700"
   },
   {
     id: "featured-3",
@@ -64,7 +64,7 @@ const fallbackVehicles = [
     year: "2024",
     inspectionScore: 210,
     badge: "Fuel Saver",
-    badgeColor: "bg-green-500"
+    badgeColor: "bg-green-700"
   },
   {
     id: "featured-4",
@@ -77,7 +77,7 @@ const fallbackVehicles = [
     year: "2023",
     inspectionScore: 207,
     badge: "Just Arrived",
-    badgeColor: "bg-green-500"
+    badgeColor: "bg-green-700"
   }
 ]
 
@@ -105,13 +105,13 @@ function transformToShowcase(v: DbVehicle) {
   
   if (v.fuel_type === "Electric") {
     badge = "Electric"
-    badgeColor = "bg-blue-500"
+    badgeColor = "bg-blue-700"
   } else if (priceInDollars > 100000) {
     badge = "Premium"
-    badgeColor = "bg-purple-500"
+    badgeColor = "bg-purple-700"
   } else if (v.is_new_arrival) {
     badge = "Just Arrived"
-    badgeColor = "bg-green-500"
+    badgeColor = "bg-green-700"
   }
   
   // Only use real hosted images — null triggers gradient fallback in the UI

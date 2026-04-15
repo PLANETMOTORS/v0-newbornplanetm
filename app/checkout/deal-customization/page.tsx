@@ -38,9 +38,10 @@ export default function DealCustomizationPage() {
         </div>
 
         {/* Payment Frequency Toggles */}
-        <div className="flex gap-4 mb-8">
+        <div className="flex gap-4 mb-8" role="tablist" aria-label="Payment frequency">
           <button
             data-testid="toggle-biweekly"
+            role="tab"
             aria-selected={frequency === "biweekly"}
             onClick={() => setFrequency("biweekly")}
             className={`flex-1 min-h-[48px] rounded-lg border-2 px-6 py-3 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
@@ -53,6 +54,7 @@ export default function DealCustomizationPage() {
           </button>
           <button
             data-testid="toggle-monthly"
+            role="tab"
             aria-selected={frequency === "monthly"}
             onClick={() => setFrequency("monthly")}
             className={`flex-1 min-h-[48px] rounded-lg border-2 px-6 py-3 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${

@@ -100,7 +100,7 @@ export function ProtectionPlanSelector({ value, onChange }: ProtectionPlanSelect
                   <ul className="mt-2 space-y-1">
                     {plan.features.map((feature, i) => (
                       <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Check className="w-3 h-3 text-green-500 flex-shrink-0" />
+                        <Check className="w-3 h-3 text-green-700 flex-shrink-0" />
                         {feature}
                       </li>
                     ))}

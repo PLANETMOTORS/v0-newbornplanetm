@@ -368,7 +368,7 @@ export function Header() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-center gap-3 sm:gap-6 md:gap-10 overflow-x-auto scrollbar-hide">
               <div className="flex items-center gap-2 whitespace-nowrap">
-                <CheckCircle className="w-4 h-4 text-green-600" />
+                <CheckCircle className="w-4 h-4 text-green-700" />
                 <span className="font-medium text-xs sm:text-sm">10-Day Money Back Guarantee</span>
               </div>
               <span className="hidden sm:block text-gray-300">|</span>
@@ -378,7 +378,7 @@ export function Header() {
               </div>
               <span className="hidden sm:block text-gray-300">|</span>
               <div className="hidden sm:flex items-center gap-2 whitespace-nowrap">
-                <CheckCircle className="w-4 h-4 text-green-600" />
+                <CheckCircle className="w-4 h-4 text-green-700" />
                 <span className="font-medium text-xs sm:text-sm">210-Point Inspection</span>
               </div>
               <span className="hidden md:block text-gray-300">|</span>

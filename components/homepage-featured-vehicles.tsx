@@ -108,11 +108,11 @@ const fallbackVehicles: FeaturedVehicle[] = [
 
 function getBadgeClassName(badge: string) {
   if (badge === "Popular") return "bg-[#1e3a8a] text-white"
-  if (badge === "Fuel Saver") return "bg-green-600 text-white"
-  if (badge === "New Arrival") return "bg-orange-500 text-white"
-  if (badge === "Premium") return "bg-purple-600 text-white"
-  if (badge === "Luxury") return "bg-amber-600 text-white"
-  return "bg-gray-600 text-white"
+  if (badge === "Fuel Saver") return "bg-green-700 text-white"
+  if (badge === "New Arrival") return "bg-orange-700 text-white"
+  if (badge === "Premium") return "bg-purple-700 text-white"
+  if (badge === "Luxury") return "bg-amber-700 text-white"
+  return "bg-gray-700 text-white"
 }
 
 const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
@@ -259,7 +259,7 @@ export function HomepageFeaturedVehicles() {
                     {vehicle.year} {vehicle.make} {vehicle.model}
                   </h3>
                   {vehicle.isEV && (
-                    <span className="flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                    <span className="flex items-center gap-1 text-xs font-medium text-green-800 bg-green-50 px-2 py-0.5 rounded-full">
                       <Zap className="w-3 h-3" />
                       EV
                     </span>

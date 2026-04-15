@@ -41,7 +41,7 @@ export function VehicleBadges({
     <div className="flex flex-wrap gap-1.5">
       {/* Sale Pending - Most Important */}
       {isSalePending && (
-        <Badge variant="destructive" className="bg-orange-500">
+        <Badge variant="destructive" className="bg-orange-700 text-white">
           <AlertCircle className="w-3 h-3 mr-1" />
           Sale Pending
         </Badge>
@@ -49,7 +49,7 @@ export function VehicleBadges({
 
       {/* Just Arrived */}
       {isNew && daysOnLot && daysOnLot <= 3 && (
-        <Badge className="bg-teal-500">
+        <Badge className="bg-teal-700 text-white">
           <Sparkles className="w-3 h-3 mr-1" />
           Just Arrived
         </Badge>
@@ -57,7 +57,7 @@ export function VehicleBadges({
 
       {/* Hot Deal */}
       {isHotDeal && (
-        <Badge className="bg-red-500">
+        <Badge className="bg-red-700 text-white">
           <Zap className="w-3 h-3 mr-1" />
           Hot Deal
         </Badge>
@@ -65,7 +65,7 @@ export function VehicleBadges({
 
       {/* Price Drop */}
       {isPriceDrop && (
-        <Badge className="bg-green-500">
+        <Badge className="bg-green-700 text-white">
           <TrendingDown className="w-3 h-3 mr-1" />
           {priceDropAmount ? `$${priceDropAmount.toLocaleString()} Off` : "Price Drop"}
         </Badge>
@@ -73,7 +73,7 @@ export function VehicleBadges({
 
       {/* EV Battery Certified */}
       {isEVCertified && (
-        <Badge variant="outline" className="border-green-500 text-green-600">
+        <Badge variant="outline" className="border-green-600 text-green-800">
           <Battery className="w-3 h-3 mr-1" />
           {batteryHealth ? `${batteryHealth}% Battery` : "EV Certified"}
         </Badge>
@@ -81,7 +81,7 @@ export function VehicleBadges({
 
       {/* Carfax */}
       {hasCarfax && (
-        <Badge variant="outline" className="border-teal-500 text-teal-600">
+        <Badge variant="outline" className="border-teal-600 text-teal-800">
           <CheckCircle2 className="w-3 h-3 mr-1" />
           Carfax
         </Badge>
@@ -89,7 +89,7 @@ export function VehicleBadges({
 
       {/* CBB */}
       {hasCBB && (
-        <Badge variant="outline" className="border-amber-500 text-amber-600">
+        <Badge variant="outline" className="border-amber-600 text-amber-800">
           <Shield className="w-3 h-3 mr-1" />
           CBB
         </Badge>
@@ -101,7 +101,7 @@ export function VehicleBadges({
 // Individual badge components for flexible use
 export function NewArrivalBadge() {
   return (
-    <Badge className="bg-teal-500">
+    <Badge className="bg-teal-700 text-white">
       <Sparkles className="w-3 h-3 mr-1" />
       Just Arrived
     </Badge>
@@ -110,7 +110,7 @@ export function NewArrivalBadge() {
 
 export function PriceDropBadge({ amount }: { amount?: number }) {
   return (
-    <Badge className="bg-green-500">
+    <Badge className="bg-green-700 text-white">
       <TrendingDown className="w-3 h-3 mr-1" />
       {amount ? `$${amount.toLocaleString()} Off` : "Price Drop"}
     </Badge>
@@ -121,7 +121,7 @@ export function PriceDropBadge({ amount }: { amount?: number }) {
 
 export function SalePendingBadge() {
   return (
-    <Badge variant="destructive" className="bg-orange-500">
+    <Badge variant="destructive" className="bg-orange-700 text-white">
       <AlertCircle className="w-3 h-3 mr-1" />
       Sale Pending
     </Badge>
@@ -130,7 +130,7 @@ export function SalePendingBadge() {
 
 export function CarfaxBadge() {
   return (
-    <Badge variant="outline" className="border-teal-500 text-teal-600 bg-teal-50">
+    <Badge variant="outline" className="border-teal-600 text-teal-800 bg-teal-50">
       <CheckCircle2 className="w-3 h-3 mr-1" />
       Carfax Verified
     </Badge>
@@ -139,7 +139,7 @@ export function CarfaxBadge() {
 
 export function CBBBadge() {
   return (
-    <Badge variant="outline" className="border-amber-500 text-amber-600 bg-amber-50">
+    <Badge variant="outline" className="border-amber-600 text-amber-800 bg-amber-50">
       <Shield className="w-3 h-3 mr-1" />
       CBB Valued
     </Badge>
@@ -148,7 +148,7 @@ export function CBBBadge() {
 
 export function EVCertifiedBadge({ batteryHealth }: { batteryHealth?: number }) {
   return (
-    <Badge variant="outline" className="border-green-500 text-green-600 bg-green-50">
+    <Badge variant="outline" className="border-green-600 text-green-800 bg-green-50">
       <Battery className="w-3 h-3 mr-1" />
       {batteryHealth ? `${batteryHealth}% Battery Health` : "EV Certified"}
     </Badge>

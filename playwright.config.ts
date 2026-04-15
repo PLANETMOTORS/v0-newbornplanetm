@@ -30,14 +30,37 @@ export default defineConfig({
       name: "chromium",
       use: {
         ...devices["Desktop Chrome"],
-        // Inject a script that ensures :focus pseudo-class works in headless mode
-        // by giving the document focus on every page load
         contextOptions: {
           bypassCSP: true,
         },
         launchOptions: {
           args: ['--disable-gpu', '--no-sandbox'],
         },
+      },
+    },
+    {
+      name: "firefox",
+      use: {
+        ...devices["Desktop Firefox"],
+      },
+    },
+    {
+      name: "webkit",
+      use: {
+        ...devices["Desktop Safari"],
+      },
+    },
+    // Mobile viewports
+    {
+      name: "mobile-chrome",
+      use: {
+        ...devices["Pixel 5"],
+      },
+    },
+    {
+      name: "mobile-safari",
+      use: {
+        ...devices["iPhone 14"],
       },
     },
   ],

@@ -179,7 +179,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
               <ul className="space-y-3">
                 {footerLinks.vehicles.map((link) => (
                   <li key={link.name}>
-                    <Link href={link.href} className="text-sm text-white/45 hover:text-white transition-colors">
+                    <Link href={link.href} className="text-sm text-white/60 hover:text-white transition-colors">
                       {link.name}
                     </Link>
                   </li>
@@ -193,7 +193,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
               <ul className="space-y-3">
                 {footerLinks.services.map((link) => (
                   <li key={link.name}>
-                    <Link href={link.href} className="text-sm text-white/45 hover:text-white transition-colors">
+                    <Link href={link.href} className="text-sm text-white/60 hover:text-white transition-colors">
                       {link.name}
                     </Link>
                   </li>
@@ -207,7 +207,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
               <ul className="space-y-3">
                 {footerLinks.company.map((link) => (
                   <li key={link.name}>
-                    <Link href={link.href} className="text-sm text-white/45 hover:text-white transition-colors">
+                    <Link href={link.href} className="text-sm text-white/60 hover:text-white transition-colors">
                       {link.name}
                     </Link>
                   </li>
@@ -221,7 +221,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
               <ul className="space-y-3">
                 {footerLinks.legal.map((link) => (
                   <li key={link.name}>
-                    <Link href={link.href} className="text-sm text-white/45 hover:text-white transition-colors">
+                    <Link href={link.href} className="text-sm text-white/60 hover:text-white transition-colors">
                       {link.name}
                     </Link>
                   </li>

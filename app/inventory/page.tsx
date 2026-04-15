@@ -96,16 +96,16 @@ function transformVehicle(v: Vehicle) {
   
   if (v.is_new_arrival) {
     badge = "Just Arrived"
-    badgeColor = "bg-green-500"
+    badgeColor = "bg-green-700"
   } else if (v.fuel_type === "Electric") {
     badge = "Electric"
-    badgeColor = "bg-teal-500"
+    badgeColor = "bg-teal-700"
   } else if (v.is_certified) {
     badge = "PM Certified"
     badgeColor = "bg-primary"
   } else if (priceInDollars > 100000) {
     badge = "Premium"
-    badgeColor = "bg-purple-500"
+    badgeColor = "bg-purple-700"
   }
   
   // Map fuel types for filtering
@@ -487,6 +487,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
+                aria-label="Sort vehicles"
                 className="flex-1 h-11 px-3 border rounded-lg bg-background text-sm"
               >
                 <option value="featured">Featured</option>
@@ -554,6 +555,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
               <div className="flex border rounded-lg overflow-hidden">
                 <button
                   onClick={() => setViewMode("grid")}
+                  aria-label="Grid view"
                   className={`px-4 h-12 flex items-center gap-2 transition-colors ${
                     viewMode === "grid" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                   }`}
@@ -562,6 +564,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 </button>
                 <button
                   onClick={() => setViewMode("list")}
+                  aria-label="List view"
                   className={`px-4 h-12 flex items-center gap-2 transition-colors ${
                     viewMode === "list" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                   }`}
@@ -574,6 +577,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
+                aria-label="Sort vehicles"
                 className="h-12 px-4 border rounded-lg bg-background min-w-[180px]"
               >
                 <option value="featured">Featured</option>
@@ -806,13 +810,13 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                       {vehicle.badge}
                     </Badge>
                     {vehicle.fuelType === "Electric" && (
-                      <Badge className="bg-green-500 text-white shadow-lg">
+                      <Badge className="bg-green-700 text-white shadow-lg">
                         <Battery className="w-3 h-3 mr-1" />
                         {vehicle.batteryHealth}% Battery
                       </Badge>
                     )}
                     {/* PM Certified Badge */}
-                    <Badge className="bg-teal-600 text-white shadow-lg">
+                    <Badge className="bg-teal-700 text-white shadow-lg">
                       <Shield className="w-3 h-3 mr-1" />
                       PM Certified
                     </Badge>
@@ -822,6 +826,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => toggleFavorite(vehicle)}
+                      aria-label={isFavorite(vehicle.id) ? "Remove from favorites" : "Add to favorites"}
                       className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
                         isFavorite(vehicle.id)
                           ? "bg-red-500 text-white"
@@ -839,7 +844,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                         price: vehicle.price
                       }}
                       trigger={
-                        <button className="w-9 h-9 bg-background/90 rounded-full flex items-center justify-center hover:bg-background">
+                        <button aria-label="Set price alert" className="w-9 h-9 bg-background/90 rounded-full flex items-center justify-center hover:bg-background">
                           <Bell className="w-4 h-4" />
                         </button>
                       }
@@ -897,8 +902,8 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                     {/* Inspection Score */}
                     <div className="flex items-center gap-2 mt-3">
-                      <Shield className="w-4 h-4 text-green-500" />
-                      <span className="text-sm text-green-600 font-medium">
+                      <Shield className="w-4 h-4 text-green-700" />
+                      <span className="text-sm text-green-700 font-medium">
                         {vehicle.inspectionScore}/210 Inspection Score
                       </span>
                     </div>
@@ -933,7 +938,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     </div>
                     
                     {vehicle.originalPrice > vehicle.price && (
-                      <div className="mt-2 flex items-center gap-1 text-sm text-green-600">
+                      <div className="mt-2 flex items-center gap-1 text-sm text-green-700">
                         <TrendingUp className="w-3 h-3" />
                         Save ${(vehicle.originalPrice - vehicle.price).toLocaleString()}
                       </div>
