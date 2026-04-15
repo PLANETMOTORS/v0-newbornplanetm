@@ -2,6 +2,12 @@ import { MetadataRoute } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { getPublicSiteUrl } from '@/lib/site-url'
 
+// Force runtime generation — sitemap must read live data from Supabase,
+// and the server client requires request context (cookies) which is
+// unavailable during static build.  Without this, Next.js may attempt
+// to pre-render the sitemap at build time and silently 404 in production.
+export const dynamic = 'force-dynamic'
+
 // ─── Sitemap Index ──────────────────────────────────────────────────────────
 // Next.js generates /sitemap.xml as a sitemap index pointing to child sitemaps:
 //   /sitemap/0.xml — static pages (core, info, legal, locations, model landing, filters)
