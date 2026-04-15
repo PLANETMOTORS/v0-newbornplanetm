@@ -58,10 +58,10 @@ export async function POST(request: Request) {
 
       if (filename.endsWith(".xml")) {
         vehicles = parseHomenetXML(text)
-      } else if (filename.endsWith(".csv")) {
+      } else if (filename.endsWith(".csv") || filename.endsWith(".txt")) {
         vehicles = parseHomenetCSV(text)
       } else {
-        return NextResponse.json({ error: "Unsupported file format. Use XML or CSV." }, { status: 400 })
+        return NextResponse.json({ error: "Unsupported file format. Use XML, CSV, or TXT." }, { status: 400 })
       }
     } else if (contentType.includes("application/xml") || contentType.includes("text/xml")) {
       // Direct XML body
@@ -145,13 +145,13 @@ export async function GET() {
     status: "active",
     endpoint: "/api/v1/inventory/homenet",
     method: "POST",
-    supported_formats: ["XML", "CSV", "JSON"],
+    supported_formats: ["XML", "CSV", "TXT", "JSON"],
     authentication: "API Key via 'x-api-key' header or 'Authorization: Bearer <key>'",
     current_inventory_count: vehicleCount[0]?.count || 0,
     last_updated: lastUpdated[0]?.last_updated || null,
     instructions: {
       xml: "POST XML file with Content-Type: application/xml",
-      csv: "POST CSV file as multipart/form-data with field name 'file'",
+      csv: "POST CSV or TXT file as multipart/form-data with field name 'file'",
       json: "POST JSON array with Content-Type: application/json"
     }
   })
