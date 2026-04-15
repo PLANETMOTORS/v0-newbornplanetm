@@ -13,6 +13,17 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   projects: [
+    // Auth setup — generates Supabase session for authenticated tests
+    // Only runs when TEST_USER_EMAIL + TEST_USER_PASSWORD are set
+    ...(process.env.TEST_USER_EMAIL
+      ? [
+          {
+            name: "setup",
+            testMatch: /.*\.setup\.ts/,
+            testDir: "./e2e/setup",
+          },
+        ]
+      : []),
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
