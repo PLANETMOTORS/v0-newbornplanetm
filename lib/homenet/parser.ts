@@ -43,7 +43,7 @@ export interface VehicleData {
 export type SqlClient = ReturnType<typeof neon>
 
 export function getSql(): SqlClient | null {
-  const url = process.env.DATABASE_URL
+  const url = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || process.env.NEON_POSTGRES_URL
   if (!url) return null
   return neon(url)
 }

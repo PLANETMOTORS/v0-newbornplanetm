@@ -3,7 +3,7 @@ import { neon } from "@neondatabase/serverless"
 import crypto from "crypto"
 
 function getSql() {
-  const url = process.env.DATABASE_URL
+  const url = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || process.env.NEON_POSTGRES_URL
   if (!url) return null
   return neon(url)
 }
