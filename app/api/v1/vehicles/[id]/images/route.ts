@@ -79,7 +79,7 @@ async function scrapeImagesFromVDP(vdpUrl: string): Promise<{
 }
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
@@ -153,7 +153,7 @@ export async function GET(
 
 // Force refresh images for a vehicle
 export async function POST(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params

@@ -177,7 +177,7 @@ const getInspection = (vehicleId: string) => {
 
 // GET /api/v1/vehicles/:id/inspection - Get 210-point inspection report
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params

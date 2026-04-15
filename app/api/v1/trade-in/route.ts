@@ -222,9 +222,9 @@ export async function POST(request: NextRequest) {
 }
 
 // GET /api/v1/trade-in/valuation - Get CBB valuation (public)
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
-  
+
   const year = parseInt(searchParams.get('year') || '0')
   const make = searchParams.get('make') || ''
   const model = searchParams.get('model') || ''
