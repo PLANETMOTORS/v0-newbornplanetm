@@ -359,7 +359,7 @@ export default function VehicleDetailPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Complex merged mock+DB vehicle shape
   const [vehicle, setVehicle] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [loadError, _setLoadError] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isFavorite, setIsFavorite] = useState(false)
   const [activeTab, setActiveTab] = useState("photos")
@@ -449,13 +449,13 @@ export default function VehicleDetailPage() {
             }
           })
         } else {
-          setVehicle(vehicleData)
+          setLoadError("Unable to load vehicle details. Please try again later.")
         }
         setIsLoading(false)
       })
       .catch(() => {
         if (!cancelled) {
-          setVehicle(vehicleData)
+          setLoadError("Unable to load vehicle details. Please try again later.")
           setIsLoading(false)
         }
       })
