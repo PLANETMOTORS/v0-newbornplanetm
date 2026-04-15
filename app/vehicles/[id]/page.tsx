@@ -780,12 +780,14 @@ export default function VehicleDetailPage() {
                     {/* Navigation Arrows */}
                     <button
                       onClick={prevImage}
+                      aria-label="Previous image"
                       className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
                     >
                       <ChevronLeft className="h-5 w-5" />
                     </button>
                     <button
                       onClick={nextImage}
+                      aria-label="Next image"
                       className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
                     >
                       <ChevronRight className="h-5 w-5" />
@@ -851,6 +853,7 @@ export default function VehicleDetailPage() {
                       <button
                         key={i}
                         onClick={() => setCurrentImageIndex(i)}
+                        aria-label={`View image ${i + 1} of ${currentImages.length}`}
                         className={`relative w-16 sm:w-20 h-12 sm:h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
                           i === currentImageIndex ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"
                         }`}
