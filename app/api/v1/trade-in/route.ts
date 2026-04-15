@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotificationEmail } from '@/lib/email'
+import { rateLimit } from '@/lib/redis'
+import { validateOrigin } from '@/lib/csrf'
 
 // Mock CBB valuation data
 const getVehicleValue = (year: number, make: string, model: string, mileage: number, condition: string) => {
