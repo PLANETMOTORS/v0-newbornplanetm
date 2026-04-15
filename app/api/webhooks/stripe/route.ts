@@ -133,14 +133,18 @@ export async function handleCheckoutSessionCompleted(
       // Delayed payment methods (e.g. ACSS debit) may complete checkout before settlement.
       // Keep the reservation pending until async success confirms funds.
       if (vehicleId) {
-        const { error: holdVehicleError } = await supabase
-          .from('vehicles')
-          .update({ status: 'reserved', updated_at: new Date().toISOString() })
-          .eq('id', vehicleId)
-          .in('status', ['available', 'reserved'])
+        const { data: transitioned, error: holdVehicleError } = await supabase
+          .rpc('transition_vehicle_status', {
+            p_vehicle_id: vehicleId,
+            p_from_statuses: ['available', 'reserved'],
+            p_to_status: 'reserved',
+          })
 
         if (holdVehicleError) {
           throw new Error(`Failed to hold vehicle ${vehicleId} while payment is pending: ${holdVehicleError.message}`)
+        }
+        if (!transitioned) {
+          console.warn(`[webhook] Vehicle ${vehicleId} hold while payment pending was a no-op.`)
         }
       }
 
@@ -163,16 +167,20 @@ export async function handleCheckoutSessionCompleted(
       throw new Error(`Failed to confirm reservation ${reservationId}: ${reservationError.message}`)
     }
 
-    // Mark vehicle as reserved
+    // Atomically mark vehicle as reserved using row-level lock.
     if (vehicleId) {
-      const { error: vehicleError } = await supabase
-        .from('vehicles')
-        .update({ status: 'reserved', updated_at: new Date().toISOString() })
-        .eq('id', vehicleId)
-        .in('status', ['available', 'reserved'])
+      const { data: transitioned, error: vehicleError } = await supabase
+        .rpc('transition_vehicle_status', {
+          p_vehicle_id: vehicleId,
+          p_from_statuses: ['available', 'reserved'],
+          p_to_status: 'reserved',
+        })
 
       if (vehicleError) {
         throw new Error(`Failed to update vehicle ${vehicleId} after reservation confirmation: ${vehicleError.message}`)
+      }
+      if (!transitioned) {
+        console.warn(`[webhook] Vehicle ${vehicleId} status transition to 'reserved' was a no-op (already transitioned by concurrent webhook).`)
       }
     }
 
@@ -198,13 +206,18 @@ export async function handleCheckoutSessionCompleted(
       throw new Error(`Failed to confirm order for vehicle ${vehicleId}: ${orderError.message}`)
     }
 
-    const { error: vehicleError } = await supabase
-      .from('vehicles')
-      .update({ status: 'pending', updated_at: new Date().toISOString() })
-      .eq('id', vehicleId)
+    const { data: transitioned, error: vehicleError } = await supabase
+      .rpc('transition_vehicle_status', {
+        p_vehicle_id: vehicleId,
+        p_from_statuses: ['available', 'reserved', 'pending'],
+        p_to_status: 'pending',
+      })
 
     if (vehicleError) {
       throw new Error(`Failed to transition vehicle ${vehicleId} after order confirmation: ${vehicleError.message}`)
+    }
+    if (!transitioned) {
+      console.warn(`[webhook] Vehicle ${vehicleId} status transition to 'pending' was a no-op.`)
     }
 
     console.log(`[webhook] Vehicle ${vehicleId} order confirmed.`)
@@ -236,14 +249,18 @@ export async function handleCheckoutSessionAsyncPaymentFailed(
   }
 
   if (vehicleId) {
-    const { error: vehicleError } = await supabase
-      .from('vehicles')
-      .update({ status: 'available', updated_at: new Date().toISOString() })
-      .eq('id', vehicleId)
-      .eq('status', 'reserved')
+    const { data: transitioned, error: vehicleError } = await supabase
+      .rpc('transition_vehicle_status', {
+        p_vehicle_id: vehicleId,
+        p_from_statuses: ['reserved'],
+        p_to_status: 'available',
+      })
 
     if (vehicleError) {
       throw new Error(`Failed to release vehicle ${vehicleId} after async payment failure: ${vehicleError.message}`)
+    }
+    if (!transitioned) {
+      console.warn(`[webhook] Vehicle ${vehicleId} release after async payment failure was a no-op.`)
     }
   }
 }
@@ -273,15 +290,18 @@ export async function handleCheckoutSessionExpired(
   }
 
   if (vehicleId) {
-    // Only release lock if vehicle is still in reserved state from this reservation
-    const { error: vehicleError } = await supabase
-      .from('vehicles')
-      .update({ status: 'available', updated_at: new Date().toISOString() })
-      .eq('id', vehicleId)
-      .eq('status', 'reserved')
+    const { data: transitioned, error: vehicleError } = await supabase
+      .rpc('transition_vehicle_status', {
+        p_vehicle_id: vehicleId,
+        p_from_statuses: ['reserved'],
+        p_to_status: 'available',
+      })
 
     if (vehicleError) {
       throw new Error(`Failed to release vehicle ${vehicleId} after session expiration: ${vehicleError.message}`)
+    }
+    if (!transitioned) {
+      console.warn(`[webhook] Vehicle ${vehicleId} release after session expiration was a no-op.`)
     }
   }
 }
@@ -310,14 +330,18 @@ export async function handlePaymentIntentFailed(
   }
 
   if (vehicleId) {
-    const { error: vehicleError } = await supabase
-      .from('vehicles')
-      .update({ status: 'available', updated_at: new Date().toISOString() })
-      .eq('id', vehicleId)
-      .eq('status', 'reserved')
+    const { data: transitioned, error: vehicleError } = await supabase
+      .rpc('transition_vehicle_status', {
+        p_vehicle_id: vehicleId,
+        p_from_statuses: ['reserved'],
+        p_to_status: 'available',
+      })
 
     if (vehicleError) {
       throw new Error(`Failed to release vehicle ${vehicleId} after payment failure: ${vehicleError.message}`)
+    }
+    if (!transitioned) {
+      console.warn(`[webhook] Vehicle ${vehicleId} release after payment failure was a no-op.`)
     }
   }
 }
@@ -345,14 +369,18 @@ export async function handlePaymentIntentSucceeded(
     }
 
     if (vehicleId) {
-      const { error: vehicleError } = await supabase
-        .from('vehicles')
-        .update({ status: 'reserved', updated_at: new Date().toISOString() })
-        .eq('id', vehicleId)
-        .in('status', ['available', 'reserved'])
+      const { data: transitioned, error: vehicleError } = await supabase
+        .rpc('transition_vehicle_status', {
+          p_vehicle_id: vehicleId,
+          p_from_statuses: ['available', 'reserved'],
+          p_to_status: 'reserved',
+        })
 
       if (vehicleError) {
         throw new Error(`Failed to hold vehicle ${vehicleId} after payment success: ${vehicleError.message}`)
+      }
+      if (!transitioned) {
+        console.warn(`[webhook] Vehicle ${vehicleId} hold after payment success was a no-op.`)
       }
     }
 
@@ -370,13 +398,18 @@ export async function handlePaymentIntentSucceeded(
       throw new Error(`Failed to confirm order from payment intent for vehicle ${vehicleId}: ${orderError.message}`)
     }
 
-    const { error: vehicleError } = await supabase
-      .from('vehicles')
-      .update({ status: 'pending', updated_at: new Date().toISOString() })
-      .eq('id', vehicleId)
+    const { data: transitioned, error: vehicleError } = await supabase
+      .rpc('transition_vehicle_status', {
+        p_vehicle_id: vehicleId,
+        p_from_statuses: ['available', 'reserved', 'pending'],
+        p_to_status: 'pending',
+      })
 
     if (vehicleError) {
       throw new Error(`Failed to transition vehicle ${vehicleId} after payment intent success: ${vehicleError.message}`)
+    }
+    if (!transitioned) {
+      console.warn(`[webhook] Vehicle ${vehicleId} transition to pending after payment intent was a no-op.`)
     }
   }
 }

@@ -128,7 +128,14 @@ export async function lockVehicle(
   lockDurationSeconds: number = 900
 ): Promise<boolean> {
   const redis = await getRedis()
-  if (!redis) return true // Allow if Redis not available
+  if (!redis) {
+    // Fail CLOSED: if Redis is unavailable, deny the lock to prevent concurrent
+    // reservations from bypassing the distributed mutex. The DB-level SELECT FOR
+    // UPDATE in claim_vehicle_for_reservation is the real guard, but this prevents
+    // unnecessary DB contention.
+    console.warn('[Redis] Redis unavailable — denying vehicle lock as a precaution. DB-level lock will still protect against double-booking.')
+    return false
+  }
   
   try {
     const key = `vehicle_lock:${stockNumber}`
@@ -156,7 +163,8 @@ export async function lockVehicle(
     return result === "OK"
   } catch (error) {
     console.warn("[Redis] Failed to lock vehicle:", (error as Error).message)
-    return true
+    // Fail closed on error — deny the lock rather than silently allowing concurrent access.
+    return false
   }
 }
 
@@ -184,7 +192,7 @@ export async function unlockVehicle(stockNumber: string, userId: string): Promis
     return deleted === 1
   } catch (error) {
     console.warn("[Redis] Failed to unlock vehicle:", (error as Error).message)
-    return true
+    return false
   }
 }
 
