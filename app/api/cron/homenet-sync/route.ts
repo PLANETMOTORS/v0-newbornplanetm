@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { downloadLatestCSV } from "@/lib/homenet/sftp-client"
 import { parseHomenetCSV, syncVehiclesToDatabase, getSql } from "@/lib/homenet/parser"
+import { upsertVehiclesBatch, type VehicleDocument } from "@/lib/typesense/indexer"
+import { isTypesenseConfigured } from "@/lib/typesense/client"
 
 /**
  * Vercel Cron Job: HomenetIOL SFTP Feed Sync
@@ -55,6 +57,43 @@ export async function GET(request: Request) {
     // Step 3: Sync to database
     const result = await syncVehiclesToDatabase(sql, vehicles)
 
+    // Step 4: Index to Typesense (non-blocking — log errors but don't fail the cron)
+    let typesenseResult: { success: number; errors: number } = { success: 0, errors: 0 }
+    if (isTypesenseConfigured()) {
+      try {
+        const docs: VehicleDocument[] = vehicles.map((v) => ({
+          id: v.vin, // use VIN as stable Typesense doc ID
+          stock_number: v.stock_number,
+          year: v.year,
+          make: v.make,
+          model: v.model,
+          trim: v.trim,
+          body_style: v.body_style,
+          exterior_color: v.exterior_color,
+          price: v.price,
+          mileage: v.mileage,
+          drivetrain: v.drivetrain,
+          fuel_type: v.fuel_type,
+          transmission: v.transmission,
+          engine: v.engine,
+          is_ev: v.is_ev ?? false,
+          is_certified: v.is_certified ?? false,
+          status: v.status || "available",
+          primary_image_url: v.primary_image_url,
+          description: v.description,
+          vin: v.vin,
+          location: v.location,
+          created_at: Math.floor(Date.now() / 1000),
+        }))
+        typesenseResult = await upsertVehiclesBatch(docs)
+        console.log(
+          `[HomenetIOL Cron] Typesense indexed: ${typesenseResult.success} ok, ${typesenseResult.errors} errors`
+        )
+      } catch (tsErr) {
+        console.error("[HomenetIOL Cron] Typesense indexing failed:", tsErr)
+      }
+    }
+
     const duration = Date.now() - startTime
     console.log(
       `[HomenetIOL Cron] Sync complete in ${duration}ms: ` +
@@ -69,6 +108,8 @@ export async function GET(request: Request) {
       vehiclesParsed: vehicles.length,
       inserted: result.inserted,
       updated: result.updated,
+      typesenseIndexed: typesenseResult.success,
+      typesenseErrors: typesenseResult.errors,
       errors: result.errors.length > 0 ? result.errors.slice(0, 10) : undefined,
       errorCount: result.errors.length,
       duration_ms: duration,
