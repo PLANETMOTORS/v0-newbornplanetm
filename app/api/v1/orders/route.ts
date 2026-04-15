@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
+import { PROVINCE_TAX_RATES } from '@/lib/tax/canada'
 
 const PROTECTION_PLAN_PRICES_CENTS: Record<string, number> = {
   essential: 195000,
@@ -67,7 +68,32 @@ export async function POST(request: NextRequest) {
     preferredTimeSlot,
     protectionPlanId,
     downPayment,
+    province,
   } = body
+
+  // Validate province and resolve tax rate.
+  // If province is explicitly provided but unrecognised, reject immediately.
+  // If province is absent, default to ON for backward-compat and log a warning.
+  const hasProvince = typeof province === 'string' && province.trim() !== ''
+  if (hasProvince && !(province.toUpperCase() in PROVINCE_TAX_RATES)) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'INVALID_PROVINCE',
+          message: `Unknown province code "${province}". Use a valid 2-letter Canadian province code (e.g. ON, BC, AB).`,
+        },
+      },
+      { status: 400 }
+    )
+  }
+  if (!hasProvince) {
+    console.warn(
+      `[orders] Province not provided for order by user ${user.id}. Defaulting to ON.`
+    )
+  }
+  const resolvedProvince = hasProvince ? province.toUpperCase() : 'ON'
+  const taxInfo = PROVINCE_TAX_RATES[resolvedProvince]
 
   if (!vehicleId || !paymentMethod) {
     return NextResponse.json(
@@ -194,10 +220,13 @@ export async function POST(request: NextRequest) {
   const omvicFeeCents = 1000
   const deliveryFeeCents = normalizedDeliveryType === 'delivery' ? 0 : 0
   const protectionPlanFeeCents = protectionPlanId ? (PROTECTION_PLAN_PRICES_CENTS[String(protectionPlanId)] || 0) : 0
-  const taxRatePercent = 13
+  // taxInfo.total is the full decimal rate (e.g. 0.14975 for QC).
+  // taxAmountCents and the stored/returned taxRate both derive from it directly
+  // so that taxRate * subtotal always equals taxAmount with no rounding disagreement.
+  const taxRate = taxInfo.total  // e.g. 0.13, 0.14975
 
   const subtotalCents = vehiclePriceCents + documentationFeeCents + omvicFeeCents + deliveryFeeCents + protectionPlanFeeCents
-  const taxAmountCents = Math.round(subtotalCents * (taxRatePercent / 100))
+  const taxAmountCents = Math.round(subtotalCents * taxRate)
   const totalBeforeCreditsCents = subtotalCents + taxAmountCents
 
   const tradeInCreditCents = 0
@@ -256,7 +285,7 @@ export async function POST(request: NextRequest) {
       omvic_fee_cents: omvicFeeCents,
       delivery_fee_cents: deliveryFeeCents,
       protection_plan_fee_cents: protectionPlanFeeCents,
-      tax_rate_percent: taxRatePercent,
+      tax_rate_percent: taxRate * 100,
       tax_amount_cents: taxAmountCents,
       total_before_credits_cents: totalBeforeCreditsCents,
       trade_in_credit_cents: tradeInCreditCents,
@@ -328,7 +357,13 @@ export async function POST(request: NextRequest) {
           deliveryFee: fromCents(deliveryFeeCents),
           protectionPlanPrice: fromCents(protectionPlanFeeCents),
           subtotal: fromCents(subtotalCents),
-          taxRate: taxRatePercent / 100,
+          province: resolvedProvince,
+          taxRate: taxRate,
+          taxBreakdown: {
+            gst: taxInfo.gst,
+            pst: taxInfo.pst,
+            hst: taxInfo.hst,
+          },
           taxAmount: fromCents(taxAmountCents),
           totalBeforeCredits: fromCents(totalBeforeCreditsCents),
           tradeInCredit: fromCents(tradeInCreditCents),
