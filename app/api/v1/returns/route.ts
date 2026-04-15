@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
       // 23505 = unique_violation; return a client-meaningful conflict response.
       if (insertError.code === "42P01") {
         console.warn(
-          "[returns] 'returns' table not found (42P01). Run scripts/006_create_returns_schema.sql to enable persistence."
+          "[returns] 'returns' table not found (42P01). Run scripts/010_create_returns_schema.sql to enable persistence."
         )
       } else if (insertError.code === "23505") {
         return NextResponse.json(

@@ -358,7 +358,7 @@ export async function POST(request: NextRequest) {
           protectionPlanPrice: fromCents(protectionPlanFeeCents),
           subtotal: fromCents(subtotalCents),
           province: resolvedProvince,
-          taxRate: taxRate,
+          taxRate,
           taxBreakdown: {
             gst: taxInfo.gst,
             pst: taxInfo.pst,
