@@ -262,12 +262,15 @@ const conditionOptions = [
   { value: "poor", label: "Poor", description: "Significant wear, mechanical or body issues, needs work", multiplier: 0.75 },
 ]
 
+const TRADE_IN_DRAFT_KEY = "pm:trade-in-draft"
+
 function TradeInContent() {
   const searchParams = useSearchParams()
   const { user } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [step, setStep] = useState(1)
-  
+  const draftLoadedRef = useRef(false)
+
   // Ref for step content area to scroll to
   const stepContentRef = useRef<HTMLDivElement>(null)
   
@@ -409,7 +412,95 @@ function TradeInContent() {
   const [emailError, setEmailError] = useState("")
   const [phoneError, setPhoneError] = useState("")
   const [postalCodeError, setPostalCodeError] = useState("")
-  
+
+  // Restore draft from localStorage on mount (skip if URL params pre-fill)
+  useEffect(() => {
+    if (draftLoadedRef.current) return
+    draftLoadedRef.current = true
+
+    // Don't restore draft if URL params are driving the form
+    const hasUrlPrefill = searchParams.get("quote") || searchParams.get("vehicle") || searchParams.get("value")
+    if (hasUrlPrefill) return
+
+    try {
+      const raw = window.localStorage.getItem(TRADE_IN_DRAFT_KEY)
+      if (!raw) return
+      const d = JSON.parse(raw) as Record<string, unknown>
+
+      // Only restore if saved within the last 7 days
+      if (d.savedAt && Date.now() - new Date(d.savedAt as string).getTime() > 7 * 24 * 60 * 60 * 1000) {
+        window.localStorage.removeItem(TRADE_IN_DRAFT_KEY)
+        return
+      }
+
+      if (typeof d.step === "number" && d.step >= 1 && d.step <= 3) setStep(d.step as number)
+      if (typeof d.lookupMethod === "string") setLookupMethod(d.lookupMethod as "plate" | "vin" | "manual")
+      if (typeof d.selectedYear === "string") setSelectedYear(d.selectedYear as string)
+      if (typeof d.selectedMake === "string") setSelectedMake(d.selectedMake as string)
+      if (typeof d.selectedModel === "string") setSelectedModel(d.selectedModel as string)
+      if (typeof d.selectedTrim === "string") setSelectedTrim(d.selectedTrim as string)
+      if (typeof d.mileage === "string") setMileage(d.mileage as string)
+      if (typeof d.condition === "string") setCondition(d.condition as string)
+      if (typeof d.hasAccident === "boolean") setHasAccident(d.hasAccident as boolean)
+      if (typeof d.hasMechanicalIssues === "boolean") setHasMechanicalIssues(d.hasMechanicalIssues as boolean)
+      if (typeof d.hasLien === "boolean") setHasLien(d.hasLien as boolean)
+      if (typeof d.payoffAmount === "string") setPayoffAmount(d.payoffAmount as string)
+      if (typeof d.additionalNotes === "string") setAdditionalNotes(d.additionalNotes as string)
+      if (typeof d.email === "string") setEmail(d.email as string)
+      if (typeof d.phone === "string") setPhone(d.phone as string)
+      if (typeof d.postalCode === "string") setPostalCode(d.postalCode as string)
+      if (typeof d.vinNumber === "string") setVinNumber(d.vinNumber as string)
+    } catch (err) {
+      console.error("Failed to restore trade-in draft:", err)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Auto-save draft to localStorage on every form change (debounced 500ms)
+  useEffect(() => {
+    if (!draftLoadedRef.current) return
+
+    const timeout = window.setTimeout(() => {
+      try {
+        // Don't save if user hasn't entered anything meaningful
+        const hasData = selectedYear || selectedMake || mileage || email || vinNumber
+        if (!hasData) return
+
+        const payload = {
+          step,
+          lookupMethod,
+          selectedYear,
+          selectedMake,
+          selectedModel,
+          selectedTrim,
+          mileage,
+          condition,
+          hasAccident,
+          hasMechanicalIssues,
+          hasLien,
+          payoffAmount,
+          additionalNotes,
+          email,
+          phone,
+          postalCode,
+          vinNumber,
+          savedAt: new Date().toISOString(),
+        }
+        window.localStorage.setItem(TRADE_IN_DRAFT_KEY, JSON.stringify(payload))
+      } catch (err) {
+        console.error("Failed to save trade-in draft:", err)
+      }
+    }, 500)
+
+    return () => window.clearTimeout(timeout)
+  }, [
+    step, lookupMethod,
+    selectedYear, selectedMake, selectedModel, selectedTrim,
+    mileage, condition,
+    hasAccident, hasMechanicalIssues, hasLien, payoffAmount, additionalNotes,
+    email, phone, postalCode, vinNumber,
+  ])
+
   // Validation handlers
   const handleEmailChange = (value: string) => {
     setEmail(value)
@@ -1826,6 +1917,7 @@ function TradeInContent() {
                   const data = await response.json()
                   
                   if (data.success) {
+                    try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch {}
                     setShowAcceptModal(false)
                     alert(`Offer Accepted!\n\nYou will receive a confirmation email and SMS shortly.\n\nOur team will contact you within 2 hours to schedule your free pickup.\n\nQuote ID: ${offer?.quoteId}`)
                   } else {
@@ -1834,6 +1926,7 @@ function TradeInContent() {
                 } catch (error) {
                   console.error('Error accepting offer:', error)
                   // Still show success to user - fallback for API errors
+                  try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch {}
                   setShowAcceptModal(false)
                   alert(`Offer Accepted!\n\nOur team will contact you within 2 hours to schedule your free pickup.\n\nQuote ID: ${offer?.quoteId}`)
                 }
@@ -1926,6 +2019,7 @@ function TradeInContent() {
                   console.error('Error saving trade-in:', error)
                 }
                 
+                try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch {}
                 setShowApplyModal(false)
                 // Redirect to inventory with full trade-in info
                 const params = new URLSearchParams({
