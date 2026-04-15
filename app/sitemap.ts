@@ -195,12 +195,17 @@ function buildPagesSitemap(baseUrl: string, currentDate: string): MetadataRoute.
 async function buildVehiclesSitemap(baseUrl: string, currentDate: string): Promise<MetadataRoute.Sitemap> {
   try {
     const supabase = await createClient()
-    const { data: inventoryVehicles } = await supabase
+    const { data: inventoryVehicles, error } = await supabase
       .from('vehicles')
       .select('id, updated_at')
       .eq('status', 'available')
       .order('updated_at', { ascending: false })
       .limit(VEHICLE_SITEMAP_LIMIT)
+
+    if (error) {
+      console.error('Supabase error in buildVehiclesSitemap:', error)
+      throw new Error(`Failed to fetch vehicles for sitemap: ${error.message}`)
+    }
 
     return (inventoryVehicles || []).map((vehicle) => ({
       url: `${baseUrl}/vehicles/${vehicle.id}`,
@@ -208,8 +213,9 @@ async function buildVehiclesSitemap(baseUrl: string, currentDate: string): Promi
       changeFrequency: 'daily' as const,
       priority: 0.75,
     }))
-  } catch {
-    return []
+  } catch (err) {
+    console.error('Error building vehicles sitemap:', err)
+    throw err
   }
 }
 
