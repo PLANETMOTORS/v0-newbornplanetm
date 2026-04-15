@@ -1,3 +1,6 @@
+// Make this file a module so TypeScript doesn't merge its scope with other scripts.
+export {}
+
 /**
  * Race Condition Proof-of-Concept
  *
