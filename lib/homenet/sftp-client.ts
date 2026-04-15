@@ -15,13 +15,15 @@ export interface DownloadResult {
 
 function getSftpConfig(): SftpConfig {
   const host = process.env.HOMENET_SFTP_HOST
-  const user = process.env.HOMENET_SFTP_USER
-  const pass = process.env.HOMENET_SFTP_PASS
+  // Accept both naming conventions: USER/PASS and USERNAME/PASSWORD
+  const user = process.env.HOMENET_SFTP_USER || process.env.HOMENET_SFTP_USERNAME
+  const pass = process.env.HOMENET_SFTP_PASS || process.env.HOMENET_SFTP_PASSWORD
   const port = parseInt(process.env.HOMENET_SFTP_PORT || "22", 10)
 
   if (!host || !user || !pass) {
     throw new Error(
-      "Missing SFTP credentials. Set HOMENET_SFTP_HOST, HOMENET_SFTP_USER, and HOMENET_SFTP_PASS."
+      "Missing SFTP credentials. Set HOMENET_SFTP_HOST, HOMENET_SFTP_USER(NAME), and HOMENET_SFTP_PASS(WORD). " +
+      `Found: host=${!!host}, user=${!!user}, pass=${!!pass}`
     )
   }
 

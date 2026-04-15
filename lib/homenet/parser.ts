@@ -153,8 +153,9 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
     body_style: get(["body_style", "bodystyle", "body", "bodytype"]),
     exterior_color: get(["exterior_color", "exteriorcolor", "color", "extcolor"]),
     interior_color: get(["interior_color", "interiorcolor", "intcolor"]),
-    price: getNum(["price", "sellingprice", "internetprice"]) || 0,
-    msrp: getNum(["msrp", "retailprice"]),
+    // HomeNet sends prices in dollars; DB stores in cents
+    price: (getNum(["price", "sellingprice", "internetprice"]) || 0) * 100,
+    msrp: (() => { const v = getNum(["msrp", "retailprice"]); return v != null ? v * 100 : undefined })(),
     mileage: getNum(["mileage", "odometer"]) || 0,
     drivetrain: get(["drivetrain", "drivetype"]),
     transmission: get(["transmission", "trans"]),
