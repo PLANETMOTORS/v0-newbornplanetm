@@ -1,7 +1,7 @@
 import { Metadata } from "next"
 import Link from "next/link"
-import { FinanceApplicationFullForm } from "@/components/finance-application-full-form"
 import { Shield, Clock, CheckCircle, ArrowLeft, Home } from "lucide-react"
+import { FinanceApplicationFullForm } from "@/components/finance-application-full-form"
 import { createClient } from "@/lib/supabase/server"
 
 export const metadata: Metadata = {
