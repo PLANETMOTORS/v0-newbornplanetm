@@ -69,17 +69,14 @@ test.describe("Inventory Page", () => {
   test("sort dropdown is present", async ({ page }) => {
     const loaded = await waitForInventory(page)
     if (!loaded) { return }
-    // The inventory page renders native <select> with aria-label="Sort vehicles".
-    // In CI without Supabase the sort may be in a responsive container that
-    // is not visible at the default viewport width, so we check count first.
+    // The inventory page renders two native <select> elements with
+    // aria-label="Sort vehicles" — one for mobile and one for desktop.
+    // At the default CI viewport only the desktop one may be visible,
+    // or both may be hidden behind a responsive breakpoint.
+    // We verify the element exists in the DOM (attached) rather than
+    // requiring visibility, since the layout is viewport-dependent.
     const sortControl = page.locator('select[aria-label="Sort vehicles"]')
-    if ((await sortControl.count()) === 0) {
-      // Fall back to any combobox or sort-labelled element
-      const fallback = page.getByRole("combobox").or(page.getByText(/sort/i))
-      await expect(fallback.first()).toBeVisible({ timeout: 10_000 })
-    } else {
-      await expect(sortControl.first()).toBeVisible({ timeout: 10_000 })
-    }
+    await expect(sortControl.first()).toBeAttached({ timeout: 10_000 })
   })
 
   test("renders vehicle cards or no-results message", async ({ page }) => {
