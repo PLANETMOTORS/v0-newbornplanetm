@@ -18,11 +18,23 @@ const DRIVEE_DEALER_UID = "AZYuEtjX9NUvWpqmUQcKyiGHbNg1"
 const DRIVEE_IFRAME_BASE = "https://iframe-b8b2c.web.app"
 
 /**
+ * Drivee background: neutral gray that matches the processed image backdrop.
+ * This ensures the vehicle shadow blends naturally instead of appearing "pasted on".
+ */
+const DRIVEE_BG = "#e8e8e8"
+
+/**
  * Premium 360° viewer powered by Drivee.ai
  *
  * Clean container for Drivee's fully self-contained iframe.
  * Drivee provides its own tabs, thumbnails, fullscreen control,
  * hotspots, and drag instructions — we just wrap it.
+ *
+ * Iframe params (per Drivee support):
+ *  - style=style1  — uses the updated background with softer shadows
+ *  - aspect=4:3    — proper vehicle proportions (not too zoomed)
+ *  - device=gadget — responsive viewport handling
+ *  - order=None    — let Drivee decide frame ordering
  */
 export function DriveeViewer({
   mid,
@@ -33,12 +45,23 @@ export function DriveeViewer({
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
 
-  const iframeSrc = `${DRIVEE_IFRAME_BASE}/?mid=${mid}&uid=${uid}&order=36&style=1`
+  // Use Drivee-recommended params: style1 for updated background, 4:3 aspect for
+  // proper vehicle proportions (slightly zoomed out), device=gadget for responsive
+  const iframeSrc = [
+    `${DRIVEE_IFRAME_BASE}/`,
+    `?mid=${mid}`,
+    `&uid=${uid}`,
+    `&style=style1`,
+    `&aspect=4%3A3`,
+    `&device=gadget`,
+    `&order=None`,
+  ].join("")
 
   if (hasError) {
     return (
       <div
-        className={`relative h-[500px] md:h-[600px] rounded-xl overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] flex items-center justify-center ${className}`}
+        className={`relative h-[500px] md:h-[600px] rounded-xl overflow-hidden flex items-center justify-center ${className}`}
+        style={{ backgroundColor: DRIVEE_BG }}
         role="region"
         aria-label={`360° view unavailable for ${vehicleName}`}
       >
@@ -53,13 +76,17 @@ export function DriveeViewer({
 
   return (
     <div
-      className={`relative h-[500px] md:h-[600px] rounded-xl overflow-hidden bg-neutral-100 ${className}`}
+      className={`relative h-[500px] md:h-[600px] rounded-xl overflow-hidden ${className}`}
+      style={{ backgroundColor: DRIVEE_BG }}
       role="region"
       aria-label={`360° Interactive View — ${vehicleName}`}
     >
-      {/* Loading skeleton */}
+      {/* Loading skeleton — matches Drivee background for seamless transition */}
       {isLoading && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5]">
+        <div
+          className="absolute inset-0 z-10 flex items-center justify-center"
+          style={{ backgroundColor: DRIVEE_BG }}
+        >
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-primary" aria-hidden="true" />
             <p className="text-sm text-muted-foreground">Loading 360° experience…</p>

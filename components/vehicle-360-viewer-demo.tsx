@@ -153,9 +153,10 @@ export function Vehicle360ViewerDemo() {
       {/* Main viewer area */}
       <div
         className={cn(
-          "relative aspect-[16/10] cursor-grab overflow-hidden bg-muted",
+          "relative aspect-[4/3] cursor-grab overflow-hidden",
           isDragging && "cursor-grabbing"
         )}
+        style={{ backgroundColor: "#e8e8e8" }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -164,7 +165,7 @@ export function Vehicle360ViewerDemo() {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Vehicle image */}
+        {/* Vehicle image — object-contain preserves full vehicle proportions */}
         <div
           className="absolute inset-0 flex items-center justify-center transition-transform duration-100"
           style={{ transform: `scale(${zoom})` }}
@@ -174,7 +175,7 @@ export function Vehicle360ViewerDemo() {
             alt={`Vehicle view ${currentFrame + 1} of ${frameCount}`}
             fill
             sizes="(max-width: 768px) 100vw, 80vw"
-            className="object-cover"
+            className="object-contain"
             draggable={false}
             unoptimized
           />

@@ -789,7 +789,8 @@ export default function VehicleDetailPage() {
                       if (e.key === "ArrowRight") { nextImage(); e.preventDefault() }
                       if (e.key === "ArrowLeft") { prevImage(); e.preventDefault() }
                     }}
-                    className="relative aspect-[16/10] rounded-xl overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] group focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="relative aspect-[4/3] rounded-xl overflow-hidden group focus:outline-none focus:ring-2 focus:ring-primary"
+                    style={{ backgroundColor: "#e8e8e8" }}
                   >
                     {/* Hidden native img for vdp-active-image testid (Playwright getAttribute('src')) */}
                     {currentImages.length > 0 && currentImages[activeIndex] && (
@@ -803,7 +804,7 @@ export default function VehicleDetailPage() {
                           src={currentImages[activeIndex]}
                           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                           fill
-                          className="object-cover"
+                          className="object-contain"
                           priority
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
                           onError={(e) => {
