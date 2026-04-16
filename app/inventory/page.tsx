@@ -799,11 +799,17 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
             )}
           </div>
 
-          {/* Vehicle Grid */}
+          {/* Vehicle Grid — content-visibility virtualizes off-screen cards */}
           <div aria-live="polite" className={`py-8 ${viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "space-y-4"}`}>
             {sortedVehicles.map((vehicle) => (
-              <Card
+              <div
                 key={vehicle.id}
+                style={{
+                  contentVisibility: "auto",
+                  containIntrinsicSize: viewMode === "list" ? "auto 200px" : "auto 420px",
+                }}
+              >
+              <Card
                 data-testid="inventory-card"
                 className={`group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${
                   viewMode === "list" ? "flex flex-col sm:flex-row" : ""
@@ -822,6 +828,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                       src={vehicle.image}
                       alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                       fill
+                      loading="lazy"
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       onError={(e) => {
@@ -991,6 +998,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   </div>
                 </CardContent>
               </Card>
+              </div>
             ))}
           </div>
 

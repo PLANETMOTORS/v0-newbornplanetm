@@ -33,7 +33,6 @@ export function PlanetMotorsLogo({
         fill
         className="object-contain"
         sizes={`${width}px`}
-        unoptimized
         priority
       />
     </div>

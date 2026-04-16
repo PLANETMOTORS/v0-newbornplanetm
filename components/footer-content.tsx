@@ -1,9 +1,8 @@
-"use client"
-
 import Link from "next/link"
-import { Phone, MapPin, Mail, Clock, Shield } from "lucide-react"
+import { MapPin, Mail, Clock, Shield } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
-import { trackPhoneClick } from "@/components/analytics/google-tag-manager"
+import { FooterPhoneLink } from "@/components/footer-phone-link"
+import { FooterNewsletter } from "@/components/footer-newsletter"
 
 export type FooterProps = {
   siteSettings: {
@@ -128,14 +127,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
 
               {/* Contact */}
               <div className="space-y-2.5 mb-8">
-                <a
-                  href={`tel:${siteSettings.phone.replace(/[^0-9]/g, '')}`}
-                  className="flex items-center gap-2.5 text-sm text-white/90 hover:text-white transition-colors"
-                  onClick={() => trackPhoneClick(siteSettings.phone)}
-                >
-                  <Phone className="w-4 h-4 shrink-0" />
-                  <span>{siteSettings.phone}</span>
-                </a>
+                <FooterPhoneLink phone={siteSettings.phone} />
                 <a
                   href={`mailto:${siteSettings.email}`}
                   className="flex items-center gap-2.5 text-sm text-white/90 hover:text-white transition-colors"
@@ -155,22 +147,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
               </div>
 
               {/* Newsletter Signup */}
-              <div>
-                <p className="text-white/90 text-xs font-semibold uppercase tracking-wider mb-2.5">Get deals in your inbox</p>
-                <form className="flex max-w-xs" onSubmit={(e) => e.preventDefault()}>
-                  <input
-                    type="email"
-                    placeholder="your@email.com"
-                    className="flex-1 px-3.5 py-2.5 bg-white/5 border border-white/10 border-r-0 rounded-l-lg text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-[#1e3a8a] transition-colors"
-                  />
-                  <button
-                    type="submit"
-                    className="px-4 py-2.5 bg-[#1e3a8a] hover:bg-[#1e40af] text-white text-sm font-semibold rounded-r-lg transition-colors"
-                  >
-                    Subscribe
-                  </button>
-                </form>
-              </div>
+              <FooterNewsletter />
             </div>
 
             {/* ── Vehicles ── */}
