@@ -19,7 +19,7 @@ import {
   Phone, Star, TrendingUp, Users,
   Battery, LockKeyhole, Truck, ArrowRight, Play,
   Download, ExternalLink, Check, Expand,
-  Key, RotateCw, Pause
+  Key, RotateCw
 } from "lucide-react"
 
 import { VehicleSpinViewer } from "@/components/vehicle-spin-viewer"

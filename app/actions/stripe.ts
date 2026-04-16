@@ -68,22 +68,6 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
     status: lock.status as string,
   }
 
-  // ── Race condition fix: CAS-lock the vehicle BEFORE creating Stripe session ──
-  // Without this, multiple users could start paying simultaneously.
-  // The CAS update ensures only one Stripe session proceeds per vehicle.
-  const adminClient = (await import('@/lib/supabase/admin')).createAdminClient()
-  const { data: lockResult } = await adminClient
-    .from('vehicles')
-    .update({ status: 'checkout_in_progress', updated_at: new Date().toISOString() })
-    .eq('id', data.vehicleId)
-    .in('status', ['available', 'reserved'])
-    .select('id')
-    .maybeSingle()
-
-  if (!lockResult) {
-    throw new Error('Vehicle is no longer available — another buyer is checking out')
-  }
-
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
   const serverVehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`.trim() || data.vehicleName
   const vehicleAmount = data.depositOnly ? 25000 : validateCentsAmount(vehicle.price)
