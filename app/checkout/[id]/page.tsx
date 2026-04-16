@@ -38,7 +38,6 @@ const PROVINCE_NAME_TO_CODE: Record<string, string> = {
   'Manitoba': 'MB', 'Saskatchewan': 'SK', 'Newfoundland and Labrador': 'NL',
   'Northwest Territories': 'NT', 'Yukon': 'YT', 'Nunavut': 'NU',
 }
-import { OMVIC_FEE, CERTIFICATION_FEE, LICENSING_FEE } from "@/lib/pricing/format"
 
 // Lazy-load Stripe — only fetched when user reaches payment step
 const EmbeddedCheckoutProvider = dynamic(
