@@ -341,12 +341,23 @@ export function parseCSVLine(line: string): string[] {
 
 // ==================== DATABASE SYNC ====================
 
+/**
+ * Full-replacement sync: the incoming file IS the complete inventory.
+ * 1. Upsert all vehicles from the file
+ * 2. Delete every vehicle NOT in the file
+ * Result: website shows ONLY what HomeNet sent. Nothing else.
+ */
 export async function syncVehiclesToDatabase(sql: SqlClient, vehicles: VehicleData[]) {
   let inserted = 0
   let updated = 0
+  let removed = 0
   const errors: { vin: string; error: string }[] = []
   const BATCH_SIZE = 100
 
+  // Collect all VINs from incoming file
+  const incomingVins = vehicles.map(v => v.vin)
+
+  // Step 1: Upsert all vehicles from the file
   for (let i = 0; i < vehicles.length; i += BATCH_SIZE) {
     const batch = vehicles.slice(i, i + BATCH_SIZE)
 
@@ -427,7 +438,27 @@ export async function syncVehiclesToDatabase(sql: SqlClient, vehicles: VehicleDa
     )
   }
 
-  return { inserted, updated, errors }
+  // Step 2: Delete all vehicles NOT in the incoming file
+  // The new file IS the inventory. Anything not in it is gone.
+  try {
+    const deleteResult = await sql`
+      DELETE FROM vehicles
+      WHERE vin != ALL(${incomingVins})
+      RETURNING vin
+    `
+    removed = (deleteResult as unknown[]).length
+    if (removed > 0) {
+      console.log(`[HomenetIOL] Removed ${removed} vehicles not in incoming file`)
+    }
+  } catch (error) {
+    console.error(`[HomenetIOL] Error removing old vehicles:`, error)
+    errors.push({
+      vin: "BULK_DELETE",
+      error: error instanceof Error ? error.message : "Unknown error",
+    })
+  }
+
+  return { inserted, updated, removed, errors }
 }
 
 
