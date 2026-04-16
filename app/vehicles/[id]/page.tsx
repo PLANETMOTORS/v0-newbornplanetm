@@ -23,6 +23,7 @@ import {
 } from "lucide-react"
 
 import { VehicleSpinViewer } from "@/components/vehicle-spin-viewer"
+import { DriveeViewer } from "@/components/drivee-viewer"
 import { VehicleJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
 import { SimilarVehicles } from "@/components/similar-vehicles"
 import { ReserveVehicleModal } from "@/components/reserve-vehicle-modal"
@@ -72,6 +73,7 @@ const vehicleData = {
   batteryHealth: 98,
   batteryCapacity: "82 kWh",
   chargingSpeed: "250 kW DC",
+  driveeMid: null as string | null,
   images: [] as string[],
   interiorImages: [] as string[],
   features: {
@@ -447,6 +449,7 @@ export default function VehicleDetailPage() {
             bodyStyle: data.body_style,
             vin: data.vin,
             stockNumber: data.stock_number,
+            driveeMid: data.drivee_mid || null,
             images: exteriorImgs,
             interiorImages: interiorImgs,
             pricing: {
@@ -504,7 +507,8 @@ export default function VehicleDetailPage() {
 
   // 360 spin: use ALL images (exterior + interior combined)
   const allImages = [...(vehicle?.images || []), ...(vehicle?.interiorImages || [])]
-  const has360 = allImages.length >= 15
+  const hasDrivee = !!vehicle?.driveeMid
+  const has360 = hasDrivee || allImages.length >= 15
   useEffect(() => {
     if (!isSpinning || imageType !== "360") return
     const interval = setInterval(() => {
@@ -766,8 +770,13 @@ export default function VehicleDetailPage() {
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
-                  {/* 360° Interactive Spin Viewer */}
-                  {imageType === "360" ? (
+                  {/* 360° Interactive Viewer — Drivee.ai premium iframe when available, HomeNet spin fallback */}
+                  {imageType === "360" && vehicle.driveeMid ? (
+                    <DriveeViewer
+                      mid={vehicle.driveeMid}
+                      vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                    />
+                  ) : imageType === "360" ? (
                     <VehicleSpinViewer
                       images={allImages}
                       alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
