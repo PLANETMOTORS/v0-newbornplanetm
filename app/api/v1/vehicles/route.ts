@@ -496,9 +496,11 @@ export async function POST(request: NextRequest) {
 
 // Mock vehicles for local development when Supabase is unavailable
 function getMockVehicles() {
-  return [
+  const raw = [
     { id: "mock-tesla-3", year: 2024, make: "Tesla", model: "Model 3", trim: "Long Range AWD", price: 54995, msrp: 57995, mileage: 8200, fuel_type: "Electric", body_style: "Sedan", transmission: "Automatic", drivetrain: "AWD", exterior_color: "Pearl White", primary_image_url: "/placeholder.jpg", status: "available", stock_number: "PM-2024-001", vin: "5YJ3E1EA1PF000001", is_new_arrival: true, is_certified: true, created_at: new Date().toISOString() },
     { id: "mock-tesla-y", year: 2024, make: "Tesla", model: "Model Y", trim: "Performance", price: 61995, msrp: 63995, mileage: 5100, fuel_type: "Electric", body_style: "SUV", transmission: "Automatic", drivetrain: "AWD", exterior_color: "Midnight Silver", primary_image_url: "/placeholder.jpg", status: "available", stock_number: "PM-2024-002", vin: "5YJ3E1EA1PF000002", is_new_arrival: false, is_certified: true, created_at: new Date().toISOString() },
     { id: "mock-bmw-i4", year: 2023, make: "BMW", model: "i4", trim: "eDrive40", price: 52995, msrp: 56995, mileage: 12300, fuel_type: "Electric", body_style: "Sedan", transmission: "Automatic", drivetrain: "RWD", exterior_color: "Black Sapphire", primary_image_url: "/placeholder.jpg", status: "available", stock_number: "PM-2024-003", vin: "WBA53BJ01PCK00003", is_new_arrival: false, is_certified: true, created_at: new Date().toISOString() },
   ]
+  // Inject drivee_mid so mock vehicles also show 360° badges when mapped
+  return raw.map(v => ({ ...v, drivee_mid: getDriveeMid(v.vin) }))
 }

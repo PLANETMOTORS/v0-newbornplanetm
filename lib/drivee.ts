@@ -18,7 +18,6 @@ export const DRIVEE_DEALER_UID = "AZYuEtjX9NUvWpqmUQcKyiGHbNg1"
  */
 export const DRIVEE_VIN_MAP: Record<string, string> = {
   // Current inventory — mapped from Drivee photography sessions
-  "5YJ3E1EA1PF000001": "132601940353",  // Mock Tesla Model 3 (dev testing — remove before prod)
   "1C4JJXP6XMW777356": "190171976531",  // 2021 Jeep Wrangler 4xe (lot unit)
   "1C4JJXP60MW777382": "190171976531",  // 2021 Jeep Wrangler 4xe (second unit)
   "3GN7DSRR5SS127703": "744761075195",  // 2025 Chevrolet Equinox EV
