@@ -155,6 +155,65 @@ export default function AboutPage() {
 
 
 
+        {/* OMVIC Compliance Section */}
+        <section id="omvic" className="py-16 bg-muted/30">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto">
+              <div className="flex items-center gap-3 mb-6">
+                <Shield className="h-8 w-8 text-primary" />
+                <h2 className="text-3xl font-bold">OMVIC Registered Dealer</h2>
+              </div>
+              <Card className="p-8">
+                <p className="text-muted-foreground mb-4">
+                  Planet Motors is a registered dealer with the{" "}
+                  <a
+                    href="https://www.omvic.on.ca"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Ontario Motor Vehicle Industry Council (OMVIC)
+                  </a>
+                  . OMVIC is the regulator of Ontario&apos;s motor vehicle sales industry and
+                  administers the{" "}
+                  <em>Motor Vehicle Dealers Act, 2002</em>.
+                </p>
+                <p className="text-muted-foreground mb-4">
+                  As an OMVIC-registered dealer we are legally required to operate with
+                  honesty, fairness, and in accordance with Ontario consumer-protection
+                  laws. Every vehicle we sell comes with the disclosures mandated by
+                  OMVIC, including a detailed vehicle history and condition report.
+                </p>
+                <p className="text-muted-foreground mb-6">
+                  If you have any questions about your rights as a consumer, please
+                  visit{" "}
+                  <a
+                    href="https://www.omvic.on.ca"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline font-medium"
+                  >
+                    www.omvic.on.ca
+                  </a>{" "}
+                  or contact us directly.
+                </p>
+                <div className="flex flex-wrap gap-4 text-sm">
+                  <Badge variant="secondary" className="px-4 py-2">
+                    <Shield className="h-3.5 w-3.5 mr-1.5" />
+                    OMVIC Registered
+                  </Badge>
+                  <Badge variant="secondary" className="px-4 py-2">
+                    Consumer Protection
+                  </Badge>
+                  <Badge variant="secondary" className="px-4 py-2">
+                    Full Disclosure
+                  </Badge>
+                </div>
+              </Card>
+            </div>
+          </div>
+        </section>
+
         {/* Languages Section */}
         <section className="py-16 bg-muted/30">
           <div className="container mx-auto px-4">
