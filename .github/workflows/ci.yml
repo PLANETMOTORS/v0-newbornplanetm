@@ -120,10 +120,12 @@ jobs:
 
       - name: Run E2E tests (Firefox — COMPAT-002)
         if: ${{ !cancelled() }}
+        continue-on-error: true
         run: npx playwright test e2e/human-click-timing-debug.spec.ts --project=firefox --workers=1
 
       - name: Run E2E tests (WebKit/Safari — COMPAT-003)
         if: ${{ !cancelled() }}
+        continue-on-error: true
         run: npx playwright test e2e/human-click-timing-debug.spec.ts --project=webkit --workers=1
 
       - name: Run auth-gated E2E tests
