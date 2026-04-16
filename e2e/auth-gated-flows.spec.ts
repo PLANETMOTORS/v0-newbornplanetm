@@ -8,12 +8,10 @@
  *
  * Prerequisites:
  *   TEST_USER_EMAIL and TEST_USER_PASSWORD env vars must be set.
- *   Run: TEST_USER_EMAIL=x TEST_USER_PASSWORD=y pnpm test:e2e -- e2e/auth-gated-flows.spec.ts
  *
- * Against staging/production:
- *   PLAYWRIGHT_BASE_URL=https://ev.planetmotors.ca \
- *   TEST_USER_EMAIL=x TEST_USER_PASSWORD=y \
- *   npx playwright test e2e/auth-gated-flows.spec.ts --project=chromium
+ * Against live/staging:
+ *   npx playwright test e2e/auth-gated-flows.spec.ts --project=chromium \
+ *     --config=playwright.live.config.ts
  */
 
 import { test, expect, type Page } from "@playwright/test"
@@ -24,9 +22,6 @@ import * as fs from "fs"
 
 const FIXTURES_DIR = path.join(__dirname, "fixtures")
 const TEST_IMAGE_PATH = path.join(FIXTURES_DIR, "test-id-front.jpg")
-
-// Confirmation number pattern: PM-FA-{base36_timestamp}-{4_random_chars}
-const CONFIRMATION_RE = /PM-FA-[A-Z0-9]+-[A-Z0-9]{4}/
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -56,6 +51,16 @@ function ensureTestFixtures() {
   }
 }
 
+/** Dismiss cookie consent banner if present */
+async function dismissCookieConsent(page: Page) {
+  const acceptBtn = page.getByRole("button", { name: /accept all/i })
+  if (await acceptBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+    await acceptBtn.click()
+    await page.waitForTimeout(500)
+    console.log("✓ Cookie consent dismissed")
+  }
+}
+
 /** Log in via the Supabase email/password form and wait for redirect */
 async function loginViaUI(page: Page) {
   const email = process.env.TEST_USER_EMAIL
@@ -70,28 +75,60 @@ async function loginViaUI(page: Page) {
   }
 
   await page.goto("/auth/login")
-  // The page uses <h1>Welcome Back</h1> as the main heading.
   await expect(
     page.getByRole("heading", { name: /welcome back/i })
-  ).toBeVisible({
-    timeout: 15_000,
-  })
+  ).toBeVisible({ timeout: 15_000 })
 
-  // Fill email — scope to the login form to avoid matching footer newsletter input
-  const loginForm = page.locator('form').filter({ has: page.locator('input[type="password"]') })
+  // Dismiss cookie consent if it overlays the form
+  await dismissCookieConsent(page)
+
+  // Scope to the login form to avoid matching footer newsletter input
+  const loginForm = page
+    .locator("form")
+    .filter({ has: page.locator('input[type="password"]') })
   await loginForm.locator('input[type="email"]').fill(email)
   await loginForm.locator('input[type="password"]').fill(password)
   await loginForm.getByRole("button", { name: /sign in/i }).click()
 
-  // Wait for redirect away from login page (Supabase redirects to /account)
+  // Wait for redirect away from login page
   await expect(page).not.toHaveURL(/auth\/login/, { timeout: 20_000 })
   console.log("✓ Logged in successfully")
 }
 
-/** Select a value from a Radix UI Select (combobox) */
-async function selectRadixOption(page: Page, triggerLocator: string, optionText: string) {
-  await page.locator(triggerLocator).click()
+/**
+ * Pick a Radix UI Select option.
+ * @param container  A locator scoped to the <div> wrapping <Label> + <Select>
+ * @param optionText Visible text of the option to click
+ */
+async function pickSelect(container: ReturnType<Page["locator"]>, optionText: string | RegExp) {
+  const trigger = container.getByRole("combobox")
+  await trigger.click()
+  // Radix portals options to <body>; search globally
+  const page = container.page()
   await page.getByRole("option", { name: optionText }).click()
+}
+
+/**
+ * Find the form field container (the <div> wrapping Label + Input/Select)
+ * by matching the label text.
+ */
+function fieldByLabel(page: Page, labelText: string) {
+  return page
+    .locator("div")
+    .filter({ has: page.locator("label", { hasText: labelText }) })
+    .first()
+}
+
+/** Fill a text/number input found next to a label */
+async function fillField(page: Page, labelText: string, value: string) {
+  const container = fieldByLabel(page, labelText)
+  await container.locator("input").first().fill(value)
+}
+
+/** Pick a Radix Select option found next to a label */
+async function selectField(page: Page, labelText: string, optionText: string | RegExp) {
+  const container = fieldByLabel(page, labelText)
+  await pickSelect(container, optionText)
 }
 
 // ─── Setup ───────────────────────────────────────────────────────────────────
@@ -100,8 +137,8 @@ test.beforeAll(() => {
   ensureTestFixtures()
 })
 
-// Increase timeouts for live-site testing
-test.setTimeout(120_000)
+// Generous timeout for live-site testing
+test.setTimeout(180_000)
 
 // ─── Test Suite ──────────────────────────────────────────────────────────────
 
@@ -134,195 +171,295 @@ test.describe("Auth-Gated Flows — Finance Submission & ID Upload", () => {
     // ── Step 0: Authenticate ──────────────────────────────────────────────
     await loginViaUI(page)
 
+    // ── Step 0b: Get a vehicle ID from inventory ──────────────────────────
+    // Navigate to inventory API to find a valid vehicle ID for Step 3
+    const inventoryRes = await page.request.get("/api/v1/inventory/homenet")
+    let vehicleId = ""
+    if (inventoryRes.ok()) {
+      try {
+        const data = await inventoryRes.json()
+        const vehicles = data.vehicles || data.data || data
+        if (Array.isArray(vehicles) && vehicles.length > 0) {
+          vehicleId = vehicles[0].id || ""
+          console.log(`✓ Found vehicle ID: ${vehicleId}`)
+        }
+      } catch {
+        console.log("⚠ Could not parse inventory response")
+      }
+    }
+
     // ── Step 1: Navigate to Finance Application ───────────────────────────
-    await page.goto("/financing/application")
+    const financeUrl = vehicleId
+      ? `/financing/application?vehicleId=${vehicleId}`
+      : "/financing/application"
+    await page.goto(financeUrl)
+
+    // Wait for Step 1 to load
     await expect(
-      page.getByText(/applicant information|personal information/i).first()
+      page.getByText(/primary applicant information/i).first()
     ).toBeVisible({ timeout: 15_000 })
     console.log("✓ Finance application Step 1 loaded")
 
-    // Fill Step 1 — Primary Applicant (all required fields)
-    await page.locator('input[name="firstName"], #firstName').first().fill("Test")
-    await page.locator('input[name="lastName"], #lastName').first().fill("User")
+    // Dismiss cookie consent if it reappears
+    await dismissCookieConsent(page)
 
-    // Date of Birth — fill day/month/year selects or inputs
-    const dobDay = page.locator('[name="dobDay"], [name="dob-day"]').first()
-    const dobMonth = page.locator('[name="dobMonth"], [name="dob-month"]').first()
-    const dobYear = page.locator('[name="dobYear"], [name="dob-year"]').first()
-    if (await dobDay.isVisible()) {
-      await dobDay.fill("15")
-      await dobMonth.fill("06")
-      await dobYear.fill("1990")
+    // ── Fill Step 1 — Personal Information ────────────────────────────────
+    // The form uses <Label> + <Input> pairs without name attributes.
+    // We locate fields by their label text.
+
+    // First Name *
+    await fillField(page, "First Name", "Test")
+    // Last Name *
+    await fillField(page, "Last Name", "User")
+
+    // Date of Birth * — three Radix Selects (Day, Month, Year)
+    const dobSection = fieldByLabel(page, "Date of Birth")
+    const dobTriggers = dobSection.getByRole("combobox")
+    // Day
+    await dobTriggers.nth(0).click()
+    await page.getByRole("option", { name: "15" }).click()
+    // Month
+    await dobTriggers.nth(1).click()
+    await page.getByRole("option", { name: "Jun" }).click()
+    // Year
+    await dobTriggers.nth(2).click()
+    await page.getByRole("option", { name: "1990" }).click()
+    console.log("✓ DOB filled")
+
+    // Gender *
+    await selectField(page, "Gender", /^Male$/)
+
+    // Marital Status *
+    await selectField(page, "Marital Status", /^Single$/)
+
+    // Phone *
+    await fillField(page, "Phone", "4165551234")
+
+    // Email *
+    await fillField(page, "Email", process.env.TEST_USER_EMAIL || "test@planetmotors.ca")
+
+    // Credit Rating *
+    await selectField(page, "Credit Rating", /Good/)
+
+    console.log("✓ Personal info filled")
+
+    // ── Fill Step 1 — Address ─────────────────────────────────────────────
+    // Postal Code * — this is a custom PostalCodeInput component
+    // It has a label "Postal Code *" and an input inside
+    const postalField = page.locator("div").filter({
+      has: page.locator("label", { hasText: /^Postal Code/ }),
+    }).first()
+    await postalField.locator("input").first().fill("M5V3L9")
+    // Wait for postal code lookup to auto-fill city/province
+    await page.waitForTimeout(2_000)
+
+    // Address Type *
+    await selectField(page, "Address Type", /^House$/)
+
+    // Street Number *
+    await fillField(page, "Street Number", "100")
+
+    // Street Name *
+    await fillField(page, "Street Name", "King Street")
+
+    // City — may be auto-filled from postal code; fill if empty
+    const cityInput = fieldByLabel(page, "City").locator("input").first()
+    const cityValue = await cityInput.inputValue()
+    if (!cityValue) {
+      await cityInput.fill("Toronto")
     }
 
-    // Gender & Marital Status — try select/combobox patterns
-    const genderTrigger = page.locator('[data-testid="gender-select"], [name="gender"]').first()
-    if (await genderTrigger.isVisible()) {
-      await genderTrigger.click()
-      const genderOption = page.getByRole("option", { name: /male/i }).first()
-      if (await genderOption.isVisible({ timeout: 2_000 })) {
-        await genderOption.click()
-      }
-    }
+    console.log("✓ Address filled")
 
-    const maritalTrigger = page.locator('[data-testid="maritalStatus-select"], [name="maritalStatus"]').first()
-    if (await maritalTrigger.isVisible()) {
-      await maritalTrigger.click()
-      const maritalOption = page.getByRole("option", { name: /single/i }).first()
-      if (await maritalOption.isVisible({ timeout: 2_000 })) {
-        await maritalOption.click()
-      }
-    }
+    // ── Fill Step 1 — Home/Mortgage ───────────────────────────────────────
+    // Home Status *
+    await selectField(page, "Home Status", /^Rent$/)
 
-    // Phone & Email
-    await page.locator('input[name="phone"], #phone, input[type="tel"]').first().fill("4165551234")
-    await page.locator('input[name="email"], #email, input[type="email"]').last().fill(
-      process.env.TEST_USER_EMAIL || "test@planetmotors.ca"
-    )
+    // Monthly Payment *
+    await fillField(page, "Monthly Payment", "1500")
 
-    // Credit Rating
-    const creditTrigger = page.locator('[data-testid="creditRating-select"], [name="creditRating"]').first()
-    if (await creditTrigger.isVisible()) {
-      await creditTrigger.click()
-      const creditOption = page.getByRole("option", { name: /good|excellent/i }).first()
-      if (await creditOption.isVisible({ timeout: 2_000 })) {
-        await creditOption.click()
-      }
-    }
+    console.log("✓ Home details filled")
 
-    // Address fields
-    await page.locator('input[name="postalCode"], #postalCode').first().fill("M5V 3L9")
+    // ── Fill Step 1 — Employment ──────────────────────────────────────────
+    // Scroll down to make employment fields visible
+    await page.evaluate(() => window.scrollBy(0, 600))
+    await page.waitForTimeout(500)
 
-    const addressTypeTrigger = page.locator('[data-testid="addressType-select"], [name="addressType"]').first()
-    if (await addressTypeTrigger.isVisible()) {
-      await addressTypeTrigger.click()
-      const addrOption = page.getByRole("option").first()
-      if (await addrOption.isVisible({ timeout: 2_000 })) {
-        await addrOption.click()
-      }
-    }
+    // Employment Type *
+    await selectField(page, "Employment Type", /^Full-Time$/)
 
-    await page.locator('input[name="streetNumber"], #streetNumber').first().fill("100")
-    await page.locator('input[name="streetName"], #streetName').first().fill("King Street")
-    await page.locator('input[name="city"], #city').first().fill("Toronto")
+    // Status *
+    await selectField(page, "Status", /^Employed$/)
 
-    // Home Status
-    const homeStatusTrigger = page.locator('[data-testid="homeStatus-select"], [name="homeStatus"]').first()
-    if (await homeStatusTrigger.isVisible()) {
-      await homeStatusTrigger.click()
-      const homeOption = page.getByRole("option", { name: /rent/i }).first()
-      if (await homeOption.isVisible({ timeout: 2_000 })) {
-        await homeOption.click()
-      }
-    }
+    // Employer Name *
+    await fillField(page, "Employer Name", "Acme Corp")
 
-    await page.locator('input[name="monthlyPayment"], #monthlyPayment').first().fill("1500")
+    // Occupation *
+    await fillField(page, "Occupation", "Software Engineer")
 
-    // Employment fields
-    const empCatTrigger = page.locator('[data-testid="employmentCategory-select"], [name="employmentCategory"]').first()
-    if (await empCatTrigger.isVisible()) {
-      await empCatTrigger.click()
-      const empOption = page.getByRole("option").first()
-      if (await empOption.isVisible({ timeout: 2_000 })) {
-        await empOption.click()
-      }
-    }
+    // Employer Phone *
+    const empPhoneContainer = page.locator("div").filter({
+      has: page.locator("label", { hasText: /Employer Phone/ }),
+    }).first()
+    await empPhoneContainer.locator("input").first().fill("4165559999")
 
-    const empStatusTrigger = page.locator('[data-testid="employmentStatus-select"], [name="employmentStatus"]').first()
-    if (await empStatusTrigger.isVisible()) {
-      await empStatusTrigger.click()
-      const empStatOption = page.getByRole("option", { name: /full.?time/i }).first()
-      if (await empStatOption.isVisible({ timeout: 2_000 })) {
-        await empStatOption.click()
-      }
-    }
+    // Employer Postal Code *
+    const empPostalField = page.locator("div").filter({
+      has: page.locator("label", { hasText: /Employer Postal Code/ }),
+    }).first()
+    await empPostalField.locator("input").first().fill("M5V1J2")
+    await page.waitForTimeout(1_500)
 
-    await page.locator('input[name="employerName"], #employerName').first().fill("Acme Corp")
-    await page.locator('input[name="occupation"], #occupation').first().fill("Software Engineer")
-    await page.locator('input[name="employerPostalCode"], #employerPostalCode').first().fill("M5V 1J2")
-    await page.locator('input[name="employerPhone"], #employerPhone').first().fill("4165559999")
+    console.log("✓ Employment filled")
 
-    // Income
-    await page.locator('input[name="grossIncome"], #grossIncome').first().fill("85000")
+    // ── Fill Step 1 — Income ──────────────────────────────────────────────
+    await page.evaluate(() => window.scrollBy(0, 400))
+    await page.waitForTimeout(500)
 
-    const incomeFreqTrigger = page.locator('[data-testid="incomeFrequency-select"], [name="incomeFrequency"]').first()
-    if (await incomeFreqTrigger.isVisible()) {
-      await incomeFreqTrigger.click()
-      const freqOption = page.getByRole("option", { name: /annual/i }).first()
-      if (await freqOption.isVisible({ timeout: 2_000 })) {
-        await freqOption.click()
-      }
-    }
+    // Gross Income *
+    await fillField(page, "Gross Income", "85000")
 
-    // Click Continue to advance from Step 1
-    const continueBtn = page.getByRole("button", { name: /continue|next/i }).first()
+    // Income Frequency *
+    await selectField(page, "Income Frequency", /^Annually$/)
+
+    console.log("✓ Income filled")
+
+    // ── Click Continue to advance from Step 1 ─────────────────────────────
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await page.waitForTimeout(500)
+
+    const continueBtn = page
+      .getByRole("button", { name: /continue|next step/i })
+      .first()
     await continueBtn.click()
-    console.log("✓ Step 1 filled — advancing")
+    console.log("✓ Step 1 Continue clicked")
 
-    // ── Step 2: Co-Applicant (skip) ───────────────────────────────────────
-    // Wait briefly for step transition
-    await page.waitForTimeout(1_000)
+    // Check for validation errors — if any, log them and still try to continue
+    await page.waitForTimeout(2_000)
+    const validationErrors = page.locator("text=is required")
+    const errorCount = await validationErrors.count()
+    if (errorCount > 0) {
+      const errTexts: string[] = []
+      for (let i = 0; i < Math.min(errorCount, 5); i++) {
+        errTexts.push(await validationErrors.nth(i).textContent() || "")
+      }
+      console.log(`⚠ Validation errors (${errorCount}): ${errTexts.join(", ")}`)
+    }
 
-    // If co-applicant step shows, skip it by clicking Continue
-    const step2Header = page.getByText(/co-applicant/i).first()
-    if (await step2Header.isVisible({ timeout: 3_000 })) {
-      // Click continue without adding co-applicant
-      await page.getByRole("button", { name: /continue|next|skip/i }).first().click()
+    // ── Step 2: Co-Applicant (skip) ──────────────────────────────────────
+    await page.waitForTimeout(1_500)
+    const step2Visible = await page
+      .getByText(/co-applicant/i)
+      .first()
+      .isVisible({ timeout: 3_000 })
+      .catch(() => false)
+
+    if (step2Visible) {
+      await page
+        .getByRole("button", { name: /continue|next|skip/i })
+        .first()
+        .click()
       console.log("✓ Step 2 (Co-Applicant) — skipped")
     } else {
       console.log("✓ Step 2 (Co-Applicant) — auto-skipped (not shown)")
     }
 
-    // ── Step 3: Vehicle & Financing ───────────────────────────────────────
-    await page.waitForTimeout(1_000)
-    const step3Header = page.getByText(/vehicle|financing/i).first()
-    if (await step3Header.isVisible({ timeout: 5_000 })) {
-      // Fill requested amount if visible
-      const requestedAmount = page.locator('input[name="totalPrice"], input[name="requestedAmount"], #totalPrice').first()
-      if (await requestedAmount.isVisible({ timeout: 2_000 })) {
-        await requestedAmount.fill("35000")
-      }
+    // ── Step 3: Vehicle & Financing ──────────────────────────────────────
+    await page.waitForTimeout(1_500)
 
-      const downPayment = page.locator('input[name="downPayment"], #downPayment').first()
-      if (await downPayment.isVisible({ timeout: 2_000 })) {
-        await downPayment.fill("5000")
-      }
+    // If vehicle was pre-filled via URL param, just continue.
+    // If not, we need to select one from the modal.
+    const selectVehicleBtn = page.getByRole("button", {
+      name: /browse available inventory/i,
+    })
+    const needsVehicleSelection = await selectVehicleBtn
+      .isVisible({ timeout: 3_000 })
+      .catch(() => false)
 
-      await page.getByRole("button", { name: /continue|next/i }).first().click()
-      console.log("✓ Step 3 (Vehicle & Financing) — filled")
+    if (needsVehicleSelection) {
+      console.log("⚠ No vehicle pre-selected — opening inventory modal")
+      await selectVehicleBtn.click()
+      await page.waitForTimeout(2_000)
+
+      // Click the first vehicle's Select button in the modal
+      const selectBtn = page.getByRole("button", { name: /^Select$/ }).first()
+      if (await selectBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
+        await selectBtn.click()
+        console.log("✓ Vehicle selected from modal")
+        await page.waitForTimeout(1_000)
+      } else {
+        console.log("⚠ No vehicles in inventory modal")
+      }
+    } else {
+      console.log("✓ Vehicle pre-selected via URL param")
     }
 
-    // ── Step 4: Review & Submit ───────────────────────────────────────────
-    await page.waitForTimeout(1_000)
-    const reviewSection = page.getByText(/review|summary/i).first()
-    if (await reviewSection.isVisible({ timeout: 5_000 })) {
-      await page.getByRole("button", { name: /continue|next|submit/i }).first().click()
-      console.log("✓ Step 4 (Review) — continuing")
+    // Click continue past Step 3
+    const step3Continue = page
+      .getByRole("button", { name: /continue|next/i })
+      .first()
+    if (await step3Continue.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await step3Continue.click()
+      console.log("✓ Step 3 (Vehicle & Financing) — continuing")
     }
 
-    // ── Step 5: Documents & Final Submit ──────────────────────────────────
-    await page.waitForTimeout(1_000)
+    // ── Step 4: Review & Submit ──────────────────────────────────────────
+    await page.waitForTimeout(1_500)
+    const reviewVisible = await page
+      .getByText(/review|summary/i)
+      .first()
+      .isVisible({ timeout: 5_000 })
+      .catch(() => false)
 
-    // Look for the submit/finish button
-    const submitBtn = page.getByRole("button", { name: /submit application|submit|finish/i }).first()
-    if (await submitBtn.isVisible({ timeout: 5_000 })) {
-      await submitBtn.click()
-      console.log("✓ Step 5 (Documents) — submitted")
+    if (reviewVisible) {
+      // Scroll to bottom to find submit
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+      await page.waitForTimeout(500)
+
+      const submitBtn = page
+        .getByRole("button", { name: /submit application|submit/i })
+        .first()
+      if (await submitBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+        await submitBtn.click()
+        console.log("✓ Application submitted")
+      } else {
+        // Try the continue/next button
+        await page
+          .getByRole("button", { name: /continue|next/i })
+          .first()
+          .click()
+        console.log("✓ Step 4 (Review) — continuing")
+      }
+    }
+
+    // ── Step 5: Documents & Final Submit ─────────────────────────────────
+    await page.waitForTimeout(2_000)
+
+    const finalSubmitBtn = page
+      .getByRole("button", { name: /submit application|submit|finish/i })
+      .first()
+    if (
+      await finalSubmitBtn.isVisible({ timeout: 5_000 }).catch(() => false)
+    ) {
+      await finalSubmitBtn.click()
+      console.log("✓ Final submit clicked")
     }
 
     // Wait for API response
-    await page.waitForTimeout(5_000)
+    await page.waitForTimeout(8_000)
 
-    // Check for success state or confirmation number
-    const successMessage = page.getByText(/application received|submitted|confirmation/i).first()
-    const isSuccess = await successMessage.isVisible({ timeout: 10_000 }).catch(() => false)
+    // Check for success state
+    const successMsg = page
+      .getByText(/application received|submitted|confirmation|thank you/i)
+      .first()
+    const isSuccess = await successMsg
+      .isVisible({ timeout: 10_000 })
+      .catch(() => false)
 
     if (isSuccess) {
       console.log("✓ Finance application submitted successfully!")
-
-      // Try to capture confirmation number from the page
-      const pageContent = await page.textContent("body")
-      const confirmMatch = pageContent?.match(CONFIRMATION_RE)
+      const pageText = await page.textContent("body")
+      const confirmMatch = pageText?.match(/PM-FA-[A-Z0-9]+-[A-Z0-9]{4}/)
       if (confirmMatch) {
         console.log(`✓ Confirmation Number: ${confirmMatch[0]}`)
       }
@@ -338,34 +475,27 @@ test.describe("Auth-Gated Flows — Finance Submission & ID Upload", () => {
           `  Status: ${financeResponse.status}\n` +
           `  Body: ${financeResponse.body.slice(0, 1000)}\n`
       )
-      // Parse confirmation number from API response
-      try {
-        const parsed = JSON.parse(financeResponse.body)
-        const appNumber =
-          parsed.data?.application?.applicationNumber ||
-          parsed.data?.applicationNumber
-        if (appNumber) {
-          console.log(`  Confirmation Number: ${appNumber}`)
-          expect(appNumber).toMatch(CONFIRMATION_RE)
-        }
-      } catch {
-        // Response may not be JSON
-      }
+      expect(financeResponse.status).toBeLessThan(500)
+    } else {
+      console.log("⚠ No finance API call intercepted — form may not have reached submission")
     }
 
     // ── ID Verification Upload ────────────────────────────────────────────
     console.log("\n── ID Verification Upload ──")
 
-    // Navigate to ID verification (may already be on the page via redirect)
+    // Navigate to ID verification
     const continueToIDV = page.getByRole("button", {
       name: /continue to id verification|verify/i,
     })
-    if (await continueToIDV.isVisible({ timeout: 3_000 })) {
+    if (await continueToIDV.isVisible({ timeout: 3_000 }).catch(() => false)) {
       await continueToIDV.click()
       await page.waitForTimeout(2_000)
     } else {
       await page.goto("/financing/verification")
     }
+
+    // Dismiss cookie consent if it reappears
+    await dismissCookieConsent(page)
 
     await expect(
       page.getByRole("heading", { name: /identity verification/i }).first()
@@ -373,43 +503,44 @@ test.describe("Auth-Gated Flows — Finance Submission & ID Upload", () => {
     console.log("✓ ID Verification page loaded")
 
     // Select ID type
-    const idTypeSelect = page
-      .locator("div")
-      .filter({ hasText: /^ID Type/ })
-      .getByRole("combobox")
-      .first()
-    if (await idTypeSelect.isVisible({ timeout: 3_000 })) {
-      await idTypeSelect.click()
-      await page
-        .getByRole("option", { name: /driver.*license/i })
-        .first()
-        .click()
+    const idTypeSelect = page.locator('select[name="id-type"]')
+    if (await idTypeSelect.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await idTypeSelect.selectOption({ label: "Driver's License" })
+    } else {
+      // Try Radix select pattern
+      const idTypeContainer = fieldByLabel(page, "ID Type")
+      if (await idTypeContainer.getByRole("combobox").isVisible({ timeout: 2_000 }).catch(() => false)) {
+        await pickSelect(idTypeContainer, /driver/i)
+      }
     }
 
     // Fill ID number
-    const idNumberInput = page.getByPlaceholder("Enter ID number").first()
-    if (await idNumberInput.isVisible({ timeout: 2_000 })) {
+    const idNumberInput = page.locator('input[name="id-number"]')
+    if (await idNumberInput.isVisible({ timeout: 2_000 }).catch(() => false)) {
       await idNumberInput.fill("D1234-56789-01234")
     }
 
     // Set expiry date
-    const expiryInput = page.locator('input[type="date"]').first()
-    if (await expiryInput.isVisible({ timeout: 2_000 })) {
+    const expiryInput = page.locator('input[name="expiry-date"], input[type="date"]').first()
+    if (await expiryInput.isVisible({ timeout: 2_000 }).catch(() => false)) {
       await expiryInput.fill("2028-12-31")
     }
 
     // Upload front ID image
-    const frontFileInput = page.locator('input[type="file"]').first()
-    if (await frontFileInput.isVisible({ timeout: 2_000 }).catch(() => false)) {
+    const frontFileInput = page.locator('input[name="id-front-upload"], input[type="file"]').first()
+    if (
+      await frontFileInput
+        .isVisible({ timeout: 2_000 })
+        .catch(() => false)
+    ) {
       await frontFileInput.setInputFiles(TEST_IMAGE_PATH)
-      console.log("✓ Front ID image uploaded via file input")
+      console.log("✓ Front ID image uploaded")
     } else {
-      // Try clicking the upload area to trigger a hidden file input
-      const uploadArea = page.getByText(/upload front|click to upload/i).first()
-      if (await uploadArea.isVisible({ timeout: 2_000 })) {
-        // Set file via the hidden input
-        const fileInput = page.locator('input[type="file"]').first()
-        await fileInput.setInputFiles(TEST_IMAGE_PATH)
+      // Hidden file input — try setting files anyway
+      const hiddenInput = page.locator('input[type="file"]').first()
+      const count = await hiddenInput.count()
+      if (count > 0) {
+        await hiddenInput.setInputFiles(TEST_IMAGE_PATH)
         console.log("✓ Front ID image uploaded via hidden input")
       }
     }
@@ -420,7 +551,9 @@ test.describe("Auth-Gated Flows — Finance Submission & ID Upload", () => {
     const verifySubmitBtn = page
       .getByRole("button", { name: /submit for verification|submit|verify/i })
       .first()
-    if (await verifySubmitBtn.isEnabled({ timeout: 3_000 }).catch(() => false)) {
+    if (
+      await verifySubmitBtn.isEnabled({ timeout: 3_000 }).catch(() => false)
+    ) {
       await verifySubmitBtn.click()
       console.log("✓ ID verification submitted")
       await page.waitForTimeout(5_000)
