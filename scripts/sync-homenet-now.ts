@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 /**
- * Direct sync: reads PlanetMotorsDealer.csv and pushes to production DB.
- * No SFTP needed — uses the CSV already downloaded from FilePulse.
+ * Full-replacement sync: reads PlanetMotorsDealer.csv and replaces entire DB inventory.
+ * Incoming file IS the inventory. Old vehicles not in file are deleted.
  */
 import { parseHomenetCSV, syncVehiclesToDatabase, getSql } from "../lib/homenet/parser"
 import { readFileSync } from "fs"
@@ -11,7 +11,7 @@ async function main() {
   const csvPath = resolve(__dirname, "..", "PlanetMotorsDealer.csv")
   const csv = readFileSync(csvPath, "utf-8")
   const vehicles = parseHomenetCSV(csv)
-  console.log(`Parsed: ${vehicles.length} vehicles`)
+  console.log("Parsed: " + vehicles.length + " vehicles from HomeNet file")
 
   const sql = getSql()
   if (!sql) {
@@ -19,26 +19,32 @@ async function main() {
     process.exit(1)
   }
 
-  console.log("Syncing to database...")
+  // Count before
+  const before = await sql`SELECT COUNT(*) as total FROM vehicles`
+  console.log("Before sync: " + (before as any)[0]?.total + " vehicles in DB")
+
+  console.log("Running full-replacement sync...")
   const result = await syncVehiclesToDatabase(sql, vehicles)
-  console.log(`\n=== SYNC COMPLETE ===`)
-  console.log(`Inserted: ${result.inserted}`)
-  console.log(`Updated:  ${result.updated}`)
-  console.log(`Errors:   ${result.errors.length}`)
+  console.log("\n=== SYNC COMPLETE ===")
+  console.log("Inserted: " + result.inserted)
+  console.log("Updated:  " + result.updated)
+  console.log("Removed:  " + result.removed)
+  console.log("Errors:   " + result.errors.length)
 
   if (result.errors.length > 0) {
     console.log("\nErrors:")
-    result.errors.forEach((e) => console.error(`  ${e.vin}: ${e.error}`))
+    result.errors.forEach((e) => console.error("  " + e.vin + ": " + e.error))
   }
 
-  // Verify by querying back
-  const count = await sql`SELECT COUNT(*) as total FROM vehicles`
-  console.log(`\nTotal vehicles in DB: ${(count as any)[0]?.total}`)
+  // Count after
+  const after = await sql`SELECT COUNT(*) as total FROM vehicles`
+  console.log("\nAfter sync: " + (after as any)[0]?.total + " vehicles in DB")
 
-  const sample = await sql`SELECT vin, year, make, model, price, mileage FROM vehicles ORDER BY updated_at DESC LIMIT 5`
-  console.log("\nLatest 5 vehicles:")
-  for (const v of sample as any[]) {
-    console.log(`  ${v.vin} | ${v.year} ${v.make} ${v.model} | $${(v.price / 100).toLocaleString()} | ${v.mileage} km`)
+  // List all
+  const live = await sql`SELECT vin, year, make, model FROM vehicles ORDER BY make, model`
+  console.log("\nLive inventory (" + (live as any[]).length + " vehicles):")
+  for (const v of live as any[]) {
+    console.log("  " + v.vin + " | " + v.year + " " + v.make + " " + v.model)
   }
 
   process.exit(0)
