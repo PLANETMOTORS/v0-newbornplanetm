@@ -188,17 +188,17 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
       {/* ========== BOX 2: HERO SECTION - Off-White #F9FAFB ========== */}
       <section className="relative overflow-hidden" style={{ backgroundColor: "#F1F5F9" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Hero Text */}
             <div className="text-center lg:text-left">
-              <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight text-gray-900 text-balance">
+              <h1 className="font-serif text-[2.25rem] sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight text-gray-900 text-balance">
                 The Smarter Way to
                 <span className="block text-[#1e3a8a]">
                   Buy or Sell Your Car
                 </span>
               </h1>
-              
-              <p className="mt-6 text-lg text-gray-600 max-w-lg mx-auto lg:mx-0">
+
+              <p className="mt-6 text-base sm:text-lg text-gray-600 max-w-lg mx-auto lg:mx-0">
                 Ontario&apos;s #1 certified pre-owned marketplace.
                 <br className="hidden sm:block" />
                 <span className="font-semibold text-gray-800">210-point inspected.</span> Delivered to your door.
@@ -208,14 +208,14 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                 <a
                   href="/inventory"
                   data-testid="hero-cta-btn"
-                  className="inline-flex items-center gap-3 bg-[#dc2626] hover:bg-[#b91c1c] text-white text-lg font-semibold px-8 py-4 rounded-full shadow-lg shadow-red-600/25 transition-all hover:shadow-xl hover:shadow-red-600/30"
+                  className="inline-flex items-center gap-3 bg-[#dc2626] hover:bg-[#b91c1c] text-white text-base sm:text-lg font-semibold px-6 sm:px-8 py-4 rounded-full shadow-lg shadow-red-600/25 transition-all hover:shadow-xl hover:shadow-red-600/30"
                 >
                   <span>Find Your Car</span>
                   <ArrowRight className="w-5 h-5 flex-shrink-0" />
                 </a>
                 <Link
                   href="/trade-in"
-                  className="inline-flex items-center gap-3 border-2 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white text-lg font-semibold px-8 py-[14px] rounded-full transition-all"
+                  className="inline-flex items-center gap-3 border-2 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white text-base sm:text-lg font-semibold px-6 sm:px-8 py-[14px] rounded-full transition-all"
                 >
                   <span>Get Trade-In Value</span>
                   <ArrowRight className="w-5 h-5 flex-shrink-0" />
