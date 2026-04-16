@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -22,18 +23,9 @@ import {
   Key, RotateCw
 } from "lucide-react"
 
-import { VehicleSpinViewer } from "@/components/vehicle-spin-viewer"
-import { DriveeViewer } from "@/components/drivee-viewer"
 import { VehicleJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
-import { SimilarVehicles } from "@/components/similar-vehicles"
-import { ReserveVehicleModal } from "@/components/reserve-vehicle-modal"
-import { AuthRequiredModal } from "@/components/auth-required-modal"
 import { useAuth } from "@/contexts/auth-context"
-import { PriceNegotiator } from "@/components/vehicle/price-negotiator"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
-import { LiveVideoCall } from "@/components/vehicle/live-video-call"
-import { PriceDropAlert } from "@/components/vehicle/price-drop-alert"
-import { AddToCompare } from "@/components/vehicle/add-to-compare"
 import { toast } from "sonner"
 import {
   Dialog,
@@ -46,6 +38,44 @@ import { trackProductView, trackPhoneClick } from "@/components/analytics/google
 import { calculateAllInPrice } from "@/lib/pricing/format"
 import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
 import { trackMetaViewContent, trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
+
+// ── Lazy-load heavy below-fold components ──
+const VehicleSpinViewer = dynamic(
+  () => import("@/components/vehicle-spin-viewer").then(m => ({ default: m.VehicleSpinViewer })),
+  { ssr: false, loading: () => <div className="aspect-[4/3] bg-gray-100 animate-pulse rounded-xl" /> }
+)
+const DriveeViewer = dynamic(
+  () => import("@/components/drivee-viewer").then(m => ({ default: m.DriveeViewer })),
+  { ssr: false, loading: () => <div className="aspect-[4/3] bg-gray-100 animate-pulse rounded-xl" /> }
+)
+const SimilarVehicles = dynamic(
+  () => import("@/components/similar-vehicles").then(m => ({ default: m.SimilarVehicles })),
+  { ssr: false }
+)
+const ReserveVehicleModal = dynamic(
+  () => import("@/components/reserve-vehicle-modal").then(m => ({ default: m.ReserveVehicleModal })),
+  { ssr: false }
+)
+const AuthRequiredModal = dynamic(
+  () => import("@/components/auth-required-modal").then(m => ({ default: m.AuthRequiredModal })),
+  { ssr: false }
+)
+const PriceNegotiator = dynamic(
+  () => import("@/components/vehicle/price-negotiator").then(m => ({ default: m.PriceNegotiator })),
+  { ssr: false }
+)
+const LiveVideoCall = dynamic(
+  () => import("@/components/vehicle/live-video-call").then(m => ({ default: m.LiveVideoCall })),
+  { ssr: false }
+)
+const PriceDropAlert = dynamic(
+  () => import("@/components/vehicle/price-drop-alert").then(m => ({ default: m.PriceDropAlert })),
+  { ssr: false }
+)
+const AddToCompare = dynamic(
+  () => import("@/components/vehicle/add-to-compare").then(m => ({ default: m.AddToCompare })),
+  { ssr: false }
+)
 
 // Mock vehicle data
 const vehicleData = {
