@@ -96,39 +96,24 @@ async function loginViaUI(page: Page) {
 }
 
 /**
- * Pick a Radix UI Select option.
- * @param container  A locator scoped to the <div> wrapping <Label> + <Select>
- * @param optionText Visible text of the option to click
+ * Find a field's direct container by navigating from the label element
+ * to its parent <div>. This avoids matching overly-broad ancestor divs.
  */
-async function pickSelect(container: ReturnType<Page["locator"]>, optionText: string | RegExp) {
-  const trigger = container.getByRole("combobox")
-  await trigger.click()
-  // Radix portals options to <body>; search globally
-  const page = container.page()
-  await page.getByRole("option", { name: optionText }).click()
-}
-
-/**
- * Find the form field container (the <div> wrapping Label + Input/Select)
- * by matching the label text.
- */
-function fieldByLabel(page: Page, labelText: string) {
-  return page
-    .locator("div")
-    .filter({ has: page.locator("label", { hasText: labelText }) })
-    .first()
+function fieldContainer(page: Page, labelText: string | RegExp) {
+  return page.locator("label", { hasText: labelText }).first().locator("..")
 }
 
 /** Fill a text/number input found next to a label */
-async function fillField(page: Page, labelText: string, value: string) {
-  const container = fieldByLabel(page, labelText)
+async function fillField(page: Page, labelText: string | RegExp, value: string) {
+  const container = fieldContainer(page, labelText)
   await container.locator("input").first().fill(value)
 }
 
-/** Pick a Radix Select option found next to a label */
-async function selectField(page: Page, labelText: string, optionText: string | RegExp) {
-  const container = fieldByLabel(page, labelText)
-  await pickSelect(container, optionText)
+/** Pick a Radix Select option: click the combobox trigger, then the option */
+async function selectField(page: Page, labelText: string | RegExp, optionText: string | RegExp) {
+  const container = fieldContainer(page, labelText)
+  await container.getByRole("combobox").click()
+  await page.getByRole("option", { name: optionText }).click()
 }
 
 // ─── Setup ───────────────────────────────────────────────────────────────────
@@ -213,8 +198,9 @@ test.describe("Auth-Gated Flows — Finance Submission & ID Upload", () => {
     await fillField(page, "Last Name", "User")
 
     // Date of Birth * — three Radix Selects (Day, Month, Year)
-    const dobSection = fieldByLabel(page, "Date of Birth")
-    const dobTriggers = dobSection.getByRole("combobox")
+    // The DOB label's parent div contains a sub-grid with 3 comboboxes
+    const dobContainer = fieldContainer(page, "Date of Birth")
+    const dobTriggers = dobContainer.getByRole("combobox")
     // Day
     await dobTriggers.nth(0).click()
     await page.getByRole("option", { name: "15" }).click()
@@ -244,12 +230,8 @@ test.describe("Auth-Gated Flows — Finance Submission & ID Upload", () => {
     console.log("✓ Personal info filled")
 
     // ── Fill Step 1 — Address ─────────────────────────────────────────────
-    // Postal Code * — this is a custom PostalCodeInput component
-    // It has a label "Postal Code *" and an input inside
-    const postalField = page.locator("div").filter({
-      has: page.locator("label", { hasText: /^Postal Code/ }),
-    }).first()
-    await postalField.locator("input").first().fill("M5V3L9")
+    // Postal Code * — custom PostalCodeInput component
+    await fillField(page, /^Postal Code/, "M5V3L9")
     // Wait for postal code lookup to auto-fill city/province
     await page.waitForTimeout(2_000)
 
@@ -298,16 +280,10 @@ test.describe("Auth-Gated Flows — Finance Submission & ID Upload", () => {
     await fillField(page, "Occupation", "Software Engineer")
 
     // Employer Phone *
-    const empPhoneContainer = page.locator("div").filter({
-      has: page.locator("label", { hasText: /Employer Phone/ }),
-    }).first()
-    await empPhoneContainer.locator("input").first().fill("4165559999")
+    await fillField(page, /Employer Phone/, "4165559999")
 
     // Employer Postal Code *
-    const empPostalField = page.locator("div").filter({
-      has: page.locator("label", { hasText: /Employer Postal Code/ }),
-    }).first()
-    await empPostalField.locator("input").first().fill("M5V1J2")
+    await fillField(page, /Employer Postal Code/, "M5V1J2")
     await page.waitForTimeout(1_500)
 
     console.log("✓ Employment filled")
@@ -508,9 +484,10 @@ test.describe("Auth-Gated Flows — Finance Submission & ID Upload", () => {
       await idTypeSelect.selectOption({ label: "Driver's License" })
     } else {
       // Try Radix select pattern
-      const idTypeContainer = fieldByLabel(page, "ID Type")
+      const idTypeContainer = fieldContainer(page, "ID Type")
       if (await idTypeContainer.getByRole("combobox").isVisible({ timeout: 2_000 }).catch(() => false)) {
-        await pickSelect(idTypeContainer, /driver/i)
+        await idTypeContainer.getByRole("combobox").click()
+        await page.getByRole("option", { name: /driver/i }).click()
       }
     }
 
