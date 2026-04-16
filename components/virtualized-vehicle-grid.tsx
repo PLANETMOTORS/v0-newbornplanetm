@@ -1,7 +1,5 @@
 "use client"
 
-import { useRef, useEffect, useState } from "react"
-
 interface VirtualizedVehicleGridProps {
   /** Total number of items */
   itemCount: number
