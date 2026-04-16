@@ -175,7 +175,10 @@ export function FinanceApplicationForm() {
               value={formData.firstName}
               onChange={(e) => {
                 setFormData({ ...formData, firstName: e.target.value })
-                if (validationErrors.firstName) setValidationErrors({ ...validationErrors, firstName: "" })
+                if (validationErrors.firstName) {
+                  const { firstName: _, ...rest } = validationErrors
+                  setValidationErrors(rest)
+                }
               }}
               required
             />
@@ -189,7 +192,10 @@ export function FinanceApplicationForm() {
               value={formData.lastName}
               onChange={(e) => {
                 setFormData({ ...formData, lastName: e.target.value })
-                if (validationErrors.lastName) setValidationErrors({ ...validationErrors, lastName: "" })
+                if (validationErrors.lastName) {
+                  const { lastName: _, ...rest } = validationErrors
+                  setValidationErrors(rest)
+                }
               }}
               required
             />
@@ -205,7 +211,10 @@ export function FinanceApplicationForm() {
             value={formData.email}
             onChange={(e) => {
               setFormData({ ...formData, email: e.target.value })
-              if (validationErrors.email) setValidationErrors({ ...validationErrors, email: "" })
+              if (validationErrors.email) {
+                const { email: _, ...rest } = validationErrors
+                setValidationErrors(rest)
+              }
             }}
             required
           />
@@ -220,7 +229,10 @@ export function FinanceApplicationForm() {
             value={formData.phone}
             onChange={(e) => {
               setFormData({ ...formData, phone: e.target.value })
-              if (validationErrors.phone) setValidationErrors({ ...validationErrors, phone: "" })
+              if (validationErrors.phone) {
+                const { phone: _, ...rest } = validationErrors
+                setValidationErrors(rest)
+              }
             }}
             required
           />

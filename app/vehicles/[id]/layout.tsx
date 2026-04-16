@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         images: [imageUrl],
       },
       alternates: {
-        canonical: `/vehicles/${encodedId}`,
+        canonical: `${baseUrl}/vehicles/${encodedId}`,
       },
     }
   } catch {
