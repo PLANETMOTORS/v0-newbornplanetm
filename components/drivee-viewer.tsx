@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { RotateCw, Loader2 } from "lucide-react"
+import { DRIVEE_DEALER_UID } from "@/lib/drivee"
 
 interface DriveeViewerProps {
   /** Drivee media ID for this vehicle (required — from DRIVEE_VIN_MAP lookup) */
@@ -14,7 +15,6 @@ interface DriveeViewerProps {
   className?: string
 }
 
-const DRIVEE_DEALER_UID = "AZYuEtjX9NUvWpqmUQcKyiGHbNg1"
 const DRIVEE_IFRAME_BASE = "https://iframe-b8b2c.web.app"
 
 /**
