@@ -401,7 +401,7 @@ export async function handlePaymentIntentSucceeded(
     const { data: transitioned, error: vehicleError } = await supabase
       .rpc('transition_vehicle_status', {
         p_vehicle_id: vehicleId,
-        p_from_statuses: ['available', 'reserved', 'pending'],
+        p_from_statuses: ['available', 'reserved', 'pending', 'checkout_in_progress'],
         p_to_status: 'pending',
       })
 
