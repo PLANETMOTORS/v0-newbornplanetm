@@ -77,10 +77,11 @@ async function loginViaUI(page: Page) {
     timeout: 15_000,
   })
 
-  // Fill email — use the form input with type="email" or label
-  await page.locator('input[type="email"]').fill(email)
-  await page.locator('input[type="password"]').fill(password)
-  await page.getByRole("button", { name: /sign in/i }).click()
+  // Fill email — scope to the login form to avoid matching footer newsletter input
+  const loginForm = page.locator('form').filter({ has: page.locator('input[type="password"]') })
+  await loginForm.locator('input[type="email"]').fill(email)
+  await loginForm.locator('input[type="password"]').fill(password)
+  await loginForm.getByRole("button", { name: /sign in/i }).click()
 
   // Wait for redirect away from login page (Supabase redirects to /account)
   await expect(page).not.toHaveURL(/auth\/login/, { timeout: 20_000 })
