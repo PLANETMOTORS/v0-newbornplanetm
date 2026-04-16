@@ -13,7 +13,13 @@ const nextConfig = {
   experimental: {
     webpackMemoryOptimizations: true,
     // Optimize package imports to reduce memory
-    optimizePackageImports: ['sanity', '@sanity/ui', 'lucide-react', '@radix-ui/react-icons'],
+    optimizePackageImports: [
+      'sanity', '@sanity/ui', '@sanity/vision', '@sanity/client',
+      'lucide-react', '@radix-ui/react-icons',
+      'date-fns', 'recharts', 'embla-carousel-react',
+      'react-hook-form', '@tanstack/react-virtual',
+      'framer-motion', 'swr',
+    ],
   },
   
   images: {
