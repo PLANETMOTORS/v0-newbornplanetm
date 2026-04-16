@@ -80,24 +80,46 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_vehicle_single_active
 
 -- ── Step 4: Atomic vehicle lock function ───────────────────────────────────
 -- Used by startVehicleCheckout to atomically claim a vehicle for checkout.
--- Returns TRUE if the lock was acquired, FALSE if the vehicle was already taken.
+-- Returns JSONB with success status and vehicle data (required by app/actions/stripe.ts).
 CREATE OR REPLACE FUNCTION public.lock_vehicle_for_checkout(
-  p_vehicle_id UUID,
-  p_allowed_statuses TEXT[] DEFAULT ARRAY['available', 'reserved']
-) RETURNS BOOLEAN
+  p_vehicle_id UUID
+)
+RETURNS JSONB
 LANGUAGE plpgsql
 AS $$
 DECLARE
-  rows_affected INTEGER;
+  v_vehicle RECORD;
 BEGIN
+  -- Lock the vehicle row to prevent concurrent checkouts
+  SELECT id, year, make, model, price, status
+    INTO v_vehicle
+    FROM public.vehicles
+   WHERE id = p_vehicle_id
+     FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Vehicle not found');
+  END IF;
+
+  IF v_vehicle.status NOT IN ('available', 'reserved') THEN
+    RETURN jsonb_build_object('success', false, 'error',
+      format('Vehicle is %s, not available for checkout', v_vehicle.status));
+  END IF;
+
+  -- Transition to 'checkout_in_progress' to hold the lock beyond this transaction
   UPDATE public.vehicles
-  SET status = 'checkout_in_progress',
-      updated_at = NOW()
-  WHERE id = p_vehicle_id
-    AND status = ANY(p_allowed_statuses);
-  
-  GET DIAGNOSTICS rows_affected = ROW_COUNT;
-  RETURN rows_affected > 0;
+     SET status = 'checkout_in_progress', updated_at = NOW()
+   WHERE id = p_vehicle_id;
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'id', v_vehicle.id,
+    'year', v_vehicle.year,
+    'make', v_vehicle.make,
+    'model', v_vehicle.model,
+    'price', v_vehicle.price,
+    'status', v_vehicle.status
+  );
 END;
 $$;
 
