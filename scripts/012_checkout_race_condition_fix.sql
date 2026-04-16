@@ -119,7 +119,7 @@ BEGIN
     'make', v_vehicle.make,
     'model', v_vehicle.model,
     'price', v_vehicle.price,
-    'status', v_vehicle.status
+    'status', 'checkout_in_progress'
   );
 END;
 $$;
