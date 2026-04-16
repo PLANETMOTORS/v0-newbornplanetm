@@ -3,41 +3,73 @@ import { neon } from "@neondatabase/serverless"
 // ==================== TYPES ====================
 
 export interface VehicleData {
+  // === A2 Identity Fields ===
   stock_number: string
   vin: string
+  slug: string                    // A2: human-readable canonical URL slug
+  title: string                   // A2: derived display title, e.g. "2023 Ford F-150 XLT"
+  dealer_id: string               // A2: multi-store safe partition key
+  source_system: string           // A2: defaults to "homenet"
+
+  // === A2 Core Vehicle Fields ===
   year: number
   make: string
   model: string
   trim?: string
   body_style?: string
+  condition: string               // A2: "new" | "used" | "certified_used"
   exterior_color?: string
   interior_color?: string
-  price: number
-  msrp?: number
-  mileage: number
+  doors?: number                  // A2: optional numeric filter value
   drivetrain?: string
   transmission?: string
   engine?: string
   fuel_type?: string
+
+  // === A2 Pricing (integer CAD dollars) ===
+  price_cad?: number              // A2: primary live price, nullable
+  sale_price_cad?: number         // A2: optional promotional price
+  msrp_cad?: number               // A2: useful for new inventory
+
+  // === A2 Mileage ===
+  mileage_km: number              // A2: null for some new/in-transit units
+
+  // === A2 Status & Merchandising ===
+  status: string                  // A2: available/pending/reserved/sold/in_transit/wholesale/draft
+  availability_bucket: string     // A2: live/sold/hidden
+  is_certified: boolean           // A2: defaults false
+  is_featured: boolean            // A2: defaults false
+  is_new_arrival?: boolean
+
+  // === EV Fields ===
+  is_ev?: boolean
   fuel_economy_city?: number
   fuel_economy_highway?: number
-  is_ev?: boolean
   battery_capacity_kwh?: number
   range_miles?: number
-  ev_battery_health_percent?: number
-  status?: string
-  is_certified?: boolean
-  is_new_arrival?: boolean
-  featured?: boolean
-  inspection_score?: number
+
+  // === A2 Media ===
   primary_image_url?: string
-  image_urls?: string[]
+  image_urls?: string[]           // A2: ingestion inputs only, not for frontend rendering
   has_360_spin?: boolean
   video_url?: string
+
+  // === A2 Content ===
+  description?: string            // A2: canonical long description for VDP
+  feature_bullets?: string[]      // A2: array of short strings for VDP
+  options?: string[]              // A2: array of option strings
   location?: string
-  description?: string
+
+  // === Legacy / Compat ===
+  inspection_score?: number
   source_vdp_url?: string
   title_status?: string
+
+  // === Backward compat aliases (will be removed after DB migration) ===
+  price: number                   // Legacy: price in cents
+  msrp?: number                   // Legacy: msrp in cents
+  mileage: number                 // Legacy: alias for mileage_km
+  featured?: boolean              // Legacy: alias for is_featured
 }
 
 export type SqlClient = ReturnType<typeof neon>
@@ -136,7 +168,11 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
   if (!vin || vin.length !== 17) return null
   if (!stockNumber) return null
 
-  const fuelType = get(["fuel_type", "fueltype", "fuel"])
+  // Normalize HomeNet fuel values: "Gasoline Fuel" → "Gasoline", "Electric Fuel System" → "Electric"
+  let fuelType = get(["fuel_type", "fueltype", "fuel"])
+  if (fuelType) {
+    fuelType = fuelType.replace(/\s*(fuel system|fuel)\s*$/i, "").trim() || fuelType
+  }
   const rawImages = get(["image_urls", "photos", "images", "photo", "imagelist"])
   const images = parseImageUrls(rawImages)
 
@@ -145,54 +181,136 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
   if (!engineStr) {
     const cyl = get(["enginecylinders"])
     const disp = get(["enginedisplacement"])
-    if (disp) engineStr = disp + (cyl ? ` ${cyl}-Cylinder` : "")
-    else if (cyl) engineStr = `${cyl}-Cylinder`
+    // Skip "0.0", "0.0 L", etc. displacement for EVs
+    const validDisp = disp && !disp.match(/^0+(\.0+)?(\s|$)/) ? disp : ""
+    if (validDisp) engineStr = validDisp + (cyl ? ` ${cyl}-Cylinder` : "")
+    else if (cyl && cyl !== "0") engineStr = `${cyl}-Cylinder`
+    // EVs: leave engine empty — it's electric
   }
 
-  const condition = get(["condition"]).toLowerCase()
+  // === A2: Condition mapping ===
+  // HomeNet "Type" column: "Used", "New", "CPO" → A2 condition values
+  const rawCondition = get(["condition", "type"]).toLowerCase()
   let isCertified = getBool(["is_certified", "certified", "cpo"])
-  if (condition === "cpo") {
+  let a2Condition = "used"
+  if (rawCondition === "cpo" || rawCondition === "certified" || rawCondition === "certified_used") {
+    a2Condition = "certified_used"
     isCertified = true
-  } else if (condition === "used" || condition === "new") {
+  } else if (rawCondition === "new") {
+    a2Condition = "new"
+  } else if (rawCondition === "used" || !rawCondition) {
+    a2Condition = "used"
     if (!get(["is_certified", "certified", "cpo"])) isCertified = false
   }
 
+  // === A2: Core vehicle fields ===
+  const year = getNum(["year"]) || new Date().getFullYear()
+  const make = get(["make"])
+  const model = get(["model"])
+  const trim = get(["trim", "series"])
+  const normalizedVin = vin.toUpperCase()
+
+  // === A2: Derived fields ===
+  const title = `${year} ${make} ${model}${trim ? ` ${trim}` : ""}`
+  const slug = `${year}-${make}-${model}${trim ? `-${trim}` : ""}-${stockNumber}`
+    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+
+  // === A2: Pricing (integer CAD dollars) ===
+  const priceDollars = getNum(["price", "sellingprice", "internetprice", "internet_price"])
+  const msrpDollars = getNum(["msrp", "retailprice", "originalmsrp"])
+
+  // === A2: Mileage ===
+  const mileageKm = getNum(["mileage", "odometer", "miles"]) || 0
+
+  // === A2: Status mapping ===
+  const rawStatus = get(["status"]).toLowerCase()
+  const a2Status = rawStatus || "available"
+  // Derive availability_bucket from status per A2 Section 4
+  let availabilityBucket = "live"
+  if (a2Status === "sold") availabilityBucket = "sold"
+  else if (a2Status === "wholesale" || a2Status === "draft") availabilityBucket = "hidden"
+
+  // === A2: Options / features ===
+  const rawOptions = get(["options"])
+  const optionsList = rawOptions ? rawOptions.split(",").map(o => o.trim()).filter(Boolean) : undefined
+
+  // === A2: Doors ===
+  const doors = getNum(["doors"])
+
+  // === A2: Description from comments ===
+  const description = get(["comments", "description", "comment1"]) || undefined
+
+  const isEv = fuelType?.toLowerCase().includes("electric") || getBool(["is_ev", "isev"])
+  const isFeatured = getBool(["featured", "is_featured"])
+
   return {
+    // A2 Identity
     stock_number: stockNumber,
-    vin: vin.toUpperCase(),
-    year: getNum(["year"]) || new Date().getFullYear(),
-    make: get(["make"]),
-    model: get(["model"]),
-    trim: get(["trim", "series"]),
+    vin: normalizedVin,
+    slug,
+    title,
+    dealer_id: get(["dealerid", "dealer_id"]) || "planet-motors",
+    source_system: "homenet",
+
+    // A2 Core
+    year,
+    make,
+    model,
+    trim,
     body_style: get(["body_style", "bodystyle", "body", "bodytype"]),
+    condition: a2Condition,
     exterior_color: get(["exterior_color", "exteriorcolor", "color", "extcolor"]),
     interior_color: get(["interior_color", "interiorcolor", "intcolor"]),
-    // HomeNet sends prices in dollars; DB stores in cents
-    price: (getNum(["price", "sellingprice", "internetprice"]) || 0) * 100,
-    msrp: (() => { const v = getNum(["msrp", "retailprice"]); return v != null ? v * 100 : undefined })(),
-    mileage: getNum(["mileage", "odometer", "miles"]) || 0,
+    doors,
     drivetrain: get(["drivetrain", "drivetype"]),
     transmission: get(["transmission", "trans"]),
     engine: engineStr,
     fuel_type: fuelType,
+
+    // A2 Pricing (integer CAD dollars)
+    price_cad: priceDollars || undefined,
+    sale_price_cad: undefined, // HomeNet doesn't send sale price separately
+    msrp_cad: msrpDollars || undefined,
+
+    // A2 Mileage
+    mileage_km: mileageKm,
+
+    // A2 Status & Merchandising
+    status: a2Status,
+    availability_bucket: availabilityBucket,
+    is_certified: isCertified,
+    is_featured: isFeatured,
+    is_new_arrival: getBool(["is_new_arrival", "newarrival"]),
+
+    // EV
+    is_ev: isEv,
     fuel_economy_city: getNum(["fuel_economy_city", "citympg"]),
     fuel_economy_highway: getNum(["fuel_economy_highway", "highwaympg"]),
-    is_ev: fuelType?.toLowerCase().includes("electric") || getBool(["is_ev", "isev"]),
     battery_capacity_kwh: getNum(["battery_capacity_kwh", "batterycapacity"]),
     range_miles: getNum(["range_miles", "range", "evrange"]),
-    status: get(["status"]) || "available",
-    is_certified: isCertified,
-    is_new_arrival: getBool(["is_new_arrival", "newarrival"]),
-    featured: getBool(["featured"]),
-    inspection_score: getNum(["inspection_score", "inspectionscore"]) || 210,
+
+    // A2 Media
     primary_image_url: images[0] || get(["primary_image_url", "mainphoto"]),
     image_urls: images,
     has_360_spin: getBool(["has_360_spin", "has360"]),
     video_url: get(["video_url", "video"]),
+
+    // A2 Content
+    description,
+    feature_bullets: undefined, // HomeNet doesn't provide structured bullets
+    options: optionsList,
     location: get(["location", "dealerlocation"]) || "Richmond Hill, ON",
-    description: get(["comments", "description"]) || undefined,
+
+    // Legacy
+    inspection_score: getNum(["inspection_score", "inspectionscore"]) || 210,
     source_vdp_url: get(["vdplink", "vdp_link"]) || undefined,
     title_status: get(["titlestatus", "title_status"]) || undefined,
+
+    // Backward compat aliases (for existing DB sync until migration)
+    price: (priceDollars || 0) * 100,
+    msrp: msrpDollars != null ? msrpDollars * 100 : undefined,
+    mileage: mileageKm,
+    featured: isFeatured,
   }
 }
 
@@ -370,41 +488,72 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
   if (!stockNumber) return null
 
   const images = getImages()
-  const price = getNumber("price") || getNumber("sellingprice") || getNumber("internetprice") || 0
+  const priceDollars = getNumber("price") || getNumber("sellingprice") || getNumber("internetprice") || 0
+  const msrpDollars = getNumber("msrp") || getNumber("retailprice")
   const fuelType = getValue("fueltype") || getValue("fuel_type") || getValue("fuel")
+  const year = getNumber("year") || new Date().getFullYear()
+  const make = getValue("make")
+  const model = getValue("model")
+  const trim = getValue("trim") || getValue("series")
+  const normalizedVin = vin.toUpperCase()
+  const mileageKm = getNumber("mileage") || getNumber("odometer") || 0
+  const isEv = fuelType?.toLowerCase().includes("electric") || getBoolean("isev")
+  const isFeatured = getBoolean("featured")
+  const isCertified = getBoolean("certified") || getBoolean("cpo")
+
+  const title = `${year} ${make} ${model}${trim ? ` ${trim}` : ""}`
+  const slug = `${year}-${make}-${model}${trim ? `-${trim}` : ""}-${stockNumber}`
+    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
 
   return {
     stock_number: stockNumber,
-    vin: vin.toUpperCase(),
-    year: getNumber("year") || new Date().getFullYear(),
-    make: getValue("make"),
-    model: getValue("model"),
-    trim: getValue("trim") || getValue("series"),
+    vin: normalizedVin,
+    slug,
+    title,
+    dealer_id: "planet-motors",
+    source_system: "homenet",
+    year,
+    make,
+    model,
+    trim,
     body_style: getValue("bodystyle") || getValue("body") || getValue("bodytype"),
+    condition: isCertified ? "certified_used" : "used",
     exterior_color: getValue("exteriorcolor") || getValue("color") || getValue("extcolor"),
     interior_color: getValue("interiorcolor") || getValue("intcolor"),
-    price,
-    msrp: getNumber("msrp") || getNumber("retailprice"),
-    mileage: getNumber("mileage") || getNumber("odometer") || 0,
+    doors: getNumber("doors"),
     drivetrain: getValue("drivetrain") || getValue("drivetype"),
     transmission: getValue("transmission") || getValue("trans"),
     engine: getValue("engine") || getValue("enginedescription"),
     fuel_type: fuelType,
+    price_cad: priceDollars || undefined,
+    sale_price_cad: undefined,
+    msrp_cad: msrpDollars || undefined,
+    mileage_km: mileageKm,
+    status: getValue("status") || "available",
+    availability_bucket: "live",
+    is_certified: isCertified,
+    is_featured: isFeatured,
+    is_new_arrival: getBoolean("newarrival"),
+    is_ev: isEv,
     fuel_economy_city: getNumber("citympg") || getNumber("fueleconomycity"),
     fuel_economy_highway: getNumber("highwaympg") || getNumber("fueleconomyhighway"),
-    is_ev: fuelType?.toLowerCase().includes("electric") || getBoolean("isev"),
     battery_capacity_kwh: getNumber("batterycapacity"),
     range_miles: getNumber("range") || getNumber("evrange"),
-    status: getValue("status") || "available",
-    is_certified: getBoolean("certified") || getBoolean("cpo"),
-    is_new_arrival: getBoolean("newarrival"),
-    featured: getBoolean("featured"),
-    inspection_score: getNumber("inspectionscore") || 210,
     primary_image_url: images[0] || getValue("mainphoto") || getValue("primaryimage"),
     image_urls: images,
     has_360_spin: getBoolean("has360") || getBoolean("spinview"),
     video_url: getValue("videourl") || getValue("video"),
+    description: getValue("description") || getValue("comments") || undefined,
+    options: undefined,
     location: getValue("location") || getValue("dealerlocation") || "Richmond Hill, ON",
+    inspection_score: getNumber("inspectionscore") || 210,
+    source_vdp_url: undefined,
+    title_status: undefined,
+    // Legacy compat
+    price: (priceDollars || 0) * 100,
+    msrp: msrpDollars != null ? msrpDollars * 100 : undefined,
+    mileage: mileageKm,
+    featured: isFeatured,
   }
 }
 
