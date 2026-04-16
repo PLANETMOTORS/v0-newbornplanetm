@@ -215,7 +215,10 @@ async function buildVehiclesSitemap(baseUrl: string, currentDate: string): Promi
     }))
   } catch (err) {
     console.error('Error building vehicles sitemap:', err)
-    throw err
+    // Graceful fallback: return empty array so the sitemap index still
+    // generates successfully with static pages even when Supabase is
+    // unreachable or returns 0 vehicles.
+    return []
   }
 }
 
