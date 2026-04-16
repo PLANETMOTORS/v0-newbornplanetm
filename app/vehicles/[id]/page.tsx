@@ -424,6 +424,12 @@ export default function VehicleDetailPage() {
             : data.primary_image_url
               ? [data.primary_image_url]
               : vehicleData.images
+          // Split images: HomeNet convention — exterior photos first, interior photos last
+          // Roughly 60% exterior, 40% interior for typical 30-40 image sets
+          const splitIndex = rawImages.length > 10 ? Math.ceil(rawImages.length * 0.6) : rawImages.length
+          const exteriorImgs = rawImages.slice(0, splitIndex)
+          const interiorImgs = rawImages.length > 10 ? rawImages.slice(splitIndex) : []
+
           setVehicle({
             ...vehicleData, // Keep mock inspection data as fallback
             id: data.id,
@@ -441,7 +447,8 @@ export default function VehicleDetailPage() {
             bodyStyle: data.body_style,
             vin: data.vin,
             stockNumber: data.stock_number,
-            images: rawImages,
+            images: exteriorImgs,
+            interiorImages: interiorImgs,
             pricing: {
               vehiclePrice: breakdown.vehiclePrice,
               deliveryFee: 0,
@@ -495,8 +502,8 @@ export default function VehicleDetailPage() {
   }, [vehicle, isLoading])
 
 
-  // 360 spin: auto-cycle through all images
-  const allImages = vehicle?.images || []
+  // 360 spin: use ALL images (exterior + interior combined)
+  const allImages = [...(vehicle?.images || []), ...(vehicle?.interiorImages || [])]
   const has360 = allImages.length >= 15
   useEffect(() => {
     if (!isSpinning || imageType !== "360") return
@@ -837,13 +844,15 @@ export default function VehicleDetailPage() {
                     >
                       Exterior
                     </Button>
-                    <Button
-                      variant={imageType === "interior" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => { setImageType("interior"); setCurrentImageIndex(0); setIsSpinning(false) }}
-                    >
-                      Interior
-                    </Button>
+                    {vehicle.interiorImages.length > 0 && (
+                      <Button
+                        variant={imageType === "interior" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => { setImageType("interior"); setCurrentImageIndex(0); setIsSpinning(false) }}
+                      >
+                        Interior
+                      </Button>
+                    )}
                     {has360 && (
                       <Button
                         variant={imageType === "360" ? "default" : "outline"}
