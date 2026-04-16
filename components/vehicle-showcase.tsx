@@ -204,6 +204,7 @@ export function VehicleShowcase() {
             src={imageSrc}
             alt={currentVehicle.name}
             loading="eager"
+            fetchPriority="high"
             onError={() => setImageError(true)}
             className={cn(
               "absolute inset-0 w-full h-full object-cover transition-all duration-500",
