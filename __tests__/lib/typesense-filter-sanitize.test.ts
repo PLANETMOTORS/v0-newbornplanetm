@@ -80,4 +80,28 @@ describe('sanitizeTypesenseFilterValue', () => {
     // Single | is fine — only || is dangerous
     expect(sanitizeTypesenseFilterValue('A|B')).toBe('`A|B`')
   })
+
+  // ── Backslash escaping (Devin Review fix) ──────────────────────────────
+
+  it('escapes backslashes before backticks to prevent quoting breakout', () => {
+    // Input: Toyota\  → must produce `Toyota\\` not `Toyota\`
+    // Without backslash escaping, `Toyota\` would make Typesense interpret
+    // \` as escaped backtick, leaving the string unclosed.
+    expect(sanitizeTypesenseFilterValue('Toyota\\')).toBe('`Toyota\\\\`')
+  })
+
+  it('escapes backslash-backtick sequences correctly', () => {
+    // Input: some\`value → backslash escapes first: some\\`value
+    // then backtick escapes: some\\\`value → wrapped: `some\\\`value`
+    expect(sanitizeTypesenseFilterValue('some\\`value')).toBe('`some\\\\\\`value`')
+  })
+
+  it('escapes multiple backslashes', () => {
+    // Input: a\\b → becomes a\\\\b when wrapped
+    expect(sanitizeTypesenseFilterValue('a\\\\b')).toBe('`a\\\\\\\\b`')
+  })
+
+  it('handles backslash in the middle of a multi-word value', () => {
+    expect(sanitizeTypesenseFilterValue('Land\\Rover')).toBe('`Land\\\\Rover`')
+  })
 })

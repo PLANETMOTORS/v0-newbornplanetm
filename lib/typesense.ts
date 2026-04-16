@@ -99,8 +99,8 @@ export function sanitizeTypesenseFilterValue(raw: string): string {
     }
   }
 
-  // Escape embedded backticks so they don't close the wrapper early
-  const escaped = raw.replace(/`/g, '\\`')
+  // Escape backslashes first (so we don't double-escape the ones we insert for backticks)
+  const escaped = raw.replace(/\\/g, '\\\\').replace(/`/g, '\\`')
 
   // Always backtick-wrap — safe for single-word values too and required
   // for multi-word values like "Land Rover".
