@@ -18,11 +18,15 @@ const nextConfig = {
   
   images: {
     formats: ['image/avif', 'image/webp'],
+    // Responsive breakpoints tuned for vehicle card grid (1-3 cols)
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Serve optimised images from the edge for 60 s, revalidate in background for 1 day
+    minimumCacheTTL: 86400,
     remotePatterns: [
       { protocol: 'https', hostname: 'hebbkx1anhila5yf.public.blob.vercel-storage.com' },
       { protocol: 'https', hostname: 'cdn.planetmotors.ca' },
       { protocol: 'https', hostname: 'planetmotors.imgix.net' },
-
       { protocol: 'https', hostname: 'media.cpsimg.com' },
       { protocol: 'https', hostname: 'cdn.sanity.io' },
       { protocol: 'https', hostname: 'photos.homenetiol.com' },

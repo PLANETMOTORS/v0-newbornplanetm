@@ -1,10 +1,17 @@
 // Planet Motors Homepage Content - Trust-First Design (Clutch/Carvana Style)
 // Section Order: Hero -> 4-Step Process -> Featured Vehicles -> Why Choose Us -> Sell/Trade -> Reviews -> Protection Plans -> CTA -> The Promise -> Footer
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin, Award, DollarSign, Truck, Users, Leaf, Search, CreditCard, FileCheck, Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { HomepageFeaturedVehicles } from "@/components/homepage-featured-vehicles"
-import { VehicleShowcase } from "@/components/vehicle-showcase"
+
+// Code-split heavy below-fold sections into separate chunks
+const HomepageFeaturedVehicles = dynamic(
+  () => import("@/components/homepage-featured-vehicles").then(m => ({ default: m.HomepageFeaturedVehicles }))
+)
+const VehicleShowcase = dynamic(
+  () => import("@/components/vehicle-showcase").then(m => ({ default: m.VehicleShowcase }))
+)
 
 
 export type HomepageProps = {

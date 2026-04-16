@@ -26,13 +26,28 @@ import {
   AlertCircle
 } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
-import { loadStripe } from "@stripe/stripe-js"
+import dynamic from 'next/dynamic'
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
-import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js"
 import { startVehicleCheckout } from "@/app/actions/stripe"
 
+// Lazy-load Stripe — only fetched when user reaches payment step
+const EmbeddedCheckoutProvider = dynamic(
+  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckoutProvider })),
+  { ssr: false }
+)
+const EmbeddedCheckout = dynamic(
+  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckout })),
+  { ssr: false }
+)
+
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-const stripePromise = stripeKey ? loadStripe(stripeKey) : null
+let stripePromise: ReturnType<typeof import('@stripe/stripe-js').loadStripe> | null = null
+function getStripePromise() {
+  if (!stripePromise && stripeKey) {
+    stripePromise = import('@stripe/stripe-js').then(m => m.loadStripe(stripeKey))
+  }
+  return stripePromise
+}
 
 // Protection Plans
 const PROTECTION_PLANS = [
@@ -982,7 +997,7 @@ const handleSubmit = () => {
               </Button>
             </div>
             <div className="p-4">
-              <EmbeddedCheckoutProvider stripe={stripePromise} options={{ fetchClientSecret }}>
+              <EmbeddedCheckoutProvider stripe={getStripePromise()} options={{ fetchClientSecret }}>
                 <EmbeddedCheckout />
               </EmbeddedCheckoutProvider>
             </div>

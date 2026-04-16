@@ -1,31 +1,46 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, Playfair_Display } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
-import { SpeedInsights } from '@vercel/speed-insights/next'
+import dynamic from 'next/dynamic'
 import { GoogleAnalytics } from '@/components/analytics/google-analytics'
 import { GoogleTagManager, GoogleTagManagerNoScript } from '@/components/analytics/google-tag-manager'
 import { MetaPixel } from '@/components/analytics/meta-pixel'
-import { LiveChatWidget } from '@/components/live-chat-widget'
 import { CompareProvider } from '@/contexts/compare-context'
 import { FavoritesProvider } from '@/contexts/favorites-context'
 import { AuthProvider } from '@/contexts/auth-context'
-import { CompareBar } from '@/components/compare-bar'
 import { Toaster } from '@/components/ui/sonner'
 import { OrganizationJsonLd, LocalBusinessJsonLd, WebsiteSearchJsonLd } from '@/components/seo/json-ld'
 import { getPublicSiteUrl } from '@/lib/site-url'
 import './globals.css'
 import './stability-fixes.css'
 
+// Code-split heavy client components into separate chunks
+const LiveChatWidget = dynamic(
+  () => import('@/components/live-chat-widget').then(m => ({ default: m.LiveChatWidget }))
+)
+const CompareBar = dynamic(
+  () => import('@/components/compare-bar').then(m => ({ default: m.CompareBar }))
+)
+const Analytics = dynamic(
+  () => import('@vercel/analytics/next').then(m => ({ default: m.Analytics }))
+)
+const SpeedInsights = dynamic(
+  () => import('@vercel/speed-insights/next').then(m => ({ default: m.SpeedInsights }))
+)
+
 // Planet Motors - OMVIC Licensed Dealer - Production Ready
 
 const inter = Inter({ 
   subsets: ["latin"],
-  variable: '--font-inter'
+  variable: '--font-inter',
+  display: 'swap',
+  preload: true,
 });
 
 const playfair = Playfair_Display({ 
   subsets: ["latin"],
-  variable: '--font-playfair'
+  variable: '--font-playfair',
+  display: 'swap',
+  preload: true,
 });
 
 const SITE_URL = getPublicSiteUrl()
@@ -111,7 +126,10 @@ export default function RootLayout({
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://images.unsplash.com" />
+        {/* Preconnect to Supabase for faster API/auth calls */}
+        {process.env.NEXT_PUBLIC_SUPABASE_URL && (
+          <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
+        )}
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         
