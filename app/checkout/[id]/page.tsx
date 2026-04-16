@@ -176,11 +176,12 @@ export default function CheckoutPage() {
   const provinceCode = provinceNameToCode[formData.province] || 'ON'
   const provinceTax = PROVINCE_TAX_RATES[provinceCode] || PROVINCE_TAX_RATES.ON
   const taxRate = provinceTax.total
+  const formatPct = (rate: number) => parseFloat((rate * 100).toFixed(3)).toString()
   const taxLabel = provinceTax.hst > 0
-    ? `HST (${(provinceTax.hst * 100).toFixed(0)}%)`
+    ? `HST (${formatPct(provinceTax.hst)}%)`
     : provinceTax.pst > 0
-      ? `GST+PST (${(provinceTax.total * 100).toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}%)`
-      : `GST (${(provinceTax.gst * 100).toFixed(0)}%)`
+      ? `GST+PST (${formatPct(provinceTax.total)}%)`
+      : `GST (${formatPct(provinceTax.gst)}%)`
   const tax = Math.round(subtotalBeforeTax * taxRate)
   // Total with tax
   const total = subtotalBeforeTax + tax

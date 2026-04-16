@@ -398,12 +398,11 @@ function TradeInContent() {
   const [hasLien, setHasLien] = useState(false)
   const [payoffAmount, setPayoffAmount] = useState("")
   const [additionalNotes, setAdditionalNotes] = useState("")
-  
+
   // Photos — keyed by angle name for the upload grid
   const [photos, setPhotos] = useState<Record<string, { file: File; preview: string }>>({})
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
-  
-  
+
   // Contact info
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
