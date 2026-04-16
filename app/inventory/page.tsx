@@ -287,16 +287,23 @@ function InventoryContent() {
   }, [filterKey])
 
   // Read URL parameters and set filters
+  // IMPORTANT: Reset ALL filters first, then apply only what the URL specifies.
+  // This prevents stale filters from persisting when navigating between
+  // homepage category links (e.g. Electric → SUV → Sedan).
   useEffect(() => {
     const fuelType = searchParams.get("fuelType")
     const bodyType = searchParams.get("bodyType")
     const make = searchParams.get("make")
-    
+    const maxPrice = searchParams.get("maxPrice")
+    const minPrice = searchParams.get("minPrice")
+    const category = searchParams.get("category")
+    const transmission = searchParams.get("transmission")
+
     // Check for trade-in from AI Quote
     const tradeIn = searchParams.get("tradeIn")
     const quoteId = searchParams.get("quoteId")
     const tradeInVehicle = searchParams.get("tradeInVehicle")
-    
+
     if (tradeIn && parseInt(tradeIn) > 0) {
       setTradeInInfo({
         value: parseInt(tradeIn),
@@ -304,20 +311,61 @@ function InventoryContent() {
         vehicle: tradeInVehicle ? decodeURIComponent(tradeInVehicle) : ''
       })
     }
-    
+
+    // Only reset filters when URL has filter-related params (not on bare /inventory)
+    const hasFilterParams = fuelType || bodyType || make || maxPrice || minPrice || category || transmission
+    if (hasFilterParams) {
+      // Reset all filters to defaults before applying URL params
+      setSelectedFuelType("All Fuel Types")
+      setSelectedBodyType("All Types")
+      setSelectedMake("All Makes")
+      setSelectedYear("All Years")
+      setSelectedTransmission("All Transmissions")
+      setSelectedColor("All Colors")
+      setSelectedDrivetrain("All Drivetrains")
+      setPriceRange([0, 400000])
+      setMileageRange([0, 200000])
+      setEvOnly(false)
+      setSearchQuery("")
+      setSearchInput("")
+    }
+
+    // Apply URL-specified filters
     if (fuelType === "Electric") {
       setSelectedFuelType("Electric")
       setEvOnly(true)
     } else if (fuelType) {
       setSelectedFuelType(fuelType)
     }
-    
+
     if (bodyType) {
       setSelectedBodyType(bodyType)
     }
-    
+
     if (make) {
       setSelectedMake(make)
+    }
+
+    if (maxPrice) {
+      const max = parseInt(maxPrice)
+      if (!isNaN(max)) setPriceRange(prev => [prev[0], max])
+    }
+
+    if (minPrice) {
+      const min = parseInt(minPrice)
+      if (!isNaN(min)) setPriceRange(prev => [min, prev[1]])
+    }
+
+    if (transmission) {
+      setSelectedTransmission(transmission)
+    }
+
+    // Map category shortcuts to concrete filters
+    if (category === "Luxury") {
+      setSearchQuery("luxury")
+      setSearchInput("luxury")
+    } else if (category === "Family") {
+      setSelectedBodyType("SUV")
     }
   }, [searchParams])
 
