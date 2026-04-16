@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getCachedSearchResults, cacheSearchResults } from '@/lib/redis'
 import { createHash } from 'crypto'
+import { getDriveeMid } from '@/lib/drivee'
 
 const ALLOWED_SORT_COLUMNS = new Set(['created_at', 'price', 'year', 'mileage', 'make', 'model'])
 
@@ -55,10 +56,13 @@ function toPublicVehicleListItem(value: unknown): Record<string, unknown> | null
     return null
   }
 
+  const vin = typeof value.vin === 'string' ? value.vin : ''
+
   return {
     ...value,
     price: value.price / 100,
     msrp: typeof value.msrp === 'number' ? value.msrp / 100 : null,
+    drivee_mid: getDriveeMid(vin),
   }
 }
 

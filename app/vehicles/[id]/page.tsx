@@ -507,8 +507,9 @@ export default function VehicleDetailPage() {
 
   // 360 spin: use ALL images (exterior + interior combined)
   const allImages = [...(vehicle?.images || []), ...(vehicle?.interiorImages || [])]
-  // Drivee 360° viewer is available for ALL vehicles via VIN-based lookup
-  const hasDrivee = !!(vehicle?.driveeMid || vehicle?.vin)
+  // Drivee 360° viewer requires a MID (media ID) from the DRIVEE_VIN_MAP.
+  // Drivee's iframe does NOT support VIN-based lookups — only ?mid= works.
+  const hasDrivee = !!vehicle?.driveeMid
   const has360 = hasDrivee || allImages.length >= 15
   useEffect(() => {
     if (!isSpinning || imageType !== "360") return
@@ -771,11 +772,10 @@ export default function VehicleDetailPage() {
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
-                  {/* 360° Interactive Viewer — Drivee.ai for ALL vehicles (MID preferred, VIN fallback) */}
+                  {/* 360° Interactive Viewer — Drivee.ai (requires MID from DRIVEE_VIN_MAP) */}
                   {imageType === "360" && hasDrivee ? (
                     <DriveeViewer
-                      mid={vehicle.driveeMid || undefined}
-                      vin={vehicle.vin}
+                      mid={vehicle.driveeMid!}
                       vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                     />
                   ) : imageType === "360" ? (

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import { getCachedSearchResults, cacheSearchResults, deleteCachedSearchResults } from "@/lib/redis"
+import { getDriveeMid } from "@/lib/drivee"
 
 const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
 const VEHICLE_DETAIL_TTL = 300 // 5 minutes
@@ -51,27 +52,11 @@ const VEHICLE_DETAIL_FIELDS = [
   'updated_at',
 ].join(',')
 
-// Drivee.ai VIN → media ID mapping
-// These are the vehicles that have been photographed with Drivee's 360° system.
-// The dealer UID is AZYuEtjX9NUvWpqmUQcKyiGHbNg1.
-// To add more, photograph vehicles via the Drivee app and add VIN → mid here.
-const DRIVEE_VIN_MAP: Record<string, string> = {
-  // Current inventory — mapped from Drivee photography sessions
-  "1C4JJXP6XMW777356": "190171976531",  // 2021 Jeep Wrangler 4xe (lot unit)
-  "1C4JJXP60MW777382": "190171976531",  // 2021 Jeep Wrangler 4xe (second unit)
-  "3GN7DSRR5SS127703": "744761075195",  // 2025 Chevrolet Equinox EV
-  "5YJ3E1EA3MF848712": "132601940353",  // 2021 Tesla Model 3
-  // Legacy VINs (may have been sold)
-  "1C4JXRN68MW508009": "190171976531",  // 2021 Jeep Wrangler 4xe (sold)
-  "3VV4B7AX1SM019897": "744761075195",  // 2025 Chevrolet Equinox EV (sold)
-  "5YJ3E1EB4MF062024": "132601940353",  // 2021 Tesla Model 3 (sold)
-}
-
 function toPublicVehicle(vehicle: Record<string, unknown>) {
   const price = typeof vehicle.price === "number" ? vehicle.price / 100 : null
   const msrp = typeof vehicle.msrp === "number" ? vehicle.msrp / 100 : null
   const vin = typeof vehicle.vin === "string" ? vehicle.vin : ""
-  const drivee_mid = DRIVEE_VIN_MAP[vin] || null
+  const drivee_mid = getDriveeMid(vin)
 
   return {
     ...vehicle,
