@@ -204,7 +204,11 @@ async function buildVehiclesSitemap(baseUrl: string, currentDate: string): Promi
 
     if (error) {
       console.error('Supabase error in buildVehiclesSitemap:', error)
-      throw new Error(`Failed to fetch vehicles for sitemap: ${error.message}`)
+      const wrapped = new Error(`Failed to fetch vehicles for sitemap: ${error.message}`)
+      // Preserve the PostgreSQL error code (e.g. '42P01' for undefined_table)
+      // so the catch block can distinguish permanent from transient failures.
+      ;(wrapped as Error & { code?: string }).code = error.code
+      throw wrapped
     }
 
     return (inventoryVehicles || []).map((vehicle) => ({
