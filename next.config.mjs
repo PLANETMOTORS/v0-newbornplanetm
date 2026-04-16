@@ -7,8 +7,9 @@ const analyzeBundles = withBundleAnalyzer({
 /** @type {import('next').NextConfig} */
 // Planet Motors - Next.js Config
 const nextConfig = {
-  // CRITICAL: Transpile Sanity packages to prevent duplicate bundling
-  transpilePackages: ['sanity', 'next-sanity', '@sanity/vision', '@sanity/ui', '@sanity/client'],
+  // Sanity Studio is disabled pre-launch (saves 3.8MB client JS).
+  // When re-enabling /studio, restore: ['sanity', 'next-sanity', '@sanity/vision', '@sanity/ui', '@sanity/client']
+  transpilePackages: ['@sanity/client'],
 
   // Exclude native Node.js modules from bundling (required for ssh2/sftp in API routes)
   serverExternalPackages: ['ssh2', 'ssh2-sftp-client', 'cpu-features'],
@@ -22,7 +23,7 @@ const nextConfig = {
   experimental: {
     webpackMemoryOptimizations: true,
     // Optimize package imports to reduce memory
-    optimizePackageImports: ['sanity', '@sanity/ui', 'lucide-react', '@radix-ui/react-icons'],
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
   
   images: {
