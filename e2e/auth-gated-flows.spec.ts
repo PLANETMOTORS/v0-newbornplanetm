@@ -245,7 +245,7 @@ test.describe("Auth-Gated Flows — Finance Submission & ID Upload", () => {
     await fillField(page, "Street Name", "King Street")
 
     // City — may be auto-filled from postal code; fill if empty
-    const cityInput = fieldByLabel(page, "City").locator("input").first()
+    const cityInput = fieldContainer(page, "City").locator("input").first()
     const cityValue = await cityInput.inputValue()
     if (!cityValue) {
       await cityInput.fill("Toronto")
