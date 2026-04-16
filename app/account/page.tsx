@@ -561,7 +561,13 @@ export default function AccountPage() {
                         <CardTitle>Security</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <Button variant="outline" className="w-full justify-start">
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start"
+                          onClick={() => {
+                            window.location.href = "/auth/forgot-password"
+                          }}
+                        >
                           <Shield className="w-4 h-4 mr-2" />
                           Change Password
                         </Button>

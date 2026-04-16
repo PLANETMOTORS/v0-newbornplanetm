@@ -1,8 +1,8 @@
 import { Metadata } from "next"
-import { FinanceApplicationFullForm } from "@/components/finance-application-full-form"
-import { Shield, Clock, CheckCircle, ArrowLeft, Home } from "lucide-react"
-import { createClient } from "@/lib/supabase/server"
 import Link from "next/link"
+import { Shield, Clock, CheckCircle, ArrowLeft, Home } from "lucide-react"
+import { FinanceApplicationFullForm } from "@/components/finance-application-full-form"
+import { createClient } from "@/lib/supabase/server"
 
 export const metadata: Metadata = {
   title: "Finance Application | Planet Motors",
@@ -80,6 +80,17 @@ export default async function FinanceApplicationPage({
       {/* Header */}
       <div className="bg-background border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center gap-4 mb-4">
+            <Link href="/" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Home className="w-4 h-4" />
+              Home
+            </Link>
+            <span className="text-muted-foreground">/</span>
+            <Link href="/financing" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <ArrowLeft className="w-4 h-4" />
+              Financing
+            </Link>
+          </div>
           <h1 className="text-3xl font-bold">Finance Application</h1>
           <p className="text-muted-foreground mt-2">
             Complete your application below. All fields marked with * are required.

@@ -213,11 +213,13 @@ function LoginForm() {
             </CardContent>
             <CardFooter className="flex flex-col space-y-4 pt-0">
               <div className="text-center text-sm">
-                Don&apos;t have an account?{" "}
-                <Link href="/auth/signup" className="text-primary font-medium hover:underline">
-                  Create account
-                </Link>
+                Don&apos;t have an account?
               </div>
+              <Button variant="outline" className="w-full h-12" asChild>
+                <Link href="/auth/signup">
+                  Create Account
+                </Link>
+              </Button>
             </CardFooter>
           </Card>
 
