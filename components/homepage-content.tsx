@@ -190,8 +190,8 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Hero Text */}
-            <div className="text-center lg:text-left">
-              <h1 className="font-serif text-[2.25rem] sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight text-gray-900 text-balance">
+            <div className="text-center lg:text-left min-w-0">
+              <h1 className="font-serif text-[2rem] sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-tight text-gray-900">
                 The Smarter Way to
                 <span className="block text-[#1e3a8a]">
                   Buy or Sell Your Car
@@ -204,18 +204,18 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                 <span className="font-semibold text-gray-800">210-point inspected.</span> Delivered to your door.
               </p>
 
-              <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
+              <div className="mt-8 flex flex-col sm:flex-row items-center gap-3 sm:gap-4 justify-center lg:justify-start">
                 <a
                   href="/inventory"
                   data-testid="hero-cta-btn"
-                  className="inline-flex items-center gap-3 bg-[#dc2626] hover:bg-[#b91c1c] text-white text-base sm:text-lg font-semibold px-6 sm:px-8 py-4 rounded-full shadow-lg shadow-red-600/25 transition-all hover:shadow-xl hover:shadow-red-600/30"
+                  className="inline-flex items-center gap-2 sm:gap-3 bg-[#dc2626] hover:bg-[#b91c1c] text-white text-base sm:text-lg font-semibold px-6 sm:px-8 py-3.5 sm:py-4 rounded-full shadow-lg shadow-red-600/25 transition-all hover:shadow-xl hover:shadow-red-600/30"
                 >
                   <span>Find Your Car</span>
                   <ArrowRight className="w-5 h-5 flex-shrink-0" />
                 </a>
                 <Link
                   href="/trade-in"
-                  className="inline-flex items-center gap-3 border-2 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white text-base sm:text-lg font-semibold px-6 sm:px-8 py-[14px] rounded-full transition-all"
+                  className="inline-flex items-center gap-2 sm:gap-3 border-2 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white text-base sm:text-lg font-semibold px-6 sm:px-8 py-3 sm:py-[14px] rounded-full transition-all"
                 >
                   <span>Get Trade-In Value</span>
                   <ArrowRight className="w-5 h-5 flex-shrink-0" />
@@ -226,7 +226,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
             </div>
 
             {/* Hero Image / Vehicle Showcase */}
-            <div className="relative">
+            <div className="relative min-w-0">
               <VehicleShowcase />
               
               {/* Floating Badge */}
