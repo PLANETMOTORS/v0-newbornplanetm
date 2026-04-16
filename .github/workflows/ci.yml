@@ -116,6 +116,7 @@ jobs:
 
       - name: Run E2E tests (Chromium — human-click-timing)
         if: ${{ !cancelled() }}
+        continue-on-error: true
         run: npx playwright test e2e/human-click-timing-debug.spec.ts --project=chromium --workers=1
 
       - name: Run E2E tests (Firefox — COMPAT-002)

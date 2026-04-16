@@ -738,10 +738,11 @@ export default function VehicleDetailPage() {
           </div>
         </div>
 
-        {/* Main Tabs - Mobile Optimized with Scroll Indicator */}
-        <div className="border-b sticky top-16 bg-background z-40 relative">
-          <div className="overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
+        {/* Single Tabs wrapper so Radix links aria-controls correctly */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col gap-0">
+          {/* Main Tabs - Mobile Optimized with Scroll Indicator */}
+          <div className="border-b sticky top-16 bg-background z-40 relative">
+            <div className="overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth">
               <TabsList className="h-12 bg-transparent p-0 gap-0 flex w-max px-4 pr-10">
                 {["Photos", "Overview", "Features", "Inspect", "Pricing", "Protection"].map((tab) => (
                   <TabsTrigger
@@ -753,17 +754,15 @@ export default function VehicleDetailPage() {
                   </TabsTrigger>
                 ))}
               </TabsList>
-            </Tabs>
+            </div>
+            {/* Scroll indicator gradient - shows there are more tabs on mobile */}
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
           </div>
-          {/* Scroll indicator gradient - shows there are more tabs on mobile */}
-          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
-        </div>
 
-        <div className="container mx-auto px-4 py-8 overflow-x-hidden max-w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 overflow-x-hidden">
-            {/* Left Column - Content */}
-            <div className="lg:col-span-2">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="container mx-auto px-4 py-8 overflow-x-hidden max-w-full">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 overflow-x-hidden">
+              {/* Left Column - Content */}
+              <div className="lg:col-span-2">
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
                   {/* 360° Interactive Spin Viewer */}
@@ -1816,8 +1815,6 @@ export default function VehicleDetailPage() {
                     </table>
                   </div>
                 </TabsContent>
-              </Tabs>
-
               {/* Next Steps */}
               <div className="mt-12 pt-8 border-t">
                 <h2 className="text-xl font-semibold mb-6">Next steps</h2>
@@ -2091,8 +2088,9 @@ export default function VehicleDetailPage() {
                 </CardContent>
               </Card>
             </div>
+            </div>
           </div>
-        </div>
+        </Tabs>
 
         {/* Similar Vehicles */}
         <div className="container mx-auto px-4 py-8 border-t">

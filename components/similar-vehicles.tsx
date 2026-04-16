@@ -127,6 +127,7 @@ export function SimilarVehicles({ currentVehicleId, make, priceRange }: SimilarV
                     size="icon"
                     className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm hover:bg-background"
                     onClick={(e) => e.preventDefault()}
+                    aria-label={`Save ${vehicle.year} ${vehicle.make} ${vehicle.model} to favorites`}
                   >
                     <Heart className="h-4 w-4" />
                   </Button>

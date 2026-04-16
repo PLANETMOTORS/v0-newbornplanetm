@@ -67,11 +67,12 @@ test.describe("Inventory Page", () => {
   test("sort dropdown is present", async ({ page }) => {
     const loaded = await waitForInventory(page)
     if (!loaded) { return }
-    // Sort may be a native <select> or a Radix/Shadcn custom trigger
-    const nativeSelect = page.locator("select").first()
-    const customSort = page.getByRole("combobox").first()
-    const sortLabel = page.getByText(/sort/i).first()
-    await expect(nativeSelect.or(customSort).or(sortLabel)).toBeVisible()
+    // Sort may be a native <select> or a Radix/Shadcn custom trigger.
+    // Use .first() on the whole chain to avoid strict mode when multiple match.
+    const sortControl = page.locator("select").first()
+      .or(page.getByRole("combobox").first())
+      .or(page.getByText(/sort/i).first())
+    await expect(sortControl.first()).toBeVisible()
   })
 
   test("renders vehicle cards or no-results message", async ({ page }) => {
