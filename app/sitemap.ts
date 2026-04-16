@@ -225,12 +225,8 @@ async function buildVehiclesSitemap(baseUrl: string, currentDate: string): Promi
     //   which crawlers handle by retrying later (preserving indexed URLs).
     // - Permanent (table missing, schema error): return empty so the sitemap
     //   index still generates with static pages during initial setup.
-    const message = err instanceof Error ? err.message : String(err)
     const code = (err as { code?: string })?.code
-    const isPermanent =
-      code === '42P01' ||
-      message.includes('does not exist') ||
-      message.includes('undefined_table')
+    const isPermanent = code === '42P01'
 
     if (isPermanent) {
       return []
