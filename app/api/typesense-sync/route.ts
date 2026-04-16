@@ -4,6 +4,25 @@ import { upsertVehicle, deleteVehicle, type VehicleDocument } from '@/lib/typese
 import { isTypesenseConfigured } from '@/lib/typesense/client'
 
 export async function POST(request: NextRequest) {
+  // Verify webhook secret before doing anything else. This webhook accepts
+  // arbitrary vehicle upsert/delete payloads, so it must be authenticated to
+  // prevent any internet user from injecting fake listings or deleting real
+  // ones from the Typesense search index. We accept the shared CRON_SECRET
+  // (matching /api/cron/homenet-sync and /api/typesense/setup) or a dedicated
+  // TYPESENSE_SYNC_SECRET if callers prefer to scope credentials separately.
+  const authHeader = request.headers.get('authorization')
+  const syncSecret = process.env.TYPESENSE_SYNC_SECRET || process.env.CRON_SECRET
+  if (!syncSecret) {
+    console.error('[Typesense Sync] No TYPESENSE_SYNC_SECRET or CRON_SECRET configured')
+    return NextResponse.json(
+      { error: 'Server misconfigured: webhook secret missing' },
+      { status: 500 }
+    )
+  }
+  if (authHeader !== `Bearer ${syncSecret}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   if (!isTypesenseConfigured()) {
     return NextResponse.json({ success: true, message: 'Typesense not configured — skipping' })
   }

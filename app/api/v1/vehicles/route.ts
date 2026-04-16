@@ -118,8 +118,24 @@ export async function GET(request: NextRequest) {
   // Cursor-based pagination: pass `cursor_id` + `cursor_created_at` to skip
   // expensive OFFSET scans on large tables. When present, these override page-based
   // pagination. The composite cursor uses (created_at, id) to guarantee stable ordering.
-  const cursorId = searchParams.get('cursor_id')
-  const cursorCreatedAt = searchParams.get('cursor_created_at')
+  //
+  // IMPORTANT: cursor values are interpolated into a PostgREST .or() filter string below.
+  // PostgREST uses commas and parentheses as delimiters, so we must strictly validate
+  // both values to prevent filter injection (e.g. ",id.neq.0" could bypass the status filter).
+  const rawCursorId = searchParams.get('cursor_id')
+  const rawCursorCreatedAt = searchParams.get('cursor_created_at')
+  const ISO_DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})$/
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  const cursorId = rawCursorId && UUID_RE.test(rawCursorId) ? rawCursorId : null
+  const cursorCreatedAt =
+    rawCursorCreatedAt && ISO_DATETIME_RE.test(rawCursorCreatedAt) ? rawCursorCreatedAt : null
+
+  if ((rawCursorId && !cursorId) || (rawCursorCreatedAt && !cursorCreatedAt)) {
+    return NextResponse.json(
+      { success: false, error: 'Invalid cursor parameters' },
+      { status: 400 }
+    )
+  }
 
   // Build a deterministic cache key from all query params
   const cacheKey = `vehicles:list:${hashKey(searchParams.toString())}`
@@ -194,19 +210,41 @@ export async function GET(request: NextRequest) {
 
   const { data: vehicles, error, count } = await query
 
-  if (error || (!vehicles?.length && !process.env.NEXT_PUBLIC_SUPABASE_URL)) {
-    // Return mock data when database is unavailable (e.g., local dev without env vars)
-    const mockVehicles = getMockVehicles()
-    const result = {
-      success: true,
-      data: {
-        vehicles: mockVehicles,
-        pagination: { page: 1, limit: 20, total: mockVehicles.length, totalPages: 1, hasMore: false },
-      },
+  if (error) {
+    // In production (Supabase configured), surface real errors so callers don't
+    // cache or act on fake vehicles. Mock data is only for local dev without env vars.
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 500 }
+      )
     }
-    return NextResponse.json(result, {
-      headers: { 'Cache-Control': 'no-store', 'X-Cache': 'MOCK' },
-    })
+    const mockVehicles = getMockVehicles()
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          vehicles: mockVehicles,
+          pagination: { page: 1, limit: 20, total: mockVehicles.length, totalPages: 1, hasMore: false },
+        },
+      },
+      { headers: { 'Cache-Control': 'no-store', 'X-Cache': 'MOCK' } }
+    )
+  }
+
+  if (!vehicles?.length && !process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    // Local dev without Supabase configured: return mock data
+    const mockVehicles = getMockVehicles()
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          vehicles: mockVehicles,
+          pagination: { page: 1, limit: 20, total: mockVehicles.length, totalPages: 1, hasMore: false },
+        },
+      },
+      { headers: { 'Cache-Control': 'no-store', 'X-Cache': 'MOCK' } }
+    )
   }
 
   let filters: {
