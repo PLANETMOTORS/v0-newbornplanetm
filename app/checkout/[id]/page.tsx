@@ -29,6 +29,13 @@ import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import dynamic from 'next/dynamic'
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 import { startVehicleCheckout } from "@/app/actions/stripe"
+
+const PROVINCE_NAME_TO_CODE: Record<string, string> = {
+  'Ontario': 'ON', 'British Columbia': 'BC', 'Alberta': 'AB', 'Quebec': 'QC',
+  'Nova Scotia': 'NS', 'New Brunswick': 'NB', 'Prince Edward Island': 'PE',
+  'Manitoba': 'MB', 'Saskatchewan': 'SK', 'Newfoundland and Labrador': 'NL',
+  'Northwest Territories': 'NT', 'Yukon': 'YT', 'Nunavut': 'NU',
+}
 import { OMVIC_FEE, CERTIFICATION_FEE, LICENSING_FEE } from "@/lib/pricing/format"
 
 // Lazy-load Stripe — only fetched when user reaches payment step
@@ -167,13 +174,7 @@ export default function CheckoutPage() {
   // Subtotal before tax (vehicle + all fees + protection)
   const subtotalBeforeTax = vehiclePrice + protectionPrice + omvicFee + certificationFee + (purchaseType === "finance" ? financeDocsFee : 0) + licensingFee + deliveryFee
   // Province name → abbreviation mapping for tax lookup
-  const provinceNameToCode: Record<string, string> = {
-    'Ontario': 'ON', 'British Columbia': 'BC', 'Alberta': 'AB', 'Quebec': 'QC',
-    'Nova Scotia': 'NS', 'New Brunswick': 'NB', 'Prince Edward Island': 'PE',
-    'Manitoba': 'MB', 'Saskatchewan': 'SK', 'Newfoundland and Labrador': 'NL',
-    'Northwest Territories': 'NT', 'Yukon': 'YT', 'Nunavut': 'NU',
-  }
-  const provinceCode = provinceNameToCode[formData.province] || 'ON'
+  const provinceCode = PROVINCE_NAME_TO_CODE[formData.province] || 'ON'
   const provinceTax = PROVINCE_TAX_RATES[provinceCode] || PROVINCE_TAX_RATES.ON
   const taxRate = provinceTax.total
   const formatPct = (rate: number) => parseFloat((rate * 100).toFixed(3)).toString()
@@ -557,7 +558,7 @@ const handleSubmit = () => {
                   </CardHeader>
                   <CardContent>
                     <RadioGroup value={deliveryType} onValueChange={(v) => setDeliveryType(v as "pickup" | "delivery")}>
-                      <div className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-all ${deliveryType === "pickup" ? "ring-2 ring-primary" : ""}`} onClick={() => setDeliveryType("pickup")}>
+                      <div className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-all ${deliveryType === "pickup" ? "ring-2 ring-primary" : ""}`}>
                         <RadioGroupItem value="pickup" id="pickup" />
                         <Label htmlFor="pickup" className="flex-1 cursor-pointer">
                           <div className="font-medium">Pickup at Dealership</div>
@@ -565,7 +566,7 @@ const handleSubmit = () => {
                         </Label>
                         <Badge variant="secondary">FREE</Badge>
                       </div>
-                      <div className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 mt-2 transition-all ${deliveryType === "delivery" ? "ring-2 ring-primary" : ""}`} onClick={() => setDeliveryType("delivery")}>
+                      <div className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 mt-2 transition-all ${deliveryType === "delivery" ? "ring-2 ring-primary" : ""}`}>
                         <RadioGroupItem value="delivery" id="delivery" />
                         <Label htmlFor="delivery" className="flex-1 cursor-pointer">
                           <div className="font-medium">Home Delivery</div>
@@ -640,7 +641,7 @@ const handleSubmit = () => {
                   </CardHeader>
                   <CardContent>
                     <RadioGroup value={purchaseType} onValueChange={(v) => setPurchaseType(v as "finance" | "cash")}>
-                      <div className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-all ${purchaseType === "finance" ? "ring-2 ring-primary" : ""}`} onClick={() => setPurchaseType("finance")}>
+                      <div className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-all ${purchaseType === "finance" ? "ring-2 ring-primary" : ""}`}>
                         <RadioGroupItem value="finance" id="finance" />
                         <Label htmlFor="finance" className="flex-1 cursor-pointer">
                           <div className="font-medium">Finance</div>
@@ -648,7 +649,7 @@ const handleSubmit = () => {
                         </Label>
                         <Badge className="bg-green-600">Popular</Badge>
                       </div>
-                      <div className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 mt-2 transition-all ${purchaseType === "cash" ? "ring-2 ring-primary" : ""}`} onClick={() => setPurchaseType("cash")}>
+                      <div className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 mt-2 transition-all ${purchaseType === "cash" ? "ring-2 ring-primary" : ""}`}>
                         <RadioGroupItem value="cash" id="cash" />
                         <Label htmlFor="cash" className="flex-1 cursor-pointer">
                           <div className="font-medium">Pay in Full</div>
@@ -670,7 +671,7 @@ const handleSubmit = () => {
                   <CardContent>
                     <RadioGroup value={selectedProtection} onValueChange={setSelectedProtection}>
                       {PROTECTION_PLANS.map((plan) => (
-                        <div key={plan.id} className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 ${plan.id === "lifeproof" ? "border-primary bg-primary/5" : ""} ${selectedProtection === plan.id ? "ring-2 ring-primary" : ""} ${plan.id !== "none" ? "mt-2" : ""}`} onClick={() => setSelectedProtection(plan.id)}>
+                        <div key={plan.id} className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 ${plan.id === "lifeproof" ? "border-primary bg-primary/5" : ""} ${selectedProtection === plan.id ? "ring-2 ring-primary" : ""} ${plan.id !== "none" ? "mt-2" : ""}`}>
                           <RadioGroupItem value={plan.id} id={`plan-${plan.id}`} />
                           <Label htmlFor={`plan-${plan.id}`} className="flex-1 cursor-pointer">
                             <div className="flex items-center gap-2">

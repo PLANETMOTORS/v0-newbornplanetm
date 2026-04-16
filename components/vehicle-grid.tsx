@@ -145,7 +145,7 @@ function VehicleCard({ vehicle }: VehicleCardProps) {
 
         {/* Favorite button */}
         <button
-          onClick={(e) => { e.stopPropagation(); e.preventDefault(); setIsFavorite(!isFavorite) }}
+          onClick={(e) => { e.stopPropagation(); e.preventDefault(); setIsFavorite(!isFavorite); }}
           className="absolute top-3 right-3 w-8 h-8 bg-background/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-background transition-colors"
           aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
         >

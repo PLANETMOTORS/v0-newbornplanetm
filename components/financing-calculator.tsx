@@ -18,6 +18,11 @@ export function FinancingCalculator() {
   const [interestRate, setInterestRate] = useState(6.99)
   const [term, setTerm] = useState("60")
 
+  function handleVehiclePriceChange(nextVehiclePrice: number) {
+    setVehiclePrice(nextVehiclePrice)
+    setDownPayment((prev) => clamp(prev, 0, Math.min(nextVehiclePrice, DOWN_PAYMENT_CAP)))
+  }
+
   const principal = Math.max(vehiclePrice - downPayment, 0)
   const monthlyRate = interestRate / 100 / 12
   const months = parseInt(term)
@@ -42,9 +47,7 @@ export function FinancingCalculator() {
             type="number"
             value={vehiclePrice}
             onChange={(e) => {
-              const nextVehiclePrice = clamp(parseInt(e.target.value) || 0, VEHICLE_PRICE_MIN, VEHICLE_PRICE_MAX)
-              setVehiclePrice(nextVehiclePrice)
-              setDownPayment((prev) => clamp(prev, 0, Math.min(nextVehiclePrice, DOWN_PAYMENT_CAP)))
+              handleVehiclePriceChange(clamp(parseInt(e.target.value) || 0, VEHICLE_PRICE_MIN, VEHICLE_PRICE_MAX))
             }}
             min={VEHICLE_PRICE_MIN}
             max={VEHICLE_PRICE_MAX}
@@ -52,7 +55,7 @@ export function FinancingCalculator() {
         </div>
         <Slider
           value={[vehiclePrice]}
-          onValueChange={([v]) => { setVehiclePrice(v); setDownPayment((prev) => clamp(prev, 0, Math.min(v, DOWN_PAYMENT_CAP))) }}
+          onValueChange={([v]) => handleVehiclePriceChange(v)}
           min={5000}
           max={VEHICLE_PRICE_MAX}
           step={1000}
