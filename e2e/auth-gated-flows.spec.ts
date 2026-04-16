@@ -270,8 +270,8 @@ test.describe("Auth-Gated Flows — Finance Submission & ID Upload", () => {
     // Employment Type *
     await selectField(page, "Employment Type", /^Full-Time$/)
 
-    // Status *
-    await selectField(page, "Status", /^Employed$/)
+    // Status * (employment status — use regex to avoid matching "Marital Status")
+    await selectField(page, /^Status \*$/, /^Employed$/)
 
     // Employer Name *
     await fillField(page, "Employer Name", "Acme Corp")
