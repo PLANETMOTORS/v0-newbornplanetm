@@ -71,9 +71,9 @@ export function DriveeViewer({
       <iframe
         src={iframeSrc}
         title={`360° Interactive View — ${vehicleName}`}
-        className="absolute inset-0 w-full h-full border-0"
+        className="border-0"
+        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
         allow="fullscreen; autoplay"
-        loading="lazy"
         onLoad={() => setIsLoading(false)}
         onError={() => { setHasError(true); setIsLoading(false) }}
       />
