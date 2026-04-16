@@ -1037,8 +1037,6 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
               </Button>
             </div>
           )}
-        </div>
-
           {/* OMVIC Compliance Disclaimer */}
           <div className="mt-8 border-t border-border pt-6 pb-4 text-center">
             <p className="text-sm text-muted-foreground">
@@ -1054,6 +1052,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
               . All prices exclude applicable taxes and licensing fees.
             </p>
           </div>
+        </div>
       </main>
 
       <Footer />

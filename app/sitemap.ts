@@ -215,10 +215,23 @@ async function buildVehiclesSitemap(baseUrl: string, currentDate: string): Promi
     }))
   } catch (err) {
     console.error('Error building vehicles sitemap:', err)
-    // Graceful fallback: return empty array so the sitemap index still
-    // generates successfully with static pages even when Supabase is
-    // unreachable or returns 0 vehicles.
-    return []
+
+    // Distinguish transient vs permanent errors to protect SEO:
+    // - Transient (network timeout, 5xx): re-throw so Next.js returns 500,
+    //   which crawlers handle by retrying later (preserving indexed URLs).
+    // - Permanent (table missing, schema error): return empty so the sitemap
+    //   index still generates with static pages during initial setup.
+    const message = err instanceof Error ? err.message : String(err)
+    const isPermanent =
+      message.includes('does not exist') ||
+      message.includes('relation') ||
+      message.includes('undefined_table')
+
+    if (isPermanent) {
+      return []
+    }
+
+    throw err
   }
 }
 
