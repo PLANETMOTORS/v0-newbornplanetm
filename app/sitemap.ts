@@ -204,7 +204,11 @@ async function buildVehiclesSitemap(baseUrl: string, currentDate: string): Promi
 
     if (error) {
       console.error('Supabase error in buildVehiclesSitemap:', error)
-      throw new Error(`Failed to fetch vehicles for sitemap: ${error.message}`)
+      const wrapped = new Error(`Failed to fetch vehicles for sitemap: ${error.message}`)
+      // Preserve the PostgreSQL error code (e.g. '42P01' for undefined_table)
+      // so the catch block can distinguish permanent from transient failures.
+      ;(wrapped as Error & { code?: string }).code = error.code
+      throw wrapped
     }
 
     return (inventoryVehicles || []).map((vehicle) => ({
@@ -215,6 +219,19 @@ async function buildVehiclesSitemap(baseUrl: string, currentDate: string): Promi
     }))
   } catch (err) {
     console.error('Error building vehicles sitemap:', err)
+
+    // Distinguish transient vs permanent errors to protect SEO:
+    // - Transient (network timeout, 5xx): re-throw so Next.js returns 500,
+    //   which crawlers handle by retrying later (preserving indexed URLs).
+    // - Permanent (table missing, schema error): return empty so the sitemap
+    //   index still generates with static pages during initial setup.
+    const code = (err as { code?: string })?.code
+    const isPermanent = code === '42P01'
+
+    if (isPermanent) {
+      return []
+    }
+
     throw err
   }
 }

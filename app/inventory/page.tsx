@@ -1037,6 +1037,21 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
               </Button>
             </div>
           )}
+          {/* OMVIC Compliance Disclaimer */}
+          <div className="mt-8 border-t border-border pt-6 pb-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              Planet Motors is an{" "}
+              <a
+                href="https://www.omvic.on.ca"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-foreground"
+              >
+                OMVIC Registered Dealer
+              </a>
+              . All prices exclude applicable taxes and licensing fees.
+            </p>
+          </div>
         </div>
       </main>
 
