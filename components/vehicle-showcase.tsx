@@ -14,7 +14,7 @@ const fetcher = async () => {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('vehicles')
-    .select('id, year, make, model, trim, price, mileage, fuel_type, inspection_score, is_new_arrival')
+    .select('id, year, make, model, trim, price, mileage, fuel_type, inspection_score, is_new_arrival, primary_image_url, image_urls')
     .eq('status', 'available')
     .order('price', { ascending: false })
     .limit(6)
@@ -94,6 +94,7 @@ interface DbVehicle {
   is_new_arrival?: boolean
   inspection_score?: number
   primary_image_url?: string
+  image_urls?: string[]
 }
 
 function transformToShowcase(v: DbVehicle) {
@@ -114,8 +115,8 @@ function transformToShowcase(v: DbVehicle) {
     badgeColor = "bg-green-700"
   }
   
-  // Only use real hosted images — null triggers gradient fallback in the UI
-  const image: string | null = null
+  // Use real vehicle image from HomeNet, fall back to null (gradient fallback)
+  const image: string | null = v.primary_image_url || (v.image_urls && v.image_urls.length > 0 ? v.image_urls[0] : null)
   
   return {
     id: v.id,
