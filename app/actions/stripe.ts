@@ -3,7 +3,7 @@
 import { createHash } from 'node:crypto'
 import type Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 const PROTECTION_PLANS: Record<string, { name: string; priceInCents: number }> = {
   'essential': { name: 'PlanetCare Essential', priceInCents: 195000 },
@@ -37,23 +37,35 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
   const paymentMethodTypes: Array<'card' | 'acss_debit'> = enableAcssDebit
     ? ['card', 'acss_debit']
     : ['card']
-  const supabase = await createClient()
-  const { data: vehicle, error } = await supabase
-    .from('vehicles')
-    .select('id, year, make, model, price, status')
-    .eq('id', data.vehicleId)
-    .maybeSingle()
-
-  if (error) {
-    throw new Error(`Failed to load vehicle: ${error.message}`)
+  // Use atomic SELECT FOR UPDATE via RPC to prevent concurrent checkouts.
+  // Without this, 50 concurrent users all read status='available' and all get Stripe sessions.
+  let adminClient: ReturnType<typeof createAdminClient>
+  try {
+    adminClient = createAdminClient()
+  } catch (e) {
+    console.error('Admin client not configured — SUPABASE_SERVICE_ROLE_KEY is required for checkout RPC:', e)
+    throw new Error('Service configuration error. Please try again later.', { cause: e })
   }
 
-  if (!vehicle) {
-    throw new Error('Vehicle not found')
+  const { data: lockResult, error: lockError } = await adminClient
+    .rpc('lock_vehicle_for_checkout', { p_vehicle_id: data.vehicleId })
+
+  if (lockError) {
+    throw new Error(`Failed to verify vehicle availability: ${lockError.message}`)
   }
 
-  if (!['available', 'reserved'].includes(String(vehicle.status || ''))) {
-    throw new Error('Vehicle is not available for checkout')
+  const lock = lockResult as { success: boolean; error?: string; id?: string; year?: number; make?: string; model?: string; price?: number; status?: string }
+  if (!lock?.success) {
+    throw new Error(lock?.error || 'Vehicle is not available for checkout')
+  }
+
+  const vehicle = {
+    id: lock.id as string,
+    year: lock.year as number,
+    make: lock.make as string,
+    model: lock.model as string,
+    price: lock.price as number,
+    status: lock.status as string,
   }
 
   // ── Race condition fix: CAS-lock the vehicle BEFORE creating Stripe session ──

@@ -1,11 +1,12 @@
 'use server'
 
 import { createHash } from 'node:crypto'
-import { lockVehicle, unlockVehicle, getVehicleLock, rateLimit } from '@/lib/redis'
+import { lockVehicle, unlockVehicle, rateLimit } from '@/lib/redis'
 import { getStripe } from '@/lib/stripe'
 import { getProductById } from '@/lib/products'
 import { getPublicSiteUrl } from '@/lib/site-url'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { headers } from 'next/headers'
 
 export interface ReservationInput {
@@ -51,64 +52,17 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
     }
   }
 
-  // Check if vehicle is already locked/reserved
-  const existingLock = await getVehicleLock(input.stockNumber)
-  if (existingLock && existingLock !== input.customerEmail) {
-    return { error: 'This vehicle is currently being reserved by another customer.' }
-  }
-
-  // Lock the vehicle in Redis (15 minute reservation window)
+  // Acquire Redis lock as a fast distributed mutex (defense-in-depth).
+  // The real serialization happens in the DB via SELECT FOR UPDATE.
   const locked = await lockVehicle(input.stockNumber, input.customerEmail)
   if (!locked) {
-    return { error: 'Unable to reserve this vehicle. Please try again.' }
+    return { error: 'This vehicle is currently being reserved by another customer. Please try again.' }
   }
 
   // Get Stripe instance
   const stripe = getStripe()
 
   try {
-    const { data: vehicle, error: vehicleError } = await supabase
-      .from('vehicles')
-      .select('id, stock_number, year, make, model, status')
-      .eq('id', input.vehicleId)
-      .maybeSingle()
-
-    if (vehicleError) {
-      throw new Error(vehicleError.message)
-    }
-
-    if (!vehicle) {
-      await unlockVehicle(input.stockNumber, input.customerEmail)
-      return { error: 'Vehicle not found.' }
-    }
-
-    if (vehicle.stock_number !== input.stockNumber) {
-      await unlockVehicle(input.stockNumber, input.customerEmail)
-      return { error: 'Vehicle details do not match.' }
-    }
-
-    if (!['available', 'reserved'].includes(String(vehicle.status || ''))) {
-      await unlockVehicle(input.stockNumber, input.customerEmail)
-      return { error: 'This vehicle is not available for reservation.' }
-    }
-
-    // Enforce exclusivity at the reservation-record level, not just Redis lock TTL.
-    const { data: conflictingReservation } = await supabase
-      .from('reservations')
-      .select('id, customer_email, status, expires_at')
-      .eq('vehicle_id', input.vehicleId)
-      .neq('customer_email', input.customerEmail)
-      .in('status', ['pending', 'confirmed'])
-      .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    if (conflictingReservation) {
-      await unlockVehicle(input.stockNumber, input.customerEmail)
-      return { error: 'This vehicle already has an active reservation.' }
-    }
-
     // Get product for $250 reservation
     const product = getProductById('vehicle-reservation')
     if (!product) {
@@ -116,46 +70,43 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       return { error: 'Reservation product not found.' }
     }
 
-    const reservationNow = new Date().toISOString()
-    const reservationExpiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
-    const { data: existingReservation } = await supabase
-      .from('reservations')
-      .select('id, stripe_checkout_session_id, status, expires_at')
-      .eq('vehicle_id', input.vehicleId)
-      .eq('customer_email', input.customerEmail)
-      .in('status', ['pending', 'confirmed'])
-      .gt('expires_at', reservationNow)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    let reservationId = existingReservation?.id
-
-    if (!reservationId) {
-      const { data: reservation, error: insertError } = await supabase
-        .from('reservations')
-        .insert({
-          vehicle_id: input.vehicleId,
-          user_id: user?.id || null,
-          customer_email: input.customerEmail,
-          customer_phone: input.customerPhone || null,
-          customer_name: input.customerName || null,
-          deposit_amount: product.priceInCents,
-          deposit_status: 'pending',
-          status: 'pending',
-          expires_at: reservationExpiresAt,
-          notes: `Reservation created from web checkout for ${vehicle.year} ${vehicle.make} ${vehicle.model}`,
-        })
-        .select('id')
-        .single()
-
-      if (insertError || !reservation) {
-        await unlockVehicle(input.stockNumber, input.customerEmail)
-        return { error: insertError?.message || 'Failed to create reservation record.' }
-      }
-
-      reservationId = reservation.id
+    // --- ATOMIC claim via DB-level SELECT FOR UPDATE ---
+    // This replaces the old TOCTOU pattern (read status → check → insert) with a
+    // single RPC call that locks the vehicle row, checks status, checks for
+    // conflicting reservations, and inserts/reuses a reservation — all in one TX.
+    let adminClient: ReturnType<typeof createAdminClient>
+    try {
+      adminClient = createAdminClient()
+    } catch (e) {
+      console.error('Admin client not configured — SUPABASE_SERVICE_ROLE_KEY is required for reservation RPC:', e)
+      await unlockVehicle(input.stockNumber, input.customerEmail)
+      return { error: 'Service configuration error. Please try again later.' }
     }
+
+    const { data: claimResult, error: claimError } = await adminClient
+      .rpc('claim_vehicle_for_reservation', {
+        p_vehicle_id: input.vehicleId,
+        p_user_id: user?.id || null,
+        p_customer_email: input.customerEmail,
+        p_customer_phone: input.customerPhone || null,
+        p_customer_name: input.customerName || null,
+        p_deposit_amount: product.priceInCents,
+        p_notes: `Reservation created from web checkout`,
+      })
+
+    if (claimError) {
+      await unlockVehicle(input.stockNumber, input.customerEmail)
+      console.error('claim_vehicle_for_reservation RPC error:', claimError)
+      return { error: 'Unable to process reservation. Please try again.' }
+    }
+
+    const claim = claimResult as { success: boolean; error?: string; reservation_id?: string; stock_number?: string }
+    if (!claim?.success) {
+      await unlockVehicle(input.stockNumber, input.customerEmail)
+      return { error: claim?.error || 'Vehicle is not available for reservation.' }
+    }
+
+    const reservationId = claim.reservation_id!
 
     // Create Stripe Checkout session
     const baseUrl = getPublicSiteUrl()
