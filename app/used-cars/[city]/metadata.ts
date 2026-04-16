@@ -1,24 +1,7 @@
 import type { Metadata } from "next"
+import { cityData } from "./city-data"
 
 const BASE_URL = "https://www.planetmotors.ca"
-
-const cityData: Record<string, { name: string; region: string }> = {
-  "toronto": { name: "Toronto", region: "Ontario" },
-  "richmond-hill": { name: "Richmond Hill", region: "Ontario" },
-  "markham": { name: "Markham", region: "Ontario" },
-  "vaughan": { name: "Vaughan", region: "Ontario" },
-  "mississauga": { name: "Mississauga", region: "Ontario" },
-  "brampton": { name: "Brampton", region: "Ontario" },
-  "scarborough": { name: "Scarborough", region: "Ontario" },
-  "north-york": { name: "North York", region: "Ontario" },
-  "oakville": { name: "Oakville", region: "Ontario" },
-  "hamilton": { name: "Hamilton", region: "Ontario" },
-  "ottawa": { name: "Ottawa", region: "Ontario" },
-  "montreal": { name: "Montreal", region: "Quebec" },
-  "vancouver": { name: "Vancouver", region: "British Columbia" },
-  "calgary": { name: "Calgary", region: "Alberta" },
-  "edmonton": { name: "Edmonton", region: "Alberta" },
-}
 
 export function generateStaticParams() {
   return Object.keys(cityData).map(city => ({ city }))

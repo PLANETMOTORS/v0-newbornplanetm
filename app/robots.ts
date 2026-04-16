@@ -46,7 +46,7 @@ export default function robots(): MetadataRoute.Robots {
           '/admin/',
         ],
       },
-      // Block aggressive crawlers
+      // Block aggressive SEO crawlers
       {
         userAgent: 'AhrefsBot',
         disallow: '/',
@@ -54,6 +54,59 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: 'SemrushBot',
         disallow: '/',
+      },
+      {
+        userAgent: 'MJ12bot',
+        disallow: '/',
+      },
+      {
+        userAgent: 'DotBot',
+        disallow: '/',
+      },
+      // AI training crawlers — block by default to protect content
+      {
+        userAgent: 'GPTBot',
+        disallow: '/',
+      },
+      {
+        userAgent: 'ChatGPT-User',
+        disallow: '/',
+      },
+      {
+        userAgent: 'Google-Extended',
+        disallow: '/',
+      },
+      {
+        userAgent: 'CCBot',
+        disallow: '/',
+      },
+      {
+        userAgent: 'anthropic-ai',
+        disallow: '/',
+      },
+      {
+        userAgent: 'Claude-Web',
+        disallow: '/',
+      },
+      {
+        userAgent: 'Bytespider',
+        disallow: '/',
+      },
+      {
+        userAgent: 'PerplexityBot',
+        disallow: '/',
+      },
+      {
+        userAgent: 'Applebot-Extended',
+        disallow: '/',
+      },
+      {
+        userAgent: 'cohere-ai',
+        disallow: '/',
+      },
+      {
+        userAgent: 'facebookexternalhit',
+        allow: '/',
       },
     ],
     // Next.js generates a sitemap index at /sitemap.xml with child sitemaps
