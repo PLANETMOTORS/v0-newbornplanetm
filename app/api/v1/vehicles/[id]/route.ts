@@ -56,9 +56,15 @@ const VEHICLE_DETAIL_FIELDS = [
 // The dealer UID is AZYuEtjX9NUvWpqmUQcKyiGHbNg1.
 // To add more, photograph vehicles via the Drivee app and add VIN → mid here.
 const DRIVEE_VIN_MAP: Record<string, string> = {
-  "1C4JXRN68MW508009": "190171976531",  // 2021 Jeep Wrangler 4xe
-  "3VV4B7AX1SM019897": "744761075195",  // 2025 Chevrolet Equinox EV
-  "5YJ3E1EB4MF062024": "132601940353",  // 2021 Tesla Model 3
+  // Current inventory — mapped from Drivee photography sessions
+  "1C4JJXP6XMW777356": "190171976531",  // 2021 Jeep Wrangler 4xe (lot unit)
+  "1C4JJXP60MW777382": "190171976531",  // 2021 Jeep Wrangler 4xe (second unit)
+  "3GN7DSRR5SS127703": "744761075195",  // 2025 Chevrolet Equinox EV
+  "5YJ3E1EA3MF848712": "132601940353",  // 2021 Tesla Model 3
+  // Legacy VINs (may have been sold)
+  "1C4JXRN68MW508009": "190171976531",  // 2021 Jeep Wrangler 4xe (sold)
+  "3VV4B7AX1SM019897": "744761075195",  // 2025 Chevrolet Equinox EV (sold)
+  "5YJ3E1EB4MF062024": "132601940353",  // 2021 Tesla Model 3 (sold)
 }
 
 function toPublicVehicle(vehicle: Record<string, unknown>) {
