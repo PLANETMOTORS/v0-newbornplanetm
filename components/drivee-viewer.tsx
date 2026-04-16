@@ -4,8 +4,10 @@ import { useState } from "react"
 import { RotateCw, Loader2 } from "lucide-react"
 
 interface DriveeViewerProps {
-  /** Drivee media ID for this vehicle */
-  mid: string
+  /** Drivee media ID for this vehicle (preferred — used when available) */
+  mid?: string
+  /** Vehicle VIN — used for automatic Drivee lookup when no MID is hardcoded */
+  vin?: string
   /** Drivee dealer UID */
   uid?: string
   /** Vehicle name for accessibility */
@@ -38,6 +40,7 @@ const DRIVEE_BG = "#e8e8e8"
  */
 export function DriveeViewer({
   mid,
+  vin,
   uid = DRIVEE_DEALER_UID,
   vehicleName,
   className = "",
@@ -45,11 +48,17 @@ export function DriveeViewer({
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
 
-  // Use Drivee-recommended params: style1 for updated background, 4:3 aspect for
-  // proper vehicle proportions (slightly zoomed out), device=gadget for responsive
+  // Build iframe URL: prefer MID (direct hit) → fall back to VIN-based lookup
+  const identifier = mid ? `mid=${mid}` : vin ? `vin=${vin}` : null
+
+  // No identifier available — can't load Drivee
+  if (!identifier) {
+    return null
+  }
+
   const iframeSrc = [
     `${DRIVEE_IFRAME_BASE}/`,
-    `?mid=${mid}`,
+    `?${identifier}`,
     `&uid=${uid}`,
     `&style=style1`,
     `&aspect=4%3A3`,
