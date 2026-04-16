@@ -130,7 +130,7 @@ jobs:
         run: npx playwright test e2e/human-click-timing-debug.spec.ts --project=webkit --workers=1
 
       - name: Run auth-gated E2E tests
-        if: ${{ !cancelled() && env.TEST_USER_EMAIL != '' }}
+        if: ${{ !cancelled() && secrets.TEST_USER_EMAIL != '' }}
         run: >
           npx playwright test
           e2e/step4-personal-info.spec.ts
