@@ -18,6 +18,11 @@ interface VehicleCheckoutData {
   protectionPlanId?: string
   depositOnly?: boolean
   customerEmail?: string
+  utmSource?: string
+  utmMedium?: string
+  utmCampaign?: string
+  utmContent?: string
+  utmTerm?: string
 }
 
 function validateCentsAmount(value: unknown): number {
@@ -128,6 +133,11 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
       depositOnly: String(data.depositOnly || false),
       protectionPlanId: data.protectionPlanId || '',
       amountSource: 'server',
+      ...(data.utmSource && { utm_source: data.utmSource }),
+      ...(data.utmMedium && { utm_medium: data.utmMedium }),
+      ...(data.utmCampaign && { utm_campaign: data.utmCampaign }),
+      ...(data.utmContent && { utm_content: data.utmContent }),
+      ...(data.utmTerm && { utm_term: data.utmTerm }),
     },
     payment_intent_data: {
       metadata: {
@@ -136,6 +146,11 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
         protectionPlanId: data.protectionPlanId || '',
         amountSource: 'server',
         type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
+        ...(data.utmSource && { utm_source: data.utmSource }),
+        ...(data.utmMedium && { utm_medium: data.utmMedium }),
+        ...(data.utmCampaign && { utm_campaign: data.utmCampaign }),
+        ...(data.utmContent && { utm_content: data.utmContent }),
+        ...(data.utmTerm && { utm_term: data.utmTerm }),
       },
     },
     ...(data.customerEmail && { customer_email: data.customerEmail }),

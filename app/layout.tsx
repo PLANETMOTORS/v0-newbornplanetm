@@ -5,6 +5,7 @@ import { GoogleAnalytics } from '@/components/analytics/google-analytics'
 import { GoogleTagManager, GoogleTagManagerNoScript } from '@/components/analytics/google-tag-manager'
 import { MetaPixel } from '@/components/analytics/meta-pixel'
 import { CookieConsentBanner } from '@/components/cookie-consent-banner'
+import { UTMTracker } from '@/components/utm-tracker'
 import { CompareProvider } from '@/contexts/compare-context'
 import { FavoritesProvider } from '@/contexts/favorites-context'
 import { AuthProvider } from '@/contexts/auth-context'
@@ -151,6 +152,7 @@ export default function RootLayout({
               <LiveChatWidget />
               <Toaster richColors position="top-right" />
               <CookieConsentBanner />
+              <UTMTracker />
             </CompareProvider>
           </FavoritesProvider>
         </AuthProvider>
