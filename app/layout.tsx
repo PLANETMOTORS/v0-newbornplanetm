@@ -20,12 +20,16 @@ import './stability-fixes.css'
 
 const inter = Inter({ 
   subsets: ["latin"],
-  variable: '--font-inter'
+  variable: '--font-inter',
+  display: 'swap',
+  preload: true,
 });
 
 const playfair = Playfair_Display({ 
   subsets: ["latin"],
-  variable: '--font-playfair'
+  variable: '--font-playfair',
+  display: 'swap',
+  preload: true,
 });
 
 const SITE_URL = getPublicSiteUrl()
@@ -111,7 +115,10 @@ export default function RootLayout({
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://images.unsplash.com" />
+        {/* Preconnect to Supabase for faster API/auth calls */}
+        {process.env.NEXT_PUBLIC_SUPABASE_URL && (
+          <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
+        )}
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         
