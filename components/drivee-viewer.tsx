@@ -47,21 +47,40 @@ export function DriveeViewer({
 }: DriveeViewerProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
+  const [iframeLoaded, setIframeLoaded] = useState(false)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const iframeRef = useRef<HTMLIFrameElement | null>(null)
+  const isLoadingRef = useRef(true)
 
-  // Timeout: if iframe doesn't signal readiness within 15s, show fallback
+  // Keep ref in sync with state so timeouts read the latest value
+  useEffect(() => { isLoadingRef.current = isLoading }, [isLoading])
+
+  // After the iframe's HTML shell loads, give Drivee a few more seconds to
+  // render actual vehicle content before hiding the loading overlay.
   useEffect(() => {
-    if (!isLoading) return
+    if (!iframeLoaded) return
+
+    // Give Drivee 5 s after onLoad to populate content
     timeoutRef.current = setTimeout(() => {
-      if (isLoading) {
+      setIsLoading(false)
+    }, 5_000)
+
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    }
+  }, [iframeLoaded])
+
+  // Hard timeout: if the iframe never fires onLoad at all (network issue),
+  // bail after 15 s.
+  useEffect(() => {
+    const hard = setTimeout(() => {
+      if (isLoadingRef.current) {
         setHasError(true)
         setIsLoading(false)
       }
     }, 15_000)
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current)
-    }
-  }, [isLoading])
+    return () => clearTimeout(hard)
+  }, [])
 
   // Build iframe URL: prefer MID (direct hit) → fall back to VIN-based lookup
   const identifier = mid ? `mid=${mid}` : vin ? `vin=${vin}` : null
@@ -125,10 +144,8 @@ export function DriveeViewer({
         className="border-0"
         style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
         allow="fullscreen; autoplay"
-        onLoad={() => {
-          if (timeoutRef.current) clearTimeout(timeoutRef.current)
-          setIsLoading(false)
-        }}
+        ref={iframeRef}
+        onLoad={() => setIframeLoaded(true)}
         onError={() => {
           if (timeoutRef.current) clearTimeout(timeoutRef.current)
           setHasError(true)
