@@ -137,68 +137,45 @@ export async function POST(request: NextRequest) {
 
   const normalizedDeliveryType = deliveryType === 'delivery' ? 'delivery' : 'pickup'
 
-  const { data: vehicle, error: vehicleError } = await supabase
-    .from('vehicles')
-    .select('id, year, make, model, trim, price, status')
-    .eq('id', vehicleId)
-    .maybeSingle()
+  // --- ATOMIC claim via DB-level SELECT FOR UPDATE ---
+  // Replaces the old read-then-update pattern that allowed two concurrent requests
+  // to both read status='available' before either transitioned to 'pending'.
+  const { data: claimResult, error: claimError } = await adminClient
+    .rpc('claim_vehicle_for_order', {
+      p_vehicle_id: vehicleId,
+      p_user_id: user.id,
+    })
 
-  if (vehicleError) {
-    return NextResponse.json({ success: false, error: { code: 'DB_ERROR', message: vehicleError.message } }, { status: 500 })
+  if (claimError) {
+    return NextResponse.json({ success: false, error: { code: 'DB_ERROR', message: claimError.message } }, { status: 500 })
   }
 
-  if (!vehicle) {
-    return NextResponse.json({ success: false, error: { code: 'NOT_FOUND', message: 'Vehicle not found' } }, { status: 404 })
+  const claim = claimResult as {
+    success: boolean; error?: string;
+    vehicle_id?: string; stock_number?: string;
+    year?: number; make?: string; model?: string; trim?: string; price?: number;
+    previous_status?: string;
   }
 
-  const currentVehicleStatus = String(vehicle.status || '')
-
-  if (!['available', 'reserved'].includes(String(vehicle.status || ''))) {
+  if (!claim?.success) {
+    const errorMsg = claim?.error || 'Vehicle is not available for ordering'
+    const isNotFound = errorMsg.includes('not found')
     return NextResponse.json(
-      { success: false, error: { code: 'VEHICLE_UNAVAILABLE', message: 'Vehicle is not available for ordering' } },
-      { status: 409 }
+      { success: false, error: { code: isNotFound ? 'NOT_FOUND' : 'VEHICLE_UNAVAILABLE', message: errorMsg } },
+      { status: isNotFound ? 404 : 409 }
     )
   }
 
-  if (currentVehicleStatus === 'reserved') {
-    const { data: activeReservation } = await supabase
-      .from('reservations')
-      .select('id, user_id, status, expires_at')
-      .eq('vehicle_id', vehicleId)
-      .in('status', ['pending', 'confirmed'])
-      .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    // Allow if the caller owns the reservation OR it was a guest reservation (user_id is null).
-    // Guest reservations have no associated auth user; the first authenticated user to order may claim it.
-    if (!activeReservation || (activeReservation.user_id !== null && activeReservation.user_id !== user.id)) {
-      return NextResponse.json(
-        { success: false, error: { code: 'VEHICLE_UNAVAILABLE', message: 'Vehicle is reserved by another customer' } },
-        { status: 409 }
-      )
-    }
+  const vehicle = {
+    id: claim.vehicle_id as string,
+    year: claim.year as number,
+    make: claim.make as string,
+    model: claim.model as string,
+    trim: claim.trim as string,
+    price: claim.price as number,
+    status: claim.previous_status as string,
   }
-
-  const { data: statusLock, error: statusLockError } = await adminClient
-    .from('vehicles')
-    .update({ status: 'pending', updated_at: new Date().toISOString() })
-    .eq('id', vehicleId)
-    .eq('status', currentVehicleStatus)
-    .select('id')
-    .maybeSingle()
-
-  if (statusLockError) {
-    return NextResponse.json({ success: false, error: { code: 'DB_ERROR', message: statusLockError.message } }, { status: 500 })
-  }
-
-  if (!statusLock) {
-    return NextResponse.json(
-      { success: false, error: { code: 'VEHICLE_UNAVAILABLE', message: 'Vehicle was taken by another request' } },
-      { status: 409 }
-    )
-  }
+  const currentVehicleStatus = vehicle.status
 
   const vehiclePriceCents = validateCentsAmount(vehicle.price)
 
