@@ -83,6 +83,10 @@ export const metadata: Metadata = {
     description: 'Shop certified pre-owned vehicles with free Carfax reports and nationwide delivery.',
     images: [`${SITE_URL}/images/planet-motors-logo.png`],
   },
+  metadataBase: new URL(SITE_URL),
+  alternates: {
+    canonical: '/',
+  },
   robots: {
     index: true,
     follow: true,

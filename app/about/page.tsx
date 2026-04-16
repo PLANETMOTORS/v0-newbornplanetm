@@ -3,6 +3,9 @@ import { Metadata } from "next"
 export const metadata: Metadata = {
   title: "About Planet Motors | OMVIC Licensed Dealer - Richmond Hill, ON",
   description: "Planet Motors is an OMVIC-licensed dealer in Richmond Hill, Ontario. Fairness, integrity, and premium pre-owned vehicles with nationwide delivery.",
+  alternates: {
+    canonical: '/about',
+  },
 }
 
 import Image from "next/image"
