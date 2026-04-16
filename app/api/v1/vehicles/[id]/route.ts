@@ -233,5 +233,9 @@ function getMockVehicleDetail(id: string) {
     "mock-tesla-y": { id: "mock-tesla-y", year: 2024, make: "Tesla", model: "Model Y", trim: "Performance", price: 61995, msrp: 63995, mileage: 5100, fuel_type: "Electric", body_style: "SUV", transmission: "Automatic", drivetrain: "AWD", exterior_color: "Midnight Silver", interior_color: "White", primary_image_url: "/placeholder.jpg", image_urls: ["/placeholder.jpg", "/placeholder.jpg"], status: "available", stock_number: "PM-2024-002", vin: "5YJ3E1EA1PF000002", is_certified: true, is_new_arrival: false, is_ev: true, battery_capacity_kwh: 75, range_miles: 303, ev_battery_health_percent: 99, inspection_score: 200, engine: "Dual Motor Electric", features: ["Performance Package", "Full Self-Driving"], description: "2024 Tesla Model Y Performance." },
     "mock-bmw-i4": { id: "mock-bmw-i4", year: 2023, make: "BMW", model: "i4", trim: "eDrive40", price: 52995, msrp: 56995, mileage: 12300, fuel_type: "Electric", body_style: "Sedan", transmission: "Automatic", drivetrain: "RWD", exterior_color: "Black Sapphire", interior_color: "Cognac", primary_image_url: "/placeholder.jpg", image_urls: ["/placeholder.jpg"], status: "available", stock_number: "PM-2024-003", vin: "WBA53BJ01PCK00003", is_certified: true, is_new_arrival: false, is_ev: true, battery_capacity_kwh: 83.9, range_miles: 301, ev_battery_health_percent: 97, inspection_score: 188, engine: "Single Motor Electric", features: ["iDrive 8", "Driving Assistant Pro"], description: "2023 BMW i4 eDrive40." },
   }
-  return mocks[id] || null
+  const vehicle = mocks[id]
+  if (!vehicle) return null
+  // Inject drivee_mid so mock vehicles also show 360° viewer when mapped
+  const vin = typeof vehicle.vin === "string" ? vehicle.vin : ""
+  return { ...vehicle, drivee_mid: getDriveeMid(vin) }
 }
