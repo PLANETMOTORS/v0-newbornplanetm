@@ -122,6 +122,77 @@ curl -s -X POST http://localhost:3001/api/verify/send-code \
 
 Expected: `{"success":true,"method":"email"}` — the `code` field is ignored.
 
+## Performance Testing
+
+### Netlify Preview Limitations
+Netlify preview deploys (`https://deploy-preview-{PR}--planetnewborn-v0-newbornplanetm.netlify.app`) have important limitations:
+- **No Typesense/Supabase data** — The `/inventory` page will show "Error loading inventory" because Typesense search credentials may not be configured on the preview. This means vehicle grid rendering, `content-visibility` virtualization, and filter state cannot be visually tested on preview.
+- **No API routes** — Server-side functionality (reservations, checkout, webhooks) may not work on static Netlify exports.
+- **Shared infrastructure** — Lighthouse scores on Netlify preview will be lower than production due to shared hosting. Expect 10-20% lower scores compared to dedicated infrastructure.
+
+### Font Display Verification
+Verify all `@font-face` rules use `font-display: swap` via browser console:
+```javascript
+const fonts = Array.from(document.fonts).map(f => ({family: f.family, display: f.display}));
+console.log(fonts);
+// Expect all entries to show display: "swap"
+```
+
+### Bundle Splitting Verification
+Verify lazy-loaded modules (Stripe, chat, analytics) are NOT loaded eagerly:
+```javascript
+const resources = performance.getEntriesByType('resource');
+const stripeResources = resources.filter(r => r.name.toLowerCase().includes('stripe'));
+console.log('Stripe resources:', stripeResources.length); // Should be 0
+```
+
+### Mobile Navigation Testing via Playwright CDP
+The hamburger menu appears below the `lg` breakpoint (1024px). To test mobile nav on a preview deploy, use Playwright via CDP since browser window resize may not work reliably:
+```javascript
+import { chromium } from 'playwright';
+const browser = await chromium.connectOverCDP('http://localhost:29229');
+const context = browser.contexts()[0];
+const page = await context.newPage();
+await page.setViewportSize({ width: 375, height: 812 });
+await page.goto('https://deploy-preview-{PR}--planetnewborn-v0-newbornplanetm.netlify.app/');
+const menuBtn = page.locator('button[aria-label="Open menu"]');
+await menuBtn.click();
+// Verify nav items appear and navigation works
+```
+
+**Note:** `xdotool windowsize` resizes the Chrome window but does NOT change `window.innerWidth` — CSS media queries may not trigger. Always use Playwright viewport emulation for reliable mobile testing.
+
+### Lighthouse CLI on Preview Deploys
+Run Lighthouse against the existing Chrome instance via CDP:
+```bash
+lighthouse "https://deploy-preview-{PR}--planetnewborn-v0-newbornplanetm.netlify.app/" \
+  --only-categories=performance \
+  --output=json \
+  --output-path=/home/ubuntu/lighthouse-results.json \
+  --port=29229
+```
+
+**Do NOT** run `lighthouse` without `--port=29229` — it will try to launch a new Chrome instance and fail with `ECONNREFUSED` because Chrome is already running.
+
+Extract scores with:
+```bash
+cat lighthouse-results.json | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+perf = data['categories']['performance']['score']
+print(f'Performance: {perf * 100:.0f}%')
+for m in ['first-contentful-paint','largest-contentful-paint','total-blocking-time','cumulative-layout-shift','speed-index']:
+    if m in data['audits']:
+        print(f'  {data[\"audits\"][m][\"title\"]}: {data[\"audits\"][m][\"displayValue\"]}')
+"
+```
+
+### Expected Lighthouse Baselines
+- Homepage: ~50-55% on Netlify preview (high TBT from Next.js framework bundles)
+- Inventory: ~60-70% on Netlify preview (lower JS if page errors early)
+- The main bottleneck is JS execution time from Next.js framework chunks, not application code
+- CLS should be 0 or near-0 if `content-visibility` + `contain-intrinsic-size` are correctly applied
+
 ## UI Testing
 
 - **Trade-In page** (`/trade-in`): Scroll to "Get an AI Instant Quote" section. Verify Year/Make/Model/Trim/Mileage fields and Email/SMS verification buttons render.
@@ -143,6 +214,7 @@ Vercel previews may have deployment protection enabled (returns HTTP 401). Optio
 - `KV_REST_API_TOKEN` — Upstash Redis token (for rate limiting tests)
 - `NEXT_PUBLIC_SUPABASE_URL` — Supabase project URL (for inventory/VDP UI tests + 4 E2E tests)
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase anon key (for inventory/VDP UI tests + 4 E2E tests)
+- `SUPABASE_SERVICE_ROLE_KEY` — Supabase admin key (for data integrity tests, race condition testing)
 - OpenAI/AI Gateway key — only needed for full end-to-end AI response testing
 
 ## Build & Lint Commands
@@ -166,3 +238,6 @@ pnpm test:e2e       # Run ALL E2E specs (needs local server)
 - `e2e/fixtures/dl-front.jpg` — Required fixture for C09 Vercel Blob upload test
 - `.github/workflows/ci.yml` — CI pipeline (lint-and-build, bundle-check, e2e)
 - `playwright.config.ts` — Playwright configuration (webServer on port 3000)
+- `app/inventory/page.tsx` — Inventory page with `content-visibility: auto` virtualization
+- `components/footer-content.tsx` — Footer as Server Component (no "use client")
+- `app/layout.tsx` — Font configuration with `display: 'swap'`
