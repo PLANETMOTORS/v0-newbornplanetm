@@ -240,10 +240,15 @@ export function FooterContent({ siteSettings }: FooterProps) {
 
           {/* ── Bottom Bar: OMVIC + Legal + Copyright ── */}
           <div className="mt-6 pt-5 pb-16 sm:pb-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-white/90">
+            <a
+              href="https://www.omvic.on.ca"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-white/90 hover:text-white transition-colors"
+            >
               <Shield className="w-3.5 h-3.5 shrink-0" />
               <span className="text-xs font-medium">OMVIC Registered Dealer</span>
-            </div>
+            </a>
             <div className="flex items-center gap-4">
               {footerLinks.legal.map((link) => (
                 <Link key={link.name} href={link.href} className="text-xs font-medium text-white/90 hover:text-white transition-colors">
