@@ -20,8 +20,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     if (!v) throw new Error("empty")
 
-    const title = `${v.year} ${v.make} ${v.model}${v.trim ? ` ${v.trim}` : ""} — Planet Motors`
-    const description = [
+    const title = `${v.year} ${v.make} ${v.model}${v.trim ? ` ${v.trim}` : ""} for Sale | Planet Motors`
+    const descParts = [
       `$${(v.price ?? 0).toLocaleString()}`,
       v.mileage ? `${(v.mileage as number).toLocaleString()} km` : null,
       v.fuel_type,
@@ -30,17 +30,30 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ]
       .filter(Boolean)
       .join(" · ")
+    const certifiedSuffix = v.is_certified
+      ? " PM Certified with 210-point inspection, free Carfax, and nationwide delivery."
+      : " Free Carfax and nationwide delivery."
+    const description = `${v.year} ${v.make} ${v.model} — ${descParts}.${certifiedSuffix}`
 
     const imageUrl = v.primary_image_url ?? `${baseUrl}/og-default.jpg`
+    const encodedId = encodeURIComponent(id)
 
     return {
       title,
       description,
+      keywords: [
+        `${v.year} ${v.make} ${v.model} for sale`,
+        `used ${v.make} ${v.model} Ontario`,
+        `${v.make} ${v.model} price`,
+        `certified pre-owned ${v.make}`,
+        v.is_ev ? `used electric ${v.make}` : null,
+      ].filter(Boolean).join(", "),
       openGraph: {
         title,
         description,
-        url: `${baseUrl}/vehicles/${id}`,
+        url: `${baseUrl}/vehicles/${encodedId}`,
         siteName: "Planet Motors",
+        locale: "en_CA",
         images: [{ url: imageUrl, width: 1200, height: 630, alt: title }],
         type: "website",
       },
@@ -51,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         images: [imageUrl],
       },
       alternates: {
-        canonical: `${baseUrl}/vehicles/${id}`,
+        canonical: `/vehicles/${encodedId}`,
       },
     }
   } catch {

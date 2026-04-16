@@ -31,6 +31,7 @@ export function FinanceApplicationForm() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<PrequalificationResult | null>(null)
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -50,8 +51,32 @@ export function FinanceApplicationForm() {
     return Math.round(payment)
   }
 
+  const validateForm = (): Record<string, string> => {
+    const errors: Record<string, string> = {}
+    if (!formData.firstName.trim()) errors.firstName = "First Name is required"
+    if (!formData.lastName.trim()) errors.lastName = "Last Name is required"
+    if (!formData.email.trim()) {
+      errors.email = "Email Address is required"
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = "Please enter a valid email address"
+    }
+    if (!formData.phone.trim()) {
+      errors.phone = "Phone Number is required"
+    } else if (formData.phone.replace(/\D/g, '').length < 10) {
+      errors.phone = "Phone must be at least 10 digits"
+    }
+    return errors
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    const errors = validateForm()
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors)
+      return
+    }
+    setValidationErrors({})
     
     if (!user) {
       setShowAuthModal(true)
@@ -138,6 +163,8 @@ export function FinanceApplicationForm() {
     )
   }
 
+  const isSubmitDisabled = isLoading || !formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim() || !formData.phone.trim()
+
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -146,33 +173,61 @@ export function FinanceApplicationForm() {
             <Input 
               placeholder="First Name" 
               value={formData.firstName}
-              onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, firstName: e.target.value })
+                if (validationErrors.firstName) setValidationErrors({ ...validationErrors, firstName: "" })
+              }}
               required
             />
+            {validationErrors.firstName && (
+              <p className="text-xs text-destructive mt-1">{validationErrors.firstName}</p>
+            )}
           </div>
           <div>
             <Input 
               placeholder="Last Name" 
               value={formData.lastName}
-              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, lastName: e.target.value })
+                if (validationErrors.lastName) setValidationErrors({ ...validationErrors, lastName: "" })
+              }}
               required
             />
+            {validationErrors.lastName && (
+              <p className="text-xs text-destructive mt-1">{validationErrors.lastName}</p>
+            )}
           </div>
         </div>
-        <Input 
-          type="email" 
-          placeholder="Email Address" 
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          required
-        />
-        <Input 
-          type="tel" 
-          placeholder="Phone Number" 
-          value={formData.phone}
-          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-          required
-        />
+        <div>
+          <Input 
+            type="email" 
+            placeholder="Email Address" 
+            value={formData.email}
+            onChange={(e) => {
+              setFormData({ ...formData, email: e.target.value })
+              if (validationErrors.email) setValidationErrors({ ...validationErrors, email: "" })
+            }}
+            required
+          />
+          {validationErrors.email && (
+            <p className="text-xs text-destructive mt-1">{validationErrors.email}</p>
+          )}
+        </div>
+        <div>
+          <Input 
+            type="tel" 
+            placeholder="Phone Number" 
+            value={formData.phone}
+            onChange={(e) => {
+              setFormData({ ...formData, phone: e.target.value })
+              if (validationErrors.phone) setValidationErrors({ ...validationErrors, phone: "" })
+            }}
+            required
+          />
+          {validationErrors.phone && (
+            <p className="text-xs text-destructive mt-1">{validationErrors.phone}</p>
+          )}
+        </div>
         
         {/* Annual Income Slider */}
         <div className="space-y-3">
@@ -241,8 +296,19 @@ export function FinanceApplicationForm() {
           </div>
           <span className="text-xl font-bold">${calculatePaymentPreview()}/mo</span>
         </div>
-        
-        <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+
+        {Object.values(validationErrors).some(Boolean) && (
+          <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3">
+            <p className="font-medium text-sm text-destructive mb-1">Please fix the following:</p>
+            <ul className="list-disc pl-5 space-y-1">
+              {Object.values(validationErrors).filter(Boolean).map((error, i) => (
+                <li key={i} className="text-xs text-destructive">{error}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <Button type="submit" className="w-full" size="lg" disabled={isSubmitDisabled}>
           {isLoading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
