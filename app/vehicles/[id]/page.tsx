@@ -22,6 +22,7 @@ import {
   Key, RotateCw, Pause
 } from "lucide-react"
 
+import { VehicleSpinViewer } from "@/components/vehicle-spin-viewer"
 import { VehicleJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
 import { SimilarVehicles } from "@/components/similar-vehicles"
 import { ReserveVehicleModal } from "@/components/reserve-vehicle-modal"
@@ -758,6 +759,13 @@ export default function VehicleDetailPage() {
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
+                  {/* 360° Interactive Spin Viewer */}
+                  {imageType === "360" ? (
+                    <VehicleSpinViewer
+                      images={allImages}
+                      alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                    />
+                  ) : (
                   <div
                     data-testid="vdp-image-gallery"
                     tabIndex={0}
@@ -786,16 +794,6 @@ export default function VehicleDetailPage() {
                             (e.target as HTMLImageElement).style.display = "none"
                           }}
                         />
-                        {/* 360 spin play/pause overlay */}
-                        {imageType === "360" && (
-                          <button
-                            onClick={() => setIsSpinning(!isSpinning)}
-                            className="absolute bottom-4 left-4 px-3 py-1.5 bg-background/80 backdrop-blur rounded-lg flex items-center gap-1.5 hover:bg-background transition text-sm font-medium"
-                          >
-                            {isSpinning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                            {isSpinning ? "Pause" : "Play"} 360°
-                          </button>
-                        )}
                         {/* Expand Button — opens image in new tab */}
                         <button
                           onClick={() => window.open(currentImages[activeIndex], "_blank")}
@@ -828,6 +826,7 @@ export default function VehicleDetailPage() {
                       <ChevronRight className="h-5 w-5" />
                     </button>
                   </div>
+                  )}
 
                   {/* Image Type Toggle */}
                   <div className="flex gap-2 flex-wrap overflow-x-auto scrollbar-hide pb-1">
@@ -915,11 +914,7 @@ export default function VehicleDetailPage() {
                       ))}
                     </div>
                   )}
-                  {imageType === "360" && (
-                    <div className="text-center text-sm text-muted-foreground py-2">
-                      Frame {spinFrame + 1} of {allImages.length} — {isSpinning ? "Auto-playing" : "Drag arrows to rotate"}
-                    </div>
-                  )}
+
 
                   {/* Trade and Upgrade CTA */}
                   <Card className="bg-primary text-primary-foreground">
