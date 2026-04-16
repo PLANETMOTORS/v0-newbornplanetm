@@ -1,0 +1,124 @@
+"use client"
+
+import { useState } from "react"
+import Link from "next/link"
+import { useCookieConsent } from "@/lib/hooks/use-cookie-consent"
+import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
+import { Shield, ChevronDown, ChevronUp } from "lucide-react"
+
+export function CookieConsentBanner() {
+  const { showBanner, acceptAll, rejectAll, savePreferences } = useCookieConsent()
+  const [showDetails, setShowDetails] = useState(false)
+  const [analytics, setAnalytics] = useState(true)
+  const [marketing, setMarketing] = useState(true)
+
+  if (!showBanner) return null
+
+  return (
+    <div
+      role="dialog"
+      aria-label="Cookie consent"
+      aria-modal="false"
+      className="fixed bottom-0 inset-x-0 z-[9999] p-4 md:p-6"
+    >
+      <div className="mx-auto max-w-3xl rounded-xl border bg-background shadow-2xl">
+        <div className="p-5 md:p-6">
+          {/* Header */}
+          <div className="flex items-start gap-3 mb-3">
+            <Shield className="h-5 w-5 text-primary mt-0.5 shrink-0" aria-hidden="true" />
+            <div className="flex-1">
+              <h2 className="text-base font-semibold">We value your privacy</h2>
+              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                We use cookies to improve your experience, analyze site traffic, and personalize
+                content. You can choose which cookies to allow.{" "}
+                <Link href="/privacy" className="underline hover:text-foreground">
+                  Privacy Policy
+                </Link>
+              </p>
+            </div>
+          </div>
+
+          {/* Expandable details */}
+          <button
+            type="button"
+            onClick={() => setShowDetails(!showDetails)}
+            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+            aria-expanded={showDetails}
+          >
+            Customize preferences
+            {showDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+
+          {showDetails && (
+            <div className="space-y-3 mb-5 rounded-lg bg-muted/50 p-4" role="group" aria-label="Cookie categories">
+              {/* Essential — always on */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Essential</p>
+                  <p className="text-xs text-muted-foreground">Required for the site to function</p>
+                </div>
+                <Switch checked disabled aria-label="Essential cookies (always enabled)" />
+              </div>
+
+              {/* Analytics */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Analytics</p>
+                  <p className="text-xs text-muted-foreground">Help us understand how visitors use our site</p>
+                </div>
+                <Switch
+                  checked={analytics}
+                  onCheckedChange={setAnalytics}
+                  aria-label="Analytics cookies"
+                />
+              </div>
+
+              {/* Marketing */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Marketing</p>
+                  <p className="text-xs text-muted-foreground">Enable personalized advertising</p>
+                </div>
+                <Switch
+                  checked={marketing}
+                  onCheckedChange={setMarketing}
+                  aria-label="Marketing cookies"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Action buttons */}
+          <div className="flex flex-col-reverse sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={rejectAll}
+              className="flex-1 sm:flex-none"
+            >
+              Reject All
+            </Button>
+            {showDetails && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => savePreferences({ analytics, marketing })}
+                className="flex-1 sm:flex-none"
+              >
+                Save Preferences
+              </Button>
+            )}
+            <Button
+              size="sm"
+              onClick={acceptAll}
+              className="flex-1 sm:flex-none"
+            >
+              Accept All
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

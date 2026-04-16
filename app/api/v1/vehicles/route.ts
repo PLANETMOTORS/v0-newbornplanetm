@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getCachedSearchResults, cacheSearchResults } from '@/lib/redis'
 import { createHash } from 'crypto'
+import { getDriveeMid } from '@/lib/drivee'
 
 const ALLOWED_SORT_COLUMNS = new Set(['created_at', 'price', 'year', 'mileage', 'make', 'model'])
 
@@ -55,10 +56,13 @@ function toPublicVehicleListItem(value: unknown): Record<string, unknown> | null
     return null
   }
 
+  const vin = typeof value.vin === 'string' ? value.vin : ''
+
   return {
     ...value,
     price: value.price / 100,
     msrp: typeof value.msrp === 'number' ? value.msrp / 100 : null,
+    drivee_mid: getDriveeMid(vin),
   }
 }
 
@@ -114,8 +118,24 @@ export async function GET(request: NextRequest) {
   // Cursor-based pagination: pass `cursor_id` + `cursor_created_at` to skip
   // expensive OFFSET scans on large tables. When present, these override page-based
   // pagination. The composite cursor uses (created_at, id) to guarantee stable ordering.
-  const cursorId = searchParams.get('cursor_id')
-  const cursorCreatedAt = searchParams.get('cursor_created_at')
+  //
+  // IMPORTANT: cursor values are interpolated into a PostgREST .or() filter string below.
+  // PostgREST uses commas and parentheses as delimiters, so we must strictly validate
+  // both values to prevent filter injection (e.g. ",id.neq.0" could bypass the status filter).
+  const rawCursorId = searchParams.get('cursor_id')
+  const rawCursorCreatedAt = searchParams.get('cursor_created_at')
+  const ISO_DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})$/
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  const cursorId = rawCursorId && UUID_RE.test(rawCursorId) ? rawCursorId : null
+  const cursorCreatedAt =
+    rawCursorCreatedAt && ISO_DATETIME_RE.test(rawCursorCreatedAt) ? rawCursorCreatedAt : null
+
+  if ((rawCursorId && !cursorId) || (rawCursorCreatedAt && !cursorCreatedAt)) {
+    return NextResponse.json(
+      { success: false, error: 'Invalid cursor parameters' },
+      { status: 400 }
+    )
+  }
 
   // Build a deterministic cache key from all query params
   const cacheKey = `vehicles:list:${hashKey(searchParams.toString())}`
@@ -190,19 +210,41 @@ export async function GET(request: NextRequest) {
 
   const { data: vehicles, error, count } = await query
 
-  if (error || (!vehicles?.length && !process.env.NEXT_PUBLIC_SUPABASE_URL)) {
-    // Return mock data when database is unavailable (e.g., local dev without env vars)
-    const mockVehicles = getMockVehicles()
-    const result = {
-      success: true,
-      data: {
-        vehicles: mockVehicles,
-        pagination: { page: 1, limit: 20, total: mockVehicles.length, totalPages: 1, hasMore: false },
-      },
+  if (error) {
+    // In production (Supabase configured), surface real errors so callers don't
+    // cache or act on fake vehicles. Mock data is only for local dev without env vars.
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 500 }
+      )
     }
-    return NextResponse.json(result, {
-      headers: { 'Cache-Control': 'no-store', 'X-Cache': 'MOCK' },
-    })
+    const mockVehicles = getMockVehicles()
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          vehicles: mockVehicles,
+          pagination: { page: 1, limit: 20, total: mockVehicles.length, totalPages: 1, hasMore: false },
+        },
+      },
+      { headers: { 'Cache-Control': 'no-store', 'X-Cache': 'MOCK' } }
+    )
+  }
+
+  if (!vehicles?.length && !process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    // Local dev without Supabase configured: return mock data
+    const mockVehicles = getMockVehicles()
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          vehicles: mockVehicles,
+          pagination: { page: 1, limit: 20, total: mockVehicles.length, totalPages: 1, hasMore: false },
+        },
+      },
+      { headers: { 'Cache-Control': 'no-store', 'X-Cache': 'MOCK' } }
+    )
   }
 
   let filters: {
@@ -454,9 +496,11 @@ export async function POST(request: NextRequest) {
 
 // Mock vehicles for local development when Supabase is unavailable
 function getMockVehicles() {
-  return [
+  const raw = [
     { id: "mock-tesla-3", year: 2024, make: "Tesla", model: "Model 3", trim: "Long Range AWD", price: 54995, msrp: 57995, mileage: 8200, fuel_type: "Electric", body_style: "Sedan", transmission: "Automatic", drivetrain: "AWD", exterior_color: "Pearl White", primary_image_url: "/placeholder.jpg", status: "available", stock_number: "PM-2024-001", vin: "5YJ3E1EA1PF000001", is_new_arrival: true, is_certified: true, created_at: new Date().toISOString() },
     { id: "mock-tesla-y", year: 2024, make: "Tesla", model: "Model Y", trim: "Performance", price: 61995, msrp: 63995, mileage: 5100, fuel_type: "Electric", body_style: "SUV", transmission: "Automatic", drivetrain: "AWD", exterior_color: "Midnight Silver", primary_image_url: "/placeholder.jpg", status: "available", stock_number: "PM-2024-002", vin: "5YJ3E1EA1PF000002", is_new_arrival: false, is_certified: true, created_at: new Date().toISOString() },
     { id: "mock-bmw-i4", year: 2023, make: "BMW", model: "i4", trim: "eDrive40", price: 52995, msrp: 56995, mileage: 12300, fuel_type: "Electric", body_style: "Sedan", transmission: "Automatic", drivetrain: "RWD", exterior_color: "Black Sapphire", primary_image_url: "/placeholder.jpg", status: "available", stock_number: "PM-2024-003", vin: "WBA53BJ01PCK00003", is_new_arrival: false, is_certified: true, created_at: new Date().toISOString() },
   ]
+  // Inject drivee_mid so mock vehicles also show 360° badges when mapped
+  return raw.map(v => ({ ...v, drivee_mid: getDriveeMid(v.vin) }))
 }

@@ -1,44 +1,15 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, Playfair_Display } from 'next/font/google'
-import dynamic from 'next/dynamic'
-// Dynamic-import analytics so their module code doesn't block initial page load
-const GoogleAnalytics = dynamic(
-  () => import('@/components/analytics/google-analytics').then(m => ({ default: m.GoogleAnalytics }))
-)
-const GoogleTagManager = dynamic(
-  () => import('@/components/analytics/google-tag-manager').then(m => ({ default: m.GoogleTagManager }))
-)
-const GoogleTagManagerNoScript = dynamic(
-  () => import('@/components/analytics/google-tag-manager').then(m => ({ default: m.GoogleTagManagerNoScript }))
-)
-const MetaPixel = dynamic(
-  () => import('@/components/analytics/meta-pixel').then(m => ({ default: m.MetaPixel }))
-)
 import { CompareProvider } from '@/contexts/compare-context'
 import { FavoritesProvider } from '@/contexts/favorites-context'
 import { AuthProvider } from '@/contexts/auth-context'
-// Lazy-load Toaster — only needed when a toast is triggered
-const Toaster = dynamic(
-  () => import('@/components/ui/sonner').then(m => ({ default: m.Toaster }))
-)
 import { OrganizationJsonLd, LocalBusinessJsonLd, WebsiteSearchJsonLd } from '@/components/seo/json-ld'
+import { ClientLayoutWidgets } from '@/components/client-layout-widgets'
 import { getPublicSiteUrl } from '@/lib/site-url'
+import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
 import './stability-fixes.css'
-
-// Code-split heavy client components into separate chunks
-const LiveChatWidget = dynamic(
-  () => import('@/components/live-chat-widget').then(m => ({ default: m.LiveChatWidget }))
-)
-const CompareBar = dynamic(
-  () => import('@/components/compare-bar').then(m => ({ default: m.CompareBar }))
-)
-const Analytics = dynamic(
-  () => import('@vercel/analytics/next').then(m => ({ default: m.Analytics }))
-)
-const SpeedInsights = dynamic(
-  () => import('@vercel/speed-insights/next').then(m => ({ default: m.SpeedInsights }))
-)
 
 // Planet Motors - OMVIC Licensed Dealer - Production Ready
 
@@ -49,11 +20,11 @@ const inter = Inter({
   preload: true,
 });
 
-const playfair = Playfair_Display({ 
+const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: '--font-playfair',
   display: 'swap',
-  preload: true,
+  preload: false,  // Decorative font — don't block first paint
 });
 
 const SITE_URL = getPublicSiteUrl()
@@ -149,29 +120,23 @@ export default function RootLayout({
         )}
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-        
-        <GoogleAnalytics />
-        <GoogleTagManager />
-        <MetaPixel />
+        {/* JSON-LD structured data — server-rendered, lightweight */}
         <OrganizationJsonLd />
         <LocalBusinessJsonLd />
         <WebsiteSearchJsonLd />
       </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
-        <GoogleTagManagerNoScript />
         <AuthProvider>
           <FavoritesProvider>
             <CompareProvider>
               {children}
-              <CompareBar />
-              <LiveChatWidget />
-              <Toaster richColors position="top-right" />
+              {/* Client-only widgets: analytics, chat, toaster, compare bar, etc. */}
+              <ClientLayoutWidgets />
             </CompareProvider>
           </FavoritesProvider>
         </AuthProvider>
         <Analytics />
         <SpeedInsights />
-        <script dangerouslySetInnerHTML={{ __html: 'window.addEventListener("load",function(){window.focus()})' }} />
       </body>
     </html>
   )

@@ -56,6 +56,7 @@ interface Vehicle {
   range_miles: number | null
   ev_battery_health_percent: number | null
   created_at: string
+  drivee_mid: string | null
 }
 
 // API page size — matches Clutch/Carvana 48-per-page pattern
@@ -157,7 +158,8 @@ function transformVehicle(v: Vehicle) {
     favorites: Math.floor(Math.random() * 50) + 5,
     monthlyPayment: Math.round(priceInDollars / 84),
     carfaxUrl: `https://www.carfax.ca/vehicle/${v.vin}`,
-    features: ["PM Certified", "Full Inspection", "Warranty Included"]
+    features: ["PM Certified", "Full Inspection", "Warranty Included"],
+    hasDrivee: !!v.drivee_mid
   }
 }
 
@@ -889,11 +891,13 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     />
                   </div>
 
-                  {/* 360 View Badge */}
+                  {/* 360 View Badge — only for vehicles with Drivee 360° photos */}
+                  {vehicle.hasDrivee && (
                   <div className="absolute bottom-3 left-3 bg-background/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 text-xs">
                     <RotateCcw className="w-3 h-3 text-primary" />
                     360° View
                   </div>
+                  )}
 
 
                 </div>

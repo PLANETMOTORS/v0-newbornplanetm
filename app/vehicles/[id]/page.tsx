@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -22,17 +23,9 @@ import {
   Key, RotateCw
 } from "lucide-react"
 
-import { VehicleSpinViewer } from "@/components/vehicle-spin-viewer"
 import { VehicleJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
-import { SimilarVehicles } from "@/components/similar-vehicles"
-import { ReserveVehicleModal } from "@/components/reserve-vehicle-modal"
-import { AuthRequiredModal } from "@/components/auth-required-modal"
 import { useAuth } from "@/contexts/auth-context"
-import { PriceNegotiator } from "@/components/vehicle/price-negotiator"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
-import { LiveVideoCall } from "@/components/vehicle/live-video-call"
-import { PriceDropAlert } from "@/components/vehicle/price-drop-alert"
-import { AddToCompare } from "@/components/vehicle/add-to-compare"
 import { toast } from "sonner"
 import {
   Dialog,
@@ -45,6 +38,44 @@ import { trackProductView, trackPhoneClick } from "@/components/analytics/google
 import { calculateAllInPrice } from "@/lib/pricing/format"
 import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
 import { trackMetaViewContent, trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
+
+// ── Lazy-load heavy below-fold components ──
+const VehicleSpinViewer = dynamic(
+  () => import("@/components/vehicle-spin-viewer").then(m => ({ default: m.VehicleSpinViewer })),
+  { ssr: false, loading: () => <div className="aspect-[4/3] bg-gray-100 animate-pulse rounded-xl" /> }
+)
+const DriveeViewer = dynamic(
+  () => import("@/components/drivee-viewer").then(m => ({ default: m.DriveeViewer })),
+  { ssr: false, loading: () => <div className="aspect-[4/3] bg-gray-100 animate-pulse rounded-xl" /> }
+)
+const SimilarVehicles = dynamic(
+  () => import("@/components/similar-vehicles").then(m => ({ default: m.SimilarVehicles })),
+  { ssr: false }
+)
+const ReserveVehicleModal = dynamic(
+  () => import("@/components/reserve-vehicle-modal").then(m => ({ default: m.ReserveVehicleModal })),
+  { ssr: false }
+)
+const AuthRequiredModal = dynamic(
+  () => import("@/components/auth-required-modal").then(m => ({ default: m.AuthRequiredModal })),
+  { ssr: false }
+)
+const PriceNegotiator = dynamic(
+  () => import("@/components/vehicle/price-negotiator").then(m => ({ default: m.PriceNegotiator })),
+  { ssr: false }
+)
+const LiveVideoCall = dynamic(
+  () => import("@/components/vehicle/live-video-call").then(m => ({ default: m.LiveVideoCall })),
+  { ssr: false }
+)
+const PriceDropAlert = dynamic(
+  () => import("@/components/vehicle/price-drop-alert").then(m => ({ default: m.PriceDropAlert })),
+  { ssr: false }
+)
+const AddToCompare = dynamic(
+  () => import("@/components/vehicle/add-to-compare").then(m => ({ default: m.AddToCompare })),
+  { ssr: false }
+)
 
 // Mock vehicle data
 const vehicleData = {
@@ -72,6 +103,7 @@ const vehicleData = {
   batteryHealth: 98,
   batteryCapacity: "82 kWh",
   chargingSpeed: "250 kW DC",
+  driveeMid: null as string | null,
   images: [] as string[],
   interiorImages: [] as string[],
   features: {
@@ -447,6 +479,7 @@ export default function VehicleDetailPage() {
             bodyStyle: data.body_style,
             vin: data.vin,
             stockNumber: data.stock_number,
+            driveeMid: data.drivee_mid || null,
             images: exteriorImgs,
             interiorImages: interiorImgs,
             pricing: {
@@ -504,7 +537,10 @@ export default function VehicleDetailPage() {
 
   // 360 spin: use ALL images (exterior + interior combined)
   const allImages = [...(vehicle?.images || []), ...(vehicle?.interiorImages || [])]
-  const has360 = allImages.length >= 15
+  // Drivee 360° viewer requires a MID (media ID) from the DRIVEE_VIN_MAP.
+  // Drivee's iframe does NOT support VIN-based lookups — only ?mid= works.
+  const hasDrivee = !!vehicle?.driveeMid
+  const has360 = hasDrivee || allImages.length >= 15
   useEffect(() => {
     if (!isSpinning || imageType !== "360") return
     const interval = setInterval(() => {
@@ -765,8 +801,13 @@ export default function VehicleDetailPage() {
               <div className="lg:col-span-2">
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
-                  {/* 360° Interactive Spin Viewer */}
-                  {imageType === "360" ? (
+                  {/* 360° Interactive Viewer — Drivee.ai (requires MID from DRIVEE_VIN_MAP) */}
+                  {imageType === "360" && hasDrivee ? (
+                    <DriveeViewer
+                      mid={vehicle.driveeMid!}
+                      vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                    />
+                  ) : imageType === "360" ? (
                     <VehicleSpinViewer
                       images={allImages}
                       alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
@@ -779,7 +820,8 @@ export default function VehicleDetailPage() {
                       if (e.key === "ArrowRight") { nextImage(); e.preventDefault() }
                       if (e.key === "ArrowLeft") { prevImage(); e.preventDefault() }
                     }}
-                    className="relative aspect-[16/10] rounded-xl overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] group focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="relative aspect-[4/3] rounded-xl overflow-hidden group focus:outline-none focus:ring-2 focus:ring-primary"
+                    style={{ backgroundColor: "#e8e8e8" }}
                   >
                     {/* Hidden native img for vdp-active-image testid (Playwright getAttribute('src')) */}
                     {currentImages.length > 0 && currentImages[activeIndex] && (
@@ -793,7 +835,7 @@ export default function VehicleDetailPage() {
                           src={currentImages[activeIndex]}
                           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                           fill
-                          className="object-cover"
+                          className="object-contain"
                           priority
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
                           onError={(e) => {

@@ -106,16 +106,16 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      className="relative w-full aspect-[16/10] rounded-xl overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] select-none touch-none focus:outline-none focus:ring-2 focus:ring-primary"
-      style={{ cursor: isDragging ? "grabbing" : "grab" }}
+      className="relative w-full aspect-[4/3] rounded-xl overflow-hidden select-none touch-none focus:outline-none focus:ring-2 focus:ring-primary"
+      style={{ cursor: isDragging ? "grabbing" : "grab", backgroundColor: "#e8e8e8" }}
     >
-      {/* Current frame image */}
+      {/* Current frame image — object-contain preserves full vehicle proportions (no cropping) */}
       {images[frame] && (
         <Image
           src={images[frame]}
           alt={`${alt} - angle ${frame + 1} of ${totalFrames}`}
           fill
-          className="object-cover pointer-events-none"
+          className="object-contain pointer-events-none"
           priority={frame === 0}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
           draggable={false}

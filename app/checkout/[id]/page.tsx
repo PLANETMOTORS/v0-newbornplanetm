@@ -29,6 +29,8 @@ import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import dynamic from 'next/dynamic'
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 import { startVehicleCheckout } from "@/app/actions/stripe"
+import { OMVIC_FEE, CERTIFICATION_FEE, LICENSING_FEE } from "@/lib/pricing/format"
+import { getUTMParams } from "@/lib/hooks/use-utm-params"
 
 const PROVINCE_NAME_TO_CODE: Record<string, string> = {
   'Ontario': 'ON', 'British Columbia': 'BC', 'Alberta': 'AB', 'Quebec': 'QC',
@@ -36,7 +38,6 @@ const PROVINCE_NAME_TO_CODE: Record<string, string> = {
   'Manitoba': 'MB', 'Saskatchewan': 'SK', 'Newfoundland and Labrador': 'NL',
   'Northwest Territories': 'NT', 'Yukon': 'YT', 'Nunavut': 'NU',
 }
-import { OMVIC_FEE, CERTIFICATION_FEE, LICENSING_FEE } from "@/lib/pricing/format"
 
 // Lazy-load Stripe — only fetched when user reaches payment step
 const EmbeddedCheckoutProvider = dynamic(
@@ -189,18 +190,24 @@ export default function CheckoutPage() {
 
   // Stripe client secret fetcher for embedded checkout
   const fetchClientSecret = useCallback(async () => {
+    const utmParams = getUTMParams()
     const clientSecret = await startVehicleCheckout({
       vehicleId: params.id as string,
       vehicleName: `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`,
       vehiclePriceCents: total * 100,
       protectionPlanId: selectedProtection !== "none" ? selectedProtection : undefined,
       customerEmail: formData.email,
+      ...(utmParams?.utm_source && { utmSource: utmParams.utm_source }),
+      ...(utmParams?.utm_medium && { utmMedium: utmParams.utm_medium }),
+      ...(utmParams?.utm_campaign && { utmCampaign: utmParams.utm_campaign }),
+      ...(utmParams?.utm_content && { utmContent: utmParams.utm_content }),
+      ...(utmParams?.utm_term && { utmTerm: utmParams.utm_term }),
     })
     if (!clientSecret) {
       throw new Error("Failed to create checkout session")
     }
     return clientSecret
-  }, [params.id, total, selectedProtection, formData.email])
+  }, [params.id, total, selectedProtection, formData.email, vehicleData])
 
   // Show loading while checking auth
   if (isLoading || !user) {

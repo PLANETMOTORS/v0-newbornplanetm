@@ -155,4 +155,4 @@ CREATE POLICY "Users can create own orders"
 DROP POLICY IF EXISTS "Service role full access to orders" ON public.orders;
 CREATE POLICY "Service role full access to orders"
   ON public.orders FOR ALL
-  USING (auth.role() = 'service_role');
+  USING (current_setting('role') = 'service_role');

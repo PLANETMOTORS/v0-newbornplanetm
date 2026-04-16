@@ -91,18 +91,19 @@ export function Vehicle360Viewer({
 
   // Not visible - placeholder
   if (!isVisible) {
-    return <div ref={containerRef} className={`aspect-video bg-muted rounded-lg ${className}`} />
+    return <div ref={containerRef} className={`aspect-[4/3] rounded-lg ${className}`} style={{ backgroundColor: "#e8e8e8" }} />
   }
 
   // Click-to-activate preview
   if (!isActivated) {
     return (
-      <div 
+      <div
         ref={containerRef}
-        className={`relative aspect-video bg-muted rounded-lg overflow-hidden cursor-pointer group ${className}`}
+        className={`relative aspect-[4/3] rounded-lg overflow-hidden cursor-pointer group ${className}`}
+        style={{ backgroundColor: "#e8e8e8" }}
         onClick={() => setIsActivated(true)}
       >
-        <Image src={previewUrl} alt={`${stockNumber} 360 preview`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" unoptimized />
+        <Image src={previewUrl} alt={`${stockNumber} 360 preview`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-contain" unoptimized />
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/50 transition-colors">
           <div className="text-center text-white">
             <RotateCcw className="w-12 h-12 mx-auto mb-2 animate-spin" style={{ animationDuration: "3s" }} />
@@ -116,13 +117,14 @@ export function Vehicle360Viewer({
 
   // Active viewer
   return (
-    <div 
+    <div
       ref={containerRef}
-      className={`relative aspect-video bg-black rounded-lg overflow-hidden cursor-grab active:cursor-grabbing select-none touch-none ${className}`}
+      className={`relative aspect-[4/3] rounded-lg overflow-hidden cursor-grab active:cursor-grabbing select-none touch-none ${className}`}
+      style={{ backgroundColor: "#e8e8e8" }}
       {...handlers}
       onPointerLeave={handlers.onPointerUp}
     >
-      <Image src={frameUrl} alt={`${stockNumber} 360 frame ${currentFrame + 1}`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" draggable={false} unoptimized />
+      <Image src={frameUrl} alt={`${stockNumber} 360 frame ${currentFrame + 1}`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-contain" draggable={false} unoptimized />
       
       {/* Controls */}
       <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">

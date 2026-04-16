@@ -1,6 +1,7 @@
 "use client"
 
 import Script from "next/script"
+import { useCookieConsent } from "@/lib/hooks/use-cookie-consent"
 
 declare global {
   interface Window {
@@ -11,7 +12,9 @@ declare global {
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID
 
 export function MetaPixel() {
-  if (!META_PIXEL_ID) return null
+  const { hasMarketingConsent } = useCookieConsent()
+
+  if (!META_PIXEL_ID || !hasMarketingConsent) return null
 
   return (
     <>

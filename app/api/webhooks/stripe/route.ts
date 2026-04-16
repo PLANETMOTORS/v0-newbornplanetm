@@ -153,6 +153,13 @@ export async function handleCheckoutSessionCompleted(
     }
 
     // Confirm the reservation deposit
+    const utmData: Record<string, string> = {}
+    if (session.metadata?.utm_source) utmData.utm_source = session.metadata.utm_source
+    if (session.metadata?.utm_medium) utmData.utm_medium = session.metadata.utm_medium
+    if (session.metadata?.utm_campaign) utmData.utm_campaign = session.metadata.utm_campaign
+    if (session.metadata?.utm_content) utmData.utm_content = session.metadata.utm_content
+    if (session.metadata?.utm_term) utmData.utm_term = session.metadata.utm_term
+
     const { error: reservationError } = await supabase
       .from('reservations')
       .update({
@@ -160,6 +167,7 @@ export async function handleCheckoutSessionCompleted(
         status: 'confirmed',
         stripe_checkout_session_id: session.id,
         updated_at: new Date().toISOString(),
+        ...utmData,
       })
       .eq('id', reservationId)
 
@@ -196,9 +204,20 @@ export async function handleCheckoutSessionCompleted(
 
     // Full vehicle checkout: mark order payment as confirmed.
     // Orders are created separately; link via Stripe session metadata.
+    const utmData: Record<string, string> = {}
+    if (session.metadata?.utm_source) utmData.utm_source = session.metadata.utm_source
+    if (session.metadata?.utm_medium) utmData.utm_medium = session.metadata.utm_medium
+    if (session.metadata?.utm_campaign) utmData.utm_campaign = session.metadata.utm_campaign
+    if (session.metadata?.utm_content) utmData.utm_content = session.metadata.utm_content
+    if (session.metadata?.utm_term) utmData.utm_term = session.metadata.utm_term
+
     const { error: orderError } = await supabase
       .from('orders')
-      .update({ status: 'confirmed', updated_at: new Date().toISOString() })
+      .update({
+        status: 'confirmed',
+        updated_at: new Date().toISOString(),
+        ...utmData,
+      })
       .eq('vehicle_id', vehicleId)
       .eq('status', 'created')
 
