@@ -35,6 +35,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'media.cpsimg.com' },
       { protocol: 'https', hostname: 'cdn.sanity.io' },
       { protocol: 'https', hostname: 'photos.homenetiol.com' },
+      { protocol: 'https', hostname: 'content.homenetiol.com' },
       { protocol: 'https', hostname: 'www.carpages.ca' },
     ],
   },
