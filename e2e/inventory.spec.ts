@@ -9,11 +9,13 @@ import { test, expect } from "@playwright/test"
  * Returns true if inventory loaded successfully, false if API errored.
  */
 async function waitForInventory(page: import("@playwright/test").Page): Promise<boolean> {
-  // Wait for either the success or error state
-  const success = page.getByText(/vehicles available/i).first()
-  const error = page.getByText(/Error loading inventory/i).first()
-  await expect(success.or(error)).toBeVisible({ timeout: 15_000 })
-  return await success.isVisible()
+  // Wait for either the success or error state.
+  // Use .first() on the entire OR chain to avoid strict mode when multiple
+  // elements match the same text pattern.
+  const combined = page.getByText(/vehicles available/i)
+    .or(page.getByText(/Error loading inventory/i))
+  await expect(combined.first()).toBeVisible({ timeout: 15_000 })
+  return (await page.getByText(/vehicles available/i).count()) > 0
 }
 
 test.describe("Inventory Page", () => {
@@ -67,12 +69,17 @@ test.describe("Inventory Page", () => {
   test("sort dropdown is present", async ({ page }) => {
     const loaded = await waitForInventory(page)
     if (!loaded) { return }
-    // The inventory page renders native <select> elements with aria-label="Sort vehicles".
-    // Use aria-label for a precise match; fall back to generic locators.
-    const sortControl = page.locator('select[aria-label="Sort vehicles"]').first()
-      .or(page.getByRole("combobox").first())
-      .or(page.getByText(/sort/i).first())
-    await expect(sortControl.first()).toBeVisible({ timeout: 10_000 })
+    // The inventory page renders native <select> with aria-label="Sort vehicles".
+    // In CI without Supabase the sort may be in a responsive container that
+    // is not visible at the default viewport width, so we check count first.
+    const sortControl = page.locator('select[aria-label="Sort vehicles"]')
+    if ((await sortControl.count()) === 0) {
+      // Fall back to any combobox or sort-labelled element
+      const fallback = page.getByRole("combobox").or(page.getByText(/sort/i))
+      await expect(fallback.first()).toBeVisible({ timeout: 10_000 })
+    } else {
+      await expect(sortControl.first()).toBeVisible({ timeout: 10_000 })
+    }
   })
 
   test("renders vehicle cards or no-results message", async ({ page }) => {
