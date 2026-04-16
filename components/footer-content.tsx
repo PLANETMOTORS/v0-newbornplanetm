@@ -84,19 +84,19 @@ export function FooterContent({ siteSettings }: FooterProps) {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
             <div>
               <p className="text-xl sm:text-2xl font-bold text-white">210-Point</p>
-              <p className="text-xs text-white/70">Inspection</p>
+              <p className="text-xs text-white/90">Inspection</p>
             </div>
             <div>
               <p className="text-xl sm:text-2xl font-bold text-white">10-Day</p>
-              <p className="text-xs text-white/70">Money Back</p>
+              <p className="text-xs text-white/90">Money Back</p>
             </div>
             <div>
               <p className="text-xl sm:text-2xl font-bold text-white">${depositAmount}</p>
-              <p className="text-xs text-white/70">Refundable Deposit</p>
+              <p className="text-xs text-white/90">Refundable Deposit</p>
             </div>
             <div>
               <p className="text-xl sm:text-2xl font-bold text-white">Canada-Wide</p>
-              <p className="text-xs text-white/70">Delivery</p>
+              <p className="text-xs text-white/90">Delivery</p>
             </div>
           </div>
         </div>
@@ -121,7 +121,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
                 <span className="text-white text-sm font-medium">4.8 Star Rating</span>
               </div>
 
-              <p className="text-sm text-white/80 leading-relaxed mb-6">
+              <p className="text-sm text-white/90 leading-relaxed mb-6">
                 Ontario&rsquo;s destination for certified pre-owned vehicles. Buy with confidence.
               </p>
 
@@ -130,7 +130,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
                 <FooterPhoneLink phone={siteSettings.phone} />
                 <a
                   href={`mailto:${siteSettings.email}`}
-                  className="flex items-center gap-2.5 text-sm text-white/80 hover:text-white transition-colors"
+                  className="flex items-center gap-2.5 text-sm text-white/90 hover:text-white transition-colors"
                 >
                   <Mail className="w-4 h-4 shrink-0" />
                   <span>{siteSettings.email}</span>
@@ -139,7 +139,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
                   href={siteSettings.googleMapsUrl || `https://maps.google.com/?q=${encodeURIComponent(`${siteSettings.streetAddress} ${siteSettings.city} ${siteSettings.province}`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2.5 text-sm text-white/80 hover:text-white transition-colors"
+                  className="flex items-center gap-2.5 text-sm text-white/90 hover:text-white transition-colors"
                 >
                   <MapPin className="w-4 h-4 shrink-0" />
                   <span>{siteSettings.streetAddress}, {siteSettings.city}</span>
@@ -156,7 +156,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
               <ul className="space-y-3">
                 {footerLinks.vehicles.map((link) => (
                   <li key={link.name}>
-                    <Link href={link.href} className="text-sm text-white/45 hover:text-white transition-colors">
+                    <Link href={link.href} className="text-sm text-white/60 hover:text-white transition-colors">
                       {link.name}
                     </Link>
                   </li>
@@ -170,7 +170,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
               <ul className="space-y-3">
                 {footerLinks.services.map((link) => (
                   <li key={link.name}>
-                    <Link href={link.href} className="text-sm text-white/45 hover:text-white transition-colors">
+                    <Link href={link.href} className="text-sm text-white/60 hover:text-white transition-colors">
                       {link.name}
                     </Link>
                   </li>
@@ -184,7 +184,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
               <ul className="space-y-3">
                 {footerLinks.company.map((link) => (
                   <li key={link.name}>
-                    <Link href={link.href} className="text-sm text-white/45 hover:text-white transition-colors">
+                    <Link href={link.href} className="text-sm text-white/60 hover:text-white transition-colors">
                       {link.name}
                     </Link>
                   </li>
@@ -198,7 +198,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
               <ul className="space-y-3">
                 {footerLinks.legal.map((link) => (
                   <li key={link.name}>
-                    <Link href={link.href} className="text-sm text-white/45 hover:text-white transition-colors">
+                    <Link href={link.href} className="text-sm text-white/60 hover:text-white transition-colors">
                       {link.name}
                     </Link>
                   </li>
@@ -232,7 +232,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
                 </a>
               ))}
             </div>
-            <div className="flex items-center gap-1.5 text-white/70 text-xs font-medium">
+            <div className="flex items-center gap-1.5 text-white/90 text-xs font-medium">
               <Clock className="w-3.5 h-3.5" />
               <span>{formatHoursDisplay()}</span>
             </div>
@@ -240,18 +240,18 @@ export function FooterContent({ siteSettings }: FooterProps) {
 
           {/* ── Bottom Bar: OMVIC + Legal + Copyright ── */}
           <div className="mt-6 pt-5 pb-16 sm:pb-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-white/70">
+            <div className="flex items-center gap-2 text-white/90">
               <Shield className="w-3.5 h-3.5 shrink-0" />
               <span className="text-xs font-medium">OMVIC Registered Dealer</span>
             </div>
             <div className="flex items-center gap-4">
               {footerLinks.legal.map((link) => (
-                <Link key={link.name} href={link.href} className="text-xs font-medium text-white/70 hover:text-white transition-colors">
+                <Link key={link.name} href={link.href} className="text-xs font-medium text-white/90 hover:text-white transition-colors">
                   {link.name}
                 </Link>
               ))}
             </div>
-            <p className="text-xs font-medium text-white/70">
+            <p className="text-xs font-medium text-white/90">
               &copy; {new Date().getFullYear()} {siteSettings.dealerName}. All rights reserved.
             </p>
           </div>

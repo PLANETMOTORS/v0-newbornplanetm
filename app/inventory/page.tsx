@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect, Suspense } from "react"
+import { useState, useMemo, useEffect, useRef, useCallback, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -96,16 +96,16 @@ function transformVehicle(v: Vehicle) {
   
   if (v.is_new_arrival) {
     badge = "Just Arrived"
-    badgeColor = "bg-green-500"
+    badgeColor = "bg-green-700"
   } else if (v.fuel_type === "Electric") {
     badge = "Electric"
-    badgeColor = "bg-teal-500"
+    badgeColor = "bg-teal-700"
   } else if (v.is_certified) {
     badge = "PM Certified"
     badgeColor = "bg-primary"
   } else if (priceInDollars > 100000) {
     badge = "Premium"
-    badgeColor = "bg-purple-500"
+    badgeColor = "bg-purple-700"
   }
   
   // Map fuel types for filtering
@@ -169,6 +169,22 @@ const drivetrains = ["All Drivetrains", "AWD", "FWD", "RWD", "4WD"]
 function InventoryContent() {
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState("")
+  const [searchInput, setSearchInput] = useState("")
+  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Debounce search input — only update the actual search query after 400ms of no typing
+  const handleSearchInput = useCallback((value: string) => {
+    setSearchInput(value)
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
+    searchDebounceRef.current = setTimeout(() => {
+      setSearchQuery(value)
+    }, 400)
+  }, [])
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => { if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current) }
+  }, [])
   const [selectedMake, setSelectedMake] = useState("All Makes")
   const [selectedBodyType, setSelectedBodyType] = useState("All Types")
   const [selectedFuelType, setSelectedFuelType] = useState("All Fuel Types")
@@ -328,6 +344,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
   const clearFilters = () => {
     setSearchQuery("")
+    setSearchInput("")
     setSelectedMake("All Makes")
     setSelectedBodyType("All Types")
     setSelectedFuelType("All Fuel Types")
@@ -352,16 +369,24 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
     evOnly
   ].filter(Boolean).length
 
-  // Show loading state
+  // Show loading state — use skeleton cards to minimize CLS
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
         <main className="pt-20 pb-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col items-center justify-center py-20">
-              <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
-              <p className="text-muted-foreground">Loading inventory...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 py-8">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="rounded-xl border overflow-hidden animate-pulse">
+                  <div className="aspect-[4/3] bg-muted" />
+                  <div className="p-4 space-y-3">
+                    <div className="h-5 bg-muted rounded w-3/4" />
+                    <div className="h-4 bg-muted rounded w-1/2" />
+                    <div className="h-6 bg-muted rounded w-1/3 mt-4" />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </main>
@@ -457,13 +482,13 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Search vehicles..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={searchInput}
+                  onChange={(e) => handleSearchInput(e.target.value)}
                   className="pl-10 h-11 text-base"
                 />
-                {searchQuery && (
+                {searchInput && (
                   <button
-                    onClick={() => setSearchQuery("")}
+                    onClick={() => { setSearchQuery(""); setSearchInput("") }}
                     className="absolute right-3 top-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center"
                   >
                     <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
@@ -487,6 +512,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
+                aria-label="Sort vehicles"
                 className="flex-1 h-11 px-3 border rounded-lg bg-background text-sm"
               >
                 <option value="featured">Featured</option>
@@ -522,13 +548,13 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   placeholder="Search by make, model, or keyword..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={searchInput}
+                  onChange={(e) => handleSearchInput(e.target.value)}
                   className="pl-12 h-12 text-lg"
                 />
-                {searchQuery && (
+                {searchInput && (
                   <button
-                    onClick={() => setSearchQuery("")}
+                    onClick={() => { setSearchQuery(""); setSearchInput("") }}
                     className="absolute right-4 top-1/2 -translate-y-1/2"
                   >
                     <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
@@ -554,6 +580,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
               <div className="flex border rounded-lg overflow-hidden">
                 <button
                   onClick={() => setViewMode("grid")}
+                  aria-label="Grid view"
                   className={`px-4 h-12 flex items-center gap-2 transition-colors ${
                     viewMode === "grid" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                   }`}
@@ -562,6 +589,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 </button>
                 <button
                   onClick={() => setViewMode("list")}
+                  aria-label="List view"
                   className={`px-4 h-12 flex items-center gap-2 transition-colors ${
                     viewMode === "list" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                   }`}
@@ -574,6 +602,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
+                aria-label="Sort vehicles"
                 className="h-12 px-4 border rounded-lg bg-background min-w-[180px]"
               >
                 <option value="featured">Featured</option>
@@ -771,7 +800,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
           </div>
 
           {/* Vehicle Grid — content-visibility virtualizes off-screen cards */}
-          <div className={`py-8 ${viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "space-y-4"}`}>
+          <div aria-live="polite" className={`py-8 ${viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "space-y-4"}`}>
             {sortedVehicles.map((vehicle) => (
               <div
                 key={vehicle.id}
@@ -780,13 +809,20 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   containIntrinsicSize: viewMode === "list" ? "auto 200px" : "auto 420px",
                 }}
               >
-              <Card 
+              <Card
+                data-testid="inventory-card"
                 className={`group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${
                   viewMode === "list" ? "flex flex-col sm:flex-row" : ""
                 }`}
               >
-                {/* Image with gradient fallback */}
+                {/* Image with gradient fallback — entire image area is clickable */}
                 <div className={`relative bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] ${viewMode === "list" ? "w-full sm:w-48 md:w-72 flex-shrink-0 aspect-[4/3] sm:aspect-auto" : "aspect-[4/3]"}`}>
+                  {/* Clickable image link to VDP */}
+                  <Link
+                    href={tradeInInfo ? `/vehicles/${vehicle.id}?tradeIn=${tradeInInfo.value}&quoteId=${tradeInInfo.quoteId}&tradeInVehicle=${encodeURIComponent(tradeInInfo.vehicle)}` : `/vehicles/${vehicle.id}`}
+                    className="absolute inset-0 z-[1]"
+                    aria-label={`View ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                  />
                   {vehicle.image ? (
                     <Image
                       src={vehicle.image}
@@ -806,28 +842,29 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     </div>
                   )}
                   
-                  {/* Badges */}
-                  <div className="absolute top-3 left-3 flex flex-col gap-2">
+                  {/* Badges — z-[2] to sit above the image link */}
+                  <div className="absolute top-3 left-3 flex flex-col gap-2 z-[2] pointer-events-none">
                     <Badge className={`${vehicle.badgeColor} text-white shadow-lg`}>
                       {vehicle.badge}
                     </Badge>
                     {vehicle.fuelType === "Electric" && (
-                      <Badge className="bg-green-500 text-white shadow-lg">
+                      <Badge className="bg-green-700 text-white shadow-lg">
                         <Battery className="w-3 h-3 mr-1" />
                         {vehicle.batteryHealth}% Battery
                       </Badge>
                     )}
                     {/* PM Certified Badge */}
-                    <Badge className="bg-teal-600 text-white shadow-lg">
+                    <Badge className="bg-teal-700 text-white shadow-lg">
                       <Shield className="w-3 h-3 mr-1" />
                       PM Certified
                     </Badge>
                   </div>
 
-                  {/* Actions */}
-                  <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {/* Actions — z-[2] to sit above the image link */}
+                  <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-[2]">
                     <button
                       onClick={() => toggleFavorite(vehicle)}
+                      aria-label={isFavorite(vehicle.id) ? "Remove from favorites" : "Add to favorites"}
                       className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
                         isFavorite(vehicle.id)
                           ? "bg-red-500 text-white"
@@ -845,7 +882,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                         price: vehicle.price
                       }}
                       trigger={
-                        <button className="w-9 h-9 bg-background/90 rounded-full flex items-center justify-center hover:bg-background">
+                        <button aria-label="Set price alert" className="w-9 h-9 bg-background/90 rounded-full flex items-center justify-center hover:bg-background">
                           <Bell className="w-4 h-4" />
                         </button>
                       }
@@ -866,7 +903,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   <div>
                     {/* Title */}
                     <Link href={tradeInInfo ? `/vehicles/${vehicle.id}?tradeIn=${tradeInInfo.value}&quoteId=${tradeInInfo.quoteId}&tradeInVehicle=${encodeURIComponent(tradeInInfo.vehicle)}` : `/vehicles/${vehicle.id}`} className="block group/link">
-                      <h3 className="font-semibold text-lg group-hover/link:text-primary transition-colors">
+                      <h3 data-testid="card-title" className="font-semibold text-lg group-hover/link:text-primary transition-colors">
                         {vehicle.year} {vehicle.make} {vehicle.model}
                       </h3>
                       <p className="text-sm text-muted-foreground">{vehicle.trim}</p>
@@ -903,8 +940,8 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                     {/* Inspection Score */}
                     <div className="flex items-center gap-2 mt-3">
-                      <Shield className="w-4 h-4 text-green-500" />
-                      <span className="text-sm text-green-600 font-medium">
+                      <Shield className="w-4 h-4 text-green-700" />
+                      <span className="text-sm text-green-700 font-medium">
                         {vehicle.inspectionScore}/210 Inspection Score
                       </span>
                     </div>
@@ -939,7 +976,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     </div>
                     
                     {vehicle.originalPrice > vehicle.price && (
-                      <div className="mt-2 flex items-center gap-1 text-sm text-green-600">
+                      <div className="mt-2 flex items-center gap-1 text-sm text-green-700">
                         <TrendingUp className="w-3 h-3" />
                         Save ${(vehicle.originalPrice - vehicle.price).toLocaleString()}
                       </div>

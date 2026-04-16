@@ -93,7 +93,7 @@ export function HowItWorks() {
                 <ul className="space-y-2">
                   {item.features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-sm">
-                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <CheckCircle className="w-4 h-4 text-green-700 flex-shrink-0" />
                       <span className="text-muted-foreground">{feature}</span>
                     </li>
                   ))}
@@ -128,7 +128,7 @@ export function HowItWorks() {
                   <ul className="space-y-1">
                     {item.features.map((feature) => (
                       <li key={feature} className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
+                        <CheckCircle className="w-3 h-3 text-green-700 flex-shrink-0" />
                         {feature}
                       </li>
                     ))}

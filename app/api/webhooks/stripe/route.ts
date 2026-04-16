@@ -209,7 +209,7 @@ export async function handleCheckoutSessionCompleted(
     const { data: transitioned, error: vehicleError } = await supabase
       .rpc('transition_vehicle_status', {
         p_vehicle_id: vehicleId,
-        p_from_statuses: ['available', 'reserved', 'pending'],
+        p_from_statuses: ['available', 'reserved', 'pending', 'checkout_in_progress'],
         p_to_status: 'pending',
       })
 
@@ -252,7 +252,7 @@ export async function handleCheckoutSessionAsyncPaymentFailed(
     const { data: transitioned, error: vehicleError } = await supabase
       .rpc('transition_vehicle_status', {
         p_vehicle_id: vehicleId,
-        p_from_statuses: ['reserved'],
+        p_from_statuses: ['reserved', 'checkout_in_progress'],
         p_to_status: 'available',
       })
 
@@ -293,7 +293,7 @@ export async function handleCheckoutSessionExpired(
     const { data: transitioned, error: vehicleError } = await supabase
       .rpc('transition_vehicle_status', {
         p_vehicle_id: vehicleId,
-        p_from_statuses: ['reserved'],
+        p_from_statuses: ['reserved', 'checkout_in_progress'],
         p_to_status: 'available',
       })
 
@@ -333,7 +333,7 @@ export async function handlePaymentIntentFailed(
     const { data: transitioned, error: vehicleError } = await supabase
       .rpc('transition_vehicle_status', {
         p_vehicle_id: vehicleId,
-        p_from_statuses: ['reserved'],
+        p_from_statuses: ['reserved', 'checkout_in_progress'],
         p_to_status: 'available',
       })
 

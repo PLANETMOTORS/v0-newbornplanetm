@@ -101,7 +101,7 @@ describe('searchVehicles — price stored in cents, returned in dollars', () => 
     const gteArgs = mockChain.getCallArgs('gte')
     const priceGte = gteArgs.find(a => a[0] === 'price')
     expect(priceGte).toBeDefined()
-    expect(priceGte![1]).toBe(20000 * 100)
+    expect(priceGte?.[1]).toBe(20000 * 100)
   })
 
   it('converts price_max from dollars to cents before querying the DB', async () => {
@@ -109,7 +109,7 @@ describe('searchVehicles — price stored in cents, returned in dollars', () => 
     const lteArgs = mockChain.getCallArgs('lte')
     const priceLte = lteArgs.find(a => a[0] === 'price')
     expect(priceLte).toBeDefined()
-    expect(priceLte![1]).toBe(35000 * 100)
+    expect(priceLte?.[1]).toBe(35000 * 100)
   })
 
   it('returns vehicle price in dollars (divided by 100)', async () => {
@@ -257,14 +257,14 @@ describe('searchVehicles — filters', () => {
     const inArgs = mockChain.getCallArgs('in')
     const makeIn = inArgs.find(a => a[0] === 'make')
     expect(makeIn).toBeDefined()
-    expect(makeIn![1]).toEqual(['Honda'])
+    expect(makeIn?.[1]).toEqual(['Honda'])
   })
 
   it('applies make filter with an array of values', async () => {
     await searchVehicles({ make: ['Toyota', 'Honda'] })
     const inArgs = mockChain.getCallArgs('in')
     const makeIn = inArgs.find(a => a[0] === 'make')
-    expect(makeIn![1]).toEqual(['Toyota', 'Honda'])
+    expect(makeIn?.[1]).toEqual(['Toyota', 'Honda'])
   })
 
   it('does not apply make filter when make is not supplied', async () => {
@@ -277,63 +277,63 @@ describe('searchVehicles — filters', () => {
     await searchVehicles({ year_min: 2020 })
     const gteArgs = mockChain.getCallArgs('gte')
     const yearGte = gteArgs.find(a => a[0] === 'year')
-    expect(yearGte![1]).toBe(2020)
+    expect(yearGte?.[1]).toBe(2020)
   })
 
   it('applies year_max filter', async () => {
     await searchVehicles({ year_max: 2023 })
     const lteArgs = mockChain.getCallArgs('lte')
     const yearLte = lteArgs.find(a => a[0] === 'year')
-    expect(yearLte![1]).toBe(2023)
+    expect(yearLte?.[1]).toBe(2023)
   })
 
   it('applies mileage_max filter', async () => {
     await searchVehicles({ mileage_max: 50000 })
     const lteArgs = mockChain.getCallArgs('lte')
     const mileLte = lteArgs.find(a => a[0] === 'mileage')
-    expect(mileLte![1]).toBe(50000)
+    expect(mileLte?.[1]).toBe(50000)
   })
 
   it('applies is_ev boolean filter', async () => {
     await searchVehicles({ is_ev: true })
     const eqArgs = mockChain.getCallArgs('eq')
     const evEq = eqArgs.find(a => a[0] === 'is_ev')
-    expect(evEq![1]).toBe(true)
+    expect(evEq?.[1]).toBe(true)
   })
 
   it('applies is_certified boolean filter', async () => {
     await searchVehicles({ is_certified: false })
     const eqArgs = mockChain.getCallArgs('eq')
     const certEq = eqArgs.find(a => a[0] === 'is_certified')
-    expect(certEq![1]).toBe(false)
+    expect(certEq?.[1]).toBe(false)
   })
 
   it('applies fuel_type filter with array values', async () => {
     await searchVehicles({ fuel_type: ['Electric', 'Hybrid'] })
     const inArgs = mockChain.getCallArgs('in')
     const ftIn = inArgs.find(a => a[0] === 'fuel_type')
-    expect(ftIn![1]).toEqual(['Electric', 'Hybrid'])
+    expect(ftIn?.[1]).toEqual(['Electric', 'Hybrid'])
   })
 
   it('applies body_style filter', async () => {
     await searchVehicles({ body_style: 'SUV' })
     const inArgs = mockChain.getCallArgs('in')
     const bsIn = inArgs.find(a => a[0] === 'body_style')
-    expect(bsIn![1]).toEqual(['SUV'])
+    expect(bsIn?.[1]).toEqual(['SUV'])
   })
 
   it('applies drivetrain filter', async () => {
     await searchVehicles({ drivetrain: ['AWD', '4WD'] })
     const inArgs = mockChain.getCallArgs('in')
     const dtIn = inArgs.find(a => a[0] === 'drivetrain')
-    expect(dtIn![1]).toEqual(['AWD', '4WD'])
+    expect(dtIn?.[1]).toEqual(['AWD', '4WD'])
   })
 
   it('always filters by status = available', async () => {
     await searchVehicles({})
     const eqArgs = mockChain.getCallArgs('eq')
     const statusEq = eqArgs.find(a => a[0] === 'status')
-    expect(statusEq![1]).toBe('available')
+    expect(statusEq?.[1]).toBe('available')
   })
 })
 
@@ -354,9 +354,9 @@ describe('searchVehicles — facet_counts', () => {
     expect(makeFacet).toBeDefined()
     // Toyota (2) > Honda (2) — sort is stable by insertion when counts tie, but
     // the sort is by count descending; both Toyota and Honda have count 2
-    const counts = makeFacet!.counts.map(c => c.count)
+    const counts = makeFacet?.counts.map(c => c.count)
     expect(counts[0]).toBeGreaterThanOrEqual(counts[counts.length - 1])
-    expect(makeFacet!.counts).toContainEqual({ value: 'BMW', count: 1 })
+    expect(makeFacet?.counts).toContainEqual({ value: 'BMW', count: 1 })
   })
 
   it('builds fuel_type facets and ignores null fuel_type values', async () => {
@@ -370,9 +370,9 @@ describe('searchVehicles — facet_counts', () => {
     const ftFacet = result.facet_counts?.find(f => f.field_name === 'fuel_type')
     expect(ftFacet).toBeDefined()
     // null should not appear in facet values
-    expect(ftFacet!.counts.map(c => c.value)).not.toContain(null)
-    expect(ftFacet!.counts).toContainEqual({ value: 'Electric', count: 2 })
-    expect(ftFacet!.counts).toContainEqual({ value: 'Gasoline', count: 1 })
+    expect(ftFacet?.counts.map(c => c.value)).not.toContain(null)
+    expect(ftFacet?.counts).toContainEqual({ value: 'Electric', count: 2 })
+    expect(ftFacet?.counts).toContainEqual({ value: 'Gasoline', count: 1 })
   })
 
   it('returns facet_counts as an array in the response', async () => {

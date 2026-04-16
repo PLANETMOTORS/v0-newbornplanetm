@@ -29,6 +29,7 @@ import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import dynamic from 'next/dynamic'
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 import { startVehicleCheckout } from "@/app/actions/stripe"
+import { OMVIC_FEE, CERTIFICATION_FEE, LICENSING_FEE } from "@/lib/pricing/format"
 
 // Lazy-load Stripe — only fetched when user reaches payment step
 const EmbeddedCheckoutProvider = dynamic(
@@ -155,10 +156,10 @@ export default function CheckoutPage() {
 
   const vehiclePrice = vehicleData.price
   const protectionPrice = PROTECTION_PLANS.find(p => p.id === selectedProtection)?.price || 0
-  const omvicFee = 22 // OMVIC regulatory fee
-  const certificationFee = 595 // Safety certification
+  const omvicFee = OMVIC_FEE
+  const certificationFee = CERTIFICATION_FEE
   const financeDocsFee = 895 // Finance docs fee (only applies if financing)
-  const licensingFee = 59 // Ontario licensing & registration (estimated)
+  const licensingFee = LICENSING_FEE
   // Dynamic delivery fee based on postal code distance (free within 300km)
   const deliveryFee = deliveryType === "delivery"
     ? (deliveryQuote?.cost ?? 299)

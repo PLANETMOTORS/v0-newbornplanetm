@@ -222,10 +222,20 @@ html {
 
 /* Mobile-friendly button sizes - exclude inline elements */
 @layer base {
-  button:not(.inline-btn), 
-  a:not(.inline-link), 
+  button:not(.inline-btn),
+  a:not(.inline-link),
   [role="button"]:not(.inline-btn) {
     min-height: auto;
     min-width: auto;
+  }
+}
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

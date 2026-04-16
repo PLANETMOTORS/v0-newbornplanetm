@@ -44,7 +44,7 @@ export async function GET(_request: NextRequest) {
 // pre-composed characters (e.g. "ắ") are matched as a single \p{L} code point;
 // combining marks (\p{M}) are intentionally excluded to prevent homograph attacks.
 const NAME_RE = /^[\p{L}'\s-]{1,50}$/u
-const PHONE_RE = /^[+\d\s().\-]{0,20}$/
+const PHONE_RE = /^[+\d\s().-]{0,20}$/
 
 // PUT /api/v1/customers/me - Update customer profile
 export async function PUT(request: NextRequest) {
@@ -98,6 +98,7 @@ export async function PUT(request: NextRequest) {
     if (upsertError) {
       return apiError(ErrorCode.INTERNAL_ERROR, "Failed to update customer")
     }
+
 
     return apiSuccess({
       customer: {

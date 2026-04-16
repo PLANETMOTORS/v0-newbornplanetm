@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabase/config'
+import { getSupabaseAnonKey, getSupabasePooledUrl, getSupabaseUrl } from '@/lib/supabase/config'
 
 type CookieMutation = {
   name: string
@@ -9,7 +9,9 @@ type CookieMutation = {
 }
 
 export async function createClient() {
-  const supabaseUrl = getSupabaseUrl()
+  // Prefer the pooled URL (?pgbouncer=true) for server-side connections to reduce
+  // direct Postgres connection pressure under high concurrency.
+  const supabaseUrl = getSupabasePooledUrl() || getSupabaseUrl()
   const supabaseAnonKey = getSupabaseAnonKey()
 
   if (!supabaseUrl || !supabaseAnonKey) {

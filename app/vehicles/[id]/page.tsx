@@ -12,16 +12,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 
 import { Input } from "@/components/ui/input"
-import { 
+import {
   ChevronLeft, ChevronRight, Heart, Share2, Fuel, Gauge,
   Settings, Shield, CheckCircle, Car,
   FileText, Zap, DollarSign, CreditCard,
   Phone, Star, TrendingUp, Users,
   Battery, LockKeyhole, Truck, ArrowRight, Play,
   Download, ExternalLink, Check, Expand,
-  Key
+  Key, RotateCw
 } from "lucide-react"
 
+import { VehicleSpinViewer } from "@/components/vehicle-spin-viewer"
 import { VehicleJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
 import { SimilarVehicles } from "@/components/similar-vehicles"
 import { ReserveVehicleModal } from "@/components/reserve-vehicle-modal"
@@ -41,6 +42,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { trackProductView, trackPhoneClick } from "@/components/analytics/google-tag-manager"
+import { calculateAllInPrice } from "@/lib/pricing/format"
 import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
 import { trackMetaViewContent, trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
 
@@ -330,15 +332,18 @@ const vehicleData = {
       price: "$4,850"
     }
   ],
-  pricing: {
-    vehiclePrice: 52990,
-    deliveryFee: 0,
-    hst: 6889,
-    omvicFee: 22,
-    certificationFee: 595,
-    licensingReg: 59,
-    totalWithHst: 60555
-  },
+  pricing: (() => {
+    const breakdown = calculateAllInPrice(52990)
+    return {
+      vehiclePrice: breakdown.vehiclePrice,
+      deliveryFee: 0,
+      hst: breakdown.hst,
+      omvicFee: breakdown.omvicFee,
+      certificationFee: breakdown.certificationFee,
+      licensingReg: breakdown.licensingFee,
+      totalWithHst: breakdown.total,
+    }
+  })(),
   history: {
     owners: 1,
     accidents: 0,
@@ -356,11 +361,13 @@ export default function VehicleDetailPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Complex merged mock+DB vehicle shape
   const [vehicle, setVehicle] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [loadError, _setLoadError] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isFavorite, setIsFavorite] = useState(false)
   const [activeTab, setActiveTab] = useState("photos")
-  const [imageType, setImageType] = useState<"exterior" | "interior">("exterior")
+  const [imageType, setImageType] = useState<"exterior" | "interior" | "360">("exterior")
+  const [isSpinning, setIsSpinning] = useState(false)
+  const [spinFrame, setSpinFrame] = useState(0)
   const [postalCode, setPostalCode] = useState("")
   const [isCheckingDelivery, setIsCheckingDelivery] = useState(false)
   const [deliveryError, setDeliveryError] = useState("")
@@ -378,12 +385,12 @@ export default function VehicleDetailPage() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [authAction, setAuthAction] = useState("")
 
-  
+
   // Trade-in from AI Quote
   const tradeInValue = searchParams.get("tradeIn")
   const tradeInQuoteId = searchParams.get("quoteId")
   const tradeInVehicle = searchParams.get("tradeInVehicle")
-  
+
   // Helper to build finance link with trade-in info
   const getFinanceLink = (vehicleId: string) => {
     if (tradeInValue && parseInt(tradeInValue) > 0) {
@@ -396,7 +403,7 @@ export default function VehicleDetailPage() {
     }
     return `/finance/${vehicleId}`
   }
-  
+
   // Fetch vehicle from API — benefits from CDN s-maxage=300 caching
   useEffect(() => {
     if (!vehicleId) return
@@ -410,17 +417,19 @@ export default function VehicleDetailPage() {
         if (data) {
           // API already returns price in dollars (divided by 100 server-side)
           const price = typeof data.price === 'number' ? data.price : 0
-          const omvicFee = 22
-          const certificationFee = 595
-          const licensingFee = 59
-          const subtotalForHst = price + omvicFee + certificationFee + licensingFee
-          const hst = subtotalForHst * PROVINCE_TAX_RATES.ON.hst
+          const breakdown = calculateAllInPrice(price)
           // Build image list: prefer image_urls array, fall back to primary_image_url, then mocks
           const rawImages: string[] = Array.isArray(data.image_urls) && data.image_urls.length > 0
             ? data.image_urls
             : data.primary_image_url
               ? [data.primary_image_url]
               : vehicleData.images
+          // Split images: HomeNet convention — exterior photos first, interior photos last
+          // Roughly 60% exterior, 40% interior for typical 30-40 image sets
+          const splitIndex = rawImages.length > 10 ? Math.ceil(rawImages.length * 0.6) : rawImages.length
+          const exteriorImgs = rawImages.slice(0, splitIndex)
+          const interiorImgs = rawImages.length > 10 ? rawImages.slice(splitIndex) : []
+
           setVehicle({
             ...vehicleData, // Keep mock inspection data as fallback
             id: data.id,
@@ -438,25 +447,26 @@ export default function VehicleDetailPage() {
             bodyStyle: data.body_style,
             vin: data.vin,
             stockNumber: data.stock_number,
-            images: rawImages,
+            images: exteriorImgs,
+            interiorImages: interiorImgs,
             pricing: {
-              vehiclePrice: price,
+              vehiclePrice: breakdown.vehiclePrice,
               deliveryFee: 0,
-              hst: Math.round(hst),
-              omvicFee,
-              certificationFee,
-              licensingReg: licensingFee,
-              totalWithHst: Math.round(price + hst + omvicFee + certificationFee + licensingFee)
+              hst: breakdown.hst,
+              omvicFee: breakdown.omvicFee,
+              certificationFee: breakdown.certificationFee,
+              licensingReg: breakdown.licensingFee,
+              totalWithHst: breakdown.total,
             }
           })
         } else {
-          setVehicle(vehicleData)
+          setLoadError("Unable to load vehicle details. Please try again later.")
         }
         setIsLoading(false)
       })
       .catch(() => {
         if (!cancelled) {
-          setVehicle(vehicleData)
+          setLoadError("Unable to load vehicle details. Please try again later.")
           setIsLoading(false)
         }
       })
@@ -490,6 +500,18 @@ export default function VehicleDetailPage() {
       make: vehicle.make,
     })
   }, [vehicle, isLoading])
+
+
+  // 360 spin: use ALL images (exterior + interior combined)
+  const allImages = [...(vehicle?.images || []), ...(vehicle?.interiorImages || [])]
+  const has360 = allImages.length >= 15
+  useEffect(() => {
+    if (!isSpinning || imageType !== "360") return
+    const interval = setInterval(() => {
+      setSpinFrame((prev) => (prev + 1) % allImages.length)
+    }, 150)
+    return () => clearInterval(interval)
+  }, [isSpinning, imageType, allImages.length])
 
   const handleProtectedAction = (action: string, callback?: () => void) => {
     if (!user) {
@@ -560,13 +582,23 @@ export default function VehicleDetailPage() {
 
 
   const nextImage = () => {
-    const images = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
-    setCurrentImageIndex((prev) => (prev + 1) % images.length)
+    if (imageType === "360") {
+      setIsSpinning(false)
+      setSpinFrame((prev) => (prev + 1) % allImages.length)
+    } else {
+      const images = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
+      setCurrentImageIndex((prev) => (prev + 1) % images.length)
+    }
   }
 
   const prevImage = () => {
-    const images = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
+    if (imageType === "360") {
+      setIsSpinning(false)
+      setSpinFrame((prev) => (prev - 1 + allImages.length) % allImages.length)
+    } else {
+      const images = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
+      setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
+    }
   }
 
   // Show loading state
@@ -607,9 +639,10 @@ export default function VehicleDetailPage() {
     )
   }
 
-  const currentImages: string[] = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
+  const currentImages: string[] = imageType === "360" ? allImages : imageType === "exterior" ? vehicle.images : vehicle.interiorImages
+  const activeIndex = imageType === "360" ? spinFrame : currentImageIndex
 
-  
+
   // Finance calculation: Vehicle Price + $895 Admin Fee (Finance Docs Set-up)
   const FINANCE_ADMIN_FEE = 895
   const financeSubtotal = vehicle.price + FINANCE_ADMIN_FEE
@@ -632,6 +665,10 @@ export default function VehicleDetailPage() {
           color: vehicle.exteriorColor,
           fuelType: vehicle.fuelType,
           transmission: vehicle.transmission,
+          engine: vehicle.engine,
+          drivetrain: vehicle.drivetrain,
+          bodyStyle: vehicle.bodyStyle,
+          stockNumber: vehicle.stockNumber,
           image: vehicle.images?.[0] || "",
           description: `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim || ""} for sale at Planet Motors`.trim(),
           condition: "used",
@@ -667,7 +704,7 @@ export default function VehicleDetailPage() {
       </div>
     </div>
   )}
-  
+
   {/* Breadcrumb */}
         <nav className="bg-muted/30 py-3 border-b" aria-label="Breadcrumb">
           <div className="container mx-auto px-4 overflow-x-auto scrollbar-hide">
@@ -692,7 +729,7 @@ export default function VehicleDetailPage() {
         {/* Vehicle Title Bar */}
         <div className="border-b py-4">
           <div className="container mx-auto px-4">
-            <h1 className="font-serif text-xl sm:text-2xl font-bold truncate">
+            <h1 data-testid="vdp-title" className="font-serif text-xl sm:text-2xl font-bold truncate">
               {vehicle.year} {vehicle.make} {vehicle.model}
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground">
@@ -729,11 +766,32 @@ export default function VehicleDetailPage() {
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
-                  <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] group">
-                    {currentImages.length > 0 && currentImages[currentImageIndex] ? (
+                  {/* 360° Interactive Spin Viewer */}
+                  {imageType === "360" ? (
+                    <VehicleSpinViewer
+                      images={allImages}
+                      alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                    />
+                  ) : (
+                  <div
+                    data-testid="vdp-image-gallery"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowRight") { nextImage(); e.preventDefault() }
+                      if (e.key === "ArrowLeft") { prevImage(); e.preventDefault() }
+                    }}
+                    className="relative aspect-[16/10] rounded-xl overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] group focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    {/* Hidden native img for vdp-active-image testid (Playwright getAttribute('src')) */}
+                    {currentImages.length > 0 && currentImages[activeIndex] && (
+                      // eslint-disable-next-line @next/next/no-img-element -- intentional: Playwright tests read src via getAttribute
+                      <img data-testid="vdp-active-image" src={currentImages[activeIndex]} alt="" className="hidden" />
+                    )}
+                    {currentImages.length > 0 && currentImages[activeIndex] ? (
                       <>
                         <Image
-                          src={currentImages[currentImageIndex]}
+                          data-testid="vdp-hero-image"
+                          src={currentImages[activeIndex]}
                           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                           fill
                           className="object-cover"
@@ -745,7 +803,7 @@ export default function VehicleDetailPage() {
                         />
                         {/* Expand Button — opens image in new tab */}
                         <button
-                          onClick={() => window.open(currentImages[currentImageIndex], "_blank")}
+                          onClick={() => window.open(currentImages[activeIndex], "_blank")}
                           className="absolute top-4 right-4 w-10 h-10 bg-background/80 backdrop-blur rounded-lg flex items-center justify-center hover:bg-background transition"
                           aria-label="View full-size image"
                         >
@@ -758,38 +816,59 @@ export default function VehicleDetailPage() {
                         <p className="text-sm text-muted-foreground">Photos coming soon</p>
                       </div>
                     )}
-                    
+
                     {/* Navigation Arrows */}
                     <button
                       onClick={prevImage}
+                      aria-label="Previous image"
                       className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
                     >
                       <ChevronLeft className="h-5 w-5" />
                     </button>
                     <button
                       onClick={nextImage}
+                      aria-label="Next image"
                       className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
                     >
                       <ChevronRight className="h-5 w-5" />
                     </button>
                   </div>
+                  )}
 
                   {/* Image Type Toggle */}
                   <div className="flex gap-2 flex-wrap overflow-x-auto scrollbar-hide pb-1">
-                    <Button 
-                      variant={imageType === "exterior" ? "default" : "outline"} 
+                    <Button
+                      variant={imageType === "exterior" ? "default" : "outline"}
                       size="sm"
-                      onClick={() => { setImageType("exterior"); setCurrentImageIndex(0) }}
+                      onClick={() => { setImageType("exterior"); setCurrentImageIndex(0); setIsSpinning(false) }}
                     >
                       Exterior
                     </Button>
-                    <Button 
-                      variant={imageType === "interior" ? "default" : "outline"} 
-                      size="sm"
-                      onClick={() => { setImageType("interior"); setCurrentImageIndex(0) }}
-                    >
-                      Interior
-                    </Button>
+                    {vehicle.interiorImages.length > 0 && (
+                      <Button
+                        variant={imageType === "interior" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => { setImageType("interior"); setCurrentImageIndex(0); setIsSpinning(false) }}
+                      >
+                        Interior
+                      </Button>
+                    )}
+                    {has360 && (
+                      <Button
+                        variant={imageType === "360" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                          setImageType("360")
+                          setSpinFrame(0)
+                          setCurrentImageIndex(0)
+                          setIsSpinning(true)
+                        }}
+                        className="gap-1"
+                      >
+                        <RotateCw className="h-3.5 w-3.5" />
+                        360°
+                      </Button>
+                    )}
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button variant="outline" size="sm" className="gap-2">
@@ -827,20 +906,24 @@ export default function VehicleDetailPage() {
                     </Dialog>
                   </div>
 
-                  {/* Thumbnails */}
-                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                    {currentImages.map((img: string, i: number) => (
-                      <button
-                        key={i}
-                        onClick={() => setCurrentImageIndex(i)}
-                        className={`relative w-16 sm:w-20 h-12 sm:h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
-                          i === currentImageIndex ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"
-                        }`}
-                      >
-                        <Image src={img} alt="" fill className="object-cover" sizes="80px" />
-                      </button>
-                    ))}
-                  </div>
+                  {/* Thumbnails (hidden in 360 mode — too many frames) */}
+                  {imageType !== "360" && (
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                      {currentImages.map((img: string, i: number) => (
+                        <button
+                          key={i}
+                          onClick={() => setCurrentImageIndex(i)}
+                          aria-label={`View image ${i + 1} of ${currentImages.length}`}
+                          className={`relative w-16 sm:w-20 h-12 sm:h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
+                            i === activeIndex ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"
+                          }`}
+                        >
+                          <Image src={img} alt="" fill className="object-cover" sizes="80px" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
 
                   {/* Trade and Upgrade CTA */}
                   <Card className="bg-primary text-primary-foreground">
@@ -1045,7 +1128,7 @@ export default function VehicleDetailPage() {
                 {/* Features Tab */}
                 <TabsContent value="features" className="mt-0 space-y-6">
                   <h2 className="text-xl font-semibold">Features and specs</h2>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Features */}
                     <Card>
@@ -1179,7 +1262,7 @@ export default function VehicleDetailPage() {
                         </div>
                         <DialogTitle className="text-xl">210-Point Inspection Report</DialogTitle>
                       </DialogHeader>
-                      
+
                       {/* Category Grid */}
                       <div className="grid grid-cols-3 md:grid-cols-5 gap-2 py-4">
                         {vehicleData.inspectionCategories.map((cat, i) => (
@@ -1440,7 +1523,7 @@ export default function VehicleDetailPage() {
                 {/* Pricing Tab */}
                 <TabsContent value="pricing" className="mt-0 space-y-6">
                   <h2 className="font-serif text-2xl font-bold text-center">Price Details</h2>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Pay Over Time - Includes $895 Finance Docs Fee */}
                     <Card>
@@ -1604,7 +1687,7 @@ export default function VehicleDetailPage() {
                 {/* ARCHIVED: Ratings Tab - Commented out per request
                 <TabsContent value="ratings" className="mt-0 space-y-6">
                   <h2 className="text-xl font-semibold">Our rating</h2>
-                  
+
                   <Card>
                     <CardContent className="p-6">
                       <div className="flex items-start gap-6">
@@ -1617,14 +1700,14 @@ export default function VehicleDetailPage() {
                           <p className="text-muted-foreground">{vehicleData.ratings.description}</p>
                         </div>
                       </div>
-                      
+
                       <div className="mt-6 space-y-3">
                         {vehicleData.ratings.categories.map((cat, i) => (
                           <div key={i} className="flex items-center gap-4">
                             <span className="w-24 text-sm text-muted-foreground">{cat.name}</span>
                             <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                              <div 
-                                className="h-full bg-primary rounded-full" 
+                              <div
+                                className="h-full bg-primary rounded-full"
                                 style={{ width: `${(cat.score / 5) * 100}%` }}
                               />
                             </div>
@@ -1645,7 +1728,7 @@ export default function VehicleDetailPage() {
                       This vehicle&apos;s manufacturer warranty has expired. But don&apos;t worry, we have options for you to stay covered!
                     </p>
                   </div>
-                  
+
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
@@ -1778,7 +1861,7 @@ export default function VehicleDetailPage() {
                     </div>
                     <div className="md:w-2/3">
                       <p className="text-lg italic">
-                        &ldquo;Hamza was absolutely amazing — super professional, no pressure, walked me through every step. 
+                        &ldquo;Hamza was absolutely amazing — super professional, no pressure, walked me through every step.
                         The car was exactly as described and delivered right to my door. Planet Motors is the real deal.&rdquo;
                       </p>
                       <div className="mt-4">
@@ -1851,7 +1934,7 @@ export default function VehicleDetailPage() {
                         }
                       />
                     ) : (
-                      <Button 
+                      <Button
                         className="w-full h-11 bg-red-600 hover:bg-red-700 text-white"
                         onClick={() => handleProtectedAction("reserve this vehicle")}
                       >
@@ -1859,14 +1942,15 @@ export default function VehicleDetailPage() {
                         Reserve – $250 Refundable Deposit
                       </Button>
                     )}
-                    <Button 
-                      className="w-full h-11" 
+                    <Button
+                      data-testid="btn-start-purchase"
+                      className="w-full h-11"
                       variant="secondary"
-                      onClick={() => handleProtectedAction("start your purchase", () => {
-                        window.location.href = `/checkout/${vehicle.id}`
-                      })}
+                      asChild
                     >
-                      Start full purchase
+                      <a href={`/checkout/${vehicle.id}`}>
+                        Start full purchase
+                      </a>
                     </Button>
                   </div>
 
@@ -1877,29 +1961,29 @@ export default function VehicleDetailPage() {
                   {/* AI Features Section */}
                   <div className="mt-4 pt-4 border-t space-y-3">
                     <h4 className="text-sm font-medium text-muted-foreground">AI-POWERED FEATURES</h4>
-                    
+
                     {/* AI Price Negotiator */}
-                    <PriceNegotiator 
-                      vehicleId={vehicle.id} 
-                      vehiclePrice={vehicle.price} 
-                      vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`} 
+                    <PriceNegotiator
+                      vehicleId={vehicle.id}
+                      vehiclePrice={vehicle.price}
+                      vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                     />
-                    
+
                     {/* Live Video Call */}
-                    <LiveVideoCall 
-                      vehicleId={vehicle.id} 
-                      vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`} 
+                    <LiveVideoCall
+                      vehicleId={vehicle.id}
+                      vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                     />
-                    
+
                     {/* Price Drop Alert */}
-                    <PriceDropAlert 
-                      vehicleId={vehicle.id} 
-                      vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`} 
-                      currentPrice={vehicle.price} 
+                    <PriceDropAlert
+                      vehicleId={vehicle.id}
+                      vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                      currentPrice={vehicle.price}
                     />
-                    
+
                     {/* Add to Compare */}
-                    <AddToCompare 
+                    <AddToCompare
                       vehicle={{
                         id: vehicle.id,
                         name: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
@@ -1907,7 +1991,7 @@ export default function VehicleDetailPage() {
                         image: vehicle.images?.[0] || "/placeholder.jpg",
                         mileage: vehicle.mileage,
                         year: vehicle.year
-                      }} 
+                      }}
                     />
                   </div>
 
@@ -1917,8 +2001,8 @@ export default function VehicleDetailPage() {
                       <Share2 className="w-4 h-4 mr-1" />
                       Share
                     </Button>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
                       onClick={() => {
                         if (!isFavorite && vehicle) {
@@ -1960,8 +2044,8 @@ export default function VehicleDetailPage() {
                       Delivery Calculator
                     </p>
                     <div className="flex gap-2">
-                      <Input 
-                        placeholder="Enter postal code (e.g. L4C 1G7)" 
+                      <Input
+                        placeholder="Enter postal code (e.g. L4C 1G7)"
                         value={postalCode}
                         onChange={(e) => setPostalCode(normalizePostalCode(e.target.value))}
                         onKeyDown={(e) => {
@@ -2012,7 +2096,7 @@ export default function VehicleDetailPage() {
         {/* Similar Vehicles */}
         <div className="container mx-auto px-4 py-8 border-t">
           <h2 className="text-xl font-semibold mb-4">Other cars you might like</h2>
-          <SimilarVehicles 
+          <SimilarVehicles
             currentVehicleId={vehicle.id}
             make={vehicle.make}
             priceRange={vehicle.price}
@@ -2027,7 +2111,7 @@ export default function VehicleDetailPage() {
             <p className="text-xs text-muted-foreground">Price</p>
             <p className="text-lg font-bold">${vehicle.price.toLocaleString()}</p>
           </div>
-          <Button 
+          <Button
             className="flex-1 h-12 min-h-[48px] bg-red-600 hover:bg-red-700 text-white text-sm font-medium"
             onClick={() => handleProtectedAction("reserve this vehicle")}
           >
@@ -2036,7 +2120,7 @@ export default function VehicleDetailPage() {
           </Button>
         </div>
       </div>
-      
+
       <Footer />
 
       {/* Auth Required Modal */}

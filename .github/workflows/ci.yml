@@ -46,6 +46,35 @@ jobs:
       - name: Build
         run: pnpm build
 
+  bundle-check:
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 9.15.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build with bundle stats
+        run: pnpm build
+
+      - name: Check bundle budget (1700 KB first-load JS per page)
+        run: node scripts/check-bundle-size.mjs
+
   e2e:
     runs-on: ubuntu-latest
     needs: lint-and-build
@@ -69,11 +98,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+      - name: Build
+        run: pnpm build
 
-      - name: Run E2E tests
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Run E2E tests (Chromium — primary)
         run: pnpm test:e2e
+
+      - name: Run E2E tests (Firefox — COMPAT-002)
+        if: ${{ !cancelled() }}
+        run: npx playwright test e2e/human-click-timing-debug.spec.ts --project=firefox --workers=1
+
+      - name: Run E2E tests (WebKit/Safari — COMPAT-003)
+        if: ${{ !cancelled() }}
+        run: npx playwright test e2e/human-click-timing-debug.spec.ts --project=webkit --workers=1
 
       - name: Upload test results
         if: ${{ !cancelled() }}
@@ -81,5 +121,86 @@ jobs:
         with:
           name: playwright-report
           path: playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  accessibility:
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 9.15.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run accessibility tests
+        run: npx playwright test e2e/accessibility.spec.ts --project=chromium --workers=1
+
+      - name: Upload accessibility results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: accessibility-report
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 9.15.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run Lighthouse CI
+        run: npx @lhci/cli autorun
+        env:
+          LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
+
+      - name: Upload Lighthouse report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: lighthouse-report
+          path: .lighthouseci/
           retention-days: 7
           if-no-files-found: ignore

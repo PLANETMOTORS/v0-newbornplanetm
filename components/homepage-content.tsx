@@ -57,7 +57,7 @@ export type HomepageProps = {
 
 // Shop by category chips
 const shopByCategories = [
-  { icon: DollarSign, label: "Under $30k", href: "/inventory?maxPrice=30000", iconColor: "text-green-600" },
+  { icon: DollarSign, label: "Under $30k", href: "/inventory?maxPrice=30000", iconColor: "text-green-700" },
   { icon: Car, label: "SUVs", href: "/inventory?bodyType=SUV", iconColor: "text-slate-600" },
   { icon: Zap, label: "Electric", href: "/inventory?fuelType=Electric", iconColor: "text-emerald-500" },
   { icon: Leaf, label: "Hybrids", href: "/inventory?fuelType=Hybrid", iconColor: "text-teal-500" },
@@ -184,7 +184,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
   const saturdayHours = siteSettings.businessHours?.find(h => h.day === "Saturday")
 
   return (
-    <section id="main-content" aria-label="Home page content" className="overflow-x-hidden max-w-full">
+    <section id="main-content" tabIndex={-1} aria-label="Home page content" className="overflow-x-hidden max-w-full">
       {/* ========== BOX 2: HERO SECTION - Off-White #F9FAFB ========== */}
       <section className="relative overflow-hidden" style={{ backgroundColor: "#F1F5F9" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
@@ -205,13 +205,14 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
-                <Link
+                <a
                   href="/inventory"
+                  data-testid="hero-cta-btn"
                   className="inline-flex items-center gap-3 bg-[#dc2626] hover:bg-[#b91c1c] text-white text-lg font-semibold px-8 py-4 rounded-full shadow-lg shadow-red-600/25 transition-all hover:shadow-xl hover:shadow-red-600/30"
                 >
                   <span>Find Your Car</span>
                   <ArrowRight className="w-5 h-5 flex-shrink-0" />
-                </Link>
+                </a>
                 <Link
                   href="/trade-in"
                   className="inline-flex items-center gap-3 border-2 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white text-lg font-semibold px-8 py-[14px] rounded-full transition-all"
@@ -256,7 +257,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
               >
                 {/* Popular badge for SUVs */}
                 {cat.label === "SUVs" && (
-                  <span className="absolute -top-2.5 -right-2 bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  <span className="absolute -top-2.5 -right-2 bg-amber-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
                     Popular
                   </span>
                 )}
@@ -306,7 +307,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                     <div className={`w-12 h-12 ${step.color} rounded-xl flex items-center justify-center shadow-lg`}>
                       <step.icon className="w-6 h-6 text-white" />
                     </div>
-                    <span className="text-sm font-medium text-gray-400">Step {index + 1}</span>
+                    <span className="text-sm font-medium text-gray-600">Step {index + 1}</span>
                   </div>
                   
                   <h3 className="text-lg font-bold text-gray-900 mb-2">{step.title}</h3>
@@ -315,7 +316,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                   <ul className="space-y-2">
                     {step.features.map((feature) => (
                       <li key={feature} className="flex items-center gap-2 text-sm text-gray-600">
-                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        <CheckCircle className="w-4 h-4 text-green-700 flex-shrink-0" />
                         {feature}
                       </li>
                     ))}
@@ -327,7 +328,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
 
           {/* Money Back Guarantee Badge */}
           <div className="text-center mt-10">
-            <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm font-medium">
+            <div className="inline-flex items-center gap-2 bg-green-50 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
               <Shield className="w-4 h-4" />
               Backed by our 10-Day Money-Back Guarantee
             </div>
@@ -343,7 +344,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
             </Button>
             <Button size="lg" variant="outline" className="border-[#c5d0de] text-gray-700 hover:bg-[#f0f4f8]" asChild>
               <Link href="/how-it-works">
-                Learn More
+                Learn how it works
               </Link>
             </Button>
           </div>
@@ -417,12 +418,12 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
               <ul className="space-y-3 mb-8">
                 {["Instant online offer", "Free vehicle pickup", "Same-day payment available", "No obligation to buy from us"].map((item, i) => (
                   <li key={i} className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <CheckCircle className="w-5 h-5 text-green-700" />
                     <span className="text-gray-700">{item}</span>
                   </li>
                 ))}
               </ul>
-              <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white" asChild>
+              <Button size="lg" className="bg-green-700 hover:bg-green-800 text-white" asChild>
                 <Link href="/trade-in">
                   Get My Offer
                 </Link>
@@ -485,9 +486,9 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium text-gray-900">{review.name}</p>
-                    <p className="text-sm text-gray-500">{review.location}</p>
+                    <p className="text-sm text-gray-600">{review.location}</p>
                   </div>
-                  <span className="text-xs text-gray-400">{review.date}</span>
+                  <span className="text-xs text-gray-600">{review.date}</span>
                 </div>
               </div>
             ))}
@@ -500,7 +501,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="text-3xl font-bold text-white">Protection Plans</h2>
-            <p className="mt-3 text-gray-400">
+            <p className="mt-3 text-gray-300">
               Choose the coverage that fits your needs. All plans include our satisfaction guarantee.
             </p>
           </div>
@@ -516,12 +517,12 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
                 }`}
               >
                 <h3 className="font-semibold text-lg">{plan.name}</h3>
-                <p className={`mt-2 text-sm ${plan.highlighted ? "text-gray-500" : "text-gray-400"}`}>
+                <p className={`mt-2 text-sm ${plan.highlighted ? "text-gray-500" : "text-gray-300"}`}>
                   {plan.description}
                 </p>
                 <div className="mt-6 flex items-baseline gap-1">
                   <span className="text-4xl font-bold">${plan.price}</span>
-                  <span className={`text-sm ${plan.highlighted ? "text-gray-500" : "text-gray-400"}`}>
+                  <span className={`text-sm ${plan.highlighted ? "text-gray-500" : "text-gray-300"}`}>
                     {plan.period}
                   </span>
                 </div>
@@ -548,24 +549,24 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
       </section>
 
       {/* ========== BOX 8: FINAL CTA - Brand Blue #2B6CB0 ========== */}
-      <section className="py-16" style={{ backgroundColor: "#2B6CB0" }}>
+      <section className="py-16" style={{ backgroundColor: "#1e5a8e" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl font-bold text-white">
                 Ready to find your perfect vehicle?
               </h2>
-              <p className="mt-4 text-white/80 max-w-xl">
+              <p className="mt-4 text-white max-w-xl">
                 Browse our inventory of certified pre-owned vehicles. Get pre-approved for financing in minutes with rates from {lowestRate}% APR.
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
-                <Button size="lg" className="bg-white text-[#2B6CB0] hover:bg-[#eef2f7]" asChild>
+                <Button size="lg" className="bg-white text-[#1e5a8e] hover:bg-[#eef2f7]" asChild>
                   <Link href="/inventory">
                     Browse Inventory
                     <ArrowRight className="ml-2 w-4 h-4" />
                   </Link>
                 </Button>
-                <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10" asChild>
+                <Button size="lg" variant="outline" className="border-white/30 text-white bg-transparent hover:bg-white/10" asChild>
                   <Link href="/financing">
                     Get Pre-Approved
                   </Link>
@@ -576,29 +577,29 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
               <div className="bg-white/10 rounded-xl p-6">
                 <Phone className="w-8 h-8 text-white mb-4" />
                 <h3 className="font-semibold text-white">Call Us</h3>
-                <p className="text-sm text-white/80 mt-1">{siteSettings.phone}</p>
+                <p className="text-sm text-white mt-1">{siteSettings.phone}</p>
               </div>
               <div className="bg-white/10 rounded-xl p-6">
                 <MapPin className="w-8 h-8 text-white mb-4" />
                 <h3 className="font-semibold text-white">Visit Us</h3>
-                <p className="text-sm text-white/80 mt-1">{siteSettings.streetAddress}</p>
-                <p className="text-sm text-white/80">{siteSettings.city}, {siteSettings.province?.slice(0, 2)}</p>
+                <p className="text-sm text-white mt-1">{siteSettings.streetAddress}</p>
+                <p className="text-sm text-white">{siteSettings.city}, {siteSettings.province?.slice(0, 2)}</p>
               </div>
               <div className="bg-white/10 rounded-xl p-6">
                 <Clock className="w-8 h-8 text-white mb-4" />
                 <h3 className="font-semibold text-white">Hours</h3>
-                <p className="text-sm text-white/80 mt-1">
+                <p className="text-sm text-white mt-1">
                   Mon-Fri: {weekdayHours?.open || "9AM"}-{weekdayHours?.close || "7PM"}
                 </p>
-                <p className="text-sm text-white/80">
+                <p className="text-sm text-white">
                   Sat: {saturdayHours?.open || "10AM"}-{saturdayHours?.close || "5PM"}
                 </p>
               </div>
               <div className="bg-white/10 rounded-xl p-6">
                 <BadgeCheck className="w-8 h-8 text-white mb-4" />
                 <h3 className="font-semibold text-white">Licensed</h3>
-                <p className="text-sm text-white/80 mt-1">OMVIC Registered</p>
-                <p className="text-sm text-white/80">Ontario Dealer</p>
+                <p className="text-sm text-white mt-1">OMVIC Registered</p>
+                <p className="text-sm text-white">Ontario Dealer</p>
               </div>
             </div>
           </div>

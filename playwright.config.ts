@@ -5,21 +5,67 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
   reporter: process.env.CI ? "github" : "html",
   use: {
     baseURL: "http://localhost:3000",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
+    navigationTimeout: 15000,
+    actionTimeout: 2000,
   },
   projects: [
+    // Auth setup — generates Supabase session for authenticated tests
+    // Only runs when TEST_USER_EMAIL + TEST_USER_PASSWORD are set
+    ...(process.env.TEST_USER_EMAIL
+      ? [
+          {
+            name: "setup",
+            testMatch: /.*\.setup\.ts/,
+            testDir: "./e2e/setup",
+          },
+        ]
+      : []),
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        contextOptions: {
+          bypassCSP: true,
+        },
+        launchOptions: {
+          args: ['--disable-gpu', '--no-sandbox'],
+        },
+      },
+    },
+    {
+      name: "firefox",
+      use: {
+        ...devices["Desktop Firefox"],
+      },
+    },
+    {
+      name: "webkit",
+      use: {
+        ...devices["Desktop Safari"],
+      },
+    },
+    // Mobile viewports
+    {
+      name: "mobile-chrome",
+      use: {
+        ...devices["Pixel 5"],
+      },
+    },
+    {
+      name: "mobile-safari",
+      use: {
+        ...devices["iPhone 14"],
+      },
     },
   ],
   webServer: {
-    command: "pnpm dev",
+    command: process.env.CI ? "pnpm start" : "pnpm dev",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

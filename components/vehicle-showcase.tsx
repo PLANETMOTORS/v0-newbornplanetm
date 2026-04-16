@@ -14,7 +14,7 @@ const fetcher = async () => {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('vehicles')
-    .select('id, year, make, model, trim, price, mileage, fuel_type, inspection_score, is_new_arrival')
+    .select('id, year, make, model, trim, price, mileage, fuel_type, inspection_score, is_new_arrival, primary_image_url, image_urls')
     .eq('status', 'available')
     .order('price', { ascending: false })
     .limit(6)
@@ -38,7 +38,7 @@ const fallbackVehicles = [
     year: "2024",
     inspectionScore: 210,
     badge: "Electric",
-    badgeColor: "bg-blue-500"
+    badgeColor: "bg-blue-700"
   },
   {
     id: "featured-2",
@@ -51,7 +51,7 @@ const fallbackVehicles = [
     year: "2023",
     inspectionScore: 208,
     badge: "Premium",
-    badgeColor: "bg-purple-500"
+    badgeColor: "bg-purple-700"
   },
   {
     id: "featured-3",
@@ -64,7 +64,7 @@ const fallbackVehicles = [
     year: "2024",
     inspectionScore: 210,
     badge: "Fuel Saver",
-    badgeColor: "bg-green-500"
+    badgeColor: "bg-green-700"
   },
   {
     id: "featured-4",
@@ -77,7 +77,7 @@ const fallbackVehicles = [
     year: "2023",
     inspectionScore: 207,
     badge: "Just Arrived",
-    badgeColor: "bg-green-500"
+    badgeColor: "bg-green-700"
   }
 ]
 
@@ -94,6 +94,7 @@ interface DbVehicle {
   is_new_arrival?: boolean
   inspection_score?: number
   primary_image_url?: string
+  image_urls?: string[]
 }
 
 function transformToShowcase(v: DbVehicle) {
@@ -105,17 +106,17 @@ function transformToShowcase(v: DbVehicle) {
   
   if (v.fuel_type === "Electric") {
     badge = "Electric"
-    badgeColor = "bg-blue-500"
+    badgeColor = "bg-blue-700"
   } else if (priceInDollars > 100000) {
     badge = "Premium"
-    badgeColor = "bg-purple-500"
+    badgeColor = "bg-purple-700"
   } else if (v.is_new_arrival) {
     badge = "Just Arrived"
-    badgeColor = "bg-green-500"
+    badgeColor = "bg-green-700"
   }
   
-  // Only use real hosted images — null triggers gradient fallback in the UI
-  const image: string | null = null
+  // Use real vehicle image from HomeNet, fall back to null (gradient fallback)
+  const image: string | null = v.primary_image_url || (v.image_urls && v.image_urls.length > 0 ? v.image_urls[0] : null)
   
   return {
     id: v.id,
@@ -254,13 +255,13 @@ export function VehicleShowcase() {
         {/* Bottom info overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
           <div className="flex items-center gap-2 mb-2">
-            <Shield className="w-4 h-4 text-green-400" />
-            <span className="text-sm text-green-400 font-medium">
+            <Shield className="w-4 h-4 text-green-300" />
+            <span className="text-sm text-green-300 font-medium">
               {currentVehicle.inspectionScore}/210 Inspection Score
             </span>
           </div>
-          <h3 className="font-semibold text-xl mb-1">{currentVehicle.name}</h3>
-          <div className="flex items-center gap-4 text-sm text-white/80 mb-3">
+          <h2 className="font-semibold text-xl mb-1">{currentVehicle.name}</h2>
+          <div className="flex items-center gap-4 text-sm text-white/90 mb-3">
             <span className="flex items-center gap-1">
               <Gauge className="w-3.5 h-3.5" />
               {currentVehicle.mileage}
@@ -277,7 +278,7 @@ export function VehicleShowcase() {
           <div className="flex items-end justify-between">
             <div>
               <p className="text-2xl font-bold">{currentVehicle.price}</p>
-              <p className="text-sm text-white/70">
+              <p className="text-sm text-white/90">
                 Est. {currentVehicle.monthlyPayment}/mo at 6.29% APR
               </p>
             </div>

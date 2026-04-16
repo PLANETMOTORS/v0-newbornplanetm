@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Search, TrendingUp, Clock, Car } from "lucide-react"
@@ -52,23 +52,61 @@ export function SearchAutocomplete() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  useEffect(() => {
-    if (query.length >= 2) {
-      // Filter sample results - in production this would be an API call
-      const filtered = sampleResults.filter(r => 
-        r.title.toLowerCase().includes(query.toLowerCase())
-      )
-      setResults(filtered)
-    } else {
+  // Debounced search — waits 300ms after last keystroke before firing API call
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
+
+  const debouncedSearch = useCallback((q: string) => {
+    // Clear previous debounce timer
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    // Abort previous in-flight request
+    if (abortRef.current) abortRef.current.abort()
+
+    if (q.length < 2) {
       setResults([])
+      return
     }
-  }, [query])
+
+    debounceRef.current = setTimeout(() => {
+      const controller = new AbortController()
+      abortRef.current = controller
+      fetch(`/api/search?q=${encodeURIComponent(q)}`, { signal: controller.signal })
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data?.results?.length) {
+            setResults(data.results as SearchResult[])
+          } else {
+            const filtered = sampleResults.filter(r =>
+              r.title.toLowerCase().includes(q.toLowerCase())
+            )
+            setResults(filtered)
+          }
+        })
+        .catch(() => {
+          if (!controller.signal.aborted) {
+            const filtered = sampleResults.filter(r =>
+              r.title.toLowerCase().includes(q.toLowerCase())
+            )
+            setResults(filtered)
+          }
+        })
+    }, 300)
+  }, [])
+
+  useEffect(() => {
+    debouncedSearch(query)
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      if (abortRef.current) abortRef.current.abort()
+    }
+  }, [query, debouncedSearch])
 
   return (
     <div ref={containerRef} className="relative w-full max-w-xl">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
+          data-testid="typesense-search-input"
           placeholder="Search by make, model, or keyword..."
           className="pl-10 pr-4"
           value={query}
@@ -78,7 +116,7 @@ export function SearchAutocomplete() {
       </div>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-background border rounded-lg shadow-lg z-50 overflow-hidden">
+        <div data-testid="search-results-dropdown" aria-live="polite" className="absolute top-full left-0 right-0 mt-2 bg-background border rounded-lg shadow-lg z-50 overflow-hidden">
           {query.length < 2 ? (
             <div className="p-4">
               {/* Recent Searches */}
@@ -129,6 +167,7 @@ export function SearchAutocomplete() {
                 <Link
                   key={result.id}
                   href={result.url}
+                  data-testid="search-result-item"
                   className="flex items-center gap-3 px-4 py-2 hover:bg-muted"
                   onClick={() => setIsOpen(false)}
                 >

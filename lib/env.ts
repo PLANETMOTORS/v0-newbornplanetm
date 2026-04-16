@@ -47,6 +47,10 @@ const optionalServerSchema = z.object({
   GOOGLE_PLACE_ID: z.string().optional(),
   GOOGLE_PLACES_API_KEY: z.string().optional(),
 
+  // Typesense Cloud
+  TYPESENSE_API_KEY: z.string().optional(),
+  TYPESENSE_HOST: z.string().optional(),
+
   NODE_ENV: z.enum(["development", "production", "test"]).optional(),
 })
 
@@ -61,6 +65,8 @@ const clientSchema = z.object({
   NEXT_PUBLIC_GTM_ID: z.string().optional(),
   NEXT_PUBLIC_META_PIXEL_ID: z.string().optional(),
   NEXT_PUBLIC_GOOGLE_MAPS_KEY: z.string().optional(),
+  NEXT_PUBLIC_TYPESENSE_SEARCH_KEY: z.string().optional(),
+  NEXT_PUBLIC_TYPESENSE_HOST: z.string().optional(),
 })
 
 // Merged schema
@@ -99,6 +105,8 @@ function validateEnv(): Env {
     SANITY_API_TOKEN: process.env.SANITY_API_TOKEN,
     GOOGLE_PLACE_ID: process.env.GOOGLE_PLACE_ID,
     GOOGLE_PLACES_API_KEY: process.env.GOOGLE_PLACES_API_KEY,
+    TYPESENSE_API_KEY: process.env.TYPESENSE_API_KEY,
+    TYPESENSE_HOST: process.env.TYPESENSE_HOST,
     NODE_ENV: process.env.NODE_ENV,
     // Client
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
@@ -110,6 +118,8 @@ function validateEnv(): Env {
     NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,
     NEXT_PUBLIC_META_PIXEL_ID: process.env.NEXT_PUBLIC_META_PIXEL_ID,
     NEXT_PUBLIC_GOOGLE_MAPS_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY,
+    NEXT_PUBLIC_TYPESENSE_SEARCH_KEY: process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_KEY,
+    NEXT_PUBLIC_TYPESENSE_HOST: process.env.NEXT_PUBLIC_TYPESENSE_HOST,
   }
 
   const result = envSchema.safeParse(raw)

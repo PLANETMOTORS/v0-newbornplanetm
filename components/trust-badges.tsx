@@ -68,7 +68,7 @@ export function TrustBadges() {
               <h3 className="font-semibold text-sm mb-1">{badge.title}</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">{badge.description}</p>
               {badge.highlight && (
-                <div className="mt-2 flex items-center gap-1 text-xs text-green-600 font-medium">
+                <div className="mt-2 flex items-center gap-1 text-xs text-green-800 font-medium">
                   <CheckCircle className="w-3 h-3" />
                   <span>Industry Best</span>
                 </div>
@@ -80,7 +80,7 @@ export function TrustBadges() {
         {/* Bottom trust line */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
           <span className="flex items-center gap-2">
-            <LockKeyhole className="w-4 h-4 text-green-600" />
+            <LockKeyhole className="w-4 h-4 text-green-700" />
             256-bit SSL Encryption
           </span>
           <span className="hidden md:inline">|</span>

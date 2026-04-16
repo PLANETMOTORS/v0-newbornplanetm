@@ -1,8 +1,17 @@
+import withBundleAnalyzer from '@next/bundle-analyzer'
+
+const analyzeBundles = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+})
+
 /** @type {import('next').NextConfig} */
 // Planet Motors - Next.js Config
 const nextConfig = {
   // CRITICAL: Transpile Sanity packages to prevent duplicate bundling
   transpilePackages: ['sanity', 'next-sanity', '@sanity/vision', '@sanity/ui', '@sanity/client'],
+
+  // Exclude native Node.js modules from bundling (required for ssh2/sftp in API routes)
+  serverExternalPackages: ['ssh2', 'ssh2-sftp-client', 'cpu-features'],
   
   // Turbopack: explicitly set the workspace root so Turbopack doesn't
   // incorrectly infer the Next.js app directory as the project root.
@@ -30,6 +39,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'media.cpsimg.com' },
       { protocol: 'https', hostname: 'cdn.sanity.io' },
       { protocol: 'https', hostname: 'photos.homenetiol.com' },
+      { protocol: 'https', hostname: 'content.homenetiol.com' },
       { protocol: 'https', hostname: 'www.carpages.ca' },
     ],
   },
@@ -38,7 +48,7 @@ const nextConfig = {
   async headers() {
     // Shared security headers (all routes)
     const sharedHeaders = [
-      { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+      { key: 'X-Frame-Options', value: 'DENY' },
       { key: 'X-Content-Type-Options', value: 'nosniff' },
       { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
       { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains; preload' },
@@ -55,7 +65,7 @@ const nextConfig = {
       "script-src 'self' 'unsafe-inline' https://js.stripe.com https://va.vercel-scripts.com https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' blob: data: https://*.stripe.com https://hebbkx1anhila5yf.public.blob.vercel-storage.com https://cdn.planetmotors.ca https://planetmotors.imgix.net https://media.cpsimg.com https://cdn.sanity.io https://www.google-analytics.com https://www.googletagmanager.com https://www.facebook.com",
+      "img-src 'self' blob: data: https://*.stripe.com https://hebbkx1anhila5yf.public.blob.vercel-storage.com https://cdn.planetmotors.ca https://planetmotors.imgix.net https://media.cpsimg.com https://cdn.sanity.io https://www.google-analytics.com https://www.googletagmanager.com https://www.facebook.com https://content.homenetiol.com https://photos.homenetiol.com",
       "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://www.googletagmanager.com https://www.facebook.com",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://cdn.sanity.io https://*.upstash.io https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://graph.facebook.com https://www.facebook.com",
       "worker-src 'self' blob:",
@@ -105,10 +115,10 @@ const nextConfig = {
 }
 
 // Sentry wrapper — only applied when @sentry/nextjs is installed
-let finalConfig = nextConfig
+let finalConfig = analyzeBundles(nextConfig)
 try {
   const { withSentryConfig } = await import("@sentry/nextjs")
-  finalConfig = withSentryConfig(nextConfig, {
+  finalConfig = withSentryConfig(analyzeBundles(nextConfig), {
     org: "planet-motors",
     project: "nextjs",
     silent: true,

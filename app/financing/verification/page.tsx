@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, Suspense } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -51,8 +51,10 @@ interface IDDocument {
 
 function IDVerificationContent() {
   useRouter()
-  const searchParams = useSearchParams()
-  const applicationId = searchParams.get("applicationId")
+  // Read applicationId from URL without triggering Suspense boundary delay
+  const applicationId = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get("applicationId")
+    : null
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isVerified, setIsVerified] = useState(false)
@@ -275,11 +277,12 @@ function IDVerificationContent() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <Label>ID Type *</Label>
-                    <Select 
-                      value={primaryID.type} 
+                    <Select
+                      name="id-type"
+                      value={primaryID.type}
                       onValueChange={(v) => setPrimaryID(prev => ({ ...prev, type: v }))}
                     >
-                      <SelectTrigger className="mt-1.5">
+                      <SelectTrigger className="mt-1.5" aria-label="ID type">
                         <SelectValue placeholder="Select ID type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -293,7 +296,8 @@ function IDVerificationContent() {
                   </div>
                   <div>
                     <Label>ID Number *</Label>
-                    <Input 
+                    <Input
+                      name="id-number"
                       className="mt-1.5"
                       placeholder="Enter ID number"
                       value={primaryID.number}
@@ -302,7 +306,8 @@ function IDVerificationContent() {
                   </div>
                   <div>
                     <Label>Expiry Date *</Label>
-                    <Input 
+                    <Input
+                      name="expiry-date"
                       type="date"
                       className="mt-1.5"
                       value={primaryID.expiryDate}
@@ -311,11 +316,12 @@ function IDVerificationContent() {
                   </div>
                   <div>
                     <Label>Issuing Province</Label>
-                    <Select 
-                      value={primaryID.issuingProvince} 
+                    <Select
+                      name="issuing-province"
+                      value={primaryID.issuingProvince}
                       onValueChange={(v) => setPrimaryID(prev => ({ ...prev, issuingProvince: v }))}
                     >
-                      <SelectTrigger className="mt-1.5">
+                      <SelectTrigger className="mt-1.5" aria-label="Issuing province">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -356,8 +362,9 @@ function IDVerificationContent() {
                       ) : (
                         <label className="aspect-[1.6] border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors">
                           <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-                          <span className="text-sm text-muted-foreground">Click to upload</span>
+                          <span className="text-sm text-muted-foreground">Upload Front</span>
                           <input
+                            name="id-front-upload"
                             type="file"
                             accept="image/*"
                             className="hidden"
@@ -390,6 +397,7 @@ function IDVerificationContent() {
                           <Upload className="w-8 h-8 text-muted-foreground mb-2" />
                           <span className="text-sm text-muted-foreground">Click to upload</span>
                           <input
+                            name="id-back-upload"
                             type="file"
                             accept="image/*"
                             className="hidden"
@@ -448,7 +456,8 @@ function IDVerificationContent() {
                     </div>
                     <div>
                       <Label>ID Number</Label>
-                      <Input 
+                      <Input
+                        name="secondary-id-number"
                         className="mt-1.5"
                         placeholder="Enter ID number"
                         value={secondaryID.number}
@@ -461,9 +470,10 @@ function IDVerificationContent() {
             </Card>
 
             {/* Submit Button */}
-            <Button 
-              className="w-full h-12 text-base" 
+            <Button
+              className="w-full h-12 text-base"
               size="lg"
+              aria-label="Submit for verification"
               onClick={handleSubmit}
               disabled={!isFormValid || isSubmitting}
             >
@@ -553,16 +563,5 @@ function IDVerificationContent() {
 }
 
 export default function IDVerificationPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading verification...</p>
-        </div>
-      </div>
-    }>
-      <IDVerificationContent />
-    </Suspense>
-  )
+  return <IDVerificationContent />
 }

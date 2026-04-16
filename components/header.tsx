@@ -6,6 +6,7 @@ import { ChevronDown, Phone, MapPin, Star, Award, CheckCircle, Shield, Truck } f
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import { SignInPanel } from "@/components/sign-in-panel"
 import NavButton from "@/components/nav-button"
+import { SearchAutocomplete } from "@/components/search-autocomplete"
 import { useAuth } from "@/contexts/auth-context"
 import { trackPhoneClick } from "@/components/analytics/google-tag-manager"
 
@@ -170,8 +171,9 @@ export function Header() {
 
   return (
     <>
-      <a 
-        href="#main-content" 
+      <a
+        href="#main-content"
+        data-testid="skip-nav-link"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-md"
       >
         Skip to main content
@@ -225,10 +227,14 @@ export function Header() {
               </div>
             </Link>
 
-            <DesktopNav 
-              activeSubmenu={activeSubmenu} 
-              setActiveSubmenu={setActiveSubmenu} 
+            <DesktopNav
+              activeSubmenu={activeSubmenu}
+              setActiveSubmenu={setActiveSubmenu}
             />
+          </div>
+
+          <div className="hidden md:flex flex-1 max-w-sm mx-4">
+            <SearchAutocomplete />
           </div>
 
           <div className="hidden lg:flex items-center gap-2">
@@ -362,7 +368,7 @@ export function Header() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-center gap-3 sm:gap-6 md:gap-10 overflow-x-auto scrollbar-hide">
               <div className="flex items-center gap-2 whitespace-nowrap">
-                <CheckCircle className="w-4 h-4 text-green-600" />
+                <CheckCircle className="w-4 h-4 text-green-700" />
                 <span className="font-medium text-xs sm:text-sm">10-Day Money Back Guarantee</span>
               </div>
               <span className="hidden sm:block text-gray-300">|</span>
@@ -372,7 +378,7 @@ export function Header() {
               </div>
               <span className="hidden sm:block text-gray-300">|</span>
               <div className="hidden sm:flex items-center gap-2 whitespace-nowrap">
-                <CheckCircle className="w-4 h-4 text-green-600" />
+                <CheckCircle className="w-4 h-4 text-green-700" />
                 <span className="font-medium text-xs sm:text-sm">210-Point Inspection</span>
               </div>
               <span className="hidden md:block text-gray-300">|</span>
