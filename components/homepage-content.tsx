@@ -1,5 +1,6 @@
 // Planet Motors Homepage Content - Trust-First Design (Clutch/Carvana Style)
 // Section Order: Hero -> 4-Step Process -> Featured Vehicles -> Why Choose Us -> Sell/Trade -> Reviews -> Protection Plans -> CTA -> The Promise -> Footer
+import { Suspense } from "react"
 import Link from "next/link"
 import dynamic from "next/dynamic"
 import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin, Award, DollarSign, Truck, Users, Leaf, Search, CreditCard, FileCheck, Home } from "lucide-react"
@@ -7,11 +8,37 @@ import { Button } from "@/components/ui/button"
 
 // Code-split heavy below-fold sections into separate chunks
 const HomepageFeaturedVehicles = dynamic(
-  () => import("@/components/homepage-featured-vehicles").then(m => ({ default: m.HomepageFeaturedVehicles }))
+  () => import("@/components/homepage-featured-vehicles").then(m => ({ default: m.HomepageFeaturedVehicles })),
+  { loading: () => <FeaturedVehiclesSkeleton /> }
 )
 const VehicleShowcase = dynamic(
-  () => import("@/components/vehicle-showcase").then(m => ({ default: m.VehicleShowcase }))
+  () => import("@/components/vehicle-showcase").then(m => ({ default: m.VehicleShowcase })),
+  { loading: () => <VehicleShowcaseSkeleton /> }
 )
+
+// Lightweight loading skeletons to prevent layout shift while chunks load
+function FeaturedVehiclesSkeleton() {
+  return (
+    <div className="py-16 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="h-8 w-64 bg-gray-200 rounded mx-auto mb-8 animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-80 bg-gray-100 rounded-2xl animate-pulse" />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function VehicleShowcaseSkeleton() {
+  return (
+    <div className="relative aspect-[4/3] bg-gray-100 rounded-2xl animate-pulse flex items-center justify-center">
+      <div className="text-gray-400">Loading vehicles...</div>
+    </div>
+  )
+}
 
 
 export type HomepageProps = {
