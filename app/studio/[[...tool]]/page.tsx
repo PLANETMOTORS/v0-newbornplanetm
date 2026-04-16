@@ -1,3 +1,5 @@
+'use client'
+
 import dynamic from 'next/dynamic'
 
 // Dynamically import the entire Sanity Studio to isolate its ~3.8 MB bundle.
