@@ -398,11 +398,11 @@ function TradeInContent() {
   const [hasLien, setHasLien] = useState(false)
   const [payoffAmount, setPayoffAmount] = useState("")
   const [additionalNotes, setAdditionalNotes] = useState("")
-  
+
   // Photos — keyed by angle name for the upload grid
   const [photos, setPhotos] = useState<Record<string, { file: File; preview: string }>>({})
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
-  
+
   // Contact info
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
@@ -419,7 +419,7 @@ function TradeInContent() {
     draftLoadedRef.current = true
 
     // Don't restore draft if URL params are driving the form
-    const hasUrlPrefill = searchParams.get("quote") || searchParams.get("vehicle") || searchParams.get("value")
+    const hasUrlPrefill = searchParams.get("quote") || searchParams.get("vehicle") || searchParams.get("value") || searchParams.get("mileage")
     if (hasUrlPrefill) return
 
     try {
@@ -1255,7 +1255,10 @@ function TradeInContent() {
                               accept="image/*"
                               className="hidden"
                               ref={(el) => { fileInputRefs.current[angle] = el }}
-                              onChange={(e) => handlePhotoUpload(angle, e.target.files?.[0] || null)}
+                              onChange={(e) => {
+                                handlePhotoUpload(angle, e.target.files?.[0] || null)
+                                e.currentTarget.value = ""
+                              }}
                             />
                             {photos[angle] ? (
                               <div className="aspect-video rounded-lg overflow-hidden relative group/photo border-2 border-green-500">
@@ -1269,6 +1272,7 @@ function TradeInContent() {
                                     Replace
                                   </button>
                                   <button
+                                    aria-label={`Remove ${angle} photo`}
                                     onClick={() => removePhoto(angle)}
                                     className="bg-red-500 text-white px-2 py-1 rounded text-xs font-medium"
                                   >

@@ -46,7 +46,8 @@ export const config = {
      *  - favicon.ico, static assets (svg|png|jpg|jpeg|gif|webp|ico)
      *  - /api/webhooks/*  (Stripe — uses its own signature verification)
      *  - /api/sanity-webhook (Sanity — uses its own signature verification)
+     *  - sitemap.xml, sitemap/*.xml, robots.txt (metadata routes — must not be intercepted)
      */
-    '/((?!_next/static|_next/image|favicon\\.ico|api/webhooks/|api/sanity-webhook|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|api/webhooks/|api/sanity-webhook|sitemap\\.xml|sitemap/|robots\\.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 }

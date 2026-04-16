@@ -1176,9 +1176,9 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             </Select>
           </div>
           <div>
-            <Label>Marital Status *</Label>
+            <Label className={getLabelClass("Marital Status")}>Marital Status *</Label>
             <Select value={data.maritalStatus} onValueChange={(v) => updateField("maritalStatus", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectTrigger className={getInputErrorClass("Marital Status")}><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="single">Single</SelectItem>
                 <SelectItem value="married">Married</SelectItem>
@@ -1190,7 +1190,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             </Select>
           </div>
           <div>
-            <Label>Phone * <span className="text-xs text-primary font-medium">(3-digit area + 7-digit number)</span></Label>
+            <Label className={getLabelClass("Phone")}>Phone * <span className="text-xs text-primary font-medium">(3-digit area + 7-digit number)</span></Label>
             <Input 
               type="tel" 
               value={data.phone} 
@@ -1202,6 +1202,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
                 updateField("phone", formatted)
               }} 
               placeholder="(XXX) XXX-XXXX" 
+              className={getInputErrorClass("Phone")}
             />
           </div>
           <div>
@@ -1220,13 +1221,13 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             />
           </div>
           <div>
-            <Label>Email *</Label>
-            <Input type="email" value={data.email} onChange={(e) => updateField("email", e.target.value)} />
+            <Label className={getLabelClass("Email")}>Email *</Label>
+            <Input type="email" value={data.email} onChange={(e) => updateField("email", e.target.value)} className={getInputErrorClass("Email")} />
           </div>
           <div>
-            <Label>Credit Rating *</Label>
+            <Label className={getLabelClass("Credit Rating")}>Credit Rating *</Label>
             <Select value={data.creditRating} onValueChange={(v) => updateField("creditRating", v)}>
-              <SelectTrigger><SelectValue placeholder="Select rating" /></SelectTrigger>
+              <SelectTrigger className={getInputErrorClass("Credit Rating")}><SelectValue placeholder="Select rating" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="excellent">Excellent [750+]</SelectItem>
                 <SelectItem value="good">Good [700+]</SelectItem>
@@ -1362,9 +1363,9 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label>Home Status *</Label>
+            <Label className={getLabelClass("Home Status")}>Home Status *</Label>
             <Select value={data.homeStatus} onValueChange={(v) => updateField("homeStatus", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectTrigger className={getInputErrorClass("Home Status")}><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="own">Own</SelectItem>
                 <SelectItem value="rent">Rent</SelectItem>
@@ -1390,8 +1391,8 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             </>
           )}
           <div>
-            <Label>Monthly Payment *</Label>
-            <Input type="number" value={data.monthlyPayment} onChange={(e) => updateField("monthlyPayment", e.target.value)} placeholder="$0.00" />
+            <Label className={getLabelClass("Monthly Payment")}>Monthly Payment *</Label>
+            <Input type="number" value={data.monthlyPayment} onChange={(e) => updateField("monthlyPayment", e.target.value)} placeholder="$0.00" className={getInputErrorClass("Monthly Payment")} />
           </div>
         </div>
       </section>
@@ -1406,9 +1407,9 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label>Employment Type *</Label>
+            <Label className={getLabelClass("Employment Type")}>Employment Type *</Label>
             <Select value={data.employmentCategory} onValueChange={(v) => updateField("employmentCategory", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectTrigger className={getInputErrorClass("Employment Type")}><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="full_time">Full-Time</SelectItem>
                 <SelectItem value="part_time">Part-Time</SelectItem>
@@ -1421,9 +1422,9 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             </Select>
           </div>
           <div>
-            <Label>Status *</Label>
+            <Label className={getLabelClass("Employment Status")}>Status *</Label>
             <Select value={data.employmentStatus} onValueChange={(v) => updateField("employmentStatus", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectTrigger className={getInputErrorClass("Employment Status")}><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="employed">Employed</SelectItem>
                 <SelectItem value="probation">On Probation</SelectItem>
@@ -1434,12 +1435,12 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             </Select>
           </div>
           <div>
-            <Label>Employer Name *</Label>
-            <Input value={data.employerName} onChange={(e) => updateField("employerName", e.target.value)} />
+            <Label className={getLabelClass("Employer Name")}>Employer Name *</Label>
+            <Input value={data.employerName} onChange={(e) => updateField("employerName", e.target.value)} className={getInputErrorClass("Employer Name")} />
           </div>
           <div>
-            <Label>Occupation *</Label>
-            <Input value={data.occupation} onChange={(e) => updateField("occupation", e.target.value)} />
+            <Label className={getLabelClass("Occupation")}>Occupation *</Label>
+            <Input value={data.occupation} onChange={(e) => updateField("occupation", e.target.value)} className={getInputErrorClass("Occupation")} />
           </div>
           <div>
             <Label>Job Title</Label>
@@ -1520,13 +1521,13 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label>Gross Income *</Label>
-            <Input type="number" value={data.grossIncome} onChange={(e) => updateField("grossIncome", e.target.value)} placeholder="$0.00" />
+            <Label className={getLabelClass("Gross Income")}>Gross Income *</Label>
+            <Input type="number" value={data.grossIncome} onChange={(e) => updateField("grossIncome", e.target.value)} placeholder="$0.00" className={getInputErrorClass("Gross Income")} />
           </div>
           <div>
-            <Label>Income Frequency *</Label>
+            <Label className={getLabelClass("Income Frequency")}>Income Frequency *</Label>
             <Select value={data.incomeFrequency} onValueChange={(v) => updateField("incomeFrequency", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectTrigger className={getInputErrorClass("Income Frequency")}><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="weekly">Weekly</SelectItem>
                 <SelectItem value="bi-weekly">Bi-Weekly</SelectItem>

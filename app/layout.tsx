@@ -1,15 +1,28 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, Playfair_Display } from 'next/font/google'
 import dynamic from 'next/dynamic'
-import { GoogleAnalytics } from '@/components/analytics/google-analytics'
-import { GoogleTagManager, GoogleTagManagerNoScript } from '@/components/analytics/google-tag-manager'
-import { MetaPixel } from '@/components/analytics/meta-pixel'
+// Dynamic-import analytics so their module code doesn't block initial page load
+const GoogleAnalytics = dynamic(
+  () => import('@/components/analytics/google-analytics').then(m => ({ default: m.GoogleAnalytics }))
+)
+const GoogleTagManager = dynamic(
+  () => import('@/components/analytics/google-tag-manager').then(m => ({ default: m.GoogleTagManager }))
+)
+const GoogleTagManagerNoScript = dynamic(
+  () => import('@/components/analytics/google-tag-manager').then(m => ({ default: m.GoogleTagManagerNoScript }))
+)
+const MetaPixel = dynamic(
+  () => import('@/components/analytics/meta-pixel').then(m => ({ default: m.MetaPixel }))
+)
 import { CookieConsentBanner } from '@/components/cookie-consent-banner'
 import { UTMTracker } from '@/components/utm-tracker'
 import { CompareProvider } from '@/contexts/compare-context'
 import { FavoritesProvider } from '@/contexts/favorites-context'
 import { AuthProvider } from '@/contexts/auth-context'
-import { Toaster } from '@/components/ui/sonner'
+// Lazy-load Toaster — only needed when a toast is triggered
+const Toaster = dynamic(
+  () => import('@/components/ui/sonner').then(m => ({ default: m.Toaster }))
+)
 import { OrganizationJsonLd, LocalBusinessJsonLd, WebsiteSearchJsonLd } from '@/components/seo/json-ld'
 import { getPublicSiteUrl } from '@/lib/site-url'
 import './globals.css'
@@ -84,6 +97,10 @@ export const metadata: Metadata = {
     title: 'Planet Motors | Premium Used Car Dealership',
     description: 'Shop certified pre-owned vehicles with free Carfax reports and nationwide delivery.',
     images: [`${SITE_URL}/images/planet-motors-logo.png`],
+  },
+  metadataBase: new URL(SITE_URL),
+  alternates: {
+    canonical: '/',
   },
   robots: {
     index: true,

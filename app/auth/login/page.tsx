@@ -18,7 +18,11 @@ import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectTo = searchParams.get("redirectTo") || "/account"
+  const rawRedirectTo = searchParams.get("redirectTo")
+  // Sanitize redirectTo to prevent open redirect (OWASP WSTG-SESS-04)
+  const redirectTo = (rawRedirectTo && /^\/[^/]/.test(rawRedirectTo) && !/[\r\n\t]/.test(rawRedirectTo))
+    ? rawRedirectTo
+    : "/account"
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -209,11 +213,13 @@ function LoginForm() {
             </CardContent>
             <CardFooter className="flex flex-col space-y-4 pt-0">
               <div className="text-center text-sm">
-                Don&apos;t have an account?{" "}
-                <Link href="/auth/signup" className="text-primary font-medium hover:underline">
-                  Create account
-                </Link>
+                Don&apos;t have an account?
               </div>
+              <Button variant="outline" className="w-full h-12" asChild>
+                <Link href="/auth/signup">
+                  Create Account
+                </Link>
+              </Button>
             </CardFooter>
           </Card>
 

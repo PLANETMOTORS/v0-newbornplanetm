@@ -7,9 +7,11 @@ const analyzeBundles = withBundleAnalyzer({
 /** @type {import('next').NextConfig} */
 // Planet Motors - Next.js Config
 const nextConfig = {
-  // Sanity Studio is disabled pre-launch (saves 3.8MB client JS).
-  // When re-enabling /studio, restore: ['sanity', 'next-sanity', '@sanity/vision', '@sanity/ui', '@sanity/client']
-  transpilePackages: ['@sanity/client'],
+  // SEC-06: Remove x-powered-by: Next.js header (OWASP WSTG-CONF-08)
+  poweredByHeader: false,
+
+  // CRITICAL: Transpile Sanity packages to prevent duplicate bundling
+  transpilePackages: ['sanity', 'next-sanity', '@sanity/vision', '@sanity/ui', '@sanity/client'],
 
   // Exclude native Node.js modules from bundling (required for ssh2/sftp in API routes)
   serverExternalPackages: ['ssh2', 'ssh2-sftp-client', 'cpu-features'],
@@ -23,7 +25,13 @@ const nextConfig = {
   experimental: {
     webpackMemoryOptimizations: true,
     // Optimize package imports to reduce memory
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    optimizePackageImports: [
+      'sanity', '@sanity/ui', '@sanity/vision', '@sanity/client',
+      'lucide-react', '@radix-ui/react-icons',
+      'date-fns', 'recharts', 'embla-carousel-react',
+      'react-hook-form', '@tanstack/react-virtual',
+      'framer-motion', 'swr',
+    ],
   },
   
   images: {

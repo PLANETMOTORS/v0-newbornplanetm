@@ -80,7 +80,6 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
 
       if (!result.success || !result.clientSecret) {
         setCheckoutError(result.error || "Failed to initialize payment. Please try again.")
-        setShowStripeCheckout(false)
         return
       }
 
@@ -88,8 +87,15 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
       setShowStripeCheckout(true)
     } catch (error) {
       console.error("Error creating reservation:", error)
-      setCheckoutError("Failed to initialize payment. Please try again.")
-      setShowStripeCheckout(false)
+      const message = error instanceof Error ? error.message : "Unknown error"
+      const normalizedMessage = message.toLowerCase()
+      if (normalizedMessage.includes("not available") || normalizedMessage.includes("not found")) {
+        setCheckoutError("This vehicle is no longer available for reservation.")
+      } else if (normalizedMessage.includes("rate limit") || normalizedMessage.includes("too many")) {
+        setCheckoutError("Too many attempts. Please wait a few minutes and try again.")
+      } else {
+        setCheckoutError("Unable to process your reservation right now. Please try again or call us at 416-985-2277.")
+      }
     } finally {
       setIsProcessing(false)
     }
@@ -327,10 +333,25 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
             <h3 className="font-medium mb-4">Complete Your ${depositAmount} Deposit</h3>
             {checkoutError ? (
               <div className="text-center py-8">
-                <p className="text-destructive mb-4">{checkoutError}</p>
-                <Button onClick={() => { setCheckoutError(null); setClientSecret(null); }}>
-                  Try Again
-                </Button>
+                <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 mb-4">
+                  <p className="text-sm text-destructive">{checkoutError}</p>
+                </div>
+                <div className="flex gap-3 justify-center">
+                  <Button
+                    disabled={isProcessing}
+                    onClick={async () => {
+                      if (isProcessing) return
+                      setCheckoutError(null)
+                      setClientSecret(null)
+                      await handleSubmit()
+                    }}
+                  >
+                    {isProcessing ? "Retrying..." : "Try Again"}
+                  </Button>
+                  <Button variant="outline" asChild>
+                    <a href="tel:416-985-2277">Call Support</a>
+                  </Button>
+                </div>
               </div>
             ) : !clientSecret ? (
               <div className="flex items-center justify-center py-8">

@@ -1941,7 +1941,7 @@ export default function VehicleDetailPage() {
                         trigger={
                           <Button className="w-full h-11 bg-red-600 hover:bg-red-700 text-white">
                             <LockKeyhole className="w-4 h-4 mr-2" />
-                            Reserve – $250 Refundable Deposit
+                            Quick Reserve – $250 Refundable Deposit
                           </Button>
                         }
                       />
@@ -1951,9 +1951,10 @@ export default function VehicleDetailPage() {
                         onClick={() => handleProtectedAction("reserve this vehicle")}
                       >
                         <LockKeyhole className="w-4 h-4 mr-2" />
-                        Reserve – $250 Refundable Deposit
+                        Quick Reserve – $250 Refundable Deposit
                       </Button>
                     )}
+                    <p className="text-xs text-center text-muted-foreground">Hold this vehicle for 48 hours while you decide</p>
                     <Button
                       data-testid="btn-start-purchase"
                       className="w-full h-11"
@@ -1961,7 +1962,7 @@ export default function VehicleDetailPage() {
                       asChild
                     >
                       <a href={`/checkout/${vehicle.id}`}>
-                        Start full purchase
+                        Buy Now – Full Purchase Process
                       </a>
                     </Button>
                   </div>

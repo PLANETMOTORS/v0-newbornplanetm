@@ -114,8 +114,8 @@ function VehicleCard({ vehicle }: VehicleCardProps) {
 
   return (
     <div className="group bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg transition-shadow min-w-0" style={{ contain: 'layout style' }}>
-      {/* Image */}
-      <div className="relative aspect-[4/3] overflow-hidden">
+      {/* Image - clickable to vehicle detail page */}
+      <Link href={`/vehicles/${vehicle.id}`} className="relative aspect-[4/3] overflow-hidden block">
         <Image
           src={vehicle.image}
           alt={vehicle.name}
@@ -145,7 +145,7 @@ function VehicleCard({ vehicle }: VehicleCardProps) {
 
         {/* Favorite button */}
         <button
-          onClick={() => setIsFavorite(!isFavorite)}
+          onClick={(e) => { e.stopPropagation(); e.preventDefault(); setIsFavorite(!isFavorite); }}
           className="absolute top-3 right-3 w-8 h-8 bg-background/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-background transition-colors"
           aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
         >
@@ -156,7 +156,7 @@ function VehicleCard({ vehicle }: VehicleCardProps) {
             )}
           />
         </button>
-      </div>
+      </Link>
 
       {/* Content */}
       <div className="p-4">
@@ -169,7 +169,7 @@ function VehicleCard({ vehicle }: VehicleCardProps) {
             {formatPrice(vehicle.price)}
           </span>
           <Button size="sm" variant="outline" asChild>
-            <Link href={`/viewer/${vehicle.id}`}>
+            <Link href={`/vehicles/${vehicle.id}`}>
               View Details
               <ExternalLink className="w-3 h-3 ml-1" />
             </Link>
