@@ -70,12 +70,9 @@ async function loginViaUI(page: Page) {
   }
 
   await page.goto("/auth/login")
-  // The page uses <h1>Welcome Back</h1> as the heading;
-  // "Sign In" is inside a CardTitle (div), not a semantic heading.
+  // The page uses <h1>Welcome Back</h1> as the main heading.
   await expect(
-    page.getByRole("heading", { name: /welcome back/i }).or(
-      page.getByText("Sign In", { exact: true }).first()
-    )
+    page.getByRole("heading", { name: /welcome back/i })
   ).toBeVisible({
     timeout: 15_000,
   })
