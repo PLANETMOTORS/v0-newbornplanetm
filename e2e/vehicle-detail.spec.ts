@@ -6,9 +6,9 @@ import { test, expect } from "@playwright/test"
  */
 async function loadInventory(page: import("@playwright/test").Page): Promise<boolean> {
   await page.goto("/inventory")
-  const success = page.getByText(/vehicles available/i)
-  const error = page.getByText(/Error loading inventory/i)
-  const noResults = page.getByText(/No vehicles found/i)
+  const success = page.getByText(/vehicles available/i).first()
+  const error = page.getByText(/Error loading inventory/i).first()
+  const noResults = page.getByText(/No vehicles found/i).first()
   await expect(success.or(error).or(noResults)).toBeVisible({ timeout: 15_000 })
   return await success.isVisible()
 }

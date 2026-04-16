@@ -3,10 +3,32 @@
 
 import { Client } from "typesense"
 import type { CollectionCreateSchema } from "typesense/lib/Typesense/Collections"
+import type { NodeConfiguration } from "typesense/lib/Typesense/Configuration"
 
 const TYPESENSE_HOST = process.env.TYPESENSE_HOST || process.env.NEXT_PUBLIC_TYPESENSE_HOST
 const TYPESENSE_API_KEY = process.env.TYPESENSE_API_KEY
 const TYPESENSE_SEARCH_KEY = process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_KEY
+
+/**
+ * Build the `nodes` array from environment or fall back to hardcoded defaults.
+ *
+ * Set `TYPESENSE_NODES` to a comma-separated list of hostnames, e.g.:
+ *   TYPESENSE_NODES=node1.a2.typesense.net,node2.a2.typesense.net,node3.a2.typesense.net
+ */
+const DEFAULT_NODE_HOSTS = [
+  "dptb8xe3mkuc45snp-1.a2.typesense.net",
+  "dptb8xe3mkuc45snp-2.a2.typesense.net",
+  "dptb8xe3mkuc45snp-3.a2.typesense.net",
+]
+
+function getNodes(): NodeConfiguration[] {
+  const envNodes = process.env.TYPESENSE_NODES
+  const hosts = envNodes
+    ? envNodes.split(",").map((h) => h.trim()).filter(Boolean)
+    : DEFAULT_NODE_HOSTS
+
+  return hosts.map((host) => ({ host, port: 443, protocol: "https" as const }))
+}
 
 /** Whether Typesense is configured (env vars present) */
 export function isTypesenseConfigured(): boolean {
@@ -22,11 +44,7 @@ export function getAdminClient(): Client | null {
 
   _adminClient = new Client({
     nearestNode: { host: TYPESENSE_HOST, port: 443, protocol: "https" },
-    nodes: [
-      { host: "dptb8xe3mkuc45snp-1.a2.typesense.net", port: 443, protocol: "https" },
-      { host: "dptb8xe3mkuc45snp-2.a2.typesense.net", port: 443, protocol: "https" },
-      { host: "dptb8xe3mkuc45snp-3.a2.typesense.net", port: 443, protocol: "https" },
-    ],
+    nodes: getNodes(),
     apiKey: TYPESENSE_API_KEY,
     connectionTimeoutSeconds: 5,
     retryIntervalSeconds: 0.1,
@@ -46,11 +64,7 @@ export function getSearchClient(): Client | null {
 
   _searchClient = new Client({
     nearestNode: { host: TYPESENSE_HOST, port: 443, protocol: "https" },
-    nodes: [
-      { host: "dptb8xe3mkuc45snp-1.a2.typesense.net", port: 443, protocol: "https" },
-      { host: "dptb8xe3mkuc45snp-2.a2.typesense.net", port: 443, protocol: "https" },
-      { host: "dptb8xe3mkuc45snp-3.a2.typesense.net", port: 443, protocol: "https" },
-    ],
+    nodes: getNodes(),
     apiKey: key,
     connectionTimeoutSeconds: 5,
     retryIntervalSeconds: 0.1,

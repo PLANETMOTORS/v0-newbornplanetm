@@ -77,6 +77,44 @@ function buildFacetCounts(values: Array<string | null | undefined>): FacetCount[
     .sort((a, b) => b.count - a.count)
 }
 
+// ── Typesense filter escaping ──────────────────────────────────────────────
+
+/** Tokens that would break out of a Typesense filter value context. */
+const DANGEROUS_FILTER_TOKENS = [']', '&&', '||'] as const
+
+/**
+ * Sanitise a single string value for use inside a Typesense `filter_by`
+ * expression.  Multi-word values (e.g. "Land Rover") are wrapped in
+ * backticks so Typesense treats the whole string as one token.
+ *
+ * Throws if the value contains filter-syntax tokens that cannot be safely
+ * escaped (e.g. `]`, `&&`, `||`).
+ */
+export function sanitizeTypesenseFilterValue(raw: string): string {
+  for (const token of DANGEROUS_FILTER_TOKENS) {
+    if (raw.includes(token)) {
+      throw new Error(
+        `Invalid filter value: contains forbidden token "${token}"`
+      )
+    }
+  }
+
+  // Escape backslashes first (so we don't double-escape the ones we insert for backticks)
+  const escaped = raw.replace(/\\/g, '\\\\').replace(/`/g, '\\`')
+
+  // Always backtick-wrap — safe for single-word values too and required
+  // for multi-word values like "Land Rover".
+  return '`' + escaped + '`'
+}
+
+/**
+ * Sanitise an array of values and join them for a Typesense `:[…]` filter.
+ * Returns the inner CSV string (without the outer brackets).
+ */
+function sanitizeFilterValues(values: string[]): string {
+  return values.map(sanitizeTypesenseFilterValue).join(',')
+}
+
 // ── Typesense search ───────────────────────────────────────────────────────
 
 const FACET_FIELDS = 'make,model,body_style,fuel_type,drivetrain,year,is_ev,is_certified'
@@ -85,19 +123,19 @@ function buildFilterBy(params: VehicleSearchParams): string {
   const filters: string[] = ['status:=available']
 
   const makes = asArray(params.make)
-  if (makes.length) filters.push(`make:=[${makes.join(',')}]`)
+  if (makes.length) filters.push(`make:=[${sanitizeFilterValues(makes)}]`)
 
   const models = asArray(params.model)
-  if (models.length) filters.push(`model:=[${models.join(',')}]`)
+  if (models.length) filters.push(`model:=[${sanitizeFilterValues(models)}]`)
 
   const bodyStyles = asArray(params.body_style)
-  if (bodyStyles.length) filters.push(`body_style:=[${bodyStyles.join(',')}]`)
+  if (bodyStyles.length) filters.push(`body_style:=[${sanitizeFilterValues(bodyStyles)}]`)
 
   const fuelTypes = asArray(params.fuel_type)
-  if (fuelTypes.length) filters.push(`fuel_type:=[${fuelTypes.join(',')}]`)
+  if (fuelTypes.length) filters.push(`fuel_type:=[${sanitizeFilterValues(fuelTypes)}]`)
 
   const drivetrains = asArray(params.drivetrain)
-  if (drivetrains.length) filters.push(`drivetrain:=[${drivetrains.join(',')}]`)
+  if (drivetrains.length) filters.push(`drivetrain:=[${sanitizeFilterValues(drivetrains)}]`)
 
   if (typeof params.is_ev === 'boolean') filters.push(`is_ev:=${params.is_ev}`)
   if (typeof params.is_certified === 'boolean') filters.push(`is_certified:=${params.is_certified}`)

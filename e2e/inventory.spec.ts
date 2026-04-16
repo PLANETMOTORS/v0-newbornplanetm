@@ -10,8 +10,8 @@ import { test, expect } from "@playwright/test"
  */
 async function waitForInventory(page: import("@playwright/test").Page): Promise<boolean> {
   // Wait for either the success or error state
-  const success = page.getByText(/vehicles available/i)
-  const error = page.getByText(/Error loading inventory/i)
+  const success = page.getByText(/vehicles available/i).first()
+  const error = page.getByText(/Error loading inventory/i).first()
   await expect(success.or(error)).toBeVisible({ timeout: 15_000 })
   return await success.isVisible()
 }
@@ -67,8 +67,12 @@ test.describe("Inventory Page", () => {
   test("sort dropdown is present", async ({ page }) => {
     const loaded = await waitForInventory(page)
     if (!loaded) { return }
-    const sortSelect = page.locator("select").first()
-    await expect(sortSelect).toBeVisible()
+    // Sort may be a native <select> or a Radix/Shadcn custom trigger.
+    // Use .first() on the whole chain to avoid strict mode when multiple match.
+    const sortControl = page.locator("select").first()
+      .or(page.getByRole("combobox").first())
+      .or(page.getByText(/sort/i).first())
+    await expect(sortControl.first()).toBeVisible()
   })
 
   test("renders vehicle cards or no-results message", async ({ page }) => {
@@ -78,6 +82,6 @@ test.describe("Inventory Page", () => {
       await expect(page.getByText(/Error loading inventory/i)).toBeVisible()
       return
     }
-    await expect(page.getByText(/vehicles available/i).or(page.getByText(/No vehicles found/i))).toBeVisible()
+    await expect(page.getByText(/vehicles available/i).first().or(page.getByText(/No vehicles found/i).first())).toBeVisible()
   })
 })
