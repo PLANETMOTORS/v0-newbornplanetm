@@ -226,7 +226,11 @@ function LoginForm() {
           {/* Trust Indicators */}
           <div className="mt-8 text-center text-sm text-muted-foreground">
             <p>Protected by industry-standard encryption</p>
-            <p className="mt-1">OMVIC Licensed Dealer</p>
+            <p className="mt-1">
+              <a href="https://www.omvic.on.ca" target="_blank" rel="noopener noreferrer" className="hover:underline">
+                OMVIC Licensed Dealer
+              </a>
+            </p>
           </div>
         </div>
       </main>

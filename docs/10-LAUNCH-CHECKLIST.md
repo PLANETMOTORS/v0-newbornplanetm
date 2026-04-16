@@ -68,7 +68,7 @@ UPSTASH_REDIS_REST_TOKEN=your-token
 - [ ] Deploy to staging environment (staging.planetmotors.ca)
 - [ ] Run full database migration scripts
 - [ ] Test all user flows (browse, search, reserve, checkout)
-- [ ] Test authentication (sign up, login, password reset)
+- [x] Test authentication (sign up, login, password reset) — e2e/auth.spec.ts added
 - [ ] Test financing application flow
 - [ ] Test trade-in calculator
 - [ ] Test admin dashboard access
@@ -77,6 +77,8 @@ UPSTASH_REDIS_REST_TOKEN=your-token
 - [ ] Security audit (check auth, CORS, API security)
 - [ ] Accessibility audit (WAVE, axe)
 - [ ] Performance audit (Lighthouse, Core Web Vitals)
+- [x] OMVIC compliance — footer, trust badges, and /about#omvic section linked to omvic.on.ca
+- [x] Sitemap validation — /sitemap, /sitemap.xml, robots.txt verified
 
 ### Week -1 (Pre-Launch)
 

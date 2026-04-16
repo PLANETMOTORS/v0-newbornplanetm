@@ -6,11 +6,13 @@ import { test, expect } from "@playwright/test"
  */
 async function loadInventory(page: import("@playwright/test").Page): Promise<boolean> {
   await page.goto("/inventory")
-  const success = page.getByText(/vehicles available/i).first()
-  const error = page.getByText(/Error loading inventory/i).first()
-  const noResults = page.getByText(/No vehicles found/i).first()
-  await expect(success.or(error).or(noResults)).toBeVisible({ timeout: 15_000 })
-  return await success.isVisible()
+  // Use .first() on the entire OR chain to avoid strict mode when multiple
+  // elements match (e.g. "vehicles available" appears in both heading and count).
+  const combined = page.getByText(/vehicles available/i)
+    .or(page.getByText(/Error loading inventory/i))
+    .or(page.getByText(/No vehicles found/i))
+  await expect(combined.first()).toBeVisible({ timeout: 15_000 })
+  return (await page.getByText(/vehicles available/i).count()) > 0
 }
 
 test.describe("Vehicle Detail Page", () => {

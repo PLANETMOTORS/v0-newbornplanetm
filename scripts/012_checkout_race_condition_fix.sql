@@ -80,17 +80,17 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_vehicle_single_active
 
 -- ── Step 4: Atomic vehicle lock function ───────────────────────────────────
 -- Used by startVehicleCheckout to atomically claim a vehicle for checkout.
--- Returns JSONB with success status and vehicle data (required by app/actions/stripe.ts).
+-- Returns JSONB with vehicle data fields (matching the TypeScript interface in
+-- app/actions/stripe.ts). Uses SELECT ... FOR UPDATE for row-level locking,
+-- then transitions to 'checkout_in_progress' so the lock persists beyond this TX.
 CREATE OR REPLACE FUNCTION public.lock_vehicle_for_checkout(
   p_vehicle_id UUID
-)
-RETURNS JSONB
+) RETURNS JSONB
 LANGUAGE plpgsql
 AS $$
 DECLARE
   v_vehicle RECORD;
 BEGIN
-  -- Lock the vehicle row to prevent concurrent checkouts
   SELECT id, year, make, model, price, status
     INTO v_vehicle
     FROM public.vehicles
@@ -106,7 +106,8 @@ BEGIN
       format('Vehicle is %s, not available for checkout', v_vehicle.status));
   END IF;
 
-  -- Transition to 'checkout_in_progress' to hold the lock beyond this transaction
+  -- Transition to 'checkout_in_progress' so the lock persists beyond COMMIT.
+  -- Without this, the FOR UPDATE lock releases and concurrent requests slip through.
   UPDATE public.vehicles
      SET status = 'checkout_in_progress', updated_at = NOW()
    WHERE id = p_vehicle_id;
@@ -118,7 +119,7 @@ BEGIN
     'make', v_vehicle.make,
     'model', v_vehicle.model,
     'price', v_vehicle.price,
-    'status', v_vehicle.status
+    'status', 'checkout_in_progress'
   );
 END;
 $$;
@@ -154,4 +155,4 @@ CREATE POLICY "Users can create own orders"
 DROP POLICY IF EXISTS "Service role full access to orders" ON public.orders;
 CREATE POLICY "Service role full access to orders"
   ON public.orders FOR ALL
-  USING (auth.role() = 'service_role');
+  USING (current_setting('role') = 'service_role');
