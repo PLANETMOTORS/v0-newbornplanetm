@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { RotateCw, Loader2 } from "lucide-react"
 
 interface DriveeViewerProps {
@@ -47,6 +47,21 @@ export function DriveeViewer({
 }: DriveeViewerProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Timeout: if iframe doesn't signal readiness within 15s, show fallback
+  useEffect(() => {
+    if (!isLoading) return
+    timeoutRef.current = setTimeout(() => {
+      if (isLoading) {
+        setHasError(true)
+        setIsLoading(false)
+      }
+    }, 15_000)
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    }
+  }, [isLoading])
 
   // Build iframe URL: prefer MID (direct hit) → fall back to VIN-based lookup
   const identifier = mid ? `mid=${mid}` : vin ? `vin=${vin}` : null
@@ -110,8 +125,15 @@ export function DriveeViewer({
         className="border-0"
         style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
         allow="fullscreen; autoplay"
-        onLoad={() => setIsLoading(false)}
-        onError={() => { setHasError(true); setIsLoading(false) }}
+        onLoad={() => {
+          if (timeoutRef.current) clearTimeout(timeoutRef.current)
+          setIsLoading(false)
+        }}
+        onError={() => {
+          if (timeoutRef.current) clearTimeout(timeoutRef.current)
+          setHasError(true)
+          setIsLoading(false)
+        }}
       />
     </div>
   )
