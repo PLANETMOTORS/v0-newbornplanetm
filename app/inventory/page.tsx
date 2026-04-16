@@ -770,11 +770,17 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
             )}
           </div>
 
-          {/* Vehicle Grid */}
+          {/* Vehicle Grid — content-visibility virtualizes off-screen cards */}
           <div className={`py-8 ${viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "space-y-4"}`}>
             {sortedVehicles.map((vehicle) => (
+              <div
+                key={vehicle.id}
+                style={{
+                  contentVisibility: "auto",
+                  containIntrinsicSize: viewMode === "list" ? "auto 200px" : "auto 420px",
+                }}
+              >
               <Card 
-                key={vehicle.id} 
                 className={`group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${
                   viewMode === "list" ? "flex flex-col sm:flex-row" : ""
                 }`}
@@ -955,6 +961,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   </div>
                 </CardContent>
               </Card>
+              </div>
             ))}
           </div>
 
