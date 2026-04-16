@@ -179,7 +179,7 @@ export default function CheckoutPage() {
   const taxLabel = provinceTax.hst > 0
     ? `HST (${(provinceTax.hst * 100).toFixed(0)}%)`
     : provinceTax.pst > 0
-      ? `GST+PST (${(provinceTax.total * 100).toFixed(1)}%)`
+      ? `GST+PST (${(provinceTax.total * 100).toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}%)`
       : `GST (${(provinceTax.gst * 100).toFixed(0)}%)`
   const tax = Math.round(subtotalBeforeTax * taxRate)
   // Total with tax

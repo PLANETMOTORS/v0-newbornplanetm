@@ -80,7 +80,6 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
 
       if (!result.success || !result.clientSecret) {
         setCheckoutError(result.error || "Failed to initialize payment. Please try again.")
-        setShowStripeCheckout(true)
         return
       }
 
@@ -97,7 +96,6 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
       } else {
         setCheckoutError("Unable to process your reservation right now. Please try again or call us at 416-985-2277.")
       }
-      setShowStripeCheckout(true)
     } finally {
       setIsProcessing(false)
     }

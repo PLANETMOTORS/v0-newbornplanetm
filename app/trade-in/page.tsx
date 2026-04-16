@@ -403,38 +403,6 @@ function TradeInContent() {
   const [photos, setPhotos] = useState<Record<string, { file: File; preview: string }>>({})
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
   
-  // Restore form data from localStorage on mount (skip if URL has prefill params)
-  useEffect(() => {
-    const hasPrefillParams =
-      Boolean(searchParams.get("quote")) ||
-      Boolean(searchParams.get("vehicle")) ||
-      Boolean(searchParams.get("mileage"))
-
-    if (hasPrefillParams) return
-
-    try {
-      const saved = window.localStorage.getItem(TRADE_IN_DRAFT_KEY)
-      if (saved) {
-        const draft = JSON.parse(saved)
-        if (draft.selectedYear) setSelectedYear(draft.selectedYear)
-        if (draft.selectedMake) setSelectedMake(draft.selectedMake)
-        if (draft.selectedModel) setSelectedModel(draft.selectedModel)
-        if (draft.selectedTrim) setSelectedTrim(draft.selectedTrim)
-        if (draft.mileage) setMileage(draft.mileage)
-        if (draft.condition) setCondition(draft.condition)
-        if (draft.hasAccident !== undefined) setHasAccident(draft.hasAccident)
-        if (draft.hasMechanicalIssues !== undefined) setHasMechanicalIssues(draft.hasMechanicalIssues)
-        if (draft.hasLien !== undefined) setHasLien(draft.hasLien)
-        if (draft.payoffAmount) setPayoffAmount(draft.payoffAmount)
-        if (draft.additionalNotes) setAdditionalNotes(draft.additionalNotes)
-        if (typeof draft.step === "number") {
-          setStep(Math.min(Math.max(draft.step, 1), 4))
-        }
-      }
-    } catch {
-      // Ignore localStorage failures
-    }
-  }, [searchParams])
   
   // Contact info
   const [email, setEmail] = useState("")
@@ -452,7 +420,7 @@ function TradeInContent() {
     draftLoadedRef.current = true
 
     // Don't restore draft if URL params are driving the form
-    const hasUrlPrefill = searchParams.get("quote") || searchParams.get("vehicle") || searchParams.get("value")
+    const hasUrlPrefill = searchParams.get("quote") || searchParams.get("vehicle") || searchParams.get("value") || searchParams.get("mileage")
     if (hasUrlPrefill) return
 
     try {
