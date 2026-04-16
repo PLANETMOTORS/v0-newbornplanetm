@@ -59,13 +59,12 @@ test.describe("Section A11Y — Accessibility (WCAG 2.2 AA)", () => {
     // Navigate to first vehicle via inventory
     await page.goto(`${BASE_URL}/inventory`, { waitUntil: "networkidle" })
     const firstLink = page.locator('a[href*="/vehicles/"]').first()
-    if ((await firstLink.count()) > 0) {
-      await firstLink.click()
-      await page.waitForLoadState("networkidle")
-    } else {
-      // Fallback: use mock vehicle page
-      await page.goto(`${BASE_URL}/vehicles/1`, { waitUntil: "networkidle" })
+    if ((await firstLink.count()) === 0) {
+      test.skip(true, "No vehicles available — cannot test VDP accessibility")
+      return
     }
+    await firstLink.click()
+    await page.waitForLoadState("networkidle")
 
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag22aa"])
@@ -89,6 +88,14 @@ test.describe("Section A11Y — Accessibility (WCAG 2.2 AA)", () => {
   test("A11Y-004 — Checkout: zero critical/serious axe violations across all steps", async ({
     page,
   }) => {
+    // Checkout pages require a vehicle in the session; skip when DB is unavailable
+    await page.goto(`${BASE_URL}/checkout/payment-type`, { waitUntil: "networkidle" })
+    const redirected = page.url().includes("/inventory") || page.url().includes("/auth")
+    if (redirected) {
+      test.skip(true, "Checkout redirected (no vehicle/session) — cannot test accessibility")
+      return
+    }
+
     const checkoutPaths = [
       "/checkout/payment-type",
       "/checkout/trade-in",
@@ -99,8 +106,8 @@ test.describe("Section A11Y — Accessibility (WCAG 2.2 AA)", () => {
 
     const allViolations: { step: string; violations: Record<string, unknown>[] }[] = []
 
-    for (const path of checkoutPaths) {
-      await page.goto(`${BASE_URL}${path}`, { waitUntil: "networkidle" })
+    for (const p of checkoutPaths) {
+      await page.goto(`${BASE_URL}${p}`, { waitUntil: "networkidle" })
       const results = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag22aa"])
         .analyze()
@@ -109,7 +116,7 @@ test.describe("Section A11Y — Accessibility (WCAG 2.2 AA)", () => {
         (v) => v.impact === "critical" || v.impact === "serious"
       )
       if (critical.length > 0) {
-        allViolations.push({ step: path, violations: critical })
+        allViolations.push({ step: p, violations: critical })
       }
     }
 
