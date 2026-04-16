@@ -1,6 +1,7 @@
 "use client"
 
 import Script from "next/script"
+import { useCookieConsent } from "@/lib/hooks/use-cookie-consent"
 
 declare global {
   interface Window {
@@ -11,7 +12,9 @@ declare global {
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
 
 export function GoogleAnalytics() {
-  if (!GA_MEASUREMENT_ID) return null
+  const { hasAnalyticsConsent } = useCookieConsent()
+
+  if (!GA_MEASUREMENT_ID || !hasAnalyticsConsent) return null
 
   return (
     <>

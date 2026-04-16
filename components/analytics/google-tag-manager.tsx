@@ -1,6 +1,7 @@
 "use client"
 
 import Script from "next/script"
+import { useCookieConsent } from "@/lib/hooks/use-cookie-consent"
 
 declare global {
   interface Window {
@@ -11,7 +12,9 @@ declare global {
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID
 
 export function GoogleTagManager() {
-  if (!GTM_ID) return null
+  const { hasAnalyticsConsent } = useCookieConsent()
+
+  if (!GTM_ID || !hasAnalyticsConsent) return null
 
   return (
     <Script id="gtm" strategy="afterInteractive">
@@ -27,7 +30,9 @@ export function GoogleTagManager() {
 }
 
 export function GoogleTagManagerNoScript() {
-  if (!GTM_ID) return null
+  const { hasAnalyticsConsent } = useCookieConsent()
+
+  if (!GTM_ID || !hasAnalyticsConsent) return null
 
   return (
     <noscript>
