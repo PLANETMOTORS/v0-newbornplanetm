@@ -40,8 +40,8 @@ test.describe("Auth — Login Page", () => {
     const passwordInput = page.locator('input#password')
     await expect(passwordInput).toHaveAttribute("type", "password")
 
-    // Click the show-password toggle (eye icon button)
-    const toggleButton = passwordInput.locator("..").locator("button")
+    // Click the show-password toggle — the button is the sibling of the input
+    const toggleButton = page.locator('#password ~ button')
     await toggleButton.click()
     await expect(passwordInput).toHaveAttribute("type", "text")
 
