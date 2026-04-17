@@ -4,12 +4,24 @@ import { getAISettings, getSiteSettings } from "@/lib/sanity/fetch"
 import { rateLimit } from "@/lib/redis"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 
-// Allowed origins for the AI assistant endpoint
-const ALLOWED_ORIGINS = [
-  process.env.NEXT_PUBLIC_BASE_URL,
-  "https://planetmotors.ca",
-  "https://www.planetmotors.ca",
-].filter(Boolean)
+// Allowed origins for the AI assistant endpoint — use exact origin matching
+// to prevent bypass via domains like "https://www.planetmotors.ca.attacker.tld"
+const ALLOWED_ORIGINS = new Set(
+  [
+    process.env.NEXT_PUBLIC_BASE_URL,
+    process.env.NEXT_PUBLIC_SITE_URL,
+    "https://planetmotors.ca",
+    "https://www.planetmotors.ca",
+    "https://ev.planetmotors.ca",
+  ].flatMap((value) => {
+    if (typeof value !== "string" || value.length === 0) return []
+    try {
+      return [new URL(value).origin]
+    } catch {
+      return []
+    }
+  })
+)
 
 function isAllowedOrigin(request: Request): boolean {
   const origin = request.headers.get("origin")
@@ -18,12 +30,18 @@ function isAllowedOrigin(request: Request): boolean {
   // In development, allow localhost
   if (process.env.NODE_ENV === "development") return true
 
-  if (origin && ALLOWED_ORIGINS.some((allowed) => allowed && origin.startsWith(allowed))) {
-    return true
+  if (origin) {
+    try {
+      if (ALLOWED_ORIGINS.has(new URL(origin).origin)) return true
+    } catch { /* malformed origin header */ }
   }
-  if (referer && ALLOWED_ORIGINS.some((allowed) => allowed && referer.startsWith(allowed))) {
-    return true
+
+  if (referer) {
+    try {
+      if (ALLOWED_ORIGINS.has(new URL(referer).origin)) return true
+    } catch { /* malformed referer header */ }
   }
+
   return false
 }
 

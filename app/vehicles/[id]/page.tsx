@@ -990,10 +990,7 @@ export default function VehicleDetailPage() {
                     </div>
                   </div>
 
-                  <Link href={`https://www.planetmotors.ca/inventory/${vehicle.stockNumber || vehicle.id}`} target="_blank" className="text-primary text-sm flex items-center gap-1 hover:underline">
-                    <ExternalLink className="w-4 h-4" />
-                    View Full Listing on planetmotors.ca →
-                  </Link>
+                  {/* Old-site cross-reference removed — users are already on the listing */}
 
                   {/* Vehicle Details Icons */}
                   <div className="flex flex-wrap gap-6">
