@@ -720,7 +720,7 @@ export default function VehicleDetailPage() {
       />
       <Header />
 
-<main id="main-content" className="pb-32 md:pb-20 overflow-x-hidden max-w-full" role="main" aria-label="Vehicle details" data-vin={vehicle.vin} data-stock={vehicle.stockNumber}>
+<main id="main-content" tabIndex={-1} className="pb-32 md:pb-20 overflow-x-hidden max-w-full" role="main" aria-label="Vehicle details" data-vin={vehicle.vin} data-stock={vehicle.stockNumber}>
   {/* Trade-In Banner */}
   {tradeInValue && parseInt(tradeInValue) > 0 && (
     <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3">
