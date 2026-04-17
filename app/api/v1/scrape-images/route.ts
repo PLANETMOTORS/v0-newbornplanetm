@@ -33,7 +33,7 @@ async function scrapeVehicleImages(vdpUrl: string): Promise<{
     })
     
     if (!response.ok) {
-      console.log(`[v0] Failed to fetch VDP: ${vdpUrl}`)
+      console.warn(`[v0] Failed to fetch VDP: ${vdpUrl}`)
       return { images: [], has360: false }
     }
     

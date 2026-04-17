@@ -987,14 +987,6 @@ function PostalCodeInput({ value, onChange, label = "Postal Code *" }: PostalCod
   }
   
   const handleSelectSuggestion = (suggestion: AddressSuggestion) => {
-    console.log("[v0] handleSelectSuggestion CLICKED - suggestion:", suggestion)
-    console.log("[v0] Calling onChange with:", {
-      city: suggestion.city,
-      province: suggestion.province,
-      streetName: suggestion.streetName,
-      streetType: suggestion.streetType,
-      direction: suggestion.direction,
-    })
     onChange(value, {
       city: suggestion.city,
       province: suggestion.province,
@@ -1003,7 +995,6 @@ function PostalCodeInput({ value, onChange, label = "Postal Code *" }: PostalCod
       direction: suggestion.direction,
     })
     setShowSuggestions(false)
-    console.log("[v0] handleSelectSuggestion COMPLETE")
   }
   
   return (
@@ -1258,7 +1249,6 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
           <PostalCodeInput
             value={data.postalCode}
             onChange={(postalCode, addressData) => {
-              console.log("[v0] PostalCodeInput onChange RECEIVED:", { postalCode, addressData })
               const newData = {
                 ...data,
                 postalCode,
@@ -1268,7 +1258,6 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
                 ...(addressData?.streetType && { streetType: addressData.streetType }),
                 ...(addressData?.direction && { direction: addressData.direction }),
               }
-              console.log("[v0] Updating applicant data with:", newData)
               onChange(newData)
             }}
           />

@@ -80,7 +80,7 @@ export async function createLiveVideoTourBooking(
     if (savedBooking) {
       booking.id = savedBooking.id // Use database-generated ID if available
     }
-    console.log("[liveVideoTour] Booking saved to database:", booking.id)
+    console.info("[liveVideoTour] Booking saved to database:", booking.id)
   } catch (dbError) {
     console.error("[liveVideoTour] Database save failed:", dbError)
     // Continue anyway - booking can still work without DB persistence
@@ -89,7 +89,7 @@ export async function createLiveVideoTourBooking(
   // 8. Send notifications (email to customer + staff)
   try {
     const notificationResult = await sendLiveVideoTourNotifications(booking)
-    console.log("[liveVideoTour] Notifications sent:", notificationResult)
+    console.info("[liveVideoTour] Notifications sent:", notificationResult)
   } catch (notifyError) {
     console.error("[liveVideoTour] Notification failed:", notifyError)
     // Continue anyway - booking is still valid
@@ -135,7 +135,7 @@ export async function cancelLiveVideoTourBooking(bookingId: string): Promise<Liv
     // 3. Send cancellation notifications
     await sendCancellationNotification(booking)
 
-    console.log("[liveVideoTour] Booking cancelled:", bookingId)
+    console.info("[liveVideoTour] Booking cancelled:", bookingId)
     return { ok: true, status: "cancelled" }
   } catch (error) {
     console.error("[liveVideoTour] Cancel failed:", error)
@@ -165,7 +165,7 @@ export async function confirmLiveVideoTourBooking(bookingId: string): Promise<Li
     // 3. Send confirmation notification (if not already sent)
     await sendLiveVideoTourNotifications(booking)
 
-    console.log("[liveVideoTour] Booking confirmed:", bookingId)
+    console.info("[liveVideoTour] Booking confirmed:", bookingId)
     return { ok: true, status: "confirmed" }
   } catch (error) {
     console.error("[liveVideoTour] Confirm failed:", error)

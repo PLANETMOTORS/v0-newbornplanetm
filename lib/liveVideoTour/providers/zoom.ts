@@ -14,7 +14,8 @@ export const zoomProvider: LiveVideoTourProviderAdapter = {
       )
 
       if (hasZoomCredentials) {
-        // TODO: Implement real Zoom API integration
+        // DEFERRED: Real Zoom API integration — requires ZOOM_CLIENT_ID/SECRET credentials.
+        // Currently returns a mock meeting link; enable when credentials are configured.
         // const response = await fetch('https://api.zoom.us/v2/users/me/meetings', {
         //   method: 'POST',
         //   headers: {

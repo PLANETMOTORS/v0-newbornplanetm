@@ -34,14 +34,14 @@ export async function GET(request: Request) {
 
   try {
     // Step 1: Download latest CSV from SFTP
-    console.log("[HomenetIOL Cron] Starting SFTP sync...")
+    console.info("[HomenetIOL Cron] Starting SFTP sync...")
     const { filename, content, filesFound } = await downloadLatestCSV()
 
-    console.log(`[HomenetIOL Cron] Downloaded ${filename} (${content.length} chars). Files on server: ${filesFound.length}`)
+    console.info(`[HomenetIOL Cron] Downloaded ${filename} (${content.length} chars). Files on server: ${filesFound.length}`)
 
     // Step 2: Parse CSV content
     const vehicles = parseHomenetCSV(content)
-    console.log(`[HomenetIOL Cron] Parsed ${vehicles.length} vehicles from ${filename}`)
+    console.info(`[HomenetIOL Cron] Parsed ${vehicles.length} vehicles from ${filename}`)
 
     if (vehicles.length === 0) {
       return NextResponse.json({
@@ -86,7 +86,7 @@ export async function GET(request: Request) {
           created_at: Math.floor(Date.now() / 1000),
         }))
         typesenseResult = await upsertVehiclesBatch(docs)
-        console.log(
+        console.info(
           `[HomenetIOL Cron] Typesense indexed: ${typesenseResult.success} ok, ${typesenseResult.errors} errors`
         )
       } catch (tsErr) {
@@ -95,7 +95,7 @@ export async function GET(request: Request) {
     }
 
     const duration = Date.now() - startTime
-    console.log(
+    console.info(
       `[HomenetIOL Cron] Sync complete in ${duration}ms: ` +
       `${result.inserted} inserted, ${result.updated} updated, ${result.errors.length} errors`
     )
