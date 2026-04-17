@@ -19,7 +19,7 @@ const { mockChain, mockCreateClient } = vi.hoisted(() => {
     const chain: Record<string, unknown> = {}
     for (const method of [
       'select', 'eq', 'neq', 'gte', 'lte', 'in', 'or',
-      'order', 'ilike',
+      'order', 'ilike', 'textSearch',
     ]) {
       chain[method] = (...args: unknown[]) => {
         calls.push({ method, args })
@@ -238,18 +238,27 @@ describe('searchVehicles — sort_by', () => {
 describe('searchVehicles — filters', () => {
   beforeEach(() => mockChain.reset([], 0))
 
-  it('applies or() filter for free-text query across make, model, trim', async () => {
+  it('applies textSearch on search_vector for free-text query (sanitized)', async () => {
     await searchVehicles({ query: 'Camry' })
-    const orArgs = mockChain.getCallArgs('or')
-    expect(orArgs[0][0]).toContain('make.ilike.%Camry%')
-    expect(orArgs[0][0]).toContain('model.ilike.%Camry%')
-    expect(orArgs[0][0]).toContain('trim.ilike.%Camry%')
+    const tsArgs = mockChain.getCallArgs('textSearch')
+    expect(tsArgs).toHaveLength(1)
+    expect(tsArgs[0][0]).toBe('search_vector')
+    expect(tsArgs[0][1]).toBe('Camry')
+    expect(tsArgs[0][2]).toEqual({ type: 'websearch', config: 'english' })
   })
 
-  it('does not apply or() when query is undefined', async () => {
+  it('sanitizes query input — strips special chars for PostgREST safety', async () => {
+    await searchVehicles({ query: 'test,status.eq.sold)' })
+    const tsArgs = mockChain.getCallArgs('textSearch')
+    expect(tsArgs).toHaveLength(1)
+    // commas, dots, parens stripped — only alphanumeric/space/dash survive
+    expect(tsArgs[0][1]).toBe('teststatuseqsold')
+  })
+
+  it('does not apply textSearch when query is undefined', async () => {
     await searchVehicles({})
-    const orArgs = mockChain.getCallArgs('or')
-    expect(orArgs).toHaveLength(0)
+    const tsArgs = mockChain.getCallArgs('textSearch')
+    expect(tsArgs).toHaveLength(0)
   })
 
   it('applies make filter with a single string value', async () => {

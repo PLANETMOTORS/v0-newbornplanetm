@@ -262,7 +262,12 @@ async function searchSupabase(params: VehicleSearchParams): Promise<SearchRespon
     .eq('status', 'available')
 
   if (params.query) {
-    query = query.or(`make.ilike.%${params.query}%,model.ilike.%${params.query}%,trim.ilike.%${params.query}%,vin.ilike.%${params.query}%,stock_number.ilike.%${params.query}%`)
+    // Sanitize user input to prevent PostgREST filter injection via commas/parens.
+    // Uses the same approach as app/api/v1/vehicles/route.ts (textSearch with tsvector GIN index).
+    const sanitizedQ = params.query.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s-]/g, '').trim()
+    if (sanitizedQ) {
+      query = query.textSearch('search_vector', sanitizedQ, { type: 'websearch', config: 'english' })
+    }
   }
 
   const makes = asArray(params.make)
