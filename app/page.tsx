@@ -4,6 +4,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { HomepageContent } from "@/components/homepage-content"
 import { getSiteSettings, getTestimonials, getFaqs } from "@/lib/sanity/fetch"
+import { createClient } from "@/lib/supabase/server"
 
 // Default site settings - fallback when CMS is unavailable or slow
 const DEFAULT_SITE_SETTINGS = {
@@ -28,12 +29,32 @@ async function withTimeout<T>(promise: Promise<T>, fallback: T, ms = 3000): Prom
   }
 }
 
+// Fetch showcase vehicles server-side so the LCP hero image is in the initial
+// HTML with a <link rel="preload">. Passed to VehicleShowcase as SWR fallbackData
+// so vehicle metadata and images are consistent from the first render.
+async function getShowcaseVehicles() {
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('vehicles')
+      .select('id, year, make, model, trim, price, mileage, fuel_type, inspection_score, is_new_arrival, primary_image_url, image_urls')
+      .eq('status', 'available')
+      .order('price', { ascending: false })
+      .limit(6)
+    if (error || !data?.length) return null
+    return data
+  } catch {
+    return null
+  }
+}
+
 // Async component that fetches CMS data — streamed via Suspense
 async function HomepageWithData() {
-  const [siteSettings, testimonials, faqs] = await Promise.all([
+  const [siteSettings, testimonials, faqs, showcaseVehicles] = await Promise.all([
     withTimeout(getSiteSettings(), null),
     withTimeout(getTestimonials(), []),
     withTimeout(getFaqs(), []),
+    withTimeout(getShowcaseVehicles(), null),
   ])
 
   return (
@@ -41,6 +62,7 @@ async function HomepageWithData() {
       siteSettings={siteSettings ?? DEFAULT_SITE_SETTINGS}
       testimonials={testimonials ?? []}
       faqs={faqs ?? []}
+      showcaseVehicles={showcaseVehicles}
     />
   )
 }

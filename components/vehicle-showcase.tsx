@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import useSWR from "swr"
 import { ChevronLeft, ChevronRight, RotateCw, Shield, Heart, Share2, Fuel, Gauge, Calendar, Car } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -133,17 +134,20 @@ function transformToShowcase(v: DbVehicle) {
   }
 }
 
-export function VehicleShowcase() {
+export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle[] } = {}) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
   const [imageError, setImageError] = useState(false)
 
-  // Fetch vehicles from Supabase
+  // Fetch vehicles from Supabase — use server-fetched data as fallbackData
+  // so the first render already has real vehicle data + images (enables LCP preload).
   const { data: dbVehicles } = useSWR('showcase-vehicles', fetcher, {
     refreshInterval: 120000,
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- server data matches fetcher shape
+    ...(serverVehicles ? { fallbackData: serverVehicles as any } : {}),
   })
 
   // Transform to showcase format - use fallback if no DB data
@@ -200,15 +204,15 @@ export function VehicleShowcase() {
         {/* Main image container */}
         <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] shadow-2xl">
         {imageSrc ? (
-          /* eslint-disable-next-line @next/next/no-img-element -- External URLs with onError fallback */
-          <img
+          <Image
             src={imageSrc}
             alt={currentVehicle.name}
-            loading="eager"
-            fetchPriority="high"
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            priority
             onError={() => setImageError(true)}
             className={cn(
-              "absolute inset-0 w-full h-full object-cover transition-all duration-500",
+              "object-cover transition-all duration-500",
               isAnimating ? "scale-105 opacity-80" : "scale-100 opacity-100"
             )}
           />
@@ -350,12 +354,17 @@ export function VehicleShowcase() {
               )}
               aria-label={`View ${vehicle.name}`}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element -- External CDN thumbnail */}
-              <img
-                src={vehicle.image || undefined}
-                alt={vehicle.name}
-                className="absolute inset-0 w-full h-full object-cover"
-              />
+              {vehicle.image ? (
+                <Image
+                  src={vehicle.image}
+                  alt={vehicle.name}
+                  fill
+                  sizes="64px"
+                  className="object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-gray-200" />
+              )}
             </button>
           ))}
         </div>
