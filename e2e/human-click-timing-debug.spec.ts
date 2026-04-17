@@ -21,8 +21,36 @@ import * as path from 'path';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const BASE_URL = process.env.BASE_URL || 'https://ev.planetmotors.ca';
+// Default to the local CI build (http://localhost:3000) that `playwright.config.ts`
+// webServer and the GitHub Actions `pnpm start` step bring up. Override with the
+// BASE_URL env var to run these specs against a deployed environment.
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 const CHECKOUT_URL = `${BASE_URL}/checkout`;
+
+// ─── Cookie consent pre-seed ─────────────────────────────────────────────────
+//
+// The site renders a fixed-position cookie consent banner (z-[9999]) whose
+// subtree intercepts pointer events on Firefox/WebKit, causing click/hover
+// timeouts on Continue and CTA buttons. Pre-seed localStorage via
+// addInitScript so `showBanner` in use-cookie-consent returns false before
+// anything is rendered, without having to click through the banner in every
+// test.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    try {
+      window.localStorage.setItem(
+        'pm_cookie_consent',
+        JSON.stringify({
+          decided: true,
+          updatedAt: new Date().toISOString(),
+          categories: { essential: true, analytics: false, marketing: false },
+        })
+      );
+    } catch {
+      // localStorage may be unavailable on some origins; safe to ignore.
+    }
+  });
+});
 
 // ── Performance Budgets (ms) ──
 const BUDGET = {
