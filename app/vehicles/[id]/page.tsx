@@ -456,11 +456,21 @@ export default function VehicleDetailPage() {
             : data.primary_image_url
               ? [data.primary_image_url]
               : vehicleData.images
+
+          // HomenetIOL: first image often has dealer overlays ("Shop Online Nationwide",
+          // payment banners). Skip it when the feed has more than 1 image — image 2+ are
+          // clean(er) vehicle photos. The primary_image_url is always image[0].
+          const cleanImages = rawImages.length > 1
+            && rawImages[0] === data.primary_image_url
+            && rawImages[0]?.includes('homenetiol.com')
+            ? rawImages.slice(1)
+            : rawImages
+
           // Split images: HomeNet convention — exterior photos first, interior photos last
           // Roughly 60% exterior, 40% interior for typical 30-40 image sets
-          const splitIndex = rawImages.length > 10 ? Math.ceil(rawImages.length * 0.6) : rawImages.length
-          const exteriorImgs = rawImages.slice(0, splitIndex)
-          const interiorImgs = rawImages.length > 10 ? rawImages.slice(splitIndex) : []
+          const splitIndex = cleanImages.length > 10 ? Math.ceil(cleanImages.length * 0.6) : cleanImages.length
+          const exteriorImgs = cleanImages.slice(0, splitIndex)
+          const interiorImgs = cleanImages.length > 10 ? cleanImages.slice(splitIndex) : []
 
           setVehicle({
             ...vehicleData, // Keep mock inspection data as fallback
@@ -539,8 +549,10 @@ export default function VehicleDetailPage() {
   const allImages = [...(vehicle?.images || []), ...(vehicle?.interiorImages || [])]
   // Drivee 360° viewer requires a MID (media ID) from the DRIVEE_VIN_MAP.
   // Drivee's iframe does NOT support VIN-based lookups — only ?mid= works.
+  // Only show 360° when Drivee content actually exists — fake spinning through
+  // still photos creates a poor UX (images have dealer overlays, wrong angles).
   const hasDrivee = !!vehicle?.driveeMid
-  const has360 = hasDrivee || allImages.length >= 15
+  const has360 = hasDrivee
   useEffect(() => {
     if (!isSpinning || imageType !== "360") return
     const interval = setInterval(() => {
