@@ -56,6 +56,16 @@ const nextConfig = {
     ],
   },
 
+  // Rewrite /sitemap.xml to the API route handler (works locally + Vercel)
+  async rewrites() {
+    return [
+      {
+        source: '/sitemap.xml',
+        destination: '/api/sitemap',
+      },
+    ]
+  },
+
   // OWASP security headers — split CSP: strict for main site, permissive for /studio
   async headers() {
     // Shared security headers (all routes)
