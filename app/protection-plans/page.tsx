@@ -134,7 +134,7 @@ export default function ProtectionPlansPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="pt-8 pb-20">
+      <main className="pt-24 pb-20">
         {/* Hero section */}
         <section className="py-16 lg:py-24 bg-primary text-primary-foreground">
           <div className="mx-auto max-w-7xl px-6 lg:px-8 text-center">

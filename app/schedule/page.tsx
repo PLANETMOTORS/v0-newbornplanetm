@@ -54,7 +54,7 @@ export default function SchedulePage() {
       <div className="min-h-screen bg-background">
         <Header />
         
-        <main className="pt-8 pb-16">
+        <main className="pt-32 pb-16">
           <div className="container mx-auto px-4 max-w-lg text-center">
             <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 className="w-10 h-10 text-green-600" />
@@ -100,7 +100,7 @@ export default function SchedulePage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="pt-8 pb-16">
+      <main className="pt-32 pb-16">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-8">

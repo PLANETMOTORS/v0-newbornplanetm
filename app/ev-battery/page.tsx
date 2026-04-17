@@ -139,7 +139,7 @@ export default function EVBatteryPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="pt-8 pb-16">
+      <main className="pt-32 pb-16">
         {/* Hero Section */}
         <section className="bg-gradient-to-br from-primary/10 via-background to-accent/5 py-16">
           <div className="container mx-auto px-4">
