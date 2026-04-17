@@ -21,6 +21,7 @@ type FeaturedVehicle = {
   mileageLabel: string
   badge: string
   isEV: boolean
+  isSUV: boolean
   isAvilooCertified: boolean
   imageUrl: string | null
 }
@@ -36,6 +37,7 @@ const fallbackVehicles: FeaturedVehicle[] = [
     mileageLabel: "358 km range",
     badge: "Popular",
     isEV: true,
+    isSUV: false,
     isAvilooCertified: true,
     imageUrl: null,
   },
@@ -49,6 +51,7 @@ const fallbackVehicles: FeaturedVehicle[] = [
     mileageLabel: "41 MPG",
     badge: "Fuel Saver",
     isEV: false,
+    isSUV: true,
     isAvilooCertified: false,
     imageUrl: null,
   },
@@ -62,6 +65,7 @@ const fallbackVehicles: FeaturedVehicle[] = [
     mileageLabel: "488 km range",
     badge: "New Arrival",
     isEV: true,
+    isSUV: true,
     isAvilooCertified: true,
     imageUrl: null,
   },
@@ -75,6 +79,7 @@ const fallbackVehicles: FeaturedVehicle[] = [
     mileageLabel: "30 MPG",
     badge: "Popular",
     isEV: false,
+    isSUV: true,
     isAvilooCertified: false,
     imageUrl: null,
   },
@@ -88,6 +93,7 @@ const fallbackVehicles: FeaturedVehicle[] = [
     mileageLabel: "402 km range",
     badge: "Premium",
     isEV: true,
+    isSUV: true,
     isAvilooCertified: true,
     imageUrl: null,
   },
@@ -101,6 +107,7 @@ const fallbackVehicles: FeaturedVehicle[] = [
     mileageLabel: "26 MPG",
     badge: "Luxury",
     isEV: false,
+    isSUV: true,
     isAvilooCertified: false,
     imageUrl: null,
   },
@@ -119,7 +126,7 @@ const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
   const supabase = createClient()
   const { data, error } = await supabase
     .from("vehicles")
-    .select("id, year, make, model, price, mileage, fuel_type, featured, inspection_score, primary_image_url, image_urls")
+    .select("id, year, make, model, price, mileage, fuel_type, body_style, featured, inspection_score, primary_image_url, image_urls")
     .eq("status", "available")
     .order("featured", { ascending: false })
     .order("created_at", { ascending: false })
@@ -134,6 +141,8 @@ const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
     const monthlyPayment = Math.max(1, Math.round((priceCents / 100) / 108))
     const fuelType = String(vehicle.fuel_type || "")
     const isEV = fuelType.toLowerCase() === "electric"
+    const bodyStyle = String(vehicle.body_style || "").toLowerCase()
+    const isSUV = bodyStyle.includes("sport utility") || bodyStyle.includes("suv")
 
     // Get the best available image using the helper
     const imageUrl = getVehicleImage({
@@ -152,6 +161,7 @@ const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
       mileageLabel: `${Math.max(0, Math.round(Number(vehicle.mileage || 0))).toLocaleString()} km`,
       badge: vehicle.featured ? "Popular" : (isEV ? "Electric" : "Certified"),
       isEV,
+      isSUV,
       isAvilooCertified: isEV && Number(vehicle.inspection_score || 0) >= 200,
       imageUrl: imageUrl || null,
     }
@@ -176,9 +186,7 @@ export function HomepageFeaturedVehicles() {
     const vehicles = error ? fallbackVehicles : (data ?? [])
     return vehicles.filter((vehicle) => {
       if (activeTab === "electric") return vehicle.isEV
-      if (activeTab === "suvs") {
-        return vehicle.model.includes("CR-V") || vehicle.model.includes("X3") || vehicle.model.includes("RAV4")
-      }
+      if (activeTab === "suvs") return vehicle.isSUV
       return true
     })
   }, [activeTab, data, error])
