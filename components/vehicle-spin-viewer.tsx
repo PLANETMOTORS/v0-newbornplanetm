@@ -190,7 +190,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       }`}
       style={{
         cursor: !isReady ? "default" : isDragging ? "grabbing" : "grab",
-        backgroundColor: "#e8e8e8",
+        background: "radial-gradient(ellipse at center, #ffffff 0%, #f5f5f5 60%, #eeeeee 100%)",
       }}
       role="region"
       aria-label={`360° Interactive View — ${alt}`}
@@ -218,17 +218,33 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         </div>
       )}
 
-      {/* Current frame image */}
+      {/* Current frame image — constrained for studio "breathing room" */}
       {isReady && images[frame] && (
-        <Image
-          src={images[frame]}
-          alt={`${alt} — angle ${frame + 1} of ${totalFrames}`}
-          fill
-          className="object-contain pointer-events-none"
-          priority={frame === 0}
-          sizes={isFullscreen ? "100vw" : "(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"}
-          draggable={false}
-          unoptimized
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="relative" style={{ width: "90%", height: "85%" }}>
+            <Image
+              src={images[frame]}
+              alt={`${alt} — angle ${frame + 1} of ${totalFrames}`}
+              fill
+              className="object-contain pointer-events-none"
+              priority={frame === 0}
+              sizes={isFullscreen ? "100vw" : "(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"}
+              draggable={false}
+              unoptimized
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Contact shadow — soft ellipse beneath the vehicle */}
+      {isReady && (
+        <div
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 z-[1] pointer-events-none"
+          style={{
+            width: "70%",
+            height: "8%",
+            background: "radial-gradient(ellipse at center, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.06) 50%, transparent 80%)",
+          }}
         />
       )}
 

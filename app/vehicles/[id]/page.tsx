@@ -44,6 +44,10 @@ const VehicleSpinViewer = dynamic(
   () => import("@/components/vehicle-spin-viewer").then(m => ({ default: m.VehicleSpinViewer })),
   { ssr: false, loading: () => <div className="aspect-[4/3] bg-gray-100 animate-pulse rounded-xl" /> }
 )
+const VehicleInteriorViewer = dynamic(
+  () => import("@/components/vehicle-interior-viewer").then(m => ({ default: m.VehicleInteriorViewer })),
+  { ssr: false, loading: () => <div className="aspect-[4/3] bg-neutral-900 animate-pulse rounded-xl" /> }
+)
 
 const SimilarVehicles = dynamic(
   () => import("@/components/similar-vehicles").then(m => ({ default: m.SimilarVehicles })),
@@ -542,11 +546,13 @@ export default function VehicleDetailPage() {
 
 
   // ── Native 360° spin (replaces Drivee iframe) ──
-  // Fetch walk-around frame URLs from Firebase Storage when a Drivee MID exists.
+  // Fetch walk-around frame URLs from Supabase Storage when a Drivee MID exists.
   const hasDrivee = !!vehicle?.driveeMid
   const has360 = hasDrivee
   const [spinFrameUrls, setSpinFrameUrls] = useState<string[]>([])
   const [spinFramesLoading, setSpinFramesLoading] = useState(false)
+  const [interiorPanoUrl, setInteriorPanoUrl] = useState<string | null>(null)
+  const [spinViewMode, setSpinViewMode] = useState<"exterior" | "interior">("exterior")
 
   useEffect(() => {
     if (!hasDrivee || !vehicle?.driveeMid) return
@@ -556,6 +562,7 @@ export default function VehicleDetailPage() {
       .then((r) => r.json())
       .then((data) => {
         if (!cancelled && data.frames) setSpinFrameUrls(data.frames)
+        if (!cancelled && data.interior) setInteriorPanoUrl(data.interior)
       })
       .catch(() => { /* fallback: spinner will show 0 frames */ })
       .finally(() => { if (!cancelled) setSpinFramesLoading(false) })
@@ -793,20 +800,58 @@ export default function VehicleDetailPage() {
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
                   {/* 360° Interactive Viewer — Native image-sequence spinner (Carvana-style) */}
-                  {imageType === "360" && has360 && spinFramesLoading ? (
-                    <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-4" style={{ backgroundColor: "#e8e8e8" }}>
-                      <Loader2 className="w-10 h-10 animate-spin text-primary" aria-hidden="true" />
-                      <p className="text-sm text-muted-foreground font-medium">Loading 360° view…</p>
-                    </div>
-                  ) : imageType === "360" && has360 && spinFrameUrls.length > 0 ? (
-                    <VehicleSpinViewer
-                      images={spinFrameUrls}
-                      alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                    />
-                  ) : imageType === "360" && has360 ? (
-                    <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-3" style={{ backgroundColor: "#e8e8e8" }}>
-                      <RotateCw className="w-8 h-8 text-muted-foreground" aria-hidden="true" />
-                      <p className="text-sm text-muted-foreground font-medium">360° view not available</p>
+                  {imageType === "360" && has360 ? (
+                    <div className="space-y-3">
+                      {/* Exterior / Interior toggle */}
+                      {interiorPanoUrl && (
+                        <div className="flex items-center justify-center">
+                          <div className="inline-flex rounded-lg bg-muted p-1 text-sm font-medium">
+                            <button
+                              onClick={() => setSpinViewMode("exterior")}
+                              className={`px-4 py-1.5 rounded-md transition-all ${
+                                spinViewMode === "exterior"
+                                  ? "bg-background text-foreground shadow-sm"
+                                  : "text-muted-foreground hover:text-foreground"
+                              }`}
+                            >
+                              Exterior
+                            </button>
+                            <button
+                              onClick={() => setSpinViewMode("interior")}
+                              className={`px-4 py-1.5 rounded-md transition-all ${
+                                spinViewMode === "interior"
+                                  ? "bg-background text-foreground shadow-sm"
+                                  : "text-muted-foreground hover:text-foreground"
+                              }`}
+                            >
+                              Interior
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Viewer area */}
+                      {spinViewMode === "interior" && interiorPanoUrl ? (
+                        <VehicleInteriorViewer
+                          src={interiorPanoUrl}
+                          alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                        />
+                      ) : spinFramesLoading ? (
+                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-4" style={{ background: "radial-gradient(ellipse at center, #ffffff 0%, #f5f5f5 60%, #eeeeee 100%)" }}>
+                          <Loader2 className="w-10 h-10 animate-spin text-primary" aria-hidden="true" />
+                          <p className="text-sm text-muted-foreground font-medium">Loading 360° view…</p>
+                        </div>
+                      ) : spinFrameUrls.length > 0 ? (
+                        <VehicleSpinViewer
+                          images={spinFrameUrls}
+                          alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                        />
+                      ) : (
+                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-3" style={{ background: "radial-gradient(ellipse at center, #ffffff 0%, #f5f5f5 60%, #eeeeee 100%)" }}>
+                          <RotateCw className="w-8 h-8 text-muted-foreground" aria-hidden="true" />
+                          <p className="text-sm text-muted-foreground font-medium">360° view not available</p>
+                        </div>
+                      )}
                     </div>
                   ) : (
                   <div
