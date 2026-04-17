@@ -190,7 +190,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       }`}
       style={{
         cursor: !isReady ? "default" : isDragging ? "grabbing" : "grab",
-        backgroundColor: "#e8e8e8",
+        background: "radial-gradient(ellipse at center, #f8f8f8 0%, #f0f0f0 40%, #e4e4e4 80%, #d9d9d9 100%)",
       }}
       role="region"
       aria-label={`360° Interactive View — ${alt}`}
@@ -218,18 +218,48 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         </div>
       )}
 
-      {/* Current frame image */}
+      {/* Current frame image — constrained for studio "breathing room" */}
       {isReady && images[frame] && (
-        <Image
-          src={images[frame]}
-          alt={`${alt} — angle ${frame + 1} of ${totalFrames}`}
-          fill
-          className="object-contain pointer-events-none"
-          priority={frame === 0}
-          sizes={isFullscreen ? "100vw" : "(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"}
-          draggable={false}
-          unoptimized
-        />
+        <div className="absolute inset-0 flex items-center justify-center z-[2]">
+          <div className="relative" style={{ width: "90%", height: "85%" }}>
+            <Image
+              src={images[frame]}
+              alt={`${alt} — angle ${frame + 1} of ${totalFrames}`}
+              fill
+              className="object-contain pointer-events-none"
+              priority={frame === 0}
+              sizes={isFullscreen ? "100vw" : "(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"}
+              draggable={false}
+              unoptimized
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Contact shadow — wide soft ellipse beneath the vehicle (turntable style) */}
+      {isReady && (
+        <>
+          {/* Primary shadow — wide and soft like a turntable floor */}
+          <div
+            className="absolute left-1/2 -translate-x-1/2 z-[1] pointer-events-none"
+            style={{
+              bottom: "7%",
+              width: "80%",
+              height: "6%",
+              background: "radial-gradient(ellipse at center, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.08) 40%, rgba(0,0,0,0.02) 70%, transparent 100%)",
+            }}
+          />
+          {/* Secondary ambient shadow — very wide, subtle ground plane */}
+          <div
+            className="absolute left-1/2 -translate-x-1/2 z-[0] pointer-events-none"
+            style={{
+              bottom: "5%",
+              width: "95%",
+              height: "10%",
+              background: "radial-gradient(ellipse at center, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.02) 50%, transparent 80%)",
+            }}
+          />
+        </>
       )}
 
       {/* Preload progress bar — shows during background loading after first frame */}
@@ -239,6 +269,15 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
             className="h-full bg-primary/60 transition-all duration-300"
             style={{ width: `${loadProgress}%` }}
           />
+        </div>
+      )}
+
+      {/* 360° floating badge (like Clutch/Carvana) */}
+      {isReady && !isDragging && !isAutoPlaying && (
+        <div className="absolute left-4 z-10 pointer-events-none" style={{ top: "50%", transform: "translateY(-50%)" }}>
+          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-lg border border-gray-200">
+            <span className="text-xs font-bold text-gray-700">360°</span>
+          </div>
         </div>
       )}
 

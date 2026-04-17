@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
-import { discoverFrameUrls } from "@/lib/drivee-frames"
-import { DRIVEE_VIN_MAP, DRIVEE_DEALER_UID } from "@/lib/drivee"
+import { discoverFrameUrls, interiorUrl } from "@/lib/drivee-frames"
+import { DRIVEE_VIN_MAP } from "@/lib/drivee"
 
 /**
  * GET /api/v1/360-frames/:mid
  *
- * Returns the list of native 360° walk-around frame URLs for a given
- * Drivee media ID.  The frames are hosted on Firebase Storage (public
- * bucket) and served as WebP images.
+ * Returns the list of 360° walk-around frame URLs for a given media ID.
+ * Frames are now served from our Supabase Storage bucket (`vehicle-360`).
  *
  * Response is cached for 1 hour at the edge (frames rarely change).
  */
@@ -27,7 +26,7 @@ export async function GET(
   }
 
   try {
-    const urls = await discoverFrameUrls(mid, DRIVEE_DEALER_UID)
+    const urls = await discoverFrameUrls(mid)
 
     if (urls.length === 0) {
       return NextResponse.json(
@@ -41,6 +40,7 @@ export async function GET(
         mid,
         frameCount: urls.length,
         frames: urls,
+        interior: interiorUrl(mid),
       },
       {
         status: 200,
