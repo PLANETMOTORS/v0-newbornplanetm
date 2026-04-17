@@ -41,7 +41,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   const momentumRef = useRef<number | null>(null)
 
   const totalFrames = images.length
-  const sensitivity = Math.max(3, Math.round(800 / totalFrames))
+  const sensitivity = totalFrames > 0 ? Math.max(3, Math.round(800 / totalFrames)) : 3
   const loadProgress = totalFrames > 0 ? Math.round((loadedCount / totalFrames) * 100) : 0
   const isReady = loadedCount >= 1 // Show spinner once first frame loads
 
@@ -81,7 +81,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
 
   // ── Auto-play ──
   useEffect(() => {
-    if (!isAutoPlaying || !isReady) return
+    if (!isAutoPlaying || !isReady || totalFrames === 0) return
     const interval = setInterval(() => {
       setFrame((prev) => (prev + 1) % totalFrames)
     }, 120)
@@ -157,6 +157,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
 
   // ── Keyboard ──
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (totalFrames === 0) return
     if (e.key === "ArrowRight") {
       setFrame((prev) => (prev + 1) % totalFrames)
       e.preventDefault()

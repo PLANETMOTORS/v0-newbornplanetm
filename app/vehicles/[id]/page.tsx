@@ -20,7 +20,7 @@ import {
   Phone, Star, TrendingUp, Users,
   Battery, LockKeyhole, Truck, ArrowRight, Play,
   Download, ExternalLink, Check, Expand,
-  Key, RotateCw
+  Key, RotateCw, Loader2
 } from "lucide-react"
 
 import { VehicleJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
@@ -793,11 +793,21 @@ export default function VehicleDetailPage() {
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
                   {/* 360° Interactive Viewer — Native image-sequence spinner (Carvana-style) */}
-                  {imageType === "360" && has360 ? (
+                  {imageType === "360" && has360 && spinFramesLoading ? (
+                    <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-4" style={{ backgroundColor: "#e8e8e8" }}>
+                      <Loader2 className="w-10 h-10 animate-spin text-primary" aria-hidden="true" />
+                      <p className="text-sm text-muted-foreground font-medium">Loading 360° view…</p>
+                    </div>
+                  ) : imageType === "360" && has360 && spinFrameUrls.length > 0 ? (
                     <VehicleSpinViewer
                       images={spinFrameUrls}
                       alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                     />
+                  ) : imageType === "360" && has360 ? (
+                    <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-3" style={{ backgroundColor: "#e8e8e8" }}>
+                      <RotateCw className="w-8 h-8 text-muted-foreground" aria-hidden="true" />
+                      <p className="text-sm text-muted-foreground font-medium">360° view not available</p>
+                    </div>
                   ) : (
                   <div
                     data-testid="vdp-image-gallery"
