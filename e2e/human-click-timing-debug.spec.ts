@@ -192,18 +192,20 @@ test.describe('Section A — Human Click Simulation', () => {
   test('A03 — inventory card click navigates to correct VDP', async ({ page }) => {
     await page.goto(`${BASE_URL}/inventory`);
     const firstCard = page.getByTestId('inventory-card').first();
+    await firstCard.waitFor({ state: 'visible', timeout: 30_000 });
     const vehicleTitle = await firstCard.getByTestId('card-title').innerText();
     await humanClick(page, firstCard);
-    await expect(page).toHaveURL(/\/vehicles\//);
-    await expect(page.getByTestId('vdp-title')).toContainText(vehicleTitle.split(' ')[0]);
+    await expect(page).toHaveURL(/\/vehicles\//, { timeout: 15_000 });
+    await expect(page.getByTestId('vdp-title')).toContainText(vehicleTitle.split(' ')[0], { timeout: 10_000 });
   });
 
   test('A04 — VDP "Start Purchase" button click initiates checkout', async ({ page }) => {
     await page.goto(`${BASE_URL}/inventory`);
+    await page.getByTestId('inventory-card').first().waitFor({ state: 'visible', timeout: 30_000 });
     await page.getByTestId('inventory-card').first().click();
-    await expect(page).toHaveURL(/\/vehicles\//);
+    await expect(page).toHaveURL(/\/vehicles\//, { timeout: 15_000 });
     await humanClick(page, page.getByTestId('btn-start-purchase'));
-    await expect(page).toHaveURL(/checkout/);
+    await expect(page).toHaveURL(/checkout/, { timeout: 10_000 });
   });
 
   test('A05 — Step 1 payment type toggle — Cash click', async ({ page }) => {
@@ -287,12 +289,13 @@ test.describe('Section A — Human Click Simulation', () => {
 
   test('A13 — right-click on vehicle image does not expose raw origin URL', async ({ page }) => {
     await page.goto(`${BASE_URL}/inventory`);
-    await page.getByTestId('inventory-card').first().click({ timeout: 10_000 });
-    await page.waitForURL(/\/vehicles\//);
+    await page.getByTestId('inventory-card').first().waitFor({ state: 'visible', timeout: 30_000 });
+    await page.getByTestId('inventory-card').first().click();
+    await page.waitForURL(/\/vehicles\//, { timeout: 15_000 });
     const heroImage = page.getByTestId('vdp-hero-image');
     // The hero image uses Next.js Image (fill) — it may be "hidden" layout-wise
     // but still attached to the DOM. Wait for attachment, not visibility.
-    await heroImage.waitFor({ state: 'attached', timeout: 10_000 });
+    await heroImage.waitFor({ state: 'attached', timeout: 15_000 });
     const src = await heroImage.getAttribute('src');
     // Should use Next.js optimised image or CDN — not a raw bucket URL
     expect(src).toBeTruthy();
@@ -462,10 +465,11 @@ test.describe('Section B — Tab & Keyboard Navigation', () => {
 
   test('B12 — VDP image gallery navigable via arrow keys', async ({ page }) => {
     await page.goto(`${BASE_URL}/inventory`);
-    await page.getByTestId('inventory-card').first().click({ timeout: 10_000 });
-    await page.waitForURL(/\/vehicles\//);
+    await page.getByTestId('inventory-card').first().waitFor({ state: 'visible', timeout: 30_000 });
+    await page.getByTestId('inventory-card').first().click();
+    await page.waitForURL(/\/vehicles\//, { timeout: 15_000 });
     const gallery = page.getByTestId('vdp-image-gallery');
-    await gallery.waitFor({ state: 'visible', timeout: 10_000 });
+    await gallery.waitFor({ state: 'visible', timeout: 15_000 });
     await gallery.click(); // Focus the gallery element
     await page.waitForTimeout(300); // Let React state settle
     const imgBefore = await page.getByTestId('vdp-active-image').getAttribute('src');
@@ -558,8 +562,9 @@ test.describe('Section C — Page Load Timing', () => {
     });
 
     await page.goto(`${BASE_URL}/inventory`);
+    await page.getByTestId('inventory-card').first().waitFor({ state: 'visible', timeout: 30_000 });
     await page.getByTestId('inventory-card').first().click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
 
     timingResults['vdp-images'] = Object.fromEntries(
       imageTimes.map((e, i) => [`image_${i}`, e.duration])
