@@ -15,7 +15,7 @@ export default function ViewerPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="pt-24 pb-20">
+      <main className="pt-8 pb-20">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           {/* Page header */}
           <div className="text-center max-w-2xl mx-auto mb-12">
