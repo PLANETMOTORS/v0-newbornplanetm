@@ -3,8 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import { getCachedSearchResults, cacheSearchResults, deleteCachedSearchResults } from "@/lib/redis"
 import { getDriveeMid } from "@/lib/drivee"
-
-const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
+import { ADMIN_EMAILS } from "@/lib/admin"
 const VEHICLE_DETAIL_TTL = 300 // 5 minutes
 
 const ALLOWED_STATUSES = new Set([

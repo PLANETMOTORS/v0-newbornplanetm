@@ -14,85 +14,16 @@ export async function GET(
 
   const { id } = await params
 
-  // Mock return data
-  const returnData = {
-    id,
-    orderId: "ord_12345",
-    status: "approved",
-    statusLabel: "Return Approved",
-    vehicle: {
-      year: 2023,
-      make: "Tesla",
-      model: "Model Y",
-      vin: "5YJYGDEE5MF123456",
+  // TODO: Connect to real returns database table once available.
+  // Until then, return a placeholder indicating no return record was found.
+  return NextResponse.json(
+    {
+      error: "Return not found",
+      message: "No return record exists for this ID. If you believe this is an error, please contact support at 1-866-797-3332.",
+      _disclaimer: "Returns tracking is not yet available. Please contact our team directly for return status.",
     },
-    reason: "Changed my mind",
-    pickup: {
-      scheduledDate: "2024-03-25",
-      timeSlot: "10:00 AM - 12:00 PM",
-      address: {
-        street: "123 Customer Street",
-        city: "Toronto",
-        province: "ON",
-        postalCode: "M5V 1A1",
-      },
-      driver: {
-        name: "James P.",
-        phone: "+1 (416) 555-XXXX",
-      },
-      instructions: "Please have the vehicle ready with all keys and documentation.",
-    },
-    inspection: {
-      status: "pending",
-      checklist: [
-        { item: "Exterior condition", status: "pending" },
-        { item: "Interior condition", status: "pending" },
-        { item: "Mechanical systems", status: "pending" },
-        { item: "Odometer verification", status: "pending" },
-        { item: "Documentation complete", status: "pending" },
-      ],
-    },
-    refund: {
-      amount: 45995,
-      status: "pending",
-      method: "Original payment method",
-      estimatedDate: "2024-03-30",
-    },
-    timeline: [
-      {
-        step: "Return requested",
-        status: "completed",
-        timestamp: "2024-03-20T10:00:00Z",
-      },
-      {
-        step: "Return approved",
-        status: "completed",
-        timestamp: "2024-03-21T14:00:00Z",
-      },
-      {
-        step: "Pickup scheduled",
-        status: "completed",
-        timestamp: "2024-03-22T09:00:00Z",
-      },
-      {
-        step: "Vehicle pickup",
-        status: "upcoming",
-        scheduledDate: "2024-03-25",
-      },
-      {
-        step: "Vehicle inspection",
-        status: "upcoming",
-      },
-      {
-        step: "Refund processed",
-        status: "upcoming",
-      },
-    ],
-    createdAt: "2024-03-20T10:00:00Z",
-    updatedAt: new Date().toISOString(),
-  }
-
-  return NextResponse.json({ return: returnData })
+    { status: 404 }
+  )
 }
 
 // POST /api/v1/returns/:id/schedule-pickup - Schedule vehicle pickup
@@ -110,28 +41,13 @@ export async function POST(
   const body = await request.json()
   const { date, timeSlot, address, contactPhone } = body
 
-  if (!date || !timeSlot || !address) {
-    return NextResponse.json(
-      { error: "Date, time slot, and address are required" },
-      { status: 400 }
-    )
-  }
-
-  const pickup = {
-    returnId: id,
-    scheduledDate: date,
-    timeSlot,
-    address,
-    contactPhone,
-    status: "confirmed",
-    confirmationNumber: "PKP-" + Date.now().toString(36).toUpperCase(),
-    instructions: [
-      "Please have the vehicle ready in the driveway or accessible area",
-      "Ensure all personal belongings are removed",
-      "Have both sets of keys ready",
-      "Have the registration and any documentation ready",
-    ],
-  }
-
-  return NextResponse.json({ success: true, pickup })
+  // TODO: Connect to real pickup scheduling system once available.
+  return NextResponse.json(
+    {
+      error: "Pickup scheduling unavailable",
+      message: "Online pickup scheduling is not yet available. Please call us at 1-866-797-3332 to arrange a vehicle pickup.",
+      _disclaimer: "This feature is coming soon.",
+    },
+    { status: 503 }
+  )
 }

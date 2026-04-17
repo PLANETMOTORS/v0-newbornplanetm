@@ -1,4 +1,5 @@
 import { streamText, convertToModelMessages, UIMessage, consumeStream } from "ai"
+import { gateway } from "@ai-sdk/gateway"
 import { NextResponse } from "next/server"
 import { getAISettings, getSiteSettings } from "@/lib/sanity/fetch"
 import { rateLimit } from "@/lib/redis"
@@ -315,7 +316,7 @@ RESPONSE GUIDELINES:
 
   // AI SDK 6: Convert UIMessage format to ModelMessage format
   const result = streamText({
-    model: "openai/gpt-4o-mini",
+    model: gateway("openai/gpt-4o-mini"),
     system: systemPrompt,
     messages: await convertToModelMessages(messages),
   })

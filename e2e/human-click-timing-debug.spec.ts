@@ -81,7 +81,7 @@ const CLICK_LOG  = path.join('test-results', 'click-report.json');
 async function captureNavTiming(page: Page): Promise<Record<string, number>> {
   return page.evaluate(() => {
     const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-    if (!nav) return {};
+    if (!nav) return {} as Record<string, number>;
     return {
       ttfb:            nav.responseStart - nav.requestStart,
       domInteractive:  nav.domInteractive - nav.startTime,

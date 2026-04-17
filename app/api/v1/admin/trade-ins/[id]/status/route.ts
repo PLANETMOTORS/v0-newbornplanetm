@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-
-// Admin emails - in production, check against database role
-const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
+import { ADMIN_EMAILS } from "@/lib/admin"
 
 // PATCH /api/v1/admin/trade-ins/[id]/status - Update trade-in quote status
 export async function PATCH(

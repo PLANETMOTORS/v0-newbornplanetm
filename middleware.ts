@@ -1,10 +1,6 @@
 import { updateSession } from '@/lib/supabase/middleware'
 import { NextResponse, type NextRequest } from 'next/server'
-
-// Admin emails — env var takes precedence, falls back to hardcoded list
-const ADMIN_EMAILS: readonly string[] = process.env.ADMIN_EMAILS
-  ? process.env.ADMIN_EMAILS.split(',').map((e) => e.trim())
-  : ['admin@planetmotors.ca', 'toni@planetmotors.ca']
+import { ADMIN_EMAILS } from '@/lib/admin'
 
 export async function middleware(request: NextRequest) {
   // 1. Refresh Supabase auth session (also protects /protected routes)

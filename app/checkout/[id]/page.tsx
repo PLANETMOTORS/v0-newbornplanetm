@@ -1021,9 +1021,21 @@ const handleSubmit = () => {
               </Button>
             </div>
             <div className="p-4">
-              <EmbeddedCheckoutProvider stripe={getStripePromise()} options={{ fetchClientSecret }}>
-                <EmbeddedCheckout />
-              </EmbeddedCheckoutProvider>
+              {!stripeKey ? (
+                <div className="text-center py-8 space-y-4">
+                  <AlertCircle className="w-12 h-12 text-destructive mx-auto" />
+                  <h3 className="font-semibold text-lg">Payment Unavailable</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Online payment is temporarily unavailable. Please call us at{" "}
+                    <a href="tel:1-866-797-3332" className="text-primary underline">1-866-797-3332</a>{" "}
+                    to complete your purchase.
+                  </p>
+                </div>
+              ) : (
+                <EmbeddedCheckoutProvider stripe={getStripePromise()} options={{ fetchClientSecret }}>
+                  <EmbeddedCheckout />
+                </EmbeddedCheckoutProvider>
+              )}
             </div>
           </div>
         </div>
