@@ -66,6 +66,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       alternates: {
         canonical: `${baseUrl}/vehicles/${encodedId}`,
       },
+      other: {
+        ...(v.vin ? { vin: v.vin } : {}),
+        ...(v.stock_number ? { "stock-number": v.stock_number } : {}),
+      },
     }
   } catch {
     return {
