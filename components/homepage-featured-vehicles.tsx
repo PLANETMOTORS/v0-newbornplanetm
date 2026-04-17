@@ -167,7 +167,7 @@ const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
     }
   })
 
-  return mapped.slice(0, 6)
+  return mapped
 }
 
 export function HomepageFeaturedVehicles() {
@@ -188,7 +188,7 @@ export function HomepageFeaturedVehicles() {
       if (activeTab === "electric") return vehicle.isEV
       if (activeTab === "suvs") return vehicle.isSUV
       return true
-    })
+    }).slice(0, 6)
   }, [activeTab, data, error])
 
   return (
