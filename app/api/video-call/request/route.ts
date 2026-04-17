@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { sendNotificationEmail } from "@/lib/email"
 import { rateLimit } from "@/lib/redis"
 import { validateOrigin } from "@/lib/csrf"
+import { trackSchedule } from "@/lib/meta-capi-helpers"
 
 export async function POST(req: Request) {
   try {
@@ -59,6 +60,14 @@ export async function POST(req: Request) {
       customerPhone,
       vehicleInfo: vehicleName,
       additionalData: { callId, preferredTime, notes, type: 'Video Call Request' },
+    })
+
+    // Fire Meta CAPI Schedule event (non-blocking)
+    trackSchedule(req, {
+      email: customerEmail,
+      phone: customerPhone,
+      firstName: customerName,
+      contentName: vehicleName || `Vehicle ${vehicleId}`,
     })
 
     return NextResponse.json({

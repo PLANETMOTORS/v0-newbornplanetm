@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createReservation } from '@/app/actions/reservation'
+import { trackInitiateCheckout } from '@/lib/meta-capi-helpers'
 
 /**
  * POST /api/v1/reservations
@@ -39,6 +40,16 @@ export async function POST(request: NextRequest) {
         { status: isConflict ? 409 : 422 }
       )
     }
+
+    // Fire Meta CAPI InitiateCheckout event (non-blocking)
+    trackInitiateCheckout(request, {
+      email: customerEmail,
+      phone: customerPhone,
+      firstName: customerName,
+      contentName: `Vehicle ${stockNumber}`,
+      contentIds: [vehicleId],
+      value: 250, // refundable deposit amount
+    })
 
     return NextResponse.json({
       success: true,
