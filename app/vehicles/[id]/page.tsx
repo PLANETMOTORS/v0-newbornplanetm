@@ -743,7 +743,7 @@ export default function VehicleDetailPage() {
 
   {/* Breadcrumb */}
         <nav className="bg-muted/30 py-3 border-b" aria-label="Breadcrumb">
-          <div className="container mx-auto px-4 overflow-x-auto scrollbar-hide">
+          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-[84px] overflow-x-auto scrollbar-hide">
             <ol className="flex items-center gap-2 text-sm whitespace-nowrap" role="list">
               <li>
                 <Link href="/inventory" className="text-muted-foreground hover:text-foreground">
@@ -766,8 +766,8 @@ export default function VehicleDetailPage() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col gap-0">
           {/* Main Tabs - Mobile Optimized with Scroll Indicator */}
           <div className="border-b sticky top-16 bg-background z-40 relative">
-            <div className="overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth">
-              <TabsList className="h-12 bg-transparent p-0 gap-0 flex w-max px-4 pr-10">
+            <div className="max-w-[1440px] mx-auto overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth">
+              <TabsList className="h-12 bg-transparent p-0 gap-0 flex w-max px-4 sm:px-6 lg:px-[84px] pr-10">
                 {["Photos", "Overview", "Features", "Inspect", "Pricing", "Protection"].map((tab) => (
                   <TabsTrigger
                     key={tab}
