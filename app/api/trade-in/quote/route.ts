@@ -1,6 +1,7 @@
 import { sendNotificationEmail } from "@/lib/email"
 import { validateOrigin } from "@/lib/csrf"
 import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
+import { trackLead } from "@/lib/meta-capi-helpers"
 
 // Vehicle value estimation algorithm
 function estimateTradeInValue(data: {
@@ -119,6 +120,16 @@ export async function POST(req: Request) {
         tradeInValue: estimate.averageEstimate,
       })
     }
+
+    // Fire Meta CAPI Lead event (non-blocking)
+    trackLead(req, {
+      email: customerEmail,
+      phone: customerPhone,
+      firstName: customerName,
+      value: estimate.averageEstimate,
+      contentName: `${year} ${make} ${model} Trade-In`,
+      contentCategory: "trade_in",
+    })
 
     return apiSuccess({
       quoteId,

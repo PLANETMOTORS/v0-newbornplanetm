@@ -3,6 +3,7 @@ import { rateLimit } from "@/lib/redis"
 import { isValidEmail, isValidCanadianPhoneNumber, isValidCanadianPostalCode } from "@/lib/validation"
 import { validateOrigin } from "@/lib/csrf"
 import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
+import { trackLead } from "@/lib/meta-capi-helpers"
 
 export async function POST(request: Request) {
   try {
@@ -51,6 +52,16 @@ export async function POST(request: Request) {
         postalCode,
         source: "Contact Form",
       },
+    })
+
+    // Fire Meta CAPI Lead event (non-blocking)
+    trackLead(request, {
+      email,
+      phone,
+      firstName,
+      lastName,
+      contentName: subject || "Contact Form",
+      contentCategory: "contact",
     })
 
     return apiSuccess({
