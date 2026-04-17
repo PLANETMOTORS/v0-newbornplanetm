@@ -28,3 +28,6 @@ playwright-report/
 .vercel
 .env.neon-check
 .env.neon-check
+vdp-top-now.png
+vdp-*.png
+account-*.png
