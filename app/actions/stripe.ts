@@ -76,12 +76,14 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
   const serverVehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`.trim() || data.vehicleName
   const vehicleAmount = data.depositOnly ? 25000 : validateCentsAmount(vehicle.price)
+  const checkoutAttemptWindow = Math.floor(Date.now() / (15 * 60 * 1000))
   const idempotencyKey = createHash('sha256')
     .update([
       data.vehicleId,
       data.protectionPlanId || 'none',
       data.depositOnly ? 'deposit' : 'full',
       data.customerEmail || 'guest',
+      String(checkoutAttemptWindow),
     ].join(':'))
     .digest('hex')
 
@@ -133,6 +135,7 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
       depositOnly: String(data.depositOnly || false),
       protectionPlanId: data.protectionPlanId || '',
       amountSource: 'server',
+      type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
       ...(data.utmSource && { utm_source: data.utmSource }),
       ...(data.utmMedium && { utm_medium: data.utmMedium }),
       ...(data.utmCampaign && { utm_campaign: data.utmCampaign }),

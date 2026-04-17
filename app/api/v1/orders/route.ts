@@ -195,7 +195,7 @@ export async function POST(request: NextRequest) {
 
   const documentationFeeCents = 49900
   const omvicFeeCents = 1000
-  const deliveryFeeCents = normalizedDeliveryType === 'delivery' ? 0 : 0
+  const deliveryFeeCents = normalizedDeliveryType === 'delivery' ? 0 : 0 // TODO: replace with actual delivery fee from quote API
   const protectionPlanFeeCents = protectionPlanId ? (PROTECTION_PLAN_PRICES_CENTS[String(protectionPlanId)] || 0) : 0
   // taxInfo.total is the full decimal rate (e.g. 0.14975 for QC).
   // taxAmountCents and the stored/returned taxRate both derive from it directly

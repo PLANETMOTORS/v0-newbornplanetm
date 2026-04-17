@@ -287,9 +287,54 @@ export async function cancelReservation(
   stockNumber: string, 
   email: string
 ): Promise<{ success?: boolean; error?: string }> {
-  // Release the vehicle lock
-  await unlockVehicle(stockNumber, email)
-  return { success: true }
+  try {
+    const adminClient = createAdminClient()
+
+    // Fetch the reservation to get the associated vehicle_id for status transition.
+    const { data: reservation } = await adminClient
+      .from('reservations')
+      .select('vehicle_id')
+      .eq('id', reservationId)
+      .maybeSingle()
+
+    // Update reservation record to cancelled so it is not treated as active.
+    const { error: cancelError } = await adminClient
+      .from('reservations')
+      .update({
+        status: 'cancelled',
+        deposit_status: 'failed',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', reservationId)
+
+    if (cancelError) {
+      console.error('[cancelReservation] Failed to update reservation status:', cancelError.message)
+    }
+
+    // Transition vehicle back to available so it can be reserved/purchased by others.
+    if (reservation?.vehicle_id) {
+      const { error: vehicleError } = await adminClient
+        .rpc('transition_vehicle_status', {
+          p_vehicle_id: reservation.vehicle_id,
+          p_from_statuses: ['reserved', 'checkout_in_progress'],
+          p_to_status: 'available',
+        })
+
+      if (vehicleError) {
+        console.error('[cancelReservation] Failed to release vehicle status:', vehicleError.message)
+      }
+    }
+
+    // Release the Redis lock last so the vehicle is available in the DB before
+    // any concurrent checkout can acquire the lock.
+    await unlockVehicle(stockNumber, email)
+    return { success: true }
+  } catch (e) {
+    console.error('[cancelReservation] Unexpected error:', e)
+    // Still attempt to release the Redis lock to avoid permanently blocking the vehicle.
+    try { await unlockVehicle(stockNumber, email) } catch { /* ignore secondary failure */ }
+    return { error: 'Failed to cancel reservation. Please try again.' }
+  }
 }
 
 export async function getReservationStatus(

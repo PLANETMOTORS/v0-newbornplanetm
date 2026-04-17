@@ -78,7 +78,7 @@ const CLICK_LOG  = path.join('test-results', 'click-report.json');
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
 /** Capture Navigation Timing API metrics from the browser */
-async function captureNavTiming(page: Page): Promise<Record<string, number>> {
+async function captureNavTiming(page: Page): Promise<Partial<Record<string, number>>> {
   return page.evaluate(() => {
     const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
     if (!nav) return {};
@@ -533,7 +533,7 @@ test.describe('Section B — Tab & Keyboard Navigation', () => {
 
 test.describe('Section C — Page Load Timing', () => {
 
-  const timingResults: Record<string, Record<string, number>> = {};
+  const timingResults: Record<string, Partial<Record<string, number>>> = {};
 
   test.afterAll(() => {
     fs.mkdirSync('test-results', { recursive: true });

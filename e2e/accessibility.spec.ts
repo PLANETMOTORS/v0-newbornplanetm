@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test"
 import AxeBuilder from "@axe-core/playwright"
+import type { Result } from "axe-core"
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:3000"
 
@@ -109,7 +110,7 @@ test.describe("Section A11Y — Accessibility (WCAG 2.2 AA)", () => {
       "/checkout/financing",
     ]
 
-    const allViolations: { step: string; violations: Record<string, unknown>[] }[] = []
+    const allViolations: { step: string; violations: Result[] }[] = []
 
     for (const p of checkoutPaths) {
       await page.goto(`${BASE_URL}${p}`, { waitUntil: "networkidle" })

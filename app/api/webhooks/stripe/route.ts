@@ -95,7 +95,7 @@ async function markEventProcessed(
   supabase: ReturnType<typeof createAdminClient>,
   eventId: string
 ) {
-  await supabase
+  const { error } = await supabase
     .from('stripe_webhook_events')
     .update({
       status: 'processed',
@@ -103,6 +103,10 @@ async function markEventProcessed(
     })
     .eq('stripe_event_id', eventId)
     .eq('status', 'processing')
+
+  if (error) {
+    throw new Error(`[webhook] Failed to mark event ${eventId} as processed: ${error.message}`)
+  }
 }
 
 async function markEventFailed(

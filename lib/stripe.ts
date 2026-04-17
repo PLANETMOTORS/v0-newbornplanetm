@@ -15,8 +15,6 @@ function getStripeInstance(): Stripe | null {
   return stripeInstance
 }
 
-export const stripe = getStripeInstance()
-
 export function getStripe(): Stripe {
   const instance = getStripeInstance()
   if (!instance) {
