@@ -5,7 +5,11 @@
  * to our own Supabase Storage bucket (`vehicle-360`).
  *
  * URL pattern (public, no auth required):
- *   {SUPABASE_URL}/storage/v1/object/public/vehicle-360/{MID}/{NN}.webp
+ *   {SUPABASE_URL}/storage/v1/object/public/vehicle-360/{MID}/nobg/{NN}.webp
+ *
+ * The "nobg" subfolder contains background-removed transparent WebP frames
+ * (processed via rembg AI). Original frames are preserved at {MID}/{NN}.webp.
+ * Both frameUrl() and scripts/migrate-360-to-supabase.ts use the nobg/ path.
  *
  * A static manifest records the exact frame count per MID so we no longer
  * need 50 parallel HEAD requests to discover frames at runtime — the API
