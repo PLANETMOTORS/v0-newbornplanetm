@@ -44,7 +44,9 @@ const CompareBar = dynamic(
   { ssr: false }
 )
 
-// Vercel telemetry — not user-facing, client-only
+// Vercel Analytics & SpeedInsights — only load when deployed on Vercel.
+// On Netlify these try to fetch /_vercel/insights/script.js which 404s,
+// wasting network requests and producing console errors.
 const VercelAnalytics = dynamic(
   () => import('@vercel/analytics/next').then(m => ({ default: m.Analytics })),
   { ssr: false }
@@ -59,6 +61,10 @@ const VercelSpeedInsights = dynamic(
  * Extracted from layout.tsx because `dynamic(..., { ssr: false })` is not
  * allowed in Server Components (Next.js 16+).
  */
+// Only render Vercel telemetry when deployed on Vercel (NEXT_PUBLIC_VERCEL_URL is auto-set).
+// On Netlify, /_vercel/insights/script.js returns 404 causing wasted requests + console errors.
+const isVercelDeploy = !!process.env.NEXT_PUBLIC_VERCEL_URL
+
 export function ClientLayoutWidgets() {
   return (
     <>
@@ -71,8 +77,8 @@ export function ClientLayoutWidgets() {
       <GoogleTagManager />
       <GoogleTagManagerNoScript />
       <MetaPixel />
-      <VercelAnalytics />
-      <VercelSpeedInsights />
+      {isVercelDeploy && <VercelAnalytics />}
+      {isVercelDeploy && <VercelSpeedInsights />}
     </>
   )
 }

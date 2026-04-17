@@ -622,13 +622,19 @@ if (errors.length > 0) {
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(
+        const rawMsg =
           result?.error?.message ||
           result?.error ||
           result?.message ||
           JSON.stringify(result) ||
           "Failed to submit application"
-        )
+        const friendly =
+          response.status === 403
+            ? "You don't have permission to submit this application. Please log in and try again."
+            : response.status === 401
+              ? "Your session has expired. Please log in again and resubmit."
+              : rawMsg
+        throw new Error(friendly)
       }
 
       const applicationId =
