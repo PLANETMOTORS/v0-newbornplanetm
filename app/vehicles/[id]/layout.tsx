@@ -84,7 +84,7 @@ export default function VehicleLayout({ children }: { children: React.ReactNode 
   return (
     <>
       {children}
-      {/* Drivee / Pirelly 360° viewer — scoped to VDP pages only (not on checkout/PII pages) */}
+      {/* Drivee / Pirelly 360° viewer — only loaded on VDP pages where it's needed */}
       <Script
         src="https://us-central1-pirelly360.cloudfunctions.net/iframe-script-server"
         strategy="lazyOnload"
