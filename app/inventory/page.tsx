@@ -305,7 +305,7 @@ function InventoryContent() {
     const minPrice = searchParams.get("minPrice")
     const category = searchParams.get("category")
     const transmission = searchParams.get("transmission")
-
+    const urlQuery = searchParams.get("q")
     // Check for trade-in from AI Quote
     const tradeIn = searchParams.get("tradeIn")
     const quoteId = searchParams.get("quoteId")
@@ -320,7 +320,7 @@ function InventoryContent() {
     }
 
     // Only reset filters when URL has filter-related params (not on bare /inventory)
-    const hasFilterParams = fuelType || bodyType || make || maxPrice || minPrice || category || transmission
+    const hasFilterParams = fuelType || bodyType || make || maxPrice || minPrice || category || transmission || urlQuery
     if (hasFilterParams) {
       // Reset all filters to defaults before applying URL params
       setSelectedFuelType("All Fuel Types")
@@ -370,6 +370,12 @@ function InventoryContent() {
     } else if (category === "Family") {
       setSelectedBodyType("SUV")
     }
+
+    // Read search query from URL (e.g. /inventory?q=Tesla)
+    if (urlQuery) {
+      setSearchQuery(urlQuery)
+      setSearchInput(urlQuery)
+    }
   }, [searchParams])
 
   // Final display list comes from the accumulator
@@ -406,7 +412,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
     setSelectedColor("All Colors")
     setSelectedDrivetrain("All Drivetrains")
     setPriceRange([0, 400000])
-    setMileageRange([0, 100000])
+    setMileageRange([0, 200000])
     setEvOnly(false)
   }
 
@@ -418,7 +424,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
     selectedColor !== "All Colors",
     selectedDrivetrain !== "All Drivetrains",
     priceRange[0] > 0 || priceRange[1] < 400000,
-    mileageRange[0] > 0 || mileageRange[1] < 100000,
+    mileageRange[0] > 0 || mileageRange[1] < 200000,
     evOnly
   ].filter(Boolean).length
 
@@ -534,7 +540,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search vehicles..."
+                  placeholder="Search by make, model, VIN, stock #..."
                   value={searchInput}
                   onChange={(e) => handleSearchInput(e.target.value)}
                   className="pl-10 h-11 text-base"
@@ -600,7 +606,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
               <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
-                  placeholder="Search by make, model, or keyword..."
+                  placeholder="Search by make, model, VIN, stock #..."
                   value={searchInput}
                   onChange={(e) => handleSearchInput(e.target.value)}
                   className="pl-12 h-12 text-lg"
@@ -829,7 +835,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                       value={mileageRange}
                       onValueChange={setMileageRange}
                       min={0}
-                      max={100000}
+                      max={200000}
                       step={5000}
                       className="py-2"
                     />

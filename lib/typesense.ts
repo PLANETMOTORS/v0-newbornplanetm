@@ -115,6 +115,30 @@ function sanitizeFilterValues(values: string[]): string {
   return values.map(sanitizeTypesenseFilterValue).join(',')
 }
 
+// ── Body style alias mapping ───────────────────────────────────────────────
+// The DB stores values like "Sport Utility" and "4dr Car" but customers
+// search for "SUV" and "Sedan". This mapping bridges that gap.
+const BODY_STYLE_ALIASES: Record<string, string> = {
+  'suv': 'Sport Utility',
+  'sedan': '4dr Car',
+  'hatchback': 'Hatchback',
+  'convertible': 'Convertible',
+  'truck': 'Pickup',
+  'van': 'Van',
+  'wagon': 'Wagon',
+  'coupe': 'Coupe',
+}
+
+/** Resolve customer-friendly body style names to their DB equivalents. */
+function resolveBodyStyleAlias(value: string): string {
+  return BODY_STYLE_ALIASES[value.toLowerCase()] || value
+}
+
+/** Sanitize a body style value for safe interpolation into PostgREST filters. */
+function sanitizeBodyStyleValue(value: string): string {
+  return value.replace(/[^a-zA-Z0-9 -]/g, '').trim().slice(0, 100)
+}
+
 // ── Typesense search ───────────────────────────────────────────────────────
 
 const FACET_FIELDS = 'make,model,body_style,fuel_type,drivetrain,year,is_ev,is_certified'
@@ -128,7 +152,9 @@ function buildFilterBy(params: VehicleSearchParams): string {
   const models = asArray(params.model)
   if (models.length) filters.push(`model:=[${sanitizeFilterValues(models)}]`)
 
-  const bodyStyles = asArray(params.body_style)
+  const bodyStyles = asArray(params.body_style).map(resolveBodyStyleAlias)
+  // Typesense indexer normalizes body_style (e.g. "4dr Sport Utility Vehicle" → "Sport Utility")
+  // so exact match works here. See lib/typesense/indexer.ts normalizeBodyStyle().
   if (bodyStyles.length) filters.push(`body_style:=[${sanitizeFilterValues(bodyStyles)}]`)
 
   const fuelTypes = asArray(params.fuel_type)
@@ -167,7 +193,7 @@ async function searchTypesense(params: VehicleSearchParams): Promise<SearchRespo
     .documents()
     .search({
       q: params.query || '*',
-      query_by: 'make,model,trim,description',
+      query_by: 'make,model,trim,description,vin,stock_number',
       filter_by: buildFilterBy(params),
       sort_by: mapSortBy(params.sort_by),
       facet_by: FACET_FIELDS,
@@ -243,7 +269,13 @@ async function searchSupabase(params: VehicleSearchParams): Promise<SearchRespon
     .eq('status', 'available')
 
   if (params.query) {
-    query = query.or(`make.ilike.%${params.query}%,model.ilike.%${params.query}%,trim.ilike.%${params.query}%`)
+    // Sanitize user input to prevent PostgREST filter injection via commas/parens.
+    // Strip hyphens too — websearch_to_tsquery treats "-word" as NOT operator,
+    // breaking searches for "CR-V", "RAV-4", "PM-2024-001", etc.
+    const sanitizedQ = params.query.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
+    if (sanitizedQ) {
+      query = query.textSearch('search_vector', sanitizedQ, { type: 'websearch', config: 'english' })
+    }
   }
 
   const makes = asArray(params.make)
@@ -252,8 +284,14 @@ async function searchSupabase(params: VehicleSearchParams): Promise<SearchRespon
   const modelsArr = asArray(params.model)
   if (modelsArr.length > 0) query = query.in('model', modelsArr)
 
-  const bodyStyles = asArray(params.body_style)
-  if (bodyStyles.length > 0) query = query.in('body_style', bodyStyles)
+  const bodyStyles = asArray(params.body_style).map(resolveBodyStyleAlias)
+  if (bodyStyles.length > 0) {
+    // Use .or() with .ilike() instead of .in() because DB values have prefixes
+    // (e.g. "4dr Sport Utility Vehicle", "4dr Car") — exact match would return 0 results.
+    // Sanitize values to prevent PostgREST filter injection via commas/parens.
+    const bodyFilter = bodyStyles.map(bs => `body_style.ilike.%${sanitizeBodyStyleValue(bs)}%`).join(',')
+    query = query.or(bodyFilter)
+  }
 
   const fuelTypes = asArray(params.fuel_type)
   if (fuelTypes.length > 0) query = query.in('fuel_type', fuelTypes)

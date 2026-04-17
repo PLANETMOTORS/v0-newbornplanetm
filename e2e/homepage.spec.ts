@@ -10,7 +10,7 @@ test.describe("Homepage", () => {
   })
 
   test("renders header with logo", async ({ page }) => {
-    const header = page.locator("header")
+    const header = page.locator("header").first()
     await expect(header).toBeVisible()
     // Planet Motors logo should be present
     const logo = header.locator('a[href="/"]').first()
@@ -18,10 +18,10 @@ test.describe("Homepage", () => {
   })
 
   test("renders main navigation links", async ({ page }) => {
-    const header = page.locator("header")
-    await expect(header.getByText("Shop Inventory")).toBeVisible()
-    await expect(header.getByText("Sell or Trade")).toBeVisible()
-    await expect(header.getByText("Finance")).toBeVisible()
+    const header = page.locator("header").first()
+    await expect(header.getByText("Shop Inventory").first()).toBeVisible()
+    await expect(header.getByText("Sell or Trade").first()).toBeVisible()
+    await expect(header.getByText("Finance").first()).toBeVisible()
   })
 
   test("renders hero section", async ({ page }) => {
@@ -33,14 +33,14 @@ test.describe("Homepage", () => {
   })
 
   test("renders footer with contact info", async ({ page }) => {
-    const footer = page.locator("footer")
+    const footer = page.locator("footer").first()
     await expect(footer).toBeVisible()
     await expect(footer.getByText(/Planet Motors/i).first()).toBeVisible()
     await expect(footer.getByText(/1-866-797-3332/).first()).toBeVisible()
   })
 
   test("footer contains important links", async ({ page }) => {
-    const footer = page.locator("footer")
+    const footer = page.locator("footer").first()
     await expect(footer.locator('a[href="/inventory"]').first()).toBeVisible()
     await expect(footer.locator('a[href="/contact"]').first()).toBeVisible()
   })
