@@ -168,6 +168,13 @@ const transmissions = ["All Transmissions", "Automatic", "Manual", "CVT", "Dual-
 const colors = ["All Colors", "White", "Black", "Silver", "Blue", "Red", "Gray", "Green"]
 const drivetrains = ["All Drivetrains", "AWD", "FWD", "RWD", "4WD"]
 
+/**
+ * Render the interactive vehicle inventory page with search, filters, sorting, pagination, favorites, and optional trade-in integration.
+ *
+ * This component maintains UI state (search input/debounced query, filters, sort, view mode, ranges, EV-only toggle), builds the server API URL from those filters, fetches paginated vehicles via SWR, transforms and accumulates pages for a "Load More" pattern, synchronizes initial filter state from URL query parameters (resetting filters first when URL-provided filters exist), and exposes actions for favoriting, clearing filters, and applying trade-in values. It also handles loading and error UI states and renders the vehicle grid/list, filter controls, quick stats, and compliance footer.
+ *
+ * @returns The inventory page JSX element ready for rendering.
+ */
 function InventoryContent() {
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState("")
@@ -287,16 +294,23 @@ function InventoryContent() {
   }, [filterKey])
 
   // Read URL parameters and set filters
+  // IMPORTANT: Reset ALL filters first, then apply only what the URL specifies.
+  // This prevents stale filters from persisting when navigating between
+  // homepage category links (e.g. Electric → SUV → Sedan).
   useEffect(() => {
     const fuelType = searchParams.get("fuelType")
     const bodyType = searchParams.get("bodyType")
     const make = searchParams.get("make")
-    
+    const maxPrice = searchParams.get("maxPrice")
+    const minPrice = searchParams.get("minPrice")
+    const category = searchParams.get("category")
+    const transmission = searchParams.get("transmission")
+
     // Check for trade-in from AI Quote
     const tradeIn = searchParams.get("tradeIn")
     const quoteId = searchParams.get("quoteId")
     const tradeInVehicle = searchParams.get("tradeInVehicle")
-    
+
     if (tradeIn && parseInt(tradeIn) > 0) {
       setTradeInInfo({
         value: parseInt(tradeIn),
@@ -304,20 +318,57 @@ function InventoryContent() {
         vehicle: tradeInVehicle ? decodeURIComponent(tradeInVehicle) : ''
       })
     }
-    
+
+    // Only reset filters when URL has filter-related params (not on bare /inventory)
+    const hasFilterParams = fuelType || bodyType || make || maxPrice || minPrice || category || transmission
+    if (hasFilterParams) {
+      // Reset all filters to defaults before applying URL params
+      setSelectedFuelType("All Fuel Types")
+      setSelectedBodyType("All Types")
+      setSelectedMake("All Makes")
+      setSelectedYear("All Years")
+      setSelectedTransmission("All Transmissions")
+      setSelectedColor("All Colors")
+      setSelectedDrivetrain("All Drivetrains")
+      setPriceRange([0, 400000])
+      setMileageRange([0, 200000])
+      setEvOnly(false)
+      setSearchQuery("")
+      setSearchInput("")
+    }
+
+    // Apply URL-specified filters
     if (fuelType === "Electric") {
       setSelectedFuelType("Electric")
       setEvOnly(true)
     } else if (fuelType) {
       setSelectedFuelType(fuelType)
     }
-    
+
     if (bodyType) {
       setSelectedBodyType(bodyType)
     }
-    
+
     if (make) {
       setSelectedMake(make)
+    }
+
+    if (minPrice || maxPrice) {
+      const min = minPrice ? parseInt(minPrice) : 0
+      const max = maxPrice ? parseInt(maxPrice) : 400000
+      setPriceRange([isNaN(min) ? 0 : min, isNaN(max) ? 400000 : max])
+    }
+
+    if (transmission) {
+      setSelectedTransmission(transmission)
+    }
+
+    // Map category shortcuts to concrete filters
+    if (category === "Luxury") {
+      setSearchQuery("luxury")
+      setSearchInput("luxury")
+    } else if (category === "Family") {
+      setSelectedBodyType("SUV")
     }
   }, [searchParams])
 
