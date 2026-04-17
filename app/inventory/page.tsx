@@ -168,6 +168,13 @@ const transmissions = ["All Transmissions", "Automatic", "Manual", "CVT", "Dual-
 const colors = ["All Colors", "White", "Black", "Silver", "Blue", "Red", "Gray", "Green"]
 const drivetrains = ["All Drivetrains", "AWD", "FWD", "RWD", "4WD"]
 
+/**
+ * Render the interactive vehicle inventory page with search, filters, sorting, pagination, favorites, and optional trade-in integration.
+ *
+ * This component maintains UI state (search input/debounced query, filters, sort, view mode, ranges, EV-only toggle), builds the server API URL from those filters, fetches paginated vehicles via SWR, transforms and accumulates pages for a "Load More" pattern, synchronizes initial filter state from URL query parameters (resetting filters first when URL-provided filters exist), and exposes actions for favoriting, clearing filters, and applying trade-in values. It also handles loading and error UI states and renders the vehicle grid/list, filter controls, quick stats, and compliance footer.
+ *
+ * @returns The inventory page JSX element ready for rendering.
+ */
 function InventoryContent() {
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState("")
