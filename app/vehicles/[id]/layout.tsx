@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Script from "next/script"
 
 interface Props {
   children: React.ReactNode
@@ -82,13 +83,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default function VehicleLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      {/* Drivee / Pirelly 360° viewer — only loaded on VDP pages where it's needed */}
-      <script
-        src="https://us-central1-pirelly360.cloudfunctions.net/iframe-script-server"
-        async
-        defer
-      />
       {children}
+      {/* Drivee / Pirelly 360° viewer — only loaded on VDP pages where it's needed */}
+      <Script
+        src="https://us-central1-pirelly360.cloudfunctions.net/iframe-script-server"
+        strategy="lazyOnload"
+      />
     </>
   )
 }

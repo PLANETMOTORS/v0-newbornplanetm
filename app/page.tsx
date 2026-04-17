@@ -94,7 +94,7 @@ export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
         <Suspense fallback={<HomepageSkeleton />}>
           <HomepageWithData />
         </Suspense>
