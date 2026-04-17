@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     const apiKey = apiKeyHeader || authHeader?.replace("Bearer ", "")
     
     if (apiKey !== HOMENET_API_KEY) {
-      console.log("[HomenetIOL] Unauthorized request attempt")
+      console.warn("[HomenetIOL] Unauthorized request attempt")
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -87,12 +87,12 @@ export async function POST(request: Request) {
       }, { status: 400 })
     }
 
-    console.log(`[HomenetIOL] Processing ${vehicles.length} vehicles`)
+    console.info(`[HomenetIOL] Processing ${vehicles.length} vehicles`)
 
     // Sync to database
     const result = await syncVehiclesToDatabase(sql, vehicles)
 
-    console.log(`[HomenetIOL] Sync complete: ${result.inserted} inserted, ${result.updated} updated, ${result.errors.length} errors`)
+    console.info(`[HomenetIOL] Sync complete: ${result.inserted} inserted, ${result.updated} updated, ${result.errors.length} errors`)
 
     // Trigger image pipeline async (don't block the cron response)
     const pipelineVehicles: ImagePipelineVehicle[] = vehicles
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
       }))
 
     if (pipelineVehicles.length > 0) {
-      console.log(`[HomenetIOL] Triggering image pipeline for ${pipelineVehicles.length} vehicles with images`)
+      console.info(`[HomenetIOL] Triggering image pipeline for ${pipelineVehicles.length} vehicles with images`)
       triggerImagePipelineAsync(pipelineVehicles)
     }
 

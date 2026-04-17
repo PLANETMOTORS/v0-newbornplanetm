@@ -285,7 +285,7 @@ export async function runImagePipeline(
 
   const sql = getSql()
 
-  console.log(`[ImagePipeline] Starting pipeline for ${vehicles.length} vehicles`)
+  console.info(`[ImagePipeline] Starting pipeline for ${vehicles.length} vehicles`)
 
   // Process vehicles in batches (each vehicle's images processed concurrently)
   await processBatch(vehicles, BATCH_CONCURRENCY, async (vehicle) => {
@@ -303,7 +303,7 @@ export async function runImagePipeline(
     }
   })
 
-  console.log(
+  console.info(
     `[ImagePipeline] Complete: ${result.downloaded} downloaded, ${result.skipped} skipped, ${result.failed} failed out of ${result.totalImages} total images across ${result.vehiclesProcessed} vehicles`,
   )
 

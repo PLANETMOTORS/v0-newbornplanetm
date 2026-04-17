@@ -103,7 +103,7 @@ export async function sendMetaEvent(event: MetaEvent): Promise<{ success: boolea
   if (!PIXEL_ID || !ACCESS_TOKEN) {
     // Silently skip if CAPI is not configured — allows graceful degradation
     if (process.env.NODE_ENV === "development") {
-      console.log("[Meta CAPI] Skipped — missing PIXEL_ID or ACCESS_TOKEN")
+      console.info("[Meta CAPI] Skipped — missing PIXEL_ID or ACCESS_TOKEN")
     }
     return { success: false, error: "Meta CAPI not configured" }
   }

@@ -193,7 +193,7 @@ export async function sendLiveVideoTourNotifications(
         results.email.error = error.message
       } else {
         results.email.sent = true
-        console.log("[liveVideoTour] Customer email sent to:", booking.customerEmail)
+        console.info("[liveVideoTour] Customer email sent to:", booking.customerEmail)
       }
     } else {
       console.warn("[liveVideoTour] Resend API key not configured")
@@ -206,7 +206,7 @@ export async function sendLiveVideoTourNotifications(
 
   // 2. SMS reminder - placeholder for Twilio integration
   // For now, log only. In production: integrate with Twilio
-  console.log("[liveVideoTour] SMS would be sent to:", booking.customerPhone)
+  console.info("[liveVideoTour] SMS would be sent to:", booking.customerPhone)
   results.sms.sent = false
   results.sms.error = "SMS not configured"
 
@@ -226,7 +226,7 @@ export async function sendLiveVideoTourNotifications(
         results.staff.error = error.message
       } else {
         results.staff.notified = true
-        console.log("[liveVideoTour] Staff notification sent to:", ADMIN_EMAIL)
+        console.info("[liveVideoTour] Staff notification sent to:", ADMIN_EMAIL)
       }
     }
   } catch (error) {
@@ -286,7 +286,7 @@ export async function sendTourReminder(booking: LiveVideoTourBooking): Promise<b
       return false
     }
 
-    console.log("[liveVideoTour] Reminder sent to:", booking.customerEmail)
+    console.info("[liveVideoTour] Reminder sent to:", booking.customerEmail)
     return true
   } catch (error) {
     console.error("[liveVideoTour] Reminder failed:", error)
@@ -344,7 +344,7 @@ export async function sendCancellationNotification(booking: LiveVideoTourBooking
       `,
     })
 
-    console.log("[liveVideoTour] Cancellation notifications sent")
+    console.info("[liveVideoTour] Cancellation notifications sent")
     return true
   } catch (error) {
     console.error("[liveVideoTour] Cancellation notification failed:", error)

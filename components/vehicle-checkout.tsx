@@ -79,7 +79,6 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
     const clientSecret = await startVehicleCheckout({
       vehicleId,
       vehicleName,
-      vehiclePriceCents: Math.round(vehiclePrice * 100),
       protectionPlanId: selectedPlan || undefined,
       depositOnly,
     })
@@ -87,7 +86,7 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
       throw new Error("Failed to create vehicle checkout session")
     }
     return clientSecret
-  }, [vehicleId, vehicleName, vehiclePrice, selectedPlan, depositOnly])
+  }, [vehicleId, vehicleName, selectedPlan, depositOnly])
 
   if (showCheckout) {
     return (

@@ -41,7 +41,7 @@ export async function downloadLatestCSV(
   const sftp = new SftpClient()
 
   try {
-    console.log(`[HomenetIOL SFTP] Connecting to ${config.host}:${config.port}`)
+    console.info(`[HomenetIOL SFTP] Connecting to ${config.host}:${config.port}`)
     await sftp.connect({
       host: config.host,
       port: config.port,
@@ -54,7 +54,7 @@ export async function downloadLatestCSV(
       },
     })
 
-    console.log(`[HomenetIOL SFTP] Connected. Listing files in ${feedDir}`)
+    console.info(`[HomenetIOL SFTP] Connected. Listing files in ${feedDir}`)
     const listing = await sftp.list(feedDir)
 
     // Filter to CSV files only
@@ -63,7 +63,7 @@ export async function downloadLatestCSV(
       .sort((a, b) => b.modifyTime - a.modifyTime)
 
     const allFilenames = csvFiles.map((f) => f.name)
-    console.log(`[HomenetIOL SFTP] Found ${csvFiles.length} CSV files: ${allFilenames.join(", ")}`)
+    console.info(`[HomenetIOL SFTP] Found ${csvFiles.length} CSV files: ${allFilenames.join(", ")}`)
 
     if (csvFiles.length === 0) {
       throw new Error(`No CSV files found in SFTP directory: ${feedDir}`)
@@ -75,13 +75,13 @@ export async function downloadLatestCSV(
       ? `${feedDir}${latestFile.name}`
       : `${feedDir}/${latestFile.name}`
 
-    console.log(`[HomenetIOL SFTP] Downloading ${latestFile.name} (${latestFile.size} bytes)`)
+    console.info(`[HomenetIOL SFTP] Downloading ${latestFile.name} (${latestFile.size} bytes)`)
 
     // Download to a Buffer (in-memory, no disk writes for serverless)
     const buffer = (await sftp.get(remotePath)) as Buffer
     const content = buffer.toString("utf-8")
 
-    console.log(`[HomenetIOL SFTP] Downloaded ${content.length} characters`)
+    console.info(`[HomenetIOL SFTP] Downloaded ${content.length} characters`)
 
     return {
       filename: latestFile.name,

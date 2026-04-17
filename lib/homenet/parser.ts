@@ -448,7 +448,7 @@ export async function syncVehiclesToDatabase(sql: SqlClient, vehicles: VehicleDa
     `
     removed = (deleteResult as unknown[]).length
     if (removed > 0) {
-      console.log(`[HomenetIOL] Removed ${removed} vehicles not in incoming file`)
+      console.info(`[HomenetIOL] Removed ${removed} vehicles not in incoming file`)
     }
   } catch (error) {
     console.error(`[HomenetIOL] Error removing old vehicles:`, error)

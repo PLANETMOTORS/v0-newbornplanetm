@@ -148,7 +148,7 @@ export async function handleCheckoutSessionCompleted(
         }
       }
 
-      console.log(`[webhook] Reservation ${reservationId} checkout completed with unsettled funds (payment_status=${session.payment_status}).`)
+      console.info(`[webhook] Reservation ${reservationId} checkout completed with unsettled funds (payment_status=${session.payment_status}).`)
       return
     }
 
@@ -192,13 +192,13 @@ export async function handleCheckoutSessionCompleted(
       }
     }
 
-    console.log(`[webhook] Reservation ${reservationId} confirmed, vehicle ${vehicleId} reserved.`)
+    console.info(`[webhook] Reservation ${reservationId} confirmed, vehicle ${vehicleId} reserved.`)
     return
   }
 
   if (type !== 'vehicle-reservation' && vehicleId) {
     if (!isSettled) {
-      console.log(`[webhook] Vehicle checkout completed with unsettled funds for ${vehicleId} (payment_status=${session.payment_status}).`)
+      console.info(`[webhook] Vehicle checkout completed with unsettled funds for ${vehicleId} (payment_status=${session.payment_status}).`)
       return
     }
 
@@ -239,7 +239,7 @@ export async function handleCheckoutSessionCompleted(
       console.warn(`[webhook] Vehicle ${vehicleId} status transition to 'pending' was a no-op.`)
     }
 
-    console.log(`[webhook] Vehicle ${vehicleId} order confirmed.`)
+    console.info(`[webhook] Vehicle ${vehicleId} order confirmed.`)
   }
 }
 
@@ -264,7 +264,7 @@ export async function handleCheckoutSessionAsyncPaymentFailed(
       throw new Error(`Failed to mark reservation ${reservationId} async payment failure: ${reservationError.message}`)
     }
 
-    console.log(`[webhook] Async payment failed for reservation ${reservationId}.`)
+    console.warn(`[webhook] Async payment failed for reservation ${reservationId}.`)
   }
 
   if (vehicleId) {
@@ -305,7 +305,7 @@ export async function handleCheckoutSessionExpired(
       throw new Error(`Failed to expire reservation ${reservationId}: ${reservationError.message}`)
     }
 
-    console.log(`[webhook] Reservation ${reservationId} expired.`)
+    console.info(`[webhook] Reservation ${reservationId} expired.`)
   }
 
   if (vehicleId) {
@@ -345,7 +345,7 @@ export async function handlePaymentIntentFailed(
       throw new Error(`Failed to mark reservation ${reservationId} payment failure: ${reservationError.message}`)
     }
 
-    console.log(`[webhook] Payment failed for reservation ${reservationId}.`)
+    console.warn(`[webhook] Payment failed for reservation ${reservationId}.`)
   }
 
   if (vehicleId) {
@@ -557,7 +557,7 @@ export async function POST(request: NextRequest) {
       }
       default:
         // Log unhandled event types but still return 200 so Stripe doesn't retry.
-        console.log(`[webhook] Unhandled event type: ${event.type}`)
+        console.warn(`[webhook] Unhandled event type: ${event.type}`)
     }
 
     await markEventProcessed(supabase, event.id)
