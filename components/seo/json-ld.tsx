@@ -5,6 +5,9 @@ import { getPublicSiteUrl } from "@/lib/site-url"
 // Resolve site URL once per render instead of hardcoding
 const SITE_URL = getPublicSiteUrl()
 
+/** Safely join a relative path onto SITE_URL using the URL API. */
+const toAbsoluteUrl = (value: string) => new URL(value, SITE_URL).toString()
+
 // Organization Schema - for the business
 export function OrganizationJsonLd() {
   const schema = {
@@ -192,9 +195,7 @@ export function VehicleJsonLd({ vehicle }: VehicleJsonLdProps) {
     "itemCondition": vehicle.condition === "new"
       ? "https://schema.org/NewCondition"
       : "https://schema.org/UsedCondition",
-    "image": vehicle.image.startsWith("http")
-      ? vehicle.image
-      : `${SITE_URL}${vehicle.image}`,
+    "image": toAbsoluteUrl(vehicle.image),
     "url": `${SITE_URL}/vehicles/${vehicle.id}`,
     "offers": {
       "@type": "Offer",
@@ -298,9 +299,7 @@ export function ArticleJsonLd({ article }: ArticleJsonLdProps) {
     "@type": "Article",
     "headline": article.title,
     "description": article.excerpt,
-    "image": article.coverImage.startsWith("http")
-      ? article.coverImage
-      : `${SITE_URL}${article.coverImage}`,
+    "image": toAbsoluteUrl(article.coverImage),
     "datePublished": article.publishedAt,
     "dateModified": article.modifiedAt || article.publishedAt,
     "author": {
@@ -343,7 +342,7 @@ export function BreadcrumbJsonLd({ items }: BreadcrumbJsonLdProps) {
       "@type": "ListItem",
       "position": index + 1,
       "name": item.name,
-      "item": item.url.startsWith("http") ? item.url : `${SITE_URL}${item.url}`
+      "item": toAbsoluteUrl(item.url)
     }))
   }
 
