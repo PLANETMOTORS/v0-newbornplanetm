@@ -117,10 +117,20 @@ async function timeRequest(
   return duration;
 }
 
+/** Dismiss the cookie consent banner if visible — prevents z-9999 overlay from intercepting clicks */
+async function dismissCookieBanner(page: Page) {
+  const banner = page.locator('[aria-label="Cookie consent"]');
+  if (await banner.isVisible().catch(() => false)) {
+    await banner.getByRole('button', { name: /Accept All/i }).click();
+    await expect(banner).toBeHidden({ timeout: 5_000 });
+  }
+}
+
 /** Simulate human-like click — hover first, then click */
 async function humanClick(page: Page, selector: string | ReturnType<Page['getByTestId']>) {
   const element = typeof selector === 'string' ? page.locator(selector) : selector;
   await element.waitFor({ state: 'visible', timeout: 10_000 });
+  await dismissCookieBanner(page);
   await element.scrollIntoViewIfNeeded({ timeout: 5_000 });
   await element.hover();
   await page.waitForTimeout(80 + Math.floor(Math.random() * 120));
@@ -326,13 +336,6 @@ test.describe('Section A — Human Click Simulation', () => {
 
     await page.goto(`${CHECKOUT_URL}/payment-type`);
 
-    // Dismiss cookie consent banner if present — it overlays buttons at z-9999
-    const cookieBanner = page.locator('[aria-label="Cookie consent"]');
-    await cookieBanner.waitFor({ state: 'visible', timeout: 5_000 }).catch(() => {});
-    if (await cookieBanner.isVisible()) {
-      await cookieBanner.getByRole('button', { name: /Accept All/i }).click();
-      await cookieBanner.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => {});
-    }
     logClick('Step 1', 'toggle-cash');
     await humanClick(page, page.getByTestId('toggle-cash'));
     logClick('Step 1', 'btn-continue-step1');
@@ -387,14 +390,15 @@ test.describe('Section B — Tab & Keyboard Navigation', () => {
     // Focus should land on <main id="main-content"> or on the first
     // interactive element inside it (Safari mobile behaviour).
     const focused = page.locator(':focus');
-    await focused.waitFor({ state: 'attached', timeout: 3_000 }).catch(() => {});
-    const focusedId = await focused.getAttribute('id').catch(() => null);
+    await expect(focused).toBeAttached({ timeout: 3_000 });
+    const focusedId = await focused.getAttribute('id');
     if (focusedId === 'main-content') {
       expect(focusedId).toBe('main-content');
     } else {
+      // Mobile Safari moves focus to the first interactive child — verify it's inside #main-content
       const isInside = await focused.evaluate(
         (el) => !!el.closest('#main-content')
-      ).catch(() => false);
+      );
       expect(isInside).toBe(true);
     }
   });
