@@ -346,14 +346,10 @@ function InventoryContent() {
       setSelectedMake(make)
     }
 
-    if (maxPrice) {
-      const max = parseInt(maxPrice)
-      if (!isNaN(max)) setPriceRange(prev => [prev[0], max])
-    }
-
-    if (minPrice) {
-      const min = parseInt(minPrice)
-      if (!isNaN(min)) setPriceRange(prev => [min, prev[1]])
+    if (minPrice || maxPrice) {
+      const min = minPrice ? parseInt(minPrice) : 0
+      const max = maxPrice ? parseInt(maxPrice) : 400000
+      setPriceRange([isNaN(min) ? 0 : min, isNaN(max) ? 400000 : max])
     }
 
     if (transmission) {
