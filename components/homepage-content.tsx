@@ -11,10 +11,10 @@ const HomepageFeaturedVehicles = dynamic(
   () => import("@/components/homepage-featured-vehicles").then(m => ({ default: m.HomepageFeaturedVehicles })),
   { loading: () => <FeaturedVehiclesSkeleton /> }
 )
-const VehicleShowcase = dynamic(
-  () => import("@/components/vehicle-showcase").then(m => ({ default: m.VehicleShowcase })),
-  { loading: () => <VehicleShowcaseSkeleton /> }
-)
+// VehicleShowcase is the above-fold hero (LCP element) — static import
+// so the browser downloads its JS immediately instead of waiting for
+// a dynamic chunk to load first.
+import { VehicleShowcase } from "@/components/vehicle-showcase"
 
 // Lightweight loading skeletons to prevent layout shift while chunks load
 function FeaturedVehiclesSkeleton() {
@@ -31,15 +31,6 @@ function FeaturedVehiclesSkeleton() {
     </div>
   )
 }
-
-function VehicleShowcaseSkeleton() {
-  return (
-    <div className="relative aspect-[4/3] bg-gray-100 rounded-2xl animate-pulse flex items-center justify-center">
-      <div className="text-gray-400">Loading vehicles...</div>
-    </div>
-  )
-}
-
 
 export type HomepageProps = {
   siteSettings: {
@@ -78,6 +69,7 @@ export type HomepageProps = {
     question: string
     answer: string
   }>
+  heroImageUrl?: string | null
 }
 
 
@@ -171,7 +163,7 @@ const protectionPlans = [
 
 
 
-export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
+export function HomepageContent({ siteSettings, testimonials, heroImageUrl }: HomepageProps) {
   // Use Sanity testimonials or fallback to default
   const displayReviews = testimonials.length > 0 ? testimonials.slice(0, 3).map(t => ({
     name: t.customerName,
@@ -254,7 +246,7 @@ export function HomepageContent({ siteSettings, testimonials }: HomepageProps) {
 
             {/* Hero Image / Vehicle Showcase */}
             <div className="relative min-w-0">
-              <VehicleShowcase />
+              <VehicleShowcase serverHeroImageUrl={heroImageUrl ?? undefined} />
               
               {/* Floating Badge */}
               <div className="absolute top-4 right-4 bg-[#dc2626] text-white px-4 py-1.5 rounded-full text-sm font-medium shadow-lg z-10">

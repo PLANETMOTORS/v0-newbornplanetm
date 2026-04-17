@@ -4,6 +4,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { HomepageContent } from "@/components/homepage-content"
 import { getSiteSettings, getTestimonials, getFaqs } from "@/lib/sanity/fetch"
+import { createClient } from "@/lib/supabase/server"
 
 // Default site settings - fallback when CMS is unavailable or slow
 const DEFAULT_SITE_SETTINGS = {
@@ -28,12 +29,33 @@ async function withTimeout<T>(promise: Promise<T>, fallback: T, ms = 3000): Prom
   }
 }
 
+// Fetch hero vehicle image URL server-side so it's in the HTML immediately.
+// This lets Next.js Image add <link rel="preload"> for the LCP image.
+async function getHeroImageUrl(): Promise<string | null> {
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('vehicles')
+      .select('primary_image_url, image_urls')
+      .eq('status', 'available')
+      .order('price', { ascending: false })
+      .limit(1)
+      .single()
+    if (data?.primary_image_url) return data.primary_image_url
+    if (data?.image_urls?.length) return data.image_urls[0]
+    return null
+  } catch {
+    return null
+  }
+}
+
 // Async component that fetches CMS data — streamed via Suspense
 async function HomepageWithData() {
-  const [siteSettings, testimonials, faqs] = await Promise.all([
+  const [siteSettings, testimonials, faqs, heroImageUrl] = await Promise.all([
     withTimeout(getSiteSettings(), null),
     withTimeout(getTestimonials(), []),
     withTimeout(getFaqs(), []),
+    withTimeout(getHeroImageUrl(), null),
   ])
 
   return (
@@ -41,6 +63,7 @@ async function HomepageWithData() {
       siteSettings={siteSettings ?? DEFAULT_SITE_SETTINGS}
       testimonials={testimonials ?? []}
       faqs={faqs ?? []}
+      heroImageUrl={heroImageUrl}
     />
   )
 }
