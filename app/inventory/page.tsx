@@ -433,7 +433,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="pt-20 pb-20">
+        <main id="main-content" tabIndex={-1} className="pt-20 pb-20 outline-none">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 py-8">
               {Array.from({ length: 8 }).map((_, i) => (
@@ -459,7 +459,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="pt-20 pb-20">
+        <main id="main-content" tabIndex={-1} className="pt-20 pb-20 outline-none">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col items-center justify-center py-20">
               <p className="text-red-500 mb-4">Error loading inventory</p>
@@ -476,7 +476,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
     <div className="min-h-screen bg-background">
       <Header />
 
-<main className="pt-20 pb-20 overflow-x-hidden max-w-full">
+<main id="main-content" tabIndex={-1} className="pt-20 pb-20 overflow-x-hidden max-w-full outline-none">
   {/* Trade-In Banner */}
   {tradeInInfo && tradeInInfo.value > 0 && (
     <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3">
