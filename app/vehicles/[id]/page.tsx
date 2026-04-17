@@ -801,35 +801,7 @@ export default function VehicleDetailPage() {
                 <TabsContent value="photos" className="mt-0 space-y-4">
                   {/* 360° Interactive Viewer — Native image-sequence spinner (Carvana-style) */}
                   {imageType === "360" && has360 ? (
-                    <div className="space-y-3">
-                      {/* Exterior / Interior toggle */}
-                      {interiorPanoUrl && (
-                        <div className="flex items-center justify-center">
-                          <div className="inline-flex rounded-lg bg-muted p-1 text-sm font-medium">
-                            <button
-                              onClick={() => setSpinViewMode("exterior")}
-                              className={`px-4 py-1.5 rounded-md transition-all ${
-                                spinViewMode === "exterior"
-                                  ? "bg-background text-foreground shadow-sm"
-                                  : "text-muted-foreground hover:text-foreground"
-                              }`}
-                            >
-                              Exterior
-                            </button>
-                            <button
-                              onClick={() => setSpinViewMode("interior")}
-                              className={`px-4 py-1.5 rounded-md transition-all ${
-                                spinViewMode === "interior"
-                                  ? "bg-background text-foreground shadow-sm"
-                                  : "text-muted-foreground hover:text-foreground"
-                              }`}
-                            >
-                              Interior
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
+                    <div className="relative">
                       {/* Viewer area */}
                       {spinViewMode === "interior" && interiorPanoUrl ? (
                         <VehicleInteriorViewer
@@ -837,7 +809,7 @@ export default function VehicleDetailPage() {
                           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                         />
                       ) : spinFramesLoading ? (
-                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-4" style={{ background: "radial-gradient(ellipse at center, #ffffff 0%, #f5f5f5 60%, #eeeeee 100%)" }}>
+                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-4" style={{ background: "radial-gradient(ellipse at center, #f8f8f8 0%, #f0f0f0 40%, #e4e4e4 80%, #d9d9d9 100%)" }}>
                           <Loader2 className="w-10 h-10 animate-spin text-primary" aria-hidden="true" />
                           <p className="text-sm text-muted-foreground font-medium">Loading 360° view…</p>
                         </div>
@@ -847,9 +819,37 @@ export default function VehicleDetailPage() {
                           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                         />
                       ) : (
-                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-3" style={{ background: "radial-gradient(ellipse at center, #ffffff 0%, #f5f5f5 60%, #eeeeee 100%)" }}>
+                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-3" style={{ background: "radial-gradient(ellipse at center, #f8f8f8 0%, #f0f0f0 40%, #e4e4e4 80%, #d9d9d9 100%)" }}>
                           <RotateCw className="w-8 h-8 text-muted-foreground" aria-hidden="true" />
                           <p className="text-sm text-muted-foreground font-medium">360° view not available</p>
+                        </div>
+                      )}
+
+                      {/* Exterior / Interior toggle — overlaid inside the viewer (Clutch/Carvana style) */}
+                      {interiorPanoUrl && (
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
+                          <div className="inline-flex rounded-full bg-white/90 backdrop-blur-sm shadow-lg p-1 text-sm font-medium">
+                            <button
+                              onClick={() => setSpinViewMode("exterior")}
+                              className={`px-5 py-1.5 rounded-full transition-all ${
+                                spinViewMode === "exterior"
+                                  ? "bg-black text-white shadow-sm"
+                                  : "text-gray-500 hover:text-gray-800"
+                              }`}
+                            >
+                              Exterior
+                            </button>
+                            <button
+                              onClick={() => setSpinViewMode("interior")}
+                              className={`px-5 py-1.5 rounded-full transition-all ${
+                                spinViewMode === "interior"
+                                  ? "bg-black text-white shadow-sm"
+                                  : "text-gray-500 hover:text-gray-800"
+                              }`}
+                            >
+                              Interior
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
