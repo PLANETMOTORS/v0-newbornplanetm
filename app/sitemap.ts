@@ -1,12 +1,24 @@
 import { MetadataRoute } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { getPublicSiteUrl } from '@/lib/site-url'
+import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabase/config'
 
-// Force runtime generation — sitemap must read live data from Supabase,
-// and the server client requires request context (cookies) which is
-// unavailable during static build.  Without this, Next.js may attempt
-// to pre-render the sitemap at build time and silently 404 in production.
+// Force runtime generation — sitemap must read live data from Supabase.
 export const dynamic = 'force-dynamic'
+
+// Create a lightweight Supabase client that does NOT depend on cookies().
+// Metadata routes (sitemap.xml) run outside a normal request context on
+// Vercel, so the cookie-based server client from lib/supabase/server.ts
+// throws and causes a silent 404.  The anon key is sufficient here since
+// we only read publicly-visible vehicle data.
+function createSitemapClient() {
+  const url = getSupabaseUrl()
+  const key = getSupabaseAnonKey()
+  if (!url || !key) return null
+  return createSupabaseClient(url, key, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
+}
 
 // ─── Single Sitemap ───────────────────────────────────────────────────────
 // Generates /sitemap.xml with all URLs: static pages, vehicles, and blog.
@@ -167,7 +179,11 @@ function buildPagesSitemap(baseUrl: string, currentDate: string): MetadataRoute.
 
 async function buildVehiclesSitemap(baseUrl: string, currentDate: string): Promise<MetadataRoute.Sitemap> {
   try {
-    const supabase = await createClient()
+    const supabase = createSitemapClient()
+    if (!supabase) {
+      console.warn('Sitemap: Supabase not configured, skipping vehicles')
+      return []
+    }
     const { data: inventoryVehicles, error } = await supabase
       .from('vehicles')
       .select('id, updated_at')
