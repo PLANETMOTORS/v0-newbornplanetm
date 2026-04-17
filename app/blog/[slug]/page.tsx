@@ -1649,7 +1649,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       />
       <Header />
 
-      <main className="pt-24 pb-20">
+      <main className="pt-8 pb-20">
         {/* Back Link */}
         <div className="mx-auto max-w-4xl px-6 lg:px-8 py-4">
           <Link 

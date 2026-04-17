@@ -276,7 +276,7 @@ export default function BlogPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="pt-24 pb-20">
+      <main className="pt-8 pb-20">
         {/* Hero */}
         <section className="py-12 lg:py-16 bg-muted/30">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
