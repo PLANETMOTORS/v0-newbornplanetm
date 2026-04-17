@@ -755,7 +755,7 @@ export default function VehicleDetailPage() {
 
   {/* Breadcrumb */}
         <nav className="bg-muted/30 py-3 border-b" aria-label="Breadcrumb">
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-[84px] overflow-x-auto scrollbar-hide">
+          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-[84px] overflow-x-auto scrollbar-hide">
             <ol className="flex items-center gap-2 text-sm whitespace-nowrap" role="list">
               <li>
                 <Link href="/inventory" className="text-muted-foreground hover:text-foreground">
@@ -779,7 +779,7 @@ export default function VehicleDetailPage() {
           {/* Main Tabs - Mobile Optimized with Scroll Indicator */}
           <div className="border-b sticky top-16 bg-background z-40 relative">
             <div className="max-w-[1440px] mx-auto overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth">
-              <TabsList className="h-12 bg-transparent p-0 gap-0 flex w-max px-4 sm:px-6 lg:px-[84px] pr-10">
+              <TabsList className="h-12 bg-transparent p-0 gap-0 flex w-max px-4 sm:px-6 lg:px-10 xl:px-[84px] pr-10">
                 {["Photos", "Overview", "Features", "Inspect", "Pricing", "Protection"].map((tab) => (
                   <TabsTrigger
                     key={tab}
@@ -795,10 +795,10 @@ export default function VehicleDetailPage() {
             <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
           </div>
 
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-[84px] pb-8 overflow-x-hidden">
-            <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-10 overflow-x-hidden items-start">
+          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-[84px] pb-8 overflow-x-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 lg:gap-10 overflow-x-hidden items-start">
               {/* Left Column - Content */}
-              <div>
+              <div className="min-w-0 overflow-hidden">
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
                   {/* 360° Interactive Viewer — Drivee.ai (requires MID from DRIVEE_VIN_MAP) */}
