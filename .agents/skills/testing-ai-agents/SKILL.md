@@ -199,6 +199,10 @@ for m in ['first-contentful-paint','largest-contentful-paint','total-blocking-ti
 - **VDP page** (`/vehicles/[id]`): Requires inventory data from Supabase. If no Supabase, inventory page shows "Error loading inventory" and you cannot navigate to a VDP. The PriceNegotiator component is at the bottom of VDP pages.
 - **Anna chat**: Click "Chat with Anna" floating button (bottom-right). Already secured with CSRF + rate limiting.
 
+- **Trade-In page** (`/trade-in`): Scroll to "Get an AI Instant Quote" section. Verify Year/Make/Model/Trim/Mileage fields and Email/SMS verification buttons render.
+- **VDP page** (`/vehicles/[id]`): Requires inventory data from Supabase. If no Supabase, inventory page shows "Error loading inventory" and you cannot navigate to a VDP. The PriceNegotiator component is at the bottom of VDP pages.
+- **Anna chat**: Click "Chat with Anna" floating button (bottom-right). Already secured with CSRF + rate limiting.
+
 ## Vercel Preview Deployment Protection
 
 Vercel previews may have deployment protection enabled (returns HTTP 401). Options:
@@ -241,3 +245,5 @@ pnpm test:e2e       # Run ALL E2E specs (needs local server)
 - `app/inventory/page.tsx` — Inventory page with `content-visibility: auto` virtualization
 - `components/footer-content.tsx` — Footer as Server Component (no "use client")
 - `app/layout.tsx` — Font configuration with `display: 'swap'`
+- `components/vehicle-showcase.tsx` — Hero vehicle showcase with SWR + server fallbackData
+- `app/vehicles/[id]/layout.tsx` — VDP layout with Pirelly 360° script (scoped here, not global)
