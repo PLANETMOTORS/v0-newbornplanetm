@@ -762,18 +762,6 @@ export default function VehicleDetailPage() {
           </div>
         </nav>
 
-        {/* Vehicle Title Bar */}
-        <div className="border-b py-4">
-          <div className="container mx-auto px-4">
-            <h1 data-testid="vdp-title" className="font-serif text-xl sm:text-2xl font-bold truncate">
-              {vehicle.year} {vehicle.make} {vehicle.model}
-            </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              {vehicle.trim} · {vehicle.mileage.toLocaleString()} km
-            </p>
-          </div>
-        </div>
-
         {/* Single Tabs wrapper so Radix links aria-controls correctly */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col gap-0">
           {/* Main Tabs - Mobile Optimized with Scroll Indicator */}
@@ -795,7 +783,7 @@ export default function VehicleDetailPage() {
             <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
           </div>
 
-          <div className="container mx-auto px-4 py-8 overflow-x-hidden max-w-full">
+          <div className="container mx-auto px-4 pt-4 pb-8 overflow-x-hidden max-w-full">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 overflow-x-hidden">
               {/* Left Column - Content */}
               <div className="lg:col-span-2">
@@ -1923,7 +1911,7 @@ export default function VehicleDetailPage() {
               <Card className="sticky top-20 shadow-lg border-2">
                 <CardContent className="p-6">
                   {/* Vehicle Title */}
-                  <h2 className="text-xl font-bold">
+                  <h2 data-testid="vdp-title" className="text-xl font-bold">
                     {vehicle.year} {vehicle.make} {vehicle.model}
                   </h2>
                   <p className="text-muted-foreground text-sm mt-1">
