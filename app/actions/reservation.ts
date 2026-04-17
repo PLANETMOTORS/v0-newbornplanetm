@@ -332,7 +332,7 @@ export async function cancelReservation(
   } catch (e) {
     console.error('[cancelReservation] Unexpected error:', e)
     // Still attempt to release the Redis lock to avoid permanently blocking the vehicle.
-    try { await unlockVehicle(stockNumber, email) } catch { /* ignore secondary failure */ }
+    try { await unlockVehicle(stockNumber, email) } catch (unlockErr) { console.error('[cancelReservation] Failed to release Redis lock:', unlockErr) }
     return { error: 'Failed to cancel reservation. Please try again.' }
   }
 }
