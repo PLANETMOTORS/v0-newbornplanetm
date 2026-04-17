@@ -28,18 +28,14 @@ export async function GET(
 
 // POST /api/v1/returns/:id/schedule-pickup - Schedule vehicle pickup
 export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _request: NextRequest,
+  _context: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-
-  const { id } = await params
-  const body = await request.json()
-  const { date, timeSlot, address, contactPhone } = body
 
   // TODO: Connect to real pickup scheduling system once available.
   return NextResponse.json(
