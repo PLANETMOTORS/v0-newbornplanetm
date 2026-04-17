@@ -117,12 +117,18 @@ async function timeRequest(
   return duration;
 }
 
-/** Dismiss the cookie consent banner if visible — prevents z-9999 overlay from intercepting clicks */
-async function dismissCookieBanner(page: Page) {
+/** Dismiss floating overlays that can intercept clicks (cookie banner, chat widget) */
+async function dismissOverlays(page: Page) {
+  // Cookie consent banner (z-9999)
   const banner = page.locator('[aria-label="Cookie consent"]');
   if (await banner.isVisible().catch(() => false)) {
     await banner.getByRole('button', { name: /Accept All/i }).click();
     await expect(banner).toBeHidden({ timeout: 5_000 });
+  }
+  // Chat widget (fixed-position button that can overlap CTAs)
+  const chatBtn = page.locator('button[aria-label*="Chat with"]');
+  if (await chatBtn.isVisible().catch(() => false)) {
+    await chatBtn.evaluate((el: HTMLElement) => el.style.display = 'none');
   }
 }
 
@@ -130,7 +136,7 @@ async function dismissCookieBanner(page: Page) {
 async function humanClick(page: Page, selector: string | ReturnType<Page['getByTestId']>) {
   const element = typeof selector === 'string' ? page.locator(selector) : selector;
   await element.waitFor({ state: 'visible', timeout: 10_000 });
-  await dismissCookieBanner(page);
+  await dismissOverlays(page);
   await element.scrollIntoViewIfNeeded({ timeout: 5_000 });
   await element.hover();
   await page.waitForTimeout(80 + Math.floor(Math.random() * 120));
@@ -375,15 +381,13 @@ test.describe('Section B — Tab & Keyboard Navigation', () => {
     // WebKit desktop doesn't move focus to anchor targets even with tabindex=-1;
     // this is a known WebKit limitation, not a site bug.
     test.skip(browserName === 'webkit', 'WebKit does not focus anchor targets — known browser limitation');
-    await page.goto(BASE_URL);
+    // Use inventory page — homepage doesn't have <main id="main-content">
+    await page.goto(`${BASE_URL}/inventory`);
+    await page.getByTestId('inventory-card').first().waitFor({ state: 'visible', timeout: 30_000 });
 
-    // Verify <main id="main-content"> target exists — if not, the fix isn't deployed yet
+    // Assert skip-nav target exists — fails visibly if <main id="main-content"> is missing
     const mainContent = page.locator('main#main-content');
-    const mainExists = await mainContent.count();
-    if (mainExists === 0) {
-      test.skip(true, '<main id="main-content"> not yet deployed — will pass after PR merge');
-      return;
-    }
+    await expect(mainContent, 'Expected skip-nav target <main id="main-content"> to exist').toHaveCount(1);
 
     await page.keyboard.press('Tab');
     await page.keyboard.press('Enter');

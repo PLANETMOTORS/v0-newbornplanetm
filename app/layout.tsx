@@ -118,8 +118,6 @@ export default function RootLayout({
         )}
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-        {/* Drivee / Pirelly 360° viewer — enables iframe-based 360° vehicle views */}
-        <script src="https://us-central1-pirelly360.cloudfunctions.net/iframe-script-server" async />
         {/* JSON-LD structured data — server-rendered, lightweight */}
         <OrganizationJsonLd />
         <LocalBusinessJsonLd />
