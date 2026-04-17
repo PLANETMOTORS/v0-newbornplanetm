@@ -783,10 +783,10 @@ export default function VehicleDetailPage() {
             <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
           </div>
 
-          <div className="container mx-auto px-4 pt-4 pb-8 overflow-x-hidden max-w-full">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 overflow-x-hidden">
+          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-[84px] pb-8 overflow-x-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-10 overflow-x-hidden items-start">
               {/* Left Column - Content */}
-              <div className="lg:col-span-2">
+              <div>
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
                   {/* 360° Interactive Viewer — Drivee.ai (requires MID from DRIVEE_VIN_MAP) */}
