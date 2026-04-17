@@ -117,6 +117,10 @@ export function VehicleInteriorViewer({ src, alt }: InteriorViewerProps) {
       pannellumInstance.current.on("load", () => {
         if (!cancelled) setIsLoading(false)
       })
+
+      pannellumInstance.current.on("error", () => {
+        if (!cancelled) setIsLoading(false)
+      })
     }
 
     init()
