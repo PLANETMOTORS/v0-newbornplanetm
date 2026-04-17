@@ -44,10 +44,7 @@ const VehicleSpinViewer = dynamic(
   () => import("@/components/vehicle-spin-viewer").then(m => ({ default: m.VehicleSpinViewer })),
   { ssr: false, loading: () => <div className="aspect-[4/3] bg-gray-100 animate-pulse rounded-xl" /> }
 )
-const DriveeViewer = dynamic(
-  () => import("@/components/drivee-viewer").then(m => ({ default: m.DriveeViewer })),
-  { ssr: false, loading: () => <div className="aspect-[4/3] bg-gray-100 animate-pulse rounded-xl" /> }
-)
+
 const SimilarVehicles = dynamic(
   () => import("@/components/similar-vehicles").then(m => ({ default: m.SimilarVehicles })),
   { ssr: false }
@@ -398,8 +395,7 @@ export default function VehicleDetailPage() {
   const [isFavorite, setIsFavorite] = useState(false)
   const [activeTab, setActiveTab] = useState("photos")
   const [imageType, setImageType] = useState<"exterior" | "interior" | "360">("exterior")
-  const [isSpinning, setIsSpinning] = useState(false)
-  const [spinFrame, setSpinFrame] = useState(0)
+
   const [postalCode, setPostalCode] = useState("")
   const [isCheckingDelivery, setIsCheckingDelivery] = useState(false)
   const [deliveryError, setDeliveryError] = useState("")
@@ -545,21 +541,26 @@ export default function VehicleDetailPage() {
   }, [vehicle, isLoading])
 
 
-  // 360 spin: use ALL images (exterior + interior combined)
-  const allImages = [...(vehicle?.images || []), ...(vehicle?.interiorImages || [])]
-  // Drivee 360° viewer requires a MID (media ID) from the DRIVEE_VIN_MAP.
-  // Drivee's iframe does NOT support VIN-based lookups — only ?mid= works.
-  // Only show 360° when Drivee content actually exists — fake spinning through
-  // still photos creates a poor UX (images have dealer overlays, wrong angles).
+  // ── Native 360° spin (replaces Drivee iframe) ──
+  // Fetch walk-around frame URLs from Firebase Storage when a Drivee MID exists.
   const hasDrivee = !!vehicle?.driveeMid
   const has360 = hasDrivee
+  const [spinFrameUrls, setSpinFrameUrls] = useState<string[]>([])
+  const [spinFramesLoading, setSpinFramesLoading] = useState(false)
+
   useEffect(() => {
-    if (!isSpinning || imageType !== "360") return
-    const interval = setInterval(() => {
-      setSpinFrame((prev) => (prev + 1) % allImages.length)
-    }, 150)
-    return () => clearInterval(interval)
-  }, [isSpinning, imageType, allImages.length])
+    if (!hasDrivee || !vehicle?.driveeMid) return
+    let cancelled = false
+    setSpinFramesLoading(true)
+    fetch(`/api/v1/360-frames/${encodeURIComponent(vehicle.driveeMid)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled && data.frames) setSpinFrameUrls(data.frames)
+      })
+      .catch(() => { /* fallback: spinner will show 0 frames */ })
+      .finally(() => { if (!cancelled) setSpinFramesLoading(false) })
+    return () => { cancelled = true }
+  }, [hasDrivee, vehicle?.driveeMid])
 
   const handleProtectedAction = (action: string, callback?: () => void) => {
     if (!user) {
@@ -630,23 +631,13 @@ export default function VehicleDetailPage() {
 
 
   const nextImage = () => {
-    if (imageType === "360") {
-      setIsSpinning(false)
-      setSpinFrame((prev) => (prev + 1) % allImages.length)
-    } else {
-      const images = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
-      setCurrentImageIndex((prev) => (prev + 1) % images.length)
-    }
+    const images = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
+    setCurrentImageIndex((prev) => (prev + 1) % images.length)
   }
 
   const prevImage = () => {
-    if (imageType === "360") {
-      setIsSpinning(false)
-      setSpinFrame((prev) => (prev - 1 + allImages.length) % allImages.length)
-    } else {
-      const images = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
-      setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
-    }
+    const images = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
   }
 
   // Show loading state
@@ -687,8 +678,8 @@ export default function VehicleDetailPage() {
     )
   }
 
-  const currentImages: string[] = imageType === "360" ? allImages : imageType === "exterior" ? vehicle.images : vehicle.interiorImages
-  const activeIndex = imageType === "360" ? spinFrame : currentImageIndex
+  const currentImages: string[] = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
+  const activeIndex = currentImageIndex
 
 
   // Finance calculation: Vehicle Price + $895 Admin Fee (Finance Docs Set-up)
@@ -801,15 +792,10 @@ export default function VehicleDetailPage() {
               <div className="min-w-0 overflow-hidden">
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
-                  {/* 360° Interactive Viewer — Drivee.ai (requires MID from DRIVEE_VIN_MAP) */}
-                  {imageType === "360" && hasDrivee ? (
-                    <DriveeViewer
-                      mid={vehicle.driveeMid!}
-                      vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                    />
-                  ) : imageType === "360" ? (
+                  {/* 360° Interactive Viewer — Native image-sequence spinner (Carvana-style) */}
+                  {imageType === "360" && has360 ? (
                     <VehicleSpinViewer
-                      images={allImages}
+                      images={spinFrameUrls}
                       alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                     />
                   ) : (
@@ -881,7 +867,7 @@ export default function VehicleDetailPage() {
                     <Button
                       variant={imageType === "exterior" ? "default" : "outline"}
                       size="sm"
-                      onClick={() => { setImageType("exterior"); setCurrentImageIndex(0); setIsSpinning(false) }}
+                      onClick={() => { setImageType("exterior"); setCurrentImageIndex(0) }}
                     >
                       Exterior
                     </Button>
@@ -889,7 +875,7 @@ export default function VehicleDetailPage() {
                       <Button
                         variant={imageType === "interior" ? "default" : "outline"}
                         size="sm"
-                        onClick={() => { setImageType("interior"); setCurrentImageIndex(0); setIsSpinning(false) }}
+                        onClick={() => { setImageType("interior"); setCurrentImageIndex(0) }}
                       >
                         Interior
                       </Button>
@@ -900,9 +886,7 @@ export default function VehicleDetailPage() {
                         size="sm"
                         onClick={() => {
                           setImageType("360")
-                          setSpinFrame(0)
                           setCurrentImageIndex(0)
-                          setIsSpinning(true)
                         }}
                         className="gap-1"
                       >

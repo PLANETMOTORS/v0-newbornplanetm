@@ -2,18 +2,37 @@
 
 import { useState, useRef, useCallback, useEffect } from "react"
 import Image from "next/image"
-import { Play, Pause, RotateCw, Hand } from "lucide-react"
+import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "lucide-react"
 
 interface SpinViewerProps {
+  /** Ordered array of image URLs (walk-around frames). */
   images: string[]
+  /** Vehicle name for alt text. */
   alt: string
 }
 
+/**
+ * Native 360° Vehicle Spin Viewer
+ *
+ * Renders an image-sequence 360° spinner — the same technique Carvana uses.
+ * Drag / swipe / arrow-key to rotate, with momentum physics.
+ *
+ * Features:
+ *  - Progressive preloading with visual progress bar
+ *  - Fullscreen mode (Escape to exit)
+ *  - Auto-spin with play/pause
+ *  - Keyboard: ← → to rotate, Space to toggle auto-spin, F for fullscreen
+ *  - Smooth momentum on release
+ *  - "Drag to explore" hint on first view
+ */
 export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   const [frame, setFrame] = useState(0)
   const [isAutoPlaying, setIsAutoPlaying] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [showHint, setShowHint] = useState(true)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [loadedCount, setLoadedCount] = useState(0)
+
   const containerRef = useRef<HTMLDivElement>(null)
   const dragStartX = useRef(0)
   const dragStartFrame = useRef(0)
@@ -22,24 +41,78 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   const momentumRef = useRef<number | null>(null)
 
   const totalFrames = images.length
-  // Sensitivity: pixels per frame change
   const sensitivity = Math.max(3, Math.round(800 / totalFrames))
+  const loadProgress = totalFrames > 0 ? Math.round((loadedCount / totalFrames) * 100) : 0
+  const isReady = loadedCount >= 1 // Show spinner once first frame loads
 
-  // Auto-play at a comfortable speed
+  // ── Progressive preloading ──
+  // Load frame 0 first (hero), then preload the rest in background.
   useEffect(() => {
-    if (!isAutoPlaying) return
+    if (images.length === 0) return
+    setLoadedCount(0)
+
+    let cancelled = false
+    const preload = (src: string) =>
+      new Promise<void>((resolve) => {
+        const img = new window.Image()
+        img.onload = () => { if (!cancelled) setLoadedCount((c) => c + 1); resolve() }
+        img.onerror = () => { if (!cancelled) setLoadedCount((c) => c + 1); resolve() }
+        img.src = src
+      })
+
+    // Load first frame with priority, then rest in parallel batches
+    preload(images[0]).then(() => {
+      if (cancelled) return
+      // Preload remaining frames in batches of 6 to avoid network congestion
+      const remaining = images.slice(1)
+      let idx = 0
+      const batch = async () => {
+        while (idx < remaining.length && !cancelled) {
+          const chunk = remaining.slice(idx, idx + 6)
+          await Promise.all(chunk.map(preload))
+          idx += 6
+        }
+      }
+      batch()
+    })
+
+    return () => { cancelled = true }
+  }, [images])
+
+  // ── Auto-play ──
+  useEffect(() => {
+    if (!isAutoPlaying || !isReady) return
     const interval = setInterval(() => {
       setFrame((prev) => (prev + 1) % totalFrames)
     }, 120)
     return () => clearInterval(interval)
-  }, [isAutoPlaying, totalFrames])
+  }, [isAutoPlaying, totalFrames, isReady])
 
-  // Hide hint after first interaction
+  // ── Fullscreen API ──
+  const toggleFullscreen = useCallback(() => {
+    if (!containerRef.current) return
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().catch(() => {
+        // Fullscreen not supported — toggle CSS fallback
+        setIsFullscreen((f) => !f)
+      })
+    } else {
+      document.exitFullscreen()
+    }
+  }, [])
+
+  useEffect(() => {
+    const onFsChange = () => setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener("fullscreenchange", onFsChange)
+    return () => document.removeEventListener("fullscreenchange", onFsChange)
+  }, [])
+
+  // ── Hint dismiss ──
   const dismissHint = useCallback(() => {
     if (showHint) setShowHint(false)
   }, [showHint])
 
-  // --- Mouse drag handlers ---
+  // ── Pointer (mouse + touch) handlers ──
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     e.preventDefault()
     dismissHint()
@@ -66,7 +139,6 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   const handlePointerUp = useCallback(() => {
     if (!isDragging) return
     setIsDragging(false)
-    // Momentum: continue spinning based on last velocity
     const startVelocity = velocity.current
     if (Math.abs(startVelocity) > 2) {
       let v = startVelocity * 0.5
@@ -83,7 +155,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     }
   }, [isDragging, totalFrames])
 
-  // Keyboard support
+  // ── Keyboard ──
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "ArrowRight") {
       setFrame((prev) => (prev + 1) % totalFrames)
@@ -94,61 +166,113 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     } else if (e.key === " ") {
       setIsAutoPlaying((p) => !p)
       e.preventDefault()
+    } else if (e.key === "f" || e.key === "F") {
+      toggleFullscreen()
+      e.preventDefault()
+    } else if (e.key === "Escape" && isFullscreen) {
+      document.exitFullscreen().catch(() => setIsFullscreen(false))
     }
-  }, [totalFrames])
+  }, [totalFrames, toggleFullscreen, isFullscreen])
 
+  // ── Render ──
   return (
     <div
       ref={containerRef}
       tabIndex={0}
       onKeyDown={handleKeyDown}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
-      className="relative w-full aspect-[4/3] rounded-xl overflow-hidden select-none touch-none focus:outline-none focus:ring-2 focus:ring-primary"
-      style={{ cursor: isDragging ? "grabbing" : "grab", backgroundColor: "#e8e8e8" }}
+      onPointerDown={isReady ? handlePointerDown : undefined}
+      onPointerMove={isReady ? handlePointerMove : undefined}
+      onPointerUp={isReady ? handlePointerUp : undefined}
+      onPointerCancel={isReady ? handlePointerUp : undefined}
+      className={`relative w-full rounded-xl overflow-hidden select-none touch-none focus:outline-none focus:ring-2 focus:ring-primary ${
+        isFullscreen ? "fixed inset-0 z-50 rounded-none" : "aspect-[4/3]"
+      }`}
+      style={{
+        cursor: !isReady ? "default" : isDragging ? "grabbing" : "grab",
+        backgroundColor: "#e8e8e8",
+      }}
+      role="region"
+      aria-label={`360° Interactive View — ${alt}`}
+      aria-roledescription="360° image spinner"
     >
-      {/* Current frame image — object-contain preserves full vehicle proportions (no cropping) */}
-      {images[frame] && (
+      {/* Loading state — show spinner + progress bar until first frame loads */}
+      {!isReady && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" aria-hidden="true" />
+          <p className="text-sm text-muted-foreground font-medium">Loading 360° view…</p>
+          {totalFrames > 0 && (
+            <div className="w-48 h-1.5 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary rounded-full transition-all duration-300"
+                style={{ width: `${loadProgress}%` }}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Current frame image */}
+      {isReady && images[frame] && (
         <Image
           src={images[frame]}
-          alt={`${alt} - angle ${frame + 1} of ${totalFrames}`}
+          alt={`${alt} — angle ${frame + 1} of ${totalFrames}`}
           fill
           className="object-contain pointer-events-none"
           priority={frame === 0}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
+          sizes={isFullscreen ? "100vw" : "(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"}
           draggable={false}
+          unoptimized
         />
       )}
 
+      {/* Preload progress bar — shows during background loading after first frame */}
+      {isReady && loadProgress < 100 && (
+        <div className="absolute top-0 left-0 right-0 h-1 bg-muted/50 z-10">
+          <div
+            className="h-full bg-primary/60 transition-all duration-300"
+            style={{ width: `${loadProgress}%` }}
+          />
+        </div>
+      )}
+
       {/* Drag hint overlay */}
-      {showHint && !isAutoPlaying && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-[1px] transition-opacity">
+      {isReady && showHint && !isAutoPlaying && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-[1px] transition-opacity z-10">
           <div className="flex flex-col items-center gap-2 text-white animate-pulse">
             <Hand className="h-10 w-10" />
-            <span className="text-sm font-medium">Drag to rotate</span>
+            <span className="text-sm font-medium">Drag to explore</span>
           </div>
         </div>
       )}
 
       {/* Controls bar */}
-      <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-        <button
-          onClick={(e) => { e.stopPropagation(); setIsAutoPlaying(!isAutoPlaying); dismissHint() }}
-          className="px-3 py-1.5 bg-background/80 backdrop-blur rounded-lg flex items-center gap-1.5 hover:bg-background transition text-sm font-medium shadow-sm"
-        >
-          {isAutoPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-          {isAutoPlaying ? "Pause" : "Auto Spin"}
-        </button>
+      {isReady && (
+        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between z-10">
+          <button
+            onClick={(e) => { e.stopPropagation(); setIsAutoPlaying(!isAutoPlaying); dismissHint() }}
+            className="px-3 py-1.5 bg-background/80 backdrop-blur rounded-lg flex items-center gap-1.5 hover:bg-background transition text-sm font-medium shadow-sm"
+            aria-label={isAutoPlaying ? "Pause auto-spin" : "Start auto-spin"}
+          >
+            {isAutoPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            {isAutoPlaying ? "Pause" : "Auto Spin"}
+          </button>
 
-        <div className="flex items-center gap-2">
-          <div className="px-2 py-1 bg-background/70 backdrop-blur rounded text-xs text-muted-foreground">
-            <RotateCw className="h-3 w-3 inline mr-1" />
-            {frame + 1}/{totalFrames}
+          <div className="flex items-center gap-2">
+            <div className="px-2 py-1 bg-background/70 backdrop-blur rounded text-xs text-muted-foreground">
+              <RotateCw className="h-3 w-3 inline mr-1" />
+              {frame + 1}/{totalFrames}
+            </div>
+
+            <button
+              onClick={(e) => { e.stopPropagation(); toggleFullscreen() }}
+              className="p-1.5 bg-background/80 backdrop-blur rounded-lg hover:bg-background transition shadow-sm"
+              aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+            >
+              {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            </button>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
