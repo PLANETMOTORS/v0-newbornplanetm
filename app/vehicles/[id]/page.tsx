@@ -835,7 +835,7 @@ export default function VehicleDetailPage() {
                           src={currentImages[activeIndex]}
                           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                           fill
-                          className="object-contain"
+                          className="object-contain [clip-path:inset(0_0_5%_0)]"
                           priority
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
                           onError={(e) => {
@@ -959,7 +959,7 @@ export default function VehicleDetailPage() {
                             i === activeIndex ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"
                           }`}
                         >
-                          <Image src={img} alt="" fill className="object-cover" sizes="80px" />
+                          <Image src={img} alt="" fill className="object-cover [clip-path:inset(0_0_5%_0)]" sizes="80px" />
                         </button>
                       ))}
                     </div>

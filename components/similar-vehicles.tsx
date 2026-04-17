@@ -109,7 +109,7 @@ export function SimilarVehicles({ currentVehicleId, make, priceRange }: SimilarV
                       fill
                       loading="lazy"
                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500 [clip-path:inset(0_0_5%_0)]"
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">

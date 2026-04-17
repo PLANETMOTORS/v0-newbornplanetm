@@ -212,7 +212,7 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
             priority
             onError={() => setImageError(true)}
             className={cn(
-              "object-cover transition-all duration-500",
+              "object-cover transition-all duration-500 [clip-path:inset(0_0_5%_0)]",
               isAnimating ? "scale-105 opacity-80" : "scale-100 opacity-100"
             )}
           />
