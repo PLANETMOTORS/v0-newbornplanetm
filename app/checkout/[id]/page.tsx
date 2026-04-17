@@ -207,7 +207,7 @@ export default function CheckoutPage() {
       throw new Error("Failed to create checkout session")
     }
     return clientSecret
-  }, [params.id, total, selectedProtection, formData.email, vehicleData])
+  }, [params.id, total, selectedProtection, formData.email])
 
   // Show loading while checking auth
   if (isLoading || !user) {

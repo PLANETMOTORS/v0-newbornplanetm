@@ -792,7 +792,7 @@ export default function VehicleDetailPage() {
                   {/* 360° Interactive Viewer — Drivee.ai (requires MID from DRIVEE_VIN_MAP) */}
                   {imageType === "360" && hasDrivee ? (
                     <DriveeViewer
-                      mid={vehicle.driveeMid!}
+                      mid={vehicle.driveeMid as string}
                       vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                     />
                   ) : imageType === "360" ? (

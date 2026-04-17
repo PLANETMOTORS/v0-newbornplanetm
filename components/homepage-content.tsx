@@ -1,6 +1,5 @@
 // Planet Motors Homepage Content - Trust-First Design (Clutch/Carvana Style)
 // Section Order: Hero -> 4-Step Process -> Featured Vehicles -> Why Choose Us -> Sell/Trade -> Reviews -> Protection Plans -> CTA -> The Promise -> Footer
-import { Suspense } from "react"
 import Link from "next/link"
 import dynamic from "next/dynamic"
 import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock, Zap, Battery, Phone, MapPin, Award, DollarSign, Truck, Users, Leaf, Search, CreditCard, FileCheck, Home } from "lucide-react"

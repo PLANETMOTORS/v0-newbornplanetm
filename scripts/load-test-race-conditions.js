@@ -17,13 +17,12 @@
  */
 
 import http from 'k6/http'
-import { check, sleep } from 'k6'
+import { check } from 'k6'
 import { Counter, Trend } from 'k6/metrics'
 
 // Custom metrics
 const successfulClaims = new Counter('successful_claims')
 const failedClaims = new Counter('failed_claims')
-const doubleBookings = new Counter('double_bookings')
 const reservationLatency = new Trend('reservation_latency', true)
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000'
