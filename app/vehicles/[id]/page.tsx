@@ -1173,23 +1173,23 @@ export default function VehicleDetailPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Features */}
                     <Card>
-                      <CardHeader className="pb-2">
+                      <CardHeader className="pb-3">
                         <CardTitle className="text-base">FEATURES</CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex justify-between py-2 border-b">
+                      <CardContent className="space-y-0">
+                        <div className="flex justify-between py-4 border-b">
                           <span className="text-muted-foreground">Comfort & Convenience</span>
                           <span className="font-medium">Heated Seats</span>
                         </div>
-                        <div className="flex justify-between py-2 border-b">
+                        <div className="flex justify-between py-4 border-b">
                           <span className="text-muted-foreground">Safety & Security</span>
                           <span className="font-medium">Autopilot</span>
                         </div>
-                        <div className="flex justify-between py-2 border-b">
+                        <div className="flex justify-between py-4 border-b">
                           <span className="text-muted-foreground">Entertainment & Tech</span>
                           <span className="font-medium">15&quot; Touchscreen</span>
                         </div>
-                        <div className="flex justify-between py-2">
+                        <div className="flex justify-between py-4">
                           <span className="text-muted-foreground">Braking & Traction</span>
                           <span className="font-medium">Brake Assist</span>
                         </div>
@@ -1201,23 +1201,23 @@ export default function VehicleDetailPage() {
 
                     {/* Specs */}
                     <Card>
-                      <CardHeader className="pb-2">
+                      <CardHeader className="pb-3">
                         <CardTitle className="text-base">SPECS</CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex justify-between py-2 border-b">
+                      <CardContent className="space-y-0">
+                        <div className="flex justify-between py-4 border-b">
                           <span className="text-muted-foreground">Range</span>
                           <span className="font-medium">{vehicle.range || "N/A"}</span>
                         </div>
-                        <div className="flex justify-between py-2 border-b">
+                        <div className="flex justify-between py-4 border-b">
                           <span className="text-muted-foreground">Exterior</span>
                           <span className="font-medium">{vehicle.exteriorColor}</span>
                         </div>
-                        <div className="flex justify-between py-2 border-b">
+                        <div className="flex justify-between py-4 border-b">
                           <span className="text-muted-foreground">Interior</span>
                           <span className="font-medium">{vehicle.interiorColor}</span>
                         </div>
-                        <div className="flex justify-between py-2">
+                        <div className="flex justify-between py-4">
                           <span className="text-muted-foreground">Drive</span>
                           <span className="font-medium">{vehicle.drivetrain}</span>
                         </div>
@@ -1230,12 +1230,12 @@ export default function VehicleDetailPage() {
 
                   {/* Packages */}
                   <Card>
-                    <CardHeader className="pb-2">
+                    <CardHeader className="pb-3">
                       <CardTitle className="text-base">PACKAGES</CardTitle>
                     </CardHeader>
                     <CardContent>
                       {vehicleData.packages.map((pkg, i) => (
-                        <div key={i} className="py-3 border-b last:border-b-0">
+                        <div key={i} className="py-4 border-b last:border-b-0">
                           <div className="flex justify-between items-center">
                             <span className="font-medium">{pkg}</span>
                             <Button variant="link" className="p-0 h-auto text-primary text-sm" onClick={() => setActiveTab("features")}>
@@ -1277,7 +1277,7 @@ export default function VehicleDetailPage() {
                   <Card>
                     <CardContent className="p-0">
                       {vehicleData.inspectionItems.map((item, i) => (
-                        <div key={i} className="flex justify-between items-center px-4 py-3 border-b last:border-b-0">
+                        <div key={i} className="flex justify-between items-center px-4 py-4 border-b last:border-b-0">
                           <span>{item.category}</span>
                           <span className={`flex items-center gap-1 text-sm ${item.status === "Passed" || item.status === "No reported accidents" ? "text-primary" : "text-green-600"}`}>
                             <Check className="w-4 h-4" />
@@ -1921,18 +1921,18 @@ export default function VehicleDetailPage() {
             {/* Right Column - Sticky Sidebar */}
             <div className="space-y-4">
               <Card className="sticky top-20 shadow-lg border-2">
-                <CardContent className="p-5">
+                <CardContent className="p-6">
                   {/* Vehicle Title */}
                   <h2 className="text-xl font-bold">
                     {vehicle.year} {vehicle.make} {vehicle.model}
                   </h2>
-                  <p className="text-muted-foreground text-sm">
+                  <p className="text-muted-foreground text-sm mt-1">
                     {vehicle.trim} · {vehicle.mileage.toLocaleString()} km
                   </p>
 
                   {/* Price */}
-                  <p className="text-3xl font-bold mt-3">${vehicle.price.toLocaleString()}</p>
-                  <div className="flex items-center gap-2 text-sm mt-1">
+                  <p className="text-3xl font-bold mt-5">${vehicle.price.toLocaleString()}</p>
+                  <div className="flex items-center gap-2 text-sm mt-2">
                     <span>Estimated <span className="font-semibold">${biweeklyPayment}/biweekly</span></span>
                     <span className="text-muted-foreground">·</span>
                     <span className="text-muted-foreground">$0 down</span>
