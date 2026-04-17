@@ -157,7 +157,7 @@ function buildFilterBy(params: VehicleSearchParams): string {
   // (e.g. "4dr Sport Utility Vehicle") — exact match would return 0 results.
   if (bodyStyles.length) {
     const bsFilters = bodyStyles.map(bs => `body_style:${sanitizeTypesenseFilterValue(bs)}`)
-    filters.push(bsFilters.join(' || '))
+    filters.push(bodyStyles.length > 1 ? `(${bsFilters.join(' || ')})` : bsFilters[0])
   }
 
   const fuelTypes = asArray(params.fuel_type)
