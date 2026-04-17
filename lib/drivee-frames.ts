@@ -51,10 +51,10 @@ export function interiorUrl(mid: string): string | null {
   return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${mid}/${filename}`
 }
 
-/** Build the public Supabase Storage URL for a single walk-around frame. */
+/** Build the public Supabase Storage URL for a single walk-around frame (background-removed). */
 export function frameUrl(mid: string, frameNumber: number): string {
   const padded = String(frameNumber).padStart(2, "0")
-  return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${mid}/${padded}.webp`
+  return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${mid}/nobg/${padded}.webp`
 }
 
 /**

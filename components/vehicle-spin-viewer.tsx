@@ -190,7 +190,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       }`}
       style={{
         cursor: !isReady ? "default" : isDragging ? "grabbing" : "grab",
-        background: "radial-gradient(ellipse at center, #f8f8f8 0%, #f0f0f0 40%, #e4e4e4 80%, #d9d9d9 100%)",
+        background: "linear-gradient(to bottom, #ffffff 0%, #f9f9f9 45%, #f0f0f0 55%, #e8e8e8 70%, #e0e0e0 100%)",
       }}
       role="region"
       aria-label={`360° Interactive View — ${alt}`}
@@ -236,6 +236,25 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         </div>
       )}
 
+      {/* Showroom floor horizon line — subtle divider between upper "wall" and floor */}
+      <div
+        className="absolute left-0 right-0 z-[0] pointer-events-none"
+        style={{
+          top: "55%",
+          height: "1px",
+          background: "linear-gradient(to right, transparent 5%, rgba(0,0,0,0.04) 30%, rgba(0,0,0,0.06) 50%, rgba(0,0,0,0.04) 70%, transparent 95%)",
+        }}
+      />
+
+      {/* Showroom floor reflection — subtle sheen beneath the horizon */}
+      <div
+        className="absolute left-0 right-0 bottom-0 z-[0] pointer-events-none"
+        style={{
+          top: "55%",
+          background: "linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 30%)",
+        }}
+      />
+
       {/* Contact shadow — wide soft ellipse beneath the vehicle (turntable style) */}
       {isReady && (
         <>
@@ -260,6 +279,18 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
             }}
           />
         </>
+      )}
+
+      {/* Planet Motors logo — subtle branding in bottom-right corner */}
+      {isReady && (
+        <div className="absolute bottom-3 right-14 z-[3] pointer-events-none opacity-40">
+          <img
+            src="/images/planet-motors-logo.png"
+            alt=""
+            className="h-6 w-auto"
+            draggable={false}
+          />
+        </div>
       )}
 
       {/* Preload progress bar — shows during background loading after first frame */}
