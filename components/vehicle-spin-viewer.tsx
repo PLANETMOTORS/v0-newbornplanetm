@@ -220,7 +220,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
 
       {/* Current frame image — constrained for studio "breathing room" */}
       {isReady && images[frame] && (
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center z-[2]">
           <div className="relative" style={{ width: "90%", height: "85%" }}>
             <Image
               src={images[frame]}
