@@ -199,6 +199,87 @@ for m in ['first-contentful-paint','largest-contentful-paint','total-blocking-ti
 - **VDP page** (`/vehicles/[id]`): Requires inventory data from Supabase. If no Supabase, inventory page shows "Error loading inventory" and you cannot navigate to a VDP. The PriceNegotiator component is at the bottom of VDP pages.
 - **Anna chat**: Click "Chat with Anna" floating button (bottom-right). Already secured with CSRF + rate limiting.
 
+## API Endpoint Testing Patterns
+
+### Auth-Gated Endpoints
+Many API routes (returns, alerts, admin) require Supabase authentication. Without a logged-in session, they return `401 Unauthorized`. To test these endpoints:
+1. **Unauthenticated test**: Verify the auth gate works (expect 401)
+2. **Authenticated test**: Requires a Supabase session cookie — log in via browser first, then extract the cookie for curl
+
+### Mock/Disabled API Routes
+Some API routes are intentionally disabled until real integrations are available:
+- **Returns API** (`/api/v1/returns/[id]`): GET returns 404, POST returns 503. Both require auth first (401 if unauthenticated). No fake data ("James P." was removed).
+- **Video-Call API** (`/api/video-call/request`): Returns success with "team will email" message. No fake `meet.planetmotors.ca` link.
+
+### Testing Disclaimer Fields
+Multiple API responses now include `_disclaimer` fields:
+```bash
+# Trade-In — verify source + disclaimer
+curl -s -X POST localhost:3000/api/v1/trade-in \
+  -H "Content-Type: application/json" \
+  -H "Origin: http://localhost:3000" \
+  -d '{"year":2020,"make":"Toyota","model":"Camry","mileage":50000}' | \
+  python3 -c "import sys,json; d=json.load(sys.stdin); print('source:', d['data']['offer']['cbbValue']['source']); print('disclaimer:', '_disclaimer' in d['data'])"
+# Expected: source: Estimated (based on market data), disclaimer: True
+
+# Delivery Quote — verify disclaimer
+curl -s "localhost:3000/api/v1/deliveries/quote?postalCode=M5V1J2" | \
+  python3 -c "import sys,json; d=json.load(sys.stdin); print('disclaimer:', d.get('_disclaimer','')[:60])"
+# Expected: disclaimer: Delivery distance and cost are estimates only...
+```
+
+### Testing Dead Code Removal
+To verify dead code like unused `request.json()` calls has been removed, send invalid JSON and check for 500:
+```bash
+curl -s -X POST localhost:3000/api/v1/returns/test-123 \
+  -H "Content-Type: application/json" \
+  -d 'not-json' -w "\nHTTP_STATUS: %{http_code}"
+# Expected: 401 (auth gate) — NOT 500 (which would mean dead request.json() still crashes)
+```
+
+## Checkout Testing Limitations
+
+The checkout page (`/checkout/[id]`) requires Supabase authentication. Navigating to it redirects to `/auth/login`. To test checkout-specific features like the Stripe error UI:
+1. **With auth**: Log in via browser, then navigate to checkout. The Stripe `{!stripeKey ? ...}` conditional (lines 1024-1038) renders "Payment Unavailable" with phone CTA when `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` is missing.
+2. **Without auth (code-level only)**: Verify the conditional exists in `app/checkout/[id]/page.tsx`. To force the error state, comment out `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` in `.env.local` and restart the dev server. But you still need auth to reach the page.
+3. **Env var toggle**: To test with/without Stripe key, use `sed` to toggle the env var:
+   ```bash
+   # Disable Stripe key
+   sed -i 's/^NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=/#NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=/' .env.local
+   # Re-enable
+   sed -i 's/^#NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=/NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=/' .env.local
+   ```
+   Remember to restart the dev server after changing env vars.
+
+## Error Boundary Testing
+
+Error boundaries (`app/{page}/error.tsx`) catch React runtime errors in child components. They exist for: `/contact`, `/blog`, `/financing`, `/about`, `/delivery`, `/schedule`.
+
+### Verification Approaches
+1. **Code-level**: Verify files exist and contain the correct pattern:
+   ```bash
+   grep -c "reportError\|Something Went Wrong\|1-866-797-3332\|Try Again" app/*/error.tsx
+   # Each should return 6 (matches for all 4 patterns)
+   ```
+2. **Functional**: Navigate to each page and confirm it loads normally (boundary doesn't interfere)
+3. **Trigger test**: Error injection is difficult on preview deploys. In dev mode, you could temporarily throw an error in a child component to trigger the boundary.
+
+## VDP Gallery Alt Text Verification
+
+Thumbnail `<img>` elements should have descriptive alt text matching `"YEAR MAKE MODEL — photo N of M"`. Verify via browser console:
+```javascript
+Array.from(document.querySelectorAll('button[aria-label^="View image"] img')).map(img => img.alt)
+// Expected: ["2023 Tesla Model Y — photo 1 of 8", "2023 Tesla Model Y — photo 2 of 8", ...]
+```
+
+## Admin Email Consolidation Verification
+
+All admin email checks should import from `lib/admin.ts` (not hardcoded arrays):
+```bash
+grep -r "from.*lib/admin" app/ middleware.ts | wc -l
+# Expected: 9 files
+```
+
 ## Vercel Preview Deployment Protection
 
 Vercel previews may have deployment protection enabled (returns HTTP 401). Options:
@@ -230,10 +311,18 @@ pnpm test:e2e       # Run ALL E2E specs (needs local server)
 
 - `lib/csrf.ts` — CSRF origin validation logic
 - `lib/redis.ts` — Rate limiting + verification code storage
+- `lib/admin.ts` — Consolidated admin email list (ADMIN_EMAILS + isAdminEmail)
+- `lib/error-reporting.ts` — Error reporting to Sentry via reportError()
 - `app/api/negotiate/route.ts` — Price Negotiator endpoint
 - `app/api/vehicle-valuation/route.ts` — Vehicle Valuator endpoint
 - `app/api/verify/send-code/route.ts` — Server-side verification code generation
 - `app/api/verify/check-code/route.ts` — Timing-safe code verification
+- `app/api/v1/returns/[id]/route.ts` — Disabled returns API (404/503)
+- `app/api/v1/trade-in/route.ts` — Trade-in with disclaimer + corrected source
+- `app/api/v1/deliveries/quote/route.ts` — Delivery quote with disclaimer
+- `app/api/video-call/request/route.ts` — Video call scheduling (no fake link)
+- `app/checkout/[id]/page.tsx` — Checkout with Stripe error UI fallback
+- `app/contact/error.tsx` — Error boundary pattern (same for blog, financing, about, delivery, schedule)
 - `e2e/human-click-timing-debug.spec.ts` — Main 40-test E2E spec
 - `e2e/fixtures/dl-front.jpg` — Required fixture for C09 Vercel Blob upload test
 - `.github/workflows/ci.yml` — CI pipeline (lint-and-build, bundle-check, e2e)
