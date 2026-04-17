@@ -60,10 +60,13 @@ export function VehicleInteriorViewer({ src, alt }: InteriorViewerProps) {
           script.onerror = () => reject(new Error("Failed to load Pannellum"))
           document.head.appendChild(script)
         } else {
-          // Script tag exists but might still be loading
+          // Script tag exists but might still be loading — poll with timeout
+          let attempts = 0
           const check = () => {
+            if (cancelled) return
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             if ((window as any).pannellum) resolve()
+            else if (++attempts > 200) reject(new Error("Pannellum load timeout"))
             else setTimeout(check, 50)
           }
           check()
