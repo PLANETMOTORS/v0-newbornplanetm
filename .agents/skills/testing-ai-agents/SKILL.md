@@ -199,10 +199,6 @@ for m in ['first-contentful-paint','largest-contentful-paint','total-blocking-ti
 - **VDP page** (`/vehicles/[id]`): Requires inventory data from Supabase. If no Supabase, inventory page shows "Error loading inventory" and you cannot navigate to a VDP. The PriceNegotiator component is at the bottom of VDP pages.
 - **Anna chat**: Click "Chat with Anna" floating button (bottom-right). Already secured with CSRF + rate limiting.
 
-- **Trade-In page** (`/trade-in`): Scroll to "Get an AI Instant Quote" section. Verify Year/Make/Model/Trim/Mileage fields and Email/SMS verification buttons render.
-- **VDP page** (`/vehicles/[id]`): Requires inventory data from Supabase. If no Supabase, inventory page shows "Error loading inventory" and you cannot navigate to a VDP. The PriceNegotiator component is at the bottom of VDP pages.
-- **Anna chat**: Click "Chat with Anna" floating button (bottom-right). Already secured with CSRF + rate limiting.
-
 ## Vercel Preview Deployment Protection
 
 Vercel previews may have deployment protection enabled (returns HTTP 401). Options:
