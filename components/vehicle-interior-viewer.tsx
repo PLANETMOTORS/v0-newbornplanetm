@@ -79,6 +79,7 @@ export function VehicleInteriorViewer({ src, alt }: InteriorViewerProps) {
         await ensurePannellum()
       } catch {
         console.error("Pannellum failed to load")
+        if (!cancelled) setIsLoading(false)
         return
       }
 
