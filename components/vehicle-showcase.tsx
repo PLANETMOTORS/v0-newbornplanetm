@@ -164,7 +164,7 @@ export function VehicleShowcase({ serverHeroImageUrl }: { serverHeroImageUrl?: s
   // Get the image source — prefer server-rendered URL for instant LCP,
   // then fall back to client-fetched URL, then null (gradient fallback).
   const clientImageSrc = currentVehicle?.image && !imageError ? currentVehicle.image : null
-  const imageSrc = currentIndex === 0 && serverHeroImageUrl && !imageError
+  const imageSrc = currentIndex === 0 && serverHeroImageUrl && !imageError && !isFallback
     ? serverHeroImageUrl
     : clientImageSrc
 
