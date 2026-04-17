@@ -270,8 +270,9 @@ async function searchSupabase(params: VehicleSearchParams): Promise<SearchRespon
 
   if (params.query) {
     // Sanitize user input to prevent PostgREST filter injection via commas/parens.
-    // Uses the same approach as app/api/v1/vehicles/route.ts (textSearch with tsvector GIN index).
-    const sanitizedQ = params.query.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s-]/g, '').trim()
+    // Strip hyphens too — websearch_to_tsquery treats "-word" as NOT operator,
+    // breaking searches for "CR-V", "RAV-4", "PM-2024-001", etc.
+    const sanitizedQ = params.query.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
     if (sanitizedQ) {
       query = query.textSearch('search_vector', sanitizedQ, { type: 'websearch', config: 'english' })
     }

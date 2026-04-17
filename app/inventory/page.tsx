@@ -832,7 +832,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                       value={mileageRange}
                       onValueChange={setMileageRange}
                       min={0}
-                      max={100000}
+                      max={200000}
                       step={5000}
                       className="py-2"
                     />

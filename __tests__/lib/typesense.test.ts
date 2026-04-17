@@ -251,8 +251,9 @@ describe('searchVehicles — filters', () => {
     await searchVehicles({ query: 'test,status.eq.sold)' })
     const tsArgs = mockChain.getCallArgs('textSearch')
     expect(tsArgs).toHaveLength(1)
-    // commas, dots, parens stripped — only alphanumeric/space/dash survive
-    expect(tsArgs[0][1]).toBe('teststatuseqsold')
+    // All non-alphanumeric chars (commas, dots, parens, hyphens) replaced with spaces
+    // and collapsed — prevents PostgREST injection and websearch_to_tsquery negation
+    expect(tsArgs[0][1]).toBe('test status eq sold')
   })
 
   it('does not apply textSearch when query is undefined', async () => {
