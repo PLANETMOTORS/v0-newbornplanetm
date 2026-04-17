@@ -17,7 +17,7 @@ export {}
  *   1. Iterates every unique MID in DRIVEE_VIN_MAP
  *   2. Probes Firebase Storage for frames 01..50 (parallel HEAD requests)
  *   3. Downloads each frame as a WebP blob
- *   4. Uploads to Supabase Storage: vehicle-360/{mid}/{NN}.webp
+ *   4. Uploads to Supabase Storage: vehicle-360/{mid}/nobg/{NN}.webp
  *   5. Prints a summary with public URLs
  */
 
@@ -83,7 +83,7 @@ async function uploadToSupabase(
   data: Buffer,
 ): Promise<string> {
   const padded = String(frameNumber).padStart(2, "0")
-  const storagePath = `${mid}/${padded}.webp`
+  const storagePath = `${mid}/nobg/${padded}.webp`
 
   const uploadUrl = `${supabaseUrl}/storage/v1/object/${BUCKET}/${storagePath}`
 

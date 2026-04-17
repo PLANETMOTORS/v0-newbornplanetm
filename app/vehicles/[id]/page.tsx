@@ -809,7 +809,7 @@ export default function VehicleDetailPage() {
                           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                         />
                       ) : spinFramesLoading ? (
-                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-4" style={{ background: "radial-gradient(ellipse at center, #f8f8f8 0%, #f0f0f0 40%, #e4e4e4 80%, #d9d9d9 100%)" }}>
+                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-4" style={{ background: "linear-gradient(to bottom, #ffffff 0%, #f9f9f9 45%, #f0f0f0 55%, #e8e8e8 70%, #e0e0e0 100%)" }}>
                           <Loader2 className="w-10 h-10 animate-spin text-primary" aria-hidden="true" />
                           <p className="text-sm text-muted-foreground font-medium">Loading 360° view…</p>
                         </div>
@@ -819,7 +819,7 @@ export default function VehicleDetailPage() {
                           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                         />
                       ) : (
-                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-3" style={{ background: "radial-gradient(ellipse at center, #f8f8f8 0%, #f0f0f0 40%, #e4e4e4 80%, #d9d9d9 100%)" }}>
+                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-3" style={{ background: "linear-gradient(to bottom, #ffffff 0%, #f9f9f9 45%, #f0f0f0 55%, #e8e8e8 70%, #e0e0e0 100%)" }}>
                           <RotateCw className="w-8 h-8 text-muted-foreground" aria-hidden="true" />
                           <p className="text-sm text-muted-foreground font-medium">360° view not available</p>
                         </div>
@@ -827,7 +827,7 @@ export default function VehicleDetailPage() {
 
                       {/* Exterior / Interior toggle — overlaid inside the viewer (Clutch/Carvana style) */}
                       {interiorPanoUrl && (
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
+                        <div className="absolute bottom-14 left-1/2 -translate-x-1/2 z-20">
                           <div className="inline-flex rounded-full bg-white/90 backdrop-blur-sm shadow-lg p-1 text-sm font-medium">
                             <button
                               onClick={() => setSpinViewMode("exterior")}
