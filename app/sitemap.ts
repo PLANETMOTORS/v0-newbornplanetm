@@ -38,18 +38,21 @@ export default async function sitemap({ id }: { id: number }): Promise<MetadataR
   const baseUrl = getPublicSiteUrl()
   const currentDate = new Date().toISOString()
 
+  // Ensure id is a number — Next.js may pass it as a string from the URL param
+  const numId = Number(id)
+
   // ── Child 0: Static pages ──────────────────────────────────────────────
-  if (id === SITEMAP_IDS.PAGES) {
+  if (numId === SITEMAP_IDS.PAGES) {
     return buildPagesSitemap(baseUrl, currentDate)
   }
 
   // ── Child 1: Vehicle detail pages ──────────────────────────────────────
-  if (id === SITEMAP_IDS.VEHICLES) {
+  if (numId === SITEMAP_IDS.VEHICLES) {
     return buildVehiclesSitemap(baseUrl, currentDate)
   }
 
   // ── Child 2: Blog posts ────────────────────────────────────────────────
-  if (id === SITEMAP_IDS.BLOG) {
+  if (numId === SITEMAP_IDS.BLOG) {
     return buildBlogSitemap(baseUrl, currentDate)
   }
 
