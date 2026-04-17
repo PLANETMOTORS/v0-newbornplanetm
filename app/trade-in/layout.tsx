@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Trade-In Your Vehicle | Planet Motors - Instant Offer",
     description: "Get an instant trade-in offer. No obligation, no hidden fees. Apply your value toward your next purchase.",
-    url: "https://www.planetmotors.ca/trade-in",
+    url: "/trade-in",
     siteName: "Planet Motors",
     locale: "en_CA",
     type: "website",

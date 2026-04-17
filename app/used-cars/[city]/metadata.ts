@@ -1,7 +1,8 @@
 import type { Metadata } from "next"
 import { cityData } from "./city-data"
+import { getPublicSiteUrl } from "@/lib/site-url"
 
-const BASE_URL = "https://www.planetmotors.ca"
+const BASE_URL = getPublicSiteUrl()
 
 export function generateStaticParams() {
   return Object.keys(cityData).map(city => ({ city }))

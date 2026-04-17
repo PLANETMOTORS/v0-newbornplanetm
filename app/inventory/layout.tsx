@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Browse Inventory | Planet Motors - Certified Pre-Owned",
     description: "Shop certified pre-owned vehicles with free Carfax, 210-point inspection, and nationwide delivery across Canada.",
-    url: "https://www.planetmotors.ca/inventory",
+    url: "/inventory",
     siteName: "Planet Motors",
     locale: "en_CA",
     type: "website",

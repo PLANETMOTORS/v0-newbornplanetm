@@ -96,7 +96,7 @@ export default function AccountPage() {
       const callbackUrl =
         typeof window !== "undefined" && window.location?.origin
           ? `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`
-          : (process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `https://www.planetmotors.ca/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`)
+          : (process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://www.planetmotors.ca'}/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`)
       const { data: signUpData, error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,

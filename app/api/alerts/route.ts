@@ -96,14 +96,26 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
+    const supabase = await createClient()
+
+    // Require authentication to prevent email enumeration (PIPEDA compliance)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 })
+    }
+
     const { searchParams } = new URL(req.url)
-    const email = searchParams.get("email")
+    const email = searchParams.get("email") || user.email
 
     if (!email) {
       return NextResponse.json({ error: "Email required" }, { status: 400 })
     }
 
-    const supabase = await createClient()
+    // Users can only view their own alerts
+    if (email !== user.email) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
     const { data: alerts, error } = await supabase
       .from("price_alerts")
       .select("*")
@@ -122,17 +134,27 @@ export async function GET(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
+    const supabase = await createClient()
+
+    // Require authentication to prevent unauthorized deletion
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 })
+    }
+
     const { searchParams } = new URL(req.url)
     const alertId = searchParams.get("alertId")
-    const email = searchParams.get("email")
+    const email = searchParams.get("email") || user.email
 
-    // Require both alertId AND email for authorization
     if (!alertId || !email) {
       return NextResponse.json({ error: "Alert ID and email required" }, { status: 400 })
     }
 
-    const supabase = await createClient()
-    
+    // Users can only delete their own alerts
+    if (email !== user.email) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
     // Only delete if alertId matches the email (ownership check)
     const { data, error } = await supabase
       .from("price_alerts")
