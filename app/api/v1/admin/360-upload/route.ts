@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server"
 
 const BUCKET = "vehicle-360"
 const MAX_FRAME_SIZE = 5 * 1024 * 1024 // 5 MB per frame
-const ALLOWED_TYPES = ["image/webp", "image/png", "image/jpeg"]
+const ALLOWED_TYPES = ["image/webp"]
 
 /**
  * POST /api/v1/admin/360-upload
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       }
       if (!ALLOWED_TYPES.includes(value.type)) {
         return NextResponse.json(
-          { error: `Frame "${value.name}" has unsupported type "${value.type}". Allowed: ${ALLOWED_TYPES.join(", ")}` },
+          { error: `Frame "${value.name}" has unsupported type "${value.type}". Only WebP files are allowed.` },
           { status: 400 },
         )
       }
@@ -88,6 +88,17 @@ export async function POST(request: NextRequest) {
   frames.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
 
   const adminClient = createAdminClient()
+
+  // Delete any existing frames in this MID folder to prevent stale leftovers
+  const { data: existingFiles } = await adminClient.storage
+    .from(BUCKET)
+    .list(`${mid}/nobg`, { limit: 200 })
+
+  if (existingFiles && existingFiles.length > 0) {
+    const pathsToDelete = existingFiles.map(f => `${mid}/nobg/${f.name}`)
+    await adminClient.storage.from(BUCKET).remove(pathsToDelete)
+  }
+
   const uploaded: string[] = []
   const errors: string[] = []
 

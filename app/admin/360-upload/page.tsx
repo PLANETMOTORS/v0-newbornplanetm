@@ -85,7 +85,7 @@ export default function Admin360UploadPage() {
     e.preventDefault()
     setIsDragOver(false)
     const files = Array.from(e.dataTransfer.files).filter(
-      f => f.type === "image/webp" || f.type === "image/png" || f.type === "image/jpeg"
+      f => f.type === "image/webp"
     )
     if (files.length > 0) {
       setSelectedFiles(prev => [...prev, ...files])
@@ -223,12 +223,12 @@ export default function Admin360UploadPage() {
                   Drag & drop frames here, or click to browse
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  WebP, PNG, or JPEG • Max 5MB per frame • Files sorted by name
+                  WebP only • Max 5MB per frame • Files sorted by name
                 </p>
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".webp,.png,.jpg,.jpeg"
+                  accept=".webp"
                   multiple
                   onChange={handleFileSelect}
                   className="hidden"
@@ -446,7 +446,7 @@ export default function Admin360UploadPage() {
                                   {manifestCount === v.frameCount ? "Synced" : `Manifest: ${manifestCount}`}
                                 </Badge>
                               )}
-                              {!manifestCount && (
+                              {manifestCount == null && (
                                 <Badge variant="outline" className="text-xs">
                                   No manifest
                                 </Badge>
