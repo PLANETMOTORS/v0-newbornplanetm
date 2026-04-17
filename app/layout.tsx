@@ -6,8 +6,6 @@ import { AuthProvider } from '@/contexts/auth-context'
 import { OrganizationJsonLd, LocalBusinessJsonLd, WebsiteSearchJsonLd } from '@/components/seo/json-ld'
 import { ClientLayoutWidgets } from '@/components/client-layout-widgets'
 import { getPublicSiteUrl } from '@/lib/site-url'
-import { Analytics } from '@vercel/analytics/next'
-import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
 import './stability-fixes.css'
 
@@ -135,8 +133,6 @@ export default function RootLayout({
             </CompareProvider>
           </FavoritesProvider>
         </AuthProvider>
-        <Analytics />
-        <SpeedInsights />
       </body>
     </html>
   )
