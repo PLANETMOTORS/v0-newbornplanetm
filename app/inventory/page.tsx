@@ -168,6 +168,13 @@ const transmissions = ["All Transmissions", "Automatic", "Manual", "CVT", "Dual-
 const colors = ["All Colors", "White", "Black", "Silver", "Blue", "Red", "Gray", "Green"]
 const drivetrains = ["All Drivetrains", "AWD", "FWD", "RWD", "4WD"]
 
+/**
+ * Render the interactive vehicle inventory page with search, filters, sorting, pagination, favorites, and optional trade-in integration.
+ *
+ * This component maintains UI state (search input/debounced query, filters, sort, view mode, ranges, EV-only toggle), builds the server API URL from those filters, fetches paginated vehicles via SWR, transforms and accumulates pages for a "Load More" pattern, synchronizes initial filter state from URL query parameters (resetting filters first when URL-provided filters exist), and exposes actions for favoriting, clearing filters, and applying trade-in values. It also handles loading and error UI states and renders the vehicle grid/list, filter controls, quick stats, and compliance footer.
+ *
+ * @returns The inventory page JSX element ready for rendering.
+ */
 function InventoryContent() {
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState("")
@@ -299,12 +306,11 @@ function InventoryContent() {
     const category = searchParams.get("category")
     const transmission = searchParams.get("transmission")
     const urlQuery = searchParams.get("q")
-    
     // Check for trade-in from AI Quote
     const tradeIn = searchParams.get("tradeIn")
     const quoteId = searchParams.get("quoteId")
     const tradeInVehicle = searchParams.get("tradeInVehicle")
-    
+
     if (tradeIn && parseInt(tradeIn) > 0) {
       setTradeInInfo({
         value: parseInt(tradeIn),
@@ -330,30 +336,27 @@ function InventoryContent() {
       setSearchQuery("")
       setSearchInput("")
     }
-    
+
+    // Apply URL-specified filters
     if (fuelType === "Electric") {
       setSelectedFuelType("Electric")
       setEvOnly(true)
     } else if (fuelType) {
       setSelectedFuelType(fuelType)
     }
-    
+
     if (bodyType) {
       setSelectedBodyType(bodyType)
     }
-    
+
     if (make) {
       setSelectedMake(make)
     }
 
-    if (maxPrice) {
-      const max = parseInt(maxPrice)
-      if (!isNaN(max)) setPriceRange(prev => [prev[0], max])
-    }
-
-    if (minPrice) {
-      const min = parseInt(minPrice)
-      if (!isNaN(min)) setPriceRange(prev => [min, prev[1]])
+    if (minPrice || maxPrice) {
+      const min = minPrice ? parseInt(minPrice) : 0
+      const max = maxPrice ? parseInt(maxPrice) : 400000
+      setPriceRange([isNaN(min) ? 0 : min, isNaN(max) ? 400000 : max])
     }
 
     if (transmission) {
