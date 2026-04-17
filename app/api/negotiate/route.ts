@@ -1,4 +1,5 @@
 import { streamText, Output } from "ai"
+import { gateway } from "@ai-sdk/gateway"
 import { z } from "zod"
 import { NextResponse } from "next/server"
 import { getAISettings } from "@/lib/sanity/fetch"
@@ -101,7 +102,7 @@ FEES TO MENTION: Certification $${fees?.certification || 595}, Doc $${fees?.fina
 VALUE: 210-point inspection, 10-day guarantee, free delivery 300km, financing from ${aiSettings?.financing?.lowestRate || 4.79}%`
 
   const result = streamText({
-    model: "openai/gpt-4o-mini",
+    model: gateway("openai/gpt-4o-mini"),
     system: systemPrompt,
     messages: [
       {

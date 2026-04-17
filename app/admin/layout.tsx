@@ -10,6 +10,7 @@ import {
   BarChart3, Bell, Search, Shield
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { ADMIN_EMAILS } from "@/lib/admin"
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -21,9 +22,6 @@ const navigation = [
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ]
-
-// Admin emails - in production, check against database role
-const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
 
 export default function AdminLayout({
   children,

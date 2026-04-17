@@ -38,21 +38,7 @@ export async function POST(req: Request) {
     // 3. Notify sales team
     // 4. Schedule in calendar
 
-    const videoCallRequest = {
-      callId,
-      vehicleId,
-      vehicleName,
-      customerName,
-      customerEmail,
-      customerPhone,
-      preferredTime,
-      notes,
-      status: "scheduled",
-      joinLink: `https://meet.planetmotors.ca/${callId}`,
-      createdAt: new Date().toISOString(),
-    }
-
-    // Send notification email to admin
+    // Send notification email to admin — the team will follow up with a meeting link
     await sendNotificationEmail({
       type: 'test_drive_request',
       customerName,
@@ -72,11 +58,11 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "Video call scheduled successfully",
+      message: "Video call request received! Our team will email you a meeting link shortly.",
       data: {
         callId,
-        joinLink: videoCallRequest.joinLink,
         scheduledTime: preferredTime,
+        _note: "A team member will send you the video call link via email before your scheduled time.",
       },
     })
   } catch (error) {

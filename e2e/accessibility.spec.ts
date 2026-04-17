@@ -109,7 +109,7 @@ test.describe("Section A11Y — Accessibility (WCAG 2.2 AA)", () => {
       "/checkout/financing",
     ]
 
-    const allViolations: { step: string; violations: Record<string, unknown>[] }[] = []
+    const allViolations: { step: string; violations: { impact?: string | null; id: string; description: string; nodes: unknown[] }[] }[] = []
 
     for (const p of checkoutPaths) {
       await page.goto(`${BASE_URL}${p}`, { waitUntil: "networkidle" })
@@ -131,7 +131,7 @@ test.describe("Section A11Y — Accessibility (WCAG 2.2 AA)", () => {
         console.log(`  Step: ${step}`)
         violations.forEach((v) => {
           console.log(
-            `    [${v.impact}] ${v.id}: ${v.description} (${v.nodes.length} nodes)`
+            `    [${v.impact}] ${v.id}: ${v.description} (${(v.nodes as unknown[]).length} nodes)`
           )
         })
       })

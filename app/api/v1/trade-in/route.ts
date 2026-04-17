@@ -3,9 +3,10 @@ import { sendNotificationEmail } from '@/lib/email'
 import { rateLimit } from '@/lib/redis'
 import { validateOrigin } from '@/lib/csrf'
 
-// Mock CBB valuation data
+// Estimated valuation data — uses simplified model as a starting point.
+// In production, connect to Canadian Black Book API for accurate market values.
 const getVehicleValue = (year: number, make: string, model: string, mileage: number, condition: string) => {
-  // Base values by segment (simplified)
+  // Base values by segment (simplified — estimate only)
   const baseValues: Record<string, number> = {
     'Honda Accord': 28000,
     'Honda Civic': 24000,
@@ -175,7 +176,7 @@ export async function POST(request: NextRequest) {
       low: cbbValue.low,
       mid: cbbValue.mid,
       high: cbbValue.high,
-      source: 'Canadian Black Book',
+      source: 'Estimated (based on market data)',
       date: new Date().toISOString(),
     },
     
@@ -233,10 +234,11 @@ export async function POST(request: NextRequest) {
     data: {
       offer,
       message: `Your ${year} ${make} ${model} is worth approximately $${offer.offerAmount.toLocaleString()} CAD`,
+      _disclaimer: 'This is a preliminary estimate only and not a guaranteed offer. Final trade-in value will be determined after an in-person vehicle inspection. Market conditions, vehicle history, and other factors may affect the final value. Contact Planet Motors at 1-866-797-3332 for an official appraisal.',
       comparison: {
-        vsPrivateSale: Math.round(offer.offerAmount * 1.15), // Private sale usually higher
-        vsDealerTrade: Math.round(offer.offerAmount * 0.9), // Traditional dealer usually lower
-        planetMotorsAdvantage: 'Instant offer, no haggling, free pickup',
+        vsPrivateSale: Math.round(offer.offerAmount * 1.15),
+        vsDealerTrade: Math.round(offer.offerAmount * 0.9),
+        planetMotorsAdvantage: 'Instant estimate, no haggling, free pickup',
       },
     },
   })
@@ -277,8 +279,9 @@ export function GET(request: NextRequest) {
         mileage,
         condition,
         value,
-        source: 'Canadian Black Book',
+        source: 'Estimated (based on market data)',
         date: new Date().toISOString(),
+        _disclaimer: 'This is a preliminary estimate only. Final value determined after in-person inspection.',
       },
     },
   })
