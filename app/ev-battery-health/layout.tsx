@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "EV Battery Health & Diagnostics | Planet Motors",
     description: "Certified Aviloo battery State of Health reports on every EV. Know your battery's true condition before you buy.",
-    url: "https://www.planetmotors.ca/ev-battery-health",
+    url: "/ev-battery-health",
     siteName: "Planet Motors",
     locale: "en_CA",
     type: "website",

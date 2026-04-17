@@ -7,8 +7,10 @@ import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 // Allowed origins for the AI assistant endpoint
 const ALLOWED_ORIGINS = [
   process.env.NEXT_PUBLIC_BASE_URL,
+  process.env.NEXT_PUBLIC_SITE_URL,
   "https://planetmotors.ca",
   "https://www.planetmotors.ca",
+  "https://ev.planetmotors.ca",
 ].filter(Boolean)
 
 function isAllowedOrigin(request: Request): boolean {

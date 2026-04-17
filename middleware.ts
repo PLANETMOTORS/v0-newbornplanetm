@@ -15,7 +15,23 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  // 2. Server-side admin route protection
+  // 2. Block internal/dev pages from public access (redirect non-admins to homepage)
+  const INTERNAL_PAGES = ['/mockup', '/production-readiness', '/test-results', '/viewer']
+  const isInternalPage = INTERNAL_PAGES.some((p) => request.nextUrl.pathname === p || request.nextUrl.pathname.startsWith(`${p}/`))
+
+  if (isInternalPage) {
+    const isAdmin =
+      !!user &&
+      (ADMIN_EMAILS.includes(user.email ?? '') || user.user_metadata?.is_admin === true)
+
+    if (!isAdmin) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/'
+      return NextResponse.redirect(url)
+    }
+  }
+
+  // 3. Server-side admin route protection
   if (request.nextUrl.pathname.startsWith('/admin')) {
     if (!user) {
       const url = request.nextUrl.clone()

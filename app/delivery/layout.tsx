@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Nationwide Vehicle Delivery | Planet Motors",
     description: "Free delivery within 300km. Enter your postal code for an instant quote. Real-time tracking on every delivery.",
-    url: "https://www.planetmotors.ca/delivery",
+    url: "/delivery",
     siteName: "Planet Motors",
     locale: "en_CA",
     type: "website",
