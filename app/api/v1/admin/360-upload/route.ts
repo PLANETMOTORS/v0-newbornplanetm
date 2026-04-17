@@ -133,16 +133,24 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({
-    mid,
-    vehicleName,
-    frameCount: uploaded.length,
-    frames: uploaded,
-    errors: errors.length > 0 ? errors : undefined,
-    message: errors.length > 0
-      ? `Uploaded ${uploaded.length}/${frames.length} frames (${errors.length} failed)`
-      : `Successfully uploaded ${uploaded.length} frames for ${vehicleName}`,
-  })
+  const allFailed = uploaded.length === 0 && errors.length > 0
+
+  return NextResponse.json(
+    {
+      mid,
+      vehicleName,
+      frameCount: uploaded.length,
+      frames: uploaded,
+      errors: errors.length > 0 ? errors : undefined,
+      error: allFailed ? `All ${errors.length} frames failed to upload` : undefined,
+      message: allFailed
+        ? `All ${errors.length} frames failed to upload`
+        : errors.length > 0
+          ? `Uploaded ${uploaded.length}/${frames.length} frames (${errors.length} failed)`
+          : `Successfully uploaded ${uploaded.length} frames for ${vehicleName}`,
+    },
+    allFailed ? { status: 500 } : undefined,
+  )
 }
 
 /**
