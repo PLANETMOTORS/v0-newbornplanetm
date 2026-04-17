@@ -34,7 +34,7 @@ export async function generateSitemaps() {
   ]
 }
 
-export default async function sitemap(props: { id: number | string | Promise<number | string> }): Promise<MetadataRoute.Sitemap> {
+export default async function sitemap(props: { id: string | number | Promise<string | number> }): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getPublicSiteUrl()
   const currentDate = new Date().toISOString()
 
