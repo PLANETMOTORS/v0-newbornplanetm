@@ -409,7 +409,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
     setSelectedColor("All Colors")
     setSelectedDrivetrain("All Drivetrains")
     setPriceRange([0, 400000])
-    setMileageRange([0, 100000])
+    setMileageRange([0, 200000])
     setEvOnly(false)
   }
 
@@ -421,7 +421,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
     selectedColor !== "All Colors",
     selectedDrivetrain !== "All Drivetrains",
     priceRange[0] > 0 || priceRange[1] < 400000,
-    mileageRange[0] > 0 || mileageRange[1] < 100000,
+    mileageRange[0] > 0 || mileageRange[1] < 200000,
     evOnly
   ].filter(Boolean).length
 

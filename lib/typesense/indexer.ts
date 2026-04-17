@@ -1,6 +1,25 @@
 // Typesense indexer — upsert / delete vehicle documents
 import { getAdminClient, VEHICLES_COLLECTION } from "./client"
 
+/**
+ * Normalize raw DB body_style values to consistent terms for Typesense filtering.
+ * DB values may have prefixes ("4dr") and suffixes ("Vehicle") — e.g.
+ * "4dr Sport Utility Vehicle" → "Sport Utility".
+ * This ensures exact-match filters work correctly against indexed data.
+ */
+export function normalizeBodyStyle(raw: string): string {
+  const lower = raw.toLowerCase()
+  if (lower.includes('sport utility') || lower.includes('suv')) return 'Sport Utility'
+  if (lower === '4dr car' || lower.includes('sedan')) return '4dr Car'
+  if (lower.includes('pickup') || lower.includes('truck')) return 'Pickup'
+  if (lower.includes('convertible')) return 'Convertible'
+  if (lower.includes('hatchback')) return 'Hatchback'
+  if (lower.includes('van') || lower.includes('minivan')) return 'Van'
+  if (lower.includes('wagon')) return 'Wagon'
+  if (lower.includes('coupe') || lower.includes('coupé')) return 'Coupe'
+  return raw
+}
+
 export interface VehicleDocument {
   id: string
   stock_number: string
@@ -34,10 +53,15 @@ export async function upsertVehicle(doc: VehicleDocument): Promise<boolean> {
   const client = getAdminClient()
   if (!client) return false
 
+  const normalized = { ...doc }
+  if (normalized.body_style) {
+    normalized.body_style = normalizeBodyStyle(normalized.body_style)
+  }
+
   await client
     .collections(VEHICLES_COLLECTION)
     .documents()
-    .upsert(doc)
+    .upsert(normalized)
 
   return true
 }
@@ -52,11 +76,17 @@ export async function upsertVehiclesBatch(
   const client = getAdminClient()
   if (!client) return { success: 0, errors: 0 }
 
+  // Normalize body_style values before indexing
+  const normalizedDocs = docs.map(doc => ({
+    ...doc,
+    body_style: doc.body_style ? normalizeBodyStyle(doc.body_style) : undefined,
+  }))
+
   let success = 0
   let errors = 0
 
-  for (let i = 0; i < docs.length; i += batchSize) {
-    const batch = docs.slice(i, i + batchSize)
+  for (let i = 0; i < normalizedDocs.length; i += batchSize) {
+    const batch = normalizedDocs.slice(i, i + batchSize)
     const results = await client
       .collections(VEHICLES_COLLECTION)
       .documents()

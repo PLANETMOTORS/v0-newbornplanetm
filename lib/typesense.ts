@@ -153,12 +153,9 @@ function buildFilterBy(params: VehicleSearchParams): string {
   if (models.length) filters.push(`model:=[${sanitizeFilterValues(models)}]`)
 
   const bodyStyles = asArray(params.body_style).map(resolveBodyStyleAlias)
-  // Use substring match because Typesense stores raw DB values with prefixes
-  // (e.g. "4dr Sport Utility Vehicle") — exact match would return 0 results.
-  if (bodyStyles.length) {
-    const bsFilters = bodyStyles.map(bs => `body_style:${sanitizeTypesenseFilterValue(bs)}`)
-    filters.push(bodyStyles.length > 1 ? `(${bsFilters.join(' || ')})` : bsFilters[0])
-  }
+  // Typesense indexer normalizes body_style (e.g. "4dr Sport Utility Vehicle" → "Sport Utility")
+  // so exact match works here. See lib/typesense/indexer.ts normalizeBodyStyle().
+  if (bodyStyles.length) filters.push(`body_style:=[${sanitizeFilterValues(bodyStyles)}]`)
 
   const fuelTypes = asArray(params.fuel_type)
   if (fuelTypes.length) filters.push(`fuel_type:=[${sanitizeFilterValues(fuelTypes)}]`)
