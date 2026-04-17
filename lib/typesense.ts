@@ -277,7 +277,12 @@ async function searchSupabase(params: VehicleSearchParams): Promise<SearchRespon
   if (modelsArr.length > 0) query = query.in('model', modelsArr)
 
   const bodyStyles = asArray(params.body_style).map(resolveBodyStyleAlias)
-  if (bodyStyles.length > 0) query = query.in('body_style', bodyStyles)
+  if (bodyStyles.length > 0) {
+    // Use .or() with .ilike() instead of .in() because DB values have prefixes
+    // (e.g. "4dr Sport Utility Vehicle", "4dr Car") — exact match would return 0 results.
+    const bodyFilter = bodyStyles.map(bs => `body_style.ilike.%${bs}%`).join(',')
+    query = query.or(bodyFilter)
+  }
 
   const fuelTypes = asArray(params.fuel_type)
   if (fuelTypes.length > 0) query = query.in('fuel_type', fuelTypes)

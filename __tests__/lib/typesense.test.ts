@@ -324,12 +324,13 @@ describe('searchVehicles — filters', () => {
     expect(ftIn?.[1]).toEqual(['Electric', 'Hybrid'])
   })
 
-  it('applies body_style filter with alias resolution', async () => {
+  it('applies body_style filter with alias resolution via .or(ilike) pattern match', async () => {
     await searchVehicles({ body_style: 'SUV' })
-    const inArgs = mockChain.getCallArgs('in')
-    const bsIn = inArgs.find(a => a[0] === 'body_style')
-    // "SUV" is resolved to the DB value "Sport Utility" via BODY_STYLE_ALIASES
-    expect(bsIn?.[1]).toEqual(['Sport Utility'])
+    const orArgs = mockChain.getCallArgs('or')
+    // "SUV" is resolved to "Sport Utility" and uses .ilike() wildcard match
+    // because DB values have prefixes (e.g. "4dr Sport Utility Vehicle")
+    const bodyOr = orArgs.find(a => typeof a[0] === 'string' && a[0].includes('body_style'))
+    expect(bodyOr?.[0]).toBe('body_style.ilike.%Sport Utility%')
   })
 
   it('applies drivetrain filter', async () => {
