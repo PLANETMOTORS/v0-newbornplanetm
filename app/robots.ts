@@ -109,8 +109,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
       },
     ],
-    // Next.js generates a sitemap index at /sitemap.xml with child sitemaps
-    // at /sitemap/0.xml (pages), /sitemap/1.xml (vehicles), /sitemap/2.xml (blog)
+    // Next.js generates /sitemap.xml from app/sitemap.ts (single combined sitemap)
     sitemap: `${baseUrl}/sitemap.xml`,
     host: baseUrl,
   }
