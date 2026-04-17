@@ -34,40 +34,31 @@ export async function generateSitemaps() {
   ]
 }
 
-export default async function sitemap(params: { id: number }): Promise<MetadataRoute.Sitemap> {
+export default async function sitemap(props: { id: number | string | Promise<number | string> }): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getPublicSiteUrl()
   const currentDate = new Date().toISOString()
 
-  // Debug: log what Next.js passes so we can verify the param shape
-  console.log('[sitemap] params:', JSON.stringify(params), 'typeof id:', typeof params?.id)
+  // Next.js 15+ passes metadata route params as Promises — await to resolve
+  const id = await props.id
 
   // Ensure id is a number — Next.js may pass it as a string from the URL param
-  const numId = Number(params?.id)
-
-  console.log('[sitemap] numId:', numId, 'baseUrl:', baseUrl)
+  const numId = Number(id)
 
   // ── Child 0: Static pages ──────────────────────────────────────────────
   if (numId === SITEMAP_IDS.PAGES) {
-    const result = buildPagesSitemap(baseUrl, currentDate)
-    console.log('[sitemap] PAGES count:', result.length)
-    return result
+    return buildPagesSitemap(baseUrl, currentDate)
   }
 
   // ── Child 1: Vehicle detail pages ──────────────────────────────────────
   if (numId === SITEMAP_IDS.VEHICLES) {
-    const result = await buildVehiclesSitemap(baseUrl, currentDate)
-    console.log('[sitemap] VEHICLES count:', result.length)
-    return result
+    return buildVehiclesSitemap(baseUrl, currentDate)
   }
 
   // ── Child 2: Blog posts ────────────────────────────────────────────────
   if (numId === SITEMAP_IDS.BLOG) {
-    const result = buildBlogSitemap(baseUrl, currentDate)
-    console.log('[sitemap] BLOG count:', result.length)
-    return result
+    return buildBlogSitemap(baseUrl, currentDate)
   }
 
-  console.log('[sitemap] NO MATCH for numId:', numId)
   return []
 }
 
