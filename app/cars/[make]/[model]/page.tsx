@@ -237,7 +237,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
       />
 
-      <main id="main-content" role="main">
+      <main id="main-content" role="main" tabIndex={-1}>
         {/* Breadcrumb */}
         <nav className="bg-muted/30 py-3 border-b" aria-label="Breadcrumb">
           <div className="container mx-auto px-4">

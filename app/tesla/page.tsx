@@ -83,7 +83,7 @@ export default function TeslaPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main id="main-content" role="main" aria-label="Tesla vehicles">
+      <main id="main-content" role="main" aria-label="Tesla vehicles" tabIndex={-1}>
         {/* Hero Section */}
         <section className="relative bg-black text-white py-16 lg:py-24">
           <div className="container mx-auto px-4">

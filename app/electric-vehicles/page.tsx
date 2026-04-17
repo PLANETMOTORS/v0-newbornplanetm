@@ -60,7 +60,7 @@ export default function ElectricVehiclesPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main id="main-content" role="main" aria-label="Electric vehicles">
+      <main id="main-content" role="main" aria-label="Electric vehicles" tabIndex={-1}>
         {/* Hero Section */}
         <section className="relative bg-gradient-to-br from-green-900 via-green-800 to-emerald-900 text-white py-16 lg:py-24">
           <div className="container mx-auto px-4">
