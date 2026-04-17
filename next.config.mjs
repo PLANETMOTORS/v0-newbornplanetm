@@ -31,6 +31,8 @@ const nextConfig = {
       'date-fns', 'recharts', 'embla-carousel-react',
       'react-hook-form', '@tanstack/react-virtual',
       'framer-motion', 'swr',
+      '@supabase/supabase-js', '@vercel/analytics', '@vercel/speed-insights',
+      'sonner', '@stripe/stripe-js', '@stripe/react-stripe-js',
     ],
   },
   

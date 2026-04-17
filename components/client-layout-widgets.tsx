@@ -44,6 +44,16 @@ const CompareBar = dynamic(
   { ssr: false }
 )
 
+// Vercel telemetry — not user-facing, client-only
+const VercelAnalytics = dynamic(
+  () => import('@vercel/analytics/next').then(m => ({ default: m.Analytics })),
+  { ssr: false }
+)
+const VercelSpeedInsights = dynamic(
+  () => import('@vercel/speed-insights/next').then(m => ({ default: m.SpeedInsights })),
+  { ssr: false }
+)
+
 /**
  * Client-only layout widgets.
  * Extracted from layout.tsx because `dynamic(..., { ssr: false })` is not
@@ -61,6 +71,8 @@ export function ClientLayoutWidgets() {
       <GoogleTagManager />
       <GoogleTagManagerNoScript />
       <MetaPixel />
+      <VercelAnalytics />
+      <VercelSpeedInsights />
     </>
   )
 }

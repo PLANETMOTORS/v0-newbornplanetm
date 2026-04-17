@@ -159,7 +159,7 @@ export default function AccountPage() {
       <div className="min-h-screen bg-background">
         <Header />
 
-        <main className="pt-32 pb-16">
+        <main className="pt-8 pb-16">
           <div className="container mx-auto px-4 max-w-md">
             <Card>
               <CardContent className="py-12 text-center text-muted-foreground">
@@ -179,7 +179,7 @@ export default function AccountPage() {
       <div className="min-h-screen bg-background">
         <Header />
         
-        <main className="pt-32 pb-16">
+        <main className="pt-8 pb-16">
           <div className="container mx-auto px-4 max-w-md">
             <Card>
               <CardHeader className="text-center">
@@ -338,7 +338,7 @@ export default function AccountPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="pt-32 pb-16">
+      <main className="pt-8 pb-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-3xl font-serif font-bold mb-8">My Account</h1>

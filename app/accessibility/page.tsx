@@ -16,7 +16,7 @@ export default function AccessibilityPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="pt-32 pb-16">
+      <main className="pt-8 pb-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-4xl font-serif font-bold text-foreground mb-6">
