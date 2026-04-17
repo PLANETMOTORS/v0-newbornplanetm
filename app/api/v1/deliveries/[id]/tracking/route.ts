@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { DEALERSHIP_LOCATION, DEALERSHIP_ADDRESS_DISPLAY } from "@/lib/constants/dealership"
 
 function toStatusLabel(status: string): string {
   switch (status) {
@@ -132,13 +133,13 @@ export async function GET(
       currentLocation: null,
       route: {
         origin: {
-          lat: 43.8828,
-          lng: -79.4403,
-          address: "Richmond Hill, ON",
+          lat: DEALERSHIP_LOCATION.lat,
+          lng: DEALERSHIP_LOCATION.lng,
+          address: DEALERSHIP_ADDRESS_DISPLAY,
         },
         destination: {
-          lat: 43.6532,
-          lng: -79.3832,
+          lat: null,
+          lng: null,
           address: "Address on file",
         },
         distanceRemaining: delivery.distance_km ? `${delivery.distance_km} km` : "Unknown",

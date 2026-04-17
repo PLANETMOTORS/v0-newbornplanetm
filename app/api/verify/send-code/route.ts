@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, method: "email" })
     } else if (method === "phone") {
       // For SMS, you would integrate with Twilio here
-      console.log(`[SMS] Verification code would be sent to ${destination}`)
+      console.info(`[SMS] Verification code would be sent to ${destination}`)
 
       return NextResponse.json({ success: true, method: "sms", demo: true })
     }

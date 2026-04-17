@@ -52,7 +52,7 @@ const footerLinks = {
     { name: "Privacy Policy", href: "/privacy" },
     { name: "Terms of Service", href: "/terms" },
     { name: "Accessibility", href: "/accessibility" },
-    { name: "Sitemap", href: "/sitemap" },
+    { name: "Sitemap", href: "/site-map" },
   ],
 }
 

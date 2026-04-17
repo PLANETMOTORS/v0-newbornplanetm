@@ -8,58 +8,25 @@ import { getPublicSiteUrl } from '@/lib/site-url'
 // to pre-render the sitemap at build time and silently 404 in production.
 export const dynamic = 'force-dynamic'
 
-// ─── Sitemap Index ──────────────────────────────────────────────────────────
-// Next.js generates /sitemap.xml as a sitemap index pointing to child sitemaps:
-//   /sitemap/0.xml — static pages (core, info, legal, locations, model landing, filters)
-//   /sitemap/1.xml — vehicle detail pages (up to 10K per child)
-//   /sitemap/2.xml — blog posts
-//
-// Each child sitemap stays under the 10K URL / 50 MB limit recommended by the
-// sitemap protocol. When inventory exceeds 10K, add additional IDs here and
-// paginate in the default export below.
-
-const SITEMAP_IDS = {
-  PAGES: 0,
-  VEHICLES: 1,
-  BLOG: 2,
-} as const
+// ─── Single Sitemap ───────────────────────────────────────────────────────
+// Generates /sitemap.xml with all URLs: static pages, vehicles, and blog.
+// The sitemap protocol recommends max 50K URLs / 50 MB per file.
+// At 10K vehicles + ~100 static + ~20 blog posts we're well under limits.
+// If inventory exceeds 40K, re-introduce generateSitemaps() for splitting.
 
 const VEHICLE_SITEMAP_LIMIT = 10_000
 
-export async function generateSitemaps() {
-  return [
-    { id: SITEMAP_IDS.PAGES },
-    { id: SITEMAP_IDS.VEHICLES },
-    { id: SITEMAP_IDS.BLOG },
-  ]
-}
-
-export default async function sitemap(props: { id: string | number | Promise<string | number> }): Promise<MetadataRoute.Sitemap> {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getPublicSiteUrl()
   const currentDate = new Date().toISOString()
 
-  // Next.js 15+ passes metadata route params as Promises — await to resolve
-  const id = await props.id
+  const [pages, vehicles, blog] = await Promise.all([
+    buildPagesSitemap(baseUrl, currentDate),
+    buildVehiclesSitemap(baseUrl, currentDate),
+    buildBlogSitemap(baseUrl, currentDate),
+  ])
 
-  // Ensure id is a number — Next.js may pass it as a string from the URL param
-  const numId = Number(id)
-
-  // ── Child 0: Static pages ──────────────────────────────────────────────
-  if (numId === SITEMAP_IDS.PAGES) {
-    return buildPagesSitemap(baseUrl, currentDate)
-  }
-
-  // ── Child 1: Vehicle detail pages ──────────────────────────────────────
-  if (numId === SITEMAP_IDS.VEHICLES) {
-    return buildVehiclesSitemap(baseUrl, currentDate)
-  }
-
-  // ── Child 2: Blog posts ────────────────────────────────────────────────
-  if (numId === SITEMAP_IDS.BLOG) {
-    return buildBlogSitemap(baseUrl, currentDate)
-  }
-
-  return []
+  return [...pages, ...vehicles, ...blog]
 }
 
 // ─── Builders ─────────────────────────────────────────────────────────────

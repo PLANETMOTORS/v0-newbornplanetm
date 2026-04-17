@@ -194,7 +194,6 @@ export default function CheckoutPage() {
     const clientSecret = await startVehicleCheckout({
       vehicleId: params.id as string,
       vehicleName: `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`,
-      vehiclePriceCents: total * 100,
       protectionPlanId: selectedProtection !== "none" ? selectedProtection : undefined,
       customerEmail: formData.email,
       ...(utmParams?.utm_source && { utmSource: utmParams.utm_source }),
@@ -207,7 +206,7 @@ export default function CheckoutPage() {
       throw new Error("Failed to create checkout session")
     }
     return clientSecret
-  }, [params.id, total, selectedProtection, formData.email, vehicleData])
+  }, [params.id, selectedProtection, formData.email, vehicleData])
 
   // Show loading while checking auth
   if (isLoading || !user) {

@@ -28,7 +28,7 @@ export async function POST(request: Request) {
       const url = new URL(request.url)
       if (url.searchParams.get("force") === "true") {
         await client.collections(VEHICLES_COLLECTION).delete()
-        console.log("[Typesense Setup] Dropped existing collection")
+        console.info("[Typesense Setup] Dropped existing collection")
       } else {
         return NextResponse.json({
           success: true,
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     }
 
     const created = await client.collections().create(VEHICLES_SCHEMA)
-    console.log(`[Typesense Setup] Created collection: ${created.name}`)
+    console.info(`[Typesense Setup] Created collection: ${created.name}`)
 
     return NextResponse.json({
       success: true,

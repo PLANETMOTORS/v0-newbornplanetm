@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       revalidateTag(tag, "max")
     }
 
-    console.log(`[Sanity Webhook] Revalidated tags for ${documentType}:`, tagsToRevalidate)
+    console.info(`[Sanity Webhook] Revalidated tags for ${documentType}:`, tagsToRevalidate)
 
     return NextResponse.json({
       success: true,

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { DEALERSHIP_LOCATION, DEALERSHIP_ADDRESS_DISPLAY } from "@/lib/constants/dealership"
 
 type DeliveryStatus = "preparing" | "in-transit" | "nearby" | "delivered"
 
@@ -151,13 +152,13 @@ export async function GET(req: Request) {
           }
         : null,
       currentLocation: {
-        lat: 43.8828,
-        lng: -79.4403,
-        address: "Location updates available in customer support channels.",
+        lat: DEALERSHIP_LOCATION.lat,
+        lng: DEALERSHIP_LOCATION.lng,
+        address: DEALERSHIP_ADDRESS_DISPLAY,
       },
       destination: {
-        lat: 43.6532,
-        lng: -79.3832,
+        lat: null,
+        lng: null,
         address: destinationAddress,
       },
       timeline,

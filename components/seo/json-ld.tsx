@@ -1,6 +1,7 @@
 import Script from "next/script"
 import { calculateAllInPrice } from "@/lib/pricing/format"
 import { getPublicSiteUrl } from "@/lib/site-url"
+import { DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
 
 // Resolve site URL once per render instead of hardcoding
 const SITE_URL = getPublicSiteUrl()
@@ -25,16 +26,16 @@ export function OrganizationJsonLd() {
     "email": "info@planetmotors.ca",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "30 Major Mackenzie Dr E",
-      "addressLocality": "Richmond Hill",
-      "addressRegion": "ON",
-      "postalCode": "L4C 1G7",
-      "addressCountry": "CA"
+      "streetAddress": DEALERSHIP_LOCATION.streetAddress,
+      "addressLocality": DEALERSHIP_LOCATION.city,
+      "addressRegion": DEALERSHIP_LOCATION.province,
+      "postalCode": DEALERSHIP_LOCATION.postalCode,
+      "addressCountry": DEALERSHIP_LOCATION.country
     },
     "geo": {
       "@type": "GeoCoordinates",
-      "latitude": 43.8828,
-      "longitude": -79.4375
+      "latitude": DEALERSHIP_LOCATION.lat,
+      "longitude": DEALERSHIP_LOCATION.lng
     },
     "openingHoursSpecification": [
       {
