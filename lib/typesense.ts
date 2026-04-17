@@ -115,6 +115,25 @@ function sanitizeFilterValues(values: string[]): string {
   return values.map(sanitizeTypesenseFilterValue).join(',')
 }
 
+// ── Body style alias mapping ───────────────────────────────────────────────
+// The DB stores values like "Sport Utility" and "4dr Car" but customers
+// search for "SUV" and "Sedan". This mapping bridges that gap.
+const BODY_STYLE_ALIASES: Record<string, string> = {
+  'suv': 'Sport Utility',
+  'sedan': '4dr Car',
+  'hatchback': 'Hatchback',
+  'convertible': 'Convertible',
+  'truck': 'Pickup',
+  'van': 'Van',
+  'wagon': 'Wagon',
+  'coupe': 'Coupe',
+}
+
+/** Resolve customer-friendly body style names to their DB equivalents. */
+function resolveBodyStyleAlias(value: string): string {
+  return BODY_STYLE_ALIASES[value.toLowerCase()] || value
+}
+
 // ── Typesense search ───────────────────────────────────────────────────────
 
 const FACET_FIELDS = 'make,model,body_style,fuel_type,drivetrain,year,is_ev,is_certified'
@@ -128,7 +147,7 @@ function buildFilterBy(params: VehicleSearchParams): string {
   const models = asArray(params.model)
   if (models.length) filters.push(`model:=[${sanitizeFilterValues(models)}]`)
 
-  const bodyStyles = asArray(params.body_style)
+  const bodyStyles = asArray(params.body_style).map(resolveBodyStyleAlias)
   if (bodyStyles.length) filters.push(`body_style:=[${sanitizeFilterValues(bodyStyles)}]`)
 
   const fuelTypes = asArray(params.fuel_type)
@@ -167,7 +186,7 @@ async function searchTypesense(params: VehicleSearchParams): Promise<SearchRespo
     .documents()
     .search({
       q: params.query || '*',
-      query_by: 'make,model,trim,description',
+      query_by: 'make,model,trim,description,vin,stock_number',
       filter_by: buildFilterBy(params),
       sort_by: mapSortBy(params.sort_by),
       facet_by: FACET_FIELDS,
@@ -243,7 +262,7 @@ async function searchSupabase(params: VehicleSearchParams): Promise<SearchRespon
     .eq('status', 'available')
 
   if (params.query) {
-    query = query.or(`make.ilike.%${params.query}%,model.ilike.%${params.query}%,trim.ilike.%${params.query}%`)
+    query = query.or(`make.ilike.%${params.query}%,model.ilike.%${params.query}%,trim.ilike.%${params.query}%,vin.ilike.%${params.query}%,stock_number.ilike.%${params.query}%`)
   }
 
   const makes = asArray(params.make)
@@ -252,7 +271,7 @@ async function searchSupabase(params: VehicleSearchParams): Promise<SearchRespon
   const modelsArr = asArray(params.model)
   if (modelsArr.length > 0) query = query.in('model', modelsArr)
 
-  const bodyStyles = asArray(params.body_style)
+  const bodyStyles = asArray(params.body_style).map(resolveBodyStyleAlias)
   if (bodyStyles.length > 0) query = query.in('body_style', bodyStyles)
 
   const fuelTypes = asArray(params.fuel_type)

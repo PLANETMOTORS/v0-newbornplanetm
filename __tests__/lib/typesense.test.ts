@@ -315,11 +315,12 @@ describe('searchVehicles — filters', () => {
     expect(ftIn?.[1]).toEqual(['Electric', 'Hybrid'])
   })
 
-  it('applies body_style filter', async () => {
+  it('applies body_style filter with alias resolution', async () => {
     await searchVehicles({ body_style: 'SUV' })
     const inArgs = mockChain.getCallArgs('in')
     const bsIn = inArgs.find(a => a[0] === 'body_style')
-    expect(bsIn?.[1]).toEqual(['SUV'])
+    // "SUV" is resolved to the DB value "Sport Utility" via BODY_STYLE_ALIASES
+    expect(bsIn?.[1]).toEqual(['Sport Utility'])
   })
 
   it('applies drivetrain filter', async () => {

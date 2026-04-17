@@ -6,6 +6,20 @@ import { getDriveeMid } from '@/lib/drivee'
 
 const ALLOWED_SORT_COLUMNS = new Set(['created_at', 'price', 'year', 'mileage', 'make', 'model'])
 
+// Map customer-friendly body style terms to actual database values.
+// The DB stores values like "Sport Utility" and "4dr Car" but customers
+// search for "SUV" and "Sedan". This mapping bridges that gap.
+const BODY_STYLE_ALIASES: Record<string, string> = {
+  'suv': '%Sport Utility%',
+  'sedan': '%4dr Car%',
+  'hatchback': '%Hatchback%',
+  'convertible': '%Convertible%',
+  'truck': '%Pickup%',
+  'van': '%Van%',
+  'wagon': '%Wagon%',
+  'coupe': '%Coupe%',
+}
+
 // ─── TSVECTOR Full-Text Search (DB Fallback) ────────────────────────────────
 // Primary search is handled by Typesense (see /api/typesense and lib/typesense/).
 // The vehicles table also has a `search_vector` TSVECTOR column populated by a
@@ -175,7 +189,11 @@ export async function GET(request: NextRequest) {
   if (minMileage) query = query.gte('mileage', parseInt(minMileage))
   if (maxMileage) query = query.lte('mileage', parseInt(maxMileage))
   if (exteriorColor) query = query.ilike('exterior_color', exteriorColor)
-  if (bodyStyle) query = query.ilike('body_style', bodyStyle)
+  if (bodyStyle) {
+    // Map customer-friendly terms (SUV, Sedan) to actual DB values (Sport Utility, 4dr Car)
+    const aliasPattern = BODY_STYLE_ALIASES[bodyStyle.toLowerCase()]
+    query = query.ilike('body_style', aliasPattern || bodyStyle)
+  }
   if (fuelType) query = query.ilike('fuel_type', fuelType)
   if (transmission) query = query.ilike('transmission', `%${transmission}%`)
   if (drivetrain) query = query.ilike('drivetrain', drivetrain)

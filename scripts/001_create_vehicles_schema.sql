@@ -63,13 +63,19 @@ CREATE TABLE IF NOT EXISTS public.vehicles (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   
   -- Search optimization
+  -- Includes VIN, stock_number, year, and body_style aliases (SUV, Sedan) for customer-friendly search
   search_vector TSVECTOR GENERATED ALWAYS AS (
     to_tsvector('english', 
       coalesce(make, '') || ' ' || 
       coalesce(model, '') || ' ' || 
       coalesce(trim, '') || ' ' || 
       coalesce(body_style, '') || ' ' ||
-      coalesce(exterior_color, '')
+      coalesce(exterior_color, '') || ' ' ||
+      coalesce(vin, '') || ' ' ||
+      coalesce(stock_number, '') || ' ' ||
+      coalesce(year::text, '') || ' ' ||
+      CASE WHEN body_style ILIKE '%Sport Utility%' THEN 'SUV' ELSE '' END || ' ' ||
+      CASE WHEN body_style ILIKE '%4dr Car%' THEN 'Sedan' ELSE '' END
     )
   ) STORED
 );
