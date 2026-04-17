@@ -221,7 +221,7 @@ test.describe('Section A — Human Click Simulation', () => {
 
   test('A01 — homepage hero CTA click navigates to inventory', async ({ page }) => {
     await page.goto(BASE_URL);
-    await humanClick(page, page.getByTestId('hero-cta-btn'));
+    await humanClick(page, page.getByTestId('hero-cta-btn').first());
     await expect(page).toHaveURL(/inventory/);
   });
 
@@ -327,10 +327,10 @@ test.describe('Section A — Human Click Simulation', () => {
 
   test('A12 — click outside IDV upload modal does not dismiss it', async ({ page }) => {
     await page.goto(`${BASE_URL}/financing/verification`);
-    await expect(page.getByText(/Identity Verification/i)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/Identity Verification/i).first()).toBeVisible({ timeout: 10000 });
     await page.mouse.click(10, 10);
     await page.waitForTimeout(400);
-    await expect(page.getByText(/Identity Verification/i)).toBeVisible();
+    await expect(page.getByText(/Identity Verification/i).first()).toBeVisible();
   });
 
   test('A13 — right-click on vehicle image does not expose raw origin URL', async ({ page }) => {
