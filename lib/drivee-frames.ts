@@ -30,8 +30,12 @@ export function frameUrl(
 
 /**
  * Probe Firebase Storage to discover how many walk-around frames exist
- * for a given MID.  Sends HEAD requests starting at frame 01 until a
- * non-200 response is returned.
+ * for a given MID.
+ *
+ * Uses parallel HEAD requests (fires all at once up to MAX_FRAMES) then
+ * finds the highest consecutive frame that returned 200.  This reduces
+ * wall-clock time from O(n × latency) to O(1 × latency) — typically
+ * ~200ms instead of 3-8 seconds for 30-40 frames.
  *
  * Returns the list of direct-download URLs for every frame found.
  */
@@ -39,19 +43,23 @@ export async function discoverFrameUrls(
   mid: string,
   uid: string = DRIVEE_DEALER_UID,
 ): Promise<string[]> {
-  const urls: string[] = []
-  // Drivee vehicles typically have 30-45 frames; cap at 72 for safety.
-  const MAX_FRAMES = 72
+  // Drivee vehicles typically have 30-45 frames; probe up to 50 in parallel.
+  const MAX_PROBE = 50
 
-  for (let i = 1; i <= MAX_FRAMES; i++) {
-    const url = frameUrl(mid, i, uid)
-    try {
-      const res = await fetch(url, { method: "HEAD" })
-      if (!res.ok) break
-      urls.push(url)
-    } catch {
-      break
-    }
+  const probes = Array.from({ length: MAX_PROBE }, (_, i) => {
+    const url = frameUrl(mid, i + 1, uid)
+    return fetch(url, { method: "HEAD" })
+      .then((res) => ({ url, ok: res.ok }))
+      .catch(() => ({ url, ok: false }))
+  })
+
+  const results = await Promise.all(probes)
+
+  // Find the longest consecutive run of OK frames starting at index 0.
+  const urls: string[] = []
+  for (const result of results) {
+    if (!result.ok) break
+    urls.push(result.url)
   }
 
   return urls

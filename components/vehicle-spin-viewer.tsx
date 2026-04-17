@@ -195,19 +195,25 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       aria-label={`360° Interactive View — ${alt}`}
       aria-roledescription="360° image spinner"
     >
+      {/* Empty state — no frames available */}
+      {totalFrames === 0 && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3">
+          <RotateCw className="w-8 h-8 text-muted-foreground" aria-hidden="true" />
+          <p className="text-sm text-muted-foreground font-medium">360° view not available</p>
+        </div>
+      )}
+
       {/* Loading state — show spinner + progress bar until first frame loads */}
-      {!isReady && (
+      {totalFrames > 0 && !isReady && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4">
           <Loader2 className="w-10 h-10 animate-spin text-primary" aria-hidden="true" />
           <p className="text-sm text-muted-foreground font-medium">Loading 360° view…</p>
-          {totalFrames > 0 && (
-            <div className="w-48 h-1.5 bg-muted rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary rounded-full transition-all duration-300"
-                style={{ width: `${loadProgress}%` }}
-              />
-            </div>
-          )}
+          <div className="w-48 h-1.5 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary rounded-full transition-all duration-300"
+              style={{ width: `${loadProgress}%` }}
+            />
+          </div>
         </div>
       )}
 
