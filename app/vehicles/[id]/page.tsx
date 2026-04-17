@@ -1920,7 +1920,7 @@ export default function VehicleDetailPage() {
 
             {/* Right Column - Sticky Sidebar */}
             <div className="space-y-4">
-              <Card className="sticky top-36 shadow-lg border-2">
+              <Card className="sticky top-20 shadow-lg border-2">
                 <CardContent className="p-5">
                   {/* Vehicle Title */}
                   <h2 className="text-xl font-bold">
@@ -1940,7 +1940,7 @@ export default function VehicleDetailPage() {
                   </div>
 
                   {/* Trust Badges */}
-                  <div className="mt-4 space-y-2">
+                  <div className="mt-4 pt-4 border-t space-y-2">
                     <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
                       <CheckCircle className="w-5 h-5 text-green-600" />
                       <span className="text-sm font-medium">10-Day Money Back Guarantee</span>
@@ -1952,7 +1952,7 @@ export default function VehicleDetailPage() {
                   </div>
 
                   {/* CTA Buttons */}
-                  <div className="mt-4 space-y-2">
+                  <div className="mt-4 pt-4 border-t space-y-2">
                     {user ? (
                       <ReserveVehicleModal
                         vehicle={{
