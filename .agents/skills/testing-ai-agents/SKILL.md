@@ -241,3 +241,5 @@ pnpm test:e2e       # Run ALL E2E specs (needs local server)
 - `app/inventory/page.tsx` — Inventory page with `content-visibility: auto` virtualization
 - `components/footer-content.tsx` — Footer as Server Component (no "use client")
 - `app/layout.tsx` — Font configuration with `display: 'swap'`
+- `components/vehicle-showcase.tsx` — Hero vehicle showcase with SWR + server fallbackData
+- `app/vehicles/[id]/layout.tsx` — VDP layout with Pirelly 360° script (scoped here, not global)
