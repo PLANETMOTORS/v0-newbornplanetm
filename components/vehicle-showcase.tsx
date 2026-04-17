@@ -134,17 +134,20 @@ function transformToShowcase(v: DbVehicle) {
   }
 }
 
-export function VehicleShowcase({ serverHeroImageUrl }: { serverHeroImageUrl?: string } = {}) {
+export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle[] } = {}) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
   const [imageError, setImageError] = useState(false)
 
-  // Fetch vehicles from Supabase
+  // Fetch vehicles from Supabase — use server-fetched data as fallbackData
+  // so the first render already has real vehicle data + images (enables LCP preload).
   const { data: dbVehicles } = useSWR('showcase-vehicles', fetcher, {
     refreshInterval: 120000,
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- server data matches fetcher shape
+    ...(serverVehicles ? { fallbackData: serverVehicles as any } : {}),
   })
 
   // Transform to showcase format - use fallback if no DB data
@@ -161,12 +164,8 @@ export function VehicleShowcase({ serverHeroImageUrl }: { serverHeroImageUrl?: s
     setImageError(false)
   }, [currentIndex])
   
-  // Get the image source — prefer server-rendered URL for instant LCP,
-  // then fall back to client-fetched URL, then null (gradient fallback).
-  const clientImageSrc = currentVehicle?.image && !imageError ? currentVehicle.image : null
-  const imageSrc = currentIndex === 0 && serverHeroImageUrl && !imageError && !isFallback
-    ? serverHeroImageUrl
-    : clientImageSrc
+  // Get the image source — null means gradient fallback
+  const imageSrc = currentVehicle?.image && !imageError ? currentVehicle.image : null
 
   // Carousel auto-rotation - depends only on hover state and vehicle count
   useEffect(() => {

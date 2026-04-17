@@ -29,21 +29,20 @@ async function withTimeout<T>(promise: Promise<T>, fallback: T, ms = 3000): Prom
   }
 }
 
-// Fetch hero vehicle image URL server-side so it's in the HTML immediately.
-// This lets Next.js Image add <link rel="preload"> for the LCP image.
-async function getHeroImageUrl(): Promise<string | null> {
+// Fetch showcase vehicles server-side so the LCP hero image is in the initial
+// HTML with a <link rel="preload">. Passed to VehicleShowcase as SWR fallbackData
+// so vehicle metadata and images are consistent from the first render.
+async function getShowcaseVehicles() {
   try {
     const supabase = await createClient()
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('vehicles')
-      .select('primary_image_url, image_urls')
+      .select('id, year, make, model, trim, price, mileage, fuel_type, inspection_score, is_new_arrival, primary_image_url, image_urls')
       .eq('status', 'available')
       .order('price', { ascending: false })
-      .limit(1)
-      .single()
-    if (data?.primary_image_url) return data.primary_image_url
-    if (data?.image_urls?.length) return data.image_urls[0]
-    return null
+      .limit(6)
+    if (error || !data?.length) return null
+    return data
   } catch {
     return null
   }
@@ -51,11 +50,11 @@ async function getHeroImageUrl(): Promise<string | null> {
 
 // Async component that fetches CMS data — streamed via Suspense
 async function HomepageWithData() {
-  const [siteSettings, testimonials, faqs, heroImageUrl] = await Promise.all([
+  const [siteSettings, testimonials, faqs, showcaseVehicles] = await Promise.all([
     withTimeout(getSiteSettings(), null),
     withTimeout(getTestimonials(), []),
     withTimeout(getFaqs(), []),
-    withTimeout(getHeroImageUrl(), null),
+    withTimeout(getShowcaseVehicles(), null),
   ])
 
   return (
@@ -63,7 +62,7 @@ async function HomepageWithData() {
       siteSettings={siteSettings ?? DEFAULT_SITE_SETTINGS}
       testimonials={testimonials ?? []}
       faqs={faqs ?? []}
-      heroImageUrl={heroImageUrl}
+      showcaseVehicles={showcaseVehicles}
     />
   )
 }

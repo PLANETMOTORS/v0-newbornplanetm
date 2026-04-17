@@ -69,7 +69,20 @@ export type HomepageProps = {
     question: string
     answer: string
   }>
-  heroImageUrl?: string | null
+  showcaseVehicles?: Array<{
+    id: string
+    year: number
+    make: string
+    model: string
+    trim?: string
+    price: number
+    mileage: number
+    fuel_type?: string
+    is_new_arrival?: boolean
+    inspection_score?: number
+    primary_image_url?: string
+    image_urls?: string[]
+  }> | null
 }
 
 
@@ -163,7 +176,7 @@ const protectionPlans = [
 
 
 
-export function HomepageContent({ siteSettings, testimonials, heroImageUrl }: HomepageProps) {
+export function HomepageContent({ siteSettings, testimonials, showcaseVehicles }: HomepageProps) {
   // Use Sanity testimonials or fallback to default
   const displayReviews = testimonials.length > 0 ? testimonials.slice(0, 3).map(t => ({
     name: t.customerName,
@@ -246,7 +259,7 @@ export function HomepageContent({ siteSettings, testimonials, heroImageUrl }: Ho
 
             {/* Hero Image / Vehicle Showcase */}
             <div className="relative min-w-0">
-              <VehicleShowcase serverHeroImageUrl={heroImageUrl ?? undefined} />
+              <VehicleShowcase serverVehicles={showcaseVehicles ?? undefined} />
               
               {/* Floating Badge */}
               <div className="absolute top-4 right-4 bg-[#dc2626] text-white px-4 py-1.5 rounded-full text-sm font-medium shadow-lg z-10">
