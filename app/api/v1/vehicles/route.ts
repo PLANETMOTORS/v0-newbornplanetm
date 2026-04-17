@@ -154,12 +154,21 @@ export async function GET(request: NextRequest) {
   // Build a deterministic cache key from all query params
   const cacheKey = `vehicles:list:${hashKey(searchParams.toString())}`
 
+  // Requests with search/filter params must NOT be cached at the CDN edge,
+  // because different query strings return different results but Netlify Edge
+  // may serve a stale response for a different query.  Redis handles caching.
+  const hasFilters = !!(q || make || model || minYear || maxYear || minPrice || maxPrice ||
+    minMileage || maxMileage || exteriorColor || bodyStyle || fuelType || transmission || drivetrain)
+  const cacheControl = hasFilters
+    ? 'private, no-store'
+    : `public, s-maxage=${VEHICLE_LIST_TTL}, stale-while-revalidate=${VEHICLE_LIST_TTL * 2}`
+
   // Try Redis cache first
   const cached = await getCachedSearchResults(cacheKey)
   if (cached) {
     return NextResponse.json(cached, {
       headers: {
-        'Cache-Control': `public, s-maxage=${VEHICLE_LIST_TTL}, stale-while-revalidate=${VEHICLE_LIST_TTL * 2}`,
+        'Cache-Control': cacheControl,
         'X-Cache': 'HIT',
       },
     })
@@ -349,7 +358,7 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json(responseBody, {
     headers: {
-      'Cache-Control': `public, s-maxage=${VEHICLE_LIST_TTL}, stale-while-revalidate=${VEHICLE_LIST_TTL * 2}`,
+      'Cache-Control': cacheControl,
       'X-Cache': 'MISS',
     },
   })
