@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
       low: cbbValue.low,
       mid: cbbValue.mid,
       high: cbbValue.high,
-      source: 'Canadian Black Book',
+      source: 'Estimated (based on market data)',
       date: new Date().toISOString(),
     },
     
