@@ -14,7 +14,6 @@ const PROTECTION_PLANS: Record<string, { name: string; priceInCents: number }> =
 interface VehicleCheckoutData {
   vehicleId: string
   vehicleName: string
-  vehiclePriceCents: number
   protectionPlanId?: string
   depositOnly?: boolean
   customerEmail?: string

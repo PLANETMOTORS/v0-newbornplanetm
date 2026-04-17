@@ -35,7 +35,6 @@ export default function PaymentPage() {
     () => startVehicleCheckout({
       vehicleId: params.id as string,
       vehicleName: "Vehicle Deposit",
-      vehiclePriceCents: 25000, // $250 deposit
       depositOnly: true,
     }).then((secret) => {
       if (!secret) {
