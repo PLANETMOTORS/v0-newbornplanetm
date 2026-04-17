@@ -134,6 +134,11 @@ function resolveBodyStyleAlias(value: string): string {
   return BODY_STYLE_ALIASES[value.toLowerCase()] || value
 }
 
+/** Sanitize a body style value for safe interpolation into PostgREST filters. */
+function sanitizeBodyStyleValue(value: string): string {
+  return value.replace(/[^a-zA-Z0-9 -]/g, '').trim().slice(0, 100)
+}
+
 // ── Typesense search ───────────────────────────────────────────────────────
 
 const FACET_FIELDS = 'make,model,body_style,fuel_type,drivetrain,year,is_ev,is_certified'
@@ -148,7 +153,12 @@ function buildFilterBy(params: VehicleSearchParams): string {
   if (models.length) filters.push(`model:=[${sanitizeFilterValues(models)}]`)
 
   const bodyStyles = asArray(params.body_style).map(resolveBodyStyleAlias)
-  if (bodyStyles.length) filters.push(`body_style:=[${sanitizeFilterValues(bodyStyles)}]`)
+  // Use substring match because Typesense stores raw DB values with prefixes
+  // (e.g. "4dr Sport Utility Vehicle") — exact match would return 0 results.
+  if (bodyStyles.length) {
+    const bsFilters = bodyStyles.map(bs => `body_style:${sanitizeTypesenseFilterValue(bs)}`)
+    filters.push(bsFilters.join(' || '))
+  }
 
   const fuelTypes = asArray(params.fuel_type)
   if (fuelTypes.length) filters.push(`fuel_type:=[${sanitizeFilterValues(fuelTypes)}]`)
@@ -280,7 +290,8 @@ async function searchSupabase(params: VehicleSearchParams): Promise<SearchRespon
   if (bodyStyles.length > 0) {
     // Use .or() with .ilike() instead of .in() because DB values have prefixes
     // (e.g. "4dr Sport Utility Vehicle", "4dr Car") — exact match would return 0 results.
-    const bodyFilter = bodyStyles.map(bs => `body_style.ilike.%${bs}%`).join(',')
+    // Sanitize values to prevent PostgREST filter injection via commas/parens.
+    const bodyFilter = bodyStyles.map(bs => `body_style.ilike.%${sanitizeBodyStyleValue(bs)}%`).join(',')
     query = query.or(bodyFilter)
   }
 
