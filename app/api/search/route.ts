@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       // so prefix https:// unless the value already includes a protocol.
       const baseUrl = /^https?:\/\//i.test(typesenseHost) ? typesenseHost : `https://${typesenseHost}`
       const res = await fetch(
-        `${baseUrl}/collections/vehicles/documents/search?q=${encodeURIComponent(q)}&query_by=make,model,trim,year,vin,stock_number&per_page=5`,
+        `${baseUrl}/collections/vehicles/documents/search?q=${encodeURIComponent(q)}&query_by=make,model,trim,vin,stock_number&per_page=5`,
         { headers: { "X-TYPESENSE-API-KEY": typesenseKey } }
       )
       if (res.ok) {
