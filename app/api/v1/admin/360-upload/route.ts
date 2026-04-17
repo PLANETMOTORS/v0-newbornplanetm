@@ -96,7 +96,13 @@ export async function POST(request: NextRequest) {
 
   if (existingFiles && existingFiles.length > 0) {
     const pathsToDelete = existingFiles.map(f => `${mid}/nobg/${f.name}`)
-    await adminClient.storage.from(BUCKET).remove(pathsToDelete)
+    const { error: deleteError } = await adminClient.storage.from(BUCKET).remove(pathsToDelete)
+    if (deleteError) {
+      return NextResponse.json(
+        { error: `Failed to clean up existing frames: ${deleteError.message}. Aborting upload to prevent stale frame mix.` },
+        { status: 500 },
+      )
+    }
   }
 
   const uploaded: string[] = []

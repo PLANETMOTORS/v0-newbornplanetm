@@ -368,8 +368,10 @@ export default function Admin360UploadPage() {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500">
-                  Note: Frames will still be discoverable without the manifest entry (via automatic
-                  probing), but adding the manifest entry improves load performance.
+                  Note: New MIDs without a manifest entry will still be discoverable via automatic
+                  probing, but this is slower. <strong className="text-red-600">If you are replacing frames
+                  for an MID already in the manifest, you MUST update the frame count — the old
+                  manifest value will override probing and the viewer will show broken frames.</strong>
                 </p>
               </div>
             </CardContent>
