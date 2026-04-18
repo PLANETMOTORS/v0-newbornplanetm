@@ -39,7 +39,23 @@ function getAllowedOrigins(): string[] {
       const trimmed = part.trim()
       if (!trimmed) continue
       const o = parseOrigin(trimmed)
-      if (o) origins.push(o)
+      if (o) {
+        origins.push(o)
+        // Auto-add www. variant if not already a www. domain
+        if (!trimmed.startsWith("www.") && !trimmed.includes("://www.")) {
+          const wwwOrigin = parseOrigin(`www.${trimmed}`)
+          if (wwwOrigin) origins.push(wwwOrigin)
+        }
+      }
+    }
+  }
+
+  // Also auto-add www. variant of the base URL
+  if (baseUrl) {
+    const baseHost = (() => { try { return new URL(baseUrl.startsWith("http") ? baseUrl : `https://${baseUrl}`).hostname } catch { return "" } })()
+    if (baseHost && !baseHost.startsWith("www.")) {
+      const wwwOrigin = parseOrigin(`www.${baseHost}`)
+      if (wwwOrigin) origins.push(wwwOrigin)
     }
   }
 

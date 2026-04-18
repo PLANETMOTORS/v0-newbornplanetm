@@ -25,6 +25,7 @@ import {
 
 import { VehicleJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
 import { useAuth } from "@/contexts/auth-context"
+import { useFavorites } from "@/contexts/favorites-context"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 import { toast } from "sonner"
 import {
@@ -390,13 +391,14 @@ export default function VehicleDetailPage() {
   const searchParams = useSearchParams()
   const vehicleId = params.id as string
   const { user } = useAuth()
+  const { addFavorite, removeFavorite, isFavorite: isFavoriteInContext } = useFavorites()
   // deno-lint-ignore no-explicit-any
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Complex merged mock+DB vehicle shape
   const [vehicle, setVehicle] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [isFavorite, setIsFavorite] = useState(false)
+  const isFavorite = isFavoriteInContext(vehicleId)
   const [activeTab, setActiveTab] = useState("photos")
   const [imageType, setImageType] = useState<"exterior" | "interior" | "360">("exterior")
 
@@ -2085,13 +2087,25 @@ export default function VehicleDetailPage() {
                           const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
                           trackAddToWishlist({ id: vehicle.id, name, price: vehicle.price })
                           trackMetaAddToWishlist({ id: vehicle.id, name, price: vehicle.price })
+                          addFavorite({
+                            id: vehicle.id,
+                            year: vehicle.year,
+                            make: vehicle.make,
+                            model: vehicle.model,
+                            price: vehicle.price,
+                            mileage: vehicle.mileage,
+                            image: vehicle.images?.[0] || "/placeholder.jpg",
+                          })
+                          toast.success("Vehicle saved to favorites!")
+                        } else if (isFavorite) {
+                          removeFavorite(vehicle.id)
+                          toast.success("Removed from favorites")
                         }
-                        setIsFavorite(!isFavorite)
                       }}
                       className={isFavorite ? "text-red-500" : ""}
                     >
                       <Heart className={`w-4 h-4 mr-1 ${isFavorite ? "fill-current" : ""}`} />
-                      Save
+                      {isFavorite ? "Saved" : "Save"}
                     </Button>
                     <PriceDropAlert
                       vehicleId={vehicle.id}
