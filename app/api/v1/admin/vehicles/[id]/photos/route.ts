@@ -127,10 +127,15 @@ export async function POST(
       updateData.primary_image_url = uploaded[0]
     }
 
-    await adminClient
+    const { error: updateError } = await adminClient
       .from("vehicles")
       .update(updateData)
       .eq("id", id)
+
+    if (updateError) {
+      console.error("Failed to update vehicle image_urls:", updateError)
+      // Photos uploaded but DB not updated - log for investigation
+    }
   }
 
   return NextResponse.json({
