@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { 
   LayoutDashboard, Car, Users, FileText, DollarSign,
   MessageSquare, Settings, LogOut, Menu, X,
-  BarChart3, Bell, Search, Shield
+  BarChart3, Bell, Search, Shield, Camera
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { ADMIN_EMAILS } from "@/lib/admin"
@@ -19,6 +19,7 @@ const navigation = [
   { name: "Leads", href: "/admin/leads", icon: MessageSquare },
   { name: "Orders", href: "/admin/orders", icon: FileText },
   { name: "Finance Apps", href: "/admin/finance", icon: DollarSign },
+  { name: "360° Photos", href: "/admin/360-upload", icon: Camera },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ]
