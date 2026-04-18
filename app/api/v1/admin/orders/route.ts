@@ -39,9 +39,13 @@ export async function GET(request: NextRequest) {
     }
 
     if (search) {
-      query = query.or(
-        `order_number.ilike.%${search}%`
-      )
+      // Sanitize to prevent PostgREST filter injection via commas/parentheses
+      const sanitizedSearch = search.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s\-]/g, "").trim()
+      if (sanitizedSearch) {
+        query = query.or(
+          `order_number.ilike.%${sanitizedSearch}%`
+        )
+      }
     }
 
     const { data: orders, error, count } = await query
@@ -113,18 +117,39 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Stats
-    const { data: allOrders } = await adminClient
-      .from("orders")
-      .select("status, total_price_cents")
+    // Stats — use count queries to avoid Supabase's 1000-row default limit
+    const [totalResult, createdResult, processingDocsResult, processingPayResult, processingPrepResult, deliveredResult, cancelledResult] = await Promise.all([
+      adminClient.from("orders").select("id", { count: "exact", head: true }),
+      adminClient.from("orders").select("id", { count: "exact", head: true }).eq("status", "created"),
+      adminClient.from("orders").select("id", { count: "exact", head: true }).eq("status", "documents_pending"),
+      adminClient.from("orders").select("id", { count: "exact", head: true }).eq("status", "payment_processing"),
+      adminClient.from("orders").select("id", { count: "exact", head: true }).eq("status", "vehicle_preparation"),
+      adminClient.from("orders").select("id", { count: "exact", head: true }).eq("status", "delivered"),
+      adminClient.from("orders").select("id", { count: "exact", head: true }).eq("status", "cancelled"),
+    ])
+
+    // For revenue, we still need row data but paginate to avoid truncation
+    let totalRevenue = 0
+    let revenueOffset = 0
+    const revenueBatchSize = 1000
+    while (true) {
+      const { data: batch } = await adminClient
+        .from("orders")
+        .select("total_price_cents")
+        .range(revenueOffset, revenueOffset + revenueBatchSize - 1)
+      if (!batch || batch.length === 0) break
+      totalRevenue += batch.reduce((sum, o) => sum + (o.total_price_cents || 0), 0)
+      if (batch.length < revenueBatchSize) break
+      revenueOffset += revenueBatchSize
+    }
 
     const stats = {
-      total: allOrders?.length || 0,
-      created: allOrders?.filter(o => o.status === "created").length || 0,
-      processing: allOrders?.filter(o => ["documents_pending", "payment_processing", "vehicle_preparation"].includes(o.status)).length || 0,
-      delivered: allOrders?.filter(o => o.status === "delivered").length || 0,
-      cancelled: allOrders?.filter(o => o.status === "cancelled").length || 0,
-      totalRevenue: allOrders?.reduce((sum, o) => sum + (o.total_price_cents || 0), 0) || 0,
+      total: totalResult.count ?? 0,
+      created: createdResult.count ?? 0,
+      processing: (processingDocsResult.count ?? 0) + (processingPayResult.count ?? 0) + (processingPrepResult.count ?? 0),
+      delivered: deliveredResult.count ?? 0,
+      cancelled: cancelledResult.count ?? 0,
+      totalRevenue,
     }
 
     return NextResponse.json({

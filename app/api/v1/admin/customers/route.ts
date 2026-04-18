@@ -35,9 +35,14 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1)
 
     if (search) {
-      query = query.or(
-        `email.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%,phone.ilike.%${search}%`
-      )
+      // Sanitize to prevent PostgREST filter injection via commas/parentheses
+      // Allow @ and . for email searches, - for phone numbers
+      const sanitizedSearch = search.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s@.\-]/g, "").trim()
+      if (sanitizedSearch) {
+        query = query.or(
+          `email.ilike.%${sanitizedSearch}%,first_name.ilike.%${sanitizedSearch}%,last_name.ilike.%${sanitizedSearch}%,phone.ilike.%${sanitizedSearch}%`
+        )
+      }
     }
 
     const { data: profiles, error, count } = await query

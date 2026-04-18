@@ -20,50 +20,90 @@ export async function GET() {
       return NextResponse.json({ error: "Admin client not configured" }, { status: 500 })
     }
 
-    // Fetch all data in parallel
+    // Helper to fetch all rows from a table, paginating past Supabase's 1000-row default limit
+    async function fetchAll<T>(
+      queryFn: (offset: number, batchSize: number) => Promise<{ data: T[] | null }>
+    ): Promise<T[]> {
+      const results: T[] = []
+      let offset = 0
+      const batchSize = 1000
+      while (true) {
+        const { data } = await queryFn(offset, batchSize)
+        if (!data || data.length === 0) break
+        results.push(...data)
+        if (data.length < batchSize) break
+        offset += batchSize
+      }
+      return results
+    }
+
+    // Fetch counts in parallel (no row limit issues with head: true)
+    const now = new Date()
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
+
     const [
-      ordersResult,
-      customersResult,
-      vehiclesResult,
-      financeResult,
-      tradeInsResult,
-      reservationsResult,
+      totalOrdersResult,
+      recentOrdersResult,
+      totalCustomersResult,
+      newCustomers30dResult,
+      newCustomers7dResult,
+      totalVehiclesResult,
+      activeVehiclesResult,
+      soldVehiclesResult,
+      reservedVehiclesResult,
+      totalReservationsResult,
+      totalFinanceResult,
+      pendingFinanceResult,
+      approvedFinanceResult,
+      totalTradeInsResult,
+      pendingTradeInsResult,
+      acceptedTradeInsResult,
     ] = await Promise.all([
-      adminClient.from("orders").select("status, total_price_cents, payment_method, delivery_type, created_at"),
-      adminClient.from("profiles").select("id, created_at"),
-      adminClient.from("vehicles").select("id, status, price, make, year, created_at"),
-      adminClient.from("finance_applications_v2").select("status, requested_amount, created_at"),
-      adminClient.from("trade_in_quotes").select("status, offer_amount, created_at"),
-      adminClient.from("reservations").select("id, status, created_at"),
+      adminClient.from("orders").select("id", { count: "exact", head: true }),
+      adminClient.from("orders").select("id", { count: "exact", head: true }).gte("created_at", thirtyDaysAgo),
+      adminClient.from("profiles").select("id", { count: "exact", head: true }),
+      adminClient.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", thirtyDaysAgo),
+      adminClient.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", sevenDaysAgo),
+      adminClient.from("vehicles").select("id", { count: "exact", head: true }),
+      adminClient.from("vehicles").select("id", { count: "exact", head: true }).in("status", ["available", "active"]),
+      adminClient.from("vehicles").select("id", { count: "exact", head: true }).eq("status", "sold"),
+      adminClient.from("vehicles").select("id", { count: "exact", head: true }).in("status", ["reserved", "pending"]),
+      adminClient.from("reservations").select("id", { count: "exact", head: true }),
+      adminClient.from("finance_applications_v2").select("id", { count: "exact", head: true }),
+      adminClient.from("finance_applications_v2").select("id", { count: "exact", head: true }).in("status", ["submitted", "under_review"]),
+      adminClient.from("finance_applications_v2").select("id", { count: "exact", head: true }).eq("status", "approved"),
+      adminClient.from("trade_in_quotes").select("id", { count: "exact", head: true }),
+      adminClient.from("trade_in_quotes").select("id", { count: "exact", head: true }).in("status", ["pending", "quoted"]),
+      adminClient.from("trade_in_quotes").select("id", { count: "exact", head: true }).eq("status", "accepted"),
     ])
 
-    const orders = ordersResult.data || []
-    const customers = customersResult.data || []
-    const vehicles = vehiclesResult.data || []
-    const financeApps = financeResult.data || []
-    const tradeIns = tradeInsResult.data || []
-    const reservations = reservationsResult.data || []
+    // Fetch rows that need aggregation (revenue, breakdowns) with pagination
+    const [orders, vehicles, financeApps, acceptedTradeIns, recentOrders] = await Promise.all([
+      fetchAll<{ status: string; total_price_cents: number; payment_method: string; delivery_type: string }>(
+        async (offset, bs) => { return await adminClient.from("orders").select("status, total_price_cents, payment_method, delivery_type").range(offset, offset + bs - 1) }
+      ),
+      fetchAll<{ make: string }>(
+        async (offset, bs) => { return await adminClient.from("vehicles").select("make").range(offset, offset + bs - 1) }
+      ),
+      fetchAll<{ requested_amount: number }>(
+        async (offset, bs) => { return await adminClient.from("finance_applications_v2").select("requested_amount").range(offset, offset + bs - 1) }
+      ),
+      fetchAll<{ offer_amount: number }>(
+        async (offset, bs) => { return await adminClient.from("trade_in_quotes").select("offer_amount").eq("status", "accepted").range(offset, offset + bs - 1) }
+      ),
+      fetchAll<{ created_at: string }>(
+        async (offset, bs) => { return await adminClient.from("orders").select("created_at").gte("created_at", thirtyDaysAgo).range(offset, offset + bs - 1) }
+      ),
+    ])
 
-    // Date helpers
-    const now = new Date()
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-
-    const isRecent = (dateStr: string, since: Date) => new Date(dateStr) >= since
-
-    // Order stats
+    // Revenue
     const totalRevenue = orders.reduce((sum, o) => sum + (o.total_price_cents || 0), 0)
-    const recentOrders = orders.filter(o => isRecent(o.created_at, thirtyDaysAgo))
-    const recentRevenue = recentOrders.reduce((sum, o) => sum + (o.total_price_cents || 0), 0)
-
-    // Customer stats
-    const newCustomers30d = customers.filter(c => isRecent(c.created_at, thirtyDaysAgo)).length
-    const newCustomers7d = customers.filter(c => isRecent(c.created_at, sevenDaysAgo)).length
-
-    // Vehicle stats
-    const activeVehicles = vehicles.filter(v => v.status === "available" || v.status === "active").length
-    const soldVehicles = vehicles.filter(v => v.status === "sold").length
-    const reservedVehicles = vehicles.filter(v => v.status === "reserved" || v.status === "pending").length
+    // Fetch recent revenue with pagination to avoid 1000-row truncation
+    const recentOrdersWithRevenue = await fetchAll<{ total_price_cents: number }>(
+      async (offset, bs) => { return await adminClient.from("orders").select("total_price_cents").gte("created_at", thirtyDaysAgo).range(offset, offset + bs - 1) }
+    )
+    const recentRevenueTotal = recentOrdersWithRevenue.reduce((sum, o) => sum + (o.total_price_cents || 0), 0)
 
     // Top makes
     const makeCounts: Record<string, number> = {}
@@ -76,15 +116,11 @@ export async function GET() {
       .slice(0, 10)
       .map(([make, count]) => ({ make, count }))
 
-    // Finance stats
-    const pendingFinance = financeApps.filter(f => ["submitted", "under_review"].includes(f.status)).length
-    const approvedFinance = financeApps.filter(f => f.status === "approved").length
+    // Finance value
     const totalFinanceValue = financeApps.reduce((sum, f) => sum + (f.requested_amount || 0), 0)
 
-    // Trade-in stats
-    const pendingTradeIns = tradeIns.filter(t => ["pending", "quoted"].includes(t.status)).length
-    const acceptedTradeIns = tradeIns.filter(t => t.status === "accepted").length
-    const totalTradeInValue = tradeIns.filter(t => t.status === "accepted").reduce((sum, t) => sum + (t.offer_amount || 0), 0)
+    // Trade-in value
+    const totalTradeInValue = acceptedTradeIns.reduce((sum, t) => sum + (t.offer_amount || 0), 0)
 
     // Order status breakdown
     const ordersByStatus: Record<string, number> = {}
@@ -110,28 +146,28 @@ export async function GET() {
     return NextResponse.json({
       overview: {
         totalRevenue,
-        recentRevenue,
-        totalOrders: orders.length,
-        recentOrders: recentOrders.length,
-        totalCustomers: customers.length,
-        newCustomers30d,
-        newCustomers7d,
-        totalVehicles: vehicles.length,
-        activeVehicles,
-        soldVehicles,
-        reservedVehicles,
-        totalReservations: reservations.length,
+        recentRevenue: recentRevenueTotal,
+        totalOrders: totalOrdersResult.count ?? 0,
+        recentOrders: recentOrdersResult.count ?? 0,
+        totalCustomers: totalCustomersResult.count ?? 0,
+        newCustomers30d: newCustomers30dResult.count ?? 0,
+        newCustomers7d: newCustomers7dResult.count ?? 0,
+        totalVehicles: totalVehiclesResult.count ?? 0,
+        activeVehicles: activeVehiclesResult.count ?? 0,
+        soldVehicles: soldVehiclesResult.count ?? 0,
+        reservedVehicles: reservedVehiclesResult.count ?? 0,
+        totalReservations: totalReservationsResult.count ?? 0,
       },
       finance: {
-        total: financeApps.length,
-        pending: pendingFinance,
-        approved: approvedFinance,
+        total: totalFinanceResult.count ?? 0,
+        pending: pendingFinanceResult.count ?? 0,
+        approved: approvedFinanceResult.count ?? 0,
         totalValue: totalFinanceValue,
       },
       tradeIns: {
-        total: tradeIns.length,
-        pending: pendingTradeIns,
-        accepted: acceptedTradeIns,
+        total: totalTradeInsResult.count ?? 0,
+        pending: pendingTradeInsResult.count ?? 0,
+        accepted: acceptedTradeInsResult.count ?? 0,
         totalValue: totalTradeInValue,
       },
       breakdowns: {
