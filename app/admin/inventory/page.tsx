@@ -299,7 +299,7 @@ export default function AdminInventoryPage() {
       ...formData,
       year: parseInt(formData.year),
       price: Math.round(priceNum * 100),
-      msrp: formData.msrp?.trim() ? Math.round(Number(formData.msrp) * 100) : null,
+      msrp: formData.msrp?.trim() && !isNaN(Number(formData.msrp)) ? Math.round(Number(formData.msrp) * 100) : null,
       mileage: parseInt(formData.mileage),
       battery_capacity_kwh: formData.battery_capacity_kwh ? parseFloat(formData.battery_capacity_kwh) : null,
       range_miles: formData.range_miles ? parseInt(formData.range_miles) : null,
