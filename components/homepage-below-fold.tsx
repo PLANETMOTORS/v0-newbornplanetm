@@ -187,7 +187,7 @@ export function HomepageBelowFold({ siteSettings, displayReviews, ratingValue, l
             <div>
               <h2 className="text-3xl font-bold text-white">Ready to find your perfect vehicle?</h2>
               <p className="mt-4 text-white max-w-xl">Browse our inventory of certified pre-owned vehicles. Get pre-approved for financing in minutes with rates from {lowestRate}% APR.</p>
-              <div className="mt-8 flex flex-wrap gap-4">
+              <div className="mt-8 flex flex-wrap gap-6">
                 <Button size="lg" className="bg-white text-[#1e5a8e] hover:bg-[#eef2f7]" asChild>
                   <Link href="/inventory">Browse Inventory<ArrowRight className="ml-2 w-4 h-4" /></Link>
                 </Button>
