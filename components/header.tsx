@@ -186,7 +186,7 @@ export function Header() {
             <div className="flex items-center gap-4 sm:gap-6">
               <a
                 href="tel:1-866-797-3332"
-                className="flex items-center gap-1.5 hover:text-primary-foreground/80 transition-colors"
+                className="flex items-center gap-1.5 min-h-[44px] py-1 hover:text-primary-foreground/80 transition-colors"
                 onClick={() => trackPhoneClick("1-866-797-3332")}
               >
                 <Phone className="w-3.5 h-3.5" />
@@ -327,7 +327,7 @@ export function Header() {
                       <button
                         id={`mobile-nav-${item.name}`}
                         aria-expanded={activeSubmenu === item.name}
-                        className="w-full text-left flex items-center justify-between px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded"
+                        className="w-full text-left flex items-center justify-between px-3 py-3 min-h-[44px] text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded"
                         onClick={() => setActiveSubmenu(activeSubmenu === item.name ? null : item.name)}
                       >
                         {item.name}
@@ -339,7 +339,7 @@ export function Header() {
                             <Link
                               key={subitem.name}
                               href={subitem.href}
-                              className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded"
+                              className="block px-3 py-3 min-h-[44px] text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded"
                               onClick={() => setMobileMenuOpen(false)}
                             >
                               {subitem.name}
@@ -351,7 +351,7 @@ export function Header() {
                   ) : (
                     <Link
                       href={item.href}
-                      className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded"
+                      className="block px-3 py-3 min-h-[44px] text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       {item.name}
