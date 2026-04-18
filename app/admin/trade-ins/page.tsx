@@ -72,6 +72,16 @@ const statusConfig: Record<string, { label: string; variant: "default" | "second
   cancelled: { label: "Cancelled", variant: "destructive" },
 }
 
+/**
+ * Admin page for viewing, filtering, and managing trade-in quotes.
+ *
+ * Maintains UI state for the loaded quotes, search and status filters, loading indicator,
+ * and the selected quote for the detail dialog. Fetches quotes from /api/v1/admin/trade-ins,
+ * allows updating a quote's status via PATCH to /api/v1/admin/trade-ins/:id/status, and
+ * provides UI controls to refresh, search, filter, view details, cancel, or mark a quote completed.
+ *
+ * @returns The React element rendering the admin trade-in quotes page.
+ */
 export default function AdminTradeInsPage() {
   const [quotes, setQuotes] = useState<TradeInQuote[]>([])
   const [isLoading, setIsLoading] = useState(true)

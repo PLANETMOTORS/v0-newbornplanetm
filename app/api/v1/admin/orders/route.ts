@@ -3,7 +3,20 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { ADMIN_EMAILS } from "@/lib/admin"
 
-// GET /api/v1/admin/orders - List all orders for admin
+/**
+ * Handle GET /api/v1/admin/orders: authenticate an admin and return a paginated, optionally filtered list of orders enriched with customer and vehicle data plus aggregate stats.
+ *
+ * The handler checks the caller's Supabase session and restricts access to emails in `ADMIN_EMAILS`. It supports `status`, `search`, `limit`, and `offset` query parameters, sanitizes `search`, clamps `limit` to 1–200 and `offset` to >= 0, and paginates results. Returned orders include selected order fields and attached `customer` and `vehicle` objects when available. The response also includes counts by status and the total revenue computed by batching through all orders.
+ *
+ * @param request - Incoming NextRequest whose URL query may include `status`, `search`, `limit`, and `offset`
+ * @returns On success, a JSON object with:
+ *  - `orders`: array of enriched order objects,
+ *  - `stats`: object with `total`, `created`, `processing`, `delivered`, `cancelled`, and `totalRevenue`,
+ *  - `total`: the total matching orders (from the main query),
+ *  - `limit`: the effective page size,
+ *  - `offset`: the effective offset.
+ * On failure, a JSON error object is returned with an appropriate HTTP status (e.g., 401 for unauthorized, 500 for server/admin-client errors).
+ */
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()

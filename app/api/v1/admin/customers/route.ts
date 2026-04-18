@@ -3,7 +3,19 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { ADMIN_EMAILS } from "@/lib/admin"
 
-// GET /api/v1/admin/customers - List all customers for admin
+/**
+ * Return a paginated, optionally search-filtered list of customer profiles for admin users.
+ *
+ * Only authenticated users whose email is listed in `ADMIN_EMAILS` may access this endpoint. Accepts query parameters `search`, `limit`, and `offset`. Each returned customer object includes per-customer `orderCount` and `reservationCount`; response also contains pagination metadata and total counts.
+ *
+ * @param request - Incoming request; may include query parameters: `search` (string), `limit` (number, defaults to 50, clamped to 1–200), and `offset` (number, defaults to 0, >= 0)
+ * @returns JSON object containing:
+ * - `customers`: array of customer objects with `id`, `email`, `firstName`, `lastName`, `phone`, `createdAt`, `updatedAt`, `orderCount`, and `reservationCount`
+ * - `total`: number of rows returned by the filtered, paginated query
+ * - `totalCustomers`: total number of customer profiles in the database
+ * - `limit`: the applied limit
+ * - `offset`: the applied offset
+ */
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()

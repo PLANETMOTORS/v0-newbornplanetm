@@ -3,7 +3,19 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { ADMIN_EMAILS } from "@/lib/admin"
 
-// GET /api/v1/admin/analytics - Get analytics data for admin dashboard
+/**
+ * Provide aggregated analytics for the admin dashboard.
+ *
+ * Requires an authenticated user whose email is listed in `ADMIN_EMAILS`; returns
+ * a 401 JSON response when unauthorized, a 500 JSON response when the admin
+ * client is not configured, and a 500 JSON response for other internal errors.
+ *
+ * @returns A JSON object containing:
+ * - `overview`: totals and recent counts (`totalRevenue`, `recentRevenue`, `totalOrders`, `recentOrders`, `totalCustomers`, `newCustomers30d`, `newCustomers7d`, `totalVehicles`, `activeVehicles`, `soldVehicles`, `reservedVehicles`, `totalReservations`)
+ * - `finance`: finance application counts and aggregated value (`total`, `pending`, `approved`, `totalValue`)
+ * - `tradeIns`: trade-in quote counts and aggregated value (`total`, `pending`, `accepted`, `totalValue`)
+ * - `breakdowns`: aggregation maps and lists (`ordersByStatus`: Record<string, number>, `ordersByPayment`: Record<string, number>, `ordersPerDay`: Record<string, number>, `topMakes`: Array<{ make: string; count: number }>)
+ */
 export async function GET() {
   try {
     const supabase = await createClient()
@@ -20,7 +32,12 @@ export async function GET() {
       return NextResponse.json({ error: "Admin client not configured" }, { status: 500 })
     }
 
-    // Helper to fetch all rows from a table, paginating past Supabase's 1000-row default limit
+    /**
+     * Retrieve all rows produced by a paginated query function.
+     *
+     * @param queryFn - A function that accepts (offset, batchSize) and returns a promise resolving to an object with a `data` array or `null`. The function will be repeatedly called with increasing offsets until no more rows are returned.
+     * @returns An array containing every row returned by repeated `queryFn` calls (empty array if no rows).
+     */
     async function fetchAll<T>(
       queryFn: (offset: number, batchSize: number) => Promise<{ data: T[] | null }>
     ): Promise<T[]> {

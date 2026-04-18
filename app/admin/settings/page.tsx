@@ -133,6 +133,13 @@ const configSections: ConfigSection[] = [
   },
 ]
 
+/**
+ * Renders the Admin Settings page showing environment variable configuration grouped into collapsible sections and a set of quick links.
+ *
+ * The UI includes an informational notice about configuring environment variables via the hosting dashboard, a list of configurable sections where each section can be expanded to reveal variable details (label, description, env var name, default, and a sensitive badge), and a Quick Links card with external dashboards.
+ *
+ * @returns The JSX element for the admin settings page.
+ */
 export default function AdminSettingsPage() {
   const [expandedSection, setExpandedSection] = useState<string | null>("Admin Access")
 

@@ -44,6 +44,12 @@ interface AnalyticsData {
   }
 }
 
+/**
+ * Format an amount in cents as Canadian dollars with no decimal places.
+ *
+ * @param cents - The amount in cents (e.g., 12345 for $123.45)
+ * @returns The amount formatted as CAD currency with zero decimal digits (e.g., "$123")
+ */
 function formatCurrency(cents: number): string {
   return new Intl.NumberFormat("en-CA", {
     style: "currency",
@@ -53,6 +59,12 @@ function formatCurrency(cents: number): string {
   }).format(cents / 100)
 }
 
+/**
+ * Format a numeric amount as Canadian dollars with no decimal digits.
+ *
+ * @param dollars - Amount in dollars (not cents)
+ * @returns The amount formatted as CAD currency (e.g., "CA$1,234")
+ */
 function formatDollars(dollars: number): string {
   return new Intl.NumberFormat("en-CA", {
     style: "currency",
@@ -62,6 +74,13 @@ function formatDollars(dollars: number): string {
   }).format(dollars)
 }
 
+/**
+ * Admin analytics dashboard page that fetches analytics from /api/v1/admin/analytics on mount and on manual refresh.
+ *
+ * The component displays a loading spinner while fetching, an error state with a retry action when loading fails or data is missing, and a full dashboard when analytics data is available. The dashboard includes key metrics (revenue, orders, customers, vehicles), inventory and top-makes breakdowns, finance and trade-in summaries, and order/payment method breakdowns.
+ *
+ * @returns The React element for the admin analytics page.
+ */
 export default function AdminAnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)

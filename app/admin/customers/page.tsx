@@ -32,6 +32,13 @@ interface Customer {
 
 const PAGE_SIZE = 20
 
+/**
+ * Admin page that displays and manages customers with search, pagination, refresh, and per-page statistics.
+ *
+ * Renders a customer-management interface: header with total count and refresh, debounced search input, stats cards for the current page, a table of customers (identity, contact, orders, reservations, joined date), loading/error/empty states, and pagination controls.
+ *
+ * @returns The React element for the admin customers management page.
+ */
 export default function AdminCustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [loading, setLoading] = useState(true)
@@ -263,7 +270,7 @@ export default function AdminCustomersPage() {
           )}
 
           {/* Pagination */}
-          {!loading && !error && customers.length > 0 && totalPages > 1 && (
+          {totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t">
               <p className="text-sm text-gray-500">
                 Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount}

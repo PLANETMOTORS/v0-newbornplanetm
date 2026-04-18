@@ -75,6 +75,14 @@ const statusIcons: Record<string, React.ReactNode> = {
   cancelled: <XCircle className="w-4 h-4" />
 }
 
+/**
+ * Admin page for listing, filtering, viewing, and updating finance applications.
+ *
+ * Renders UI for application statistics, searchable & filterable application list, and a detail dialog
+ * that exposes documents, vehicle info, financing terms, and status update actions.
+ *
+ * @returns A JSX element containing the finance applications admin interface (list, filters, stats, and detail dialog).
+ */
 export default function AdminFinancePage() {
   const [applications, setApplications] = useState<FinanceApplication[]>([])
   const [loading, setLoading] = useState(true)

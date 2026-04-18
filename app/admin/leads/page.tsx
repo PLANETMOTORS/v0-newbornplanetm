@@ -87,6 +87,13 @@ const statusColors: Record<string, string> = {
   lost: "bg-red-100 text-red-800",
 }
 
+/**
+ * Renders the Lead Management admin page with searchable and filterable lead list and a sticky details sidebar.
+ *
+ * Displays stats, a search input, status and type filters, a list of leads derived from local mock data, and a details panel for the selected lead. The lead list supports selecting a lead to view contact info, interest, notes, and status update controls.
+ *
+ * @returns The Lead Management page rendered as JSX elements
+ */
 export default function AdminLeadsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")

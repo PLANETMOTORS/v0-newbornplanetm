@@ -88,6 +88,12 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.R
 
 const PAGE_SIZE = 20
 
+/**
+ * Format an amount expressed in cents as a Canadian dollar currency string with no fractional digits.
+ *
+ * @param cents - Amount in cents (for example, `12345` represents $123.45)
+ * @returns The amount formatted as a CAD currency string with no fractional digits (for example, `CA$1,234`)
+ */
 function formatCents(cents: number): string {
   return new Intl.NumberFormat("en-CA", {
     style: "currency",
@@ -97,6 +103,13 @@ function formatCents(cents: number): string {
   }).format(cents / 100)
 }
 
+/**
+ * Admin page for browsing, filtering, and inspecting paginated orders.
+ *
+ * Renders summary statistics, a searchable and status-filterable orders table with pagination, and a read-only order detail dialog. Fetches pages from /api/v1/admin/orders (supports `limit`/`offset`, `status`, and `search`), shows loading/error/empty states, and provides a manual refresh action.
+ *
+ * @returns The page's JSX element containing the orders management UI.
+ */
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [stats, setStats] = useState<OrderStats>({ total: 0, created: 0, processing: 0, delivered: 0, cancelled: 0, totalRevenue: 0 })
