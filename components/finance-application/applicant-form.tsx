@@ -55,9 +55,9 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label>Salutation</Label>
+            <Label htmlFor="salutation">Salutation</Label>
             <Select value={data.salutation} onValueChange={(v) => updateField("salutation", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectTrigger id="salutation"><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="Mr.">Mr.</SelectItem>
                 <SelectItem value="Mrs.">Mrs.</SelectItem>
@@ -68,16 +68,16 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             </Select>
           </div>
           <div>
-            <Label className={getLabelClass("First Name")}>First Name *</Label>
-            <Input value={data.firstName} onChange={(e) => updateField("firstName", e.target.value)} required className={getInputErrorClass("First Name")} />
+            <Label htmlFor="firstName" className={getLabelClass("First Name")}>First Name *</Label>
+            <Input id="firstName" value={data.firstName} onChange={(e) => updateField("firstName", e.target.value)} required className={getInputErrorClass("First Name")} />
           </div>
           <div>
-            <Label>Middle Name</Label>
-            <Input value={data.middleName} onChange={(e) => updateField("middleName", e.target.value)} />
+            <Label htmlFor="middleName">Middle Name</Label>
+            <Input id="middleName" value={data.middleName} onChange={(e) => updateField("middleName", e.target.value)} />
           </div>
           <div>
-            <Label className={getLabelClass("Last Name")}>Last Name *</Label>
-            <Input value={data.lastName} onChange={(e) => updateField("lastName", e.target.value)} required className={getInputErrorClass("Last Name")} />
+            <Label htmlFor="lastName" className={getLabelClass("Last Name")}>Last Name *</Label>
+            <Input id="lastName" value={data.lastName} onChange={(e) => updateField("lastName", e.target.value)} required className={getInputErrorClass("Last Name")} />
           </div>
           <div>
             <Label>Suffix</Label>
@@ -179,8 +179,8 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             />
           </div>
           <div>
-            <Label className={getLabelClass("Email")}>Email *</Label>
-            <Input type="email" value={data.email} onChange={(e) => updateField("email", e.target.value)} className={getInputErrorClass("Email")} />
+            <Label htmlFor="email" className={getLabelClass("Email")}>Email *</Label>
+            <Input id="email" type="email" value={data.email} onChange={(e) => updateField("email", e.target.value)} className={getInputErrorClass("Email")} />
           </div>
           <div>
             <Label className={getLabelClass("Credit Rating")}>Credit Rating *</Label>
@@ -217,7 +217,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
                 ...(addressData?.province && { province: addressData.province }),
                 ...(addressData?.streetName && { streetName: addressData.streetName }),
                 ...(addressData?.streetType && { streetType: addressData.streetType }),
-                ...(addressData?.direction && { direction: addressData.direction }),
+                ...(addressData?.direction && { streetDirection: addressData.direction }),
               }
               onChange(newData)
             }}
