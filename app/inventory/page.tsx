@@ -182,11 +182,18 @@ function InventoryContent() {
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null)
 
   // Debounce search input — only update the actual search query after 400ms of no typing
+  // When typing a search, clear make/body filters to avoid conflicting zero-result queries
   const handleSearchInput = useCallback((value: string) => {
     setSearchInput(value)
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
     searchDebounceRef.current = setTimeout(() => {
       setSearchQuery(value)
+      // Clear make filter when user is actively searching to prevent conflicts
+      // (e.g. searching "HYU" while Chevrolet pill is active → 0 results)
+      if (value.trim()) {
+        setSelectedMake("All Makes")
+        setEvOnly(false)
+      }
     }, 400)
   }, [])
 
@@ -264,6 +271,7 @@ function InventoryContent() {
   // Fetch vehicles from API — SWR key is the full URL
   const { data: apiResponse, error, isLoading, isValidating } = useSWR(vehiclesApiUrl, fetcher, {
     revalidateOnFocus: false,
+    revalidateOnMount: true,
     dedupingInterval: 60000,
     keepPreviousData: true,
   })
@@ -643,8 +651,11 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 <button
                   key={make}
                   onClick={() => {
-                    // Reset EV filter when selecting a brand (tabs are independent)
+                    // Reset EV filter and clear search when selecting a brand
+                    // to avoid conflicting filters (e.g. search "HYU" + make Chevrolet → 0 results)
                     setEvOnly(false)
+                    setSearchQuery("")
+                    setSearchInput("")
                     setSelectedMake(selectedMake === make ? "All Makes" : make)
                   }}
                   className={`px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap shrink-0 min-h-[44px] ${
@@ -696,7 +707,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Make</label>
                     <select
                       value={selectedMake}
-                      onChange={(e) => setSelectedMake(e.target.value)}
+                      onChange={(e) => { setSelectedMake(e.target.value); if (e.target.value !== "All Makes") { setSearchQuery(""); setSearchInput("") } }}
                       className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
                     >
                       {dynamicMakes.map(make => (
