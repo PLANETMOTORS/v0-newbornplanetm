@@ -210,7 +210,8 @@ function InventoryContent() {
   const [evOnly, setEvOnly] = useState(false)
 
   // Load More pagination state (Clutch/Carvana pattern)
-  const [currentPage, setCurrentPage] = useState(1)
+  // Pair page with filterKey so effectivePage can be derived without ref mutation.
+  const [pagination, setPagination] = useState({ filterKey: '', page: 1 })
   const [accumulatedVehicles, setAccumulatedVehicles] = useState<ReturnType<typeof transformVehicle>[]>([])
   
   // Trade-in from AI Quote
@@ -220,11 +221,18 @@ function InventoryContent() {
     vehicle: string
   } | null>(null)
 
+  // Derive filterKey for page-reset detection (all filter/sort state, excluding page)
+  const filterKey = `${sortBy}|${evOnly}|${selectedFuelType}|${selectedMake}|${selectedBodyType}|${selectedYear}|${selectedTransmission}|${selectedColor}|${selectedDrivetrain}|${priceRange[0]}|${priceRange[1]}|${mileageRange[0]}|${mileageRange[1]}|${searchQuery}`
+
+  // When filterKey matches what's stored in pagination state, use the stored page;
+  // otherwise fall back to 1. This is concurrent-mode safe — no ref mutation during render.
+  const effectivePage = pagination.filterKey === filterKey ? pagination.page : 1
+
   // Build server-side query URL from all filter states
   const vehiclesApiUrl = useMemo(() => {
     const params = new URLSearchParams()
     params.set('limit', String(API_PAGE_SIZE))
-    params.set('page', String(currentPage))
+    params.set('page', String(effectivePage))
 
     // Sort mapping
     if (sortBy === 'price-low') { params.set('sort', 'price'); params.set('order', 'asc') }
@@ -250,7 +258,7 @@ function InventoryContent() {
     params.set('includeFilters', 'true')
 
     return `/api/v1/vehicles?${params.toString()}`
-  }, [currentPage, sortBy, evOnly, selectedFuelType, selectedMake, selectedBodyType, selectedYear,
+  }, [effectivePage, sortBy, evOnly, selectedFuelType, selectedMake, selectedBodyType, selectedYear,
       selectedTransmission, selectedColor, selectedDrivetrain, priceRange, mileageRange, searchQuery])
 
   // Fetch vehicles from API — SWR key is the full URL
@@ -260,16 +268,19 @@ function InventoryContent() {
     keepPreviousData: true,
   })
 
-  // Accumulate pages — page 1 replaces, page 2+ appends (Load More pattern)
+  // Accumulate pages — page 1 replaces, page 2+ appends (Load More pattern).
+  // Use pagination.page from the response (not currentPage state) so we always
+  // get the correct replace-vs-append decision even during the render cycle where
+  // effectivePage and currentPage haven't converged yet.
   useEffect(() => {
     if (!apiResponse?.data?.vehicles) return
     const transformed = apiResponse.data.vehicles.map(transformVehicle)
-    if (currentPage === 1) {
+    if ((apiResponse.data.pagination?.page ?? 1) === 1) {
       setAccumulatedVehicles(transformed)
     } else {
       setAccumulatedVehicles(prev => [...prev, ...transformed])
     }
-  }, [apiResponse, currentPage])
+  }, [apiResponse])
 
   const totalVehicles = apiResponse?.data?.pagination?.total ?? 0
   const hasMore = accumulatedVehicles.length < totalVehicles
@@ -285,13 +296,6 @@ function InventoryContent() {
   const _dynamicBodyTypes = apiFilters?.bodyStyles?.length
     ? ['All Body Types', ...apiFilters.bodyStyles]
     : ['All Body Types']
-
-  // Reset to page 1 whenever filters or sort change (not currentPage itself)
-  const filterKey = `${sortBy}|${evOnly}|${selectedFuelType}|${selectedMake}|${selectedBodyType}|${selectedYear}|${selectedTransmission}|${selectedColor}|${selectedDrivetrain}|${priceRange[0]}|${priceRange[1]}|${mileageRange[0]}|${mileageRange[1]}|${searchQuery}`
-  useEffect(() => {
-    setCurrentPage(1)
-    setAccumulatedVehicles([])
-  }, [filterKey])
 
   // Read URL parameters and set filters
   // IMPORTANT: Reset ALL filters first, then apply only what the URL specifies.
@@ -428,49 +432,9 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
     evOnly
   ].filter(Boolean).length
 
-  // Show loading state — use skeleton cards to minimize CLS
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main id="main-content" tabIndex={-1} className="pt-20 pb-20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 py-8">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="rounded-xl border overflow-hidden animate-pulse">
-                  <div className="aspect-[4/3] bg-muted" />
-                  <div className="p-4 space-y-3">
-                    <div className="h-5 bg-muted rounded w-3/4" />
-                    <div className="h-4 bg-muted rounded w-1/2" />
-                    <div className="h-6 bg-muted rounded w-1/3 mt-4" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    )
-  }
-
-  // Show error state
-  if (error) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main id="main-content" tabIndex={-1} className="pt-20 pb-20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col items-center justify-center py-20">
-              <p className="text-red-500 mb-4">Error loading inventory</p>
-              <Button onClick={() => window.location.reload()}>Try Again</Button>
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    )
-  }
+  // Inline loading/error — never unmount the search controls
+  const showSkeleton = isLoading && sortedVehicles.length === 0
+  const showError = !!error && sortedVehicles.length === 0
 
   return (
     <div className="min-h-screen bg-background">
@@ -858,7 +822,32 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
             )}
           </div>
 
+          {/* Inline error state */}
+          {showError && (
+            <div className="flex flex-col items-center justify-center py-20">
+              <p className="text-red-500 mb-4">Error loading inventory</p>
+              <Button onClick={() => window.location.reload()}>Try Again</Button>
+            </div>
+          )}
+
+          {/* Inline skeleton loading state */}
+          {showSkeleton && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 py-8">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="rounded-xl border overflow-hidden animate-pulse">
+                  <div className="aspect-[4/3] bg-muted" />
+                  <div className="p-4 space-y-3">
+                    <div className="h-5 bg-muted rounded w-3/4" />
+                    <div className="h-4 bg-muted rounded w-1/2" />
+                    <div className="h-6 bg-muted rounded w-1/3 mt-4" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Vehicle Grid — content-visibility virtualizes off-screen cards */}
+          {!showSkeleton && !showError && (<>
           <div aria-live="polite" className={`py-8 ${viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "space-y-4"}`}>
             {sortedVehicles.map((vehicle) => (
               <div
@@ -1064,7 +1053,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
           </div>
 
           {/* No Results */}
-          {!isLoading && sortedVehicles.length === 0 && (
+          {!isLoading && !isValidating && sortedVehicles.length === 0 && !showError && (
             <div className="py-20 text-center">
               <Car className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-xl font-semibold mb-2">No vehicles found</h3>
@@ -1086,7 +1075,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
               <Button
                 variant="outline"
                 size="lg"
-                onClick={() => setCurrentPage(p => p + 1)}
+                onClick={() => setPagination({ filterKey, page: effectivePage + 1 })}
                 disabled={isValidating}
                 className="min-w-[200px]"
               >
@@ -1098,6 +1087,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
               </Button>
             </div>
           )}
+          </>)}
           {/* OMVIC Compliance Disclaimer */}
           <div className="mt-8 border-t border-border pt-6 pb-4 text-center">
             <p className="text-sm text-muted-foreground">
