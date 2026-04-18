@@ -3,6 +3,8 @@
 import { useState, useRef, useCallback, useEffect } from "react"
 import Image from "next/image"
 import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "lucide-react"
+import { useOverlayRenderer } from "@/hooks/use-overlay-renderer"
+import { overlayConfig } from "@/config/overlay/loader/loadOverlayConfig"
 
 interface SpinViewerProps {
   /** Ordered array of image URLs (walk-around frames). */
@@ -34,6 +36,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   const [loadedCount, setLoadedCount] = useState(0)
 
   const containerRef = useRef<HTMLDivElement>(null)
+  const { canvasRef, draw } = useOverlayRenderer(overlayConfig)
   const dragStartX = useRef(0)
   const dragStartFrame = useRef(0)
   const lastX = useRef(0)
@@ -78,6 +81,14 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
 
     return () => { cancelled = true }
   }, [images])
+
+  // ── Overlay canvas draw ──
+  useEffect(() => {
+    draw()
+    const onResize = () => draw()
+    window.addEventListener("resize", onResize)
+    return () => window.removeEventListener("resize", onResize)
+  }, [draw, isFullscreen])
 
   // ── Auto-play ──
   useEffect(() => {
@@ -195,61 +206,11 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       aria-label={`360° Interactive View — ${alt}`}
       aria-roledescription="360° image spinner"
     >
-      {/* ── Studio environment ── */}
-      {/* Back wall — soft neutral gradient simulating diffused studio lighting */}
-      <div
+      {/* ── Studio environment — canvas-based overlay renderer ── */}
+      <canvas
+        ref={canvasRef}
         className="absolute inset-0 z-[0] pointer-events-none"
-        style={{
-          background: "linear-gradient(180deg, #f0f1f3 0%, #eaebee 35%, #e4e6e9 50%, #e0e2e6 100%)",
-        }}
-      />
-
-      {/* Floor plane — lighter polished concrete with slight warmth */}
-      <div
-        className="absolute left-0 right-0 bottom-0 z-[0] pointer-events-none"
-        style={{
-          top: "54%",
-          background: "linear-gradient(180deg, #d8dadf 0%, #d2d4d9 20%, #cdcfd5 50%, #c8cad0 100%)",
-        }}
-      />
-
-      {/* Floor-wall seam — crisp horizon where wall meets polished floor */}
-      <div
-        className="absolute left-0 right-0 z-[0] pointer-events-none"
-        style={{
-          top: "54%",
-          height: "1px",
-          background: "linear-gradient(to right, transparent 2%, rgba(0,0,0,0.06) 15%, rgba(0,0,0,0.09) 50%, rgba(0,0,0,0.06) 85%, transparent 98%)",
-        }}
-      />
-
-      {/* Floor specular band — the bright glossy shine strip you see on polished showroom floors */}
-      <div
-        className="absolute left-0 right-0 z-[0] pointer-events-none"
-        style={{
-          top: "54%",
-          height: "18%",
-          background: "linear-gradient(180deg, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0.18) 30%, rgba(255,255,255,0.05) 70%, transparent 100%)",
-        }}
-      />
-
-      {/* Overhead light reflection on floor — concentrated elliptical highlight */}
-      <div
-        className="absolute left-1/2 -translate-x-1/2 z-[0] pointer-events-none"
-        style={{
-          top: "55%",
-          width: "60%",
-          height: "12%",
-          background: "radial-gradient(ellipse 100% 80% at center, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.08) 60%, transparent 100%)",
-        }}
-      />
-
-      {/* Vignette — subtle darkening at edges for studio depth */}
-      <div
-        className="absolute inset-0 z-[0] pointer-events-none"
-        style={{
-          background: "radial-gradient(ellipse 85% 80% at 50% 45%, transparent 50%, rgba(0,0,0,0.04) 100%)",
-        }}
+        style={{ width: "100%", height: "100%" }}
       />
 
       {/* Empty state — no frames available */}
@@ -294,41 +255,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
 
 
 
-      {/* Contact shadow — realistic ground shadow beneath the vehicle */}
-      {isReady && (
-        <>
-          {/* Core contact shadow — tight, dark shadow directly under body */}
-          <div
-            className="absolute left-1/2 -translate-x-1/2 z-[1] pointer-events-none"
-            style={{
-              bottom: "9%",
-              width: "65%",
-              height: "2.5%",
-              background: "radial-gradient(ellipse at center, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.14) 50%, transparent 100%)",
-            }}
-          />
-          {/* Mid-range shadow — softer penumbra spread */}
-          <div
-            className="absolute left-1/2 -translate-x-1/2 z-[1] pointer-events-none"
-            style={{
-              bottom: "7%",
-              width: "75%",
-              height: "5%",
-              background: "radial-gradient(ellipse at center, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.05) 50%, transparent 85%)",
-            }}
-          />
-          {/* Ambient occlusion — very wide, faint ground plane shadow */}
-          <div
-            className="absolute left-1/2 -translate-x-1/2 z-[0] pointer-events-none"
-            style={{
-              bottom: "4%",
-              width: "90%",
-              height: "10%",
-              background: "radial-gradient(ellipse at center, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.02) 50%, transparent 80%)",
-            }}
-          />
-        </>
-      )}
+      {/* Contact shadow is now rendered by the canvas overlay renderer */}
 
       {/* Planet Motors logo — subtle branding in bottom-right corner */}
       {isReady && (
