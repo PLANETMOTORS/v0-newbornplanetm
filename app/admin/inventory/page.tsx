@@ -6,8 +6,9 @@ import {
   Plus, Search, MoreVertical, Edit, Trash2, Eye,
   Download, Upload, ChevronLeft, ChevronRight, CheckCircle,
   Clock, AlertCircle, Car, RefreshCw, Loader2, X,
-  Scan, ImagePlus, ExternalLink
+  Scan, ImagePlus, ExternalLink, Camera
 } from "lucide-react"
+import VehiclePhotoManager from "@/components/admin/vehicle-photo-manager"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -143,6 +144,9 @@ export default function AdminInventoryPage() {
   const [decoding, setDecoding] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<VehicleRow | null>(null)
   const [deleting, setDeleting] = useState(false)
+
+  // Photo manager state
+  const [photoManagerVehicle, setPhotoManagerVehicle] = useState<VehicleRow | null>(null)
 
   // Sync state
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null)
@@ -742,6 +746,13 @@ export default function AdminInventoryPage() {
                                 <Edit className="w-4 h-4 mr-2" />
                                 Edit Vehicle
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setPhotoManagerVehicle(vehicle)}>
+                                <Camera className="w-4 h-4 mr-2" />
+                                Manage Photos
+                                {vehicle.image_urls?.length ? (
+                                  <span className="ml-auto text-xs text-gray-400">{vehicle.image_urls.length}</span>
+                                ) : null}
+                              </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="text-red-600"
                                 onClick={() => setDeleteConfirm(vehicle)}
@@ -1006,6 +1017,16 @@ export default function AdminInventoryPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ─── Photo Manager Modal ──────────────────────────────────────── */}
+      {photoManagerVehicle && (
+        <VehiclePhotoManager
+          vehicleId={photoManagerVehicle.id}
+          vehicleTitle={`${photoManagerVehicle.year} ${photoManagerVehicle.make} ${photoManagerVehicle.model} ${photoManagerVehicle.trim || ""}`.trim()}
+          onClose={() => setPhotoManagerVehicle(null)}
+          onPhotosChanged={fetchVehicles}
+        />
       )}
 
       {/* ─── Delete Confirmation Dialog ──────────────────────────────────── */}
