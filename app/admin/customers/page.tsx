@@ -263,7 +263,7 @@ export default function AdminCustomersPage() {
           )}
 
           {/* Pagination */}
-          {totalPages > 1 && (
+          {!loading && !error && customers.length > 0 && totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t">
               <p className="text-sm text-gray-500">
                 Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount}
