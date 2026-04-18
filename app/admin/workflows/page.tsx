@@ -190,9 +190,9 @@ export default function AdminWorkflowsPage() {
   const enabledCount = workflows.filter(w => w.enabled).length
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Automated Workflows</h1>
           <p className="text-sm text-gray-500">Configure email notifications and automated processes</p>

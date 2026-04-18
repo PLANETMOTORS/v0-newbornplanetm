@@ -151,9 +151,9 @@ export default function AdminLeadsPage() {
   const totalPages = Math.ceil(total / limit)
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Leads & Inquiries</h1>
           <p className="text-sm text-gray-500">All customer inquiries from contact form, Anna chat, finance apps, and more</p>
@@ -165,7 +165,7 @@ export default function AdminLeadsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         {[
           { label: "Total", value: stats.total, color: "text-gray-900" },
           { label: "New", value: stats.new, color: "text-blue-600" },
