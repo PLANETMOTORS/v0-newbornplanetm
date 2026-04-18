@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useId, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { MapPin, Loader2, CheckCircle } from "lucide-react"
@@ -19,9 +19,12 @@ export interface PostalCodeInputProps {
   value: string
   onChange: (postalCode: string, addressData?: { city?: string; province?: string; streetName?: string; streetType?: string; direction?: string }) => void
   label?: string
+  id?: string
 }
 
-export function PostalCodeInput({ value, onChange, label = "Postal Code *" }: PostalCodeInputProps) {
+export function PostalCodeInput({ value, onChange, label = "Postal Code *", id }: PostalCodeInputProps) {
+  const autoId = useId()
+  const inputId = id ?? `postal-code-${autoId}`
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -78,10 +81,10 @@ export function PostalCodeInput({ value, onChange, label = "Postal Code *" }: Po
   
   return (
     <div className="relative">
-      <Label htmlFor="postal-code-input">{label} <span className="text-xs text-primary font-medium">(Auto-fills address)</span></Label>
+      <Label htmlFor={inputId}>{label} <span className="text-xs text-primary font-medium">(Auto-fills address)</span></Label>
       <div className="relative">
         <Input
-          id="postal-code-input"
+          id={inputId}
           value={value}
           onChange={(e) => {
             const formatted = formatPostalCode(e.target.value)
