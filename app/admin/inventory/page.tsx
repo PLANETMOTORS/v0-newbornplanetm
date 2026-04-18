@@ -125,6 +125,7 @@ export default function AdminInventoryPage() {
   const [total, setTotal] = useState(0)
   const [statusCounts, setStatusCounts] = useState({ available: 0, reserved: 0, pending: 0, sold: 0 })
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   // Filters
   const [searchQuery, setSearchQuery] = useState("")
@@ -163,6 +164,7 @@ export default function AdminInventoryPage() {
 
   const fetchVehicles = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       const params = new URLSearchParams({
         limit: String(PAGE_SIZE),
@@ -174,13 +176,17 @@ export default function AdminInventoryPage() {
       if (statusFilter !== "all") params.set("status", statusFilter)
 
       const res = await fetch(`/api/v1/admin/vehicles?${params}`)
-      if (!res.ok) throw new Error("Failed to fetch")
+      if (!res.ok) {
+        setError("Failed to load vehicles")
+        return
+      }
       const data: VehiclesResponse = await res.json()
       setVehicles(data.vehicles)
       setTotal(data.total)
       setStatusCounts(data.statusCounts)
     } catch (err) {
       console.error("Failed to fetch vehicles:", err)
+      setError("Network error — please try again")
     } finally {
       setLoading(false)
     }
@@ -607,6 +613,15 @@ export default function AdminInventoryPage() {
           {loading ? (
             <div className="flex items-center justify-center p-12">
               <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+            </div>
+          ) : error ? (
+            <div className="text-center p-12 text-gray-500">
+              <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <p className="font-medium">{error}</p>
+              <Button variant="outline" onClick={fetchVehicles} className="mt-4">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Retry
+              </Button>
             </div>
           ) : vehicles.length === 0 ? (
             <div className="text-center p-12 text-gray-500">
