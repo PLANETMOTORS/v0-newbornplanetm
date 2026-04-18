@@ -8,6 +8,69 @@ Planet Motors has 3 AI agents that need security testing:
 
 Security layers: CSRF origin validation (`lib/csrf.ts`), IP-based rate limiting (`lib/redis.ts`), server-side verification codes (`/api/verify/send-code` + `/api/verify/check-code`).
 
+## Admin Vehicle Management Testing
+
+### Overview
+The admin vehicle management page (`/admin/inventory`) provides full CRUD operations, VIN decoding via NHTSA, HomeNet sync, CSV export, and debounced search. Login as `admin@planetmotors.ca` with password stored in Devin secrets.
+
+### Test Login
+```bash
+# Navigate to localhost:3000/admin/inventory
+# Login: admin@planetmotors.ca / TestAdmin2024!
+```
+
+### CRUD Test Flow (recommended order)
+1. **Page Load**: Verify vehicle count in subtitle, 4 status cards (Available/Reserved/Pending/Sold) sum to total
+2. **Create via VIN Decoder**: Click "Add Vehicle" → enter 17-char VIN → click "Decode" → verify NHTSA auto-fills Year/Make/Model → fill Stock#/Price/Mileage → Save → count increments
+3. **Edit Status**: Click ⋮ menu on test row → "Edit Vehicle" → change Status dropdown → "Save Changes" → verify badge color changes and status card counts update
+4. **Delete**: Click ⋮ → "Delete" → confirm dialog → verify vehicle removed and count decrements
+5. **Clean up**: Always delete test vehicles after testing to avoid polluting production data
+
+### VIN Decoder Testing
+- Test VIN: `1N4BL4BV4KC123456` → 2019 NISSAN Altima
+- The NHTSA API is free and doesn't require keys
+- Decode button is disabled unless VIN is exactly 17 characters
+- Auto-fills: Year, Make, Model, Trim, Body Style, Drivetrain, Engine, Fuel Type
+
+### Search Debounce Verification
+Use Playwright to monitor network requests while typing rapidly:
+```javascript
+const apiCalls = [];
+page.on('request', req => {
+  if (req.url().includes('/api/v1/admin/vehicles') && req.method() === 'GET') {
+    apiCalls.push({ url: req.url(), time: Date.now() });
+  }
+});
+await searchInput.pressSequentially('Tesla', { delay: 50 });
+await page.waitForTimeout(1500); // 300ms debounce + buffer
+console.log('API calls:', apiCalls.length); // Should be 1, not 5
+```
+
+### HomeNet Sync Testing
+- Click "Sync HomeNet" button
+- Without SFTP env vars configured, expect: red error banner "Sync failed: Database not configured"
+- Page should remain fully interactive (no crash, no blank screen)
+- The error banner has a dismiss (×) button
+- Status banner shows "HomeNet SFTP: Not configured"
+
+### Price Storage
+Prices are stored in **cents** in the database. The form accepts dollars (e.g., enter 25000 for $25,000). The API multiplies by 100 before storing.
+
+### Playwright CDP Tips for Admin Pages
+- Connect via: `chromium.connectOverCDP('http://localhost:29229')`
+- Dialog overlays block clicks on table rows — always close dialogs (press Escape) before interacting with the table
+- The ⋮ menu uses Radix dropdown: `button[aria-expanded]` selector, items are `[role=menuitem]`
+- Edit dialog has a `select` for status (index 1, after the page-level filter select at index 0)
+- Save button text is "Save Changes" (not "Update Vehicle")
+- After creating a vehicle, it appears at the top of the table
+- Use `{ force: true }` on click when elements might be partially obscured
+
+### Common Pitfalls
+- If a dialog is open from a previous failed test, it blocks all table interactions. Press Escape first.
+- The status filter dropdown ("All Status") is the first `<select>` on the page; the edit dialog status is the second `<select>`
+- Prices display with comma formatting ($25,000) but are entered as plain numbers (25000)
+- Mileage displays with "km" suffix (50,000 km)
+
 ## E2E Test Suite (human-click-timing-debug.spec.ts)
 
 ### Overview
@@ -323,6 +386,11 @@ pnpm test:e2e       # Run ALL E2E specs (needs local server)
 - `app/api/video-call/request/route.ts` — Video call scheduling (no fake link)
 - `app/checkout/[id]/page.tsx` — Checkout with Stripe error UI fallback
 - `app/contact/error.tsx` — Error boundary pattern (same for blog, financing, about, delivery, schedule)
+- `app/admin/inventory/page.tsx` — Admin vehicle management (CRUD, VIN decoder, HomeNet sync)
+- `app/api/v1/admin/vehicles/route.ts` — Vehicle list/create API (admin auth required)
+- `app/api/v1/admin/vehicles/[id]/route.ts` — Vehicle update/delete API (VIN validation, duplicate check)
+- `app/api/v1/admin/vehicles/vin-decode/route.ts` — NHTSA VIN decoder proxy
+- `app/api/v1/admin/vehicles/homenet-sync/route.ts` — HomeNet sync trigger
 - `e2e/human-click-timing-debug.spec.ts` — Main 40-test E2E spec
 - `e2e/fixtures/dl-front.jpg` — Required fixture for C09 Vercel Blob upload test
 - `.github/workflows/ci.yml` — CI pipeline (lint-and-build, bundle-check, e2e)
