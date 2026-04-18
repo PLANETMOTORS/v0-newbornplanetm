@@ -1,10 +1,12 @@
-// Planet Motors Homepage - v23 - ISR + Optimized Data Fetching
+// Planet Motors Homepage - v24 - ISR + LCP Preload
 // Key perf wins:
 //   1. ISR (revalidate=60) — page is statically generated, rebuilt every 60s
 //   2. Cookie-less Supabase client — no cookies() call = ISR-compatible
 //   3. Only hero-critical data blocks render (siteSettings + vehicles)
 //   4. Below-fold data (testimonials, FAQs) fetched client-side by HomepageBelowFold
+//   5. Server-side preload hint for the LCP hero image
 import { Suspense } from "react"
+import { preload } from "react-dom"
 import dynamic from "next/dynamic"
 import { Header } from "@/components/header"
 import { HomepageContent } from "@/components/homepage-content"
@@ -69,6 +71,19 @@ async function HomepageWithData() {
     withTimeout(getSiteSettings(), null),
     withTimeout(getShowcaseVehicles(), null),
   ])
+
+  // Preload the LCP hero image — the first showcase vehicle image.
+  // This emits a <link rel="preload"> in the <head> so the browser
+  // starts fetching the image before it encounters the <img> tag.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase row shape
+  const firstVehicle = showcaseVehicles?.[0] as any
+  const firstImage: string | undefined = firstVehicle?.primary_image_url
+    || (firstVehicle?.image_urls && firstVehicle.image_urls[0])
+  if (firstImage) {
+    // Match the sizes/srcset the <Image> component will use on mobile (100vw @ 412px → w=640)
+    const optimizedUrl = `/_next/image?url=${encodeURIComponent(firstImage)}&w=640&q=75`
+    preload(optimizedUrl, { as: "image", fetchPriority: "high" } as Parameters<typeof preload>[1])
+  }
 
   return (
     <HomepageContent
