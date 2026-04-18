@@ -162,7 +162,7 @@ export function HomepageContent({ siteSettings, testimonials, showcaseVehicles }
                 <span className="font-semibold text-gray-800">210-point inspected.</span> Delivered to your door.
               </p>
 
-              <div className="mt-8 flex flex-col sm:flex-row items-center gap-3 sm:gap-4 justify-center lg:justify-start min-h-[3.5rem] sm:min-h-[3rem]">
+              <div className="mt-8 flex flex-col sm:flex-row items-center gap-6 justify-center lg:justify-start min-h-[3.5rem] sm:min-h-[3rem]">
                 <a
                   href="/inventory"
                   data-testid="hero-cta-btn"
