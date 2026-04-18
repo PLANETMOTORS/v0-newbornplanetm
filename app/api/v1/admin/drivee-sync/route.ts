@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
 
       // Step 4: Upsert to drivee_mappings
       if (!dryRun) {
-        await supabase
+        const { error: upsertError } = await supabase
           .from("drivee_mappings")
           .upsert(
             {
@@ -137,6 +137,7 @@ export async function POST(request: NextRequest) {
             },
             { onConflict: "vin" },
           )
+        if (upsertError) throw upsertError
       }
 
       results.push({
