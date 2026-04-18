@@ -22,7 +22,7 @@ export async function GET() {
       .select("*")
       .order("agent_type")
 
-    if (error && error.message?.includes("does not exist")) {
+    if (error && (error.message?.includes("does not exist") || error.message?.includes("Could not find") || error.code === "PGRST205")) {
       // Table not created yet — return defaults
       return NextResponse.json({
         agents: [
