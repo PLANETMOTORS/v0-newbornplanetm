@@ -86,7 +86,7 @@ export default function WarrantyPage() {
       <WarrantyPageJsonLd />
       <Header />
 
-      <main className="pt-32 pb-16">
+      <main id="main-content" tabIndex={-1} className="pt-32 pb-16">
         {/* Hero */}
         <section className="bg-gradient-to-br from-primary/10 via-background to-accent/5 py-16">
           <div className="container mx-auto px-4 text-center">

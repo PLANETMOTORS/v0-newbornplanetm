@@ -174,7 +174,7 @@ export default function CityLandingPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main>
+      <main id="main-content" tabIndex={-1}>
         {/* Hero Section */}
         <section className="relative bg-gradient-to-br from-primary/10 via-background to-background py-16 lg:py-24">
           <div className="container mx-auto px-4">

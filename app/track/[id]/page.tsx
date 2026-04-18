@@ -95,7 +95,7 @@ export default function DeliveryTrackingPage({ params }: { params: Promise<{ id:
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container mx-auto px-4 py-16 text-center">
+        <main id="main-content" tabIndex={-1} className="container mx-auto px-4 py-16 text-center">
           <div className="animate-pulse">
             <div className="h-8 bg-muted rounded w-64 mx-auto mb-4" />
             <div className="h-4 bg-muted rounded w-48 mx-auto" />
@@ -110,7 +110,7 @@ export default function DeliveryTrackingPage({ params }: { params: Promise<{ id:
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container mx-auto px-4 py-16 text-center">
+        <main id="main-content" tabIndex={-1} className="container mx-auto px-4 py-16 text-center">
           <h1 className="text-2xl font-bold mb-4">Delivery Not Found</h1>
           <p className="text-muted-foreground mb-6">
             We couldn&apos;t find a delivery with order ID: {id}
@@ -131,7 +131,7 @@ export default function DeliveryTrackingPage({ params }: { params: Promise<{ id:
     <div className="min-h-screen bg-muted/30">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
+      <main id="main-content" tabIndex={-1} className="container mx-auto px-4 py-8">
         {/* Back button */}
         <Button variant="ghost" asChild className="mb-4">
           <Link href="/" className="gap-2">

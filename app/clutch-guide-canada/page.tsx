@@ -96,7 +96,7 @@ export default function ClutchGuideCanadaPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main>
+      <main id="main-content" tabIndex={-1}>
         {/* Hero Section */}
         <section className="bg-gradient-to-br from-teal-800 via-teal-700 to-slate-800 text-white py-16 md:py-24">
           <div className="container mx-auto px-4">

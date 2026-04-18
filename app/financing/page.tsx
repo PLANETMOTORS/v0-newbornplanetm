@@ -72,6 +72,7 @@ export default async function FinancingPage() {
       <FinancialServiceJsonLd />
       <Header />
 
+      <main id="main-content" tabIndex={-1}>
       {/* Hero */}
       <section className="pt-8 pb-16 lg:pt-16 lg:pb-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -274,6 +275,7 @@ export default async function FinancingPage() {
           </div>
         </div>
       </section>
+      </main>
 
       <Footer />
       <LiveChatWidget />

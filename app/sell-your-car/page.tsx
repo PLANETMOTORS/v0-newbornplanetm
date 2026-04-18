@@ -166,7 +166,7 @@ export default async function SellYourCarPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         {/* Hero Section with Form */}
         <section className="relative bg-gradient-to-br from-primary/10 via-background to-background">
           <div className="container mx-auto px-4 py-12 md:py-20">
