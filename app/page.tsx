@@ -1,8 +1,11 @@
-// Planet Motors Homepage - v21 - Performance Optimized
-import { Suspense } from "react"
+// Planet Motors Homepage - v22 - Lighthouse Performance Optimized
+import { Suspense, lazy } from "react"
+import dynamic from "next/dynamic"
 import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
 import { HomepageContent } from "@/components/homepage-content"
+
+// Lazy-load the footer since it's always below the fold
+const Footer = dynamic(() => import("@/components/footer").then(m => ({ default: m.Footer })), { ssr: true })
 import { getSiteSettings, getTestimonials, getFaqs } from "@/lib/sanity/fetch"
 import { createClient } from "@/lib/supabase/server"
 
