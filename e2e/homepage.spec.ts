@@ -25,7 +25,7 @@ test.describe("Homepage", () => {
   })
 
   test("renders hero section", async ({ page }) => {
-    // There are two <main> elements (outer flex-1 wrapper + inner #main-content), use the labeled one
+    // The outer <main id="main-content"> is the skip-link target; use the aria-labeled section for hero assertions
     const main = page.getByLabel("Home page content")
     await expect(main).toBeVisible({ timeout: 15_000 })
     // Homepage content should load
