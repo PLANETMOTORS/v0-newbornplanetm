@@ -28,7 +28,7 @@ const BUCKET = "vehicle-360"
 export const FRAME_MANIFEST: Record<string, number> = {
   "190171976531": 37, // 2021 Jeep Wrangler 4xe
   "744761075195": 33, // 2025 Chevrolet Equinox EV
-  "132601940353": 40, // 2021 Tesla Model 3
+  "132601940353": 40, // 2023 Tesla Model 3 Long Range
   "806787519944": 36, // 2023 Volkswagen Taos
   "890747363179": 40, // 2024 Tesla Model 3
   "640326639530": 39, // 2019 Tesla Model 3
