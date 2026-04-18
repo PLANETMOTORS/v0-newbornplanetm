@@ -220,11 +220,25 @@ function InventoryContent() {
     vehicle: string
   } | null>(null)
 
+  // Derive filterKey for page-reset detection (all filter/sort state, excluding currentPage)
+  const filterKey = `${sortBy}|${evOnly}|${selectedFuelType}|${selectedMake}|${selectedBodyType}|${selectedYear}|${selectedTransmission}|${selectedColor}|${selectedDrivetrain}|${priceRange[0]}|${priceRange[1]}|${mileageRange[0]}|${mileageRange[1]}|${searchQuery}`
+
+  // Derive the effective page synchronously so vehiclesApiUrl never requests page > 1
+  // for a fresh filter set before the reset useEffect has a chance to fire.
+  const prevFilterKeyRef = useRef(filterKey)
+  const effectivePage = filterKey !== prevFilterKeyRef.current ? 1 : currentPage
+  prevFilterKeyRef.current = filterKey
+
+  // Keep currentPage state in sync so Load More increments from 1 after a filter change.
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [filterKey])
+
   // Build server-side query URL from all filter states
   const vehiclesApiUrl = useMemo(() => {
     const params = new URLSearchParams()
     params.set('limit', String(API_PAGE_SIZE))
-    params.set('page', String(currentPage))
+    params.set('page', String(effectivePage))
 
     // Sort mapping
     if (sortBy === 'price-low') { params.set('sort', 'price'); params.set('order', 'asc') }
@@ -250,7 +264,7 @@ function InventoryContent() {
     params.set('includeFilters', 'true')
 
     return `/api/v1/vehicles?${params.toString()}`
-  }, [currentPage, sortBy, evOnly, selectedFuelType, selectedMake, selectedBodyType, selectedYear,
+  }, [effectivePage, sortBy, evOnly, selectedFuelType, selectedMake, selectedBodyType, selectedYear,
       selectedTransmission, selectedColor, selectedDrivetrain, priceRange, mileageRange, searchQuery])
 
   // Fetch vehicles from API — SWR key is the full URL
@@ -260,16 +274,19 @@ function InventoryContent() {
     keepPreviousData: true,
   })
 
-  // Accumulate pages — page 1 replaces, page 2+ appends (Load More pattern)
+  // Accumulate pages — page 1 replaces, page 2+ appends (Load More pattern).
+  // Use pagination.page from the response (not currentPage state) so we always
+  // get the correct replace-vs-append decision even during the render cycle where
+  // effectivePage and currentPage haven't converged yet.
   useEffect(() => {
     if (!apiResponse?.data?.vehicles) return
     const transformed = apiResponse.data.vehicles.map(transformVehicle)
-    if (currentPage === 1) {
+    if ((apiResponse.data.pagination?.page ?? 1) === 1) {
       setAccumulatedVehicles(transformed)
     } else {
       setAccumulatedVehicles(prev => [...prev, ...transformed])
     }
-  }, [apiResponse, currentPage])
+  }, [apiResponse])
 
   const totalVehicles = apiResponse?.data?.pagination?.total ?? 0
   const hasMore = accumulatedVehicles.length < totalVehicles
@@ -285,14 +302,6 @@ function InventoryContent() {
   const _dynamicBodyTypes = apiFilters?.bodyStyles?.length
     ? ['All Body Types', ...apiFilters.bodyStyles]
     : ['All Body Types']
-
-  // Reset to page 1 whenever filters or sort change (not currentPage itself)
-  // NOTE: Do NOT clear accumulatedVehicles here — let SWR's keepPreviousData
-  // handle the transition so the UI doesn't flash empty and unmount components.
-  const filterKey = `${sortBy}|${evOnly}|${selectedFuelType}|${selectedMake}|${selectedBodyType}|${selectedYear}|${selectedTransmission}|${selectedColor}|${selectedDrivetrain}|${priceRange[0]}|${priceRange[1]}|${mileageRange[0]}|${mileageRange[1]}|${searchQuery}`
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [filterKey])
 
   // Read URL parameters and set filters
   // IMPORTANT: Reset ALL filters first, then apply only what the URL specifies.
