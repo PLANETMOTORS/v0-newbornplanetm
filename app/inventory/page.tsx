@@ -210,7 +210,8 @@ function InventoryContent() {
   const [evOnly, setEvOnly] = useState(false)
 
   // Load More pagination state (Clutch/Carvana pattern)
-  const [currentPage, setCurrentPage] = useState(1)
+  // Pair page with filterKey so effectivePage can be derived without ref mutation.
+  const [pagination, setPagination] = useState({ filterKey: '', page: 1 })
   const [accumulatedVehicles, setAccumulatedVehicles] = useState<ReturnType<typeof transformVehicle>[]>([])
   
   // Trade-in from AI Quote
@@ -220,19 +221,12 @@ function InventoryContent() {
     vehicle: string
   } | null>(null)
 
-  // Derive filterKey for page-reset detection (all filter/sort state, excluding currentPage)
+  // Derive filterKey for page-reset detection (all filter/sort state, excluding page)
   const filterKey = `${sortBy}|${evOnly}|${selectedFuelType}|${selectedMake}|${selectedBodyType}|${selectedYear}|${selectedTransmission}|${selectedColor}|${selectedDrivetrain}|${priceRange[0]}|${priceRange[1]}|${mileageRange[0]}|${mileageRange[1]}|${searchQuery}`
 
-  // Derive the effective page synchronously so vehiclesApiUrl never requests page > 1
-  // for a fresh filter set before the reset useEffect has a chance to fire.
-  const prevFilterKeyRef = useRef(filterKey)
-  const effectivePage = filterKey !== prevFilterKeyRef.current ? 1 : currentPage
-  prevFilterKeyRef.current = filterKey
-
-  // Keep currentPage state in sync so Load More increments from 1 after a filter change.
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [filterKey])
+  // When filterKey matches what's stored in pagination state, use the stored page;
+  // otherwise fall back to 1. This is concurrent-mode safe — no ref mutation during render.
+  const effectivePage = pagination.filterKey === filterKey ? pagination.page : 1
 
   // Build server-side query URL from all filter states
   const vehiclesApiUrl = useMemo(() => {
@@ -1081,7 +1075,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
               <Button
                 variant="outline"
                 size="lg"
-                onClick={() => setCurrentPage(p => p + 1)}
+                onClick={() => setPagination({ filterKey, page: effectivePage + 1 })}
                 disabled={isValidating}
                 className="min-w-[200px]"
               >
