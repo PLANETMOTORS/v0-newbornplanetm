@@ -130,7 +130,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
                 <FooterPhoneLink phone={siteSettings.phone} />
                 <a
                   href={`mailto:${siteSettings.email}`}
-                  className="flex items-center gap-2.5 text-sm text-white/90 hover:text-white transition-colors"
+                  className="flex items-center gap-2.5 min-h-[44px] text-sm text-white/90 hover:text-white transition-colors"
                 >
                   <Mail className="w-4 h-4 shrink-0" />
                   <span>{siteSettings.email}</span>
@@ -139,7 +139,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
                   href={siteSettings.googleMapsUrl || `https://maps.google.com/?q=${encodeURIComponent(`${siteSettings.streetAddress} ${siteSettings.city} ${siteSettings.province}`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2.5 text-sm text-white/90 hover:text-white transition-colors"
+                  className="flex items-center gap-2.5 min-h-[44px] text-sm text-white/90 hover:text-white transition-colors"
                 >
                   <MapPin className="w-4 h-4 shrink-0" />
                   <span>{siteSettings.streetAddress}, {siteSettings.city}</span>
