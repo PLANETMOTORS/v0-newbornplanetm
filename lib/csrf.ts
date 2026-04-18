@@ -43,21 +43,6 @@ function getAllowedOrigins(): string[] {
     }
   }
 
-  // Vercel auto-sets VERCEL_URL for every deployment (no protocol prefix)
-  const vercelUrl = process.env.VERCEL_URL
-  if (vercelUrl) {
-    origins.push(`https://${vercelUrl}`)
-  }
-
-  // Custom domain configured via env (e.g. ev.planetmotors.ca)
-  const siteDomain = process.env.NEXT_PUBLIC_SITE_DOMAIN
-  if (siteDomain) {
-    const domain = siteDomain.replace(/\/+$/, "")
-    origins.push(
-      domain.startsWith("http") ? domain : `https://${domain}`,
-    )
-  }
-
   // Only allow localhost variants in development — never in production
   if (process.env.NODE_ENV !== "production") {
     origins.push(
