@@ -99,7 +99,7 @@ CREATE POLICY "Service role full access to conversations"
   USING (true)
   WITH CHECK (true);
 
-CREATE INDEX IF NOT EXISTS idx_conversations_session ON public.chat_conversations(session_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_conversations_session ON public.chat_conversations(session_id);
 CREATE INDEX IF NOT EXISTS idx_conversations_status ON public.chat_conversations(status);
 CREATE INDEX IF NOT EXISTS idx_conversations_created ON public.chat_conversations(created_at DESC);
 
