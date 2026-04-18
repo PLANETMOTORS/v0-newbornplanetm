@@ -60,7 +60,9 @@ export async function GET(request: NextRequest) {
       adminClient.from("reservations").select("deposit_amount").eq("deposit_status", "paid"),
     ])
 
-    const totalDepositAmount = (totalDeposits.data || []).reduce((sum, r) => sum + (r.deposit_amount || 0), 0)
+    // deposit_amount is stored in cents; convert to dollars for client display
+    const totalDepositAmountCents = (totalDeposits.data || []).reduce((sum, r) => sum + (r.deposit_amount || 0), 0)
+    const totalDepositAmount = Math.round(totalDepositAmountCents / 100)
 
     return NextResponse.json({
       reservations: enriched,

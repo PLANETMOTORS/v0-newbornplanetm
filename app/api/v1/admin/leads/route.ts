@@ -136,7 +136,7 @@ async function aggregateLeads(adminClient: any, filters: { status: string | null
         customer_name: res.customer_name || "Unknown",
         customer_email: res.customer_email,
         customer_phone: res.customer_phone,
-        subject: `Reservation — $${(res.deposit_amount || 0).toLocaleString()} deposit`,
+        subject: `Reservation — $${Math.round((res.deposit_amount || 0) / 100).toLocaleString()} deposit`,
         vehicle_info: null,
         created_at: res.created_at,
         source_table: "reservations",

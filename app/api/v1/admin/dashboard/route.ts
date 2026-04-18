@@ -89,7 +89,7 @@ export async function GET() {
       recentActivity.push({
         type: "reservation",
         title: `Reservation by ${res.customer_name || res.customer_email}`,
-        detail: `$${(res.deposit_amount || 0).toLocaleString()} deposit — ${res.deposit_status}`,
+        detail: `$${Math.round((res.deposit_amount || 0) / 100).toLocaleString()} deposit — ${res.deposit_status}`,
         time: res.created_at,
         status: res.status,
         id: res.id,

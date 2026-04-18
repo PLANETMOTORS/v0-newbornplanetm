@@ -66,6 +66,11 @@ function depositBadge(status: string): { color: string; label: string } {
   }
 }
 
+// deposit_amount and vehicle.price are stored in cents; render as dollars
+function formatCents(cents: number | null | undefined): string {
+  return "$" + Math.round((cents || 0) / 100).toLocaleString()
+}
+
 function timeAgo(dateStr: string): string {
   const now = new Date()
   const date = new Date(dateStr)
@@ -224,7 +229,7 @@ export default function AdminReservationsPage() {
                             <p className="text-xs text-gray-500">{res.customer_name || res.customer_email}</p>
                             <div className="flex items-center gap-2 mt-1">
                               <Badge variant={sb.variant} className="text-xs">{sb.label}</Badge>
-                              <span className={`text-xs px-2 py-0.5 rounded ${db.color}`}>${res.deposit_amount.toLocaleString()} — {db.label}</span>
+                              <span className={`text-xs px-2 py-0.5 rounded ${db.color}`}>{formatCents(res.deposit_amount)} — {db.label}</span>
                             </div>
                           </div>
                         </div>
@@ -247,7 +252,7 @@ export default function AdminReservationsPage() {
                   {selectedRes.vehicle ? `${selectedRes.vehicle.year} ${selectedRes.vehicle.make} ${selectedRes.vehicle.model}` : "Reservation Details"}
                 </CardTitle>
                 {selectedRes.vehicle && (
-                  <CardDescription>Stock #{selectedRes.vehicle.stock_number} — ${selectedRes.vehicle.price?.toLocaleString()}</CardDescription>
+                  <CardDescription>Stock #{selectedRes.vehicle.stock_number} — {formatCents(selectedRes.vehicle.price)}</CardDescription>
                 )}
               </CardHeader>
               <CardContent className="space-y-4">
@@ -271,7 +276,7 @@ export default function AdminReservationsPage() {
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
                     <p className="text-xs text-gray-500 uppercase">Deposit</p>
-                    <p className="font-medium">${selectedRes.deposit_amount.toLocaleString()}</p>
+                    <p className="font-medium">{formatCents(selectedRes.deposit_amount)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 uppercase">Deposit Status</p>
