@@ -775,9 +775,7 @@ export default function AdminInventoryPage() {
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-4 z-50">
           <span className="text-sm">{selectedVehicles.length} selected</span>
           <Button size="sm" variant="secondary">Update Status</Button>
-          <Button size="sm" variant="destructive" onClick={() => {
-            // Bulk delete not implemented yet — individual delete only
-          }}>Delete</Button>
+          <Button size="sm" variant="destructive" disabled title="Bulk delete coming soon">Delete</Button>
           <button
             onClick={() => setSelectedVehicles([])}
             className="text-gray-400 hover:text-white ml-2"
