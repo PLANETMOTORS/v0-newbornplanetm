@@ -321,7 +321,7 @@ export default function BlogPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="pt-24 pb-20">
+      <main id="main-content" tabIndex={-1} className="pt-24 pb-20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
         {/* Hero */}
         <section className="py-12 lg:py-16 bg-muted/30">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">

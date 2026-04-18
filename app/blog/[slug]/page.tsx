@@ -108,7 +108,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       />
       <Header />
 
-      <main className="pt-24 pb-20">
+      <main id="main-content" tabIndex={-1} className="pt-24 pb-20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
         {/* Back Link */}
         <div className="mx-auto max-w-4xl px-6 lg:px-8 py-4">
           <Link 
@@ -175,16 +175,16 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <span className="font-medium">Share this article:</span>
             <div className="flex items-center gap-3">
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" aria-label="Share on Facebook">
                 <Facebook className="w-4 h-4" />
               </Button>
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" aria-label="Share on X (Twitter)">
                 <Twitter className="w-4 h-4" />
               </Button>
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" aria-label="Share on LinkedIn">
                 <Linkedin className="w-4 h-4" />
               </Button>
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" aria-label="Copy link">
                 <Share2 className="w-4 h-4" />
               </Button>
             </div>
