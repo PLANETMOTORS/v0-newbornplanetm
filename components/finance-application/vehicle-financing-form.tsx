@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
-import { Car, Calculator, Search, ArrowUpDown, FileText, Loader2, X, ChevronUp, ChevronDown } from "lucide-react"
+import { Car, Loader2, X } from "lucide-react"
 import type { VehicleInfo, TradeInInfo, FinancingTerms, FinancingResult } from "./types"
 
 interface VehicleFinancingFormProps {
@@ -135,8 +135,11 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                   {filteredVehicles.map((vehicle) => (
                     <div
                       key={vehicle.id}
-                      className="flex items-center gap-4 p-3 rounded-lg border hover:border-primary hover:bg-primary/5 cursor-pointer transition-colors"
+                      role="button"
+                      tabIndex={0}
+                      className="flex items-center gap-4 p-3 rounded-lg border hover:border-primary hover:bg-primary/5 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
                       onClick={() => handleSelectVehicle(vehicle)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelectVehicle(vehicle) } }}
                     >
                       <div className="w-24 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
                         {vehicle.primary_image_url ? (
@@ -162,8 +165,8 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                         <p className="text-xs text-muted-foreground font-mono">{vehicle.vin}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-primary">
-                          ${(vehicle.price / 100).toLocaleString()}
+                        <p className="font-semibold text-primary" title="Price estimate — final all-in price confirmed at signing per OMVIC regulations">
+                          ${(vehicle.price / 100).toLocaleString()}*
                         </p>
                         <Button size="sm" className="mt-1">Select</Button>
                       </div>
@@ -171,6 +174,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                   ))}
                 </div>
               )}
+              <p className="text-xs text-muted-foreground italic mt-3 px-1">*Prices are estimates. Final all-in price confirmed at signing per OMVIC regulations.</p>
             </div>
           </div>
         </div>
@@ -441,7 +445,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                       onClick={async () => {
                         if (financingTerms.deliveryPostalCode.length >= 3) {
                           try {
-                            const res = await fetch(`/api/v1/deliveries/quote?postalCode=${financingTerms.deliveryPostalCode}`)
+                            const res = await fetch(`/api/v1/deliveries/quote?postalCode=${encodeURIComponent(financingTerms.deliveryPostalCode)}`)
                             const data = await res.json()
                             if (data.deliveryCost !== undefined) {
                               setFinancingTerms({ ...financingTerms, deliveryFee: data.deliveryCost.toString() })

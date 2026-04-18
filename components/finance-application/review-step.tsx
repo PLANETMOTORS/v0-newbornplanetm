@@ -57,11 +57,14 @@ export function ReviewStep({ primaryApplicant, coApplicant, vehicleInfo, tradeIn
         </CardHeader>
         <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
           <div><span className="text-muted-foreground">Vehicle:</span> <span className="font-medium">{vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}</span></div>
-          <div><span className="text-muted-foreground">Price:</span> <span className="font-medium">${parseFloat(vehicleInfo.totalPrice).toLocaleString()}</span></div>
+          <div><span className="text-muted-foreground">Price:</span> <span className="font-medium">${parseFloat(vehicleInfo.totalPrice).toLocaleString()}*</span></div>
           <div><span className="text-muted-foreground">Down Payment:</span> <span className="font-medium">${parseFloat(vehicleInfo.downPayment).toLocaleString()}</span></div>
           <div><span className="text-muted-foreground">Term:</span> <span className="font-medium">{financingTerms.loanTermMonths} months</span></div>
           <div><span className="text-muted-foreground">Payment:</span> <span className="font-medium">${financing.payment.toFixed(2)}/{financingTerms.paymentFrequency}</span></div>
           <div><span className="text-muted-foreground">Amount Financed:</span> <span className="font-medium">${financing.amountFinanced.toLocaleString()}</span></div>
+          <div className="col-span-full">
+            <p className="text-xs text-muted-foreground italic">*Advertised price is an estimate. Final all-in price including all fees and taxes will be confirmed at signing per OMVIC regulations.</p>
+          </div>
         </CardContent>
       </Card>
       

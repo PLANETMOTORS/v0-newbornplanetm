@@ -45,7 +45,7 @@ export function PostalCodeInput({ value, onChange, label = "Postal Code *" }: Po
     
     setIsLoading(true)
     try {
-      const res = await fetch(`/api/address-lookup?postalCode=${cleanPostal}`)
+      const res = await fetch(`/api/address-lookup?postalCode=${encodeURIComponent(cleanPostal)}`)
       const data = await res.json()
       setSuggestions(data.suggestions || [])
       setCityProvince({ city: data.city || '', province: data.province || '' })
@@ -78,10 +78,11 @@ export function PostalCodeInput({ value, onChange, label = "Postal Code *" }: Po
   
   return (
     <div className="relative">
-      <Label>{label} <span className="text-xs text-primary font-medium">(Auto-fills address)</span></Label>
+      <Label htmlFor="postal-code-input">{label} <span className="text-xs text-primary font-medium">(Auto-fills address)</span></Label>
       <div className="relative">
-        <Input 
-          value={value} 
+        <Input
+          id="postal-code-input"
+          value={value}
           onChange={(e) => {
             const formatted = formatPostalCode(e.target.value)
             onChange(formatted)
