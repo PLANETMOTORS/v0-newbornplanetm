@@ -85,7 +85,9 @@ async function HomepageWithData() {
     // deviceSizes from next.config.mjs — must match exactly
     const widths = [640, 750, 828, 1080, 1200, 1920]
     const srcSet = widths.map(w => `/_next/image?url=${encodedUrl}&w=${w}&q=75 ${w}w`).join(', ')
-    preload('', {
+    // href is the fallback; imageSrcSet lets the browser pick the right width
+    const fallbackUrl = `/_next/image?url=${encodedUrl}&w=1920&q=75`
+    preload(fallbackUrl, {
       as: 'image',
       imageSrcSet: srcSet,
       imageSizes: '(max-width: 768px) 100vw, 50vw',
