@@ -7,7 +7,7 @@
 
 import { defaultCache } from "@serwist/next/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { Serwist } from "serwist";
+import { Serwist, NetworkOnly } from "serwist";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -37,7 +37,7 @@ const serwist = new Serwist({
       matcher({ url }) {
         return url.pathname.startsWith("/api/") || url.hostname.includes("supabase.co");
       },
-      handler: "NetworkOnly" as const,
+      handler: new NetworkOnly(),
     },
     // Use default caching strategies for everything else
     ...filteredCache,
