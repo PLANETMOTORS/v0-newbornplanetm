@@ -75,6 +75,14 @@ const statusIcons: Record<string, React.ReactNode> = {
   cancelled: <XCircle className="w-4 h-4" />
 }
 
+/**
+ * Admin page for listing, filtering, viewing, and updating finance applications.
+ *
+ * Renders UI for application statistics, searchable & filterable application list, and a detail dialog
+ * that exposes documents, vehicle info, financing terms, and status update actions.
+ *
+ * @returns A JSX element containing the finance applications admin interface (list, filters, stats, and detail dialog).
+ */
 export default function AdminFinancePage() {
   const [applications, setApplications] = useState<FinanceApplication[]>([])
   const [loading, setLoading] = useState(true)
@@ -262,6 +270,7 @@ export default function AdminFinancePage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
+                aria-label="Search finance applications by name, email, or application number"
                 placeholder="Search by name, email, or application #..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
