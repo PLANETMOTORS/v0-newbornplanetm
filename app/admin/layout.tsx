@@ -14,7 +14,7 @@ import { ADMIN_EMAILS } from "@/lib/admin"
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { name: "Inventory", href: "/admin/inventory", icon: Car },
+  { name: "Vehicles", href: "/admin/inventory", icon: Car },
   { name: "Customers", href: "/admin/customers", icon: Users },
   { name: "Leads", href: "/admin/leads", icon: MessageSquare },
   { name: "Orders", href: "/admin/orders", icon: FileText },
