@@ -5,6 +5,7 @@ import { FavoritesProvider } from '@/contexts/favorites-context'
 import { AuthProvider } from '@/contexts/auth-context'
 import { OrganizationJsonLd, LocalBusinessJsonLd, WebsiteSearchJsonLd } from '@/components/seo/json-ld'
 import { ClientLayoutWidgets } from '@/components/client-layout-widgets'
+import { SerwistProvider } from './serwist'
 import { getPublicSiteUrl } from '@/lib/site-url'
 import './globals.css'
 import './stability-fixes.css'
@@ -128,15 +129,17 @@ export default function RootLayout({
         <WebsiteSearchJsonLd />
       </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
-        <AuthProvider>
-          <FavoritesProvider>
-            <CompareProvider>
-              {children}
-              {/* Client-only widgets: analytics, chat, toaster, compare bar, etc. */}
-              <ClientLayoutWidgets />
-            </CompareProvider>
-          </FavoritesProvider>
-        </AuthProvider>
+        <SerwistProvider swUrl="/sw.js" disable={process.env.NODE_ENV === 'development'}>
+          <AuthProvider>
+            <FavoritesProvider>
+              <CompareProvider>
+                {children}
+                {/* Client-only widgets: analytics, chat, toaster, compare bar, etc. */}
+                <ClientLayoutWidgets />
+              </CompareProvider>
+            </FavoritesProvider>
+          </AuthProvider>
+        </SerwistProvider>
       </body>
     </html>
   )

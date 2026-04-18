@@ -2,6 +2,7 @@
   "name": "Planet Motors - Premium Pre-Owned Vehicles",
   "short_name": "Planet Motors",
   "description": "Canada's trusted destination for premium pre-owned vehicles with nationwide delivery, 210-point inspection, and 10-day money-back guarantee.",
+  "id": "/",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",
