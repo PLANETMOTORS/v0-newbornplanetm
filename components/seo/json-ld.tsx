@@ -297,7 +297,7 @@ interface ArticleJsonLdProps {
 export function ArticleJsonLd({ article }: ArticleJsonLdProps) {
   const schema = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting",
     "headline": article.title,
     "description": article.excerpt,
     "image": toAbsoluteUrl(article.coverImage),
