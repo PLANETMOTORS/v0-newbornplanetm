@@ -1,19 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
-import { validateOrigin } from "@/lib/csrf"
 
 /**
  * Public VIN Decoder for trade-in flow.
  * Uses the free NHTSA vPIC API — no auth required.
- * Returns only the fields needed for trade-in: year, make, model, trim.
+ * Read-only GET endpoint with no side effects; CSRF not needed.
+ * NHTSA itself rate-limits; our 24h cache further reduces upstream calls.
  */
 
 export async function GET(request: NextRequest) {
   try {
-    // CSRF check to prevent abuse
-    if (!validateOrigin(request)) {
-      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 })
-    }
-
     const { searchParams } = new URL(request.url)
     const vin = searchParams.get("vin")?.trim().toUpperCase()
 
