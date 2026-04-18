@@ -49,6 +49,7 @@ ALTER TABLE public.leads ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Service role full access to leads" ON public.leads;
 CREATE POLICY "Service role full access to leads"
   ON public.leads FOR ALL
+  TO service_role
   USING (true)
   WITH CHECK (true);
 
@@ -74,7 +75,7 @@ CREATE TRIGGER trg_leads_updated_at
 -- ─────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.chat_conversations (
   id              UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
-  session_id      VARCHAR(100)  NOT NULL,
+  session_id      VARCHAR(100)  NOT NULL UNIQUE,
   customer_id     UUID          REFERENCES auth.users(id) ON DELETE SET NULL,
   customer_name   VARCHAR(200),
   customer_email  VARCHAR(200),
@@ -94,6 +95,7 @@ ALTER TABLE public.chat_conversations ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Service role full access to conversations" ON public.chat_conversations;
 CREATE POLICY "Service role full access to conversations"
   ON public.chat_conversations FOR ALL
+  TO service_role
   USING (true)
   WITH CHECK (true);
 
@@ -119,6 +121,7 @@ ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Service role full access to messages" ON public.chat_messages;
 CREATE POLICY "Service role full access to messages"
   ON public.chat_messages FOR ALL
+  TO service_role
   USING (true)
   WITH CHECK (true);
 
@@ -148,6 +151,7 @@ ALTER TABLE public.ai_agent_config ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Service role full access to ai config" ON public.ai_agent_config;
 CREATE POLICY "Service role full access to ai config"
   ON public.ai_agent_config FOR ALL
+  TO service_role
   USING (true)
   WITH CHECK (true);
 

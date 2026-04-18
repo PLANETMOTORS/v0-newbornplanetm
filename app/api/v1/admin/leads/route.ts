@@ -34,7 +34,12 @@ export async function GET(request: NextRequest) {
     if (status && status !== "all") query = query.eq("status", status)
     if (source && source !== "all") query = query.eq("source", source)
     if (search) {
-      query = query.or(`customer_name.ilike.%${search}%,customer_email.ilike.%${search}%,customer_phone.ilike.%${search}%,subject.ilike.%${search}%`)
+      // Sanitize search input: escape characters that PostgREST uses as delimiters
+      // in .or() filter strings (commas, dots, parens, backslashes, percent signs)
+      const sanitized = search.replace(/[\\%,().]/g, "")
+      if (sanitized.length > 0) {
+        query = query.or(`customer_name.ilike.%${sanitized}%,customer_email.ilike.%${sanitized}%,customer_phone.ilike.%${sanitized}%,subject.ilike.%${sanitized}%`)
+      }
     }
 
     const { data: leads, count, error } = await query
