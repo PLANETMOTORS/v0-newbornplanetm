@@ -133,7 +133,7 @@ export default function AIAgentsPage() {
 
   if (loading) {
     return (
-      <div className="p-6 space-y-6">
+      <div className="space-y-6">
         <h1 className="text-2xl font-bold text-gray-900">AI Agents</h1>
         <div className="grid gap-6">
           {[1,2,3].map(i => (
@@ -147,9 +147,9 @@ export default function AIAgentsPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">AI Agents</h1>
           <p className="text-sm text-gray-500">Configure Anna, Price Negotiator, and Vehicle Valuator</p>

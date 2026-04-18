@@ -473,29 +473,29 @@ export default function AdminInventoryPage() {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {/* HomeNet Sync */}
-          <Button variant="outline" onClick={triggerSync} disabled={syncing} title="Trigger HomeNet sync">
-            <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
-            {syncing ? "Syncing..." : "Sync HomeNet"}
+          <Button variant="outline" size="sm" onClick={triggerSync} disabled={syncing} title="Trigger HomeNet sync">
+            <RefreshCw className={`w-4 h-4 sm:mr-2 ${syncing ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">{syncing ? "Syncing..." : "Sync HomeNet"}</span>
           </Button>
           {/* CSV Import */}
           <label>
-            <Button variant="outline" asChild>
+            <Button variant="outline" size="sm" asChild>
               <span>
-                {importingCSV ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
-                Import CSV
+                {importingCSV ? <Loader2 className="w-4 h-4 sm:mr-2 animate-spin" /> : <Upload className="w-4 h-4 sm:mr-2" />}
+                <span className="hidden sm:inline">Import CSV</span>
               </span>
             </Button>
             <input type="file" accept=".csv,.txt" className="hidden" onChange={handleCSVImport} disabled={importingCSV} />
           </label>
           {/* CSV Export */}
-          <Button variant="outline" onClick={handleCSVExport} disabled={vehicles.length === 0}>
-            <Download className="w-4 h-4 mr-2" />
-            Export
+          <Button variant="outline" size="sm" onClick={handleCSVExport} disabled={vehicles.length === 0}>
+            <Download className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Export</span>
           </Button>
           {/* Add Vehicle */}
-          <Button onClick={openCreate}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Vehicle
+          <Button size="sm" onClick={openCreate}>
+            <Plus className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Add Vehicle</span>
           </Button>
         </div>
       </div>
@@ -518,19 +518,19 @@ export default function AdminInventoryPage() {
       {syncStatus && (
         <Card>
           <CardContent className="p-3">
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${syncStatus.configured ? "bg-green-500" : "bg-yellow-500"}`} />
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 text-sm">
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className={`w-2 h-2 rounded-full shrink-0 ${syncStatus.configured ? "bg-green-500" : "bg-yellow-500"}`} />
                 <span className="text-gray-600">
                   HomeNet SFTP: {syncStatus.configured ? "Connected" : "Not configured"}
                 </span>
                 {syncStatus.lastSyncEstimate && (
-                  <span className="text-gray-400">
+                  <span className="text-gray-400 hidden sm:inline">
                     &middot; Last update: {new Date(syncStatus.lastSyncEstimate).toLocaleString()}
                   </span>
                 )}
               </div>
-              <span className="text-gray-400">Auto-sync: {syncStatus.cronDescription}</span>
+              <span className="text-gray-400 text-xs sm:text-sm">Auto-sync: {syncStatus.cronDescription}</span>
             </div>
           </CardContent>
         </Card>
@@ -662,12 +662,12 @@ export default function AdminInventoryPage() {
                         />
                       </th>
                       <th className="py-3 px-4 text-left font-medium text-gray-500">Vehicle</th>
-                      <th className="py-3 px-4 text-left font-medium text-gray-500">Stock #</th>
+                      <th className="py-3 px-4 text-left font-medium text-gray-500 hidden md:table-cell">Stock #</th>
                       <th className="py-3 px-4 text-left font-medium text-gray-500">Price</th>
-                      <th className="py-3 px-4 text-left font-medium text-gray-500">Mileage</th>
+                      <th className="py-3 px-4 text-left font-medium text-gray-500 hidden sm:table-cell">Mileage</th>
                       <th className="py-3 px-4 text-left font-medium text-gray-500">Status</th>
-                      <th className="py-3 px-4 text-center font-medium text-gray-500">360°</th>
-                      <th className="py-3 px-4 text-center font-medium text-gray-500">Days</th>
+                      <th className="py-3 px-4 text-center font-medium text-gray-500 hidden lg:table-cell">360°</th>
+                      <th className="py-3 px-4 text-center font-medium text-gray-500 hidden lg:table-cell">Days</th>
                       <th className="py-3 px-4 text-right font-medium text-gray-500">Actions</th>
                     </tr>
                   </thead>
@@ -707,22 +707,22 @@ export default function AdminInventoryPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="py-3 px-4 font-mono text-sm">{vehicle.stock_number}</td>
+                        <td className="py-3 px-4 font-mono text-sm hidden md:table-cell">{vehicle.stock_number}</td>
                         <td className="py-3 px-4 font-medium">{formatPrice(vehicle.price)}</td>
-                        <td className="py-3 px-4 text-sm">{vehicle.mileage.toLocaleString()} km</td>
+                        <td className="py-3 px-4 text-sm hidden sm:table-cell">{vehicle.mileage.toLocaleString()} km</td>
                         <td className="py-3 px-4">
                           <Badge variant={statusBadgeVariant(vehicle.status)}>
                             {vehicle.status}
                           </Badge>
                         </td>
-                        <td className="py-3 px-4 text-center">
+                        <td className="py-3 px-4 text-center hidden lg:table-cell">
                           {vehicle.has_360_spin ? (
                             <span className="text-green-600 text-sm font-medium">Yes</span>
                           ) : (
                             <span className="text-gray-300 text-sm">No</span>
                           )}
                         </td>
-                        <td className="py-3 px-4 text-center">
+                        <td className="py-3 px-4 text-center hidden lg:table-cell">
                           <span className={daysAgo(vehicle.created_at) > 30 ? "text-red-600 font-medium" : ""}>
                             {daysAgo(vehicle.created_at)}
                           </span>
@@ -770,9 +770,9 @@ export default function AdminInventoryPage() {
               </div>
 
               {/* Pagination */}
-              <div className="flex items-center justify-between p-4 border-t">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-2 p-4 border-t">
                 <p className="text-sm text-gray-500">
-                  Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total} vehicles
+                  Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total}
                 </p>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
@@ -808,10 +808,10 @@ export default function AdminInventoryPage() {
 
       {/* ─── Create/Edit Vehicle Dialog ─────────────────────────────────── */}
       {showDialog && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-8 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl mx-4 mb-8">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-4 sm:pt-8 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl mx-2 sm:mx-4 mb-8">
             {/* Dialog Header */}
-            <div className="flex items-center justify-between p-6 border-b">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b">
               <h2 className="text-xl font-bold">
                 {showDialog === "create" ? "Add New Vehicle" : `Edit ${editingVehicle?.year} ${editingVehicle?.make} ${editingVehicle?.model}`}
               </h2>
@@ -821,7 +821,7 @@ export default function AdminInventoryPage() {
             </div>
 
             {/* Form */}
-            <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+            <div className="p-4 sm:p-6 space-y-6 max-h-[70vh] overflow-y-auto">
               {formError && (
                 <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm">{formError}</div>
               )}
@@ -848,7 +848,7 @@ export default function AdminInventoryPage() {
               </div>
 
               {/* Identity */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-700">Stock Number *</label>
                   <Input value={formData.stock_number} onChange={e => setFormData(prev => ({ ...prev, stock_number: e.target.value }))} placeholder="PM-2024-001" />

@@ -195,7 +195,7 @@ export default function AdminFinancePage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -315,11 +315,11 @@ export default function AdminFinancePage() {
                   <tr>
                     <th className="text-left py-3 px-4 font-medium text-gray-500">Application</th>
                     <th className="text-left py-3 px-4 font-medium text-gray-500">Applicant</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Vehicle</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-500 hidden md:table-cell">Vehicle</th>
                     <th className="text-left py-3 px-4 font-medium text-gray-500">Amount</th>
                     <th className="text-left py-3 px-4 font-medium text-gray-500">Status</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Documents</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Date</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-500 hidden lg:table-cell">Documents</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-500 hidden sm:table-cell">Date</th>
                     <th className="text-right py-3 px-4 font-medium text-gray-500">Actions</th>
                   </tr>
                 </thead>
@@ -336,7 +336,7 @@ export default function AdminFinancePage() {
                         </p>
                         <p className="text-sm text-gray-500">{app.primary_applicant?.email}</p>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 hidden md:table-cell">
                         {app.vehicle ? (
                           <>
                             <p className="font-medium">{app.vehicle.year} {app.vehicle.make}</p>
@@ -360,13 +360,13 @@ export default function AdminFinancePage() {
                           </span>
                         </Badge>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 hidden lg:table-cell">
                         <div className="flex items-center gap-1">
                           <FileText className="w-4 h-4 text-gray-400" />
                           <span className="text-sm">{app.documents?.length || 0} files</span>
                         </div>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 hidden sm:table-cell">
                         <p className="text-sm">
                           {new Date(app.submitted_at || app.created_at).toLocaleDateString()}
                         </p>

@@ -198,10 +198,10 @@ export default function AdminCustomersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Customer</TableHead>
-                  <TableHead>Contact</TableHead>
+                  <TableHead className="hidden sm:table-cell">Contact</TableHead>
                   <TableHead className="text-center">Orders</TableHead>
-                  <TableHead className="text-center">Reservations</TableHead>
-                  <TableHead>Joined</TableHead>
+                  <TableHead className="text-center hidden sm:table-cell">Reservations</TableHead>
+                  <TableHead className="hidden md:table-cell">Joined</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -224,7 +224,7 @@ export default function AdminCustomersPage() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <div className="space-y-1">
                         <div className="flex items-center gap-1 text-sm text-gray-600">
                           <Mail className="w-3.5 h-3.5" />
@@ -248,7 +248,7 @@ export default function AdminCustomersPage() {
                         <span className="text-gray-400">0</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center hidden sm:table-cell">
                       {customer.reservationCount > 0 ? (
                         <Badge className="bg-blue-100 text-blue-800">
                           {customer.reservationCount}
@@ -257,7 +257,7 @@ export default function AdminCustomersPage() {
                         <span className="text-gray-400">0</span>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <div className="flex items-center gap-1 text-sm text-gray-500">
                         <Calendar className="w-3.5 h-3.5" />
                         {formatDate(customer.createdAt)}
@@ -271,7 +271,7 @@ export default function AdminCustomersPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 px-4 py-3 border-t">
               <p className="text-sm text-gray-500">
                 Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount}
               </p>

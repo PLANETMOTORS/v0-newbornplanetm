@@ -207,7 +207,7 @@ export default function VehiclePhotoManager({
     <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center overflow-y-auto p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl my-8">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b">
           <div>
             <h2 className="text-lg font-bold text-gray-900">Manage Photos</h2>
             <p className="text-sm text-gray-500">{vehicleTitle}</p>
@@ -235,9 +235,9 @@ export default function VehiclePhotoManager({
         </div>
 
         {/* Upload Area */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <div
-            className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer ${
+            className={`border-2 border-dashed rounded-xl p-4 sm:p-8 text-center transition-colors cursor-pointer ${
               dragOver
                 ? "border-blue-500 bg-blue-50"
                 : "border-gray-300 hover:border-gray-400"
@@ -279,7 +279,7 @@ export default function VehiclePhotoManager({
         </div>
 
         {/* Photo Grid */}
-        <div className="px-6 pb-6">
+        <div className="px-4 pb-4 sm:px-6 sm:pb-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
@@ -389,8 +389,8 @@ export default function VehiclePhotoManager({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t">
-          <p className="text-xs text-gray-400">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-t">
+          <p className="text-xs text-gray-400 hidden sm:block">
             Photos are stored in Supabase Storage and served via CDN
           </p>
           <Button variant="outline" onClick={onClose}>
