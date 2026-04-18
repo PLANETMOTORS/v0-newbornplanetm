@@ -259,8 +259,8 @@ export default function AdminInventoryPage() {
       body_style: v.body_style || "",
       exterior_color: v.exterior_color || "",
       interior_color: v.interior_color || "",
-      price: String(Math.round(v.price / 100)),
-      msrp: v.msrp ? String(Math.round(v.msrp / 100)) : "",
+      price: (v.price / 100).toFixed(2).replace(/\.00$/, ""),
+      msrp: v.msrp ? (v.msrp / 100).toFixed(2).replace(/\.00$/, "") : "",
       mileage: String(v.mileage),
       drivetrain: v.drivetrain || "",
       transmission: v.transmission || "",
@@ -286,12 +286,20 @@ export default function AdminInventoryPage() {
     setSaving(true)
     setFormError("")
 
+    // Guard: reject blank or non-numeric price (required field)
+    const priceNum = Number(formData.price)
+    if (!formData.price.trim() || isNaN(priceNum) || priceNum <= 0) {
+      setFormError("Price is required and must be greater than zero")
+      setSaving(false)
+      return
+    }
+
     // Build payload — prices stored as cents in DB
     const payload = {
       ...formData,
       year: parseInt(formData.year),
-      price: parseInt(formData.price) * 100,
-      msrp: formData.msrp ? parseInt(formData.msrp) * 100 : null,
+      price: Math.round(priceNum * 100),
+      msrp: formData.msrp?.trim() ? Math.round(Number(formData.msrp) * 100) : null,
       mileage: parseInt(formData.mileage),
       battery_capacity_kwh: formData.battery_capacity_kwh ? parseFloat(formData.battery_capacity_kwh) : null,
       range_miles: formData.range_miles ? parseInt(formData.range_miles) : null,
@@ -422,7 +430,7 @@ export default function AdminInventoryPage() {
     const headers = ["stock_number","vin","year","make","model","trim","price","mileage","status","exterior_color","drivetrain","fuel_type"]
     const rows = allVehicles.map(v => [
       v.stock_number, v.vin, v.year, v.make, v.model, v.trim || "",
-      Math.round(v.price / 100), v.mileage, v.status, v.exterior_color || "",
+      (v.price / 100).toFixed(2), v.mileage, v.status, v.exterior_color || "",
       v.drivetrain || "", v.fuel_type || ""
     ])
     const csv = [headers.join(","), ...rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(","))].join("\n")
@@ -909,11 +917,11 @@ export default function AdminInventoryPage() {
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="text-sm font-medium text-gray-700">Price (CAD) *</label>
-                    <Input type="number" value={formData.price} onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))} placeholder="39990" />
+                    <Input type="number" step="0.01" value={formData.price} onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))} placeholder="39990.50" />
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-700">MSRP (CAD)</label>
-                    <Input type="number" value={formData.msrp} onChange={e => setFormData(prev => ({ ...prev, msrp: e.target.value }))} placeholder="45990" />
+                    <Input type="number" step="0.01" value={formData.msrp} onChange={e => setFormData(prev => ({ ...prev, msrp: e.target.value }))} placeholder="45990.00" />
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-700">Mileage (km) *</label>
