@@ -39,7 +39,7 @@ async function loadMappings(): Promise<Map<string, DriveeMapping>> {
       .select("vin, mid, frame_count, frames_in_storage, vehicle_name")
       .eq("frames_in_storage", true)
 
-    if (error || !data) throw error ?? new Error("No data")
+    if (error || !data || data.length === 0) throw error ?? new Error("No data")
 
     const map = new Map<string, DriveeMapping>()
     for (const row of data as unknown as DriveeMapping[]) {
