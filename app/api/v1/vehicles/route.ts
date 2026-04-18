@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getCachedSearchResults, cacheSearchResults } from '@/lib/redis'
 import { createHash } from 'crypto'
-import { getDriveeMid } from '@/lib/drivee'
+import { getDriveeMidFromDb } from '@/lib/drivee-db'
 
 const ALLOWED_SORT_COLUMNS = new Set(['created_at', 'price', 'year', 'mileage', 'make', 'model'])
 
@@ -65,7 +65,7 @@ function isVehicleListRow(value: unknown): value is VehicleListRow {
   return typeof record.price === 'number' && (typeof record.msrp === 'number' || record.msrp === null || record.msrp === undefined)
 }
 
-function toPublicVehicleListItem(value: unknown): Record<string, unknown> | null {
+async function toPublicVehicleListItem(value: unknown): Promise<Record<string, unknown> | null> {
   if (!isVehicleListRow(value)) {
     return null
   }
@@ -76,7 +76,7 @@ function toPublicVehicleListItem(value: unknown): Record<string, unknown> | null
     ...value,
     price: value.price / 100,
     msrp: typeof value.msrp === 'number' ? value.msrp / 100 : null,
-    drivee_mid: getDriveeMid(vin),
+    drivee_mid: await getDriveeMidFromDb(vin),
   }
 }
 
@@ -323,8 +323,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Build cursor for the last item so the client can request the next page
-  const vehicleList = (vehicles ?? [])
-    .map(toPublicVehicleListItem)
+  const vehicleList = (await Promise.all((vehicles ?? []).map(toPublicVehicleListItem)))
     .filter((vehicle): vehicle is Record<string, unknown> => vehicle !== null)
 
   const lastRaw = vehicles && vehicles.length > 0 ? vehicles[vehicles.length - 1] : null
@@ -504,8 +503,7 @@ export async function POST(request: NextRequest) {
     {
       success: true,
       data: {
-        vehicles: (vehicles ?? [])
-          .map(toPublicVehicleListItem)
+        vehicles: (await Promise.all((vehicles ?? []).map(toPublicVehicleListItem)))
           .filter((vehicle): vehicle is Record<string, unknown> => vehicle !== null),
         total: count || 0,
         aggregations,
@@ -528,6 +526,6 @@ function getMockVehicles() {
     { id: "mock-tesla-y", year: 2024, make: "Tesla", model: "Model Y", trim: "Performance", price: 61995, msrp: 63995, mileage: 5100, fuel_type: "Electric", body_style: "SUV", transmission: "Automatic", drivetrain: "AWD", exterior_color: "Midnight Silver", primary_image_url: "/placeholder.jpg", status: "available", stock_number: "PM-2024-002", vin: "5YJ3E1EA1PF000002", is_new_arrival: false, is_certified: true, created_at: new Date().toISOString() },
     { id: "mock-bmw-i4", year: 2023, make: "BMW", model: "i4", trim: "eDrive40", price: 52995, msrp: 56995, mileage: 12300, fuel_type: "Electric", body_style: "Sedan", transmission: "Automatic", drivetrain: "RWD", exterior_color: "Black Sapphire", primary_image_url: "/placeholder.jpg", status: "available", stock_number: "PM-2024-003", vin: "WBA53BJ01PCK00003", is_new_arrival: false, is_certified: true, created_at: new Date().toISOString() },
   ]
-  // Inject drivee_mid so mock vehicles also show 360° badges when mapped
-  return raw.map(v => ({ ...v, drivee_mid: getDriveeMid(v.vin) }))
+  // Mock vehicles don't need DB-driven drivee_mid — return null
+  return raw.map(v => ({ ...v, drivee_mid: null }))
 }

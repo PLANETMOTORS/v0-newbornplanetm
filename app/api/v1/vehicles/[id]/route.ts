@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import { getCachedSearchResults, cacheSearchResults, deleteCachedSearchResults } from "@/lib/redis"
-import { getDriveeMid } from "@/lib/drivee"
+import { getDriveeMidFromDb } from "@/lib/drivee-db"
 import { ADMIN_EMAILS } from "@/lib/admin"
 const VEHICLE_DETAIL_TTL = 300 // 5 minutes
 
@@ -51,11 +51,11 @@ const VEHICLE_DETAIL_FIELDS = [
   'updated_at',
 ].join(',')
 
-function toPublicVehicle(vehicle: Record<string, unknown>) {
+async function toPublicVehicle(vehicle: Record<string, unknown>) {
   const price = typeof vehicle.price === "number" ? vehicle.price / 100 : null
   const msrp = typeof vehicle.msrp === "number" ? vehicle.msrp / 100 : null
   const vin = typeof vehicle.vin === "string" ? vehicle.vin : ""
-  const drivee_mid = getDriveeMid(vin)
+  const drivee_mid = await getDriveeMidFromDb(vin)
 
   return {
     ...vehicle,
@@ -125,7 +125,7 @@ export async function GET(
     const responseBody = {
       success: true,
       data: {
-        vehicle: toPublicVehicle(vehicle as unknown as Record<string, unknown>),
+        vehicle: await toPublicVehicle(vehicle as unknown as Record<string, unknown>),
       },
     }
 
@@ -234,7 +234,6 @@ function getMockVehicleDetail(id: string) {
   }
   const vehicle = mocks[id]
   if (!vehicle) return null
-  // Inject drivee_mid so mock vehicles also show 360° viewer when mapped
-  const vin = typeof vehicle.vin === "string" ? vehicle.vin : ""
-  return { ...vehicle, drivee_mid: getDriveeMid(vin) }
+  // Mock vehicles don't need DB-driven drivee_mid — return null
+  return { ...vehicle, drivee_mid: null }
 }
