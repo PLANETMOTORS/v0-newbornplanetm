@@ -168,7 +168,10 @@ async function humanClick(page: Page, selector: string | ReturnType<Page['getByT
   await element.scrollIntoViewIfNeeded({ timeout: 5_000 });
   await element.hover();
   await page.waitForTimeout(80 + Math.floor(Math.random() * 120));
-  await element.click();
+  // Use an explicit timeout longer than the global actionTimeout (2 s) so
+  // WebKit's stricter CSS-transition stability check doesn't cause spurious
+  // failures on elements with `transition-*` classes.
+  await element.click({ timeout: 5_000 });
 }
 
 // ─── Shared debug log collectors ──────────────────────────────────────────────
