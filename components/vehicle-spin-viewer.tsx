@@ -235,7 +235,11 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         </div>
       )}
 
-      {/* Current frame image — constrained for studio "breathing room" */}
+      {/* Current frame image — scaled & repositioned so tires sit on the studio floor.
+           The background-removed frames have ~18 % transparent padding below the tires
+           (tire contact at ~82 % of image height).  scale(1.25) enlarges the car to
+           fill more of the viewer, and translateY(-8 %) shifts it up so the tire line
+           lands on the shadow-ellipse centre (≈ 75.56 % of the container). */}
       {isReady && images[frame] && (
         <div className="absolute inset-0 flex items-center justify-center z-[2]">
           <div className="relative" style={{ width: "90%", height: "85%" }}>
@@ -244,6 +248,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
               alt={`${alt} — angle ${frame + 1} of ${totalFrames}`}
               fill
               className="object-contain pointer-events-none"
+              style={{ transform: "scale(1.25) translateY(-8%)" }}
               priority={frame === 0}
               sizes={isFullscreen ? "100vw" : "(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"}
               draggable={false}
