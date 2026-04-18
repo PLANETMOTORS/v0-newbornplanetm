@@ -97,8 +97,8 @@ export function useOverlayRenderer(
 
     // Floor
     const floorGrad = ctx.createLinearGradient(0, horizonY, 0, height)
-    floorGrad.addColorStop(0, profile.colors.floorFar)
-    floorGrad.addColorStop(1, profile.colors.floorNear)
+    floorGrad.addColorStop(0, profile.colors.floorNear)
+    floorGrad.addColorStop(1, profile.colors.floorFar)
     ctx.fillStyle = floorGrad
     ctx.fillRect(0, horizonY, width, height - horizonY)
 
