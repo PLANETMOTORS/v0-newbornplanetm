@@ -77,40 +77,56 @@ export default function AccountPage() {
   const [priceAlerts, setPriceAlerts] = useState<PriceAlert[]>([])
   const [alertsLoading, setAlertsLoading] = useState(false)
 
-  // Fetch notification preferences and price alerts when user is available
-  const fetchAccountData = useCallback(async () => {
+  // Fetch price alerts list (does NOT derive toggle state — that comes from profile prefs)
+  const fetchAlerts = useCallback(async () => {
     if (!user?.email) return
-
-    // Fetch price alerts
     setAlertsLoading(true)
     try {
       const res = await fetch(`/api/alerts?email=${encodeURIComponent(user.email)}`)
       if (res.ok) {
         const data = await res.json()
         setPriceAlerts(data.alerts || [])
-        // Derive notification prefs from active alerts
-        const hasDropAlerts = (data.alerts || []).some((a: PriceAlert) => a.notify_price_drops && a.is_active)
-        const hasNewAlerts = (data.alerts || []).some((a: PriceAlert) => a.notify_new_listings && a.is_active)
-        setPriceDropEnabled(hasDropAlerts)
-        setNewInventoryEnabled(hasNewAlerts)
       }
     } catch { /* silent */ }
     setAlertsLoading(false)
   }, [user?.email])
 
+  // Fetch notification preferences from profile
+  const fetchNotificationPrefs = useCallback(async () => {
+    if (!user) return
+    try {
+      const supabase = createClient()
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('notification_preferences')
+        .eq('id', user.id)
+        .single()
+      if (profile?.notification_preferences) {
+        const prefs = profile.notification_preferences as Record<string, boolean>
+        setPriceDropEnabled(Boolean(prefs.priceDropAlerts))
+        setNewInventoryEnabled(Boolean(prefs.newInventoryAlerts))
+      }
+    } catch { /* silent — first visit will show defaults */ }
+  }, [user])
+
   useEffect(() => {
-    fetchAccountData()
-  }, [fetchAccountData])
+    fetchAlerts()
+    fetchNotificationPrefs()
+  }, [fetchAlerts, fetchNotificationPrefs])
 
   const toggleNotification = async (type: 'priceDrops' | 'newListings') => {
     if (!user?.email) return
     setNotifLoading(type)
     const newValue = type === 'priceDrops' ? !priceDropEnabled : !newInventoryEnabled
 
+    // Optimistic update
+    if (type === 'priceDrops') setPriceDropEnabled(newValue)
+    else setNewInventoryEnabled(newValue)
+
     try {
       // If enabling and no alerts exist, create a general alert for the user
       if (newValue && priceAlerts.length === 0) {
-        await fetch('/api/alerts', {
+        const alertRes = await fetch('/api/alerts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -121,10 +137,11 @@ export default function AccountPage() {
             },
           }),
         })
+        if (alertRes.ok) await fetchAlerts() // Refresh alert list after creation
       }
 
-      // Update notification preferences via profile
-      await fetch('/api/v1/notifications', {
+      // Persist notification preferences to profile
+      const notifRes = await fetch('/api/v1/notifications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -138,22 +155,28 @@ export default function AccountPage() {
         }),
       })
 
-      if (type === 'priceDrops') setPriceDropEnabled(newValue)
-      else setNewInventoryEnabled(newValue)
-
-      // Refresh alerts
-      await fetchAccountData()
-    } catch { /* silent */ }
+      if (!notifRes.ok) {
+        // Revert optimistic update on failure
+        if (type === 'priceDrops') setPriceDropEnabled(!newValue)
+        else setNewInventoryEnabled(!newValue)
+      }
+    } catch {
+      // Revert optimistic update on error
+      if (type === 'priceDrops') setPriceDropEnabled(!newValue)
+      else setNewInventoryEnabled(!newValue)
+    }
     setNotifLoading(null)
   }
 
   const deleteAlert = async (alertId: string) => {
     if (!user?.email) return
     try {
-      await fetch(`/api/alerts?alertId=${alertId}&email=${encodeURIComponent(user.email)}`, {
+      const res = await fetch(`/api/alerts?alertId=${alertId}&email=${encodeURIComponent(user.email)}`, {
         method: 'DELETE',
       })
-      setPriceAlerts(prev => prev.filter(a => a.id !== alertId))
+      if (res.ok) {
+        setPriceAlerts(prev => prev.filter(a => a.id !== alertId))
+      }
     } catch { /* silent */ }
   }
 
@@ -627,6 +650,7 @@ export default function AccountPage() {
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                aria-label={`Remove ${vehicle.year} ${vehicle.make} ${vehicle.model} from saved vehicles`}
                                 className="shrink-0 text-muted-foreground hover:text-destructive"
                                 onClick={() => removeFavorite(vehicle.id)}
                               >
@@ -770,6 +794,7 @@ export default function AccountPage() {
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                aria-label={`Delete alert for ${alert.make && alert.model ? `${alert.make} ${alert.model}` : 'all vehicles'}`}
                                 className="text-muted-foreground hover:text-destructive"
                                 onClick={() => deleteAlert(alert.id)}
                               >
