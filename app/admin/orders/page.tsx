@@ -233,6 +233,7 @@ export default function AdminOrdersPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
+                aria-label="Search orders by order number"
                 placeholder="Search by order number..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

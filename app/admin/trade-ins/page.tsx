@@ -181,6 +181,7 @@ export default function AdminTradeInsPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
+                aria-label="Search trade-ins by name, email, quote ID, or vehicle"
                 placeholder="Search by name, email, quote ID, or vehicle..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}

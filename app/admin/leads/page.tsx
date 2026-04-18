@@ -160,6 +160,7 @@ export default function AdminLeadsPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
+                aria-label="Search leads by name, email, or vehicle"
                 placeholder="Search by name, email, vehicle..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

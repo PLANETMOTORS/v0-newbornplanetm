@@ -215,6 +215,7 @@ export default function AdminInventoryPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
+                aria-label="Search inventory by year, make, model, or VIN"
                 placeholder="Search by year, make, model, VIN..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
