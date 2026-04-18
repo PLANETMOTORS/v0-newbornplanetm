@@ -71,6 +71,78 @@ Prices are stored in **cents** in the database. The form accepts dollars (e.g., 
 - Prices display with comma formatting ($25,000) but are entered as plain numbers (25000)
 - Mileage displays with "km" suffix (50,000 km)
 
+## AI Agent Knowledge & Training Testing
+
+### Overview
+The Knowledge & Training panel (`/admin/ai-agents` → "Knowledge" button on any agent card) lets admins teach AI agents custom Q&A responses. Entries are stored in the `ai_agent_knowledge` Supabase table (created by `scripts/019_create_ai_agent_knowledge.sql`).
+
+### Prerequisites
+- **Migration must be run first**: Run `scripts/019_create_ai_agent_knowledge.sql` in Supabase SQL Editor or via Supabase Management API. Without it, the panel shows an amber "Knowledge Table Not Set Up" fallback.
+- **Running migration via API** (when SQL Editor is not available):
+  ```bash
+  source /run/repo_secrets/PLANETMOTORS/v0-newbornplanetm/.env.secrets
+  curl -s -X POST "https://api.supabase.com/v1/projects/ldervbcvkoawwknsemuz/database/query" \
+    -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+    -H "Content-Type: application/json" \
+    -d "$(jq -Rs '{query: .}' < scripts/019_create_ai_agent_knowledge.sql)"
+  ```
+- **After running migration**: Refresh the page before opening the Knowledge panel (cached state may still show the fallback alert).
+
+### CRUD Test Flow (recommended order)
+1. **Empty State**: Click "Knowledge" on Anna's card → verify panel header "Knowledge & Training — Anna", 5 category cards all at 0, "No knowledge entries yet" message, "Add Knowledge" button
+2. **Create Q&A Entry**: Click "Add Knowledge" → Q&A category is default → enter trigger phrase + response + priority (0-100) + tags (comma-separated) → click "Save" → entry appears, Q&A count increments
+3. **Create Different Category**: Click "Add Knowledge" → select category pill in the **form** (not the filter card above!) → fill fields → Save → verify correct category count updates
+4. **Priority Ordering**: Higher priority entries appear above lower ones in the list (API sorts by `priority DESC, created_at DESC`)
+5. **Category Filter**: Click a category quick-stat card to filter → only entries of that category shown. Click again to deselect → all entries shown.
+6. **Search**: Type in search box → client-side filter on `trigger_phrase` and `response` (case-insensitive includes)
+7. **Edit**: Click chevron to expand entry → click "Edit" → form pre-fills → change fields → click "Update" (not "Save") → verify changes persist
+8. **Toggle Active/Inactive**: Expand entry → click "Disable" → entry becomes inactive. "Active Only" button hides inactive entries. Toggle off to see them.
+9. **Form Validation**: Try saving with empty trigger phrase → error "Both trigger phrase and response are required"
+10. **Delete**: Expand entry → click trash icon → confirm dialog → entry removed
+11. **Clean up**: Always delete test entries to avoid polluting the knowledge base
+
+### API Endpoints
+- `GET /api/v1/admin/ai-knowledge?agent_type=anna` — all entries
+- `GET /api/v1/admin/ai-knowledge?agent_type=anna&active_only=true` — active entries only
+- `GET /api/v1/admin/ai-knowledge?agent_type=anna&category=qa` — filter by category
+- `POST /api/v1/admin/ai-knowledge` — create entry (body: `{ agent_type, category, trigger_phrase, response, priority, tags }`)
+- `PUT /api/v1/admin/ai-knowledge` — update entry (body: `{ id, ...fields }`)
+- `DELETE /api/v1/admin/ai-knowledge?id={uuid}` — delete entry
+- All endpoints require admin auth (checks `ADMIN_EMAILS` list)
+- Response includes `tableExists: boolean` — false if migration not run
+
+### Anna Integration
+- `lib/anna/knowledge.ts` → `buildKnowledgePrompt('anna')` fetches active entries and formats as:
+  ```
+  IF customer asks: "trigger phrase"
+  THEN respond: response text
+  ```
+- Injected into Anna's system prompt in `/api/anna/route.ts` before "RESPONSE GUIDELINES" section
+- **Cannot be tested locally** without AI Gateway API key (only in Vercel production). Verify via API that entries are returned correctly.
+
+### Playwright CDP Tips for Knowledge Panel
+- **Category confusion**: The form has category pills (Q&A, Instructions, Policies, Scripts, Objection Handling) AND the filter area has identical-looking category cards. When selecting a category for a new entry, you must click the **form pill** (second occurrence), not the **filter card** (first occurrence). Use `page.locator('button:has-text("Policies")').all()` and click index 1 for the form pill.
+- **Save vs Update**: New entries use "Save" button. Editing existing entries uses "Update" button.
+- **Expand to see actions**: Edit, Disable, and Delete buttons are only visible when an entry is expanded (click the chevron icon).
+- **Confirm dialog on delete**: Use `page.on('dialog', d => d.accept())` before clicking delete.
+- **Active Only toggle**: This is a button, not a checkbox. It toggles between showing all entries and active-only entries. The button text stays "Active Only" regardless of state.
+
+### 5 Categories
+| Value | Label | Description |
+|-------|-------|-------------|
+| `qa` | Q&A | When customer asks X, answer Y |
+| `instruction` | Instructions | Step-by-step guidance for agents |
+| `policy` | Policies | Business rules and policies |
+| `script` | Scripts | Conversation scripts/templates |
+| `objection` | Objection Handling | Counter-arguments for common objections |
+
+### Common Pitfalls
+- If the page was loaded before running the migration, you'll see the amber fallback alert even though the table now exists. **Refresh the page** after running the migration.
+- The "Active Only" toggle state persists across form operations but resets on page refresh.
+- Tags are comma-separated in the input field but displayed as individual badges in the entry.
+- Priority is a number 0-100. The form accepts any number but the API doesn't enforce the range.
+- Entries are sorted by `priority DESC, created_at DESC` — so entries with the same priority are ordered by creation date (newest first).
+
 ## E2E Test Suite (human-click-timing-debug.spec.ts)
 
 ### Overview
@@ -190,213 +262,46 @@ Expected: `{"success":true,"method":"email"}` — the `code` field is ignored.
 ### Netlify Preview Limitations
 Netlify preview deploys (`https://deploy-preview-{PR}--planetnewborn-v0-newbornplanetm.netlify.app`) have important limitations:
 - **No Typesense/Supabase data** — The `/inventory` page will show "Error loading inventory" because Typesense search credentials may not be configured on the preview. This means vehicle grid rendering, `content-visibility` virtualization, and filter state cannot be visually tested on preview.
-- **No API routes** — Server-side functionality (reservations, checkout, webhooks) may not work on static Netlify exports.
-- **Shared infrastructure** — Lighthouse scores on Netlify preview will be lower than production due to shared hosting. Expect 10-20% lower scores compared to dedicated infrastructure.
 
-### Font Display Verification
-Verify all `@font-face` rules use `font-display: swap` via browser console:
-```javascript
-const fonts = Array.from(document.fonts).map(f => ({family: f.family, display: f.display}));
-console.log(fonts);
-// Expect all entries to show display: "swap"
-```
+## Admin Panel Testing (General)
 
-### Bundle Splitting Verification
-Verify lazy-loaded modules (Stripe, chat, analytics) are NOT loaded eagerly:
-```javascript
-const resources = performance.getEntriesByType('resource');
-const stripeResources = resources.filter(r => r.name.toLowerCase().includes('stripe'));
-console.log('Stripe resources:', stripeResources.length); // Should be 0
-```
+### Test Login
+- URL: `localhost:3000/auth/login`
+- Email: `admin@planetmotors.ca`
+- Session may persist from previous testing — check if already logged in before navigating to login page
 
-### Mobile Navigation Testing via Playwright CDP
-The hamburger menu appears below the `lg` breakpoint (1024px). To test mobile nav on a preview deploy, use Playwright via CDP since browser window resize may not work reliably:
-```javascript
-import { chromium } from 'playwright';
-const browser = await chromium.connectOverCDP('http://localhost:29229');
-const context = browser.contexts()[0];
-const page = await context.newPage();
-await page.setViewportSize({ width: 375, height: 812 });
-await page.goto('https://deploy-preview-{PR}--planetnewborn-v0-newbornplanetm.netlify.app/');
-const menuBtn = page.locator('button[aria-label="Open menu"]');
-await menuBtn.click();
-// Verify nav items appear and navigation works
-```
+### Admin Pages Available
+| Page | Path | Key Features |
+|------|------|--------------|
+| Dashboard | `/admin` | Stats cards, recent activity |
+| Vehicles | `/admin/inventory` | CRUD, VIN decoder, HomeNet sync |
+| Customers | `/admin/customers` | Customer list |
+| Leads | `/admin/leads` | Aggregated leads from all sources |
+| Reservations | `/admin/reservations` | Deposit tracking, status filters |
+| Orders | `/admin/orders` | Order management |
+| Finance Apps | `/admin/finance` | Finance application review |
+| AI Agents | `/admin/ai-agents` | Configure + Knowledge panels |
+| Workflows | `/admin/workflows` | Email notification rules |
+| 360° Photos | `/admin/360-upload` | Frame upload to Supabase |
+| Analytics | `/admin/analytics` | Traffic/conversion data |
+| Settings | `/admin/settings` | Site configuration |
 
-**Note:** `xdotool windowsize` resizes the Chrome window but does NOT change `window.innerWidth` — CSS media queries may not trigger. Always use Playwright viewport emulation for reliable mobile testing.
-
-### Lighthouse CLI on Preview Deploys
-Run Lighthouse against the existing Chrome instance via CDP:
-```bash
-lighthouse "https://deploy-preview-{PR}--planetnewborn-v0-newbornplanetm.netlify.app/" \
-  --only-categories=performance \
-  --output=json \
-  --output-path=/home/ubuntu/lighthouse-results.json \
-  --port=29229
-```
-
-**Do NOT** run `lighthouse` without `--port=29229` — it will try to launch a new Chrome instance and fail with `ECONNREFUSED` because Chrome is already running.
-
-Extract scores with:
-```bash
-cat lighthouse-results.json | python3 -c "
-import json, sys
-data = json.load(sys.stdin)
-perf = data['categories']['performance']['score']
-print(f'Performance: {perf * 100:.0f}%')
-for m in ['first-contentful-paint','largest-contentful-paint','total-blocking-time','cumulative-layout-shift','speed-index']:
-    if m in data['audits']:
-        print(f'  {data[\"audits\"][m][\"title\"]}: {data[\"audits\"][m][\"displayValue\"]}')
-"
-```
-
-### Expected Lighthouse Baselines
-- Homepage: ~50-55% on Netlify preview (high TBT from Next.js framework bundles)
-- Inventory: ~60-70% on Netlify preview (lower JS if page errors early)
-- The main bottleneck is JS execution time from Next.js framework chunks, not application code
-- CLS should be 0 or near-0 if `content-visibility` + `contain-intrinsic-size` are correctly applied
-
-## UI Testing
-
-- **Trade-In page** (`/trade-in`): Scroll to "Get an AI Instant Quote" section. Verify Year/Make/Model/Trim/Mileage fields and Email/SMS verification buttons render.
-- **VDP page** (`/vehicles/[id]`): Requires inventory data from Supabase. If no Supabase, inventory page shows "Error loading inventory" and you cannot navigate to a VDP. The PriceNegotiator component is at the bottom of VDP pages.
-- **Anna chat**: Click "Chat with Anna" floating button (bottom-right). Already secured with CSRF + rate limiting.
-
-## API Endpoint Testing Patterns
-
-### Auth-Gated Endpoints
-Many API routes (returns, alerts, admin) require Supabase authentication. Without a logged-in session, they return `401 Unauthorized`. To test these endpoints:
-1. **Unauthenticated test**: Verify the auth gate works (expect 401)
-2. **Authenticated test**: Requires a Supabase session cookie — log in via browser first, then extract the cookie for curl
-
-### Mock/Disabled API Routes
-Some API routes are intentionally disabled until real integrations are available:
-- **Returns API** (`/api/v1/returns/[id]`): GET returns 404, POST returns 503. Both require auth first (401 if unauthenticated). No fake data ("James P." was removed).
-- **Video-Call API** (`/api/video-call/request`): Returns success with "team will email" message. No fake `meet.planetmotors.ca` link.
-
-### Testing Disclaimer Fields
-Multiple API responses now include `_disclaimer` fields:
-```bash
-# Trade-In — verify source + disclaimer
-curl -s -X POST localhost:3000/api/v1/trade-in \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:3000" \
-  -d '{"year":2020,"make":"Toyota","model":"Camry","mileage":50000}' | \
-  python3 -c "import sys,json; d=json.load(sys.stdin); print('source:', d['data']['offer']['cbbValue']['source']); print('disclaimer:', '_disclaimer' in d['data'])"
-# Expected: source: Estimated (based on market data), disclaimer: True
-
-# Delivery Quote — verify disclaimer
-curl -s "localhost:3000/api/v1/deliveries/quote?postalCode=M5V1J2" | \
-  python3 -c "import sys,json; d=json.load(sys.stdin); print('disclaimer:', d.get('_disclaimer','')[:60])"
-# Expected: disclaimer: Delivery distance and cost are estimates only...
-```
-
-### Testing Dead Code Removal
-To verify dead code like unused `request.json()` calls has been removed, send invalid JSON and check for 500:
-```bash
-curl -s -X POST localhost:3000/api/v1/returns/test-123 \
-  -H "Content-Type: application/json" \
-  -d 'not-json' -w "\nHTTP_STATUS: %{http_code}"
-# Expected: 401 (auth gate) — NOT 500 (which would mean dead request.json() still crashes)
-```
-
-## Checkout Testing Limitations
-
-The checkout page (`/checkout/[id]`) requires Supabase authentication. Navigating to it redirects to `/auth/login`. To test checkout-specific features like the Stripe error UI:
-1. **With auth**: Log in via browser, then navigate to checkout. The Stripe `{!stripeKey ? ...}` conditional (lines 1024-1038) renders "Payment Unavailable" with phone CTA when `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` is missing.
-2. **Without auth (code-level only)**: Verify the conditional exists in `app/checkout/[id]/page.tsx`. To force the error state, comment out `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` in `.env.local` and restart the dev server. But you still need auth to reach the page.
-3. **Env var toggle**: To test with/without Stripe key, use `sed` to toggle the env var:
-   ```bash
-   # Disable Stripe key
-   sed -i 's/^NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=/#NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=/' .env.local
-   # Re-enable
-   sed -i 's/^#NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=/NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=/' .env.local
-   ```
-   Remember to restart the dev server after changing env vars.
-
-## Error Boundary Testing
-
-Error boundaries (`app/{page}/error.tsx`) catch React runtime errors in child components. They exist for: `/contact`, `/blog`, `/financing`, `/about`, `/delivery`, `/schedule`.
-
-### Verification Approaches
-1. **Code-level**: Verify files exist and contain the correct pattern:
-   ```bash
-   grep -c "reportError\|Something Went Wrong\|1-866-797-3332\|Try Again" app/*/error.tsx
-   # Each should return 6 (matches for all 4 patterns)
-   ```
-2. **Functional**: Navigate to each page and confirm it loads normally (boundary doesn't interfere)
-3. **Trigger test**: Error injection is difficult on preview deploys. In dev mode, you could temporarily throw an error in a child component to trigger the boundary.
-
-## VDP Gallery Alt Text Verification
-
-Thumbnail `<img>` elements should have descriptive alt text matching `"YEAR MAKE MODEL — photo N of M"`. Verify via browser console:
-```javascript
-Array.from(document.querySelectorAll('button[aria-label^="View image"] img')).map(img => img.alt)
-// Expected: ["2023 Tesla Model Y — photo 1 of 8", "2023 Tesla Model Y — photo 2 of 8", ...]
-```
-
-## Admin Email Consolidation Verification
-
-All admin email checks should import from `lib/admin.ts` (not hardcoded arrays):
-```bash
-grep -r "from.*lib/admin" app/ middleware.ts | wc -l
-# Expected: 9 files
-```
-
-## Vercel Preview Deployment Protection
-
-Vercel previews may have deployment protection enabled (returns HTTP 401). Options:
-1. Use `vercel curl` (requires Vercel CLI authenticated)
-2. Use Vercel MCP server's `get_access_to_vercel_url` function
-3. Use bypass token (see Vercel docs on protection bypass automation)
-4. Test locally in production mode instead (recommended for CSRF testing)
-5. Use Netlify preview instead (`https://deploy-preview-{PR_NUMBER}--planetnewborn-v0-newbornplanetm.netlify.app`) — these are accessible without auth but are static exports (no API routes)
+### Supabase Migration Scripts
+Migration scripts are in `scripts/` directory. Run them in order via Supabase SQL Editor or Management API. Key migrations:
+- `018_create_leads_conversations_ai_config.sql` — leads, chat_conversations, chat_messages, ai_agent_config tables
+- `019_create_ai_agent_knowledge.sql` — ai_agent_knowledge table for Knowledge & Training feature
 
 ## Devin Secrets Needed
 
-- `KV_REST_API_URL` — Upstash Redis URL (for rate limiting tests)
-- `KV_REST_API_TOKEN` — Upstash Redis token (for rate limiting tests)
-- `NEXT_PUBLIC_SUPABASE_URL` — Supabase project URL (for inventory/VDP UI tests + 4 E2E tests)
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase anon key (for inventory/VDP UI tests + 4 E2E tests)
-- `SUPABASE_SERVICE_ROLE_KEY` — Supabase admin key (for data integrity tests, race condition testing)
-- OpenAI/AI Gateway key — only needed for full end-to-end AI response testing
+| Secret Name | Purpose | Scope |
+|-------------|---------|-------|
+| `SUPABASE_ACCESS_TOKEN` | Run migrations via Supabase Management API | repo |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-side Supabase queries | repo |
+| `SUPABASE_ANON_KEY` | Client-side Supabase queries | repo |
+| `RESEND_API_KEY` | Email sending (workflows) | repo |
+| `STRIPE_SECRET_KEY` | Payment processing | repo |
 
-## Build & Lint Commands
-
+These are available at `/run/repo_secrets/PLANETMOTORS/v0-newbornplanetm/.env.secrets`. Source them with:
 ```bash
-pnpm build          # Next.js production build
-pnpm lint           # ESLint
-npx tsc --noEmit    # TypeScript strict check
-pnpm test:e2e       # Run ALL E2E specs (needs local server)
+source /run/repo_secrets/PLANETMOTORS/v0-newbornplanetm/.env.secrets
 ```
-
-## Key Files
-
-- `lib/csrf.ts` — CSRF origin validation logic
-- `lib/redis.ts` — Rate limiting + verification code storage
-- `lib/admin.ts` — Consolidated admin email list (ADMIN_EMAILS + isAdminEmail)
-- `lib/error-reporting.ts` — Error reporting to Sentry via reportError()
-- `app/api/negotiate/route.ts` — Price Negotiator endpoint
-- `app/api/vehicle-valuation/route.ts` — Vehicle Valuator endpoint
-- `app/api/verify/send-code/route.ts` — Server-side verification code generation
-- `app/api/verify/check-code/route.ts` — Timing-safe code verification
-- `app/api/v1/returns/[id]/route.ts` — Disabled returns API (404/503)
-- `app/api/v1/trade-in/route.ts` — Trade-in with disclaimer + corrected source
-- `app/api/v1/deliveries/quote/route.ts` — Delivery quote with disclaimer
-- `app/api/video-call/request/route.ts` — Video call scheduling (no fake link)
-- `app/checkout/[id]/page.tsx` — Checkout with Stripe error UI fallback
-- `app/contact/error.tsx` — Error boundary pattern (same for blog, financing, about, delivery, schedule)
-- `app/admin/inventory/page.tsx` — Admin vehicle management (CRUD, VIN decoder, HomeNet sync)
-- `app/api/v1/admin/vehicles/route.ts` — Vehicle list/create API (admin auth required)
-- `app/api/v1/admin/vehicles/[id]/route.ts` — Vehicle update/delete API (VIN validation, duplicate check)
-- `app/api/v1/admin/vehicles/vin-decode/route.ts` — NHTSA VIN decoder proxy
-- `app/api/v1/admin/vehicles/homenet-sync/route.ts` — HomeNet sync trigger
-- `e2e/human-click-timing-debug.spec.ts` — Main 40-test E2E spec
-- `e2e/fixtures/dl-front.jpg` — Required fixture for C09 Vercel Blob upload test
-- `.github/workflows/ci.yml` — CI pipeline (lint-and-build, bundle-check, e2e)
-- `playwright.config.ts` — Playwright configuration (webServer on port 3000)
-- `app/inventory/page.tsx` — Inventory page with `content-visibility: auto` virtualization
-- `components/footer-content.tsx` — Footer as Server Component (no "use client")
-- `app/layout.tsx` — Font configuration with `display: 'swap'`
-- `components/vehicle-showcase.tsx` — Hero vehicle showcase with SWR + server fallbackData
-- `app/vehicles/[id]/layout.tsx` — VDP layout with Pirelly 360° script (scoped here, not global)
