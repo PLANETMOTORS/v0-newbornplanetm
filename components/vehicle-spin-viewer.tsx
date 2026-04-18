@@ -287,7 +287,9 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
           <img
             src="/images/planet-motors-logo.png"
             alt=""
-            className="h-6 w-auto"
+            width={42}
+            height={24}
+            style={{ height: '24px', width: 'auto' }}
             draggable={false}
           />
         </div>
