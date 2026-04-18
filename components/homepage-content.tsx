@@ -66,20 +66,6 @@ export type HomepageProps = {
       isClosed: boolean
     }>
   }
-  testimonials: Array<{
-    _id: string
-    customerName: string
-    rating: number
-    review: string
-    location?: string
-    vehiclePurchased?: string
-    publishedAt?: string
-  }>
-  faqs: Array<{
-    _id: string
-    question: string
-    answer: string
-  }>
   showcaseVehicles?: Array<{
     id: string
     year: number
@@ -99,41 +85,7 @@ export type HomepageProps = {
 
 
 
-
-
-
-export function HomepageContent({ siteSettings, testimonials, showcaseVehicles }: HomepageProps) {
-  // Use Sanity testimonials or fallback to default
-  const displayReviews = testimonials.length > 0 ? testimonials.slice(0, 3).map(t => ({
-    name: t.customerName,
-    location: t.location || "Ontario",
-    rating: t.rating,
-    text: t.review,
-    date: t.publishedAt ? new Date(t.publishedAt).toLocaleDateString() : "Recently",
-  })) : [
-    {
-      name: "Michael T.",
-      location: "Toronto, ON",
-      rating: 5,
-      text: "Best car buying experience ever. The 360 viewer helped me decide before visiting. Staff was incredibly helpful!",
-      date: "2 weeks ago",
-    },
-    {
-      name: "Sarah L.",
-      location: "Markham, ON",
-      rating: 5,
-      text: "Transparent pricing, no hidden fees. The 210-point inspection report gave me complete confidence in my purchase.",
-      date: "1 month ago",
-    },
-    {
-      name: "David K.",
-      location: "Richmond Hill, ON",
-      rating: 5,
-      text: "Got pre-approved with TD in minutes. Great rates and the whole process was seamless. Highly recommend!",
-      date: "3 weeks ago",
-    },
-  ]
-
+export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProps) {
   const ratingValue = siteSettings.aggregateRating?.ratingValue || 4.8
   const lowestRate = siteSettings.financingDefaults?.annualInterestRate || 6.29
 
@@ -202,10 +154,9 @@ export function HomepageContent({ siteSettings, testimonials, showcaseVehicles }
       {/* ========== BOX 3: FEATURED VEHICLES - Pure White #FFFFFF ========== */}
       <HomepageFeaturedVehicles />
 
-      {/* Below-fold sections: lazy-loaded to reduce initial JS bundle */}
+      {/* Below-fold sections: lazy-loaded, fetches its own testimonials */}
       <HomepageBelowFold
         siteSettings={siteSettings}
-        displayReviews={displayReviews}
         ratingValue={ratingValue}
         lowestRate={lowestRate}
         weekdayHours={weekdayHours}

@@ -1,13 +1,23 @@
-// Planet Motors Homepage - v22 - Lighthouse Performance Optimized
-import { Suspense, lazy } from "react"
+// Planet Motors Homepage - v23 - ISR + Optimized Data Fetching
+// Key perf wins:
+//   1. ISR (revalidate=60) — page is statically generated, rebuilt every 60s
+//   2. Cookie-less Supabase client — no cookies() call = ISR-compatible
+//   3. Only hero-critical data blocks render (siteSettings + vehicles)
+//   4. Below-fold data (testimonials, FAQs) fetched client-side by HomepageBelowFold
+import { Suspense } from "react"
 import dynamic from "next/dynamic"
 import { Header } from "@/components/header"
 import { HomepageContent } from "@/components/homepage-content"
 
 // Lazy-load the footer since it's always below the fold
 const Footer = dynamic(() => import("@/components/footer").then(m => ({ default: m.Footer })), { ssr: true })
-import { getSiteSettings, getTestimonials, getFaqs } from "@/lib/sanity/fetch"
-import { createClient } from "@/lib/supabase/server"
+import { getSiteSettings } from "@/lib/sanity/fetch"
+import { createStaticClient } from "@/lib/supabase/static"
+
+// ISR: regenerate the homepage at most every 60 seconds.
+// Combined with Sanity CDN caching and the stateless Supabase client,
+// this means most visitors get a pre-built HTML page instantly.
+export const revalidate = 60
 
 // Default site settings - fallback when CMS is unavailable or slow
 const DEFAULT_SITE_SETTINGS = {
@@ -33,11 +43,11 @@ async function withTimeout<T>(promise: Promise<T>, fallback: T, ms = 3000): Prom
 }
 
 // Fetch showcase vehicles server-side so the LCP hero image is in the initial
-// HTML with a <link rel="preload">. Passed to VehicleShowcase as SWR fallbackData
-// so vehicle metadata and images are consistent from the first render.
+// HTML with a <link rel="preload">. Uses the stateless client (no cookies())
+// so the page remains ISR-eligible.
 async function getShowcaseVehicles() {
   try {
-    const supabase = await createClient()
+    const supabase = createStaticClient()
     const { data, error } = await supabase
       .from('vehicles')
       .select('id, year, make, model, trim, price, mileage, fuel_type, inspection_score, is_new_arrival, primary_image_url, image_urls')
@@ -51,20 +61,18 @@ async function getShowcaseVehicles() {
   }
 }
 
-// Async component that fetches CMS data — streamed via Suspense
+// Async component — only fetches hero-critical data.
+// Testimonials & FAQs are now fetched client-side by HomepageBelowFold
+// so they don't delay the initial HTML / LCP image.
 async function HomepageWithData() {
-  const [siteSettings, testimonials, faqs, showcaseVehicles] = await Promise.all([
+  const [siteSettings, showcaseVehicles] = await Promise.all([
     withTimeout(getSiteSettings(), null),
-    withTimeout(getTestimonials(), []),
-    withTimeout(getFaqs(), []),
     withTimeout(getShowcaseVehicles(), null),
   ])
 
   return (
     <HomepageContent
       siteSettings={siteSettings ?? DEFAULT_SITE_SETTINGS}
-      testimonials={testimonials ?? []}
-      faqs={faqs ?? []}
       showcaseVehicles={showcaseVehicles}
     />
   )

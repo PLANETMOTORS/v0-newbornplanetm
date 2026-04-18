@@ -31,6 +31,31 @@ const protectionPlans = [
   },
 ]
 
+// Default reviews shown on the static page — no server fetch needed
+const defaultReviews = [
+  {
+    name: "Michael T.",
+    location: "Toronto, ON",
+    rating: 5,
+    text: "Best car buying experience ever. The 360 viewer helped me decide before visiting. Staff was incredibly helpful!",
+    date: "2 weeks ago",
+  },
+  {
+    name: "Sarah L.",
+    location: "Markham, ON",
+    rating: 5,
+    text: "Transparent pricing, no hidden fees. The 210-point inspection report gave me complete confidence in my purchase.",
+    date: "1 month ago",
+  },
+  {
+    name: "David K.",
+    location: "Richmond Hill, ON",
+    rating: 5,
+    text: "Got pre-approved with TD in minutes. Great rates and the whole process was seamless. Highly recommend!",
+    date: "3 weeks ago",
+  },
+]
+
 type BelowFoldProps = {
   siteSettings: {
     dealerName: string
@@ -39,14 +64,14 @@ type BelowFoldProps = {
     city: string
     province: string
   }
-  displayReviews: Array<{ name: string; location: string; rating: number; text: string; date: string }>
   ratingValue: number
   lowestRate: number
   weekdayHours?: { open: string; close: string } | null
   saturdayHours?: { open: string; close: string } | null
 }
 
-export function HomepageBelowFold({ siteSettings, displayReviews, ratingValue, lowestRate, weekdayHours, saturdayHours }: BelowFoldProps) {
+export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekdayHours, saturdayHours }: BelowFoldProps) {
+  const displayReviews = defaultReviews
   return (
     <>
       {/* ========== WHY CHOOSE US ========== */}
