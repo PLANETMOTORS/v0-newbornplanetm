@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Invalidate the in-memory drivee cache so subsequent requests see new data
-  invalidateDriveeCache()
+  if (!dryRun) invalidateDriveeCache()
 
   return NextResponse.json({
     summary: {

@@ -63,6 +63,8 @@ async function loadMappings(): Promise<Map<string, DriveeMapping>> {
         vehicle_name: null,
       })
     }
+    _cache = map
+    _cacheTs = Date.now()
     return map
   }
 }
