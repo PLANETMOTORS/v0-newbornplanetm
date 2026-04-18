@@ -1832,12 +1832,12 @@ function TradeInContent() {
             
             <div className="space-y-3">
               <div>
-                <Label htmlFor="accept-email">Confirm Email</Label>
-                <Input id="accept-email" type="email" placeholder="your@email.com" defaultValue={email} />
+                <Label htmlFor="accept-email">Confirm Email <span className="text-destructive">*</span></Label>
+                <Input id="accept-email" type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
               <div>
-                <Label htmlFor="accept-phone">Confirm Phone</Label>
-                <Input id="accept-phone" type="tel" placeholder="(416) 555-1234" defaultValue={phone} />
+                <Label htmlFor="accept-phone">Confirm Phone <span className="text-destructive">*</span></Label>
+                <Input id="accept-phone" type="tel" placeholder="(416) 555-1234" value={phone} onChange={(e) => setPhone(e.target.value)} />
               </div>
               <div className="flex items-start gap-2">
                 <Checkbox id="accept-terms" />
@@ -1852,9 +1852,14 @@ function TradeInContent() {
             <Button variant="outline" onClick={() => setShowAcceptModal(false)}>
               Cancel
             </Button>
-            <Button 
+            <Button
               className="bg-green-600 hover:bg-green-700"
+              disabled={!email || !phone}
               onClick={async () => {
+                if (!email || !phone) {
+                  alert('Please enter your email and phone number.')
+                  return
+                }
                 try {
                   // Call API to save acceptance and notify dealership
                   const response = await fetch('/api/v1/trade-in/accept', {
