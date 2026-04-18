@@ -83,14 +83,12 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   }, [images])
 
   // ── Overlay canvas draw ──
-  // ── Overlay canvas draw ──
   useEffect(() => {
     draw()
     const onResize = () => draw()
     window.addEventListener("resize", onResize)
     return () => window.removeEventListener("resize", onResize)
   }, [draw, isFullscreen])
-
 
   // ── Auto-play ──
   useEffect(() => {
