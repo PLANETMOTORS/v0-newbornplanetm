@@ -104,6 +104,16 @@ export async function PUT(
       if ((update.vin as string).length !== 17) {
         return NextResponse.json({ error: "VIN must be exactly 17 characters" }, { status: 400 })
       }
+      // Check for duplicate VIN (excluding current vehicle)
+      const { data: existing } = await adminClient
+        .from("vehicles")
+        .select("id")
+        .eq("vin", update.vin)
+        .neq("id", id)
+        .maybeSingle()
+      if (existing) {
+        return NextResponse.json({ error: "A vehicle with this VIN already exists" }, { status: 409 })
+      }
     }
 
     // Numeric conversions
