@@ -1980,7 +1980,48 @@ function TradeInContent() {
               <h4 className="font-medium">What are you looking for?</h4>
               <div className="grid grid-cols-2 gap-2">
                 {['SUV', 'Sedan', 'Truck', 'Electric', 'Luxury', 'Under $30k'].map((type) => (
-                  <Button key={type} variant="outline" size="sm" className="justify-start">
+                  <Button
+                    key={type}
+                    variant="outline"
+                    size="sm"
+                    className="justify-start"
+                    onClick={async () => {
+                      // Save trade-in quote before navigating
+                      try {
+                        if (user) {
+                          await fetch('/api/v1/trade-in/save', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              quoteId: offer?.quoteId,
+                              vehicleYear: selectedYear,
+                              vehicleMake: selectedMake,
+                              vehicleModel: selectedModel,
+                              mileage,
+                              condition: condition,
+                              postalCode,
+                              offerAmount: offer?.offerAmount,
+                              customerEmail: email || user.email,
+                              customerPhone: phone,
+                            })
+                          })
+                        }
+                      } catch { /* save failed silently */ }
+                      try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
+                      setShowApplyModal(false)
+                      // Build inventory URL with trade-in info + category filter
+                      const params = new URLSearchParams({
+                        tradeIn: String(offer?.offerAmount || 0),
+                        quoteId: offer?.quoteId || '',
+                        tradeInVehicle: encodeURIComponent(offer?.vehicle || '')
+                      })
+                      if (type === 'Electric') params.set('fuelType', 'Electric')
+                      else if (type === 'Under $30k') params.set('maxPrice', '30000')
+                      else if (type === 'Luxury') params.set('category', 'Luxury')
+                      else params.set('bodyType', type)
+                      window.location.href = `/inventory?${params.toString()}`
+                    }}
+                  >
                     {type}
                   </Button>
                 ))}
