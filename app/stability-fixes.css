@@ -1,5 +1,16 @@
-/* Planet Motors stability fixes */
+/* Planet Motors stability + performance fixes */
 /* Keep this file conservative: avoid global contain/transform hacks that can trigger flicker on mobile browsers. */
+
+/* content-visibility: auto — skip rendering of off-screen sections to reduce
+   initial paint work and main-thread blocking time (Lighthouse TBT improvement) */
+.content-visibility-auto {
+  content-visibility: auto;
+}
+/* contain-intrinsic-size helper — prevents CLS when content-visibility hides sections */
+.contain-intrinsic-size-\[auto_500px\] { contain-intrinsic-size: auto 500px; }
+.contain-intrinsic-size-\[auto_400px\] { contain-intrinsic-size: auto 400px; }
+.contain-intrinsic-size-\[auto_600px\] { contain-intrinsic-size: auto 600px; }
+.contain-intrinsic-size-\[auto_350px\] { contain-intrinsic-size: auto 350px; }
 
 html {
   -webkit-font-smoothing: antialiased;
