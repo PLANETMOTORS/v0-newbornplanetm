@@ -214,7 +214,7 @@ async function lookupPostalCodeOnline(postalCode: string): Promise<{ city: strin
       return {
         city: data.standard.city,
         province: PROV_ABBR_TO_NAME[data.standard.prov] || data.standard.prov,
-        street: data.standard?.staddress || undefined,
+        street: typeof data.standard?.staddress === 'string' ? data.standard.staddress : undefined,
       }
     }
     return null
