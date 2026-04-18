@@ -473,27 +473,27 @@ export default function AdminInventoryPage() {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {/* HomeNet Sync */}
-          <Button variant="outline" size="sm" onClick={triggerSync} disabled={syncing} title="Trigger HomeNet sync">
+          <Button variant="outline" size="sm" onClick={triggerSync} disabled={syncing} title="Trigger HomeNet sync" aria-label={syncing ? "Syncing HomeNet" : "Sync HomeNet"}>
             <RefreshCw className={`w-4 h-4 sm:mr-2 ${syncing ? "animate-spin" : ""}`} />
             <span className="hidden sm:inline">{syncing ? "Syncing..." : "Sync HomeNet"}</span>
           </Button>
           {/* CSV Import */}
-          <label>
+          <label aria-label="Import CSV">
             <Button variant="outline" size="sm" asChild>
               <span>
                 {importingCSV ? <Loader2 className="w-4 h-4 sm:mr-2 animate-spin" /> : <Upload className="w-4 h-4 sm:mr-2" />}
                 <span className="hidden sm:inline">Import CSV</span>
               </span>
             </Button>
-            <input type="file" accept=".csv,.txt" className="hidden" onChange={handleCSVImport} disabled={importingCSV} />
+            <input type="file" accept=".csv,.txt" className="hidden" onChange={handleCSVImport} disabled={importingCSV} aria-label="Import CSV file" />
           </label>
           {/* CSV Export */}
-          <Button variant="outline" size="sm" onClick={handleCSVExport} disabled={vehicles.length === 0}>
+          <Button variant="outline" size="sm" onClick={handleCSVExport} disabled={vehicles.length === 0} aria-label="Export inventory CSV">
             <Download className="w-4 h-4 sm:mr-2" />
             <span className="hidden sm:inline">Export</span>
           </Button>
           {/* Add Vehicle */}
-          <Button size="sm" onClick={openCreate}>
+          <Button size="sm" onClick={openCreate} aria-label="Add vehicle">
             <Plus className="w-4 h-4 sm:mr-2" />
             <span className="hidden sm:inline">Add Vehicle</span>
           </Button>

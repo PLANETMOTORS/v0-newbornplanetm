@@ -5,12 +5,22 @@ import { Calendar, Clock, ArrowLeft, Share2, Facebook, Twitter, Linkedin } from 
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { ArticleJsonLd } from "@/components/seo/json-ld"
+import { getPublicSiteUrl } from "@/lib/site-url"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import sanitizeHtml from "sanitize-html"
 import { blogPosts } from "@/lib/blog-data"
+
+const SITE_URL = getPublicSiteUrl()
+
+/** Convert display date "Apr 09, 2026" → ISO "2026-04-09" for structured data. */
+function toISODate(displayDate: string): string {
+  const d = new Date(displayDate)
+  if (isNaN(d.getTime())) return displayDate
+  return d.toISOString().slice(0, 10)
+}
 
 // Blog post data extracted to lib/blog-data.ts to reduce page bundle size.
 
@@ -58,6 +68,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${post.title} | Planet Motors Blog`,
     description: post.excerpt,
+    alternates: {
+      canonical: `${SITE_URL}/blog/${slug}`,
+    },
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      url: `${SITE_URL}/blog/${slug}`,
+      siteName: "Planet Motors",
+      locale: "en_CA",
+      type: "article",
+      images: [{ url: post.image, width: 1200, height: 600, alt: post.title }],
+      publishedTime: toISODate(post.date),
+    },
   }
 }
 
@@ -77,7 +100,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         article={{
           title: post.title,
           slug,
-          publishedAt: post.date,
+          publishedAt: toISODate(post.date),
           excerpt: post.excerpt,
           coverImage: post.image,
           author: post.author,
