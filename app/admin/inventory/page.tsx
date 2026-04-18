@@ -389,9 +389,30 @@ export default function AdminInventoryPage() {
 
   // ─── CSV Export ───────────────────────────────────────────────────────
 
-  const handleCSVExport = () => {
+  const handleCSVExport = async () => {
+    // Fetch ALL vehicles (not just current page) for a full inventory export
+    const allVehicles: VehicleRow[] = []
+    let offset = 0
+    const batchSize = 200 // API max per request
+    try {
+      while (true) {
+        const params = new URLSearchParams({ limit: String(batchSize), offset: String(offset), sort: "updated_at", order: "desc" })
+        if (debouncedSearch) params.set("search", debouncedSearch)
+        if (statusFilter !== "all") params.set("status", statusFilter)
+        const res = await fetch(`/api/v1/admin/vehicles?${params}`)
+        if (!res.ok) break
+        const data: VehiclesResponse = await res.json()
+        allVehicles.push(...data.vehicles)
+        if (allVehicles.length >= data.total || data.vehicles.length < batchSize) break
+        offset += batchSize
+      }
+    } catch {
+      // Fall back to current page if fetch fails
+      allVehicles.push(...vehicles)
+    }
+
     const headers = ["stock_number","vin","year","make","model","trim","price","mileage","status","exterior_color","drivetrain","fuel_type"]
-    const rows = vehicles.map(v => [
+    const rows = allVehicles.map(v => [
       v.stock_number, v.vin, v.year, v.make, v.model, v.trim || "",
       Math.round(v.price / 100), v.mileage, v.status, v.exterior_color || "",
       v.drivetrain || "", v.fuel_type || ""
@@ -410,8 +431,9 @@ export default function AdminInventoryPage() {
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
   const toggleSelectAll = () => {
-    if (selectedVehicles.length === vehicles.length) setSelectedVehicles([])
-    else setSelectedVehicles(vehicles.map(v => v.id))
+    const allCurrentSelected = vehicles.length > 0 && vehicles.every(v => selectedVehicles.includes(v.id))
+    if (allCurrentSelected) setSelectedVehicles(prev => prev.filter(id => !vehicles.some(v => v.id === id)))
+    else setSelectedVehicles(prev => [...new Set([...prev, ...vehicles.map(v => v.id)])])
   }
   const toggleSelect = (id: string) => {
     setSelectedVehicles(prev => prev.includes(id) ? prev.filter(v => v !== id) : [...prev, id])
@@ -605,7 +627,7 @@ export default function AdminInventoryPage() {
                       <th className="py-3 px-4 text-left">
                         <input
                           type="checkbox"
-                          checked={selectedVehicles.length === vehicles.length && vehicles.length > 0}
+                          checked={vehicles.length > 0 && vehicles.every(v => selectedVehicles.includes(v.id))}
                           onChange={toggleSelectAll}
                           className="rounded"
                         />
