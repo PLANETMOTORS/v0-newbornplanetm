@@ -74,7 +74,7 @@ export async function GET() {
       adminClient.from("finance_applications_v2").select("id", { count: "exact", head: true }).in("status", ["submitted", "under_review"]),
       adminClient.from("finance_applications_v2").select("id", { count: "exact", head: true }).eq("status", "approved"),
       adminClient.from("trade_in_quotes").select("id", { count: "exact", head: true }),
-      adminClient.from("trade_in_quotes").select("id", { count: "exact", head: true }).in("status", ["pending", "quoted"]),
+      adminClient.from("trade_in_quotes").select("id", { count: "exact", head: true }).eq("status", "pending"),
       adminClient.from("trade_in_quotes").select("id", { count: "exact", head: true }).eq("status", "accepted"),
     ])
 

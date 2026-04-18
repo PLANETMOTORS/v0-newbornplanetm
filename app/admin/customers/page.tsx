@@ -118,7 +118,7 @@ export default function AdminCustomersPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>With Orders</CardDescription>
+            <CardDescription>With Orders (this page)</CardDescription>
             <CardTitle className="text-3xl text-green-600">
               {customers.filter(c => c.orderCount > 0).length}
             </CardTitle>
@@ -126,7 +126,7 @@ export default function AdminCustomersPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>With Reservations</CardDescription>
+            <CardDescription>With Reservations (this page)</CardDescription>
             <CardTitle className="text-3xl text-blue-600">
               {customers.filter(c => c.reservationCount > 0).length}
             </CardTitle>

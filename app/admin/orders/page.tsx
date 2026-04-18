@@ -74,14 +74,16 @@ interface OrderStats {
   totalRevenue: number
 }
 
+// Order statuses per schema: created, confirmed, processing, ready_for_delivery, in_transit, delivered, cancelled, refunded
 const statusConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
   created: { label: "Created", color: "bg-blue-100 text-blue-800", icon: <Clock className="w-3.5 h-3.5" /> },
-  documents_pending: { label: "Docs Pending", color: "bg-yellow-100 text-yellow-800", icon: <FileText className="w-3.5 h-3.5" /> },
-  payment_processing: { label: "Payment", color: "bg-orange-100 text-orange-800", icon: <CreditCard className="w-3.5 h-3.5" /> },
-  vehicle_preparation: { label: "Prep", color: "bg-purple-100 text-purple-800", icon: <Car className="w-3.5 h-3.5" /> },
-  delivery_scheduled: { label: "Scheduled", color: "bg-indigo-100 text-indigo-800", icon: <Truck className="w-3.5 h-3.5" /> },
+  confirmed: { label: "Confirmed", color: "bg-cyan-100 text-cyan-800", icon: <CheckCircle className="w-3.5 h-3.5" /> },
+  processing: { label: "Processing", color: "bg-yellow-100 text-yellow-800", icon: <FileText className="w-3.5 h-3.5" /> },
+  ready_for_delivery: { label: "Ready", color: "bg-purple-100 text-purple-800", icon: <Car className="w-3.5 h-3.5" /> },
+  in_transit: { label: "In Transit", color: "bg-indigo-100 text-indigo-800", icon: <Truck className="w-3.5 h-3.5" /> },
   delivered: { label: "Delivered", color: "bg-green-100 text-green-800", icon: <CheckCircle className="w-3.5 h-3.5" /> },
   cancelled: { label: "Cancelled", color: "bg-red-100 text-red-800", icon: <XCircle className="w-3.5 h-3.5" /> },
+  refunded: { label: "Refunded", color: "bg-orange-100 text-orange-800", icon: <CreditCard className="w-3.5 h-3.5" /> },
 }
 
 const PAGE_SIZE = 20
@@ -134,7 +136,7 @@ export default function AdminOrdersPage() {
       if (res.ok) {
         const data = await res.json()
         setOrders(data.orders || [])
-        setStats(data.stats || stats)
+        setStats(prev => data.stats ?? prev)
         setTotalCount(data.total ?? 0)
       }
     } catch (error) {
@@ -239,12 +241,13 @@ export default function AdminOrdersPage() {
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="created">Created</SelectItem>
-                <SelectItem value="documents_pending">Docs Pending</SelectItem>
-                <SelectItem value="payment_processing">Payment</SelectItem>
-                <SelectItem value="vehicle_preparation">Preparation</SelectItem>
-                <SelectItem value="delivery_scheduled">Scheduled</SelectItem>
+                <SelectItem value="confirmed">Confirmed</SelectItem>
+                <SelectItem value="processing">Processing</SelectItem>
+                <SelectItem value="ready_for_delivery">Ready for Delivery</SelectItem>
+                <SelectItem value="in_transit">In Transit</SelectItem>
                 <SelectItem value="delivered">Delivered</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="refunded">Refunded</SelectItem>
               </SelectContent>
             </Select>
           </div>

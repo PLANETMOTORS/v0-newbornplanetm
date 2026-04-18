@@ -118,12 +118,11 @@ export async function GET(request: NextRequest) {
     })
 
     // Stats — use count queries to avoid Supabase's 1000-row default limit
-    const [totalResult, createdResult, processingDocsResult, processingPayResult, processingPrepResult, deliveredResult, cancelledResult] = await Promise.all([
+    // Order statuses per schema: created, confirmed, processing, ready_for_delivery, in_transit, delivered, cancelled, refunded
+    const [totalResult, createdResult, processingResult, deliveredResult, cancelledResult] = await Promise.all([
       adminClient.from("orders").select("id", { count: "exact", head: true }),
       adminClient.from("orders").select("id", { count: "exact", head: true }).eq("status", "created"),
-      adminClient.from("orders").select("id", { count: "exact", head: true }).eq("status", "documents_pending"),
-      adminClient.from("orders").select("id", { count: "exact", head: true }).eq("status", "payment_processing"),
-      adminClient.from("orders").select("id", { count: "exact", head: true }).eq("status", "vehicle_preparation"),
+      adminClient.from("orders").select("id", { count: "exact", head: true }).in("status", ["confirmed", "processing", "ready_for_delivery", "in_transit"]),
       adminClient.from("orders").select("id", { count: "exact", head: true }).eq("status", "delivered"),
       adminClient.from("orders").select("id", { count: "exact", head: true }).eq("status", "cancelled"),
     ])
@@ -146,7 +145,7 @@ export async function GET(request: NextRequest) {
     const stats = {
       total: totalResult.count ?? 0,
       created: createdResult.count ?? 0,
-      processing: (processingDocsResult.count ?? 0) + (processingPayResult.count ?? 0) + (processingPrepResult.count ?? 0),
+      processing: processingResult.count ?? 0,
       delivered: deliveredResult.count ?? 0,
       cancelled: cancelledResult.count ?? 0,
       totalRevenue,
