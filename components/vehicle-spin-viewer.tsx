@@ -6,6 +6,14 @@ import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "luci
 import { useOverlayRenderer } from "@/hooks/use-overlay-renderer"
 import { overlayConfig } from "@/config/overlay/loader/loadOverlayConfig"
 
+// ── Tire-floor alignment constants (used by the dynamic transform calc) ──
+const SHADOW_CENTER_Y = 0.7556   // from overlay config (cy of shadow ellipse)
+const TIRE_CONTACT_Y  = 0.823    // tire contact at 82.3 % from top of image
+const TIRE_SCALE      = 1.25     // enlargement factor
+const INNER_W_RATIO   = 0.90     // inner positioning div width ratio
+const INNER_H_RATIO   = 0.85     // inner positioning div height ratio
+const IMG_ASPECT      = 4 / 3    // 1200 × 900 source frames
+
 interface SpinViewerProps {
   /** Ordered array of image URLs (walk-around frames). */
   images: string[]
@@ -42,6 +50,48 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   const lastX = useRef(0)
   const velocity = useRef(0)
   const momentumRef = useRef<number | null>(null)
+
+  // ── Dynamic tire-floor alignment ──
+  // The car frames have transparent padding below the tires (tire contact at
+  // ~82.3 % of image height).  A fixed CSS translateY doesn't work across
+  // viewports because object-contain renders the image at different sizes
+  // depending on container aspect ratio.  We compute the exact translateY at
+  // runtime so the tire line always lands on the shadow-ellipse centre.
+  const [tireTransform, setTireTransform] = useState(`scale(${TIRE_SCALE})`)
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+
+    const recalc = () => {
+      const { width: cw, height: ch } = el.getBoundingClientRect()
+      if (cw === 0 || ch === 0) return
+
+      const iw = cw * INNER_W_RATIO          // inner div width
+      const ih = ch * INNER_H_RATIO          // inner div height
+
+      // Rendered image height inside the object-contain element
+      const renderH = (iw / ih > IMG_ASPECT) ? ih : iw / IMG_ASPECT
+
+      // Tire Y position inside the element (image centred vertically)
+      const tireInElem = (ih - renderH) / 2 + TIRE_CONTACT_Y * renderH
+
+      // Element is centred in the container
+      const elemCenter = ch / 2
+      const targetY    = ch * SHADOW_CENTER_Y
+
+      // Solve: targetY = elemCenter + S*(tireInElem - ih/2) + S*T  →  T = …
+      const T    = (targetY - elemCenter - TIRE_SCALE * (tireInElem - ih / 2)) / TIRE_SCALE
+      const tPct = (T / ih) * 100
+
+      setTireTransform(`scale(${TIRE_SCALE}) translateY(${tPct.toFixed(2)}%)`)
+    }
+
+    recalc()
+    const ro = new ResizeObserver(recalc)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [isFullscreen])
 
   const totalFrames = images.length
   const sensitivity = totalFrames > 0 ? Math.max(3, Math.round(800 / totalFrames)) : 3
@@ -235,11 +285,8 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         </div>
       )}
 
-      {/* Current frame image — scaled & repositioned so tires sit on the studio floor.
-           The background-removed frames have ~18 % transparent padding below the tires
-           (tire contact at ~82 % of image height).  scale(1.25) enlarges the car to
-           fill more of the viewer, and translateY(-8 %) shifts it up so the tire line
-           lands on the shadow-ellipse centre (≈ 75.56 % of the container). */}
+      {/* Current frame image — dynamically positioned so tires sit on the shadow
+           ellipse at any viewport size.  See the tireTransform calculation above. */}
       {isReady && images[frame] && (
         <div className="absolute inset-0 flex items-center justify-center z-[2]">
           <div className="relative" style={{ width: "90%", height: "85%" }}>
@@ -248,7 +295,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
               alt={`${alt} — angle ${frame + 1} of ${totalFrames}`}
               fill
               className="object-contain pointer-events-none"
-              style={{ transform: "scale(1.25) translateY(-8%)" }}
+              style={{ transform: tireTransform }}
               priority={frame === 0}
               sizes={isFullscreen ? "100vw" : "(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"}
               draggable={false}
