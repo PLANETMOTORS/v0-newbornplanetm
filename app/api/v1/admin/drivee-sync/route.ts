@@ -1,0 +1,189 @@
+import { NextRequest, NextResponse } from "next/server"
+import { createAdminClient } from "@/lib/supabase/admin"
+import {
+  resolveMidFromPirelly,
+  resolveMidFromPirellyByStock,
+  countFramesInStorage,
+  countFramesOnFirebase,
+  migrateFramesToSupabase,
+  type SyncResult,
+} from "@/lib/drivee-sync"
+import { getSupabaseServiceRoleKey } from "@/lib/supabase/config"
+
+/**
+ * POST /api/v1/admin/drivee-sync
+ *
+ * Automated Pirelly → Supabase sync pipeline.
+ *
+ * For each active vehicle in the inventory:
+ *   1. Query Pirelly API for VIN → MID resolution
+ *   2. Check if frames exist in Supabase Storage
+ *   3. If frames are on Firebase but not Supabase, migrate them
+ *   4. Upsert the mapping into `drivee_mappings` table
+ *
+ * Query params:
+ *   - vin: Sync a single VIN (optional, syncs all if omitted)
+ *   - migrate: "true" to also migrate frames from Firebase → Supabase (default: true)
+ *   - dry_run: "true" to preview changes without writing to DB
+ *
+ * Returns a summary of all sync results.
+ */
+export async function POST(request: NextRequest) {
+  const serviceRoleKey = getSupabaseServiceRoleKey()
+  if (!serviceRoleKey) {
+    return NextResponse.json({ error: "Missing service role key" }, { status: 500 })
+  }
+
+  const { searchParams } = new URL(request.url)
+  const singleVin = searchParams.get("vin")
+  const shouldMigrate = searchParams.get("migrate") !== "false"
+  const dryRun = searchParams.get("dry_run") === "true"
+
+  const supabase = createAdminClient()
+
+  // Fetch inventory VINs
+  let vinsToSync: Array<{ vin: string; stock_number: string | null; year: number; make: string; model: string }>
+
+  if (singleVin) {
+    const { data } = await supabase
+      .from("vehicles")
+      .select("vin, stock_number, year, make, model")
+      .eq("vin", singleVin)
+      .limit(1)
+    vinsToSync = data ?? []
+  } else {
+    const { data } = await supabase
+      .from("vehicles")
+      .select("vin, stock_number, year, make, model")
+      .not("vin", "is", null)
+      .order("created_at", { ascending: false })
+    vinsToSync = data ?? []
+  }
+
+  if (vinsToSync.length === 0) {
+    return NextResponse.json({ error: "No vehicles found to sync", results: [] }, { status: 404 })
+  }
+
+  const results: SyncResult[] = []
+  let synced = 0
+  let noMid = 0
+  let errors = 0
+  let framesMigratedTotal = 0
+
+  for (const vehicle of vinsToSync) {
+    const { vin, stock_number, year, make, model } = vehicle
+    const vehicleName = `${year} ${make} ${model}`
+
+    try {
+      // Step 1: Resolve MID from Pirelly (try VIN first, then stock number)
+      let mid = await resolveMidFromPirelly(vin)
+      if (!mid && stock_number) {
+        mid = await resolveMidFromPirellyByStock(stock_number)
+      }
+
+      if (!mid) {
+        results.push({
+          vin,
+          mid: null,
+          frameCount: 0,
+          framesInStorage: false,
+          framesMigrated: 0,
+          status: "no_mid",
+        })
+        noMid++
+        continue
+      }
+
+      // Step 2: Check frames in Supabase Storage
+      let storageCount = await countFramesInStorage(mid)
+      let framesMigrated = 0
+
+      // Step 3: If no frames in storage, check Firebase and migrate
+      if (storageCount === 0 && shouldMigrate && !dryRun) {
+        const firebaseCount = await countFramesOnFirebase(mid)
+        if (firebaseCount > 0) {
+          framesMigrated = await migrateFramesToSupabase(mid, firebaseCount, serviceRoleKey)
+          storageCount = framesMigrated
+          framesMigratedTotal += framesMigrated
+        }
+      }
+
+      const framesInStorage = storageCount > 0
+
+      // Step 4: Upsert to drivee_mappings
+      if (!dryRun) {
+        await supabase
+          .from("drivee_mappings")
+          .upsert(
+            {
+              vin,
+              mid,
+              frame_count: storageCount,
+              frames_in_storage: framesInStorage,
+              vehicle_name: vehicleName,
+              source: "pirelly",
+              verified_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "vin" },
+          )
+      }
+
+      results.push({
+        vin,
+        mid,
+        frameCount: storageCount,
+        framesInStorage,
+        framesMigrated,
+        status: "synced",
+      })
+      synced++
+    } catch (err) {
+      results.push({
+        vin,
+        mid: null,
+        frameCount: 0,
+        framesInStorage: false,
+        framesMigrated: 0,
+        status: "error",
+        error: err instanceof Error ? err.message : "Unknown error",
+      })
+      errors++
+    }
+  }
+
+  return NextResponse.json({
+    summary: {
+      total: vinsToSync.length,
+      synced,
+      noMid,
+      errors,
+      framesMigrated: framesMigratedTotal,
+      dryRun,
+    },
+    results,
+  })
+}
+
+/**
+ * GET /api/v1/admin/drivee-sync
+ *
+ * Returns current state of all drivee_mappings from the database.
+ */
+export async function GET() {
+  const supabase = createAdminClient()
+
+  const { data, error } = await supabase
+    .from("drivee_mappings")
+    .select("*")
+    .order("verified_at", { ascending: false })
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({
+    count: data?.length ?? 0,
+    mappings: data ?? [],
+  })
+}

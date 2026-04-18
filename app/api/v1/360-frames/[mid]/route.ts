@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
 import { discoverFrameUrls, interiorUrl } from "@/lib/drivee-frames"
-import { DRIVEE_VIN_MAP } from "@/lib/drivee"
+import { getKnownMids } from "@/lib/drivee-db"
 
 /**
  * GET /api/v1/360-frames/:mid
  *
  * Returns the list of 360° walk-around frame URLs for a given media ID.
  * Frames are now served from our Supabase Storage bucket (`vehicle-360`).
+ *
+ * MID validation reads from the `drivee_mappings` DB table (with in-memory
+ * cache), falling back to the static DRIVEE_VIN_MAP if the DB is unavailable.
  *
  * Response is cached for 1 hour at the edge (frames rarely change).
  */
@@ -16,8 +19,8 @@ export async function GET(
 ) {
   const { mid } = await params
 
-  // Validate MID exists in our known map (prevent probing arbitrary MIDs)
-  const knownMids = new Set(Object.values(DRIVEE_VIN_MAP))
+  // Validate MID exists in our known mappings (prevent probing arbitrary MIDs)
+  const knownMids = await getKnownMids()
   if (!knownMids.has(mid)) {
     return NextResponse.json(
       { error: "Unknown media ID" },
