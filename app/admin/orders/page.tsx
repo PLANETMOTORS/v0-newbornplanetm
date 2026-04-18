@@ -101,6 +101,7 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [stats, setStats] = useState<OrderStats>({ total: 0, created: 0, processing: 0, delivered: 0, cancelled: 0, totalRevenue: 0 })
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
@@ -124,6 +125,7 @@ export default function AdminOrdersPage() {
 
   const fetchOrders = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       const params = new URLSearchParams({
         limit: String(PAGE_SIZE),
@@ -133,14 +135,17 @@ export default function AdminOrdersPage() {
       if (debouncedSearch) params.set("search", debouncedSearch)
 
       const res = await fetch(`/api/v1/admin/orders?${params}`)
-      if (res.ok) {
-        const data = await res.json()
-        setOrders(data.orders || [])
-        setStats(prev => data.stats ?? prev)
-        setTotalCount(data.total ?? 0)
+      if (!res.ok) {
+        setError("Failed to load orders")
+        return
       }
+      const data = await res.json()
+      setOrders(data.orders || [])
+      setStats(prev => data.stats ?? prev)
+      setTotalCount(data.total ?? 0)
     } catch (error) {
       console.error("Error fetching orders:", error)
+      setError("Network error — please try again")
     } finally {
       setLoading(false)
     }
@@ -261,6 +266,15 @@ export default function AdminOrdersPage() {
             <div className="flex items-center justify-center py-12">
               <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
               <span className="ml-2 text-gray-500">Loading orders...</span>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+              <XCircle className="w-12 h-12 mb-4 text-red-300" />
+              <p className="text-lg font-medium text-red-600">{error}</p>
+              <Button variant="outline" onClick={fetchOrders} className="mt-4">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Retry
+              </Button>
             </div>
           ) : orders.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-gray-500">
