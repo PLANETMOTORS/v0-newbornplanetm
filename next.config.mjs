@@ -123,6 +123,7 @@ const nextConfig = {
       'https://ldervbcvkoawwknsemuz.supabase.co',
       'https://images.unsplash.com',
       'https://www.google.com',              // Remarketing pixel
+      'https://www.google.ca',               // Remarketing pixel (CA localized)
       'https://googleads.g.doubleclick.net',  // Ads conversion pixel
       'https://www.googleadservices.com',     // Google Ads pixel
       'https://capig.planetmotors.ca',        // Server-side tagging pixel
