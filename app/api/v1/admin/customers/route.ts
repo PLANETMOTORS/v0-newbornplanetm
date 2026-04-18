@@ -52,39 +52,39 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch customers" }, { status: 500 })
     }
 
-    // Fetch order counts for each customer
+    // Fetch order and reservation counts per customer using exact count queries
+    // to avoid Supabase's default 1000-row limit silently truncating results
     const customerIds = (profiles || []).map(p => p.id)
     let orderCounts: Record<string, number> = {}
-
-    if (customerIds.length > 0) {
-      const { data: orders } = await adminClient
-        .from("orders")
-        .select("customer_id")
-        .in("customer_id", customerIds)
-
-      if (orders) {
-        orderCounts = orders.reduce((acc: Record<string, number>, o) => {
-          const cid = o.customer_id as string
-          acc[cid] = (acc[cid] || 0) + 1
-          return acc
-        }, {})
-      }
-    }
-
-    // Fetch reservation counts
     let reservationCounts: Record<string, number> = {}
-    if (customerIds.length > 0) {
-      const { data: reservations } = await adminClient
-        .from("reservations")
-        .select("user_id")
-        .in("user_id", customerIds)
 
-      if (reservations) {
-        reservationCounts = reservations.reduce((acc: Record<string, number>, r) => {
-          const uid = r.user_id as string
-          acc[uid] = (acc[uid] || 0) + 1
-          return acc
-        }, {})
+    if (customerIds.length > 0) {
+      const [orderResults, reservationResults] = await Promise.all([
+        Promise.all(
+          customerIds.map(async (id) => {
+            const { count } = await adminClient
+              .from("orders")
+              .select("id", { count: "exact", head: true })
+              .eq("customer_id", id)
+            return { id, count: count ?? 0 }
+          })
+        ),
+        Promise.all(
+          customerIds.map(async (id) => {
+            const { count } = await adminClient
+              .from("reservations")
+              .select("id", { count: "exact", head: true })
+              .eq("user_id", id)
+            return { id, count: count ?? 0 }
+          })
+        ),
+      ])
+
+      for (const r of orderResults) {
+        if (r.count > 0) orderCounts[r.id] = r.count
+      }
+      for (const r of reservationResults) {
+        if (r.count > 0) reservationCounts[r.id] = r.count
       }
     }
 
