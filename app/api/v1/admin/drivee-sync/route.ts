@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { ADMIN_EMAILS } from "@/lib/admin"
 import {
   resolveMidFromPirelly,
   resolveMidFromPirellyByStock,
@@ -8,6 +10,7 @@ import {
   migrateFramesToSupabase,
   type SyncResult,
 } from "@/lib/drivee-sync"
+import { invalidateDriveeCache } from "@/lib/drivee-db"
 import { getSupabaseServiceRoleKey } from "@/lib/supabase/config"
 
 /**
@@ -29,6 +32,13 @@ import { getSupabaseServiceRoleKey } from "@/lib/supabase/config"
  * Returns a summary of all sync results.
  */
 export async function POST(request: NextRequest) {
+  // Auth guard — same pattern as all other admin API routes
+  const authClient = await createClient()
+  const { data: { user } } = await authClient.auth.getUser()
+  if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   const serviceRoleKey = getSupabaseServiceRoleKey()
   if (!serviceRoleKey) {
     return NextResponse.json({ error: "Missing service role key" }, { status: 500 })
@@ -152,6 +162,9 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Invalidate the in-memory drivee cache so subsequent requests see new data
+  invalidateDriveeCache()
+
   return NextResponse.json({
     summary: {
       total: vinsToSync.length,
@@ -171,6 +184,13 @@ export async function POST(request: NextRequest) {
  * Returns current state of all drivee_mappings from the database.
  */
 export async function GET() {
+  // Auth guard
+  const authClient = await createClient()
+  const { data: { user } } = await authClient.auth.getUser()
+  if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   const supabase = createAdminClient()
 
   const { data, error } = await supabase
