@@ -4,6 +4,7 @@ import { isValidEmail, isValidCanadianPhoneNumber, isValidCanadianPostalCode } f
 import { validateOrigin } from "@/lib/csrf"
 import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
 import { trackLead } from "@/lib/meta-capi-helpers"
+import { createLead } from "@/lib/anna/lead-capture"
 
 export async function POST(request: Request) {
   try {
@@ -39,6 +40,16 @@ export async function POST(request: Request) {
     if (!isValidCanadianPostalCode(postalCode)) {
       return apiError(ErrorCode.VALIDATION_ERROR, "Invalid Canadian postal code", 400)
     }
+
+    // Save lead to Supabase (non-blocking — don't fail the form if this fails)
+    createLead({
+      source: "contact_form",
+      customerName: `${firstName} ${lastName}`,
+      customerEmail: email,
+      customerPhone: phone,
+      subject: subject || "General Inquiry",
+      message,
+    }).catch(err => console.error("Lead capture from contact form failed:", err))
 
     // Send email notification
     await sendNotificationEmail({

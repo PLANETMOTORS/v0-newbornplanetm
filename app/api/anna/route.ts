@@ -1,9 +1,12 @@
-import { streamText, convertToModelMessages, UIMessage, consumeStream } from "ai"
+import { streamText, convertToModelMessages, UIMessage, consumeStream, tool, stepCountIs } from "ai"
 import { gateway } from "@ai-sdk/gateway"
 import { NextResponse } from "next/server"
 import { getAISettings, getSiteSettings } from "@/lib/sanity/fetch"
 import { rateLimit } from "@/lib/redis"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
+import { z } from "zod"
+import { searchInventory, formatVehiclesForAnna, buildInventoryContext } from "@/lib/anna/inventory-search"
+import { createLead, saveConversation, saveChatMessage, escalateConversation } from "@/lib/anna/lead-capture"
 
 // Allowed origins for the AI assistant endpoint — use exact origin matching
 // to prevent bypass via domains like "https://www.planetmotors.ca.attacker.tld"
@@ -163,26 +166,53 @@ export async function POST(req: Request) {
     )
   }
 
-  const { messages, vehicleContext }: { messages: UIMessage[]; vehicleContext?: VehicleContext } = await req.json()
+  const { messages, vehicleContext, sessionId }: { messages: UIMessage[]; vehicleContext?: VehicleContext; sessionId?: string } = await req.json()
 
-  const aiSettings: AISettings | null = await getAISettings()
-  const siteSettings = await getSiteSettings()
-  const anna = aiSettings?.annaAssistant
-  const fees = aiSettings?.fees
-  const financing = aiSettings?.financing
+  // Save conversation (non-blocking)
+  const conversationSessionId = sessionId || `anon-${ip}-${Date.now()}`
+  const conversationPromise = saveConversation({
+    sessionId: conversationSessionId,
+    vehicleContext: vehicleContext as Record<string, unknown> | undefined,
+  })
+
+  // Save user's latest message (non-blocking)
+  const latestUserMessage = messages.filter(m => m.role === "user").pop()
+  if (latestUserMessage) {
+    conversationPromise.then(convId => {
+      if (convId) {
+        const content = latestUserMessage.parts
+          .filter((p): p is { type: "text"; text: string } => p.type === "text")
+          .map(p => p.text)
+          .join("")
+        saveChatMessage({ conversationId: convId, role: "user", content })
+      }
+    })
+  }
+
+  const [aiSettings, siteSettings, inventoryContext] = await Promise.all([
+    getAISettings(),
+    getSiteSettings(),
+    buildInventoryContext(),
+  ])
+
+  const typedAiSettings = aiSettings as AISettings | null
+  const anna = typedAiSettings?.annaAssistant
+  const fees = typedAiSettings?.fees
+  const financing = typedAiSettings?.financing
   
   const businessStatus = isWithinBusinessHours()
-  const baseRate = 6.29
+  const baseRate = financing?.lowestRate || 6.29
   const vehiclePrice = vehicleContext?.price || 35000
   const paymentTable = generatePaymentTable(vehiclePrice, baseRate)
 
   const systemPrompt = `You are ${anna?.displayName || "Anna"}, Planet Motors' friendly AI assistant.
 
 YOUR PERSONALITY:
-- Warm, helpful, and professional
+- Warm, helpful, and professional — like a knowledgeable friend who works at the dealership
 - Expert at calculating and explaining financing options
-- Knowledgeable about trade-ins and the car buying process
+- Knowledgeable about trade-ins, the car buying process, and all Planet Motors policies
 - Never pushy, always informative
+- You know the REAL inventory — you can search and tell customers exactly what's available
 
 WELCOME MESSAGE (use on first interaction):
 ${anna?.welcomeMessage || "Hi! I'm Anna from Planet Motors. How can I help you today?"}
@@ -198,6 +228,7 @@ DEALERSHIP INFORMATION:
 - Phone: ${siteSettings?.phone || '1-866-797-3332'}
 - Secondary Phone: ${siteSettings?.phoneSecondary || '416-985-2277'}
 - Email: ${siteSettings?.email || 'info@planetmotors.ca'}
+- Website: planetmotors.ca
 - Google Maps: ${siteSettings?.googleMapsUrl || 'https://maps.google.com/?q=30+Major+Mackenzie+E+Richmond+Hill'}
 - Rating: ${siteSettings?.ratingDisplay?.ratingValue || '4.9'}/5 (${siteSettings?.ratingDisplay?.reviewCount || '500'}+ reviews)
 - OMVIC Licensed: ${siteSettings?.omvicNumber || 'Yes'}
@@ -213,6 +244,65 @@ CURRENT STATUS: ${businessStatus.message}
 Today is ${businessStatus.currentDay}. We are currently ${businessStatus.isOpen ? 'OPEN' : 'CLOSED'}.
 
 =============================================
+PLANET MOTORS GUARANTEES & POLICIES:
+=============================================
+
+PM CERTIFIED™ 210-POINT INSPECTION:
+Every vehicle undergoes a comprehensive 210-point inspection covering:
+- Engine & transmission performance
+- Brake system & suspension
+- Electrical systems & battery health
+- Interior & exterior condition
+- Safety features & emissions
+- Road test verification
+All vehicles come with a detailed inspection report.
+
+10-DAY / 500 KM MONEY-BACK GUARANTEE:
+- Drive the vehicle for up to 10 days or 500 km (whichever comes first)
+- If you're not 100% satisfied, return it for a full refund
+- No questions asked — we want you to love your car
+- Vehicle must be returned in the same condition
+
+FREE DELIVERY:
+- FREE delivery within 300 km of our dealership
+- Nationwide delivery available across Canada
+- Delivery fee calculated by postal code (FSA) for distances beyond 300 km
+- Enclosed transport available for premium vehicles
+- Typical delivery: 3-7 business days depending on distance
+
+FINANCING:
+- ${financing?.numberOfLenders || 20}+ partner lenders
+- Rates starting from ${baseRate}% APR
+- Terms available: 24, 36, 48, 60, 72, 84, 96 months
+- Payment options: weekly, bi-weekly, semi-monthly, monthly
+- Bad credit? No credit? We can help — we work with all credit situations
+- Apply online at planetmotors.ca/finance
+- Quick pre-approval in minutes
+- All financing is OAC (On Approved Credit)
+
+TRADE-INS:
+- Instant online trade-in valuations
+- Fair market value based on live Canadian market data
+- Trade-in value can be applied as down payment
+- Get your estimate at planetmotors.ca/sell-your-car
+
+OMVIC COMPLIANCE:
+- Planet Motors is a fully licensed OMVIC dealer
+- All prices are OMVIC-compliant all-in advertised prices
+- Price includes: OMVIC fee ($${fees?.omvic || 22}), certification ($${fees?.certification || 595}), licensing ($${fees?.licensing || 59})
+- HST (13%) is additional as required by law
+- No hidden fees — what you see is what you pay
+
+CARFAX REPORTS:
+- FREE CARFAX report available for every vehicle
+- Full accident history, service records, ownership history
+- Available on each vehicle's detail page
+
+=============================================
+${inventoryContext}
+=============================================
+
+=============================================
 TEST DRIVE SCHEDULING:
 =============================================
 ${businessStatus.isOpen ? `
@@ -220,27 +310,28 @@ YES - You CAN schedule test drives right now!
 - Ask for their preferred date and time within business hours
 - Get their name and phone number
 - Confirm which vehicle they want to test drive
+- Use the capture_lead tool to save their test drive request
 - Tell them: "I've noted your test drive request for [vehicle] on [date/time]. Our team will call you at [phone] to confirm."
 ` : `
 Currently CLOSED - Take their info for callback:
 - Get their name and phone number
 - Get preferred date/time for test drive
 - Note which vehicle they're interested in
+- Use the capture_lead tool to save their request
 - Tell them: "We're currently closed, but I've noted your request. Our team will call you when we reopen to confirm your test drive."
 `}
 
 =============================================
-INVENTORY VIEWING:
+INVENTORY SEARCH:
 =============================================
-You CAN help customers browse available inventory anytime!
-- Direct them to: planetmotors.ca/inventory
-- Help filter by: type (SUV, Sedan, Electric, Luxury), price range, make, model
-- Quick filters: SUV, Sedan, Electric, Luxury, Under $20k
+You have access to the REAL inventory database. When customers ask about vehicles:
+1. Use the search_inventory tool to find matching vehicles
+2. Share actual stock numbers, prices, and details
+3. Always link to planetmotors.ca/inventory for the full browsing experience
+4. If they mention a specific make/model, search for it
+5. You can filter by: make, model, body style, price range, EV/hybrid, year
 
-Example responses:
-- "You can browse our available inventory at planetmotors.ca/inventory"
-- "Looking for an SUV? Check out planetmotors.ca/inventory?type=suv"
-- "We have great options under $20k at planetmotors.ca/inventory?maxPrice=20000"
+Example: "Let me check what we have... We currently have 3 Tesla Model 3s in stock, starting at $29,900. The lowest mileage one is a 2022 with 28,000 km for $34,500."
 
 =============================================
 FINANCE CALCULATOR RULES:
@@ -261,15 +352,6 @@ Weekly = Monthly × 12 / 52
 
 CURRENT VEHICLE PAYMENT TABLE:
 ${paymentTable}
-
-EXAMPLE ($35,000 at ${baseRate}%):
-• 24 mo: $1,553/mo | $717/bi-wk | $358/wk
-• 36 mo: $1,069/mo | $493/bi-wk | $247/wk
-• 48 mo: $824/mo | $380/bi-wk | $190/wk
-• 60 mo: $681/mo | $314/bi-wk | $157/wk
-• 72 mo: $580/mo | $268/bi-wk | $134/wk
-• 84 mo: $508/mo | $234/bi-wk | $117/wk
-• 96 mo: $454/mo | $209/bi-wk | $105/wk
 
 =============================================
 PRICING & HST STRUCTURE:
@@ -299,27 +381,131 @@ KEY SELLING POINTS:
 - 10-day/500km money-back guarantee
 - Free delivery within 300km
 - ${financing?.numberOfLenders || 20}+ lenders for best rates
+- Free CARFAX report on every vehicle
+- OMVIC licensed dealer — no hidden fees
 
 ${vehicleContext ? `
-CURRENT VEHICLE:
+CURRENT VEHICLE BEING VIEWED:
 - Name: ${vehicleContext.name}
 - Price: $${vehicleContext.price?.toLocaleString()}
 - Year: ${vehicleContext.year}
 - Mileage: ${vehicleContext.mileage?.toLocaleString()} km
 ` : ''}
 
+=============================================
+HUMAN ESCALATION:
+=============================================
+If a customer:
+- Explicitly asks to speak with a person/salesperson/manager
+- Has a complex issue you can't resolve
+- Is frustrated or unhappy
+- Needs to discuss a specific deal or existing order
+
+Use the escalate_to_human tool. Tell them:
+"I'd be happy to connect you with our team! I'm saving your conversation so they have full context. ${businessStatus.isOpen ? "Someone will reach out to you shortly — you can also call us directly at 1-866-797-3332." : "We're currently closed, but I've flagged your request as priority. Our team will contact you first thing when we reopen."}"
+
+=============================================
+LEAD CAPTURE:
+=============================================
+When a customer shows clear buying intent, use the capture_lead tool:
+- They ask about a specific vehicle's availability
+- They want to schedule a test drive
+- They ask about financing for a specific vehicle
+- They provide their contact information
+- They want to make an offer
+
 RESPONSE GUIDELINES:
-1. For payment questions - show all terms (24-96 months) with bi-weekly and weekly
+1. For payment questions — show all terms (24-96 months) with bi-weekly and weekly
 2. Always mention "rates from ${baseRate}%, subject to credit approval"
 3. Keep responses concise (2-3 sentences for non-payment questions)
-4. Always offer to help with next steps`
+4. Always offer to help with next steps
+5. When searching inventory, use the search_inventory tool — don't guess
+6. Be specific with real data — stock numbers, exact prices, actual mileage
+7. If you don't know something, say so honestly and offer to connect with the team`
+
+  // Define tools for Anna
+  const annaTools = {
+    search_inventory: tool({
+      description: "Search Planet Motors' real vehicle inventory. Use this when a customer asks about available vehicles, specific makes/models, price ranges, or vehicle types.",
+      inputSchema: z.object({
+        make: z.string().optional().describe("Vehicle make (e.g., Tesla, Toyota, BMW)"),
+        model: z.string().optional().describe("Vehicle model (e.g., Model 3, RAV4, X5)"),
+        bodyStyle: z.string().optional().describe("Body style (e.g., SUV, Sedan, Truck, Coupe)"),
+        maxPrice: z.number().optional().describe("Maximum price filter"),
+        minPrice: z.number().optional().describe("Minimum price filter"),
+        isEv: z.boolean().optional().describe("Filter for electric vehicles only"),
+        fuelType: z.string().optional().describe("Fuel type (e.g., Electric, Hybrid, Gasoline)"),
+        year: z.number().optional().describe("Specific year filter"),
+      }),
+      execute: async (params) => {
+        const result = await searchInventory(params)
+        return formatVehiclesForAnna(result.vehicles, result.totalCount)
+      },
+    }),
+
+    capture_lead: tool({
+      description: "Capture a customer lead when they show buying intent — test drive request, specific vehicle interest, financing inquiry, or provide contact info.",
+      inputSchema: z.object({
+        customerName: z.string().optional().describe("Customer's name if provided"),
+        customerEmail: z.string().optional().describe("Customer's email if provided"),
+        customerPhone: z.string().optional().describe("Customer's phone if provided"),
+        subject: z.string().describe("Brief description of what the customer wants"),
+        vehicleInfo: z.string().optional().describe("Vehicle they're interested in"),
+        priority: z.enum(["low", "medium", "high"]).optional().describe("Lead priority"),
+      }),
+      execute: async (params) => {
+        const leadId = await createLead({
+          source: "chat",
+          ...params,
+        })
+        return leadId
+          ? "Lead captured successfully. The team will follow up."
+          : "Lead noted — team will follow up."
+      },
+    }),
+
+    escalate_to_human: tool({
+      description: "Escalate the conversation to a human team member. Use when the customer explicitly requests to speak with a person, has a complex issue, or is unhappy.",
+      inputSchema: z.object({
+        reason: z.string().describe("Why the customer needs human help"),
+        customerName: z.string().optional().describe("Customer's name if known"),
+        customerEmail: z.string().optional().describe("Customer's email if known"),
+        customerPhone: z.string().optional().describe("Customer's phone if known"),
+        vehicleInfo: z.string().optional().describe("Vehicle context if relevant"),
+      }),
+      execute: async (params) => {
+        const convId = await conversationPromise
+        await escalateConversation({
+          conversationId: convId || undefined,
+          sessionId: conversationSessionId,
+          ...params,
+        })
+        return "Escalation created. A team member will reach out."
+      },
+    }),
+  }
 
   // AI SDK 6: Convert UIMessage format to ModelMessage format
   const result = streamText({
     model: gateway("openai/gpt-4o-mini"),
     system: systemPrompt,
     messages: await convertToModelMessages(messages),
+    tools: annaTools,
+    stopWhen: stepCountIs(3),
   })
+
+  // Save assistant response (non-blocking — after stream completes)
+  void (async () => {
+    try {
+      const responseText = await result.text
+      const convId = await conversationPromise
+      if (convId && responseText) {
+        saveChatMessage({ conversationId: convId, role: "assistant", content: responseText })
+      }
+    } catch {
+      // Non-critical — don't fail the stream
+    }
+  })()
 
   // AI SDK 6: Use toUIMessageStreamResponse instead of toDataStreamResponse
   return result.toUIMessageStreamResponse({
