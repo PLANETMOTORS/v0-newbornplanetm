@@ -1,13 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
+import Image from "next/image"
 
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { createClient } from "@/lib/supabase/client"
 import type { OAuthProvider } from "@/lib/auth/oauth-providers"
 import { useAuth } from "@/contexts/auth-context"
+import { useFavorites } from "@/contexts/favorites-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,10 +17,23 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
-import { 
+import {
   User, Mail, Phone, CreditCard, Shield, LogOut,
-  Heart, Car, CheckCircle, Settings
+  Heart, Car, CheckCircle, Settings, Trash2, Bell, TrendingDown, Loader2
 } from "lucide-react"
+
+interface PriceAlert {
+  id: string
+  email: string
+  vehicle_id: string | null
+  make: string | null
+  model: string | null
+  max_price: number | null
+  notify_price_drops: boolean
+  notify_new_listings: boolean
+  is_active: boolean
+  created_at: string
+}
 
 interface UserProfile {
   id: string
@@ -45,12 +60,102 @@ interface RegistrationInput {
 
 export default function AccountPage() {
   const { user, isLoading: isAuthLoading, signOut } = useAuth()
+  const { favorites, removeFavorite } = useFavorites()
   const [activeTab, setActiveTab] = useState("profile")
   const [authTab, setAuthTab] = useState("signin")
   const [isLoading, setIsLoading] = useState(false)
   const [loginError, setLoginError] = useState("")
   const [authMessage, setAuthMessage] = useState("")
   const [oauthLoading, setOauthLoading] = useState<OAuthProvider | null>(null)
+
+  // Notification preferences
+  const [priceDropEnabled, setPriceDropEnabled] = useState(false)
+  const [newInventoryEnabled, setNewInventoryEnabled] = useState(false)
+  const [notifLoading, setNotifLoading] = useState<string | null>(null)
+
+  // Price alerts
+  const [priceAlerts, setPriceAlerts] = useState<PriceAlert[]>([])
+  const [alertsLoading, setAlertsLoading] = useState(false)
+
+  // Fetch notification preferences and price alerts when user is available
+  const fetchAccountData = useCallback(async () => {
+    if (!user?.email) return
+
+    // Fetch price alerts
+    setAlertsLoading(true)
+    try {
+      const res = await fetch(`/api/alerts?email=${encodeURIComponent(user.email)}`)
+      if (res.ok) {
+        const data = await res.json()
+        setPriceAlerts(data.alerts || [])
+        // Derive notification prefs from active alerts
+        const hasDropAlerts = (data.alerts || []).some((a: PriceAlert) => a.notify_price_drops && a.is_active)
+        const hasNewAlerts = (data.alerts || []).some((a: PriceAlert) => a.notify_new_listings && a.is_active)
+        setPriceDropEnabled(hasDropAlerts)
+        setNewInventoryEnabled(hasNewAlerts)
+      }
+    } catch { /* silent */ }
+    setAlertsLoading(false)
+  }, [user?.email])
+
+  useEffect(() => {
+    fetchAccountData()
+  }, [fetchAccountData])
+
+  const toggleNotification = async (type: 'priceDrops' | 'newListings') => {
+    if (!user?.email) return
+    setNotifLoading(type)
+    const newValue = type === 'priceDrops' ? !priceDropEnabled : !newInventoryEnabled
+
+    try {
+      // If enabling and no alerts exist, create a general alert for the user
+      if (newValue && priceAlerts.length === 0) {
+        await fetch('/api/alerts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: user.email,
+            preferences: {
+              priceDrops: type === 'priceDrops' ? true : priceDropEnabled,
+              newListings: type === 'newListings' ? true : newInventoryEnabled,
+            },
+          }),
+        })
+      }
+
+      // Update notification preferences via profile
+      await fetch('/api/v1/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          preferences: {
+            email: true,
+            sms: false,
+            push: true,
+            priceDropAlerts: type === 'priceDrops' ? newValue : priceDropEnabled,
+            newInventoryAlerts: type === 'newListings' ? newValue : newInventoryEnabled,
+          },
+        }),
+      })
+
+      if (type === 'priceDrops') setPriceDropEnabled(newValue)
+      else setNewInventoryEnabled(newValue)
+
+      // Refresh alerts
+      await fetchAccountData()
+    } catch { /* silent */ }
+    setNotifLoading(null)
+  }
+
+  const deleteAlert = async (alertId: string) => {
+    if (!user?.email) return
+    try {
+      await fetch(`/api/alerts?alertId=${alertId}&email=${encodeURIComponent(user.email)}`, {
+        method: 'DELETE',
+      })
+      setPriceAlerts(prev => prev.filter(a => a.id !== alertId))
+    } catch { /* silent */ }
+  }
 
   const userProfile: UserProfile = {
     id: user?.id ?? "",
@@ -361,7 +466,7 @@ export default function AccountPage() {
                 >
                   <Heart className="w-4 h-4 mr-2" />
                   Saved
-                  <Badge className="ml-2">0</Badge>
+                  <Badge className="ml-2">{favorites.length}</Badge>
                 </Button>
                 <Button 
                   variant={activeTab === "preapproval" ? "secondary" : "ghost"} 
@@ -477,17 +582,60 @@ export default function AccountPage() {
                 {activeTab === "saved" && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>Saved Vehicles</CardTitle>
+                      <CardTitle>Saved Vehicles ({favorites.length})</CardTitle>
                       <CardDescription>Vehicles you&apos;ve added to your favorites</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-center py-8">
-                        <Heart className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                        <p className="text-muted-foreground">No saved vehicles yet</p>
-                        <Button className="mt-4" asChild>
-                          <Link href="/inventory">Browse Inventory</Link>
-                        </Button>
-                      </div>
+                      {favorites.length === 0 ? (
+                        <div className="text-center py-8">
+                          <Heart className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                          <p className="text-muted-foreground">No saved vehicles yet</p>
+                          <p className="text-sm text-muted-foreground mt-1">Heart a vehicle on the inventory page to save it here</p>
+                          <Button className="mt-4" asChild>
+                            <Link href="/inventory">Browse Inventory</Link>
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {favorites.map((vehicle) => (
+                            <div key={vehicle.id} className="flex items-center gap-4 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+                              <div className="relative w-24 h-16 rounded-md overflow-hidden bg-muted shrink-0">
+                                {vehicle.image ? (
+                                  <Image
+                                    src={vehicle.image}
+                                    alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                                    fill
+                                    className="object-cover"
+                                    sizes="96px"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <Car className="w-8 h-8 text-muted-foreground" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <Link href={`/vehicles/${vehicle.id}`} className="font-medium hover:underline">
+                                  {vehicle.year} {vehicle.make} {vehicle.model}
+                                </Link>
+                                {vehicle.price && (
+                                  <p className="text-sm text-muted-foreground">
+                                    ${vehicle.price.toLocaleString()}
+                                  </p>
+                                )}
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="shrink-0 text-muted-foreground hover:text-destructive"
+                                onClick={() => removeFavorite(vehicle.id)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 )}
@@ -543,7 +691,20 @@ export default function AccountPage() {
                             <p className="font-medium">Price Drop Alerts</p>
                             <p className="text-sm text-muted-foreground">Get notified when saved vehicles drop in price</p>
                           </div>
-                          <Button variant="outline" size="sm">Enable</Button>
+                          <Button
+                            variant={priceDropEnabled ? "default" : "outline"}
+                            size="sm"
+                            disabled={notifLoading === 'priceDrops'}
+                            onClick={() => toggleNotification('priceDrops')}
+                          >
+                            {notifLoading === 'priceDrops' ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : priceDropEnabled ? (
+                              <><Bell className="w-4 h-4 mr-1" /> Enabled</>
+                            ) : (
+                              'Enable'
+                            )}
+                          </Button>
                         </div>
                         <Separator />
                         <div className="flex items-center justify-between">
@@ -551,10 +712,74 @@ export default function AccountPage() {
                             <p className="font-medium">New Inventory Alerts</p>
                             <p className="text-sm text-muted-foreground">Be first to know about new arrivals</p>
                           </div>
-                          <Button variant="outline" size="sm">Enable</Button>
+                          <Button
+                            variant={newInventoryEnabled ? "default" : "outline"}
+                            size="sm"
+                            disabled={notifLoading === 'newListings'}
+                            onClick={() => toggleNotification('newListings')}
+                          >
+                            {notifLoading === 'newListings' ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : newInventoryEnabled ? (
+                              <><Bell className="w-4 h-4 mr-1" /> Enabled</>
+                            ) : (
+                              'Enable'
+                            )}
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
+
+                    {/* Active Price Alerts */}
+                    {alertsLoading ? (
+                      <Card>
+                        <CardContent className="py-8 text-center text-muted-foreground">
+                          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+                          Loading alerts...
+                        </CardContent>
+                      </Card>
+                    ) : priceAlerts.length > 0 && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <TrendingDown className="w-5 h-5" />
+                            Active Alerts ({priceAlerts.length})
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          {priceAlerts.map((alert) => (
+                            <div key={alert.id} className="flex items-center justify-between p-3 rounded-lg border">
+                              <div>
+                                <p className="font-medium text-sm">
+                                  {alert.make && alert.model
+                                    ? `${alert.make} ${alert.model}`
+                                    : 'All Vehicles'}
+                                </p>
+                                <div className="flex gap-2 mt-1">
+                                  {alert.notify_price_drops && (
+                                    <Badge variant="secondary" className="text-xs">Price Drops</Badge>
+                                  )}
+                                  {alert.notify_new_listings && (
+                                    <Badge variant="secondary" className="text-xs">New Listings</Badge>
+                                  )}
+                                  {alert.max_price && (
+                                    <Badge variant="outline" className="text-xs">Under ${alert.max_price.toLocaleString()}</Badge>
+                                  )}
+                                </div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-muted-foreground hover:text-destructive"
+                                onClick={() => deleteAlert(alert.id)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    )}
                     
                     <Card>
                       <CardHeader>
