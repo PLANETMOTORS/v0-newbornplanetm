@@ -81,7 +81,8 @@ export async function PUT(
       "battery_capacity_kwh", "range_miles", "status", "is_certified",
       "is_new_arrival", "featured", "has_360_spin",
       "primary_image_url", "image_urls", "video_url", "location",
-      "savings", "inspection_score", "inspection_date",
+      "primary_image_url", "image_urls", "video_url", "location",
+      "inspection_score", "inspection_date",
       "ev_battery_health_percent",
     ]
 
