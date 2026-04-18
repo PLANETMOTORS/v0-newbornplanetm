@@ -234,7 +234,7 @@ export function HomepageFeaturedVehicles() {
                     alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                     fill
                     loading="lazy"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500 [clip-path:inset(0_0_5%_0)]"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500 [clip-path:inset(0_0_8%_0)]"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     onError={(e) => {
                       // Hide broken image, fallback gradient + icon shows through
