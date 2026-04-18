@@ -152,6 +152,13 @@ export default function AdminInventoryPage() {
   const [importingCSV, setImportingCSV] = useState(false)
   const [csvResult, setCsvResult] = useState<string | null>(null)
 
+  // Debounced search — must be declared before fetchVehicles so it can close over debouncedSearch
+  const [debouncedSearch, setDebouncedSearch] = useState("")
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(searchQuery); setPage(0) }, 300)
+    return () => clearTimeout(t)
+  }, [searchQuery])
+
   // ─── Data fetching ────────────────────────────────────────────────────
 
   const fetchVehicles = useCallback(async () => {
@@ -163,7 +170,7 @@ export default function AdminInventoryPage() {
         sort: "updated_at",
         order: "desc",
       })
-      if (searchQuery) params.set("search", searchQuery)
+      if (debouncedSearch) params.set("search", debouncedSearch)
       if (statusFilter !== "all") params.set("status", statusFilter)
 
       const res = await fetch(`/api/v1/admin/vehicles?${params}`)
@@ -177,7 +184,7 @@ export default function AdminInventoryPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, searchQuery, statusFilter])
+  }, [page, debouncedSearch, statusFilter])
 
   useEffect(() => { fetchVehicles() }, [fetchVehicles])
 
@@ -188,14 +195,6 @@ export default function AdminInventoryPage() {
       .then(setSyncStatus)
       .catch(() => {})
   }, [])
-
-  // Debounced search
-  const [debouncedSearch, setDebouncedSearch] = useState("")
-  useEffect(() => {
-    const t = setTimeout(() => { setDebouncedSearch(searchQuery); setPage(0) }, 300)
-    return () => clearTimeout(t)
-  }, [searchQuery])
-  useEffect(() => { fetchVehicles() }, [debouncedSearch]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── VIN Decode ───────────────────────────────────────────────────────
 
@@ -397,7 +396,7 @@ export default function AdminInventoryPage() {
       Math.round(v.price / 100), v.mileage, v.status, v.exterior_color || "",
       v.drivetrain || "", v.fuel_type || ""
     ])
-    const csv = [headers.join(","), ...rows.map(r => r.map(c => `"${c}"`).join(","))].join("\n")
+    const csv = [headers.join(","), ...rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(","))].join("\n")
     const blob = new Blob([csv], { type: "text/csv" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
