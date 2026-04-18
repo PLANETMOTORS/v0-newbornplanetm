@@ -190,12 +190,68 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       }`}
       style={{
         cursor: !isReady ? "default" : isDragging ? "grabbing" : "grab",
-        background: "linear-gradient(to bottom, #ffffff 0%, #f9f9f9 45%, #f0f0f0 55%, #e8e8e8 70%, #e0e0e0 100%)",
       }}
       role="region"
       aria-label={`360° Interactive View — ${alt}`}
       aria-roledescription="360° image spinner"
     >
+      {/* ── Studio environment ── */}
+      {/* Back wall — soft neutral gradient simulating diffused studio lighting */}
+      <div
+        className="absolute inset-0 z-[0] pointer-events-none"
+        style={{
+          background: "linear-gradient(180deg, #f0f1f3 0%, #eaebee 35%, #e4e6e9 50%, #e0e2e6 100%)",
+        }}
+      />
+
+      {/* Floor plane — lighter polished concrete with slight warmth */}
+      <div
+        className="absolute left-0 right-0 bottom-0 z-[0] pointer-events-none"
+        style={{
+          top: "54%",
+          background: "linear-gradient(180deg, #d8dadf 0%, #d2d4d9 20%, #cdcfd5 50%, #c8cad0 100%)",
+        }}
+      />
+
+      {/* Floor-wall seam — crisp horizon where wall meets polished floor */}
+      <div
+        className="absolute left-0 right-0 z-[0] pointer-events-none"
+        style={{
+          top: "54%",
+          height: "1px",
+          background: "linear-gradient(to right, transparent 2%, rgba(0,0,0,0.06) 15%, rgba(0,0,0,0.09) 50%, rgba(0,0,0,0.06) 85%, transparent 98%)",
+        }}
+      />
+
+      {/* Floor specular band — the bright glossy shine strip you see on polished showroom floors */}
+      <div
+        className="absolute left-0 right-0 z-[0] pointer-events-none"
+        style={{
+          top: "54%",
+          height: "18%",
+          background: "linear-gradient(180deg, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0.18) 30%, rgba(255,255,255,0.05) 70%, transparent 100%)",
+        }}
+      />
+
+      {/* Overhead light reflection on floor — concentrated elliptical highlight */}
+      <div
+        className="absolute left-1/2 -translate-x-1/2 z-[0] pointer-events-none"
+        style={{
+          top: "55%",
+          width: "60%",
+          height: "12%",
+          background: "radial-gradient(ellipse 100% 80% at center, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.08) 60%, transparent 100%)",
+        }}
+      />
+
+      {/* Vignette — subtle darkening at edges for studio depth */}
+      <div
+        className="absolute inset-0 z-[0] pointer-events-none"
+        style={{
+          background: "radial-gradient(ellipse 85% 80% at 50% 45%, transparent 50%, rgba(0,0,0,0.04) 100%)",
+        }}
+      />
+
       {/* Empty state — no frames available */}
       {totalFrames === 0 && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3">
@@ -236,46 +292,39 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         </div>
       )}
 
-      {/* Showroom floor horizon line — subtle divider between upper "wall" and floor */}
-      <div
-        className="absolute left-0 right-0 z-[0] pointer-events-none"
-        style={{
-          top: "55%",
-          height: "1px",
-          background: "linear-gradient(to right, transparent 5%, rgba(0,0,0,0.04) 30%, rgba(0,0,0,0.06) 50%, rgba(0,0,0,0.04) 70%, transparent 95%)",
-        }}
-      />
 
-      {/* Showroom floor reflection — subtle sheen beneath the horizon */}
-      <div
-        className="absolute left-0 right-0 bottom-0 z-[0] pointer-events-none"
-        style={{
-          top: "55%",
-          background: "linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 30%)",
-        }}
-      />
 
-      {/* Contact shadow — wide soft ellipse beneath the vehicle (turntable style) */}
+      {/* Contact shadow — realistic ground shadow beneath the vehicle */}
       {isReady && (
         <>
-          {/* Primary shadow — wide and soft like a turntable floor */}
+          {/* Core contact shadow — tight, dark shadow directly under body */}
+          <div
+            className="absolute left-1/2 -translate-x-1/2 z-[1] pointer-events-none"
+            style={{
+              bottom: "9%",
+              width: "65%",
+              height: "2.5%",
+              background: "radial-gradient(ellipse at center, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.14) 50%, transparent 100%)",
+            }}
+          />
+          {/* Mid-range shadow — softer penumbra spread */}
           <div
             className="absolute left-1/2 -translate-x-1/2 z-[1] pointer-events-none"
             style={{
               bottom: "7%",
-              width: "80%",
-              height: "6%",
-              background: "radial-gradient(ellipse at center, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.08) 40%, rgba(0,0,0,0.02) 70%, transparent 100%)",
+              width: "75%",
+              height: "5%",
+              background: "radial-gradient(ellipse at center, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.05) 50%, transparent 85%)",
             }}
           />
-          {/* Secondary ambient shadow — very wide, subtle ground plane */}
+          {/* Ambient occlusion — very wide, faint ground plane shadow */}
           <div
             className="absolute left-1/2 -translate-x-1/2 z-[0] pointer-events-none"
             style={{
-              bottom: "5%",
-              width: "95%",
+              bottom: "4%",
+              width: "90%",
               height: "10%",
-              background: "radial-gradient(ellipse at center, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.02) 50%, transparent 80%)",
+              background: "radial-gradient(ellipse at center, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.02) 50%, transparent 80%)",
             }}
           />
         </>
