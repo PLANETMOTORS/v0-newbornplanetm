@@ -15,6 +15,19 @@ function getAllowedOrigins(): string[] {
     origins.push(baseUrl.replace(/\/+$/, ""))
   }
 
+  // Vercel deployment URL (auto-set by Vercel)
+  const vercelUrl = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_VERCEL_URL
+  if (vercelUrl) {
+    const normalized = vercelUrl.startsWith("http") ? vercelUrl : `https://${vercelUrl}`
+    origins.push(normalized.replace(/\/+$/, ""))
+  }
+
+  // Custom domain(s) — allow ev.planetmotors.ca and planetmotors.ca
+  const siteDomain = process.env.NEXT_PUBLIC_SITE_DOMAIN
+  if (siteDomain) {
+    origins.push(`https://${siteDomain.replace(/\/+$/, "")}`)
+  }
+
   // Only allow localhost variants in development — never in production
   if (process.env.NODE_ENV !== "production") {
     origins.push(

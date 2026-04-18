@@ -654,12 +654,21 @@ export default function FinanceCalculatorPage() {
 
               {/* CTA Buttons */}
               <div className="space-y-3">
-                <Button className="w-full h-12 text-base" size="lg" asChild>
-                  <Link href={`/financing/application?vehicleId=${vehicleId}${urlTradeIn ? `&tradeIn=${urlTradeIn}&quoteId=${urlQuoteId || ''}&tradeInVehicle=${encodeURIComponent(urlTradeInVehicle || '')}` : ''}`}>
-                    <CreditCard className="w-5 h-5 mr-2" />
-                    Apply for Financing
-                  </Link>
-                </Button>
+                {agreementType === "finance" ? (
+                  <Button className="w-full h-12 text-base" size="lg" asChild>
+                    <Link href={`/financing/application?vehicleId=${vehicleId}${urlTradeIn ? `&tradeIn=${urlTradeIn}&quoteId=${urlQuoteId || ''}&tradeInVehicle=${encodeURIComponent(urlTradeInVehicle || '')}` : ''}`}>
+                      <CreditCard className="w-5 h-5 mr-2" />
+                      Apply for Financing
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button className="w-full h-12 text-base" size="lg" asChild>
+                    <Link href={`/checkout/${vehicleId}/payment`}>
+                      <DollarSign className="w-5 h-5 mr-2" />
+                      Reserve for $250 Deposit
+                    </Link>
+                  </Button>
+                )}
                 <Button variant="outline" className="w-full" asChild>
                   <Link href={`/vehicles/${vehicleId}`}>
                     <FileText className="w-4 h-4 mr-2" />
