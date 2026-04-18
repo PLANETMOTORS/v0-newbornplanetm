@@ -35,6 +35,7 @@ const PAGE_SIZE = 20
 export default function AdminCustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
   const [page, setPage] = useState(0)
@@ -57,6 +58,7 @@ export default function AdminCustomersPage() {
 
   const fetchCustomers = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       const params = new URLSearchParams({
         limit: String(PAGE_SIZE),
@@ -66,14 +68,17 @@ export default function AdminCustomersPage() {
         params.set("search", debouncedSearch)
       }
       const res = await fetch(`/api/v1/admin/customers?${params}`)
-      if (res.ok) {
-        const data = await res.json()
-        setCustomers(data.customers || [])
-        setTotalCount(data.total ?? 0)
-        setTotalCustomers(data.totalCustomers ?? 0)
+      if (!res.ok) {
+        setError("Failed to load customers")
+        return
       }
-    } catch (error) {
-      console.error("Error fetching customers:", error)
+      const data = await res.json()
+      setCustomers(data.customers || [])
+      setTotalCount(data.total ?? 0)
+      setTotalCustomers(data.totalCustomers ?? 0)
+    } catch (err) {
+      console.error("Error fetching customers:", err)
+      setError("Network error — please try again")
     } finally {
       setLoading(false)
     }
@@ -162,6 +167,15 @@ export default function AdminCustomersPage() {
             <div className="flex items-center justify-center py-12">
               <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
               <span className="ml-2 text-gray-500">Loading customers...</span>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+              <Users className="w-12 h-12 mb-4 text-gray-300" />
+              <p className="text-lg font-medium">{error}</p>
+              <Button variant="outline" onClick={fetchCustomers} className="mt-4">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Retry
+              </Button>
             </div>
           ) : customers.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-gray-500">
