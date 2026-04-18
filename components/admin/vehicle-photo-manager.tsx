@@ -192,6 +192,7 @@ export default function VehiclePhotoManager({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setDragOver(false)
+    if (uploading) return
     if (e.dataTransfer.files.length > 0) {
       handleUpload(e.dataTransfer.files)
     }
