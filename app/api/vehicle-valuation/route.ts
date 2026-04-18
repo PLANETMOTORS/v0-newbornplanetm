@@ -4,6 +4,7 @@ import { gateway } from "@ai-sdk/gateway"
 import { apiError, ErrorCode } from "@/lib/api-response"
 import { validateOrigin } from "@/lib/csrf"
 import { rateLimit } from "@/lib/redis"
+import { getRegionFromPostalCode, getRegionalMultiplier } from "@/lib/postal-regions"
 
 export async function POST(request: NextRequest) {
   // CSRF origin validation
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { year, make, model, trim, mileage, condition } = await request.json()
+    const { year, make, model, trim, mileage, condition, postalCode } = await request.json()
 
     if (!year || !make || !model || !mileage) {
       return apiError(ErrorCode.VALIDATION_ERROR, "Missing required fields", 400)
@@ -30,9 +31,10 @@ export async function POST(request: NextRequest) {
     const currentYear = new Date().getFullYear()
     const vehicleAge = currentYear - parseInt(year)
 
+    // Resolve the client's region from their postal code
+    const region = getRegionFromPostalCode(postalCode)
+
     // Use AI to analyze and estimate vehicle value using Live Market approach (like vAuto Provision)
-    // vAuto philosophy: "history and book values alone are no longer the best way" - use real-time market data
-    // Mileage is part of a live-market appraisal model, NOT a simple fixed mileage table
     const prompt = `You are a Canadian automotive valuation expert using a LIVE MARKET approach (similar to vAuto Provision).
 
 IMPORTANT METHODOLOGY:
@@ -50,10 +52,24 @@ Vehicle to Appraise:
 - Vehicle Age: ${vehicleAge} years
 - Accident History: Clean (no reported accidents)
 
+CLIENT LOCATION:
+- Postal Code: ${postalCode || "Not provided"}
+- Region: ${region.marketDescription}
+- Province: ${region.province}
+
+REGIONAL MARKET FACTORS:
+- Value this vehicle for the ${region.regionName} market specifically
+- In Alberta/Saskatchewan, trucks & SUVs command a premium due to oil & gas and rural demand
+- In BC & Quebec, EVs/PHEVs command a premium due to provincial incentives & charging infrastructure
+- In Ontario/GTA, the market is the largest and most liquid — baseline pricing
+- Atlantic provinces have smaller markets and salt corrosion reduces vehicle values
+- Northern/remote regions have limited buyer pools, lowering values
+- Consider local AutoTrader.ca listing prices for this region
+
 LIVE MARKET FACTORS TO CONSIDER:
-1. Current AutoTrader.ca listings for similar vehicles in Canada
+1. Current AutoTrader.ca listings for similar vehicles in ${region.regionName}
 2. Recent Manheim auction results for wholesale values
-3. Regional demand (Ontario/GTA market)
+3. Regional demand in ${region.marketDescription}
 4. Supply/demand for this specific make/model/trim
 5. Current economic conditions affecting used car market
 6. Seasonal factors (SUVs/trucks worth more in winter)
@@ -91,7 +107,7 @@ Respond ONLY with a JSON object (no markdown, no explanation):
       valuation = JSON.parse(cleanedText)
     } catch {
       // Fallback to algorithmic calculation if AI parsing fails
-      valuation = calculateFallbackValue(year, make, model, mileageNum, condition)
+      valuation = calculateFallbackValue(year, make, model, mileageNum, condition, postalCode)
     }
 
     // Validate and sanitize the values
@@ -102,6 +118,7 @@ Respond ONLY with a JSON object (no markdown, no explanation):
       confidence: valuation.confidence || "medium",
       factors: valuation.factors || [],
       source: "ai-market-analysis",
+      region: region.regionName,
     }
 
     return NextResponse.json(sanitizedValuation)
@@ -109,8 +126,8 @@ Respond ONLY with a JSON object (no markdown, no explanation):
     console.error("Valuation error:", error)
     // Return fallback calculation on any error
     try {
-      const { year, make, model, mileage, condition } = await request.json()
-      const fallback = calculateFallbackValue(year, make, model, parseInt(String(mileage).replace(/,/g, "")), condition)
+      const { year, make, model, mileage, condition, postalCode } = await request.json()
+      const fallback = calculateFallbackValue(year, make, model, parseInt(String(mileage).replace(/,/g, "")), condition, postalCode)
       return NextResponse.json({ ...fallback, source: "fallback-algorithm" })
     } catch {
       return apiError(ErrorCode.INTERNAL_ERROR, "Valuation failed")
@@ -118,8 +135,8 @@ Respond ONLY with a JSON object (no markdown, no explanation):
   }
 }
 
-// Fallback algorithmic calculation
-function calculateFallbackValue(year: string, make: string, model: string, mileage: number, condition: string) {
+// Fallback algorithmic calculation with regional pricing
+function calculateFallbackValue(year: string, make: string, model: string, mileage: number, condition: string, postalCode?: string) {
   const currentYear = new Date().getFullYear()
   const age = currentYear - parseInt(year)
 
@@ -172,6 +189,23 @@ function calculateFallbackValue(year: string, make: string, model: string, milea
   }
   value *= conditionMultipliers[condition?.toLowerCase()] || 1.0
 
+  // Regional adjustment based on postal code
+  const { multiplier, region, vehicleType } = getRegionalMultiplier(postalCode, make, model)
+  value *= multiplier
+
+  const factors = [
+    "Age-based depreciation",
+    "Mileage adjustment",
+    "Condition factor",
+    `Regional market: ${region.regionName}`,
+  ]
+  if (vehicleType === "truck" || vehicleType === "suv") {
+    factors.push(`${vehicleType === "truck" ? "Truck" : "SUV"} demand premium in ${region.province}`)
+  }
+  if (vehicleType === "ev") {
+    factors.push(`EV market adjustment for ${region.province}`)
+  }
+
   // Minimum and rounding
   value = Math.max(500, value)
   value = Math.round(value / 50) * 50
@@ -181,6 +215,7 @@ function calculateFallbackValue(year: string, make: string, model: string, milea
     midValue: value,
     highValue: Math.round(value * 1.10 / 50) * 50,
     confidence: "medium",
-    factors: ["Age-based depreciation", "Mileage adjustment", "Condition factor"],
+    factors,
+    region: region.regionName,
   }
 }
