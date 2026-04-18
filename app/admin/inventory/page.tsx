@@ -413,8 +413,10 @@ export default function AdminInventoryPage() {
         offset += batchSize
       }
     } catch {
-      // Fall back to current page if fetch fails
-      allVehicles.push(...vehicles)
+      // Fall back to current page only if no batches succeeded
+      if (allVehicles.length === 0) {
+        allVehicles.push(...vehicles)
+      }
     }
 
     const headers = ["stock_number","vin","year","make","model","trim","price","mileage","status","exterior_color","drivetrain","fuel_type"]
