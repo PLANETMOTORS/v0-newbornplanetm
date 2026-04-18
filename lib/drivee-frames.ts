@@ -37,6 +37,7 @@ export const FRAME_MANIFEST: Record<string, number> = {
   "625294835450": 38, // 2025 Hyundai Kona Electric
   "085109772520": 37, // 2018 Audi Q3
   "860125156862": 32, // 2021 Tesla Model 3 (2nd)
+  "181836743021": 33, // 2021 Tesla Model 3 (5YJ3E1EA3MF848712)
 }
 
 /**

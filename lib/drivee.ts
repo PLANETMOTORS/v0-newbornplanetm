@@ -44,9 +44,7 @@ export const DRIVEE_VIN_MAP: Record<string, string> = {
   // ── Legacy VINs (may have been sold) ────────────────────────────────
   "1C4JXRN68MW508009": "190171976531",  // 2021 Jeep Wrangler 4xe (sold)
 
-  // ── Pirelly MID confirmed but frames NOT yet in Supabase Storage ────
-  // Need to run: scripts/migrate-360-to-supabase.ts for these MIDs
-  // "5YJ3E1EA3MF848712": "181836743021",  // 2021 Tesla Model 3 — Pirelly MID, frames not migrated
+  "5YJ3E1EA3MF848712": "181836743021",  // 2021 Tesla Model 3 — frames migrated to Supabase 2026-04-15
 
   // ── Not yet photographed with Drivee (no MID in Pirelly API) ────────
   // "LRW3E7EB6RC102901":  null,  // 2024 Tesla Model 3 Long Range
