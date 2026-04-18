@@ -133,13 +133,11 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
               ) : (
                 <div className="grid gap-3">
                   {filteredVehicles.map((vehicle) => (
-                    <div
+                    <button
                       key={vehicle.id}
-                      role="button"
-                      tabIndex={0}
-                      className="flex items-center gap-4 p-3 rounded-lg border hover:border-primary hover:bg-primary/5 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+                      type="button"
+                      className="flex items-center gap-4 p-3 rounded-lg border hover:border-primary hover:bg-primary/5 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary w-full text-left"
                       onClick={() => handleSelectVehicle(vehicle)}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelectVehicle(vehicle) } }}
                     >
                       <div className="w-24 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
                         {vehicle.primary_image_url ? (
@@ -168,9 +166,9 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                         <p className="font-semibold text-primary" title="Price estimate — final all-in price confirmed at signing per OMVIC regulations">
                           ${(vehicle.price / 100).toLocaleString()}*
                         </p>
-                        <Button size="sm" className="mt-1">Select</Button>
+                        <span className="inline-block mt-1 text-xs font-medium text-primary">Select →</span>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}
