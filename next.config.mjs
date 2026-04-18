@@ -83,14 +83,16 @@ const nextConfig = {
     ]
 
     // Main site CSP — no unsafe-eval, tightened script-src
+    // Domains: Stripe, Vercel, GTM, GA4, Google Ads, Stape (server-side tagging),
+    //          Facebook, Planet Motors server-side proxy (capig.planetmotors.ca)
     const mainSiteCSP = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://js.stripe.com https://va.vercel-scripts.com https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://cdn.jsdelivr.net",
+      "script-src 'self' 'unsafe-inline' https://js.stripe.com https://va.vercel-scripts.com https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://cdn.jsdelivr.net https://stapecdn.com https://googleads.g.doubleclick.net https://www.googleadservices.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
       "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' blob: data: https://*.stripe.com https://hebbkx1anhila5yf.public.blob.vercel-storage.com https://cdn.planetmotors.ca https://planetmotors.imgix.net https://media.cpsimg.com https://cdn.sanity.io https://www.google-analytics.com https://www.googletagmanager.com https://www.facebook.com https://content.homenetiol.com https://photos.homenetiol.com https://ldervbcvkoawwknsemuz.supabase.co https://images.unsplash.com",
-      "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://www.googletagmanager.com https://www.facebook.com",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://cdn.sanity.io https://*.upstash.io https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://graph.facebook.com https://www.facebook.com",
+      "img-src 'self' blob: data: https://*.stripe.com https://hebbkx1anhila5yf.public.blob.vercel-storage.com https://cdn.planetmotors.ca https://planetmotors.imgix.net https://media.cpsimg.com https://cdn.sanity.io https://www.google-analytics.com https://www.googletagmanager.com https://www.facebook.com https://content.homenetiol.com https://photos.homenetiol.com https://ldervbcvkoawwknsemuz.supabase.co https://images.unsplash.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://capig.planetmotors.ca",
+      "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://www.googletagmanager.com https://www.facebook.com https://capig.planetmotors.ca https://td.doubleclick.net",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://cdn.sanity.io https://*.upstash.io https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://graph.facebook.com https://www.facebook.com https://capig.planetmotors.ca https://www.google.com https://googleads.g.doubleclick.net https://www.merchant-center-analytics.goog",
       "worker-src 'self' blob:",
       "base-uri 'self'",
       "form-action 'self'",
