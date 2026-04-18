@@ -73,16 +73,24 @@ async function HomepageWithData() {
   ])
 
   // Preload the LCP hero image — the first showcase vehicle image.
-  // This emits a <link rel="preload"> in the <head> so the browser
-  // starts fetching the image before it encounters the <img> tag.
+  // Uses imageSrcSet + imageSizes so the browser picks the exact same URL
+  // that the <Image sizes="(max-width: 768px) 100vw, 50vw"> component will
+  // request, avoiding "preloaded but not used" mismatches across DPRs.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase row shape
   const firstVehicle = showcaseVehicles?.[0] as any
   const firstImage: string | undefined = firstVehicle?.primary_image_url
     || (firstVehicle?.image_urls && firstVehicle.image_urls[0])
   if (firstImage) {
-    // Match the sizes/srcset the <Image> component will use on mobile (100vw @ 412px → w=640)
-    const optimizedUrl = `/_next/image?url=${encodeURIComponent(firstImage)}&w=640&q=75`
-    preload(optimizedUrl, { as: "image", fetchPriority: "high" } as Parameters<typeof preload>[1])
+    const encodedUrl = encodeURIComponent(firstImage)
+    // deviceSizes from next.config.mjs — must match exactly
+    const widths = [640, 750, 828, 1080, 1200, 1920]
+    const srcSet = widths.map(w => `/_next/image?url=${encodedUrl}&w=${w}&q=75 ${w}w`).join(', ')
+    preload('', {
+      as: 'image',
+      imageSrcSet: srcSet,
+      imageSizes: '(max-width: 768px) 100vw, 50vw',
+      fetchPriority: 'high',
+    } as Parameters<typeof preload>[1])
   }
 
   return (

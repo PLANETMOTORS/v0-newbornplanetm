@@ -55,11 +55,12 @@ export const config = {
     /*
      * Run on all routes EXCEPT:
      *  - _next/static, _next/image (Next.js internals)
-     *  - favicon.ico, static assets (svg|png|jpg|jpeg|gif|webp|ico)
+     *  - favicon.ico, static assets (svg|png|jpg|jpeg|gif|webp|ico|js|json|xml|txt|css|woff2)
+     *  - sw.js, manifest.json (PWA files — must not go through auth middleware)
      *  - /api/webhooks/*  (Stripe — uses its own signature verification)
      *  - /api/sanity-webhook (Sanity — uses its own signature verification)
      *  - sitemap.xml, sitemap/*.xml, robots.txt (metadata routes — must not be intercepted)
      */
-    '/((?!_next/static|_next/image|favicon\\.ico|api/webhooks/|api/sanity-webhook|sitemap\\.xml|sitemap/|robots\\.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|sw\\.js|manifest\\.json|api/webhooks/|api/sanity-webhook|sitemap\\.xml|sitemap/|robots\\.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2)$).*)',
   ],
 }
