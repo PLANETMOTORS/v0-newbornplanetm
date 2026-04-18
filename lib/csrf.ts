@@ -6,28 +6,41 @@
  * endpoints.
  */
 
+/** Safely extract the URL origin (scheme+host+port) from a raw string. */
+function parseOrigin(raw: string, defaultScheme = "https"): string | null {
+  try {
+    const withScheme = raw.startsWith("http") ? raw : `${defaultScheme}://${raw}`
+    return new URL(withScheme).origin
+  } catch {
+    return null
+  }
+}
+
 function getAllowedOrigins(): string[] {
   const origins: string[] = []
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
   if (baseUrl) {
-    // Normalise: strip trailing slash
-    origins.push(baseUrl.replace(/\/+$/, ""))
+    const o = parseOrigin(baseUrl)
+    if (o) origins.push(o)
   }
 
-  // Vercel auto-sets VERCEL_URL for every deployment (no protocol prefix)
-  const vercelUrl = process.env.VERCEL_URL
+  // Vercel deployment URL (auto-set by Vercel)
+  const vercelUrl = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_VERCEL_URL
   if (vercelUrl) {
-    origins.push(`https://${vercelUrl}`)
+    const o = parseOrigin(vercelUrl)
+    if (o) origins.push(o)
   }
 
-  // Custom domain configured via env (e.g. ev.planetmotors.ca)
+  // Custom domain(s) — comma-separated list (e.g. "ev.planetmotors.ca,planetmotors.ca")
   const siteDomain = process.env.NEXT_PUBLIC_SITE_DOMAIN
   if (siteDomain) {
-    const domain = siteDomain.replace(/\/+$/, "")
-    origins.push(
-      domain.startsWith("http") ? domain : `https://${domain}`,
-    )
+    for (const part of siteDomain.split(",")) {
+      const trimmed = part.trim()
+      if (!trimmed) continue
+      const o = parseOrigin(trimmed)
+      if (o) origins.push(o)
+    }
   }
 
   // Only allow localhost variants in development — never in production
