@@ -713,7 +713,9 @@ function TradeInContent() {
 
     const equity = hasLien && payoffAmount ? midValue - parseFloat(payoffAmount) : midValue
 
+    const generatedQuoteId = `PQ-${Date.now().toString(36).toUpperCase()}`
     setOffer({
+      quoteId: generatedQuoteId,
       offerNumber: `PM-${Date.now().toString(36).toUpperCase()}`,
       vehicle: `${selectedYear} ${selectedMake} ${selectedModel} ${selectedTrim}`.trim(),
       mileage,

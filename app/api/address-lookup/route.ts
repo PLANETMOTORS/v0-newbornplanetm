@@ -189,8 +189,16 @@ function getCityFromPostalCode(postalCode: string): string {
   return cityMap[prefix] || ''
 }
 
+const PROV_ABBR_TO_NAME: Record<string, string> = {
+  'ON': 'Ontario', 'QC': 'Quebec', 'BC': 'British Columbia',
+  'AB': 'Alberta', 'SK': 'Saskatchewan', 'MB': 'Manitoba',
+  'NB': 'New Brunswick', 'NS': 'Nova Scotia', 'PE': 'Prince Edward Island',
+  'NL': 'Newfoundland and Labrador', 'NT': 'Northwest Territories',
+  'NU': 'Nunavut', 'YT': 'Yukon',
+}
+
 // Fallback: look up city/province via geocoder.ca when local map has no match
-async function lookupPostalCodeOnline(postalCode: string): Promise<{ city: string; province: string } | null> {
+async function lookupPostalCodeOnline(postalCode: string): Promise<{ city: string; province: string; street?: string } | null> {
   try {
     const clean = postalCode.replace(/\s/g, '').toUpperCase()
     const controller = new AbortController()
@@ -203,17 +211,10 @@ async function lookupPostalCodeOnline(postalCode: string): Promise<{ city: strin
     if (!response.ok) return null
     const data = await response.json()
     if (data.standard?.city && data.standard?.prov) {
-      // Convert province abbreviation to full name
-      const provMap: Record<string, string> = {
-        'ON': 'Ontario', 'QC': 'Quebec', 'BC': 'British Columbia',
-        'AB': 'Alberta', 'SK': 'Saskatchewan', 'MB': 'Manitoba',
-        'NB': 'New Brunswick', 'NS': 'Nova Scotia', 'PE': 'Prince Edward Island',
-        'NL': 'Newfoundland and Labrador', 'NT': 'Northwest Territories',
-        'NU': 'Nunavut', 'YT': 'Yukon',
-      }
       return {
         city: data.standard.city,
-        province: provMap[data.standard.prov] || data.standard.prov,
+        province: PROV_ABBR_TO_NAME[data.standard.prov] || data.standard.prov,
+        street: typeof data.standard?.staddress === 'string' ? data.standard.staddress : undefined,
       }
     }
     return null
@@ -234,33 +235,38 @@ export async function GET(request: NextRequest) {
   let city = getCityFromPostalCode(postalCode)
   let province = getProvinceFromPostalCode(postalCode)
 
-  // If local map has no city match, try online lookup (geocoder.ca)
-  if (!city && postalCode.length >= 3) {
-    const online = await lookupPostalCodeOnline(postalCode)
-    if (online) {
-      city = online.city
-      province = online.province
-    }
-  }
-
   // Get prefix (first 3 characters)
   const prefix = postalCode.slice(0, 3)
 
   // Check if we have street-level data for this postal code prefix
-  const streetSuggestions = postalCodePrefixStreets[prefix] || []
+  let streetSuggestions = postalCodePrefixStreets[prefix] || []
 
-  // Always return suggestions if we have them for the prefix
-  if (streetSuggestions.length > 0) {
-    return NextResponse.json({
-      suggestions: streetSuggestions,
-      city,
-      province,
-    })
+  // If local map has no city match or no street suggestions, try online lookup (geocoder.ca)
+  if ((!city || streetSuggestions.length === 0) && postalCode.length >= 3) {
+    const online = await lookupPostalCodeOnline(postalCode)
+    if (online) {
+      if (!city) city = online.city
+      if (!province) province = online.province
+      // If the online lookup returned a street and we have no local street data, build a suggestion
+      if (streetSuggestions.length === 0 && online.street && online.city) {
+        const parts = online.street.split(' ')
+        const streetType = parts.length > 1 ? parts.pop()! : 'Street'
+        const streetName = parts.join(' ') || online.street
+        streetSuggestions = [{
+          streetName,
+          streetType,
+          city: online.city,
+          province: online.province,
+          postalCode: prefix,
+          fullAddress: `${online.street}, ${online.city}, ${online.province}`,
+        }]
+      }
+    }
   }
 
-  // Return city/province even without street suggestions
+  // Return suggestions + city/province
   return NextResponse.json({
-    suggestions: [],
+    suggestions: streetSuggestions,
     city,
     province,
   })
