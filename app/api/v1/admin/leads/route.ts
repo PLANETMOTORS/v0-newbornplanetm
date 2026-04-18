@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 
     const { data: leads, count, error } = await query
 
-    if (error && error.message?.includes("does not exist")) {
+    if (error && (error.message?.includes("does not exist") || error.message?.includes("Could not find") || error.code === "PGRST205")) {
       // Leads table not created yet — aggregate from existing tables
       return NextResponse.json(await aggregateLeads(adminClient, { status, source, search, offset, limit }))
     }
