@@ -186,8 +186,8 @@ export function SearchAutocomplete() {
                 </Link>
               ))}
               <div className="px-4 py-2 border-t">
-                <Link 
-                  href={`/vehicles?search=${encodeURIComponent(query)}`}
+                <Link
+                  href={`/inventory?q=${encodeURIComponent(query)}`}
                   className="text-sm text-primary hover:underline"
                   onClick={() => setIsOpen(false)}
                 >
