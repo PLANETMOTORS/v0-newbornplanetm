@@ -81,7 +81,6 @@ export async function PUT(
       "battery_capacity_kwh", "range_miles", "status", "is_certified",
       "is_new_arrival", "featured", "has_360_spin",
       "primary_image_url", "image_urls", "video_url", "location",
-      "primary_image_url", "image_urls", "video_url", "location",
       "inspection_score", "inspection_date",
       "ev_battery_health_percent",
     ]
@@ -97,21 +96,21 @@ export async function PUT(
       return NextResponse.json({ error: "No fields to update" }, { status: 400 })
     }
 
-    // Uppercase VIN if provided
-    if (update.vin && typeof update.vin === "string") {
-      const vinStr = update.vin as string
-      update.vin = vinStr.toUpperCase()
-      if ((update.vin as string).length !== 17) {
-        return NextResponse.json({ error: "VIN must be exactly 17 characters" }, { status: 400 })
-      }
-      // Check for duplicate VIN (excluding current vehicle)
-      const { data: existing } = await adminClient
-        .from("vehicles")
-        .select("id")
+    // Uppercase VIN if provided and validate
     if (typeof update.vin === "string") {
       update.vin = (update.vin as string).toUpperCase()
       if ((update.vin as string).length !== 17) {
         return NextResponse.json({ error: "VIN must be exactly 17 characters" }, { status: 400 })
+      }
+      // Check for duplicate VIN (excluding current vehicle)
+      const { data: existingVin } = await adminClient
+        .from("vehicles")
+        .select("id")
+        .eq("vin", update.vin as string)
+        .neq("id", id)
+        .maybeSingle()
+      if (existingVin) {
+        return NextResponse.json({ error: "A vehicle with this VIN already exists" }, { status: 409 })
       }
     }
 
