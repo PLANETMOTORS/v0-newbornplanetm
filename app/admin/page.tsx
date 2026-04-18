@@ -111,7 +111,7 @@ export default function AdminDashboard() {
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-          {[1,2,3,4].map(i => (
+          {[1,2,3,4,5,6].map(i => (
             <Card key={i} className="animate-pulse">
               <CardContent className="p-4"><div className="h-16 bg-gray-200 rounded" /></CardContent>
             </Card>
