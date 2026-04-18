@@ -153,10 +153,10 @@ export function FooterContent({ siteSettings }: FooterProps) {
             {/* ── Vehicles ── */}
             <div>
               <h4 className="font-serif text-base font-semibold text-white mb-5 tracking-tight">Vehicles</h4>
-              <ul className="space-y-3">
+              <ul className="space-y-1">
                 {footerLinks.vehicles.map((link) => (
                   <li key={link.name}>
-                    <Link href={link.href} className="text-sm text-white/60 hover:text-white transition-colors">
+                    <Link href={link.href} className="block py-1.5 min-h-[44px] flex items-center text-sm text-white/60 hover:text-white transition-colors">
                       {link.name}
                     </Link>
                   </li>
@@ -167,10 +167,10 @@ export function FooterContent({ siteSettings }: FooterProps) {
             {/* ── Services ── */}
             <div>
               <h4 className="font-serif text-base font-semibold text-white mb-5 tracking-tight">Services</h4>
-              <ul className="space-y-3">
+              <ul className="space-y-1">
                 {footerLinks.services.map((link) => (
                   <li key={link.name}>
-                    <Link href={link.href} className="text-sm text-white/60 hover:text-white transition-colors">
+                    <Link href={link.href} className="block py-1.5 min-h-[44px] flex items-center text-sm text-white/60 hover:text-white transition-colors">
                       {link.name}
                     </Link>
                   </li>
@@ -181,10 +181,10 @@ export function FooterContent({ siteSettings }: FooterProps) {
             {/* ── Company ── */}
             <div>
               <h4 className="font-serif text-base font-semibold text-white mb-5 tracking-tight">Company</h4>
-              <ul className="space-y-3">
+              <ul className="space-y-1">
                 {footerLinks.company.map((link) => (
                   <li key={link.name}>
-                    <Link href={link.href} className="text-sm text-white/60 hover:text-white transition-colors">
+                    <Link href={link.href} className="block py-1.5 min-h-[44px] flex items-center text-sm text-white/60 hover:text-white transition-colors">
                       {link.name}
                     </Link>
                   </li>
@@ -195,10 +195,10 @@ export function FooterContent({ siteSettings }: FooterProps) {
             {/* ── Legal ── */}
             <div>
               <h4 className="font-serif text-base font-semibold text-white mb-5 tracking-tight">Legal</h4>
-              <ul className="space-y-3">
+              <ul className="space-y-1">
                 {footerLinks.legal.map((link) => (
                   <li key={link.name}>
-                    <Link href={link.href} className="text-sm text-white/60 hover:text-white transition-colors">
+                    <Link href={link.href} className="block py-1.5 min-h-[44px] flex items-center text-sm text-white/60 hover:text-white transition-colors">
                       {link.name}
                     </Link>
                   </li>
@@ -244,14 +244,14 @@ export function FooterContent({ siteSettings }: FooterProps) {
               href="https://www.omvic.on.ca"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-white/90 hover:text-white transition-colors"
+              className="flex items-center gap-2 min-h-[44px] py-1 text-white/90 hover:text-white transition-colors"
             >
               <Shield className="w-3.5 h-3.5 shrink-0" />
               <span className="text-xs font-medium">OMVIC Registered Dealer</span>
             </a>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               {footerLinks.legal.map((link) => (
-                <Link key={link.name} href={link.href} className="text-xs font-medium text-white/90 hover:text-white transition-colors">
+                <Link key={link.name} href={link.href} className="min-h-[44px] flex items-center text-xs font-medium text-white/90 hover:text-white transition-colors">
                   {link.name}
                 </Link>
               ))}
