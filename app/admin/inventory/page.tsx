@@ -98,6 +98,15 @@ const inventoryData = [
   },
 ]
 
+/**
+ * Admin inventory management page component that displays, filters, and selects vehicle records.
+ *
+ * Renders a searchable and filterable inventory table with selection checkboxes, bulk action controls,
+ * summary stats, import/export/add buttons, and static pagination. The visible rows are filtered by
+ * a text query (matches year, make, model, and trim) and by status.
+ *
+ * @returns A React element representing the admin inventory management user interface.
+ */
 export default function AdminInventoryPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
@@ -215,6 +224,7 @@ export default function AdminInventoryPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
+                aria-label="Search inventory by year, make, model, or VIN"
                 placeholder="Search by year, make, model, VIN..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
