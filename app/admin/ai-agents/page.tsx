@@ -3,12 +3,13 @@
 import { useState, useEffect, useCallback } from "react"
 import {
   Bot, DollarSign, Car, Save, RefreshCw,
-  ToggleLeft, ToggleRight, Plus, Trash2, Settings2
+  ToggleLeft, ToggleRight, Plus, Trash2, Settings2, BookOpen
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import AIKnowledgePanel from "@/components/admin/ai-knowledge-panel"
 
 interface QuickAction {
   label: string
@@ -40,6 +41,7 @@ export default function AIAgentsPage() {
   const [editingAgent, setEditingAgent] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<Partial<AgentConfig>>({})
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null)
+  const [knowledgeAgent, setKnowledgeAgent] = useState<string | null>(null)
 
   const fetchAgents = useCallback(async () => {
     try {
@@ -191,12 +193,18 @@ export default function AIAgentsPage() {
                     <button onClick={() => toggleAgent(agent.agent_type, agent.is_active)} className="p-2 hover:bg-gray-100 rounded-lg">
                       {agent.is_active ? <ToggleRight className="w-6 h-6 text-green-600" /> : <ToggleLeft className="w-6 h-6 text-gray-400" />}
                     </button>
-                    {!isEditing ? (
-                      <Button variant="outline" size="sm" onClick={() => startEditing(agent)}>
-                        <Settings2 className="w-4 h-4 mr-1" />
-                        Configure
-                      </Button>
-                    ) : (
+                    {!isEditing && knowledgeAgent !== agent.agent_type ? (
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => { setKnowledgeAgent(agent.agent_type); setEditingAgent(null) }}>
+                          <BookOpen className="w-4 h-4 mr-1" />
+                          Knowledge
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => { startEditing(agent); setKnowledgeAgent(null) }}>
+                          <Settings2 className="w-4 h-4 mr-1" />
+                          Configure
+                        </Button>
+                      </div>
+                    ) : isEditing ? (
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={cancelEditing}>Cancel</Button>
                         <Button size="sm" onClick={saveAgent} disabled={saving === agent.agent_type}>
@@ -204,7 +212,9 @@ export default function AIAgentsPage() {
                           {saving === agent.agent_type ? "Saving..." : "Save"}
                         </Button>
                       </div>
-                    )}
+                    ) : knowledgeAgent === agent.agent_type ? (
+                      <Button variant="outline" size="sm" onClick={() => setKnowledgeAgent(null)}>Close Knowledge</Button>
+                    ) : null}
                   </div>
                 </div>
               </CardHeader>
@@ -406,8 +416,18 @@ export default function AIAgentsPage() {
                 </CardContent>
               )}
 
+              {/* Knowledge & Training panel */}
+              {knowledgeAgent === agent.agent_type && !isEditing && (
+                <CardContent className="border-t pt-6">
+                  <AIKnowledgePanel
+                    agentType={agent.agent_type}
+                    agentName={agent.display_name || agent.agent_type}
+                  />
+                </CardContent>
+              )}
+
               {/* Collapsed view — show key stats */}
-              {!isEditing && (
+              {!isEditing && knowledgeAgent !== agent.agent_type && (
                 <CardContent className="border-t pt-4">
                   <div className="flex flex-wrap gap-4 text-sm text-gray-500">
                     {agent.agent_type === "anna" && (

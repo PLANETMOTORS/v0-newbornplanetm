@@ -7,6 +7,7 @@ import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 import { z } from "zod"
 import { searchInventory, formatVehiclesForAnna, buildInventoryContext } from "@/lib/anna/inventory-search"
 import { createLead, saveConversation, saveChatMessage, escalateConversation } from "@/lib/anna/lead-capture"
+import { buildKnowledgePrompt } from "@/lib/anna/knowledge"
 
 // Allowed origins for the AI assistant endpoint — use exact origin matching
 // to prevent bypass via domains like "https://www.planetmotors.ca.attacker.tld"
@@ -189,10 +190,11 @@ export async function POST(req: Request) {
     })
   }
 
-  const [aiSettings, siteSettings, inventoryContext] = await Promise.all([
+  const [aiSettings, siteSettings, inventoryContext, knowledgePrompt] = await Promise.all([
     getAISettings(),
     getSiteSettings(),
     buildInventoryContext(),
+    buildKnowledgePrompt("anna"),
   ])
 
   const typedAiSettings = aiSettings as AISettings | null
@@ -414,6 +416,7 @@ When a customer shows clear buying intent, use the capture_lead tool:
 - They provide their contact information
 - They want to make an offer
 
+${knowledgePrompt}
 RESPONSE GUIDELINES:
 1. For payment questions — show all terms (24-96 months) with bi-weekly and weekly
 2. Always mention "rates from ${baseRate}%, subject to credit approval"
@@ -421,7 +424,8 @@ RESPONSE GUIDELINES:
 4. Always offer to help with next steps
 5. When searching inventory, use the search_inventory tool — don't guess
 6. Be specific with real data — stock numbers, exact prices, actual mileage
-7. If you don't know something, say so honestly and offer to connect with the team`
+7. If you don't know something, say so honestly and offer to connect with the team
+8. When a customer's question matches a trained Q&A entry, use the trained response — it takes priority`
 
   // Define tools for Anna
   const annaTools = {
