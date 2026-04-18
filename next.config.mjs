@@ -83,16 +83,87 @@ const nextConfig = {
     ]
 
     // Main site CSP — no unsafe-eval, tightened script-src
-    // Domains: Stripe, Vercel, GTM, GA4, Google Ads, Stape (server-side tagging),
-    //          Facebook, Planet Motors server-side proxy (capig.planetmotors.ca)
+    // Each directive is built from an array so diffs are one-domain-per-line.
+    const scriptSrc = [
+      "'self'",
+      "'unsafe-inline'",
+      'https://js.stripe.com',           // Stripe payments
+      'https://va.vercel-scripts.com',    // Vercel Analytics
+      'https://www.googletagmanager.com', // GTM
+      'https://www.google-analytics.com', // GA4
+      'https://connect.facebook.net',     // Facebook Pixel
+      'https://cdn.jsdelivr.net',         // Open-source CDN (widgets)
+      'https://stapecdn.com',             // Stape server-side tagging CDN
+      'https://googleads.g.doubleclick.net',  // Google Ads conversion scripts
+      'https://www.googleadservices.com',     // Google Ads services
+    ]
+
+    const styleSrc = [
+      "'self'",
+      "'unsafe-inline'",
+      'https://fonts.googleapis.com',
+      'https://cdn.jsdelivr.net',
+    ]
+
+    const imgSrc = [
+      "'self'",
+      'blob:',
+      'data:',
+      'https://*.stripe.com',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com',
+      'https://cdn.planetmotors.ca',
+      'https://planetmotors.imgix.net',
+      'https://media.cpsimg.com',
+      'https://cdn.sanity.io',
+      'https://www.google-analytics.com',
+      'https://www.googletagmanager.com',
+      'https://www.facebook.com',
+      'https://content.homenetiol.com',
+      'https://photos.homenetiol.com',
+      'https://ldervbcvkoawwknsemuz.supabase.co',
+      'https://images.unsplash.com',
+      'https://www.google.com',              // Remarketing pixel
+      'https://googleads.g.doubleclick.net',  // Ads conversion pixel
+      'https://www.googleadservices.com',     // Google Ads pixel
+      'https://capig.planetmotors.ca',        // Server-side tagging pixel
+    ]
+
+    const frameSrc = [
+      "'self'",
+      'https://js.stripe.com',
+      'https://hooks.stripe.com',
+      'https://www.googletagmanager.com',
+      'https://www.facebook.com',
+      'https://capig.planetmotors.ca',        // Server-side tagging iframe
+      'https://td.doubleclick.net',           // DoubleClick tracking frame
+    ]
+
+    const connectSrc = [
+      "'self'",
+      'https://*.supabase.co',
+      'wss://*.supabase.co',
+      'https://api.stripe.com',
+      'https://cdn.sanity.io',
+      'https://*.upstash.io',
+      'https://www.google-analytics.com',
+      'https://region1.google-analytics.com',
+      'https://www.googletagmanager.com',
+      'https://graph.facebook.com',
+      'https://www.facebook.com',
+      'https://capig.planetmotors.ca',            // GA4 server-side proxy
+      'https://www.google.com',                    // Remarketing + CCM
+      'https://googleads.g.doubleclick.net',       // Google Ads data
+      'https://www.merchant-center-analytics.goog', // Google Merchant Center
+    ]
+
     const mainSiteCSP = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://js.stripe.com https://va.vercel-scripts.com https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://cdn.jsdelivr.net https://stapecdn.com https://googleads.g.doubleclick.net https://www.googleadservices.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
+      `script-src ${scriptSrc.join(' ')}`,
+      `style-src ${styleSrc.join(' ')}`,
       "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' blob: data: https://*.stripe.com https://hebbkx1anhila5yf.public.blob.vercel-storage.com https://cdn.planetmotors.ca https://planetmotors.imgix.net https://media.cpsimg.com https://cdn.sanity.io https://www.google-analytics.com https://www.googletagmanager.com https://www.facebook.com https://content.homenetiol.com https://photos.homenetiol.com https://ldervbcvkoawwknsemuz.supabase.co https://images.unsplash.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://capig.planetmotors.ca",
-      "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://www.googletagmanager.com https://www.facebook.com https://capig.planetmotors.ca https://td.doubleclick.net",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://cdn.sanity.io https://*.upstash.io https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://graph.facebook.com https://www.facebook.com https://capig.planetmotors.ca https://www.google.com https://googleads.g.doubleclick.net https://www.merchant-center-analytics.goog",
+      `img-src ${imgSrc.join(' ')}`,
+      `frame-src ${frameSrc.join(' ')}`,
+      `connect-src ${connectSrc.join(' ')}`,
       "worker-src 'self' blob:",
       "base-uri 'self'",
       "form-action 'self'",
