@@ -50,9 +50,10 @@ export async function GET(request: NextRequest) {
 
     const r = data.Results[0]
 
-    // Check for NHTSA errors
-    const errorCode = r.ErrorCode || ""
-    if (errorCode && !errorCode.split(",").includes("0")) {
+    // NHTSA error codes: 0 = OK, 1 = check-digit warning, 5/6 = partial data
+    // Only fail if we didn't get the essential fields (make + model)
+    const hasCriticalData = r.Make && r.Model && r.ModelYear
+    if (!hasCriticalData) {
       return NextResponse.json(
         { success: false, error: "Could not decode this VIN. Please check and try again." },
         { status: 400 }
