@@ -190,6 +190,46 @@ export interface NotificationRow {
   read: boolean; action_url: string | null; created_at: string
 }
 
+export interface LeadRow {
+  id: string; source: 'contact_form' | 'chat' | 'phone' | 'finance_app' | 'trade_in' | 'reservation' | 'test_drive' | 'walk_in' | 'referral' | 'other'
+  status: 'new' | 'contacted' | 'qualified' | 'negotiating' | 'converted' | 'lost' | 'archived'
+  priority: 'low' | 'medium' | 'high' | 'urgent'
+  customer_name: string | null; customer_email: string | null; customer_phone: string | null
+  customer_id: string | null; vehicle_id: string | null; vehicle_info: string | null
+  subject: string | null; message: string | null; notes: string | null
+  assigned_to: string | null; contacted_at: string | null; converted_at: string | null
+  conversion_type: string | null
+  utm_source: string | null; utm_medium: string | null; utm_campaign: string | null
+  source_id: string | null; source_table: string | null
+  created_at: string; updated_at: string
+}
+
+export interface ChatConversationRow {
+  id: string; session_id: string
+  customer_id: string | null; customer_name: string | null; customer_email: string | null
+  status: 'active' | 'ended' | 'escalated' | 'converted'
+  vehicle_context: Record<string, unknown> | null
+  lead_id: string | null; message_count: number
+  escalated_at: string | null; ended_at: string | null
+  created_at: string; updated_at: string
+}
+
+export interface ChatMessageRow {
+  id: string; conversation_id: string
+  role: 'user' | 'assistant' | 'system'
+  content: string; metadata: Record<string, unknown> | null
+  created_at: string
+}
+
+export interface AIAgentConfigRow {
+  id: string; agent_type: 'anna' | 'negotiator' | 'valuator'
+  display_name: string | null; is_active: boolean
+  system_prompt: string | null; welcome_message: string | null
+  quick_actions: { label: string; prompt: string }[] | null
+  config: Record<string, unknown>; updated_by: string | null
+  created_at: string; updated_at: string
+}
+
 /* ── Database interface (Supabase client generic parameter) ── */
 
 export interface Database {
@@ -213,6 +253,10 @@ export interface Database {
       stripe_webhook_events: { Row: StripeWebhookEventRow; Insert: Partial<StripeWebhookEventRow> & Pick<StripeWebhookEventRow, 'stripe_event_id' | 'event_type' | 'status'>; Update: Partial<StripeWebhookEventRow> }
       live_video_tour_bookings: { Row: LiveVideoTourBookingRow; Insert: Partial<LiveVideoTourBookingRow> & Pick<LiveVideoTourBookingRow, 'vehicle_id' | 'vehicle_name' | 'customer_name' | 'customer_email' | 'customer_phone' | 'preferred_time'>; Update: Partial<LiveVideoTourBookingRow> }
       notifications: { Row: NotificationRow; Insert: Partial<NotificationRow> & Pick<NotificationRow, 'user_id' | 'type' | 'title' | 'message'>; Update: Partial<NotificationRow> }
+      leads: { Row: LeadRow; Insert: Partial<LeadRow>; Update: Partial<LeadRow> }
+      chat_conversations: { Row: ChatConversationRow; Insert: Partial<ChatConversationRow> & Pick<ChatConversationRow, 'session_id'>; Update: Partial<ChatConversationRow> }
+      chat_messages: { Row: ChatMessageRow; Insert: Partial<ChatMessageRow> & Pick<ChatMessageRow, 'conversation_id' | 'role' | 'content'>; Update: Partial<ChatMessageRow> }
+      ai_agent_config: { Row: AIAgentConfigRow; Insert: Partial<AIAgentConfigRow> & Pick<AIAgentConfigRow, 'agent_type'>; Update: Partial<AIAgentConfigRow> }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
