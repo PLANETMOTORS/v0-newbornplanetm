@@ -11,7 +11,7 @@ export default function VerifyEmailPage() {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       <Header />
       
-      <main className="container mx-auto px-4 py-16">
+      <main id="main-content" tabIndex={-1} className="container mx-auto px-4 py-16">
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8">
             <Link href="/" className="inline-block mb-6">

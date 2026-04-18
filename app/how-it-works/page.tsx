@@ -78,7 +78,7 @@ export default function HowItWorksPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main>
+      <main id="main-content" tabIndex={-1}>
         {/* Hero Section */}
         <section className="bg-primary py-20">
           <div className="container mx-auto px-4 text-center">

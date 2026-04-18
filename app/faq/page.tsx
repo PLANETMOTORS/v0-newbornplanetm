@@ -135,7 +135,7 @@ export default function FAQPage() {
       <FAQJsonLd faqs={allFaqs} />
       <Header />
 
-      <main>
+      <main id="main-content" tabIndex={-1}>
         {/* Hero Section */}
         <section className="bg-primary py-16">
           <div className="container mx-auto px-4 text-center">

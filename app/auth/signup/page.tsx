@@ -120,7 +120,7 @@ function SignUpForm() {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       <Header />
       
-      <main className="container mx-auto px-4 py-12">
+      <main id="main-content" tabIndex={-1} className="container mx-auto px-4 py-12">
         <div className="max-w-5xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-start">
             {/* Left Column - Benefits */}

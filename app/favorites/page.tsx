@@ -25,7 +25,7 @@ export default function FavoritesPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="pt-32 pb-16">
+      <main id="main-content" tabIndex={-1} className="pt-32 pb-16">
         <div className="container mx-auto px-4">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">

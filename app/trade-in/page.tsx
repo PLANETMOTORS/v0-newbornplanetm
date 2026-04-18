@@ -780,7 +780,7 @@ function TradeInContent() {
     <div className="min-h-screen bg-background overflow-x-hidden">
       <Header />
       
-      <main className="overflow-x-hidden max-w-full">
+      <main id="main-content" tabIndex={-1} className="overflow-x-hidden max-w-full">
         {/* Instant Quote Banner - Shows when coming from AI Quote */}
         {instantQuote && (
           <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4">

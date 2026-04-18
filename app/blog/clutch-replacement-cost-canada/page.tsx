@@ -42,7 +42,7 @@ export default function ClutchReplacementCostCanadaPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main>
+      <main id="main-content" tabIndex={-1}>
         {/* Article Header */}
         <article className="max-w-4xl mx-auto px-4 py-12">
           <div className="mb-8">

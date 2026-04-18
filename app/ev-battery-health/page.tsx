@@ -118,7 +118,7 @@ export default function EVBatteryHealthPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main>
+      <main id="main-content" tabIndex={-1}>
         {/* Hero Section */}
         <section className="bg-gradient-to-br from-primary via-primary to-green-700 py-20">
           <div className="container mx-auto px-4">
