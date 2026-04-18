@@ -18,6 +18,10 @@ node_modules
 .next/
 .DS_Store
 
+# Serwist — generated service worker files
+public/sw*
+public/swe-worker*
+
 # Playwright MCP snapshots
 .playwright-mcp/
 
