@@ -148,6 +148,7 @@ export async function GET(request: NextRequest) {
       const { data: batch } = await adminClient
         .from("orders")
         .select("total_price_cents")
+        .order("id")
         .range(revenueOffset, revenueOffset + revenueBatchSize - 1)
       if (!batch || batch.length === 0) break
       totalRevenue += batch.reduce((sum, o) => sum + (o.total_price_cents || 0), 0)
