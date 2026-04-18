@@ -4,9 +4,12 @@ import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
 import { ChevronDown, Phone, MapPin, Star, Award, CheckCircle, Shield, Truck } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
-import { SignInPanel } from "@/components/sign-in-panel"
+import dynamic from "next/dynamic"
+// Lazy-load SignInPanel — it's only shown when user clicks sign-in
+const SignInPanel = dynamic(() => import("@/components/sign-in-panel").then(m => ({ default: m.SignInPanel })), { ssr: false })
 import NavButton from "@/components/nav-button"
-import { SearchAutocomplete } from "@/components/search-autocomplete"
+// Lazy-load SearchAutocomplete — heavy component only needed on interaction
+const SearchAutocomplete = dynamic(() => import("@/components/search-autocomplete").then(m => ({ default: m.SearchAutocomplete })), { ssr: false })
 import { useAuth } from "@/contexts/auth-context"
 import { trackPhoneClick } from "@/components/analytics/google-tag-manager"
 

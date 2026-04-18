@@ -257,8 +257,8 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
           </div>
         </div>
 
-        {/* Bottom info overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+        {/* Bottom info overlay — min-h prevents CLS from dynamic content */}
+        <div className="absolute bottom-0 left-0 right-0 p-5 text-white min-h-[120px]">
           <div className="flex items-center gap-2 mb-2">
             <Shield className="w-4 h-4 text-green-300" />
             <span className="text-sm text-green-300 font-medium">
