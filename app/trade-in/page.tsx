@@ -655,7 +655,7 @@ function TradeInContent() {
     let lowValue: number, midValue: number, highValue: number
 
     try {
-      // Call the real vehicle-valuation API
+      // Call the real vehicle-valuation API with postal code for regional pricing
       const response = await fetch("/api/vehicle-valuation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -666,6 +666,7 @@ function TradeInContent() {
           trim: selectedTrim,
           mileage,
           condition,
+          postalCode,
         }),
       })
 
