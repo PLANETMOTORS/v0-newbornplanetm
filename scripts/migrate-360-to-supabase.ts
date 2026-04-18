@@ -31,7 +31,7 @@ const MAX_PROBE = 50
 const UNIQUE_MIDS: Record<string, string> = {
   "190171976531": "2021 Jeep Wrangler 4xe",
   "744761075195": "2025 Chevrolet Equinox EV",
-  "132601940353": "2021 Tesla Model 3",
+  "132601940353": "2023 Tesla Model 3 Long Range",
   "806787519944": "2023 Volkswagen Taos",
   "890747363179": "2024 Tesla Model 3",
   "640326639530": "2019 Tesla Model 3",
@@ -40,6 +40,7 @@ const UNIQUE_MIDS: Record<string, string> = {
   "625294835450": "2025 Hyundai Kona Electric",
   "085109772520": "2018 Audi Q3",
   "860125156862": "2021 Tesla Model 3 (2nd)",
+  "181836743021": "2021 Tesla Model 3 (5YJ3E1EA3MF848712)",
 }
 
 function firebaseFrameUrl(mid: string, frameNumber: number): string {
