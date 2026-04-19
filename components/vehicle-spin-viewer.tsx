@@ -38,7 +38,7 @@ const REFLECTION_OPACITY = 0.08 // floor reflection strength (subtle but effecti
 // Visual grounding offset: pushes the car DOWN so the body bottom sits near
 // the shadow line instead of floating 35px above it. Tires extend below the
 // shadow (drawn behind the car), which is how real cars look on the ground.
-const GROUND_PUSH    = 0.07   // push car down by 7% of carH
+const GROUND_PUSH    = 0.10   // push car down by 10% of carH — body bottom at/below tire line
 
 // ── Studio colors (Carvana showroom: bright wall, medium-dark floor) ──
 const WALL_TOP     = "#F5F2EF"
@@ -144,21 +144,22 @@ function drawScene(
   // the car image (the undercar gap between body and ground).
   const shadowCenterX = width / 2
 
-  // Layer 0: Rectangular undercar fill — a strong dark block that covers the
-  // entire area under the car body down to the tire line. This guarantees that
-  // any transparent pixels in the undercar zone (between body bottom and wheel
-  // tops) show DARK shadow, not light floor. Much more reliable than the
-  // previous elliptical AO gradient which was too weak at center.
-  const undercarTop = carTop + 0.65 * carH   // ~65% of car height (body bottom area)
-  const undercarBottom = tireLineY + 20       // extend past tire line
+  // Layer 0: Strong undercar shadow block — fills the entire area from the
+  // car body region down past the tire line with dark shadow. Since the car
+  // image is drawn ON TOP, this only shows through transparent pixels in the
+  // undercar gap (between body bottom and wheel tops). Uses a strong vertical
+  // gradient that goes from transparent (above body) to very dark (at tire
+  // line) to catch any remaining gap even with GROUND_PUSH.
+  const undercarTop = carTop + 0.58 * carH   // start above body bottom
+  const undercarBottom = tireLineY + 30       // extend well past tire line
   const undercarFill = ctx.createLinearGradient(0, undercarTop, 0, undercarBottom)
   undercarFill.addColorStop(0, "rgba(0,0,0,0)")
-  undercarFill.addColorStop(0.2, "rgba(0,0,0,0.30)")
-  undercarFill.addColorStop(0.5, "rgba(0,0,0,0.45)")
-  undercarFill.addColorStop(0.8, "rgba(0,0,0,0.35)")
-  undercarFill.addColorStop(1, "rgba(0,0,0,0.15)")
+  undercarFill.addColorStop(0.25, "rgba(0,0,0,0.35)")
+  undercarFill.addColorStop(0.5, "rgba(0,0,0,0.55)")
+  undercarFill.addColorStop(0.75, "rgba(0,0,0,0.50)")
+  undercarFill.addColorStop(1, "rgba(0,0,0,0.20)")
   ctx.fillStyle = undercarFill
-  ctx.fillRect(carLeft + carW * 0.03, undercarTop, carW * 0.94, undercarBottom - undercarTop)
+  ctx.fillRect(carLeft, undercarTop, carW, undercarBottom - undercarTop)
 
   // Layer 1: Broad contact shadow (medium height, centered at tire line)
   const shadowRx = carW * 0.48
