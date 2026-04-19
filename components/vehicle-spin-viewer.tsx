@@ -187,6 +187,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   const lastX = useRef(0)
   const velocity = useRef(0)
   const momentumRef = useRef<number | null>(null)
+  const drawFrameRef = useRef<() => void>(() => {})
 
   // ── Image cache ──
   // Stores loaded Image objects for instant canvas drawing
@@ -231,20 +232,21 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     drawScene(ctx, w, h, carImg, tireY)
   }, [frame])
 
+  // Keep ref always pointing to the latest drawFrame
+  drawFrameRef.current = drawFrame
+
   // Redraw on frame change or resize
   useEffect(() => {
     drawFrame()
   }, [drawFrame, isFullscreen, loadedCount])
 
-  // ResizeObserver for responsive redraw
+  // ResizeObserver for responsive redraw — uses component-level ref
+  // so the callback always invokes the latest drawFrame closure
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
-    const drawRef = { current: drawFrame }
-    const ro = new ResizeObserver(() => drawRef.current())
+    const ro = new ResizeObserver(() => drawFrameRef.current())
     ro.observe(el)
-    // Update ref on each render so observer calls latest drawFrame
-    drawRef.current = drawFrame
     return () => ro.disconnect()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFullscreen])
