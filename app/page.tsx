@@ -12,8 +12,9 @@ import dynamic from "next/dynamic"
 import { Header } from "@/components/header"
 import { HomepageContent } from "@/components/homepage-content"
 
-// Lazy-load the footer since it's always below the fold
-const Footer = dynamic(() => import("@/components/footer").then(m => ({ default: m.Footer })), { ssr: true })
+// Lazy-load the footer — ssr: false keeps its JS out of the initial
+// hydration payload so the browser can paint the LCP hero sooner.
+const Footer = dynamic(() => import("@/components/footer").then(m => ({ default: m.Footer })), { ssr: false })
 import { getSiteSettings } from "@/lib/sanity/fetch"
 import { createStaticClient } from "@/lib/supabase/static"
 
