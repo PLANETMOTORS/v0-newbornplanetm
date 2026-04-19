@@ -2,23 +2,31 @@
  * Regression tests for tire-floor alignment calculation.
  *
  * Verifies that the pixel-based positioning algorithm in VehicleSpinViewer
- * places the tire contact line within ±2 px of the shadow ellipse center
+ * places the tire contact line within ±2 px of the floor contact line
  * at three representative viewport sizes (mobile, tablet, desktop).
  *
  * Tests are parameterized across all body-type anchor profiles (sedan, suv,
  * truck, oversized) to ensure alignment holds for every real configuration.
+ *
+ * Key architecture:
+ *   - floorContactY is the alignment target (upper edge of shadow ellipse = floor surface)
+ *   - shadowCenterY is only for the visual shadow div position
+ *   - tireContactY is where tires are in the source image
  *
  * These are pure-math tests that mirror the ResizeObserver callback in
  * components/vehicle-spin-viewer.tsx — no DOM or React rendering needed.
  */
 import { describe, it, expect } from 'vitest'
 
+// Shadow ellipse ry = 5.93% of container height (must match component)
+const SHADOW_RY_FRACTION = 0.0593
+
 // ── Per-body-type anchor profiles (must match vehicle-spin-viewer.tsx) ──
 const ANCHOR_PROFILES = {
-  sedan: { shadowCenterY: 0.7556, tireContactY: 0.850 },
-  suv: { shadowCenterY: 0.7400, tireContactY: 0.825 },
-  truck: { shadowCenterY: 0.7300, tireContactY: 0.810 },
-  oversized: { shadowCenterY: 0.7200, tireContactY: 0.800 },
+  sedan: { floorContactY: 0.7556 - SHADOW_RY_FRACTION, shadowCenterY: 0.7556, tireContactY: 0.850 },
+  suv: { floorContactY: 0.7400 - SHADOW_RY_FRACTION, shadowCenterY: 0.7400, tireContactY: 0.825 },
+  truck: { floorContactY: 0.7300 - SHADOW_RY_FRACTION, shadowCenterY: 0.7300, tireContactY: 0.810 },
+  oversized: { floorContactY: 0.7200 - SHADOW_RY_FRACTION, shadowCenterY: 0.7200, tireContactY: 0.800 },
 } as const
 
 const IMG_ASPECT   = 4 / 3
@@ -34,7 +42,7 @@ const snap = (v: number) => Math.round(v * 2) / 2
 function computeAlignment(
   containerW: number,
   containerH: number,
-  profile: { shadowCenterY: number; tireContactY: number },
+  profile: { floorContactY: number; tireContactY: number },
 ) {
   const fitW = Math.min(containerW, containerH * IMG_ASPECT)
   const fitH = fitW / IMG_ASPECT
@@ -43,7 +51,7 @@ function computeAlignment(
   const renderH = snap(fitH * SCALE_FACTOR)
 
   const tireY  = snap(profile.tireContactY * renderH)
-  const floorY = snap(profile.shadowCenterY * containerH)
+  const floorY = snap(profile.floorContactY * containerH)
 
   const imgTop  = snap(floorY - tireY)
   const imgLeft = snap((containerW - renderW) / 2)
@@ -51,13 +59,13 @@ function computeAlignment(
   // Where the tire contact line actually ends up in the container
   const tireLineY = imgTop + tireY
 
-  // Error: how far tire line is from shadow center
+  // Error: how far tire line is from floor contact line
   const error = Math.abs(floorY - tireLineY)
 
   return { renderW, renderH, tireY, floorY, imgTop, imgLeft, tireLineY, error }
 }
 
-// ── QC tolerance: wheel anchor Y must be within ±2 px of shadow ellipse Y ──
+// ── QC tolerance: wheel anchor Y must be within ±2 px of floor contact line ──
 const MAX_ERROR_PX = 2
 
 // ── Viewport definitions ──
@@ -74,7 +82,7 @@ const VIEWPORTS = [
 // ---------------------------------------------------------------------------
 
 for (const [profileName, profile] of Object.entries(ANCHOR_PROFILES)) {
-  describe(`Tire-floor alignment [${profileName}] — tire line matches shadow ellipse`, () => {
+  describe(`Tire-floor alignment [${profileName}] — tire line matches floor contact`, () => {
     for (const vp of VIEWPORTS) {
       it(`${vp.name}: tire-to-floor error ≤ ${MAX_ERROR_PX} px`, () => {
         const result = computeAlignment(vp.w, vp.h, profile)
@@ -212,16 +220,28 @@ describe('Anchor profile consistency', () => {
     expect(ANCHOR_PROFILES.truck.shadowCenterY).toBeGreaterThan(ANCHOR_PROFILES.oversized.shadowCenterY)
   })
 
+  it('floor contact Y decreases from sedan → oversized', () => {
+    expect(ANCHOR_PROFILES.sedan.floorContactY).toBeGreaterThan(ANCHOR_PROFILES.suv.floorContactY)
+    expect(ANCHOR_PROFILES.suv.floorContactY).toBeGreaterThan(ANCHOR_PROFILES.truck.floorContactY)
+    expect(ANCHOR_PROFILES.truck.floorContactY).toBeGreaterThan(ANCHOR_PROFILES.oversized.floorContactY)
+  })
+
+  it('floor contact Y is above shadow center Y (floor = top of shadow)', () => {
+    for (const profile of Object.values(ANCHOR_PROFILES)) {
+      expect(profile.floorContactY).toBeLessThan(profile.shadowCenterY)
+    }
+  })
+
   it('tire contact Y decreases from sedan → oversized (higher ride = lower tire fraction)', () => {
     expect(ANCHOR_PROFILES.sedan.tireContactY).toBeGreaterThan(ANCHOR_PROFILES.suv.tireContactY)
     expect(ANCHOR_PROFILES.suv.tireContactY).toBeGreaterThan(ANCHOR_PROFILES.truck.tireContactY)
     expect(ANCHOR_PROFILES.truck.tireContactY).toBeGreaterThan(ANCHOR_PROFILES.oversized.tireContactY)
   })
 
-  it('all profiles have shadow center in [0.70, 0.80] range', () => {
+  it('all profiles have floor contact in [0.60, 0.75] range', () => {
     for (const profile of Object.values(ANCHOR_PROFILES)) {
-      expect(profile.shadowCenterY).toBeGreaterThanOrEqual(0.70)
-      expect(profile.shadowCenterY).toBeLessThanOrEqual(0.80)
+      expect(profile.floorContactY).toBeGreaterThanOrEqual(0.60)
+      expect(profile.floorContactY).toBeLessThanOrEqual(0.75)
     }
   })
 
@@ -230,5 +250,56 @@ describe('Anchor profile consistency', () => {
       expect(profile.tireContactY).toBeGreaterThanOrEqual(0.75)
       expect(profile.tireContactY).toBeLessThanOrEqual(0.90)
     }
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Floor contact model — ellipseYUpperAtX
+// ---------------------------------------------------------------------------
+
+describe('Floor contact model — ellipseYUpperAtX', () => {
+  // Import would require module setup; test the math directly
+  function ellipseYUpperAtX(x: number, e: { cx: number; cy: number; rx: number; ry: number }): number {
+    if (e.rx <= 0 || e.ry <= 0) return e.cy
+    const dx = x - e.cx
+    const inside = 1 - (dx * dx) / (e.rx * e.rx)
+    if (inside <= 0) return e.cy
+    return e.cy - Math.sqrt(inside) * e.ry
+  }
+
+  function ellipseYLowerAtX(x: number, e: { cx: number; cy: number; rx: number; ry: number }): number {
+    if (e.rx <= 0 || e.ry <= 0) return e.cy
+    const dx = x - e.cx
+    const inside = 1 - (dx * dx) / (e.rx * e.rx)
+    if (inside <= 0) return e.cy
+    return e.cy + Math.sqrt(inside) * e.ry
+  }
+
+  const ellipse = { cx: 500, cy: 450, rx: 200, ry: 50 }
+
+  it('upper boundary is ABOVE center (smaller Y)', () => {
+    const upper = ellipseYUpperAtX(500, ellipse) // at center x
+    expect(upper).toBe(400) // cy - ry = 450 - 50
+    expect(upper).toBeLessThan(ellipse.cy)
+  })
+
+  it('lower boundary is BELOW center (larger Y)', () => {
+    const lower = ellipseYLowerAtX(500, ellipse)
+    expect(lower).toBe(500) // cy + ry = 450 + 50
+    expect(lower).toBeGreaterThan(ellipse.cy)
+  })
+
+  it('upper + lower are symmetric around center', () => {
+    for (const x of [350, 400, 450, 500, 550, 600, 650]) {
+      const upper = ellipseYUpperAtX(x, ellipse)
+      const lower = ellipseYLowerAtX(x, ellipse)
+      const midpoint = (upper + lower) / 2
+      expect(midpoint).toBeCloseTo(ellipse.cy, 5)
+    }
+  })
+
+  it('returns center for points outside ellipse span', () => {
+    const outside = ellipseYUpperAtX(800, ellipse) // way outside rx
+    expect(outside).toBe(ellipse.cy)
   })
 })

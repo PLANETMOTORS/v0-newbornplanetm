@@ -87,6 +87,20 @@ export function ellipseYLowerAtX(x: number, e: Ellipse): number {
 }
 
 /**
+ * Upper-half Y on ellipse boundary for a given X.
+ * This is the FLOOR CONTACT LINE — where tires physically touch the ground.
+ * The top of the shadow ellipse represents the floor surface; the shadow
+ * extends below and around the contact points.
+ */
+export function ellipseYUpperAtX(x: number, e: Ellipse): number {
+  if (e.rx <= 0 || e.ry <= 0) return e.cy
+  const dx = x - e.cx
+  const inside = 1 - (dx * dx) / (e.rx * e.rx)
+  if (inside <= 0) return e.cy // outside ellipse span
+  return e.cy - Math.sqrt(inside) * e.ry
+}
+
+/**
  * Returns updated calibration state and metrics for debug overlay.
  *
  * Positive rawDelta means wheel is ABOVE floor → move car DOWN.
@@ -114,9 +128,11 @@ export function autoCalibrateFrame(
     }
   }
 
-  // Positive delta means wheel is ABOVE floor → move car DOWN
+  // Positive delta means wheel is ABOVE floor contact line → move car DOWN.
+  // Floor contact is the UPPER boundary of the shadow ellipse (where tires
+  // physically touch the ground), not the lower boundary or center.
   const wheelDeltas = wheelBottoms.map((w) => {
-    const yFloor = ellipseYLowerAtX(w.x, floorEllipse)
+    const yFloor = ellipseYUpperAtX(w.x, floorEllipse)
     return yFloor - w.y
   })
 

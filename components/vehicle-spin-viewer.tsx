@@ -32,8 +32,20 @@ const FALLBACK_BG = "linear-gradient(to bottom, #f5f1eb 0%, #efe9e1 43%, #c7cccf
 // Drivee classifies vehicles on upload: Sedan / SUV / Large Vehicle / Oversized.
 // Each body type has different tire-contact and shadow geometry because ride height,
 // wheel size, and ground clearance vary significantly.
+//
+// Key architecture (from David's review):
+//   - floorContactY is the ALIGNMENT TARGET — where tires should land in the container.
+//     This is independent of the shadow visual center. It represents the upper edge
+//     of the shadow ellipse (the actual floor surface).
+//   - shadowCenterY is purely for the visual shadow ellipse position.
+//   - tireContactY is where the tire-ground contact is in the SOURCE IMAGE.
+//   - The auto-calibration uses the upper boundary of the shadow ellipse as
+//     the floor model for per-wheel correction (ellipseYUpperAtX).
 interface AnchorProfile {
-  /** Shadow ellipse center Y as fraction of container height */
+  /** Floor contact line Y as fraction of container height — the ALIGNMENT TARGET.
+   *  This is where tires should visually land (upper edge of shadow ellipse area). */
+  floorContactY: number
+  /** Shadow ellipse center Y as fraction of container height (visual only). */
   shadowCenterY: number
   /** Tire contact line as fraction of image height (from top) */
   tireContactY: number
@@ -46,23 +58,31 @@ interface AnchorProfile {
   }
 }
 
+// Shadow ellipse ry = 5.93% of container height (half of 11.86% height).
+// Floor contact ≈ shadowCenterY - shadowRy (top edge of shadow = floor surface).
+const SHADOW_RY_FRACTION = 0.0593
+
 const ANCHOR_PROFILES: Record<string, AnchorProfile> = {
   sedan: {
+    floorContactY: 0.7556 - SHADOW_RY_FRACTION, // ≈ 0.696
     shadowCenterY: 0.7556,
     tireContactY: 0.850,
     wheelAnchors: { flX: 0.22, flY: 0.90, frX: 0.78, frY: 0.90, rlX: 0.32, rlY: 0.93, rrX: 0.68, rrY: 0.93 },
   },
   suv: {
+    floorContactY: 0.7400 - SHADOW_RY_FRACTION, // ≈ 0.681
     shadowCenterY: 0.7400,
     tireContactY: 0.825,
     wheelAnchors: { flX: 0.20, flY: 0.88, frX: 0.80, frY: 0.88, rlX: 0.30, rlY: 0.92, rrX: 0.70, rrY: 0.92 },
   },
   truck: {
+    floorContactY: 0.7300 - SHADOW_RY_FRACTION, // ≈ 0.671
     shadowCenterY: 0.7300,
     tireContactY: 0.810,
     wheelAnchors: { flX: 0.18, flY: 0.86, frX: 0.82, frY: 0.86, rlX: 0.28, rlY: 0.90, rrX: 0.72, rrY: 0.90 },
   },
   oversized: {
+    floorContactY: 0.7200 - SHADOW_RY_FRACTION, // ≈ 0.661
     shadowCenterY: 0.7200,
     tireContactY: 0.800,
     wheelAnchors: { flX: 0.18, flY: 0.85, frX: 0.82, frY: 0.85, rlX: 0.28, rlY: 0.89, rrX: 0.72, rrY: 0.89 },
@@ -174,8 +194,10 @@ export function VehicleSpinViewer({ images, alt, bodyStyle }: SpinViewerProps) {
       // Where the tire contact line falls in the rendered image (px from image top)
       const tireY = snap(profile.tireContactY * renderH)
 
-      // Where the shadow center is in the container (px from container top)
-      const floorY = snap(profile.shadowCenterY * ch)
+      // Where the floor contact line is in the container (px from container top).
+      // This is the UPPER EDGE of the shadow ellipse — where tires physically
+      // touch the ground. NOT the shadow center (which is below the floor).
+      const floorY = snap(profile.floorContactY * ch)
 
       // Position image so tire line = floor line
       const imgTop = snap(floorY - tireY)
