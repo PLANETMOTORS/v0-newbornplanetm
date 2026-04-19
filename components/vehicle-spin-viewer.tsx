@@ -303,15 +303,17 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         style={{ width: "100%", height: "100%" }}
       />
 
-      {/* ── Shadow ellipse test anchor (invisible — used by E2E tests) ── */}
+      {/* ── Shadow ellipse test anchor (invisible — used by E2E tests) ──
+           Width/height must be the full diameter (2×rx, 2×ry), not the radius,
+           so that E2E tests derive correct ellipse params from boundingBox. */}
       <div
         data-testid="shadow-ellipse"
         className="absolute pointer-events-none"
         style={{
-          left: `${50 - 24.17 / 2}%`,
-          top: `${SHADOW_CENTER_Y * 100 - 5.93 / 2}%`,
-          width: "24.17%",
-          height: "5.93%",
+          left: `${50 - 24.17}%`,
+          top: `${SHADOW_CENTER_Y * 100 - 5.93}%`,
+          width: "48.34%",
+          height: "11.86%",
           borderRadius: "50%",
         }}
       />
