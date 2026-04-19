@@ -411,8 +411,10 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       onPointerMove={isReady ? handlePointerMove : undefined}
       onPointerUp={isReady ? handlePointerUp : undefined}
       onPointerCancel={isReady ? handlePointerUp : undefined}
-      className={`relative w-full rounded-xl overflow-hidden select-none touch-none focus:outline-none focus:ring-2 focus:ring-primary ${
-        isFullscreen ? "fixed inset-0 z-50 rounded-none" : "aspect-[4/3]"
+      className={`w-full overflow-hidden select-none touch-none focus:outline-none focus:ring-2 focus:ring-primary ${
+        isFullscreen
+          ? "fixed inset-0 z-50 rounded-none"
+          : "relative aspect-[4/3] rounded-xl"
       }`}
       style={{
         cursor: !isReady ? "default" : isDragging ? "grabbing" : "grab",
