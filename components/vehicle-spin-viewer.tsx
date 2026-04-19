@@ -120,9 +120,16 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     ro.observe(el)
 
     // Also recalculate on DPR change (e.g. dragging window between monitors)
-    // and orientation change (mobile rotation)
-    const dprMedia = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`)
-    const onDprChange = () => recalc()
+    // and orientation change (mobile rotation).
+    // The matchMedia listener must be torn down and recreated after each DPR
+    // change so subsequent transitions (e.g. 1×→2×→3×) are detected.
+    let dprMedia = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`)
+    const onDprChange = () => {
+      recalc()
+      dprMedia.removeEventListener("change", onDprChange)
+      dprMedia = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`)
+      dprMedia.addEventListener("change", onDprChange)
+    }
     dprMedia.addEventListener("change", onDprChange)
 
     const onOrientation = () => recalc()
@@ -377,14 +384,20 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
             style={carStyle}
             draggable={false}
           />
-          {/* ── Wheel anchor markers (invisible — used by E2E tests) ──
-               Positions are approximate for a front 3/4 view (frame 0).
-               FL/FR at ~88% of car height, RL/RR at ~92%. */}
-          <div data-testid="wheel-FL" className="absolute" style={{ left: `${layoutRef.current.imgLeft + layoutRef.current.renderW * 0.20}px`, top: `${layoutRef.current.imgTop + layoutRef.current.renderH * 0.88}px`, width: 2, height: 2 }} />
-          <div data-testid="wheel-FR" className="absolute" style={{ left: `${layoutRef.current.imgLeft + layoutRef.current.renderW * 0.80}px`, top: `${layoutRef.current.imgTop + layoutRef.current.renderH * 0.88}px`, width: 2, height: 2 }} />
-          <div data-testid="wheel-RL" className="absolute" style={{ left: `${layoutRef.current.imgLeft + layoutRef.current.renderW * 0.30}px`, top: `${layoutRef.current.imgTop + layoutRef.current.renderH * 0.92}px`, width: 2, height: 2 }} />
-          <div data-testid="wheel-RR" className="absolute" style={{ left: `${layoutRef.current.imgLeft + layoutRef.current.renderW * 0.70}px`, top: `${layoutRef.current.imgTop + layoutRef.current.renderH * 0.92}px`, width: 2, height: 2 }} />
         </div>
+      )}
+
+      {/* ── Wheel anchor markers (invisible — used by E2E tests) ──
+           Rendered unconditionally (both useFrameBackground modes) so E2E
+           alignment tests can always find them. Positions are approximate
+           for a front 3/4 view: FL/FR at ~88% of car height, RL/RR at ~92%. */}
+      {isReady && (
+        <>
+          <div data-testid="wheel-FL" className="absolute z-[3] pointer-events-none" style={{ left: `${layoutRef.current.imgLeft + layoutRef.current.renderW * 0.20}px`, top: `${layoutRef.current.imgTop + layoutRef.current.renderH * 0.88}px`, width: 2, height: 2 }} />
+          <div data-testid="wheel-FR" className="absolute z-[3] pointer-events-none" style={{ left: `${layoutRef.current.imgLeft + layoutRef.current.renderW * 0.80}px`, top: `${layoutRef.current.imgTop + layoutRef.current.renderH * 0.88}px`, width: 2, height: 2 }} />
+          <div data-testid="wheel-RL" className="absolute z-[3] pointer-events-none" style={{ left: `${layoutRef.current.imgLeft + layoutRef.current.renderW * 0.30}px`, top: `${layoutRef.current.imgTop + layoutRef.current.renderH * 0.92}px`, width: 2, height: 2 }} />
+          <div data-testid="wheel-RR" className="absolute z-[3] pointer-events-none" style={{ left: `${layoutRef.current.imgLeft + layoutRef.current.renderW * 0.70}px`, top: `${layoutRef.current.imgTop + layoutRef.current.renderH * 0.92}px`, width: 2, height: 2 }} />
+        </>
       )}
 
 
