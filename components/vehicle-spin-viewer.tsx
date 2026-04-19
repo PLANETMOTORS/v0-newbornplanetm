@@ -78,10 +78,11 @@ function getAnchorProfile(bodyStyle?: string): AnchorProfile {
   const lower = bodyStyle.toLowerCase()
   // Direct matches
   if (lower in ANCHOR_PROFILES) return ANCHOR_PROFILES[lower]
-  // Alias mapping for common body_style values from dealer feeds
-  if (lower.includes('sedan') || lower.includes('coupe') || lower.includes('hatchback') || lower.includes('convertible'))
+  // Alias mapping for common body_style values from dealer feeds and DB
+  // DB stores "4dr Car" for sedans, "Sport Utility" for SUVs, etc.
+  if (lower.includes('sedan') || lower.includes('coupe') || lower.includes('hatchback') || lower.includes('convertible') || lower.includes('car'))
     return ANCHOR_PROFILES.sedan
-  if (lower.includes('suv') || lower.includes('crossover') || lower.includes('wagon'))
+  if (lower.includes('suv') || lower.includes('crossover') || lower.includes('wagon') || lower.includes('sport utility') || lower.includes('utility'))
     return ANCHOR_PROFILES.suv
   if (lower.includes('truck') || lower.includes('pickup'))
     return ANCHOR_PROFILES.truck
