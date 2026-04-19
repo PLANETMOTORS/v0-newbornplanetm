@@ -125,16 +125,21 @@ export function useOverlayRenderer(
 
       ctx.save()
 
-      // Soft radial-gradient shadow — no hard stroke/outline.
-      // Uses a radial gradient from center→edge so the shadow fades
-      // naturally instead of showing a visible ellipse border.
-      const grad = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, Math.max(rx, ry))
+      // Soft elliptical-gradient shadow — no hard stroke/outline.
+      // Canvas only supports circular radial gradients, so we scale the
+      // coordinate system to map a circle of radius `rx` onto the correct
+      // ellipse (rx × ry).  This ensures the gradient fades smoothly along
+      // BOTH axes instead of showing a hard edge on the short (y) axis.
+      ctx.translate(c.x, c.y)
+      ctx.scale(1, ry / rx)
+
+      const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, rx)
       grad.addColorStop(0, `rgba(0,0,0,${profile.shadow.maxOpacity})`)
-      grad.addColorStop(0.6, `rgba(0,0,0,${profile.shadow.maxOpacity * 0.5})`)
+      grad.addColorStop(0.55, `rgba(0,0,0,${profile.shadow.maxOpacity * 0.4})`)
       grad.addColorStop(1, "rgba(0,0,0,0)")
       ctx.fillStyle = grad
       ctx.beginPath()
-      ctx.ellipse(c.x, c.y, rx, ry, 0, 0, Math.PI * 2)
+      ctx.arc(0, 0, rx, 0, Math.PI * 2)
       ctx.fill()
 
       ctx.restore()
