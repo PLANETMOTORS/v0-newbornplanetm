@@ -105,6 +105,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   const perFrameTireY = useRef<(number | null)[]>([])
 
   // ── Absolute-positioning placement ──
+  const [tireDataVersion, setTireDataVersion] = useState(0)
   const [frameAspect, setFrameAspect] = useState(4 / 3)
   const [carStyle, setCarStyle] = useState<CarStyle>({
     position: "absolute", top: "0px", left: "0px", width: "100%", height: "100%",
@@ -150,7 +151,8 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       maxWidth: "none",
       maxHeight: "none",
     })
-  }, [frameAspect, frame])
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- tireDataVersion signals new per-frame tire data
+  }, [frameAspect, frame, tireDataVersion])
 
   // Stable ref so ResizeObserver always calls the latest recalcPlacement
   // without being torn down / recreated on every frame change.
@@ -201,6 +203,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
             const tireY = detectTireBottom(img)
             if (tireY !== null) {
               perFrameTireY.current[idx] = tireY
+              setTireDataVersion((v) => v + 1)
             }
             setLoadedCount((c) => c + 1)
           }
