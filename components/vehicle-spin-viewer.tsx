@@ -1,18 +1,18 @@
 "use client"
 
-import { useState, useRef, useCallback, useEffect } from "react"
-import Image from "next/image"
+import React, { useState, useRef, useCallback, useEffect } from "react"
 import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "lucide-react"
 import { useOverlayRenderer } from "@/hooks/use-overlay-renderer"
 import { overlayConfig } from "@/config/overlay/loader/loadOverlayConfig"
 
-// ── Tire-floor alignment constants (used by the dynamic transform calc) ──
+// ── Tire-floor alignment constants ──
+// Approach: absolute positioning (no CSS transforms) to avoid overflow-hidden clipping.
+// The ResizeObserver computes exact pixel top/left/width/height so the tire contact
+// line lands precisely on the shadow ellipse center at any viewport size.
 const SHADOW_CENTER_Y = 0.7556   // from overlay config (cy of shadow ellipse)
-const TIRE_CONTACT_Y  = 0.823    // tire contact at 82.3 % from top of image
-const TIRE_SCALE      = 1.25     // enlargement factor
-const INNER_W_RATIO   = 0.90     // inner positioning div width ratio
-const INNER_H_RATIO   = 0.85     // inner positioning div height ratio
+const TIRE_CONTACT_Y  = 0.825    // measured tire contact at ~82.5% from top of image
 const IMG_ASPECT      = 4 / 3    // 1200 × 900 source frames
+const SCALE_FACTOR    = 1.25     // how much larger than "fit" the car should render
 
 interface SpinViewerProps {
   /** Ordered array of image URLs (walk-around frames). */
@@ -51,13 +51,20 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   const velocity = useRef(0)
   const momentumRef = useRef<number | null>(null)
 
-  // ── Dynamic tire-floor alignment ──
-  // The car frames have transparent padding below the tires (tire contact at
-  // ~82.3 % of image height).  A fixed CSS translateY doesn't work across
-  // viewports because object-contain renders the image at different sizes
-  // depending on container aspect ratio.  We compute the exact translateY at
-  // runtime so the tire line always lands on the shadow-ellipse centre.
-  const [tireTransform, setTireTransform] = useState(`scale(${TIRE_SCALE})`)
+  // ── Dynamic tire-floor alignment (absolute positioning) ──
+  // Instead of CSS scale+translateY (which gets clipped by overflow-hidden),
+  // we compute exact pixel position/size so the image renders with tires
+  // sitting precisely on the shadow ellipse center. No transforms needed.
+  //
+  // Algorithm:
+  //   1. Compute how large the image should render (SCALE_FACTOR × fit-to-container)
+  //   2. Find where the tire contact line falls in that rendered image
+  //   3. Position the image so that tire line = shadow center Y in the container
+  //   4. Center horizontally
+  const [carStyle, setCarStyle] = useState<React.CSSProperties>({
+    position: "absolute",
+    visibility: "hidden",
+  })
 
   useEffect(() => {
     const el = containerRef.current
@@ -67,24 +74,32 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       const { width: cw, height: ch } = el.getBoundingClientRect()
       if (cw === 0 || ch === 0) return
 
-      const iw = cw * INNER_W_RATIO          // inner div width
-      const ih = ch * INNER_H_RATIO          // inner div height
+      // How large the image would be if it "fit" the container (object-contain)
+      const fitW = Math.min(cw, ch * IMG_ASPECT)
+      const fitH = fitW / IMG_ASPECT
 
-      // Rendered image height inside the object-contain element
-      const renderH = (iw / ih > IMG_ASPECT) ? ih : iw / IMG_ASPECT
+      // Scale up for a more impactful presentation
+      const renderW = fitW * SCALE_FACTOR
+      const renderH = fitH * SCALE_FACTOR
 
-      // Tire Y position inside the element (image centred vertically)
-      const tireInElem = (ih - renderH) / 2 + TIRE_CONTACT_Y * renderH
+      // Where the tire contact line falls in the rendered image (px from image top)
+      const tireY = TIRE_CONTACT_Y * renderH
 
-      // Element is centred in the container
-      const elemCenter = ch / 2
-      const targetY    = ch * SHADOW_CENTER_Y
+      // Where the shadow center is in the container (px from container top)
+      const floorY = SHADOW_CENTER_Y * ch
 
-      // Solve: targetY = elemCenter + S*(tireInElem - ih/2) + S*T  →  T = …
-      const T    = (targetY - elemCenter - TIRE_SCALE * (tireInElem - ih / 2)) / TIRE_SCALE
-      const tPct = (T / ih) * 100
+      // Position image so tire line = floor line
+      const imgTop = floorY - tireY
+      const imgLeft = (cw - renderW) / 2
 
-      setTireTransform(`scale(${TIRE_SCALE}) translateY(${tPct.toFixed(2)}%)`)
+      setCarStyle({
+        position: "absolute",
+        top: `${imgTop}px`,
+        left: `${imgLeft}px`,
+        width: `${renderW}px`,
+        height: `${renderH}px`,
+        visibility: "visible",
+      })
     }
 
     recalc()
@@ -285,23 +300,19 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         </div>
       )}
 
-      {/* Current frame image — dynamically positioned so tires sit on the shadow
-           ellipse at any viewport size.  See the tireTransform calculation above. */}
+      {/* Current frame image — absolutely positioned so tires sit precisely on
+           the shadow ellipse center. No CSS transforms — pure pixel positioning
+           computed by ResizeObserver above. Overflow-hidden on the container
+           cleanly clips the roof/bumper overflow without affecting tire placement. */}
       {isReady && images[frame] && (
-        <div className="absolute inset-0 flex items-center justify-center z-[2]">
-          <div className="relative" style={{ width: "90%", height: "85%" }}>
-            <Image
-              src={images[frame]}
-              alt={`${alt} — angle ${frame + 1} of ${totalFrames}`}
-              fill
-              className="object-contain pointer-events-none"
-              style={{ transform: tireTransform }}
-              priority={frame === 0}
-              sizes={isFullscreen ? "100vw" : "(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"}
-              draggable={false}
-              unoptimized
-            />
-          </div>
+        <div className="absolute inset-0 z-[2] pointer-events-none">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={images[frame]}
+            alt={`${alt} — angle ${frame + 1} of ${totalFrames}`}
+            style={carStyle}
+            draggable={false}
+          />
         </div>
       )}
 
