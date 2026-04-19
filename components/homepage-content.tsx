@@ -22,10 +22,16 @@ const HomepageBelowFold = dynamic(
   { ssr: true }
 )
 
-// VehicleShowcase is the above-fold hero (LCP element) — static import
-// so the browser downloads its JS immediately instead of waiting for
-// a dynamic chunk to load first.
-import { VehicleShowcase } from "@/components/vehicle-showcase"
+// VehicleShowcase is the above-fold hero (LCP element).
+// Dynamic import with ssr:true keeps the hero image in the SSR HTML
+// (so it paints immediately) while deferring the JS bundle (SWR,
+// Supabase client, Lucide icons) to a separate chunk. This lets the
+// browser paint the hero image before the heavy JS blocks the main
+// thread — critical for mobile LCP.
+const VehicleShowcase = dynamic(
+  () => import("@/components/vehicle-showcase").then(m => ({ default: m.VehicleShowcase })),
+  { ssr: true }
+)
 
 // Lightweight loading skeletons to prevent layout shift while chunks load
 function FeaturedVehiclesSkeleton() {
