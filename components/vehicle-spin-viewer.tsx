@@ -183,7 +183,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     if (bgFrame && bgFallback) {
       console.warn("BUG: both bg-frame and bg-fallback are mounted — dual background detected")
     }
-  })
+  }, [isReady, frame])
 
   // ── Auto-play ──
   useEffect(() => {
