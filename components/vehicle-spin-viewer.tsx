@@ -80,7 +80,7 @@ function getAnchorProfile(bodyStyle?: string): AnchorProfile {
   if (lower in ANCHOR_PROFILES) return ANCHOR_PROFILES[lower]
   // Alias mapping for common body_style values from dealer feeds and DB
   // DB stores "4dr Car" for sedans, "Sport Utility" for SUVs, etc.
-  if (lower.includes('sedan') || lower.includes('coupe') || lower.includes('hatchback') || lower.includes('convertible') || lower.includes('car'))
+  if (lower.includes('sedan') || lower.includes('coupe') || lower.includes('hatchback') || lower.includes('convertible') || lower === '4dr car' || lower.endsWith(' car'))
     return ANCHOR_PROFILES.sedan
   if (lower.includes('suv') || lower.includes('crossover') || lower.includes('wagon') || lower.includes('sport utility') || lower.includes('utility'))
     return ANCHOR_PROFILES.suv
@@ -428,31 +428,18 @@ export function VehicleSpinViewer({ images, alt, bodyStyle }: SpinViewerProps) {
       aria-roledescription="360° image spinner"
       data-testid="vehicle-stage"
     >
-      {/* ── LAYER 1: Vehicle frame (absolute positioned for tire-floor alignment) ──
-           When useFrameBackground is true, the current 360° frame is the ONLY
-           image element — it already contains the car on its studio floor.
-           Uses the same ResizeObserver-computed carStyle (top/left/width/height)
-           so the tire contact line lands on the shadow ellipse center.
-           The container's overflow:hidden clips any excess from SCALE_FACTOR.
-           When useFrameBackground is false, the car layer (z-3) renders instead. */}
-      {isReady && images[frame] && useFrameBackground && (
-        <img
-          data-testid="bg-frame"
-          className="absolute z-[1] pointer-events-none"
-          src={images[frame]}
-          alt={`${alt} — angle ${frame + 1} of ${totalFrames}`}
-          style={carStyle}
-          draggable={false}
-        />
-      )}
-
-      {/* ── LAYER 2: Shadow ellipse (test anchor + subtle visual shadow) ──
+      {/* ── LAYER 1: Shadow ellipse (test anchor + subtle visual shadow) ──
+           Rendered BEHIND the car/frame layer so the semi-transparent shadow
+           doesn't darken the vehicle body. In frame mode, the Drivee-processed
+           frame already has its own baked-in floor shadow, so this is purely
+           for E2E test anchoring. In composite mode, it provides the visual
+           shadow between the fallback gradient and the car cutout.
            Width/height are the full diameter (2×rx, 2×ry), not the radius,
            so E2E tests derive correct ellipse params from boundingBox.
            transform: translate(-50%,-50%) centers it on the shadow origin. */}
       <div
         data-testid="shadow-ellipse"
-        className="absolute z-[2] pointer-events-none"
+        className="absolute z-[1] pointer-events-none"
         style={{
           left: "50%",
           top: `${(profile.shadowCenterY * 100).toFixed(2)}%`,
@@ -463,6 +450,24 @@ export function VehicleSpinViewer({ images, alt, bodyStyle }: SpinViewerProps) {
           background: "rgba(0, 0, 0, 0.22)",
         }}
       />
+
+      {/* ── LAYER 2: Vehicle frame (absolute positioned for tire-floor alignment) ──
+           When useFrameBackground is true, the current 360° frame is the ONLY
+           image element — it already contains the car on its studio floor.
+           Uses the same ResizeObserver-computed carStyle (top/left/width/height)
+           so the tire contact line lands on the shadow ellipse center.
+           The container's overflow:hidden clips any excess from SCALE_FACTOR.
+           When useFrameBackground is false, the car layer (z-3) renders instead. */}
+      {isReady && images[frame] && useFrameBackground && (
+        <img
+          data-testid="bg-frame"
+          className="absolute z-[2] pointer-events-none"
+          src={images[frame]}
+          alt={`${alt} — angle ${frame + 1} of ${totalFrames}`}
+          style={carStyle}
+          draggable={false}
+        />
+      )}
 
       {/* Empty state — no frames available */}
       {totalFrames === 0 && (
