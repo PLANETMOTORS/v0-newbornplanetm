@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useCallback, useEffect } from "react"
+import { useState, useRef, useCallback, useEffect, useMemo } from "react"
 import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "lucide-react"
 
 /* ═══════════════════════════════════════════════════════════════════════════════
@@ -25,15 +25,15 @@ import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "luci
  * ══════════════════════════════════════════════════════════════════════════════ */
 
 // ── Studio environment constants ──
-const FLOOR_LINE_Y   = 0.78   // floor contact line at 78% from top
+const FLOOR_LINE_Y   = 0.73   // floor contact line at 73% from top (more floor = stronger grounding)
 const CAR_FILL       = 0.82   // car fills 82% of canvas width
 const TIRE_CONTACT_Y = 0.83   // default: tire bottom at 83% of image height (Jeep Wrangler)
 
-// ── Studio colors (Carvana-inspired showroom) ──
-const WALL_TOP     = "#F0EDEA"
-const WALL_BOTTOM  = "#E0DDD8"
-const FLOOR_NEAR   = "#9B9FA4"
-const FLOOR_FAR    = "#74787D"
+// ── Studio colors (Carvana showroom: bright wall, dark floor) ──
+const WALL_TOP     = "#F5F2EF"
+const WALL_BOTTOM  = "#E8E5E0"
+const FLOOR_NEAR   = "#7A7E83"
+const FLOOR_FAR    = "#5A5E63"
 
 interface SpinViewerProps {
   images: string[]
@@ -106,13 +106,17 @@ function drawScene(
 
   // Subtle hotspot (studio light reflection on floor)
   const hs = ctx.createRadialGradient(
-    width * 0.5, floorLineY + 20, 5,
-    width * 0.5, floorLineY + 20, width * 0.2,
+    width * 0.5, floorLineY + 10, 5,
+    width * 0.5, floorLineY + 10, width * 0.25,
   )
-  hs.addColorStop(0, "rgba(255,255,255,0.07)")
+  hs.addColorStop(0, "rgba(255,255,255,0.10)")
   hs.addColorStop(1, "rgba(255,255,255,0)")
   ctx.fillStyle = hs
   ctx.fillRect(0, floorLineY, width, height - floorLineY)
+
+  // Subtle floor line separator (thin dark line at wall-floor boundary)
+  ctx.fillStyle = "rgba(0,0,0,0.08)"
+  ctx.fillRect(0, floorLineY - 1, width, 2)
 
   if (!carImg || carImg.naturalWidth === 0) return
 
@@ -133,18 +137,18 @@ function drawScene(
   // ── 2. Contact shadow ──
   // Draw BEFORE the car so the car sits ON TOP of the shadow
   const shadowCenterX = width / 2
-  const shadowCenterY = floorLineY + 2  // just below floor line
-  const shadowRx = carW * 0.42          // ~84% of car width total
-  const shadowRy = height * 0.025       // thin ellipse
+  const shadowCenterY = floorLineY + 3  // just below floor line
+  const shadowRx = carW * 0.45          // wide shadow (~90% of car width)
+  const shadowRy = height * 0.035       // slightly thicker ellipse
 
-  // Layer 1: Broad ambient shadow
+  // Layer 1: Broad ambient shadow (large, soft)
   ctx.save()
   ctx.translate(shadowCenterX, shadowCenterY)
   ctx.scale(1, shadowRy / shadowRx)
   const ambientGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, shadowRx)
-  ambientGrad.addColorStop(0, "rgba(0,0,0,0.30)")
-  ambientGrad.addColorStop(0.3, "rgba(0,0,0,0.18)")
-  ambientGrad.addColorStop(0.6, "rgba(0,0,0,0.07)")
+  ambientGrad.addColorStop(0, "rgba(0,0,0,0.35)")
+  ambientGrad.addColorStop(0.25, "rgba(0,0,0,0.22)")
+  ambientGrad.addColorStop(0.5, "rgba(0,0,0,0.10)")
   ambientGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = ambientGrad
   ctx.beginPath()
@@ -152,15 +156,15 @@ function drawScene(
   ctx.fill()
   ctx.restore()
 
-  // Layer 2: Tight contact line (darker, narrower)
+  // Layer 2: Tight contact line (dark, narrow — anchors car to floor)
   ctx.save()
-  ctx.translate(shadowCenterX, shadowCenterY)
-  const contactRx = carW * 0.35
-  const contactRy = height * 0.008
+  ctx.translate(shadowCenterX, shadowCenterY - 1)
+  const contactRx = carW * 0.38
+  const contactRy = height * 0.006
   ctx.scale(1, contactRy / contactRx)
   const contactGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, contactRx)
-  contactGrad.addColorStop(0, "rgba(0,0,0,0.45)")
-  contactGrad.addColorStop(0.5, "rgba(0,0,0,0.20)")
+  contactGrad.addColorStop(0, "rgba(0,0,0,0.55)")
+  contactGrad.addColorStop(0.4, "rgba(0,0,0,0.30)")
   contactGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = contactGrad
   ctx.beginPath()
@@ -199,6 +203,10 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   const sensitivity = totalFrames > 0 ? Math.max(3, Math.round(800 / totalFrames)) : 3
   const loadProgress = totalFrames > 0 ? Math.round((loadedCount / totalFrames) * 100) : 0
   const isReady = loadedCount >= 1
+
+  // Stable key: only re-run preload when actual URLs change, not just array reference
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const imagesKey = useMemo(() => images.join('\n'), [images])
 
   // ── Draw current frame on canvas ──
   const drawFrame = useCallback(() => {
@@ -304,7 +312,8 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     })
 
     return () => { cancelled = true }
-  }, [images])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imagesKey])
 
   // ── Auto-play ──
   useEffect(() => {
