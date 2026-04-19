@@ -19,6 +19,8 @@ interface CarStyle {
   left: string
   width: string
   height: string
+  maxWidth: string
+  maxHeight: string
 }
 
 interface SpinViewerProps {
@@ -65,6 +67,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   const [frameAspect, setFrameAspect] = useState(4 / 3) // updated from first loaded image
   const [carStyle, setCarStyle] = useState<CarStyle>({
     position: "absolute", top: "0px", left: "0px", width: "100%", height: "100%",
+    maxWidth: "none", maxHeight: "none",
   })
 
   // Recalculate placement whenever container resizes or fullscreen toggles
@@ -101,6 +104,8 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         left:   `${Math.round(left)}px`,
         width:  `${Math.round(rw)}px`,
         height: `${Math.round(rh)}px`,
+        maxWidth: "none",
+        maxHeight: "none",
       })
     }
 
