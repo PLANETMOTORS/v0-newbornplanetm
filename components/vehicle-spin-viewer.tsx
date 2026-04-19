@@ -154,10 +154,10 @@ function drawScene(
   const undercarBottom = tireLineY + 30       // extend well past tire line
   const undercarFill = ctx.createLinearGradient(0, undercarTop, 0, undercarBottom)
   undercarFill.addColorStop(0, "rgba(0,0,0,0)")
-  undercarFill.addColorStop(0.25, "rgba(0,0,0,0.35)")
-  undercarFill.addColorStop(0.5, "rgba(0,0,0,0.55)")
-  undercarFill.addColorStop(0.75, "rgba(0,0,0,0.50)")
-  undercarFill.addColorStop(1, "rgba(0,0,0,0.20)")
+  undercarFill.addColorStop(0.15, "rgba(0,0,0,0.50)")
+  undercarFill.addColorStop(0.4, "rgba(0,0,0,0.75)")
+  undercarFill.addColorStop(0.7, "rgba(0,0,0,0.70)")
+  undercarFill.addColorStop(1, "rgba(0,0,0,0.30)")
   ctx.fillStyle = undercarFill
   ctx.fillRect(carLeft, undercarTop, carW, undercarBottom - undercarTop)
 
