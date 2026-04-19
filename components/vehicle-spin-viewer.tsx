@@ -62,7 +62,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   // Instead of CSS transforms (which get clipped by overflow-hidden), we
   // compute exact pixel top/left/width/height so the tire-bottom line in the
   // image lands on the shadow-ellipse center in the container.
-  const frameAspectRef = useRef<number>(4 / 3) // updated from first loaded image
+  const [frameAspect, setFrameAspect] = useState(4 / 3) // updated from first loaded image
   const [carStyle, setCarStyle] = useState<CarStyle>({
     position: "absolute", top: "0px", left: "0px", width: "100%", height: "100%",
   })
@@ -76,7 +76,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       const { width: cw, height: ch } = el.getBoundingClientRect()
       if (cw === 0 || ch === 0) return
 
-      const aspect = frameAspectRef.current
+      const aspect = frameAspect
 
       // Fit the image to the container (contain), then scale up
       let fitW: number, fitH: number
@@ -108,7 +108,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     const ro = new ResizeObserver(recalc)
     ro.observe(el)
     return () => ro.disconnect()
-  }, [isFullscreen])
+  }, [isFullscreen, frameAspect])
 
   const totalFrames = images.length
   const sensitivity = totalFrames > 0 ? Math.max(3, Math.round(800 / totalFrames)) : 3
@@ -129,9 +129,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
           if (!cancelled) {
             // Capture actual frame dimensions from the first loaded image
             if (isFirst && img.naturalWidth > 0 && img.naturalHeight > 0) {
-              frameAspectRef.current = img.naturalWidth / img.naturalHeight
-              // Re-trigger placement calc with the real aspect ratio
-              containerRef.current?.dispatchEvent(new Event("reflow"))
+              setFrameAspect(img.naturalWidth / img.naturalHeight)
             }
             setLoadedCount((c) => c + 1)
           }
