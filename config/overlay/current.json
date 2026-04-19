@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0.0",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "activeProfile": "warm_white_backwall",
   "canvas": {
     "width": 1200,
@@ -9,7 +9,7 @@
     "aspectRatio": "16:9"
   },
   "global": {
-    "horizonY": 0.43,
+    "horizonY": 0.38,
     "safeBox": {
       "x": 0.07,
       "y": 0.12,
@@ -17,20 +17,20 @@
       "h": 0.79
     },
     "wheelAnchors": [
-      { "id": "FL", "x": 0.3583, "y": 0.7556 },
-      { "id": "FR", "x": 0.6417, "y": 0.7556 },
-      { "id": "RL", "x": 0.4167, "y": 0.7926 },
-      { "id": "RR", "x": 0.5833, "y": 0.7926 }
+      { "id": "FL", "x": 0.3583, "y": 0.87 },
+      { "id": "FR", "x": 0.6417, "y": 0.87 },
+      { "id": "RL", "x": 0.4167, "y": 0.90 },
+      { "id": "RR", "x": 0.5833, "y": 0.90 }
     ],
     "shadowEllipse": {
       "cx": 0.5,
-      "cy": 0.7556,
-      "rx": 0.2417,
-      "ry": 0.0593
+      "cy": 0.87,
+      "rx": 0.30,
+      "ry": 0.10
     },
     "reflection": {
-      "maxOpacity": 0.065,
-      "fadeDistanceVehicleHeight": 0.22
+      "maxOpacity": 0.06,
+      "fadeDistanceVehicleHeight": 0.18
     },
     "tireMerge": {
       "enabled": true,
@@ -38,10 +38,10 @@
       "verticalSnapPxMax": 6,
       "anchorSmoothingAlpha": 0.25,
       "spots": [
-        { "id": "FL", "x": 0.3583, "y": 0.7556, "radiusPxAt1200w": 12 },
-        { "id": "FR", "x": 0.6417, "y": 0.7556, "radiusPxAt1200w": 12 },
-        { "id": "RL", "x": 0.4167, "y": 0.7926, "radiusPxAt1200w": 12 },
-        { "id": "RR", "x": 0.5833, "y": 0.7926, "radiusPxAt1200w": 12 }
+        { "id": "FL", "x": 0.3583, "y": 0.87, "radiusPxAt1200w": 12 },
+        { "id": "FR", "x": 0.6417, "y": 0.87, "radiusPxAt1200w": 12 },
+        { "id": "RL", "x": 0.4167, "y": 0.90, "radiusPxAt1200w": 12 },
+        { "id": "RR", "x": 0.5833, "y": 0.90, "radiusPxAt1200w": 12 }
       ]
     }
   },
@@ -50,18 +50,18 @@
       "id": "warm_white_backwall",
       "label": "Warm White Backwall",
       "colors": {
-        "wallTop": "#F5F1EB",
-        "wallMid": "#EFE9E1",
-        "floorNear": "#D3D7D9",
-        "floorFar": "#C7CCCF"
+        "wallTop": "#EDEAE5",
+        "wallMid": "#E0DBD4",
+        "floorNear": "#9EA3A8",
+        "floorFar": "#868B90"
       },
       "shadow": {
-        "maxOpacity": 0.24,
+        "maxOpacity": 0.50,
         "featherPxAt4K": 38,
-        "underbodyAO": 0.1
+        "underbodyAO": 0.22
       },
       "reflection": {
-        "maxOpacity": 0.065,
+        "maxOpacity": 0.10,
         "fadeDistanceVehicleHeight": 0.22
       }
     },
@@ -69,18 +69,18 @@
       "id": "pure_white_cyclorama",
       "label": "Pure White Cyclorama",
       "colors": {
-        "wallTop": "#F4F4F2",
-        "wallMid": "#ECECEA",
-        "floorNear": "#E6E6E4",
-        "floorFar": "#DADAD8"
+        "wallTop": "#EDEDEB",
+        "wallMid": "#E0E0DE",
+        "floorNear": "#A5A5A3",
+        "floorFar": "#8E8E8C"
       },
       "shadow": {
-        "maxOpacity": 0.28,
+        "maxOpacity": 0.50,
         "featherPxAt4K": 42,
-        "underbodyAO": 0.12
+        "underbodyAO": 0.22
       },
       "reflection": {
-        "maxOpacity": 0.08,
+        "maxOpacity": 0.10,
         "fadeDistanceVehicleHeight": 0.24
       }
     },
@@ -88,18 +88,18 @@
       "id": "neutral_gray_premium",
       "label": "Neutral Gray Premium",
       "colors": {
-        "wallTop": "#E9EAEB",
-        "wallMid": "#DADDE0",
-        "floorNear": "#D0D3D6",
-        "floorFar": "#BEC3C8"
+        "wallTop": "#DDDEE0",
+        "wallMid": "#CCCED2",
+        "floorNear": "#959AA0",
+        "floorFar": "#7E8389"
       },
       "shadow": {
-        "maxOpacity": 0.24,
+        "maxOpacity": 0.50,
         "featherPxAt4K": 38,
-        "underbodyAO": 0.1
+        "underbodyAO": 0.22
       },
       "reflection": {
-        "maxOpacity": 0.065,
+        "maxOpacity": 0.08,
         "fadeDistanceVehicleHeight": 0.22
       }
     },
@@ -107,18 +107,18 @@
       "id": "cool_ev_tech",
       "label": "Cool EV Tech",
       "colors": {
-        "wallTop": "#E8EDF2",
-        "wallMid": "#D9E1E8",
-        "floorNear": "#CCD5DE",
-        "floorFar": "#BCC8D3"
+        "wallTop": "#DADED5",
+        "wallMid": "#C8CDD5",
+        "floorNear": "#95A0AB",
+        "floorFar": "#7E8894"
       },
       "shadow": {
-        "maxOpacity": 0.22,
+        "maxOpacity": 0.48,
         "featherPxAt4K": 36,
-        "underbodyAO": 0.09
+        "underbodyAO": 0.20
       },
       "reflection": {
-        "maxOpacity": 0.055,
+        "maxOpacity": 0.07,
         "fadeDistanceVehicleHeight": 0.2
       }
     }

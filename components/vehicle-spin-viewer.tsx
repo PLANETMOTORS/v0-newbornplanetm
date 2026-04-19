@@ -6,12 +6,13 @@ import { useOverlayRenderer } from "@/hooks/use-overlay-renderer"
 import { overlayConfig } from "@/config/overlay/loader/loadOverlayConfig"
 
 // ── Tire-floor alignment ──
-// Uses absolute pixel positioning (no CSS transforms) so the car image is
-// never clipped by overflow-hidden.  The floor-contact target comes from the
-// overlay config's shadow ellipse center.
-const SHADOW_CENTER_Y = 0.7556   // from overlay config (cy of shadow ellipse)
-const TIRE_CONTACT_Y  = 0.76     // visually calibrated: where tire rubber meets floor
-const CAR_SCALE       = 1.25     // enlargement factor so the car fills the viewport
+// The shadow ellipse center (from overlay config) defines the visual floor
+// contact line.  Each frame's tire-bottom ratio is detected during preload
+// by scanning the alpha channel.  The fallback constant is only used before
+// detection completes.
+const SHADOW_CENTER_Y = 0.87    // from overlay config (cy of shadow ellipse)
+const TIRE_CONTACT_Y  = 0.80    // fallback: mean tire-bottom across Jeep frames
+const CAR_SCALE       = 1.25    // enlargement factor so the car fills the viewport
 
 interface CarStyle {
   position: "absolute"
@@ -31,6 +32,43 @@ interface SpinViewerProps {
 }
 
 /**
+ * Detect the lowest opaque row in a frame image (tire bottom position).
+ * Returns a ratio (0–1) representing where the tire rubber ends vertically.
+ * Uses an offscreen canvas to read the alpha channel.
+ */
+function detectTireBottom(img: HTMLImageElement): number | null {
+  const w = img.naturalWidth
+  const h = img.naturalHeight
+  if (w === 0 || h === 0) return null
+
+  try {
+    const canvas = document.createElement("canvas")
+    canvas.width = w
+    canvas.height = h
+    const ctx = canvas.getContext("2d", { willReadFrequently: true })
+    if (!ctx) return null
+
+    ctx.drawImage(img, 0, 0)
+    const data = ctx.getImageData(0, 0, w, h).data
+
+    // Scan from bottom up — find last row with significant opaque content
+    // (at least 15 pixels with alpha > 128 to ignore stray artifacts)
+    for (let y = h - 1; y >= Math.floor(h * 0.5); y--) {
+      let opaqueCount = 0
+      for (let x = 0; x < w; x++) {
+        if (data[(y * w + x) * 4 + 3] > 128) {
+          opaqueCount++
+          if (opaqueCount >= 15) return y / h
+        }
+      }
+    }
+  } catch {
+    // CORS or canvas tainted — fall back to constant
+  }
+  return null
+}
+
+/**
  * Native 360° Vehicle Spin Viewer
  *
  * Renders an image-sequence 360° spinner — the same technique Carvana uses.
@@ -38,6 +76,7 @@ interface SpinViewerProps {
  *
  * Features:
  *  - Progressive preloading with visual progress bar
+ *  - Per-frame tire-bottom detection for jitter-free alignment
  *  - Fullscreen mode (Escape to exit)
  *  - Auto-spin with play/pause
  *  - Keyboard: ← → to rotate, Space to toggle auto-spin, F for fullscreen
@@ -60,81 +99,96 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   const velocity = useRef(0)
   const momentumRef = useRef<number | null>(null)
 
+  // ── Per-frame tire detection ──
+  // Stores the detected tire-bottom ratio for each frame index.
+  // Populated during preload; used in placement calculation.
+  const perFrameTireY = useRef<(number | null)[]>([])
+
   // ── Absolute-positioning placement ──
-  // Instead of CSS transforms (which get clipped by overflow-hidden), we
-  // compute exact pixel top/left/width/height so the tire-bottom line in the
-  // image lands on the shadow-ellipse center in the container.
-  const [frameAspect, setFrameAspect] = useState(4 / 3) // updated from first loaded image
+  const [frameAspect, setFrameAspect] = useState(4 / 3)
   const [carStyle, setCarStyle] = useState<CarStyle>({
     position: "absolute", top: "0px", left: "0px", width: "100%", height: "100%",
     maxWidth: "none", maxHeight: "none",
   })
 
-  // Recalculate placement whenever container resizes or fullscreen toggles
+  // Recalculate placement whenever container resizes, fullscreen toggles, or frame changes
+  const recalcPlacement = useCallback(() => {
+    const el = containerRef.current
+    if (!el) return
+
+    const { width: cw, height: ch } = el.getBoundingClientRect()
+    if (cw === 0 || ch === 0) return
+
+    const aspect = frameAspect
+
+    // Fit the image to the container (contain), then scale up
+    let fitW: number, fitH: number
+    if (cw / ch > aspect) {
+      fitH = ch;  fitW = ch * aspect
+    } else {
+      fitW = cw;  fitH = cw / aspect
+    }
+    const rw = fitW * CAR_SCALE
+    const rh = fitH * CAR_SCALE
+
+    // Use per-frame tire Y if available, otherwise fall back to constant
+    const tireY = perFrameTireY.current[frame] ?? TIRE_CONTACT_Y
+
+    // Target: tire bottom in rendered image lands on shadow-ellipse center
+    const floorY       = SHADOW_CENTER_Y * ch
+    const tireBottomPx = tireY * rh
+
+    const top  = floorY - tireBottomPx
+    const left = (cw - rw) / 2
+
+    setCarStyle({
+      position: "absolute",
+      top:    `${Math.round(top)}px`,
+      left:   `${Math.round(left)}px`,
+      width:  `${Math.round(rw)}px`,
+      height: `${Math.round(rh)}px`,
+      maxWidth: "none",
+      maxHeight: "none",
+    })
+  }, [frameAspect, frame])
+
+  // Re-run placement on resize and fullscreen
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
 
-    const recalc = () => {
-      const { width: cw, height: ch } = el.getBoundingClientRect()
-      if (cw === 0 || ch === 0) return
-
-      const aspect = frameAspect
-
-      // Fit the image to the container (contain), then scale up
-      let fitW: number, fitH: number
-      if (cw / ch > aspect) {
-        fitH = ch;  fitW = ch * aspect
-      } else {
-        fitW = cw;  fitH = cw / aspect
-      }
-      const rw = fitW * CAR_SCALE
-      const rh = fitH * CAR_SCALE
-
-      // Target: tire bottom in rendered image lands on shadow-ellipse center
-      const floorY       = SHADOW_CENTER_Y * ch
-      const tireBottomPx = TIRE_CONTACT_Y * rh
-
-      const top  = floorY - tireBottomPx
-      const left = (cw - rw) / 2
-
-      setCarStyle({
-        position: "absolute",
-        top:    `${Math.round(top)}px`,
-        left:   `${Math.round(left)}px`,
-        width:  `${Math.round(rw)}px`,
-        height: `${Math.round(rh)}px`,
-        maxWidth: "none",
-        maxHeight: "none",
-      })
-    }
-
-    recalc()
-    const ro = new ResizeObserver(recalc)
+    recalcPlacement()
+    const ro = new ResizeObserver(recalcPlacement)
     ro.observe(el)
     return () => ro.disconnect()
-  }, [isFullscreen, frameAspect])
+  }, [isFullscreen, recalcPlacement])
 
   const totalFrames = images.length
   const sensitivity = totalFrames > 0 ? Math.max(3, Math.round(800 / totalFrames)) : 3
   const loadProgress = totalFrames > 0 ? Math.round((loadedCount / totalFrames) * 100) : 0
-  const isReady = loadedCount >= 1 // Show spinner once first frame loads
+  const isReady = loadedCount >= 1
 
-  // ── Progressive preloading ──
-  // Load frame 0 first (hero), then preload the rest in background.
+  // ── Progressive preloading with tire detection ──
   useEffect(() => {
     if (images.length === 0) return
     setLoadedCount(0)
+    perFrameTireY.current = new Array(images.length).fill(null)
 
     let cancelled = false
-    const preload = (src: string, isFirst = false) =>
+    const preload = (src: string, idx: number, isFirst = false) =>
       new Promise<void>((resolve) => {
         const img = new window.Image()
+        img.crossOrigin = "anonymous" // needed for canvas pixel access
         img.onload = () => {
           if (!cancelled) {
-            // Capture actual frame dimensions from the first loaded image
+            // Capture aspect ratio from first frame
             if (isFirst && img.naturalWidth > 0 && img.naturalHeight > 0) {
               setFrameAspect(img.naturalWidth / img.naturalHeight)
+            }
+            // Detect tire bottom position for this frame
+            const tireY = detectTireBottom(img)
+            if (tireY !== null) {
+              perFrameTireY.current[idx] = tireY
             }
             setLoadedCount((c) => c + 1)
           }
@@ -144,16 +198,15 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         img.src = src
       })
 
-    // Load first frame with priority (also captures aspect ratio), then rest
-    preload(images[0], true).then(() => {
+    // Load first frame with priority, then rest in batches
+    preload(images[0], 0, true).then(() => {
       if (cancelled) return
-      // Preload remaining frames in batches of 6 to avoid network congestion
       const remaining = images.slice(1)
       let idx = 0
       const batch = async () => {
         while (idx < remaining.length && !cancelled) {
           const chunk = remaining.slice(idx, idx + 6)
-          await Promise.all(chunk.map((src) => preload(src)))
+          await Promise.all(chunk.map((src, i) => preload(src, idx + i + 1)))
           idx += 6
         }
       }
@@ -185,7 +238,6 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     if (!containerRef.current) return
     if (!document.fullscreenElement) {
       containerRef.current.requestFullscreen().catch(() => {
-        // Fullscreen not supported — toggle CSS fallback
         setIsFullscreen((f) => !f)
       })
     } else {
@@ -323,7 +375,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         <img
           src={images[frame]}
           alt={`${alt} — angle ${frame + 1} of ${totalFrames}`}
-          className="z-[2] pointer-events-none max-w-none max-h-none"
+          className="z-[2] pointer-events-none"
           style={carStyle}
           draggable={false}
         />

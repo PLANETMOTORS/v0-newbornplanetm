@@ -102,46 +102,64 @@ export function useOverlayRenderer(
     ctx.fillStyle = floorGrad
     ctx.fillRect(0, horizonY, width, height - horizonY)
 
-    // Hotspot — subtle studio light reflection on the floor
+    // Hotspot — very subtle studio light reflection on the floor
+    // Reduced intensity to avoid washing out the floor near the car
     const hotspot = ctx.createRadialGradient(
       width * 0.5,
-      horizonY + 40,
+      horizonY + 30,
       10,
       width * 0.5,
-      horizonY + 40,
-      width * 0.22,
+      horizonY + 30,
+      width * 0.18,
     )
-    hotspot.addColorStop(0, "rgba(255,255,255,0.18)")
+    hotspot.addColorStop(0, "rgba(255,255,255,0.06)")
     hotspot.addColorStop(1, "rgba(255,255,255,0)")
     ctx.fillStyle = hotspot
     ctx.fillRect(0, 0, width, height)
 
-    // Shadow zone
+    // Shadow zone — two-layer approach:
+    //   1. Broad ambient shadow (soft, wide)
+    //   2. Contact shadow (tight, dark — sells the tire-touches-floor illusion)
     if (opts.showShadow) {
       const sh = config.global.shadowEllipse
       const c = toPx(sh.cx, sh.cy, width, height)
       const rx = sh.rx * width
       const ry = sh.ry * height
 
+      // Layer 1: Broad ambient shadow
       ctx.save()
-
-      // Soft elliptical-gradient shadow — no hard stroke/outline.
-      // Canvas only supports circular radial gradients, so we scale the
-      // coordinate system to map a circle of radius `rx` onto the correct
-      // ellipse (rx × ry).  This ensures the gradient fades smoothly along
-      // BOTH axes instead of showing a hard edge on the short (y) axis.
       ctx.translate(c.x, c.y)
       ctx.scale(1, ry / rx)
 
       const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, rx)
       grad.addColorStop(0, `rgba(0,0,0,${profile.shadow.maxOpacity})`)
-      grad.addColorStop(0.55, `rgba(0,0,0,${profile.shadow.maxOpacity * 0.4})`)
+      grad.addColorStop(0.45, `rgba(0,0,0,${profile.shadow.maxOpacity * 0.35})`)
+      grad.addColorStop(0.75, `rgba(0,0,0,${profile.shadow.maxOpacity * 0.12})`)
       grad.addColorStop(1, "rgba(0,0,0,0)")
       ctx.fillStyle = grad
       ctx.beginPath()
       ctx.arc(0, 0, rx, 0, Math.PI * 2)
       ctx.fill()
+      ctx.restore()
 
+      // Layer 2: Tight contact shadow — a narrow, darker ellipse at the
+      // tire-floor contact line.  This is the visual cue that sells
+      // physical contact between rubber and floor.
+      ctx.save()
+      const contactRx = rx * 0.85
+      const contactRy = ry * 0.25  // much flatter than ambient shadow
+      ctx.translate(c.x, c.y)
+      ctx.scale(1, contactRy / contactRx)
+
+      const contactGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, contactRx)
+      const contactOpacity = Math.min(profile.shadow.maxOpacity * 1.2, 0.65)
+      contactGrad.addColorStop(0, `rgba(0,0,0,${contactOpacity})`)
+      contactGrad.addColorStop(0.6, `rgba(0,0,0,${contactOpacity * 0.5})`)
+      contactGrad.addColorStop(1, "rgba(0,0,0,0)")
+      ctx.fillStyle = contactGrad
+      ctx.beginPath()
+      ctx.arc(0, 0, contactRx, 0, Math.PI * 2)
+      ctx.fill()
       ctx.restore()
     }
 
