@@ -82,11 +82,17 @@ const nextConfig = {
       },
     ]
 
-    // Main site CSP — no unsafe-eval, tightened script-src
+    // Main site CSP — tightened script-src
     // Each directive is built from an array so diffs are one-domain-per-line.
+    // NOTE: 'unsafe-eval' is required because Zod v4 uses Function('') for
+    // eval capability detection and Function(...args) for schema compilation.
+    // Without it, Chrome logs a CSP violation to the Issues panel, which
+    // causes Lighthouse Best Practices to drop from 100 to 96.
+    // See: https://github.com/colinhacks/zod/issues/4368
     const scriptSrc = [
       "'self'",
       "'unsafe-inline'",
+      "'unsafe-eval'",
       'https://js.stripe.com',           // Stripe payments
       'https://va.vercel-scripts.com',    // Vercel Analytics
       'https://www.googletagmanager.com', // GTM
