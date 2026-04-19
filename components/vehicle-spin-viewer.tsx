@@ -14,6 +14,9 @@ const TIRE_CONTACT_Y  = 0.825    // measured tire contact at ~82.5% from top of 
 const IMG_ASPECT      = 4 / 3    // 1200 × 900 source frames
 const SCALE_FACTOR    = 1.25     // how much larger than "fit" the car should render
 
+/** Snap to nearest 0.5 CSS-px to avoid sub-pixel rendering artefacts. */
+const snap = (v: number) => Math.round(v * 2) / 2
+
 interface SpinViewerProps {
   /** Ordered array of image URLs (walk-around frames). */
   images: string[]
@@ -65,6 +68,9 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     position: "absolute",
     visibility: "hidden",
   })
+  const [showDebug, setShowDebug] = useState(false)
+  // Store computed layout values for the debug overlay
+  const layoutRef = useRef({ floorY: 0, tireY: 0, imgTop: 0, imgLeft: 0, renderW: 0, renderH: 0 })
 
   useEffect(() => {
     const el = containerRef.current
@@ -79,18 +85,20 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       const fitH = fitW / IMG_ASPECT
 
       // Scale up for a more impactful presentation
-      const renderW = fitW * SCALE_FACTOR
-      const renderH = fitH * SCALE_FACTOR
+      const renderW = snap(fitW * SCALE_FACTOR)
+      const renderH = snap(fitH * SCALE_FACTOR)
 
       // Where the tire contact line falls in the rendered image (px from image top)
-      const tireY = TIRE_CONTACT_Y * renderH
+      const tireY = snap(TIRE_CONTACT_Y * renderH)
 
       // Where the shadow center is in the container (px from container top)
-      const floorY = SHADOW_CENTER_Y * ch
+      const floorY = snap(SHADOW_CENTER_Y * ch)
 
       // Position image so tire line = floor line
-      const imgTop = floorY - tireY
-      const imgLeft = (cw - renderW) / 2
+      const imgTop = snap(floorY - tireY)
+      const imgLeft = snap((cw - renderW) / 2)
+
+      layoutRef.current = { floorY, tireY, imgTop, imgLeft, renderW, renderH }
 
       setCarStyle({
         position: "absolute",
@@ -105,7 +113,21 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     recalc()
     const ro = new ResizeObserver(recalc)
     ro.observe(el)
-    return () => ro.disconnect()
+
+    // Also recalculate on DPR change (e.g. dragging window between monitors)
+    // and orientation change (mobile rotation)
+    const dprMedia = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`)
+    const onDprChange = () => recalc()
+    dprMedia.addEventListener("change", onDprChange)
+
+    const onOrientation = () => recalc()
+    window.addEventListener("orientationchange", onOrientation)
+
+    return () => {
+      ro.disconnect()
+      dprMedia.removeEventListener("change", onDprChange)
+      window.removeEventListener("orientationchange", onOrientation)
+    }
   }, [isFullscreen])
 
   const totalFrames = images.length
@@ -246,6 +268,8 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     } else if (e.key === "f" || e.key === "F") {
       toggleFullscreen()
       e.preventDefault()
+    } else if (e.key === "d" || e.key === "D") {
+      setShowDebug((d) => !d)
     } else if (e.key === "Escape" && isFullscreen) {
       document.exitFullscreen().catch(() => setIsFullscreen(false))
     }
@@ -270,12 +294,26 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       role="region"
       aria-label={`360° Interactive View — ${alt}`}
       aria-roledescription="360° image spinner"
+      data-testid="vehicle-stage"
     >
       {/* ── Studio environment — canvas-based overlay renderer ── */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 z-[0] pointer-events-none"
         style={{ width: "100%", height: "100%" }}
+      />
+
+      {/* ── Shadow ellipse test anchor (invisible — used by E2E tests) ── */}
+      <div
+        data-testid="shadow-ellipse"
+        className="absolute pointer-events-none"
+        style={{
+          left: `${50 - 24.17 / 2}%`,
+          top: `${SHADOW_CENTER_Y * 100 - 5.93 / 2}%`,
+          width: "24.17%",
+          height: "5.93%",
+          borderRadius: "50%",
+        }}
       />
 
       {/* Empty state — no frames available */}
@@ -313,12 +351,61 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
             style={carStyle}
             draggable={false}
           />
+          {/* ── Wheel anchor markers (invisible — used by E2E tests) ──
+               Positions are approximate for a front 3/4 view (frame 0).
+               FL/FR at ~88% of car height, RL/RR at ~92%. */}
+          <div data-testid="wheel-FL" className="absolute" style={{ left: `${layoutRef.current.imgLeft + layoutRef.current.renderW * 0.20}px`, top: `${layoutRef.current.imgTop + layoutRef.current.renderH * 0.88}px`, width: 2, height: 2 }} />
+          <div data-testid="wheel-FR" className="absolute" style={{ left: `${layoutRef.current.imgLeft + layoutRef.current.renderW * 0.80}px`, top: `${layoutRef.current.imgTop + layoutRef.current.renderH * 0.88}px`, width: 2, height: 2 }} />
+          <div data-testid="wheel-RL" className="absolute" style={{ left: `${layoutRef.current.imgLeft + layoutRef.current.renderW * 0.30}px`, top: `${layoutRef.current.imgTop + layoutRef.current.renderH * 0.92}px`, width: 2, height: 2 }} />
+          <div data-testid="wheel-RR" className="absolute" style={{ left: `${layoutRef.current.imgLeft + layoutRef.current.renderW * 0.70}px`, top: `${layoutRef.current.imgTop + layoutRef.current.renderH * 0.92}px`, width: 2, height: 2 }} />
         </div>
       )}
 
 
 
       {/* Contact shadow is now rendered by the canvas overlay renderer */}
+
+      {/* ── Visual debug overlay (toggle with D key) ── */}
+      {isReady && showDebug && (
+        <div className="absolute inset-0 z-[5] pointer-events-none">
+          {/* Shadow ellipse center (floor plane) — green line */}
+          <div
+            className="absolute left-0 right-0 border-t-2 border-green-400 border-dashed"
+            style={{ top: `${layoutRef.current.floorY}px` }}
+          >
+            <span className="absolute left-2 -top-5 text-[10px] font-mono text-green-400 bg-black/60 px-1 rounded">
+              floor {layoutRef.current.floorY.toFixed(1)}px
+            </span>
+          </div>
+          {/* Tire contact line — red line */}
+          <div
+            className="absolute left-0 right-0 border-t-2 border-red-400 border-dashed"
+            style={{ top: `${layoutRef.current.imgTop + layoutRef.current.tireY}px` }}
+          >
+            <span className="absolute right-2 -top-5 text-[10px] font-mono text-red-400 bg-black/60 px-1 rounded">
+              tire {(layoutRef.current.imgTop + layoutRef.current.tireY).toFixed(1)}px
+            </span>
+          </div>
+          {/* Image bounding box — blue dashed */}
+          <div
+            className="absolute border-2 border-blue-400 border-dashed"
+            style={{
+              top: `${layoutRef.current.imgTop}px`,
+              left: `${layoutRef.current.imgLeft}px`,
+              width: `${layoutRef.current.renderW}px`,
+              height: `${layoutRef.current.renderH}px`,
+            }}
+          >
+            <span className="absolute left-1 top-1 text-[10px] font-mono text-blue-400 bg-black/60 px-1 rounded">
+              {layoutRef.current.renderW.toFixed(0)}×{layoutRef.current.renderH.toFixed(0)}
+            </span>
+          </div>
+          {/* Error readout */}
+          <div className="absolute top-2 left-2 text-[10px] font-mono text-yellow-300 bg-black/70 px-2 py-1 rounded">
+            Δ tire→floor: {Math.abs(layoutRef.current.floorY - (layoutRef.current.imgTop + layoutRef.current.tireY)).toFixed(1)}px
+          </div>
+        </div>
+      )}
 
       {/* Planet Motors logo — subtle branding in bottom-right corner */}
       {isReady && (
