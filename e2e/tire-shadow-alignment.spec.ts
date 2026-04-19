@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test"
-import { centerOfRect, ellipseYAtXLower } from "./utils/ellipse"
+import { centerOfRect, ellipseYAtXUpper } from "./utils/ellipse"
 
 /**
  * Tire-shadow alignment regression test.
@@ -157,7 +157,7 @@ for (const vp of VIEWPORTS) {
       if (!box) return // satisfy TS
 
       const c = centerOfRect(box)
-      const expectedY = ellipseYAtXLower(c.x, cx, cy, rx, ry)
+      const expectedY = ellipseYAtXUpper(c.x, cx, cy, rx, ry)
       const deltaY = c.y - expectedY
 
       expect(

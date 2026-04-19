@@ -43,9 +43,10 @@ function round2(n: number) {
 /**
  * y on ellipse boundary at x:
  * ((x-cx)^2/rx^2) + ((y-cy)^2/ry^2) = 1
- * pick lower half (positive sqrt) for floor contact zone.
+ * pick upper half (negative sqrt) for floor contact line.
+ * The floor surface is the TOP of the shadow ellipse — where tires touch.
  */
-function ellipseYAtXLower(
+function ellipseYAtXUpper(
   x: number,
   cx: number,
   cy: number,
@@ -55,7 +56,7 @@ function ellipseYAtXLower(
   const dx = x - cx
   const inside = 1 - (dx * dx) / (rx * rx)
   if (inside <= 0) return cy
-  return cy + Math.sqrt(inside) * ry
+  return cy - Math.sqrt(inside) * ry
 }
 
 export function useAbsolutePlacement({
@@ -108,7 +109,7 @@ export function useAbsolutePlacement({
         x: left + a.x * width,
         y: top + a.y * height,
       }
-      const expectedYOnEllipse = ellipseYAtXLower(wheelPx.x, cx, cy, rx, ry)
+      const expectedYOnEllipse = ellipseYAtXUpper(wheelPx.x, cx, cy, rx, ry)
       const deltaY = wheelPx.y - expectedYOnEllipse
       return {
         id,
