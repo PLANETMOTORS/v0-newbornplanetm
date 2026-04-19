@@ -14,8 +14,6 @@ import {
 // Approach: absolute positioning (no CSS transforms) to avoid overflow-hidden clipping.
 // The ResizeObserver computes exact pixel top/left/width/height so the tire contact
 // line lands precisely on the shadow ellipse center at any viewport size.
-const SHADOW_CENTER_Y = 0.7556   // from overlay config (cy of shadow ellipse)
-const TIRE_CONTACT_Y  = 0.825    // measured tire contact at ~82.5% from top of image
 const IMG_ASPECT      = 4 / 3    // 1200 × 900 source frames
 const SCALE_FACTOR    = 1.25     // how much larger than "fit" the car should render
 
@@ -30,11 +28,75 @@ const useFrameBackground = true
 /** Warm-white studio fallback gradient (matches overlay config warm_white_backwall profile). */
 const FALLBACK_BG = "linear-gradient(to bottom, #f5f1eb 0%, #efe9e1 43%, #c7cccf 43%, #d3d7d9 100%)"
 
+// ── Per-body-type anchor profiles ──
+// Drivee classifies vehicles on upload: Sedan / SUV / Large Vehicle / Oversized.
+// Each body type has different tire-contact and shadow geometry because ride height,
+// wheel size, and ground clearance vary significantly.
+interface AnchorProfile {
+  /** Shadow ellipse center Y as fraction of container height */
+  shadowCenterY: number
+  /** Tire contact line as fraction of image height (from top) */
+  tireContactY: number
+  /** Wheel-bottom anchor positions as fraction of image dimensions */
+  wheelAnchors: {
+    flX: number; flY: number  // front-left
+    frX: number; frY: number  // front-right
+    rlX: number; rlY: number  // rear-left
+    rrX: number; rrY: number  // rear-right
+  }
+}
+
+const ANCHOR_PROFILES: Record<string, AnchorProfile> = {
+  sedan: {
+    shadowCenterY: 0.7556,
+    tireContactY: 0.850,
+    wheelAnchors: { flX: 0.22, flY: 0.90, frX: 0.78, frY: 0.90, rlX: 0.32, rlY: 0.93, rrX: 0.68, rrY: 0.93 },
+  },
+  suv: {
+    shadowCenterY: 0.7400,
+    tireContactY: 0.825,
+    wheelAnchors: { flX: 0.20, flY: 0.88, frX: 0.80, frY: 0.88, rlX: 0.30, rlY: 0.92, rrX: 0.70, rrY: 0.92 },
+  },
+  truck: {
+    shadowCenterY: 0.7300,
+    tireContactY: 0.810,
+    wheelAnchors: { flX: 0.18, flY: 0.86, frX: 0.82, frY: 0.86, rlX: 0.28, rlY: 0.90, rrX: 0.72, rrY: 0.90 },
+  },
+  oversized: {
+    shadowCenterY: 0.7200,
+    tireContactY: 0.800,
+    wheelAnchors: { flX: 0.18, flY: 0.85, frX: 0.82, frY: 0.85, rlX: 0.28, rlY: 0.89, rrX: 0.72, rrY: 0.89 },
+  },
+}
+
+/** Default profile used when body style is unknown */
+const DEFAULT_PROFILE = ANCHOR_PROFILES.suv
+
+/** Map database body_style values to profile keys */
+function getAnchorProfile(bodyStyle?: string): AnchorProfile {
+  if (!bodyStyle) return DEFAULT_PROFILE
+  const lower = bodyStyle.toLowerCase()
+  // Direct matches
+  if (lower in ANCHOR_PROFILES) return ANCHOR_PROFILES[lower]
+  // Alias mapping for common body_style values from dealer feeds
+  if (lower.includes('sedan') || lower.includes('coupe') || lower.includes('hatchback') || lower.includes('convertible'))
+    return ANCHOR_PROFILES.sedan
+  if (lower.includes('suv') || lower.includes('crossover') || lower.includes('wagon'))
+    return ANCHOR_PROFILES.suv
+  if (lower.includes('truck') || lower.includes('pickup'))
+    return ANCHOR_PROFILES.truck
+  if (lower.includes('van') || lower.includes('bus') || lower.includes('rv'))
+    return ANCHOR_PROFILES.oversized
+  return DEFAULT_PROFILE
+}
+
 interface SpinViewerProps {
   /** Ordered array of image URLs (walk-around frames). */
   images: string[]
   /** Vehicle name for alt text. */
   alt: string
+  /** Vehicle body style for anchor profile selection (e.g. "SUV", "Sedan", "Truck"). */
+  bodyStyle?: string
 }
 
 /**
@@ -51,7 +113,9 @@ interface SpinViewerProps {
  *  - Smooth momentum on release
  *  - "Drag to explore" hint on first view
  */
-export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
+export function VehicleSpinViewer({ images, alt, bodyStyle }: SpinViewerProps) {
+  // Select anchor profile based on vehicle body type (Sedan/SUV/Truck/Oversized)
+  const profile = getAnchorProfile(bodyStyle)
   const [frame, setFrame] = useState(0)
   const [isAutoPlaying, setIsAutoPlaying] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
@@ -107,10 +171,10 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       const renderH = snap(fitH * SCALE_FACTOR)
 
       // Where the tire contact line falls in the rendered image (px from image top)
-      const tireY = snap(TIRE_CONTACT_Y * renderH)
+      const tireY = snap(profile.tireContactY * renderH)
 
       // Where the shadow center is in the container (px from container top)
-      const floorY = snap(SHADOW_CENTER_Y * ch)
+      const floorY = snap(profile.shadowCenterY * ch)
 
       // Position image so tire line = floor line
       const imgTop = snap(floorY - tireY)
@@ -122,18 +186,18 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       const prevOffset = calibRef.current.yOffsetPx
       const correctedImgTop = snap(imgTop + prevOffset)
 
-      // Wheel-bottom positions (approximate for visible tires)
-      // FL/FR at 88% of image height, RL/RR at 92%
+      // Wheel-bottom positions from body-type profile (approximate for visible tires)
+      const wa = profile.wheelAnchors
       const wheelBottoms = [
-        { x: imgLeft + renderW * 0.20, y: correctedImgTop + renderH * 0.88 },
-        { x: imgLeft + renderW * 0.80, y: correctedImgTop + renderH * 0.88 },
-        { x: imgLeft + renderW * 0.30, y: correctedImgTop + renderH * 0.92 },
-        { x: imgLeft + renderW * 0.70, y: correctedImgTop + renderH * 0.92 },
+        { x: imgLeft + renderW * wa.flX, y: correctedImgTop + renderH * wa.flY },
+        { x: imgLeft + renderW * wa.frX, y: correctedImgTop + renderH * wa.frY },
+        { x: imgLeft + renderW * wa.rlX, y: correctedImgTop + renderH * wa.rlY },
+        { x: imgLeft + renderW * wa.rrX, y: correctedImgTop + renderH * wa.rrY },
       ]
 
       // Shadow ellipse in stage pixels
       const ellipseCx = cw * 0.50
-      const ellipseCy = ch * 0.7556
+      const ellipseCy = ch * profile.shadowCenterY
       const ellipseRx = cw * 0.2417
       const ellipseRy = ch * 0.0593
 
@@ -190,7 +254,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       dprMedia.removeEventListener("change", onDprChange)
       window.removeEventListener("orientationchange", onOrientation)
     }
-  }, [isFullscreen])
+  }, [isFullscreen, profile])
 
   const totalFrames = images.length
   const sensitivity = totalFrames > 0 ? Math.max(3, Math.round(800 / totalFrames)) : 3
@@ -390,7 +454,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         className="absolute z-[2] pointer-events-none"
         style={{
           left: "50%",
-          top: "75.56%",
+          top: `${(profile.shadowCenterY * 100).toFixed(2)}%`,
           width: "48.34%",
           height: "11.86%",
           transform: "translate(-50%, -50%)",
@@ -440,14 +504,14 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
 
       {/* ── Wheel anchor markers (invisible — used by E2E tests) ──
            Rendered unconditionally (both useFrameBackground modes) so E2E
-           alignment tests can always find them. Positions are approximate
-           for a front 3/4 view: FL/FR at ~88% of car height, RL/RR at ~92%. */}
+           alignment tests can always find them. Positions use body-type
+           profile anchors and the corrected imgTop from layoutRef. */}
       {isReady && (
         <>
-          <div data-testid="wheel-FL" className="absolute z-[3] pointer-events-none" style={{ left: `${layoutRef.current.imgLeft + layoutRef.current.renderW * 0.20}px`, top: `${layoutRef.current.imgTop + layoutRef.current.renderH * 0.88}px`, width: 2, height: 2 }} />
-          <div data-testid="wheel-FR" className="absolute z-[3] pointer-events-none" style={{ left: `${layoutRef.current.imgLeft + layoutRef.current.renderW * 0.80}px`, top: `${layoutRef.current.imgTop + layoutRef.current.renderH * 0.88}px`, width: 2, height: 2 }} />
-          <div data-testid="wheel-RL" className="absolute z-[3] pointer-events-none" style={{ left: `${layoutRef.current.imgLeft + layoutRef.current.renderW * 0.30}px`, top: `${layoutRef.current.imgTop + layoutRef.current.renderH * 0.92}px`, width: 2, height: 2 }} />
-          <div data-testid="wheel-RR" className="absolute z-[3] pointer-events-none" style={{ left: `${layoutRef.current.imgLeft + layoutRef.current.renderW * 0.70}px`, top: `${layoutRef.current.imgTop + layoutRef.current.renderH * 0.92}px`, width: 2, height: 2 }} />
+          <div data-testid="wheel-FL" className="absolute z-[3] pointer-events-none" style={{ left: `${layoutRef.current.imgLeft + layoutRef.current.renderW * profile.wheelAnchors.flX}px`, top: `${layoutRef.current.imgTop + layoutRef.current.renderH * profile.wheelAnchors.flY}px`, width: 2, height: 2 }} />
+          <div data-testid="wheel-FR" className="absolute z-[3] pointer-events-none" style={{ left: `${layoutRef.current.imgLeft + layoutRef.current.renderW * profile.wheelAnchors.frX}px`, top: `${layoutRef.current.imgTop + layoutRef.current.renderH * profile.wheelAnchors.frY}px`, width: 2, height: 2 }} />
+          <div data-testid="wheel-RL" className="absolute z-[3] pointer-events-none" style={{ left: `${layoutRef.current.imgLeft + layoutRef.current.renderW * profile.wheelAnchors.rlX}px`, top: `${layoutRef.current.imgTop + layoutRef.current.renderH * profile.wheelAnchors.rlY}px`, width: 2, height: 2 }} />
+          <div data-testid="wheel-RR" className="absolute z-[3] pointer-events-none" style={{ left: `${layoutRef.current.imgLeft + layoutRef.current.renderW * profile.wheelAnchors.rrX}px`, top: `${layoutRef.current.imgTop + layoutRef.current.renderH * profile.wheelAnchors.rrY}px`, width: 2, height: 2 }} />
         </>
       )}
 
@@ -490,6 +554,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
           </div>
           {/* Error readout + calibration debug */}
           <div className="absolute top-2 left-2 text-[10px] font-mono text-yellow-300 bg-black/70 px-2 py-1 rounded space-y-0.5">
+            <div>profile: {bodyStyle ?? "unknown"} → {Object.entries(ANCHOR_PROFILES).find(([, p]) => p === profile)?.[0] ?? "default"}</div>
             <div>Δ tire→floor: {Math.abs(layoutRef.current.floorY - (layoutRef.current.imgTop + layoutRef.current.tireY)).toFixed(1)}px</div>
             {calibDebug && (
               <>

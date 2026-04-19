@@ -819,6 +819,7 @@ export default function VehicleDetailPage() {
                         <VehicleSpinViewer
                           images={spinFrameUrls}
                           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                          bodyStyle={vehicle.bodyStyle ?? undefined}
                         />
                       ) : (
                         <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-3" style={{ background: "linear-gradient(to bottom, #ffffff 0%, #f9f9f9 45%, #f0f0f0 55%, #e8e8e8 70%, #e0e0e0 100%)" }}>
