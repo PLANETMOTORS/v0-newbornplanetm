@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useCallback, useEffect } from "react"
+import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react"
 import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "lucide-react"
 import { useOverlayRenderer } from "@/hooks/use-overlay-renderer"
 import { overlayConfig } from "@/config/overlay/loader/loadOverlayConfig"
@@ -152,16 +152,28 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     })
   }, [frameAspect, frame])
 
-  // Re-run placement on resize and fullscreen
+  // Stable ref so ResizeObserver always calls the latest recalcPlacement
+  // without being torn down / recreated on every frame change.
+  const recalcRef = useRef(recalcPlacement)
+  recalcRef.current = recalcPlacement
+
+  // Run placement synchronously before paint (useLayoutEffect) to prevent
+  // a visible flash of the car at the wrong position on initial load or
+  // when the frame changes.
+  useLayoutEffect(() => {
+    recalcPlacement()
+  }, [recalcPlacement])
+
+  // ResizeObserver setup — uses stable ref so it doesn't re-subscribe
+  // on every frame change.
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
 
-    recalcPlacement()
-    const ro = new ResizeObserver(recalcPlacement)
+    const ro = new ResizeObserver(() => recalcRef.current())
     ro.observe(el)
     return () => ro.disconnect()
-  }, [isFullscreen, recalcPlacement])
+  }, [isFullscreen])
 
   const totalFrames = images.length
   const sensitivity = totalFrames > 0 ? Math.max(3, Math.round(800 / totalFrames)) : 3
