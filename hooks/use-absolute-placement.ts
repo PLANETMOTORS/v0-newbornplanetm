@@ -140,11 +140,20 @@ export function useAbsolutePlacement({
     const onResize = () => schedule()
     window.addEventListener("resize", onResize)
 
-    // DPR change (e.g. dragging between monitors)
-    const dprMedia = window.matchMedia(
+    // DPR change (e.g. dragging between monitors).
+    // Tear down and recreate the matchMedia query after each change so
+    // subsequent transitions (e.g. 1×→2×→3×) are detected.
+    let dprMedia = window.matchMedia(
       `(resolution: ${window.devicePixelRatio}dppx)`
     )
-    const onDprChange = () => schedule()
+    const onDprChange = () => {
+      schedule()
+      dprMedia.removeEventListener("change", onDprChange)
+      dprMedia = window.matchMedia(
+        `(resolution: ${window.devicePixelRatio}dppx)`
+      )
+      dprMedia.addEventListener("change", onDprChange)
+    }
     dprMedia.addEventListener("change", onDprChange)
 
     // Orientation change (mobile rotation)

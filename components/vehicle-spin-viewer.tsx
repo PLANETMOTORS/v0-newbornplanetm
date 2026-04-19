@@ -313,19 +313,20 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       aria-roledescription="360° image spinner"
       data-testid="vehicle-stage"
     >
-      {/* ── LAYER 1: Vehicle frame ──
+      {/* ── LAYER 1: Vehicle frame (absolute positioned for tire-floor alignment) ──
            When useFrameBackground is true, the current 360° frame is the ONLY
            image element — it already contains the car on its studio floor.
-           object-fit: contain shows the full frame; the container's own CSS
-           background (FALLBACK_BG) fills any letterbox areas.
-           When useFrameBackground is false, the car layer (z-3) renders instead
-           with absolute positioning for tire-floor alignment. */}
+           Uses the same ResizeObserver-computed carStyle (top/left/width/height)
+           so the tire contact line lands on the shadow ellipse center.
+           The container's overflow:hidden clips any excess from SCALE_FACTOR.
+           When useFrameBackground is false, the car layer (z-3) renders instead. */}
       {isReady && images[frame] && useFrameBackground && (
         <img
           data-testid="bg-frame"
-          className="absolute inset-0 z-[1] w-full h-full object-contain pointer-events-none"
+          className="absolute z-[1] pointer-events-none"
           src={images[frame]}
           alt={`${alt} — angle ${frame + 1} of ${totalFrames}`}
+          style={carStyle}
           draggable={false}
         />
       )}
