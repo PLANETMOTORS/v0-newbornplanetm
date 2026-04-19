@@ -318,7 +318,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         <img
           src={images[frame]}
           alt={`${alt} — angle ${frame + 1} of ${totalFrames}`}
-          className="z-[2] pointer-events-none"
+          className="z-[2] pointer-events-none max-w-none max-h-none"
           style={carStyle}
           draggable={false}
         />
