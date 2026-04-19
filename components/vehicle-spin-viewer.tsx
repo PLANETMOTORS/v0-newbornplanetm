@@ -142,21 +142,42 @@ function drawScene(
   const carTop = tireLineY - tireBottomInCar
   const carLeft = (width - carW) / 2
 
-  // ── 2. Contact shadow ──
-  // Draw BEFORE the car so the car sits ON TOP of the shadow
+  // ── 2. Shadow system ──
+  // All shadow layers are drawn BEFORE the car image, so the car body and
+  // wheels render ON TOP. Shadow only shows through transparent areas of
+  // the car image (the undercar gap between body and ground).
   const shadowCenterX = width / 2
-  const shadowCenterY = tireLineY + 2    // just below tire line
-  const shadowRx = carW * 0.48           // wide shadow (~96% of car width)
-  const shadowRy = height * 0.025        // slim ellipse
 
-  // Layer 1: Broad ambient shadow (large, soft)
+  // Layer 0: Ambient occlusion — large, tall, soft darkening under the car.
+  // This bridges the gap between car body bottom and tire contact line.
+  // Centered slightly above tire line so it covers the undercar gap area.
+  const aoRx = carW * 0.46
+  const aoRy = height * 0.10             // tall: covers ~60px of undercar gap
+  const aoCenterY = tireLineY - aoRy * 0.3  // shifted up into undercar area
   ctx.save()
-  ctx.translate(shadowCenterX, shadowCenterY)
+  ctx.translate(shadowCenterX, aoCenterY)
+  ctx.scale(1, aoRy / aoRx)
+  const aoGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, aoRx)
+  aoGrad.addColorStop(0, "rgba(0,0,0,0.25)")
+  aoGrad.addColorStop(0.4, "rgba(0,0,0,0.15)")
+  aoGrad.addColorStop(0.7, "rgba(0,0,0,0.05)")
+  aoGrad.addColorStop(1, "rgba(0,0,0,0)")
+  ctx.fillStyle = aoGrad
+  ctx.beginPath()
+  ctx.arc(0, 0, aoRx, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.restore()
+
+  // Layer 1: Broad contact shadow (medium height, centered at tire line)
+  const shadowRx = carW * 0.48
+  const shadowRy = height * 0.04          // taller than before (was 0.025)
+  ctx.save()
+  ctx.translate(shadowCenterX, tireLineY + 2)
   ctx.scale(1, shadowRy / shadowRx)
   const ambientGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, shadowRx)
-  ambientGrad.addColorStop(0, "rgba(0,0,0,0.30)")
-  ambientGrad.addColorStop(0.3, "rgba(0,0,0,0.18)")
-  ambientGrad.addColorStop(0.6, "rgba(0,0,0,0.06)")
+  ambientGrad.addColorStop(0, "rgba(0,0,0,0.35)")
+  ambientGrad.addColorStop(0.3, "rgba(0,0,0,0.22)")
+  ambientGrad.addColorStop(0.6, "rgba(0,0,0,0.08)")
   ambientGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = ambientGrad
   ctx.beginPath()
@@ -164,15 +185,15 @@ function drawScene(
   ctx.fill()
   ctx.restore()
 
-  // Layer 2: Tight contact line (very dark, very narrow — the key visual anchor)
+  // Layer 2: Tight contact line (very dark, narrow — visual ground anchor)
   ctx.save()
   ctx.translate(shadowCenterX, tireLineY + 1)
   const contactRx = carW * 0.42
-  const contactRy = height * 0.004
+  const contactRy = height * 0.005
   ctx.scale(1, contactRy / contactRx)
   const contactGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, contactRx)
-  contactGrad.addColorStop(0, "rgba(0,0,0,0.60)")
-  contactGrad.addColorStop(0.5, "rgba(0,0,0,0.35)")
+  contactGrad.addColorStop(0, "rgba(0,0,0,0.65)")
+  contactGrad.addColorStop(0.5, "rgba(0,0,0,0.40)")
   contactGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = contactGrad
   ctx.beginPath()
