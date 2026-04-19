@@ -91,12 +91,18 @@ export function ellipseYLowerAtX(x: number, e: Ellipse): number {
  * This is the FLOOR CONTACT LINE — where tires physically touch the ground.
  * The top of the shadow ellipse represents the floor surface; the shadow
  * extends below and around the contact points.
+ *
+ * IMPORTANT: When x is outside the ellipse horizontal span, returns cy - ry
+ * (the floor contact line at the ellipse apex) instead of cy (shadow center).
+ * This prevents the auto-calibration from using the wrong reference when
+ * wheel anchors fall outside the shadow ellipse width, which would cause
+ * a systematic drift pushing the car away from the correct floor position.
  */
 export function ellipseYUpperAtX(x: number, e: Ellipse): number {
-  if (e.rx <= 0 || e.ry <= 0) return e.cy
+  if (e.rx <= 0 || e.ry <= 0) return e.cy - e.ry
   const dx = x - e.cx
   const inside = 1 - (dx * dx) / (e.rx * e.rx)
-  if (inside <= 0) return e.cy // outside ellipse span
+  if (inside <= 0) return e.cy - e.ry // outside ellipse span → use floor contact line
   return e.cy - Math.sqrt(inside) * e.ry
 }
 

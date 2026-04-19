@@ -16,7 +16,7 @@ export function ellipseYAtXUpper(
 ): number {
   const dx = x - cx
   const inside = 1 - (dx * dx) / (rx * rx)
-  if (inside <= 0) return cy
+  if (inside <= 0) return cy - ry // floor contact line at apex (not center)
   return cy - Math.sqrt(inside) * ry
 }
 

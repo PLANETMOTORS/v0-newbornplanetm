@@ -260,10 +260,10 @@ describe('Anchor profile consistency', () => {
 describe('Floor contact model — ellipseYUpperAtX', () => {
   // Import would require module setup; test the math directly
   function ellipseYUpperAtX(x: number, e: { cx: number; cy: number; rx: number; ry: number }): number {
-    if (e.rx <= 0 || e.ry <= 0) return e.cy
+    if (e.rx <= 0 || e.ry <= 0) return e.cy - e.ry
     const dx = x - e.cx
     const inside = 1 - (dx * dx) / (e.rx * e.rx)
-    if (inside <= 0) return e.cy
+    if (inside <= 0) return e.cy - e.ry // floor contact line at apex
     return e.cy - Math.sqrt(inside) * e.ry
   }
 
@@ -298,8 +298,8 @@ describe('Floor contact model — ellipseYUpperAtX', () => {
     }
   })
 
-  it('returns center for points outside ellipse span', () => {
+  it('returns floor contact line (cy - ry) for points outside ellipse span', () => {
     const outside = ellipseYUpperAtX(800, ellipse) // way outside rx
-    expect(outside).toBe(ellipse.cy)
+    expect(outside).toBe(ellipse.cy - ellipse.ry) // 450 - 50 = 400 (floor contact, not center)
   })
 })

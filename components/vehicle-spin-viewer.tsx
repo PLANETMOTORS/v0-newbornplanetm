@@ -179,6 +179,10 @@ export function VehicleSpinViewer({ images, alt, bodyStyle }: SpinViewerProps) {
     const el = containerRef.current
     if (!el) return
 
+    // Reset calibration state when profile or fullscreen changes to prevent
+    // stale offset accumulation from a previous configuration.
+    calibRef.current = initialCalibState
+
     const recalc = () => {
       const { width: cw, height: ch } = el.getBoundingClientRect()
       if (cw === 0 || ch === 0) return
