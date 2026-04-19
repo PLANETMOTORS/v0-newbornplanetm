@@ -25,9 +25,10 @@ import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "luci
  * ══════════════════════════════════════════════════════════════════════════════ */
 
 // ── Studio environment constants ──
-const FLOOR_LINE_Y   = 0.73   // floor contact line at 73% from top (more floor = stronger grounding)
-const CAR_FILL       = 0.82   // car fills 82% of canvas width
-const TIRE_CONTACT_Y = 0.83   // default: tire bottom at 83% of image height (Jeep Wrangler)
+const FLOOR_LINE_Y   = 0.76   // floor at 76% — enough wall for context, enough floor for grounding
+const CAR_FILL       = 0.90   // car fills 90% of canvas width (fills the frame, less "floating in space")
+const TIRE_CONTACT_Y = 0.82   // default: tire bottom at 82% of image height
+const REFLECTION_OPACITY = 0.08 // floor reflection strength (subtle but effective)
 
 // ── Studio colors (Carvana showroom: bright wall, dark floor) ──
 const WALL_TOP     = "#F5F2EF"
@@ -59,10 +60,12 @@ function detectTireBottom(img: HTMLImageElement): number | null {
     ctx.drawImage(img, 0, 0)
     const data = ctx.getImageData(0, 0, w, h).data
 
+    // Use alpha > 200 to detect solid tire rubber only (ignores semi-transparent
+    // halo from background removal that creates a visible gap against dark floor)
     for (let y = h - 1; y >= Math.floor(h * 0.5); y--) {
       let count = 0
       for (let x = 0; x < w; x++) {
-        if (data[(y * w + x) * 4 + 3] > 128) {
+        if (data[(y * w + x) * 4 + 3] > 200) {
           count++
           if (count >= 15) return y / h
         }
@@ -137,18 +140,18 @@ function drawScene(
   // ── 2. Contact shadow ──
   // Draw BEFORE the car so the car sits ON TOP of the shadow
   const shadowCenterX = width / 2
-  const shadowCenterY = floorLineY + 3  // just below floor line
-  const shadowRx = carW * 0.45          // wide shadow (~90% of car width)
-  const shadowRy = height * 0.035       // slightly thicker ellipse
+  const shadowCenterY = floorLineY + 2  // just below floor line
+  const shadowRx = carW * 0.48          // wide shadow (~96% of car width)
+  const shadowRy = height * 0.025       // slim ellipse
 
   // Layer 1: Broad ambient shadow (large, soft)
   ctx.save()
   ctx.translate(shadowCenterX, shadowCenterY)
   ctx.scale(1, shadowRy / shadowRx)
   const ambientGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, shadowRx)
-  ambientGrad.addColorStop(0, "rgba(0,0,0,0.35)")
-  ambientGrad.addColorStop(0.25, "rgba(0,0,0,0.22)")
-  ambientGrad.addColorStop(0.5, "rgba(0,0,0,0.10)")
+  ambientGrad.addColorStop(0, "rgba(0,0,0,0.30)")
+  ambientGrad.addColorStop(0.3, "rgba(0,0,0,0.18)")
+  ambientGrad.addColorStop(0.6, "rgba(0,0,0,0.06)")
   ambientGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = ambientGrad
   ctx.beginPath()
@@ -156,15 +159,15 @@ function drawScene(
   ctx.fill()
   ctx.restore()
 
-  // Layer 2: Tight contact line (dark, narrow — anchors car to floor)
+  // Layer 2: Tight contact line (very dark, very narrow — the key visual anchor)
   ctx.save()
-  ctx.translate(shadowCenterX, shadowCenterY - 1)
-  const contactRx = carW * 0.38
-  const contactRy = height * 0.006
+  ctx.translate(shadowCenterX, floorLineY + 1)
+  const contactRx = carW * 0.42
+  const contactRy = height * 0.004
   ctx.scale(1, contactRy / contactRx)
   const contactGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, contactRx)
-  contactGrad.addColorStop(0, "rgba(0,0,0,0.55)")
-  contactGrad.addColorStop(0.4, "rgba(0,0,0,0.30)")
+  contactGrad.addColorStop(0, "rgba(0,0,0,0.60)")
+  contactGrad.addColorStop(0.5, "rgba(0,0,0,0.35)")
   contactGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = contactGrad
   ctx.beginPath()
@@ -174,6 +177,35 @@ function drawScene(
 
   // ── 3. Car image ──
   ctx.drawImage(carImg, carLeft, carTop, carW, carH)
+
+  // ── 4. Floor reflection (professional showroom effect) ──
+  // Draw a vertically-flipped, faded copy of the car below the floor line.
+  // This is the #1 visual cue used by BMW/Mercedes/Carvana configurators
+  // to make a car look "on the ground" rather than floating.
+  ctx.save()
+  ctx.globalAlpha = REFLECTION_OPACITY
+  // Clip to floor area only (reflection shouldn't bleed into wall)
+  ctx.beginPath()
+  ctx.rect(0, floorLineY, width, height - floorLineY)
+  ctx.clip()
+  // Flip vertically around the floor line
+  ctx.translate(0, floorLineY * 2)
+  ctx.scale(1, -1)
+  ctx.drawImage(carImg, carLeft, carTop, carW, carH)
+  ctx.restore()
+
+  // Fade the reflection out with distance from floor line
+  const reflFade = ctx.createLinearGradient(0, floorLineY, 0, floorLineY + carH * 0.35)
+  reflFade.addColorStop(0, "rgba(0,0,0,0)")  // transparent at floor line (keep reflection)
+  const floorMid = FLOOR_NEAR  // match the floor color to "erase" the reflection gradually
+  reflFade.addColorStop(1, floorMid)
+  // We need to paint the floor color OVER the reflection to fade it out.
+  // Use a gradient from transparent → floor color.
+  const reflFadeGrad = ctx.createLinearGradient(0, floorLineY, 0, floorLineY + carH * 0.30)
+  reflFadeGrad.addColorStop(0, "rgba(122,126,131,0)")  // transparent (FLOOR_NEAR with alpha 0)
+  reflFadeGrad.addColorStop(1, "rgba(122,126,131,1)")  // opaque floor color
+  ctx.fillStyle = reflFadeGrad
+  ctx.fillRect(carLeft, floorLineY, carW, carH * 0.30)
 }
 
 export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
@@ -205,7 +237,6 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   const isReady = loadedCount >= 1
 
   // Stable key: only re-run preload when actual URLs change, not just array reference
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const imagesKey = useMemo(() => images.join('\n'), [images])
 
   // ── Draw current frame on canvas ──
@@ -256,7 +287,6 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     const ro = new ResizeObserver(() => drawFrameRef.current())
     ro.observe(el)
     return () => ro.disconnect()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFullscreen])
 
   // ── Progressive preloading ──
