@@ -116,16 +116,19 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       const imgTop = snap(floorY - tireY)
       const imgLeft = snap((cw - renderW) / 2)
 
-      layoutRef.current = { floorY, tireY, imgTop, imgLeft, renderW, renderH }
-
       // ── Auto-calibration: adjust Y so tires sit on ellipse boundary ──
+      // Use the CORRECTED top (including previous calibration offset) so the
+      // feedback loop is closed: as offset converges, measured delta → 0.
+      const prevOffset = calibRef.current.yOffsetPx
+      const correctedImgTop = snap(imgTop + prevOffset)
+
       // Wheel-bottom positions (approximate for visible tires)
       // FL/FR at 88% of image height, RL/RR at 92%
       const wheelBottoms = [
-        { x: imgLeft + renderW * 0.20, y: imgTop + renderH * 0.88 },
-        { x: imgLeft + renderW * 0.80, y: imgTop + renderH * 0.88 },
-        { x: imgLeft + renderW * 0.30, y: imgTop + renderH * 0.92 },
-        { x: imgLeft + renderW * 0.70, y: imgTop + renderH * 0.92 },
+        { x: imgLeft + renderW * 0.20, y: correctedImgTop + renderH * 0.88 },
+        { x: imgLeft + renderW * 0.80, y: correctedImgTop + renderH * 0.88 },
+        { x: imgLeft + renderW * 0.30, y: correctedImgTop + renderH * 0.92 },
+        { x: imgLeft + renderW * 0.70, y: correctedImgTop + renderH * 0.92 },
       ]
 
       // Shadow ellipse in stage pixels
@@ -147,6 +150,10 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       setCalibDebug(calibResult.debug)
 
       const correctedTop = snap(imgTop + calibResult.state.yOffsetPx)
+
+      // Store both uncorrected and corrected top so wheel anchors + debug overlay
+      // can use the corrected position that matches the actual rendered car image.
+      layoutRef.current = { floorY, tireY, imgTop: correctedTop, imgLeft, renderW, renderH }
 
       setCarStyle({
         position: "absolute",
@@ -183,7 +190,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       dprMedia.removeEventListener("change", onDprChange)
       window.removeEventListener("orientationchange", onOrientation)
     }
-  }, [isFullscreen, frame])
+  }, [isFullscreen])
 
   const totalFrames = images.length
   const sensitivity = totalFrames > 0 ? Math.max(3, Math.round(800 / totalFrames)) : 3
