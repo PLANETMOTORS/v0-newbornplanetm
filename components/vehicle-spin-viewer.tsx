@@ -2,6 +2,13 @@
 
 import React, { useState, useRef, useCallback, useEffect } from "react"
 import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "lucide-react"
+import {
+  autoCalibrateFrame,
+  defaultCalibParams,
+  initialCalibState,
+  type CalibState,
+  type CalibDebug,
+} from "@/lib/autoCalibrateTireFloor"
 
 // ── Tire-floor alignment constants ──
 // Approach: absolute positioning (no CSS transforms) to avoid overflow-hidden clipping.
@@ -77,6 +84,12 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   // Store computed layout values for the debug overlay
   const layoutRef = useRef({ floorY: 0, tireY: 0, imgTop: 0, imgLeft: 0, renderW: 0, renderH: 0 })
 
+  // ── Per-frame auto-calibration state ──
+  // Smoothly corrects vertical offset so tires sit on the shadow ellipse boundary
+  // (not just center), accounting for ellipse curvature at each wheel's X position.
+  const calibRef = useRef<CalibState>(initialCalibState)
+  const [calibDebug, setCalibDebug] = useState<CalibDebug | null>(null)
+
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
@@ -105,9 +118,39 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
 
       layoutRef.current = { floorY, tireY, imgTop, imgLeft, renderW, renderH }
 
+      // ── Auto-calibration: adjust Y so tires sit on ellipse boundary ──
+      // Wheel-bottom positions (approximate for visible tires)
+      // FL/FR at 88% of image height, RL/RR at 92%
+      const wheelBottoms = [
+        { x: imgLeft + renderW * 0.20, y: imgTop + renderH * 0.88 },
+        { x: imgLeft + renderW * 0.80, y: imgTop + renderH * 0.88 },
+        { x: imgLeft + renderW * 0.30, y: imgTop + renderH * 0.92 },
+        { x: imgLeft + renderW * 0.70, y: imgTop + renderH * 0.92 },
+      ]
+
+      // Shadow ellipse in stage pixels
+      const ellipseCx = cw * 0.50
+      const ellipseCy = ch * 0.7556
+      const ellipseRx = cw * 0.2417
+      const ellipseRy = ch * 0.0593
+
+      const calibResult = autoCalibrateFrame(
+        {
+          wheelBottoms,
+          floorEllipse: { cx: ellipseCx, cy: ellipseCy, rx: ellipseRx, ry: ellipseRy },
+        },
+        calibRef.current,
+        { ...defaultCalibParams, deadZonePx: 1.0, maxStepPxPerFrame: 2.5, smoothingAlpha: 0.35 },
+      )
+
+      calibRef.current = calibResult.state
+      setCalibDebug(calibResult.debug)
+
+      const correctedTop = snap(imgTop + calibResult.state.yOffsetPx)
+
       setCarStyle({
         position: "absolute",
-        top: `${imgTop}px`,
+        top: `${correctedTop}px`,
         left: `${imgLeft}px`,
         width: `${renderW}px`,
         height: `${renderH}px`,
@@ -140,7 +183,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       dprMedia.removeEventListener("change", onDprChange)
       window.removeEventListener("orientationchange", onOrientation)
     }
-  }, [isFullscreen])
+  }, [isFullscreen, frame])
 
   const totalFrames = images.length
   const sensitivity = totalFrames > 0 ? Math.max(3, Math.round(800 / totalFrames)) : 3
@@ -438,9 +481,15 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
               {layoutRef.current.renderW.toFixed(0)}×{layoutRef.current.renderH.toFixed(0)}
             </span>
           </div>
-          {/* Error readout */}
-          <div className="absolute top-2 left-2 text-[10px] font-mono text-yellow-300 bg-black/70 px-2 py-1 rounded">
-            Δ tire→floor: {Math.abs(layoutRef.current.floorY - (layoutRef.current.imgTop + layoutRef.current.tireY)).toFixed(1)}px
+          {/* Error readout + calibration debug */}
+          <div className="absolute top-2 left-2 text-[10px] font-mono text-yellow-300 bg-black/70 px-2 py-1 rounded space-y-0.5">
+            <div>Δ tire→floor: {Math.abs(layoutRef.current.floorY - (layoutRef.current.imgTop + layoutRef.current.tireY)).toFixed(1)}px</div>
+            {calibDebug && (
+              <>
+                <div>calib Δraw: {calibDebug.rawDeltaPx.toFixed(2)}px step: {calibDebug.appliedStepPx.toFixed(2)}px</div>
+                <div>calib yOff: {calibRef.current.yOffsetPx.toFixed(2)}px {calibDebug.skipped ? `(skip: ${calibDebug.reason})` : ""}</div>
+              </>
+            )}
           </div>
         </div>
       )}
