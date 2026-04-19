@@ -174,14 +174,14 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     return () => { cancelled = true }
   }, [images])
 
-  // ── Runtime guard: bg-frame XOR bg-fallback (never both mounted) ──
+  // ── Runtime guard: only one image layer should be active ──
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
     const bgFrame = el.querySelector('[data-testid="bg-frame"]')
-    const bgFallback = el.querySelector('[data-testid="bg-fallback"]')
-    if (bgFrame && bgFallback) {
-      console.warn("BUG: both bg-frame and bg-fallback are mounted — dual background detected")
+    const carLayer = el.querySelector('div.z-\\[3\\] img')
+    if (bgFrame && carLayer) {
+      console.warn("BUG: both bg-frame and car layer are mounted — image doubling detected")
     }
   }, [isReady, frame])
 
@@ -299,31 +299,27 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       style={{
         cursor: !isReady ? "default" : isDragging ? "grabbing" : "grab",
         isolation: "isolate", // prevents stacking context bleed into adjacent layout
+        background: FALLBACK_BG, // base background — visible during loading & in letterbox areas
       }}
       role="region"
       aria-label={`360° Interactive View — ${alt}`}
       aria-roledescription="360° image spinner"
       data-testid="vehicle-stage"
     >
-      {/* ── LAYER 1: Background (mutually exclusive — bg-frame XOR bg-fallback) ──
-           When useFrameBackground is true, the current 360° frame serves as the
-           background (object-fit: cover fills the container seamlessly).
-           Otherwise a CSS gradient fallback renders. Never both. */}
-      {isReady && images[frame] && useFrameBackground ? (
+      {/* ── LAYER 1: Vehicle frame ──
+           When useFrameBackground is true, the current 360° frame is the ONLY
+           image element — it already contains the car on its studio floor.
+           object-fit: contain shows the full frame; the container's own CSS
+           background (FALLBACK_BG) fills any letterbox areas.
+           When useFrameBackground is false, the car layer (z-3) renders instead
+           with absolute positioning for tire-floor alignment. */}
+      {isReady && images[frame] && useFrameBackground && (
         <img
           data-testid="bg-frame"
-          className="absolute inset-0 z-[1] w-full h-full object-cover pointer-events-none"
+          className="absolute inset-0 z-[1] w-full h-full object-contain pointer-events-none"
           src={images[frame]}
-          alt=""
-          aria-hidden="true"
+          alt={`${alt} — angle ${frame + 1} of ${totalFrames}`}
           draggable={false}
-        />
-      ) : (
-        <div
-          data-testid="bg-fallback"
-          className="absolute inset-0 z-[1]"
-          aria-hidden="true"
-          style={{ background: FALLBACK_BG }}
         />
       )}
 
@@ -367,11 +363,12 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         </div>
       )}
 
-      {/* ── LAYER 3: Car image — absolutely positioned for tire-floor alignment ──
-           ResizeObserver computes exact pixel top/left/width/height so the tire
-           contact line sits on the shadow ellipse center. overflow-hidden on the
-           container clips roof/bumper overflow without affecting tire placement. */}
-      {isReady && images[frame] && (
+      {/* ── LAYER 3: Car image (only when NOT using frame background) ──
+           When useFrameBackground is false, the car image uses absolute pixel
+           positioning (ResizeObserver) for tire-floor alignment against the
+           CSS gradient fallback background. Skipped when useFrameBackground
+           is true because the bg-frame already contains the car. */}
+      {isReady && images[frame] && !useFrameBackground && (
         <div className="absolute inset-0 z-[3] pointer-events-none">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
