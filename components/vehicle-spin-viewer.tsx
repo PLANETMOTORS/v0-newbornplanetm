@@ -255,6 +255,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   useEffect(() => {
     if (images.length === 0) return
     setLoadedCount(0)
+    setFrame(0)
     imageCache.current.clear()
     perFrameTireY.current = new Array(images.length).fill(null)
 
