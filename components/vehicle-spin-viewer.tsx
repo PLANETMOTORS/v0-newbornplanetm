@@ -1,18 +1,25 @@
 "use client"
 
 import { useState, useRef, useCallback, useEffect } from "react"
-import Image from "next/image"
 import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "lucide-react"
 import { useOverlayRenderer } from "@/hooks/use-overlay-renderer"
 import { overlayConfig } from "@/config/overlay/loader/loadOverlayConfig"
 
-// ── Tire-floor alignment constants (used by the dynamic transform calc) ──
+// ── Tire-floor alignment ──
+// Uses absolute pixel positioning (no CSS transforms) so the car image is
+// never clipped by overflow-hidden.  The floor-contact target comes from the
+// overlay config's shadow ellipse center.
 const SHADOW_CENTER_Y = 0.7556   // from overlay config (cy of shadow ellipse)
-const TIRE_CONTACT_Y  = 0.823    // tire contact at 82.3 % from top of image
-const TIRE_SCALE      = 1.25     // enlargement factor
-const INNER_W_RATIO   = 0.90     // inner positioning div width ratio
-const INNER_H_RATIO   = 0.85     // inner positioning div height ratio
-const IMG_ASPECT      = 4 / 3    // 1200 × 900 source frames
+const TIRE_CONTACT_Y  = 0.824    // measured: lowest non-transparent pixel in nobg frames
+const CAR_SCALE       = 1.25     // enlargement factor so the car fills the viewport
+
+interface CarStyle {
+  position: "absolute"
+  top: string
+  left: string
+  width: string
+  height: string
+}
 
 interface SpinViewerProps {
   /** Ordered array of image URLs (walk-around frames). */
@@ -51,14 +58,16 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   const velocity = useRef(0)
   const momentumRef = useRef<number | null>(null)
 
-  // ── Dynamic tire-floor alignment ──
-  // The car frames have transparent padding below the tires (tire contact at
-  // ~82.3 % of image height).  A fixed CSS translateY doesn't work across
-  // viewports because object-contain renders the image at different sizes
-  // depending on container aspect ratio.  We compute the exact translateY at
-  // runtime so the tire line always lands on the shadow-ellipse centre.
-  const [tireTransform, setTireTransform] = useState(`scale(${TIRE_SCALE})`)
+  // ── Absolute-positioning placement ──
+  // Instead of CSS transforms (which get clipped by overflow-hidden), we
+  // compute exact pixel top/left/width/height so the tire-bottom line in the
+  // image lands on the shadow-ellipse center in the container.
+  const frameAspectRef = useRef<number>(4 / 3) // updated from first loaded image
+  const [carStyle, setCarStyle] = useState<CarStyle>({
+    position: "absolute", top: "0px", left: "0px", width: "100%", height: "100%",
+  })
 
+  // Recalculate placement whenever container resizes or fullscreen toggles
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
@@ -67,24 +76,32 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       const { width: cw, height: ch } = el.getBoundingClientRect()
       if (cw === 0 || ch === 0) return
 
-      const iw = cw * INNER_W_RATIO          // inner div width
-      const ih = ch * INNER_H_RATIO          // inner div height
+      const aspect = frameAspectRef.current
 
-      // Rendered image height inside the object-contain element
-      const renderH = (iw / ih > IMG_ASPECT) ? ih : iw / IMG_ASPECT
+      // Fit the image to the container (contain), then scale up
+      let fitW: number, fitH: number
+      if (cw / ch > aspect) {
+        fitH = ch;  fitW = ch * aspect
+      } else {
+        fitW = cw;  fitH = cw / aspect
+      }
+      const rw = fitW * CAR_SCALE
+      const rh = fitH * CAR_SCALE
 
-      // Tire Y position inside the element (image centred vertically)
-      const tireInElem = (ih - renderH) / 2 + TIRE_CONTACT_Y * renderH
+      // Target: tire bottom in rendered image lands on shadow-ellipse center
+      const floorY       = SHADOW_CENTER_Y * ch
+      const tireBottomPx = TIRE_CONTACT_Y * rh
 
-      // Element is centred in the container
-      const elemCenter = ch / 2
-      const targetY    = ch * SHADOW_CENTER_Y
+      const top  = floorY - tireBottomPx
+      const left = (cw - rw) / 2
 
-      // Solve: targetY = elemCenter + S*(tireInElem - ih/2) + S*T  →  T = …
-      const T    = (targetY - elemCenter - TIRE_SCALE * (tireInElem - ih / 2)) / TIRE_SCALE
-      const tPct = (T / ih) * 100
-
-      setTireTransform(`scale(${TIRE_SCALE}) translateY(${tPct.toFixed(2)}%)`)
+      setCarStyle({
+        position: "absolute",
+        top:    `${Math.round(top)}px`,
+        left:   `${Math.round(left)}px`,
+        width:  `${Math.round(rw)}px`,
+        height: `${Math.round(rh)}px`,
+      })
     }
 
     recalc()
@@ -105,16 +122,27 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     setLoadedCount(0)
 
     let cancelled = false
-    const preload = (src: string) =>
+    const preload = (src: string, isFirst = false) =>
       new Promise<void>((resolve) => {
         const img = new window.Image()
-        img.onload = () => { if (!cancelled) setLoadedCount((c) => c + 1); resolve() }
+        img.onload = () => {
+          if (!cancelled) {
+            // Capture actual frame dimensions from the first loaded image
+            if (isFirst && img.naturalWidth > 0 && img.naturalHeight > 0) {
+              frameAspectRef.current = img.naturalWidth / img.naturalHeight
+              // Re-trigger placement calc with the real aspect ratio
+              containerRef.current?.dispatchEvent(new Event("reflow"))
+            }
+            setLoadedCount((c) => c + 1)
+          }
+          resolve()
+        }
         img.onerror = () => { if (!cancelled) setLoadedCount((c) => c + 1); resolve() }
         img.src = src
       })
 
-    // Load first frame with priority, then rest in parallel batches
-    preload(images[0]).then(() => {
+    // Load first frame with priority (also captures aspect ratio), then rest
+    preload(images[0], true).then(() => {
       if (cancelled) return
       // Preload remaining frames in batches of 6 to avoid network congestion
       const remaining = images.slice(1)
@@ -122,7 +150,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       const batch = async () => {
         while (idx < remaining.length && !cancelled) {
           const chunk = remaining.slice(idx, idx + 6)
-          await Promise.all(chunk.map(preload))
+          await Promise.all(chunk.map((src) => preload(src)))
           idx += 6
         }
       }
@@ -285,24 +313,17 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         </div>
       )}
 
-      {/* Current frame image — dynamically positioned so tires sit on the shadow
-           ellipse at any viewport size.  See the tireTransform calculation above. */}
+      {/* Current frame — positioned with pixel-precise absolute coordinates
+           so the tire-bottom line lands exactly on the shadow-ellipse center.
+           No CSS transforms are used, avoiding overflow-hidden clipping. */}
       {isReady && images[frame] && (
-        <div className="absolute inset-0 flex items-center justify-center z-[2]">
-          <div className="relative" style={{ width: "90%", height: "85%" }}>
-            <Image
-              src={images[frame]}
-              alt={`${alt} — angle ${frame + 1} of ${totalFrames}`}
-              fill
-              className="object-contain pointer-events-none"
-              style={{ transform: tireTransform }}
-              priority={frame === 0}
-              sizes={isFullscreen ? "100vw" : "(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"}
-              draggable={false}
-              unoptimized
-            />
-          </div>
-        </div>
+        <img
+          src={images[frame]}
+          alt={`${alt} — angle ${frame + 1} of ${totalFrames}`}
+          className="z-[2] pointer-events-none"
+          style={carStyle}
+          draggable={false}
+        />
       )}
 
 
