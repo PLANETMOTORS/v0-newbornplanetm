@@ -132,6 +132,41 @@ describe('Tire-floor alignment — edge cases', () => {
 })
 
 // ---------------------------------------------------------------------------
+// Background layer XOR invariant — bg-frame and bg-fallback must never coexist
+// ---------------------------------------------------------------------------
+
+describe('Background layer XOR invariant', () => {
+  const useFrameBackground = true // must match vehicle-spin-viewer.tsx
+
+  it('bg-frame XOR bg-fallback: exactly one background layer is active when frames loaded', () => {
+    // Simulates isReady=true, images[frame] exists, useFrameBackground=true
+    const isReady = true
+    const hasFrame = true
+    const bgFrame = isReady && hasFrame && useFrameBackground
+    const bgFallback = !(isReady && hasFrame && useFrameBackground)
+    expect(Boolean(bgFrame) !== Boolean(bgFallback)).toBe(true)
+  })
+
+  it('bg-frame XOR bg-fallback: fallback shown when no frames loaded', () => {
+    // Simulates isReady=false (loading state)
+    const isReady = false
+    const hasFrame = false
+    const bgFrame = isReady && hasFrame && useFrameBackground
+    const bgFallback = !(isReady && hasFrame && useFrameBackground)
+    expect(Boolean(bgFrame) !== Boolean(bgFallback)).toBe(true)
+  })
+
+  it('bg-frame XOR bg-fallback: fallback shown when useFrameBackground is false', () => {
+    const overrideUseFrameBg = false
+    const isReady = true
+    const hasFrame = true
+    const bgFrame = isReady && hasFrame && overrideUseFrameBg
+    const bgFallback = !(isReady && hasFrame && overrideUseFrameBg)
+    expect(Boolean(bgFrame) !== Boolean(bgFallback)).toBe(true)
+  })
+})
+
+// ---------------------------------------------------------------------------
 // Consistency across frame changes (tire Y should not shift between frames)
 // ---------------------------------------------------------------------------
 

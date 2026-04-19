@@ -2,8 +2,6 @@
 
 import React, { useState, useRef, useCallback, useEffect } from "react"
 import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "lucide-react"
-import { useOverlayRenderer } from "@/hooks/use-overlay-renderer"
-import { overlayConfig } from "@/config/overlay/loader/loadOverlayConfig"
 
 // ── Tire-floor alignment constants ──
 // Approach: absolute positioning (no CSS transforms) to avoid overflow-hidden clipping.
@@ -16,6 +14,14 @@ const SCALE_FACTOR    = 1.25     // how much larger than "fit" the car should re
 
 /** Snap to nearest 0.5 CSS-px to avoid sub-pixel rendering artefacts. */
 const snap = (v: number) => Math.round(v * 2) / 2
+
+/** Use the current 360° frame as the background layer instead of the canvas overlay.
+ *  When true, bg-frame renders; when false, bg-fallback (CSS gradient) renders.
+ *  These two layers are mutually exclusive — never both mounted. */
+const useFrameBackground = true
+
+/** Warm-white studio fallback gradient (matches overlay config warm_white_backwall profile). */
+const FALLBACK_BG = "linear-gradient(to bottom, #f5f1eb 0%, #efe9e1 43%, #c7cccf 43%, #d3d7d9 100%)"
 
 interface SpinViewerProps {
   /** Ordered array of image URLs (walk-around frames). */
@@ -47,7 +53,6 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   const [loadedCount, setLoadedCount] = useState(0)
 
   const containerRef = useRef<HTMLDivElement>(null)
-  const { canvasRef, draw } = useOverlayRenderer(overlayConfig)
   const dragStartX = useRef(0)
   const dragStartFrame = useRef(0)
   const lastX = useRef(0)
@@ -169,13 +174,16 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     return () => { cancelled = true }
   }, [images])
 
-  // ── Overlay canvas draw ──
+  // ── Runtime guard: bg-frame XOR bg-fallback (never both mounted) ──
   useEffect(() => {
-    draw()
-    const onResize = () => draw()
-    window.addEventListener("resize", onResize)
-    return () => window.removeEventListener("resize", onResize)
-  }, [draw, isFullscreen])
+    const el = containerRef.current
+    if (!el) return
+    const bgFrame = el.querySelector('[data-testid="bg-frame"]')
+    const bgFallback = el.querySelector('[data-testid="bg-fallback"]')
+    if (bgFrame && bgFallback) {
+      console.warn("BUG: both bg-frame and bg-fallback are mounted — dual background detected")
+    }
+  })
 
   // ── Auto-play ──
   useEffect(() => {
@@ -290,31 +298,50 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       }`}
       style={{
         cursor: !isReady ? "default" : isDragging ? "grabbing" : "grab",
+        isolation: "isolate", // prevents stacking context bleed into adjacent layout
       }}
       role="region"
       aria-label={`360° Interactive View — ${alt}`}
       aria-roledescription="360° image spinner"
       data-testid="vehicle-stage"
     >
-      {/* ── Studio environment — canvas-based overlay renderer ── */}
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 z-[0] pointer-events-none"
-        style={{ width: "100%", height: "100%" }}
-      />
+      {/* ── LAYER 1: Background (mutually exclusive — bg-frame XOR bg-fallback) ──
+           When useFrameBackground is true, the current 360° frame serves as the
+           background (object-fit: cover fills the container seamlessly).
+           Otherwise a CSS gradient fallback renders. Never both. */}
+      {isReady && images[frame] && useFrameBackground ? (
+        <img
+          data-testid="bg-frame"
+          className="absolute inset-0 z-[1] w-full h-full object-cover pointer-events-none"
+          src={images[frame]}
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+        />
+      ) : (
+        <div
+          data-testid="bg-fallback"
+          className="absolute inset-0 z-[1]"
+          aria-hidden="true"
+          style={{ background: FALLBACK_BG }}
+        />
+      )}
 
-      {/* ── Shadow ellipse test anchor (invisible — used by E2E tests) ──
-           Width/height must be the full diameter (2×rx, 2×ry), not the radius,
-           so that E2E tests derive correct ellipse params from boundingBox. */}
+      {/* ── LAYER 2: Shadow ellipse (test anchor + subtle visual shadow) ──
+           Width/height are the full diameter (2×rx, 2×ry), not the radius,
+           so E2E tests derive correct ellipse params from boundingBox.
+           transform: translate(-50%,-50%) centers it on the shadow origin. */}
       <div
         data-testid="shadow-ellipse"
-        className="absolute pointer-events-none"
+        className="absolute z-[2] pointer-events-none"
         style={{
-          left: `${50 - 24.17}%`,
-          top: `${SHADOW_CENTER_Y * 100 - 5.93}%`,
+          left: "50%",
+          top: "75.56%",
           width: "48.34%",
           height: "11.86%",
-          borderRadius: "50%",
+          transform: "translate(-50%, -50%)",
+          borderRadius: "9999px",
+          background: "rgba(0, 0, 0, 0.22)",
         }}
       />
 
@@ -340,12 +367,12 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         </div>
       )}
 
-      {/* Current frame image — absolutely positioned so tires sit precisely on
-           the shadow ellipse center. No CSS transforms — pure pixel positioning
-           computed by ResizeObserver above. Overflow-hidden on the container
-           cleanly clips the roof/bumper overflow without affecting tire placement. */}
+      {/* ── LAYER 3: Car image — absolutely positioned for tire-floor alignment ──
+           ResizeObserver computes exact pixel top/left/width/height so the tire
+           contact line sits on the shadow ellipse center. overflow-hidden on the
+           container clips roof/bumper overflow without affecting tire placement. */}
       {isReady && images[frame] && (
-        <div className="absolute inset-0 z-[2] pointer-events-none">
+        <div className="absolute inset-0 z-[3] pointer-events-none">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={images[frame]}
@@ -365,9 +392,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
 
 
 
-      {/* Contact shadow is now rendered by the canvas overlay renderer */}
-
-      {/* ── Visual debug overlay (toggle with D key) ── */}
+      {/* ── LAYER 5: Visual debug overlay (toggle with D key) ── */}
       {isReady && showDebug && (
         <div className="absolute inset-0 z-[5] pointer-events-none">
           {/* Shadow ellipse center (floor plane) — green line */}
@@ -409,9 +434,9 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         </div>
       )}
 
-      {/* Planet Motors logo — subtle branding in bottom-right corner */}
+      {/* ── LAYER 4: Planet Motors logo — subtle branding ── */}
       {isReady && (
-        <div className="absolute bottom-3 right-14 z-[3] pointer-events-none opacity-40">
+        <div className="absolute bottom-3 right-14 z-[4] pointer-events-none opacity-40">
           <img
             src="/images/planet-motors-logo.png"
             alt=""
