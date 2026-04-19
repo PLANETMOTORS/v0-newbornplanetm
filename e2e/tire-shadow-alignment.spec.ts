@@ -12,6 +12,14 @@ import { centerOfRect, ellipseYAtXLower } from "./utils/ellipse"
  * flaky inventory-discovery navigation. Alignment tests are separated
  * from inventory integration tests.
  *
+ * Skip policy: When Supabase is unavailable (CI without env vars), tests
+ * skip with an explicit, auditable reason. This is expected — the 360°
+ * viewer requires live Supabase data to render frames. Alignment math
+ * correctness is enforced by the 17 unit tests which always run.
+ *
+ * Future work: Add /api/e2e/seed-vehicle endpoint for deterministic
+ * fixture-based E2E in CI (separate PR).
+ *
  * Requires data-testid attributes on the 360° viewer:
  *   - vehicle-stage  (container div)
  *   - shadow-ellipse (invisible ellipse-sized div)
@@ -103,9 +111,16 @@ for (const vp of VIEWPORTS) {
 
     const loaded = await open360Viewer(page)
     if (!loaded) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        "Skipping 360° E2E alignment test: vehicle-stage or wheel markers " +
+          "not visible. Most likely cause: Supabase unavailable in CI " +
+          "(NEXT_PUBLIC_SUPABASE_URL not set or no 360° frame data). " +
+          "Alignment math correctness is enforced by unit tests."
+      )
       test.skip(
         true,
-        "360° viewer not available (vehicle not found or no 360° frames)"
+        "Skipping 360 E2E: Supabase unavailable or no 360° frames loaded"
       )
       return
     }
