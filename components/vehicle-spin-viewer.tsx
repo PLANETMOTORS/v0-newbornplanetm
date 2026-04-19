@@ -10,7 +10,7 @@ import { overlayConfig } from "@/config/overlay/loader/loadOverlayConfig"
 // never clipped by overflow-hidden.  The floor-contact target comes from the
 // overlay config's shadow ellipse center.
 const SHADOW_CENTER_Y = 0.7556   // from overlay config (cy of shadow ellipse)
-const TIRE_CONTACT_Y  = 0.74     // visually calibrated: where tire rubber meets floor
+const TIRE_CONTACT_Y  = 0.76     // visually calibrated: where tire rubber meets floor
 const CAR_SCALE       = 1.25     // enlargement factor so the car fills the viewport
 
 interface CarStyle {

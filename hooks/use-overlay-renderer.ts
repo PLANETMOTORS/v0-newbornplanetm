@@ -124,15 +124,19 @@ export function useOverlayRenderer(
       const ry = sh.ry * height
 
       ctx.save()
+
+      // Soft radial-gradient shadow — no hard stroke/outline.
+      // Uses a radial gradient from center→edge so the shadow fades
+      // naturally instead of showing a visible ellipse border.
+      const grad = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, Math.max(rx, ry))
+      grad.addColorStop(0, `rgba(0,0,0,${profile.shadow.maxOpacity})`)
+      grad.addColorStop(0.6, `rgba(0,0,0,${profile.shadow.maxOpacity * 0.5})`)
+      grad.addColorStop(1, "rgba(0,0,0,0)")
+      ctx.fillStyle = grad
       ctx.beginPath()
       ctx.ellipse(c.x, c.y, rx, ry, 0, 0, Math.PI * 2)
-      ctx.fillStyle = `rgba(0,0,0,${profile.shadow.maxOpacity})`
       ctx.fill()
 
-      const featherPx = (profile.shadow.featherPxAt4K / 4096) * width
-      ctx.lineWidth = Math.max(1.5, featherPx)
-      ctx.strokeStyle = "rgba(0,0,0,0.2)"
-      ctx.stroke()
       ctx.restore()
     }
 
