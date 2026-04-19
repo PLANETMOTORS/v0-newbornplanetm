@@ -35,6 +35,10 @@ const TIRE_LINE_Y    = 0.76   // tires land here, shadow centered here
 const CAR_FILL       = 0.90   // car fills 90% of canvas width
 const TIRE_CONTACT_Y = 0.82   // default: tire bottom at 82% of image height
 const REFLECTION_OPACITY = 0.08 // floor reflection strength (subtle but effective)
+// Visual grounding offset: pushes the car DOWN so the body bottom sits near
+// the shadow line instead of floating 35px above it. Tires extend below the
+// shadow (drawn behind the car), which is how real cars look on the ground.
+const GROUND_PUSH    = 0.05   // push car down by 5% of carH
 
 // ── Studio colors (Carvana showroom: bright wall, medium-dark floor) ──
 const WALL_TOP     = "#F5F2EF"
@@ -116,16 +120,6 @@ function drawScene(
   ctx.fillStyle = floorGrad
   ctx.fillRect(0, floorStartY, width, height - floorStartY)
 
-  // Subtle hotspot (studio light reflection on floor, centered at tire line)
-  const hs = ctx.createRadialGradient(
-    width * 0.5, tireLineY + 10, 5,
-    width * 0.5, tireLineY + 10, width * 0.25,
-  )
-  hs.addColorStop(0, "rgba(255,255,255,0.08)")
-  hs.addColorStop(1, "rgba(255,255,255,0)")
-  ctx.fillStyle = hs
-  ctx.fillRect(0, floorStartY, width, height - floorStartY)
-
   if (!carImg || carImg.naturalWidth === 0) return
 
   // ── Calculate car placement ──
@@ -137,9 +131,11 @@ function drawScene(
   const carW = width * CAR_FILL
   const carH = carW / aspect
 
-  // Position: tire bottom lands on the TIRE LINE (not floor start)
+  // Position: push the car DOWN so the visible body bottom sits near the shadow
+  // line. Without GROUND_PUSH, the math places the absolute tire-bottom pixel
+  // at the tire line, but the body ends ~6% higher, leaving a visible gap.
   const tireBottomInCar = tireY * carH
-  const carTop = tireLineY - tireBottomInCar
+  const carTop = tireLineY - tireBottomInCar + GROUND_PUSH * carH
   const carLeft = (width - carW) / 2
 
   // ── 2. Shadow system ──
@@ -158,9 +154,9 @@ function drawScene(
   ctx.translate(shadowCenterX, aoCenterY)
   ctx.scale(1, aoRy / aoRx)
   const aoGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, aoRx)
-  aoGrad.addColorStop(0, "rgba(0,0,0,0.25)")
-  aoGrad.addColorStop(0.4, "rgba(0,0,0,0.15)")
-  aoGrad.addColorStop(0.7, "rgba(0,0,0,0.05)")
+  aoGrad.addColorStop(0, "rgba(0,0,0,0.45)")
+  aoGrad.addColorStop(0.4, "rgba(0,0,0,0.25)")
+  aoGrad.addColorStop(0.7, "rgba(0,0,0,0.08)")
   aoGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = aoGrad
   ctx.beginPath()
