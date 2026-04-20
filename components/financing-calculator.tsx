@@ -40,10 +40,11 @@ export function FinancingCalculator() {
       </div>
 
       <div className="space-y-2">
-        <Label>Vehicle Price</Label>
+        <Label htmlFor="calc-vehicle-price">Vehicle Price</Label>
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground">$</span>
           <Input
+            id="calc-vehicle-price"
             type="number"
             value={vehiclePrice}
             onChange={(e) => {
@@ -54,6 +55,7 @@ export function FinancingCalculator() {
           />
         </div>
         <Slider
+          aria-label="Vehicle price"
           value={[vehiclePrice]}
           onValueChange={([v]) => handleVehiclePriceChange(v)}
           min={5000}
@@ -68,10 +70,11 @@ export function FinancingCalculator() {
       </div>
 
       <div className="space-y-2">
-        <Label>Down Payment</Label>
+        <Label htmlFor="calc-down-payment">Down Payment</Label>
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground">$</span>
           <Input
+            id="calc-down-payment"
             type="number"
             value={downPayment}
             onChange={(e) =>
@@ -82,6 +85,7 @@ export function FinancingCalculator() {
           />
         </div>
         <Slider
+          aria-label="Down payment"
           value={[downPayment]}
           onValueChange={([v]) => setDownPayment(v)}
           min={0}
@@ -93,8 +97,9 @@ export function FinancingCalculator() {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Interest Rate (%)</Label>
+          <Label htmlFor="calc-interest-rate">Interest Rate (%)</Label>
           <Input
+            id="calc-interest-rate"
             type="number"
             value={interestRate}
             onChange={(e) => setInterestRate(clamp(parseFloat(e.target.value) || 0, 0, 30))}
@@ -104,9 +109,9 @@ export function FinancingCalculator() {
           />
         </div>
         <div className="space-y-2">
-          <Label>Loan Term</Label>
+          <Label htmlFor="calc-loan-term">Loan Term</Label>
           <Select value={term} onValueChange={setTerm}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger id="calc-loan-term" aria-label="Loan term"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="24">24 months</SelectItem>
               <SelectItem value="36">36 months</SelectItem>

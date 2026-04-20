@@ -130,7 +130,7 @@ export function PaymentCalculator({
             value={selectedTierIndex.toString()} 
             onValueChange={(val) => setSelectedTierIndex(parseInt(val))}
           >
-            <SelectTrigger>
+            <SelectTrigger aria-label="Credit profile">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -150,6 +150,7 @@ export function PaymentCalculator({
             <span className="text-sm font-medium">${downPayment.toLocaleString()}</span>
           </div>
           <Slider
+            aria-label="Down payment"
             value={[downPayment]}
             onValueChange={([val]) => setDownPayment(val)}
             min={0}
@@ -165,6 +166,7 @@ export function PaymentCalculator({
             <span className="text-sm font-medium">${tradeIn.toLocaleString()}</span>
           </div>
           <Slider
+            aria-label="Trade-in value"
             value={[tradeIn]}
             onValueChange={([val]) => setTradeIn(val)}
             min={0}
