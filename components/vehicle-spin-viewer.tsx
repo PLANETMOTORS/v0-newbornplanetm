@@ -31,7 +31,7 @@ import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "luci
 const TIRE_LINE_Y    = 0.76   // tires land here, shadow centered here
 const CAR_FILL       = 0.90   // car fills 90% of canvas width
 const TIRE_CONTACT_Y = 0.82   // default: tire bottom at 82% of image height
-const REFLECTION_OPACITY = 0.08 // floor reflection strength (subtle but effective)
+const REFLECTION_OPACITY = 0.06 // floor reflection strength (subtle on bright floor)
 // Tire contact offset: a small push so the tire bottom lands just below the
 // shadow center (not above it). Previous value 0.28 pushed tires 155px below
 // shadow and OFF THE CANVAS entirely — that was the root cause of "floating".
@@ -83,74 +83,34 @@ function detectTireBottom(img: HTMLImageElement): number | null {
 
 /**
  * Draw the complete studio scene on canvas:
- *   1. Background (wall gradient + floor gradient)
- *   2. Contact shadow (soft radial gradient at floor line)
- *   3. Car image (positioned so tires sit on floor line)
- */
-/**
- * Clean semi-transparent halo pixels in the tire zone of a frame image.
+ *   1. Background (Carvana-style bright studio floor)
+ *   2. Contact shadow (subtle elliptical gradient)
+ *   3. Car image (raw — no alpha cleaning needed on bright floor)
+ *   4. Floor reflection with fade
  *
- * Background removal leaves semi-transparent pixels (alpha 50–200) at the car
- * edges. These carry LIGHT color data from the original turntable/studio floor.
- * When composited onto our dark virtual floor, they create a visible bright halo
- * that multiple post-processing layers (silhouette, defringe, overlay) tried to
- * hide — but together those layers created a dark band that looked like
- * "shadow under floating object."
- *
- * THIS FIX: binarize alpha in the lower 35% of the image. Pixels with
- * alpha > threshold become fully opaque; the rest become fully transparent.
- * Result: clean hard edge at tire contact, no halo, no need for defringe.
- * The upper 65% keeps original alpha for smooth anti-aliased edges against wall.
+ * WHY BRIGHT FLOOR SOLVES THE FLOATING PROBLEM:
+ * Semi-transparent halo pixels from background removal carry turntable color (br≈180).
+ * On dark floor (br≈92):  composite = 180×0.5 + 92×0.5 = 136 → 44pt ABOVE floor → visible bright halo
+ * On bright floor (br≈220): composite = 180×0.5 + 220×0.5 = 200 → 20pt BELOW floor → invisible
+ * Bright floor also creates HIGH contrast with dark tires (200+ points) → crisp contact edge.
+ * No alpha cleaning, no silhouette, no defringe needed — just physics of compositing.
  */
-function cleanFrameAlpha(img: HTMLImageElement): HTMLCanvasElement {
-  const c = document.createElement("canvas")
-  c.width = img.naturalWidth
-  c.height = img.naturalHeight
-  const ctx = c.getContext("2d", { willReadFrequently: true })
-  if (!ctx) return c
-
-  ctx.drawImage(img, 0, 0)
-
-  // Only process lower 35% of image (tire/bumper zone)
-  const startY = Math.floor(c.height * 0.65)
-  const regionH = c.height - startY
-  const imageData = ctx.getImageData(0, startY, c.width, regionH)
-  const data = imageData.data
-
-  // Threshold: keep solid tire rubber (alpha > 160), remove halo (alpha <= 160)
-  const threshold = 160
-  for (let i = 3; i < data.length; i += 4) {
-    data[i] = data[i] > threshold ? 255 : 0
-  }
-
-  ctx.putImageData(imageData, 0, startY)
-  return c
-}
-
 function drawScene(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
   carImg: HTMLImageElement | null,
   tireY: number,
-  cleanFrame: HTMLCanvasElement | null,
 ) {
   const tireLineY = TIRE_LINE_Y * height
 
-  // ── 1. Background: wall gradient + UNIFORM floor ──
-  // KEY INSIGHT: The floor must be UNIFORM brightness from wall transition down.
-  // Previously we darkened the floor at Y=76% to "help" the tire zone, but that
-  // created a full-width dark horizontal band that the human eye reads as
-  // "shadow under floating object." Carvana's floor is uniform medium gray —
-  // the ONLY darkening is from the car-width shadow band, which reads as a
-  // natural shadow cast by the car sitting ON the floor.
+  // ── 1. Background: Carvana-style BRIGHT studio floor ──
   const bgGrad = ctx.createLinearGradient(0, 0, 0, height)
-  bgGrad.addColorStop(0.00, "#F5F2EF")   // wall top — bright
-  bgGrad.addColorStop(0.35, "#E8E5E0")   // wall mid — warm light
-  bgGrad.addColorStop(0.48, "#B0B3B6")   // transition start
-  bgGrad.addColorStop(0.56, "#787C80")   // transition end → floor
-  bgGrad.addColorStop(0.64, "#585C60")   // floor settles (br≈91)
-  bgGrad.addColorStop(1.00, "#585C60")   // UNIFORM floor all the way down
+  bgGrad.addColorStop(0.00, "#FFFFFF")   // wall top — white
+  bgGrad.addColorStop(0.30, "#F8F8F8")   // wall mid — near-white
+  bgGrad.addColorStop(0.50, "#ECECEC")   // transition zone
+  bgGrad.addColorStop(0.62, "#DCDCDC")   // floor start (br≈220)
+  bgGrad.addColorStop(1.00, "#DCDCDC")   // UNIFORM bright floor
   ctx.fillStyle = bgGrad
   ctx.fillRect(0, 0, width, height)
 
@@ -167,17 +127,16 @@ function drawScene(
   const carLeft = (width - carW) / 2
   const shadowCenterX = width / 2
 
-  // ── 2. Shadow: subtle ELLIPTICAL shadow (grounding cue only) ──
-  // Very subtle — just enough for depth perception, not enough to create a
-  // visible dark band. The alpha-cleaned car image handles tire-floor contact.
+  // ── 2. Shadow: subtle ELLIPTICAL shadow ──
   ctx.save()
-  const shadowRx = carW * 0.48
-  const shadowRy = carH * 0.05   // very thin
+  const shadowRx = carW * 0.46
+  const shadowRy = carH * 0.04   // very thin ellipse
   ctx.translate(shadowCenterX, tireLineY)
   ctx.scale(1, shadowRy / shadowRx)
   const shadowGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, shadowRx)
-  shadowGrad.addColorStop(0, "rgba(0,0,0,0.22)")     // subtle
-  shadowGrad.addColorStop(0.6, "rgba(0,0,0,0.10)")
+  shadowGrad.addColorStop(0, "rgba(0,0,0,0.18)")     // subtle center
+  shadowGrad.addColorStop(0.5, "rgba(0,0,0,0.10)")
+  shadowGrad.addColorStop(0.8, "rgba(0,0,0,0.04)")
   shadowGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = shadowGrad
   ctx.beginPath()
@@ -185,14 +144,10 @@ function drawScene(
   ctx.fill()
   ctx.restore()
 
-  // ── 3. Car image (alpha-cleaned version) ──
-  // The cleanFrame has binarized alpha in the tire zone: fully opaque or fully
-  // transparent, no semi-transparent halo. This creates a clean hard edge at
-  // tire-floor contact — no bright halo, no need for defringe or silhouette.
-  const carSource = cleanFrame || carImg
-  ctx.drawImage(carSource, carLeft, carTop, carW, carH)
+  // ── 3. Car image (raw — halo blends naturally with bright floor) ──
+  ctx.drawImage(carImg, carLeft, carTop, carW, carH)
 
-  // ── 4. Floor reflection (professional showroom effect) ──
+  // ── 4. Floor reflection ──
   ctx.save()
   ctx.globalAlpha = REFLECTION_OPACITY
   ctx.beginPath()
@@ -200,19 +155,15 @@ function drawScene(
   ctx.clip()
   ctx.translate(0, tireLineY * 2)
   ctx.scale(1, -1)
-  ctx.drawImage(carSource, carLeft, carTop, carW, carH)
+  ctx.drawImage(carImg, carLeft, carTop, carW, carH)
   ctx.restore()
 
-  // Fade the reflection out with distance from tire line
-  const reflFadeGrad = ctx.createLinearGradient(0, tireLineY, 0, tireLineY + carH * 0.30)
-  reflFadeGrad.addColorStop(0, "rgba(88,92,96,0)")      // transparent (keep reflection)
-  reflFadeGrad.addColorStop(1, "rgba(88,92,96,1)")      // opaque floor color (#585C60)
+  // Fade the reflection into the bright floor
+  const reflFadeGrad = ctx.createLinearGradient(0, tireLineY, 0, tireLineY + carH * 0.25)
+  reflFadeGrad.addColorStop(0, "rgba(220,220,220,0)")   // transparent at tire line
+  reflFadeGrad.addColorStop(1, "rgba(220,220,220,1)")   // opaque floor color (#DCDCDC)
   ctx.fillStyle = reflFadeGrad
-  ctx.fillRect(carLeft, tireLineY, carW, carH * 0.30)
-
-  // (Defringe pass REMOVED — alpha cleaning eliminates semi-transparent halo
-  //  pixels at source, so there's nothing to clamp. The tire zone now transitions
-  //  directly from opaque tire rubber to transparent background → clean floor.)
+  ctx.fillRect(carLeft, tireLineY, carW, carH * 0.25)
 }
 
 export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
@@ -232,10 +183,10 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   const momentumRef = useRef<number | null>(null)
   const drawFrameRef = useRef<() => void>(() => {})
 
-  // ── Image & clean-frame cache ──
-  // Stores loaded Image objects and alpha-cleaned frames for instant canvas drawing
+  // ── Image cache ──
+  // Stores loaded Image objects for instant canvas drawing
+  // (No alpha cleaning needed — bright Carvana-style floor blends halo naturally)
   const imageCache = useRef<Map<number, HTMLImageElement>>(new Map())
-  const cleanFrameCache = useRef<Map<number, HTMLCanvasElement>>(new Map())
   const perFrameTireY = useRef<(number | null)[]>([])
   const medianTireY = useRef<number>(TIRE_CONTACT_Y)
 
@@ -270,14 +221,13 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.clearRect(0, 0, w, h)
 
-    // Get the cached image and alpha-cleaned frame for current frame
+    // Get the cached image for current frame
     const carImg = imageCache.current.get(frame) ?? null
-    const cleanFrame = cleanFrameCache.current.get(frame) ?? null
 
     // Use per-frame tire Y, or median of detected values, or fallback
     const tireY = perFrameTireY.current[frame] ?? medianTireY.current
 
-    drawScene(ctx, w, h, carImg, tireY, cleanFrame)
+    drawScene(ctx, w, h, carImg, tireY)
   }, [frame])
 
   // Keep ref always pointing to the latest drawFrame
@@ -304,7 +254,6 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     setLoadedCount(0)
     setFrame(0)
     imageCache.current.clear()
-    cleanFrameCache.current.clear()
     perFrameTireY.current = new Array(images.length).fill(null)
 
     let cancelled = false
@@ -315,7 +264,6 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         img.onload = () => {
           if (!cancelled) {
             imageCache.current.set(idx, img)
-            cleanFrameCache.current.set(idx, cleanFrameAlpha(img))
             const tireY = detectTireBottom(img)
             if (tireY !== null) {
               perFrameTireY.current[idx] = tireY
