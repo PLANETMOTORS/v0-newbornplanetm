@@ -35,7 +35,7 @@ const REFLECTION_OPACITY = 0.08 // floor reflection strength (subtle but effecti
 // Tire contact offset: a small push so the tire bottom lands just below the
 // shadow center (not above it). Previous value 0.28 pushed tires 155px below
 // shadow and OFF THE CANVAS entirely — that was the root cause of "floating".
-const GROUND_PUSH    = 0.02   // tiny push (2% of carH ≈ 11px) keeps tires grounded
+const GROUND_PUSH    = 0.03   // push (3% of carH ≈ 15px) embeds tires into floor zone
 
 // Studio colors are defined inline in the single continuous background gradient
 // inside drawScene() — no separate wall/floor constants needed.
@@ -123,9 +123,10 @@ function drawScene(
   bgGrad.addColorStop(0.35, "#E8E5E0")   // wall mid — warm light
   bgGrad.addColorStop(0.48, "#B0B3B6")   // transition start
   bgGrad.addColorStop(0.56, "#787C80")   // transition end → dark floor
-  bgGrad.addColorStop(0.64, "#585C60")   // floor — dark gray (br≈90)
-  bgGrad.addColorStop(0.76, "#3C4044")   // tire zone — very dark (br≈63)
-  bgGrad.addColorStop(0.84, "#404448")   // keep dark through transition zone (br≈67)
+  bgGrad.addColorStop(0.62, "#505458")   // floor — medium dark (br≈84)
+  bgGrad.addColorStop(0.70, "#404448")   // darken approaching car zone (br≈67)
+  bgGrad.addColorStop(0.76, "#343838")   // tire zone — very dark (br≈55)
+  bgGrad.addColorStop(0.84, "#383C40")   // keep dark through transition zone (br≈59)
   bgGrad.addColorStop(0.92, "#484C50")   // gradually lighten (br≈75)
   bgGrad.addColorStop(1.00, "#505458")   // floor far (br≈84)
   ctx.fillStyle = bgGrad
@@ -180,7 +181,7 @@ function drawScene(
     ctx.beginPath()
     ctx.rect(0, silClipY, width, height - silClipY)
     ctx.clip()
-    ctx.globalAlpha = 0.75
+    ctx.globalAlpha = 0.85
     ctx.drawImage(silhouette, carLeft, carTop, carW, carH)
     ctx.restore()
   }
@@ -227,17 +228,20 @@ function drawScene(
   // a dark threshold. Already-dark shadows and tire rubber are UNAFFECTED.
   ctx.save()
   ctx.globalCompositeOperation = "darken"
-  const defringeY = tireLineY - carH * 0.05   // start above tire line
-  const defringeH = carH * 0.12               // cover tire contact zone
-  // Use a gradient: darkest at tire line center, lighter at edges
+  const defringeY = tireLineY - carH * 0.06   // start above tire line
+  const defringeH = carH * 0.16               // cover wider tire contact zone
+  // Use a gradient: VERY dark at tire line center to match tire rubber brightness,
+  // lighter at edges for natural falloff
   const defringeGrad = ctx.createLinearGradient(0, defringeY, 0, defringeY + defringeH)
-  defringeGrad.addColorStop(0, "#585C60")     // lighter at top edge (br≈90)
-  defringeGrad.addColorStop(0.35, "#303438")  // dark approaching tire line (br≈52)
-  defringeGrad.addColorStop(0.50, "#282C30")  // darkest at tire line center (br≈44)
-  defringeGrad.addColorStop(0.65, "#303438")  // dark below tire line (br≈52)
-  defringeGrad.addColorStop(1, "#484C50")     // lighter at bottom edge (br≈75)
+  defringeGrad.addColorStop(0, "#505458")     // lighter at top edge (br≈84)
+  defringeGrad.addColorStop(0.25, "#282C30")  // dark approaching tire line (br≈43)
+  defringeGrad.addColorStop(0.38, "#1C2024")  // very dark at tire line (br≈30)
+  defringeGrad.addColorStop(0.50, "#181C20")  // darkest just below tire line (br≈27)
+  defringeGrad.addColorStop(0.62, "#1C2024")  // very dark below (br≈30)
+  defringeGrad.addColorStop(0.75, "#282C30")  // dark (br≈43)
+  defringeGrad.addColorStop(1, "#404448")     // lighter at bottom edge (br≈67)
   ctx.fillStyle = defringeGrad
-  ctx.fillRect(carLeft - 5, defringeY, carW + 10, defringeH)
+  ctx.fillRect(carLeft - 10, defringeY, carW + 20, defringeH)
   ctx.restore()
 }
 
