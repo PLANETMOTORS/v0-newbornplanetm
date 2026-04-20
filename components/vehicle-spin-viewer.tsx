@@ -32,10 +32,10 @@ const TIRE_LINE_Y    = 0.76   // tires land here, shadow centered here
 const CAR_FILL       = 0.90   // car fills 90% of canvas width
 const TIRE_CONTACT_Y = 0.82   // default: tire bottom at 82% of image height
 const REFLECTION_OPACITY = 0.08 // floor reflection strength (subtle but effective)
-// Visual grounding offset: pushes the car DOWN so the body bottom sits near
-// the shadow line instead of floating 35px above it. Tires extend below the
-// shadow (drawn behind the car), which is how real cars look on the ground.
-const GROUND_PUSH    = 0.28   // push car down by 28% of carH — body bottom well into shadow zone
+// Tire contact offset: a small push so the tire bottom lands just below the
+// shadow center (not above it). Previous value 0.28 pushed tires 155px below
+// shadow and OFF THE CANVAS entirely — that was the root cause of "floating".
+const GROUND_PUSH    = 0.02   // tiny push (2% of carH ≈ 11px) keeps tires grounded
 
 // Studio colors are defined inline in the single continuous background gradient
 // inside drawScene() — no separate wall/floor constants needed.
@@ -116,14 +116,15 @@ function drawScene(
   // Carvana-style: light wall gradually darkens into a medium-dark floor.
   // The transition is so smooth you can't tell where wall ends and floor begins.
   const bgGrad = ctx.createLinearGradient(0, 0, 0, height)
+  // Carvana-style: wall gradient then FLAT floor (constant color from tire zone down).
+  // A flat floor reads as a real surface; continuing to darken creates a visual pit.
   bgGrad.addColorStop(0.00, "#F5F2EF")   // wall top — bright
   bgGrad.addColorStop(0.40, "#E8E5E0")   // wall mid — warm light
-  bgGrad.addColorStop(0.54, "#B0B3B7")   // transition zone — light neutral
-  bgGrad.addColorStop(0.64, "#8A8E92")   // approaching car — medium gray
-  bgGrad.addColorStop(0.72, "#737780")   // tire zone upper — medium (tires visible)
-  bgGrad.addColorStop(0.80, "#606468")   // tire line — medium-dark
-  bgGrad.addColorStop(0.90, "#484C50")   // below shadow — darker
-  bgGrad.addColorStop(1.00, "#3A3E43")   // floor far — dark gray
+  bgGrad.addColorStop(0.54, "#C0C3C6")   // transition start — light neutral
+  bgGrad.addColorStop(0.64, "#A0A4A8")   // transition end — medium-light
+  bgGrad.addColorStop(0.72, "#8A8E92")   // floor start — medium gray
+  bgGrad.addColorStop(0.78, "#808488")   // tire zone — consistent medium gray
+  bgGrad.addColorStop(1.00, "#808488")   // floor far — SAME as tire zone (flat floor)
   ctx.fillStyle = bgGrad
   ctx.fillRect(0, 0, width, height)
 
@@ -221,8 +222,8 @@ function drawScene(
 
   // Fade the reflection out with distance from tire line
   const reflFadeGrad = ctx.createLinearGradient(0, tireLineY, 0, tireLineY + carH * 0.30)
-  reflFadeGrad.addColorStop(0, "rgba(96,100,104,0)")    // transparent (keep reflection)
-  reflFadeGrad.addColorStop(1, "rgba(96,100,104,1)")    // opaque floor color (matches tire-line #606468)
+  reflFadeGrad.addColorStop(0, "rgba(128,132,136,0)")    // transparent (keep reflection)
+  reflFadeGrad.addColorStop(1, "rgba(128,132,136,1)")    // opaque floor color (matches flat floor #808488)
   ctx.fillStyle = reflFadeGrad
   ctx.fillRect(carLeft, tireLineY, carW, carH * 0.30)
 }
@@ -480,7 +481,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       }`}
       style={{
         cursor: !isReady ? "default" : isDragging ? "grabbing" : "grab",
-        background: "#606468", // fallback color while canvas renders (matches tire-line floor)
+        background: "#808488", // fallback color while canvas renders (matches flat floor)
       }}
       role="region"
       aria-label={`360° Interactive View — ${alt}`}
