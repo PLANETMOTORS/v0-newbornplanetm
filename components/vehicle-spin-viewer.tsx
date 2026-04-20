@@ -144,14 +144,26 @@ function drawScene(
   // the car image (the undercar gap between body and ground).
   const shadowCenterX = width / 2
 
-  // Layer 0: Solid dark fill behind the lower car area. Clamped to start
-  // at floorStartY so it never darkens the wall area (which would create
-  // visible dark bands on the sides where the car image is transparent).
+  // Layer 0: Dark fill behind the undercar zone. Uses an elliptical shape
+  // (via radial gradient) instead of a rectangle to avoid harsh dark bands
+  // at the car's horizontal edges where the image is transparent.
   // The car is drawn ON TOP, so opaque body pixels cover this completely.
-  const darkFillTop = Math.max(carTop + 0.40 * carH, floorStartY)
-  const darkFillBottom = tireLineY + 40       // extend well past tire line
-  ctx.fillStyle = "rgba(0,0,0,0.93)"
-  ctx.fillRect(carLeft, darkFillTop, carW, darkFillBottom - darkFillTop)
+  const darkCenterY = tireLineY - carH * 0.05   // slightly above tire line
+  const darkRx = carW * 0.42                     // ellipse width (matches shadow)
+  const darkRy = carH * 0.22                     // tall enough to cover undercar zone
+  const darkGrad = ctx.createRadialGradient(shadowCenterX, darkCenterY, 0, shadowCenterX, darkCenterY, 1)
+  darkGrad.addColorStop(0, "rgba(0,0,0,0.92)")
+  darkGrad.addColorStop(0.65, "rgba(0,0,0,0.85)")
+  darkGrad.addColorStop(0.90, "rgba(0,0,0,0.40)")
+  darkGrad.addColorStop(1, "rgba(0,0,0,0)")
+  ctx.save()
+  ctx.translate(shadowCenterX, darkCenterY)
+  ctx.scale(darkRx, darkRy)
+  ctx.fillStyle = darkGrad
+  ctx.beginPath()
+  ctx.arc(0, 0, 1, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.restore()
 
   // Layer 1: Broad contact shadow (medium height, centered at tire line)
   const shadowRx = carW * 0.48
