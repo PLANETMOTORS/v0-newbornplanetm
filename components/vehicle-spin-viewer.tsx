@@ -63,14 +63,16 @@ function detectTireBottom(img: HTMLImageElement): number | null {
     ctx.drawImage(img, 0, 0)
     const data = ctx.getImageData(0, 0, w, h).data
 
-    // Use alpha > 200 to detect solid tire rubber only (ignores semi-transparent
-    // halo from background removal that creates a visible gap against dark floor)
-    for (let y = h - 1; y >= Math.floor(h * 0.5); y--) {
+    // Use alpha > 240 to detect solid tire rubber only (ignores semi-transparent
+    // halo from background removal that creates a visible gap against dark floor).
+    // Skip the bottom 2% of rows to avoid turntable artifacts / edge noise.
+    const stopRow = Math.floor(h * 0.98)
+    for (let y = stopRow; y >= Math.floor(h * 0.5); y--) {
       let count = 0
       for (let x = 0; x < w; x++) {
-        if (data[(y * w + x) * 4 + 3] > 200) {
+        if (data[(y * w + x) * 4 + 3] > 240) {
           count++
-          if (count >= 15) return y / h
+          if (count >= 50) return y / h
         }
       }
     }
@@ -249,8 +251,8 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     // Get the cached image for current frame
     const carImg = imageCache.current.get(frame) ?? null
 
-    // Use per-frame tire Y, or median of detected values, or fallback
-    const tireY = perFrameTireY.current[frame] ?? medianTireY.current
+    // Always use the stable median across all frames to eliminate inter-frame bounce
+    const tireY = medianTireY.current
 
     drawScene(ctx, w, h, carImg, tireY)
   }, [frame])
