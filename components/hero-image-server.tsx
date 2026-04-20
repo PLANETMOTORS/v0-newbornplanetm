@@ -3,17 +3,18 @@
 // paints immediately without waiting for React hydration.  The interactive
 // VehicleShowcase client component renders on top once JS loads.
 import Image from "next/image"
+import type { HomepageProps } from "@/components/homepage-content"
+
+// Derive the shape from HomepageProps so the hero image and the showcase
+// carousel share a single source of truth for vehicle fields.
+type ShowcaseVehicle = NonNullable<HomepageProps["showcaseVehicles"]>[number]
 
 interface HeroImageServerProps {
   /** First vehicle from server-side data fetch */
-  firstVehicle?: {
-    year: number
-    make: string
-    model: string
-    trim?: string
-    primary_image_url?: string
-    image_urls?: string[]
-  } | null
+  firstVehicle?: Pick<
+    ShowcaseVehicle,
+    "year" | "make" | "model" | "trim" | "primary_image_url" | "image_urls"
+  > | null
 }
 
 export function HeroImageServer({ firstVehicle }: HeroImageServerProps) {
@@ -42,6 +43,8 @@ export function HeroImageServer({ firstVehicle }: HeroImageServerProps) {
         <div className="absolute inset-0 flex items-center justify-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+            focusable="false"
             className="w-24 h-24 text-[#1e3a8a]/15"
             fill="none"
             viewBox="0 0 24 24"
