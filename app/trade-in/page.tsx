@@ -970,6 +970,11 @@ function TradeInContent() {
                       >
                         Get My Instant Offer <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
+                      {(!selectedYear || !selectedMake || !selectedModel || !selectedTrim || !mileage) && (
+                        <p className="text-xs text-white/50 text-center mt-2">
+                          Please fill in all fields above to get your offer
+                        </p>
+                      )}
                     </TabsContent>
                   </Tabs>
                 </CardContent>
@@ -1864,6 +1869,13 @@ function TradeInContent() {
                   return
                 }
                 try {
+                  // Collect photo previews (base64) to send with the acceptance
+                  const photoData: Record<string, string> = {}
+                  for (const [angle, photo] of Object.entries(photos)) {
+                    if (photo?.preview) {
+                      photoData[angle] = photo.preview
+                    }
+                  }
                   // Call API to save acceptance and notify dealership
                   const response = await fetch('/api/v1/trade-in/accept', {
                     method: 'POST',
@@ -1876,6 +1888,7 @@ function TradeInContent() {
                       mileage,
                       condition: condition,
                       postalCode,
+                      photos: Object.keys(photoData).length > 0 ? photoData : undefined,
                       offerAmount: offer?.offerAmount,
                       customerEmail: email,
                       customerPhone: phone,
