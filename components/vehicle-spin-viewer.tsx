@@ -35,7 +35,7 @@ const REFLECTION_OPACITY = 0.08 // floor reflection strength (subtle but effecti
 // Visual grounding offset: pushes the car DOWN so the body bottom sits near
 // the shadow line instead of floating 35px above it. Tires extend below the
 // shadow (drawn behind the car), which is how real cars look on the ground.
-const GROUND_PUSH    = 0.22   // push car down by 22% of carH — body bottom BELOW tire line, zero undercar gap
+const GROUND_PUSH    = 0.25   // push car down by 25% of carH — body bottom well into shadow zone
 
 // Studio colors are defined inline in the single continuous background gradient
 // inside drawScene() — no separate wall/floor constants needed.
@@ -101,11 +101,12 @@ function drawScene(
   // The transition is so smooth you can't tell where wall ends and floor begins.
   const bgGrad = ctx.createLinearGradient(0, 0, 0, height)
   bgGrad.addColorStop(0.00, "#F5F2EF")   // wall top — bright
-  bgGrad.addColorStop(0.42, "#E8E5E0")   // wall mid — warm light
-  bgGrad.addColorStop(0.56, "#B0B3B7")   // transition zone — neutral
-  bgGrad.addColorStop(0.68, "#7A7E83")   // floor near car — medium dark
-  bgGrad.addColorStop(0.82, "#5A5E63")   // floor at/below tire line — dark
-  bgGrad.addColorStop(1.00, "#4A4E53")   // floor far — darkest
+  bgGrad.addColorStop(0.40, "#E8E5E0")   // wall mid — warm light
+  bgGrad.addColorStop(0.54, "#A0A3A7")   // transition zone — neutral
+  bgGrad.addColorStop(0.64, "#686C71")   // approaching car — dark
+  bgGrad.addColorStop(0.74, "#3A3E43")   // just above tire line — very dark
+  bgGrad.addColorStop(0.82, "#2A2E33")   // at/below tire line — near-black
+  bgGrad.addColorStop(1.00, "#333739")   // floor far — dark gray
   ctx.fillStyle = bgGrad
   ctx.fillRect(0, 0, width, height)
 
@@ -126,14 +127,14 @@ function drawScene(
 
   // Layer 1: Broad ambient shadow (medium height, centered at tire line)
   const shadowRx = carW * 0.48
-  const shadowRy = height * 0.04
+  const shadowRy = height * 0.055
   ctx.save()
   ctx.translate(shadowCenterX, tireLineY + 2)
   ctx.scale(1, shadowRy / shadowRx)
   const ambientGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, shadowRx)
-  ambientGrad.addColorStop(0, "rgba(0,0,0,0.40)")
-  ambientGrad.addColorStop(0.3, "rgba(0,0,0,0.25)")
-  ambientGrad.addColorStop(0.6, "rgba(0,0,0,0.10)")
+  ambientGrad.addColorStop(0, "rgba(0,0,0,0.50)")
+  ambientGrad.addColorStop(0.3, "rgba(0,0,0,0.35)")
+  ambientGrad.addColorStop(0.6, "rgba(0,0,0,0.15)")
   ambientGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = ambientGrad
   ctx.beginPath()
@@ -148,8 +149,8 @@ function drawScene(
   const contactRy = height * 0.006
   ctx.scale(1, contactRy / contactRx)
   const contactGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, contactRx)
-  contactGrad.addColorStop(0, "rgba(0,0,0,0.70)")
-  contactGrad.addColorStop(0.5, "rgba(0,0,0,0.45)")
+  contactGrad.addColorStop(0, "rgba(0,0,0,0.80)")
+  contactGrad.addColorStop(0.5, "rgba(0,0,0,0.55)")
   contactGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = contactGrad
   ctx.beginPath()
@@ -169,7 +170,7 @@ function drawScene(
   ctx.beginPath()
   ctx.rect(0, silClipY, width, height - silClipY)
   ctx.clip()
-  ctx.globalAlpha = 0.88
+  ctx.globalAlpha = 0.92
   // Create black silhouette: draw car, then composite black over it
   const sil = document.createElement("canvas")
   sil.width = imgW
@@ -214,8 +215,8 @@ function drawScene(
 
   // Fade the reflection out with distance from tire line
   const reflFadeGrad = ctx.createLinearGradient(0, tireLineY, 0, tireLineY + carH * 0.30)
-  reflFadeGrad.addColorStop(0, "rgba(74,78,83,0)")     // transparent (keep reflection)
-  reflFadeGrad.addColorStop(1, "rgba(74,78,83,1)")     // opaque floor color
+  reflFadeGrad.addColorStop(0, "rgba(42,46,51,0)")     // transparent (keep reflection)
+  reflFadeGrad.addColorStop(1, "rgba(42,46,51,1)")     // opaque floor color (matches floor-far)
   ctx.fillStyle = reflFadeGrad
   ctx.fillRect(carLeft, tireLineY, carW, carH * 0.30)
 }
