@@ -3,6 +3,7 @@
 import Link from "next/link"
 import dynamic from "next/dynamic"
 import { ArrowRight } from "lucide-react"
+import { HeroImageServer } from "@/components/hero-image-server"
 
 // Code-split heavy below-fold sections into separate chunks
 const HomepageFeaturedVehicles = dynamic(
@@ -22,12 +23,10 @@ const HomepageBelowFold = dynamic(
   { ssr: true }
 )
 
-// VehicleShowcase is the above-fold hero (LCP element).
-// Dynamic import with ssr:true keeps the hero image in the SSR HTML
-// (so it paints immediately) while deferring the JS bundle (SWR,
-// Supabase client, Lucide icons) to a separate chunk. This lets the
-// browser paint the hero image before the heavy JS blocks the main
-// thread — critical for mobile LCP.
+// VehicleShowcase renders the interactive carousel on top of the server-
+// rendered hero image.  Dynamic import with ssr:true so it SSRs the full
+// carousel HTML, but HeroImageServer (pure Server Component) provides the
+// LCP image directly — no hydration needed for the initial paint.
 const VehicleShowcase = dynamic(
   () => import("@/components/vehicle-showcase").then(m => ({ default: m.VehicleShowcase })),
   { ssr: true }
@@ -143,8 +142,21 @@ export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProp
 
             {/* Hero Image / Vehicle Showcase */}
             <div className="relative min-w-0">
-              <VehicleShowcase serverVehicles={showcaseVehicles ?? undefined} />
-              
+              {/* Server-rendered hero image — pure Server Component, no JS
+                  needed.  Paints immediately from SSR HTML so the browser
+                  doesn't have to wait for React hydration (~2s on 4× mobile).
+                  VehicleShowcase (ssr:false) loads on top once JS is ready. */}
+              <div className="w-full max-w-6xl mx-auto px-2 sm:px-4">
+                <HeroImageServer firstVehicle={showcaseVehicles?.[0] ?? null} />
+              </div>
+
+              {/* Interactive carousel — loads client-side only (ssr:false).
+                  Positioned absolutely on top of the static server image so
+                  the transition is seamless once JS hydrates. */}
+              <div className="absolute inset-0">
+                <VehicleShowcase serverVehicles={showcaseVehicles ?? undefined} />
+              </div>
+
               {/* Floating Badge */}
               <div className="absolute top-4 right-4 bg-[#dc2626] text-white px-4 py-1.5 rounded-full text-sm font-medium shadow-lg z-10">
                 Low Rates Available
