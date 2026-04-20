@@ -87,12 +87,28 @@ function detectTireBottom(img: HTMLImageElement): number | null {
  *   2. Contact shadow (soft radial gradient at floor line)
  *   3. Car image (positioned so tires sit on floor line)
  */
+/** Pre-compute a black silhouette canvas from a car image (same alpha, all pixels black). */
+function buildSilhouette(img: HTMLImageElement): HTMLCanvasElement {
+  const sil = document.createElement("canvas")
+  sil.width = img.naturalWidth
+  sil.height = img.naturalHeight
+  const sCtx = sil.getContext("2d")
+  if (sCtx) {
+    sCtx.drawImage(img, 0, 0)
+    sCtx.globalCompositeOperation = "source-in"
+    sCtx.fillStyle = "#000000"
+    sCtx.fillRect(0, 0, sil.width, sil.height)
+  }
+  return sil
+}
+
 function drawScene(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
   carImg: HTMLImageElement | null,
   tireY: number,
+  silhouette: HTMLCanvasElement | null,
 ) {
   const tireLineY = TIRE_LINE_Y * height
 
@@ -159,31 +175,20 @@ function drawScene(
   ctx.restore()
 
   // ── 3. Silhouette pre-darkening pass ──
-  // Draw a BLACK version of the car (same alpha, all pixels black) clipped
+  // Use the pre-computed black silhouette (same alpha, all pixels black) clipped
   // to the floor area. This darkens the background PRECISELY where the car
   // image has semi-transparent pixels (from background removal), eliminating
   // all bright-edge artifacts. The real car image is drawn ON TOP next.
-  // This replaces the old elliptical dark fill which couldn't match the
-  // car's actual transparent pixel pattern and created visible dark bands.
-  const silClipY = height * 0.55   // only darken below 55% (floor area, not wall)
-  ctx.save()
-  ctx.beginPath()
-  ctx.rect(0, silClipY, width, height - silClipY)
-  ctx.clip()
-  ctx.globalAlpha = 0.92
-  // Create black silhouette: draw car, then composite black over it
-  const sil = document.createElement("canvas")
-  sil.width = imgW
-  sil.height = imgH
-  const sCtx = sil.getContext("2d")
-  if (sCtx) {
-    sCtx.drawImage(carImg, 0, 0)
-    sCtx.globalCompositeOperation = "source-in"
-    sCtx.fillStyle = "#000000"
-    sCtx.fillRect(0, 0, imgW, imgH)
-    ctx.drawImage(sil, carLeft, carTop, carW, carH)
+  if (silhouette) {
+    const silClipY = height * 0.55   // only darken below 55% (floor area, not wall)
+    ctx.save()
+    ctx.beginPath()
+    ctx.rect(0, silClipY, width, height - silClipY)
+    ctx.clip()
+    ctx.globalAlpha = 0.92
+    ctx.drawImage(silhouette, carLeft, carTop, carW, carH)
+    ctx.restore()
   }
-  ctx.restore()
 
   // ── 4. Car image ──
   ctx.drawImage(carImg, carLeft, carTop, carW, carH)
@@ -238,9 +243,10 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   const momentumRef = useRef<number | null>(null)
   const drawFrameRef = useRef<() => void>(() => {})
 
-  // ── Image cache ──
-  // Stores loaded Image objects for instant canvas drawing
+  // ── Image & silhouette cache ──
+  // Stores loaded Image objects and pre-computed silhouettes for instant canvas drawing
   const imageCache = useRef<Map<number, HTMLImageElement>>(new Map())
+  const silhouetteCache = useRef<Map<number, HTMLCanvasElement>>(new Map())
   const perFrameTireY = useRef<(number | null)[]>([])
   const medianTireY = useRef<number>(TIRE_CONTACT_Y)
 
@@ -275,13 +281,14 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.clearRect(0, 0, w, h)
 
-    // Get the cached image for current frame
+    // Get the cached image and pre-computed silhouette for current frame
     const carImg = imageCache.current.get(frame) ?? null
+    const silCanvas = silhouetteCache.current.get(frame) ?? null
 
     // Use per-frame tire Y, or median of detected values, or fallback
     const tireY = perFrameTireY.current[frame] ?? medianTireY.current
 
-    drawScene(ctx, w, h, carImg, tireY)
+    drawScene(ctx, w, h, carImg, tireY, silCanvas)
   }, [frame])
 
   // Keep ref always pointing to the latest drawFrame
@@ -308,6 +315,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     setLoadedCount(0)
     setFrame(0)
     imageCache.current.clear()
+    silhouetteCache.current.clear()
     perFrameTireY.current = new Array(images.length).fill(null)
 
     let cancelled = false
@@ -318,6 +326,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         img.onload = () => {
           if (!cancelled) {
             imageCache.current.set(idx, img)
+            silhouetteCache.current.set(idx, buildSilhouette(img))
             const tireY = detectTireBottom(img)
             if (tireY !== null) {
               perFrameTireY.current[idx] = tireY
@@ -470,7 +479,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       }`}
       style={{
         cursor: !isReady ? "default" : isDragging ? "grabbing" : "grab",
-        background: "#4A4E53", // fallback color while canvas renders (floor-far)
+        background: "#333739", // fallback color while canvas renders (matches floor-far)
       }}
       role="region"
       aria-label={`360° Interactive View — ${alt}`}
