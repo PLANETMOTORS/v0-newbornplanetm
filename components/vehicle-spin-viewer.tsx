@@ -469,7 +469,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       }`}
       style={{
         cursor: !isReady ? "default" : isDragging ? "grabbing" : "grab",
-        background: FLOOR_FAR, // fallback color while canvas renders
+        background: "#4A4E53", // fallback color while canvas renders (floor-far)
       }}
       role="region"
       aria-label={`360° Interactive View — ${alt}`}
