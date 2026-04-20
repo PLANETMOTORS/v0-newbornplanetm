@@ -203,13 +203,13 @@ function drawScene(
   // creates the "floating" perception. Drawing a semi-transparent dark overlay
   // ON TOP of the car darkens the undercar pixels to match the shadow,
   // creating a smooth body(42)→undercar(30)→shadow(25) gradient.
-  const overlayTop = carTop + 0.64 * carH   // just above body bottom
+  const overlayTop = carTop + 0.58 * carH   // start well above body bottom
   const overlayBottom = tireLineY + 5        // just past tire line
   const overlayGrad = ctx.createLinearGradient(0, overlayTop, 0, overlayBottom)
   overlayGrad.addColorStop(0, "rgba(0,0,0,0)")
-  overlayGrad.addColorStop(0.25, "rgba(0,0,0,0.25)")
-  overlayGrad.addColorStop(0.55, "rgba(0,0,0,0.40)")
-  overlayGrad.addColorStop(0.85, "rgba(0,0,0,0.30)")
+  overlayGrad.addColorStop(0.20, "rgba(0,0,0,0.35)")
+  overlayGrad.addColorStop(0.45, "rgba(0,0,0,0.55)")
+  overlayGrad.addColorStop(0.70, "rgba(0,0,0,0.45)")
   overlayGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = overlayGrad
   ctx.fillRect(carLeft + carW * 0.05, overlayTop, carW * 0.90, overlayBottom - overlayTop)
