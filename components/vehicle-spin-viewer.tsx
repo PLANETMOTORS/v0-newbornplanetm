@@ -38,7 +38,7 @@ const REFLECTION_OPACITY = 0.08 // floor reflection strength (subtle but effecti
 // Visual grounding offset: pushes the car DOWN so the body bottom sits near
 // the shadow line instead of floating 35px above it. Tires extend below the
 // shadow (drawn behind the car), which is how real cars look on the ground.
-const GROUND_PUSH    = 0.16   // push car down by 16% of carH — body bottom AT tire line, minimal undercar gap
+const GROUND_PUSH    = 0.22   // push car down by 22% of carH — body bottom BELOW tire line, zero undercar gap
 
 // ── Studio colors (Carvana showroom: bright wall, medium-dark floor) ──
 const WALL_TOP     = "#F5F2EF"
@@ -144,13 +144,12 @@ function drawScene(
   // the car image (the undercar gap between body and ground).
   const shadowCenterX = width / 2
 
-  // Layer 0: Solid dark fill behind the lower half of the car image.
+  // Layer 0: Solid dark fill behind the lower car area. Clamped to start
+  // at floorStartY so it never darkens the wall area (which would create
+  // visible dark bands on the sides where the car image is transparent).
   // The car is drawn ON TOP, so opaque body pixels cover this completely.
-  // Only transparent/semi-transparent pixels (undercar gap, bg-removal halo)
-  // reveal this dark fill. Using solid near-black ensures NO bright spots
-  // bleed through anywhere in the lower car area.
-  const darkFillTop = carTop + 0.40 * carH   // cover lower 60% of car
-  const darkFillBottom = tireLineY + 30       // extend well past tire line
+  const darkFillTop = Math.max(carTop + 0.40 * carH, floorStartY)
+  const darkFillBottom = tireLineY + 40       // extend well past tire line
   ctx.fillStyle = "rgba(0,0,0,0.93)"
   ctx.fillRect(carLeft, darkFillTop, carW, darkFillBottom - darkFillTop)
 
