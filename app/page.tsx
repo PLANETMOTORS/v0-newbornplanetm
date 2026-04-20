@@ -8,12 +8,13 @@
 //   4. Server-side preload hint for the LCP hero image
 //   5. Below-fold data (testimonials, FAQs) fetched client-side
 import { preload } from "react-dom"
+import dynamic from "next/dynamic"
 import { Header } from "@/components/header"
 import { HomepageContent } from "@/components/homepage-content"
-// Lazy-load the footer — ssr: false (in the FooterClient wrapper) keeps its
-// JS out of the initial hydration payload so the browser can paint the LCP
-// hero sooner. `ssr: false` dynamic imports must live in a Client Component.
-import { FooterClient } from "@/components/footer-client"
+
+// Lazy-load the footer — code-split into a separate chunk while keeping
+// its HTML in the SSR output for SEO (crawlers see footer links/contact).
+const Footer = dynamic(() => import("@/components/footer").then(m => ({ default: m.Footer })), { ssr: true })
 import { getSiteSettings } from "@/lib/sanity/fetch"
 import { createStaticClient } from "@/lib/supabase/static"
 
@@ -103,7 +104,7 @@ export default async function HomePage() {
           showcaseVehicles={showcaseVehicles}
         />
       </main>
-      <FooterClient />
+      <Footer />
     </div>
   )
 }
