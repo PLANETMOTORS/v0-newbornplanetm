@@ -5,7 +5,10 @@ import dynamic from "next/dynamic"
 import { ArrowRight } from "lucide-react"
 import { HeroImageServer } from "@/components/hero-image-server"
 
-// Code-split heavy below-fold sections into separate chunks
+// Code-split heavy below-fold sections into separate chunks.
+// ssr: true (default) keeps their HTML in the SSR output for SEO while
+// deferring their JS bundles to separate chunks — the browser can paint
+// the LCP hero image before parsing / evaluating below-fold JavaScript.
 const HomepageFeaturedVehicles = dynamic(
   () => import("@/components/homepage-featured-vehicles").then(m => ({ default: m.HomepageFeaturedVehicles })),
   { loading: () => <FeaturedVehiclesSkeleton /> }
@@ -32,7 +35,7 @@ const VehicleShowcase = dynamic(
   { ssr: true }
 )
 
-// Lightweight loading skeletons to prevent layout shift while chunks load
+// Lightweight loading skeleton to prevent layout shift while chunks load
 function FeaturedVehiclesSkeleton() {
   return (
     <div className="py-16 bg-white">

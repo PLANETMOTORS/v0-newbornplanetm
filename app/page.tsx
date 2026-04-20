@@ -12,7 +12,8 @@ import dynamic from "next/dynamic"
 import { Header } from "@/components/header"
 import { HomepageContent } from "@/components/homepage-content"
 
-// Lazy-load the footer since it's always below the fold
+// Lazy-load the footer — code-split into a separate chunk while keeping
+// its HTML in the SSR output for SEO (crawlers see footer links/contact).
 const Footer = dynamic(() => import("@/components/footer").then(m => ({ default: m.Footer })), { ssr: true })
 import { getSiteSettings } from "@/lib/sanity/fetch"
 import { createStaticClient } from "@/lib/supabase/static"
