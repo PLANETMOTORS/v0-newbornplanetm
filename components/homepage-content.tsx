@@ -144,16 +144,25 @@ export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProp
             <div className="relative min-w-0">
               {/* Server-rendered hero image — pure Server Component, no JS
                   needed.  Paints immediately from SSR HTML so the browser
-                  doesn't have to wait for React hydration (~2s on 4× mobile).
-                  VehicleShowcase (ssr:false) loads on top once JS is ready. */}
-              <div className="w-full max-w-6xl mx-auto px-2 sm:px-4">
+                  has a valid LCP candidate before React hydrates (~2s on 4×
+                  mobile).  Positioned absolutely behind the carousel's
+                  aspect-[4/3] area so the interactive VehicleShowcase can
+                  render in normal document flow (preserving space for its
+                  thumbnail navigation below the carousel). */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 top-0 w-full max-w-6xl mx-auto px-2 sm:px-4"
+              >
                 <HeroImageServer firstVehicle={showcaseVehicles?.[0] ?? null} />
               </div>
 
-              {/* Interactive carousel — loads client-side only (ssr:false).
-                  Positioned absolutely on top of the static server image so
-                  the transition is seamless once JS hydrates. */}
-              <div className="absolute inset-0">
+              {/* Interactive carousel overlay — dynamic import with ssr:true
+                  keeps the carousel HTML in the SSR output while deferring
+                  its heavy JS bundle (SWR, Supabase client, Lucide icons) to
+                  a separate chunk.  Rendered in normal document flow so its
+                  full height (carousel + thumbnail navigation) is reserved
+                  in the layout. */}
+              <div className="relative">
                 <VehicleShowcase serverVehicles={showcaseVehicles ?? undefined} />
               </div>
 
