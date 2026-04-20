@@ -112,23 +112,20 @@ function drawScene(
 ) {
   const tireLineY = TIRE_LINE_Y * height
 
-  // ── 1. Background: single continuous gradient (no visible wall→floor seam) ──
-  // Carvana-style: light wall gradually darkens into a medium-dark floor.
-  // The transition is so smooth you can't tell where wall ends and floor begins.
+  // ── 1. Background: wall gradient + UNIFORM floor ──
+  // KEY INSIGHT: The floor must be UNIFORM brightness from wall transition down.
+  // Previously we darkened the floor at Y=76% to "help" the tire zone, but that
+  // created a full-width dark horizontal band that the human eye reads as
+  // "shadow under floating object." Carvana's floor is uniform medium gray —
+  // the ONLY darkening is from the car-width shadow band, which reads as a
+  // natural shadow cast by the car sitting ON the floor.
   const bgGrad = ctx.createLinearGradient(0, 0, 0, height)
-  // Dark showroom floor — starts early (Y=52%) so the entire undercar area is
-  // uniformly dark. Floor brightness ~70 means tire rubber (br=35) has only a
-  // ~35-point gap instead of the previous 90+ gap that caused "floating".
   bgGrad.addColorStop(0.00, "#F5F2EF")   // wall top — bright
   bgGrad.addColorStop(0.35, "#E8E5E0")   // wall mid — warm light
   bgGrad.addColorStop(0.48, "#B0B3B6")   // transition start
-  bgGrad.addColorStop(0.56, "#787C80")   // transition end → dark floor
-  bgGrad.addColorStop(0.62, "#505458")   // floor — medium dark (br≈84)
-  bgGrad.addColorStop(0.70, "#404448")   // darken approaching car zone (br≈67)
-  bgGrad.addColorStop(0.76, "#343838")   // tire zone — very dark (br≈55)
-  bgGrad.addColorStop(0.84, "#383C40")   // keep dark through transition zone (br≈59)
-  bgGrad.addColorStop(0.92, "#484C50")   // gradually lighten (br≈75)
-  bgGrad.addColorStop(1.00, "#505458")   // floor far (br≈84)
+  bgGrad.addColorStop(0.56, "#787C80")   // transition end → floor
+  bgGrad.addColorStop(0.64, "#585C60")   // floor settles (br≈91)
+  bgGrad.addColorStop(1.00, "#585C60")   // UNIFORM floor all the way down
   ctx.fillStyle = bgGrad
   ctx.fillRect(0, 0, width, height)
 
@@ -215,8 +212,8 @@ function drawScene(
 
   // Fade the reflection out with distance from tire line
   const reflFadeGrad = ctx.createLinearGradient(0, tireLineY, 0, tireLineY + carH * 0.30)
-  reflFadeGrad.addColorStop(0, "rgba(60,64,68,0)")      // transparent (keep reflection)
-  reflFadeGrad.addColorStop(1, "rgba(60,64,68,1)")      // opaque floor color (matches dark floor)
+  reflFadeGrad.addColorStop(0, "rgba(88,92,96,0)")      // transparent (keep reflection)
+  reflFadeGrad.addColorStop(1, "rgba(88,92,96,1)")      // opaque floor color (matches uniform floor #585C60)
   ctx.fillStyle = reflFadeGrad
   ctx.fillRect(carLeft, tireLineY, carW, carH * 0.30)
 
