@@ -884,7 +884,7 @@ function TradeInContent() {
                           />
                         </div>
                         <Select value={province} onValueChange={setProvince}>
-                          <SelectTrigger className="h-14 bg-white/5 border-white/20 text-white">
+                          <SelectTrigger aria-label="Province" className="h-14 bg-white/5 border-white/20 text-white">
                             <SelectValue placeholder="ON" />
                           </SelectTrigger>
                           <SelectContent>
@@ -912,7 +912,7 @@ function TradeInContent() {
                     <TabsContent value="manual" className="space-y-4">
                       <div className="grid grid-cols-2 gap-3">
                         <Select value={selectedYear} onValueChange={setSelectedYear}>
-                          <SelectTrigger className="h-12 bg-white/5 border-white/20 text-white">
+                          <SelectTrigger aria-label="Year" className="h-12 bg-white/5 border-white/20 text-white">
                             <SelectValue placeholder="Year" />
                           </SelectTrigger>
                           <SelectContent>
@@ -922,7 +922,7 @@ function TradeInContent() {
                           </SelectContent>
                         </Select>
                         <Select value={selectedMake} onValueChange={(v) => { setSelectedMake(v); setSelectedModel(""); setSelectedTrim(""); }}>
-                          <SelectTrigger className="h-12 bg-white/5 border-white/20 text-white">
+                          <SelectTrigger aria-label="Make" className="h-12 bg-white/5 border-white/20 text-white">
                             <SelectValue placeholder="Make" />
                           </SelectTrigger>
                           <SelectContent>
@@ -932,7 +932,7 @@ function TradeInContent() {
                           </SelectContent>
                         </Select>
                         <Select value={selectedModel} onValueChange={(v) => { setSelectedModel(v); setSelectedTrim(""); }} disabled={!selectedMake}>
-                          <SelectTrigger className="h-12 bg-white/5 border-white/20 text-white">
+                          <SelectTrigger aria-label="Model" className="h-12 bg-white/5 border-white/20 text-white">
                             <SelectValue placeholder="Model" />
                           </SelectTrigger>
                           <SelectContent>
@@ -942,7 +942,7 @@ function TradeInContent() {
                           </SelectContent>
                         </Select>
                         <Select value={selectedTrim} onValueChange={setSelectedTrim} disabled={!selectedModel}>
-                          <SelectTrigger className="h-12 bg-white/5 border-white/20 text-white">
+                          <SelectTrigger aria-label="Trim" className="h-12 bg-white/5 border-white/20 text-white">
                             <SelectValue placeholder="Trim" />
                           </SelectTrigger>
                           <SelectContent>

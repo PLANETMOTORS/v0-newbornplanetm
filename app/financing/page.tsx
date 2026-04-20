@@ -152,7 +152,7 @@ export default async function FinancingPage() {
             {lenders.map((lender) => (
               <div key={lender.name} className="bg-background rounded-xl p-6 border border-border text-center hover:border-primary/30 hover:shadow-md transition-all">
                 <div className={`w-14 h-14 ${lender.color} text-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm`}>
-                  <span className="font-bold text-xs">{lender.logo}</span>
+                  <span className="font-bold text-sm">{lender.logo}</span>
                 </div>
                 <h3 className="font-semibold text-sm">{lender.name}</h3>
                 <p className="text-2xl font-bold text-primary mt-2">{lender.rate}</p>
@@ -199,17 +199,17 @@ export default async function FinancingPage() {
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="border-b border-border">
-                        <th className="text-left py-2 px-4">Lender</th>
-                        <th className="text-center py-2 px-4">Credit Union</th>
-                        <th className="text-center py-2 px-4">Major Bank</th>
-                        <th className="text-center py-2 px-4">Commercial Bank</th>
-                        <th className="text-center py-2 px-4">Prime Lender</th>
-                        <th className="text-center py-2 px-4">Auto Finance</th>
+                        <th scope="col" className="text-left py-2 px-4">Lender</th>
+                        <th scope="col" className="text-center py-2 px-4">Credit Union</th>
+                        <th scope="col" className="text-center py-2 px-4">Major Bank</th>
+                        <th scope="col" className="text-center py-2 px-4">Commercial Bank</th>
+                        <th scope="col" className="text-center py-2 px-4">Prime Lender</th>
+                        <th scope="col" className="text-center py-2 px-4">Auto Finance</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr className="border-b border-border">
-                        <td className="py-2 px-4 font-medium">RATES</td>
+                        <th scope="row" className="text-left py-2 px-4 font-medium">RATES</th>
                         <td className="text-center py-2 px-4 text-primary font-medium">6.29%</td>
                         <td className="text-center py-2 px-4">6.49%</td>
                         <td className="text-center py-2 px-4">6.79%</td>
@@ -217,13 +217,12 @@ export default async function FinancingPage() {
                         <td className="text-center py-2 px-4">7.49%</td>
                       </tr>
                       <tr>
-                        <td className="py-2 px-4 font-medium">TERMS</td>
+                        <th scope="row" className="text-left py-2 px-4 font-medium">TERMS</th>
                         <td className="text-center py-2 px-4">84 mo</td>
                         <td className="text-center py-2 px-4">84 mo</td>
                         <td className="text-center py-2 px-4">72 mo</td>
                         <td className="text-center py-2 px-4">84 mo</td>
                         <td className="text-center py-2 px-4">96 mo</td>
-                        <td className="text-center py-2 px-4 text-primary font-medium">96 mo</td>
                       </tr>
                     </tbody>
                   </table>

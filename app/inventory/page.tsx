@@ -518,6 +518,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 {searchInput && (
                   <button
                     onClick={() => { setSearchQuery(""); setSearchInput("") }}
+                    aria-label="Clear search"
                     className="absolute right-3 top-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center"
                   >
                     <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
@@ -527,6 +528,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
               <Button
                 variant="outline"
                 onClick={() => setShowFilters(!showFilters)}
+                aria-label={showFilters ? "Hide filters" : "Show filters"}
                 className="h-11 px-3 gap-1.5 shrink-0"
               >
                 <SlidersHorizontal className="w-4 h-4" />
@@ -550,9 +552,11 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 <option value="mileage-low">Low Mileage</option>
                 <option value="newest">Newest</option>
               </select>
-              <div className="flex border rounded-lg overflow-hidden shrink-0">
+              <div className="flex border rounded-lg overflow-hidden shrink-0" role="group" aria-label="View mode">
                 <button
                   onClick={() => setViewMode("grid")}
+                  aria-label="Grid view"
+                  aria-pressed={viewMode === "grid"}
                   className={`px-3 h-11 flex items-center min-w-[44px] justify-center transition-colors ${
                     viewMode === "grid" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                   }`}
@@ -561,6 +565,8 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 </button>
                 <button
                   onClick={() => setViewMode("list")}
+                  aria-label="List view"
+                  aria-pressed={viewMode === "list"}
                   className={`px-3 h-11 flex items-center min-w-[44px] justify-center transition-colors ${
                     viewMode === "list" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                   }`}

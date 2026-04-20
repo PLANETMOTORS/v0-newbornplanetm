@@ -214,9 +214,9 @@ export default function ProtectionPlansPage() {
                       {pkg.tireRim ? (
                         <CheckCircle className={`w-4 h-4 ${pkg.highlighted ? "text-primary-foreground" : "text-green-600"}`} />
                       ) : (
-                        <X className={`w-4 h-4 ${pkg.highlighted ? "text-primary-foreground/50" : "text-muted-foreground"}`} />
+                        <X className={`w-4 h-4 ${pkg.highlighted ? "text-primary-foreground/70" : "text-muted-foreground"}`} />
                       )}
-                      <span className={!pkg.tireRim ? (pkg.highlighted ? "text-primary-foreground/50" : "text-muted-foreground") : ""}>
+                      <span className={!pkg.tireRim ? (pkg.highlighted ? "text-primary-foreground/70" : "text-muted-foreground") : ""}>
                         Tire and Rim Protection
                       </span>
                     </div>
@@ -224,9 +224,9 @@ export default function ProtectionPlansPage() {
                       {pkg.antitheft ? (
                         <CheckCircle className={`w-4 h-4 ${pkg.highlighted ? "text-primary-foreground" : "text-green-600"}`} />
                       ) : (
-                        <X className={`w-4 h-4 ${pkg.highlighted ? "text-primary-foreground/50" : "text-muted-foreground"}`} />
+                        <X className={`w-4 h-4 ${pkg.highlighted ? "text-primary-foreground/70" : "text-muted-foreground"}`} />
                       )}
-                      <span className={!pkg.antitheft ? (pkg.highlighted ? "text-primary-foreground/50" : "text-muted-foreground") : ""}>
+                      <span className={!pkg.antitheft ? (pkg.highlighted ? "text-primary-foreground/70" : "text-muted-foreground") : ""}>
                         InvisiTrak Anti-Theft
                       </span>
                     </div>

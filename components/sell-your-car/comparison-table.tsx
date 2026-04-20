@@ -40,7 +40,7 @@ export function ComparisonTable({ title, rows, usLabel = 'Planet Motors', others
                     <X className="h-5 w-5 text-red-500 mx-auto" />
                   )
                 ) : (
-                  <span className="text-green-600 font-medium">{row.us}</span>
+                  <span className="text-green-700 dark:text-green-500 font-medium">{row.us}</span>
                 )}
               </div>
               <div className="p-4 text-center">
