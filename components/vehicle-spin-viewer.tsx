@@ -38,7 +38,7 @@ const REFLECTION_OPACITY = 0.08 // floor reflection strength (subtle but effecti
 // Visual grounding offset: pushes the car DOWN so the body bottom sits near
 // the shadow line instead of floating 35px above it. Tires extend below the
 // shadow (drawn behind the car), which is how real cars look on the ground.
-const GROUND_PUSH    = 0.10   // push car down by 10% of carH — body bottom at/below tire line
+const GROUND_PUSH    = 0.16   // push car down by 16% of carH — body bottom AT tire line, minimal undercar gap
 
 // ── Studio colors (Carvana showroom: bright wall, medium-dark floor) ──
 const WALL_TOP     = "#F5F2EF"
@@ -153,11 +153,11 @@ function drawScene(
   const undercarTop = carTop + 0.58 * carH   // start above body bottom
   const undercarBottom = tireLineY + 30       // extend well past tire line
   const undercarFill = ctx.createLinearGradient(0, undercarTop, 0, undercarBottom)
-  undercarFill.addColorStop(0, "rgba(0,0,0,0)")
-  undercarFill.addColorStop(0.15, "rgba(0,0,0,0.50)")
-  undercarFill.addColorStop(0.4, "rgba(0,0,0,0.75)")
-  undercarFill.addColorStop(0.7, "rgba(0,0,0,0.70)")
-  undercarFill.addColorStop(1, "rgba(0,0,0,0.30)")
+  undercarFill.addColorStop(0, "rgba(0,0,0,0.40)")
+  undercarFill.addColorStop(0.10, "rgba(0,0,0,0.80)")
+  undercarFill.addColorStop(0.35, "rgba(0,0,0,0.90)")
+  undercarFill.addColorStop(0.65, "rgba(0,0,0,0.85)")
+  undercarFill.addColorStop(1, "rgba(0,0,0,0.40)")
   ctx.fillStyle = undercarFill
   ctx.fillRect(carLeft, undercarTop, carW, undercarBottom - undercarTop)
 
@@ -212,7 +212,7 @@ function drawScene(
   overlayGrad.addColorStop(0.70, "rgba(0,0,0,0.45)")
   overlayGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = overlayGrad
-  ctx.fillRect(carLeft + carW * 0.05, overlayTop, carW * 0.90, overlayBottom - overlayTop)
+  ctx.fillRect(carLeft, overlayTop, carW, overlayBottom - overlayTop)
 
   // ── 4. Floor reflection (professional showroom effect) ──
   // Draw a vertically-flipped, faded copy of the car below the tire line.
