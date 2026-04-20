@@ -116,15 +116,16 @@ function drawScene(
   // Carvana-style: light wall gradually darkens into a medium-dark floor.
   // The transition is so smooth you can't tell where wall ends and floor begins.
   const bgGrad = ctx.createLinearGradient(0, 0, 0, height)
-  // Carvana-style: wall gradient then FLAT floor (constant color from tire zone down).
-  // A flat floor reads as a real surface; continuing to darken creates a visual pit.
+  // Dark showroom floor — starts early (Y=52%) so the entire undercar area is
+  // uniformly dark. Floor brightness ~70 means tire rubber (br=35) has only a
+  // ~35-point gap instead of the previous 90+ gap that caused "floating".
   bgGrad.addColorStop(0.00, "#F5F2EF")   // wall top — bright
-  bgGrad.addColorStop(0.40, "#E8E5E0")   // wall mid — warm light
-  bgGrad.addColorStop(0.54, "#C0C3C6")   // transition start — light neutral
-  bgGrad.addColorStop(0.64, "#A0A4A8")   // transition end — medium-light
-  bgGrad.addColorStop(0.72, "#8A8E92")   // floor start — medium gray
-  bgGrad.addColorStop(0.78, "#808488")   // tire zone — consistent medium gray
-  bgGrad.addColorStop(1.00, "#808488")   // floor far — SAME as tire zone (flat floor)
+  bgGrad.addColorStop(0.35, "#E8E5E0")   // wall mid — warm light
+  bgGrad.addColorStop(0.48, "#B0B3B6")   // transition start
+  bgGrad.addColorStop(0.56, "#787C80")   // transition end → dark floor
+  bgGrad.addColorStop(0.64, "#585C60")   // floor — dark gray (br≈90)
+  bgGrad.addColorStop(0.76, "#484C50")   // tire zone — darker (br≈75)
+  bgGrad.addColorStop(1.00, "#505458")   // floor far — slightly lighter (br≈84)
   ctx.fillStyle = bgGrad
   ctx.fillRect(0, 0, width, height)
 
@@ -142,42 +143,35 @@ function drawScene(
   const shadowCenterX = width / 2
 
   // ── 2. Shadow system (drawn BEFORE car — car body covers these) ──
+  // KEY FIX: Use a full-width LINEAR shadow band instead of a radial gradient.
+  // The radial shadow was dark at center (X=50%) but faded to brightness 78 at
+  // the tire columns (X=22%, X=78%) — a 43-point gap vs tire rubber (br=35)
+  // that caused the "floating" perception. A linear band is equally dark across
+  // the entire tire line.
 
-  // Layer 1: Large ambient shadow — fills entire undercar area so there's no
-  // visible gap between car body bottom and floor (the root cause of "floating").
-  // Previous ry=0.055 was too small (34px), leaving a 17px light gap.
-  const shadowRx = carW * 0.50
-  const shadowRy = height * 0.15    // ≈92px — covers from Y=61% to Y=91%
-  ctx.save()
-  ctx.translate(shadowCenterX, tireLineY)
-  ctx.scale(1, shadowRy / shadowRx)
-  const ambientGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, shadowRx)
-  ambientGrad.addColorStop(0, "rgba(0,0,0,0.55)")
-  ambientGrad.addColorStop(0.25, "rgba(0,0,0,0.42)")
-  ambientGrad.addColorStop(0.50, "rgba(0,0,0,0.25)")
-  ambientGrad.addColorStop(0.75, "rgba(0,0,0,0.10)")
-  ambientGrad.addColorStop(1, "rgba(0,0,0,0)")
-  ctx.fillStyle = ambientGrad
-  ctx.beginPath()
-  ctx.arc(0, 0, shadowRx, 0, Math.PI * 2)
-  ctx.fill()
-  ctx.restore()
+  // Layer 1: Full-width shadow band (linear vertical gradient, full car width)
+  const shadowTop = tireLineY - carH * 0.18    // start above tire zone
+  const shadowBot = tireLineY + carH * 0.10    // extend below tire zone
+  const shadowPadX = carW * 0.05               // slight horizontal overhang
+  const bandGrad = ctx.createLinearGradient(0, shadowTop, 0, shadowBot)
+  bandGrad.addColorStop(0, "rgba(0,0,0,0)")          // fade in from top
+  bandGrad.addColorStop(0.35, "rgba(0,0,0,0.30)")    // building up
+  bandGrad.addColorStop(0.55, "rgba(0,0,0,0.55)")    // peak darkness at tire line
+  bandGrad.addColorStop(0.70, "rgba(0,0,0,0.40)")    // slightly less below
+  bandGrad.addColorStop(1, "rgba(0,0,0,0)")          // fade out at bottom
+  ctx.fillStyle = bandGrad
+  ctx.fillRect(carLeft - shadowPadX, shadowTop, carW + shadowPadX * 2, shadowBot - shadowTop)
 
   // Layer 2: Tight contact line (very dark, narrow — visual ground anchor)
-  ctx.save()
-  ctx.translate(shadowCenterX, tireLineY + 1)
-  const contactRx = carW * 0.42
-  const contactRy = height * 0.006
-  ctx.scale(1, contactRy / contactRx)
-  const contactGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, contactRx)
-  contactGrad.addColorStop(0, "rgba(0,0,0,0.80)")
-  contactGrad.addColorStop(0.5, "rgba(0,0,0,0.55)")
-  contactGrad.addColorStop(1, "rgba(0,0,0,0)")
+  // This is a full-width rectangle too, ensuring side tires get anchored.
+  const contactH = height * 0.012   // narrow but wider than before (was 0.006)
+  const contactGrad = ctx.createLinearGradient(0, tireLineY - contactH/2, 0, tireLineY + contactH/2)
+  contactGrad.addColorStop(0, "rgba(0,0,0,0.25)")
+  contactGrad.addColorStop(0.4, "rgba(0,0,0,0.70)")
+  contactGrad.addColorStop(0.6, "rgba(0,0,0,0.70)")
+  contactGrad.addColorStop(1, "rgba(0,0,0,0.25)")
   ctx.fillStyle = contactGrad
-  ctx.beginPath()
-  ctx.arc(0, 0, contactRx, 0, Math.PI * 2)
-  ctx.fill()
-  ctx.restore()
+  ctx.fillRect(carLeft, tireLineY - contactH/2, carW, contactH)
 
   // ── 3. Silhouette pre-darkening pass ──
   // Use the pre-computed black silhouette (same alpha, all pixels black) clipped
@@ -225,8 +219,8 @@ function drawScene(
 
   // Fade the reflection out with distance from tire line
   const reflFadeGrad = ctx.createLinearGradient(0, tireLineY, 0, tireLineY + carH * 0.30)
-  reflFadeGrad.addColorStop(0, "rgba(128,132,136,0)")    // transparent (keep reflection)
-  reflFadeGrad.addColorStop(1, "rgba(128,132,136,1)")    // opaque floor color (matches flat floor #808488)
+  reflFadeGrad.addColorStop(0, "rgba(80,84,88,0)")      // transparent (keep reflection)
+  reflFadeGrad.addColorStop(1, "rgba(80,84,88,1)")      // opaque floor color (matches dark floor #505458)
   ctx.fillStyle = reflFadeGrad
   ctx.fillRect(carLeft, tireLineY, carW, carH * 0.30)
 }
@@ -484,7 +478,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       }`}
       style={{
         cursor: !isReady ? "default" : isDragging ? "grabbing" : "grab",
-        background: "#808488", // fallback color while canvas renders (matches flat floor)
+        background: "#505458", // fallback color while canvas renders (matches dark floor)
       }}
       role="region"
       aria-label={`360° Interactive View — ${alt}`}
