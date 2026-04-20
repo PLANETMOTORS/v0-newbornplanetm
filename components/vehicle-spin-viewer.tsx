@@ -143,16 +143,19 @@ function drawScene(
 
   // ── 2. Shadow system (drawn BEFORE car — car body covers these) ──
 
-  // Layer 1: Broad ambient shadow (medium height, centered at tire line)
-  const shadowRx = carW * 0.48
-  const shadowRy = height * 0.055
+  // Layer 1: Large ambient shadow — fills entire undercar area so there's no
+  // visible gap between car body bottom and floor (the root cause of "floating").
+  // Previous ry=0.055 was too small (34px), leaving a 17px light gap.
+  const shadowRx = carW * 0.50
+  const shadowRy = height * 0.15    // ≈92px — covers from Y=61% to Y=91%
   ctx.save()
-  ctx.translate(shadowCenterX, tireLineY + 2)
+  ctx.translate(shadowCenterX, tireLineY)
   ctx.scale(1, shadowRy / shadowRx)
   const ambientGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, shadowRx)
-  ambientGrad.addColorStop(0, "rgba(0,0,0,0.50)")
-  ambientGrad.addColorStop(0.3, "rgba(0,0,0,0.35)")
-  ambientGrad.addColorStop(0.6, "rgba(0,0,0,0.15)")
+  ambientGrad.addColorStop(0, "rgba(0,0,0,0.55)")
+  ambientGrad.addColorStop(0.25, "rgba(0,0,0,0.42)")
+  ambientGrad.addColorStop(0.50, "rgba(0,0,0,0.25)")
+  ambientGrad.addColorStop(0.75, "rgba(0,0,0,0.10)")
   ambientGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = ambientGrad
   ctx.beginPath()
