@@ -28,14 +28,13 @@ import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "luci
 // TIRE_LINE_Y: where the tire rubber sits and shadow is centered (the actual
 //   "ground plane" for physics). The background gradient above this line
 //   smoothly transitions from wall to floor — no sharp seam.
-const TIRE_LINE_Y    = 0.76   // tires land here, shadow centered here
+const TIRE_LINE_Y    = 0.78   // tires land here, shadow centered here (raised from 0.76 to push tires lower in canvas)
 const CAR_FILL       = 0.90   // car fills 90% of canvas width
 const TIRE_CONTACT_Y = 0.82   // default: tire bottom at 82% of image height
-const REFLECTION_OPACITY = 0.06 // floor reflection strength (subtle on bright floor)
-// Tire contact offset: a small push so the tire bottom lands just below the
-// shadow center (not above it). Previous value 0.28 pushed tires 155px below
-// shadow and OFF THE CANVAS entirely — that was the root cause of "floating".
-const GROUND_PUSH    = 0.05   // push (5% of carH ≈ 28px) embeds tires firmly into floor zone
+const REFLECTION_OPACITY = 0.04 // floor reflection strength (subtle on bright floor)
+// Tire contact offset: pushes tire bottom below the shadow center line so
+// tires visually press INTO the floor zone rather than hovering above it.
+const GROUND_PUSH    = 0.06   // push (6% of carH ≈ 33px) embeds tires into floor zone
 
 // Studio colors are defined inline in the single continuous background gradient
 // inside drawScene() — no separate wall/floor constants needed.
@@ -127,22 +126,37 @@ function drawScene(
   const carLeft = (width - carW) / 2
   const shadowCenterX = width / 2
 
-  // ── 2. Shadow: subtle ELLIPTICAL shadow ──
+  // ── 2. Shadow: STRONG Carvana-style ground shadow ──
+  // Two layers: broad ambient shadow + tight contact shadow at tire line
+
+  // Layer A: broad ambient shadow (dark pool under car)
   ctx.save()
-  const shadowRx = carW * 0.46
-  const shadowRy = carH * 0.04   // very thin ellipse
+  const shadowRx = carW * 0.48
+  const shadowRy = carH * 0.07   // wider vertically for more visible grounding
   ctx.translate(shadowCenterX, tireLineY)
   ctx.scale(1, shadowRy / shadowRx)
   const shadowGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, shadowRx)
-  shadowGrad.addColorStop(0, "rgba(0,0,0,0.18)")     // subtle center
-  shadowGrad.addColorStop(0.5, "rgba(0,0,0,0.10)")
-  shadowGrad.addColorStop(0.8, "rgba(0,0,0,0.04)")
+  shadowGrad.addColorStop(0, "rgba(0,0,0,0.40)")     // strong dark center
+  shadowGrad.addColorStop(0.3, "rgba(0,0,0,0.28)")
+  shadowGrad.addColorStop(0.6, "rgba(0,0,0,0.12)")
+  shadowGrad.addColorStop(0.85, "rgba(0,0,0,0.04)")
   shadowGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = shadowGrad
   ctx.beginPath()
   ctx.arc(0, 0, shadowRx, 0, Math.PI * 2)
   ctx.fill()
   ctx.restore()
+
+  // Layer B: tight contact shadow line (dark strip right at tire contact)
+  const contactH = carH * 0.012  // very thin contact line
+  const contactGrad = ctx.createLinearGradient(carLeft, 0, carLeft + carW, 0)
+  contactGrad.addColorStop(0, "rgba(0,0,0,0)")
+  contactGrad.addColorStop(0.12, "rgba(0,0,0,0.25)")
+  contactGrad.addColorStop(0.5, "rgba(0,0,0,0.30)")
+  contactGrad.addColorStop(0.88, "rgba(0,0,0,0.25)")
+  contactGrad.addColorStop(1, "rgba(0,0,0,0)")
+  ctx.fillStyle = contactGrad
+  ctx.fillRect(carLeft, tireLineY - contactH / 2, carW, contactH)
 
   // ── 3. Car image (raw — halo blends naturally with bright floor) ──
   ctx.drawImage(carImg, carLeft, carTop, carW, carH)
