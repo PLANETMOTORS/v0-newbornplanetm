@@ -9,5 +9,13 @@ import dynamic from "next/dynamic"
 
 export const FooterClient = dynamic(
   () => import("@/components/footer").then(m => ({ default: m.Footer })),
-  { ssr: false }
+  {
+    ssr: false,
+    loading: () => (
+      <footer
+        aria-hidden="true"
+        style={{ minHeight: "160px" }}
+      />
+    ),
+  }
 )
