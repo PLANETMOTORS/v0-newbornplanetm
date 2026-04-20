@@ -1,40 +1,246 @@
 "use client"
 
-import { useState, useRef, useCallback, useEffect } from "react"
-import Image from "next/image"
+import { useState, useRef, useCallback, useEffect, useMemo } from "react"
 import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "lucide-react"
-import { useOverlayRenderer } from "@/hooks/use-overlay-renderer"
-import { overlayConfig } from "@/config/overlay/loader/loadOverlayConfig"
 
-// ── Tire-floor alignment constants (used by the dynamic transform calc) ──
-const SHADOW_CENTER_Y = 0.7556   // from overlay config (cy of shadow ellipse)
-const TIRE_CONTACT_Y  = 0.823    // tire contact at 82.3 % from top of image
-const TIRE_SCALE      = 1.25     // enlargement factor
-const INNER_W_RATIO   = 0.90     // inner positioning div width ratio
-const INNER_H_RATIO   = 0.85     // inner positioning div height ratio
-const IMG_ASPECT      = 4 / 3    // 1200 × 900 source frames
+/* ═══════════════════════════════════════════════════════════════════════════════
+ * SINGLE-CANVAS 360° VEHICLE SPIN VIEWER
+ *
+ * Inspired by Drivee's approach: everything (background, shadow, car image)
+ * is drawn on ONE canvas. No separate HTML layers, no z-index conflicts,
+ * no layer alignment issues.
+ *
+ * Architecture:
+ *   1. Canvas fills the container (4:3 aspect)
+ *   2. Each frame: clear → draw background → draw shadow → draw car image
+ *   3. Car image sized to fill ~80% of canvas width
+ *   4. Tire bottom aligned to a floor line at ~80% of canvas height
+ *   5. Shadow drawn as soft radial gradient at tire contact
+ *
+ * This eliminates ALL previous issues:
+ *   - No CSS overflow-hidden clipping
+ *   - No layer z-index conflicts
+ *   - No separate coordinate spaces
+ *   - No misalignment between canvas shadow and HTML img
+ * ══════════════════════════════════════════════════════════════════════════════ */
+
+// ── Studio environment constants ──
+// TIRE_LINE_Y: where the tire rubber sits and shadow is centered (the actual
+//   "ground plane" for physics). The background gradient above this line
+//   smoothly transitions from wall to floor — no sharp seam.
+const TIRE_LINE_Y    = 0.76   // tires land here, shadow centered here
+const CAR_FILL       = 0.90   // car fills 90% of canvas width
+const TIRE_CONTACT_Y = 0.82   // default: tire bottom at 82% of image height
+const REFLECTION_OPACITY = 0.08 // floor reflection strength (subtle but effective)
+// Tire contact offset: a small push so the tire bottom lands just below the
+// shadow center (not above it). Previous value 0.28 pushed tires 155px below
+// shadow and OFF THE CANVAS entirely — that was the root cause of "floating".
+const GROUND_PUSH    = 0.02   // tiny push (2% of carH ≈ 11px) keeps tires grounded
+
+// Studio colors are defined inline in the single continuous background gradient
+// inside drawScene() — no separate wall/floor constants needed.
 
 interface SpinViewerProps {
-  /** Ordered array of image URLs (walk-around frames). */
   images: string[]
-  /** Vehicle name for alt text. */
   alt: string
 }
 
 /**
- * Native 360° Vehicle Spin Viewer
- *
- * Renders an image-sequence 360° spinner — the same technique Carvana uses.
- * Drag / swipe / arrow-key to rotate, with momentum physics.
- *
- * Features:
- *  - Progressive preloading with visual progress bar
- *  - Fullscreen mode (Escape to exit)
- *  - Auto-spin with play/pause
- *  - Keyboard: ← → to rotate, Space to toggle auto-spin, F for fullscreen
- *  - Smooth momentum on release
- *  - "Drag to explore" hint on first view
+ * Detect the lowest opaque row in a frame image (tire bottom position).
+ * Returns a ratio (0–1) representing where the tire rubber ends vertically.
  */
+function detectTireBottom(img: HTMLImageElement): number | null {
+  const w = img.naturalWidth
+  const h = img.naturalHeight
+  if (w === 0 || h === 0) return null
+
+  try {
+    const c = document.createElement("canvas")
+    c.width = w
+    c.height = h
+    const ctx = c.getContext("2d", { willReadFrequently: true })
+    if (!ctx) return null
+
+    ctx.drawImage(img, 0, 0)
+    const data = ctx.getImageData(0, 0, w, h).data
+
+    // Use alpha > 200 to detect solid tire rubber only (ignores semi-transparent
+    // halo from background removal that creates a visible gap against dark floor)
+    for (let y = h - 1; y >= Math.floor(h * 0.5); y--) {
+      let count = 0
+      for (let x = 0; x < w; x++) {
+        if (data[(y * w + x) * 4 + 3] > 200) {
+          count++
+          if (count >= 15) return y / h
+        }
+      }
+    }
+  } catch {
+    // CORS or canvas tainted
+  }
+  return null
+}
+
+/**
+ * Draw the complete studio scene on canvas:
+ *   1. Background (wall gradient + floor gradient)
+ *   2. Contact shadow (soft radial gradient at floor line)
+ *   3. Car image (positioned so tires sit on floor line)
+ */
+/** Pre-compute a black silhouette canvas from a car image (same alpha, all pixels black). */
+function buildSilhouette(img: HTMLImageElement): HTMLCanvasElement {
+  const sil = document.createElement("canvas")
+  sil.width = img.naturalWidth
+  sil.height = img.naturalHeight
+  const sCtx = sil.getContext("2d")
+  if (sCtx) {
+    sCtx.drawImage(img, 0, 0)
+    sCtx.globalCompositeOperation = "source-in"
+    sCtx.fillStyle = "#000000"
+    sCtx.fillRect(0, 0, sil.width, sil.height)
+  }
+  return sil
+}
+
+function drawScene(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  carImg: HTMLImageElement | null,
+  tireY: number,
+  silhouette: HTMLCanvasElement | null,
+) {
+  const tireLineY = TIRE_LINE_Y * height
+
+  // ── 1. Background: single continuous gradient (no visible wall→floor seam) ──
+  // Carvana-style: light wall gradually darkens into a medium-dark floor.
+  // The transition is so smooth you can't tell where wall ends and floor begins.
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, height)
+  // Dark showroom floor — starts early (Y=52%) so the entire undercar area is
+  // uniformly dark. Floor brightness ~70 means tire rubber (br=35) has only a
+  // ~35-point gap instead of the previous 90+ gap that caused "floating".
+  bgGrad.addColorStop(0.00, "#F5F2EF")   // wall top — bright
+  bgGrad.addColorStop(0.35, "#E8E5E0")   // wall mid — warm light
+  bgGrad.addColorStop(0.48, "#B0B3B6")   // transition start
+  bgGrad.addColorStop(0.56, "#787C80")   // transition end → dark floor
+  bgGrad.addColorStop(0.64, "#585C60")   // floor — dark gray (br≈90)
+  bgGrad.addColorStop(0.76, "#3C4044")   // tire zone — very dark (br≈63)
+  bgGrad.addColorStop(0.84, "#404448")   // keep dark through transition zone (br≈67)
+  bgGrad.addColorStop(0.92, "#484C50")   // gradually lighten (br≈75)
+  bgGrad.addColorStop(1.00, "#505458")   // floor far (br≈84)
+  ctx.fillStyle = bgGrad
+  ctx.fillRect(0, 0, width, height)
+
+  if (!carImg || carImg.naturalWidth === 0) return
+
+  // ── Calculate car placement ──
+  const imgW = carImg.naturalWidth
+  const imgH = carImg.naturalHeight
+  const aspect = imgW / imgH
+  const carW = width * CAR_FILL
+  const carH = carW / aspect
+  const tireBottomInCar = tireY * carH
+  const carTop = tireLineY - tireBottomInCar + GROUND_PUSH * carH
+  const carLeft = (width - carW) / 2
+  const shadowCenterX = width / 2
+
+  // ── 2. Shadow system (drawn BEFORE car — car body covers these) ──
+  // KEY FIX: Use a full-width LINEAR shadow band instead of a radial gradient.
+  // The radial shadow was dark at center (X=50%) but faded to brightness 78 at
+  // the tire columns (X=22%, X=78%) — a 43-point gap vs tire rubber (br=35)
+  // that caused the "floating" perception. A linear band is equally dark across
+  // the entire tire line.
+
+  // Layer 1: Full-width shadow band (linear vertical gradient, full car width)
+  const shadowTop = tireLineY - carH * 0.18    // start above tire zone
+  const shadowBot = tireLineY + carH * 0.16    // extend well below tire zone
+  const shadowPadX = carW * 0.05               // slight horizontal overhang
+  const bandGrad = ctx.createLinearGradient(0, shadowTop, 0, shadowBot)
+  bandGrad.addColorStop(0, "rgba(0,0,0,0)")          // fade in from top
+  bandGrad.addColorStop(0.35, "rgba(0,0,0,0.30)")    // building up
+  bandGrad.addColorStop(0.55, "rgba(0,0,0,0.55)")    // peak darkness at tire line
+  bandGrad.addColorStop(0.70, "rgba(0,0,0,0.42)")    // strong below tire line
+  bandGrad.addColorStop(0.85, "rgba(0,0,0,0.25)")    // gradual fade
+  bandGrad.addColorStop(1, "rgba(0,0,0,0)")          // fade out at bottom
+  ctx.fillStyle = bandGrad
+  ctx.fillRect(carLeft - shadowPadX, shadowTop, carW + shadowPadX * 2, shadowBot - shadowTop)
+
+  // (Contact line REMOVED — it created a thin dark stripe that made the car
+  // look like it was hovering above a shadow gap. The shadow band + silhouette
+  // provide sufficient darkening at the tire line for a natural grounded look.)
+
+  // ── 3. Silhouette pre-darkening pass ──
+  // Use the pre-computed black silhouette (same alpha, all pixels black) clipped
+  // to the floor area. This darkens the background PRECISELY where the car
+  // image has semi-transparent pixels (from background removal), eliminating
+  // all bright-edge artifacts. The real car image is drawn ON TOP next.
+  if (silhouette) {
+    const silClipY = height * 0.55   // only darken below 55% (floor area, not wall)
+    ctx.save()
+    ctx.beginPath()
+    ctx.rect(0, silClipY, width, height - silClipY)
+    ctx.clip()
+    ctx.globalAlpha = 0.75
+    ctx.drawImage(silhouette, carLeft, carTop, carW, carH)
+    ctx.restore()
+  }
+
+  // ── 4. Car image ──
+  ctx.drawImage(carImg, carLeft, carTop, carW, carH)
+
+  // ── 5. Undercar darkening overlay (ON TOP of the car image) ──
+  // Gently darken the car's lower body for smooth body → shadow → floor transition.
+  const overlayTop = carTop + 0.50 * carH
+  const overlayBottom = tireLineY + carH * 0.04
+  const overlayGrad = ctx.createLinearGradient(0, overlayTop, 0, overlayBottom)
+  overlayGrad.addColorStop(0, "rgba(0,0,0,0)")
+  overlayGrad.addColorStop(0.35, "rgba(0,0,0,0.18)")
+  overlayGrad.addColorStop(0.60, "rgba(0,0,0,0.38)")
+  overlayGrad.addColorStop(0.85, "rgba(0,0,0,0.30)")
+  overlayGrad.addColorStop(1, "rgba(0,0,0,0.20)")       // stays dark AT tire line
+  ctx.fillStyle = overlayGrad
+  ctx.fillRect(carLeft, overlayTop, carW, overlayBottom - overlayTop)
+
+  // ── 5b. Floor reflection (professional showroom effect) ──
+  ctx.save()
+  ctx.globalAlpha = REFLECTION_OPACITY
+  ctx.beginPath()
+  ctx.rect(0, tireLineY, width, height - tireLineY)
+  ctx.clip()
+  ctx.translate(0, tireLineY * 2)
+  ctx.scale(1, -1)
+  ctx.drawImage(carImg, carLeft, carTop, carW, carH)
+  ctx.restore()
+
+  // Fade the reflection out with distance from tire line
+  const reflFadeGrad = ctx.createLinearGradient(0, tireLineY, 0, tireLineY + carH * 0.30)
+  reflFadeGrad.addColorStop(0, "rgba(60,64,68,0)")      // transparent (keep reflection)
+  reflFadeGrad.addColorStop(1, "rgba(60,64,68,1)")      // opaque floor color (matches dark floor)
+  ctx.fillStyle = reflFadeGrad
+  ctx.fillRect(carLeft, tireLineY, carW, carH * 0.30)
+
+  // ── 6. FINAL defringe pass (MUST be last — nothing can brighten after this) ──
+  // Background removal leaves semi-transparent pixels at the tire-ground boundary
+  // that carry LIGHT color data from the original photography background.
+  // The reflection (step 5b) can also brighten the tire zone. Using "darken"
+  // composite mode as the LAST step: every pixel in the tire zone is clamped to
+  // a dark threshold. Already-dark shadows and tire rubber are UNAFFECTED.
+  ctx.save()
+  ctx.globalCompositeOperation = "darken"
+  const defringeY = tireLineY - carH * 0.05   // start above tire line
+  const defringeH = carH * 0.12               // cover tire contact zone
+  // Use a gradient: darkest at tire line center, lighter at edges
+  const defringeGrad = ctx.createLinearGradient(0, defringeY, 0, defringeY + defringeH)
+  defringeGrad.addColorStop(0, "#585C60")     // lighter at top edge (br≈90)
+  defringeGrad.addColorStop(0.35, "#303438")  // dark approaching tire line (br≈52)
+  defringeGrad.addColorStop(0.50, "#282C30")  // darkest at tire line center (br≈44)
+  defringeGrad.addColorStop(0.65, "#303438")  // dark below tire line (br≈52)
+  defringeGrad.addColorStop(1, "#484C50")     // lighter at bottom edge (br≈75)
+  ctx.fillStyle = defringeGrad
+  ctx.fillRect(carLeft - 5, defringeY, carW + 10, defringeH)
+  ctx.restore()
+}
+
 export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   const [frame, setFrame] = useState(0)
   const [isAutoPlaying, setIsAutoPlaying] = useState(false)
@@ -44,85 +250,128 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   const [loadedCount, setLoadedCount] = useState(0)
 
   const containerRef = useRef<HTMLDivElement>(null)
-  const { canvasRef, draw } = useOverlayRenderer(overlayConfig)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
   const dragStartX = useRef(0)
   const dragStartFrame = useRef(0)
   const lastX = useRef(0)
   const velocity = useRef(0)
   const momentumRef = useRef<number | null>(null)
+  const drawFrameRef = useRef<() => void>(() => {})
 
-  // ── Dynamic tire-floor alignment ──
-  // The car frames have transparent padding below the tires (tire contact at
-  // ~82.3 % of image height).  A fixed CSS translateY doesn't work across
-  // viewports because object-contain renders the image at different sizes
-  // depending on container aspect ratio.  We compute the exact translateY at
-  // runtime so the tire line always lands on the shadow-ellipse centre.
-  const [tireTransform, setTireTransform] = useState(`scale(${TIRE_SCALE})`)
-
-  useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
-
-    const recalc = () => {
-      const { width: cw, height: ch } = el.getBoundingClientRect()
-      if (cw === 0 || ch === 0) return
-
-      const iw = cw * INNER_W_RATIO          // inner div width
-      const ih = ch * INNER_H_RATIO          // inner div height
-
-      // Rendered image height inside the object-contain element
-      const renderH = (iw / ih > IMG_ASPECT) ? ih : iw / IMG_ASPECT
-
-      // Tire Y position inside the element (image centred vertically)
-      const tireInElem = (ih - renderH) / 2 + TIRE_CONTACT_Y * renderH
-
-      // Element is centred in the container
-      const elemCenter = ch / 2
-      const targetY    = ch * SHADOW_CENTER_Y
-
-      // Solve: targetY = elemCenter + S*(tireInElem - ih/2) + S*T  →  T = …
-      const T    = (targetY - elemCenter - TIRE_SCALE * (tireInElem - ih / 2)) / TIRE_SCALE
-      const tPct = (T / ih) * 100
-
-      setTireTransform(`scale(${TIRE_SCALE}) translateY(${tPct.toFixed(2)}%)`)
-    }
-
-    recalc()
-    const ro = new ResizeObserver(recalc)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [isFullscreen])
+  // ── Image & silhouette cache ──
+  // Stores loaded Image objects and pre-computed silhouettes for instant canvas drawing
+  const imageCache = useRef<Map<number, HTMLImageElement>>(new Map())
+  const silhouetteCache = useRef<Map<number, HTMLCanvasElement>>(new Map())
+  const perFrameTireY = useRef<(number | null)[]>([])
+  const medianTireY = useRef<number>(TIRE_CONTACT_Y)
 
   const totalFrames = images.length
   const sensitivity = totalFrames > 0 ? Math.max(3, Math.round(800 / totalFrames)) : 3
   const loadProgress = totalFrames > 0 ? Math.round((loadedCount / totalFrames) * 100) : 0
-  const isReady = loadedCount >= 1 // Show spinner once first frame loads
+  const isReady = loadedCount >= 1
+
+  // Stable key: only re-run preload when actual URLs change, not just array reference
+  const imagesKey = useMemo(() => images.join('\n'), [images])
+
+  // ── Draw current frame on canvas ──
+  const drawFrame = useCallback(() => {
+    const canvas = canvasRef.current
+    const container = containerRef.current
+    if (!canvas || !container) return
+
+    const dpr = window.devicePixelRatio || 1
+    const rect = container.getBoundingClientRect()
+    const w = rect.width
+    const h = rect.height
+
+    // Size canvas to match container at device pixel ratio
+    canvas.width = Math.round(w * dpr)
+    canvas.height = Math.round(h * dpr)
+    canvas.style.width = `${w}px`
+    canvas.style.height = `${h}px`
+
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    ctx.clearRect(0, 0, w, h)
+
+    // Get the cached image and pre-computed silhouette for current frame
+    const carImg = imageCache.current.get(frame) ?? null
+    const silCanvas = silhouetteCache.current.get(frame) ?? null
+
+    // Use per-frame tire Y, or median of detected values, or fallback
+    const tireY = perFrameTireY.current[frame] ?? medianTireY.current
+
+    drawScene(ctx, w, h, carImg, tireY, silCanvas)
+  }, [frame])
+
+  // Keep ref always pointing to the latest drawFrame
+  drawFrameRef.current = drawFrame
+
+  // Redraw on frame change or resize
+  useEffect(() => {
+    drawFrame()
+  }, [drawFrame, isFullscreen, loadedCount])
+
+  // ResizeObserver for responsive redraw — uses component-level ref
+  // so the callback always invokes the latest drawFrame closure
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => drawFrameRef.current())
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [isFullscreen])
 
   // ── Progressive preloading ──
-  // Load frame 0 first (hero), then preload the rest in background.
   useEffect(() => {
     if (images.length === 0) return
     setLoadedCount(0)
+    setFrame(0)
+    imageCache.current.clear()
+    silhouetteCache.current.clear()
+    perFrameTireY.current = new Array(images.length).fill(null)
 
     let cancelled = false
-    const preload = (src: string) =>
+    const preload = (src: string, idx: number) =>
       new Promise<void>((resolve) => {
         const img = new window.Image()
-        img.onload = () => { if (!cancelled) setLoadedCount((c) => c + 1); resolve() }
-        img.onerror = () => { if (!cancelled) setLoadedCount((c) => c + 1); resolve() }
+        img.crossOrigin = "anonymous"
+        img.onload = () => {
+          if (!cancelled) {
+            imageCache.current.set(idx, img)
+            silhouetteCache.current.set(idx, buildSilhouette(img))
+            const tireY = detectTireBottom(img)
+            if (tireY !== null) {
+              perFrameTireY.current[idx] = tireY
+              // Update median
+              const detected = perFrameTireY.current.filter((v): v is number => v !== null)
+              if (detected.length > 0) {
+                detected.sort((a, b) => a - b)
+                medianTireY.current = detected[Math.floor(detected.length / 2)]
+              }
+            }
+            setLoadedCount((c) => c + 1)
+          }
+          resolve()
+        }
+        img.onerror = () => {
+          if (!cancelled) setLoadedCount((c) => c + 1)
+          resolve()
+        }
         img.src = src
       })
 
-    // Load first frame with priority, then rest in parallel batches
-    preload(images[0]).then(() => {
+    // Load first frame with priority, then rest in batches
+    preload(images[0], 0).then(() => {
       if (cancelled) return
-      // Preload remaining frames in batches of 6 to avoid network congestion
       const remaining = images.slice(1)
       let idx = 0
       const batch = async () => {
         while (idx < remaining.length && !cancelled) {
           const chunk = remaining.slice(idx, idx + 6)
-          await Promise.all(chunk.map(preload))
+          await Promise.all(chunk.map((src, i) => preload(src, idx + i + 1)))
           idx += 6
         }
       }
@@ -130,15 +379,8 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     })
 
     return () => { cancelled = true }
-  }, [images])
-
-  // ── Overlay canvas draw ──
-  useEffect(() => {
-    draw()
-    const onResize = () => draw()
-    window.addEventListener("resize", onResize)
-    return () => window.removeEventListener("resize", onResize)
-  }, [draw, isFullscreen])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imagesKey])
 
   // ── Auto-play ──
   useEffect(() => {
@@ -154,7 +396,6 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     if (!containerRef.current) return
     if (!document.fullscreenElement) {
       containerRef.current.requestFullscreen().catch(() => {
-        // Fullscreen not supported — toggle CSS fallback
         setIsFullscreen((f) => !f)
       })
     } else {
@@ -173,7 +414,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     if (showHint) setShowHint(false)
   }, [showHint])
 
-  // ── Pointer (mouse + touch) handlers ──
+  // ── Pointer handlers ──
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     e.preventDefault()
     dismissHint()
@@ -246,24 +487,26 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       onPointerMove={isReady ? handlePointerMove : undefined}
       onPointerUp={isReady ? handlePointerUp : undefined}
       onPointerCancel={isReady ? handlePointerUp : undefined}
-      className={`relative w-full rounded-xl overflow-hidden select-none touch-none focus:outline-none focus:ring-2 focus:ring-primary ${
-        isFullscreen ? "fixed inset-0 z-50 rounded-none" : "aspect-[4/3]"
+      className={`w-full overflow-hidden select-none touch-none focus:outline-none focus:ring-2 focus:ring-primary ${
+        isFullscreen
+          ? "fixed inset-0 z-50 rounded-none"
+          : "relative aspect-[4/3] rounded-xl"
       }`}
       style={{
         cursor: !isReady ? "default" : isDragging ? "grabbing" : "grab",
+        background: "#505458", // fallback color while canvas renders (matches dark floor)
       }}
       role="region"
       aria-label={`360° Interactive View — ${alt}`}
       aria-roledescription="360° image spinner"
     >
-      {/* ── Studio environment — canvas-based overlay renderer ── */}
+      {/* ── Single canvas — draws background + shadow + car image ── */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 z-[0] pointer-events-none"
-        style={{ width: "100%", height: "100%" }}
+        className="absolute inset-0 w-full h-full"
       />
 
-      {/* Empty state — no frames available */}
+      {/* Empty state */}
       {totalFrames === 0 && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3">
           <RotateCw className="w-8 h-8 text-muted-foreground" aria-hidden="true" />
@@ -271,7 +514,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         </div>
       )}
 
-      {/* Loading state — show spinner + progress bar until first frame loads */}
+      {/* Loading state */}
       {totalFrames > 0 && !isReady && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4">
           <Loader2 className="w-10 h-10 animate-spin text-primary" aria-hidden="true" />
@@ -285,31 +528,26 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         </div>
       )}
 
-      {/* Current frame image — dynamically positioned so tires sit on the shadow
-           ellipse at any viewport size.  See the tireTransform calculation above. */}
-      {isReady && images[frame] && (
-        <div className="absolute inset-0 flex items-center justify-center z-[2]">
-          <div className="relative" style={{ width: "90%", height: "85%" }}>
-            <Image
-              src={images[frame]}
-              alt={`${alt} — angle ${frame + 1} of ${totalFrames}`}
-              fill
-              className="object-contain pointer-events-none"
-              style={{ transform: tireTransform }}
-              priority={frame === 0}
-              sizes={isFullscreen ? "100vw" : "(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"}
-              draggable={false}
-              unoptimized
-            />
+      {/* Preload progress bar */}
+      {isReady && loadProgress < 100 && (
+        <div className="absolute top-0 left-0 right-0 h-1 bg-muted/50 z-10">
+          <div
+            className="h-full bg-primary/60 transition-all duration-300"
+            style={{ width: `${loadProgress}%` }}
+          />
+        </div>
+      )}
+
+      {/* 360° badge */}
+      {isReady && !isDragging && !isAutoPlaying && (
+        <div className="absolute left-4 z-10 pointer-events-none" style={{ top: "50%", transform: "translateY(-50%)" }}>
+          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-lg border border-gray-200">
+            <span className="text-xs font-bold text-gray-700">360°</span>
           </div>
         </div>
       )}
 
-
-
-      {/* Contact shadow is now rendered by the canvas overlay renderer */}
-
-      {/* Planet Motors logo — subtle branding in bottom-right corner */}
+      {/* Planet Motors logo */}
       {isReady && (
         <div className="absolute bottom-3 right-14 z-[3] pointer-events-none opacity-40">
           <img
@@ -323,26 +561,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         </div>
       )}
 
-      {/* Preload progress bar — shows during background loading after first frame */}
-      {isReady && loadProgress < 100 && (
-        <div className="absolute top-0 left-0 right-0 h-1 bg-muted/50 z-10">
-          <div
-            className="h-full bg-primary/60 transition-all duration-300"
-            style={{ width: `${loadProgress}%` }}
-          />
-        </div>
-      )}
-
-      {/* 360° floating badge (like Clutch/Carvana) */}
-      {isReady && !isDragging && !isAutoPlaying && (
-        <div className="absolute left-4 z-10 pointer-events-none" style={{ top: "50%", transform: "translateY(-50%)" }}>
-          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-lg border border-gray-200">
-            <span className="text-xs font-bold text-gray-700">360°</span>
-          </div>
-        </div>
-      )}
-
-      {/* Drag hint overlay */}
+      {/* Drag hint */}
       {isReady && showHint && !isAutoPlaying && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-[1px] transition-opacity z-10">
           <div className="flex flex-col items-center gap-2 text-white animate-pulse">
@@ -352,7 +571,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         </div>
       )}
 
-      {/* Controls bar */}
+      {/* Controls */}
       {isReady && (
         <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between z-10">
           <button
