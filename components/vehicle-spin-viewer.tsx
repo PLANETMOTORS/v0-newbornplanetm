@@ -165,16 +165,9 @@ function drawScene(
   ctx.fillStyle = bandGrad
   ctx.fillRect(carLeft - shadowPadX, shadowTop, carW + shadowPadX * 2, shadowBot - shadowTop)
 
-  // Layer 2: Tight contact line (very dark, narrow — visual ground anchor)
-  // This is a full-width rectangle too, ensuring side tires get anchored.
-  const contactH = height * 0.012   // narrow but wider than before (was 0.006)
-  const contactGrad = ctx.createLinearGradient(0, tireLineY - contactH/2, 0, tireLineY + contactH/2)
-  contactGrad.addColorStop(0, "rgba(0,0,0,0.25)")
-  contactGrad.addColorStop(0.4, "rgba(0,0,0,0.70)")
-  contactGrad.addColorStop(0.6, "rgba(0,0,0,0.70)")
-  contactGrad.addColorStop(1, "rgba(0,0,0,0.25)")
-  ctx.fillStyle = contactGrad
-  ctx.fillRect(carLeft, tireLineY - contactH/2, carW, contactH)
+  // (Contact line REMOVED — it created a thin dark stripe that made the car
+  // look like it was hovering above a shadow gap. The shadow band + silhouette
+  // provide sufficient darkening at the tire line for a natural grounded look.)
 
   // ── 3. Silhouette pre-darkening pass ──
   // Use the pre-computed black silhouette (same alpha, all pixels black) clipped
@@ -208,22 +201,7 @@ function drawScene(
   ctx.fillStyle = overlayGrad
   ctx.fillRect(carLeft, overlayTop, carW, overlayBottom - overlayTop)
 
-  // ── 5b. Defringe pass (the key "floating" fix) ──
-  // Background removal leaves semi-transparent pixels at the tire-ground boundary
-  // that carry LIGHT color data from the original white photography background.
-  // When composited over our dark floor, they create bright spots (e.g. br=121 at
-  // front tire vs br=11 elsewhere). Using "darken" composite mode: every pixel in
-  // the tire zone is clamped to floor brightness — bright fringe → clamped, while
-  // already-dark shadows (br=11) and tire rubber (br=35) are UNAFFECTED.
-  ctx.save()
-  ctx.globalCompositeOperation = "darken"
-  const defringeY = tireLineY - carH * 0.04   // start slightly above tire line
-  const defringeH = carH * 0.10               // cover ±5% of car height around tire line
-  ctx.fillStyle = "#383C40"                    // dark floor brightness ~60: clamps bright fringe AND between-wheel gap pixels
-  ctx.fillRect(carLeft - 5, defringeY, carW + 10, defringeH)
-  ctx.restore()
-
-  // ── 6. Floor reflection (professional showroom effect) ──
+  // ── 5b. Floor reflection (professional showroom effect) ──
   ctx.save()
   ctx.globalAlpha = REFLECTION_OPACITY
   ctx.beginPath()
@@ -236,10 +214,31 @@ function drawScene(
 
   // Fade the reflection out with distance from tire line
   const reflFadeGrad = ctx.createLinearGradient(0, tireLineY, 0, tireLineY + carH * 0.30)
-  reflFadeGrad.addColorStop(0, "rgba(80,84,88,0)")      // transparent (keep reflection)
-  reflFadeGrad.addColorStop(1, "rgba(80,84,88,1)")      // opaque floor color (matches dark floor #505458)
+  reflFadeGrad.addColorStop(0, "rgba(60,64,68,0)")      // transparent (keep reflection)
+  reflFadeGrad.addColorStop(1, "rgba(60,64,68,1)")      // opaque floor color (matches dark floor)
   ctx.fillStyle = reflFadeGrad
   ctx.fillRect(carLeft, tireLineY, carW, carH * 0.30)
+
+  // ── 6. FINAL defringe pass (MUST be last — nothing can brighten after this) ──
+  // Background removal leaves semi-transparent pixels at the tire-ground boundary
+  // that carry LIGHT color data from the original photography background.
+  // The reflection (step 5b) can also brighten the tire zone. Using "darken"
+  // composite mode as the LAST step: every pixel in the tire zone is clamped to
+  // a dark threshold. Already-dark shadows and tire rubber are UNAFFECTED.
+  ctx.save()
+  ctx.globalCompositeOperation = "darken"
+  const defringeY = tireLineY - carH * 0.05   // start above tire line
+  const defringeH = carH * 0.12               // cover tire contact zone
+  // Use a gradient: darkest at tire line center, lighter at edges
+  const defringeGrad = ctx.createLinearGradient(0, defringeY, 0, defringeY + defringeH)
+  defringeGrad.addColorStop(0, "#585C60")     // lighter at top edge (br≈90)
+  defringeGrad.addColorStop(0.35, "#303438")  // dark approaching tire line (br≈52)
+  defringeGrad.addColorStop(0.50, "#282C30")  // darkest at tire line center (br≈44)
+  defringeGrad.addColorStop(0.65, "#303438")  // dark below tire line (br≈52)
+  defringeGrad.addColorStop(1, "#484C50")     // lighter at bottom edge (br≈75)
+  ctx.fillStyle = defringeGrad
+  ctx.fillRect(carLeft - 5, defringeY, carW + 10, defringeH)
+  ctx.restore()
 }
 
 export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
