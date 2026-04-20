@@ -126,20 +126,24 @@ function drawScene(
   const carLeft = (width - carW) / 2
   const shadowCenterX = width / 2
 
-  // ── 2. Shadow: STRONG Carvana-style ground shadow ──
-  // Two layers: broad ambient shadow + tight contact shadow at tire line
+  // ── 2. Shadow: Carvana-style ground shadow ──
+  // The shadow must be centered at the ACTUAL tire bottom (not tireLineY),
+  // because GROUND_PUSH shifts the tire bottom ~33px below tireLineY.
+  // If centered at tireLineY, the shadow fades to <4% by the time it reaches
+  // the visible area below the tires — making it invisible.
+  const tireBottomY = carTop + tireY * carH
 
-  // Layer A: broad ambient shadow (dark pool under car)
+  // Layer A: large soft ambient pool (visible dark area below and around car)
   ctx.save()
-  const shadowRx = carW * 0.48
-  const shadowRy = carH * 0.07   // wider vertically for more visible grounding
-  ctx.translate(shadowCenterX, tireLineY)
+  const shadowRx = carW * 0.46
+  const shadowRy = carH * 0.14   // tall ellipse — extends well below tire bottom
+  ctx.translate(shadowCenterX, tireBottomY)
   ctx.scale(1, shadowRy / shadowRx)
   const shadowGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, shadowRx)
-  shadowGrad.addColorStop(0, "rgba(0,0,0,0.40)")     // strong dark center
-  shadowGrad.addColorStop(0.3, "rgba(0,0,0,0.28)")
-  shadowGrad.addColorStop(0.6, "rgba(0,0,0,0.12)")
-  shadowGrad.addColorStop(0.85, "rgba(0,0,0,0.04)")
+  shadowGrad.addColorStop(0, "rgba(0,0,0,0.35)")     // strong dark center
+  shadowGrad.addColorStop(0.25, "rgba(0,0,0,0.25)")
+  shadowGrad.addColorStop(0.50, "rgba(0,0,0,0.15)")
+  shadowGrad.addColorStop(0.75, "rgba(0,0,0,0.06)")
   shadowGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = shadowGrad
   ctx.beginPath()
@@ -147,37 +151,39 @@ function drawScene(
   ctx.fill()
   ctx.restore()
 
-  // Layer B: tight contact shadow line (dark strip right at tire contact)
-  const contactH = carH * 0.012  // very thin contact line
-  const contactGrad = ctx.createLinearGradient(carLeft, 0, carLeft + carW, 0)
+  // Layer B: tight contact shadow at tire bottom (the "ground contact" strip)
+  const contactH = carH * 0.015
+  const contactW = carW * 0.80   // narrower than car — concentrated under wheels
+  const contactLeft = (width - contactW) / 2
+  const contactGrad = ctx.createLinearGradient(contactLeft, 0, contactLeft + contactW, 0)
   contactGrad.addColorStop(0, "rgba(0,0,0,0)")
-  contactGrad.addColorStop(0.12, "rgba(0,0,0,0.25)")
-  contactGrad.addColorStop(0.5, "rgba(0,0,0,0.30)")
-  contactGrad.addColorStop(0.88, "rgba(0,0,0,0.25)")
+  contactGrad.addColorStop(0.08, "rgba(0,0,0,0.30)")
+  contactGrad.addColorStop(0.5, "rgba(0,0,0,0.35)")
+  contactGrad.addColorStop(0.92, "rgba(0,0,0,0.30)")
   contactGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = contactGrad
-  ctx.fillRect(carLeft, tireLineY - contactH / 2, carW, contactH)
+  ctx.fillRect(contactLeft, tireBottomY - contactH * 0.3, contactW, contactH)
 
   // ── 3. Car image (raw — halo blends naturally with bright floor) ──
   ctx.drawImage(carImg, carLeft, carTop, carW, carH)
 
-  // ── 4. Floor reflection ──
+  // ── 4. Floor reflection (starts at tire bottom, not tireLineY) ──
   ctx.save()
   ctx.globalAlpha = REFLECTION_OPACITY
   ctx.beginPath()
-  ctx.rect(0, tireLineY, width, height - tireLineY)
+  ctx.rect(0, tireBottomY, width, height - tireBottomY)
   ctx.clip()
-  ctx.translate(0, tireLineY * 2)
+  ctx.translate(0, tireBottomY * 2)
   ctx.scale(1, -1)
   ctx.drawImage(carImg, carLeft, carTop, carW, carH)
   ctx.restore()
 
   // Fade the reflection into the bright floor
-  const reflFadeGrad = ctx.createLinearGradient(0, tireLineY, 0, tireLineY + carH * 0.25)
-  reflFadeGrad.addColorStop(0, "rgba(220,220,220,0)")   // transparent at tire line
+  const reflFadeGrad = ctx.createLinearGradient(0, tireBottomY, 0, tireBottomY + carH * 0.20)
+  reflFadeGrad.addColorStop(0, "rgba(220,220,220,0)")   // transparent at tire bottom
   reflFadeGrad.addColorStop(1, "rgba(220,220,220,1)")   // opaque floor color (#DCDCDC)
   ctx.fillStyle = reflFadeGrad
-  ctx.fillRect(carLeft, tireLineY, carW, carH * 0.25)
+  ctx.fillRect(carLeft, tireBottomY, carW, carH * 0.20)
 }
 
 export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
