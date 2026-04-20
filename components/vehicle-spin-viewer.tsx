@@ -124,8 +124,10 @@ function drawScene(
   bgGrad.addColorStop(0.48, "#B0B3B6")   // transition start
   bgGrad.addColorStop(0.56, "#787C80")   // transition end → dark floor
   bgGrad.addColorStop(0.64, "#585C60")   // floor — dark gray (br≈90)
-  bgGrad.addColorStop(0.76, "#484C50")   // tire zone — darker (br≈75)
-  bgGrad.addColorStop(1.00, "#505458")   // floor far — slightly lighter (br≈84)
+  bgGrad.addColorStop(0.76, "#3C4044")   // tire zone — very dark (br≈63)
+  bgGrad.addColorStop(0.84, "#404448")   // keep dark through transition zone (br≈67)
+  bgGrad.addColorStop(0.92, "#484C50")   // gradually lighten (br≈75)
+  bgGrad.addColorStop(1.00, "#505458")   // floor far (br≈84)
   ctx.fillStyle = bgGrad
   ctx.fillRect(0, 0, width, height)
 
@@ -151,13 +153,14 @@ function drawScene(
 
   // Layer 1: Full-width shadow band (linear vertical gradient, full car width)
   const shadowTop = tireLineY - carH * 0.18    // start above tire zone
-  const shadowBot = tireLineY + carH * 0.10    // extend below tire zone
+  const shadowBot = tireLineY + carH * 0.16    // extend well below tire zone
   const shadowPadX = carW * 0.05               // slight horizontal overhang
   const bandGrad = ctx.createLinearGradient(0, shadowTop, 0, shadowBot)
   bandGrad.addColorStop(0, "rgba(0,0,0,0)")          // fade in from top
   bandGrad.addColorStop(0.35, "rgba(0,0,0,0.30)")    // building up
   bandGrad.addColorStop(0.55, "rgba(0,0,0,0.55)")    // peak darkness at tire line
-  bandGrad.addColorStop(0.70, "rgba(0,0,0,0.40)")    // slightly less below
+  bandGrad.addColorStop(0.70, "rgba(0,0,0,0.42)")    // strong below tire line
+  bandGrad.addColorStop(0.85, "rgba(0,0,0,0.25)")    // gradual fade
   bandGrad.addColorStop(1, "rgba(0,0,0,0)")          // fade out at bottom
   ctx.fillStyle = bandGrad
   ctx.fillRect(carLeft - shadowPadX, shadowTop, carW + shadowPadX * 2, shadowBot - shadowTop)
@@ -216,7 +219,7 @@ function drawScene(
   ctx.globalCompositeOperation = "darken"
   const defringeY = tireLineY - carH * 0.04   // start slightly above tire line
   const defringeH = carH * 0.10               // cover ±5% of car height around tire line
-  ctx.fillStyle = "#585C60"                    // floor brightness ~90: anything brighter gets clamped
+  ctx.fillStyle = "#383C40"                    // dark floor brightness ~60: clamps bright fringe AND between-wheel gap pixels
   ctx.fillRect(carLeft - 5, defringeY, carW + 10, defringeH)
   ctx.restore()
 
