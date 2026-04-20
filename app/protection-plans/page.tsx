@@ -214,9 +214,9 @@ export default function ProtectionPlansPage() {
                       {pkg.tireRim ? (
                         <CheckCircle className={`w-4 h-4 ${pkg.highlighted ? "text-primary-foreground" : "text-green-600"}`} />
                       ) : (
-                        <X className={`w-4 h-4 ${pkg.highlighted ? "text-primary-foreground/50" : "text-muted-foreground"}`} />
+                        <X className={`w-4 h-4 ${pkg.highlighted ? "text-primary-foreground/70" : "text-muted-foreground"}`} />
                       )}
-                      <span className={!pkg.tireRim ? (pkg.highlighted ? "text-primary-foreground/50" : "text-muted-foreground") : ""}>
+                      <span className={!pkg.tireRim ? (pkg.highlighted ? "text-primary-foreground/70" : "text-muted-foreground") : ""}>
                         Tire and Rim Protection
                       </span>
                     </div>
@@ -224,9 +224,9 @@ export default function ProtectionPlansPage() {
                       {pkg.antitheft ? (
                         <CheckCircle className={`w-4 h-4 ${pkg.highlighted ? "text-primary-foreground" : "text-green-600"}`} />
                       ) : (
-                        <X className={`w-4 h-4 ${pkg.highlighted ? "text-primary-foreground/50" : "text-muted-foreground"}`} />
+                        <X className={`w-4 h-4 ${pkg.highlighted ? "text-primary-foreground/70" : "text-muted-foreground"}`} />
                       )}
-                      <span className={!pkg.antitheft ? (pkg.highlighted ? "text-primary-foreground/50" : "text-muted-foreground") : ""}>
+                      <span className={!pkg.antitheft ? (pkg.highlighted ? "text-primary-foreground/70" : "text-muted-foreground") : ""}>
                         InvisiTrak Anti-Theft
                       </span>
                     </div>
@@ -247,8 +247,9 @@ export default function ProtectionPlansPage() {
                     className="w-full"
                     variant={pkg.highlighted ? "secondary" : "default"}
                     size="lg"
+                    asChild
                   >
-                    Select Package
+                    <Link href={`/contact?package=${pkg.id}`}>Select Package</Link>
                   </Button>
                 </div>
               ))}
@@ -282,7 +283,7 @@ export default function ProtectionPlansPage() {
                   <CardContent>
                     <p className="text-sm text-muted-foreground mb-4">{product.description}</p>
                     <Button variant="outline" size="sm" className="w-full" asChild>
-                      <a href="tel:1-866-797-3332">Learn More</a>
+                      <Link href={`/contact?product=${encodeURIComponent(product.name)}`}>Learn More</Link>
                     </Button>
                   </CardContent>
                 </Card>

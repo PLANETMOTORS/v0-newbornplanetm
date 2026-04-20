@@ -43,7 +43,9 @@ export function SellYourCarForm() {
   const canContinue =
     Boolean(formData.year) &&
     Boolean(formData.make) &&
-    Boolean(formData.model.trim())
+    Boolean(formData.model.trim()) &&
+    Boolean(formData.mileage) &&
+    Boolean(formData.condition)
 
   const handleStepOneSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -163,7 +165,7 @@ export function SellYourCarForm() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="mileage">Mileage (km)</Label>
+                <Label htmlFor="mileage">Mileage (km) *</Label>
                 <Input
                   id="mileage"
                   name="mileage"
@@ -176,7 +178,7 @@ export function SellYourCarForm() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="condition">Condition</Label>
+                <Label htmlFor="condition">Condition *</Label>
                 <select
                   id="condition"
                   name="condition"

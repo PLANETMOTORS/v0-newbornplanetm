@@ -884,7 +884,7 @@ function TradeInContent() {
                           />
                         </div>
                         <Select value={province} onValueChange={setProvince}>
-                          <SelectTrigger className="h-14 bg-white/5 border-white/20 text-white">
+                          <SelectTrigger aria-label="Province" className="h-14 bg-white/5 border-white/20 text-white">
                             <SelectValue placeholder="ON" />
                           </SelectTrigger>
                           <SelectContent>
@@ -912,7 +912,7 @@ function TradeInContent() {
                     <TabsContent value="manual" className="space-y-4">
                       <div className="grid grid-cols-2 gap-3">
                         <Select value={selectedYear} onValueChange={setSelectedYear}>
-                          <SelectTrigger className="h-12 bg-white/5 border-white/20 text-white">
+                          <SelectTrigger aria-label="Year" className="h-12 bg-white/5 border-white/20 text-white">
                             <SelectValue placeholder="Year" />
                           </SelectTrigger>
                           <SelectContent>
@@ -922,7 +922,7 @@ function TradeInContent() {
                           </SelectContent>
                         </Select>
                         <Select value={selectedMake} onValueChange={(v) => { setSelectedMake(v); setSelectedModel(""); setSelectedTrim(""); }}>
-                          <SelectTrigger className="h-12 bg-white/5 border-white/20 text-white">
+                          <SelectTrigger aria-label="Make" className="h-12 bg-white/5 border-white/20 text-white">
                             <SelectValue placeholder="Make" />
                           </SelectTrigger>
                           <SelectContent>
@@ -932,7 +932,7 @@ function TradeInContent() {
                           </SelectContent>
                         </Select>
                         <Select value={selectedModel} onValueChange={(v) => { setSelectedModel(v); setSelectedTrim(""); }} disabled={!selectedMake}>
-                          <SelectTrigger className="h-12 bg-white/5 border-white/20 text-white">
+                          <SelectTrigger aria-label="Model" className="h-12 bg-white/5 border-white/20 text-white">
                             <SelectValue placeholder="Model" />
                           </SelectTrigger>
                           <SelectContent>
@@ -942,7 +942,7 @@ function TradeInContent() {
                           </SelectContent>
                         </Select>
                         <Select value={selectedTrim} onValueChange={setSelectedTrim} disabled={!selectedModel}>
-                          <SelectTrigger className="h-12 bg-white/5 border-white/20 text-white">
+                          <SelectTrigger aria-label="Trim" className="h-12 bg-white/5 border-white/20 text-white">
                             <SelectValue placeholder="Trim" />
                           </SelectTrigger>
                           <SelectContent>
@@ -970,6 +970,11 @@ function TradeInContent() {
                       >
                         Get My Instant Offer <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
+                      {(!selectedYear || !selectedMake || !selectedModel || !selectedTrim || !mileage) && (
+                        <p className="text-xs text-white/50 text-center mt-2">
+                          Please fill in all fields above to get your offer
+                        </p>
+                      )}
                     </TabsContent>
                   </Tabs>
                 </CardContent>
@@ -1864,6 +1869,13 @@ function TradeInContent() {
                   return
                 }
                 try {
+                  // Collect photo previews (base64) to send with the acceptance
+                  const photoData: Record<string, string> = {}
+                  for (const [angle, photo] of Object.entries(photos)) {
+                    if (photo?.preview) {
+                      photoData[angle] = photo.preview
+                    }
+                  }
                   // Call API to save acceptance and notify dealership
                   const response = await fetch('/api/v1/trade-in/accept', {
                     method: 'POST',
@@ -1876,6 +1888,7 @@ function TradeInContent() {
                       mileage,
                       condition: condition,
                       postalCode,
+                      photos: Object.keys(photoData).length > 0 ? photoData : undefined,
                       offerAmount: offer?.offerAmount,
                       customerEmail: email,
                       customerPhone: phone,
