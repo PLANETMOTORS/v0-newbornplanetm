@@ -119,8 +119,13 @@ function drawScene(
   const imgW = carImg.naturalWidth
   const imgH = carImg.naturalHeight
   const aspect = imgW / imgH
-  const carW = width * CAR_FILL
-  const carH = carW / aspect
+  let carW = width * CAR_FILL
+  let carH = carW / aspect
+  // Constrain by height to prevent clipping in fullscreen/widescreen layouts
+  if (carH > height * 0.92) {
+    carH = height * 0.92
+    carW = carH * aspect
+  }
   const tireBottomInCar = tireY * carH
   const carTop = tireLineY - tireBottomInCar + GROUND_PUSH * carH
   const carLeft = (width - carW) / 2
