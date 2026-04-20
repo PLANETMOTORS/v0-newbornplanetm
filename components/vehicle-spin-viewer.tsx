@@ -25,12 +25,9 @@ import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "luci
  * ══════════════════════════════════════════════════════════════════════════════ */
 
 // ── Studio environment constants ──
-// FLOOR_START_Y: where the dark floor COLOR begins (high enough so undercar
-//   transparent pixels show dark floor, not light wall — the #1 grounding cue)
 // TIRE_LINE_Y: where the tire rubber sits and shadow is centered (the actual
-//   "ground plane" for physics). These are intentionally decoupled: floor color
-//   starts well ABOVE tire contact so the entire undercar area reads as ground.
-const FLOOR_START_Y  = 0.62   // floor color begins at 62% — under car body is dark
+//   "ground plane" for physics). The background gradient above this line
+//   smoothly transitions from wall to floor — no sharp seam.
 const TIRE_LINE_Y    = 0.76   // tires land here, shadow centered here
 const CAR_FILL       = 0.90   // car fills 90% of canvas width
 const TIRE_CONTACT_Y = 0.82   // default: tire bottom at 82% of image height
@@ -40,11 +37,8 @@ const REFLECTION_OPACITY = 0.08 // floor reflection strength (subtle but effecti
 // shadow (drawn behind the car), which is how real cars look on the ground.
 const GROUND_PUSH    = 0.22   // push car down by 22% of carH — body bottom BELOW tire line, zero undercar gap
 
-// ── Studio colors (Carvana showroom: bright wall, medium-dark floor) ──
-const WALL_TOP     = "#F5F2EF"
-const WALL_BOTTOM  = "#E8E5E0"
-const FLOOR_NEAR   = "#7A7E83"
-const FLOOR_FAR    = "#5A5E63"
+// Studio colors are defined inline in the single continuous background gradient
+// inside drawScene() — no separate wall/floor constants needed.
 
 interface SpinViewerProps {
   images: string[]
@@ -100,25 +94,20 @@ function drawScene(
   carImg: HTMLImageElement | null,
   tireY: number,
 ) {
-  // ── 1. Background ──
-  // floorStartY: where dark floor color begins (high, so undercar area is dark)
-  // tireLineY:   where tires rest and shadow is drawn (the visual "ground")
-  const floorStartY = FLOOR_START_Y * height
-  const tireLineY   = TIRE_LINE_Y * height
+  const tireLineY = TIRE_LINE_Y * height
 
-  // Wall gradient (top section — ends at floorStartY)
-  const wallGrad = ctx.createLinearGradient(0, 0, 0, floorStartY)
-  wallGrad.addColorStop(0, WALL_TOP)
-  wallGrad.addColorStop(1, WALL_BOTTOM)
-  ctx.fillStyle = wallGrad
-  ctx.fillRect(0, 0, width, floorStartY)
-
-  // Floor gradient (starts at floorStartY — covers undercar area + visible floor)
-  const floorGrad = ctx.createLinearGradient(0, floorStartY, 0, height)
-  floorGrad.addColorStop(0, FLOOR_NEAR)
-  floorGrad.addColorStop(1, FLOOR_FAR)
-  ctx.fillStyle = floorGrad
-  ctx.fillRect(0, floorStartY, width, height - floorStartY)
+  // ── 1. Background: single continuous gradient (no visible wall→floor seam) ──
+  // Carvana-style: light wall gradually darkens into a medium-dark floor.
+  // The transition is so smooth you can't tell where wall ends and floor begins.
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, height)
+  bgGrad.addColorStop(0.00, "#F5F2EF")   // wall top — bright
+  bgGrad.addColorStop(0.42, "#E8E5E0")   // wall mid — warm light
+  bgGrad.addColorStop(0.56, "#B0B3B7")   // transition zone — neutral
+  bgGrad.addColorStop(0.68, "#7A7E83")   // floor near car — medium dark
+  bgGrad.addColorStop(0.82, "#5A5E63")   // floor at/below tire line — dark
+  bgGrad.addColorStop(1.00, "#4A4E53")   // floor far — darkest
+  ctx.fillStyle = bgGrad
+  ctx.fillRect(0, 0, width, height)
 
   if (!carImg || carImg.naturalWidth === 0) return
 
@@ -126,55 +115,25 @@ function drawScene(
   const imgW = carImg.naturalWidth
   const imgH = carImg.naturalHeight
   const aspect = imgW / imgH
-
-  // Car fills CAR_FILL of canvas width, maintaining aspect ratio
   const carW = width * CAR_FILL
   const carH = carW / aspect
-
-  // Position: push the car DOWN so the visible body bottom sits near the shadow
-  // line. Without GROUND_PUSH, the math places the absolute tire-bottom pixel
-  // at the tire line, but the body ends ~6% higher, leaving a visible gap.
   const tireBottomInCar = tireY * carH
   const carTop = tireLineY - tireBottomInCar + GROUND_PUSH * carH
   const carLeft = (width - carW) / 2
-
-  // ── 2. Shadow system ──
-  // All shadow layers are drawn BEFORE the car image, so the car body and
-  // wheels render ON TOP. Shadow only shows through transparent areas of
-  // the car image (the undercar gap between body and ground).
   const shadowCenterX = width / 2
 
-  // Layer 0: Dark fill behind the undercar zone. Uses an elliptical shape
-  // (via radial gradient) instead of a rectangle to avoid harsh dark bands
-  // at the car's horizontal edges where the image is transparent.
-  // The car is drawn ON TOP, so opaque body pixels cover this completely.
-  const darkCenterY = tireLineY - carH * 0.05   // slightly above tire line
-  const darkRx = carW * 0.42                     // ellipse width (matches shadow)
-  const darkRy = carH * 0.22                     // tall enough to cover undercar zone
-  const darkGrad = ctx.createRadialGradient(shadowCenterX, darkCenterY, 0, shadowCenterX, darkCenterY, 1)
-  darkGrad.addColorStop(0, "rgba(0,0,0,0.92)")
-  darkGrad.addColorStop(0.65, "rgba(0,0,0,0.85)")
-  darkGrad.addColorStop(0.90, "rgba(0,0,0,0.40)")
-  darkGrad.addColorStop(1, "rgba(0,0,0,0)")
-  ctx.save()
-  ctx.translate(shadowCenterX, darkCenterY)
-  ctx.scale(darkRx, darkRy)
-  ctx.fillStyle = darkGrad
-  ctx.beginPath()
-  ctx.arc(0, 0, 1, 0, Math.PI * 2)
-  ctx.fill()
-  ctx.restore()
+  // ── 2. Shadow system (drawn BEFORE car — car body covers these) ──
 
-  // Layer 1: Broad contact shadow (medium height, centered at tire line)
+  // Layer 1: Broad ambient shadow (medium height, centered at tire line)
   const shadowRx = carW * 0.48
-  const shadowRy = height * 0.04          // taller than before (was 0.025)
+  const shadowRy = height * 0.04
   ctx.save()
   ctx.translate(shadowCenterX, tireLineY + 2)
   ctx.scale(1, shadowRy / shadowRx)
   const ambientGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, shadowRx)
-  ambientGrad.addColorStop(0, "rgba(0,0,0,0.35)")
-  ambientGrad.addColorStop(0.3, "rgba(0,0,0,0.22)")
-  ambientGrad.addColorStop(0.6, "rgba(0,0,0,0.08)")
+  ambientGrad.addColorStop(0, "rgba(0,0,0,0.40)")
+  ambientGrad.addColorStop(0.3, "rgba(0,0,0,0.25)")
+  ambientGrad.addColorStop(0.6, "rgba(0,0,0,0.10)")
   ambientGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = ambientGrad
   ctx.beginPath()
@@ -186,11 +145,11 @@ function drawScene(
   ctx.save()
   ctx.translate(shadowCenterX, tireLineY + 1)
   const contactRx = carW * 0.42
-  const contactRy = height * 0.005
+  const contactRy = height * 0.006
   ctx.scale(1, contactRy / contactRx)
   const contactGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, contactRx)
-  contactGrad.addColorStop(0, "rgba(0,0,0,0.65)")
-  contactGrad.addColorStop(0.5, "rgba(0,0,0,0.40)")
+  contactGrad.addColorStop(0, "rgba(0,0,0,0.70)")
+  contactGrad.addColorStop(0.5, "rgba(0,0,0,0.45)")
   contactGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = contactGrad
   ctx.beginPath()
@@ -198,36 +157,56 @@ function drawScene(
   ctx.fill()
   ctx.restore()
 
-  // ── 3. Car image ──
+  // ── 3. Silhouette pre-darkening pass ──
+  // Draw a BLACK version of the car (same alpha, all pixels black) clipped
+  // to the floor area. This darkens the background PRECISELY where the car
+  // image has semi-transparent pixels (from background removal), eliminating
+  // all bright-edge artifacts. The real car image is drawn ON TOP next.
+  // This replaces the old elliptical dark fill which couldn't match the
+  // car's actual transparent pixel pattern and created visible dark bands.
+  const silClipY = height * 0.55   // only darken below 55% (floor area, not wall)
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(0, silClipY, width, height - silClipY)
+  ctx.clip()
+  ctx.globalAlpha = 0.88
+  // Create black silhouette: draw car, then composite black over it
+  const sil = document.createElement("canvas")
+  sil.width = imgW
+  sil.height = imgH
+  const sCtx = sil.getContext("2d")
+  if (sCtx) {
+    sCtx.drawImage(carImg, 0, 0)
+    sCtx.globalCompositeOperation = "source-in"
+    sCtx.fillStyle = "#000000"
+    sCtx.fillRect(0, 0, imgW, imgH)
+    ctx.drawImage(sil, carLeft, carTop, carW, carH)
+  }
+  ctx.restore()
+
+  // ── 4. Car image ──
   ctx.drawImage(carImg, carLeft, carTop, carW, carH)
 
-  // ── 3b. Undercar darkening overlay (ON TOP of the car image) ──
-  // Gently darken the car's own opaque pixels in the lower body area to
-  // create a smooth visual transition from body → shadow. The solid dark
-  // fill behind (Layer 0) handles transparent pixels; this overlay handles
-  // the OPAQUE ones that need to look darker near ground level.
-  const overlayTop = carTop + 0.48 * carH   // start at car midsection
-  const overlayBottom = tireLineY + 5        // just past tire line
+  // ── 5. Undercar darkening overlay (ON TOP of the car image) ──
+  // Gently darken the car's opaque pixels in the lower body area for a
+  // smooth visual transition from body → shadow → floor.
+  const overlayTop = carTop + 0.50 * carH
+  const overlayBottom = tireLineY + 5
   const overlayGrad = ctx.createLinearGradient(0, overlayTop, 0, overlayBottom)
   overlayGrad.addColorStop(0, "rgba(0,0,0,0)")
-  overlayGrad.addColorStop(0.30, "rgba(0,0,0,0.20)")
-  overlayGrad.addColorStop(0.55, "rgba(0,0,0,0.45)")
-  overlayGrad.addColorStop(0.80, "rgba(0,0,0,0.35)")
+  overlayGrad.addColorStop(0.35, "rgba(0,0,0,0.18)")
+  overlayGrad.addColorStop(0.60, "rgba(0,0,0,0.38)")
+  overlayGrad.addColorStop(0.85, "rgba(0,0,0,0.28)")
   overlayGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = overlayGrad
   ctx.fillRect(carLeft, overlayTop, carW, overlayBottom - overlayTop)
 
-  // ── 4. Floor reflection (professional showroom effect) ──
-  // Draw a vertically-flipped, faded copy of the car below the tire line.
-  // This is the #1 visual cue used by BMW/Mercedes/Carvana configurators
-  // to make a car look "on the ground" rather than floating.
+  // ── 6. Floor reflection (professional showroom effect) ──
   ctx.save()
   ctx.globalAlpha = REFLECTION_OPACITY
-  // Clip to area below tire line (reflection shouldn't bleed upward)
   ctx.beginPath()
   ctx.rect(0, tireLineY, width, height - tireLineY)
   ctx.clip()
-  // Flip vertically around the tire line
   ctx.translate(0, tireLineY * 2)
   ctx.scale(1, -1)
   ctx.drawImage(carImg, carLeft, carTop, carW, carH)
@@ -235,8 +214,8 @@ function drawScene(
 
   // Fade the reflection out with distance from tire line
   const reflFadeGrad = ctx.createLinearGradient(0, tireLineY, 0, tireLineY + carH * 0.30)
-  reflFadeGrad.addColorStop(0, "rgba(122,126,131,0)")  // transparent (keep reflection)
-  reflFadeGrad.addColorStop(1, "rgba(122,126,131,1)")  // opaque floor color
+  reflFadeGrad.addColorStop(0, "rgba(74,78,83,0)")     // transparent (keep reflection)
+  reflFadeGrad.addColorStop(1, "rgba(74,78,83,1)")     // opaque floor color
   ctx.fillStyle = reflFadeGrad
   ctx.fillRect(carLeft, tireLineY, carW, carH * 0.30)
 }
