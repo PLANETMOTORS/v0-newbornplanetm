@@ -187,7 +187,7 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
       <div>
         <h4 className="font-medium mb-3 flex items-center gap-2">
           <CreditCard className="w-4 h-4 text-primary" />
-          How would you like to pay?
+          Choose a payment option
         </h4>
         <div className="grid grid-cols-2 gap-3">
           <Card
@@ -196,9 +196,10 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
           >
             <CardContent className="py-4 text-center space-y-1">
               {depositOnly && <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">Recommended</span>}
+              <p className="text-[10px] font-medium text-primary uppercase tracking-wide">Option 1</p>
               <p className="font-bold text-lg">${totalDeposit.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">Refundable Deposit</p>
-              <p className="text-[10px] text-muted-foreground">Secures the vehicle • Applied to purchase</p>
+              <p className="text-xs font-medium">Reserve with Deposit</p>
+              <p className="text-[10px] text-muted-foreground">100% refundable • Holds vehicle for you • Credited toward full price</p>
             </CardContent>
           </Card>
           <Card
@@ -207,9 +208,10 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
           >
             <CardContent className="py-4 text-center space-y-1">
               {!depositOnly && <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">Selected</span>}
+              <p className="text-[10px] font-medium text-primary uppercase tracking-wide">Option 2</p>
               <p className="font-bold text-lg">${totalFull.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">Pay in Full</p>
-              <p className="text-[10px] text-muted-foreground">Complete purchase now</p>
+              <p className="text-xs font-medium">Pay in Full Now</p>
+              <p className="text-[10px] text-muted-foreground">Complete your purchase today</p>
             </CardContent>
           </Card>
         </div>

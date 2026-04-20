@@ -247,8 +247,9 @@ export default function ProtectionPlansPage() {
                     className="w-full"
                     variant={pkg.highlighted ? "secondary" : "default"}
                     size="lg"
+                    asChild
                   >
-                    Select Package
+                    <Link href={`/contact?package=${pkg.id}`}>Select Package</Link>
                   </Button>
                 </div>
               ))}
@@ -282,7 +283,7 @@ export default function ProtectionPlansPage() {
                   <CardContent>
                     <p className="text-sm text-muted-foreground mb-4">{product.description}</p>
                     <Button variant="outline" size="sm" className="w-full" asChild>
-                      <a href="tel:1-866-797-3332">Learn More</a>
+                      <Link href={`/contact?product=${encodeURIComponent(product.name)}`}>Learn More</Link>
                     </Button>
                   </CardContent>
                 </Card>

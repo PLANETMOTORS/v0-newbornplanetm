@@ -398,10 +398,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             <Label className={getLabelClass("Occupation")}>Occupation *</Label>
             <Input value={data.occupation} onChange={(e) => updateField("occupation", e.target.value)} className={getInputErrorClass("Occupation")} />
           </div>
-          <div>
-            <Label>Job Title</Label>
-            <Input value={data.jobTitle} onChange={(e) => updateField("jobTitle", e.target.value)} />
-          </div>
+
 <div>
   <Label>Employer Phone * <span className="text-xs text-primary font-medium">(3-digit area + 7-digit number)</span></Label>
   <div className="flex gap-2">
