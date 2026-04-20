@@ -3,27 +3,7 @@
 import Link from "next/link"
 import dynamic from "next/dynamic"
 import { ArrowRight } from "lucide-react"
-
-// Code-split heavy below-fold sections into separate chunks.
-// ssr: false keeps these bundles out of the initial HTML + hydration
-// payload entirely, so the browser can paint the LCP hero image before
-// parsing / evaluating their JavaScript on a throttled mobile CPU.
-const HomepageFeaturedVehicles = dynamic(
-  () => import("@/components/homepage-featured-vehicles").then(m => ({ default: m.HomepageFeaturedVehicles })),
-  { ssr: false, loading: () => <FeaturedVehiclesSkeleton /> }
-)
-
-// Lazy-load mid-fold sections (Shop By Category + 4-Step Process)
-const HomepageMidFold = dynamic(
-  () => import("@/components/homepage-mid-fold").then(m => ({ default: m.HomepageMidFold })),
-  { ssr: false, loading: () => <MidFoldSkeleton /> }
-)
-
-// Lazy-load below-fold sections
-const HomepageBelowFold = dynamic(
-  () => import("@/components/homepage-below-fold").then(m => ({ default: m.HomepageBelowFold })),
-  { ssr: false, loading: () => <BelowFoldSkeleton /> }
-)
+import { HomepageBelowFoldSections } from "@/components/homepage-below-fold-client"
 
 // VehicleShowcase is the above-fold hero (LCP element).
 // Dynamic import with ssr:true keeps the hero image in the SSR HTML
@@ -35,48 +15,6 @@ const VehicleShowcase = dynamic(
   () => import("@/components/vehicle-showcase").then(m => ({ default: m.VehicleShowcase })),
   { ssr: true }
 )
-
-// Lightweight loading skeletons to prevent layout shift while chunks load
-function FeaturedVehiclesSkeleton() {
-  return (
-    <div className="py-16 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="h-8 w-64 bg-gray-200 rounded mx-auto mb-8 animate-pulse" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-80 bg-gray-100 rounded-2xl animate-pulse" />
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function MidFoldSkeleton() {
-  return (
-    <div className="py-12 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="h-6 w-48 bg-gray-200 rounded mx-auto mb-6 animate-pulse" />
-        <div className="flex gap-3 justify-center flex-wrap">
-          {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="h-10 w-28 bg-gray-100 rounded-full animate-pulse" />
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function BelowFoldSkeleton() {
-  return (
-    <div className="py-16 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="h-8 w-56 bg-gray-200 rounded mx-auto mb-8 animate-pulse" />
-        <div className="h-40 bg-gray-100 rounded-2xl animate-pulse" />
-      </div>
-    </div>
-  )
-}
 
 export type HomepageProps = {
   siteSettings: {
@@ -183,14 +121,10 @@ export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProp
         </div>
       </section>
 
-      {/* Mid-fold sections: Shop By Category + 4-Step Process (lazy-loaded) */}
-      <HomepageMidFold />
-
-      {/* ========== BOX 3: FEATURED VEHICLES - Pure White #FFFFFF ========== */}
-      <HomepageFeaturedVehicles />
-
-      {/* Below-fold sections: lazy-loaded, fetches its own testimonials */}
-      <HomepageBelowFold
+      {/* Below-fold sections (Mid-Fold, Featured Vehicles, Below-Fold) are
+          lazy-loaded via a Client Component wrapper so that `ssr: false`
+          dynamic imports stay out of this Server Component. */}
+      <HomepageBelowFoldSections
         siteSettings={siteSettings}
         ratingValue={ratingValue}
         lowestRate={lowestRate}
