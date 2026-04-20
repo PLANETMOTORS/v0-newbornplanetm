@@ -193,18 +193,32 @@ function drawScene(
   ctx.drawImage(carImg, carLeft, carTop, carW, carH)
 
   // ── 5. Undercar darkening overlay (ON TOP of the car image) ──
-  // Gently darken the car's opaque pixels in the lower body area for a
-  // smooth visual transition from body → shadow → floor.
+  // Gently darken the car's lower body for smooth body → shadow → floor transition.
   const overlayTop = carTop + 0.50 * carH
-  const overlayBottom = tireLineY + 5
+  const overlayBottom = tireLineY + carH * 0.04
   const overlayGrad = ctx.createLinearGradient(0, overlayTop, 0, overlayBottom)
   overlayGrad.addColorStop(0, "rgba(0,0,0,0)")
   overlayGrad.addColorStop(0.35, "rgba(0,0,0,0.18)")
   overlayGrad.addColorStop(0.60, "rgba(0,0,0,0.38)")
-  overlayGrad.addColorStop(0.85, "rgba(0,0,0,0.28)")
-  overlayGrad.addColorStop(1, "rgba(0,0,0,0)")
+  overlayGrad.addColorStop(0.85, "rgba(0,0,0,0.30)")
+  overlayGrad.addColorStop(1, "rgba(0,0,0,0.20)")       // stays dark AT tire line
   ctx.fillStyle = overlayGrad
   ctx.fillRect(carLeft, overlayTop, carW, overlayBottom - overlayTop)
+
+  // ── 5b. Ground contact clamp (the key "floating" fix) ──
+  // Background removal leaves semi-transparent pixels at the tire-ground boundary.
+  // These blend with the dark shadow/floor to create BRIGHT spots (brightness 121
+  // measured at front tire vs 11 elsewhere on the tire line). This narrow overlay
+  // darkens everything in the tire contact zone, clamping semi-transparent artifacts.
+  const clampH = height * 0.025   // narrow band centered on tire line
+  const clampGrad = ctx.createLinearGradient(0, tireLineY - clampH, 0, tireLineY + clampH)
+  clampGrad.addColorStop(0, "rgba(0,0,0,0)")
+  clampGrad.addColorStop(0.30, "rgba(0,0,0,0.50)")
+  clampGrad.addColorStop(0.50, "rgba(0,0,0,0.65)")      // peak at tire line
+  clampGrad.addColorStop(0.70, "rgba(0,0,0,0.50)")
+  clampGrad.addColorStop(1, "rgba(0,0,0,0)")
+  ctx.fillStyle = clampGrad
+  ctx.fillRect(carLeft - 5, tireLineY - clampH, carW + 10, clampH * 2)
 
   // ── 6. Floor reflection (professional showroom effect) ──
   ctx.save()
