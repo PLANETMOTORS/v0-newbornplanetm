@@ -209,8 +209,6 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
             alt={currentVehicle.name}
             fill
             sizes="(max-width: 768px) 100vw, 50vw"
-            priority
-            fetchPriority="high"
             onError={() => setImageError(true)}
             className={cn(
               "object-cover transition-all duration-500 [clip-path:inset(0_0_8%_0)]",
