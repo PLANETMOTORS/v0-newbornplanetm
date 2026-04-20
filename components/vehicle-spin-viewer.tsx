@@ -144,22 +144,15 @@ function drawScene(
   // the car image (the undercar gap between body and ground).
   const shadowCenterX = width / 2
 
-  // Layer 0: Strong undercar shadow block — fills the entire area from the
-  // car body region down past the tire line with dark shadow. Since the car
-  // image is drawn ON TOP, this only shows through transparent pixels in the
-  // undercar gap (between body bottom and wheel tops). Uses a strong vertical
-  // gradient that goes from transparent (above body) to very dark (at tire
-  // line) to catch any remaining gap even with GROUND_PUSH.
-  const undercarTop = carTop + 0.58 * carH   // start above body bottom
-  const undercarBottom = tireLineY + 30       // extend well past tire line
-  const undercarFill = ctx.createLinearGradient(0, undercarTop, 0, undercarBottom)
-  undercarFill.addColorStop(0, "rgba(0,0,0,0.40)")
-  undercarFill.addColorStop(0.10, "rgba(0,0,0,0.80)")
-  undercarFill.addColorStop(0.35, "rgba(0,0,0,0.90)")
-  undercarFill.addColorStop(0.65, "rgba(0,0,0,0.85)")
-  undercarFill.addColorStop(1, "rgba(0,0,0,0.40)")
-  ctx.fillStyle = undercarFill
-  ctx.fillRect(carLeft, undercarTop, carW, undercarBottom - undercarTop)
+  // Layer 0: Solid dark fill behind the lower half of the car image.
+  // The car is drawn ON TOP, so opaque body pixels cover this completely.
+  // Only transparent/semi-transparent pixels (undercar gap, bg-removal halo)
+  // reveal this dark fill. Using solid near-black ensures NO bright spots
+  // bleed through anywhere in the lower car area.
+  const darkFillTop = carTop + 0.40 * carH   // cover lower 60% of car
+  const darkFillBottom = tireLineY + 30       // extend well past tire line
+  ctx.fillStyle = "rgba(0,0,0,0.93)"
+  ctx.fillRect(carLeft, darkFillTop, carW, darkFillBottom - darkFillTop)
 
   // Layer 1: Broad contact shadow (medium height, centered at tire line)
   const shadowRx = carW * 0.48
@@ -198,18 +191,17 @@ function drawScene(
   ctx.drawImage(carImg, carLeft, carTop, carW, carH)
 
   // ── 3b. Undercar darkening overlay (ON TOP of the car image) ──
-  // The car's own pixels in the undercar zone (between body bottom and wheels)
-  // are brightness ~50, while the shadow below is ~25. This 25-point step
-  // creates the "floating" perception. Drawing a semi-transparent dark overlay
-  // ON TOP of the car darkens the undercar pixels to match the shadow,
-  // creating a smooth body(42)→undercar(30)→shadow(25) gradient.
-  const overlayTop = carTop + 0.58 * carH   // start well above body bottom
+  // Gently darken the car's own opaque pixels in the lower body area to
+  // create a smooth visual transition from body → shadow. The solid dark
+  // fill behind (Layer 0) handles transparent pixels; this overlay handles
+  // the OPAQUE ones that need to look darker near ground level.
+  const overlayTop = carTop + 0.48 * carH   // start at car midsection
   const overlayBottom = tireLineY + 5        // just past tire line
   const overlayGrad = ctx.createLinearGradient(0, overlayTop, 0, overlayBottom)
   overlayGrad.addColorStop(0, "rgba(0,0,0,0)")
-  overlayGrad.addColorStop(0.20, "rgba(0,0,0,0.35)")
-  overlayGrad.addColorStop(0.45, "rgba(0,0,0,0.55)")
-  overlayGrad.addColorStop(0.70, "rgba(0,0,0,0.45)")
+  overlayGrad.addColorStop(0.30, "rgba(0,0,0,0.20)")
+  overlayGrad.addColorStop(0.55, "rgba(0,0,0,0.45)")
+  overlayGrad.addColorStop(0.80, "rgba(0,0,0,0.35)")
   overlayGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = overlayGrad
   ctx.fillRect(carLeft, overlayTop, carW, overlayBottom - overlayTop)
