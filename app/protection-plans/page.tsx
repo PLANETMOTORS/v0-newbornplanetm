@@ -63,46 +63,55 @@ const additionalProducts = [
     name: "Companion GAP Coverage",
     description: "Covers the difference between your car's value and what you owe if it's totaled or stolen.",
     icon: Shield,
+    slug: "gap-coverage",
   },
   {
     name: "Extended Vehicle Warranty",
     description: "Comprehensive mechanical breakdown protection after manufacturer warranty expires.",
     icon: FileText,
+    slug: "extended-warranty",
   },
   {
     name: "IncidentPro",
     description: "Protection against accidents, theft, and total loss events with fast claims processing.",
     icon: Car,
+    slug: "incident-pro",
   },
   {
     name: "InvisiTrak Anti-Theft System",
     description: "GPS tracking and theft recovery system with 24/7 monitoring and mobile alerts.",
     icon: LockKeyhole,
+    slug: "anti-theft",
   },
   {
     name: "Paint Protection Film",
     description: "Clear protective film that shields your paint from chips, scratches, and UV damage.",
     icon: PaintBucket,
+    slug: "paint-protection",
   },
   {
     name: "Replacement Warranty Plan",
     description: "New-for-old vehicle replacement if your car is written off within coverage period.",
     icon: Sparkles,
+    slug: "replacement-warranty",
   },
   {
     name: "Rust Protection Coating",
     description: "Professional-grade undercoating to prevent rust and corrosion from Canadian winters.",
     icon: Droplets,
+    slug: "rust-protection",
   },
   {
     name: "Tire and Rim Protection",
     description: "Coverage for damage from potholes, nails, curb impact, and road hazards.",
     icon: CircleDot,
+    slug: "tire-rim-protection",
   },
   {
     name: "Window Tint Film",
     description: "Premium window tinting for UV protection, privacy, and heat reduction.",
     icon: Wrench,
+    slug: "window-tint",
   },
 ]
 
