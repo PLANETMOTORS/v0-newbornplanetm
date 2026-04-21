@@ -94,7 +94,7 @@ test.describe("Section A11Y — Accessibility (WCAG 2.2 AA)", () => {
     page,
   }) => {
     // Checkout pages require a vehicle in the session; skip when DB is unavailable
-    await page.goto(`${BASE_URL}/checkout/payment-type`, { waitUntil: "networkidle" })
+    await page.goto(`${BASE_URL}/checkout`, { waitUntil: "networkidle" })
     const redirected = page.url().includes("/inventory") || page.url().includes("/auth")
     if (redirected) {
       test.skip(true, "Checkout redirected (no vehicle/session) — cannot test accessibility")
@@ -102,11 +102,7 @@ test.describe("Section A11Y — Accessibility (WCAG 2.2 AA)", () => {
     }
 
     const checkoutPaths = [
-      "/checkout/payment-type",
-      "/checkout/trade-in",
-      "/checkout/deal-customization",
-      "/checkout/personal-info",
-      "/checkout/financing",
+      "/checkout",
     ]
 
     const allViolations: { step: string; violations: { impact?: string | null; id: string; description: string; nodes: unknown[] }[] }[] = []

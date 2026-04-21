@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -51,7 +52,9 @@ interface FinanceApplicationFullFormProps {
 
 export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData }: FinanceApplicationFullFormProps) {
   const router = useRouter()
+  const { user } = useAuth()
   const draftLoadedRef = useRef(false)
+  const serverSyncTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const draftKey = useMemo(() => `pm:finance-draft:${vehicleId || "general"}`, [vehicleId])
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -175,57 +178,105 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   const [documents, setDocuments] = useState<DocumentUpload[]>([])
   const [additionalNotes, setAdditionalNotes] = useState("")
 
-  // Recover in-progress form data if user was interrupted or page refreshed.
+  // Helper: restore form state from a draft object
+  const restoreFromDraft = useCallback((draft: Record<string, unknown>) => {
+    if (typeof draft.currentStep === "number") setCurrentStep(draft.currentStep)
+    if (draft.primaryApplicant) setPrimaryApplicant(draft.primaryApplicant as ApplicantData)
+    if (typeof draft.includeCoApplicant === "boolean") setIncludeCoApplicant(draft.includeCoApplicant)
+    if (draft.coApplicant) setCoApplicant(draft.coApplicant as ApplicantData)
+    if (typeof draft.coApplicantRelation === "string") setCoApplicantRelation(draft.coApplicantRelation)
+    if (draft.vehicleInfo) setVehicleInfo(draft.vehicleInfo as VehicleInfo)
+    if (draft.tradeIn) setTradeIn(draft.tradeIn as TradeInInfo)
+    if (draft.financingTerms) setFinancingTerms(draft.financingTerms as FinancingTerms)
+    if (typeof draft.additionalNotes === "string") setAdditionalNotes(draft.additionalNotes)
+  }, [])
+
+  // Recover in-progress form data: try server first (if logged in), fall back to localStorage.
   useEffect(() => {
     if (draftLoadedRef.current) return
-    try {
-      const raw = window.localStorage.getItem(draftKey)
-      if (!raw) {
-        draftLoadedRef.current = true
-        return
+
+    async function loadDraft() {
+      // Try server draft first (persists across devices)
+      if (user) {
+        try {
+          const res = await fetch("/api/v1/financing/drafts")
+          if (res.ok) {
+            const data = await res.json()
+            const drafts = data.data || []
+            const match = drafts.find(
+              (d: { vehicle_id: string | null }) =>
+                (vehicleId && d.vehicle_id === vehicleId) || (!vehicleId && !d.vehicle_id)
+            )
+            if (match?.form_data && Object.keys(match.form_data).length > 0) {
+              restoreFromDraft(match.form_data as Record<string, unknown>)
+              draftLoadedRef.current = true
+              return
+            }
+          }
+        } catch {
+          // Fall through to localStorage
+        }
       }
-      const draft = JSON.parse(raw) as Record<string, unknown>
-      if (typeof draft.currentStep === "number") setCurrentStep(draft.currentStep)
-      if (draft.primaryApplicant) setPrimaryApplicant(draft.primaryApplicant as ApplicantData)
-      if (typeof draft.includeCoApplicant === "boolean") setIncludeCoApplicant(draft.includeCoApplicant)
-      if (draft.coApplicant) setCoApplicant(draft.coApplicant as ApplicantData)
-      if (typeof draft.coApplicantRelation === "string") setCoApplicantRelation(draft.coApplicantRelation)
-      if (draft.vehicleInfo) setVehicleInfo(draft.vehicleInfo as VehicleInfo)
-      if (draft.tradeIn) setTradeIn(draft.tradeIn as TradeInInfo)
-      if (draft.financingTerms) setFinancingTerms(draft.financingTerms as FinancingTerms)
-      if (typeof draft.additionalNotes === "string") setAdditionalNotes(draft.additionalNotes)
-    } catch (error) {
-      console.error("Failed to restore finance draft:", error)
-    } finally {
+
+      // Fall back to localStorage
+      try {
+        const raw = window.localStorage.getItem(draftKey)
+        if (raw) {
+          restoreFromDraft(JSON.parse(raw) as Record<string, unknown>)
+        }
+      } catch (error) {
+        console.error("Failed to restore finance draft:", error)
+      }
       draftLoadedRef.current = true
     }
-  }, [draftKey])
 
-  // Persist in-progress form data to protect users from accidental session drops.
+    loadDraft()
+  }, [draftKey, user, vehicleId, restoreFromDraft])
+
+  // Persist in-progress form data to localStorage (fast) AND server (debounced).
   useEffect(() => {
     if (!draftLoadedRef.current || isSubmitted) return
 
-    const timeout = window.setTimeout(() => {
+    const payload = {
+      currentStep,
+      primaryApplicant,
+      includeCoApplicant,
+      coApplicant,
+      coApplicantRelation,
+      vehicleInfo,
+      tradeIn,
+      financingTerms,
+      additionalNotes,
+      savedAt: new Date().toISOString(),
+    }
+
+    // Save to localStorage immediately (fast, protects against tab close)
+    const localTimeout = window.setTimeout(() => {
       try {
-        const payload = {
-          currentStep,
-          primaryApplicant,
-          includeCoApplicant,
-          coApplicant,
-          coApplicantRelation,
-          vehicleInfo,
-          tradeIn,
-          financingTerms,
-          additionalNotes,
-          savedAt: new Date().toISOString(),
-        }
         window.localStorage.setItem(draftKey, JSON.stringify(payload))
       } catch (error) {
-        console.error("Failed to save finance draft:", error)
+        console.error("Failed to save finance draft to localStorage:", error)
       }
     }, 250)
 
-    return () => window.clearTimeout(timeout)
+    // Save to server with longer debounce (persists across devices)
+    if (user) {
+      if (serverSyncTimer.current) clearTimeout(serverSyncTimer.current)
+      serverSyncTimer.current = setTimeout(() => {
+        fetch("/api/v1/financing/drafts", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ vehicleId: vehicleId || null, formData: payload }),
+        }).catch(() => {
+          // Silent — localStorage is the fallback
+        })
+      }, 2000)
+    }
+
+    return () => {
+      window.clearTimeout(localTimeout)
+      if (serverSyncTimer.current) clearTimeout(serverSyncTimer.current)
+    }
   }, [
     draftKey,
     isSubmitted,
@@ -238,6 +289,8 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     tradeIn,
     financingTerms,
     additionalNotes,
+    user,
+    vehicleId,
   ])
   
   const steps = [
@@ -539,10 +592,14 @@ if (errors.length > 0) {
     }
   }
   
+      // Clean up drafts after successful submission
       try {
         window.localStorage.removeItem(draftKey)
       } catch {
         // Ignore localStorage failures.
+      }
+      if (user) {
+        fetch(`/api/v1/financing/drafts?id=${vehicleId || ""}`, { method: "DELETE" }).catch(() => {})
       }
       setIsSubmitted(true)
   } catch (error) {
