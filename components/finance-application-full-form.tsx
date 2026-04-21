@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import dynamic from "next/dynamic"
 import { useAuth } from "@/contexts/auth-context"
+import { startVehicleCheckout } from "@/app/actions/stripe"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -11,9 +13,27 @@ import { Card, CardContent } from "@/components/ui/card"
 
 import {
   User, Car, FileText, Upload,
-  ArrowRight, ArrowLeft, CheckCircle, Loader2, Shield, AlertCircle, LockKeyhole
+  ArrowRight, ArrowLeft, CheckCircle, Loader2, Shield, AlertCircle
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+const EmbeddedCheckoutProvider = dynamic(
+  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckoutProvider })),
+  { ssr: false }
+)
+const EmbeddedCheckout = dynamic(
+  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckout })),
+  { ssr: false }
+)
+
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+let stripePromise: ReturnType<typeof import('@stripe/stripe-js').loadStripe> | null = null
+function getStripePromise() {
+  if (!stripePromise && stripeKey) {
+    stripePromise = import('@stripe/stripe-js').then(m => m.loadStripe(stripeKey))
+  }
+  return stripePromise
+}
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 import {
   type ApplicantData, type VehicleInfo, type TradeInInfo,
@@ -679,44 +699,66 @@ if (errors.length > 0) {
   }
   }
   
-  // Render success state - next steps: deposit + ID verification
+  // Render success state — mandatory $250 deposit via Stripe Embedded Checkout
   if (isSubmitted) {
+    const vehicleName = vehicleData
+      ? `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`.trim()
+      : "Vehicle Deposit"
+
+    const fetchClientSecret = () =>
+      startVehicleCheckout({
+        vehicleId: vehicleId || "",
+        vehicleName,
+        depositOnly: true,
+      }).then((secret) => {
+        if (!secret) throw new Error("Missing checkout client secret")
+        return secret
+      })
+
     return (
-      <div className="max-w-2xl mx-auto p-8 text-center">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <CheckCircle className="w-8 h-8 text-green-600" />
-        </div>
-        <h2 className="text-2xl font-bold mb-2">Application Received!</h2>
-        <p className="text-muted-foreground mb-6">
-          Your finance application has been submitted successfully. Secure this vehicle with a refundable deposit or continue with identity verification.
-        </p>
-        <div className="flex flex-col gap-3 max-w-sm mx-auto">
-          {vehicleId && (
-            <Button
-              className="w-full h-12 bg-red-600 hover:bg-red-700 text-white"
-              onClick={() => router.push(`/checkout/${vehicleId}/payment`)}
-            >
-              <LockKeyhole className="w-4 h-4 mr-2" />
-              Reserve with $250 Refundable Deposit
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            className="w-full h-11"
-            onClick={() => router.push(`/financing/verification?vehicleId=${vehicleId || ""}`)}
-          >
-            <Shield className="w-4 h-4 mr-2" />
-            Continue to ID Verification
-          </Button>
-          <Button variant="ghost" onClick={() => router.push("/inventory")}>
-            Browse More Vehicles
-          </Button>
-        </div>
-        {vehicleId && (
-          <p className="text-xs text-muted-foreground mt-4">
-            The $250 deposit is fully refundable and holds this vehicle for 48 hours
+      <div className="max-w-2xl mx-auto p-8">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-8 h-8 text-green-600" />
+          </div>
+          <h2 className="text-2xl font-bold mb-2">Application Received!</h2>
+          <p className="text-muted-foreground">
+            Your finance application has been submitted successfully.
+            Complete your $250 refundable deposit below to secure this vehicle.
           </p>
+        </div>
+
+        {vehicleId ? (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Shield className="w-5 h-5 text-green-600" />
+                <h3 className="font-semibold">Secure Payment — $250 Refundable Deposit</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-6">
+                Your deposit holds this vehicle for 48 hours while we process your application. Fully refundable.
+              </p>
+              <div className="min-h-[400px]">
+                <EmbeddedCheckoutProvider stripe={getStripePromise()} options={{ fetchClientSecret }}>
+                  <EmbeddedCheckout />
+                </EmbeddedCheckoutProvider>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="text-center">
+            <p className="text-muted-foreground mb-4">
+              Select a vehicle to complete your deposit.
+            </p>
+            <Button onClick={() => router.push("/inventory")}>
+              Browse Vehicles
+            </Button>
+          </div>
         )}
+
+        <p className="text-center text-xs text-muted-foreground mt-6">
+          Powered by Stripe. Your payment information is secure and encrypted.
+        </p>
       </div>
     )
   }
