@@ -25,9 +25,10 @@ import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "luci
  * ══════════════════════════════════════════════════════════════════════════════ */
 
 // ── Studio environment constants ──
-const TIRE_LINE_Y    = 0.84   // floor horizon — tires land here (84% of canvas height)
+const TIRE_LINE_Y    = 0.84   // tires land here (84% of canvas height) — lower = more grounded
 const CAR_FILL       = 0.92   // car fills 92% of canvas width
 const TIRE_CONTACT_Y = 0.82   // default: tire bottom at 82% of image height (fallback)
+const GROUND_PUSH    = 0.04   // push car down by 4% of car height so tires sink INTO the floor
 const REFLECTION_OPACITY = 0.04 // floor reflection strength (subtle on bright floor)
 
 // Studio colors are defined inline in the single continuous background gradient
@@ -153,10 +154,10 @@ function drawScene(
   // ── 1. Background: studio floor with visible ground plane ──
   const bgGrad = ctx.createLinearGradient(0, 0, 0, height)
   bgGrad.addColorStop(0.00, "#FFFFFF")   // wall top — white
-  bgGrad.addColorStop(0.40, "#F5F5F5")   // wall mid
-  bgGrad.addColorStop(0.65, "#E8E8E8")   // wall-to-floor transition
-  bgGrad.addColorStop(0.80, "#D0D0D0")   // floor near tires
-  bgGrad.addColorStop(1.00, "#C8C8C8")   // floor bottom — darker for ground presence
+  bgGrad.addColorStop(0.35, "#F8F8F8")   // wall mid — near-white
+  bgGrad.addColorStop(0.58, "#ECECEC")   // transition zone (matches TIRE_LINE_Y=0.84)
+  bgGrad.addColorStop(0.72, "#DEDEDE")   // floor near
+  bgGrad.addColorStop(1.00, "#D8D8D8")   // floor bottom
   ctx.fillStyle = bgGrad
   ctx.fillRect(0, 0, width, height)
 
@@ -173,7 +174,7 @@ function drawScene(
     carW = carH * aspect
   }
 
-  const carTop = tireLineY - tireY * carH
+  const carTop = tireLineY - tireY * carH + GROUND_PUSH * carH
   const carLeft = (width - carW) / 2
   const shadowCenterX = width / 2
   const tireBottomY = tireLineY
@@ -498,7 +499,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       }`}
       style={{
         cursor: !isReady ? "default" : isDragging ? "grabbing" : "grab",
-        background: "linear-gradient(to bottom, #FFFFFF 0%, #F5F5F5 40%, #E8E8E8 65%, #D0D0D0 80%, #C8C8C8 100%)", // must match canvas bgGrad exactly
+        background: "transparent", // canvas draws the entire studio — no HTML background layer
       }}
       role="region"
       aria-label={`360° Interactive View — ${alt}`}
@@ -507,7 +508,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       {/* ── Single canvas — draws background + shadow + car image ── */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full"
+        className="absolute inset-0 w-full h-full rounded-[inherit]"
       />
 
       {/* Empty state */}
