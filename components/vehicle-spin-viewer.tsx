@@ -29,8 +29,8 @@ import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "luci
 // This is the target Y position (as a fraction of canvas height) where the
 // tire bottom should land. The background gradient transitions above this
 // to create a seamless wall-to-floor transition.
-const TIRE_LINE_Y    = 0.80   // tires land here (80% of canvas height)
-const CAR_FILL       = 0.88   // car fills 88% of canvas width (slightly smaller for headroom)
+const TIRE_LINE_Y    = 0.78   // tires land here (78% of canvas height) — matches Devin's working value
+const CAR_FILL       = 0.90   // car fills 90% of canvas width
 const TIRE_CONTACT_Y = 0.82   // default: tire bottom at 82% of image height (fallback)
 const REFLECTION_OPACITY = 0.04 // floor reflection strength (subtle on bright floor)
 // Minimum headroom above the car (as a fraction of canvas height).
@@ -65,16 +65,15 @@ function detectTireBottom(img: HTMLImageElement): number | null {
     ctx.drawImage(img, 0, 0)
     const data = ctx.getImageData(0, 0, w, h).data
 
-    // Use alpha > 240 to detect solid tire rubber only (ignores semi-transparent
-    // halo from background removal that creates a visible gap against dark floor).
-    // Skip the bottom 2% of rows to avoid turntable artifacts / edge noise.
-    const stopRow = Math.floor(h * 0.98)
-    for (let y = stopRow; y >= Math.floor(h * 0.5); y--) {
+    // Alpha > 200 to detect solid tire rubber (ignores semi-transparent
+    // halo from background removal). Scan from very bottom — no skip,
+    // since full-frame images have tires at 98-100% height.
+    for (let y = h - 1; y >= Math.floor(h * 0.5); y--) {
       let count = 0
       for (let x = 0; x < w; x++) {
-        if (data[(y * w + x) * 4 + 3] > 240) {
+        if (data[(y * w + x) * 4 + 3] > 200) {
           count++
-          if (count >= 50) return y / h
+          if (count >= 15) return y / h
         }
       }
     }
@@ -110,10 +109,10 @@ function drawScene(
   // ── 1. Background: Carvana-style BRIGHT studio floor ──
   const bgGrad = ctx.createLinearGradient(0, 0, 0, height)
   bgGrad.addColorStop(0.00, "#FFFFFF")   // wall top — white
-  bgGrad.addColorStop(0.35, "#F8F8F8")   // wall mid — near-white
-  bgGrad.addColorStop(0.55, "#ECECEC")   // transition zone
-  bgGrad.addColorStop(0.68, "#DCDCDC")   // floor start (br≈220)
-  bgGrad.addColorStop(1.00, "#D8D8D8")   // floor bottom — very slightly darker
+  bgGrad.addColorStop(0.30, "#F8F8F8")   // wall mid — near-white
+  bgGrad.addColorStop(0.50, "#ECECEC")   // transition zone (floorNear)
+  bgGrad.addColorStop(0.62, "#D8D8D8")   // floor far
+  bgGrad.addColorStop(1.00, "#D8D8D8")   // floor bottom
   ctx.fillStyle = bgGrad
   ctx.fillRect(0, 0, width, height)
 
@@ -204,8 +203,8 @@ function drawScene(
 
   // Fade the reflection into the bright floor
   const reflFadeGrad = ctx.createLinearGradient(0, tireBottomY, 0, tireBottomY + carH * 0.20)
-  reflFadeGrad.addColorStop(0, "rgba(220,220,220,0)")   // transparent at tire bottom
-  reflFadeGrad.addColorStop(1, "rgba(220,220,220,1)")   // opaque floor color (#DCDCDC)
+  reflFadeGrad.addColorStop(0, "rgba(216,216,216,0)")   // transparent at tire bottom
+  reflFadeGrad.addColorStop(1, "rgba(216,216,216,1)")   // opaque floor color (#D8D8D8 = floorFar)
   ctx.fillStyle = reflFadeGrad
   ctx.fillRect(carLeft, tireBottomY, carW, carH * 0.20)
 }
