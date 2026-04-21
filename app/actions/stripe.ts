@@ -8,7 +8,9 @@ import { createAdminClient } from '@/lib/supabase/admin'
 const PROTECTION_PLANS: Record<string, { name: string; priceInCents: number }> = {
   'essential': { name: 'PlanetCare Essential', priceInCents: 195000 },
   'smart': { name: 'PlanetCare Smart', priceInCents: 300000 },
+  'certified': { name: 'PlanetCare Certified™', priceInCents: 300000 },
   'lifeproof': { name: 'PlanetCare Life Proof', priceInCents: 485000 },
+  'certified-plus': { name: 'PlanetCare Certified Plus™', priceInCents: 485000 },
 }
 
 interface VehicleCheckoutData {

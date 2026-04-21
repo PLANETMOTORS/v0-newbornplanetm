@@ -30,6 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description: product.seo.description,
       url: `${siteUrl}/protection-plans/${slug}`,
       siteName: "Planet Motors",
+      locale: "en_CA",
       type: "website",
     },
     alternates: {

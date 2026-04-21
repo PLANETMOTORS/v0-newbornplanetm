@@ -96,6 +96,17 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
     }
   }, [user])
 
+  // Restore protection plan selection from sessionStorage (set by /protection-plans page)
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const stored = sessionStorage.getItem("selectedProtectionPackage")
+    const validIds: ProtectionPlanId[] = ["none", "essential", "smart", "lifeproof"]
+    if (stored && validIds.includes(stored as ProtectionPlanId)) {
+      setProtection({ selectedPlan: stored as ProtectionPlanId })
+      sessionStorage.removeItem("selectedProtectionPackage")
+    }
+  }, [])
+
   // Fetch vehicle data
   useEffect(() => {
     let cancelled = false
