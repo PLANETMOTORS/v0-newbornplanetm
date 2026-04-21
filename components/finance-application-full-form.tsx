@@ -11,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card"
 
 import {
   User, Car, FileText, Upload,
-  ArrowRight, ArrowLeft, CheckCircle, Loader2, Shield, AlertCircle
+  ArrowRight, ArrowLeft, CheckCircle, Loader2, Shield, AlertCircle, LockKeyhole
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
@@ -679,29 +679,44 @@ if (errors.length > 0) {
   }
   }
   
-  // Render success state - redirect to ID verification
+  // Render success state - next steps: deposit + ID verification
   if (isSubmitted) {
     return (
       <div className="max-w-2xl mx-auto p-8 text-center">
-        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-          <Shield className="w-8 h-8 text-primary" />
+        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle className="w-8 h-8 text-green-600" />
         </div>
         <h2 className="text-2xl font-bold mb-2">Application Received!</h2>
         <p className="text-muted-foreground mb-6">
-          Your finance application has been saved. Complete identity verification to finalize your application.
+          Your finance application has been submitted successfully. Secure this vehicle with a refundable deposit or continue with identity verification.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button onClick={() => router.push(`/financing/verification?vehicleId=${vehicleId || ""}`)}>
+        <div className="flex flex-col gap-3 max-w-sm mx-auto">
+          {vehicleId && (
+            <Button
+              className="w-full h-12 bg-red-600 hover:bg-red-700 text-white"
+              onClick={() => router.push(`/checkout/${vehicleId}/payment`)}
+            >
+              <LockKeyhole className="w-4 h-4 mr-2" />
+              Reserve with $250 Refundable Deposit
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            className="w-full h-11"
+            onClick={() => router.push(`/financing/verification?vehicleId=${vehicleId || ""}`)}
+          >
             <Shield className="w-4 h-4 mr-2" />
             Continue to ID Verification
           </Button>
-          <Button variant="outline" onClick={() => router.push("/inventory")}>
-            Complete Later
+          <Button variant="ghost" onClick={() => router.push("/inventory")}>
+            Browse More Vehicles
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground mt-4">
-          ID verification is required to complete your application
-        </p>
+        {vehicleId && (
+          <p className="text-xs text-muted-foreground mt-4">
+            The $250 deposit is fully refundable and holds this vehicle for 48 hours
+          </p>
+        )}
       </div>
     )
   }
