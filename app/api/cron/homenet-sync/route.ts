@@ -12,7 +12,7 @@ import { isTypesenseConfigured } from "@/lib/typesense/client"
  * parses it, and upserts vehicles into the database.
  */
 
-export const maxDuration = 60 // Allow up to 60s for SFTP + DB sync
+export const maxDuration = 120 // Allow up to 120s for SFTP + DB sync (was 60s, caused occasional 504s)
 export const dynamic = "force-dynamic"
 
 export async function GET(request: Request) {
