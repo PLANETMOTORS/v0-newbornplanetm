@@ -662,8 +662,9 @@ if (errors.length > 0) {
       // Clean up drafts after successful submission
       try {
         window.localStorage.removeItem(draftKey)
+        window.sessionStorage.removeItem(draftKey)
       } catch {
-        // Ignore localStorage failures.
+        // Ignore storage failures.
       }
       if (user) {
         const deleteParam = vehicleId ? `vehicleId=${vehicleId}` : "vehicleId="
