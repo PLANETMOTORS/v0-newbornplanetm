@@ -15,9 +15,11 @@ CREATE TABLE IF NOT EXISTS finance_application_drafts (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- One draft per user per vehicle (NULL vehicle_id = general/pre-approval draft)
-CREATE UNIQUE INDEX IF NOT EXISTS uq_drafts_user_vehicle
-  ON finance_application_drafts (user_id, COALESCE(vehicle_id, '00000000-0000-0000-0000-000000000000'));
+-- One draft per user per vehicle (NULL vehicle_id = general/pre-approval draft).
+-- NULLS NOT DISTINCT (Postgres 15+) treats NULL vehicle_id values as equal,
+-- so ON CONFLICT (user_id, vehicle_id) works correctly for the upsert.
+ALTER TABLE finance_application_drafts
+  ADD CONSTRAINT uq_drafts_user_vehicle UNIQUE NULLS NOT DISTINCT (user_id, vehicle_id);
 
 CREATE INDEX IF NOT EXISTS idx_drafts_user_id ON finance_application_drafts (user_id);
 CREATE INDEX IF NOT EXISTS idx_drafts_vehicle_id ON finance_application_drafts (vehicle_id) WHERE vehicle_id IS NOT NULL;
