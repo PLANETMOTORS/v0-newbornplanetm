@@ -25,16 +25,18 @@ import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "luci
  * ══════════════════════════════════════════════════════════════════════════════ */
 
 // ── Studio environment constants ──
-// TIRE_LINE_Y: where the tire rubber sits and shadow is centered (the actual
-//   "ground plane" for physics). The background gradient above this line
-//   smoothly transitions from wall to floor — no sharp seam.
-const TIRE_LINE_Y    = 0.78   // tires land here, shadow centered here (raised from 0.76 to push tires lower in canvas)
-const CAR_FILL       = 0.90   // car fills 90% of canvas width
-const TIRE_CONTACT_Y = 0.82   // default: tire bottom at 82% of image height
+// TIRE_LINE_Y: where the tire rubber sits and shadow is centered.
+// This is the target Y position (as a fraction of canvas height) where the
+// tire bottom should land. The background gradient transitions above this
+// to create a seamless wall-to-floor transition.
+const TIRE_LINE_Y    = 0.80   // tires land here (80% of canvas height)
+const CAR_FILL       = 0.88   // car fills 88% of canvas width (slightly smaller for headroom)
+const TIRE_CONTACT_Y = 0.82   // default: tire bottom at 82% of image height (fallback)
 const REFLECTION_OPACITY = 0.04 // floor reflection strength (subtle on bright floor)
-// Tire contact offset: pushes tire bottom below the shadow center line so
-// tires visually press INTO the floor zone rather than hovering above it.
-const GROUND_PUSH    = 0.06   // push (6% of carH ≈ 33px) embeds tires into floor zone
+// Minimum headroom above the car (as a fraction of canvas height).
+// Prevents the car from being clipped at the top of the canvas,
+// especially for full-frame images where tires are near the image bottom.
+const MIN_HEADROOM   = 0.02   // at least 2% of canvas height above the car
 
 // Studio colors are defined inline in the single continuous background gradient
 // inside drawScene() — no separate wall/floor constants needed.
@@ -108,10 +110,10 @@ function drawScene(
   // ── 1. Background: Carvana-style BRIGHT studio floor ──
   const bgGrad = ctx.createLinearGradient(0, 0, 0, height)
   bgGrad.addColorStop(0.00, "#FFFFFF")   // wall top — white
-  bgGrad.addColorStop(0.30, "#F8F8F8")   // wall mid — near-white
-  bgGrad.addColorStop(0.50, "#ECECEC")   // transition zone
-  bgGrad.addColorStop(0.62, "#DCDCDC")   // floor start (br≈220)
-  bgGrad.addColorStop(1.00, "#DCDCDC")   // UNIFORM bright floor
+  bgGrad.addColorStop(0.35, "#F8F8F8")   // wall mid — near-white
+  bgGrad.addColorStop(0.55, "#ECECEC")   // transition zone
+  bgGrad.addColorStop(0.68, "#DCDCDC")   // floor start (br≈220)
+  bgGrad.addColorStop(1.00, "#D8D8D8")   // floor bottom — very slightly darker
   ctx.fillStyle = bgGrad
   ctx.fillRect(0, 0, width, height)
 
@@ -128,16 +130,31 @@ function drawScene(
     carH = height * 0.92
     carW = carH * aspect
   }
-  const tireBottomInCar = tireY * carH
-  const carTop = tireLineY - tireBottomInCar + GROUND_PUSH * carH
+
+  // Place the car so that its detected tire bottom lands exactly on tireLineY.
+  // carTop = tireLineY - (tireY * carH)
+  let carTop = tireLineY - tireY * carH
+
+  // Dynamic clamp: if the car would overflow the top of the canvas, scale it
+  // down so there is at least MIN_HEADROOM of headroom above the car body.
+  const minTop = height * MIN_HEADROOM
+  if (carTop < minTop) {
+    // Solve for the maximum carH that keeps carTop >= minTop:
+    //   minTop = tireLineY - tireY * carH'
+    //   carH' = (tireLineY - minTop) / tireY
+    const maxCarH = (tireLineY - minTop) / tireY
+    if (maxCarH > 0 && maxCarH < carH) {
+      carH = maxCarH
+      carW = carH * aspect
+    }
+    carTop = tireLineY - tireY * carH
+  }
+
   const carLeft = (width - carW) / 2
   const shadowCenterX = width / 2
 
   // ── 2. Shadow: Carvana-style ground shadow ──
-  // The shadow must be centered at the ACTUAL tire bottom (not tireLineY),
-  // because GROUND_PUSH shifts the tire bottom ~33px below tireLineY.
-  // If centered at tireLineY, the shadow fades to <4% by the time it reaches
-  // the visible area below the tires — making it invisible.
+  // Shadow is centered at the tire bottom (where the tires meet the floor).
   const tireBottomY = carTop + tireY * carH
 
   // Layer A: large soft ambient pool (visible dark area below and around car)
