@@ -66,7 +66,7 @@ export function ReviewOrderStep({
   const protection = PROTECTION_PRICES[protectionPlan] ?? PROTECTION_PRICES.none
   const deliveryFee = delivery.deliveryType === "delivery" ? delivery.deliveryCost : 0
   const financeDocsFee = paymentMethod.purchaseType === "finance" ? 895 : 0
-  const depositAmount = 250 + (protectionPlan !== "none" ? 250 : 0)
+  const depositAmount = 250
 
   const provinceCode = PROVINCE_NAME_TO_CODE[personal.province] || "ON"
   const provinceTax = PROVINCE_TAX_RATES[provinceCode] || PROVINCE_TAX_RATES.ON

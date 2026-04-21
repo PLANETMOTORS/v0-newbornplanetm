@@ -99,13 +99,13 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
     quantity: 1,
   })
   
-  if (data.protectionPlanId && PROTECTION_PLANS[data.protectionPlanId]) {
+  if (data.protectionPlanId && PROTECTION_PLANS[data.protectionPlanId] && !data.depositOnly) {
     const plan = PROTECTION_PLANS[data.protectionPlanId]
     lineItems.push({
       price_data: {
         currency: 'cad',
         product_data: { name: plan.name, description: 'Vehicle protection' },
-        unit_amount: data.depositOnly ? 25000 : plan.priceInCents,
+        unit_amount: plan.priceInCents,
       },
       quantity: 1,
     })
