@@ -718,9 +718,8 @@ if (errors.length > 0) {
   
   // Render success state — mandatory $250 deposit via Stripe Embedded Checkout
   if (isSubmitted) {
-    const vehicleName = vehicleData
-      ? `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`.trim()
-      : "Vehicle Deposit"
+    const stripeInstance = getStripePromise()
+    const canCheckout = vehicleId && stripeInstance
 
     return (
       <div className="max-w-2xl mx-auto p-8">
@@ -731,13 +730,15 @@ if (errors.length > 0) {
           <h2 className="text-2xl font-bold mb-2">Application Received!</h2>
           <p className="text-muted-foreground">
             Your finance application has been submitted successfully.
-            {vehicleId
+            {canCheckout
               ? " Complete your $250 refundable deposit below to secure this vehicle."
-              : " Select a vehicle to complete your deposit."}
+              : vehicleId
+                ? " A team member will contact you shortly to finalize your purchase."
+                : " Select a vehicle to complete your deposit."}
           </p>
         </div>
 
-        {vehicleId ? (
+        {canCheckout ? (
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 mb-4">
@@ -748,13 +749,13 @@ if (errors.length > 0) {
                 Your deposit holds this vehicle for 48 hours while we process your application. Fully refundable.
               </p>
               <div className="min-h-[400px]">
-                <EmbeddedCheckoutProvider stripe={getStripePromise()} options={{ fetchClientSecret }}>
+                <EmbeddedCheckoutProvider stripe={stripeInstance} options={{ fetchClientSecret }}>
                   <EmbeddedCheckout />
                 </EmbeddedCheckoutProvider>
               </div>
             </CardContent>
           </Card>
-        ) : (
+        ) : !vehicleId ? (
           <div className="text-center">
             <p className="text-muted-foreground mb-4">
               Select a vehicle to complete your deposit.
@@ -763,6 +764,27 @@ if (errors.length > 0) {
               Browse Vehicles
             </Button>
           </div>
+        ) : (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium text-amber-800">Payment temporarily unavailable</p>
+                  <p className="text-amber-700">
+                    We&apos;re unable to load the payment form right now. Please try again or call us at{" "}
+                    <a href="tel:+16479073334" className="underline font-medium">(647) 907-3334</a>.
+                  </p>
+                </div>
+              </div>
+              <Button
+                className="w-full mt-4"
+                onClick={() => window.location.reload()}
+              >
+                Retry Payment
+              </Button>
+            </CardContent>
+          </Card>
         )}
 
         <p className="text-center text-xs text-muted-foreground mt-6">
