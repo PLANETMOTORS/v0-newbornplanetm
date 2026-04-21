@@ -19,6 +19,7 @@ import {
   type ApplicantData, type VehicleInfo, type TradeInInfo,
   type FinancingTerms, type DocumentUpload,
   emptyApplicant,
+  isApplicantData, isVehicleInfo, isTradeInInfo, isFinancingTerms,
 } from "@/components/finance-application"
 import { ApplicantForm } from "@/components/finance-application/applicant-form"
 import { VehicleFinancingForm } from "@/components/finance-application/vehicle-financing-form"
@@ -181,13 +182,13 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   // Helper: restore form state from a draft object
   const restoreFromDraft = useCallback((draft: Record<string, unknown>) => {
     if (typeof draft.currentStep === "number") setCurrentStep(draft.currentStep)
-    if (draft.primaryApplicant) setPrimaryApplicant(draft.primaryApplicant as ApplicantData)
+    if (isApplicantData(draft.primaryApplicant)) setPrimaryApplicant(draft.primaryApplicant)
     if (typeof draft.includeCoApplicant === "boolean") setIncludeCoApplicant(draft.includeCoApplicant)
-    if (draft.coApplicant) setCoApplicant(draft.coApplicant as ApplicantData)
+    if (isApplicantData(draft.coApplicant)) setCoApplicant(draft.coApplicant)
     if (typeof draft.coApplicantRelation === "string") setCoApplicantRelation(draft.coApplicantRelation)
-    if (draft.vehicleInfo) setVehicleInfo(draft.vehicleInfo as VehicleInfo)
-    if (draft.tradeIn) setTradeIn(draft.tradeIn as TradeInInfo)
-    if (draft.financingTerms) setFinancingTerms(draft.financingTerms as FinancingTerms)
+    if (isVehicleInfo(draft.vehicleInfo)) setVehicleInfo(draft.vehicleInfo)
+    if (isTradeInInfo(draft.tradeIn)) setTradeIn(draft.tradeIn)
+    if (isFinancingTerms(draft.financingTerms)) setFinancingTerms(draft.financingTerms)
     if (typeof draft.additionalNotes === "string") setAdditionalNotes(draft.additionalNotes)
   }, [])
 
@@ -220,11 +221,13 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
         }
       }
 
-      // Try localStorage (written after 250ms, may be newer than 2s-debounced server copy)
+      // Try sessionStorage (non-PII subset, written after 250ms for unauthenticated users)
       try {
-        const raw = window.localStorage.getItem(draftKey)
+        const raw = window.sessionStorage.getItem(draftKey) || window.localStorage.getItem(draftKey)
         if (raw) {
           localDraft = JSON.parse(raw) as Record<string, unknown>
+          // Clean up any legacy localStorage draft (PII migration)
+          window.localStorage.removeItem(draftKey)
         }
       } catch (error) {
         console.error("Failed to restore finance draft:", error)
@@ -249,11 +252,16 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     loadDraft()
   }, [draftKey, user, isAuthLoading, vehicleId, restoreFromDraft])
 
-  // Persist in-progress form data to localStorage (fast) AND server (debounced).
+  // Persist in-progress form data.
+  // Authenticated users → server only (full payload, no PII on client).
+  // Unauthenticated fallback → sessionStorage with minimal, non-PII subset.
   useEffect(() => {
     if (!draftLoadedRef.current || isSubmitted) return
 
-    const payload = {
+    const now = new Date().toISOString()
+
+    // Full payload — only sent to server, never stored client-side
+    const fullPayload = {
       currentStep,
       primaryApplicant,
       includeCoApplicant,
@@ -263,34 +271,70 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
       tradeIn,
       financingTerms,
       additionalNotes,
-      savedAt: new Date().toISOString(),
+      savedAt: now,
     }
 
-    // Save to localStorage immediately (fast, protects against tab close)
-    const localTimeout = window.setTimeout(() => {
-      try {
-        window.localStorage.setItem(draftKey, JSON.stringify(payload))
-      } catch (error) {
-        console.error("Failed to save finance draft to localStorage:", error)
-      }
-    }, 250)
+    // Minimal non-PII subset for client-side fallback
+    const localPayload = {
+      currentStep,
+      includeCoApplicant,
+      vehicleInfo: {
+        vin: vehicleInfo.vin,
+        year: vehicleInfo.year,
+        make: vehicleInfo.make,
+        model: vehicleInfo.model,
+        trim: vehicleInfo.trim,
+        color: vehicleInfo.color,
+        mileage: vehicleInfo.mileage,
+        totalPrice: vehicleInfo.totalPrice,
+        downPayment: vehicleInfo.downPayment,
+        maxDownPayment: vehicleInfo.maxDownPayment,
+      },
+      tradeIn: {
+        hasTradeIn: tradeIn.hasTradeIn,
+        year: tradeIn.year,
+        make: tradeIn.make,
+        model: tradeIn.model,
+        condition: tradeIn.condition,
+        estimatedValue: tradeIn.estimatedValue,
+      },
+      financingTerms,
+      additionalNotes,
+      savedAt: now,
+    }
 
-    // Save to server with longer debounce (persists across devices)
     if (user) {
+      // Authenticated: save full payload to server only, clear any client remnant
       if (serverSyncTimer.current) clearTimeout(serverSyncTimer.current)
       serverSyncTimer.current = setTimeout(() => {
         fetch("/api/v1/financing/drafts", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ vehicleId: vehicleId || null, formData: payload }),
-        }).catch(() => {
-          // Silent — localStorage is the fallback
+          body: JSON.stringify({ vehicleId: vehicleId || null, formData: fullPayload }),
+        }).catch((error) => {
+          console.error("Failed to save finance draft to server:", error)
         })
       }, 2000)
+
+      // Remove any stale localStorage/sessionStorage PII from before login
+      try { window.localStorage.removeItem(draftKey) } catch { /* noop */ }
+      try { window.sessionStorage.removeItem(draftKey) } catch { /* noop */ }
+    } else {
+      // Unauthenticated: save minimal non-PII subset to sessionStorage (tab-scoped)
+      const localTimeout = window.setTimeout(() => {
+        try {
+          window.sessionStorage.setItem(draftKey, JSON.stringify(localPayload))
+        } catch (error) {
+          console.error("Failed to save finance draft to sessionStorage:", error)
+        }
+      }, 250)
+
+      return () => {
+        window.clearTimeout(localTimeout)
+      }
     }
 
     return () => {
-      window.clearTimeout(localTimeout)
       if (serverSyncTimer.current) clearTimeout(serverSyncTimer.current)
     }
   }, [

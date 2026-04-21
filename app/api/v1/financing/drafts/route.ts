@@ -52,60 +52,29 @@ export async function PUT(request: NextRequest) {
       return apiError(ErrorCode.VALIDATION_ERROR, "formData is required", 400)
     }
 
-    // Upsert: one draft per user per vehicle (or general if no vehicleId)
+    // Atomic upsert: one draft per user per vehicle (or general if no vehicleId)
     const draftVehicleId = vehicleId || null
 
-    // Check if draft already exists
-    let query = supabase
+    const { data: draft, error: upsertError } = await supabase
       .from("finance_application_drafts")
-      .select("id")
-      .eq("user_id", user.id)
-
-    if (draftVehicleId) {
-      query = query.eq("vehicle_id", draftVehicleId)
-    } else {
-      query = query.is("vehicle_id", null)
-    }
-
-    const { data: existing } = await query.maybeSingle()
-
-    if (existing) {
-      // Update existing draft
-      const { data: updated, error: updateError } = await supabase
-        .from("finance_application_drafts")
-        .update({
+      .upsert(
+        {
+          user_id: user.id,
+          vehicle_id: draftVehicleId,
           form_data: formData,
           updated_at: new Date().toISOString(),
-        })
-        .eq("id", existing.id)
-        .select("id, vehicle_id, form_data, updated_at")
-        .single()
-
-      if (updateError) {
-        console.error("[financing/drafts] UPDATE error:", updateError.message)
-        return apiError(ErrorCode.INTERNAL_ERROR, "Failed to update draft")
-      }
-
-      return apiSuccess(updated)
-    }
-
-    // Insert new draft
-    const { data: inserted, error: insertError } = await supabase
-      .from("finance_application_drafts")
-      .insert({
-        user_id: user.id,
-        vehicle_id: draftVehicleId,
-        form_data: formData,
-      })
+        },
+        { onConflict: "user_id,vehicle_id" }
+      )
       .select("id, vehicle_id, form_data, updated_at")
       .single()
 
-    if (insertError) {
-      console.error("[financing/drafts] INSERT error:", insertError.message)
+    if (upsertError) {
+      console.error("[financing/drafts] UPSERT error:", upsertError.message)
       return apiError(ErrorCode.INTERNAL_ERROR, "Failed to save draft")
     }
 
-    return apiSuccess(inserted)
+    return apiSuccess(draft)
   } catch (error) {
     console.error("[financing/drafts] PUT unhandled:", error)
     return apiError(ErrorCode.INTERNAL_ERROR, "Failed to save draft")
