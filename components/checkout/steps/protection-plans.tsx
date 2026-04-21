@@ -223,7 +223,7 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: ProtectionPl
                     : "hover:border-blue-300"
               }`}
               onClick={() => handleSelect(plan.id as ProtectionPlanId)}
-              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleSelect(plan.id as ProtectionPlanId) } }}
+              onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); handleSelect(plan.id as ProtectionPlanId) } }}
             >
               {plan.recommended && (
                 <div className="absolute -top-3 left-4">
