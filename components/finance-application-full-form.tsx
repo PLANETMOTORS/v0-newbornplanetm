@@ -706,7 +706,6 @@ if (errors.length > 0) {
       : "Vehicle Deposit"
 
     const fetchClientSecret = () =>
-    const fetchClientSecret = () =>
       startVehicleCheckout({
         vehicleId: vehicleId || "",
         vehicleName,
