@@ -107,7 +107,7 @@ export const PROTECTION_PRODUCTS: ProtectionProduct[] = [
     ],
     notCovered: [
       "Pre-existing conditions at time of purchase",
-      "Regular maintenance items (oil, filters, brakes pads)",
+      "Regular maintenance items (oil, filters, brake pads)",
       "Cosmetic damage or wear items",
       "Damage from accidents or misuse",
       "Modifications or aftermarket parts",

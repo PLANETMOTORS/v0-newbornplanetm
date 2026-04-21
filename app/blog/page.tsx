@@ -1,3 +1,5 @@
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
 import { BlogPageContent } from "@/components/blog-page-content"
 
 export const metadata = {
