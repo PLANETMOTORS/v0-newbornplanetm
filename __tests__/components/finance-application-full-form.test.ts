@@ -64,6 +64,7 @@ vi.mock('lucide-react', () => ({
   Loader2: vi.fn(() => null),
   Shield: vi.fn(() => null),
   AlertCircle: vi.fn(() => null),
+  LockKeyhole: vi.fn(() => null),
 }))
 
 vi.mock('@/lib/utils', () => ({ cn: vi.fn((...args: unknown[]) => args.filter(Boolean).join(' ')) }))
