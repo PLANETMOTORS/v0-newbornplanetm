@@ -43,7 +43,7 @@ import { trackMetaViewContent, trackMetaAddToWishlist } from "@/components/analy
 // ── Lazy-load heavy below-fold components ──
 const VehicleSpinViewer = dynamic(
   () => import("@/components/vehicle-spin-viewer").then(m => ({ default: m.VehicleSpinViewer })),
-  { ssr: false, loading: () => <div className="aspect-[4/3] bg-gray-100 animate-pulse rounded-xl" /> }
+  { ssr: false, loading: () => <div className="aspect-[4/3] rounded-xl" style={{ background: "linear-gradient(to bottom, #FFFFFF 0%, #F5F5F5 40%, #E8E8E8 65%, #D0D0D0 80%, #C8C8C8 100%)" }} /> }
 )
 const VehicleInteriorViewer = dynamic(
   () => import("@/components/vehicle-interior-viewer").then(m => ({ default: m.VehicleInteriorViewer })),
@@ -811,7 +811,7 @@ export default function VehicleDetailPage() {
                           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                         />
                       ) : spinFramesLoading ? (
-                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-4" style={{ background: "linear-gradient(to bottom, #ffffff 0%, #f9f9f9 45%, #f0f0f0 55%, #e8e8e8 70%, #e0e0e0 100%)" }}>
+                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-4" style={{ background: "linear-gradient(to bottom, #FFFFFF 0%, #F5F5F5 40%, #E8E8E8 65%, #D0D0D0 80%, #C8C8C8 100%)" }}>
                           <Loader2 className="w-10 h-10 animate-spin text-primary" aria-hidden="true" />
                           <p className="text-sm text-muted-foreground font-medium">Loading 360° view…</p>
                         </div>
@@ -821,7 +821,7 @@ export default function VehicleDetailPage() {
                           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                         />
                       ) : (
-                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-3" style={{ background: "linear-gradient(to bottom, #ffffff 0%, #f9f9f9 45%, #f0f0f0 55%, #e8e8e8 70%, #e0e0e0 100%)" }}>
+                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-3" style={{ background: "linear-gradient(to bottom, #FFFFFF 0%, #F5F5F5 40%, #E8E8E8 65%, #D0D0D0 80%, #C8C8C8 100%)" }}>
                           <RotateCw className="w-8 h-8 text-muted-foreground" aria-hidden="true" />
                           <p className="text-sm text-muted-foreground font-medium">360° view not available</p>
                         </div>

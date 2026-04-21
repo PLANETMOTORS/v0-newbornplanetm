@@ -25,19 +25,10 @@ import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "luci
  * ══════════════════════════════════════════════════════════════════════════════ */
 
 // ── Studio environment constants ──
-// TIRE_LINE_Y: where the tire rubber sits and shadow is centered.
-// This is the target Y position (as a fraction of canvas height) where the
-// tire bottom should land. The background gradient transitions above this
-// to create a seamless wall-to-floor transition.
-const TIRE_LINE_Y    = 0.78   // tires land here (78% of canvas height) — matches Devin's working value
-const CAR_FILL       = 0.90   // car fills 90% of canvas width
+const TIRE_LINE_Y    = 0.84   // floor horizon — tires land here (84% of canvas height)
+const CAR_FILL       = 0.92   // car fills 92% of canvas width
 const TIRE_CONTACT_Y = 0.82   // default: tire bottom at 82% of image height (fallback)
-const GROUND_PUSH    = 0.06   // push car down by 6% of car height so tires sink INTO the floor
 const REFLECTION_OPACITY = 0.04 // floor reflection strength (subtle on bright floor)
-// Minimum headroom above the car (as a fraction of canvas height).
-// Prevents the car from being clipped at the top of the canvas,
-// especially for full-frame images where tires are near the image bottom.
-const MIN_HEADROOM   = 0.02   // at least 2% of canvas height above the car
 
 // Studio colors are defined inline in the single continuous background gradient
 // inside drawScene() — no separate wall/floor constants needed.
@@ -159,67 +150,44 @@ function drawScene(
   }
   const tireLineY = TIRE_LINE_Y * height
 
-  // ── 1. Background: Carvana-style BRIGHT studio floor ──
+  // ── 1. Background: studio floor with visible ground plane ──
   const bgGrad = ctx.createLinearGradient(0, 0, 0, height)
   bgGrad.addColorStop(0.00, "#FFFFFF")   // wall top — white
-  bgGrad.addColorStop(0.30, "#F8F8F8")   // wall mid — near-white
-  bgGrad.addColorStop(0.50, "#ECECEC")   // transition zone (floorNear)
-  bgGrad.addColorStop(0.62, "#D8D8D8")   // floor far
-  bgGrad.addColorStop(1.00, "#D8D8D8")   // floor bottom
+  bgGrad.addColorStop(0.40, "#F5F5F5")   // wall mid
+  bgGrad.addColorStop(0.65, "#E8E8E8")   // wall-to-floor transition
+  bgGrad.addColorStop(0.80, "#D0D0D0")   // floor near tires
+  bgGrad.addColorStop(1.00, "#C8C8C8")   // floor bottom — darker for ground presence
   ctx.fillStyle = bgGrad
   ctx.fillRect(0, 0, width, height)
 
   if (!carImg || carImg.naturalWidth === 0) return
 
-  // ── Calculate car placement ──
+  // ── 2. Calculate car placement ──
   const imgW = carImg.naturalWidth
   const imgH = carImg.naturalHeight
   const aspect = imgW / imgH
   let carW = width * CAR_FILL
   let carH = carW / aspect
-  // Constrain by height to prevent clipping in fullscreen/widescreen layouts
-  if (carH > height * 0.92) {
-    carH = height * 0.92
+  if (carH > height * 0.95) {
+    carH = height * 0.95
     carW = carH * aspect
   }
 
-  // Place the car so that its detected tire bottom lands on tireLineY,
-  // then push it down by GROUND_PUSH so tires visually sink INTO the floor/shadow.
-  let carTop = tireLineY - tireY * carH + GROUND_PUSH * carH
-
-  // Dynamic clamp: if the car would overflow the top of the canvas, scale it
-  // down so there is at least MIN_HEADROOM of headroom above the car body.
-  const minTop = height * MIN_HEADROOM
-  if (carTop < minTop) {
-    // Solve for the maximum carH that keeps carTop >= minTop:
-    //   minTop = tireLineY - tireY * carH'
-    //   carH' = (tireLineY - minTop) / tireY
-    const maxCarH = (tireLineY - minTop) / tireY
-    if (maxCarH > 0 && maxCarH < carH) {
-      carH = maxCarH
-      carW = carH * aspect
-    }
-    carTop = tireLineY - tireY * carH
-  }
-
+  const carTop = tireLineY - tireY * carH
   const carLeft = (width - carW) / 2
   const shadowCenterX = width / 2
+  const tireBottomY = tireLineY
 
-  // ── 2. Shadow: Carvana-style ground shadow ──
-  // Shadow is centered at the tire bottom (where the tires meet the floor).
-  const tireBottomY = carTop + tireY * carH
-
-  // Layer A: large soft ambient pool (visible dark area below and around car)
+  // ── 3. Pre-car ambient shadow (wide soft pool under car) ──
   ctx.save()
-  const shadowRx = carW * 0.46
-  const shadowRy = carH * 0.14   // tall ellipse — extends well below tire bottom
-  ctx.translate(shadowCenterX, tireBottomY)
+  const shadowRx = carW * 0.50
+  const shadowRy = carH * 0.14
+  ctx.translate(shadowCenterX, tireBottomY + shadowRy * 0.15)
   ctx.scale(1, shadowRy / shadowRx)
   const shadowGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, shadowRx)
-  shadowGrad.addColorStop(0, "rgba(0,0,0,0.35)")     // strong dark center
-  shadowGrad.addColorStop(0.25, "rgba(0,0,0,0.25)")
-  shadowGrad.addColorStop(0.50, "rgba(0,0,0,0.15)")
-  shadowGrad.addColorStop(0.75, "rgba(0,0,0,0.06)")
+  shadowGrad.addColorStop(0, "rgba(0,0,0,0.38)")
+  shadowGrad.addColorStop(0.25, "rgba(0,0,0,0.28)")
+  shadowGrad.addColorStop(0.55, "rgba(0,0,0,0.12)")
   shadowGrad.addColorStop(1, "rgba(0,0,0,0)")
   ctx.fillStyle = shadowGrad
   ctx.beginPath()
@@ -227,23 +195,31 @@ function drawScene(
   ctx.fill()
   ctx.restore()
 
-  // Layer B: tight contact shadow at tire bottom (the "ground contact" strip)
-  const contactH = carH * 0.015
-  const contactW = carW * 0.80   // narrower than car — concentrated under wheels
-  const contactLeft = (width - contactW) / 2
-  const contactGrad = ctx.createLinearGradient(contactLeft, 0, contactLeft + contactW, 0)
-  contactGrad.addColorStop(0, "rgba(0,0,0,0)")
-  contactGrad.addColorStop(0.08, "rgba(0,0,0,0.30)")
-  contactGrad.addColorStop(0.5, "rgba(0,0,0,0.35)")
-  contactGrad.addColorStop(0.92, "rgba(0,0,0,0.30)")
-  contactGrad.addColorStop(1, "rgba(0,0,0,0)")
-  ctx.fillStyle = contactGrad
-  ctx.fillRect(contactLeft, tireBottomY - contactH * 0.3, contactW, contactH)
-
-  // ── 3. Car image (raw — halo blends naturally with bright floor) ──
+  // ── 4. Car image ──
   ctx.drawImage(carImg, carLeft, carTop, carW, carH)
 
-  // ── 4. Floor reflection (starts at tire bottom, not tireLineY) ──
+  // ── 5. POST-CAR SHADOW: multiply-blended contact patch ──
+  // Heavy dark ellipse drawn ON TOP of the tire zone using 'multiply'
+  // compositing — visually anchors tires to ground, hides perspective issues.
+  ctx.save()
+  ctx.globalCompositeOperation = "multiply"
+  const postShadowW = carW * 0.88
+  const postShadowH = carH * 0.065
+  const postShadowRx = postShadowW / 2
+  ctx.translate(shadowCenterX, tireBottomY)
+  ctx.scale(1, postShadowH / postShadowRx)
+  const postGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, postShadowRx)
+  postGrad.addColorStop(0, "rgba(40,40,40,0.90)")
+  postGrad.addColorStop(0.30, "rgba(50,50,50,0.65)")
+  postGrad.addColorStop(0.60, "rgba(70,70,70,0.30)")
+  postGrad.addColorStop(1, "rgba(128,128,128,0)")
+  ctx.fillStyle = postGrad
+  ctx.beginPath()
+  ctx.arc(0, 0, postShadowRx, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.restore()
+
+  // ── 6. Floor reflection ──
   ctx.save()
   ctx.globalAlpha = REFLECTION_OPACITY
   ctx.beginPath()
@@ -256,8 +232,8 @@ function drawScene(
 
   // Fade the reflection into the bright floor
   const reflFadeGrad = ctx.createLinearGradient(0, tireBottomY, 0, tireBottomY + carH * 0.20)
-  reflFadeGrad.addColorStop(0, "rgba(216,216,216,0)")   // transparent at tire bottom
-  reflFadeGrad.addColorStop(1, "rgba(216,216,216,1)")   // opaque floor color (#D8D8D8 = floorFar)
+  reflFadeGrad.addColorStop(0, "rgba(216,216,216,0)")
+  reflFadeGrad.addColorStop(1, "rgba(216,216,216,1)")
   ctx.fillStyle = reflFadeGrad
   ctx.fillRect(carLeft, tireBottomY, carW, carH * 0.20)
 }
@@ -316,7 +292,9 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     if (!ctx) return
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    ctx.clearRect(0, 0, w, h)
+    // No clearRect needed — drawScene paints a full opaque background first.
+    // Removing clearRect prevents a transparent-canvas flash that exposes
+    // the container div background underneath (the "double layer" ghost).
 
     // Get the cached image for current frame
     const carImg = imageCache.current.get(frame) ?? null
@@ -520,7 +498,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       }`}
       style={{
         cursor: !isReady ? "default" : isDragging ? "grabbing" : "grab",
-        background: "#505458", // fallback color while canvas renders (matches dark floor)
+        background: "linear-gradient(to bottom, #FFFFFF 0%, #F5F5F5 40%, #E8E8E8 65%, #D0D0D0 80%, #C8C8C8 100%)", // must match canvas bgGrad exactly
       }}
       role="region"
       aria-label={`360° Interactive View — ${alt}`}
