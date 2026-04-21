@@ -24,7 +24,6 @@ import {
 } from "lucide-react"
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -90,6 +89,7 @@ export default function AccountPage() {
   const [alertsLoading, setAlertsLoading] = useState(false)
 
   // Delete account
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [deleteError, setDeleteError] = useState("")
 
@@ -962,7 +962,12 @@ export default function AccountPage() {
                           <Shield className="w-4 h-4 mr-2" />
                           Change Password
                         </Button>
-                        <AlertDialog>
+                        <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => {
+                          if (!deleteLoading) {
+                            setDeleteDialogOpen(open)
+                            if (!open) setDeleteError("")
+                          }
+                        }}>
                           <AlertDialogTrigger asChild>
                             <Button variant="outline" className="w-full justify-start text-destructive">
                               <Trash2 className="w-4 h-4 mr-2" />
@@ -983,18 +988,18 @@ export default function AccountPage() {
                               </p>
                             )}
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
+                              <AlertDialogCancel disabled={deleteLoading}>Cancel</AlertDialogCancel>
+                              <Button
+                                variant="destructive"
                                 onClick={handleDeleteAccount}
                                 disabled={deleteLoading}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                               >
                                 {deleteLoading ? (
                                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Deleting...</>
                                 ) : (
                                   "Delete My Account"
                                 )}
-                              </AlertDialogAction>
+                              </Button>
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>

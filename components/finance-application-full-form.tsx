@@ -599,7 +599,8 @@ if (errors.length > 0) {
         // Ignore localStorage failures.
       }
       if (user) {
-        fetch(`/api/v1/financing/drafts?id=${vehicleId || ""}`, { method: "DELETE" }).catch(() => {})
+        const deleteParam = vehicleId ? `vehicleId=${vehicleId}` : "vehicleId="
+        fetch(`/api/v1/financing/drafts?${deleteParam}`, { method: "DELETE" }).catch(() => {})
       }
       setIsSubmitted(true)
   } catch (error) {

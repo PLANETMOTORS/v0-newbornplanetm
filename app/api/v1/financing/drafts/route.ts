@@ -112,7 +112,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// DELETE /api/v1/financing/drafts - Delete a specific draft
+// DELETE /api/v1/financing/drafts - Delete a draft by ID or by vehicleId
 export async function DELETE(request: NextRequest) {
   try {
     if (!validateOrigin(request)) {
@@ -128,16 +128,28 @@ export async function DELETE(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const draftId = searchParams.get("id")
+    const vehicleId = searchParams.get("vehicleId")
+    const hasVehicleIdParam = searchParams.has("vehicleId")
 
-    if (!draftId) {
-      return apiError(ErrorCode.VALIDATION_ERROR, "Draft ID is required", 400)
+    if (!draftId && !hasVehicleIdParam) {
+      return apiError(ErrorCode.VALIDATION_ERROR, "Draft ID or vehicleId param is required", 400)
     }
 
-    const { error } = await supabase
+    let query = supabase
       .from("finance_application_drafts")
       .delete()
-      .eq("id", draftId)
       .eq("user_id", user.id)
+
+    if (draftId) {
+      query = query.eq("id", draftId)
+    } else if (vehicleId) {
+      query = query.eq("vehicle_id", vehicleId)
+    } else {
+      // vehicleId param present but empty — delete the "general" draft
+      query = query.is("vehicle_id", null)
+    }
+
+    const { error } = await query
 
     if (error) {
       console.error("[financing/drafts] DELETE error:", error.message)
