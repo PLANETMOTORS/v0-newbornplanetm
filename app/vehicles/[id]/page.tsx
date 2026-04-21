@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -20,7 +20,7 @@ import {
   Phone, Star, TrendingUp, Users,
   Battery, LockKeyhole, Truck, ArrowRight, Play,
   Download, ExternalLink, Check, Expand,
-  Key, RotateCw
+  Key, RotateCw, Pause
 } from "lucide-react"
 
 import { VehicleJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
@@ -545,6 +545,32 @@ export default function VehicleDetailPage() {
   // ── 360° via Drivee iframe ──
   const has360 = !!vehicle?.driveeMid
 
+  // ── Auto-spin for 360° fallback (no Drivee) ──
+  const [isAutoSpinning, setIsAutoSpinning] = useState(true)
+  const autoSpinRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const AUTO_SPIN_INTERVAL = 1500 // ms between frames
+
+  const clearAutoSpin = useCallback(() => {
+    if (autoSpinRef.current) {
+      clearInterval(autoSpinRef.current)
+      autoSpinRef.current = null
+    }
+  }, [])
+
+  // Start / stop auto-spin when 360 tab is active without Drivee
+  useEffect(() => {
+    const shouldSpin = imageType === "360" && !has360 && isAutoSpinning && vehicle?.images?.length > 1
+    if (shouldSpin) {
+      clearAutoSpin()
+      autoSpinRef.current = setInterval(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % vehicle.images.length)
+      }, AUTO_SPIN_INTERVAL)
+    } else {
+      clearAutoSpin()
+    }
+    return clearAutoSpin
+  }, [imageType, has360, isAutoSpinning, vehicle?.images?.length, clearAutoSpin])
+
   const handleProtectedAction = (action: string, callback?: () => void) => {
     if (!user) {
       setAuthAction(action)
@@ -775,12 +801,71 @@ export default function VehicleDetailPage() {
               <div className="min-w-0 overflow-hidden">
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
-                  {/* 360° Interactive Viewer — Drivee iframe */}
+                  {/* 360° Interactive Viewer — Drivee iframe (if available) */}
                   {imageType === "360" && has360 && vehicle.driveeMid ? (
                     <DriveeViewer
                       mid={vehicle.driveeMid}
                       vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                     />
+                  ) : imageType === "360" && !has360 ? (
+                  /* ── Auto-Spin 360° Fallback — cycles exterior photos ── */
+                  <div
+                    data-testid="vdp-auto-spin"
+                    className="relative aspect-[4/3] rounded-xl overflow-hidden group"
+                    style={{ backgroundColor: "#111" }}
+                    onMouseEnter={() => setIsAutoSpinning(false)}
+                    onMouseLeave={() => setIsAutoSpinning(true)}
+                  >
+                    {vehicle.images.length > 0 && vehicle.images[currentImageIndex] ? (
+                      <>
+                        <Image
+                          src={vehicle.images[currentImageIndex]}
+                          alt={`${vehicle.year} ${vehicle.make} ${vehicle.model} — 360° view`}
+                          fill
+                          className="object-contain transition-opacity duration-500"
+                          priority
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
+                        />
+                        {/* 360° overlay badge */}
+                        <div className="absolute top-4 left-4 bg-black/60 backdrop-blur text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5">
+                          <RotateCw className="h-3 w-3 animate-spin" style={{ animationDuration: "3s" }} />
+                          Auto-Spin 360°
+                        </div>
+                        {/* Play / Pause toggle */}
+                        <button
+                          onClick={() => setIsAutoSpinning(!isAutoSpinning)}
+                          className="absolute bottom-4 right-4 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition shadow-lg"
+                          aria-label={isAutoSpinning ? "Pause auto-spin" : "Play auto-spin"}
+                        >
+                          {isAutoSpinning ? <Pause className="h-4 w-4 text-black" /> : <Play className="h-4 w-4 text-black ml-0.5" />}
+                        </button>
+                        {/* Image counter */}
+                        <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur text-white px-2 py-1 rounded text-xs">
+                          {currentImageIndex + 1} / {vehicle.images.length}
+                        </div>
+                        {/* Manual prev/next arrows */}
+                        <button
+                          onClick={() => { setIsAutoSpinning(false); setCurrentImageIndex((p: number) => (p - 1 + vehicle.images.length) % vehicle.images.length) }}
+                          aria-label="Previous image"
+                          className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition opacity-0 group-hover:opacity-100"
+                        >
+                          <ChevronLeft className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => { setIsAutoSpinning(false); setCurrentImageIndex((p: number) => (p + 1) % vehicle.images.length) }}
+                          aria-label="Next image"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition opacity-0 group-hover:opacity-100"
+                        >
+                          <ChevronRight className="h-5 w-5" />
+                        </button>
+                      </>
+                    ) : (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                        <RotateCw className="w-12 h-12 text-white/20" />
+                        <p className="text-sm text-white/50">No exterior photos available</p>
+                      </div>
+                    )}
+                  </div>
                   ) : (
                   <div
                     data-testid="vdp-image-gallery"
@@ -863,20 +948,20 @@ export default function VehicleDetailPage() {
                         Interior
                       </Button>
                     )}
-                    {has360 && (
-                      <Button
-                        variant={imageType === "360" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => {
-                          setImageType("360")
-                          setCurrentImageIndex(0)
-                        }}
-                        className="gap-1"
-                      >
-                        <RotateCw className="h-3.5 w-3.5" />
-                        360°
-                      </Button>
-                    )}
+                    {/* 360° always visible — uses Drivee if available, auto-spin fallback otherwise */}
+                    <Button
+                      variant={imageType === "360" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        setImageType("360")
+                        setCurrentImageIndex(0)
+                        setIsAutoSpinning(true)
+                      }}
+                      className="gap-1"
+                    >
+                      <RotateCw className="h-3.5 w-3.5" />
+                      360°
+                    </Button>
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button variant="outline" size="sm" className="gap-2">
