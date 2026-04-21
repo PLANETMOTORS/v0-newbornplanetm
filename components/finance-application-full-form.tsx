@@ -731,7 +731,9 @@ if (errors.length > 0) {
           <h2 className="text-2xl font-bold mb-2">Application Received!</h2>
           <p className="text-muted-foreground">
             Your finance application has been submitted successfully.
-            Complete your $250 refundable deposit below to secure this vehicle.
+            {vehicleId
+              ? " Complete your $250 refundable deposit below to secure this vehicle."
+              : " Select a vehicle to complete your deposit."}
           </p>
         </div>
 
