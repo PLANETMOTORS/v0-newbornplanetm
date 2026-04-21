@@ -52,7 +52,7 @@ interface FinanceApplicationFullFormProps {
 
 export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData }: FinanceApplicationFullFormProps) {
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, isLoading: isAuthLoading } = useAuth()
   const draftLoadedRef = useRef(false)
   const serverSyncTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const draftKey = useMemo(() => `pm:finance-draft:${vehicleId || "general"}`, [vehicleId])
@@ -192,8 +192,9 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   }, [])
 
   // Recover in-progress form data: try server first (if logged in), fall back to localStorage.
+  // Wait for auth to settle so we don't skip the server fetch when user is still loading.
   useEffect(() => {
-    if (draftLoadedRef.current) return
+    if (draftLoadedRef.current || isAuthLoading) return
 
     async function loadDraft() {
       // Try server draft first (persists across devices)
@@ -231,7 +232,7 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     }
 
     loadDraft()
-  }, [draftKey, user, vehicleId, restoreFromDraft])
+  }, [draftKey, user, isAuthLoading, vehicleId, restoreFromDraft])
 
   // Persist in-progress form data to localStorage (fast) AND server (debounced).
   useEffect(() => {

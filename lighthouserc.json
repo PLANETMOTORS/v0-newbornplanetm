@@ -4,7 +4,7 @@
       "url": [
         "http://localhost:3000/",
         "http://localhost:3000/inventory",
-        "http://localhost:3000/checkout/payment-type"
+        "http://localhost:3000/financing"
       ],
       "startServerCommand": "pnpm start",
       "startServerReadyPattern": "Ready in",
