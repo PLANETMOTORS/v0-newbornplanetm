@@ -130,13 +130,14 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
   }, [vehicleId])
 
   // Clean up license preview blob URL on unmount
+  const licensePreviewRef = useRef(license.licensePreviewUrl)
+  licensePreviewRef.current = license.licensePreviewUrl
   useEffect(() => {
     return () => {
-      if (license.licensePreviewUrl) {
-        URL.revokeObjectURL(license.licensePreviewUrl)
+      if (licensePreviewRef.current) {
+        URL.revokeObjectURL(licensePreviewRef.current)
       }
     }
-    // Only run cleanup on unmount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

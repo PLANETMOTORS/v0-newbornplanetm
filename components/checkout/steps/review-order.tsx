@@ -66,6 +66,7 @@ export function ReviewOrderStep({
   const protection = PROTECTION_PRICES[protectionPlan] ?? PROTECTION_PRICES.none
   const deliveryFee = delivery.deliveryType === "delivery" ? delivery.deliveryCost : 0
   const financeDocsFee = paymentMethod.purchaseType === "finance" ? 895 : 0
+  const depositAmount = 250 + (protectionPlan !== "none" ? 250 : 0)
 
   const provinceCode = PROVINCE_NAME_TO_CODE[personal.province] || "ON"
   const provinceTax = PROVINCE_TAX_RATES[provinceCode] || PROVINCE_TAX_RATES.ON
@@ -200,7 +201,8 @@ export function ReviewOrderStep({
             <span>${total.toLocaleString()}</span>
           </div>
           <p className="text-xs text-muted-foreground pt-2">
-            A $250 refundable deposit secures this vehicle. Remaining balance due at delivery/pickup.
+            A ${depositAmount} refundable deposit secures this vehicle. Remaining balance due at
+            delivery/pickup.
           </p>
         </CardContent>
       </Card>
@@ -213,7 +215,8 @@ export function ReviewOrderStep({
           onCheckedChange={(checked) => onAgreeToTermsChange(checked as boolean)}
         />
         <Label htmlFor="agreeToTerms" className="text-sm leading-snug cursor-pointer">
-          I agree to Planet Motors&apos; Terms of Service and Privacy Policy. I understand this is a binding purchase agreement and authorize the $250 refundable deposit.
+          I agree to Planet Motors&apos; Terms of Service and Privacy Policy. I understand this is a
+            binding purchase agreement and authorize the ${depositAmount} refundable deposit.
         </Label>
       </div>
 
