@@ -143,6 +143,7 @@ const nextConfig = {
       'https://www.facebook.com',
       'https://capig.planetmotors.ca',        // Server-side tagging iframe
       'https://td.doubleclick.net',           // DoubleClick tracking frame
+      'https://iframe-b8b2c.web.app',        // Drivee 360° viewer iframe
     ]
 
     const connectSrc = [
