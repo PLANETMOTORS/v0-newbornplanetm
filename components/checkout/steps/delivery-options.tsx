@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { MapPin, Truck, Loader2 } from "lucide-react"
@@ -21,6 +21,11 @@ interface DeliveryOptionsStepProps {
 
 export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: DeliveryOptionsStepProps) {
   const [isCalculating, setIsCalculating] = useState(false)
+  const dataRef = useRef(data)
+  dataRef.current = data
+
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
 
   useEffect(() => {
     if (!postalCode || postalCode.replace(/\s/g, '').length < 6) return
@@ -33,8 +38,8 @@ export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: 
         const res = await fetch(`/api/v1/deliveries/quote?postalCode=${encodeURIComponent(postalCode)}`)
         if (res.ok && !cancelled) {
           const json = await res.json()
-          onChange({
-            ...data,
+          onChangeRef.current({
+            ...dataRef.current,
             deliveryCost: json.deliveryCost ?? 0,
             deliveryDistance: json.distanceKm ?? 0,
             deliveryMessage: json.message ?? "",
@@ -42,7 +47,7 @@ export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: 
         }
       } catch {
         if (!cancelled) {
-          onChange({ ...data, deliveryCost: 0, deliveryDistance: 0, deliveryMessage: "Free delivery" })
+          onChangeRef.current({ ...dataRef.current, deliveryCost: 0, deliveryDistance: 0, deliveryMessage: "Free delivery" })
         }
       } finally {
         if (!cancelled) setIsCalculating(false)
@@ -50,8 +55,6 @@ export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: 
     }, 400)
 
     return () => { cancelled = true; clearTimeout(timer) }
-    // Only re-run when postalCode changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postalCode])
 
   return (

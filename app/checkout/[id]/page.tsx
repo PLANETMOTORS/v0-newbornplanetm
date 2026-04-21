@@ -13,9 +13,9 @@ export async function generateMetadata({ params }: CheckoutPageProps): Promise<M
     "Complete your vehicle purchase with Planet Motors. Secure checkout with financing options, protection plans, and free delivery."
 
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000"
+      : "http://localhost:3000")
     const res = await fetch(`${baseUrl}/api/v1/vehicles/${id}`, { next: { revalidate: 300 } })
     if (res.ok) {
       const json = await res.json()

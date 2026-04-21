@@ -160,7 +160,7 @@ export function DriversLicenseStep({
             <Label htmlFor="licenseFirstName">First name</Label>
             <Input
               id="licenseFirstName"
-              value={data.licenseFirstName || prefillFirstName}
+              value={data.licenseFirstName !== "" ? data.licenseFirstName : prefillFirstName}
               onChange={(e) => onChange({ ...data, licenseFirstName: e.target.value })}
             />
           </div>
@@ -168,7 +168,7 @@ export function DriversLicenseStep({
             <Label htmlFor="licenseLastName">Last name</Label>
             <Input
               id="licenseLastName"
-              value={data.licenseLastName || prefillLastName}
+              value={data.licenseLastName !== "" ? data.licenseLastName : prefillLastName}
               onChange={(e) => onChange({ ...data, licenseLastName: e.target.value })}
             />
           </div>
