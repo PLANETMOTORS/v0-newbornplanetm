@@ -499,7 +499,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       }`}
       style={{
         cursor: !isReady ? "default" : isDragging ? "grabbing" : "grab",
-        background: "#D8D8D8", // simple solid fallback — canvas draws the real gradient on top
+        background: "transparent", // canvas draws the entire studio — no HTML background layer
       }}
       role="region"
       aria-label={`360° Interactive View — ${alt}`}
@@ -508,7 +508,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       {/* ── Single canvas — draws background + shadow + car image ── */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full"
+        className="absolute inset-0 w-full h-full rounded-[inherit]"
       />
 
       {/* Empty state */}
