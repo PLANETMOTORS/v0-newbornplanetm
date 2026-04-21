@@ -150,3 +150,99 @@ export const emptyApplicant: ApplicantData = {
   otherIncomeAmount: "", otherIncomeFrequency: "", otherIncomeDescription: "",
   annualTotal: ""
 }
+
+// Type guard functions
+
+/**
+ * Type guard for ApplicantData
+ * Validates required fields: firstName, lastName, email, phone, and dateOfBirth (with day, month, year)
+ */
+export function isApplicantData(value: unknown): value is ApplicantData {
+  if (value === null || value === undefined || typeof value !== 'object' || Array.isArray(value)) {
+    return false
+  }
+  const obj = value as Record<string, unknown>
+  
+  // Check required string fields
+  if (typeof obj.firstName !== 'string') return false
+  if (typeof obj.lastName !== 'string') return false
+  if (typeof obj.email !== 'string') return false
+  if (typeof obj.phone !== 'string') return false
+  
+  // Check dateOfBirth object
+  if (obj.dateOfBirth === null || typeof obj.dateOfBirth !== 'object' || Array.isArray(obj.dateOfBirth)) {
+    return false
+  }
+  const dob = obj.dateOfBirth as Record<string, unknown>
+  if (typeof dob.day !== 'string') return false
+  if (typeof dob.month !== 'string') return false
+  if (typeof dob.year !== 'string') return false
+  
+  return true
+}
+
+/**
+ * Type guard for VehicleInfo
+ * Validates required fields: year, make, model, totalPrice, downPayment
+ */
+export function isVehicleInfo(value: unknown): value is VehicleInfo {
+  if (value === null || value === undefined || typeof value !== 'object' || Array.isArray(value)) {
+    return false
+  }
+  const obj = value as Record<string, unknown>
+  
+  if (typeof obj.year !== 'string') return false
+  if (typeof obj.make !== 'string') return false
+  if (typeof obj.model !== 'string') return false
+  if (typeof obj.totalPrice !== 'string') return false
+  if (typeof obj.downPayment !== 'string') return false
+  
+  return true
+}
+
+/**
+ * Type guard for TradeInInfo
+ * Validates required fields: hasTradeIn, make, model, estimatedValue, hasLien
+ */
+export function isTradeInInfo(value: unknown): value is TradeInInfo {
+  if (value === null || value === undefined || typeof value !== 'object' || Array.isArray(value)) {
+    return false
+  }
+  const obj = value as Record<string, unknown>
+  
+  if (typeof obj.hasTradeIn !== 'boolean') return false
+  if (typeof obj.make !== 'string') return false
+  if (typeof obj.model !== 'string') return false
+  if (typeof obj.estimatedValue !== 'string') return false
+  if (typeof obj.hasLien !== 'boolean') return false
+  
+  return true
+}
+
+/**
+ * Type guard for FinancingTerms
+ * Validates required fields: agreementType, salesTaxRate, adminFee, loanTermMonths, paymentFrequency
+ */
+export function isFinancingTerms(value: unknown): value is FinancingTerms {
+  if (value === null || value === undefined || typeof value !== 'object' || Array.isArray(value)) {
+    return false
+  }
+  const obj = value as Record<string, unknown>
+  
+  // Check agreementType is valid
+  if (obj.agreementType !== 'finance' && obj.agreementType !== 'cash') {
+    return false
+  }
+  
+  if (typeof obj.salesTaxRate !== 'string') return false
+  if (typeof obj.adminFee !== 'string') return false
+  if (typeof obj.loanTermMonths !== 'number') return false
+  
+  // Check paymentFrequency is valid
+  const validFrequencies = ['weekly', 'bi-weekly', 'semi-monthly', 'monthly']
+  if (!validFrequencies.includes(obj.paymentFrequency as string)) {
+    return false
+  }
+  
+  return true
+}
