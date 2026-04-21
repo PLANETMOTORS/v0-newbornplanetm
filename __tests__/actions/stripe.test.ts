@@ -94,7 +94,7 @@ const lockSuccess = {
 // Tests
 // ────────────────────────────────────────────────────────────────────────────
 describe('startVehicleCheckout', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
     mockAdminClient = createMockAdminClient({ data: lockSuccess, error: null })
     mockStripeClient = createMockStripe()
@@ -105,21 +105,12 @@ describe('startVehicleCheckout', () => {
     getStripe.mockReturnValue(mockStripeClient as unknown as ReturnType<typeof getStripe>)
   })
 
-  it('calls lock_vehicle_for_checkout RPC with p_allowed_statuses including available and reserved', async () => {
+  it('calls lock_vehicle_for_checkout RPC with vehicle id', async () => {
     await startVehicleCheckout(baseCheckoutData)
     expect(mockAdminClient.rpc).toHaveBeenCalledWith(
       'lock_vehicle_for_checkout',
-      expect.objectContaining({
-        p_vehicle_id: 'veh-1',
-        p_allowed_statuses: expect.arrayContaining(['available', 'reserved']),
-      }),
+      { p_vehicle_id: 'veh-1' },
     )
-  })
-
-  it('passes exactly ["available", "reserved"] as p_allowed_statuses', async () => {
-    await startVehicleCheckout(baseCheckoutData)
-    const rpcCall = mockAdminClient.rpc.mock.calls[0]
-    expect(rpcCall[1].p_allowed_statuses).toEqual(['available', 'reserved'])
   })
 
   it('returns the Stripe client_secret on successful checkout', async () => {
