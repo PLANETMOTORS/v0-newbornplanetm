@@ -234,6 +234,10 @@ function getMockVehicleDetail(id: string) {
   }
   const vehicle = mocks[id]
   if (!vehicle) return null
-  // Mock vehicles don't need DB-driven drivee_mid — return null
-  return { ...vehicle, drivee_mid: null }
+  // Attach known Drivee MIDs for testing the 360° viewer locally
+  const testMids: Record<string, string> = {
+    "mock-tesla-3": "640326639530", // 2019 Tesla Model 3 — 37 frames (1200×900, transparent nobg)
+    "mock-tesla-y": "890747363179", // 2024 Tesla Model 3 — 39 frames (1200×900, transparent nobg)
+  }
+  return { ...vehicle, drivee_mid: testMids[id] ?? null }
 }

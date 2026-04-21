@@ -26,18 +26,105 @@ const BUCKET = "vehicle-360"
  * Update this map whenever new vehicles are photographed and migrated.
  */
 export const FRAME_MANIFEST: Record<string, number> = {
-  "190171976531": 37, // 2021 Jeep Wrangler 4xe
-  "744761075195": 33, // 2025 Chevrolet Equinox EV
-  "132601940353": 40, // 2023 Tesla Model 3 Long Range
-  "806787519944": 36, // 2023 Volkswagen Taos
-  "890747363179": 40, // 2024 Tesla Model 3
-  "640326639530": 39, // 2019 Tesla Model 3
-  "061789806057": 7,  // 2022 Tesla Model 3
-  "396425623701": 39, // 2018 Volkswagen Tiguan
-  "625294835450": 38, // 2025 Hyundai Kona Electric
-  "085109772520": 37, // 2018 Audi Q3
-  "860125156862": 32, // 2021 Tesla Model 3 (2nd)
-  "181836743021": 33, // 2021 Tesla Model 3 (5YJ3E1EA3MF848712)
+  "761707513348": 42, // tesla model_y
+  "976732948951": 42, // tesla model_y
+  "831384555142": 42, // tesla model_3
+  "485838797268": 42, // tesla model_y
+  "465839780093": 42, // Benz some_model
+  "296230445506": 42, // Benz some_model
+  "007773360335": 42, // tesla model_y
+  "788958814518": 42, // buick encore_gx
+  "011238577499": 42, // ford escape
+  "224845516435": 42, // toyota corolla
+  "240582378853": 42, // volkswagen tiguan
+  "833116098601": 42, // chevrolet equinox
+  "023774245910": 42, // kia seltos
+  "756794102121": 42, // Benz some_model
+  "699335548952": 41, // chevrolet equinox
+  "430993001195": 41, // tesla model_3
+  "682802154259": 41, // tesla model_y
+  "724429440483": 40, // tesla model_3
+  "984697894001": 40, // volkswagen jetta
+  "982824804899": 40, // hyundai ioniq_5
+  "132601940353": 40, // Benz some_model
+  "499804677467": 40, // Benz some_model
+  "890747363179": 40, // Benz some_model
+  "728544806828": 40, // tesla model_3
+  "363944322014": 40, // audi a4
+  "977778260326": 40, // volkswagen tiguan
+  "258181207759": 40, // toyota c-hr
+  "396425623701": 39, // volkswagen tiguan
+  "676160018628": 39, // volkswagen taos
+  "640326639530": 39, // tesla model_3
+  "567355500099": 39, // tesla model_y
+  "107152863922": 39, // nissan rogue_sport
+  "090928749053": 39, // jeep wrangler
+  "491346986254": 39, // honda civic
+  "750993204326": 39, // tesla model_y
+  "594709716143": 39, // Benz some_model
+  "142280827416": 38, // jeep wrangler
+  "625294835450": 38, // hyundai kona
+  "061789806057": 38, // tesla model_3
+  "267128416527": 38, // tesla model_y
+  "190171976531": 37, // jeep wrangler
+  "414798419001": 37, // chevrolet bolt_ev
+  "085109772520": 37, // Benz some_model
+  "602380299940": 36, // tesla model_y
+  "623843277241": 36, // tesla model_y
+  "614743939028": 36, // Benz some_model
+  "352383529563": 35, // jeep wrangler
+  "108582780272": 35, // jeep wrangler
+  "062510346884": 35, // Benz some_model
+  "806787519944": 34, // volkswagen taos
+  "823914390403": 34, // Benz some_model
+  "054019786170": 34, // Benz some_model
+  "744761075195": 33, // chevrolet equinox
+  "181836743021": 33, // tesla model_3
+  "472909248211": 33, // Benz some_model
+  "207752498048": 33, // Benz some_model
+  "860125156862": 32, // tesla model_3
+  "916996291729": 31, // Benz some_model
+  "217226206089": 31, // Benz some_model
+  "100421805041": 31, // Benz some_model
+  "020766487879": 30, // tesla model_3
+  "058225990564": 30, // subaru forester
+  "815138943882": 29, // toyota rav4
+  "866109897764": 29, // Benz some_model
+  "638578936706": 29, // tesla model_y
+  "744371665438": 29, // kia soul
+  "651305477723": 29, // Benz some_model
+  "388127397314": 29, // Benz some_model
+  "206453293553": 28, // kia niro
+  "167870359085": 28, // tesla model_3
+  "213850451076": 28, // kia soul
+  "455571857729": 27, // tesla model_3
+  "142281753431": 27, // buick encore_gx
+  "629594604842": 27, // tesla model_y
+  "041672030432": 27, // Benz some_model
+  "385182950772": 27, // Benz some_model
+  "135331986306": 26, // tesla model_3
+  "357422065212": 26, // tesla model_y
+  "928238243874": 26, // tesla model_3
+  "516555359655": 25, // tesla model_3
+  "469273590085": 25, // tesla model_3
+  "654133879818": 25, // tesla model_3
+  "078227062505": 25, // tesla model_y
+  "542981164906": 25, // kia soul
+  "441483891415": 25, // tesla model_3
+  "992907790267": 25, // tesla model_3
+  "015947405251": 25, // tesla model_3
+  "136624185554": 25, // Benz some_model
+  "930805549708": 24, // polestar ps2
+  "406559792012": 24, // kia soul
+  "625866462318": 24, // volvo c40
+  "513998192005": 23, // Benz some_model
+  "445281857794": 23, // Benz some_model
+  "662308024089": 23, // tesla model_y
+  "885769949200": 23, // tesla model_y
+  "633172770931": 22, // tesla model_3
+  "293143211049": 22, // tesla model_3
+  "828327929086": 20, // tesla model_3
+  "494372774190": 19, // ford escape
 }
 
 /**

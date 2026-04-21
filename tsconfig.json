@@ -39,6 +39,8 @@
   "exclude": [
     "node_modules",
     "__tests__",
-    "app/sw.ts"
+    "app/sw.ts",
+    "scripts",
+    "src"
   ]
 }
