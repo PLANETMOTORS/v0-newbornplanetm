@@ -7,7 +7,9 @@ export function ComparisonTableWrapper() {
   const router = useRouter()
 
   function handleSelectPackage(packageId: string) {
-    void packageId
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("selectedProtectionPackage", packageId)
+    }
     router.push("/inventory")
   }
 

@@ -30,6 +30,9 @@ function getStripePromise() {
 // Filter out "basic" (no protection) — this component only shows paid plans
 const PROTECTION_PLANS = CHECKOUT_PLANS.filter(p => p.price > 0)
 
+/** Vehicle reservation deposit — separate from protection plan deposit */
+const VEHICLE_RESERVATION_DEPOSIT = 250
+
 interface VehicleCheckoutProps {
   vehicleId: string
   vehicleName: string

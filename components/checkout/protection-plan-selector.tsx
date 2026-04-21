@@ -7,8 +7,6 @@ import { Badge } from "@/components/ui/badge"
 import { Shield, Check } from "lucide-react"
 import { CHECKOUT_PLANS } from "@/lib/constants/protection-packages"
 
-const PROTECTION_PLANS = CHECKOUT_PLANS
-
 interface ProtectionPlanSelectorProps {
   value: string
   onChange: (value: string) => void
@@ -25,7 +23,7 @@ export function ProtectionPlanSelector({ value, onChange }: ProtectionPlanSelect
       </CardHeader>
       <CardContent>
         <RadioGroup value={value} onValueChange={onChange} className="space-y-3">
-          {PROTECTION_PLANS.map((plan) => (
+          {CHECKOUT_PLANS.map((plan) => (
             <div
               key={plan.id}
               className={`relative flex items-start p-4 rounded-lg border-2 cursor-pointer transition-colors ${

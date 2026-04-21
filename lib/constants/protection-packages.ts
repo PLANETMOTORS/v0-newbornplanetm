@@ -135,8 +135,15 @@ export const PROTECTION_PACKAGES: ProtectionPackage[] = [
   },
 ]
 
+/** Valid keys for comparison table rows */
+type ComparisonRowKey =
+  | "paymentMethod"
+  | "deposit"
+  | "warranty"
+  | keyof ProtectionPackage["features"]
+
 /** Comparison table row definitions — order matches the PDF */
-export const COMPARISON_ROWS = [
+export const COMPARISON_ROWS: ReadonlyArray<{ key: ComparisonRowKey; label: string }> = [
   { key: "paymentMethod", label: "Payment method accepted" },
   { key: "deposit", label: "Due at checkout" },
   { key: "returnPolicy", label: "10-day money back guarantee" },
@@ -149,7 +156,7 @@ export const COMPARISON_ROWS = [
   { key: "freeDelivery", label: "Pickup/Delivery" },
   { key: "inspection", label: "Planet Motors Inspection" },
   { key: "safetyCertificate", label: "Safety standards certificate" },
-] as const
+]
 
 export function getPackageById(id: string): ProtectionPackage | undefined {
   return PROTECTION_PACKAGES.find((p) => p.id === id)
@@ -172,7 +179,7 @@ export interface CheckoutPlan {
 }
 
 /** Feature-flag keys → human-readable labels (checkout card list) */
-const FEATURE_LABELS: Record<string, string> = {
+const FEATURE_LABELS: Record<keyof ProtectionPackage["features"], string> = {
   returnPolicy: "10-day money-back guarantee",
   tradeInCredit: "Trade-in credit eligible",
   detailing: "Full detailing included",
@@ -199,9 +206,11 @@ function warrantyLabel(w: ProtectionPackage["warranty"]): string | null {
 export const CHECKOUT_PLANS: CheckoutPlan[] = PROTECTION_PACKAGES.map((pkg) => {
   const featureList: string[] = []
   const wl = warrantyLabel(pkg.warranty)
-  if (wl) featureList.push(wl)
-  for (const [key, enabled] of Object.entries(pkg.features)) {
-    if (enabled && FEATURE_LABELS[key]) featureList.push(FEATURE_LABELS[key])
+  if (wl !== null) featureList.push(wl)
+  for (const key of Object.keys(pkg.features) as Array<keyof ProtectionPackage["features"]>) {
+    if (pkg.features[key] === true) {
+      featureList.push(FEATURE_LABELS[key])
+    }
   }
   return {
     id: pkg.id,

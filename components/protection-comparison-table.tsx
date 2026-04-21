@@ -13,7 +13,6 @@ import {
 
 interface ProtectionComparisonTableProps {
   onSelectPackage?: (packageId: string) => void
-  vehicleId?: string
 }
 
 /* ── Tier gradient configs ── */
@@ -29,6 +28,10 @@ function getPaymentMethodLabel(method: ProtectionPackage["paymentMethod"]) {
     case "cash": return "Cash Only"
     case "finance": return "Finance Only"
     case "cash_and_finance": return "Cash & Finance"
+    default: {
+      const _exhaustive: never = method
+      return _exhaustive
+    }
   }
 }
 
@@ -285,7 +288,7 @@ function DesktopTable({ onSelect }: { onSelect?: (id: string) => void }) {
 }
 
 /* ── Main export ── */
-export function ProtectionComparisonTable({ onSelectPackage, vehicleId }: ProtectionComparisonTableProps) {
+export function ProtectionComparisonTable({ onSelectPackage }: ProtectionComparisonTableProps) {
   return (
     <>
       {/* Desktop: full comparison table */}
