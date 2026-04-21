@@ -1,13 +1,19 @@
 /**
- * Tests for the PR changes in components/finance-application-full-form.tsx
+ * Tests for Stripe checkout patterns shared across checkout components.
  *
- * The PR introduced:
+ * These patterns are used in:
+ *  - app/checkout/[id]/payment/page.tsx
+ *  - components/vehicle-checkout.tsx
+ *  - components/reserve-vehicle-modal.tsx
+ *  - app/checkout/[id]/page.tsx
+ *
+ * Patterns tested:
  *  1. getStripePromise() – lazy singleton that loads @stripe/stripe-js once
  *  2. vehicleName construction from vehicleData prop
  *  3. fetchClientSecret – calls startVehicleCheckout, resolves the client secret,
  *     and throws "Missing checkout client secret" when the action returns a falsy value
  *
- * Because the component runs in a browser environment (React / Next.js "use client"),
+ * Because these components run in a browser environment (React / Next.js "use client"),
  * these tests exercise the equivalent pure-logic patterns in a node test environment,
  * mocking all external dependencies.
  */
