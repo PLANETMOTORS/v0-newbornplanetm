@@ -43,7 +43,7 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
   const [showCheckout, setShowCheckout] = useState(false)
 
   const selectedPkg = selectedPlan ? PROTECTION_PLANS.find(p => p.id === selectedPlan) : null
-  const totalDeposit = 250 + (selectedPkg?.deposit ?? 0)
+  const totalDeposit = 250
   const totalFull = vehiclePrice + (selectedPkg?.price ?? 0)
 
   const fetchClientSecret = useCallback(async () => {
