@@ -41,7 +41,7 @@ export function PaymentMethodStep({ data, onChange, onContinue }: PaymentMethodS
           <CardContent className="flex items-center gap-4 p-6">
             <RadioGroupItem value="finance" id="finance" className="shrink-0" />
             <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-              <Building2 className="w-6 h-6 text-blue-600" />
+              <Building2 className="w-6 h-6 text-blue-600" aria-hidden="true" />
             </div>
             <Label htmlFor="finance" className="flex-1 cursor-pointer">
               <div className="flex items-center gap-2">
@@ -65,7 +65,7 @@ export function PaymentMethodStep({ data, onChange, onContinue }: PaymentMethodS
           <CardContent className="flex items-center gap-4 p-6">
             <RadioGroupItem value="cash" id="cash" className="shrink-0" />
             <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center shrink-0">
-              <CreditCard className="w-6 h-6 text-muted-foreground" />
+              <CreditCard className="w-6 h-6 text-muted-foreground" aria-hidden="true" />
             </div>
             <Label htmlFor="cash" className="flex-1 cursor-pointer">
               <span className="font-semibold text-lg">Pay with cash</span>

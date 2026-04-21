@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import { Button } from "@/components/ui/button"
-import { LockKeyhole, ArrowLeft, Phone } from "lucide-react"
+import { LockKeyhole, ArrowLeft, Phone, AlertCircle } from "lucide-react"
 
 import { PurchaseSidebar, type PurchaseStep } from "./purchase-sidebar"
 import { PersonalDetailsStep, type PersonalDetailsData } from "./steps/personal-details"
@@ -34,14 +34,14 @@ interface CheckoutFlowProps {
 }
 
 const STEP_DEFS = [
-  { id: "personal",   label: "Personal details",  timeEstimate: "3 min" },
-  { id: "trade-in",   label: "Trade-in",           timeEstimate: "4 min" },
-  { id: "payment",    label: "Cash or finance",    timeEstimate: "2 min" },
-  { id: "delivery",   label: "Delivery options",   timeEstimate: "1 min" },
+  { id: "personal",   label: "Personal details",     timeEstimate: "3 min" },
+  { id: "trade-in",   label: "Trade-in",             timeEstimate: "4 min" },
+  { id: "payment",    label: "Cash or finance",      timeEstimate: "2 min" },
+  { id: "delivery",   label: "Delivery options",     timeEstimate: "1 min" },
   { id: "protection", label: "PlanetCare Protection", timeEstimate: "1 min" },
-  { id: "license",    label: "Driver's license",   timeEstimate: "4 min" },
-  { id: "review",     label: "Review order",        timeEstimate: "2 min" },
-  { id: "deposit",    label: "Secure with deposit", timeEstimate: "3 min" },
+  { id: "license",    label: "Driver's license",     timeEstimate: "4 min" },
+  { id: "review",     label: "Review order",         timeEstimate: "2 min" },
+  { id: "deposit",    label: "Secure with deposit",  timeEstimate: "3 min" },
 ] as const
 
 export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
@@ -51,9 +51,9 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [vehicle, setVehicle] = useState<VehicleInfo | null>(null)
   const [vehicleLoading, setVehicleLoading] = useState(true)
+  const [vehicleError, setVehicleError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Step data
   const [personal, setPersonal] = useState<PersonalDetailsData>({
     firstName: "", lastName: "", email: "", phone: "",
     address: "", unit: "", city: "", province: "Ontario", postalCode: "",
@@ -76,9 +76,10 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
     licenseFile: null, licensePreviewUrl: "", licenseFirstName: "", licenseLastName: "",
   })
   const [agreeToTerms, setAgreeToTerms] = useState(false)
-
-  // Track which steps are complete
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set())
+
+  // Track whether email was already prefilled to prevent infinite loop
+  const emailPrefilledRef = useRef(false)
 
   // Redirect unauthenticated users
   useEffect(() => {
@@ -87,12 +88,13 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
     }
   }, [user, authLoading, router, vehicleId])
 
-  // Pre-fill email from auth
+  // Pre-fill email from auth — runs once
   useEffect(() => {
-    if (user?.email && !personal.email) {
+    if (user?.email && !emailPrefilledRef.current) {
+      emailPrefilledRef.current = true
       setPersonal((prev) => ({ ...prev, email: user.email ?? prev.email }))
     }
-  }, [user, personal.email])
+  }, [user])
 
   // Fetch vehicle data
   useEffect(() => {
@@ -100,7 +102,7 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
     async function load() {
       try {
         const res = await fetch(`/api/v1/vehicles/${vehicleId}`)
-        if (!res.ok) throw new Error("Vehicle not found")
+        if (!res.ok) throw new Error(`Vehicle not found (${res.status})`)
         const json = await res.json()
         const v = json.data?.vehicle ?? json.data
         if (!cancelled && v) {
@@ -115,8 +117,10 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
             imageUrl: v.primary_image_url ?? "",
           })
         }
-      } catch {
-        // Vehicle not found — will show error state
+      } catch (err) {
+        if (!cancelled) {
+          setVehicleError(err instanceof Error ? err.message : "Failed to load vehicle")
+        }
       } finally {
         if (!cancelled) setVehicleLoading(false)
       }
@@ -124,6 +128,17 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
     load()
     return () => { cancelled = true }
   }, [vehicleId])
+
+  // Clean up license preview blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (license.licensePreviewUrl) {
+        URL.revokeObjectURL(license.licensePreviewUrl)
+      }
+    }
+    // Only run cleanup on unmount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const markComplete = useCallback((step: number) => {
     setCompletedSteps((prev) => new Set([...prev, step]))
@@ -142,12 +157,10 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
   const handleFinalize = useCallback(() => {
     setIsSubmitting(true)
     markComplete(6)
-    // Review complete → advance to deposit payment (step 7)
     goToStep(7)
-    setIsSubmitting(false)
+    // isSubmitting stays true — deposit step is next, no need to reset
   }, [markComplete, goToStep])
 
-  // Build sidebar steps
   const sidebarSteps: PurchaseStep[] = STEP_DEFS.map((def, idx) => ({
     id: def.id,
     label: def.label,
@@ -159,10 +172,11 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
         : "upcoming",
   }))
 
-  // Loading states
+  // --- Loading / error states ---
+
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Loading">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Loading…</p>
@@ -173,7 +187,7 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
 
   if (vehicleLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Loading vehicle">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Loading vehicle details…</p>
@@ -185,9 +199,12 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
   if (!vehicle) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <h2 className="text-xl font-bold">Vehicle not found</h2>
-          <p className="text-muted-foreground">This vehicle may no longer be available.</p>
+        <div className="text-center space-y-4 max-w-md px-4">
+          <AlertCircle className="w-12 h-12 text-destructive mx-auto" />
+          <h1 className="text-xl font-bold">Vehicle not found</h1>
+          <p className="text-muted-foreground">
+            {vehicleError || "This vehicle may no longer be available."}
+          </p>
           <Button asChild><Link href="/inventory">Browse Inventory</Link></Button>
         </div>
       </div>
@@ -198,21 +215,21 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      {/* Header */}
       <header className="bg-background border-b sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" aria-label="Planet Motors home">
             <PlanetMotorsLogo size="sm" />
           </Link>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <LockKeyhole className="w-4 h-4" />
+              <LockKeyhole className="w-4 h-4" aria-hidden="true" />
               <span className="hidden sm:inline">Secure Checkout</span>
             </div>
             <Button variant="ghost" size="sm" asChild>
               <Link href={`/vehicles/${vehicleId}`}>
-                <ArrowLeft className="w-4 h-4 mr-1" />
+                <ArrowLeft className="w-4 h-4 mr-1" aria-hidden="true" />
                 <span className="hidden sm:inline">Back to Vehicle</span>
+                <span className="sm:hidden">Back</span>
               </Link>
             </Button>
           </div>
@@ -220,8 +237,8 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
       </header>
 
       <main className="container mx-auto px-4 py-6 lg:py-8">
+        <h1 className="sr-only">Checkout — {vehicleName}</h1>
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar */}
           <PurchaseSidebar
             vehicle={{
               year: vehicle.year,
@@ -236,8 +253,7 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
             }}
           />
 
-          {/* Main content */}
-          <section className="flex-1 min-w-0 max-w-2xl">
+          <section className="flex-1 min-w-0 max-w-2xl" aria-label="Checkout step">
             {currentStep === 0 && (
               <PersonalDetailsStep
                 data={personal}
@@ -314,12 +330,11 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
               />
             )}
 
-            {/* Help footer */}
             <div className="mt-8 pt-6 border-t text-center">
               <p className="text-sm text-muted-foreground mb-2">Need help with your purchase?</p>
               <Button variant="outline" size="sm" asChild>
                 <a href="tel:416-985-2277">
-                  <Phone className="w-4 h-4 mr-2" />
+                  <Phone className="w-4 h-4 mr-2" aria-hidden="true" />
                   416-985-2277
                 </a>
               </Button>

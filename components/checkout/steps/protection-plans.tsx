@@ -80,20 +80,25 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: ProtectionPl
         </p>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-4" role="radiogroup" aria-label="Protection plan options">
         {PLANS.map((plan) => {
           const selected = data.selectedPlan === plan.id
           return (
             <Card
               key={plan.id}
+              role="radio"
+              tabIndex={0}
+              aria-checked={selected}
+              aria-label={`${plan.name} — $${plan.price.toLocaleString()}`}
               className={`cursor-pointer transition-all ${
                 selected
-                  ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600"
+                  ? "border-blue-600 bg-blue-50 ring-2 ring-blue-600/20"
                   : plan.highlight
                     ? "border-blue-300 hover:border-blue-500"
                     : "hover:border-blue-300"
               }`}
               onClick={() => onChange({ selectedPlan: plan.id })}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onChange({ selectedPlan: plan.id }) } }}
             >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-3">
@@ -117,7 +122,7 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: ProtectionPl
                 <ul className="grid sm:grid-cols-2 gap-1.5">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Check className="w-3.5 h-3.5 text-green-600 shrink-0" />
+                      <Check className="w-3.5 h-3.5 text-green-600 shrink-0" aria-hidden="true" />
                       {feature}
                     </li>
                   ))}

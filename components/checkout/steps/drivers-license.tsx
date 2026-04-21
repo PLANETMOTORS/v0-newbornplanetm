@@ -1,7 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
-import Image from "next/image"
+import { useRef, useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -22,7 +21,7 @@ interface DriversLicenseStepProps {
   onContinue: () => void
 }
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"]
 
 export function DriversLicenseStep({
@@ -34,6 +33,15 @@ export function DriversLicenseStep({
 }: DriversLicenseStepProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState("")
+  const [isDragging, setIsDragging] = useState(false)
+
+  // Clean up blob URL when preview changes or component unmounts
+  const prevUrlRef = useRef("")
+  useEffect(() => {
+    return () => {
+      if (prevUrlRef.current) URL.revokeObjectURL(prevUrlRef.current)
+    }
+  }, [])
 
   const handleFile = (file: File) => {
     setError("")
@@ -45,7 +53,13 @@ export function DriversLicenseStep({
       setError("File must be under 10 MB.")
       return
     }
+
+    // Revoke previous blob URL to prevent memory leak
+    if (prevUrlRef.current) URL.revokeObjectURL(prevUrlRef.current)
+
     const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : ""
+    prevUrlRef.current = previewUrl
+
     onChange({
       ...data,
       licenseFile: file,
@@ -57,13 +71,19 @@ export function DriversLicenseStep({
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
+    setIsDragging(false)
     const file = e.dataTransfer.files[0]
     if (file) handleFile(file)
   }
 
   const removeFile = () => {
-    if (data.licensePreviewUrl) URL.revokeObjectURL(data.licensePreviewUrl)
+    if (prevUrlRef.current) {
+      URL.revokeObjectURL(prevUrlRef.current)
+      prevUrlRef.current = ""
+    }
     onChange({ ...data, licenseFile: null, licensePreviewUrl: "" })
+    // Reset input so the same file can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
   const validate = (): boolean => {
@@ -84,24 +104,29 @@ export function DriversLicenseStep({
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
+        <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive" role="alert">
           <AlertCircle className="w-4 h-4 shrink-0" />
           {error}
         </div>
       )}
 
-      {/* Upload area */}
       {!data.licenseFile ? (
         <div
-          onDragOver={(e) => e.preventDefault()}
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+          onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
-          className="border-2 border-dashed border-blue-300 rounded-xl p-12 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition-colors"
+          aria-label="Upload driver's license"
+          className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${
+            isDragging
+              ? "border-blue-600 bg-blue-50"
+              : "border-blue-300 hover:border-blue-500 hover:bg-blue-50/50"
+          }`}
         >
-          <Upload className="w-10 h-10 text-blue-500 mx-auto mb-3" />
+          <Upload className="w-10 h-10 text-blue-500 mx-auto mb-3" aria-hidden="true" />
           <p className="font-medium">Click or drag to upload</p>
           <p className="text-sm text-muted-foreground mt-1">JPG, PNG, WebP, or PDF — max 10 MB</p>
           <input
@@ -109,6 +134,7 @@ export function DriversLicenseStep({
             type="file"
             accept={ACCEPTED_TYPES.join(",")}
             className="sr-only"
+            aria-label="Choose driver's license file"
             onChange={(e) => {
               const file = e.target.files?.[0]
               if (file) handleFile(file)
@@ -119,12 +145,13 @@ export function DriversLicenseStep({
         <div className="border rounded-xl p-4">
           <div className="flex items-center gap-4">
             {data.licensePreviewUrl ? (
-              <Image
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
                 src={data.licensePreviewUrl}
                 alt="Driver's license preview"
                 width={160}
                 height={100}
-                className="rounded-lg object-cover border"
+                className="w-40 h-24 rounded-lg object-cover border"
               />
             ) : (
               <div className="w-40 h-24 bg-muted rounded-lg flex items-center justify-center">
@@ -141,7 +168,7 @@ export function DriversLicenseStep({
               type="button"
               onClick={removeFile}
               className="p-2 rounded-full hover:bg-destructive/10 transition-colors"
-              aria-label="Remove file"
+              aria-label="Remove uploaded file"
             >
               <X className="w-5 h-5 text-destructive" />
             </button>
@@ -149,9 +176,8 @@ export function DriversLicenseStep({
         </div>
       )}
 
-      {/* Name confirmation */}
-      <section>
-        <h2 className="font-semibold mb-1">Name on license</h2>
+      <fieldset>
+        <legend className="font-semibold mb-1">Name on license</legend>
         <p className="text-sm text-muted-foreground mb-4">
           Confirm the name matches your driver&apos;s license exactly.
         </p>
@@ -160,6 +186,7 @@ export function DriversLicenseStep({
             <Label htmlFor="licenseFirstName">First name</Label>
             <Input
               id="licenseFirstName"
+              autoComplete="given-name"
               value={data.licenseFirstName !== "" ? data.licenseFirstName : prefillFirstName}
               onChange={(e) => onChange({ ...data, licenseFirstName: e.target.value })}
             />
@@ -168,12 +195,13 @@ export function DriversLicenseStep({
             <Label htmlFor="licenseLastName">Last name</Label>
             <Input
               id="licenseLastName"
+              autoComplete="family-name"
               value={data.licenseLastName !== "" ? data.licenseLastName : prefillLastName}
               onChange={(e) => onChange({ ...data, licenseLastName: e.target.value })}
             />
           </div>
         </div>
-      </section>
+      </fieldset>
 
       <Button
         onClick={() => { if (validate()) onContinue() }}

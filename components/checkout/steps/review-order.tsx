@@ -99,7 +99,7 @@ export function ReviewOrderStep({
       </div>
 
       {/* Personal Details */}
-      <ReviewSection title="Personal details" onEdit={() => onEditStep(0)}>
+      <ReviewSection title="Personal details" editLabel="Edit personal details" onEdit={() => onEditStep(0)}>
         <p>{personal.firstName} {personal.lastName}</p>
         <p className="text-muted-foreground">{personal.email}</p>
         <p className="text-muted-foreground">{personal.phone}</p>
@@ -109,7 +109,7 @@ export function ReviewOrderStep({
       </ReviewSection>
 
       {/* Trade-in */}
-      <ReviewSection title="Trade-in" onEdit={() => onEditStep(1)}>
+      <ReviewSection title="Trade-in" editLabel="Edit trade-in" onEdit={() => onEditStep(1)}>
         {tradeIn.hasTradeIn && tradeIn.tradeInValue > 0 ? (
           <>
             <p>{tradeIn.tradeInVehicle}</p>
@@ -121,12 +121,12 @@ export function ReviewOrderStep({
       </ReviewSection>
 
       {/* Payment Method */}
-      <ReviewSection title="Payment method" onEdit={() => onEditStep(2)}>
+      <ReviewSection title="Payment method" editLabel="Edit payment method" onEdit={() => onEditStep(2)}>
         <p>{paymentMethod.purchaseType === "finance" ? "Finance with Planet Motors" : "Pay with cash"}</p>
       </ReviewSection>
 
       {/* Delivery */}
-      <ReviewSection title="Delivery" onEdit={() => onEditStep(3)}>
+      <ReviewSection title="Delivery" editLabel="Edit delivery options" onEdit={() => onEditStep(3)}>
         <p>
           {delivery.deliveryType === "pickup"
             ? "Pickup at Planet Motors — 30 Major Mackenzie Dr E, Richmond Hill"
@@ -139,7 +139,7 @@ export function ReviewOrderStep({
       </ReviewSection>
 
       {/* Protection */}
-      <ReviewSection title="Protection plan" onEdit={() => onEditStep(4)}>
+      <ReviewSection title="Protection plan" editLabel="Edit protection plan" onEdit={() => onEditStep(4)}>
         <p>{protection.name}</p>
         {protection.price > 0 && (
           <p className="text-muted-foreground">${protection.price.toLocaleString()}</p>
@@ -230,10 +230,12 @@ export function ReviewOrderStep({
 
 function ReviewSection({
   title,
+  editLabel,
   onEdit,
   children,
 }: {
   title: string
+  editLabel?: string
   onEdit: () => void
   children: React.ReactNode
 }) {
@@ -245,9 +247,10 @@ function ReviewSection({
           <button
             type="button"
             onClick={onEdit}
+            aria-label={editLabel ?? `Edit ${title}`}
             className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 transition-colors"
           >
-            <Pencil className="w-3.5 h-3.5" />
+            <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
             Edit
           </button>
         </div>
