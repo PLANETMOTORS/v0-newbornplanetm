@@ -296,7 +296,9 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     if (!ctx) return
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    ctx.clearRect(0, 0, w, h)
+    // No clearRect needed — drawScene paints a full opaque background first.
+    // Removing clearRect prevents a transparent-canvas flash that exposes
+    // the container div background underneath (the "double layer" ghost).
 
     // Get the cached image for current frame
     const carImg = imageCache.current.get(frame) ?? null
@@ -500,7 +502,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       }`}
       style={{
         cursor: !isReady ? "default" : isDragging ? "grabbing" : "grab",
-        background: "#505458", // fallback color while canvas renders (matches dark floor)
+        background: "linear-gradient(to bottom, #FFFFFF 0%, #F8F8F8 30%, #ECECEC 50%, #D8D8D8 62%, #D8D8D8 100%)", // must match canvas bgGrad exactly — no dark fallback bleeding through
       }}
       role="region"
       aria-label={`360° Interactive View — ${alt}`}
