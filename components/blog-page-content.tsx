@@ -156,6 +156,122 @@ export function BlogPageContent() {
           </div>
         </section>
       )}
+
+      {/* Posts Grid */}
+      <section className="py-12 lg:py-16">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <h2 className="font-semibold text-xl mb-8">
+            {selectedCategory === "All" ? "All Articles" : selectedCategory}
+            <span className="text-muted-foreground font-normal ml-2 text-base">
+              ({filteredPosts.length} {filteredPosts.length === 1 ? "article" : "articles"})
+            </span>
+          </h2>
+
+          {filteredPosts.length === 0 ? (
+            <div className="text-center py-16">
+              <p className="text-lg text-muted-foreground mb-4">
+                No articles found{searchQuery ? ` for "${searchQuery}"` : ""}.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchQuery("")
+                  setSelectedCategory("All")
+                }}
+              >
+                Clear filters
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {/* Skip the featured post (index 0) in the grid */}
+                {visiblePosts.slice(1).map((post) => (
+                  <Link key={post.slug} href={`/blog/${post.slug}`} className="group">
+                    <Card className="overflow-hidden h-full hover:shadow-lg transition-shadow">
+                      <div className="aspect-video overflow-hidden relative">
+                        <Image
+                          src={post.image}
+                          alt={post.title}
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                      <CardContent className="p-6">
+                        <Badge variant="secondary" className="mb-3">
+                          {post.category}
+                        </Badge>
+                        <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                          {post.title}
+                        </h3>
+                        <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                          {post.excerpt}
+                        </p>
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {post.date}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {post.readTime}
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+
+              {/* Load More */}
+              {hasMore && (
+                <div className="text-center mt-12">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={handleLoadMore}
+                    disabled={isLoadingMore}
+                  >
+                    {isLoadingMore ? (
+                      <>
+                        <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                        Loading…
+                      </>
+                    ) : (
+                      <>
+                        Load More Articles
+                        <ArrowRight className="ml-2 w-4 h-4" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* Newsletter CTA */}
+      <section className="py-16 lg:py-24">
+        <div className="mx-auto max-w-3xl px-6 lg:px-8 text-center">
+          <h2 className="font-serif text-3xl font-semibold mb-4">Stay Updated</h2>
+          <p className="text-muted-foreground mb-8">
+            Subscribe to our newsletter for the latest car buying tips, industry news, and exclusive deals.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+            <Input
+              type="email"
+              placeholder="Enter your email"
+              className="flex-1"
+            />
+            <Button>Subscribe</Button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-4">
+            No spam, unsubscribe at any time.
+          </p>
+        </div>
+      </section>
     </main>
   )
 }
