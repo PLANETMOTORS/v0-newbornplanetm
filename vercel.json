@@ -12,6 +12,10 @@
     {
       "path": "/api/cron/homenet-sync",
       "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/drivee-sync",
+      "schedule": "0 */6 * * *"
     }
   ]
 }
