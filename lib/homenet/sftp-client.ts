@@ -47,7 +47,7 @@ export async function downloadLatestCSV(
       port: config.port,
       username: config.username,
       password: config.password,
-      readyTimeout: 15_000,
+      readyTimeout: 20_000,
       // Accept any host key — HomenetIOL's key may not be in known_hosts
       algorithms: {
         serverHostKey: ["ssh-rsa", "ssh-ed25519", "ecdsa-sha2-nistp256"],

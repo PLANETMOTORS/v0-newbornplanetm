@@ -52,6 +52,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'photos.homenetiol.com' },
       { protocol: 'https', hostname: 'content.homenetiol.com' },
       { protocol: 'https', hostname: 'www.carpages.ca' },
+      { protocol: 'https', hostname: 'assets.carpages.ca' },
       { protocol: 'https', hostname: 'ldervbcvkoawwknsemuz.supabase.co' },
       { protocol: 'https', hostname: 'images.unsplash.com' },
     ],
@@ -128,6 +129,7 @@ const nextConfig = {
       'https://photos.homenetiol.com',
       'https://ldervbcvkoawwknsemuz.supabase.co',
       'https://images.unsplash.com',
+      'https://assets.carpages.ca',
       'https://www.google.com',              // Remarketing pixel
       'https://www.google.ca',               // Remarketing pixel (CA localized)
       'https://googleads.g.doubleclick.net',  // Ads conversion pixel
@@ -143,6 +145,7 @@ const nextConfig = {
       'https://www.facebook.com',
       'https://capig.planetmotors.ca',        // Server-side tagging iframe
       'https://td.doubleclick.net',           // DoubleClick tracking frame
+      'https://iframe-b8b2c.web.app',        // Drivee 360° viewer iframe
     ]
 
     const connectSrc = [
