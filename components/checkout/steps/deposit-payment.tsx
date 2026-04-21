@@ -51,8 +51,7 @@ export function DepositPaymentStep({
   protectionPlanId,
 }: DepositPaymentStepProps) {
   const [error, setError] = useState("")
-  const hasProtection = protectionPlanId !== "none"
-  const depositAmount = 250 + (hasProtection ? 250 : 0)
+  const depositAmount = 250
 
   const fetchClientSecret = useCallback(async () => {
     try {
@@ -108,10 +107,7 @@ export function DepositPaymentStep({
         <div className="text-sm">
           <p className="font-medium text-green-800">${depositAmount} Refundable Deposit</p>
           <p className="text-green-700">
-            {hasProtection
-              ? `$250 vehicle deposit + $250 PlanetCare deposit. Holds this vehicle for 48 hours. Fully refundable if you change your mind.`
-              : "Holds this vehicle for 48 hours while we process your order. Fully refundable if you change your mind."
-            }
+            Holds this vehicle for 48 hours while we process your order. Fully refundable if you change your mind.
           </p>
         </div>
       </div>

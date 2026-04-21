@@ -35,12 +35,14 @@ export function DriversLicenseStep({
   const [error, setError] = useState("")
   const [isDragging, setIsDragging] = useState(false)
 
-  // Clean up blob URL when preview changes or component unmounts
-  const prevUrlRef = useRef("")
+  // Re-create blob URL if we remount with a File but a stale/revoked preview URL
   useEffect(() => {
-    return () => {
-      if (prevUrlRef.current) URL.revokeObjectURL(prevUrlRef.current)
+    if (data.licenseFile && data.licenseFile.type.startsWith("image/") && !data.licensePreviewUrl) {
+      const freshUrl = URL.createObjectURL(data.licenseFile)
+      onChange({ ...data, licensePreviewUrl: freshUrl })
     }
+    // Only run on mount to recover from revoked blob URLs
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleFile = (file: File) => {
@@ -55,10 +57,9 @@ export function DriversLicenseStep({
     }
 
     // Revoke previous blob URL to prevent memory leak
-    if (prevUrlRef.current) URL.revokeObjectURL(prevUrlRef.current)
+    if (data.licensePreviewUrl) URL.revokeObjectURL(data.licensePreviewUrl)
 
     const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : ""
-    prevUrlRef.current = previewUrl
 
     onChange({
       ...data,
@@ -77,9 +78,8 @@ export function DriversLicenseStep({
   }
 
   const removeFile = () => {
-    if (prevUrlRef.current) {
-      URL.revokeObjectURL(prevUrlRef.current)
-      prevUrlRef.current = ""
+    if (data.licensePreviewUrl) {
+      URL.revokeObjectURL(data.licensePreviewUrl)
     }
     onChange({ ...data, licenseFile: null, licensePreviewUrl: "" })
     // Reset input so the same file can be re-selected
