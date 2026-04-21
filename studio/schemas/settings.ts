@@ -190,7 +190,7 @@ export const siteSettings = defineType({
     }),
     
     // Deposit
-    defineField({ name: 'depositAmount', title: 'Deposit Amount ($)', type: 'number', initialValue: 500 }),
+    defineField({ name: 'depositAmount', title: 'Deposit Amount ($)', type: 'number', initialValue: 250 }),
     
     // Aggregate Rating
     defineField({
