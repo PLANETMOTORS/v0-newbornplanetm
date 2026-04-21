@@ -52,7 +52,10 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
   }
 
   const { data: lockResult, error: lockError } = await adminClient
-    .rpc('lock_vehicle_for_checkout', { p_vehicle_id: data.vehicleId })
+    .rpc('lock_vehicle_for_checkout', {
+      p_vehicle_id: data.vehicleId,
+      p_allowed_statuses: ['available', 'reserved'],
+    })
 
   if (lockError) {
     throw new Error(`Failed to verify vehicle availability: ${lockError.message}`)

@@ -117,6 +117,8 @@ export default function CheckoutPage() {
   })
 
   const [validationErrors, setValidationErrors] = useState<string[]>([])
+  const [streetSuggestions, setStreetSuggestions] = useState<Array<{ streetName: string; streetType: string; direction?: string; fullAddress: string }>>([])
+  const [showStreetDropdown, setShowStreetDropdown] = useState(false)
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -452,6 +454,13 @@ const handleSubmit = () => {
                                     city: data.city, 
                                     province: data.province 
                                   }))
+                                  if (data.suggestions?.length > 0) {
+                                    setStreetSuggestions(data.suggestions)
+                                    setShowStreetDropdown(true)
+                                  } else {
+                                    setStreetSuggestions([])
+                                    setShowStreetDropdown(false)
+                                  }
                                   return
                                 }
                               } catch (_error) {
@@ -519,15 +528,40 @@ const handleSubmit = () => {
                     </div>
                     
                     {/* Street Address */}
-                    <div className="space-y-2">
+                    <div className="space-y-2 relative">
                       <Label htmlFor="address">Street Address *</Label>
                       <Input
                         id="address"
                         value={formData.address}
-                        onChange={(e) => setFormData({ ...formData, address: e.target.value.toUpperCase() })}
+                        onChange={(e) => {
+                          setFormData({ ...formData, address: e.target.value.toUpperCase() })
+                          setShowStreetDropdown(false)
+                        }}
+                        onFocus={() => streetSuggestions.length > 0 && setShowStreetDropdown(true)}
                         placeholder="123 MAIN STREET"
                         className="uppercase"
                       />
+                      {showStreetDropdown && streetSuggestions.length > 0 && (
+                        <div className="absolute z-50 w-full mt-1 bg-background border rounded-lg shadow-lg max-h-48 overflow-auto">
+                          <div className="px-3 py-1.5 bg-muted/50 border-b text-xs font-medium text-muted-foreground">
+                            Select your street:
+                          </div>
+                          {streetSuggestions.map((s, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              className="w-full px-3 py-2 text-left text-sm hover:bg-muted border-b last:border-b-0"
+                              onClick={() => {
+                                const street = `${s.streetName} ${s.streetType}${s.direction ? ` ${s.direction}` : ''}`.toUpperCase()
+                                setFormData(prev => ({ ...prev, address: street }))
+                                setShowStreetDropdown(false)
+                              }}
+                            >
+                              {s.fullAddress}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     
                     {/* City and Province - Auto-filled from Postal Code but manually editable */}

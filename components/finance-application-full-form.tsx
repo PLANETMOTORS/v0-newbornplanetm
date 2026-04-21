@@ -1,23 +1,25 @@
 "use client"
 
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
+
 import {
   User, Car, FileText, Upload,
-  ArrowRight, ArrowLeft, CheckCircle, Loader2, Shield, AlertCircle
+  ArrowRight, ArrowLeft, CheckCircle, Loader2, Shield, AlertCircle, LockKeyhole
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 import {
   type ApplicantData, type VehicleInfo, type TradeInInfo,
-  type FinancingTerms, type DocumentUpload, type FinancingResult,
+  type FinancingTerms, type DocumentUpload,
   emptyApplicant,
+  isApplicantData, isVehicleInfo, isTradeInInfo, isFinancingTerms,
 } from "@/components/finance-application"
 import { ApplicantForm } from "@/components/finance-application/applicant-form"
 import { VehicleFinancingForm } from "@/components/finance-application/vehicle-financing-form"
@@ -51,7 +53,9 @@ interface FinanceApplicationFullFormProps {
 
 export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData }: FinanceApplicationFullFormProps) {
   const router = useRouter()
+  const { user, isLoading: isAuthLoading } = useAuth()
   const draftLoadedRef = useRef(false)
+  const serverSyncTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const draftKey = useMemo(() => `pm:finance-draft:${vehicleId || "general"}`, [vehicleId])
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -175,57 +179,171 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   const [documents, setDocuments] = useState<DocumentUpload[]>([])
   const [additionalNotes, setAdditionalNotes] = useState("")
 
-  // Recover in-progress form data if user was interrupted or page refreshed.
+  // Helper: restore form state from a draft object
+  const restoreFromDraft = useCallback((draft: Record<string, unknown>) => {
+    if (typeof draft.currentStep === "number") setCurrentStep(draft.currentStep)
+    if (isApplicantData(draft.primaryApplicant)) setPrimaryApplicant(draft.primaryApplicant)
+    if (typeof draft.includeCoApplicant === "boolean") setIncludeCoApplicant(draft.includeCoApplicant)
+    if (isApplicantData(draft.coApplicant)) setCoApplicant(draft.coApplicant)
+    if (typeof draft.coApplicantRelation === "string") setCoApplicantRelation(draft.coApplicantRelation)
+    if (isVehicleInfo(draft.vehicleInfo)) setVehicleInfo(draft.vehicleInfo)
+    if (isTradeInInfo(draft.tradeIn)) setTradeIn(draft.tradeIn)
+    if (isFinancingTerms(draft.financingTerms)) setFinancingTerms(draft.financingTerms)
+    if (typeof draft.additionalNotes === "string") setAdditionalNotes(draft.additionalNotes)
+  }, [])
+
+  // Recover in-progress form data: try server first (if logged in), fall back to localStorage.
+  // Wait for auth to settle so we don't skip the server fetch when user is still loading.
   useEffect(() => {
-    if (draftLoadedRef.current) return
-    try {
-      const raw = window.localStorage.getItem(draftKey)
-      if (!raw) {
-        draftLoadedRef.current = true
-        return
+    if (draftLoadedRef.current || isAuthLoading) return
+
+    async function loadDraft() {
+      let serverDraft: Record<string, unknown> | null = null
+      let localDraft: Record<string, unknown> | null = null
+
+      // Try server draft (persists across devices)
+      if (user) {
+        try {
+          const res = await fetch("/api/v1/financing/drafts")
+          if (res.ok) {
+            const data = await res.json()
+            const drafts = data.data || []
+            const match = drafts.find(
+              (d: { vehicle_id: string | null }) =>
+                (vehicleId && d.vehicle_id === vehicleId) || (!vehicleId && !d.vehicle_id)
+            )
+            if (match?.form_data && Object.keys(match.form_data).length > 0) {
+              serverDraft = match.form_data as Record<string, unknown>
+            }
+          }
+        } catch {
+          // Fall through to localStorage
+        }
       }
-      const draft = JSON.parse(raw) as Record<string, unknown>
-      if (typeof draft.currentStep === "number") setCurrentStep(draft.currentStep)
-      if (draft.primaryApplicant) setPrimaryApplicant(draft.primaryApplicant as ApplicantData)
-      if (typeof draft.includeCoApplicant === "boolean") setIncludeCoApplicant(draft.includeCoApplicant)
-      if (draft.coApplicant) setCoApplicant(draft.coApplicant as ApplicantData)
-      if (typeof draft.coApplicantRelation === "string") setCoApplicantRelation(draft.coApplicantRelation)
-      if (draft.vehicleInfo) setVehicleInfo(draft.vehicleInfo as VehicleInfo)
-      if (draft.tradeIn) setTradeIn(draft.tradeIn as TradeInInfo)
-      if (draft.financingTerms) setFinancingTerms(draft.financingTerms as FinancingTerms)
-      if (typeof draft.additionalNotes === "string") setAdditionalNotes(draft.additionalNotes)
-    } catch (error) {
-      console.error("Failed to restore finance draft:", error)
-    } finally {
+
+      // Try sessionStorage (non-PII subset, written after 250ms for unauthenticated users)
+      try {
+        const raw = window.sessionStorage.getItem(draftKey) || window.localStorage.getItem(draftKey)
+        if (raw) {
+          localDraft = JSON.parse(raw) as Record<string, unknown>
+          // Clean up any legacy localStorage draft (PII migration)
+          window.localStorage.removeItem(draftKey)
+        }
+      } catch (error) {
+        console.error("Failed to restore finance draft:", error)
+      }
+
+      const getSavedAt = (draft: Record<string, unknown> | null) => {
+        if (!draft || typeof draft.savedAt !== "string") return 0
+        const parsed = Date.parse(draft.savedAt)
+        return Number.isFinite(parsed) ? parsed : 0
+      }
+
+      const freshestDraft =
+        getSavedAt(localDraft) > getSavedAt(serverDraft) ? localDraft : serverDraft
+
+      if (freshestDraft) {
+        restoreFromDraft(freshestDraft)
+      }
+
       draftLoadedRef.current = true
     }
-  }, [draftKey])
 
-  // Persist in-progress form data to protect users from accidental session drops.
+    loadDraft()
+  }, [draftKey, user, isAuthLoading, vehicleId, restoreFromDraft])
+
+  // Persist in-progress form data.
+  // Authenticated users → server only (full payload, no PII on client).
+  // Unauthenticated fallback → sessionStorage with minimal, non-PII subset.
   useEffect(() => {
     if (!draftLoadedRef.current || isSubmitted) return
 
-    const timeout = window.setTimeout(() => {
-      try {
-        const payload = {
-          currentStep,
-          primaryApplicant,
-          includeCoApplicant,
-          coApplicant,
-          coApplicantRelation,
-          vehicleInfo,
-          tradeIn,
-          financingTerms,
-          additionalNotes,
-          savedAt: new Date().toISOString(),
-        }
-        window.localStorage.setItem(draftKey, JSON.stringify(payload))
-      } catch (error) {
-        console.error("Failed to save finance draft:", error)
-      }
-    }, 250)
+    const now = new Date().toISOString()
 
-    return () => window.clearTimeout(timeout)
+    // Full payload — only sent to server, never stored client-side
+    const fullPayload = {
+      currentStep,
+      primaryApplicant,
+      includeCoApplicant,
+      coApplicant,
+      coApplicantRelation,
+      vehicleInfo,
+      tradeIn,
+      financingTerms,
+      additionalNotes,
+      savedAt: now,
+    }
+
+    // Minimal non-PII subset for client-side fallback
+    const localPayload = {
+      currentStep,
+      includeCoApplicant,
+      vehicleInfo: {
+        vin: vehicleInfo.vin,
+        year: vehicleInfo.year,
+        make: vehicleInfo.make,
+        model: vehicleInfo.model,
+        trim: vehicleInfo.trim,
+        color: vehicleInfo.color,
+        mileage: vehicleInfo.mileage,
+        totalPrice: vehicleInfo.totalPrice,
+        downPayment: vehicleInfo.downPayment,
+        maxDownPayment: vehicleInfo.maxDownPayment,
+      },
+      tradeIn: {
+        hasTradeIn: tradeIn.hasTradeIn,
+        vin: tradeIn.vin,
+        year: tradeIn.year,
+        make: tradeIn.make,
+        model: tradeIn.model,
+        trim: tradeIn.trim,
+        color: tradeIn.color,
+        mileage: tradeIn.mileage,
+        condition: tradeIn.condition,
+        estimatedValue: tradeIn.estimatedValue,
+        hasLien: tradeIn.hasLien,
+        lienHolder: tradeIn.lienHolder,
+        lienAmount: tradeIn.lienAmount,
+      },
+      financingTerms,
+      additionalNotes,
+      savedAt: now,
+    }
+
+    if (user) {
+      // Authenticated: save full payload to server only, clear any client remnant
+      if (serverSyncTimer.current) clearTimeout(serverSyncTimer.current)
+      serverSyncTimer.current = setTimeout(() => {
+        fetch("/api/v1/financing/drafts", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ vehicleId: vehicleId || null, formData: fullPayload }),
+        }).catch((error) => {
+          console.error("Failed to save finance draft to server:", error)
+        })
+      }, 2000)
+
+      // Remove any stale localStorage/sessionStorage PII from before login
+      try { window.localStorage.removeItem(draftKey) } catch { /* noop */ }
+      try { window.sessionStorage.removeItem(draftKey) } catch { /* noop */ }
+    } else {
+      // Unauthenticated: save minimal non-PII subset to sessionStorage (tab-scoped)
+      const localTimeout = window.setTimeout(() => {
+        try {
+          window.sessionStorage.setItem(draftKey, JSON.stringify(localPayload))
+        } catch (error) {
+          console.error("Failed to save finance draft to sessionStorage:", error)
+        }
+      }, 250)
+
+      return () => {
+        window.clearTimeout(localTimeout)
+      }
+    }
+
+    return () => {
+      if (serverSyncTimer.current) clearTimeout(serverSyncTimer.current)
+    }
   }, [
     draftKey,
     isSubmitted,
@@ -238,6 +356,8 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     tradeIn,
     financingTerms,
     additionalNotes,
+    user,
+    vehicleId,
   ])
   
   const steps = [
@@ -539,10 +659,16 @@ if (errors.length > 0) {
     }
   }
   
+      // Clean up drafts after successful submission
       try {
         window.localStorage.removeItem(draftKey)
+        window.sessionStorage.removeItem(draftKey)
       } catch {
-        // Ignore localStorage failures.
+        // Ignore storage failures.
+      }
+      if (user) {
+        const deleteParam = vehicleId ? `vehicleId=${vehicleId}` : "vehicleId="
+        fetch(`/api/v1/financing/drafts?${deleteParam}`, { method: "DELETE" }).catch(() => {})
       }
       setIsSubmitted(true)
   } catch (error) {
@@ -553,29 +679,44 @@ if (errors.length > 0) {
   }
   }
   
-  // Render success state - redirect to ID verification
+  // Render success state - next steps: deposit + ID verification
   if (isSubmitted) {
     return (
       <div className="max-w-2xl mx-auto p-8 text-center">
-        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-          <Shield className="w-8 h-8 text-primary" />
+        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle className="w-8 h-8 text-green-600" />
         </div>
         <h2 className="text-2xl font-bold mb-2">Application Received!</h2>
         <p className="text-muted-foreground mb-6">
-          Your finance application has been saved. Complete identity verification to finalize your application.
+          Your finance application has been submitted successfully. Secure this vehicle with a refundable deposit or continue with identity verification.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button onClick={() => router.push(`/financing/verification?vehicleId=${vehicleId || ""}`)}>
+        <div className="flex flex-col gap-3 max-w-sm mx-auto">
+          {vehicleId && (
+            <Button
+              className="w-full h-12 bg-red-600 hover:bg-red-700 text-white"
+              onClick={() => router.push(`/checkout/${vehicleId}/payment`)}
+            >
+              <LockKeyhole className="w-4 h-4 mr-2" />
+              Reserve with $250 Refundable Deposit
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            className="w-full h-11"
+            onClick={() => router.push(`/financing/verification?vehicleId=${vehicleId || ""}`)}
+          >
             <Shield className="w-4 h-4 mr-2" />
             Continue to ID Verification
           </Button>
-          <Button variant="outline" onClick={() => router.push("/inventory")}>
-            Complete Later
+          <Button variant="ghost" onClick={() => router.push("/inventory")}>
+            Browse More Vehicles
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground mt-4">
-          ID verification is required to complete your application
-        </p>
+        {vehicleId && (
+          <p className="text-xs text-muted-foreground mt-4">
+            The $250 deposit is fully refundable and holds this vehicle for 48 hours
+          </p>
+        )}
       </div>
     )
   }

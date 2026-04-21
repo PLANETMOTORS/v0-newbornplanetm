@@ -126,10 +126,15 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
             <div className="bg-white rounded-2xl p-8 shadow-lg border border-[#dce3ed]">
               <h3 className="text-xl font-semibold text-gray-900 mb-6">Quick Estimate</h3>
               <div className="space-y-4">
-                <input type="text" placeholder="Year, Make, Model" className="w-full px-4 py-3 bg-[#f0f4f8] border border-[#dce3ed] rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20" />
-                <input type="text" placeholder="Mileage (km)" className="w-full px-4 py-3 bg-[#f0f4f8] border border-[#dce3ed] rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20" />
-                <input type="email" placeholder="Your Email" className="w-full px-4 py-3 bg-[#f0f4f8] border border-[#dce3ed] rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20" />
-                <Button className="w-full bg-[#1e3a8a] hover:bg-[#172554]">Get Instant Offer</Button>
+                <p className="text-gray-600">Get an instant offer for your vehicle in under 60 seconds. No obligation, no haggling.</p>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-600" /> VIN or license plate lookup</li>
+                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-600" /> Canadian Black Book valuation</li>
+                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-600" /> Results in 60 seconds</li>
+                </ul>
+                <Button className="w-full bg-[#1e3a8a] hover:bg-[#172554]" asChild>
+                  <Link href="/trade-in">Get Instant Offer</Link>
+                </Button>
               </div>
             </div>
           </div>

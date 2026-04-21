@@ -19,8 +19,19 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import {
   User, Mail, Phone, CreditCard, Shield, LogOut,
-  Heart, Car, CheckCircle, Settings, Trash2, Bell, TrendingDown, Loader2
+  Heart, Car, CheckCircle, Settings, Trash2, Bell, TrendingDown, Loader2,
+  FileText, AlertCircle
 } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface PriceAlert {
   id: string
@@ -77,6 +88,35 @@ export default function AccountPage() {
   const [priceAlerts, setPriceAlerts] = useState<PriceAlert[]>([])
   const [alertsLoading, setAlertsLoading] = useState(false)
 
+  // Delete account
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteError, setDeleteError] = useState("")
+
+  // Finance application drafts
+  interface FinanceDraft {
+    id: string
+    vehicle_id: string | null
+    form_data: Record<string, unknown>
+    updated_at: string
+  }
+  const [financeDrafts, setFinanceDrafts] = useState<FinanceDraft[]>([])
+  const [draftsLoading, setDraftsLoading] = useState(false)
+
+  // Finance applications (submitted)
+  interface FinanceApp {
+    id: string
+    status: string
+    agreement_type: string
+    requested_amount: number | null
+    estimated_payment: number | null
+    created_at: string
+    vehicle_id: string | null
+    finance_applicants?: Array<{ first_name: string; last_name: string }>
+  }
+  const [financeApps, setFinanceApps] = useState<FinanceApp[]>([])
+  const [appsLoading, setAppsLoading] = useState(false)
+
   // Fetch notification preferences and price alerts when user is available
   const fetchAccountData = useCallback(async () => {
     if (!user?.email) return
@@ -96,11 +136,51 @@ export default function AccountPage() {
       }
     } catch { /* silent */ }
     setAlertsLoading(false)
+
+    // Fetch finance application drafts
+    setDraftsLoading(true)
+    try {
+      const res = await fetch("/api/v1/financing/drafts")
+      if (res.ok) {
+        const data = await res.json()
+        setFinanceDrafts(data.data || [])
+      }
+    } catch { /* silent */ }
+    setDraftsLoading(false)
+
+    // Fetch submitted finance applications
+    setAppsLoading(true)
+    try {
+      const res = await fetch("/api/v1/financing/applications")
+      if (res.ok) {
+        const data = await res.json()
+        setFinanceApps(data.data || [])
+      }
+    } catch { /* silent */ }
+    setAppsLoading(false)
   }, [user?.email])
 
   useEffect(() => {
     fetchAccountData()
   }, [fetchAccountData])
+
+  // Delete account handler
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true)
+    setDeleteError("")
+    try {
+      const res = await fetch("/api/v1/customers/me/delete", { method: "DELETE" })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error?.message || data.error || "Failed to delete account")
+      }
+      await signOut()
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete account")
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
 
   const toggleNotification = async (type: 'priceDrops' | 'newListings') => {
     if (!user?.email) return
@@ -642,21 +722,107 @@ export default function AccountPage() {
 
                 {/* Pre-Approval Tab */}
                 {activeTab === "preapproval" && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Financing Pre-Approval</CardTitle>
-                      <CardDescription>Your financing status and options</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-center py-8">
-                        <CreditCard className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                        <p className="text-muted-foreground mb-4">No active pre-approval found</p>
-                        <Button asChild>
-                          <Link href="/financing">Apply for Pre-Approval</Link>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <div className="space-y-6">
+                    {/* Incomplete / Draft Applications */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <FileText className="w-5 h-5" />
+                          Saved Applications
+                        </CardTitle>
+                        <CardDescription>Resume incomplete finance applications</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        {draftsLoading ? (
+                          <div className="flex items-center justify-center py-6">
+                            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                          </div>
+                        ) : financeDrafts.length === 0 ? (
+                          <p className="text-sm text-muted-foreground py-4">No saved drafts</p>
+                        ) : (
+                          <div className="space-y-3">
+                            {financeDrafts.map((draft) => {
+                              const formData = draft.form_data as Record<string, unknown>
+                              const applicant = formData.primaryApplicant as Record<string, string> | undefined
+                              const vehicle = formData.vehicleInfo as Record<string, string> | undefined
+                              const vehicleLabel = vehicle?.year && vehicle?.make && vehicle?.model
+                                ? `${vehicle.year} ${vehicle.make} ${vehicle.model}`
+                                : "General Application"
+                              return (
+                                <div key={draft.id} className="flex items-center justify-between p-3 rounded-lg border">
+                                  <div>
+                                    <p className="font-medium text-sm">{vehicleLabel}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {applicant?.firstName ? `${applicant.firstName} ${applicant?.lastName || ""}` : "Not started"} &middot; Saved {new Date(draft.updated_at).toLocaleDateString()}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="secondary">Draft</Badge>
+                                    <Button size="sm" asChild>
+                                      <Link href={draft.vehicle_id ? `/financing/application?vehicleId=${draft.vehicle_id}` : "/financing/application"}>
+                                        Resume
+                                      </Link>
+                                    </Button>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Submitted Applications */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Submitted Applications</CardTitle>
+                        <CardDescription>Your financing applications and their status</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        {appsLoading ? (
+                          <div className="flex items-center justify-center py-6">
+                            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                          </div>
+                        ) : financeApps.length === 0 ? (
+                          <div className="text-center py-6">
+                            <CreditCard className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
+                            <p className="text-muted-foreground text-sm mb-4">No submitted applications</p>
+                            <Button asChild>
+                              <Link href="/financing">Apply for Pre-Approval</Link>
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {financeApps.map((app) => {
+                              const statusColors: Record<string, string> = {
+                                submitted: "bg-blue-100 text-blue-800",
+                                under_review: "bg-yellow-100 text-yellow-800",
+                                approved: "bg-green-100 text-green-800",
+                                declined: "bg-red-100 text-red-800",
+                                funded: "bg-emerald-100 text-emerald-800",
+                                cancelled: "bg-gray-100 text-gray-800",
+                              }
+                              return (
+                                <div key={app.id} className="flex items-center justify-between p-3 rounded-lg border">
+                                  <div>
+                                    <p className="font-medium text-sm">
+                                      {app.agreement_type === "finance" ? "Finance" : app.agreement_type === "lease" ? "Lease" : "Cash"} Application
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {app.requested_amount ? `$${Math.round(app.requested_amount).toLocaleString()}` : ""} &middot; {new Date(app.created_at).toLocaleDateString()}
+                                    </p>
+                                  </div>
+                                  <Badge className={statusColors[app.status] || "bg-gray-100 text-gray-800"}>
+                                    {app.status.replace(/_/g, " ")}
+                                  </Badge>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
                 )}
 
                 {/* My Vehicles/Orders Tab */}
@@ -796,9 +962,47 @@ export default function AccountPage() {
                           <Shield className="w-4 h-4 mr-2" />
                           Change Password
                         </Button>
-                        <Button variant="outline" className="w-full justify-start text-destructive">
-                          Delete Account
-                        </Button>
+                        <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => {
+                          if (!deleteLoading) {
+                            setDeleteDialogOpen(open)
+                            if (!open) setDeleteError("")
+                          }
+                        }}>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" className="w-full justify-start text-destructive">
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete Account
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure you want to delete your account?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete your account, saved vehicles, price alerts, and any finance application drafts.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            {deleteError && (
+                              <p className="text-sm text-destructive flex items-center gap-1">
+                                <AlertCircle className="w-4 h-4" />
+                                {deleteError}
+                              </p>
+                            )}
+                            <AlertDialogFooter>
+                              <AlertDialogCancel disabled={deleteLoading}>Cancel</AlertDialogCancel>
+                              <Button
+                                variant="destructive"
+                                onClick={handleDeleteAccount}
+                                disabled={deleteLoading}
+                              >
+                                {deleteLoading ? (
+                                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Deleting...</>
+                                ) : (
+                                  "Delete My Account"
+                                )}
+                              </Button>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </CardContent>
                     </Card>
                   </div>

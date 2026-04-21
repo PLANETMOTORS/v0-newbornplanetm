@@ -131,6 +131,41 @@ export interface FinancingResult {
   totalPayments: number
 }
 
+// Runtime shape guards — validate draft objects before restoring into state
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null && !Array.isArray(v)
+}
+
+export function isApplicantData(v: unknown): v is ApplicantData {
+  if (!isRecord(v)) return false
+  return typeof v.firstName === "string" && typeof v.lastName === "string" &&
+    typeof v.email === "string" && typeof v.phone === "string" &&
+    isRecord(v.dateOfBirth) && typeof v.dateOfBirth.day === "string"
+}
+
+export function isVehicleInfo(v: unknown): v is VehicleInfo {
+  if (!isRecord(v)) return false
+  return typeof v.year === "string" && typeof v.make === "string" &&
+    typeof v.model === "string" && typeof v.totalPrice === "string" &&
+    typeof v.downPayment === "string"
+}
+
+export function isTradeInInfo(v: unknown): v is TradeInInfo {
+  if (!isRecord(v)) return false
+  return typeof v.hasTradeIn === "boolean" && typeof v.make === "string" &&
+    typeof v.model === "string" && typeof v.estimatedValue === "string" &&
+    typeof v.hasLien === "boolean"
+}
+
+export function isFinancingTerms(v: unknown): v is FinancingTerms {
+  if (!isRecord(v)) return false
+  return (v.agreementType === "finance" || v.agreementType === "cash") &&
+    typeof v.loanTermMonths === "number" &&
+    typeof v.salesTaxRate === "string" && typeof v.adminFee === "string" &&
+    (v.paymentFrequency === "weekly" || v.paymentFrequency === "bi-weekly" ||
+     v.paymentFrequency === "semi-monthly" || v.paymentFrequency === "monthly")
+}
+
 // Initial state for a blank applicant
 export const emptyApplicant: ApplicantData = {
   salutation: "", firstName: "", middleName: "", lastName: "", suffix: "",
