@@ -71,8 +71,14 @@ export function PersonalDetailsStep({ data, onChange, onContinue }: PersonalDeta
   const dropdownRef = useRef<HTMLDivElement>(null)
   const postalFetchRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Keep refs to latest data/onChange so async callbacks never use stale closures
+  const dataRef = useRef(data)
+  dataRef.current = data
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
+
   const update = (partial: Partial<PersonalDetailsData>) =>
-    onChange({ ...data, ...partial })
+    onChangeRef.current({ ...dataRef.current, ...partial })
 
   // Close street suggestions dropdown on outside click
   useEffect(() => {
@@ -105,7 +111,7 @@ export function PersonalDetailsStep({ data, onChange, onContinue }: PersonalDeta
           if (!res.ok) throw new Error("Lookup failed")
           const json = await res.json()
           if (json.city && json.province) {
-            update({ postalCode: formatted, city: json.city, province: json.province })
+            onChangeRef.current({ ...dataRef.current, postalCode: formatted, city: json.city, province: json.province })
             if (json.suggestions?.length > 0) {
               setStreetSuggestions(json.suggestions)
               setShowStreetDropdown(true)
@@ -121,12 +127,12 @@ export function PersonalDetailsStep({ data, onChange, onContinue }: PersonalDeta
 
         const city = ONTARIO_PREFIXES[prefix]
         if (city) {
-          update({ postalCode: formatted, city, province: 'Ontario' })
+          onChangeRef.current({ ...dataRef.current, postalCode: formatted, city, province: 'Ontario' })
           return
         }
         const prov = PROVINCE_BY_LETTER[prefix[0]]
         if (prov) {
-          update({ postalCode: formatted, province: prov })
+          onChangeRef.current({ ...dataRef.current, postalCode: formatted, province: prov })
         }
       }, 300)
     }

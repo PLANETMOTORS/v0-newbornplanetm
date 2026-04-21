@@ -158,8 +158,14 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
     setIsSubmitting(true)
     markComplete(6)
     goToStep(7)
-    // isSubmitting stays true — deposit step is next, no need to reset
   }, [markComplete, goToStep])
+
+  // Reset isSubmitting when user navigates back from the deposit step
+  useEffect(() => {
+    if (currentStep !== 7 && isSubmitting) {
+      setIsSubmitting(false)
+    }
+  }, [currentStep, isSubmitting])
 
   const sidebarSteps: PurchaseStep[] = STEP_DEFS.map((def, idx) => ({
     id: def.id,
