@@ -41,13 +41,9 @@ import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google
 import { trackMetaViewContent, trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
 
 // ── Lazy-load heavy below-fold components ──
-const VehicleSpinViewer = dynamic(
-  () => import("@/components/vehicle-spin-viewer").then(m => ({ default: m.VehicleSpinViewer })),
-  { ssr: false, loading: () => <div className="aspect-[4/3] rounded-xl" style={{ background: "linear-gradient(to bottom, #FFFFFF 0%, #F8F8F8 35%, #ECECEC 58%, #DEDEDE 72%, #D8D8D8 100%)" }} /> }
-)
-const VehicleInteriorViewer = dynamic(
-  () => import("@/components/vehicle-interior-viewer").then(m => ({ default: m.VehicleInteriorViewer })),
-  { ssr: false, loading: () => <div className="aspect-[4/3] bg-neutral-900 animate-pulse rounded-xl" /> }
+const DriveeViewer = dynamic(
+  () => import("@/components/drivee-viewer").then(m => ({ default: m.DriveeViewer })),
+  { ssr: false, loading: () => <div className="h-[500px] md:h-[600px] rounded-xl" style={{ backgroundColor: "#e8e8e8" }} /> }
 )
 
 const SimilarVehicles = dynamic(
@@ -547,29 +543,8 @@ export default function VehicleDetailPage() {
   }, [vehicle, isLoading])
 
 
-  // ── Native 360° spin (replaces Drivee iframe) ──
-  // Fetch walk-around frame URLs from Supabase Storage when a Drivee MID exists.
-  const hasDrivee = !!vehicle?.driveeMid
-  const has360 = hasDrivee
-  const [spinFrameUrls, setSpinFrameUrls] = useState<string[]>([])
-  const [spinFramesLoading, setSpinFramesLoading] = useState(false)
-  const [interiorPanoUrl, setInteriorPanoUrl] = useState<string | null>(null)
-  const [spinViewMode, setSpinViewMode] = useState<"exterior" | "interior">("exterior")
-
-  useEffect(() => {
-    if (!hasDrivee || !vehicle?.driveeMid) return
-    let cancelled = false
-    setSpinFramesLoading(true)
-    fetch(`/api/v1/360-frames/${encodeURIComponent(vehicle.driveeMid)}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (!cancelled && data.frames) setSpinFrameUrls(data.frames)
-        if (!cancelled && data.interior) setInteriorPanoUrl(data.interior)
-      })
-      .catch(() => { /* fallback: spinner will show 0 frames */ })
-      .finally(() => { if (!cancelled) setSpinFramesLoading(false) })
-    return () => { cancelled = true }
-  }, [hasDrivee, vehicle?.driveeMid])
+  // ── Drivee 360° iframe ──
+  const has360 = !!vehicle?.driveeMid
 
   const handleProtectedAction = (action: string, callback?: () => void) => {
     if (!user) {
@@ -801,60 +776,12 @@ export default function VehicleDetailPage() {
               <div className="min-w-0 overflow-hidden">
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
-                  {/* 360° Interactive Viewer — Native image-sequence spinner (Carvana-style) */}
-                  {imageType === "360" && has360 ? (
-                    <div className="relative">
-                      {/* Viewer area */}
-                      {spinViewMode === "interior" && interiorPanoUrl ? (
-                        <VehicleInteriorViewer
-                          src={interiorPanoUrl}
-                          alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                        />
-                      ) : spinFramesLoading ? (
-                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-4" style={{ background: "linear-gradient(to bottom, #FFFFFF 0%, #F8F8F8 35%, #ECECEC 58%, #DEDEDE 72%, #D8D8D8 100%)" }}>
-                          <Loader2 className="w-10 h-10 animate-spin text-primary" aria-hidden="true" />
-                          <p className="text-sm text-muted-foreground font-medium">Loading 360° view…</p>
-                        </div>
-                      ) : spinFrameUrls.length > 0 ? (
-                        <VehicleSpinViewer
-                          images={spinFrameUrls}
-                          alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                        />
-                      ) : (
-                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden flex flex-col items-center justify-center gap-3" style={{ background: "linear-gradient(to bottom, #FFFFFF 0%, #F8F8F8 35%, #ECECEC 58%, #DEDEDE 72%, #D8D8D8 100%)" }}>
-                          <RotateCw className="w-8 h-8 text-muted-foreground" aria-hidden="true" />
-                          <p className="text-sm text-muted-foreground font-medium">360° view not available</p>
-                        </div>
-                      )}
-
-                      {/* Exterior / Interior toggle — overlaid inside the viewer (Clutch/Carvana style) */}
-                      {interiorPanoUrl && (
-                        <div className="absolute bottom-14 left-1/2 -translate-x-1/2 z-20">
-                          <div className="inline-flex rounded-full bg-white/90 backdrop-blur-sm shadow-lg p-1 text-sm font-medium">
-                            <button
-                              onClick={() => setSpinViewMode("exterior")}
-                              className={`px-5 py-1.5 rounded-full transition-all ${
-                                spinViewMode === "exterior"
-                                  ? "bg-black text-white shadow-sm"
-                                  : "text-gray-500 hover:text-gray-800"
-                              }`}
-                            >
-                              Exterior
-                            </button>
-                            <button
-                              onClick={() => setSpinViewMode("interior")}
-                              className={`px-5 py-1.5 rounded-full transition-all ${
-                                spinViewMode === "interior"
-                                  ? "bg-black text-white shadow-sm"
-                                  : "text-gray-500 hover:text-gray-800"
-                              }`}
-                            >
-                              Interior
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                  {/* 360° Interactive Viewer — Drivee iframe */}
+                  {imageType === "360" && has360 && vehicle.driveeMid ? (
+                    <DriveeViewer
+                      mid={vehicle.driveeMid}
+                      vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                    />
                   ) : (
                   <div
                     data-testid="vdp-image-gallery"
