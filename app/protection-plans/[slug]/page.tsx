@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { getProductBySlug, getAllProductSlugs, PROTECTION_PRODUCTS } from "@/lib/protection-products"
+import { getProductBySlug, getAllProductSlugs, PROTECTION_PRODUCTS, WARRANTY_COVERAGE_MATRIX } from "@/lib/protection-products"
 import { getPublicSiteUrl } from "@/lib/site-url"
 
 export async function generateStaticParams() {
@@ -229,6 +229,73 @@ export default async function ProtectionProductPage({ params }: { params: Promis
             </div>
           </div>
         </section>
+
+        {/* Component Coverage Matrix — Extended Warranty only */}
+        {slug === "extended-warranty" && (
+          <section className="py-16 lg:py-24">
+            <div className="mx-auto max-w-7xl px-6 lg:px-8">
+              <div className="text-center mb-12">
+                <Badge variant="outline" className="mb-4">Detailed Coverage</Badge>
+                <h2 className="font-serif text-3xl md:text-4xl font-semibold">
+                  Component-Level Coverage
+                </h2>
+                <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
+                  Every major system. Every critical part. Here&apos;s exactly what&apos;s protected under your Extended Vehicle Warranty.
+                </p>
+              </div>
+
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {WARRANTY_COVERAGE_MATRIX.map((cat) => (
+                  <Card key={cat.category} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="bg-primary/5 border-b px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl" role="img" aria-label={cat.category}>{cat.icon}</span>
+                        <h3 className="font-semibold text-lg">{cat.category}</h3>
+                        <span className="ml-auto text-xs text-muted-foreground bg-primary/10 px-2 py-0.5 rounded-full font-medium">
+                          {cat.components.length} parts
+                        </span>
+                      </div>
+                    </div>
+                    <CardContent className="pt-4 pb-5">
+                      <ul className="space-y-2">
+                        {cat.components.map((part) => (
+                          <li key={part} className="flex items-start gap-2.5">
+                            <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm leading-relaxed">{part}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Summary stat bar */}
+              <div className="mt-10 bg-primary/5 rounded-2xl border p-6 md:p-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                  <div>
+                    <div className="text-3xl font-bold text-primary font-serif">
+                      {WARRANTY_COVERAGE_MATRIX.reduce((sum, cat) => sum + cat.components.length, 0)}+
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">Covered Components</div>
+                  </div>
+                  <div>
+                    <div className="text-3xl font-bold text-primary font-serif">{WARRANTY_COVERAGE_MATRIX.length}</div>
+                    <div className="text-sm text-muted-foreground mt-1">System Categories</div>
+                  </div>
+                  <div>
+                    <div className="text-3xl font-bold text-primary font-serif">$0</div>
+                    <div className="text-sm text-muted-foreground mt-1">Deductible Option</div>
+                  </div>
+                  <div>
+                    <div className="text-3xl font-bold text-primary font-serif">24/7</div>
+                    <div className="text-sm text-muted-foreground mt-1">Roadside Assistance</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Benefits */}
         <section className="py-16 lg:py-24">

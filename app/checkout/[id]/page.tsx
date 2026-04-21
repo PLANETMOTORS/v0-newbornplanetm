@@ -31,6 +31,7 @@ import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 import { startVehicleCheckout } from "@/app/actions/stripe"
 import { OMVIC_FEE, CERTIFICATION_FEE, LICENSING_FEE } from "@/lib/pricing/format"
 import { getUTMParams } from "@/lib/hooks/use-utm-params"
+import { CHECKOUT_PLANS } from "@/lib/constants/protection-packages"
 
 const PROVINCE_NAME_TO_CODE: Record<string, string> = {
   'Ontario': 'ON', 'British Columbia': 'BC', 'Alberta': 'AB', 'Quebec': 'QC',
@@ -58,13 +59,8 @@ function getStripePromise() {
   return stripePromise
 }
 
-// Protection Plans
-const PROTECTION_PLANS = [
-  { id: "none", name: "No Protection", price: 0, description: "" },
-  { id: "essential", name: "PlanetCare Essential", price: 1950, description: "3-year powertrain warranty" },
-  { id: "smart", name: "PlanetCare Smart", price: 3000, description: "5-year comprehensive coverage" },
-  { id: "lifeproof", name: "PlanetCare Life Proof", price: 4850, description: "Lifetime bumper-to-bumper" },
-]
+// Protection Plans — sourced from centralized PROTECTION_PACKAGES
+const PROTECTION_PLANS = CHECKOUT_PLANS
 
 // Sample vehicle data (in real app, fetch from API)
 const vehicleData = {
@@ -86,7 +82,7 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [purchaseType, setPurchaseType] = useState<"finance" | "cash">("finance")
-  const [selectedProtection, setSelectedProtection] = useState("none")
+  const [selectedProtection, setSelectedProtection] = useState("basic")
   const [showStripeCheckout, setShowStripeCheckout] = useState(false)
   const [deliveryType, setDeliveryType] = useState<"pickup" | "delivery">("pickup")
   const [deliveryQuote, setDeliveryQuote] = useState<{
@@ -196,7 +192,7 @@ export default function CheckoutPage() {
     const clientSecret = await startVehicleCheckout({
       vehicleId: params.id as string,
       vehicleName: `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`,
-      protectionPlanId: selectedProtection !== "none" ? selectedProtection : undefined,
+      protectionPlanId: selectedProtection !== "basic" ? selectedProtection : undefined,
       customerEmail: formData.email,
       ...(utmParams?.utm_source && { utmSource: utmParams.utm_source }),
       ...(utmParams?.utm_medium && { utmMedium: utmParams.utm_medium }),
@@ -711,12 +707,12 @@ const handleSubmit = () => {
                   <CardContent>
                     <RadioGroup value={selectedProtection} onValueChange={setSelectedProtection}>
                       {PROTECTION_PLANS.map((plan) => (
-                        <div key={plan.id} className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 ${plan.id === "lifeproof" ? "border-primary bg-primary/5" : ""} ${selectedProtection === plan.id ? "ring-2 ring-primary" : ""} ${plan.id !== "none" ? "mt-2" : ""}`}>
+                        <div key={plan.id} className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 ${plan.highlighted ? "border-primary bg-primary/5" : ""} ${selectedProtection === plan.id ? "ring-2 ring-primary" : ""} ${plan.id !== "basic" ? "mt-2" : ""}`}>
                           <RadioGroupItem value={plan.id} id={`plan-${plan.id}`} />
                           <Label htmlFor={`plan-${plan.id}`} className="flex-1 cursor-pointer">
                             <div className="flex items-center gap-2">
                               <span className="font-medium">{plan.name}</span>
-                              {plan.id === "lifeproof" && <Badge className="bg-primary">Best Value</Badge>}
+                              {plan.badge && <Badge className="bg-primary">{plan.badge}</Badge>}
                             </div>
                             {plan.description && <div className="text-sm text-muted-foreground">{plan.description}</div>}
                           </Label>
@@ -953,7 +949,7 @@ const handleSubmit = () => {
                     <span>Vehicle Price</span>
                     <span>${vehiclePrice.toLocaleString()}</span>
                   </div>
-                  {selectedProtection !== "none" && (
+                  {selectedProtection !== "basic" && (
                     <div className="flex justify-between text-primary font-medium">
                       <span>{PROTECTION_PLANS.find(p => p.id === selectedProtection)?.name}</span>
                       <span>${protectionPrice.toLocaleString()}</span>

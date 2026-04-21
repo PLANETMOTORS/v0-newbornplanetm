@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle, Shield, CreditCard, X } from 'lucide-react'
 import { startVehicleCheckout } from '@/app/actions/stripe'
+import { CHECKOUT_PLANS } from '@/lib/constants/protection-packages'
 
 const EmbeddedCheckoutProvider = dynamic(
   () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckoutProvider })),
@@ -26,39 +27,8 @@ function getStripePromise() {
   return stripePromise
 }
 
-interface ProtectionPlan {
-  id: string
-  name: string
-  price: number
-  deposit: number
-  features: string[]
-  recommended?: boolean
-}
-
-const PROTECTION_PLANS: ProtectionPlan[] = [
-  {
-    id: 'essential',
-    name: 'PlanetCare Essential Shield',
-    price: 1950,
-    deposit: 250,
-    features: ['Standard Warranty', '$50K GAP Coverage', 'Trade-in Credit'],
-  },
-  {
-    id: 'smart',
-    name: 'PlanetCare Smart Secure',
-    price: 3000,
-    deposit: 250,
-    features: ['Extended Warranty', '$60K GAP Coverage', 'Tire & Rim Protection', '~$1M Life Coverage'],
-    recommended: true,
-  },
-  {
-    id: 'lifeproof',
-    name: 'PlanetCare Life Proof',
-    price: 4850,
-    deposit: 250,
-    features: ['Extended Warranty', '$60K GAP Coverage', 'Tire & Rim', 'Anti-Theft', '~$1M Life Coverage'],
-  },
-]
+// Filter out "basic" (no protection) — this component only shows paid plans
+const PROTECTION_PLANS = CHECKOUT_PLANS.filter(p => p.price > 0)
 
 interface VehicleCheckoutProps {
   vehicleId: string
@@ -72,8 +42,9 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
   const [depositOnly, setDepositOnly] = useState(true)
   const [showCheckout, setShowCheckout] = useState(false)
 
-  const totalDeposit = 250 + (selectedPlan ? 250 : 0)
-  const totalFull = vehiclePrice + (selectedPlan ? PROTECTION_PLANS.find(p => p.id === selectedPlan)?.price || 0 : 0)
+  const selectedPkg = selectedPlan ? PROTECTION_PLANS.find(p => p.id === selectedPlan) : null
+  const totalDeposit = 250 + (selectedPkg?.deposit ?? 0)
+  const totalFull = vehiclePrice + (selectedPkg?.price ?? 0)
 
   const fetchClientSecret = useCallback(async () => {
     const clientSecret = await startVehicleCheckout({
@@ -174,7 +145,7 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
                   </div>
                   <div className="text-right">
                     <p className="font-semibold">${plan.price.toLocaleString()}</p>
-                    {plan.recommended && <Badge variant="secondary" className="text-xs">Recommended</Badge>}
+                    {plan.highlighted && <Badge variant="secondary" className="text-xs">Recommended</Badge>}
                   </div>
                 </div>
               </CardContent>

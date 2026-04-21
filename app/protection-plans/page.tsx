@@ -13,6 +13,14 @@ import { ComparisonTableWrapper } from "./comparison-table-wrapper"
 export const metadata = {
   title: "PlanetCare Protection Packages | Planet Motors",
   description: "Personalized protection when you buy from Planet Motors. Compare Essential, Certified, and Certified Plus packages with extended warranty, GAP insurance, tire & rim, and rust protection.",
+  openGraph: {
+    title: "PlanetCare Protection Packages | Planet Motors",
+    description: "Compare Essential, Certified, and Certified Plus protection packages with extended warranty, GAP insurance, tire & rim, and rust protection.",
+    url: "https://www.planetmotors.ca/protection-plans",
+  },
+  alternates: {
+    canonical: "https://www.planetmotors.ca/protection-plans",
+  },
 }
 
 const trustBadges = [
@@ -73,7 +81,7 @@ export default function ProtectionPlansPage() {
               <Button size="lg" variant="secondary" className="h-12 px-8 text-base font-semibold shadow-lg" asChild>
                 <a href="#compare">Compare Packages</a>
               </Button>
-              <Button size="lg" variant="outline" className="h-12 px-8 text-base font-semibold border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10" asChild>
+              <Button size="lg" variant="outline" className="h-12 px-8 text-base font-semibold border-white/60 text-white bg-white/10 hover:bg-white/20" asChild>
                 <a href="tel:1-866-797-3332">
                   <Phone className="w-4 h-4 mr-2" />
                   Call Us
@@ -153,7 +161,7 @@ export default function ProtectionPlansPage() {
                           href={`/protection-plans/${product.slug}`}
                           className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                         >
-                          Learn more <ArrowRight className="w-3 h-3" />
+                          Learn more about {product.name} <ArrowRight className="w-3 h-3" />
                         </Link>
                       </div>
                     </div>

@@ -474,3 +474,140 @@ export function getProductBySlug(slug: string): ProtectionProduct | undefined {
 export function getAllProductSlugs(): string[] {
   return PROTECTION_PRODUCTS.map((p) => p.slug)
 }
+
+
+// ── Carvana-style Component Coverage Matrix (Extended Warranty only) ────────
+
+export interface CoverageCategory {
+  category: string
+  icon: string
+  components: string[]
+}
+
+export const WARRANTY_COVERAGE_MATRIX: CoverageCategory[] = [
+  {
+    category: "Engine",
+    icon: "⚙️",
+    components: [
+      "Engine block & cylinder heads",
+      "Pistons, rings & connecting rods",
+      "Crankshaft & bearings",
+      "Camshaft & lifters",
+      "Timing chain/belt & tensioners",
+      "Oil pump & pickup tube",
+      "Water pump",
+      "Intake & exhaust manifolds",
+      "Engine mounts",
+      "Turbocharger / Supercharger",
+    ],
+  },
+  {
+    category: "Transmission",
+    icon: "🔧",
+    components: [
+      "Transmission case & internals",
+      "Torque converter",
+      "Valve body & solenoids",
+      "Transfer case (4WD/AWD)",
+      "Clutch master & slave cylinder",
+      "Flywheel & flex plate",
+      "Shift linkage & cables",
+      "CV joints & axle shafts",
+      "Drive shaft & U-joints",
+    ],
+  },
+  {
+    category: "Electrical",
+    icon: "⚡",
+    components: [
+      "Alternator & voltage regulator",
+      "Starter motor & solenoid",
+      "Power window motors & regulators",
+      "Power door lock actuators",
+      "Wiper motors (front & rear)",
+      "Blower motor & resistor",
+      "Radiator & condenser fans",
+      "Instrument cluster & gauges",
+      "Power seat motors",
+      "Heated seat elements",
+    ],
+  },
+  {
+    category: "Cooling System",
+    icon: "❄️",
+    components: [
+      "Radiator",
+      "Thermostat & housing",
+      "Heater core",
+      "Coolant temperature sensor",
+      "Cooling fan clutch",
+      "Expansion/overflow tank",
+    ],
+  },
+  {
+    category: "Air Conditioning",
+    icon: "🌡️",
+    components: [
+      "Compressor & clutch",
+      "Condenser",
+      "Evaporator",
+      "Expansion valve / orifice tube",
+      "Receiver/drier & accumulator",
+      "A/C control module",
+    ],
+  },
+  {
+    category: "Steering & Suspension",
+    icon: "🛞",
+    components: [
+      "Power steering pump & rack",
+      "Steering gear box",
+      "Ball joints (upper & lower)",
+      "Control arms & bushings",
+      "Tie rod ends (inner & outer)",
+      "Wheel bearings & hubs",
+      "Struts & shock absorbers",
+      "Stabilizer bar links",
+      "Coil & leaf springs",
+    ],
+  },
+  {
+    category: "Brakes",
+    icon: "🛑",
+    components: [
+      "Brake master cylinder",
+      "ABS module & pump",
+      "Brake callipers",
+      "Wheel cylinders",
+      "Brake booster",
+      "Brake lines (steel)",
+      "Parking brake cables & mechanism",
+    ],
+  },
+  {
+    category: "Fuel System",
+    icon: "⛽",
+    components: [
+      "Fuel pump & sending unit",
+      "Fuel injectors",
+      "Fuel pressure regulator",
+      "Throttle body & position sensor",
+      "Idle air control valve",
+      "Mass airflow sensor",
+    ],
+  },
+  {
+    category: "Technology & Convenience",
+    icon: "📱",
+    components: [
+      "Navigation / infotainment unit",
+      "Backup camera",
+      "Bluetooth module",
+      "Keyless entry & push-button start",
+      "Cruise control module",
+      "Parking sensors",
+      "Rain-sensing wipers",
+      "Auto-dimming mirrors",
+    ],
+  },
+]

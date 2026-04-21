@@ -158,3 +158,59 @@ export function getPackageById(id: string): ProtectionPackage | undefined {
 export function getCheckoutPackages(): ProtectionPackage[] {
   return PROTECTION_PACKAGES
 }
+
+/* ─── Checkout-friendly format ─── */
+export interface CheckoutPlan {
+  id: string
+  name: string
+  price: number
+  description: string
+  badge?: string
+  features: string[]
+  deposit: number
+  highlighted: boolean
+}
+
+/** Feature-flag keys → human-readable labels (checkout card list) */
+const FEATURE_LABELS: Record<string, string> = {
+  returnPolicy: "10-day money-back guarantee",
+  tradeInCredit: "Trade-in credit eligible",
+  detailing: "Full detailing included",
+  fullTankOfGas: "Full tank of gas",
+  tireRimProtection: "Tire & rim protection",
+  rustProtection: "Rust protection",
+  freeDelivery: "FREE delivery",
+  inspection: "Planet Motors inspection",
+  safetyCertificate: "Safety standards certificate",
+}
+
+function warrantyLabel(w: ProtectionPackage["warranty"]): string | null {
+  switch (w) {
+    case "standard": return "Standard warranty"
+    case "extended": return "Extended warranty"
+    default: return null
+  }
+}
+
+/**
+ * Converts PROTECTION_PACKAGES into checkout-ready plan objects.
+ * Used by checkout page, vehicle-checkout component, and protection-plan-selector.
+ */
+export const CHECKOUT_PLANS: CheckoutPlan[] = PROTECTION_PACKAGES.map((pkg) => {
+  const featureList: string[] = []
+  const wl = warrantyLabel(pkg.warranty)
+  if (wl) featureList.push(wl)
+  for (const [key, enabled] of Object.entries(pkg.features)) {
+    if (enabled && FEATURE_LABELS[key]) featureList.push(FEATURE_LABELS[key])
+  }
+  return {
+    id: pkg.id,
+    name: pkg.name,
+    price: pkg.priceFrom,
+    description: pkg.description,
+    badge: pkg.badge,
+    features: featureList,
+    deposit: pkg.deposit,
+    highlighted: pkg.highlighted,
+  }
+})

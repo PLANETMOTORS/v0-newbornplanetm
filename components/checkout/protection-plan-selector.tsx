@@ -5,55 +5,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Shield, Check } from "lucide-react"
+import { CHECKOUT_PLANS } from "@/lib/constants/protection-packages"
 
-const PROTECTION_PLANS = [
-  {
-    id: "none",
-    name: "No Protection",
-    price: 0,
-    features: [],
-  },
-  {
-    id: "essential",
-    name: "PlanetCare Essential",
-    price: 1950,
-    badge: "Basic",
-    features: [
-      "3-Year Powertrain Coverage",
-      "24/7 Roadside Assistance",
-      "Trip Interruption Coverage",
-    ],
-  },
-  {
-    id: "smart",
-    name: "PlanetCare Smart",
-    price: 3000,
-    badge: "Popular",
-    features: [
-      "5-Year Comprehensive Coverage",
-      "24/7 Roadside Assistance",
-      "Trip Interruption Coverage",
-      "Rental Car Reimbursement",
-      "Tire & Wheel Protection",
-    ],
-  },
-  {
-    id: "lifeproof",
-    name: "PlanetCare Life Proof",
-    price: 4850,
-    badge: "Best Value",
-    features: [
-      "7-Year Bumper-to-Bumper Coverage",
-      "24/7 Premium Roadside Assistance",
-      "Trip Interruption Coverage",
-      "Rental Car Reimbursement",
-      "Tire & Wheel Protection",
-      "Dent & Ding Protection",
-      "Key Fob Replacement",
-      "$0 Deductible",
-    ],
-  },
-]
+const PROTECTION_PLANS = CHECKOUT_PLANS
 
 interface ProtectionPlanSelectorProps {
   value: string
@@ -115,4 +69,4 @@ export function ProtectionPlanSelector({ value, onChange }: ProtectionPlanSelect
   )
 }
 
-export { PROTECTION_PLANS }
+export { CHECKOUT_PLANS as PROTECTION_PLANS } from "@/lib/constants/protection-packages"

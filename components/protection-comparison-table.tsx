@@ -62,14 +62,14 @@ function CellValue({ pkg, rowKey }: { pkg: ProtectionPackage; rowKey: string }) 
       if (!label) return <X className="w-4 h-4 text-muted-foreground/40 mx-auto" />
       const isExtended = pkg.warranty === "extended"
       return (
-        <span className={`text-xs sm:text-sm font-semibold ${isExtended ? "text-green-600 dark:text-green-400" : ""}`}>
+        <span className={`text-xs sm:text-sm font-semibold ${isExtended ? "text-green-700 dark:text-green-400" : ""}`}>
           {label}
         </span>
       )
     }
     case "freeDelivery":
       return (
-        <span className={`text-xs sm:text-sm ${pkg.features.freeDelivery ? "font-semibold text-green-600 dark:text-green-400" : ""}`}>
+        <span className={`text-xs sm:text-sm ${pkg.features.freeDelivery ? "font-semibold text-green-700 dark:text-green-400" : ""}`}>
           {getDeliveryLabel(pkg)}
         </span>
       )
@@ -80,7 +80,7 @@ function CellValue({ pkg, rowKey }: { pkg: ProtectionPackage; rowKey: string }) 
       return value ? (
         <div className="flex items-center justify-center">
           <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center">
-            <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+            <CheckCircle className="w-4 h-4 text-green-700 dark:text-green-400" />
           </div>
         </div>
       ) : (
