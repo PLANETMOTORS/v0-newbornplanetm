@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Script from "next/script"
 import {
   Shield, Phone, Clock, Award, MapPin, RotateCcw, Headphones,
 } from "lucide-react"
@@ -8,6 +9,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ComparisonTableWrapper } from "./comparison-table-wrapper"
 import { ProductsGridWithDetails } from "./products-grid-with-details"
+import { ProtectionFaqAccordion } from "./protection-faq-accordion"
+import { PROTECTION_PRODUCTS } from "@/lib/protection-products"
+import { getPublicSiteUrl } from "@/lib/site-url"
 
 export const metadata = {
   title: "PlanetCare Protection Packages | Planet Motors",
@@ -40,9 +44,60 @@ const faqs = [
   { question: "What if I pay cash — can I still get protection?", answer: "Absolutely. Our Essential and Certified packages are available for both cash and finance buyers. The Certified Plus™ package is exclusively for finance customers as the additional coverages are bundled with loan protection." },
 ]
 
+/* ── JSON-LD Structured Data for SEO ── */
+function ProtectionPlansJsonLd() {
+  const siteUrl = getPublicSiteUrl()
+
+  // FAQPage schema — aggregates all general + product FAQs for rich results
+  const allFaqEntries = [
+    ...faqs,
+    ...PROTECTION_PRODUCTS.flatMap((p) => p.faqs),
+  ]
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: allFaqEntries.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: { "@type": "Answer", text: faq.answer },
+    })),
+  }
+
+  // Service schema — one entry per product for Google Service rich results
+  const serviceSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "PlanetCare Protection Products",
+    itemListElement: PROTECTION_PRODUCTS.map((product, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "Service",
+        name: product.name,
+        description: product.heroDescription,
+        url: `${siteUrl}/protection-plans#product-${product.slug}`,
+        provider: {
+          "@type": "AutoDealer",
+          name: "Planet Motors",
+          url: siteUrl,
+        },
+        areaServed: { "@type": "Country", name: "Canada" },
+      },
+    })),
+  }
+
+  return (
+    <>
+      <Script id="protection-faq-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <Script id="protection-services-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
+    </>
+  )
+}
+
 export default function ProtectionPlansPage() {
   return (
     <div className="min-h-screen bg-background">
+      <ProtectionPlansJsonLd />
       <Header />
 
       <main id="main-content" tabIndex={-1} className="pt-24 pb-20">
@@ -160,20 +215,16 @@ export default function ProtectionPlansPage() {
         <section className="py-16 lg:py-24 bg-card">
           <div className="mx-auto max-w-3xl px-6 lg:px-8">
             <div className="text-center mb-12">
-              <Badge variant="outline" className="mb-4 text-xs">FAQ</Badge>
+              <Badge variant="outline" className="mb-4 text-xs tracking-wider uppercase">FAQ</Badge>
               <h2 className="font-serif text-3xl md:text-4xl font-bold">
                 Frequently Asked Questions
               </h2>
+              <p className="mt-3 text-muted-foreground">
+                Common questions about PlanetCare protection coverage.
+              </p>
             </div>
 
-            <div className="space-y-4">
-              {faqs.map((faq) => (
-                <div key={faq.question} className="bg-background rounded-xl p-6 border border-border hover:border-primary/20 transition-colors">
-                  <h3 className="font-semibold mb-2 text-sm">{faq.question}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{faq.answer}</p>
-                </div>
-              ))}
-            </div>
+            <ProtectionFaqAccordion faqs={faqs} />
 
             <div className="mt-14 text-center">
               <p className="text-muted-foreground mb-5">
