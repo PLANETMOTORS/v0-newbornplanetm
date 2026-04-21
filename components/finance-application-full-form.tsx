@@ -199,6 +199,23 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   const [documents, setDocuments] = useState<DocumentUpload[]>([])
   const [additionalNotes, setAdditionalNotes] = useState("")
 
+  // Stripe checkout client secret fetcher – memoized to avoid re-initializing the
+  // EmbeddedCheckoutProvider on auth-triggered re-renders.
+  const fetchClientSecret = useCallback(() => {
+    const vehicleName = vehicleData
+      ? `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`.trim()
+      : "Vehicle Deposit"
+    return startVehicleCheckout({
+      vehicleId: vehicleId || "",
+      vehicleName,
+      depositOnly: true,
+      customerEmail: primaryApplicant.email || undefined,
+    }).then((secret) => {
+      if (!secret) throw new Error("Missing checkout client secret")
+      return secret
+    })
+  }, [vehicleId, vehicleData, primaryApplicant.email])
+
   // Helper: restore form state from a draft object
   const restoreFromDraft = useCallback((draft: Record<string, unknown>) => {
     if (typeof draft.currentStep === "number") setCurrentStep(draft.currentStep)
@@ -704,17 +721,6 @@ if (errors.length > 0) {
     const vehicleName = vehicleData
       ? `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`.trim()
       : "Vehicle Deposit"
-
-    const fetchClientSecret = () =>
-      startVehicleCheckout({
-        vehicleId: vehicleId || "",
-        vehicleName,
-        depositOnly: true,
-        customerEmail: primaryApplicant.email || undefined,
-      }).then((secret) => {
-        if (!secret) throw new Error("Missing checkout client secret")
-        return secret
-      })
 
     return (
       <div className="max-w-2xl mx-auto p-8">
