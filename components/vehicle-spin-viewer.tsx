@@ -32,6 +32,7 @@ import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "luci
 const TIRE_LINE_Y    = 0.78   // tires land here (78% of canvas height) — matches Devin's working value
 const CAR_FILL       = 0.90   // car fills 90% of canvas width
 const TIRE_CONTACT_Y = 0.82   // default: tire bottom at 82% of image height (fallback)
+const GROUND_PUSH    = 0.06   // push car down by 6% of car height so tires sink INTO the floor
 const REFLECTION_OPACITY = 0.04 // floor reflection strength (subtle on bright floor)
 // Minimum headroom above the car (as a fraction of canvas height).
 // Prevents the car from being clipped at the top of the canvas,
@@ -130,9 +131,9 @@ function drawScene(
     carW = carH * aspect
   }
 
-  // Place the car so that its detected tire bottom lands exactly on tireLineY.
-  // carTop = tireLineY - (tireY * carH)
-  let carTop = tireLineY - tireY * carH
+  // Place the car so that its detected tire bottom lands on tireLineY,
+  // then push it down by GROUND_PUSH so tires visually sink INTO the floor/shadow.
+  let carTop = tireLineY - tireY * carH + GROUND_PUSH * carH
 
   // Dynamic clamp: if the car would overflow the top of the canvas, scale it
   // down so there is at least MIN_HEADROOM of headroom above the car body.

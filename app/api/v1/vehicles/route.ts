@@ -526,6 +526,10 @@ function getMockVehicles() {
     { id: "mock-tesla-y", year: 2024, make: "Tesla", model: "Model Y", trim: "Performance", price: 61995, msrp: 63995, mileage: 5100, fuel_type: "Electric", body_style: "SUV", transmission: "Automatic", drivetrain: "AWD", exterior_color: "Midnight Silver", primary_image_url: "/placeholder.jpg", status: "available", stock_number: "PM-2024-002", vin: "5YJ3E1EA1PF000002", is_new_arrival: false, is_certified: true, created_at: new Date().toISOString() },
     { id: "mock-bmw-i4", year: 2023, make: "BMW", model: "i4", trim: "eDrive40", price: 52995, msrp: 56995, mileage: 12300, fuel_type: "Electric", body_style: "Sedan", transmission: "Automatic", drivetrain: "RWD", exterior_color: "Black Sapphire", primary_image_url: "/placeholder.jpg", status: "available", stock_number: "PM-2024-003", vin: "WBA53BJ01PCK00003", is_new_arrival: false, is_certified: true, created_at: new Date().toISOString() },
   ]
-  // Mock vehicles don't need DB-driven drivee_mid — return null
-  return raw.map(v => ({ ...v, drivee_mid: null }))
+  // Attach known Drivee MIDs for testing the 360° viewer locally
+  const testMids: Record<string, string> = {
+    "mock-tesla-3": "640326639530", // 2019 Tesla Model 3 — 37 frames (1200×900, transparent nobg)
+    "mock-tesla-y": "890747363179", // 2024 Tesla Model 3 — 39 frames (1200×900, transparent nobg)
+  }
+  return raw.map(v => ({ ...v, drivee_mid: testMids[v.id] ?? null }))
 }
