@@ -28,7 +28,7 @@ import { Play, Pause, RotateCw, Hand, Maximize2, Minimize2, Loader2 } from "luci
 const TIRE_LINE_Y    = 0.84   // tires land here (84% of canvas height) — lower = more grounded
 const CAR_FILL       = 0.92   // car fills 92% of canvas width
 const TIRE_CONTACT_Y = 0.82   // default: tire bottom at 82% of image height (fallback)
-const GROUND_PUSH    = 0.04   // push car down by 4% of car height so tires sink INTO the floor
+const GROUND_PUSH    = 0.07   // push car down by 7% of car height — hides rear-tire perspective lift
 const REFLECTION_OPACITY = 0.04 // floor reflection strength (subtle on bright floor)
 
 // Studio colors are defined inline in the single continuous background gradient
