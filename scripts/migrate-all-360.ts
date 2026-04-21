@@ -45,6 +45,23 @@ interface PirellyVehicle {
   frameFilenames: string[]
 }
 
+type PirellySpin = {
+  modelId?: string
+  status?: boolean
+  order?: number
+  filename?: string
+}
+
+type PirellyVehicleItem = {
+  car?: {
+    vin?: string
+    brand?: string
+    carModel?: string
+    stockNumber?: string
+  }
+  modelMainSpins?: Record<string, PirellySpin>
+}
+
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
 async function getFirebaseToken(): Promise<string> {
@@ -73,17 +90,18 @@ async function fetchAllVehicles(token: string): Promise<PirellyVehicle[]> {
   })
 
   if (!res.ok) throw new Error(`Pirelly API failed: ${res.status}`)
-  const data = await res.json()
+  const data = (await res.json()) as { data?: PirellyVehicleItem[] }
 
-  return (data.data ?? []).map((item: any) => {
+  return (data.data ?? []).map((item) => {
     const car = item.car ?? {}
     const spins = item.modelMainSpins ?? {}
-    const spinValues = Object.values(spins) as any[]
+    const spinValues = Object.values(spins)
     const mid = spinValues[0]?.modelId ?? ""
     const filenames = spinValues
-      .filter((s: any) => s.status !== false)
-      .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
-      .map((s: any) => s.filename as string)
+      .filter((s) => s.status !== false)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      .map((s) => s.filename)
+      .filter((filename): filename is string => Boolean(filename))
 
     return {
       mid,
@@ -226,9 +244,10 @@ async function migrateVehicle(
           await uploadToSupabase(supabaseUrl, key, v.mid, frameNum, data)
           uploaded++
           process.stdout.write(".")
-        } catch (err: any) {
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : "Unknown error"
           process.stdout.write("✗")
-          console.error(`\n   ⚠️  Frame ${frameNum} failed: ${err.message}`)
+          console.error(`\n   ⚠️  Frame ${frameNum} failed: ${message}`)
         }
       }),
     )

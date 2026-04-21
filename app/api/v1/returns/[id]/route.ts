@@ -12,7 +12,7 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { id } = await params
+  const { id: _id } = await params
 
   // TODO: Connect to real returns database table once available.
   // Until then, return a placeholder indicating no return record was found.

@@ -1,7 +1,7 @@
 // Below-fold homepage sections — code-split from homepage-content.tsx
 // to reduce initial JS bundle and improve LCP/TBT
 import Link from "next/link"
-import { ArrowRight, Shield, RotateCw, CheckCircle, Star, BadgeCheck, Clock, Battery, Phone, MapPin, DollarSign, Truck } from "lucide-react"
+import { ArrowRight, RotateCw, CheckCircle, Star, BadgeCheck, Clock, Battery, Phone, MapPin, DollarSign, Truck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 const protectionPlans = [

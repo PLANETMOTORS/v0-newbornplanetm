@@ -106,7 +106,11 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       return { error: claim?.error || 'Vehicle is not available for reservation.' }
     }
 
-    const reservationId = claim.reservation_id!
+    const reservationId = claim.reservation_id
+    if (!reservationId) {
+      await unlockVehicle(input.stockNumber, input.customerEmail)
+      return { error: 'Unable to create reservation. Please try again.' }
+    }
 
     // Create Stripe Checkout session
     const baseUrl = getPublicSiteUrl()

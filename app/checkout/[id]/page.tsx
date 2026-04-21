@@ -187,13 +187,14 @@ export default function CheckoutPage() {
   const tax = Math.round(subtotalBeforeTax * taxRate)
   // Total with tax
   const total = subtotalBeforeTax + tax
+  const vehicleName = `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`
 
   // Stripe client secret fetcher for embedded checkout
   const fetchClientSecret = useCallback(async () => {
     const utmParams = getUTMParams()
     const clientSecret = await startVehicleCheckout({
       vehicleId: params.id as string,
-      vehicleName: `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`,
+      vehicleName,
       protectionPlanId: selectedProtection !== "none" ? selectedProtection : undefined,
       customerEmail: formData.email,
       ...(utmParams?.utm_source && { utmSource: utmParams.utm_source }),
@@ -206,7 +207,7 @@ export default function CheckoutPage() {
       throw new Error("Failed to create checkout session")
     }
     return clientSecret
-  }, [params.id, selectedProtection, formData.email, vehicleData])
+  }, [params.id, selectedProtection, formData.email, vehicleName])
 
   // Show loading while checking auth
   if (isLoading || !user) {

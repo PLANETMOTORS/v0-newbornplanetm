@@ -250,7 +250,7 @@ export async function GET(request: NextRequest) {
       // If the online lookup returned a street and we have no local street data, build a suggestion
       if (streetSuggestions.length === 0 && online.street && online.city) {
         const parts = online.street.split(' ')
-        const streetType = parts.length > 1 ? parts.pop()! : 'Street'
+        const streetType = parts.length > 1 ? (parts.pop() || 'Street') : 'Street'
         const streetName = parts.join(' ') || online.street
         streetSuggestions = [{
           streetName,

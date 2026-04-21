@@ -39,7 +39,6 @@ export function useOverlayRenderer(
   const verticalOffsetRef = useRef(0)
 
   // FIX #2: memoize opts so `draw` dependency is stable across renders
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- individual props are listed
   const opts = useMemo<Required<DrawOptions>>(
     () => ({
       showGuides: false, // FIX #3: default false for production
@@ -48,12 +47,7 @@ export function useOverlayRenderer(
       showTireMergeSpots: false,
       ...drawOptions,
     }),
-    [
-      drawOptions.showGuides,
-      drawOptions.showShadow,
-      drawOptions.showReflection,
-      drawOptions.showTireMergeSpots,
-    ],
+    [drawOptions],
   )
 
   const profile = useMemo(

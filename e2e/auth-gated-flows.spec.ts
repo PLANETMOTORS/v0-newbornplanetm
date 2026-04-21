@@ -140,7 +140,7 @@ test.describe("Auth-Gated Flows — Finance Submission & ID Upload", () => {
         url.includes("/api/v1/financing/apply") ||
         url.includes("/api/v1/id-verification")
       ) {
-        let body = ""
+        let body: string
         try {
           body = await response.text()
         } catch {

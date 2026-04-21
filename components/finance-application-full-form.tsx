@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
 import {
   User, Car, FileText, Upload,
   ArrowRight, ArrowLeft, CheckCircle, Loader2, Shield, AlertCircle
@@ -16,7 +15,7 @@ import { cn } from "@/lib/utils"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 import {
   type ApplicantData, type VehicleInfo, type TradeInInfo,
-  type FinancingTerms, type DocumentUpload, type FinancingResult,
+  type FinancingTerms, type DocumentUpload,
   emptyApplicant,
 } from "@/components/finance-application"
 import { ApplicantForm } from "@/components/finance-application/applicant-form"

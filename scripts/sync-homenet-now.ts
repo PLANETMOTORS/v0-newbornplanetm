@@ -7,6 +7,9 @@ import { parseHomenetCSV, syncVehiclesToDatabase, getSql } from "../lib/homenet/
 import { readFileSync } from "fs"
 import { resolve } from "path"
 
+type CountRow = { total?: number | string }
+type InventoryRow = { vin?: string; year?: number; make?: string; model?: string }
+
 async function main() {
   const csvPath = resolve(__dirname, "..", "PlanetMotorsDealer.csv")
   const csv = readFileSync(csvPath, "utf-8")
@@ -21,7 +24,8 @@ async function main() {
 
   // Count before
   const before = await sql`SELECT COUNT(*) as total FROM vehicles`
-  console.log("Before sync: " + (before as any)[0]?.total + " vehicles in DB")
+  const beforeRows = before as CountRow[]
+  console.log("Before sync: " + (beforeRows[0]?.total ?? 0) + " vehicles in DB")
 
   console.log("Running full-replacement sync...")
   const result = await syncVehiclesToDatabase(sql, vehicles)
@@ -38,12 +42,14 @@ async function main() {
 
   // Count after
   const after = await sql`SELECT COUNT(*) as total FROM vehicles`
-  console.log("\nAfter sync: " + (after as any)[0]?.total + " vehicles in DB")
+  const afterRows = after as CountRow[]
+  console.log("\nAfter sync: " + (afterRows[0]?.total ?? 0) + " vehicles in DB")
 
   // List all
   const live = await sql`SELECT vin, year, make, model FROM vehicles ORDER BY make, model`
-  console.log("\nLive inventory (" + (live as any[]).length + " vehicles):")
-  for (const v of live as any[]) {
+  const liveRows = live as InventoryRow[]
+  console.log("\nLive inventory (" + liveRows.length + " vehicles):")
+  for (const v of liveRows) {
     console.log("  " + v.vin + " | " + v.year + " " + v.make + " " + v.model)
   }
 

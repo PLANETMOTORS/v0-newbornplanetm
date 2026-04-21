@@ -105,7 +105,7 @@ let dbLock: Promise<void> = Promise.resolve()
 
 async function newCreateReservation(email: string): Promise<{ success: boolean; error?: string }> {
   // Acquire exclusive lock (simulates SELECT ... FOR UPDATE)
-  let releaseLock: () => void
+  let releaseLock: () => void = () => {}
   const previousLock = dbLock
   dbLock = new Promise(resolve => { releaseLock = resolve })
 
@@ -130,12 +130,12 @@ async function newCreateReservation(email: string): Promise<{ success: boolean; 
 
     return { success: true }
   } finally {
-    releaseLock!() // Release the lock
+    releaseLock() // Release the lock
   }
 }
 
 async function newCreateOrder(userId: string): Promise<{ success: boolean; error?: string }> {
-  let releaseLock: () => void
+  let releaseLock: () => void = () => {}
   const previousLock = dbLock
   dbLock = new Promise(resolve => { releaseLock = resolve })
 
@@ -154,7 +154,7 @@ async function newCreateOrder(userId: string): Promise<{ success: boolean; error
 
     return { success: true }
   } finally {
-    releaseLock!()
+    releaseLock()
   }
 }
 

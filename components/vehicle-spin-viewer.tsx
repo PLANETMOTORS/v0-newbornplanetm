@@ -554,12 +554,13 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
       {/* Planet Motors logo */}
       {isReady && (
         <div className="absolute bottom-3 right-14 z-[3] pointer-events-none opacity-40">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/images/planet-motors-logo.png"
             alt=""
             width={42}
             height={24}
-            style={{ height: '24px', width: 'auto' }}
+            style={{ height: "24px", width: "auto" }}
             draggable={false}
           />
         </div>
