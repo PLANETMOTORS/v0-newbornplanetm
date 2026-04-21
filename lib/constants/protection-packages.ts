@@ -82,7 +82,7 @@ export const PROTECTION_PACKAGES: ProtectionPackage[] = [
       inspection: true,
       safetyCertificate: true,
     },
-    description: "Standard warranty with trade-in credit. $100 refundable deposit at checkout.",
+    description: "Standard warranty with trade-in credit. $250 refundable deposit at checkout.",
     highlighted: false,
   },
   {

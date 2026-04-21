@@ -7,11 +7,7 @@ export function ComparisonTableWrapper() {
   const router = useRouter()
 
   function handleSelectPackage(packageId: string) {
-    // For now, route to inventory with the selected package stored in sessionStorage
-    // When the user picks a vehicle, the checkout page will read this selection
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("selectedProtectionPackage", packageId)
-    }
+    void packageId
     router.push("/inventory")
   }
 
