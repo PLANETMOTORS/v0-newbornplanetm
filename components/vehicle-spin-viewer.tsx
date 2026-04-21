@@ -47,11 +47,20 @@ interface SpinViewerProps {
   alt: string
 }
 
+interface TireDetectionResult {
+  tireY: number        // ratio (0–1) — where the tire bottom is
+  hasTransparency: boolean  // true if the image has meaningful alpha (background-removed)
+}
+
 /**
  * Detect the lowest opaque row in a frame image (tire bottom position).
- * Returns a ratio (0–1) representing where the tire rubber ends vertically.
+ * Also detects whether the image has transparency (background-removed) or is
+ * a fully opaque frame (original Drivee turntable with background).
+ *
+ * For opaque images, the studio floor/shadow rendering is skipped — the image
+ * is drawn as-is, preserving the original Drivee turntable background.
  */
-function detectTireBottom(img: HTMLImageElement): number | null {
+function detectTireBottom(img: HTMLImageElement): TireDetectionResult | null {
   const w = img.naturalWidth
   const h = img.naturalHeight
   if (w === 0 || h === 0) return null
@@ -66,6 +75,23 @@ function detectTireBottom(img: HTMLImageElement): number | null {
     ctx.drawImage(img, 0, 0)
     const data = ctx.getImageData(0, 0, w, h).data
 
+    // Quick transparency check: sample ~200 pixels along the top and bottom
+    // edges. If ALL are fully opaque (alpha=255), the image has no transparency.
+    let transparentPixels = 0
+    const sampleRows = [0, 1, 2, h - 3, h - 2, h - 1]
+    const step = Math.max(1, Math.floor(w / 40))
+    for (const row of sampleRows) {
+      for (let x = 0; x < w; x += step) {
+        if (data[(row * w + x) * 4 + 3] < 250) transparentPixels++
+      }
+    }
+    const hasTransparency = transparentPixels > 5
+
+    if (!hasTransparency) {
+      // Opaque image — return default positioning, flag as no transparency
+      return { tireY: TIRE_CONTACT_Y, hasTransparency: false }
+    }
+
     // Alpha > 200 to detect solid tire rubber (ignores semi-transparent
     // halo from background removal). Scan from very bottom — no skip,
     // since full-frame images have tires at 98-100% height.
@@ -74,7 +100,7 @@ function detectTireBottom(img: HTMLImageElement): number | null {
       for (let x = 0; x < w; x++) {
         if (data[(y * w + x) * 4 + 3] > 200) {
           count++
-          if (count >= 15) return y / h
+          if (count >= 15) return { tireY: y / h, hasTransparency: true }
         }
       }
     }
@@ -104,7 +130,34 @@ function drawScene(
   height: number,
   carImg: HTMLImageElement | null,
   tireY: number,
+  hasTransparency: boolean = true,
 ) {
+  // ── OPAQUE MODE: image has its own background (Drivee turntable) ──
+  // Just draw the image filling the canvas — no studio floor or shadow needed.
+  if (!hasTransparency && carImg && carImg.naturalWidth > 0) {
+    ctx.fillStyle = "#F0F0F0"
+    ctx.fillRect(0, 0, width, height)
+    const imgW = carImg.naturalWidth
+    const imgH = carImg.naturalHeight
+    const imgAspect = imgW / imgH
+    const canvasAspect = width / height
+    let dw: number, dh: number, dx: number, dy: number
+    if (imgAspect > canvasAspect) {
+      // Image is wider — fit to width
+      dw = width
+      dh = width / imgAspect
+      dx = 0
+      dy = (height - dh) / 2
+    } else {
+      // Image is taller — fit to height
+      dh = height
+      dw = height * imgAspect
+      dx = (width - dw) / 2
+      dy = 0
+    }
+    ctx.drawImage(carImg, dx, dy, dw, dh)
+    return
+  }
   const tireLineY = TIRE_LINE_Y * height
 
   // ── 1. Background: Carvana-style BRIGHT studio floor ──
@@ -233,6 +286,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   const imageCache = useRef<Map<number, HTMLImageElement>>(new Map())
   const perFrameTireY = useRef<(number | null)[]>([])
   const medianTireY = useRef<number>(TIRE_CONTACT_Y)
+  const framesHaveTransparency = useRef<boolean>(true)
 
   const totalFrames = images.length
   const sensitivity = totalFrames > 0 ? Math.max(3, Math.round(800 / totalFrames)) : 3
@@ -271,7 +325,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     // Always use the stable median across all frames to eliminate inter-frame bounce
     const tireY = medianTireY.current
 
-    drawScene(ctx, w, h, carImg, tireY)
+    drawScene(ctx, w, h, carImg, tireY, framesHaveTransparency.current)
   }, [frame])
 
   // Keep ref always pointing to the latest drawFrame
@@ -299,6 +353,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     setFrame(0)
     imageCache.current.clear()
     perFrameTireY.current = new Array(images.length).fill(null)
+    framesHaveTransparency.current = true // assume transparent until first frame proves otherwise
 
     let cancelled = false
     const preload = (src: string, idx: number) =>
@@ -308,14 +363,20 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
         img.onload = () => {
           if (!cancelled) {
             imageCache.current.set(idx, img)
-            const tireY = detectTireBottom(img)
-            if (tireY !== null) {
-              perFrameTireY.current[idx] = tireY
-              // Update median
-              const detected = perFrameTireY.current.filter((v): v is number => v !== null)
-              if (detected.length > 0) {
-                detected.sort((a, b) => a - b)
-                medianTireY.current = detected[Math.floor(detected.length / 2)]
+            const result = detectTireBottom(img)
+            if (result !== null) {
+              // First frame determines transparency mode for all frames
+              if (idx === 0) {
+                framesHaveTransparency.current = result.hasTransparency
+              }
+              if (result.hasTransparency) {
+                perFrameTireY.current[idx] = result.tireY
+                // Update median
+                const detected = perFrameTireY.current.filter((v): v is number => v !== null)
+                if (detected.length > 0) {
+                  detected.sort((a, b) => a - b)
+                  medianTireY.current = detected[Math.floor(detected.length / 2)]
+                }
               }
             }
             setLoadedCount((c) => c + 1)
