@@ -6,6 +6,11 @@ import { getDriveeMidFromDb } from "@/lib/drivee-db"
 import { ADMIN_EMAILS } from "@/lib/admin"
 const VEHICLE_DETAIL_TTL = 300 // 5 minutes
 
+/** UUID v4 pattern — used to decide whether to query by `id` or `stock_number`. */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+/** Standard 17-character VIN pattern (digits + uppercase letters, excluding I/O/Q). */
+const VIN_RE = /^[A-HJ-NPR-Z0-9]{17}$/i
+
 const ALLOWED_STATUSES = new Set([
   "available",
   "reserved",
@@ -102,10 +107,16 @@ export async function GET(
       )
     }
 
+    // Determine which column to query based on the id format:
+    //  - UUID → primary key `id`
+    //  - 17-char VIN → `vin`
+    //  - anything else → `stock_number`
+    const lookupColumn = UUID_RE.test(id) ? "id" : VIN_RE.test(id) ? "vin" : "stock_number"
+
     const { data: vehicle, error } = await supabase
       .from("vehicles")
       .select(VEHICLE_DETAIL_FIELDS)
-      .eq("id", id)
+      .eq(lookupColumn, id)
       .maybeSingle()
 
     if (error) {
