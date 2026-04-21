@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { ComparisonTableWrapper } from "./comparison-table-wrapper"
+import { ProductDetailsSection } from "./product-details-section"
 
 export const metadata = {
   title: "PlanetCare Protection Packages | Planet Motors",
@@ -157,12 +158,12 @@ export default function ProtectionPlansPage() {
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-sm mb-1">{product.name}</h3>
                         <p className="text-xs text-muted-foreground leading-relaxed mb-3">{product.description}</p>
-                        <Link
-                          href={`/protection-plans/${product.slug}`}
+                        <a
+                          href={`#product-${product.slug}`}
                           className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                         >
                           Learn more about {product.name} <ArrowRight className="w-3 h-3" />
-                        </Link>
+                        </a>
                       </div>
                     </div>
                   </CardContent>
@@ -202,6 +203,9 @@ export default function ProtectionPlansPage() {
             </div>
           </div>
         </section>
+
+        {/* ═══════════ PRODUCT DETAILS (INLINE ACCORDION) ═══════════ */}
+        <ProductDetailsSection />
 
         {/* ═══════════ FAQ ═══════════ */}
         <section className="py-16 lg:py-24 bg-card">
