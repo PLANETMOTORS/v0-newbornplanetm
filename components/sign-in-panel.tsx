@@ -126,35 +126,35 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
 
               {/* Quick Actions */}
               <div className="space-y-3">
-                <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 hover:border-green-300 transition-colors cursor-pointer">
+                <Link href="/financing" onClick={onClose} className="block p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 hover:border-green-300 transition-colors cursor-pointer">
                   <h3 className="font-semibold text-gray-900 mb-1">Get Pre-Qualified</h3>
                   <p className="text-sm text-gray-600">
                     Get financing pre-approval without affecting your credit
                   </p>
-                  <Button variant="ghost" size="sm" className="mt-2 h-8 text-xs">
+                  <span className="inline-block mt-2 text-xs font-medium text-primary">
                     Learn More →
-                  </Button>
-                </div>
+                  </span>
+                </Link>
 
-                <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200 hover:border-blue-300 transition-colors cursor-pointer">
+                <Link href="/trade-in" onClick={onClose} className="block p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200 hover:border-blue-300 transition-colors cursor-pointer">
                   <h3 className="font-semibold text-gray-900 mb-1">Get Your Offer</h3>
                   <p className="text-sm text-gray-600">
                     Get a real offer for your car in less than 2 minutes
                   </p>
-                  <Button variant="ghost" size="sm" className="mt-2 h-8 text-xs">
+                  <span className="inline-block mt-2 text-xs font-medium text-primary">
                     Get Offer →
-                  </Button>
-                </div>
+                  </span>
+                </Link>
 
-                <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200 hover:border-purple-300 transition-colors cursor-pointer">
+                <Link href="/schedule" onClick={onClose} className="block p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200 hover:border-purple-300 transition-colors cursor-pointer">
                   <h3 className="font-semibold text-gray-900 mb-1">Schedule Tour</h3>
                   <p className="text-sm text-gray-600">
                     Book a virtual or in-person tour of a vehicle
                   </p>
-                  <Button variant="ghost" size="sm" className="mt-2 h-8 text-xs">
+                  <span className="inline-block mt-2 text-xs font-medium text-primary">
                     Schedule →
-                  </Button>
-                </div>
+                  </span>
+                </Link>
               </div>
 
               <Separator className="my-4" />
@@ -164,8 +164,10 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
                 <p className="text-sm text-gray-600 mb-3">
                   Don&apos;t have an account?
                 </p>
-                <Button variant="outline" className="w-full h-10">
-                  Create Account
+                <Button variant="outline" className="w-full h-10" asChild>
+                  <Link href="/auth/signup" onClick={onClose}>
+                    Create Account
+                  </Link>
                 </Button>
               </div>
             </>
