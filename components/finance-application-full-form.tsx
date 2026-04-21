@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
+
 import {
   User, Car, FileText, Upload,
   ArrowRight, ArrowLeft, CheckCircle, Loader2, Shield, AlertCircle
@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 import {
   type ApplicantData, type VehicleInfo, type TradeInInfo,
-  type FinancingTerms, type DocumentUpload, type FinancingResult,
+  type FinancingTerms, type DocumentUpload,
   emptyApplicant,
 } from "@/components/finance-application"
 import { ApplicantForm } from "@/components/finance-application/applicant-form"
@@ -197,7 +197,10 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     if (draftLoadedRef.current || isAuthLoading) return
 
     async function loadDraft() {
-      // Try server draft first (persists across devices)
+      let serverDraft: Record<string, unknown> | null = null
+      let localDraft: Record<string, unknown> | null = null
+
+      // Try server draft (persists across devices)
       if (user) {
         try {
           const res = await fetch("/api/v1/financing/drafts")
@@ -209,9 +212,7 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
                 (vehicleId && d.vehicle_id === vehicleId) || (!vehicleId && !d.vehicle_id)
             )
             if (match?.form_data && Object.keys(match.form_data).length > 0) {
-              restoreFromDraft(match.form_data as Record<string, unknown>)
-              draftLoadedRef.current = true
-              return
+              serverDraft = match.form_data as Record<string, unknown>
             }
           }
         } catch {
@@ -219,15 +220,29 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
         }
       }
 
-      // Fall back to localStorage
+      // Try localStorage (written after 250ms, may be newer than 2s-debounced server copy)
       try {
         const raw = window.localStorage.getItem(draftKey)
         if (raw) {
-          restoreFromDraft(JSON.parse(raw) as Record<string, unknown>)
+          localDraft = JSON.parse(raw) as Record<string, unknown>
         }
       } catch (error) {
         console.error("Failed to restore finance draft:", error)
       }
+
+      const getSavedAt = (draft: Record<string, unknown> | null) => {
+        if (!draft || typeof draft.savedAt !== "string") return 0
+        const parsed = Date.parse(draft.savedAt)
+        return Number.isFinite(parsed) ? parsed : 0
+      }
+
+      const freshestDraft =
+        getSavedAt(localDraft) > getSavedAt(serverDraft) ? localDraft : serverDraft
+
+      if (freshestDraft) {
+        restoreFromDraft(freshestDraft)
+      }
+
       draftLoadedRef.current = true
     }
 
