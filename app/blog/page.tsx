@@ -7,5 +7,11 @@ export const metadata = {
 }
 
 export default function BlogPage() {
-  return <BlogPageContent />
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <BlogPageContent />
+      <Footer />
+    </div>
+  )
 }
