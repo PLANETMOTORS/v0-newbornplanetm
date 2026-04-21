@@ -191,9 +191,8 @@ describe('fetchClientSecret logic', () => {
     vehicleName: string
     customerEmail: string | undefined
   }) {
-    const { startVehicleCheckout } = require('@/app/actions/stripe')
     return () =>
-      startVehicleCheckout({
+      mockStartVehicleCheckout({
         vehicleId: params.vehicleId || '',
         vehicleName: params.vehicleName,
         depositOnly: true,
