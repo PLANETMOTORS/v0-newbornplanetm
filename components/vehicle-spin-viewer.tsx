@@ -133,28 +133,26 @@ function drawScene(
   hasTransparency: boolean = true,
 ) {
   // ── OPAQUE MODE: image has its own background (Drivee turntable) ──
-  // Draw the image anchored to the bottom so the turntable floor sits
-  // naturally at the canvas edge — prevents the "floating car" look.
+  // Use "cover" scaling — fill the entire canvas, crop overflow.
+  // This eliminates gray gaps and naturally trims the turntable floor.
   if (!hasTransparency && carImg && carImg.naturalWidth > 0) {
-    ctx.fillStyle = "#F0F0F0"
-    ctx.fillRect(0, 0, width, height)
     const imgW = carImg.naturalWidth
     const imgH = carImg.naturalHeight
     const imgAspect = imgW / imgH
     const canvasAspect = width / height
     let dw: number, dh: number, dx: number, dy: number
     if (imgAspect > canvasAspect) {
-      // Image is wider — fit to width, anchor to bottom
-      dw = width
-      dh = width / imgAspect
-      dx = 0
-      dy = height - dh  // push to bottom
-    } else {
-      // Image is taller — fit to height
+      // Image is wider than canvas — fit to height, crop sides
       dh = height
       dw = height * imgAspect
       dx = (width - dw) / 2
       dy = 0
+    } else {
+      // Image is taller than canvas — fit to width, crop top/bottom
+      dw = width
+      dh = width / imgAspect
+      dx = 0
+      dy = (height - dh) / 2
     }
     ctx.drawImage(carImg, dx, dy, dw, dh)
     return
