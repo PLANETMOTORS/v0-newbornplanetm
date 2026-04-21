@@ -1234,7 +1234,7 @@ function TradeInContent() {
                             <input
                               type="file"
                               accept="image/*"
-                              className="hidden"
+                              className="sr-only"
                               ref={(el) => { fileInputRefs.current[angle] = el }}
                               onChange={(e) => {
                                 handlePhotoUpload(angle, e.target.files?.[0] || null)
