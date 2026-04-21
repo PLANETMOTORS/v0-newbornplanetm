@@ -84,17 +84,33 @@ function detectTireBottom(img: HTMLImageElement): TireDetectionResult | null {
       return { tireY: TIRE_CONTACT_Y, hasTransparency: false }
     }
 
-    // Alpha > 200 to detect solid tire rubber (ignores semi-transparent
-    // halo from background removal). Scan from very bottom — no skip,
-    // since full-frame images have tires at 98-100% height.
+    // Detect left-half and right-half tire bottoms separately, then AVERAGE
+    // them. This prevents perspective tilt from lifting the far-side tires:
+    // anchoring to the lowest point alone leaves the higher tires floating;
+    // averaging splits the error so both sides are close to the ground.
+    const midX = Math.floor(w / 2)
+    let leftY: number | null = null
+    let rightY: number | null = null
     for (let y = h - 1; y >= Math.floor(h * 0.5); y--) {
-      let count = 0
-      for (let x = 0; x < w; x++) {
-        if (data[(y * w + x) * 4 + 3] > 200) {
-          count++
-          if (count >= 15) return { tireY: y / h, hasTransparency: true }
+      if (leftY === null) {
+        let c = 0
+        for (let x = 0; x < midX; x++) {
+          if (data[(y * w + x) * 4 + 3] > 200) { c++; if (c >= 8) { leftY = y; break } }
         }
       }
+      if (rightY === null) {
+        let c = 0
+        for (let x = midX; x < w; x++) {
+          if (data[(y * w + x) * 4 + 3] > 200) { c++; if (c >= 8) { rightY = y; break } }
+        }
+      }
+      if (leftY !== null && rightY !== null) break
+    }
+    if (leftY !== null || rightY !== null) {
+      const avgY = (leftY !== null && rightY !== null)
+        ? (leftY + rightY) / 2
+        : (leftY ?? rightY)!
+      return { tireY: avgY / h, hasTransparency: true }
     }
   } catch {
     // CORS or canvas tainted
