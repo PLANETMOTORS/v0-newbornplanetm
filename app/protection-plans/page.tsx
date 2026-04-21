@@ -1,15 +1,13 @@
 import Link from "next/link"
 import {
-  Shield, Phone, Clock, Award, FileText, Car, LockKeyhole, PaintBucket,
-  Sparkles, Droplets, CircleDot, Wrench, MapPin, RotateCcw, Headphones, ArrowRight,
+  Shield, Phone, Clock, Award, MapPin, RotateCcw, Headphones,
 } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
 import { ComparisonTableWrapper } from "./comparison-table-wrapper"
-import { ProductDetailsSection } from "./product-details-section"
+import { ProductsGridWithDetails } from "./products-grid-with-details"
 
 export const metadata = {
   title: "PlanetCare Protection Packages | Planet Motors",
@@ -31,17 +29,7 @@ const trustBadges = [
   { icon: Shield, label: "Cancel Anytime", sublabel: "Hassle-free" },
 ]
 
-const additionalProducts = [
-  { name: "Companion GAP Coverage", description: "Covers the difference between your car's value and what you owe if it's totaled or stolen.", icon: Shield, slug: "gap-coverage" },
-  { name: "Extended Vehicle Warranty", description: "Comprehensive mechanical breakdown protection after manufacturer warranty expires.", icon: FileText, slug: "extended-warranty" },
-  { name: "IncidentPro", description: "Protection against accidents, theft, and total loss events with fast claims processing.", icon: Car, slug: "incident-pro" },
-  { name: "InvisiTrak Anti-Theft System", description: "GPS tracking and theft recovery system with 24/7 monitoring and mobile alerts.", icon: LockKeyhole, slug: "anti-theft" },
-  { name: "Paint Protection Film", description: "Clear protective film that shields your paint from chips, scratches, and UV damage.", icon: PaintBucket, slug: "paint-protection" },
-  { name: "Replacement Warranty Plan", description: "New-for-old vehicle replacement if your car is written off within coverage period.", icon: Sparkles, slug: "replacement-warranty" },
-  { name: "Rust Protection Coating", description: "Professional-grade undercoating to prevent rust and corrosion from Canadian winters.", icon: Droplets, slug: "rust-protection" },
-  { name: "Tire and Rim Protection", description: "Coverage for damage from potholes, nails, curb impact, and road hazards.", icon: CircleDot, slug: "tire-rim-protection" },
-  { name: "Window Tint Film", description: "Premium window tinting for UV protection, privacy, and heat reduction.", icon: Wrench, slug: "window-tint" },
-]
+
 
 const faqs = [
   { question: "Is an extended warranty on a used car worth it?", answer: "Yes — an extended warranty can help protect you from costly repairs after the manufacturer warranty expires, especially on pre-owned vehicles. The average major repair costs $1,500–$4,000, making coverage a smart investment." },
@@ -134,44 +122,8 @@ export default function ProtectionPlansPage() {
         </section>
 
 
-        {/* ═══════════ INDIVIDUAL PRODUCTS ═══════════ */}
-        <section className="py-16 lg:py-24 bg-muted/30">
-          <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <Badge variant="outline" className="mb-4 text-xs">À La Carte</Badge>
-              <h2 className="font-serif text-3xl md:text-4xl font-bold">
-                Individual Protection Products
-              </h2>
-              <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-                Customize your coverage with standalone products — available with any vehicle purchase.
-              </p>
-            </div>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {additionalProducts.map((product) => (
-                <Card key={product.name} className="group hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 border-border/60">
-                  <CardContent className="p-5">
-                    <div className="flex items-start gap-4">
-                      <div className="w-11 h-11 rounded-xl bg-primary/10 group-hover:bg-primary/15 flex items-center justify-center flex-shrink-0 transition-colors">
-                        <product.icon className="w-5 h-5 text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-sm mb-1">{product.name}</h3>
-                        <p className="text-xs text-muted-foreground leading-relaxed mb-3">{product.description}</p>
-                        <a
-                          href={`#product-${product.slug}`}
-                          className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-                        >
-                          Learn more about {product.name} <ArrowRight className="w-3 h-3" />
-                        </a>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
+        {/* ═══════════ INDIVIDUAL PRODUCTS (click to expand details inline) ═══════════ */}
+        <ProductsGridWithDetails />
 
         {/* ═══════════ WHY PLANETCARE ═══════════ */}
         <section className="py-16 lg:py-24">
@@ -203,9 +155,6 @@ export default function ProtectionPlansPage() {
             </div>
           </div>
         </section>
-
-        {/* ═══════════ PRODUCT DETAILS (INLINE ACCORDION) ═══════════ */}
-        <ProductDetailsSection />
 
         {/* ═══════════ FAQ ═══════════ */}
         <section className="py-16 lg:py-24 bg-card">
