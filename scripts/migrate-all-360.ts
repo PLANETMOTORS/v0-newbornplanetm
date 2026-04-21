@@ -1,6 +1,10 @@
 #!/usr/bin/env npx tsx
 export {}
 
+// Load .env.local for local development
+import { config } from "dotenv"
+config({ path: ".env.local" })
+
 /**
  * Full Drivee → Supabase 360° Frame Migration
  *
@@ -61,7 +65,7 @@ async function getFirebaseToken(): Promise<string> {
 // ─── Pirelly API ─────────────────────────────────────────────────────────────
 
 async function fetchAllVehicles(token: string): Promise<PirellyVehicle[]> {
-  const res = await fetch(PIRELLY_PAGINATOR, {
+  const res = await fetch(`${PIRELLY_PAGINATOR}?limit=200`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
