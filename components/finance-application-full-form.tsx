@@ -710,6 +710,7 @@ if (errors.length > 0) {
         vehicleId: vehicleId || "",
         vehicleName,
         depositOnly: true,
+        customerEmail: primaryApplicant.email || undefined,
       }).then((secret) => {
         if (!secret) throw new Error("Missing checkout client secret")
         return secret
