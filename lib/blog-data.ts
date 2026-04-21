@@ -20,7 +20,7 @@ export const blogPosts: Record<string, {
     date: "Apr 09, 2026",
     readTime: "8 min read",
     category: "Electric Vehicles",
-    image: "https://images.unsplash.com/photo-1620714223084-8fcacc6dfd8d?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2026/04/8.png",
     author: "Planet Motors Team",
     content: `
       <p>Buying a used Tesla is one of the smartest moves for Canadian drivers looking to go electric without the new-car price tag. But the battery is the most expensive component — and checking its health before you buy is essential.</p>
@@ -66,7 +66,7 @@ export const blogPosts: Record<string, {
     date: "Apr 02, 2026",
     readTime: "7 min read",
     category: "Trade-In",
-    image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2026/04/IMG_3792-scaled.jpg",
     author: "Planet Motors Team",
     content: `
       <p>Many Canadians still owe money on their vehicle when they're ready to upgrade. The good news? You can absolutely trade in a car with an outstanding loan. Here's exactly how it works.</p>
@@ -106,7 +106,7 @@ export const blogPosts: Record<string, {
     date: "Mar 26, 2026",
     readTime: "12 min read",
     category: "Electric Vehicles",
-    image: "https://images.unsplash.com/photo-1617788138017-80ad40651399?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2026/03/IMG_4474-scaled.jpg",
     author: "Planet Motors Team",
     content: `
       <p>Tesla's popularity in Canada continues to surge, and the used market is booming. With new Model 3 and Model Y prices still above $50,000 CAD, buying pre-owned can save you $10,000–$20,000 while still getting a fantastic vehicle. Here's everything you need to know.</p>
@@ -147,7 +147,7 @@ export const blogPosts: Record<string, {
     date: "Mar 18, 2026",
     readTime: "7 min read",
     category: "Selling",
-    image: "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2026/03/Untitled-design-20.png",
     author: "Planet Motors Team",
     content: `
       <p>Whether you're trading in or selling privately, a few smart investments can significantly boost your car's value. Here are the most effective ways to maximize your return in Ontario's competitive market.</p>
@@ -188,7 +188,7 @@ export const blogPosts: Record<string, {
     date: "Mar 10, 2026",
     readTime: "6 min read",
     category: "Electric Vehicles",
-    image: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2026/03/IMG_1903-2-scaled.png",
     author: "Planet Motors Team",
     content: `
       <p>One of the biggest advantages of buying a used Tesla is that the manufacturer's warranty transfers automatically to the new owner. Here's a complete breakdown of what's covered.</p>
@@ -229,7 +229,7 @@ export const blogPosts: Record<string, {
     date: "Feb 20, 2026",
     readTime: "8 min read",
     category: "Selling",
-    image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2026/02/Mode-2-2.png",
     author: "Planet Motors Team",
     content: `
       <p>When it's time to upgrade your vehicle, you have two main options: trading in your car at a dealership or selling it privately. Both have their advantages and disadvantages, and the best choice depends on your priorities—whether it's convenience, maximizing value, or minimizing hassle.</p>
@@ -292,7 +292,7 @@ export const blogPosts: Record<string, {
     date: "Feb 10, 2026",
     readTime: "10 min read",
     category: "Electric Vehicles",
-    image: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2026/02/Mode-2-1.png",
     author: "Planet Motors Team",
     content: `
       <p>Tesla's Full Self-Driving (FSD) capability represents the cutting edge of autonomous driving technology. Whether you're considering a new or used Tesla, understanding FSD is crucial to making an informed purchase decision.</p>
@@ -335,7 +335,7 @@ export const blogPosts: Record<string, {
     date: "Feb 02, 2026",
     readTime: "6 min read",
     category: "Financing",
-    image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2026/02/Mode-2.png",
     author: "Planet Motors Team",
     content: `
       <p>When financing a vehicle, one of the decisions you'll need to make is whether to pay bi-weekly or monthly. While this might seem like a minor detail, it can have a significant impact on how much you pay over the life of your loan.</p>
@@ -384,7 +384,7 @@ export const blogPosts: Record<string, {
     date: "Jan 26, 2026",
     readTime: "12 min read",
     category: "Electric Vehicles",
-    image: "https://images.unsplash.com/photo-1617788138017-80ad40651399?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2026/01/Mode.png",
     author: "Planet Motors Team",
     content: `
       <p>Tesla's Model 3 and Model Y are the brand's best-selling vehicles, and for good reason. Both offer exceptional range, performance, and technology. But which one is right for you? Let's break down the key differences.</p>
@@ -446,7 +446,7 @@ export const blogPosts: Record<string, {
     date: "Jan 09, 2026",
     readTime: "7 min read",
     category: "Buying Guide",
-    image: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2026/01/Banner-2-1.png",
     author: "Planet Motors Team",
     content: `
       <p>Ontario's diverse weather conditions—from hot summers to snowy winters—make choosing the right drivetrain an important consideration. Let's explore the pros and cons of AWD and RWD for Ontario drivers.</p>
@@ -500,7 +500,7 @@ export const blogPosts: Record<string, {
     date: "Oct 24, 2025",
     readTime: "5 min read",
     category: "Selling",
-    image: "https://images.unsplash.com/photo-1489824904134-891ab64532f1?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/image-1-1024x579-1.jpg",
     author: "Planet Motors Team",
     content: `
       <p>Looking to sell your car quickly and hassle-free? Planet Motors buys vehicles from anywhere in Canada, offering fair prices and a streamlined process that puts cash in your hands fast.</p>
@@ -543,7 +543,7 @@ export const blogPosts: Record<string, {
     date: "Sep 30, 2025",
     readTime: "6 min read",
     category: "Selling",
-    image: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/image-4-1024x579-1.png",
     author: "Planet Motors Team",
     content: `
       <p>Selling your car for cash doesn't have to be complicated. Whether you're upgrading, downsizing, or simply need the money, here's your complete guide to getting the best cash offer for your vehicle in Canada.</p>
@@ -597,7 +597,7 @@ export const blogPosts: Record<string, {
     date: "Sep 24, 2025",
     readTime: "5 min read",
     category: "Company",
-    image: "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/image-2-1024x572-1.png",
     author: "Planet Motors Team",
     content: `
       <p>When you're searching for your next vehicle, you want a dealership you can trust. At Planet Motors in Richmond Hill, we've built our reputation on transparency, quality, and exceptional customer service.</p>
@@ -639,7 +639,7 @@ export const blogPosts: Record<string, {
     date: "Sep 03, 2025",
     readTime: "8 min read",
     category: "Trade-In",
-    image: "https://images.unsplash.com/photo-1502877338535-766e1452684a?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/image-1-1024x572-1.png",
     author: "Planet Motors Team",
     content: `
       <p>Trading in your used car is one of the most convenient ways to upgrade to a new vehicle. Here's everything you need to know to maximize your trade-in value and streamline the process.</p>
@@ -686,7 +686,7 @@ export const blogPosts: Record<string, {
     date: "Aug 19, 2025",
     readTime: "9 min read",
     category: "Selling",
-    image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/unnamed-2.jpg",
     author: "Planet Motors Team",
     content: `
       <p>Whether you plan to sell in six months or six years, the actions you take today directly impact your car's future resale value. Here's how Toronto drivers can maximize their return.</p>
@@ -748,7 +748,7 @@ export const blogPosts: Record<string, {
     date: "Aug 06, 2025",
     readTime: "7 min read",
     category: "Financing",
-    image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/unnamed-5.jpg",
     author: "Planet Motors Team",
     content: `
       <p>When it comes to selling your car in Ontario, many people focus solely on the sale price. But the tax implications can make a significant difference in your bottom line.</p>
@@ -811,7 +811,7 @@ export const blogPosts: Record<string, {
     date: "Jul 17, 2025",
     readTime: "10 min read",
     category: "Selling",
-    image: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/unnamed-8.jpg",
     author: "Planet Motors Team",
     content: `
       <p>Yes, you can sell a car that's still being financed. However, there are important steps to follow to ensure the process goes smoothly and legally.</p>
@@ -872,7 +872,7 @@ export const blogPosts: Record<string, {
     date: "Jul 14, 2025",
     readTime: "12 min read",
     category: "Selling",
-    image: "https://images.unsplash.com/photo-1489824904134-891ab64532f1?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/unnamed-9.jpg",
     author: "Planet Motors Team",
     content: `
       <p>Selling a car in Toronto doesn't have to be stressful. Whether you choose to sell privately or to a dealer, this guide covers everything you need to know.</p>
@@ -952,7 +952,7 @@ export const blogPosts: Record<string, {
     date: "Aug 26, 2025",
     readTime: "8 min read",
     category: "Selling",
-    image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/unnamed.jpg",
     author: "Planet Motors Team",
     content: `
       <p>Selling your car is a big decision. Whether you're upgrading, downsizing, or simply need the cash, proper preparation ensures you get the best possible return.</p>
@@ -1017,7 +1017,7 @@ export const blogPosts: Record<string, {
     date: "Jul 22, 2025",
     readTime: "4 min read",
     category: "Company",
-    image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/unnamed-6.jpg",
     author: "Planet Motors Team",
     content: `
       <p>In today's fast-paced world, you don't have time to waste. That's why Planet Motors has streamlined our quote process to get you answers in just 5 minutes.</p>
@@ -1068,7 +1068,7 @@ export const blogPosts: Record<string, {
     date: "May 12, 2025",
     readTime: "10 min read",
     category: "Electric Vehicles",
-    image: "https://images.unsplash.com/photo-1612810436879-47d7f5bb0a82?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/blog-2.png",
     author: "Planet Motors Team",
     content: `
       <p>After years of anticipation, Tesla's Cybertruck has finally hit the roads. This isn't just another electric truck—it's a complete reimagining of what a pickup can be.</p>
@@ -1125,7 +1125,7 @@ export const blogPosts: Record<string, {
     date: "May 12, 2025",
     readTime: "6 min read",
     category: "Financing",
-    image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/blog-1.png",
     author: "Planet Motors Team",
     content: `
       <p>Great news for newcomers to Canada! Equifax has introduced a program that allows immigrants to import their credit history from their home country, making it easier to access financial products like car loans.</p>
@@ -1182,7 +1182,7 @@ export const blogPosts: Record<string, {
     date: "Oct 19, 2024",
     readTime: "8 min read",
     category: "Electric Vehicles",
-    image: "https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/blog-3.png",
     author: "Planet Motors Team",
     content: `
       <p>Tesla's "We, Robot" event showcased two groundbreaking vehicles that could reshape transportation: the Cybercab (Robotaxi) and the Robovan.</p>
@@ -1234,7 +1234,7 @@ export const blogPosts: Record<string, {
     date: "Oct 17, 2024",
     readTime: "7 min read",
     category: "Electric Vehicles",
-    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/blog-4.png",
     author: "Planet Motors Team",
     content: `
       <p>The EV revolution is accelerating, and staying informed about the latest trends can help you make smarter car-buying decisions.</p>
@@ -1291,7 +1291,7 @@ export const blogPosts: Record<string, {
     date: "Oct 11, 2024",
     readTime: "5 min read",
     category: "Buying Guide",
-    image: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/blog-6.png",
     author: "Planet Motors Team",
     content: `
       <p>Gone are the days when buying a car meant visiting multiple dealerships. Today, you can purchase a vehicle and have it delivered right to your door.</p>
@@ -1340,7 +1340,7 @@ export const blogPosts: Record<string, {
     date: "Oct 02, 2024",
     readTime: "6 min read",
     category: "Financing",
-    image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/blog6-1.png",
     author: "Planet Motors Team",
     content: `
       <p>APR is one of the most important numbers to understand when financing a vehicle. Let's break down what it means and how it affects your car loan.</p>
@@ -1395,7 +1395,7 @@ export const blogPosts: Record<string, {
     date: "Oct 01, 2024",
     readTime: "9 min read",
     category: "Buying Guide",
-    image: "https://images.unsplash.com/photo-1516733725897-1aa73b87c8e8?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/blog7-1.jpg",
     author: "Planet Motors Team",
     content: `
       <p>Ontario's fall and winter weather demands vehicles that can handle rain, snow, ice, and everything in between. Here are our top picks for confident cold-weather driving.</p>
@@ -1464,7 +1464,7 @@ export const blogPosts: Record<string, {
     date: "Sep 13, 2024",
     readTime: "10 min read",
     category: "Buying Guide",
-    image: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/blog-8.png",
     author: "Planet Motors Team",
     content: `
       <p>The pre-owned vehicle market offers incredible value. Here are our top recommendations across different categories for 2024.</p>
@@ -1545,7 +1545,7 @@ export const blogPosts: Record<string, {
     date: "Sep 12, 2024",
     readTime: "8 min read",
     category: "Electric Vehicles",
-    image: "https://images.unsplash.com/photo-1617788138017-80ad40651399?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/blog9-1.jpg",
     author: "Planet Motors Team",
     content: `
       <p>The Tesla Model Y has become one of the world's best-selling vehicles for good reason. Here's why this electric crossover represents the future of transportation.</p>
@@ -1597,7 +1597,7 @@ export const blogPosts: Record<string, {
     date: "Aug 29, 2024",
     readTime: "11 min read",
     category: "Financing",
-    image: "https://images.unsplash.com/photo-1560472355-536de3962603?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/blog-10.png",
     author: "Planet Motors Team",
     content: `
       <p>Congratulations on taking the exciting step toward purchasing your first car! Understanding financing is key to making a smart purchase.</p>
@@ -1665,7 +1665,7 @@ export const blogPosts: Record<string, {
     date: "Nov 08, 2023",
     readTime: "7 min read",
     category: "Electric Vehicles",
-    image: "https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/blog-11.png",
     author: "Planet Motors Team",
     content: `
       <p>Electric vehicles have gone from niche to mainstream, with more Canadians than ever making the switch. Here are the best-selling EVs making waves in Canada.</p>
@@ -1734,7 +1734,7 @@ export const blogPosts: Record<string, {
     date: "Oct 26, 2023",
     readTime: "5 min read",
     category: "Industry News",
-    image: "https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=1200&h=600&fit=crop",
+    image: "https://assets.carpages.ca/dealersite/prod-wp-dealerpage-plus/uploads/sites/1374/2025/11/blog12-1.jpg",
     author: "Planet Motors Team",
     content: `
       <p>Great news for Honda fans and eco-conscious drivers! The Civic Hybrid is making a comeback, and it's better than ever.</p>
