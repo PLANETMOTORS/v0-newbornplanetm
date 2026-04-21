@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { CheckCircle, ChevronRight, Clock } from "lucide-react"
+import { CheckCircle, ChevronRight, Clock, Shield, RotateCcw, ClipboardCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export interface PurchaseStep {
@@ -21,9 +21,10 @@ interface PurchaseSidebarProps {
   }
   steps: PurchaseStep[]
   onStepClick: (stepIndex: number) => void
+  onCancel?: () => void
 }
 
-export function PurchaseSidebar({ vehicle, steps, onStepClick }: PurchaseSidebarProps) {
+export function PurchaseSidebar({ vehicle, steps, onStepClick, onCancel }: PurchaseSidebarProps) {
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
   const completedCount = steps.filter(s => s.status === "complete").length
   const totalSteps = steps.length
@@ -136,6 +137,44 @@ export function PurchaseSidebar({ vehicle, steps, onStepClick }: PurchaseSidebar
             </span>
           </div>
         </div>
+
+        {/* Trust Badges */}
+        <div className="bg-background rounded-xl border p-4 space-y-3">
+          <div className="flex items-center gap-3">
+            <RotateCcw className="w-5 h-5 text-green-600 shrink-0" aria-hidden="true" />
+            <div>
+              <p className="text-sm font-medium">7-Day Money-Back Guarantee</p>
+              <p className="text-xs text-muted-foreground">Not satisfied? Full refund, no questions asked.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <ClipboardCheck className="w-5 h-5 text-blue-600 shrink-0" aria-hidden="true" />
+            <div>
+              <p className="text-sm font-medium">PM Certified™ 210-Point Inspection</p>
+              <p className="text-xs text-muted-foreground">Every vehicle thoroughly inspected and reconditioned.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Shield className="w-5 h-5 text-blue-600 shrink-0" aria-hidden="true" />
+            <div>
+              <p className="text-sm font-medium">OMVIC Registered Dealer</p>
+              <p className="text-xs text-muted-foreground">Licensed and regulated for your protection.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Cancel Order */}
+        {onCancel && (
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
+            >
+              Cancel your order
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   )

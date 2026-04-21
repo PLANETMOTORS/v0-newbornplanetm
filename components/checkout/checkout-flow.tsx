@@ -6,7 +6,7 @@ import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import { Button } from "@/components/ui/button"
-import { LockKeyhole, ArrowLeft, Phone, AlertCircle } from "lucide-react"
+import { LockKeyhole, Phone, AlertCircle, Clock, ShoppingCart, X } from "lucide-react"
 
 import { PurchaseSidebar, type PurchaseStep } from "./purchase-sidebar"
 import { PersonalDetailsStep, type PersonalDetailsData } from "./steps/personal-details"
@@ -77,6 +77,15 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
   })
   const [agreeToTerms, setAgreeToTerms] = useState(false)
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set())
+  const [timeLeft, setTimeLeft] = useState(40 * 60) // 40 minute countdown
+  const [showOrderSummary, setShowOrderSummary] = useState(false)
+
+  // Countdown timer — decrements every second
+  useEffect(() => {
+    if (timeLeft <= 0) return
+    const id = setInterval(() => setTimeLeft((t) => Math.max(0, t - 1)), 1000)
+    return () => clearInterval(id)
+  }, [timeLeft])
 
   // Track whether email was already prefilled to prevent infinite loop
   const emailPrefilledRef = useRef(false)
@@ -138,7 +147,6 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
         URL.revokeObjectURL(licensePreviewRef.current)
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const markComplete = useCallback((step: number) => {
@@ -219,6 +227,9 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
   }
 
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
+  const timerMins = Math.floor(timeLeft / 60)
+  const timerSecs = timeLeft % 60
+  const timerUrgent = timeLeft < 5 * 60
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -227,21 +238,78 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
           <Link href="/" aria-label="Planet Motors home">
             <PlanetMotorsLogo size="sm" />
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* Countdown timer */}
+            <div className={`flex items-center gap-1.5 text-sm font-medium tabular-nums ${
+              timerUrgent ? "text-red-600" : "text-muted-foreground"
+            }`} aria-label={`${timerMins} minutes ${timerSecs} seconds remaining`}>
+              <Clock className="w-4 h-4" aria-hidden="true" />
+              <span>{String(timerMins).padStart(2, "0")}:{String(timerSecs).padStart(2, "0")}</span>
+            </div>
+
+            {/* Support & Contact */}
+            <Button variant="ghost" size="sm" className="hidden sm:flex" asChild>
+              <a href="tel:+18667973332">
+                <Phone className="w-4 h-4 mr-1.5" aria-hidden="true" />
+                (866) 797-3332
+              </a>
+            </Button>
+
+            {/* Order Summary toggle (mobile) */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="lg:hidden"
+              onClick={() => setShowOrderSummary(!showOrderSummary)}
+              aria-expanded={showOrderSummary}
+              aria-controls="mobile-order-summary"
+            >
+              <ShoppingCart className="w-4 h-4 mr-1" aria-hidden="true" />
+              <span className="hidden sm:inline">Order Summary</span>
+            </Button>
+
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <LockKeyhole className="w-4 h-4" aria-hidden="true" />
               <span className="hidden sm:inline">Secure Checkout</span>
             </div>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href={`/vehicles/${vehicleId}`}>
-                <ArrowLeft className="w-4 h-4 mr-1" aria-hidden="true" />
-                <span className="hidden sm:inline">Back to Vehicle</span>
-                <span className="sm:hidden">Back</span>
-              </Link>
-            </Button>
           </div>
         </div>
       </header>
+
+      {/* Mobile Order Summary Drawer */}
+      {showOrderSummary && (
+        <div className="lg:hidden fixed inset-0 z-[60] bg-black/50" onClick={() => setShowOrderSummary(false)}>
+          <div
+            id="mobile-order-summary"
+            className="absolute right-0 top-0 h-full w-full max-w-sm bg-background shadow-xl overflow-y-auto p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold">Order Summary</h2>
+              <Button variant="ghost" size="icon" onClick={() => setShowOrderSummary(false)}>
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            <PurchaseSidebar
+              vehicle={{
+                year: vehicle.year,
+                make: vehicle.make,
+                model: vehicle.model,
+                trim: vehicle.trim,
+                imageUrl: vehicle.imageUrl,
+              }}
+              steps={sidebarSteps}
+              onStepClick={(idx) => {
+                if (completedSteps.has(idx) || idx === currentStep) {
+                  goToStep(idx)
+                  setShowOrderSummary(false)
+                }
+              }}
+              onCancel={() => router.push(`/vehicles/${vehicleId}`)}
+            />
+          </div>
+        </div>
+      )}
 
       <main className="container mx-auto px-4 py-6 lg:py-8">
         <h1 className="sr-only">Checkout — {vehicleName}</h1>
@@ -258,6 +326,7 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
             onStepClick={(idx) => {
               if (completedSteps.has(idx) || idx === currentStep) goToStep(idx)
             }}
+            onCancel={() => router.push(`/vehicles/${vehicleId}`)}
           />
 
           <section className="flex-1 min-w-0 max-w-2xl" aria-label="Checkout step">
@@ -340,9 +409,9 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
             <div className="mt-8 pt-6 border-t text-center">
               <p className="text-sm text-muted-foreground mb-2">Need help with your purchase?</p>
               <Button variant="outline" size="sm" asChild>
-                <a href="tel:416-985-2277">
+                <a href="tel:+18667973332">
                   <Phone className="w-4 h-4 mr-2" aria-hidden="true" />
-                  416-985-2277
+                  (866) 797-3332
                 </a>
               </Button>
             </div>

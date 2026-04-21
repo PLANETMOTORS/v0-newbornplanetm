@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { MapPin, Truck, Loader2 } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { MapPin, Truck, Loader2, Calendar } from "lucide-react"
 
 export interface DeliveryData {
   deliveryType: "pickup" | "delivery"
@@ -19,6 +20,12 @@ interface DeliveryOptionsStepProps {
   onContinue: () => void
 }
 
+function getEstimatedDate(daysFromNow: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() + daysFromNow)
+  return d.toLocaleDateString("en-CA", { weekday: "short", month: "short", day: "numeric" })
+}
+
 export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: DeliveryOptionsStepProps) {
   const [isCalculating, setIsCalculating] = useState(false)
   const dataRef = useRef(data)
@@ -26,6 +33,9 @@ export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: 
 
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
+
+  const pickupDate = useMemo(() => getEstimatedDate(1), [])
+  const deliveryDate = useMemo(() => getEstimatedDate(data.deliveryDistance > 200 ? 5 : 3), [data.deliveryDistance])
 
   useEffect(() => {
     if (!postalCode || postalCode.replace(/\s/g, '').length < 6) return
@@ -60,7 +70,7 @@ export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold mb-1">How do you want to get your car?</h1>
+        <h1 className="text-2xl font-bold mb-1">Choose pickup or delivery</h1>
         <p className="text-muted-foreground">
           Choose between picking it up at our dealership or having it delivered to your door.
         </p>
@@ -68,21 +78,37 @@ export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: 
 
       <div className="grid gap-4">
         <Card
-          className={`cursor-pointer transition-colors ${
+          className={`cursor-pointer transition-colors relative ${
             data.deliveryType === "pickup" ? "border-blue-600 bg-blue-50" : "hover:border-blue-300"
           }`}
           onClick={() => onChange({ ...data, deliveryType: "pickup" })}
         >
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-              <MapPin className="w-7 h-7 text-blue-600" />
+          <div className="absolute -top-3 left-4">
+            <Badge className="bg-green-700 text-white text-xs px-2.5 py-0.5 shadow-sm">
+              Soonest option
+            </Badge>
+          </div>
+          <CardContent className="p-6 pt-7">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                  <MapPin className="w-7 h-7 text-blue-600" aria-hidden="true" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">Pick it up</h3>
+                  <p className="flex items-center gap-1.5 text-sm text-muted-foreground mt-0.5">
+                    <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
+                    Pickup as soon as {pickupDate}
+                  </p>
+                </div>
+              </div>
+              <span className="text-lg font-bold text-green-600 whitespace-nowrap">+$0</span>
             </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-lg">Pick it up</h3>
+            <div className="ml-[4.5rem] mt-2">
+              <p className="text-sm font-medium">Planet Motors</p>
               <p className="text-sm text-muted-foreground">
-                Planet Motors — 30 Major Mackenzie Dr E, Richmond Hill, ON
+                30 Major Mackenzie Dr E, Richmond Hill, ON L4C 0H3
               </p>
-              <p className="text-sm font-medium text-green-600 mt-1">Free</p>
             </div>
           </CardContent>
         </Card>
@@ -93,38 +119,46 @@ export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: 
           }`}
           onClick={() => onChange({ ...data, deliveryType: "delivery" })}
         >
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-              <Truck className="w-7 h-7 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-lg">Have it delivered</h3>
-              <p className="text-sm text-muted-foreground">
-                We&apos;ll bring your vehicle right to your door.
-              </p>
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                  <Truck className="w-7 h-7 text-blue-600" aria-hidden="true" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">Have it delivered</h3>
+                  <p className="flex items-center gap-1.5 text-sm text-muted-foreground mt-0.5">
+                    <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
+                    Delivery as soon as {deliveryDate}
+                  </p>
+                </div>
+              </div>
               {isCalculating ? (
-                <span className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1">
+                <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Calculating delivery cost…
                 </span>
               ) : (
-                <p className="text-sm font-medium mt-1">
-                  {data.deliveryCost === 0 ? (
-                    <span className="text-green-600">Free delivery</span>
-                  ) : (
-                    <span>${data.deliveryCost.toLocaleString()}</span>
-                  )}
-                  {data.deliveryDistance > 0 && (
-                    <span className="text-muted-foreground ml-1">
-                      ({data.deliveryDistance} km)
-                    </span>
-                  )}
-                </p>
+                <span className={`text-lg font-bold whitespace-nowrap ${
+                  data.deliveryCost === 0 ? "text-green-600" : ""
+                }`}>
+                  {data.deliveryCost === 0 ? "+$0" : `+$${data.deliveryCost.toLocaleString()}`}
+                </span>
               )}
+            </div>
+            <div className="ml-[4.5rem] mt-2">
+              <p className="text-sm font-medium">Hassle-free home delivery</p>
+              <p className="text-sm text-muted-foreground">
+                We&apos;ll bring your vehicle right to your doorstep.
+                {data.deliveryDistance > 0 && ` (${data.deliveryDistance} km from dealership)`}
+              </p>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      <p className="text-xs text-muted-foreground text-center">
+        *Delivery dates are estimates and may vary. Home delivery fee is based on distance.
+      </p>
 
       <Button onClick={onContinue} className="w-full h-12 text-base font-semibold">
         Continue

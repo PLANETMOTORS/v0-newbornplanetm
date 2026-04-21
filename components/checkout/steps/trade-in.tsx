@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Car, ArrowRight } from "lucide-react"
+import { Car, ArrowRight, Check } from "lucide-react"
 
 export interface TradeInData {
   hasTradeIn: boolean | null
@@ -16,11 +16,17 @@ interface TradeInStepProps {
   onContinue: () => void
 }
 
+const TRADE_IN_BENEFITS = [
+  "Get a real offer in 2 minutes",
+  "Reduce your down payment and monthly payments",
+  "Save on taxes — trade-in value is tax-exempt in Ontario",
+]
+
 export function TradeInStep({ data, onChange, onContinue }: TradeInStepProps) {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold mb-1">Trade-in</h1>
+        <h1 className="text-2xl font-bold mb-1">Add a trade-in</h1>
         <p className="text-muted-foreground">
           Have a vehicle to trade? Get an instant offer to reduce your purchase price.
         </p>
@@ -39,23 +45,35 @@ export function TradeInStep({ data, onChange, onContinue }: TradeInStepProps) {
             onClick={() => onChange({ ...data, hasTradeIn: true })}
             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onChange({ ...data, hasTradeIn: true }) } }}
           >
-            <CardContent className="flex items-center gap-4 p-6">
-              <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                <Car className="w-7 h-7 text-blue-600" aria-hidden="true" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg">Get a trade-in offer</h3>
-                <p className="text-sm text-muted-foreground">
-                  Enter your vehicle details and get an instant market valuation.
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                  <Car className="w-7 h-7 text-blue-600" aria-hidden="true" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg">Get trade-in offer</h3>
                   {data.tradeInValue > 0 && (
-                    <span className="block mt-1 text-green-600 font-medium">
-                      Estimated value: ${data.tradeInValue.toLocaleString()}
-                      {data.tradeInVehicle && ` — ${data.tradeInVehicle}`}
-                    </span>
+                    <>
+                      <p className="text-green-600 font-medium text-sm mt-0.5">
+                        Estimated value: ${data.tradeInValue.toLocaleString()}
+                        {data.tradeInVehicle && ` — ${data.tradeInVehicle}`}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Your offer is valid for 7 days
+                      </p>
+                    </>
                   )}
-                </p>
+                </div>
+                <ArrowRight className="w-5 h-5 text-muted-foreground shrink-0" aria-hidden="true" />
               </div>
-              <ArrowRight className="w-5 h-5 text-muted-foreground shrink-0" aria-hidden="true" />
+              <ul className="space-y-2 ml-1">
+                {TRADE_IN_BENEFITS.map((benefit) => (
+                  <li key={benefit} className="flex items-center gap-2.5 text-sm text-muted-foreground">
+                    <Check className="w-4 h-4 text-green-600 shrink-0" aria-hidden="true" />
+                    {benefit}
+                  </li>
+                ))}
+              </ul>
             </CardContent>
           </Card>
 
