@@ -261,6 +261,10 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
   // (No alpha cleaning needed — bright Carvana-style floor blends halo naturally)
   const imageCache = useRef<Map<number, HTMLImageElement>>(new Map())
   const perFrameTireY = useRef<(number | null)[]>([])
+  /** Smoothed per-frame tireY values — each frame gets its own position
+   *  so that tires always land at the exact same horizon line, eliminating
+   *  the "jumping" caused by per-frame cropping variance in the source images. */
+  const smoothedTireY = useRef<number[]>([])
   const medianTireY = useRef<number>(TIRE_CONTACT_Y)
   const framesHaveTransparency = useRef<boolean>(true)
 
@@ -300,8 +304,10 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     // Get the cached image for current frame
     const carImg = imageCache.current.get(frame) ?? null
 
-    // Always use the stable median across all frames to eliminate inter-frame bounce
-    const tireY = medianTireY.current
+    // Use per-frame smoothed tireY so each frame's tires land at the exact
+    // same horizon line — eliminates inter-frame "jumping" from source-image
+    // cropping variance. Falls back to median if smoothed data isn't ready.
+    const tireY = smoothedTireY.current[frame] ?? medianTireY.current
 
     drawScene(ctx, w, h, carImg, tireY, framesHaveTransparency.current)
   }, [frame])
@@ -331,9 +337,46 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
     setFrame(0)
     imageCache.current.clear()
     perFrameTireY.current = new Array(images.length).fill(null)
+    smoothedTireY.current = []
     framesHaveTransparency.current = true // assume transparent until first frame proves otherwise
 
     let cancelled = false
+    let totalLoaded = 0
+
+    /**
+     * After all frames are loaded, compute smoothed per-frame tireY values.
+     * Uses a circular sliding-window average (radius 3) to dampen single-frame
+     * detection noise while preserving the genuine per-frame offset.
+     * This ensures each frame's tires land at the exact same horizon line.
+     */
+    const computeSmoothedTireY = () => {
+      const raw = perFrameTireY.current
+      const n = raw.length
+      if (n === 0) return
+
+      // Fill nulls with the median so every frame has a value
+      const detected = raw.filter((v): v is number => v !== null)
+      if (detected.length === 0) return
+      detected.sort((a, b) => a - b)
+      const median = detected[Math.floor(detected.length / 2)]
+      const filled = raw.map(v => v ?? median)
+
+      // Circular sliding-window average (radius=3, so window=7 frames)
+      const radius = 3
+      const smoothed = new Array<number>(n)
+      for (let i = 0; i < n; i++) {
+        let sum = 0
+        let count = 0
+        for (let d = -radius; d <= radius; d++) {
+          const j = ((i + d) % n + n) % n // wrap around circularly
+          sum += filled[j]
+          count++
+        }
+        smoothed[i] = sum / count
+      }
+      smoothedTireY.current = smoothed
+    }
+
     const preload = (src: string, idx: number) =>
       new Promise<void>((resolve) => {
         const img = new window.Image()
@@ -349,7 +392,7 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
               }
               if (result.hasTransparency) {
                 perFrameTireY.current[idx] = result.tireY
-                // Update median
+                // Update median (used as fallback before smoothed data is ready)
                 const detected = perFrameTireY.current.filter((v): v is number => v !== null)
                 if (detected.length > 0) {
                   detected.sort((a, b) => a - b)
@@ -357,12 +400,23 @@ export function VehicleSpinViewer({ images, alt }: SpinViewerProps) {
                 }
               }
             }
+            totalLoaded++
+            // Once all frames are loaded, compute the smoothed per-frame values
+            if (totalLoaded >= images.length) {
+              computeSmoothedTireY()
+            }
             setLoadedCount((c) => c + 1)
           }
           resolve()
         }
         img.onerror = () => {
-          if (!cancelled) setLoadedCount((c) => c + 1)
+          if (!cancelled) {
+            totalLoaded++
+            if (totalLoaded >= images.length) {
+              computeSmoothedTireY()
+            }
+            setLoadedCount((c) => c + 1)
+          }
           resolve()
         }
         img.src = src
