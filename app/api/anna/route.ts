@@ -114,10 +114,10 @@ function isWithinBusinessHours(): { isOpen: boolean; currentDay: string; message
   }
   
   if (day === 'Saturday') {
-    if (currentTime >= 10 && currentTime < 17) {
-      return { isOpen: true, currentDay: day, message: "We're open until 5:00 PM today." }
+    if (currentTime >= 9 && currentTime < 18) {
+      return { isOpen: true, currentDay: day, message: "We're open until 6:00 PM today." }
     }
-    return { isOpen: false, currentDay: day, message: "We're closed. Saturday hours are 10:00 AM - 5:00 PM." }
+    return { isOpen: false, currentDay: day, message: "We're closed. Saturday hours are 9:00 AM - 6:00 PM." }
   }
   
   if (currentTime >= 9 && currentTime < 19) {
@@ -240,7 +240,7 @@ DEALERSHIP INFORMATION:
 BUSINESS HOURS:
 =============================================
 - Monday - Friday: 9:00 AM - 7:00 PM
-- Saturday: 10:00 AM - 5:00 PM  
+- Saturday: 9:00 AM - 6:00 PM
 - Sunday: Closed
 
 CURRENT STATUS: ${businessStatus.message}

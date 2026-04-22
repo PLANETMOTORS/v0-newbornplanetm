@@ -254,7 +254,7 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
                 <Clock className="w-8 h-8 text-white mb-4" />
                 <h3 className="font-semibold text-white">Hours</h3>
                 <p className="text-sm text-white mt-1">Mon-Fri: {weekdayHours?.open || "9AM"}-{weekdayHours?.close || "7PM"}</p>
-                <p className="text-sm text-white">Sat: {saturdayHours?.open || "10AM"}-{saturdayHours?.close || "5PM"}</p>
+                <p className="text-sm text-white">Sat: {saturdayHours?.open || "9AM"}-{saturdayHours?.close || "6PM"}</p>
               </div>
               <div className="bg-white/10 rounded-xl p-6">
                 <BadgeCheck className="w-8 h-8 text-white mb-4" />
