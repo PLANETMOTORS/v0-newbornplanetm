@@ -4,6 +4,9 @@ import { Footer } from "@/components/footer"
 export const metadata = {
   title: "Terms of Service | Planet Motors",
   description: "Terms of Service for Planet Motors Inc. - Terms and conditions for using our vehicle buying and selling services.",
+  alternates: {
+    canonical: '/terms',
+  },
 }
 
 export default function TermsOfServicePage() {

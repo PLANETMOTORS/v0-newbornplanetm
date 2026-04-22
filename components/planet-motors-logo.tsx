@@ -29,7 +29,7 @@ export function PlanetMotorsLogo({
     >
       <Image
         src="/images/planet-motors-logo.png"
-        alt="Planet Motors - Fairness Integrity"
+        alt="Planet Motors — Fairness Integrity, OMVIC Licensed Used Car Dealership Richmond Hill Ontario"
         fill
         className="object-contain"
         sizes={`${width}px`}

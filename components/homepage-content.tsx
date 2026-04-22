@@ -110,9 +110,9 @@ export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProp
             {/* Hero Text */}
             <div className="text-center lg:text-left min-w-0">
               <h1 className="text-[2rem] sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-[-0.01em] sm:tracking-[-0.02em] text-gray-900">
-                The Smarter Way to
+                Canada&apos;s Battery-Certified
                 <span className="block text-[#1e3a8a]">
-                  Buy or Sell Your Car
+                  Used EV Dealership
                 </span>
               </h1>
 

@@ -6,6 +6,9 @@ export const metadata = {
   title: "Blog | Planet Motors - Car Buying Tips & Industry News",
   description:
     "Stay informed with Planet Motors blog. Expert advice on car buying, financing tips, EV trends, and automotive news for Canadian drivers.",
+  alternates: {
+    canonical: '/blog',
+  },
 }
 
 export default function BlogPage() {

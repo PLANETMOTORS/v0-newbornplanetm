@@ -886,7 +886,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   {vehicle.image ? (
                     <Image
                       src={vehicle.image}
-                      alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                      alt={`${vehicle.year} ${vehicle.make} ${vehicle.model} for sale, ${vehicle.mileage.toLocaleString()} km, Planet Motors`}
                       fill
                       loading="lazy"
                       className="object-cover group-hover:scale-105 transition-transform duration-500 [clip-path:inset(0_0_8%_0)]"
