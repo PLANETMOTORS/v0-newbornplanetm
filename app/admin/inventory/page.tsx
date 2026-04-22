@@ -266,7 +266,7 @@ export default function AdminInventoryPage() {
       exterior_color: v.exterior_color || "",
       interior_color: v.interior_color || "",
       price: (safeNum(v.price) / 100).toFixed(2).replace(/\.00$/, ""),
-      msrp: v.msrp ? (v.msrp / 100).toFixed(2).replace(/\.00$/, "") : "",
+      msrp: v.msrp ? (safeNum(v.msrp) / 100).toFixed(2).replace(/\.00$/, "") : "",
       mileage: String(v.mileage),
       drivetrain: v.drivetrain || "",
       transmission: v.transmission || "",
