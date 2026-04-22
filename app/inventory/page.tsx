@@ -789,7 +789,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Price Range */}
                   <div className="col-span-2 lg:col-span-1">
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">
+                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 tabular-nums">
                       Price: ${(priceRange[0]/1000).toFixed(0)}k - ${(priceRange[1]/1000).toFixed(0)}k
                     </label>
                     <Slider
@@ -804,7 +804,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Mileage Range */}
                   <div className="col-span-2 lg:col-span-1">
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">
+                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 tabular-nums">
                       Mileage: {(mileageRange[0]/1000).toFixed(0)}k - {(mileageRange[1]/1000).toFixed(0)}k km
                     </label>
                     <Slider
@@ -973,7 +973,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                     {/* Specs */}
                     <div className="flex flex-wrap gap-3 mt-3 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1 tabular-nums">
                         <Gauge className="w-3.5 h-3.5" />
                         {vehicle.mileage.toLocaleString()} km
                       </span>
@@ -1014,12 +1014,12 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     <div className="flex items-end justify-between">
                       <div>
                         {vehicle.originalPrice > vehicle.price && (
-                          <p className="text-sm text-muted-foreground line-through">
+                          <p className="text-sm text-muted-foreground line-through tabular-nums">
                             ${vehicle.originalPrice.toLocaleString()}
                           </p>
                         )}
-<p className="text-2xl font-bold">${vehicle.price.toLocaleString()}</p>
-                      <Link href={`/finance/${vehicle.id}`} className="text-sm text-primary hover:underline">
+<p className="text-2xl font-bold tabular-nums">${vehicle.price.toLocaleString()}</p>
+                      <Link href={`/finance/${vehicle.id}`} className="text-sm text-primary hover:underline tabular-nums">
                         Est. ${vehicle.monthlyPayment}/mo
                       </Link>
                       </div>

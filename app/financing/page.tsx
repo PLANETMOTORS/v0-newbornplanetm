@@ -80,7 +80,7 @@ export default async function FinancingPage() {
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-semibold mb-6">
                 <BadgeCheck className="w-4 h-4" />
-                <span>Rates from {lowestRate}% APR</span>
+                <span className="tabular-nums">Rates from {lowestRate}% APR</span>
               </div>
 
               <h1 className="text-4xl md:text-5xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] text-balance">
@@ -155,8 +155,8 @@ export default async function FinancingPage() {
                   <span className="font-bold text-sm">{lender.logo}</span>
                 </div>
                 <h3 className="font-semibold text-sm">{lender.name}</h3>
-                <p className="text-2xl font-bold text-primary mt-2">{lender.rate}</p>
-                <p className="text-xs text-muted-foreground">{lender.term}</p>
+                <p className="text-2xl font-bold text-primary mt-2 tabular-nums">{lender.rate}</p>
+                <p className="text-xs text-muted-foreground tabular-nums">{lender.term}</p>
               </div>
             ))}
           </div>
@@ -210,19 +210,19 @@ export default async function FinancingPage() {
                     <tbody>
                       <tr className="border-b border-border">
                         <th scope="row" className="text-left py-2 px-4 font-medium">RATES</th>
-                        <td className="text-center py-2 px-4 text-primary font-semibold">6.29%</td>
-                        <td className="text-center py-2 px-4">6.49%</td>
-                        <td className="text-center py-2 px-4">6.79%</td>
-                        <td className="text-center py-2 px-4">6.99%</td>
-                        <td className="text-center py-2 px-4">7.49%</td>
+                        <td className="text-center py-2 px-4 text-primary font-semibold tabular-nums">6.29%</td>
+                        <td className="text-center py-2 px-4 tabular-nums">6.49%</td>
+                        <td className="text-center py-2 px-4 tabular-nums">6.79%</td>
+                        <td className="text-center py-2 px-4 tabular-nums">6.99%</td>
+                        <td className="text-center py-2 px-4 tabular-nums">7.49%</td>
                       </tr>
                       <tr>
                         <th scope="row" className="text-left py-2 px-4 font-medium">TERMS</th>
-                        <td className="text-center py-2 px-4">84 mo</td>
-                        <td className="text-center py-2 px-4">84 mo</td>
-                        <td className="text-center py-2 px-4">72 mo</td>
-                        <td className="text-center py-2 px-4">84 mo</td>
-                        <td className="text-center py-2 px-4">96 mo</td>
+                        <td className="text-center py-2 px-4 tabular-nums">96 mo</td>
+                        <td className="text-center py-2 px-4 tabular-nums">84 mo</td>
+                        <td className="text-center py-2 px-4 tabular-nums">72 mo</td>
+                        <td className="text-center py-2 px-4 tabular-nums">84 mo</td>
+                        <td className="text-center py-2 px-4 tabular-nums">60 mo</td>
                       </tr>
                     </tbody>
                   </table>

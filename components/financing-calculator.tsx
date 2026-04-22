@@ -128,18 +128,18 @@ export function FinancingCalculator() {
       <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
         <div className="text-center">
           <p className="text-sm text-muted-foreground">Estimated Monthly Payment</p>
-          <p className="text-3xl font-bold text-primary">
+          <p className="text-3xl font-bold text-primary tabular-nums">
             ${Math.round(monthlyPayment).toLocaleString()}<span className="text-base font-normal">/mo</span>
           </p>
         </div>
         <div className="grid grid-cols-2 gap-4 text-sm pt-2 border-t border-primary/10">
           <div>
             <p className="text-muted-foreground">Total Interest</p>
-            <p className="font-semibold">${Math.round(totalInterest).toLocaleString()}</p>
+            <p className="font-semibold tabular-nums">${Math.round(totalInterest).toLocaleString()}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Total Cost</p>
-            <p className="font-semibold">${Math.round(totalCost).toLocaleString()}</p>
+            <p className="font-semibold tabular-nums">${Math.round(totalCost).toLocaleString()}</p>
           </div>
         </div>
       </div>

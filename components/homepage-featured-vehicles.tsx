@@ -274,14 +274,14 @@ export function HomepageFeaturedVehicles() {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-500 mt-1">{vehicle.mileageLabel}</p>
+                <p className="text-sm text-gray-500 mt-1 tabular-nums">{vehicle.mileageLabel}</p>
 
                 <div className="flex items-center justify-between mt-4">
                   <div>
-                    <div className="text-xl font-bold text-[#1e3a8a]">
+                    <div className="text-xl font-bold text-[#1e3a8a] tabular-nums">
                       ${(vehicle.priceCents / 100).toLocaleString()}
                     </div>
-                    <div className="text-sm font-semibold text-gray-700">
+                    <div className="text-sm font-semibold text-gray-700 tabular-nums">
                       or <span className="font-bold">${vehicle.monthlyPayment}/mo</span>
                     </div>
                   </div>

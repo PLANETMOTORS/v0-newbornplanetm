@@ -158,12 +158,12 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                           {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {vehicle.mileage?.toLocaleString()} km | Stock #{vehicle.stock_number}
+                          <span className="tabular-nums">{vehicle.mileage?.toLocaleString()} km</span> | Stock #{vehicle.stock_number}
                         </p>
                         <p className="text-xs text-muted-foreground font-mono">{vehicle.vin}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-primary" title="Price estimate — final all-in price confirmed at signing per OMVIC regulations">
+                        <p className="font-semibold text-primary tabular-nums" title="Price estimate — final all-in price confirmed at signing per OMVIC regulations">
                           ${(vehicle.price / 100).toLocaleString()}*
                         </p>
                         <span className="inline-block mt-1 text-xs font-semibold text-primary">Select →</span>
@@ -582,11 +582,11 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                    financingTerms.paymentFrequency === "weekly" ? "Weekly" :
                    financingTerms.paymentFrequency === "semi-monthly" ? "Semi-Monthly" : "Monthly"} Payment
                 </div>
-                <div className="text-4xl font-bold text-primary">
+                <div className="text-4xl font-bold text-primary tabular-nums">
                   ${financing.payment.toFixed(2)}
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  {financingTerms.loanTermMonths} months @ {financingTerms.interestRate || "0"}% APR
+                  <span className="tabular-nums">{financingTerms.loanTermMonths} months @ {financingTerms.interestRate || "0"}% APR</span>
                 </div>
               </div>
             </>

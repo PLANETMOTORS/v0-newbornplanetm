@@ -110,11 +110,11 @@ export function PaymentCalculator({
       <CardContent className="space-y-6">
         {/* Main Payment Display */}
         <div className="text-center p-6 bg-muted rounded-lg">
-          <div className="text-4xl font-bold text-foreground">
+          <div className="text-4xl font-bold text-foreground tabular-nums">
             ${calculation.monthlyPayment.toLocaleString()}<span className="text-lg font-normal text-muted-foreground">/mo*</span>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
-            Estimated for {selectedTier.label} credit at {calculation.effectiveApr}% APR
+            <span className="tabular-nums">Estimated for {selectedTier.label} credit at {calculation.effectiveApr}% APR</span>
           </p>
           {specialFinance && calculation.effectiveApr === specialFinance.promoRate && (
             <p className="text-xs text-green-600 mt-1">
@@ -147,7 +147,7 @@ export function PaymentCalculator({
         <div className="space-y-2">
           <div className="flex justify-between">
             <Label>Down Payment</Label>
-            <span className="text-sm font-semibold">${downPayment.toLocaleString()}</span>
+            <span className="text-sm font-semibold tabular-nums">${downPayment.toLocaleString()}</span>
           </div>
           <Slider
             aria-label="Down payment"
@@ -163,7 +163,7 @@ export function PaymentCalculator({
         <div className="space-y-2">
           <div className="flex justify-between">
             <Label>Trade-In Value</Label>
-            <span className="text-sm font-semibold">${tradeIn.toLocaleString()}</span>
+            <span className="text-sm font-semibold tabular-nums">${tradeIn.toLocaleString()}</span>
           </div>
           <Slider
             aria-label="Trade-in value"
@@ -193,7 +193,7 @@ export function PaymentCalculator({
         </div>
 
         {/* Summary */}
-        <div className="pt-4 border-t space-y-2 text-sm">
+        <div className="pt-4 border-t space-y-2 text-sm tabular-nums">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Vehicle Price</span>
             <span>${effectivePrice.toLocaleString()}</span>

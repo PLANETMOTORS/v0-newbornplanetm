@@ -816,7 +816,7 @@ export function InstantQuote() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Mileage:</span>
-                  <span>{parseInt(formData.mileage).toLocaleString()} km</span>
+                  <span className="tabular-nums">{parseInt(formData.mileage).toLocaleString()} km</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Location:</span>
