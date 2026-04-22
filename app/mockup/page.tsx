@@ -3,8 +3,8 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { 
-  ChevronRight, Shield, RotateCcw, CheckCircle, Star, ArrowRight, Menu, Phone, MapPin, 
+import {
+  ChevronRight, Shield, RotateCcw, CheckCircle, Star, ArrowRight, Menu, Phone, MapPin,
   Car, Zap, Battery, DollarSign, Truck, BadgeCheck, X
 } from "lucide-react"
 import { RATE_FLOOR_DISPLAY } from "@/lib/rates"

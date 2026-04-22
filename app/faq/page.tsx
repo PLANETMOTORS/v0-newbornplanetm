@@ -8,6 +8,7 @@ export const metadata: Metadata = {
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { FAQJsonLd } from "@/components/seo/json-ld"
+import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -58,7 +59,7 @@ const faqCategories = [
     faqs: [
       {
         question: "What financing options are available?",
-        answer: "We work with 20+ Canadian lenders including major banks, credit unions, and specialized auto finance companies. Rates start as low as 6.29% APR depending on your credit profile. Get pre-approved in minutes with no impact to your credit score."
+        answer: `We work with 20+ Canadian lenders including major banks, credit unions, and specialized auto finance companies. Rates start as low as ${RATE_FLOOR_DISPLAY} APR depending on your credit profile. Get pre-approved in minutes with no impact to your credit score.`
       },
       {
         question: "Can I get approved with bad credit?",

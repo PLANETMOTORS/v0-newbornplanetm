@@ -1,5 +1,6 @@
 // Planet Motors CMS - Data Fetching v19
 import { sanityClient } from "./client"
+import { RATE_FLOOR } from "@/lib/rates"
 import {
   SITE_SETTINGS_QUERY,
   NAVIGATION_QUERY,
@@ -407,7 +408,7 @@ export async function getAISettings(): Promise<AISettings> {
         licensing: 59
       },
       financing: {
-        lowestRate: 6.29,
+        lowestRate: RATE_FLOOR,
         numberOfLenders: 20
       }
     }

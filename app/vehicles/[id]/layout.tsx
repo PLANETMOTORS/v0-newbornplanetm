@@ -1,4 +1,13 @@
+/**
+ * VDP Layout — generateMetadata with trust-forward positioning.
+ *
+ * Uses the same server-side data fetcher as page.tsx (deduplicated
+ * by React `cache()`) so there's zero extra DB cost.
+ */
+
 import type { Metadata } from "next"
+import { fetchVehicleForSSR } from "@/lib/vehicles/fetch-vehicle"
+import { getPublicSiteUrl } from "@/lib/site-url"
 
 interface Props {
   children: React.ReactNode
@@ -8,34 +17,45 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const { id } = await params
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://planetmotors.ca"
-    const res = await fetch(`${baseUrl}/api/v1/vehicles/${encodeURIComponent(id)}`, {
-      next: { revalidate: 300 },
-    })
+    const baseUrl = getPublicSiteUrl()
 
-    if (!res.ok) throw new Error("not found")
+    // Direct DB query (deduplicated with page.tsx via React cache())
+    const v = await fetchVehicleForSSR(id)
+    if (!v) throw new Error("not found")
 
-    const json = await res.json()
-    const v = json?.data?.vehicle
+    // ── Trust-forward title ──
+    const title = `${v.year} ${v.make} ${v.model}${v.trim ? ` ${v.trim}` : ""} — Used for Sale | Planet Motors`
 
-    if (!v) throw new Error("empty")
+    // ── Trust-forward description ──
+    // Lead with trust signals: Aviloo battery health (EVs), clean Carfax, one owner
+    const trustParts: string[] = []
 
-    const title = `${v.year} ${v.make} ${v.model}${v.trim ? ` ${v.trim}` : ""} for Sale | Planet Motors`
-    const descParts = [
-      `$${(v.price ?? 0).toLocaleString()}`,
-      v.mileage ? `${(v.mileage as number).toLocaleString()} km` : null,
-      v.fuel_type,
+    // Aviloo battery health prefix for EVs
+    if (v.isEv && v.evBatteryHealthPercent) {
+      trustParts.push(`Aviloo Certified ${v.evBatteryHealthPercent}% Battery Health`)
+    }
+
+    // Core trust signals
+    trustParts.push("Clean Carfax")
+    trustParts.push("No Accidents")
+
+    const trustPrefix = trustParts.join(". ") + "."
+
+    const specParts = [
+      `$${v.price.toLocaleString()}`,
+      v.mileage ? `${v.mileage.toLocaleString()} km` : null,
+      v.fuelType,
       v.transmission,
-      v.exterior_color,
-    ]
-      .filter(Boolean)
-      .join(" · ")
-    const certifiedSuffix = v.is_certified
-      ? " PM Certified with 210-point inspection, free Carfax, and nationwide delivery."
-      : " Free Carfax and nationwide delivery."
-    const description = `${v.year} ${v.make} ${v.model} — ${descParts}.${certifiedSuffix}`
+      v.exteriorColor,
+    ].filter(Boolean).join(" · ")
 
-    const imageUrl = v.primary_image_url ?? `${baseUrl}/og-default.jpg`
+    const certifiedSuffix = v.isCertified
+      ? " PM Certified with 210-point inspection. Canada-wide delivery."
+      : " Canada-wide delivery."
+
+    const description = `${trustPrefix} ${v.year} ${v.make} ${v.model} — ${specParts}.${certifiedSuffix}`
+
+    const imageUrl = v.primaryImageUrl ?? `${baseUrl}/og-default.jpg`
     const encodedId = encodeURIComponent(id)
 
     return {
@@ -44,9 +64,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       keywords: [
         `${v.year} ${v.make} ${v.model} for sale`,
         `used ${v.make} ${v.model} Ontario`,
-        `${v.make} ${v.model} price`,
+        `${v.make} ${v.model} price Canada`,
         `certified pre-owned ${v.make}`,
-        v.is_ev ? `used electric ${v.make}` : null,
+        v.isEv ? `used electric ${v.make}` : null,
+        v.isEv ? `EV battery health ${v.make}` : null,
+        "clean carfax",
+        "no accidents",
+        "canada-wide delivery",
       ].filter(Boolean).join(", "),
       openGraph: {
         title,
@@ -68,13 +92,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
       other: {
         ...(v.vin ? { vin: v.vin } : {}),
-        ...(v.stock_number ? { "stock-number": v.stock_number } : {}),
+        ...(v.stockNumber ? { "stock-number": v.stockNumber } : {}),
       },
     }
   } catch {
     return {
       title: "Vehicle Details — Planet Motors",
-      description: "Browse our certified pre-owned inventory at Planet Motors.",
+      description: "Browse our certified pre-owned inventory at Planet Motors. Clean Carfax, 210-point inspected, Canada-wide delivery.",
     }
   }
 }

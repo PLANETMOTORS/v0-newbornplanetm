@@ -5,6 +5,7 @@ import dynamic from "next/dynamic"
 import { ArrowRight } from "lucide-react"
 import { RATE_FLOOR } from "@/lib/rates"
 import { HeroImageServer } from "@/components/hero-image-server"
+import { RATE_FLOOR } from "@/lib/rates"
 
 // Code-split heavy below-fold sections into separate chunks.
 // ssr: true (default) keeps their HTML in the SSR output for SEO while

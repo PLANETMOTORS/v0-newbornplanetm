@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight, RotateCw, Shield, Heart, Share2, Fuel, Gauge
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
 import { createClient } from "@/lib/supabase/client"
 
 // Fetcher for featured vehicles
@@ -283,7 +284,7 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
             <div>
               <p className="text-2xl font-bold tabular-nums">{currentVehicle.price}</p>
               <p className="text-sm text-white/90">
-                <span className="tabular-nums">Est. {currentVehicle.monthlyPayment}/mo at 6.29% APR</span>
+                <span className="tabular-nums">Est. {currentVehicle.monthlyPayment}/mo at {RATE_FLOOR_DISPLAY} APR</span>
               </p>
             </div>
             <Button size="sm" className="bg-white text-primary hover:bg-white/90" asChild>
