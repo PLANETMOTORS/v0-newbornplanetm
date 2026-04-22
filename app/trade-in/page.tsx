@@ -1238,6 +1238,8 @@ function TradeInContent() {
                               accept="image/*"
                               capture="environment"
                               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              tabIndex={-1}
+                              aria-hidden="true"
                               style={{ zIndex: photos[angle] ? -1 : 1 }}
                               ref={(el) => { fileInputRefs.current[angle] = el }}
                               onChange={(e) => {

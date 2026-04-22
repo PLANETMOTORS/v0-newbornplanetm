@@ -263,18 +263,18 @@ export function ProductsGridWithDetails() {
           })}
         </div>
 
-        {/* Inline Detail Panels — all 9 rendered for SEO, only active one visible */}
-        {PROTECTION_PRODUCTS.map((product) => {
-          const isActive = openSlug === product.slug
+        {/* Inline Detail Panel — only the active product is rendered to reduce DOM size */}
+        {openSlug && (() => {
+          const product = PROTECTION_PRODUCTS.find(p => p.slug === openSlug)
+          if (!product) return null
           return (
             <div
               key={product.slug}
               id={`detail-${product.slug}`}
-              ref={isActive ? detailRef : undefined}
-              className={`mt-10 scroll-mt-24 ${isActive ? "animate-in slide-in-from-top-4 fade-in duration-300" : "hidden"}`}
+              ref={detailRef}
+              className="mt-10 scroll-mt-24 animate-in slide-in-from-top-4 fade-in duration-300"
               role="region"
               aria-label={`${product.name} details`}
-              aria-hidden={!isActive}
             >
               <ProductDetailPanel
                 product={product}
@@ -282,7 +282,7 @@ export function ProductsGridWithDetails() {
               />
             </div>
           )
-        })}
+        })()}
       </div>
     </section>
   )
