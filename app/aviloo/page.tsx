@@ -395,7 +395,7 @@ export default function EVBatteryHealthPage() {
                   <div className="p-8 bg-muted/30 flex flex-col justify-center">
                     <h3 className="text-xl font-bold mb-4">What is Aviloo?</h3>
                     <p className="text-muted-foreground mb-4">
-                      Aviloo is Europe&apos;s leading independent EV battery diagnostics company,
+                      Aviloo is an independent EV battery diagnostics company based in Europe,
                       trusted by dealerships, insurers, and fleet operators across 30+ countries.
                     </p>
                     <ul className="space-y-3 text-sm">

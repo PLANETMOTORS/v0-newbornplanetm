@@ -19,7 +19,7 @@
 | Category (Primary) | Used Car Dealer |
 | Category (Secondary) | Car Dealer, Electric Vehicle Dealer, Auto Broker |
 | Address | 30 Major Mackenzie Dr E, Richmond Hill, ON L4C 1G7 |
-| Service Area | Ontario, Quebec, British Columbia, Alberta (nationwide delivery) |
+| Service Area | All provinces and territories — British Columbia, Alberta, Saskatchewan, Manitoba, Ontario, Quebec, New Brunswick, Nova Scotia, Prince Edward Island, Newfoundland & Labrador, Yukon, Northwest Territories, Nunavut (Canada-wide delivery) |
 | Phone | 1-866-797-3332 |
 | Website | https://www.planetmotors.ca |
 
@@ -40,7 +40,7 @@
 **Short Description (750 characters max):**
 
 ```
-Planet Motors is Ontario's trusted destination for premium pre-owned vehicles. We specialize in certified electric vehicles, luxury cars, SUVs, and trucks with Canada-wide delivery. Every vehicle undergoes our rigorous 210-point inspection and comes with a 10-day money-back guarantee. We offer competitive multi-lender financing with rates as low as 6.29% APR, instant trade-in valuations, and transparent pricing with no hidden fees. OMVIC licensed dealer serving Richmond Hill, Toronto, Markham, and the Greater Toronto Area. Visit us for a hassle-free car buying experience.
+Planet Motors is Canada's trusted destination for premium pre-owned vehicles. We specialize in certified electric vehicles, luxury cars, SUVs, and trucks with nationwide delivery across Canada. Every vehicle undergoes our rigorous 210-point inspection and comes with a 10-day money-back guarantee. We offer competitive multi-lender financing with rates as low as 6.29% APR, instant trade-in valuations, and transparent pricing with no hidden fees. OMVIC licensed dealer serving Richmond Hill, Toronto, Markham, and the Greater Toronto Area. Visit us for a hassle-free car buying experience.
 ```
 
 ## Step 4: Attributes to Enable

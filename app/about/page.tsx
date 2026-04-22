@@ -54,7 +54,7 @@ export default function AboutPage() {
     { year: "2021", title: "Autotrader Award", description: "Recognized as Best Priced Dealer in the GTA" },
     { year: "2023", title: "CarGurus Top Rated", description: "Earned Top Rated Dealer status for customer satisfaction" },
     { year: "2024", title: "Nationwide Delivery", description: "Expanded to serve all of Canada with coast-to-coast delivery" },
-    { year: "2025", title: "EV Specialist", description: "Became a leading used EV dealer with battery health certification" }
+    { year: "2025", title: "EV Specialist", description: "Became an Aviloo-certified used EV dealer with battery health reports on every vehicle" }
   ]
 
   // Real customer reviews from Google
@@ -81,7 +81,7 @@ export default function AboutPage() {
             </h1>
             <p className="text-xl text-primary-foreground/80 max-w-3xl mx-auto">
               At Planet Motors, we believe buying a used car should be simple, transparent, and stress-free.
-              Our mission is to provide Canadians with the best selection of quality pre-owned vehicles
+              Our mission is to provide Canadians with a curated selection of quality pre-owned vehicles
               backed by our 210-point inspection and 10-day money-back guarantee.
             </p>
           </div>

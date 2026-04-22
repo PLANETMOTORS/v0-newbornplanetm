@@ -10,7 +10,7 @@ import {
 import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
 
 // Mockup V2: Trust-First Homepage Design for Planet Motors
-// Broader positioning: "Ontario's trusted used vehicle dealership specializing in EVs"
+// Broader positioning: "Canada's trusted used vehicle dealership specializing in EVs"
 // Brand colors: Navy Blue #1e3a8a, Red #dc2626
 
 export default function HomepageMockupV2() {

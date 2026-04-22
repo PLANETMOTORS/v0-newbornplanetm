@@ -79,7 +79,7 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="text-3xl font-bold text-gray-900">Why Choose {siteSettings.dealerName}?</h2>
-            <p className="text-gray-600 mt-3">Industry-leading standards that set us apart</p>
+            <p className="text-gray-600 mt-3">The standards that set us apart</p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {([
@@ -260,7 +260,7 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
                 <BadgeCheck className="w-8 h-8 text-white mb-4" />
                 <h3 className="font-semibold text-white">Licensed</h3>
                 <p className="text-sm text-white mt-1">OMVIC Registered</p>
-                <p className="text-sm text-white">Canadian Dealer</p>
+                <p className="text-sm text-white">Ontario Dealer</p>
               </div>
             </div>
           </div>

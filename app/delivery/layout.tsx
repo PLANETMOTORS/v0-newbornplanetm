@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   description: "Get your vehicle delivered to your door anywhere in Canada. Free delivery within 300km of Richmond Hill. Enter your postal code for an instant delivery quote. Real-time tracking included.",
   keywords: [
     "car delivery Canada",
-    "vehicle delivery Ontario",
+    "vehicle delivery Canada",
     "free car delivery",
     "nationwide vehicle shipping",
     "car transport Canada",

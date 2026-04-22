@@ -3,8 +3,8 @@
 import Link from "next/link"
 import dynamic from "next/dynamic"
 import { ArrowRight } from "lucide-react"
-import { HeroImageServer } from "@/components/hero-image-server"
 import { RATE_FLOOR } from "@/lib/rates"
+import { HeroImageServer } from "@/components/hero-image-server"
 
 // Code-split heavy below-fold sections into separate chunks.
 // ssr: true (default) keeps their HTML in the SSR output for SEO while
@@ -172,7 +172,7 @@ export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProp
 
               {/* Floating Badge — dynamic from RATE_FLOOR */}
               <div className="absolute top-4 right-4 bg-[#dc2626] text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg z-10">
-                From {lowestRate}% APR
+                From {RATE_FLOOR}% APR
               </div>
             </div>
           </div>
