@@ -21,6 +21,8 @@ interface VehicleCheckoutData {
   protectionPlanId?: string
   depositOnly?: boolean
   customerEmail?: string
+  customerName?: string
+  customerPhone?: string
   licenseStoragePath?: string
   utmSource?: string
   utmMedium?: string
@@ -144,6 +146,31 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
     ].join(':'))
     .digest('hex')
 
+  // Create a reservation row so the webhook can find and update it after payment.
+  let reservationId: string | undefined
+  if (data.depositOnly) {
+    const { data: reservation, error: reservationError } = await adminClient
+      .from('reservations')
+      .insert({
+        vehicle_id: data.vehicleId,
+        customer_email: data.customerEmail || null,
+        customer_name: data.customerName || null,
+        customer_phone: data.customerPhone || null,
+        deposit_amount: 25000,
+        deposit_status: 'pending',
+        status: 'pending',
+        expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+        notes: 'Reservation created from web checkout',
+      })
+      .select('id')
+      .single()
+
+    if (reservationError || !reservation) {
+      throw new Error(`Failed to create reservation: ${reservationError?.message || 'unknown error'}`)
+    }
+    reservationId = reservation.id
+  }
+
   lineItems.push({
     price_data: {
       currency: 'cad',
@@ -197,6 +224,7 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
       type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
       protectionPlanId: data.protectionPlanId || '',
       amountSource: 'server',
+      ...(reservationId && { reservationId }),
       ...(data.licenseStoragePath && isValidLicensePath(data.licenseStoragePath, data.vehicleId) && { licenseStoragePath: data.licenseStoragePath }),
       ...(data.utmSource && { utm_source: data.utmSource }),
       ...(data.utmMedium && { utm_medium: data.utmMedium }),
@@ -211,6 +239,7 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
         protectionPlanId: data.protectionPlanId || '',
         amountSource: 'server',
         type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
+        ...(reservationId && { reservationId }),
         ...(data.utmSource && { utm_source: data.utmSource }),
         ...(data.utmMedium && { utm_medium: data.utmMedium }),
         ...(data.utmCampaign && { utm_campaign: data.utmCampaign }),
