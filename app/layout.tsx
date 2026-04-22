@@ -64,6 +64,12 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   // Canonical is set per-page to avoid all sub-pages inheriting '/'
   // Each page must define its own alternates.canonical
+  alternates: {
+    languages: {
+      'en-CA': SITE_URL,
+      'x-default': SITE_URL,
+    },
+  },
   robots: {
     index: true,
     follow: true,

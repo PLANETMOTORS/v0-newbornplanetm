@@ -53,6 +53,10 @@ export function generateSEOMetadata({
     metadataBase: new URL(BASE_URL),
     alternates: {
       canonical: url,
+      languages: {
+        'en-CA': url,
+        'x-default': url,
+      },
     },
     openGraph: {
       title: fullTitle,
