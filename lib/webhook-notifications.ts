@@ -47,14 +47,16 @@ export function extractNotificationData(
 ): PaymentNotificationData | null {
   const metadata = session.metadata ?? {}
   const customerEmail = session.customer_details?.email ?? session.customer_email ?? ''
-  const customerName = session.customer_details?.name ?? customerEmail.split('@')[0] ?? 'Customer'
-  const customerPhone = session.customer_details?.phone ?? undefined
+  const customerName =
+    session.customer_details?.name ?? metadata.customerName ?? customerEmail.split('@')[0] ?? 'Customer'
+  const customerPhone = session.customer_details?.phone ?? metadata.customerPhone ?? undefined
 
   if (!customerEmail) return null
 
   const vehicleId = metadata.vehicleId ?? undefined
-  const isDeposit = metadata.depositOnly === 'true'
-  const vehicleName = metadata.vehicleName ?? `Vehicle ${vehicleId ?? 'N/A'}`
+  const isReservation = metadata.type === 'vehicle-reservation'
+  const isDeposit = metadata.depositOnly === 'true' || isReservation
+  const vehicleName = metadata.vehicleName ?? `Vehicle ${metadata.stockNumber ?? vehicleId ?? 'N/A'}`
 
   return {
     customerEmail,
