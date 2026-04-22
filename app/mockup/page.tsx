@@ -142,7 +142,7 @@ export default function HomepageMockupV2() {
             </div>
             <div className="hidden md:flex items-center gap-2 whitespace-nowrap">
               <Truck className="w-4 h-4 text-[#1e3a8a]" />
-              <span className="font-medium">Ontario-Wide Delivery</span>
+              <span className="font-medium">Canada-Wide Delivery</span>
             </div>
           </div>
         </div>
@@ -200,7 +200,7 @@ export default function HomepageMockupV2() {
 
               {/* Floating Badge */}
               <div className="absolute top-4 right-4 bg-[#dc2626] text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg z-10">
-                Low Rates Available
+                From 6.29% APR
               </div>
             </div>
           </div>

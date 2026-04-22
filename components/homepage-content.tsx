@@ -110,16 +110,16 @@ export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProp
             {/* Hero Text */}
             <div className="text-center lg:text-left min-w-0">
               <h1 className="text-[2rem] sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-[-0.01em] sm:tracking-[-0.02em] text-gray-900">
-                The Smarter Way to
+                Canada&apos;s Battery-Certified
                 <span className="block text-[#1e3a8a]">
-                  Buy or Sell Your Car
+                  Used EV Dealership
                 </span>
               </h1>
 
               <p className="mt-6 text-base sm:text-lg text-gray-600 max-w-lg mx-auto lg:mx-0 min-h-[3rem] sm:min-h-[3.5rem]">
-                Ontario&apos;s #1 certified pre-owned marketplace.
+                Aviloo-certified used EVs.
                 <br className="hidden sm:block" />
-                <span className="font-semibold text-gray-800">210-point inspected.</span> Delivered to your door.
+                <span className="font-semibold text-gray-800">210-point inspected.</span> Canada-wide delivery.
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row items-center gap-6 justify-center lg:justify-start min-h-[3.5rem] sm:min-h-[3rem]">
@@ -169,9 +169,9 @@ export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProp
                 <VehicleShowcase serverVehicles={showcaseVehicles ?? undefined} />
               </div>
 
-              {/* Floating Badge */}
+              {/* Floating Badge — dynamic from RATE_FLOOR */}
               <div className="absolute top-4 right-4 bg-[#dc2626] text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg z-10">
-                Low Rates Available
+                From {lowestRate}% APR
               </div>
             </div>
           </div>
