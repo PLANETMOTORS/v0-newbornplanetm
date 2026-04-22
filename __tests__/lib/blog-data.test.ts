@@ -85,10 +85,10 @@ describe('tesla-warranty-used-cars post (image path change in PR)', () => {
   })
 })
 
-describe('blogPosts — no other post uses the old .png image path', () => {
-  it('no post points to IMG_1903-2-scaled.png', () => {
+describe('blogPosts — no other post uses the old .jpg image path', () => {
+  it('no post points to IMG_1903-2-scaled.jpg', () => {
     for (const post of Object.values(blogPosts)) {
-      expect(post.image).not.toBe('/images/blog/IMG_1903-2-scaled.png')
+      expect(post.image).not.toBe('/images/blog/IMG_1903-2-scaled.jpg')
     }
   })
 })
