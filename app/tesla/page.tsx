@@ -108,7 +108,7 @@ export default function TeslaPage() {
                     </Link>
                   </Button>
                   <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10" asChild>
-                    <Link href="/ev-battery-health">
+                    <Link href="/aviloo">
                       Battery Health Info
                     </Link>
                   </Button>

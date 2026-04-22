@@ -84,7 +84,7 @@ export default function ElectricVehiclesPage() {
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10" asChild>
-                  <Link href="/ev-battery-health">
+                  <Link href="/aviloo">
                     Learn About Battery Health
                   </Link>
                 </Button>

@@ -169,7 +169,7 @@ export const pageMetadata = {
   evBatteryHealth: generateSEOMetadata({
     title: "EV Battery Health Reports",
     description: "Transparent battery health reports for all electric vehicles. Know the true range and condition before you buy.",
-    path: "/ev-battery-health",
+    path: "/aviloo",
     keywords: ["EV battery health", "electric car battery", "battery degradation", "EV range"],
   }),
 }

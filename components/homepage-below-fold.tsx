@@ -84,18 +84,30 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {([
               { icon: CheckCircle, title: "210-Point Inspection", description: "Every vehicle passes our comprehensive inspection with full transparency reports." },
-              { icon: Battery, title: "EV Battery Health", description: "Exclusive Aviloo battery certification for EVs - know exactly what you're getting." },
+              { icon: Battery, title: "EV Battery Health", description: "Exclusive Aviloo battery certification for EVs - know exactly what you're getting.", href: "/aviloo" },
               { icon: RotateCw, title: "10-Day Returns", description: "Not satisfied? Return your vehicle within 10 days, no questions asked." },
               { icon: Truck, title: "Ontario-Wide Delivery", description: "Get your vehicle delivered anywhere in Ontario with our convenient delivery service." },
-            ] as const).map((feature) => (
-              <div key={feature.title} className="text-center p-6 rounded-xl bg-white hover:shadow-md transition-shadow">
-                <div className="w-14 h-14 mx-auto bg-[#1e3a8a]/10 rounded-xl flex items-center justify-center mb-4">
-                  <feature.icon className="w-7 h-7 text-[#1e3a8a]" />
+            ] as { icon: typeof CheckCircle; title: string; description: string; href?: string }[]).map((feature) => {
+              const content = (
+                <div className="text-center p-6 rounded-xl bg-white hover:shadow-md transition-shadow h-full">
+                  <div className="w-14 h-14 mx-auto bg-[#1e3a8a]/10 rounded-xl flex items-center justify-center mb-4">
+                    <feature.icon className="w-7 h-7 text-[#1e3a8a]" />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                  <p className="text-sm text-gray-600">{feature.description}</p>
+                  {feature.href && (
+                    <p className="text-xs text-[#1e3a8a] font-medium mt-3">Learn more →</p>
+                  )}
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                <p className="text-sm text-gray-600">{feature.description}</p>
-              </div>
-            ))}
+              )
+              return feature.href ? (
+                <Link key={feature.title} href={feature.href} className="block">
+                  {content}
+                </Link>
+              ) : (
+                <div key={feature.title}>{content}</div>
+              )
+            })}
           </div>
         </div>
       </section>

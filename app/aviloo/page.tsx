@@ -125,14 +125,15 @@ export default function EVBatteryHealthPage() {
             <div className="max-w-4xl mx-auto text-center">
               <Badge className="mb-4 bg-green-500/20 text-green-100 border-green-400/30">
                 <BatteryCharging className="h-4 w-4 mr-1" />
-                Certified EV Battery Analysis
+                Powered by Aviloo — Independent EV battery diagnostics, trusted in 30+ countries
               </Badge>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] text-primary-foreground mb-6">
-                EV Battery Health Reports
+                Certified EV Battery Health
               </h1>
               <p className="text-xl text-primary-foreground/80 mb-8 max-w-2xl mx-auto">
-                Every electric vehicle at Planet Motors comes with a comprehensive battery health report. 
-                Know exactly what you&apos;re buying with transparent degradation data.
+                Every electric vehicle at Planet Motors comes with an independent Aviloo FLASH test —
+                the same battery certification trusted by dealerships across 30+ countries.
+                Know your battery&apos;s true State of Health before you buy.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/inventory?fuelType=Electric">
@@ -170,8 +171,8 @@ export default function EVBatteryHealthPage() {
                   <FileCheck className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="font-bold text-lg">Certified</p>
-                  <p className="text-sm text-muted-foreground">Reports</p>
+                  <p className="font-bold text-lg">Aviloo</p>
+                  <p className="text-sm text-muted-foreground">Certified</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -201,10 +202,10 @@ export default function EVBatteryHealthPage() {
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Comprehensive Battery Analysis
+                What the Aviloo FLASH Test Measures
               </h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Our certified technicians perform extensive testing on every EV battery
+                An independent, manufacturer-agnostic diagnostic covering every critical battery metric
               </p>
             </div>
 
@@ -302,12 +303,136 @@ export default function EVBatteryHealthPage() {
           </div>
         </section>
 
+        {/* Aviloo Certificate Showcase */}
+        <section className="py-16 bg-gradient-to-b from-green-50 to-white dark:from-green-950/20 dark:to-background">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <Badge className="mb-4 bg-green-100 text-green-800 border-green-300">
+                <Award className="h-4 w-4 mr-1" />
+                Real Certificate Data
+              </Badge>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Sample Aviloo FLASH Certificate
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Here&apos;s what an actual Aviloo battery health report looks like —
+                independent, transparent, and backed by data
+              </p>
+            </div>
+
+            {/* Actual Aviloo Certificate Image — visual proof */}
+            <div className="max-w-2xl mx-auto mb-10">
+              <div className="rounded-xl overflow-hidden shadow-lg border border-green-200">
+                <Image
+                  src="/images/aviloo-sample-certificate.jpg"
+                  alt="Aviloo FLASH Test Certificate — 2023 Tesla Model 3, 95.1% State of Health"
+                  width={1132}
+                  height={1600}
+                  className="w-full h-auto"
+                  priority
+                />
+              </div>
+              <p className="text-sm text-muted-foreground text-center mt-3">
+                Actual Aviloo FLASH certificate from a vehicle in our inventory (VIN redacted for privacy)
+              </p>
+            </div>
+
+            <div className="max-w-4xl mx-auto">
+              <Card className="overflow-hidden border-2 border-green-200">
+                <div className="grid md:grid-cols-2">
+                  {/* Certificate Summary */}
+                  <div className="p-8 bg-white dark:bg-card">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                        <FileCheck className="h-6 w-6 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-lg">Aviloo FLASH Test</p>
+                        <p className="text-sm text-muted-foreground">2023 Tesla Model 3</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      {/* SOH */}
+                      <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-semibold">State of Health</span>
+                          <span className="text-3xl font-bold text-green-600">95.1%</span>
+                        </div>
+                        <Progress value={95.1} className="h-3" />
+                        <p className="text-sm text-muted-foreground mt-1">Excellent — minimal degradation</p>
+                      </div>
+
+                      {/* Energy */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-muted/50 rounded-lg p-4">
+                          <p className="text-sm text-muted-foreground">Available Energy</p>
+                          <p className="text-2xl font-bold">75 kWh</p>
+                          <p className="text-xs text-muted-foreground">of 79 kWh original</p>
+                        </div>
+                        <div className="bg-muted/50 rounded-lg p-4">
+                          <p className="text-sm text-muted-foreground">Estimated Range</p>
+                          <p className="text-2xl font-bold">415 km</p>
+                          <p className="text-xs text-muted-foreground">of 436 km original</p>
+                        </div>
+                      </div>
+
+                      {/* Verdict */}
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4 dark:bg-green-950/30 dark:border-green-800">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Shield className="h-5 w-5 text-green-600" />
+                          <span className="font-semibold text-green-800 dark:text-green-400">Aviloo Verdict</span>
+                        </div>
+                        <p className="text-sm text-green-700 dark:text-green-300">
+                          Battery in excellent condition. Capacity loss is well within expected range for
+                          vehicle age and mileage. No cell imbalance detected.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* What Aviloo Is */}
+                  <div className="p-8 bg-muted/30 flex flex-col justify-center">
+                    <h3 className="text-xl font-bold mb-4">What is Aviloo?</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Aviloo is Europe&apos;s leading independent EV battery diagnostics company,
+                      trusted by dealerships, insurers, and fleet operators across 30+ countries.
+                    </p>
+                    <ul className="space-y-3 text-sm">
+                      <li className="flex items-start gap-2">
+                        <Shield className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                        <span><strong>Independent:</strong> Not affiliated with any manufacturer — unbiased results</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Gauge className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <span><strong>Scientific:</strong> Tests 100+ battery parameters in under 20 minutes</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <FileCheck className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                        <span><strong>Certified:</strong> ISO-compliant testing methodology used across 30+ countries</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <TrendingUp className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                        <span><strong>Trusted:</strong> Over 100,000 batteries tested worldwide</span>
+                      </li>
+                    </ul>
+                    <p className="text-sm text-muted-foreground mt-6">
+                      One of the first Canadian dealerships to adopt Aviloo certification
+                      on every pre-owned EV — at no extra cost to you.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+        </section>
+
         {/* Sample Reports */}
         <section className="py-16 bg-muted/30">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Sample Battery Health Reports
+                Battery Health by Vehicle
               </h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                 View real battery health data from EVs in our inventory
@@ -464,10 +589,10 @@ export default function EVBatteryHealthPage() {
                     How do you test EV battery health?
                   </AccordionTrigger>
                   <AccordionContent>
-                    We use professional diagnostic tools that connect directly to the vehicle&apos;s 
-                    battery management system (BMS). This reads the actual cell voltages, temperatures, 
-                    charge cycles, and calculated degradation. We also perform physical charging tests 
-                    to verify real-world performance matches the diagnostic data.
+                    We use the Aviloo FLASH test — an independent, ISO-compliant diagnostic that connects
+                    directly to the vehicle&apos;s battery management system. In under 20 minutes, it reads
+                    cell voltages, temperatures, charge cycles, and calculates true State of Health.
+                    The result is an independent certificate, not a manufacturer self-report.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -544,7 +669,7 @@ export default function EVBatteryHealthPage() {
               Ready to Go Electric?
             </h2>
             <p className="text-xl text-primary-foreground/80 mb-8 max-w-2xl mx-auto">
-              Browse our selection of certified pre-owned EVs, each with a comprehensive battery health report
+              Browse our Aviloo-certified pre-owned EVs — every one with a transparent battery health report included at no extra cost
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/vehicles?fuelType=Electric">

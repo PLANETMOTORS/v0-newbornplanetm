@@ -54,7 +54,7 @@ const navigation: NavItem[] = [
     href: "/about",
     submenu: [
       { name: "About", href: "/about" },
-      { name: "EV Battery Health", href: "/ev-battery-health" },
+      { name: "EV Battery Health", href: "/aviloo" },
       { name: "Car Value Calculator", href: "/trade-in" },
       { name: "Protection Plans", href: "/protection-plans" },
       { name: "FAQ", href: "/faq" },
