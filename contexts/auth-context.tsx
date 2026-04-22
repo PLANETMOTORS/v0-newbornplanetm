@@ -1,9 +1,13 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react"
-import { createClient } from "@/lib/supabase/client"
 import type { User } from "@supabase/supabase-js"
 import type { SupabaseClient } from "@supabase/supabase-js"
+
+// Lazy-load the Supabase client to defer its ~196KB bundle from the critical
+// hydration path.  The client is only needed after mount (useEffect), so the
+// dynamic import runs in parallel with React hydration instead of blocking it.
+const getClient = () => import("@/lib/supabase/client").then(m => m.createClient())
 
 interface AuthContextType {
   user: User | null
@@ -18,68 +22,68 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    let supabase: SupabaseClient | null = null
-    try {
-      supabase = createClient()
-    } catch {
-      // Supabase credentials not configured — auth features disabled.
-      // This is expected in local dev without a .env file.
-      setIsLoading(false)
-      return
-    }
+    let cancelled = false
+    let unsubscribe: (() => void) | null = null
 
-    // Two-step auth check to avoid unnecessary network calls:
-    // 1. getSession() reads from local storage (no network request) — if there's
-    //    no session, we know the visitor is unauthenticated and can skip the server call.
-    // 2. If a session exists, we call getUser() to server-validate it, ensuring
-    //    stale or cross-project tokens are caught and cleared.
-    const initAuth = async () => {
-      if (!supabase) return
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
+    // Lazy-load Supabase client — its ~196KB JS bundle loads in parallel
+    // with React hydration instead of blocking TBT.
+    getClient()
+      .then(async (supabase) => {
+        if (cancelled) return
 
-        if (!session) {
-          // No local session — user is unauthenticated, skip the network call.
-          setUser(null)
-          setIsLoading(false)
-          return
+        // Two-step auth check to avoid unnecessary network calls:
+        // 1. getSession() reads from local storage (no network)
+        // 2. If a session exists, getUser() validates against the server
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
+          if (cancelled) return
+
+          if (!session) {
+            setUser(null)
+            setIsLoading(false)
+            return
+          }
+
+          const { data: { user }, error } = await supabase.auth.getUser()
+          if (cancelled) return
+          if (error) {
+            await supabase.auth.signOut()
+            setUser(null)
+          } else {
+            setUser(user ?? null)
+          }
+        } catch (error) {
+          console.error("Error getting user:", error)
+          if (!cancelled) setUser(null)
+        } finally {
+          if (!cancelled) setIsLoading(false)
         }
 
-        // Session exists — validate it against the server.
-        const { data: { user }, error } = await supabase.auth.getUser()
-        if (error) {
-          // Session is invalid or from wrong project — clear it so the UI resets.
-          await supabase.auth.signOut()
-          setUser(null)
-        } else {
-          setUser(user ?? null)
-        }
-      } catch (error) {
-        console.error("Error getting user:", error)
-        setUser(null)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    initAuth()
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null)
-        setIsLoading(false)
-      }
-    )
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          (_event, session) => {
+            if (!cancelled) {
+              setUser(session?.user ?? null)
+              setIsLoading(false)
+            }
+          }
+        )
+        unsubscribe = () => subscription.unsubscribe()
+      })
+      .catch(() => {
+        // Supabase credentials not configured — auth features disabled.
+        if (!cancelled) setIsLoading(false)
+      })
 
     return () => {
-      subscription.unsubscribe()
+      cancelled = true
+      unsubscribe?.()
     }
   }, [])
 
   const signOut = async () => {
     try {
-      const supabase = createClient()
+      const supabase = await getClient()
       await supabase.auth.signOut()
       setUser(null)
     } catch (error) {

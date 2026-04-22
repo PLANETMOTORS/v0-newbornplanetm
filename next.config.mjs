@@ -10,8 +10,8 @@ const nextConfig = {
   // SEC-06: Remove x-powered-by: Next.js header (OWASP WSTG-CONF-08)
   poweredByHeader: false,
 
-  // CRITICAL: Transpile Sanity packages to prevent duplicate bundling
-  transpilePackages: ['sanity', 'next-sanity', '@sanity/vision', '@sanity/ui', '@sanity/client'],
+  // Transpile Sanity client to prevent duplicate bundling
+  transpilePackages: ['@sanity/client'],
 
   // Exclude native Node.js modules from bundling (required for ssh2/sftp in API routes)
   serverExternalPackages: ['ssh2', 'ssh2-sftp-client', 'cpu-features'],
@@ -26,7 +26,7 @@ const nextConfig = {
     webpackMemoryOptimizations: true,
     // Optimize package imports to reduce memory
     optimizePackageImports: [
-      'sanity', '@sanity/ui', '@sanity/vision', '@sanity/client',
+      '@sanity/client',
       'lucide-react', '@radix-ui/react-icons',
       'date-fns', 'recharts', 'embla-carousel-react',
       'react-hook-form', '@tanstack/react-virtual',
@@ -218,36 +218,13 @@ const nextConfig = {
       "form-action 'self'",
     ].join('; ')
 
-    // Sanity Studio CSP — needs unsafe-eval for GROQ/Vision, broader connect-src for API
-    const studioCSP = [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.sanity.io",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' blob: data: https://cdn.sanity.io https://*.sanity.io",
-      "frame-src 'self'",
-      "connect-src 'self' https://*.sanity.io https://*.api.sanity.io wss://*.sanity.io https://cdn.sanity.io",
-      "worker-src 'self' blob:",
-      "base-uri 'self'",
-      "form-action 'self'",
-    ].join('; ')
-
     return [
-      // Main site — strict CSP (no unsafe-eval)
+      // Main site — strict CSP
       {
-        source: '/((?!studio).*)',
+        source: '/(.*)',
         headers: [
           ...sharedHeaders,
           { key: 'Content-Security-Policy', value: mainSiteCSP },
-        ],
-      },
-      // Sanity Studio — permissive CSP (needs unsafe-eval for GROQ)
-      {
-        source: '/studio/:path*',
-        headers: [
-          ...sharedHeaders,
-          { key: 'Content-Security-Policy', value: studioCSP },
-          { key: 'X-Robots-Tag', value: 'noindex' },
         ],
       },
       // Stripe webhook

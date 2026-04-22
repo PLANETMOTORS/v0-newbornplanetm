@@ -15,22 +15,23 @@ const HomepageFeaturedVehicles = dynamic(
   { loading: () => <FeaturedVehiclesSkeleton /> }
 )
 
-// Lazy-load mid-fold sections (Shop By Category + 4-Step Process) to reduce initial JS
+// Lazy-load mid-fold sections (Shop By Category + 4-Step Process) to reduce initial JS.
+// ssr:true keeps HTML in the SSR output for SEO while code-splitting the JS.
 const HomepageMidFold = dynamic(
   () => import("@/components/homepage-mid-fold").then(m => ({ default: m.HomepageMidFold })),
   { ssr: true }
 )
 
-// Lazy-load below-fold sections to reduce initial JS bundle
+// Lazy-load below-fold sections to reduce initial JS bundle.
 const HomepageBelowFold = dynamic(
   () => import("@/components/homepage-below-fold").then(m => ({ default: m.HomepageBelowFold })),
   { ssr: true }
 )
 
 // VehicleShowcase renders the interactive carousel on top of the server-
-// rendered hero image.  Dynamic import with ssr:true so it SSRs the full
-// carousel HTML, but HeroImageServer (pure Server Component) provides the
-// LCP image directly — no hydration needed for the initial paint.
+// rendered hero image.  HeroImageServer (pure Server Component) provides
+// the LCP image directly — VehicleShowcase is code-split so its heavy JS
+// (SWR, Supabase client, Lucide icons) loads in a separate chunk.
 const VehicleShowcase = dynamic(
   () => import("@/components/vehicle-showcase").then(m => ({ default: m.VehicleShowcase })),
   { ssr: true }
@@ -179,20 +180,26 @@ export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProp
         </div>
       </section>
 
-      {/* Mid-fold sections: Shop By Category + 4-Step Process (lazy-loaded) */}
-      <HomepageMidFold />
+      {/* Below-fold sections wrapped with content-visibility: auto so the
+          browser skips layout/paint for off-screen content until scrolled.
+          contain-intrinsic-size provides a height estimate to prevent CLS. */}
+      <div style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 600px' }}>
+        <HomepageMidFold />
+      </div>
 
-      {/* ========== BOX 3: FEATURED VEHICLES - Pure White #FFFFFF ========== */}
-      <HomepageFeaturedVehicles />
+      <div style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 800px' }}>
+        <HomepageFeaturedVehicles />
+      </div>
 
-      {/* Below-fold sections: lazy-loaded, fetches its own testimonials */}
-      <HomepageBelowFold
-        siteSettings={siteSettings}
-        ratingValue={ratingValue}
-        lowestRate={lowestRate}
-        weekdayHours={weekdayHours}
-        saturdayHours={saturdayHours}
-      />
+      <div style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 2000px' }}>
+        <HomepageBelowFold
+          siteSettings={siteSettings}
+          ratingValue={ratingValue}
+          lowestRate={lowestRate}
+          weekdayHours={weekdayHours}
+          saturdayHours={saturdayHours}
+        />
+      </div>
 
     </section>
   )
