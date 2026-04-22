@@ -91,7 +91,6 @@ export async function uploadDriversLicense(formData: FormData): Promise<UploadLi
   // clause, not the UPDATE itself — so we SELECT the target row first,
   // then UPDATE by primary key to avoid overwriting other reservations.
   const { data: targetRow, error: selectError } = await supabase
-  const { data: targetRow, error: selectError } = await supabase
     .from('reservations')
     .select('id')
     .eq('vehicle_id', vehicleId)
