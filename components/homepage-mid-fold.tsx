@@ -2,15 +2,19 @@
 // Includes Shop By Category + 4-Step Process (both below hero fold)
 // to reduce initial JS bundle and improve LCP/TBT
 import Link from "next/link"
-import { ArrowRight, Shield, Car, CheckCircle, Star, Zap, Award, DollarSign, Search, CreditCard, FileCheck, Home } from "lucide-react"
+import { ArrowRight, Shield, Car, CheckCircle, Zap, Award, DollarSign, Search, CreditCard, FileCheck, Home, Gem } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-// Shop by category tiles — 4 tiles, ordered by conversion priority
+// Navy brand color used for all category icons and labels
+const NAVY = "#1B2A6B"
+
+// Shop by category pills — 4 tiles, ordered by conversion priority
+// All icons: same Lucide import, stroke-width 2, same navy color
 const shopByCategories = [
-  { icon: Zap, label: "Electric", href: "/inventory?fuelType=Electric", iconColor: "text-emerald-500" },
-  { icon: Car, label: "SUVs", href: "/inventory?bodyType=SUV", iconColor: "text-slate-600" },
-  { icon: DollarSign, label: "Under $30k", href: "/inventory?maxPrice=30000", iconColor: "text-green-700" },
-  { icon: Star, label: "Luxury", href: "/inventory?category=Luxury", iconColor: "text-amber-500" },
+  { icon: Zap, label: "Electric", href: "/inventory?fuelType=Electric", popular: false },
+  { icon: Car, label: "SUVs", href: "/inventory?bodyType=SUV", popular: true },
+  { icon: DollarSign, label: "Under $30k", href: "/inventory?maxPrice=30000", popular: false },
+  { icon: Gem, label: "Luxury", href: "/inventory?category=Luxury", popular: false },
 ]
 
 // 4-Step Process with colorful icons
@@ -48,7 +52,7 @@ const processSteps = [
 export function HomepageMidFold() {
   return (
     <>
-      {/* Shop By Category - Carvana Style Large Boxes */}
+      {/* Shop By Category — horizontal pills */}
       <section className="py-16 bg-white border-b border-[#dce3ed]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
@@ -57,37 +61,56 @@ export function HomepageMidFold() {
             </h2>
           </div>
 
-          {/* Grid of 4 Tiles — desktop: single row, tablet: 2×2, mobile: 2×2 */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
+          {/* Grid: mobile 2×2 stacked, tablet 2×2 horizontal, desktop 4-in-a-row horizontal */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             {shopByCategories.map((cat) => (
               <Link
                 key={cat.label}
                 href={cat.href}
-                className="group relative flex flex-col items-center justify-center aspect-square lg:aspect-[4/5] bg-white rounded-xl border-2 border-[#e5e7eb] hover:border-[#1e3a8a] hover:bg-[#f0f4ff] transition-all duration-200 hover:shadow-md"
+                className={[
+                  "group relative",
+                  // Mobile: stacked layout, 96px tall
+                  "flex flex-col items-center justify-center h-24 gap-1",
+                  // Tablet+: horizontal layout, 80px tall
+                  "md:flex-row md:h-20 md:gap-3 md:justify-start md:px-4",
+                  // Shared styling
+                  "bg-white rounded-xl border border-[#e5e7eb] p-4",
+                  // Hover: desktop/tablet only — bg shift + icon scale
+                  "md:hover:bg-[rgba(27,42,107,0.04)] transition-all duration-200 ease-out",
+                ].join(" ")}
               >
-                {/* Popular badge for SUVs */}
-                {cat.label === "SUVs" && (
-                  <span className="absolute -top-2.5 -right-2 bg-amber-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                {/* Popular badge — absolute positioned */}
+                {cat.popular && (
+                  <span
+                    className="absolute -top-2.5 -right-2.5 z-10 bg-[#CC1122] text-white uppercase tracking-wide shadow-[0_2px_4px_rgba(0,0,0,0.15)] rounded-full"
+                    style={{ fontSize: "11px", fontWeight: 600, padding: "4px 10px" }}
+                  >
                     Popular
                   </span>
                 )}
-                {/* Icon */}
-                <div className="mb-2 p-3 bg-gray-50 rounded-lg group-hover:bg-[#1e3a8a]/10 transition-colors">
-                  <cat.icon className={`w-8 h-8 ${cat.iconColor}`} />
-                </div>
-                {/* Category Label */}
-                <h3 className="text-sm font-bold text-gray-900 group-hover:text-[#1e3a8a] transition-colors text-center leading-tight">
+                {/* Icon — 32px mobile, 40px desktop; same navy, stroke-width 2 */}
+                <cat.icon
+                  className="w-8 h-8 md:w-10 md:h-10 md:group-hover:scale-105 transition-transform duration-200 ease-out flex-shrink-0"
+                  style={{ color: NAVY, strokeWidth: 2 }}
+                  aria-hidden="true"
+                />
+                {/* Label — 14px mobile, 15px desktop */}
+                <span
+                  className="text-center md:text-left leading-tight text-sm md:text-[15px]"
+                  style={{ fontWeight: 600, color: NAVY }}
+                >
                   {cat.label}
-                </h3>
+                </span>
               </Link>
             ))}
           </div>
 
-          {/* See all categories link */}
+          {/* See all categories → */}
           <div className="flex justify-end mt-4">
             <Link
               href="/inventory"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#1e3a8a] hover:text-[#172554] transition-colors"
+              className="inline-flex items-center gap-1.5 transition-colors"
+              style={{ fontSize: 14, fontWeight: 600, color: NAVY }}
             >
               See all categories
               <ArrowRight className="w-4 h-4" />
