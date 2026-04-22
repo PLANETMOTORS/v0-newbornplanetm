@@ -71,7 +71,7 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
   const { data: lockResult, error: lockError } = await adminClient
     .rpc('lock_vehicle_for_checkout', {
       p_vehicle_id: data.vehicleId,
-      p_allowed_statuses: ['available', 'reserved'],
+      p_allowed_statuses: ['available', 'reserved', 'checkout_in_progress'],
     })
 
   if (lockError) {
