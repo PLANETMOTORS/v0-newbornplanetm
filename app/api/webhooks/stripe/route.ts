@@ -4,6 +4,7 @@ import Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { extractNotificationData, sendPaymentNotifications } from '@/lib/webhook-notifications'
+import { isValidLicensePath } from '@/lib/license-path'
 
 // Stripe requires raw body for signature verification — Next.js must NOT parse it.
 export const dynamic = 'force-dynamic'
@@ -161,7 +162,13 @@ export async function handleCheckoutSessionCompleted(
     if (session.metadata?.utm_content) utmData.utm_content = session.metadata.utm_content
     if (session.metadata?.utm_term) utmData.utm_term = session.metadata.utm_term
 
-    const licenseStoragePath = session.metadata?.licenseStoragePath || null
+    const rawLicensePath = session.metadata?.licenseStoragePath || null
+    const licenseStoragePath = rawLicensePath && vehicleId && isValidLicensePath(rawLicensePath, vehicleId)
+      ? rawLicensePath
+      : null
+    if (rawLicensePath && !licenseStoragePath) {
+      console.warn(`[webhook] Dropped invalid licenseStoragePath from reservation ${reservationId}: failed validation`)
+    }
 
     const { error: reservationError } = await supabase
       .from('reservations')
@@ -224,7 +231,13 @@ export async function handleCheckoutSessionCompleted(
     if (session.metadata?.utm_content) utmData.utm_content = session.metadata.utm_content
     if (session.metadata?.utm_term) utmData.utm_term = session.metadata.utm_term
 
-    const licenseStoragePathFromCheckout = session.metadata?.licenseStoragePath || null
+    const rawLicensePathFromCheckout = session.metadata?.licenseStoragePath || null
+    const licenseStoragePathFromCheckout = rawLicensePathFromCheckout && isValidLicensePath(rawLicensePathFromCheckout, vehicleId)
+      ? rawLicensePathFromCheckout
+      : null
+    if (rawLicensePathFromCheckout && !licenseStoragePathFromCheckout) {
+      console.warn(`[webhook] Dropped invalid licenseStoragePath from order for vehicle ${vehicleId}: failed validation`)
+    }
 
     const { error: orderError } = await supabase
       .from('orders')
