@@ -25,6 +25,8 @@ import { Footer } from "@/components/footer"
 import { FinancialServiceJsonLd } from "@/components/seo/json-ld"
 import { LiveChatWidget } from "@/components/live-chat-widget"
 import { Button } from "@/components/ui/button"
+import { RateDisclosure } from "@/components/rate-disclosure"
+import { RATE_FLOOR, RATE_FLOOR_DISPLAY } from "@/lib/rates"
 
 import { FinanceApplicationForm } from "@/components/finance-application-form"
 import { FinancingCalculator } from "@/components/financing-calculator"
@@ -33,7 +35,7 @@ import Link from "next/link"
 
 // Default lenders fallback - Generic lender partners
 const defaultLenders = [
-  { name: "Credit Union", rate: "6.29%", term: "96 mo", logo: "CU", color: "bg-emerald-600" },
+  { name: "Credit Union", rate: RATE_FLOOR_DISPLAY, term: "96 mo", logo: "CU", color: "bg-emerald-600" },
   { name: "Major Bank", rate: "6.49%", term: "84 mo", logo: "MB", color: "bg-blue-600" },
   { name: "Commercial Bank", rate: "6.79%", term: "72 mo", logo: "CB", color: "bg-slate-600" },
   { name: "Prime Lender", rate: "6.99%", term: "84 mo", logo: "PL", color: "bg-indigo-600" },
@@ -77,7 +79,7 @@ export default async function FinancingPage() {
   const lenders = defaultLenders
 
   // Get the lowest rate for display
-  const lowestRate = 6.29
+  const lowestRate = RATE_FLOOR
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
@@ -222,7 +224,7 @@ export default async function FinancingPage() {
                     <tbody>
                       <tr className="border-b border-border">
                         <th scope="row" className="text-left py-2 px-4 font-medium">RATES</th>
-                        <td className="text-center py-2 px-4 text-primary font-semibold tabular-nums">6.29%</td>
+                        <td className="text-center py-2 px-4 text-primary font-semibold tabular-nums">{RATE_FLOOR_DISPLAY}</td>
                         <td className="text-center py-2 px-4 tabular-nums">6.49%</td>
                         <td className="text-center py-2 px-4 tabular-nums">6.79%</td>
                         <td className="text-center py-2 px-4 tabular-nums">6.99%</td>
@@ -286,6 +288,12 @@ export default async function FinancingPage() {
           </div>
         </div>
       </section>
+        {/* Rate Disclosure — OMVIC compliance */}
+        <section className="py-8 bg-muted/50 border-t">
+          <div className="container max-w-4xl mx-auto px-4">
+            <RateDisclosure />
+          </div>
+        </section>
       </main>
 
       <Footer />

@@ -5,6 +5,7 @@ import { NextResponse } from "next/server"
 import { getAISettings } from "@/lib/sanity/fetch"
 import { validateOrigin } from "@/lib/csrf"
 import { rateLimit } from "@/lib/redis"
+import { RATE_FLOOR } from "@/lib/rates"
 
 export async function POST(req: Request) {
   // CSRF origin validation
@@ -99,7 +100,7 @@ RULES:
 - Be warm and conversational
 
 FEES TO MENTION: Certification $${fees?.certification || 595}, Doc $${fees?.financeDocFee || 895}, OMVIC $${fees?.omvic || 22}
-VALUE: 210-point inspection, 10-day guarantee, free delivery 300km, financing from ${aiSettings?.financing?.lowestRate || 6.29}%`
+VALUE: 210-point inspection, 10-day guarantee, free delivery 300km, financing from ${aiSettings?.financing?.lowestRate || RATE_FLOOR}%`
 
   const result = streamText({
     model: gateway("openai/gpt-4o-mini"),

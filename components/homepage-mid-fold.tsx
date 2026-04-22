@@ -4,6 +4,7 @@
 import Link from "next/link"
 import { ArrowRight, Shield, Car, CheckCircle, Zap, Award, DollarSign, Search, CreditCard, FileCheck, Home, Gem } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
 
 // Navy brand color used for all category icons and labels
 const NAVY = "#1B2A6B"
@@ -31,7 +32,7 @@ const processSteps = [
     color: "bg-green-500",
     title: "Get Pre-Approved",
     description: "Apply for financing in minutes with 20+ lending partners. Get competitive rates without affecting your credit.",
-    features: ["Soft Credit Check", "No Credit Impact", "Rates from 6.29%", "Instant Decision"],
+    features: ["Soft Credit Check", "No Credit Impact", `Rates from ${RATE_FLOOR_DISPLAY}`, "Instant Decision"],
   },
   {
     icon: FileCheck,

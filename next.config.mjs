@@ -78,8 +78,11 @@ const nextConfig = {
     // Populated from Tony's CarPages URL CSV — add rows as they arrive.
     const carPagesRedirects = [
       { source: '/our-team', destination: '/about', permanent: true },
+      // NOTE: Do NOT add /used-cars/:path* — it breaks the 20 city SEO
+      // landing pages at app/used-cars/[city]/page.tsx (toronto, vancouver, etc.)
+      // Only redirect the bare /used-cars path. CarPages vehicle sub-paths will 404,
+      // which is correct — they have no equivalent in the new site.
       { source: '/used-cars', destination: '/inventory', permanent: true },
-      { source: '/used-cars/:path*', destination: '/inventory', permanent: true },
       { source: '/contact-us', destination: '/contact', permanent: true },
       { source: '/car-financing', destination: '/financing', permanent: true },
       { source: '/trade-in-value', destination: '/trade-in', permanent: true },

@@ -4,6 +4,7 @@ import Link from "next/link"
 import dynamic from "next/dynamic"
 import { ArrowRight } from "lucide-react"
 import { HeroImageServer } from "@/components/hero-image-server"
+import { RATE_FLOOR } from "@/lib/rates"
 
 // Code-split heavy below-fold sections into separate chunks.
 // ssr: true (default) keeps their HTML in the SSR output for SEO while
@@ -95,7 +96,7 @@ export type HomepageProps = {
 
 export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProps) {
   const ratingValue = siteSettings.aggregateRating?.ratingValue || 4.8
-  const lowestRate = siteSettings.financingDefaults?.annualInterestRate || 6.29
+  const lowestRate = siteSettings.financingDefaults?.annualInterestRate || RATE_FLOOR
 
   // Get business hours for display
   const weekdayHours = siteSettings.businessHours?.find(h => h.day === "Monday")

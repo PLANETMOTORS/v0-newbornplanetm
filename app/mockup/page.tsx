@@ -3,10 +3,11 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { 
-  ChevronRight, Shield, RotateCcw, CheckCircle, Star, ArrowRight, Menu, Phone, MapPin, 
+import {
+  ChevronRight, Shield, RotateCcw, CheckCircle, Star, ArrowRight, Menu, Phone, MapPin,
   Car, Zap, Battery, DollarSign, Truck, BadgeCheck, X
 } from "lucide-react"
+import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
 
 // Mockup V2: Trust-First Homepage Design for Planet Motors
 // Broader positioning: "Ontario's trusted used vehicle dealership specializing in EVs"
@@ -200,7 +201,7 @@ export default function HomepageMockupV2() {
 
               {/* Floating Badge */}
               <div className="absolute top-4 right-4 bg-[#dc2626] text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg z-10">
-                From 6.29% APR
+                From {RATE_FLOOR_DISPLAY} APR
               </div>
             </div>
           </div>
