@@ -814,7 +814,7 @@ function TradeInContent() {
 
           <div className="container mx-auto px-4 relative">
             <div className="max-w-3xl mx-auto text-center mb-12">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 tracking-tight">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 tracking-[-0.01em] sm:tracking-[-0.02em]">
                 What&apos;s Your Car Worth?
               </h1>
               <p className="text-lg sm:text-xl text-slate-300 max-w-xl mx-auto">

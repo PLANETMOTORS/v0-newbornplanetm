@@ -109,7 +109,7 @@ export default function ClutchReplacementCostCanadaPage() {
 
           {/* Main Content */}
           <div className="prose prose-lg max-w-none">
-            <h2 id="cost-breakdown" className="flex items-center gap-2">
+            <h2 id="cost-breakdown" className="flex items-center gap-2 font-bold">
               <Wrench className="w-6 h-6 text-blue-600" />
               Clutch Replacement Cost Breakdown
             </h2>
@@ -145,7 +145,7 @@ export default function ClutchReplacementCostCanadaPage() {
               </Card>
             </div>
 
-            <h2 id="by-province" className="flex items-center gap-2">
+            <h2 id="by-province" className="flex items-center gap-2 font-bold">
               <MapPin className="w-6 h-6 text-blue-600" />
               Clutch Replacement Cost by Province
             </h2>
@@ -166,7 +166,7 @@ export default function ClutchReplacementCostCanadaPage() {
               ))}
             </div>
 
-            <h2 id="by-vehicle" className="flex items-center gap-2">
+            <h2 id="by-vehicle" className="flex items-center gap-2 font-bold">
               <Car className="w-6 h-6 text-blue-600" />
               Clutch Replacement Cost by Vehicle
             </h2>
@@ -199,7 +199,7 @@ export default function ClutchReplacementCostCanadaPage() {
               </Card>
             </div>
 
-            <h2 id="signs">Signs You Need a Clutch Replacement</h2>
+            <h2 id="signs" className="font-bold">Signs You Need a Clutch Replacement</h2>
             
             <p>Watch for these warning signs that indicate your <strong>clutch</strong> needs attention:</p>
             
@@ -212,7 +212,7 @@ export default function ClutchReplacementCostCanadaPage() {
               <li><strong>Clutch pedal sticking</strong> - Cable or hydraulic problems</li>
             </ul>
 
-            <h2 id="save-money">How to Save Money on Clutch Replacement</h2>
+            <h2 id="save-money" className="font-bold">How to Save Money on Clutch Replacement</h2>
             
             <ol>
               <li><strong>Get multiple quotes</strong> - Compare prices from 3-4 shops</li>
@@ -222,7 +222,7 @@ export default function ClutchReplacementCostCanadaPage() {
               <li><strong>Learn proper clutch technique</strong> - Extends clutch life significantly</li>
             </ol>
 
-            <h2 id="faq">Frequently Asked Questions</h2>
+            <h2 id="faq" className="font-bold">Frequently Asked Questions</h2>
 
             <h3>How long does a clutch last in Canada?</h3>
             <p>

@@ -19,7 +19,7 @@ export function SellYourCarHero({ headline, subheadline, highlightText }: SellYo
         </Badge>
       )}
       
-      <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl text-balance">
+      <h1 className="text-4xl font-bold tracking-[-0.01em] text-foreground sm:text-5xl sm:tracking-[-0.02em] md:text-6xl text-balance">
         {headline}
       </h1>
       
