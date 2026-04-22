@@ -202,11 +202,22 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   // Stripe checkout client secret fetcher – memoized to avoid re-initializing the
   // EmbeddedCheckoutProvider on auth-triggered re-renders.
   const fetchClientSecret = useCallback(() => {
+    // When no vehicle is selected (user started from generic /financing page),
+    // use the simpler product-based checkout that doesn't require vehicle locking.
+    if (!vehicleId) {
+      return import("@/app/actions/stripe").then(({ startCheckoutSession }) =>
+        startCheckoutSession("deposit")
+      ).then((secret) => {
+        if (!secret) throw new Error("Missing checkout client secret")
+        return secret
+      })
+    }
+
     const vehicleName = vehicleData
       ? `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`.trim()
       : "Vehicle Deposit"
     return startVehicleCheckout({
-      vehicleId: vehicleId || "",
+      vehicleId,
       vehicleName,
       depositOnly: true,
       customerEmail: primaryApplicant.email || undefined,
@@ -719,7 +730,7 @@ if (errors.length > 0) {
   // Render success state — mandatory $250 deposit via Stripe Embedded Checkout
   if (isSubmitted) {
     const stripeInstance = getStripePromise()
-    const canCheckout = vehicleId && stripeInstance
+    const canCheckout = !!stripeInstance
 
     return (
       <div className="max-w-2xl mx-auto p-8">
@@ -731,10 +742,10 @@ if (errors.length > 0) {
           <p className="text-muted-foreground">
             Your finance application has been submitted successfully.
             {canCheckout
-              ? " Complete your $250 refundable deposit below to secure this vehicle."
-              : vehicleId
-                ? " A team member will contact you shortly to finalize your purchase."
-                : " Select a vehicle to complete your deposit."}
+              ? vehicleId
+                ? " Complete your $250 refundable deposit below to secure this vehicle."
+                : " Complete your $250 refundable deposit below to fast-track your application."
+              : " A team member will contact you shortly to finalize your purchase."}
           </p>
         </div>
 
@@ -746,7 +757,9 @@ if (errors.length > 0) {
                 <h3 className="font-semibold">Secure Payment — $250 Refundable Deposit</h3>
               </div>
               <p className="text-sm text-muted-foreground mb-6">
-                Your deposit holds this vehicle for 48 hours while we process your application. Fully refundable.
+                {vehicleId
+                  ? "Your deposit holds this vehicle for 48 hours while we process your application. Fully refundable."
+                  : "Your deposit fast-tracks your application review. Fully refundable."}
               </p>
               <div className="min-h-[400px]">
                 <EmbeddedCheckoutProvider stripe={stripeInstance} options={{ fetchClientSecret }}>
@@ -755,15 +768,6 @@ if (errors.length > 0) {
               </div>
             </CardContent>
           </Card>
-        ) : !vehicleId ? (
-          <div className="text-center">
-            <p className="text-muted-foreground mb-4">
-              Select a vehicle to complete your deposit.
-            </p>
-            <Button onClick={() => router.push("/inventory")}>
-              Browse Vehicles
-            </Button>
-          </div>
         ) : (
           <Card>
             <CardContent className="pt-6">

@@ -1231,10 +1231,14 @@ function TradeInContent() {
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {["Front", "Back", "Interior", "Dashboard"].map((angle) => (
                           <div key={angle} className="relative">
+                            {/* Hidden file input — uses opacity:0 instead of sr-only for iOS Safari compatibility */}
                             <input
+                              id={`photo-upload-${angle}`}
                               type="file"
                               accept="image/*"
-                              className="sr-only"
+                              capture="environment"
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              style={{ zIndex: photos[angle] ? -1 : 1 }}
                               ref={(el) => { fileInputRefs.current[angle] = el }}
                               onChange={(e) => {
                                 handlePhotoUpload(angle, e.target.files?.[0] || null)
@@ -1246,16 +1250,16 @@ function TradeInContent() {
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img src={photos[angle].preview} alt={angle} className="w-full h-full object-cover" />
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/photo:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                  <button
-                                    onClick={() => fileInputRefs.current[angle]?.click()}
-                                    className="bg-white text-black px-2 py-1 rounded text-xs font-medium"
+                                  <label
+                                    htmlFor={`photo-upload-${angle}`}
+                                    className="bg-white text-black px-2 py-1 rounded text-xs font-medium cursor-pointer"
                                   >
                                     Replace
-                                  </button>
+                                  </label>
                                   <button
                                     aria-label={`Remove ${angle} photo`}
                                     onClick={() => removePhoto(angle)}
-                                    className="bg-red-500 text-white px-2 py-1 rounded text-xs font-medium"
+                                    className="bg-red-500 text-white px-2 py-1 rounded text-xs font-medium relative z-10"
                                   >
                                     Remove
                                   </button>
@@ -1263,13 +1267,13 @@ function TradeInContent() {
                                 <CheckCircle className="absolute top-2 right-2 w-5 h-5 text-green-500" />
                               </div>
                             ) : (
-                              <div
-                                onClick={() => fileInputRefs.current[angle]?.click()}
+                              <label
+                                htmlFor={`photo-upload-${angle}`}
                                 className="aspect-video border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-primary/5 cursor-pointer transition-all"
                               >
                                 <Upload className="h-8 w-8 text-muted-foreground" />
                                 <span className="text-sm text-muted-foreground">{angle}</span>
-                              </div>
+                              </label>
                             )}
                           </div>
                         ))}
