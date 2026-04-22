@@ -223,6 +223,7 @@ export function DriversLicenseStep({
             <Input
               id="licenseFirstName"
               autoComplete="given-name"
+              disabled={isPending}
               value={data.licenseFirstName !== "" ? data.licenseFirstName : prefillFirstName}
               onChange={(e) => onChange({ ...data, licenseFirstName: e.target.value })}
             />
@@ -232,6 +233,7 @@ export function DriversLicenseStep({
             <Input
               id="licenseLastName"
               autoComplete="family-name"
+              disabled={isPending}
               value={data.licenseLastName !== "" ? data.licenseLastName : prefillLastName}
               onChange={(e) => onChange({ ...data, licenseLastName: e.target.value })}
             />

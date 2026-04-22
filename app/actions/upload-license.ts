@@ -86,23 +86,33 @@ export async function uploadDriversLicense(formData: FormData): Promise<UploadLi
     return { success: false, error: 'Failed to upload document securely. Please try again.' }
   }
 
-  // Store the raw path in the reservation row so the dealership can
-  // fetch a signed URL later via the admin portal.
-  const { error: dbError } = await supabase
+  // Store the raw path in the most recent matching reservation.
+  // PostgREST .order().limit() on .update() only constrains the RETURNING
+  // clause, not the UPDATE itself — so we SELECT the target row first,
+  // then UPDATE by primary key to avoid overwriting other reservations.
+  const { data: targetRow, error: selectError } = await supabase
     .from('reservations')
-    .update({
-      license_storage_path: storagePath,
-      updated_at: new Date().toISOString(),
-    })
+    .select('id')
     .eq('vehicle_id', vehicleId)
     .in('status', ['pending', 'confirmed'])
     .order('created_at', { ascending: false })
     .limit(1)
+    .maybeSingle()
 
-  if (dbError) {
-    console.error('[upload-license] DB update failed:', dbError.message)
-    // The file is already uploaded — don't fail the user, just log.
-    // Orphan cleanup will handle dangling files if checkout is abandoned.
+  if (selectError) {
+    console.error('[upload-license] Reservation lookup failed:', selectError.message)
+  } else if (targetRow) {
+    const { error: dbError } = await supabase
+      .from('reservations')
+      .update({
+        license_storage_path: storagePath,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', targetRow.id)
+
+    if (dbError) {
+      console.error('[upload-license] DB update failed:', dbError.message)
+    }
   }
 
   console.info(`[upload-license] Uploaded ${storagePath} for vehicle ${vehicleId}`)
