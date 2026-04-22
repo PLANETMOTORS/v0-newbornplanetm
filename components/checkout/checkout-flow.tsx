@@ -82,10 +82,9 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
 
   // Countdown timer — decrements every second
   useEffect(() => {
-    if (timeLeft <= 0) return
-    const id = setInterval(() => setTimeLeft((t) => Math.max(0, t - 1)), 1000)
+    const id = setInterval(() => setTimeLeft((t) => (t <= 0 ? 0 : t - 1)), 1000)
     return () => clearInterval(id)
-  }, [timeLeft])
+  }, [])
 
   // Track whether email was already prefilled to prevent infinite loop
   const emailPrefilledRef = useRef(false)
