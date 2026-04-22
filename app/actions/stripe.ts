@@ -137,15 +137,6 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
   const serverVehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`.trim() || data.vehicleName
   const vehicleAmount = data.depositOnly ? 25000 : validateCentsAmount(vehicle.price)
-  const idempotencyKey = createHash('sha256')
-    .update([
-      data.vehicleId,
-      data.protectionPlanId || 'none',
-      data.depositOnly ? 'deposit' : 'full',
-      data.customerEmail || 'guest',
-    ].join(':'))
-    .digest('hex')
-
   // Create a reservation row so the webhook can find and update it after payment.
   let reservationId: string | undefined
   if (data.depositOnly) {
@@ -170,6 +161,18 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
     }
     reservationId = reservation.id
   }
+
+  // Include reservationId so each new reservation attempt gets its own Stripe
+  // session while retries of the same reservation remain idempotent.
+  const idempotencyKey = createHash('sha256')
+    .update([
+      data.vehicleId,
+      data.protectionPlanId || 'none',
+      data.depositOnly ? 'deposit' : 'full',
+      data.customerEmail || 'guest',
+      reservationId || 'no-reservation',
+    ].join(':'))
+    .digest('hex')
 
   lineItems.push({
     price_data: {
