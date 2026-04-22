@@ -13,27 +13,35 @@ import { ProtectionFaqAccordion } from "./protection-faq-accordion"
 import { PROTECTION_PRODUCTS } from "@/lib/protection-products"
 import { getPublicSiteUrl } from "@/lib/site-url"
 
+const siteUrl = getPublicSiteUrl()
+
 export const metadata = {
-  title: "Vehicle Protection Plans & Extended Warranty | Planet Motors",
-  description: "Starting from $1,950 — compare Essential, Certified, and Certified Plus protection packages with extended warranty, GAP insurance, tire & rim, and rust protection. Personalized coverage for every budget.",
+  title: "Vehicle Protection Plans | Warranty Coverage | Planet Motors",
+  description: "Bumper-to-bumper warranty coverage starting from $1,950. Plans from $29/month. Compare Essential, Certified, and Certified Plus packages. Optional zero-deductible coverage.",
+  keywords: "vehicle protection plans, extended warranty, GAP insurance, tire and rim protection, Planet Motors warranty",
   openGraph: {
-    title: "Vehicle Protection Plans & Extended Warranty | Planet Motors",
-    description: "Starting from $1,950 — compare protection packages with extended warranty, GAP insurance, tire & rim, and rust protection for your used vehicle.",
-    url: "https://www.planetmotors.ca/protection-plans",
+    title: "Vehicle Protection Plans | Warranty Coverage | Planet Motors",
+    description: "Bumper-to-bumper warranty coverage starting from $1,950. Compare Essential, Certified, and Certified Plus packages.",
+    url: `${siteUrl}/protection-plans`,
     siteName: "Planet Motors",
     locale: "en_CA",
     type: "website",
     images: [
       {
-        url: "https://www.planetmotors.ca/og-protection-plans.jpg",
+        url: `${siteUrl}/og-protection-plans.jpg`,
         width: 1200,
         height: 630,
         alt: "PlanetCare Vehicle Protection Plans — Planet Motors",
       },
     ],
   },
+  twitter: {
+    card: "summary_large_image" as const,
+    title: "Vehicle Protection Plans | Planet Motors",
+    description: "Bumper-to-bumper warranty from $29/month. Zero-deductible options available.",
+  },
   alternates: {
-    canonical: "https://www.planetmotors.ca/protection-plans",
+    canonical: "/protection-plans",
   },
 }
 
