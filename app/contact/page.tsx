@@ -5,7 +5,7 @@ const SITE_URL = getPublicSiteUrl()
 
 export const metadata: Metadata = {
   title: "Contact Planet Motors | Richmond Hill Ontario Dealership",
-  description: "Visit us at 30 Major Mackenzie Dr E, Richmond Hill. Call 1-866-797-3332. Mon–Fri 9AM–7PM, Sat 10AM–5PM. Email info@planetmotors.ca.",
+  description: "Visit us at 30 Major Mackenzie Dr E, Richmond Hill. Call 1-866-797-3332. Mon–Fri 9AM–7PM, Sat 9AM–6PM. Email info@planetmotors.ca.",
   keywords: "contact Planet Motors, Richmond Hill dealership, phone number, dealership hours, visit us",
   alternates: {
     canonical: '/contact',
