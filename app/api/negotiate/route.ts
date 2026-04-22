@@ -99,7 +99,7 @@ RULES:
 - Be warm and conversational
 
 FEES TO MENTION: Certification $${fees?.certification || 595}, Doc $${fees?.financeDocFee || 895}, OMVIC $${fees?.omvic || 22}
-VALUE: 210-point inspection, 10-day guarantee, free delivery 300km, financing from ${aiSettings?.financing?.lowestRate || 4.79}%`
+VALUE: 210-point inspection, 10-day guarantee, free delivery 300km, financing from ${aiSettings?.financing?.lowestRate || 6.29}%`
 
   const result = streamText({
     model: gateway("openai/gpt-4o-mini"),

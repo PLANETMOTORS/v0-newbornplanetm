@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, Playfair_Display } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import { CompareProvider } from '@/contexts/compare-context'
 import { FavoritesProvider } from '@/contexts/favorites-context'
 import { AuthProvider } from '@/contexts/auth-context'
@@ -17,13 +17,6 @@ const inter = Inter({
   variable: '--font-inter',
   display: 'swap',
   preload: true,
-});
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  variable: '--font-playfair',
-  display: 'swap',
-  preload: false,  // Decorative font — don't block first paint
 });
 
 const SITE_URL = getPublicSiteUrl()
@@ -128,7 +121,7 @@ export default function RootLayout({
         <LocalBusinessJsonLd />
         <WebsiteSearchJsonLd />
       </head>
-      <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} font-sans antialiased`}>
         <SerwistProvider swUrl="/sw.js" disable={process.env.NODE_ENV === 'development'}>
           <AuthProvider>
             <FavoritesProvider>

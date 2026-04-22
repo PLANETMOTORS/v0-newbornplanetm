@@ -109,7 +109,7 @@ export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProp
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Hero Text */}
             <div className="text-center lg:text-left min-w-0">
-              <h1 className="font-serif text-[2rem] sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-tight text-gray-900">
+              <h1 className="text-[2rem] sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-[-0.01em] sm:tracking-[-0.02em] text-gray-900">
                 The Smarter Way to
                 <span className="block text-[#1e3a8a]">
                   Buy or Sell Your Car
