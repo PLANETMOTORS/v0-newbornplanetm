@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
 import { CheckCircle, X, Shield, ChevronDown, Sparkles } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -99,11 +98,9 @@ function MobilePackageCard({ pkg, index, onSelect }: { pkg: ProtectionPackage; i
   const style = TIER_STYLES[pkg.id] || TIER_STYLES.basic
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1, duration: 0.4 }}
-      className={`rounded-2xl border-2 overflow-hidden ${pkg.highlighted ? "ring-2 ring-primary shadow-lg shadow-primary/10" : `ring-1 ${style.ring}`}`}
+    <div
+      className={`rounded-2xl border-2 overflow-hidden animate-in fade-in slide-in-from-bottom-3 ${pkg.highlighted ? "ring-2 ring-primary shadow-lg shadow-primary/10" : `ring-1 ${style.ring}`}`}
+      style={{ animationDelay: `${index * 100}ms`, animationFillMode: "both" }}
     >
       {/* Header */}
       <button
@@ -132,38 +129,33 @@ function MobilePackageCard({ pkg, index, onSelect }: { pkg: ProtectionPackage; i
       </button>
 
       {/* Expandable content */}
-      <AnimatePresence>
-        {expanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden"
-          >
-            <div className="p-5 space-y-3 border-t">
-              {COMPARISON_ROWS.map((row) => (
-                <div key={row.key} className="flex items-center justify-between py-1.5">
-                  <span className="text-sm text-muted-foreground">{row.label}</span>
-                  <CellValue pkg={pkg} rowKey={row.key} />
-                </div>
-              ))}
-              <div className="pt-3">
-                <Button
-                  className="w-full h-12 text-base font-semibold"
-                  variant={pkg.highlighted ? "default" : "outline"}
-                  size="lg"
-                  onClick={() => onSelect?.(pkg.id)}
-                >
-                  {pkg.id === "basic" ? "Continue Without Protection" : "Select Package"}
-                  {pkg.highlighted && <Sparkles className="w-4 h-4 ml-2" />}
-                </Button>
+      <div
+        className="grid transition-all duration-300 ease-in-out overflow-hidden"
+        style={{ gridTemplateRows: expanded ? "1fr" : "0fr" }}
+      >
+        <div className="min-h-0">
+          <div className="p-5 space-y-3 border-t">
+            {COMPARISON_ROWS.map((row) => (
+              <div key={row.key} className="flex items-center justify-between py-1.5">
+                <span className="text-sm text-muted-foreground">{row.label}</span>
+                <CellValue pkg={pkg} rowKey={row.key} />
               </div>
+            ))}
+            <div className="pt-3">
+              <Button
+                className="w-full h-12 text-base font-semibold"
+                variant={pkg.highlighted ? "default" : "outline"}
+                size="lg"
+                onClick={() => onSelect?.(pkg.id)}
+              >
+                {pkg.id === "basic" ? "Continue Without Protection" : "Select Package"}
+                {pkg.highlighted && <Sparkles className="w-4 h-4 ml-2" />}
+              </Button>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -171,12 +163,7 @@ function MobilePackageCard({ pkg, index, onSelect }: { pkg: ProtectionPackage; i
 /* ── Desktop comparison table ── */
 function DesktopTable({ onSelect }: { onSelect?: (id: string) => void }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="overflow-x-auto rounded-2xl border border-border shadow-sm"
-    >
+    <div className="overflow-x-auto rounded-2xl border border-border shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
       <table className="w-full border-collapse min-w-[800px]">
         {/* ── Tier headers ── */}
         <thead>
@@ -189,22 +176,18 @@ function DesktopTable({ onSelect }: { onSelect?: (id: string) => void }) {
               return (
                 <th key={pkg.id} className={`text-center align-bottom relative border-b border-border ${pkg.highlighted ? "bg-primary/5" : ""}`}>
                   {pkg.badge && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 + i * 0.1 }}
-                      className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10"
+                    <div
+                      className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10 animate-in fade-in slide-in-from-top-2"
+                      style={{ animationDelay: `${300 + i * 100}ms`, animationFillMode: "both" }}
                     >
                       <Badge className={`text-[10px] px-2.5 py-0.5 shadow-md ${pkg.highlighted ? "bg-primary" : "bg-primary/80"}`}>
                         {pkg.badge}
                       </Badge>
-                    </motion.div>
+                    </div>
                   )}
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 + i * 0.08 }}
-                    className={`p-5 pb-4 bg-gradient-to-b ${style.gradient} rounded-t-xl mx-1 mt-1`}
+                  <div
+                    className={`p-5 pb-4 bg-gradient-to-b ${style.gradient} rounded-t-xl mx-1 mt-1 animate-in fade-in slide-in-from-bottom-2`}
+                    style={{ animationDelay: `${100 + i * 80}ms`, animationFillMode: "both" }}
                   >
                     <div className={`w-10 h-10 rounded-xl ${style.iconBg} flex items-center justify-center mx-auto mb-2`}>
                       <Shield className="w-5 h-5 text-primary" />
@@ -226,7 +209,7 @@ function DesktopTable({ onSelect }: { onSelect?: (id: string) => void }) {
                         <span className="text-lg font-semibold text-muted-foreground">No cost</span>
                       </div>
                     )}
-                  </motion.div>
+                  </div>
                 </th>
               )
             })}
@@ -236,12 +219,10 @@ function DesktopTable({ onSelect }: { onSelect?: (id: string) => void }) {
         {/* ── Feature rows ── */}
         <tbody>
           {COMPARISON_ROWS.map((row, i) => (
-            <motion.tr
+            <tr
               key={row.key}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 + i * 0.03 }}
-              className={`group transition-colors hover:bg-muted/40 ${i % 2 === 0 ? "bg-muted/20" : "bg-background"}`}
+              className={`group transition-colors hover:bg-muted/40 animate-in fade-in ${i % 2 === 0 ? "bg-muted/20" : "bg-background"}`}
+              style={{ animationDelay: `${300 + i * 30}ms`, animationFillMode: "both" }}
             >
               <td className="p-4 pl-5 text-sm font-medium text-foreground border-r border-border/50">{row.label}</td>
               {PROTECTION_PACKAGES.map((pkg) => (
@@ -249,7 +230,7 @@ function DesktopTable({ onSelect }: { onSelect?: (id: string) => void }) {
                   <CellValue pkg={pkg} rowKey={row.key} />
                 </td>
               ))}
-            </motion.tr>
+            </tr>
           ))}
         </tbody>
 
@@ -259,10 +240,9 @@ function DesktopTable({ onSelect }: { onSelect?: (id: string) => void }) {
             <td className="p-5 bg-muted/40" />
             {PROTECTION_PACKAGES.map((pkg, i) => (
               <td key={pkg.id} className={`p-5 text-center ${pkg.highlighted ? "bg-primary/5" : ""}`}>
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 + i * 0.1 }}
+                <div
+                  className="animate-in fade-in slide-in-from-bottom-2"
+                  style={{ animationDelay: `${500 + i * 100}ms`, animationFillMode: "both" }}
                 >
                   <Button
                     className={`w-full h-12 text-sm font-semibold transition-all duration-200 ${
@@ -277,13 +257,13 @@ function DesktopTable({ onSelect }: { onSelect?: (id: string) => void }) {
                     {pkg.id === "basic" ? "No Protection" : "Select Package"}
                     {pkg.highlighted && <Sparkles className="w-4 h-4 ml-1.5" />}
                   </Button>
-                </motion.div>
+                </div>
               </td>
             ))}
           </tr>
         </tfoot>
       </table>
-    </motion.div>
+    </div>
   )
 }
 

@@ -62,7 +62,7 @@ const nextConfig = {
     return [
       {
         source: '/warranty',
-        destination: '/protection-plans/extended-warranty',
+        destination: '/protection-plans',
         permanent: true,
       },
     ]
