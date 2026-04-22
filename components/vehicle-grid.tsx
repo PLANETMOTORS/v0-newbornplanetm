@@ -162,7 +162,7 @@ function VehicleCard({ vehicle }: VehicleCardProps) {
       <div className="p-4">
         <h3 className="font-semibold text-base line-clamp-1">{vehicle.name}</h3>
         <p className="text-sm text-muted-foreground mt-1">
-          {formatMileage(vehicle.mileage)}
+          <span className="tabular-nums">{formatMileage(vehicle.mileage)}</span>
         </p>
         <div className="mt-4 flex items-center justify-between">
           <span className="text-xl font-semibold text-primary tabular-nums">

@@ -268,7 +268,7 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
           <div className="flex items-center gap-4 text-sm text-white/90 mb-3">
             <span className="flex items-center gap-1">
               <Gauge className="w-3.5 h-3.5" />
-              {currentVehicle.mileage}
+              <span className="tabular-nums">{currentVehicle.mileage}</span>
             </span>
             <span className="flex items-center gap-1">
               <Fuel className="w-3.5 h-3.5" />
@@ -283,7 +283,7 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
             <div>
               <p className="text-2xl font-bold tabular-nums">{currentVehicle.price}</p>
               <p className="text-sm text-white/90">
-                Est. {currentVehicle.monthlyPayment}/mo at 6.29% APR
+                <span className="tabular-nums">Est. {currentVehicle.monthlyPayment}/mo at 6.29% APR</span>
               </p>
             </div>
             <Button size="sm" className="bg-white text-primary hover:bg-white/90" asChild>

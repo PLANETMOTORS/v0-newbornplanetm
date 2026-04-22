@@ -741,7 +741,7 @@ export default function VehicleDetailPage() {
           <div className="flex items-center gap-3">
             <CheckCircle className="w-5 h-5" />
             <span className="font-semibold">
-              Your Trade-In: <span className="font-bold">${parseInt(tradeInValue).toLocaleString()}</span>
+              Your Trade-In: <span className="font-bold tabular-nums">${parseInt(tradeInValue).toLocaleString()}</span>
               {tradeInVehicle && <span className="text-white/80 ml-2">({decodeURIComponent(tradeInVehicle)})</span>}
             </span>
           </div>
@@ -1113,7 +1113,7 @@ export default function VehicleDetailPage() {
                       <Card className="flex-1 min-w-[140px]">
                         <CardContent className="p-3 flex items-center gap-2">
                           <Gauge className="w-5 h-5 text-muted-foreground" />
-                          <p className="font-semibold text-sm">{vehicle.mileage.toLocaleString()} km</p>
+                          <p className="font-semibold text-sm tabular-nums">{vehicle.mileage.toLocaleString()} km</p>
                         </CardContent>
                       </Card>
                       <Card className="flex-1 min-w-[140px]">
@@ -1628,11 +1628,11 @@ export default function VehicleDetailPage() {
                         <CardTitle className="text-sm text-muted-foreground">PAY OVER TIME</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-3xl font-bold">${biweeklyPayment}<span className="text-lg font-normal">/biweekly*</span></p>
+                        <p className="text-3xl font-bold tabular-nums">${biweeklyPayment}<span className="text-lg font-normal">/biweekly*</span></p>
                         <p className="text-xs text-muted-foreground mt-2">
                           *Estimated payment based on 8.99% APR for 84 months, includes $0 cash down. OAC — on approved credit.
                         </p>
-                        <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+                        <div className="mt-3 space-y-1 text-xs text-muted-foreground tabular-nums">
                           <div className="flex justify-between">
                             <span>Vehicle Price</span>
                             <span>${vehicle.price.toLocaleString()}</span>
@@ -1675,7 +1675,7 @@ export default function VehicleDetailPage() {
                           <Truck className="w-4 h-4" />
                           Nationwide delivery available · Richmond Hill
                         </div>
-                        <div className="mt-4 space-y-2 text-sm">
+                        <div className="mt-4 space-y-2 text-sm tabular-nums">
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Vehicle price</span>
                             <span>${vehicle.pricing.vehiclePrice.toLocaleString()}</span>
@@ -1719,7 +1719,7 @@ export default function VehicleDetailPage() {
                         See exactly what you&apos;ll pay — vehicle price, HST, OMVIC fee, licensing, and delivery.
                       </p>
                     </CardHeader>
-                    <CardContent className="space-y-2">
+                    <CardContent className="space-y-2 tabular-nums">
                       <div className="flex justify-between py-2 border-b">
                         <span>Vehicle Price</span>
                         <span className="font-semibold">${vehicle.price.toLocaleString()}</span>
@@ -1904,7 +1904,7 @@ export default function VehicleDetailPage() {
                         <tr>
                           <td className="py-3 px-4 font-semibold">Price</td>
                           {vehicleData.protectionPackages.map((pkg, i) => (
-                            <td key={i} className={`text-center py-3 px-4 font-semibold ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                            <td key={i} className={`text-center py-3 px-4 font-semibold tabular-nums ${pkg.recommended ? "bg-primary/5" : ""}`}>
                               {pkg.price}
                             </td>
                           ))}
@@ -1983,7 +1983,7 @@ export default function VehicleDetailPage() {
                     {vehicle.year} {vehicle.make} {vehicle.model}
                   </p>
                   <p className="text-muted-foreground text-sm mt-1">
-                    {vehicle.trim} · {vehicle.mileage.toLocaleString()} km
+                    <span className="tabular-nums">{vehicle.mileage.toLocaleString()}</span> km
                   </p>
 
                   {/* Price */}
@@ -2218,7 +2218,7 @@ export default function VehicleDetailPage() {
         <div className="flex items-center gap-3 max-w-lg mx-auto">
           <div className="shrink-0">
             <p className="text-xs text-muted-foreground">Price</p>
-            <p className="text-lg font-bold">${vehicle.price.toLocaleString()}</p>
+            <p className="text-lg font-bold tabular-nums">${vehicle.price.toLocaleString()}</p>
           </div>
           <Button
             className="flex-1 h-12 min-h-[48px] bg-red-600 hover:bg-red-700 text-white text-sm font-semibold"

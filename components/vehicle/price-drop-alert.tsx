@@ -94,7 +94,7 @@ export function PriceDropAlert({
             <Card className="bg-muted/50">
               <CardContent className="pt-4">
                 <p className="text-sm font-semibold">{vehicleName}</p>
-                <p className="text-lg font-bold text-primary">
+                <p className="text-lg font-bold text-primary tabular-nums">
                   ${currentPrice.toLocaleString()}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
