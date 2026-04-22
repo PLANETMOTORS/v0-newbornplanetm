@@ -184,7 +184,7 @@ async function sendAdminOrderAlert(data: PaymentNotificationData): Promise<void>
   const { error } = await resend.emails.send({
     from: FROM_EMAIL,
     to: ADMIN_EMAIL,
-    subject: `New ${typeLabel}: ${escapeHtml(data.vehicleName)} — ${escapeHtml(data.customerName)}`,
+    subject: `New ${typeLabel}: ${data.vehicleName} — ${data.customerName}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #059669; color: white; padding: 20px; text-align: center;">

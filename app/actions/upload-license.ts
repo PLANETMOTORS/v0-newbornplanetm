@@ -94,6 +94,7 @@ export async function uploadDriversLicense(formData: FormData): Promise<UploadLi
     .from('reservations')
     .select('id')
     .eq('vehicle_id', vehicleId)
+    .eq('customer_email', customerEmail.trim().toLowerCase())
     .in('status', ['pending', 'confirmed'])
     .order('created_at', { ascending: false })
     .limit(1)
