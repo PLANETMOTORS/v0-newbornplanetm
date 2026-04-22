@@ -66,11 +66,6 @@ export function OrganizationJsonLd() {
       "https://www.tiktok.com/@planetmotors.ca",
       "https://x.com/planetmotors_ca"
     ],
-    "identifier": {
-      "@type": "PropertyValue",
-      "name": "OMVIC Registration Number",
-      "value": "5482807"
-    },
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
       "name": "Vehicle Inventory",

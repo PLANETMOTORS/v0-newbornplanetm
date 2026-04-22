@@ -212,7 +212,7 @@ export default function AboutPage() {
                 <div className="flex flex-wrap gap-4 text-sm">
                   <Badge variant="secondary" className="px-4 py-2">
                     <Shield className="h-3.5 w-3.5 mr-1.5" />
-                    OMVIC Registered #5482807
+                    OMVIC Registered
                   </Badge>
                   <Badge variant="secondary" className="px-4 py-2">
                     Consumer Protection

@@ -247,7 +247,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
               className="flex items-center gap-2 min-h-[44px] py-1 text-white/90 hover:text-white transition-colors"
             >
               <Shield className="w-3.5 h-3.5 shrink-0" />
-              <span className="text-xs font-semibold">OMVIC Registered Dealer #5482807</span>
+              <span className="text-xs font-semibold">OMVIC Registered Dealer</span>
             </a>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               {footerLinks.legal.map((link) => (
