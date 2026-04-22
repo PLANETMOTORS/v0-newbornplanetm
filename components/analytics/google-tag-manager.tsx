@@ -1,7 +1,6 @@
 "use client"
 
 import Script from "next/script"
-import { useCookieConsent } from "@/lib/hooks/use-cookie-consent"
 
 declare global {
   interface Window {
@@ -12,13 +11,22 @@ declare global {
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID
 
 export function GoogleTagManager() {
-  const { hasAnalyticsConsent } = useCookieConsent()
-
-  if (!GTM_ID || !hasAnalyticsConsent) return null
+  if (!GTM_ID) return null
 
   return (
-    <Script id="gtm" strategy="lazyOnload">
+    <Script id="gtm" strategy="afterInteractive">
       {`
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+
+        gtag('consent', 'default', {
+          analytics_storage: 'denied',
+          ad_storage: 'denied',
+          ad_user_data: 'denied',
+          ad_personalization: 'denied',
+          wait_for_update: 500,
+        });
+
         (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
         new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
         j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
@@ -30,9 +38,7 @@ export function GoogleTagManager() {
 }
 
 export function GoogleTagManagerNoScript() {
-  const { hasAnalyticsConsent } = useCookieConsent()
-
-  if (!GTM_ID || !hasAnalyticsConsent) return null
+  if (!GTM_ID) return null
 
   return (
     <noscript>
