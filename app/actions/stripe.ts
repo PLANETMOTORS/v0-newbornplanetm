@@ -72,18 +72,41 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
     throw new Error(`Failed to verify vehicle availability: ${lockError.message}`)
   }
 
-  const lock = lockResult as { success: boolean; error?: string; id?: string; year?: number; make?: string; model?: string; price?: number; status?: string }
-  if (!lock?.success) {
-    throw new Error(lock?.error || 'Vehicle is not available for checkout')
+  // PostgREST may unwrap single-row JSONB returns to a scalar (e.g. `true`
+  // instead of `{success:true, …}`). Handle both formats: the full object
+  // returned by some PostgREST versions and the scalar boolean.
+  const lock = lockResult as
+    | { success: boolean; error?: string; id?: string; year?: number; make?: string; model?: string; price?: number; status?: string }
+    | boolean
+    | null
+
+  if (typeof lock === 'object' && lock !== null) {
+    if (!lock.success) {
+      throw new Error(lock.error || 'Vehicle is not available for checkout')
+    }
+  } else if (lock !== true) {
+    throw new Error('Vehicle is not available for checkout')
+  }
+
+  // Fetch vehicle data separately — the RPC may only return a success boolean
+  // via PostgREST instead of the full JSONB object with vehicle fields.
+  const { data: vehicleRow, error: vehicleError } = await adminClient
+    .from('vehicles')
+    .select('id, year, make, model, price, status')
+    .eq('id', data.vehicleId)
+    .single()
+
+  if (vehicleError || !vehicleRow) {
+    throw new Error('Failed to fetch vehicle details after lock')
   }
 
   const vehicle = {
-    id: lock.id as string,
-    year: lock.year as number,
-    make: lock.make as string,
-    model: lock.model as string,
-    price: lock.price as number,
-    status: lock.status as string,
+    id: vehicleRow.id as string,
+    year: vehicleRow.year as number,
+    make: vehicleRow.make as string,
+    model: vehicleRow.model as string,
+    price: vehicleRow.price as number,
+    status: vehicleRow.status as string,
   }
 
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
