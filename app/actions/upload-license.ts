@@ -27,10 +27,9 @@ interface UploadLicenseResult {
  * using the service role key -- the browser never touches Supabase
  * Storage directly.
  *
- * Authorization: If the caller is authenticated, their session email
- * must match the customerEmail in the form data. For guest checkout,
- * we verify an active reservation exists for the vehicle+email pair
- * before allowing the upload.
+ * Authorization:
+ * - Authenticated users: session email must match customerEmail.
+ * - Guest users: rejected (checkout requires authentication).
  *
  * Returns the raw bucket path (e.g. `<vehicleId>/<timestamp>_license.jpg`)
  * which is stored in the `reservations.license_storage_path` column.
@@ -56,12 +55,17 @@ export async function uploadDriversLicense(formData: FormData): Promise<UploadLi
 
   const normalizedEmail = customerEmail.trim().toLowerCase()
 
-  // --- Authorization check ---
-  // If authenticated, verify the session email matches the claimed email.
-  // This prevents an authenticated user from uploading to another customer's reservation.
+  // --- Authorization: require authenticated user whose email matches ---
+  // The checkout flow requires login (checkout-flow.tsx redirects to auth).
+  // This prevents unauthenticated callers and cross-customer overwrites.
   const authClient = await createClient()
   const { data: { user } } = await authClient.auth.getUser()
-  if (user && user.email?.toLowerCase() !== normalizedEmail) {
+
+  if (!user) {
+    return { success: false, error: 'Authentication required' }
+  }
+
+  if (user.email?.toLowerCase() !== normalizedEmail) {
     return { success: false, error: 'Email does not match your account' }
   }
 
@@ -95,27 +99,6 @@ export async function uploadDriversLicense(formData: FormData): Promise<UploadLi
     return { success: false, error: 'Service configuration error. Please try again later.' }
   }
 
-  // Verify an active reservation exists for this vehicle+email before uploading.
-  // This ensures the caller actually has a reservation in progress.
-  const { data: targetRow, error: selectError } = await supabase
-    .from('reservations')
-    .select('id')
-    .eq('vehicle_id', vehicleId)
-    .eq('customer_email', normalizedEmail)
-    .in('status', ['pending', 'confirmed'])
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-
-  if (selectError) {
-    console.error('[upload-license] Reservation lookup failed:', selectError.message)
-    return { success: false, error: 'Unable to verify reservation. Please try again.' }
-  }
-
-  if (!targetRow) {
-    return { success: false, error: 'No active reservation found for this vehicle and email' }
-  }
-
   // Upload to the private bucket using service role (bypasses RLS)
   const buffer = Buffer.from(await file.arrayBuffer())
   const { error: uploadError } = await supabase.storage
@@ -130,17 +113,34 @@ export async function uploadDriversLicense(formData: FormData): Promise<UploadLi
     return { success: false, error: 'Failed to upload document securely. Please try again.' }
   }
 
-  // Update the reservation with the license path
-  const { error: dbError } = await supabase
+  // Best-effort: link the license to an existing reservation if one exists.
+  // In the normal checkout flow, the reservation row may not exist yet at
+  // step 5 (license upload) — it gets created later during deposit payment.
+  // The webhook will also store the path when it processes the payment.
+  const { data: targetRow, error: selectError } = await supabase
     .from('reservations')
-    .update({
-      license_storage_path: storagePath,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', targetRow.id)
+    .select('id')
+    .eq('vehicle_id', vehicleId)
+    .eq('customer_email', normalizedEmail)
+    .in('status', ['pending', 'confirmed'])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
 
-  if (dbError) {
-    console.error('[upload-license] DB update failed:', dbError.message)
+  if (selectError) {
+    console.error('[upload-license] Reservation lookup failed:', selectError.message)
+  } else if (targetRow) {
+    const { error: dbError } = await supabase
+      .from('reservations')
+      .update({
+        license_storage_path: storagePath,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', targetRow.id)
+
+    if (dbError) {
+      console.error('[upload-license] DB update failed:', dbError.message)
+    }
   }
 
   console.info(`[upload-license] Uploaded ${storagePath} for vehicle ${vehicleId}`)
