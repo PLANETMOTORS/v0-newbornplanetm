@@ -1,10 +1,22 @@
 import { Metadata } from "next"
+import { getPublicSiteUrl } from "@/lib/site-url"
+
+const SITE_URL = getPublicSiteUrl()
 
 export const metadata: Metadata = {
-  title: "Auto Financing & Pre-Approval | Planet Motors",
-  description: "Get pre-approved for auto financing in minutes. No impact on your credit score. Competitive rates from multiple lenders. Apply online today.",
+  title: "Used Car Financing in Canada | Rates from 6.29% APR | Planet Motors",
+  description: "Compare rates from 20+ Canadian lenders. Soft credit check, pre-approval in 30 minutes. All credit types welcome. O.A.C. No impact on your credit score.",
+  keywords: "auto financing Canada, used car loan, pre-approval, bad credit financing, 6.29% APR, Canadian lenders, Planet Motors financing",
   alternates: {
     canonical: '/financing',
+  },
+  openGraph: {
+    title: "Used Car Financing in Canada | Rates from 6.29% APR | Planet Motors",
+    description: "Compare rates from 20+ Canadian lenders. Pre-approval in 30 minutes. All credit types welcome.",
+    url: `${SITE_URL}/financing`,
+    siteName: "Planet Motors",
+    locale: "en_CA",
+    type: "website",
   },
 }
 
