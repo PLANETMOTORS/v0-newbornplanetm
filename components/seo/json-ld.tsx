@@ -351,40 +351,6 @@ export function BreadcrumbJsonLd({ items }: BreadcrumbJsonLdProps) {
   )
 }
 
-// Local Business with Reviews
-export function LocalBusinessJsonLd() {
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    "name": "Planet Motors",
-    "image": `${SITE_URL}/images/planet-motors-logo.png`,
-    "@id": `${SITE_URL}/#local-business`,
-    "url": SITE_URL,
-    "telephone": "+1-866-797-3332",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "30 Major Mackenzie Dr E",
-      "addressLocality": "Richmond Hill",
-      "addressRegion": "ON",
-      "postalCode": "L4C 1G7",
-      "addressCountry": "CA"
-    },
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.8",
-      "reviewCount": "500"
-    }
-  }
-
-  return (
-    <Script
-      id="local-business-jsonld"
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  )
-}
-
 // Financial Service Schema - for financing page
 export function FinancialServiceJsonLd() {
   const schema = {
