@@ -3,7 +3,8 @@ import { Inter } from 'next/font/google'
 import { CompareProvider } from '@/contexts/compare-context'
 import { FavoritesProvider } from '@/contexts/favorites-context'
 import { AuthProvider } from '@/contexts/auth-context'
-import { OrganizationJsonLd, LocalBusinessJsonLd, WebsiteSearchJsonLd } from '@/components/seo/json-ld'
+import { OrganizationJsonLd, WebsiteSearchJsonLd } from '@/components/seo/json-ld'
+import { DynamicLocalBusinessJsonLd } from '@/components/seo/dynamic-local-business-jsonld'
 import { ClientLayoutWidgets } from '@/components/client-layout-widgets'
 import { SerwistProvider } from './serwist'
 import { getPublicSiteUrl } from '@/lib/site-url'
@@ -48,8 +49,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: `${SITE_URL}/images/planet-motors-logo.png`,
-        width: 800,
-        height: 320,
+        width: 1200,
+        height: 630,
         alt: 'Planet Motors — OMVIC Licensed Used Car Dealership, Richmond Hill Ontario',
       },
     ],
@@ -118,7 +119,7 @@ export default function RootLayout({
 
         {/* JSON-LD structured data — server-rendered, lightweight */}
         <OrganizationJsonLd />
-        <LocalBusinessJsonLd />
+        <DynamicLocalBusinessJsonLd />
         <WebsiteSearchJsonLd />
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
