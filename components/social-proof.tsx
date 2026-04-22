@@ -30,6 +30,8 @@ interface SocialProofProps {
   className?: string
 }
 
+const postedIds = new Set<string>()
+
 export function SocialProof({ vehicleId, className = "" }: SocialProofProps) {
   const { data } = useSWR<SocialProofData>(
     `/api/v1/vehicles/${vehicleId}/social-proof`,
@@ -40,8 +42,9 @@ export function SocialProof({ vehicleId, className = "" }: SocialProofProps) {
     }
   )
 
-  // Record a page view on mount (fire-and-forget)
   useEffect(() => {
+    if (postedIds.has(vehicleId)) return
+    postedIds.add(vehicleId)
     fetch(`/api/v1/vehicles/${vehicleId}/social-proof`, {
       method: "POST",
       keepalive: true,

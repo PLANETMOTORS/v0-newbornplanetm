@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS vehicle_page_views (
 CREATE INDEX IF NOT EXISTS idx_vehicle_page_views_vehicle_time
   ON vehicle_page_views (vehicle_id, viewed_at DESC);
 
--- Deduplicate: same visitor viewing same vehicle within 5 minutes
+-- Deduplicate: same visitor viewing same vehicle can only be counted once per calendar day
 CREATE UNIQUE INDEX IF NOT EXISTS idx_vehicle_page_views_dedup
   ON vehicle_page_views (vehicle_id, visitor_hash, (viewed_at::date));
 
