@@ -27,7 +27,7 @@ import {
 import { useAuth } from "@/contexts/auth-context"
 import { useFavorites } from "@/contexts/favorites-context"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
-import { RATE_FLOOR, RATE_FLOOR_DISPLAY } from "@/lib/rates"
+import { RATE_FLOOR, RATE_FLOOR_DISPLAY, DEFAULT_TERM_MONTHS } from "@/lib/rates"
 import { toast } from "sonner"
 import {
   Dialog,
@@ -632,7 +632,12 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   const financeSubtotal = safePrice + FINANCE_ADMIN_FEE
   const financeTax = financeSubtotal * PROVINCE_TAX_RATES.ON.hst
   const financeTotal = financeSubtotal + financeTax
-  const biweeklyPayment = Math.round(financeTotal / 208) // 8 years bi-weekly (26 payments x 8)
+  // Amortized bi-weekly payment using standard formula (matches rate-disclosure.tsx)
+  const monthlyRate = RATE_FLOOR / 100 / 12
+  const monthlyPayment = monthlyRate === 0
+    ? financeTotal / DEFAULT_TERM_MONTHS
+    : financeTotal * (monthlyRate * Math.pow(1 + monthlyRate, DEFAULT_TERM_MONTHS)) / (Math.pow(1 + monthlyRate, DEFAULT_TERM_MONTHS) - 1)
+  const biweeklyPayment = Math.round(monthlyPayment * 12 / 26)
 
   return (
     <div className="min-h-screen bg-background">
@@ -686,6 +691,13 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
           <h1 className="text-[28px] md:text-[40px] font-bold tracking-[-0.01em] md:tracking-[-0.02em] leading-tight">
             {vehicle.year} {vehicle.make} {vehicle.model}{vehicle.trim ? ` ${vehicle.trim}` : ''}
           </h1>
+          {/* Finance-first callout — price + payment visible immediately */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
+            <span className="text-2xl md:text-3xl font-bold tabular-nums">${safeNum(vehicle.price).toLocaleString()}</span>
+            <span className="text-muted-foreground">·</span>
+            <span className="text-base md:text-lg font-semibold tabular-nums">${biweeklyPayment}/bi-weekly</span>
+            <span className="text-sm text-muted-foreground tabular-nums">@ {RATE_FLOOR_DISPLAY} APR</span>
+          </div>
         </div>
 
         {/* Single Tabs wrapper so Radix links aria-controls correctly */}
@@ -1537,7 +1549,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       <CardContent>
                         <p className="text-3xl font-bold tabular-nums">${biweeklyPayment}<span className="text-lg font-normal">/biweekly*</span></p>
                         <p className="text-xs text-muted-foreground mt-2">
-                          *Estimated payment based on {RATE_FLOOR_DISPLAY} APR for 84 months, includes $0 cash down. OAC — on approved credit.
+                          *Estimated payment based on {RATE_FLOOR_DISPLAY} APR for {DEFAULT_TERM_MONTHS} months, includes $0 cash down. OAC — on approved credit.
                         </p>
                         <div className="mt-3 space-y-1 text-xs text-muted-foreground tabular-nums">
                           <div className="flex justify-between">
@@ -1893,29 +1905,34 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                     {vehicle.trim} · <span className="tabular-nums">{vehicle.mileage.toLocaleString()}</span> km
                   </p>
 
-                  {/* Price */}
+                  {/* Price + Finance Callout */}
                   <p className="text-3xl font-bold mt-5 tabular-nums">${safeNum(vehicle.price).toLocaleString()}</p>
-                  <div className="flex items-center gap-2 text-sm mt-2 tabular-nums">
-                    <span>Estimated <span className="font-semibold">${biweeklyPayment}/biweekly</span></span>
-                    <span className="text-muted-foreground">·</span>
-                    <span className="text-muted-foreground">$0 down</span>
-                    <Link href={getFinanceLink(vehicle.id)} className="text-primary hover:underline">Get your terms</Link>
+                  <div className="mt-2 p-3 bg-primary/5 dark:bg-primary/10 rounded-lg border border-primary/20">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-xl font-bold tabular-nums text-primary">${biweeklyPayment}</span>
+                      <span className="text-sm text-primary">/bi-weekly</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
+                      {RATE_FLOOR_DISPLAY} APR · {DEFAULT_TERM_MONTHS} mo · $0 down · OAC
+                    </p>
                   </div>
 
-                  {/* Trust Badges */}
-                  <div className="mt-4 pt-4 border-t space-y-2">
-                    <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                      <span className="text-sm font-semibold">10-Day Money Back Guarantee</span>
-                    </div>
-                    <div className="flex items-center gap-2 p-2 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
-                      <LockKeyhole className="w-5 h-5 text-amber-600" />
-                      <span className="text-sm font-semibold">$250 Refundable Deposit</span>
-                    </div>
+                  {/* Primary CTA — Get Pre-Approved */}
+                  <div className="mt-4 space-y-2">
+                    <Button
+                      className="w-full h-12 text-base font-semibold bg-primary hover:bg-primary/90"
+                      asChild
+                    >
+                      <Link href={getFinanceLink(vehicle.id)}>
+                        <CreditCard className="w-5 h-5 mr-2" />
+                        Get Pre-Approved
+                      </Link>
+                    </Button>
+                    <p className="text-xs text-center text-muted-foreground">No credit impact · Decision in 2 min</p>
                   </div>
 
-                  {/* CTA Buttons */}
-                  <div className="mt-4 pt-4 border-t space-y-2">
+                  {/* Secondary CTAs — Reserve & Buy */}
+                  <div className="mt-3 pt-3 border-t space-y-2">
                     {user ? (
                       <ReserveVehicleModal
                         vehicle={{
@@ -1931,7 +1948,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         trigger={
                           <Button className="w-full h-11 bg-red-600 hover:bg-red-700 text-white">
                             <LockKeyhole className="w-4 h-4 mr-2" />
-                            Quick Reserve – $250 Refundable Deposit
+                            Quick Reserve – $250 Deposit
                           </Button>
                         }
                       />
@@ -1941,10 +1958,9 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         onClick={() => handleProtectedAction("reserve this vehicle")}
                       >
                         <LockKeyhole className="w-4 h-4 mr-2" />
-                        Quick Reserve – $250 Refundable Deposit
+                        Quick Reserve – $250 Deposit
                       </Button>
                     )}
-                    <p className="text-xs text-center text-muted-foreground">Hold this vehicle for 48 hours while you decide</p>
                     <Button
                       data-testid="btn-start-purchase"
                       className="w-full h-11"
@@ -1955,6 +1971,19 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         Buy Now – Full Purchase Process
                       </a>
                     </Button>
+                    <p className="text-xs text-center text-muted-foreground">48-hr hold · fully refundable</p>
+                  </div>
+
+                  {/* Trust Badges */}
+                  <div className="mt-3 pt-3 border-t space-y-2">
+                    <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                      <span className="text-sm font-semibold">10-Day Money Back Guarantee</span>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
+                      <LockKeyhole className="w-5 h-5 text-amber-600" />
+                      <span className="text-sm font-semibold">$250 Refundable Deposit</span>
+                    </div>
                   </div>
 
                   <p className="text-xs text-center text-muted-foreground mt-2">
@@ -2120,20 +2149,37 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
         </div>
 </main>
 
-      {/* Sticky Mobile CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-3 pb-safe md:hidden z-50">
-        <div className="flex items-center gap-3 max-w-lg mx-auto">
-          <div className="shrink-0">
-            <p className="text-xs text-muted-foreground">Price</p>
-            <p className="text-lg font-bold tabular-nums">${safeNum(vehicle.price).toLocaleString()}</p>
+      {/* Sticky Mobile CTA — finance-first */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] md:hidden z-50">
+        <div className="px-4 pt-2 pb-safe">
+          {/* Price + payment row */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-baseline gap-2">
+              <span className="text-lg font-bold tabular-nums">${safeNum(vehicle.price).toLocaleString()}</span>
+              <span className="text-xs text-muted-foreground">·</span>
+              <span className="text-sm font-semibold tabular-nums text-primary">${biweeklyPayment}/bi-wk</span>
+            </div>
+            <span className="text-xs text-muted-foreground tabular-nums">{RATE_FLOOR_DISPLAY} APR</span>
           </div>
-          <Button
-            className="flex-1 h-12 min-h-[48px] bg-red-600 hover:bg-red-700 text-white text-sm font-semibold"
-            onClick={() => handleProtectedAction("reserve this vehicle")}
-          >
-            <LockKeyhole className="w-4 h-4 mr-1.5 shrink-0" />
-            <span>Reserve Now</span>
-          </Button>
+          {/* CTA buttons */}
+          <div className="flex gap-2">
+            <Button
+              className="flex-1 h-12 min-h-[48px] text-sm font-semibold bg-primary hover:bg-primary/90"
+              asChild
+            >
+              <Link href={getFinanceLink(vehicle.id)}>
+                <CreditCard className="w-4 h-4 mr-1.5 shrink-0" />
+                Get Pre-Approved
+              </Link>
+            </Button>
+            <Button
+              className="h-12 min-h-[48px] px-4 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold shrink-0"
+              onClick={() => handleProtectedAction("reserve this vehicle")}
+            >
+              <LockKeyhole className="w-4 h-4 mr-1.5 shrink-0" />
+              Reserve
+            </Button>
+          </div>
         </div>
       </div>
 
