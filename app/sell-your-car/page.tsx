@@ -15,6 +15,9 @@ import type { SellYourCarPage as SellYourCarPageType } from '@/lib/sanity/types'
 export const metadata: Metadata = {
   title: 'Sell Your Car | Planet Motors',
   description: 'Get the best price for your vehicle. No hassle, no hidden fees. Get an instant offer and same-day payment.',
+  alternates: {
+    canonical: '/sell-your-car',
+  },
 }
 
 type ComparisonRow = {

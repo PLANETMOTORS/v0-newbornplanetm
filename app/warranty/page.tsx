@@ -3,6 +3,9 @@ import { Metadata } from "next"
 export const metadata: Metadata = {
   title: "Warranty & Protection Plans | Planet Motors",
   description: "Drive with confidence. Explore extended warranty and protection plans from Planet Motors. Coverage options for every budget.",
+  alternates: {
+    canonical: '/warranty',
+  },
 }
 
 import { Header } from "@/components/header"

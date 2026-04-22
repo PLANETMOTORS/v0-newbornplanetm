@@ -19,7 +19,7 @@
 | Category (Primary) | Used Car Dealer |
 | Category (Secondary) | Car Dealer, Electric Vehicle Dealer, Auto Broker |
 | Address | 30 Major Mackenzie Dr E, Richmond Hill, ON L4C 1G7 |
-| Service Area | Ontario, Quebec, British Columbia, Alberta (nationwide delivery) |
+| Service Area | All provinces and territories — British Columbia, Alberta, Saskatchewan, Manitoba, Ontario, Quebec, New Brunswick, Nova Scotia, Prince Edward Island, Newfoundland & Labrador, Yukon, Northwest Territories, Nunavut (Canada-wide delivery) |
 | Phone | 1-866-797-3332 |
 | Website | https://www.planetmotors.ca |
 

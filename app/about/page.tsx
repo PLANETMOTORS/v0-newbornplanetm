@@ -1,10 +1,22 @@
 import { Metadata } from "next"
+import { getPublicSiteUrl } from "@/lib/site-url"
+
+const SITE_URL = getPublicSiteUrl()
 
 export const metadata: Metadata = {
-  title: "About Planet Motors | OMVIC Licensed Dealer - Richmond Hill, ON",
-  description: "Planet Motors is an OMVIC-licensed dealer in Richmond Hill, Ontario. Fairness, integrity, and premium pre-owned vehicles with nationwide delivery.",
+  title: "About Planet Motors | OMVIC Licensed Used EV Dealership Richmond Hill",
+  description: "Canada's EV-focused used car dealership. Aviloo battery-certified. OMVIC licensed. Family-operated since 2015. 210-point inspection on every vehicle.",
+  keywords: "Planet Motors, OMVIC licensed, Richmond Hill dealership, used EV dealer, Aviloo certified, about us",
   alternates: {
     canonical: '/about',
+  },
+  openGraph: {
+    title: "About Planet Motors | OMVIC Licensed Used EV Dealership Richmond Hill",
+    description: "Canada's EV-focused used car dealership. Aviloo battery-certified. OMVIC licensed. Family-operated since 2015.",
+    url: `${SITE_URL}/about`,
+    siteName: "Planet Motors",
+    locale: "en_CA",
+    type: "website",
   },
 }
 

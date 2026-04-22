@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     type: "article",
   },
   alternates: {
-    canonical: "https://www.planetmotors.ca/clutch-guide-canada",
+    canonical: "/clutch-guide-canada",
   },
 }
 

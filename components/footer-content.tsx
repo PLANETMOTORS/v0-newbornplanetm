@@ -122,7 +122,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
               </div>
 
               <p className="text-sm text-white/90 leading-relaxed mb-6">
-                Ontario&rsquo;s destination for certified pre-owned vehicles. Buy with confidence.
+                Canada&rsquo;s destination for certified pre-owned vehicles. Buy with confidence.
               </p>
 
               {/* Contact */}

@@ -23,9 +23,9 @@ const inter = Inter({
 const SITE_URL = getPublicSiteUrl()
 
 export const metadata: Metadata = {
-  title: 'Planet Motors | Premium Used Car Dealership - Nationwide Delivery',
-  description: 'Shop certified pre-owned vehicles with free Carfax reports, 210-point inspections, and nationwide delivery across Canada. Get pre-approved in minutes.',
-  keywords: 'used cars, pre-owned vehicles, car dealership, Canada, Ontario, Toronto, Richmond Hill, financing, trade-in, nationwide delivery',
+  title: 'Planet Motors Richmond Hill | Aviloo-Certified Used EVs | Canada-Wide Delivery',
+  description: "Canada's EV-focused used car dealership. Every electric vehicle independently battery-certified by Aviloo. OMVIC licensed, 210-point inspected, Canada-wide delivery. Financing from 6.29% APR.",
+  keywords: 'used EVs Canada, Aviloo certified, pre-owned electric vehicles, used car dealership Richmond Hill, EV battery health, Canada-wide delivery, OMVIC licensed, financing, trade-in',
   authors: [{ name: 'Planet Motors' }],
   manifest: '/manifest.json',
   appleWebApp: {
@@ -39,8 +39,8 @@ export const metadata: Metadata = {
     address: true,
   },
   openGraph: {
-    title: 'Planet Motors | Premium Used Car Dealership',
-    description: 'Shop certified pre-owned vehicles with free Carfax reports and nationwide delivery across Canada.',
+    title: 'Planet Motors Richmond Hill | Aviloo-Certified Used EVs | Canada-Wide Delivery',
+    description: "Canada's EV-focused used car dealership. Every electric vehicle independently battery-certified by Aviloo. OMVIC licensed, 210-point inspected, Canada-wide delivery.",
     url: SITE_URL,
     siteName: 'Planet Motors',
     locale: 'en_CA',
@@ -50,14 +50,14 @@ export const metadata: Metadata = {
         url: `${SITE_URL}/images/planet-motors-logo.png`,
         width: 800,
         height: 320,
-        alt: 'Planet Motors - Fairness & Integrity',
+        alt: 'Planet Motors — OMVIC Licensed Used Car Dealership, Richmond Hill Ontario',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Planet Motors | Premium Used Car Dealership',
-    description: 'Shop certified pre-owned vehicles with free Carfax reports and nationwide delivery.',
+    title: 'Planet Motors Richmond Hill | Aviloo-Certified Used EVs',
+    description: "Canada's EV-focused used car dealership. Aviloo battery-certified. 210-point inspected. Canada-wide delivery.",
     images: [`${SITE_URL}/images/planet-motors-logo.png`],
   },
   metadataBase: new URL(SITE_URL),

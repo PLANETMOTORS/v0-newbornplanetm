@@ -96,7 +96,7 @@ export type HomepageProps = {
 
 export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProps) {
   const ratingValue = siteSettings.aggregateRating?.ratingValue || 4.8
-  const lowestRate = siteSettings.financingDefaults?.annualInterestRate || 6.29
+  const lowestRate = siteSettings.financingDefaults?.annualInterestRate || RATE_FLOOR
 
   // Get business hours for display
   const weekdayHours = siteSettings.businessHours?.find(h => h.day === "Monday")
@@ -111,9 +111,9 @@ export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProp
             {/* Hero Text */}
             <div className="text-center lg:text-left min-w-0">
               <h1 className="text-[2rem] sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-[-0.01em] sm:tracking-[-0.02em] text-gray-900">
-                The Smarter Way to
+                Canada&apos;s Battery-Certified
                 <span className="block text-[#1e3a8a]">
-                  Buy or Sell Your Car
+                  Used EV Dealership
                 </span>
               </h1>
 
@@ -170,7 +170,7 @@ export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProp
                 <VehicleShowcase serverVehicles={showcaseVehicles ?? undefined} />
               </div>
 
-              {/* Floating Badge */}
+              {/* Floating Badge — dynamic from RATE_FLOOR */}
               <div className="absolute top-4 right-4 bg-[#dc2626] text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg z-10">
                 From {RATE_FLOOR}% APR
               </div>

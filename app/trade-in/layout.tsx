@@ -1,8 +1,8 @@
 import { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Trade-In Your Vehicle | Planet Motors - Instant Online Offer",
-  description: "Get an instant trade-in offer for your vehicle. No obligation, no hidden fees. Apply your trade-in value toward your next purchase at Planet Motors. VIN or plate lookup available.",
+  title: "Sell or Trade Your Vehicle in Canada | Instant Offer | Planet Motors",
+  description: "Get a competitive offer in 60 seconds. Canadian Black Book valuation. Same-day payment available. No obligation, no hidden fees. VIN or plate lookup.",
   keywords: [
     "trade in car Canada",
     "vehicle trade-in value",
@@ -16,8 +16,8 @@ export const metadata: Metadata = {
     canonical: "/trade-in",
   },
   openGraph: {
-    title: "Trade-In Your Vehicle | Planet Motors - Instant Offer",
-    description: "Get an instant trade-in offer. No obligation, no hidden fees. Apply your value toward your next purchase.",
+    title: "Sell or Trade Your Vehicle in Canada | Instant Offer | Planet Motors",
+    description: "Get a competitive offer in 60 seconds. Canadian Black Book valuation. Same-day payment available.",
     url: "/trade-in",
     siteName: "Planet Motors",
     locale: "en_CA",
@@ -25,8 +25,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Trade-In Your Vehicle | Planet Motors",
-    description: "Get an instant trade-in offer. No obligation, no hidden fees.",
+    title: "Sell or Trade Your Vehicle | Planet Motors",
+    description: "Competitive offer in 60 seconds. Canadian Black Book valuation. Same-day payment.",
   },
 }
 

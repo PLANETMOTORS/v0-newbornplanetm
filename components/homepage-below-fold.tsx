@@ -260,7 +260,7 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
                 <BadgeCheck className="w-8 h-8 text-white mb-4" />
                 <h3 className="font-semibold text-white">Licensed</h3>
                 <p className="text-sm text-white mt-1">OMVIC Registered</p>
-                <p className="text-sm text-white">Canadian Dealer</p>
+                <p className="text-sm text-white">Ontario Dealer</p>
               </div>
             </div>
           </div>

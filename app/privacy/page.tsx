@@ -4,6 +4,9 @@ import { Footer } from "@/components/footer"
 export const metadata = {
   title: "Privacy Policy | Planet Motors",
   description: "Privacy Policy for Planet Motors Inc. - How we collect, use, and protect your personal information.",
+  alternates: {
+    canonical: '/privacy',
+  },
 }
 
 export default function PrivacyPolicyPage() {

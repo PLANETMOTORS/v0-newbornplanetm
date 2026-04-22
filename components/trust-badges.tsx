@@ -4,7 +4,7 @@ const badges = [
   {
     icon: ClipboardCheck,
     title: "210-Point Inspection",
-    description: "Industry-leading standard",
+    description: "Comprehensive 210-point process",
     highlight: true
   },
   {
@@ -70,7 +70,7 @@ export function TrustBadges() {
               {badge.highlight && (
                 <div className="mt-2 flex items-center gap-1 text-xs text-green-800 font-semibold">
                   <CheckCircle className="w-3 h-3" />
-                  <span>Industry Best</span>
+                  <span>Certified Standard</span>
                 </div>
               )}
             </div>

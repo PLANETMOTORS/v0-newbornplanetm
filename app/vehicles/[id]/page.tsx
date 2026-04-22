@@ -894,7 +894,7 @@ export default function VehicleDetailPage() {
                         <Image
                           data-testid="vdp-hero-image"
                           src={currentImages[activeIndex]}
-                          alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                          alt={`${vehicle.year} ${vehicle.make} ${vehicle.model} for sale, ${vehicle.mileage?.toLocaleString() ?? ''} km, Planet Motors`}
                           fill
                           className="object-contain [clip-path:inset(0_0_8%_0)]"
                           priority
