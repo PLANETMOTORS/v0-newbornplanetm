@@ -555,7 +555,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                   <li className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
                     <div>
-                      <p className="font-semibold">Serving Canada Since 2015</p>
+                      <p className="font-semibold">Serving Richmond Hill Since 2015</p>
                       <p className="text-muted-foreground">10+ years of trusted service in Richmond Hill</p>
                     </div>
                   </li>
