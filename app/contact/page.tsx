@@ -65,7 +65,7 @@ export default function ContactPage() {
       <section className="pt-8 pb-16 lg:pt-16 lg:pb-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-[-0.01em] md:tracking-[-0.02em]">
               Contact Us
             </h1>
             <p className="mt-6 text-lg text-muted-foreground">

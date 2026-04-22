@@ -281,7 +281,7 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
           </div>
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-2xl font-bold">{currentVehicle.price}</p>
+              <p className="text-2xl font-bold tabular-nums">{currentVehicle.price}</p>
               <p className="text-sm text-white/90">
                 Est. {currentVehicle.monthlyPayment}/mo at 6.29% APR
               </p>

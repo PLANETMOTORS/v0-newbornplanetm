@@ -83,7 +83,7 @@ export default async function FinancingPage() {
                 <span>Rates from {lowestRate}% APR</span>
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-balance">
+              <h1 className="text-4xl md:text-5xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] text-balance">
                 Get Pre-Approved for Auto Financing
               </h1>
               <p className="mt-6 text-lg text-muted-foreground leading-relaxed">

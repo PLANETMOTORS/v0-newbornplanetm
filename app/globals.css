@@ -138,6 +138,11 @@
   .text-sm {
     line-height: 1.575; /* 14px × 1.575 ≈ 22px */
   }
+
+  /* Tabular numerals — prices, rates, km stay column-aligned */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
   
   /* Fix for mobile horizontal scroll */
   .container {
