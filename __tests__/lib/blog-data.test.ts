@@ -58,14 +58,15 @@ describe('tesla-warranty-used-cars post (image path change in PR)', () => {
     expect(post.image).not.toBe('/images/blog/IMG_1903-2-scaled.jpg')
   })
 
-  it('does not end with .png', () => {
+  it('ends with .png', () => {
     const post = blogPosts['tesla-warranty-used-cars']
-    expect(post.image.endsWith('.png')).toBe(false)
+    expect(post.image.endsWith('.png')).toBe(true)
   })
 
-  it('ends with .jpg', () => {
+  it('does not end with .jpg', () => {
     const post = blogPosts['tesla-warranty-used-cars']
-    expect(post.image.endsWith('.jpg')).toBe(true)
+    expect(post.image.endsWith('.jpg')).toBe(false)
+  })
   })
 
   it('has the correct title', () => {
