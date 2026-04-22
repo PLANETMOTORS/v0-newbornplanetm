@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { createClient } from "@/lib/supabase/client"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
+import { safeNum } from "@/lib/pricing/format"
 
 const HST_RATE = PROVINCE_TAX_RATES.ON.hst
 
@@ -107,7 +108,7 @@ export default function FinanceCalculatorPage() {
   const financeDetails = useMemo(() => {
     if (!vehicle) return null
 
-    const vehiclePrice = vehicle.price / 100 // Convert from cents
+    const vehiclePrice = safeNum(vehicle.price) / 100 // Convert from cents
     
     // Admin fee ($895 Finance Docs Fee) ONLY applies when financing, NOT for cash
     const applicableAdminFee = agreementType === "finance" ? adminFee : 0
@@ -329,7 +330,7 @@ export default function FinanceCalculatorPage() {
                       <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
                         id="vehiclePrice"
-                        value={(vehicle.price / 100).toLocaleString()}
+                        value={(safeNum(vehicle.price) / 100).toLocaleString()}
                         disabled
                         className="pl-9 bg-muted"
                       />

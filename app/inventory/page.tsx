@@ -24,6 +24,7 @@ import { InventoryPageJsonLd } from "@/components/seo/json-ld"
 import { PriceAlertModal } from "@/components/price-alert-modal"
 import { trackAddToWishlist } from "@/components/analytics/google-analytics"
 import { trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
+import { safeNum } from "@/lib/pricing/format"
 
 // Vehicle type from inventory API
 interface Vehicle {
@@ -88,8 +89,8 @@ const fetcher = async (url: string): Promise<VehiclesApiResponse> => {
 // Transform API vehicle to display format
 // NOTE: API already returns price in dollars (route.ts divides by 100)
 function transformVehicle(v: Vehicle) {
-  const priceInDollars = v.price
-  const msrpInDollars = v.msrp ?? priceInDollars * 1.1
+  const priceInDollars = safeNum(v.price)
+  const msrpInDollars = safeNum(v.msrp, priceInDollars * 1.1)
   
   // Determine badge based on vehicle attributes
   let badge = ""
@@ -156,7 +157,7 @@ function transformVehicle(v: Vehicle) {
     badgeColor,
     views: Math.floor(Math.random() * 200) + 50,
     favorites: Math.floor(Math.random() * 50) + 5,
-    monthlyPayment: Math.round(priceInDollars / 84),
+    monthlyPayment: priceInDollars > 0 ? Math.round(priceInDollars / 84) : 0,
     carfaxUrl: `https://www.carfax.ca/vehicle/${v.vin}`,
     features: ["PM Certified", "Full Inspection", "Warranty Included"],
     hasDrivee: !!v.drivee_mid

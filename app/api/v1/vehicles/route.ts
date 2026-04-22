@@ -74,8 +74,8 @@ async function toPublicVehicleListItem(value: unknown): Promise<Record<string, u
 
   return {
     ...value,
-    price: value.price / 100,
-    msrp: typeof value.msrp === 'number' ? value.msrp / 100 : null,
+    price: typeof value.price === 'number' && Number.isFinite(value.price) ? value.price / 100 : null,
+    msrp: typeof value.msrp === 'number' && Number.isFinite(value.msrp) ? value.msrp / 100 : null,
     drivee_mid: await getDriveeMidFromDb(vin),
   }
 }
@@ -300,7 +300,7 @@ export async function GET(request: NextRequest) {
       const makes = [...new Set(allVehicles?.map(v => v.make).filter(Boolean) || [])]
       const bodyStyles = [...new Set(allVehicles?.map(v => v.body_style).filter(Boolean) || [])]
       const fuelTypes = [...new Set(allVehicles?.map(v => v.fuel_type).filter(Boolean) || [])]
-      const prices = allVehicles?.map(v => v.price / 100) || []
+      const prices = allVehicles?.map(v => (typeof v.price === 'number' && Number.isFinite(v.price) ? v.price / 100 : 0)) || []
       const years = allVehicles?.map(v => v.year) || []
 
       filters = {

@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import type { VehicleRow } from "@/types/supabase"
+import { safeNum } from "@/lib/pricing/format"
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -115,7 +116,8 @@ function daysAgo(dateStr: string): number {
 }
 
 function formatPrice(cents: number): string {
-  return "$" + Math.round(cents / 100).toLocaleString()
+  const safe = typeof cents === "number" && Number.isFinite(cents) ? cents : 0
+  return "$" + Math.round(safe / 100).toLocaleString()
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────
@@ -263,8 +265,8 @@ export default function AdminInventoryPage() {
       body_style: v.body_style || "",
       exterior_color: v.exterior_color || "",
       interior_color: v.interior_color || "",
-      price: (v.price / 100).toFixed(2).replace(/\.00$/, ""),
-      msrp: v.msrp ? (v.msrp / 100).toFixed(2).replace(/\.00$/, "") : "",
+      price: (safeNum(v.price) / 100).toFixed(2).replace(/\.00$/, ""),
+      msrp: v.msrp ? (safeNum(v.msrp) / 100).toFixed(2).replace(/\.00$/, "") : "",
       mileage: String(v.mileage),
       drivetrain: v.drivetrain || "",
       transmission: v.transmission || "",
@@ -434,7 +436,7 @@ export default function AdminInventoryPage() {
     const headers = ["stock_number","vin","year","make","model","trim","price","mileage","status","exterior_color","drivetrain","fuel_type"]
     const rows = allVehicles.map(v => [
       v.stock_number, v.vin, v.year, v.make, v.model, v.trim || "",
-      (v.price / 100).toFixed(2), v.mileage, v.status, v.exterior_color || "",
+      (safeNum(v.price) / 100).toFixed(2), v.mileage, v.status, v.exterior_color || "",
       v.drivetrain || "", v.fuel_type || ""
     ])
     const csv = [headers.join(","), ...rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(","))].join("\n")

@@ -10,7 +10,7 @@
 
 import { createStaticClient } from "@/lib/supabase/static"
 import { getDriveeMidFromDb } from "@/lib/drivee-db"
-import { calculateAllInPrice, type AllInPriceBreakdown } from "@/lib/pricing/format"
+import { calculateAllInPrice, safeNum, type AllInPriceBreakdown } from "@/lib/pricing/format"
 import { cache } from "react"
 
 /** UUID v4 pattern. */
@@ -99,7 +99,7 @@ export const fetchVehicleForSSR = cache(async (
     if (!["available", "reserved", "pending"].includes(status)) return null
 
     const v = row as Record<string, unknown>
-    const priceInDollars = typeof v.price === "number" ? (v.price as number) / 100 : 0
+    const priceInDollars = safeNum(v.price) / 100
     const msrpInDollars = typeof v.msrp === "number" ? (v.msrp as number) / 100 : null
     const vin = typeof v.vin === "string" ? v.vin : ""
 
