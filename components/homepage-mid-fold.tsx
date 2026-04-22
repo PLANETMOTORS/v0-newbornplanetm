@@ -44,8 +44,8 @@ const processSteps = [
     icon: Home,
     color: "bg-orange-500",
     title: "Delivery or Pickup",
-    description: "Choose free home delivery anywhere in Ontario or pick up from our Richmond Hill showroom at your convenience.",
-    features: ["Free Home Delivery", "Ontario-Wide Coverage", "10-Day Returns", "Next-Day Pickup"],
+    description: "Choose free home delivery anywhere in Canada or pick up from our Richmond Hill showroom at your convenience.",
+    features: ["Free Home Delivery", "Canada-Wide Coverage", "10-Day Returns", "Next-Day Pickup"],
   },
 ]
 

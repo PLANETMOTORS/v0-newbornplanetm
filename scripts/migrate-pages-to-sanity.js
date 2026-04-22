@@ -50,7 +50,7 @@ const homepageContent = {
     linkUrl: '/inventory?sort=newest'
   },
   financingPromo: {
-    rate: '4.79',
+    rate: '6.29',
     rateLabel: 'Financing from',
     ctaLabel: 'Get Pre-Approved',
     ctaUrl: '/financing'
@@ -143,8 +143,8 @@ const financingPageContent = {
   title: 'Financing - Planet Motors',
   heroSection: {
     headline: 'Financing Made Simple',
-    subheadline: 'Get pre-approved in minutes with rates as low as 4.79% APR. We work with 20+ lenders to find you the best rate.',
-    featuredRateText: '4.79%',
+    subheadline: 'Get pre-approved in minutes with rates as low as 6.29% APR. We work with 20+ lenders to find you the best rate.',
+    featuredRateText: '6.29%',
     rateSubtext: 'APR as low as',
     primaryCta: {
       label: 'Get Pre-Approved',
@@ -207,8 +207,8 @@ const financingPageContent = {
     termOptions: [24, 36, 48, 60, 72, 84, 96]
   },
   seo: {
-    metaTitle: 'Auto Financing | Low Rates from 4.79% APR | Planet Motors',
-    metaDescription: 'Get pre-approved for auto financing in minutes. Competitive rates from 4.79% APR, all credit welcome. 20+ lender partners for the best rate.'
+    metaTitle: 'Auto Financing | Rates from 6.29% APR | Planet Motors',
+    metaDescription: 'Get pre-approved for auto financing in minutes. Competitive rates from 6.29% APR, all credit welcome. 20+ lender partners for the best rate.'
   }
 };
 

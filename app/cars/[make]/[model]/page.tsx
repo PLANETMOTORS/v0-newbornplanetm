@@ -100,7 +100,7 @@ const modelData: Record<string, Record<string, {
   },
   honda: {
     'civic': {
-      tagline: "Canada&apos;s #1 Car - More Powerful and Efficient Than Ever",
+      tagline: "Canada&apos;s Best-Selling Car - More Powerful and Efficient Than Ever",
       description: "The Honda Civic has been Canada&apos;s best-selling car for over two decades. Built right here in Ontario, the Civic delivers unmatched value, efficiency, and driving enjoyment for GTA commuters and families alike.",
       startingPrice: 26990,
       mpg: { city: 7.7, highway: 5.9 },
