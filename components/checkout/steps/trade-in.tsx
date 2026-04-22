@@ -54,7 +54,7 @@ export function TradeInStep({ data, onChange, onContinue }: TradeInStepProps) {
                   <h3 className="font-semibold text-lg">Get trade-in offer</h3>
                   {data.tradeInValue > 0 && (
                     <>
-                      <p className="text-green-600 font-medium text-sm mt-0.5">
+                      <p className="text-green-600 font-semibold text-sm mt-0.5">
                         Estimated value: ${data.tradeInValue.toLocaleString()}
                         {data.tradeInVehicle && ` — ${data.tradeInVehicle}`}
                       </p>

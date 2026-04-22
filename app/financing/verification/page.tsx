@@ -186,7 +186,7 @@ function IDVerificationContent() {
               Your identity has been successfully verified. Your finance application is now complete and under review.
             </p>
             <div className="bg-muted p-4 rounded-lg mb-6 text-left">
-              <h3 className="font-medium mb-2">What happens next?</h3>
+              <h3 className="font-semibold mb-2">What happens next?</h3>
               <ul className="text-sm text-muted-foreground space-y-2">
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
@@ -546,7 +546,7 @@ function IDVerificationContent() {
                 <div className="flex gap-3">
                   <Shield className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                   <div className="text-sm">
-                    <p className="font-medium text-foreground mb-1">Your Data is Secure</p>
+                    <p className="font-semibold text-foreground mb-1">Your Data is Secure</p>
                     <p className="text-muted-foreground">
                       We use bank-level encryption to protect your personal information. 
                       Your documents are securely stored and only used for verification purposes.

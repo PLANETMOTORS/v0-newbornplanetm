@@ -209,7 +209,7 @@ export function HomepageFeaturedVehicles() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as FeaturedTab)}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`px-4 py-2 text-sm font-semibold rounded-md transition-colors ${
                   activeTab === tab.key ? "bg-[#1e3a8a] text-white" : "text-gray-600 hover:bg-[#e4eaf2]"
                 }`}
                 type="button"
@@ -249,13 +249,13 @@ export function HomepageFeaturedVehicles() {
 
                 {/* Badges */}
                 <div className="absolute top-3 left-3 z-10">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm ${getBadgeClassName(vehicle.badge)}`}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${getBadgeClassName(vehicle.badge)}`}>
                     {vehicle.badge}
                   </span>
                 </div>
 
                 {vehicle.isAvilooCertified && (
-                  <div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-green-700 shadow-sm">
+                  <div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-semibold text-green-700 shadow-sm">
                     <Battery className="w-3 h-3" />
                     Aviloo Certified
                   </div>
@@ -268,7 +268,7 @@ export function HomepageFeaturedVehicles() {
                     {vehicle.year} {vehicle.make} {vehicle.model}
                   </h3>
                   {vehicle.isEV && (
-                    <span className="flex items-center gap-1 text-xs font-medium text-green-800 bg-green-50 px-2 py-0.5 rounded-full">
+                    <span className="flex items-center gap-1 text-xs font-semibold text-green-800 bg-green-50 px-2 py-0.5 rounded-full">
                       <Zap className="w-3 h-3" />
                       EV
                     </span>
@@ -281,7 +281,7 @@ export function HomepageFeaturedVehicles() {
                     <div className="text-xl font-bold text-[#1e3a8a]">
                       ${(vehicle.priceCents / 100).toLocaleString()}
                     </div>
-                    <div className="text-sm font-medium text-gray-700">
+                    <div className="text-sm font-semibold text-gray-700">
                       or <span className="font-bold">${vehicle.monthlyPayment}/mo</span>
                     </div>
                   </div>

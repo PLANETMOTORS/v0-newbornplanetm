@@ -43,7 +43,7 @@ export function CompareBar() {
                     className="object-cover rounded"
                   />
                   <div className="min-w-0">
-                    <p className="text-sm font-medium truncate max-w-[150px]">
+                    <p className="text-sm font-semibold truncate max-w-[150px]">
                       {vehicle.name.split(" ").slice(0, 3).join(" ")}
                     </p>
                     <p className="text-sm text-primary font-bold">

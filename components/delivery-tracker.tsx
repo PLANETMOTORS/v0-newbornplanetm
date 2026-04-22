@@ -224,7 +224,7 @@ export function DeliveryTracker({
           <div className="p-4 bg-teal-50 dark:bg-teal-950 rounded-lg border border-teal-200 dark:border-teal-800">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-teal-800 dark:text-teal-200 flex items-center gap-2">
+                <p className="text-sm font-semibold text-teal-800 dark:text-teal-200 flex items-center gap-2">
                   <Clock className="w-4 h-4" />
                   Estimated Arrival
                 </p>
@@ -244,11 +244,11 @@ export function DeliveryTracker({
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <p className="text-muted-foreground">Estimated Arrival</p>
-            <p className="font-medium">{tracking.estimatedArrival}</p>
+            <p className="font-semibold">{tracking.estimatedArrival}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Delivery To</p>
-            <p className="font-medium truncate">{tracking.route.destination.address}</p>
+            <p className="font-semibold truncate">{tracking.route.destination.address}</p>
           </div>
         </div>
 
@@ -256,7 +256,7 @@ export function DeliveryTracker({
           <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
             <div>
               <p className="text-sm text-muted-foreground">Your Driver</p>
-              <p className="font-medium">{tracking.driver.name}</p>
+              <p className="font-semibold">{tracking.driver.name}</p>
               <p className="text-xs text-muted-foreground">{tracking.driver.vehicleType}</p>
             </div>
             {tracking.driver.phone && (
@@ -272,7 +272,7 @@ export function DeliveryTracker({
 
         {tracking.updates.length > 0 && (
           <div className="space-y-2">
-            <p className="text-sm font-medium">Recent Updates</p>
+            <p className="text-sm font-semibold">Recent Updates</p>
             {tracking.updates.slice(0, 3).map((update, index) => (
               <div key={index} className="flex gap-3 text-sm">
                 <div className={`w-2 h-2 rounded-full mt-1.5 ${

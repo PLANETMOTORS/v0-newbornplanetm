@@ -81,7 +81,7 @@ export function PostalCodeInput({ value, onChange, label = "Postal Code *", id }
   
   return (
     <div className="relative">
-      <Label htmlFor={inputId}>{label} <span className="text-xs text-primary font-medium">(Auto-fills address)</span></Label>
+      <Label htmlFor={inputId}>{label} <span className="text-xs text-primary font-semibold">(Auto-fills address)</span></Label>
       <div className="relative">
         <Input
           id={inputId}
@@ -103,7 +103,7 @@ export function PostalCodeInput({ value, onChange, label = "Postal Code *", id }
       
       {/* City/Province indicator */}
       {cityProvince.city && (
-        <p className="text-xs text-green-600 mt-1 font-medium flex items-center gap-1">
+        <p className="text-xs text-green-600 mt-1 font-semibold flex items-center gap-1">
           <CheckCircle className="w-3 h-3" />
           {cityProvince.city}, {cityProvince.province}
         </p>
@@ -129,7 +129,7 @@ export function PostalCodeInput({ value, onChange, label = "Postal Code *", id }
               </div>
               <div>
                 <span className="font-semibold text-foreground">{suggestion.streetName} {suggestion.streetType}</span>
-                {suggestion.direction && <span className="text-primary font-medium"> {suggestion.direction}</span>}
+                {suggestion.direction && <span className="text-primary font-semibold"> {suggestion.direction}</span>}
                 <span className="text-muted-foreground text-xs block">{suggestion.city}, {suggestion.province}</span>
               </div>
             </button>

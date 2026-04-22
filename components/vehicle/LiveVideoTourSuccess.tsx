@@ -83,21 +83,21 @@ export function LiveVideoTourSuccess({
           <div className="flex items-start gap-3">
             <Calendar className="w-5 h-5 text-primary mt-0.5" />
             <div>
-              <p className="font-medium">{formattedDate}</p>
+              <p className="font-semibold">{formattedDate}</p>
               <p className="text-sm text-muted-foreground">{formattedTime} EST</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <Video className="w-5 h-5 text-primary mt-0.5" />
             <div>
-              <p className="font-medium">{vehicleName}</p>
+              <p className="font-semibold">{vehicleName}</p>
               <p className="text-xs text-muted-foreground font-mono">Booking ID: {bookingId}</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <MapPin className="w-5 h-5 text-primary mt-0.5" />
             <div>
-              <p className="font-medium">Planet Motors</p>
+              <p className="font-semibold">Planet Motors</p>
               <p className="text-sm text-muted-foreground">{info.showroomText}</p>
             </div>
           </div>

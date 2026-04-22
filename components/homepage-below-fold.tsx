@@ -105,7 +105,7 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium mb-4">
+              <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold mb-4">
                 <DollarSign className="w-4 h-4" />
                 Sell or Trade
               </div>
@@ -166,7 +166,7 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
                 <p className="text-gray-700 mb-4">&quot;{review.text}&quot;</p>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-gray-900">{review.name}</p>
+                    <p className="font-semibold text-gray-900">{review.name}</p>
                     <p className="text-sm text-gray-600">{review.location}</p>
                   </div>
                   <span className="text-xs text-gray-600">{review.date}</span>

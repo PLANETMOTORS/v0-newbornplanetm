@@ -55,7 +55,7 @@ export function CookieConsentBanner() {
               {/* Essential — always on */}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium">Essential</p>
+                  <p className="text-sm font-semibold">Essential</p>
                   <p className="text-xs text-muted-foreground">Required for the site to function</p>
                 </div>
                 <Switch checked disabled aria-label="Essential cookies (always enabled)" />
@@ -64,7 +64,7 @@ export function CookieConsentBanner() {
               {/* Analytics */}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium">Analytics</p>
+                  <p className="text-sm font-semibold">Analytics</p>
                   <p className="text-xs text-muted-foreground">Help us understand how visitors use our site</p>
                 </div>
                 <Switch
@@ -77,7 +77,7 @@ export function CookieConsentBanner() {
               {/* Marketing */}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium">Marketing</p>
+                  <p className="text-sm font-semibold">Marketing</p>
                   <p className="text-xs text-muted-foreground">Enable personalized advertising</p>
                 </div>
                 <Switch

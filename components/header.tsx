@@ -106,7 +106,7 @@ function DesktopNav({
           {item.submenu ? (
             <button
               type="button"
-              className="flex items-center gap-1 px-4 py-2 text-[15px] font-medium text-gray-800 hover:text-[#1e3a8a] transition-colors"
+              className="flex items-center gap-1 px-4 py-2 text-[15px] font-semibold text-gray-800 hover:text-[#1e3a8a] transition-colors"
               onClick={() => setActiveSubmenu(activeSubmenu === item.name ? null : item.name)}
             >
               {item.name}
@@ -115,7 +115,7 @@ function DesktopNav({
           ) : (
             <Link
               href={item.href}
-              className="flex items-center gap-1 px-4 py-2 text-[15px] font-medium text-gray-800 hover:text-[#1e3a8a] transition-colors"
+              className="flex items-center gap-1 px-4 py-2 text-[15px] font-semibold text-gray-800 hover:text-[#1e3a8a] transition-colors"
             >
               {item.name}
             </Link>
@@ -132,7 +132,7 @@ function DesktopNav({
                   <Link
                     key={subitem.name}
                     href={subitem.href}
-                    className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                    className="block px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
                     onClick={() => setActiveSubmenu(null)}
                   >
                     {subitem.name}
@@ -193,7 +193,7 @@ export function Header() {
                 onClick={() => trackPhoneClick("1-866-797-3332")}
               >
                 <Phone className="w-3.5 h-3.5" />
-                <span className="font-medium">1-866-797-3332</span>
+                <span className="font-semibold">1-866-797-3332</span>
               </a>
               <span className="hidden sm:flex items-center text-primary-foreground/90">
                 Mon-Fri 9AM-7PM | Sat 9AM-6PM
@@ -202,9 +202,9 @@ export function Header() {
             <div className="flex items-center gap-4 sm:gap-6">
               <div className="flex items-center gap-1.5">
                 <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                <span className="font-medium">4.8 Star Rating</span>
+                <span className="font-semibold">4.8 Star Rating</span>
               </div>
-              <span className="hidden md:flex items-center gap-1.5 font-medium">
+              <span className="hidden md:flex items-center gap-1.5 font-semibold">
                 <Award className="w-3.5 h-3.5" />
                 OMVIC Licensed
               </span>
@@ -330,7 +330,7 @@ export function Header() {
                       <button
                         id={`mobile-nav-${item.name}`}
                         aria-expanded={activeSubmenu === item.name}
-                        className="w-full text-left flex items-center justify-between px-3 py-3 min-h-[44px] text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded"
+                        className="w-full text-left flex items-center justify-between px-3 py-3 min-h-[44px] text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded"
                         onClick={() => setActiveSubmenu(activeSubmenu === item.name ? null : item.name)}
                       >
                         {item.name}
@@ -354,7 +354,7 @@ export function Header() {
                   ) : (
                     <Link
                       href={item.href}
-                      className="block px-3 py-3 min-h-[44px] text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded"
+                      className="block px-3 py-3 min-h-[44px] text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       {item.name}
@@ -372,22 +372,22 @@ export function Header() {
             <div className="flex items-center justify-center gap-3 sm:gap-6 md:gap-10 overflow-x-auto scrollbar-hide">
               <div className="flex items-center gap-2 whitespace-nowrap">
                 <CheckCircle className="w-4 h-4 text-green-700" />
-                <span className="font-medium text-xs sm:text-sm">10-Day Money Back Guarantee</span>
+                <span className="font-semibold text-xs sm:text-sm">10-Day Money Back Guarantee</span>
               </div>
               <span className="hidden sm:block text-gray-300">|</span>
               <div className="flex items-center gap-2 whitespace-nowrap">
                 <Shield className="w-4 h-4 text-teal-600" />
-                <span className="font-medium text-xs sm:text-sm">$250 Refundable Deposit</span>
+                <span className="font-semibold text-xs sm:text-sm">$250 Refundable Deposit</span>
               </div>
               <span className="hidden sm:block text-gray-300">|</span>
               <div className="hidden sm:flex items-center gap-2 whitespace-nowrap">
                 <CheckCircle className="w-4 h-4 text-green-700" />
-                <span className="font-medium text-xs sm:text-sm">210-Point Inspection</span>
+                <span className="font-semibold text-xs sm:text-sm">210-Point Inspection</span>
               </div>
               <span className="hidden md:block text-gray-300">|</span>
               <div className="hidden md:flex items-center gap-2 whitespace-nowrap">
                 <Truck className="w-4 h-4 text-teal-600" />
-                <span className="font-medium text-xs sm:text-sm">Canada-Wide Delivery</span>
+                <span className="font-semibold text-xs sm:text-sm">Canada-Wide Delivery</span>
               </div>
             </div>
           </div>

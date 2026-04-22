@@ -25,13 +25,13 @@ export function ReviewStep({ primaryApplicant, coApplicant, vehicleInfo, tradeIn
           <CardTitle className="text-base">Primary Applicant</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-          <div><span className="text-muted-foreground">Name:</span> <span className="font-medium">{primaryApplicant.firstName} {primaryApplicant.lastName}</span></div>
-          <div><span className="text-muted-foreground">Phone:</span> <span className="font-medium">{primaryApplicant.phone}</span></div>
-          <div><span className="text-muted-foreground">Email:</span> <span className="font-medium">{primaryApplicant.email}</span></div>
-          <div><span className="text-muted-foreground">Address:</span> <span className="font-medium">{primaryApplicant.streetNumber} {primaryApplicant.streetName}, {primaryApplicant.city}</span></div>
-          <div><span className="text-muted-foreground">Employer:</span> <span className="font-medium">{primaryApplicant.employerName}</span></div>
-          <div><span className="text-muted-foreground">Annual Income:</span> <span className="font-medium">${primaryApplicant.annualTotal}</span></div>
-          <div><span className="text-muted-foreground">Credit Rating:</span> <span className="font-medium capitalize">{primaryApplicant.creditRating}</span></div>
+          <div><span className="text-muted-foreground">Name:</span> <span className="font-semibold">{primaryApplicant.firstName} {primaryApplicant.lastName}</span></div>
+          <div><span className="text-muted-foreground">Phone:</span> <span className="font-semibold">{primaryApplicant.phone}</span></div>
+          <div><span className="text-muted-foreground">Email:</span> <span className="font-semibold">{primaryApplicant.email}</span></div>
+          <div><span className="text-muted-foreground">Address:</span> <span className="font-semibold">{primaryApplicant.streetNumber} {primaryApplicant.streetName}, {primaryApplicant.city}</span></div>
+          <div><span className="text-muted-foreground">Employer:</span> <span className="font-semibold">{primaryApplicant.employerName}</span></div>
+          <div><span className="text-muted-foreground">Annual Income:</span> <span className="font-semibold">${primaryApplicant.annualTotal}</span></div>
+          <div><span className="text-muted-foreground">Credit Rating:</span> <span className="font-semibold capitalize">{primaryApplicant.creditRating}</span></div>
         </CardContent>
       </Card>
       
@@ -42,10 +42,10 @@ export function ReviewStep({ primaryApplicant, coApplicant, vehicleInfo, tradeIn
             <CardTitle className="text-base">Co-Applicant</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-            <div><span className="text-muted-foreground">Name:</span> <span className="font-medium">{coApplicant.firstName} {coApplicant.lastName}</span></div>
-            <div><span className="text-muted-foreground">Phone:</span> <span className="font-medium">{coApplicant.phone}</span></div>
-            <div><span className="text-muted-foreground">Employer:</span> <span className="font-medium">{coApplicant.employerName}</span></div>
-            <div><span className="text-muted-foreground">Annual Income:</span> <span className="font-medium">${coApplicant.annualTotal}</span></div>
+            <div><span className="text-muted-foreground">Name:</span> <span className="font-semibold">{coApplicant.firstName} {coApplicant.lastName}</span></div>
+            <div><span className="text-muted-foreground">Phone:</span> <span className="font-semibold">{coApplicant.phone}</span></div>
+            <div><span className="text-muted-foreground">Employer:</span> <span className="font-semibold">{coApplicant.employerName}</span></div>
+            <div><span className="text-muted-foreground">Annual Income:</span> <span className="font-semibold">${coApplicant.annualTotal}</span></div>
           </CardContent>
         </Card>
       )}
@@ -56,12 +56,12 @@ export function ReviewStep({ primaryApplicant, coApplicant, vehicleInfo, tradeIn
           <CardTitle className="text-base">Vehicle & Financing</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-          <div><span className="text-muted-foreground">Vehicle:</span> <span className="font-medium">{vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}</span></div>
-          <div><span className="text-muted-foreground">Price:</span> <span className="font-medium">${parseFloat(vehicleInfo.totalPrice).toLocaleString()}*</span></div>
-          <div><span className="text-muted-foreground">Down Payment:</span> <span className="font-medium">${parseFloat(vehicleInfo.downPayment).toLocaleString()}</span></div>
-          <div><span className="text-muted-foreground">Term:</span> <span className="font-medium">{financingTerms.loanTermMonths} months</span></div>
-          <div><span className="text-muted-foreground">Payment:</span> <span className="font-medium">${financing.payment.toFixed(2)}/{financingTerms.paymentFrequency}</span></div>
-          <div><span className="text-muted-foreground">Amount Financed:</span> <span className="font-medium">${financing.amountFinanced.toLocaleString()}</span></div>
+          <div><span className="text-muted-foreground">Vehicle:</span> <span className="font-semibold">{vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}</span></div>
+          <div><span className="text-muted-foreground">Price:</span> <span className="font-semibold">${parseFloat(vehicleInfo.totalPrice).toLocaleString()}*</span></div>
+          <div><span className="text-muted-foreground">Down Payment:</span> <span className="font-semibold">${parseFloat(vehicleInfo.downPayment).toLocaleString()}</span></div>
+          <div><span className="text-muted-foreground">Term:</span> <span className="font-semibold">{financingTerms.loanTermMonths} months</span></div>
+          <div><span className="text-muted-foreground">Payment:</span> <span className="font-semibold">${financing.payment.toFixed(2)}/{financingTerms.paymentFrequency}</span></div>
+          <div><span className="text-muted-foreground">Amount Financed:</span> <span className="font-semibold">${financing.amountFinanced.toLocaleString()}</span></div>
           <div className="col-span-full">
             <p className="text-xs text-muted-foreground italic">*Advertised price is an estimate. Final all-in price including all fees and taxes will be confirmed at signing per OMVIC regulations.</p>
           </div>
@@ -75,10 +75,10 @@ export function ReviewStep({ primaryApplicant, coApplicant, vehicleInfo, tradeIn
             <CardTitle className="text-base">Trade-In Vehicle</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-            <div><span className="text-muted-foreground">Vehicle:</span> <span className="font-medium">{tradeIn.year} {tradeIn.make} {tradeIn.model}</span></div>
-            <div><span className="text-muted-foreground">Value:</span> <span className="font-medium">${(parseFloat(tradeIn.estimatedValue) || 0).toLocaleString()}</span></div>
+            <div><span className="text-muted-foreground">Vehicle:</span> <span className="font-semibold">{tradeIn.year} {tradeIn.make} {tradeIn.model}</span></div>
+            <div><span className="text-muted-foreground">Value:</span> <span className="font-semibold">${(parseFloat(tradeIn.estimatedValue) || 0).toLocaleString()}</span></div>
             {tradeIn.hasLien && (
-              <div><span className="text-muted-foreground">Lien:</span> <span className="font-medium">${parseFloat(tradeIn.lienAmount).toLocaleString()}</span></div>
+              <div><span className="text-muted-foreground">Lien:</span> <span className="font-semibold">${parseFloat(tradeIn.lienAmount).toLocaleString()}</span></div>
             )}
           </CardContent>
         </Card>

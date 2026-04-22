@@ -963,7 +963,7 @@ export default function DeliveryPage() {
                       {deliveryEstimate.cost === 0 && (
                         <div className="mt-4 flex items-center gap-2 text-green-700 bg-green-50 p-3 rounded-lg">
                           <CheckCircle className="h-5 w-5" />
-                          <span className="font-medium">You qualify for FREE delivery!</span>
+                          <span className="font-semibold">You qualify for FREE delivery!</span>
                         </div>
                       )}
                     </div>

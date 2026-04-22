@@ -117,7 +117,7 @@ export function PaymentMethodStep({ data, onChange, onContinue }: PaymentMethodS
             </div>
             {data.purchaseType === "pre-approved" && (
               <div className="mt-4 ml-16">
-                <Label htmlFor="lender-name" className="text-sm font-medium mb-1.5 block">
+                <Label htmlFor="lender-name" className="text-sm font-semibold mb-1.5 block">
                   Lender name
                 </Label>
                 <Input

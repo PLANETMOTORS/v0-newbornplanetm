@@ -92,7 +92,7 @@ function getDeliveryLabel(pkg: ProtectionPackage) {
 function CellValue({ pkg, rowKey }: { pkg: ProtectionPackage; rowKey: string }) {
   switch (rowKey) {
     case "paymentMethod":
-      return <span className="text-xs sm:text-sm font-medium">{getPaymentMethodLabel(pkg.paymentMethod)}</span>
+      return <span className="text-xs sm:text-sm font-semibold">{getPaymentMethodLabel(pkg.paymentMethod)}</span>
     case "deposit":
       return <span className="text-xs sm:text-sm">{getDepositLabel(pkg)}</span>
     case "warranty": {

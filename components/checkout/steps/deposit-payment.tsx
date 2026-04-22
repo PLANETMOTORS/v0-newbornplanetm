@@ -114,7 +114,7 @@ export function DepositPaymentStep({
       <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
         <Shield className="w-5 h-5 text-green-600 shrink-0" aria-hidden="true" />
         <div className="text-sm">
-          <p className="font-medium text-green-800">${depositAmount} Refundable Deposit</p>
+          <p className="font-semibold text-green-800">${depositAmount} Refundable Deposit</p>
           <p className="text-green-700">
             Holds this vehicle for 48 hours while we process your order. Fully refundable if you change your mind.
           </p>
@@ -125,7 +125,7 @@ export function DepositPaymentStep({
         <div className="flex items-center gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-lg" role="alert">
           <AlertCircle className="w-5 h-5 text-destructive shrink-0" />
           <div className="text-sm">
-            <p className="font-medium text-destructive">Payment error</p>
+            <p className="font-semibold text-destructive">Payment error</p>
             <p className="text-destructive/80">{error}</p>
             <Button
               variant="outline"

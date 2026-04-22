@@ -116,7 +116,7 @@ export default function AboutPage() {
                 <Card key={i} className="p-6 text-center border-2 border-primary/20">
                   <award.icon className="h-12 w-12 mx-auto mb-4 text-primary" />
                   <h3 className="font-semibold text-lg mb-1">{award.title}</h3>
-                  <p className="text-primary font-medium">{award.years}</p>
+                  <p className="text-primary font-semibold">{award.years}</p>
                 </Card>
               ))}
             </div>
@@ -170,7 +170,7 @@ export default function AboutPage() {
                     href="https://www.omvic.on.ca"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-primary hover:underline font-medium"
+                    className="text-primary hover:underline font-semibold"
                   >
                     Ontario Motor Vehicle Industry Council (OMVIC)
                   </a>
@@ -191,7 +191,7 @@ export default function AboutPage() {
                     href="https://www.omvic.on.ca"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-primary hover:underline font-medium"
+                    className="text-primary hover:underline font-semibold"
                   >
                     www.omvic.on.ca
                   </a>{" "}
@@ -341,7 +341,7 @@ export default function AboutPage() {
                       <p><strong>Email:</strong> info@planetmotors.ca</p>
                     </div>
                     <div className="mt-6 pt-6 border-t">
-                      <p className="font-medium mb-2">Business Hours</p>
+                      <p className="font-semibold mb-2">Business Hours</p>
                       <div className="text-sm text-muted-foreground space-y-1">
                         <p>Monday - Friday: 9:00 AM - 7:00 PM</p>
                         <p>Saturday: 9:00 AM - 6:00 PM</p>

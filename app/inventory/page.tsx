@@ -454,7 +454,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-3">
             <CheckCircle className="w-5 h-5" />
-            <span className="font-medium">
+            <span className="font-semibold">
               Your Trade-In: <span className="font-bold">${tradeInInfo.value.toLocaleString()}</span>
               {tradeInInfo.vehicle && <span className="text-white/80 ml-2">({tradeInInfo.vehicle})</span>}
             </span>
@@ -659,7 +659,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     setEvOnly(false)
                     setSelectedMake(selectedMake === make ? "All Makes" : make)
                   }}
-                  className={`px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap shrink-0 min-h-[44px] ${
+                  className={`px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition-colors whitespace-nowrap shrink-0 min-h-[44px] ${
                     selectedMake === make
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted hover:bg-muted/80"
@@ -677,7 +677,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     setSelectedMake("All Makes")
                   }
                 }}
-                className={`px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1 whitespace-nowrap shrink-0 min-h-[44px] ${
+                className={`px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition-colors flex items-center gap-1 whitespace-nowrap shrink-0 min-h-[44px] ${
                   evOnly
                     ? "bg-green-500 text-white"
                     : "bg-muted hover:bg-muted/80"
@@ -1003,7 +1003,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     {/* Inspection Score */}
                     <div className="flex items-center gap-2 mt-3">
                       <Shield className="w-4 h-4 text-green-700" />
-                      <span className="text-sm text-green-700 font-medium">
+                      <span className="text-sm text-green-700 font-semibold">
                         {vehicle.inspectionScore}/210 Inspection Score
                       </span>
                     </div>

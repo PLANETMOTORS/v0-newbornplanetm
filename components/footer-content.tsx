@@ -118,7 +118,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
                 <div className="flex gap-0.5 text-yellow-400 text-lg" aria-label="4.8 out of 5 stars">
                   {"★★★★★"}
                 </div>
-                <span className="text-white text-sm font-medium">4.8 Star Rating</span>
+                <span className="text-white text-sm font-semibold">4.8 Star Rating</span>
               </div>
 
               <p className="text-sm text-white/90 leading-relaxed mb-6">
@@ -232,7 +232,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
                 </a>
               ))}
             </div>
-            <div className="flex items-center gap-1.5 text-white/90 text-xs font-medium">
+            <div className="flex items-center gap-1.5 text-white/90 text-xs font-semibold">
               <Clock className="w-3.5 h-3.5" />
               <span>{formatHoursDisplay()}</span>
             </div>
@@ -247,16 +247,16 @@ export function FooterContent({ siteSettings }: FooterProps) {
               className="flex items-center gap-2 min-h-[44px] py-1 text-white/90 hover:text-white transition-colors"
             >
               <Shield className="w-3.5 h-3.5 shrink-0" />
-              <span className="text-xs font-medium">OMVIC Registered Dealer</span>
+              <span className="text-xs font-semibold">OMVIC Registered Dealer</span>
             </a>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               {footerLinks.legal.map((link) => (
-                <Link key={link.name} href={link.href} className="min-h-[44px] flex items-center text-xs font-medium text-white/90 hover:text-white transition-colors">
+                <Link key={link.name} href={link.href} className="min-h-[44px] flex items-center text-xs font-semibold text-white/90 hover:text-white transition-colors">
                   {link.name}
                 </Link>
               ))}
             </div>
-            <p className="text-xs font-medium text-white/90">
+            <p className="text-xs font-semibold text-white/90">
               &copy; {new Date().getFullYear()} {siteSettings.dealerName}. All rights reserved.
             </p>
           </div>

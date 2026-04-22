@@ -48,7 +48,7 @@ export default function FavoritesPage() {
           {favorites.length === 0 ? (
             <Card className="p-12 text-center">
               <Heart className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2">No saved vehicles</h2>
+              <h2 className="text-xl font-bold mb-2">No saved vehicles</h2>
               <p className="text-muted-foreground mb-6">
                 Start browsing our inventory and save vehicles you&apos;re interested in.
               </p>

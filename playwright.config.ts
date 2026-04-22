@@ -63,6 +63,13 @@ export default defineConfig({
         ...devices["iPhone 14"],
       },
     },
+    {
+      name: "edge",
+      use: {
+        ...devices["Desktop Edge"],
+        channel: "msedge",
+      },
+    },
   ],
   webServer: {
     command: process.env.CI ? "pnpm start" : "pnpm dev",

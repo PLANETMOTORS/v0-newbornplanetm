@@ -695,7 +695,7 @@ export default function AccountPage() {
                                 )}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <Link href={`/vehicles/${vehicle.id}`} className="font-medium hover:underline">
+                                <Link href={`/vehicles/${vehicle.id}`} className="font-semibold hover:underline">
                                   {vehicle.year} {vehicle.make} {vehicle.model}
                                 </Link>
                                 {vehicle.price && (
@@ -751,7 +751,7 @@ export default function AccountPage() {
                               return (
                                 <div key={draft.id} className="flex items-center justify-between p-3 rounded-lg border">
                                   <div>
-                                    <p className="font-medium text-sm">{vehicleLabel}</p>
+                                    <p className="font-semibold text-sm">{vehicleLabel}</p>
                                     <p className="text-xs text-muted-foreground">
                                       {applicant?.firstName ? `${applicant.firstName} ${applicant?.lastName || ""}` : "Not started"} &middot; Saved {new Date(draft.updated_at).toLocaleDateString()}
                                     </p>
@@ -805,7 +805,7 @@ export default function AccountPage() {
                               return (
                                 <div key={app.id} className="flex items-center justify-between p-3 rounded-lg border">
                                   <div>
-                                    <p className="font-medium text-sm">
+                                    <p className="font-semibold text-sm">
                                       {app.agreement_type === "finance" ? "Finance" : app.agreement_type === "lease" ? "Lease" : "Cash"} Application
                                     </p>
                                     <p className="text-xs text-muted-foreground">
@@ -854,7 +854,7 @@ export default function AccountPage() {
                       <CardContent className="space-y-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium">Price Drop Alerts</p>
+                            <p className="font-semibold">Price Drop Alerts</p>
                             <p className="text-sm text-muted-foreground">Get notified when saved vehicles drop in price</p>
                           </div>
                           <Button
@@ -875,7 +875,7 @@ export default function AccountPage() {
                         <Separator />
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium">New Inventory Alerts</p>
+                            <p className="font-semibold">New Inventory Alerts</p>
                             <p className="text-sm text-muted-foreground">Be first to know about new arrivals</p>
                           </div>
                           <Button
@@ -916,7 +916,7 @@ export default function AccountPage() {
                           {priceAlerts.map((alert) => (
                             <div key={alert.id} className="flex items-center justify-between p-3 rounded-lg border">
                               <div>
-                                <p className="font-medium text-sm">
+                                <p className="font-semibold text-sm">
                                   {alert.make && alert.model
                                     ? `${alert.make} ${alert.model}`
                                     : 'All Vehicles'}

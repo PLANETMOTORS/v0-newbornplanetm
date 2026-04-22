@@ -72,7 +72,7 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
           </Button>
         </div>
         <div className="bg-muted/50 p-4 rounded-lg mb-4">
-          <p className="font-medium">{vehicleName}</p>
+          <p className="font-semibold">{vehicleName}</p>
           <p className="text-sm text-muted-foreground">
             {depositOnly ? `Deposit: $${totalDeposit.toLocaleString()}` : `Total: $${totalFull.toLocaleString()}`}
           </p>
@@ -118,7 +118,7 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
 
       {/* Protection Plans */}
       <div>
-        <h4 className="font-medium mb-3 flex items-center gap-2">
+        <h4 className="font-semibold mb-3 flex items-center gap-2">
           <Shield className="w-4 h-4 text-primary" />
           Add Protection (Optional)
         </h4>
@@ -142,7 +142,7 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
                       {selectedPlan === plan.id && <CheckCircle className="w-3 h-3 text-white" />}
                     </div>
                     <div>
-                      <p className="font-medium text-sm">{plan.name}</p>
+                      <p className="font-semibold text-sm">{plan.name}</p>
                       <p className="text-xs text-muted-foreground">{plan.features.slice(0, 2).join(' • ')}</p>
                     </div>
                   </div>
@@ -159,7 +159,7 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
 
       {/* Payment Options */}
       <div>
-        <h4 className="font-medium mb-3 flex items-center gap-2">
+        <h4 className="font-semibold mb-3 flex items-center gap-2">
           <CreditCard className="w-4 h-4 text-primary" />
           Choose a payment option
         </h4>
@@ -169,10 +169,10 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
             onClick={() => setDepositOnly(true)}
           >
             <CardContent className="py-4 text-center space-y-1">
-              {depositOnly && <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">Recommended</span>}
-              <p className="text-[10px] font-medium text-primary uppercase tracking-wide">Option 1</p>
+              {depositOnly && <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">Recommended</span>}
+              <p className="text-[10px] font-semibold text-primary uppercase tracking-wide">Option 1</p>
               <p className="font-bold text-lg">${totalDeposit.toLocaleString()}</p>
-              <p className="text-xs font-medium">Reserve with Deposit</p>
+              <p className="text-xs font-semibold">Reserve with Deposit</p>
               <p className="text-[10px] text-muted-foreground">100% refundable • Holds vehicle for you • Credited toward full price</p>
             </CardContent>
           </Card>
@@ -181,10 +181,10 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
             onClick={() => setDepositOnly(false)}
           >
             <CardContent className="py-4 text-center space-y-1">
-              {!depositOnly && <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">Selected</span>}
-              <p className="text-[10px] font-medium text-primary uppercase tracking-wide">Option 2</p>
+              {!depositOnly && <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">Selected</span>}
+              <p className="text-[10px] font-semibold text-primary uppercase tracking-wide">Option 2</p>
               <p className="font-bold text-lg">${totalFull.toLocaleString()}</p>
-              <p className="text-xs font-medium">Pay in Full Now</p>
+              <p className="text-xs font-semibold">Pay in Full Now</p>
               <p className="text-[10px] text-muted-foreground">Complete your purchase today</p>
             </CardContent>
           </Card>

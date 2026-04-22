@@ -287,7 +287,7 @@ export default function ClutchGuideCanadaPage() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Clutch Life:</span>
-                          <span className="font-medium">{car.clutchLife}</span>
+                          <span className="font-semibold">{car.clutchLife}</span>
                         </div>
                       </div>
                       <Link href={`/inventory?search=${encodeURIComponent(car.name)}`}>

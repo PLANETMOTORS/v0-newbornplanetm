@@ -260,11 +260,11 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
         <div className="absolute bottom-0 left-0 right-0 p-5 text-white min-h-[120px]">
           <div className="flex items-center gap-2 mb-2">
             <Shield className="w-4 h-4 text-green-300" />
-            <span className="text-sm text-green-300 font-medium">
+            <span className="text-sm text-green-300 font-semibold">
               {currentVehicle.inspectionScore}/210 Inspection Score
             </span>
           </div>
-          <h2 className="font-semibold text-xl mb-1">{currentVehicle.name}</h2>
+          <h2 className="font-bold text-xl mb-1">{currentVehicle.name}</h2>
           <div className="flex items-center gap-4 text-sm text-white/90 mb-3">
             <span className="flex items-center gap-1">
               <Gauge className="w-3.5 h-3.5" />

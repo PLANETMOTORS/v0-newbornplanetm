@@ -114,7 +114,7 @@ export function ReviewOrderStep({
         {tradeIn.hasTradeIn && tradeIn.tradeInValue > 0 ? (
           <>
             <p>{tradeIn.tradeInVehicle}</p>
-            <p className="text-green-600 font-medium">-${tradeIn.tradeInValue.toLocaleString()}</p>
+            <p className="text-green-600 font-semibold">-${tradeIn.tradeInValue.toLocaleString()}</p>
           </>
         ) : (
           <p className="text-muted-foreground">No trade-in</p>
@@ -191,7 +191,7 @@ export function ReviewOrderStep({
             </div>
           )}
           {tradeIn.tradeInValue > 0 && (
-            <div className="flex justify-between text-green-600 font-medium">
+            <div className="flex justify-between text-green-600 font-semibold">
               <span>Trade-in credit</span>
               <span>-${tradeIn.tradeInValue.toLocaleString()}</span>
             </div>

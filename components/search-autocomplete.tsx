@@ -175,7 +175,7 @@ export function SearchAutocomplete() {
                     <Car className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{result.title}</p>
+                    <p className="text-sm font-semibold truncate">{result.title}</p>
                     {result.subtitle && (
                       <p className="text-xs text-muted-foreground">{result.subtitle}</p>
                     )}

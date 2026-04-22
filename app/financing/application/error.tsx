@@ -20,7 +20,7 @@ export default function FinanceApplicationError({
       <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-destructive">
         <AlertTriangle className="h-7 w-7" />
       </div>
-      <h2 className="text-2xl font-semibold">Something went wrong</h2>
+      <h2 className="text-2xl font-bold">Something went wrong</h2>
       <p className="mt-3 text-sm text-muted-foreground">
         Your finance form data is saved in this browser. Try again to continue your application.
       </p>

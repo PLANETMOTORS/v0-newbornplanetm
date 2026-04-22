@@ -389,8 +389,8 @@ export default function CityLandingPage() {
                   <div>
                     <p className="font-semibold">Questions about buying in {city.name}?</p>
                     <p className="text-muted-foreground">
-                      Call us toll-free at <a href="tel:1-866-797-3332" className="text-primary font-medium">1-866-797-3332</a> or{" "}
-                      <Link href="/contact" className="text-primary font-medium">chat with us online</Link>
+                      Call us toll-free at <a href="tel:1-866-797-3332" className="text-primary font-semibold">1-866-797-3332</a> or{" "}
+                      <Link href="/contact" className="text-primary font-semibold">chat with us online</Link>
                     </p>
                   </div>
                 </div>

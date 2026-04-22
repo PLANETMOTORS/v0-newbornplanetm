@@ -111,7 +111,7 @@ export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: 
               <span className="text-lg font-bold text-green-600 whitespace-nowrap">+$0</span>
             </div>
             <div className="ml-[4.5rem] mt-2">
-              <p className="text-sm font-medium">Planet Motors</p>
+              <p className="text-sm font-semibold">Planet Motors</p>
               <p className="text-sm text-muted-foreground">
                 30 Major Mackenzie Dr E, Richmond Hill, ON L4C 0H3
               </p>
@@ -159,7 +159,7 @@ export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: 
               )}
             </div>
             <div className="ml-[4.5rem] mt-2">
-              <p className="text-sm font-medium">Hassle-free home delivery</p>
+              <p className="text-sm font-semibold">Hassle-free home delivery</p>
               <p className="text-sm text-muted-foreground">
                 We&apos;ll bring your vehicle right to your doorstep.
                 {data.deliveryDistance > 0 && ` (${data.deliveryDistance} km from dealership)`}
