@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendNotificationEmail } from '@/lib/email'
+import { rateLimit } from '@/lib/redis'
+import { validateOrigin } from '@/lib/csrf'
 
 /**
  * POST /api/v1/financing/capture-lead
@@ -10,6 +12,25 @@ import { sendNotificationEmail } from '@/lib/email'
  * No auth check here; the lead is captured immediately on form submit.
  */
 export async function POST(request: NextRequest) {
+  // CSRF protection
+  if (!validateOrigin(request)) {
+    return NextResponse.json(
+      { success: false, error: 'Forbidden' },
+      { status: 403 }
+    )
+  }
+
+  // Rate limit: 5 lead captures per hour per IP
+  const forwarded = request.headers.get('x-forwarded-for') || ''
+  const ip = forwarded.split(',')[0]?.trim() || 'unknown'
+  const limiter = await rateLimit(`capture-lead:${ip}`, 5, 3600)
+  if (!limiter.success) {
+    return NextResponse.json(
+      { success: false, error: 'Too many requests. Please try again later.' },
+      { status: 429 }
+    )
+  }
+
   const body = await request.json()
 
   const {
@@ -30,9 +51,17 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  if (!annualIncome || !requestedAmount) {
+  const parsedIncome = Number(annualIncome)
+  const parsedAmount = Number(requestedAmount)
+  const parsedTerm = Number(requestedTerm)
+
+  if (
+    !Number.isFinite(parsedIncome) || parsedIncome <= 0 ||
+    !Number.isFinite(parsedAmount) || parsedAmount <= 0 ||
+    !Number.isInteger(parsedTerm) || parsedTerm <= 0
+  ) {
     return NextResponse.json(
-      { success: false, error: 'Annual income and requested amount are required' },
+      { success: false, error: 'Annual income, requested amount, and requested term must be valid positive numbers' },
       { status: 400 }
     )
   }
@@ -52,8 +81,8 @@ export async function POST(request: NextRequest) {
         customer_name: customerName,
         customer_email: email.trim().toLowerCase(),
         customer_phone: phone.trim(),
-        subject: `Finance Pre-Approval: $${Number(requestedAmount).toLocaleString()} over ${requestedTerm} months`,
-        message: `Annual income: $${Number(annualIncome).toLocaleString()}\nRequested amount: $${Number(requestedAmount).toLocaleString()}\nTerm: ${requestedTerm} months`,
+        subject: `Finance Pre-Approval: $${parsedAmount.toLocaleString()} over ${parsedTerm} months`,
+        message: `Annual income: $${parsedIncome.toLocaleString()}\nRequested amount: $${parsedAmount.toLocaleString()}\nTerm: ${parsedTerm} months`,
       })
       .select('id')
       .single()
@@ -68,9 +97,9 @@ export async function POST(request: NextRequest) {
       customerName,
       email: email.trim(),
       phone: phone.trim(),
-      annualIncome,
-      requestedAmount,
-      requestedTerm,
+      annualIncome: parsedIncome,
+      requestedAmount: parsedAmount,
+      requestedTerm: parsedTerm,
       leadId: lead?.id,
     }).catch((err) => console.error('AutoRaptor ADF fire-and-forget error:', err))
 
@@ -81,9 +110,9 @@ export async function POST(request: NextRequest) {
       customerEmail: email.trim(),
       customerPhone: phone.trim(),
       additionalData: {
-        annualIncome,
-        requestedAmount,
-        requestedTerm,
+        annualIncome: parsedIncome,
+        requestedAmount: parsedAmount,
+        requestedTerm: parsedTerm,
         source: 'Magic Link Flow (pre-auth)',
       },
     }).catch((err) => console.error('Admin notification email error:', err))
