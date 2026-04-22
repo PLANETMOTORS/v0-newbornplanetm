@@ -4,6 +4,7 @@ import Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { extractNotificationData, sendPaymentNotifications } from '@/lib/webhook-notifications'
+import { isValidLicensePath } from '@/lib/license-path'
 
 // Stripe requires raw body for signature verification — Next.js must NOT parse it.
 export const dynamic = 'force-dynamic'
@@ -161,6 +162,14 @@ export async function handleCheckoutSessionCompleted(
     if (session.metadata?.utm_content) utmData.utm_content = session.metadata.utm_content
     if (session.metadata?.utm_term) utmData.utm_term = session.metadata.utm_term
 
+    const rawLicensePath = session.metadata?.licenseStoragePath || null
+    const licenseStoragePath = rawLicensePath && vehicleId && isValidLicensePath(rawLicensePath, vehicleId)
+      ? rawLicensePath
+      : null
+    if (rawLicensePath && !licenseStoragePath) {
+      console.warn(`[webhook] Dropped invalid licenseStoragePath from reservation ${reservationId}: failed validation`)
+    }
+
     const { error: reservationError } = await supabase
       .from('reservations')
       .update({
@@ -169,6 +178,7 @@ export async function handleCheckoutSessionCompleted(
         stripe_checkout_session_id: session.id,
         updated_at: new Date().toISOString(),
         ...utmData,
+        ...(licenseStoragePath && { license_storage_path: licenseStoragePath }),
       })
       .eq('id', reservationId)
 
@@ -206,6 +216,94 @@ export async function handleCheckoutSessionCompleted(
     return
   }
 
+  // Checkout-flow deposits: type === 'vehicle-reservation' but no reservationId
+  // (created via startVehicleCheckout with depositOnly=true, not via createReservation)
+  if (type === 'vehicle-reservation' && !reservationId && vehicleId) {
+    if (!isSettled) {
+      // Delayed payment methods (e.g. ACSS debit) may complete checkout before settlement.
+      const { data: transitioned, error: holdVehicleError } = await supabase
+        .rpc('transition_vehicle_status', {
+          p_vehicle_id: vehicleId,
+          p_from_statuses: ['available', 'reserved'],
+          p_to_status: 'reserved',
+        })
+
+      if (holdVehicleError) {
+        throw new Error(`Failed to hold vehicle ${vehicleId} while payment is pending: ${holdVehicleError.message}`)
+      }
+      if (!transitioned) {
+        console.warn(`[webhook] Vehicle ${vehicleId} hold while payment pending was a no-op.`)
+      }
+
+      console.info(`[webhook] Checkout-flow deposit for vehicle ${vehicleId} completed with unsettled funds (payment_status=${session.payment_status}).`)
+      return
+    }
+
+    // Confirmed checkout-flow deposit: create reservation record
+    const utmData: Record<string, string> = {}
+    if (session.metadata?.utm_source) utmData.utm_source = session.metadata.utm_source
+    if (session.metadata?.utm_medium) utmData.utm_medium = session.metadata.utm_medium
+    if (session.metadata?.utm_campaign) utmData.utm_campaign = session.metadata.utm_campaign
+    if (session.metadata?.utm_content) utmData.utm_content = session.metadata.utm_content
+    if (session.metadata?.utm_term) utmData.utm_term = session.metadata.utm_term
+
+    const rawLicensePath = session.metadata?.licenseStoragePath || null
+    const licenseStoragePath = rawLicensePath && isValidLicensePath(rawLicensePath, vehicleId)
+      ? rawLicensePath
+      : null
+    if (rawLicensePath && !licenseStoragePath) {
+      console.warn(`[webhook] Dropped invalid licenseStoragePath from checkout-flow deposit for vehicle ${vehicleId}: failed validation`)
+    }
+    const customerEmail = session.customer_email || session.customer_details?.email || ''
+
+    // Insert a new reservation record for this checkout-flow deposit
+    const { error: insertError } = await supabase
+      .from('reservations')
+      .insert({
+        vehicle_id: vehicleId,
+        customer_email: customerEmail,
+        customer_name: session.customer_details?.name || null,
+        deposit_amount: session.amount_total || 25000, // Default to $250 deposit
+        deposit_status: 'paid',
+        status: 'confirmed',
+        stripe_checkout_session_id: session.id,
+        ...(licenseStoragePath && { license_storage_path: licenseStoragePath }),
+        ...utmData,
+      })
+
+    if (insertError) {
+      throw new Error(`Failed to create reservation for vehicle ${vehicleId}: ${insertError.message}`)
+    }
+
+    // Atomically mark vehicle as reserved using row-level lock.
+    // Include 'checkout_in_progress' since startVehicleCheckout already locked the vehicle.
+    const { data: transitioned, error: vehicleError } = await supabase
+      .rpc('transition_vehicle_status', {
+        p_vehicle_id: vehicleId,
+        p_from_statuses: ['available', 'reserved', 'checkout_in_progress'],
+        p_to_status: 'reserved',
+      })
+
+    if (vehicleError) {
+      throw new Error(`Failed to update vehicle ${vehicleId} after checkout-flow deposit: ${vehicleError.message}`)
+    }
+    if (!transitioned) {
+      console.warn(`[webhook] Vehicle ${vehicleId} status transition to 'reserved' was a no-op (already transitioned by concurrent webhook).`)
+    }
+
+    console.info(`[webhook] Checkout-flow deposit confirmed, vehicle ${vehicleId} reserved.`)
+
+    // Fire-and-forget: CRM lead + customer/admin email notifications
+    const notificationData = extractNotificationData(session)
+    if (notificationData) {
+      sendPaymentNotifications(notificationData).catch((err) =>
+        console.error('[webhook] Post-payment notification error (non-blocking):', err)
+      )
+    }
+
+    return
+  }
+
   if (type !== 'vehicle-reservation' && vehicleId) {
     if (!isSettled) {
       console.info(`[webhook] Vehicle checkout completed with unsettled funds for ${vehicleId} (payment_status=${session.payment_status}).`)
@@ -221,18 +319,44 @@ export async function handleCheckoutSessionCompleted(
     if (session.metadata?.utm_content) utmData.utm_content = session.metadata.utm_content
     if (session.metadata?.utm_term) utmData.utm_term = session.metadata.utm_term
 
+    const rawLicensePathFromCheckout = session.metadata?.licenseStoragePath || null
+    const licenseStoragePathFromCheckout = rawLicensePathFromCheckout && isValidLicensePath(rawLicensePathFromCheckout, vehicleId)
+      ? rawLicensePathFromCheckout
+      : null
+    if (rawLicensePathFromCheckout && !licenseStoragePathFromCheckout) {
+      console.warn(`[webhook] Dropped invalid licenseStoragePath from order for vehicle ${vehicleId}: failed validation`)
+    }
+
     const { error: orderError } = await supabase
       .from('orders')
       .update({
         status: 'confirmed',
         updated_at: new Date().toISOString(),
         ...utmData,
+        ...(licenseStoragePathFromCheckout && { license_storage_path: licenseStoragePathFromCheckout }),
       })
       .eq('vehicle_id', vehicleId)
       .eq('status', 'created')
 
     if (orderError) {
       throw new Error(`Failed to confirm order for vehicle ${vehicleId}: ${orderError.message}`)
+    }
+
+    // Best-effort: also link license to any matching reservation
+    if (licenseStoragePathFromCheckout && session.customer_email) {
+      const { error: resLinkError } = await supabase
+        .from('reservations')
+        .update({
+          license_storage_path: licenseStoragePathFromCheckout,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('vehicle_id', vehicleId)
+        .eq('customer_email', session.customer_email.toLowerCase())
+        .in('status', ['pending', 'confirmed'])
+
+      if (resLinkError) {
+        console.error(`[webhook] Best-effort reservation license link failed for ${vehicleId}:`, resLinkError.message)
+      }
     }
 
     const { data: transitioned, error: vehicleError } = await supabase

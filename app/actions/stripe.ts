@@ -5,6 +5,8 @@ import type Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+import { isValidLicensePath } from '@/lib/license-path'
+
 const PROTECTION_PLANS: Record<string, { name: string; priceInCents: number }> = {
   'essential': { name: 'PlanetCare Essential', priceInCents: 195000 },
   'smart': { name: 'PlanetCare Smart', priceInCents: 300000 },
@@ -19,6 +21,7 @@ interface VehicleCheckoutData {
   protectionPlanId?: string
   depositOnly?: boolean
   customerEmail?: string
+  licenseStoragePath?: string
   utmSource?: string
   utmMedium?: string
   utmCampaign?: string
@@ -62,7 +65,7 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
   const { data: lockResult, error: lockError } = await adminClient
     .rpc('lock_vehicle_for_checkout', {
       p_vehicle_id: data.vehicleId,
-      p_allowed_statuses: ['available', 'reserved'],
+      p_allowed_statuses: ['available', 'reserved', 'checkout_in_progress'],
     })
 
   if (lockError) {
@@ -145,8 +148,10 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
       vehicleMake: String(vehicle.make ?? ''),
       vehicleModel: String(vehicle.model ?? ''),
       depositOnly: String(data.depositOnly || false),
+      type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
       protectionPlanId: data.protectionPlanId || '',
       amountSource: 'server',
+      ...(data.licenseStoragePath && isValidLicensePath(data.licenseStoragePath, data.vehicleId) && { licenseStoragePath: data.licenseStoragePath }),
       ...(data.utmSource && { utm_source: data.utmSource }),
       ...(data.utmMedium && { utm_medium: data.utmMedium }),
       ...(data.utmCampaign && { utm_campaign: data.utmCampaign }),
