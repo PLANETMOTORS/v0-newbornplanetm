@@ -19,7 +19,8 @@ export async function generateMetadata({ params }: { params: Promise<{ make: str
   const makeFormatted = make.charAt(0).toUpperCase() + make.slice(1)
   const modelFormatted = model.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
   const currentYear = 2026
-  
+  const canonicalPath = `/cars/${make}/${model}`
+
   return {
     title: `${currentYear} ${makeFormatted} ${modelFormatted} for Sale in Richmond Hill, ON | Planet Motors`,
     description: `Browse our selection of certified pre-owned ${makeFormatted} ${modelFormatted} vehicles at Planet Motors, Richmond Hill. 210-point inspection, 10-day money-back guarantee, and financing available. Canada-wide delivery.`,
@@ -31,10 +32,14 @@ export async function generateMetadata({ params }: { params: Promise<{ make: str
       `${makeFormatted} dealer Toronto`,
       `${modelFormatted} financing Canada`
     ],
+    alternates: {
+      canonical: canonicalPath,
+    },
     openGraph: {
       title: `${currentYear} ${makeFormatted} ${modelFormatted} for Sale | Planet Motors Richmond Hill`,
       description: `Find your perfect ${makeFormatted} ${modelFormatted} at Planet Motors. PM Certified with 210-point inspection. Serving Richmond Hill, Toronto & the GTA.`,
       type: 'website',
+      url: canonicalPath,
     }
   }
 }

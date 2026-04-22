@@ -177,16 +177,11 @@ export async function buildVehiclesSitemap(baseUrl: string, currentDate: string)
 }
 
 export function buildBlogSitemap(baseUrl: string, currentDate: string): SitemapEntry[] {
-  const slugs = [
-    'ev-buying-guide-2026', 'tesla-model-3-vs-model-y-comparison',
-    'financing-tips-first-time-buyers', 'trade-in-maximize-value',
-    'electric-vehicle-incentives-canada-2026', 'best-used-cars-under-30000',
-    'ev-battery-health-explained', 'certified-pre-owned-vs-used',
-    'bad-credit-car-loan-guide', 'car-delivery-what-to-expect',
-    'clutch-replacement-cost-canada', 'clutch-problems-signs-symptoms',
-    'best-manual-transmission-cars-canada-2026', 'how-to-drive-manual-transmission',
-    'clutch-vs-automatic-which-is-better', 'clutch-maintenance-tips-canadian-winters',
-  ]
+  // Dynamically import all blog post keys from the source of truth
+  // This ensures the sitemap always stays in sync with actual content
+  const { blogPosts } = require('@/lib/blog-data')
+  const slugs = Object.keys(blogPosts)
+
   return slugs.map(slug => ({
     url: `${baseUrl}/blog/${slug}`,
     lastModified: currentDate,

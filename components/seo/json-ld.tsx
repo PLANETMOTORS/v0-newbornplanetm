@@ -358,7 +358,7 @@ export function LocalBusinessJsonLd() {
     "@type": "LocalBusiness",
     "name": "Planet Motors",
     "image": `${SITE_URL}/images/planet-motors-logo.png`,
-    "@id": SITE_URL,
+    "@id": `${SITE_URL}/#local-business`,
     "url": SITE_URL,
     "telephone": "+1-866-797-3332",
     "address": {
@@ -580,7 +580,7 @@ export function WarrantyPageJsonLd() {
     "@type": "Product",
     "name": "Planet Motors Vehicle Warranty",
     "description": "Comprehensive warranty coverage for your certified pre-owned vehicle purchase.",
-    "url": `${SITE_URL}/warranty`,
+    "url": `${SITE_URL}/protection-plans`,
     "brand": {
       "@type": "Brand",
       "name": "Planet Motors"

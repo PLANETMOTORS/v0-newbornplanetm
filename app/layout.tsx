@@ -61,9 +61,8 @@ export const metadata: Metadata = {
     images: [`${SITE_URL}/images/planet-motors-logo.png`],
   },
   metadataBase: new URL(SITE_URL),
-  alternates: {
-    canonical: '/',
-  },
+  // Canonical is set per-page to avoid all sub-pages inheriting '/'
+  // Each page must define its own alternates.canonical
   robots: {
     index: true,
     follow: true,

@@ -12,6 +12,9 @@ import {
 export const metadata = {
   title: "Careers | Planet Motors",
   description: "Join the Planet Motors team. Explore career opportunities in automotive sales, customer service, and technology.",
+  alternates: {
+    canonical: '/careers',
+  },
 }
 
 const openPositions = [

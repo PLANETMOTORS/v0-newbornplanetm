@@ -3,6 +3,9 @@ import { Metadata } from "next"
 export const metadata: Metadata = {
   title: "How It Works | Planet Motors - Buy a Car Online in 4 Steps",
   description: "Browse, finance, and get your car delivered to your door. 210-point inspection, 10-day money-back guarantee, and nationwide delivery included.",
+  alternates: {
+    canonical: '/how-it-works',
+  },
 }
 
 

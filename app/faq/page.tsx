@@ -3,6 +3,9 @@ import { Metadata } from "next"
 export const metadata: Metadata = {
   title: "FAQ | Planet Motors - Frequently Asked Questions",
   description: "Find answers to common questions about buying, financing, trade-ins, delivery, warranties, and returns at Planet Motors.",
+  alternates: {
+    canonical: '/faq',
+  },
 }
 
 import { Header } from "@/components/header"
