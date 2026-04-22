@@ -44,6 +44,9 @@ function validateCentsAmount(value: unknown): number {
 }
 
 export async function startVehicleCheckout(data: VehicleCheckoutData) {
+  if (!data.vehicleId) {
+    throw new Error('Vehicle ID is required for vehicle checkout. Use startCheckoutSession for generic deposits.')
+  }
   const stripe = getStripe()
   const enableAcssDebit = process.env.STRIPE_ENABLE_ACSS_DEBIT === 'true'
   const paymentMethodTypes: Array<'card' | 'acss_debit'> = enableAcssDebit
