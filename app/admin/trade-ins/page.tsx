@@ -147,7 +147,7 @@ export default function AdminTradeInsPage() {
     <div className="container mx-auto py-8 px-4">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Trade-In Quotes</h1>
+          <h1 className="text-3xl font-bold tracking-[-0.01em]">Trade-In Quotes</h1>
           <p className="text-muted-foreground">Manage trade-in and ICO requests</p>
         </div>
         <Button onClick={fetchQuotes} variant="outline">

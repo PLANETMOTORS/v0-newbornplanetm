@@ -76,7 +76,7 @@ export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold mb-1">Choose pickup or delivery</h1>
+        <h1 className="text-2xl font-bold tracking-[-0.01em] mb-1">Choose pickup or delivery</h1>
         <p className="text-muted-foreground">
           Choose between picking it up at our dealership or having it delivered to your door.
         </p>

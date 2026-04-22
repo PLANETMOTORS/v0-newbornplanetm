@@ -89,7 +89,7 @@ function LoginForm() {
             <Link href="/" className="inline-block mb-6">
               <PlanetMotorsLogo size="lg" />
             </Link>
-            <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
+            <h1 className="text-3xl font-bold tracking-[-0.01em] mb-2">Welcome Back</h1>
             <p className="text-muted-foreground">
               Sign in to manage your vehicles, reservations, and more
             </p>

@@ -90,7 +90,7 @@ export function DepositPaymentStep({
     return (
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl font-bold mb-1">Secure your vehicle</h1>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] mb-1">Secure your vehicle</h1>
         </div>
         <div className="flex items-center gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-lg" role="alert">
           <AlertCircle className="w-5 h-5 text-destructive shrink-0" />
@@ -105,7 +105,7 @@ export function DepositPaymentStep({
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold mb-1">Secure your vehicle</h1>
+        <h1 className="text-2xl font-bold tracking-[-0.01em] mb-1">Secure your vehicle</h1>
         <p className="text-muted-foreground">
           Pay a ${depositAmount} refundable deposit to reserve this vehicle while we finalize your order.
         </p>

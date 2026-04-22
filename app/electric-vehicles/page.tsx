@@ -69,7 +69,7 @@ export default function ElectricVehiclesPage() {
                 <Zap className="w-3 h-3 mr-1" />
                 Electric Vehicle Specialist
               </Badge>
-              <h1 className="text-4xl lg:text-5xl font-bold mb-6 text-balance">
+              <h1 className="text-4xl lg:text-5xl font-bold tracking-[-0.01em] lg:tracking-[-0.02em] mb-6 text-balance">
                 Used Electric Vehicles in Ontario
               </h1>
               <p className="text-xl text-green-100 mb-8 leading-relaxed">

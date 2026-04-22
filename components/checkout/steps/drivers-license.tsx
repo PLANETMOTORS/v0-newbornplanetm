@@ -129,7 +129,7 @@ export function DriversLicenseStep({
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold mb-1">Driver&apos;s license</h1>
+        <h1 className="text-2xl font-bold tracking-[-0.01em] mb-1">Driver&apos;s license</h1>
         <p className="text-muted-foreground">
           Upload a photo of the front of your driver&apos;s license. This is required for vehicle registration.
         </p>

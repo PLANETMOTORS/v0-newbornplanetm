@@ -168,7 +168,7 @@ export function PersonalDetailsStep({ data, onChange, onContinue }: PersonalDeta
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold mb-1">Personal details</h1>
+        <h1 className="text-2xl font-bold tracking-[-0.01em] mb-1">Personal details</h1>
         <p className="text-muted-foreground">
           Tell us about yourself. This information is used for vehicle registration and contracts.
         </p>

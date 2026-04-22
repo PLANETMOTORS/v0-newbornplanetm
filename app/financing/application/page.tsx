@@ -91,7 +91,7 @@ export default async function FinanceApplicationPage({
               Financing
             </Link>
           </div>
-          <h1 className="text-3xl font-bold">Finance Application</h1>
+          <h1 className="text-3xl font-bold tracking-[-0.01em]">Finance Application</h1>
           <p className="text-muted-foreground mt-2">
             Complete your application below. All fields marked with * are required.
           </p>

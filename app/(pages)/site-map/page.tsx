@@ -103,7 +103,7 @@ export default function SitemapPage() {
       <main id="main-content" tabIndex={-1} className="pt-24 pb-20">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
-            <h1 className="font-serif text-4xl font-bold mb-2">Sitemap</h1>
+            <h1 className="text-4xl font-bold tracking-[-0.01em] mb-2">Sitemap</h1>
             <p className="text-muted-foreground mb-12">
               Navigate all pages on the Planet Motors website
             </p>

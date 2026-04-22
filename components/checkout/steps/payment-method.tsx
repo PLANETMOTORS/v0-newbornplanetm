@@ -26,7 +26,7 @@ export function PaymentMethodStep({ data, onChange, onContinue }: PaymentMethodS
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold mb-1">Cash or finance?</h1>
+        <h1 className="text-2xl font-bold tracking-[-0.01em] mb-1">Cash or finance?</h1>
         <p className="text-muted-foreground">
           Select how you would like to pay for your vehicle
         </p>

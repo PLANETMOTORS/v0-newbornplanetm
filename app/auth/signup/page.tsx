@@ -128,7 +128,7 @@ function SignUpForm() {
               <Link href="/" className="inline-block mb-8">
                 <PlanetMotorsLogo size="xl" />
               </Link>
-              <h1 className="text-4xl font-bold mb-4">Join Planet Motors</h1>
+              <h1 className="text-4xl font-bold tracking-[-0.01em] mb-4">Join Planet Motors</h1>
               <p className="text-xl text-muted-foreground mb-8">
                 Create your account and unlock exclusive benefits
               </p>
@@ -160,7 +160,7 @@ function SignUpForm() {
                 <Link href="/" className="inline-block mb-6">
                   <PlanetMotorsLogo size="lg" />
                 </Link>
-                <h1 className="text-3xl font-bold mb-2">Create Account</h1>
+                <h1 className="text-3xl font-bold tracking-[-0.01em] mb-2">Create Account</h1>
                 <p className="text-muted-foreground">
                   Join thousands of happy customers
                 </p>

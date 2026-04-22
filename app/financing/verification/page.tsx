@@ -232,7 +232,7 @@ function IDVerificationContent() {
               <Shield className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Identity Verification</h1>
+              <h1 className="text-2xl font-bold tracking-[-0.01em]">Identity Verification</h1>
               <p className="text-muted-foreground">
                 Securely verify your identity to complete your application
               </p>

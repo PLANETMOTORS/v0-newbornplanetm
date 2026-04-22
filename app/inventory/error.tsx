@@ -23,7 +23,7 @@ export default function InventoryError({
           <AlertTriangle className="w-10 h-10 text-destructive" />
         </div>
 
-        <h1 className="text-3xl font-serif font-bold text-foreground mb-4">
+        <h1 className="text-3xl font-bold tracking-[-0.01em] text-foreground mb-4">
           Unable to Load Inventory
         </h1>
         <p className="text-muted-foreground mb-8">

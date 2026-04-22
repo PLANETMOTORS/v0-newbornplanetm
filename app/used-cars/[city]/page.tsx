@@ -184,7 +184,7 @@ export default function CityLandingPage() {
                 {city.distance === 0 ? "Visit Our Showroom" : `Free Delivery to ${city.name}`}
               </Badge>
               
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] mb-6">
                 Used Cars for Sale in{" "}
                 <span className="text-primary">{city.name}</span>
               </h1>

@@ -26,7 +26,7 @@ export function TradeInStep({ data, onChange, onContinue }: TradeInStepProps) {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold mb-1">Add a trade-in</h1>
+        <h1 className="text-2xl font-bold tracking-[-0.01em] mb-1">Add a trade-in</h1>
         <p className="text-muted-foreground">
           Have a vehicle to trade? Get an instant offer to reduce your purchase price.
         </p>

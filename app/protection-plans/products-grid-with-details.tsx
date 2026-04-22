@@ -45,7 +45,7 @@ function ProductDetailPanel({ product, onClose }: { product: ProtectionProduct; 
               <Icon className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h3 className="font-serif text-2xl sm:text-3xl font-bold text-white leading-tight">{product.name}</h3>
+              <h3 className="text-2xl sm:text-3xl font-bold text-white leading-tight">{product.name}</h3>
               <p className="text-white/80 text-sm mt-1">{product.tagline}</p>
             </div>
           </div>
@@ -67,7 +67,7 @@ function ProductDetailPanel({ product, onClose }: { product: ProtectionProduct; 
 
         {/* ▸ How It Works — numbered timeline */}
         <section>
-          <h4 className="font-serif text-xl font-bold mb-6 flex items-center gap-2">
+          <h4 className="text-xl font-bold mb-6 flex items-center gap-2">
             <Zap className="w-5 h-5 text-primary" /> How It Works
           </h4>
           <div className="grid sm:grid-cols-3 gap-5">
@@ -119,7 +119,7 @@ function ProductDetailPanel({ product, onClose }: { product: ProtectionProduct; 
 
         {/* ▸ Key Benefits — feature cards */}
         <section>
-          <h4 className="font-serif text-xl font-bold mb-6 flex items-center gap-2">
+          <h4 className="text-xl font-bold mb-6 flex items-center gap-2">
             <Star className="w-5 h-5 text-primary" /> Key Benefits
           </h4>
           <div className="grid sm:grid-cols-2 gap-4">
@@ -136,7 +136,7 @@ function ProductDetailPanel({ product, onClose }: { product: ProtectionProduct; 
 
         {/* ▸ Product FAQs — proper Radix Accordion */}
         <section>
-          <h4 className="font-serif text-xl font-bold mb-6">Frequently Asked Questions</h4>
+          <h4 className="text-xl font-bold mb-6">Frequently Asked Questions</h4>
           <Accordion type="single" collapsible className="space-y-3">
             {product.faqs.map((faq, index) => (
               <AccordionItem
@@ -213,7 +213,7 @@ export function ProductsGridWithDetails() {
         {/* Section header */}
         <div className="text-center mb-14">
           <Badge variant="outline" className="mb-4 text-xs tracking-wider uppercase">À La Carte Protection</Badge>
-          <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold">
             Individual Protection Products
           </h2>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto text-base md:text-lg">

@@ -83,7 +83,7 @@ export default function HowItWorksPage() {
         <section className="bg-primary py-20">
           <div className="container mx-auto px-4 text-center">
             <Badge className="mb-4 bg-accent text-accent-foreground">Simple Process</Badge>
-            <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] text-primary-foreground mb-4">
               How Planet Motors Works
             </h1>
             <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">

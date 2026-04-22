@@ -38,7 +38,7 @@ export function ProductDetailsSection() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="text-center mb-12">
           <Badge variant="outline" className="mb-4 text-xs">Product Details</Badge>
-          <h2 className="font-serif text-3xl md:text-4xl font-bold">
+          <h2 className="text-3xl md:text-4xl font-bold">
             Explore Each Protection Product
           </h2>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">

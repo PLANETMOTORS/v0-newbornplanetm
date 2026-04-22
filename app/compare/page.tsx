@@ -197,7 +197,7 @@ export default function ComparePage() {
         {/* Hero Section */}
         <section className="bg-primary py-8 sm:py-12">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary-foreground mb-3 sm:mb-4">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-[-0.01em] text-primary-foreground mb-3 sm:mb-4">
               Compare Vehicles
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-primary-foreground/80 max-w-2xl mx-auto mb-4 sm:mb-6">

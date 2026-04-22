@@ -148,7 +148,7 @@ export default function EVBatteryPage() {
                 <Battery className="w-3 h-3 mr-1" />
                 EV Certified
               </Badge>
-              <h1 className="text-4xl md:text-5xl font-serif font-bold text-foreground mb-6 text-balance">
+              <h1 className="text-4xl md:text-5xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] text-foreground mb-6 text-balance">
                 EV Battery Health Certification
               </h1>
               <p className="text-lg text-muted-foreground mb-8 text-pretty">
@@ -161,7 +161,7 @@ export default function EVBatteryPage() {
 
         {/* Why It Matters */}
         <section className="py-16 container mx-auto px-4">
-          <h2 className="text-3xl font-serif font-bold text-center mb-12">Why Battery Health Matters</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">Why Battery Health Matters</h2>
           <div className="grid md:grid-cols-3 gap-8">
             <Card>
               <CardHeader>
@@ -205,7 +205,7 @@ export default function EVBatteryPage() {
         {/* Certification Process */}
         <section className="py-16 bg-muted/30">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-serif font-bold text-center mb-12">Our 5-Step Certification Process</h2>
+            <h2 className="text-3xl font-bold text-center mb-12">Our 5-Step Certification Process</h2>
             <div className="max-w-4xl mx-auto">
               <div className="space-y-6">
                 {certificationProcess.map((item, index) => (
@@ -229,7 +229,7 @@ export default function EVBatteryPage() {
 
         {/* Sample Certified Vehicles */}
         <section className="py-16 container mx-auto px-4">
-          <h2 className="text-3xl font-serif font-bold text-center mb-4">Certified EV Inventory</h2>
+          <h2 className="text-3xl font-bold text-center mb-4">Certified EV Inventory</h2>
           <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
             Browse our selection of battery-certified electric vehicles with full transparency on health metrics.
           </p>
@@ -305,7 +305,7 @@ export default function EVBatteryPage() {
         {/* Health Score Guide */}
         <section className="py-16 bg-muted/30">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-serif font-bold text-center mb-12">Understanding Battery Health Scores</h2>
+            <h2 className="text-3xl font-bold text-center mb-12">Understanding Battery Health Scores</h2>
             <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-6">
               <Card className="border-green-500/30 bg-green-500/5">
                 <CardHeader>

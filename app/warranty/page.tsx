@@ -94,7 +94,7 @@ export default function WarrantyPage() {
               <Shield className="w-3 h-3 mr-1" />
               Planet Motors Protection
             </Badge>
-            <h1 className="text-4xl md:text-5xl font-serif font-bold text-foreground mb-6 text-balance">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] text-foreground mb-6 text-balance">
               Drive with Confidence
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -148,7 +148,7 @@ export default function WarrantyPage() {
         {/* Coverage Details */}
         <section className="py-16 bg-muted/30">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-serif font-bold text-center mb-12">What&apos;s Covered</h2>
+            <h2 className="text-3xl font-bold text-center mb-12">What&apos;s Covered</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
               {coverageDetails.map((category) => (
                 <Card key={category.category}>
@@ -173,7 +173,7 @@ export default function WarrantyPage() {
 
         {/* Claims Process */}
         <section className="py-16 container mx-auto px-4">
-          <h2 className="text-3xl font-serif font-bold text-center mb-12">Easy Claims Process</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">Easy Claims Process</h2>
           <div className="grid md:grid-cols-4 gap-8 max-w-4xl mx-auto">
             {[
               { step: 1, title: "Call Us", desc: "Contact our claims hotline 24/7" },
@@ -195,7 +195,7 @@ export default function WarrantyPage() {
         {/* CTA */}
         <section className="py-16 bg-primary text-primary-foreground">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl font-serif font-bold mb-4">Questions About Coverage?</h2>
+            <h2 className="text-3xl font-bold mb-4">Questions About Coverage?</h2>
             <p className="mb-8 opacity-90">
               Our warranty specialists are here to help you choose the right protection.
             </p>

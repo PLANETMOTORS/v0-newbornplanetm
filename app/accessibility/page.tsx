@@ -19,7 +19,7 @@ export default function AccessibilityPage() {
       <main id="main-content" tabIndex={-1} className="pt-32 pb-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-4xl font-serif font-bold text-foreground mb-6">
+            <h1 className="text-4xl font-bold tracking-[-0.01em] text-foreground mb-6">
               Accessibility Statement
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
@@ -44,7 +44,7 @@ export default function AccessibilityPage() {
             </Card>
 
             {/* Accessibility Features */}
-            <h2 className="text-2xl font-serif font-bold mb-6">Accessibility Features</h2>
+            <h2 className="text-2xl font-bold mb-6">Accessibility Features</h2>
             <div className="grid md:grid-cols-2 gap-6 mb-12">
               <Card>
                 <CardHeader>

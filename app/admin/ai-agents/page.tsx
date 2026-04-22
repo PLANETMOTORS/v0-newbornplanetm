@@ -134,7 +134,7 @@ export default function AIAgentsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-gray-900">AI Agents</h1>
+        <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">AI Agents</h1>
         <div className="grid gap-6">
           {[1,2,3].map(i => (
             <Card key={i} className="animate-pulse">
@@ -151,7 +151,7 @@ export default function AIAgentsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">AI Agents</h1>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">AI Agents</h1>
           <p className="text-sm text-gray-500">Configure Anna, Price Negotiator, and Vehicle Valuator</p>
         </div>
         <Button variant="outline" size="sm" onClick={fetchAgents}>

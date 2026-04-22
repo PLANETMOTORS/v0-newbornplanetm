@@ -49,7 +49,7 @@ export default function OfflinePage() {
         </div>
 
         <div className="space-y-3">
-          <h1 className="text-2xl font-bold text-white">You&apos;re Offline</h1>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-white">You&apos;re Offline</h1>
           <p className="text-white/70 text-base leading-relaxed">
             It looks like you&apos;ve lost your internet connection.
             <br />

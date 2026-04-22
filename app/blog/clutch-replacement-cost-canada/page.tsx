@@ -52,7 +52,7 @@ export default function ClutchReplacementCostCanadaPage() {
               <Badge variant="outline">Canada</Badge>
             </div>
             
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] mb-4">
               Clutch Replacement Cost in Canada (2026 Complete Guide)
             </h1>
             

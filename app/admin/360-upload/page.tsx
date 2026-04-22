@@ -157,7 +157,7 @@ export default function Admin360UploadPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">360° Photo Upload</h1>
+        <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">360° Photo Upload</h1>
         <p className="text-gray-500">Upload walk-around frames for vehicles</p>
       </div>
 
