@@ -188,7 +188,7 @@ export const blogPosts: Record<string, {
     date: "Mar 10, 2026",
     readTime: "6 min read",
     category: "Electric Vehicles",
-    image: "/images/blog/IMG_1903-2-scaled.png",
+    image: "/images/blog/IMG_1903-2-scaled.jpg",
     author: "Planet Motors Team",
     content: `
       <p>One of the biggest advantages of buying a used Tesla is that the manufacturer's warranty transfers automatically to the new owner. Here's a complete breakdown of what's covered.</p>

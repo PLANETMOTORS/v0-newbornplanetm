@@ -5,55 +5,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Shield, Check } from "lucide-react"
-
-const PROTECTION_PLANS = [
-  {
-    id: "none",
-    name: "No Protection",
-    price: 0,
-    features: [],
-  },
-  {
-    id: "essential",
-    name: "PlanetCare Essential",
-    price: 1950,
-    badge: "Basic",
-    features: [
-      "3-Year Powertrain Coverage",
-      "24/7 Roadside Assistance",
-      "Trip Interruption Coverage",
-    ],
-  },
-  {
-    id: "smart",
-    name: "PlanetCare Smart",
-    price: 3000,
-    badge: "Popular",
-    features: [
-      "5-Year Comprehensive Coverage",
-      "24/7 Roadside Assistance",
-      "Trip Interruption Coverage",
-      "Rental Car Reimbursement",
-      "Tire & Wheel Protection",
-    ],
-  },
-  {
-    id: "lifeproof",
-    name: "PlanetCare Life Proof",
-    price: 4850,
-    badge: "Best Value",
-    features: [
-      "7-Year Bumper-to-Bumper Coverage",
-      "24/7 Premium Roadside Assistance",
-      "Trip Interruption Coverage",
-      "Rental Car Reimbursement",
-      "Tire & Wheel Protection",
-      "Dent & Ding Protection",
-      "Key Fob Replacement",
-      "$0 Deductible",
-    ],
-  },
-]
+import { CHECKOUT_PLANS } from "@/lib/constants/protection-packages"
 
 interface ProtectionPlanSelectorProps {
   value: string
@@ -71,7 +23,7 @@ export function ProtectionPlanSelector({ value, onChange }: ProtectionPlanSelect
       </CardHeader>
       <CardContent>
         <RadioGroup value={value} onValueChange={onChange} className="space-y-3">
-          {PROTECTION_PLANS.map((plan) => (
+          {CHECKOUT_PLANS.map((plan) => (
             <div
               key={plan.id}
               className={`relative flex items-start p-4 rounded-lg border-2 cursor-pointer transition-colors ${
@@ -115,4 +67,4 @@ export function ProtectionPlanSelector({ value, onChange }: ProtectionPlanSelect
   )
 }
 
-export { PROTECTION_PLANS }
+export { CHECKOUT_PLANS as PROTECTION_PLANS } from "@/lib/constants/protection-packages"

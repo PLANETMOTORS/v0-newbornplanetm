@@ -65,7 +65,7 @@ export function ReviewOrderStep({
 }: ReviewOrderStepProps) {
   const protection = PROTECTION_PRICES[protectionPlan] ?? PROTECTION_PRICES.none
   const deliveryFee = delivery.deliveryType === "delivery" ? delivery.deliveryCost : 0
-  const financeDocsFee = paymentMethod.purchaseType === "finance" ? 895 : 0
+  const financeDocsFee = paymentMethod.purchaseType === "finance" || paymentMethod.purchaseType === "pre-approved" ? 895 : 0
   const depositAmount = 250
 
   const provinceCode = PROVINCE_NAME_TO_CODE[personal.province] || "ON"
@@ -123,7 +123,13 @@ export function ReviewOrderStep({
 
       {/* Payment Method */}
       <ReviewSection title="Payment method" editLabel="Edit payment method" onEdit={() => onEditStep(2)}>
-        <p>{paymentMethod.purchaseType === "finance" ? "Finance with Planet Motors" : "Pay with cash"}</p>
+        <p>
+          {paymentMethod.purchaseType === "finance"
+            ? "Finance with Planet Motors"
+            : paymentMethod.purchaseType === "pre-approved"
+              ? `Pre-approved with ${paymentMethod.preApprovedLender || "another lender"}`
+              : "Pay with cash"}
+        </p>
       </ReviewSection>
 
       {/* Delivery */}

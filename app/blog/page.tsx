@@ -1,4 +1,6 @@
 import { BlogPageContent } from "@/components/blog-page-content"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
 
 export const metadata = {
   title: "Blog | Planet Motors - Car Buying Tips & Industry News",
@@ -7,5 +9,11 @@ export const metadata = {
 }
 
 export default function BlogPage() {
-  return <BlogPageContent />
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <BlogPageContent />
+      <Footer />
+    </div>
+  )
 }
