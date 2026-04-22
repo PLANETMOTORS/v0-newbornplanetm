@@ -40,6 +40,7 @@ export function FinanceApplicationForm() {
   const [result, setResult] = useState<PrequalificationResult | null>(null)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [magicLinkError, setMagicLinkError] = useState<string | null>(null)
+  const [creditPullError, setCreditPullError] = useState<string | null>(null)
   const [resendCooldown, setResendCooldown] = useState(0)
   const [leadId, setLeadId] = useState<string | null>(null)
   const formDataRef = useRef({
@@ -68,6 +69,7 @@ export function FinanceApplicationForm() {
   // Run the soft credit pull after authentication
   const runCreditPull = useCallback(async () => {
     setStage("verifying")
+    setCreditPullError(null)
     try {
       const response = await fetch("/api/v1/financing", {
         method: "POST",
@@ -86,10 +88,12 @@ export function FinanceApplicationForm() {
         setStage("results")
       } else {
         console.error("Credit pull failed:", data.error)
+        setCreditPullError("We couldn\u2019t complete your credit check right now. Please try again.")
         setStage("results")
       }
     } catch (error) {
       console.error("Financing API error:", error)
+      setCreditPullError("Something went wrong while checking rates. Please try again.")
       setStage("results")
     }
   }, [])
@@ -248,6 +252,43 @@ export function FinanceApplicationForm() {
     } else {
       setMagicLinkError(result.error ?? "Failed to resend email")
     }
+  }
+
+  // ──────────────────────────────────────────
+  // Stage: Results — error fallback
+  // ──────────────────────────────────────────
+  if (stage === "results" && !result) {
+    return (
+      <div className="space-y-6 text-center py-4">
+        <div className="mx-auto w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
+          <Shield className="w-8 h-8 text-destructive" />
+        </div>
+        <div>
+          <h3 className="font-semibold text-lg">Credit Check Unavailable</h3>
+          <p className="text-sm text-muted-foreground mt-2">
+            {creditPullError || "We couldn\u2019t complete your credit check right now."}
+          </p>
+          {leadId && (
+            <p className="text-sm text-muted-foreground mt-1">
+              Don&apos;t worry — your application has been saved and our team will follow up.
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-3 pt-2">
+          <Button className="w-full" size="lg" onClick={() => runCreditPull()}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Try Again
+          </Button>
+          <Button variant="outline" className="w-full" onClick={() => {
+            setStage("form")
+            setCreditPullError(null)
+          }}>
+            Back to Form
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   // ──────────────────────────────────────────

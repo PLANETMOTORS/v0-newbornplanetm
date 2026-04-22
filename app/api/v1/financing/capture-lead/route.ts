@@ -149,7 +149,7 @@ async function fireAutoRaptorAdf(params: {
         <email>${escapeXml(params.email)}</email>
         <phone type="voice">${escapeXml(params.phone)}</phone>
       </contact>
-      <comments>Finance pre-approval request. Annual income: $${params.annualIncome.toLocaleString()}. Requested: $${params.requestedAmount.toLocaleString()} over ${params.requestedTerm} months. Source: planetmotors.ca magic link flow.</comments>
+      <comments>${escapeXml(`Finance pre-approval request. Annual income: $${Number(params.annualIncome).toLocaleString()}. Requested: $${Number(params.requestedAmount).toLocaleString()} over ${Number(params.requestedTerm)} months. Source: planetmotors.ca magic link flow.`)}</comments>
     </customer>
     <vendor>
       <contact>
