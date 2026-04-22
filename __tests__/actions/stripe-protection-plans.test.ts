@@ -33,10 +33,13 @@ vi.mock('@/lib/stripe', () => ({
 
 // ─── Mock Supabase admin client ────────────────────────────────────────────
 // The RPC must succeed and return a valid vehicle lock for any checkout to proceed.
+// After locking, the server action fetches vehicle data via .from('vehicles').
 const mockRpc = vi.fn()
+const mockFrom = vi.fn()
 vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: vi.fn(() => ({
     rpc: mockRpc,
+    from: mockFrom,
   })),
 }))
 
@@ -60,6 +63,16 @@ function makeLockResult(overrides: Record<string, unknown> = {}) {
   }
 }
 
+/** Default vehicle row returned by the .from('vehicles') query */
+const DEFAULT_VEHICLE_ROW = {
+  id: 'veh-001',
+  year: 2022,
+  make: 'Toyota',
+  model: 'Camry',
+  price: 2500000,
+  status: 'available',
+}
+
 /** Default Stripe session returned by the mock */
 const DEFAULT_SESSION = { client_secret: 'cs_test_abc123' }
 
@@ -67,6 +80,28 @@ beforeEach(() => {
   vi.clearAllMocks()
   mockRpc.mockResolvedValue(makeLockResult())
   mockSessionCreate.mockResolvedValue(DEFAULT_SESSION)
+  // Route .from() calls by table name:
+  //   'vehicles'     → .select(...).eq(...).single()
+  //   'reservations' → .insert(...).select(...).single()
+  mockFrom.mockImplementation((table: string) => {
+    if (table === 'reservations') {
+      return {
+        insert: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({ data: { id: 'res-mock-001' }, error: null }),
+          }),
+        }),
+      }
+    }
+    // Default: vehicles table
+    return {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({ data: DEFAULT_VEHICLE_ROW, error: null }),
+        }),
+      }),
+    }
+  })
 })
 
 // ─── New plan IDs: 'certified' ─────────────────────────────────────────────
@@ -372,5 +407,61 @@ describe('startVehicleCheckout — lock failure', () => {
         depositOnly: true,
       })
     ).rejects.toThrow('Vehicle already reserved')
+  })
+})
+
+// ─── PostgREST scalar boolean lockResult (scalar unwrap) ──────────────────
+
+describe('startVehicleCheckout — scalar boolean lockResult (PostgREST unwrap)', () => {
+  it('succeeds when lockResult is scalar true and fetches vehicle data separately', async () => {
+    mockRpc.mockResolvedValue({ data: true, error: null })
+
+    await startVehicleCheckout({
+      vehicleId: 'veh-001',
+      vehicleName: '2022 Toyota Camry',
+      depositOnly: true,
+    })
+
+    expect(mockSessionCreate).toHaveBeenCalledOnce()
+    expect(mockFrom).toHaveBeenCalledWith('vehicles')
+  })
+
+  it('throws when lockResult is scalar false', async () => {
+    mockRpc.mockResolvedValue({ data: false, error: null })
+
+    await expect(
+      startVehicleCheckout({
+        vehicleId: 'veh-001',
+        vehicleName: '2022 Toyota Camry',
+        depositOnly: true,
+      })
+    ).rejects.toThrow('Vehicle is not available for checkout')
+  })
+
+  it('throws when lockResult is null', async () => {
+    mockRpc.mockResolvedValue({ data: null, error: null })
+
+    await expect(
+      startVehicleCheckout({
+        vehicleId: 'veh-001',
+        vehicleName: '2022 Toyota Camry',
+        depositOnly: true,
+      })
+    ).rejects.toThrow('Vehicle is not available for checkout')
+  })
+
+  it('uses vehicle data from lock object when RPC returns full JSONB (no separate query)', async () => {
+    mockRpc.mockResolvedValue(makeLockResult())
+
+    await startVehicleCheckout({
+      vehicleId: 'veh-001',
+      vehicleName: '2022 Toyota Camry',
+      depositOnly: true,
+    })
+
+    expect(mockSessionCreate).toHaveBeenCalledOnce()
+    // Should NOT call .from('vehicles') when the RPC returns the full object
+    // (it will still call .from('reservations') for depositOnly: true)
+    expect(mockFrom).not.toHaveBeenCalledWith('vehicles')
   })
 })

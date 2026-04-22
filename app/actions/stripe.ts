@@ -21,6 +21,8 @@ interface VehicleCheckoutData {
   protectionPlanId?: string
   depositOnly?: boolean
   customerEmail?: string
+  customerName?: string
+  customerPhone?: string
   licenseStoragePath?: string
   utmSource?: string
   utmMedium?: string
@@ -75,18 +77,61 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
     throw new Error(`Failed to verify vehicle availability: ${lockError.message}`)
   }
 
-  const lock = lockResult as { success: boolean; error?: string; id?: string; year?: number; make?: string; model?: string; price?: number; status?: string }
-  if (!lock?.success) {
-    throw new Error(lock?.error || 'Vehicle is not available for checkout')
-  }
+  // PostgREST may unwrap single-row JSONB returns to a scalar (e.g. `true`
+  // instead of `{success:true, …}`). Handle both formats: the full object
+  // returned by some PostgREST versions and the scalar boolean.
+  const lock = lockResult as
+    | { success: boolean; error?: string; id?: string; year?: number; make?: string; model?: string; price?: number; status?: string }
+    | boolean
+    | null
 
-  const vehicle = {
-    id: lock.id as string,
-    year: lock.year as number,
-    make: lock.make as string,
-    model: lock.model as string,
-    price: lock.price as number,
-    status: lock.status as string,
+  let vehicle: { id: string; year: number; make: string; model: string; price: number; status: string }
+
+  if (typeof lock === 'object' && lock !== null) {
+    if (!lock.success) {
+      throw new Error(lock.error || 'Vehicle is not available for checkout')
+    }
+    // Use the atomically-locked vehicle data from the RPC to preserve price
+    // integrity — the price was read under SELECT … FOR UPDATE.
+    vehicle = {
+      id: lock.id as string,
+      year: lock.year as number,
+      make: lock.make as string,
+      model: lock.model as string,
+      price: lock.price as number,
+      status: lock.status as string,
+    }
+  } else if (lock === true) {
+    // PostgREST unwrapped the JSONB to a scalar boolean — fetch vehicle data
+    // separately as a fallback.
+    const { data: vehicleRow, error: vehicleError } = await adminClient
+      .from('vehicles')
+      .select('id, year, make, model, price, status')
+      .eq('id', data.vehicleId)
+      .single()
+
+    if (vehicleError || !vehicleRow) {
+      throw new Error('Failed to fetch vehicle details after lock')
+    }
+    if (
+      vehicleRow.id == null ||
+      vehicleRow.year == null ||
+      vehicleRow.make == null ||
+      vehicleRow.model == null ||
+      vehicleRow.price == null
+    ) {
+      throw new Error('Vehicle data incomplete after lock')
+    }
+    vehicle = {
+      id: vehicleRow.id as string,
+      year: vehicleRow.year as number,
+      make: vehicleRow.make as string,
+      model: vehicleRow.model as string,
+      price: vehicleRow.price as number,
+      status: vehicleRow.status as string,
+    }
+  } else {
+    throw new Error('Vehicle is not available for checkout')
   }
 
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
@@ -100,6 +145,31 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
       data.customerEmail || 'guest',
     ].join(':'))
     .digest('hex')
+
+  // Create a reservation row so the webhook can find and update it after payment.
+  let reservationId: string | undefined
+  if (data.depositOnly) {
+    const { data: reservation, error: reservationError } = await adminClient
+      .from('reservations')
+      .insert({
+        vehicle_id: data.vehicleId,
+        customer_email: data.customerEmail || null,
+        customer_name: data.customerName || null,
+        customer_phone: data.customerPhone || null,
+        deposit_amount: 25000,
+        deposit_status: 'pending',
+        status: 'pending',
+        expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+        notes: 'Reservation created from web checkout',
+      })
+      .select('id')
+      .single()
+
+    if (reservationError || !reservation) {
+      throw new Error(`Failed to create reservation: ${reservationError?.message || 'unknown error'}`)
+    }
+    reservationId = reservation.id
+  }
 
   lineItems.push({
     price_data: {
@@ -154,6 +224,7 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
       type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
       protectionPlanId: data.protectionPlanId || '',
       amountSource: 'server',
+      ...(reservationId && { reservationId }),
       ...(data.licenseStoragePath && isValidLicensePath(data.licenseStoragePath, data.vehicleId) && { licenseStoragePath: data.licenseStoragePath }),
       ...(data.utmSource && { utm_source: data.utmSource }),
       ...(data.utmMedium && { utm_medium: data.utmMedium }),
@@ -168,6 +239,7 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
         protectionPlanId: data.protectionPlanId || '',
         amountSource: 'server',
         type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
+        ...(reservationId && { reservationId }),
         ...(data.utmSource && { utm_source: data.utmSource }),
         ...(data.utmMedium && { utm_medium: data.utmMedium }),
         ...(data.utmCampaign && { utm_campaign: data.utmCampaign }),

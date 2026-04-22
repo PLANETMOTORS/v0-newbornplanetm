@@ -41,6 +41,8 @@ interface DepositPaymentStepProps {
   vehicleId: string
   vehicleName: string
   customerEmail: string
+  customerName?: string
+  customerPhone?: string
   protectionPlanId: ProtectionPlanId
   licenseStoragePath?: string
 }
@@ -49,6 +51,8 @@ export function DepositPaymentStep({
   vehicleId,
   vehicleName,
   customerEmail,
+  customerName,
+  customerPhone,
   protectionPlanId,
   licenseStoragePath,
 }: DepositPaymentStepProps) {
@@ -63,6 +67,8 @@ export function DepositPaymentStep({
         vehicleName,
         protectionPlanId: protectionPlanId !== "none" ? protectionPlanId : undefined,
         customerEmail: customerEmail || undefined,
+        customerName: customerName || undefined,
+        customerPhone: customerPhone || undefined,
         depositOnly: true,
         ...(licenseStoragePath && { licenseStoragePath }),
         ...(utmParams?.utm_source && { utmSource: utmParams.utm_source }),
@@ -78,7 +84,7 @@ export function DepositPaymentStep({
       setError(message)
       throw err
     }
-  }, [vehicleId, vehicleName, customerEmail, protectionPlanId, licenseStoragePath])
+  }, [vehicleId, vehicleName, customerEmail, customerName, customerPhone, protectionPlanId, licenseStoragePath])
 
   if (!stripeKey) {
     return (

@@ -480,6 +480,8 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
                 vehicleId={vehicle.id}
                 vehicleName={vehicleName}
                 customerEmail={personal.email}
+                customerName={`${personal.firstName} ${personal.lastName}`.trim()}
+                customerPhone={personal.phone}
                 protectionPlanId={protection.selectedPlan as ProtectionPlanId}
                 licenseStoragePath={license.licenseStoragePath}
               />
