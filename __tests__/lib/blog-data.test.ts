@@ -2,8 +2,8 @@
  * Tests for lib/blog-data.ts
  *
  * The PR changes the image path for the "tesla-warranty-used-cars" post:
- *   Before: /images/blog/IMG_1903-2-scaled.png
- *   After:  /images/blog/IMG_1903-2-scaled.jpg
+ *   Before: https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=1200&h=600&fit=crop
+ *   After:  /images/blog/IMG_1903-2-scaled.png
  *
  * Also validates the overall blogPosts data structure to prevent regressions.
  */
