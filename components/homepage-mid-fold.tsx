@@ -2,17 +2,15 @@
 // Includes Shop By Category + 4-Step Process (both below hero fold)
 // to reduce initial JS bundle and improve LCP/TBT
 import Link from "next/link"
-import { ArrowRight, Shield, Car, CheckCircle, Star, Zap, Award, DollarSign, Users, Leaf, Search, CreditCard, FileCheck, Home } from "lucide-react"
+import { ArrowRight, Shield, Car, CheckCircle, Star, Zap, Award, DollarSign, Search, CreditCard, FileCheck, Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-// Shop by category chips
+// Shop by category tiles — 4 tiles, ordered by conversion priority
 const shopByCategories = [
-  { icon: DollarSign, label: "Under $30k", href: "/inventory?maxPrice=30000", iconColor: "text-green-700" },
-  { icon: Car, label: "SUVs", href: "/inventory?bodyType=SUV", iconColor: "text-slate-600" },
   { icon: Zap, label: "Electric", href: "/inventory?fuelType=Electric", iconColor: "text-emerald-500" },
-  { icon: Leaf, label: "Hybrids", href: "/inventory?fuelType=Hybrid", iconColor: "text-teal-500" },
+  { icon: Car, label: "SUVs", href: "/inventory?bodyType=SUV", iconColor: "text-slate-600" },
+  { icon: DollarSign, label: "Under $30k", href: "/inventory?maxPrice=30000", iconColor: "text-green-700" },
   { icon: Star, label: "Luxury", href: "/inventory?category=Luxury", iconColor: "text-amber-500" },
-  { icon: Users, label: "Family", href: "/inventory?category=Family", iconColor: "text-blue-500" },
 ]
 
 // 4-Step Process with colorful icons
@@ -59,13 +57,13 @@ export function HomepageMidFold() {
             </h2>
           </div>
 
-          {/* Grid of 6 Boxes in Single Row */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {/* Grid of 4 Tiles — desktop: single row, tablet: 2×2, mobile: 2×2 */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
             {shopByCategories.map((cat) => (
               <Link
                 key={cat.label}
                 href={cat.href}
-                className="group relative flex flex-col items-center justify-center p-5 bg-white rounded-xl border-2 border-[#e5e7eb] hover:border-[#1e3a8a] hover:bg-[#f0f4ff] transition-all duration-200 hover:shadow-md"
+                className="group relative flex flex-col items-center justify-center aspect-square lg:aspect-[4/5] bg-white rounded-xl border-2 border-[#e5e7eb] hover:border-[#1e3a8a] hover:bg-[#f0f4ff] transition-all duration-200 hover:shadow-md"
               >
                 {/* Popular badge for SUVs */}
                 {cat.label === "SUVs" && (
@@ -83,6 +81,17 @@ export function HomepageMidFold() {
                 </h3>
               </Link>
             ))}
+          </div>
+
+          {/* See all categories link */}
+          <div className="flex justify-end mt-4">
+            <Link
+              href="/inventory"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#1e3a8a] hover:text-[#172554] transition-colors"
+            >
+              See all categories
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>
