@@ -91,7 +91,7 @@ async function fixCmsContent() {
     
     headline: 'Auto Financing Made Simple',
     subheadline: 'Get pre-approved in minutes with competitive rates from multiple lenders.',
-    featuredRateText: '4.99%',
+    featuredRateText: '6.29%',
     rateSubtext: 'as low as',
     
     primaryCta: {

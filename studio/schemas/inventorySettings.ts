@@ -163,7 +163,7 @@ export const inventorySettings = defineType({
         },
       ],
       initialValue: [
-        { label: 'Excellent', minScore: 740, apr: 4.99 },
+        { label: 'Excellent', minScore: 740, apr: 6.29 },
         { label: 'Good', minScore: 670, apr: 6.99 },
         { label: 'Fair', minScore: 580, apr: 12.99 },
         { label: 'Subprime', minScore: 500, apr: 18.99 },

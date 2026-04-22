@@ -774,6 +774,13 @@ export default function VehicleDetailPage() {
           </div>
         </nav>
 
+        {/* VDP H1 — must match generateMetadata title: {year} {make} {model} {trim} */}
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-[84px] pt-4 pb-2">
+          <h1 className="text-[28px] md:text-[40px] font-bold leading-[1.15] md:leading-[1.1] tracking-[-0.01em] md:tracking-[-0.02em]">
+            {vehicle.year} {vehicle.make} {vehicle.model}{vehicle.trim ? ` ${vehicle.trim}` : ''}
+          </h1>
+        </div>
+
         {/* Single Tabs wrapper so Radix links aria-controls correctly */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col gap-0">
           {/* Main Tabs - Mobile Optimized with Scroll Indicator */}
@@ -1972,9 +1979,9 @@ export default function VehicleDetailPage() {
               <Card className="sticky top-20 shadow-lg border-2">
                 <CardContent className="p-6">
                   {/* Vehicle Title */}
-                  <h2 data-testid="vdp-title" className="text-xl font-bold">
+                  <h3 data-testid="vdp-title" className="text-xl font-bold">
                     {vehicle.year} {vehicle.make} {vehicle.model}
-                  </h2>
+                  </h3>
                   <p className="text-muted-foreground text-sm mt-1">
                     {vehicle.trim} · {vehicle.mileage.toLocaleString()} km
                   </p>

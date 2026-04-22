@@ -83,7 +83,7 @@ export default async function FinancingPage() {
                 <span>Rates from {lowestRate}% APR</span>
               </div>
 
-              <h1 className="font-serif text-4xl md:text-5xl font-bold tracking-tight text-balance">
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-balance">
                 Get Pre-Approved for Auto Financing
               </h1>
               <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
@@ -139,7 +139,7 @@ export default async function FinancingPage() {
       <section className="py-16 lg:py-24 bg-card">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="font-serif text-3xl md:text-4xl font-bold">
+            <h2 className="text-3xl md:text-4xl font-bold">
               Multi-Lender Financing
             </h2>
             <p className="mt-4 text-muted-foreground">
@@ -238,7 +238,7 @@ export default async function FinancingPage() {
       <section id="calculator" className="py-16 lg:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="font-serif text-3xl md:text-4xl font-bold">
+            <h2 className="text-3xl md:text-4xl font-bold">
               Financing Calculator
             </h2>
             <p className="mt-4 text-muted-foreground">
@@ -256,7 +256,7 @@ export default async function FinancingPage() {
       <section className="py-16 lg:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="font-serif text-3xl md:text-4xl font-bold">
+            <h2 className="text-3xl md:text-4xl font-bold">
               How It Works
             </h2>
           </div>
