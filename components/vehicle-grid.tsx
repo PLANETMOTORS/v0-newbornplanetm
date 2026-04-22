@@ -165,7 +165,7 @@ function VehicleCard({ vehicle }: VehicleCardProps) {
           {formatMileage(vehicle.mileage)}
         </p>
         <div className="mt-4 flex items-center justify-between">
-          <span className="font-serif text-xl font-semibold text-primary">
+          <span className="text-xl font-semibold text-primary">
             {formatPrice(vehicle.price)}
           </span>
           <Button size="sm" variant="outline" asChild>

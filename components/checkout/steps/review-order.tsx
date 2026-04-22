@@ -93,7 +93,7 @@ export function ReviewOrderStep({
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold mb-1">Review your order</h1>
+        <h1 className="text-2xl font-bold tracking-[-0.01em] mb-1">Review your order</h1>
         <p className="text-muted-foreground">
           Please review all details before finalizing your purchase.
         </p>

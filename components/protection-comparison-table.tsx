@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { CheckCircle, X, Shield, ChevronDown, Sparkles } from "lucide-react"
+import { Fragment, useState } from "react"
+import { CheckCircle, X, Shield, ChevronDown, Sparkles, Star } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -14,12 +14,48 @@ interface ProtectionComparisonTableProps {
   onSelectPackage?: (packageId: string) => void
 }
 
-/* ── Tier gradient configs ── */
-const TIER_STYLES: Record<string, { gradient: string; ring: string; iconBg: string }> = {
-  basic:          { gradient: "from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800", ring: "ring-slate-200 dark:ring-slate-700", iconBg: "bg-slate-200 dark:bg-slate-700" },
-  essential:      { gradient: "from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900", ring: "ring-blue-200 dark:ring-blue-800", iconBg: "bg-blue-100 dark:bg-blue-900" },
-  certified:      { gradient: "from-primary/10 to-primary/20", ring: "ring-primary/40", iconBg: "bg-primary/20" },
-  "certified-plus": { gradient: "from-amber-50 to-amber-100 dark:from-amber-950 dark:to-amber-900", ring: "ring-amber-300 dark:ring-amber-700", iconBg: "bg-amber-100 dark:bg-amber-900" },
+/* ── Tier visual configs ── */
+const TIER_STYLES: Record<string, {
+  headerBg: string; ring: string; iconBg: string; iconColor: string
+  badgeBg: string; badgeText: string; colBg: string; colHoverBg: string
+}> = {
+  basic: {
+    headerBg: "bg-slate-50 dark:bg-slate-900",
+    ring: "ring-slate-200 dark:ring-slate-700",
+    iconBg: "bg-slate-100 dark:bg-slate-800",
+    iconColor: "text-slate-500 dark:text-slate-400",
+    badgeBg: "", badgeText: "",
+    colBg: "", colHoverBg: "",
+  },
+  essential: {
+    headerBg: "bg-blue-50/80 dark:bg-blue-950/50",
+    ring: "ring-blue-200 dark:ring-blue-800",
+    iconBg: "bg-blue-100 dark:bg-blue-900",
+    iconColor: "text-blue-600 dark:text-blue-400",
+    badgeBg: "", badgeText: "",
+    colBg: "bg-blue-50/30 dark:bg-blue-950/20",
+    colHoverBg: "group-hover:bg-blue-50/50 dark:group-hover:bg-blue-950/30",
+  },
+  certified: {
+    headerBg: "bg-primary/5",
+    ring: "ring-primary/30",
+    iconBg: "bg-primary/10",
+    iconColor: "text-primary",
+    badgeBg: "bg-primary",
+    badgeText: "text-white",
+    colBg: "bg-primary/[0.03]",
+    colHoverBg: "group-hover:bg-primary/[0.06]",
+  },
+  "certified-plus": {
+    headerBg: "bg-amber-50/80 dark:bg-amber-950/30",
+    ring: "ring-amber-300/60 dark:ring-amber-700",
+    iconBg: "bg-amber-100 dark:bg-amber-900",
+    iconColor: "text-amber-600 dark:text-amber-500",
+    badgeBg: "bg-gradient-to-r from-amber-500 to-amber-600",
+    badgeText: "text-white",
+    colBg: "bg-amber-50/20 dark:bg-amber-950/10",
+    colHoverBg: "group-hover:bg-amber-50/40 dark:group-hover:bg-amber-950/20",
+  },
 }
 
 function getPaymentMethodLabel(method: ProtectionPackage["paymentMethod"]) {
@@ -99,27 +135,36 @@ function MobilePackageCard({ pkg, index, onSelect }: { pkg: ProtectionPackage; i
 
   return (
     <div
-      className={`rounded-2xl border-2 overflow-hidden animate-in fade-in slide-in-from-bottom-3 ${pkg.highlighted ? "ring-2 ring-primary shadow-lg shadow-primary/10" : `ring-1 ${style.ring}`}`}
+      className={`rounded-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-3 border ${
+        pkg.highlighted
+          ? "border-primary/30 ring-2 ring-primary/20 shadow-lg shadow-primary/10"
+          : "border-border shadow-sm"
+      }`}
       style={{ animationDelay: `${index * 100}ms`, animationFillMode: "both" }}
     >
+      {/* Badge above header */}
+      {pkg.badge && (
+        <div className={`flex justify-center py-1.5 ${
+          pkg.highlighted ? "bg-primary" : "bg-gradient-to-r from-amber-500 to-amber-600"
+        }`}>
+          <span className="text-[11px] font-semibold text-white flex items-center gap-1">
+            {pkg.highlighted && <Star className="w-3 h-3 fill-current" />}
+            {pkg.badge}
+          </span>
+        </div>
+      )}
+
       {/* Header */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className={`w-full p-5 bg-gradient-to-br ${style.gradient} flex items-center justify-between`}
+        className={`w-full p-5 ${style.headerBg} flex items-center justify-between`}
       >
         <div className="flex items-center gap-3">
           <div className={`w-10 h-10 rounded-xl ${style.iconBg} flex items-center justify-center`}>
-            <Shield className="w-5 h-5 text-primary" />
+            <Shield className={`w-5 h-5 ${style.iconColor}`} />
           </div>
           <div className="text-left">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-base">{pkg.name}</span>
-              {pkg.badge && (
-                <Badge className={`text-[10px] px-1.5 py-0 ${pkg.highlighted ? "bg-primary" : "bg-primary/80"}`}>
-                  {pkg.badge}
-                </Badge>
-              )}
-            </div>
+            <span className="font-bold text-base block">{pkg.name}</span>
             <span className="text-xs text-muted-foreground">
               {pkg.priceFrom > 0 ? `From $${pkg.priceFrom.toLocaleString()}` : "No cost"}
             </span>
@@ -134,7 +179,7 @@ function MobilePackageCard({ pkg, index, onSelect }: { pkg: ProtectionPackage; i
         style={{ gridTemplateRows: expanded ? "1fr" : "0fr" }}
       >
         <div className="min-h-0">
-          <div className="p-5 space-y-3 border-t">
+          <div className="p-5 space-y-3 border-t border-border/50">
             {COMPARISON_ROWS.map((row) => (
               <div key={row.key} className="flex items-center justify-between py-1.5">
                 <span className="text-sm text-muted-foreground">{row.label}</span>
@@ -143,7 +188,9 @@ function MobilePackageCard({ pkg, index, onSelect }: { pkg: ProtectionPackage; i
             ))}
             <div className="pt-3">
               <Button
-                className="w-full h-12 text-base font-semibold"
+                className={`w-full h-12 text-base font-semibold ${
+                  pkg.highlighted ? "shadow-md shadow-primary/20" : ""
+                }`}
                 variant={pkg.highlighted ? "default" : "outline"}
                 size="lg"
                 onClick={() => onSelect?.(pkg.id)}
@@ -160,109 +207,126 @@ function MobilePackageCard({ pkg, index, onSelect }: { pkg: ProtectionPackage; i
 }
 
 
-/* ── Desktop comparison table ── */
+/* ── Desktop comparison table — card-column layout ── */
 function DesktopTable({ onSelect }: { onSelect?: (id: string) => void }) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-border shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <table className="w-full border-collapse min-w-[800px]">
-        {/* ── Tier headers ── */}
-        <thead>
-          <tr>
-            <th className="text-left p-5 w-[240px] bg-muted/40 align-bottom border-b border-border">
-              <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Features</span>
-            </th>
-            {PROTECTION_PACKAGES.map((pkg, i) => {
-              const style = TIER_STYLES[pkg.id] || TIER_STYLES.basic
-              return (
-                <th key={pkg.id} className={`text-center align-bottom relative border-b border-border ${pkg.highlighted ? "bg-primary/5" : ""}`}>
-                  {pkg.badge && (
-                    <div
-                      className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10 animate-in fade-in slide-in-from-top-2"
-                      style={{ animationDelay: `${300 + i * 100}ms`, animationFillMode: "both" }}
-                    >
-                      <Badge className={`text-[10px] px-2.5 py-0.5 shadow-md ${pkg.highlighted ? "bg-primary" : "bg-primary/80"}`}>
-                        {pkg.badge}
-                      </Badge>
-                    </div>
-                  )}
-                  <div
-                    className={`p-5 pb-4 bg-gradient-to-b ${style.gradient} rounded-t-xl mx-1 mt-1 animate-in fade-in slide-in-from-bottom-2`}
-                    style={{ animationDelay: `${100 + i * 80}ms`, animationFillMode: "both" }}
-                  >
-                    <div className={`w-10 h-10 rounded-xl ${style.iconBg} flex items-center justify-center mx-auto mb-2`}>
-                      <Shield className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="font-bold text-base">{pkg.name}</div>
-                    <div className="text-[11px] text-muted-foreground mt-0.5">
-                      {pkg.id === "basic" ? "Cash buyers" :
-                       pkg.paymentMethod === "finance" ? "Finance buyers" :
-                       "Cash & finance"}
-                    </div>
-                    {pkg.priceFrom > 0 && (
-                      <div className="mt-2">
-                        <span className="text-2xl font-bold">${pkg.priceFrom.toLocaleString()}</span>
-                        <span className="text-[10px] text-muted-foreground block">starting from</span>
-                      </div>
-                    )}
-                    {pkg.priceFrom === 0 && (
-                      <div className="mt-2">
-                        <span className="text-lg font-semibold text-muted-foreground">No cost</span>
-                      </div>
-                    )}
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Use CSS grid so badge overflow is never clipped */}
+      <div className="grid grid-cols-[220px_repeat(4,1fr)] gap-0 min-w-[840px]">
+
+        {/* ── Column headers ── */}
+        {/* Label column header */}
+        <div className="flex items-end pb-6 pr-4">
+          <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Features</span>
+        </div>
+
+        {/* Package column headers */}
+        {PROTECTION_PACKAGES.map((pkg, i) => {
+          const style = TIER_STYLES[pkg.id] || TIER_STYLES.basic
+          return (
+            <div
+              key={pkg.id}
+              className={`relative text-center px-2 pb-0 animate-in fade-in slide-in-from-bottom-2`}
+              style={{ animationDelay: `${100 + i * 80}ms`, animationFillMode: "both" }}
+            >
+              {/* Badge — sits above the card, never clipped */}
+              {pkg.badge && (
+                <div className="flex justify-center mb-2">
+                  <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-3 py-1 rounded-full shadow-sm ${
+                    pkg.highlighted
+                      ? "bg-primary text-primary-foreground shadow-primary/25"
+                      : "bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-amber-500/25"
+                  }`}>
+                    {pkg.highlighted && <Star className="w-3 h-3 fill-current" />}
+                    {pkg.badge}
+                  </span>
+                </div>
+              )}
+              {/* Spacer when no badge so cards align */}
+              {!pkg.badge && <div className="h-[30px]" />}
+
+              {/* Card header */}
+              <div className={`rounded-2xl ${style.headerBg} border ${
+                pkg.highlighted ? "border-primary/30 shadow-lg shadow-primary/10 ring-1 ring-primary/20" : "border-border"
+              } p-5 pb-4`}>
+                <div className={`w-11 h-11 rounded-xl ${style.iconBg} flex items-center justify-center mx-auto mb-3`}>
+                  <Shield className={`w-5 h-5 ${style.iconColor}`} />
+                </div>
+                <div className="font-bold text-[15px] leading-tight">{pkg.name}</div>
+                <div className="text-[11px] text-muted-foreground mt-1">
+                  {pkg.id === "basic" ? "Cash buyers" :
+                   pkg.paymentMethod === "finance" ? "Finance buyers" :
+                   "Cash & finance"}
+                </div>
+                {pkg.priceFrom > 0 ? (
+                  <div className="mt-3">
+                    <span className="text-2xl font-bold tracking-tight">${pkg.priceFrom.toLocaleString()}</span>
+                    <span className="text-[10px] text-muted-foreground block mt-0.5">starting from</span>
                   </div>
-                </th>
-              )
-            })}
-          </tr>
-        </thead>
+                ) : (
+                  <div className="mt-3">
+                    <span className="text-xl font-semibold text-muted-foreground">No cost</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })}
 
         {/* ── Feature rows ── */}
-        <tbody>
-          {COMPARISON_ROWS.map((row, i) => (
-            <tr
-              key={row.key}
-              className={`group transition-colors hover:bg-muted/40 animate-in fade-in ${i % 2 === 0 ? "bg-muted/20" : "bg-background"}`}
-              style={{ animationDelay: `${300 + i * 30}ms`, animationFillMode: "both" }}
+        {COMPARISON_ROWS.map((row, ri) => (
+          <Fragment key={row.key}>
+            {/* Label cell */}
+            <div
+              className={`flex items-center text-sm font-medium text-foreground px-1 py-3.5 border-b border-border/40 ${ri === 0 ? "mt-4 border-t border-border/40" : ""}`}
             >
-              <td className="p-4 pl-5 text-sm font-medium text-foreground border-r border-border/50">{row.label}</td>
-              {PROTECTION_PACKAGES.map((pkg) => (
-                <td key={pkg.id} className={`p-4 text-center transition-colors ${pkg.highlighted ? "bg-primary/[0.03] group-hover:bg-primary/[0.06]" : ""}`}>
-                  <CellValue pkg={pkg} rowKey={row.key} />
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
+              {row.label}
+            </div>
 
-        {/* ── CTA footer ── */}
-        <tfoot>
-          <tr className="border-t-2 border-border">
-            <td className="p-5 bg-muted/40" />
-            {PROTECTION_PACKAGES.map((pkg, i) => (
-              <td key={pkg.id} className={`p-5 text-center ${pkg.highlighted ? "bg-primary/5" : ""}`}>
+            {/* Value cells */}
+            {PROTECTION_PACKAGES.map((pkg) => {
+              const style = TIER_STYLES[pkg.id] || TIER_STYLES.basic
+              return (
                 <div
-                  className="animate-in fade-in slide-in-from-bottom-2"
-                  style={{ animationDelay: `${500 + i * 100}ms`, animationFillMode: "both" }}
+                  key={`${row.key}-${pkg.id}`}
+                  className={`group flex items-center justify-center text-center py-3.5 px-2 border-b border-border/40 transition-colors ${style.colBg} ${style.colHoverBg} ${ri === 0 ? "mt-4 border-t border-border/40" : ""} ${
+                    pkg.highlighted ? "bg-primary/[0.02]" : ""
+                  }`}
                 >
-                  <Button
-                    className={`w-full h-12 text-sm font-semibold transition-all duration-200 ${
-                      pkg.highlighted
-                        ? "shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02]"
-                        : "hover:scale-[1.02]"
-                    }`}
-                    variant={pkg.highlighted ? "default" : "outline"}
-                    size="lg"
-                    onClick={() => onSelect?.(pkg.id)}
-                  >
-                    {pkg.id === "basic" ? "No Protection" : "Select Package"}
-                    {pkg.highlighted && <Sparkles className="w-4 h-4 ml-1.5" />}
-                  </Button>
+                  <CellValue pkg={pkg} rowKey={row.key} />
                 </div>
-              </td>
-            ))}
-          </tr>
-        </tfoot>
-      </table>
+              )
+            })}
+          </Fragment>
+        ))}
+
+        {/* ── CTA footer row ── */}
+        <div className="pt-5" />
+        {PROTECTION_PACKAGES.map((pkg, i) => {
+          const style = TIER_STYLES[pkg.id] || TIER_STYLES.basic
+          return (
+            <div
+              key={`cta-${pkg.id}`}
+              className={`pt-5 px-2 animate-in fade-in slide-in-from-bottom-2 ${style.colBg}`}
+              style={{ animationDelay: `${500 + i * 100}ms`, animationFillMode: "both" }}
+            >
+              <Button
+                className={`w-full h-11 text-sm font-semibold transition-all duration-200 ${
+                  pkg.highlighted
+                    ? "shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.01]"
+                    : "hover:scale-[1.01]"
+                }`}
+                variant={pkg.highlighted ? "default" : "outline"}
+                size="lg"
+                onClick={() => onSelect?.(pkg.id)}
+              >
+                {pkg.id === "basic" ? "No Protection" : "Select Package"}
+                {pkg.highlighted && <Sparkles className="w-4 h-4 ml-1.5" />}
+              </Button>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -271,8 +335,8 @@ function DesktopTable({ onSelect }: { onSelect?: (id: string) => void }) {
 export function ProtectionComparisonTable({ onSelectPackage }: ProtectionComparisonTableProps) {
   return (
     <>
-      {/* Desktop: full comparison table */}
-      <div className="hidden md:block">
+      {/* Desktop: full comparison grid — overflow-x-auto with visible y for badges */}
+      <div className="hidden md:block overflow-x-auto overflow-y-visible">
         <DesktopTable onSelect={onSelectPackage} />
       </div>
 

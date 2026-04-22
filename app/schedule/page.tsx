@@ -59,7 +59,7 @@ export default function SchedulePage() {
             <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 className="w-10 h-10 text-green-600" />
             </div>
-            <h1 className="text-3xl font-serif font-bold mb-4">Appointment Confirmed!</h1>
+            <h1 className="text-3xl font-bold tracking-[-0.01em] mb-4">Appointment Confirmed!</h1>
             <p className="text-muted-foreground mb-8">
               We&apos;ve sent a confirmation email with all the details. Our team will contact you shortly 
               to confirm your appointment.
@@ -104,7 +104,7 @@ export default function SchedulePage() {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
+              <h1 className="text-3xl font-bold tracking-[-0.01em] text-foreground mb-2">
                 Schedule a Test Drive
               </h1>
               <p className="text-muted-foreground">

@@ -102,7 +102,7 @@ export default function ClutchGuideCanadaPage() {
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
               <Badge className="bg-teal-500 text-white mb-4">Complete Guide</Badge>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] mb-6">
                 Clutch Guide Canada
               </h1>
               <p className="text-xl md:text-2xl text-teal-100 mb-8">

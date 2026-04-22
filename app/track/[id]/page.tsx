@@ -111,7 +111,7 @@ export default function DeliveryTrackingPage({ params }: { params: Promise<{ id:
       <div className="min-h-screen bg-background">
         <Header />
         <main id="main-content" tabIndex={-1} className="container mx-auto px-4 py-16 text-center">
-          <h1 className="text-2xl font-bold mb-4">Delivery Not Found</h1>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] mb-4">Delivery Not Found</h1>
           <p className="text-muted-foreground mb-6">
             We couldn&apos;t find a delivery with order ID: {id}
           </p>
@@ -150,7 +150,7 @@ export default function DeliveryTrackingPage({ params }: { params: Promise<{ id:
               Order: {delivery.orderId}
             </span>
           </div>
-          <h1 className="text-2xl font-bold">{delivery.vehicleName}</h1>
+          <h1 className="text-2xl font-bold tracking-[-0.01em]">{delivery.vehicleName}</h1>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">

@@ -470,7 +470,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
   <div className="py-8 border-b border-border">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div>
-                <h1 className="font-serif text-3xl md:text-4xl font-bold">
+                <h1 className="text-3xl md:text-4xl font-bold tracking-[-0.01em]">
                   Vehicle Inventory
                 </h1>
                 <p className="mt-2 text-muted-foreground flex items-center gap-2">

@@ -368,7 +368,7 @@ export default function AccountPage() {
           <div className="container mx-auto px-4 max-w-md">
             <Card>
               <CardHeader className="text-center">
-                <CardTitle className="text-2xl font-serif">Welcome Back</CardTitle>
+                <CardTitle className="text-2xl">Welcome Back</CardTitle>
                 <CardDescription>Sign in to your Planet Motors account</CardDescription>
               </CardHeader>
               <CardContent>
@@ -526,7 +526,7 @@ export default function AccountPage() {
       <main id="main-content" tabIndex={-1} className="pt-32 pb-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-serif font-bold mb-8">My Account</h1>
+            <h1 className="text-3xl font-bold tracking-[-0.01em] mb-8">My Account</h1>
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8">
               {/* Sidebar */}

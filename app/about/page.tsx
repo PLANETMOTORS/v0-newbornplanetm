@@ -64,7 +64,7 @@ export default function AboutPage() {
         <section className="bg-primary py-20">
           <div className="container mx-auto px-4 text-center">
             <Badge className="mb-4 bg-accent text-accent-foreground">Serving Canadians Since 2015</Badge>
-            <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] text-primary-foreground mb-4">
               Fairness &amp; Integrity
             </h1>
             <p className="text-xl text-primary-foreground/80 max-w-3xl mx-auto">

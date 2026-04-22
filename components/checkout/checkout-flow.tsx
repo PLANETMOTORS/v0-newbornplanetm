@@ -282,7 +282,7 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4 max-w-md px-4">
           <AlertCircle className="w-12 h-12 text-destructive mx-auto" />
-          <h1 className="text-xl font-bold">Vehicle not found</h1>
+          <h1 className="text-xl font-bold tracking-[-0.01em]">Vehicle not found</h1>
           <p className="text-muted-foreground">
             {vehicleError || "This vehicle may no longer be available."}
           </p>

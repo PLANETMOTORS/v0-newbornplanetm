@@ -93,7 +93,7 @@ export default function TeslaPage() {
                   <Zap className="w-3 h-3 mr-1" />
                   Tesla Specialist
                 </Badge>
-                <h1 className="text-4xl lg:text-5xl font-bold mb-6">
+                <h1 className="text-4xl lg:text-5xl font-bold tracking-[-0.01em] lg:tracking-[-0.02em] mb-6">
                   Used Tesla Vehicles in Ontario
                 </h1>
                 <p className="text-xl text-gray-300 mb-8 leading-relaxed">

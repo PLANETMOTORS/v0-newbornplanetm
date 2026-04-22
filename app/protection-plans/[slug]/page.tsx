@@ -112,7 +112,7 @@ export default async function ProtectionProductPage({ params }: { params: Promis
             <span>/</span>
             <Link href="/protection-plans" className="hover:text-foreground transition-colors">Protection Plans</Link>
             <span>/</span>
-            <span className="text-foreground font-medium">{product.shortName}</span>
+            <span className="text-foreground font-semibold">{product.shortName}</span>
           </nav>
         </div>
 
@@ -122,10 +122,10 @@ export default async function ProtectionProductPage({ params }: { params: Promis
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
                 <Badge variant="secondary" className="mb-4">PlanetCare Protection</Badge>
-                <h1 className="font-serif text-4xl md:text-5xl font-semibold text-balance">
+                <h1 className="text-4xl md:text-5xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] text-balance">
                   {product.name}
                 </h1>
-                <p className="mt-3 text-xl text-primary-foreground/90 font-medium">
+                <p className="mt-3 text-xl text-primary-foreground/90 font-semibold">
                   {product.tagline}
                 </p>
                 <p className="mt-6 text-primary-foreground/75 text-lg leading-relaxed max-w-xl">
@@ -158,7 +158,7 @@ export default async function ProtectionProductPage({ params }: { params: Promis
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="text-center mb-12">
               <Badge variant="outline" className="mb-4">Simple Process</Badge>
-              <h2 className="font-serif text-3xl md:text-4xl font-semibold">How It Works</h2>
+              <h2 className="text-3xl md:text-4xl font-bold">How It Works</h2>
               <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
                 Getting protected is easy. Here&apos;s how {product.shortName} works in three simple steps.
               </p>
@@ -166,7 +166,7 @@ export default async function ProtectionProductPage({ params }: { params: Promis
             <div className="grid md:grid-cols-3 gap-8">
               {product.howItWorks.map((step) => (
                 <div key={step.step} className="relative text-center">
-                  <div className="w-16 h-16 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl font-bold font-serif">
+                  <div className="w-16 h-16 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl font-bold">
                     {step.step}
                   </div>
                   {step.step < product.howItWorks.length && (
@@ -185,7 +185,7 @@ export default async function ProtectionProductPage({ params }: { params: Promis
           <div className="mx-auto max-w-5xl px-6 lg:px-8">
             <div className="text-center mb-12">
               <Badge variant="outline" className="mb-4">Coverage Details</Badge>
-              <h2 className="font-serif text-3xl md:text-4xl font-semibold">What&apos;s Covered</h2>
+              <h2 className="text-3xl md:text-4xl font-bold">What&apos;s Covered</h2>
               <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
                 Transparent coverage details so you know exactly what&apos;s included.
               </p>
@@ -241,7 +241,7 @@ export default async function ProtectionProductPage({ params }: { params: Promis
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
               <div className="text-center mb-12">
                 <Badge variant="outline" className="mb-4">Detailed Coverage</Badge>
-                <h2 className="font-serif text-3xl md:text-4xl font-semibold">
+                <h2 className="text-3xl md:text-4xl font-bold">
                   Component-Level Coverage
                 </h2>
                 <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
@@ -256,7 +256,7 @@ export default async function ProtectionProductPage({ params }: { params: Promis
                       <div className="flex items-center gap-3">
                         <span className="text-2xl" role="img" aria-label={cat.category}>{cat.icon}</span>
                         <h3 className="font-semibold text-lg">{cat.category}</h3>
-                        <span className="ml-auto text-xs text-muted-foreground bg-primary/10 px-2 py-0.5 rounded-full font-medium">
+                        <span className="ml-auto text-xs text-muted-foreground bg-primary/10 px-2 py-0.5 rounded-full font-semibold">
                           {cat.components.length} parts
                         </span>
                       </div>
@@ -279,21 +279,21 @@ export default async function ProtectionProductPage({ params }: { params: Promis
               <div className="mt-10 bg-primary/5 rounded-2xl border p-6 md:p-8">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
                   <div>
-                    <div className="text-3xl font-bold text-primary font-serif">
+                    <div className="text-3xl font-bold text-primary">
                       {WARRANTY_COVERAGE_MATRIX.reduce((sum, cat) => sum + cat.components.length, 0)}+
                     </div>
                     <div className="text-sm text-muted-foreground mt-1">Covered Components</div>
                   </div>
                   <div>
-                    <div className="text-3xl font-bold text-primary font-serif">{WARRANTY_COVERAGE_MATRIX.length}</div>
+                    <div className="text-3xl font-bold text-primary">{WARRANTY_COVERAGE_MATRIX.length}</div>
                     <div className="text-sm text-muted-foreground mt-1">System Categories</div>
                   </div>
                   <div>
-                    <div className="text-3xl font-bold text-primary font-serif">$0</div>
+                    <div className="text-3xl font-bold text-primary">$0</div>
                     <div className="text-sm text-muted-foreground mt-1">Deductible Option</div>
                   </div>
                   <div>
-                    <div className="text-3xl font-bold text-primary font-serif">24/7</div>
+                    <div className="text-3xl font-bold text-primary">24/7</div>
                     <div className="text-sm text-muted-foreground mt-1">Roadside Assistance</div>
                   </div>
                 </div>
@@ -307,7 +307,7 @@ export default async function ProtectionProductPage({ params }: { params: Promis
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="text-center mb-12">
               <Badge variant="outline" className="mb-4">Why Choose This</Badge>
-              <h2 className="font-serif text-3xl md:text-4xl font-semibold">Key Benefits</h2>
+              <h2 className="text-3xl md:text-4xl font-bold">Key Benefits</h2>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {product.benefits.map((benefit) => (
@@ -328,7 +328,7 @@ export default async function ProtectionProductPage({ params }: { params: Promis
           <div className="mx-auto max-w-3xl px-6 lg:px-8">
             <div className="text-center mb-12">
               <Badge variant="outline" className="mb-4">FAQ</Badge>
-              <h2 className="font-serif text-3xl md:text-4xl font-semibold">
+              <h2 className="text-3xl md:text-4xl font-bold">
                 Frequently Asked Questions
               </h2>
               <p className="mt-4 text-muted-foreground">
@@ -342,7 +342,7 @@ export default async function ProtectionProductPage({ params }: { params: Promis
                   value={`faq-${index}`}
                   className="bg-background rounded-xl border px-6 data-[state=open]:shadow-sm"
                 >
-                  <AccordionTrigger className="text-left hover:no-underline py-5 text-base font-medium">
+                  <AccordionTrigger className="text-left hover:no-underline py-5 text-base font-semibold">
                     {faq.question}
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground pb-5 leading-relaxed">
@@ -358,7 +358,7 @@ export default async function ProtectionProductPage({ params }: { params: Promis
         <section className="py-16 lg:py-24">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="text-center mb-12">
-              <h2 className="font-serif text-3xl md:text-4xl font-semibold">
+              <h2 className="text-3xl md:text-4xl font-bold">
                 Explore More Protection
               </h2>
               <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
@@ -394,7 +394,7 @@ export default async function ProtectionProductPage({ params }: { params: Promis
         {/* Final CTA */}
         <section className="py-16 lg:py-24 bg-primary text-primary-foreground">
           <div className="mx-auto max-w-4xl px-6 lg:px-8 text-center">
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Ready to Protect Your Vehicle?
             </h2>
             <p className="text-primary-foreground/80 text-lg mb-8 max-w-2xl mx-auto">

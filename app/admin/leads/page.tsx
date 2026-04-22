@@ -155,7 +155,7 @@ export default function AdminLeadsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Leads & Inquiries</h1>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">Leads & Inquiries</h1>
           <p className="text-sm text-gray-500">All customer inquiries from contact form, Anna chat, finance apps, and more</p>
         </div>
         <Button variant="outline" size="sm" onClick={fetchLeads}>

@@ -127,7 +127,7 @@ export default function EVBatteryHealthPage() {
                 <BatteryCharging className="h-4 w-4 mr-1" />
                 Certified EV Battery Analysis
               </Badge>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground mb-6">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] text-primary-foreground mb-6">
                 EV Battery Health Reports
               </h1>
               <p className="text-xl text-primary-foreground/80 mb-8 max-w-2xl mx-auto">

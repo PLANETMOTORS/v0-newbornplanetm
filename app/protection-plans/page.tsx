@@ -145,7 +145,7 @@ export default function ProtectionPlansPage() {
             <Badge variant="secondary" className="mb-6 text-xs tracking-wider uppercase px-4 py-1.5 shadow-lg">
               PlanetCare Protection
             </Badge>
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold max-w-4xl mx-auto text-balance leading-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] max-w-4xl mx-auto text-balance leading-tight">
               Drive with confidence.{" "}
               <span className="text-primary-foreground/90">We&apos;ve got you covered.</span>
             </h1>
@@ -190,7 +190,7 @@ export default function ProtectionPlansPage() {
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="text-center mb-14">
               <Badge variant="outline" className="mb-4 text-xs">Choose Your Package</Badge>
-              <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold">
                 Compare Protection Packages
               </h2>
               <p className="mt-4 text-muted-foreground max-w-2xl mx-auto text-base md:text-lg">
@@ -215,7 +215,7 @@ export default function ProtectionPlansPage() {
         <section className="py-16 lg:py-24">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="text-center mb-14">
-              <h2 className="font-serif text-3xl md:text-4xl font-bold">
+              <h2 className="text-3xl md:text-4xl font-bold">
                 Why Choose PlanetCare
               </h2>
               <p className="mt-4 text-muted-foreground max-w-xl mx-auto">
@@ -247,7 +247,7 @@ export default function ProtectionPlansPage() {
           <div className="mx-auto max-w-3xl px-6 lg:px-8">
             <div className="text-center mb-12">
               <Badge variant="outline" className="mb-4 text-xs tracking-wider uppercase">FAQ</Badge>
-              <h2 className="font-serif text-3xl md:text-4xl font-bold">
+              <h2 className="text-3xl md:text-4xl font-bold">
                 Frequently Asked Questions
               </h2>
               <p className="mt-3 text-muted-foreground">

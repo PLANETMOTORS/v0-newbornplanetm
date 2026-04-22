@@ -108,7 +108,7 @@ export default function AdminDashboard() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">Dashboard</h1>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
           {[1,2,3,4,5,6].map(i => (
@@ -148,7 +148,7 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">Dashboard</h1>
           <p className="text-sm text-gray-500">Real-time overview of Planet Motors operations</p>
         </div>
         <Button variant="outline" size="sm" onClick={fetchDashboard}>

@@ -74,7 +74,7 @@ export function BlogPageContent() {
       <section className="py-12 lg:py-16 bg-muted/30">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-10">
-            <h1 className="font-serif text-4xl md:text-5xl font-semibold">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-[-0.01em] md:tracking-[-0.02em]">
               Planet Motors Blog
             </h1>
             <p className="mt-4 text-lg text-muted-foreground">
@@ -115,7 +115,7 @@ export function BlogPageContent() {
       {featuredPost && (
         <section className="py-12 lg:py-16">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <h2 className="font-semibold text-xl mb-6">Featured Article</h2>
+            <h2 className="font-bold text-xl mb-6">Featured Article</h2>
 
             <Link href={`/blog/${featuredPost.slug}`} className="group">
               <Card className="overflow-hidden hover:shadow-lg transition-shadow">
@@ -133,7 +133,7 @@ export function BlogPageContent() {
                     <Badge variant="secondary" className="w-fit mb-4">
                       {featuredPost.category}
                     </Badge>
-                    <h3 className="font-serif text-2xl md:text-3xl font-semibold mb-4 group-hover:text-primary transition-colors">
+                    <h3 className="text-2xl md:text-3xl font-semibold mb-4 group-hover:text-primary transition-colors">
                       {featuredPost.title}
                     </h3>
                     <p className="text-muted-foreground mb-6">
@@ -160,7 +160,7 @@ export function BlogPageContent() {
       {/* Posts Grid */}
       <section className="py-12 lg:py-16">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <h2 className="font-semibold text-xl mb-8">
+          <h2 className="font-bold text-xl mb-8">
             {selectedCategory === "All" ? "All Articles" : selectedCategory}
             <span className="text-muted-foreground font-normal ml-2 text-base">
               ({filteredPosts.length} {filteredPosts.length === 1 ? "article" : "articles"})
@@ -255,7 +255,7 @@ export function BlogPageContent() {
       {/* Newsletter CTA */}
       <section className="py-16 lg:py-24">
         <div className="mx-auto max-w-3xl px-6 lg:px-8 text-center">
-          <h2 className="font-serif text-3xl font-semibold mb-4">Stay Updated</h2>
+          <h2 className="text-3xl font-bold mb-4">Stay Updated</h2>
           <p className="text-muted-foreground mb-8">
             Subscribe to our newsletter for the latest car buying tips, industry news, and exclusive deals.
           </p>

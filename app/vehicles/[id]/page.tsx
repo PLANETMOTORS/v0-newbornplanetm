@@ -1303,7 +1303,7 @@ export default function VehicleDetailPage() {
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full border-4 border-primary flex items-center justify-center">
                       <span className="text-2xl font-bold text-primary">{vehicleData.inspectionScore}</span>
                     </div>
-                    <h2 className="font-serif text-2xl font-bold">210-Point Inspection</h2>
+                    <h2 className="text-2xl font-bold">210-Point Inspection</h2>
                     <p className="text-muted-foreground mt-2 max-w-md mx-auto">
                       This vehicle has been carefully inspected and reconditioned to ensure it meets our high safety and performance standards.
                     </p>
@@ -1612,7 +1612,7 @@ export default function VehicleDetailPage() {
 
                 {/* Pricing Tab */}
                 <TabsContent value="pricing" className="mt-0 space-y-6">
-                  <h2 className="font-serif text-2xl font-bold text-center">Price Details</h2>
+                  <h2 className="text-2xl font-bold text-center">Price Details</h2>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Pay Over Time - Includes $895 Finance Docs Fee */}

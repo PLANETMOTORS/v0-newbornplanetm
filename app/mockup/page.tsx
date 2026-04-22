@@ -162,7 +162,7 @@ export default function HomepageMockupV2() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Hero Text */}
             <div className="text-center lg:text-left">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 text-gray-900">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] leading-tight mb-6 text-gray-900">
                 Buy Your Next Vehicle
                 <span className="block text-[#1e3a8a]">
                   With Confidence

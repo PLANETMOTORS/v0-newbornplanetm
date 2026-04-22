@@ -152,7 +152,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
 
             {/* ── Vehicles ── */}
             <div>
-              <p className="font-serif text-base font-semibold text-white mb-5 tracking-tight">Vehicles</p>
+              <p className="text-base font-semibold text-white mb-5 tracking-tight">Vehicles</p>
               <ul className="space-y-1">
                 {footerLinks.vehicles.map((link) => (
                   <li key={link.name}>
@@ -166,7 +166,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
 
             {/* ── Services ── */}
             <div>
-              <p className="font-serif text-base font-semibold text-white mb-5 tracking-tight">Services</p>
+              <p className="text-base font-semibold text-white mb-5 tracking-tight">Services</p>
               <ul className="space-y-1">
                 {footerLinks.services.map((link) => (
                   <li key={link.name}>
@@ -180,7 +180,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
 
             {/* ── Company ── */}
             <div>
-              <p className="font-serif text-base font-semibold text-white mb-5 tracking-tight">Company</p>
+              <p className="text-base font-semibold text-white mb-5 tracking-tight">Company</p>
               <ul className="space-y-1">
                 {footerLinks.company.map((link) => (
                   <li key={link.name}>
@@ -194,7 +194,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
 
             {/* ── Legal ── */}
             <div>
-              <p className="font-serif text-base font-semibold text-white mb-5 tracking-tight">Legal</p>
+              <p className="text-base font-semibold text-white mb-5 tracking-tight">Legal</p>
               <ul className="space-y-1">
                 {footerLinks.legal.map((link) => (
                   <li key={link.name}>

@@ -139,7 +139,7 @@ export default function FAQPage() {
         {/* Hero Section */}
         <section className="bg-primary py-16">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] text-primary-foreground mb-4">
               Frequently Asked Questions
             </h1>
             <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto mb-8">

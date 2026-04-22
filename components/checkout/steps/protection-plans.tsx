@@ -230,7 +230,7 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: ProtectionPl
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold mb-1">
+        <h1 className="text-2xl font-bold tracking-[-0.01em] mb-1">
           <Shield className="w-7 h-7 inline-block mr-2 text-blue-600 align-text-bottom" aria-hidden="true" />
           PlanetCare Protection
         </h1>

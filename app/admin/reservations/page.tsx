@@ -127,7 +127,7 @@ export default function AdminReservationsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Reservations & Deposits</h1>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">Reservations & Deposits</h1>
           <p className="text-sm text-gray-500">Track vehicle reservations and deposit payments</p>
         </div>
         <Button variant="outline" size="sm" onClick={fetchReservations}>

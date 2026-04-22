@@ -263,7 +263,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                 </Badge>
                 
                 {/* H1 with local intent - Critical for SEO */}
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-balance">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.01em] lg:tracking-[-0.02em] mb-4 text-balance">
                   {currentYear} {makeFormatted} {modelFormatted} for Sale in Richmond Hill, ON
                 </h1>
                 

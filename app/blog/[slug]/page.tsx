@@ -133,7 +133,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10 lg:p-16">
             <div className="mx-auto max-w-4xl">
               <Badge className="mb-4">{post.category}</Badge>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-[-0.01em] lg:tracking-[-0.02em] text-white mb-4 leading-tight">
                 {post.title}
               </h1>
               <div className="flex flex-wrap items-center gap-4 text-white/80 text-sm">

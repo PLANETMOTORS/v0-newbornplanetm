@@ -79,7 +79,7 @@ export default function CareersPage() {
               <Briefcase className="w-3 h-3 mr-1" />
               We are Hiring
             </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] text-primary-foreground mb-4">
               Join the Planet Motors Team
             </h1>
             <p className="text-xl text-primary-foreground/80 max-w-3xl mx-auto">
