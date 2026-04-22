@@ -67,7 +67,6 @@ describe('tesla-warranty-used-cars post (image path change in PR)', () => {
     const post = blogPosts['tesla-warranty-used-cars']
     expect(post.image.endsWith('.jpg')).toBe(false)
   })
-  })
 
   it('has the correct title', () => {
     const post = blogPosts['tesla-warranty-used-cars']
