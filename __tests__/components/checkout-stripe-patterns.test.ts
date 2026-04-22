@@ -324,7 +324,7 @@ describe('fetchClientSecret logic', () => {
 
     // In the component: customerEmail: primaryApplicant.email || undefined
     // empty string coerces to undefined
-    const emptyEmail = '' as string
+    const emptyEmail = ''
     const customerEmail = emptyEmail || undefined
 
     const fetchClientSecret = makeFetchClientSecret({
