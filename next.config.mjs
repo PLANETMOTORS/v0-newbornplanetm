@@ -57,6 +57,17 @@ const nextConfig = {
     ],
   },
 
+  // SEO redirects — consolidate old URLs to canonical paths
+  async redirects() {
+    return [
+      {
+        source: '/warranty',
+        destination: '/protection-plans/extended-warranty',
+        permanent: true,
+      },
+    ]
+  },
+
   // Rewrite /sitemap.xml to the API route handler (works locally + Vercel)
   async rewrites() {
     return [
