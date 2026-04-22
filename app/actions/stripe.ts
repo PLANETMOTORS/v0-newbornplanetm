@@ -19,6 +19,7 @@ interface VehicleCheckoutData {
   protectionPlanId?: string
   depositOnly?: boolean
   customerEmail?: string
+  licenseStoragePath?: string
   utmSource?: string
   utmMedium?: string
   utmCampaign?: string
@@ -147,6 +148,7 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
       depositOnly: String(data.depositOnly || false),
       protectionPlanId: data.protectionPlanId || '',
       amountSource: 'server',
+      ...(data.licenseStoragePath && { licenseStoragePath: data.licenseStoragePath }),
       ...(data.utmSource && { utm_source: data.utmSource }),
       ...(data.utmMedium && { utm_medium: data.utmMedium }),
       ...(data.utmCampaign && { utm_campaign: data.utmCampaign }),

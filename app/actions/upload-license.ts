@@ -116,7 +116,8 @@ export async function uploadDriversLicense(formData: FormData): Promise<UploadLi
   // Best-effort: link the license to an existing reservation if one exists.
   // In the normal checkout flow, the reservation row may not exist yet at
   // step 5 (license upload) — it gets created later during deposit payment.
-  // The webhook will also store the path when it processes the payment.
+  // The storagePath is returned to the client and passed through Stripe
+  // session metadata so the webhook can persist it on the reservation.
   const { data: targetRow, error: selectError } = await supabase
     .from('reservations')
     .select('id')

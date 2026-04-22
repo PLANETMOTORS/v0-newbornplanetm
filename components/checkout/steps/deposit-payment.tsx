@@ -42,6 +42,7 @@ interface DepositPaymentStepProps {
   vehicleName: string
   customerEmail: string
   protectionPlanId: ProtectionPlanId
+  licenseStoragePath?: string
 }
 
 export function DepositPaymentStep({
@@ -49,6 +50,7 @@ export function DepositPaymentStep({
   vehicleName,
   customerEmail,
   protectionPlanId,
+  licenseStoragePath,
 }: DepositPaymentStepProps) {
   const [error, setError] = useState("")
   const depositAmount = 250
@@ -62,6 +64,7 @@ export function DepositPaymentStep({
         protectionPlanId: protectionPlanId !== "none" ? protectionPlanId : undefined,
         customerEmail: customerEmail || undefined,
         depositOnly: true,
+        ...(licenseStoragePath && { licenseStoragePath }),
         ...(utmParams?.utm_source && { utmSource: utmParams.utm_source }),
         ...(utmParams?.utm_medium && { utmMedium: utmParams.utm_medium }),
         ...(utmParams?.utm_campaign && { utmCampaign: utmParams.utm_campaign }),
@@ -75,7 +78,7 @@ export function DepositPaymentStep({
       setError(message)
       throw err
     }
-  }, [vehicleId, vehicleName, customerEmail, protectionPlanId])
+  }, [vehicleId, vehicleName, customerEmail, protectionPlanId, licenseStoragePath])
 
   if (!stripeKey) {
     return (

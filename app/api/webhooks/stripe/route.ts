@@ -161,6 +161,8 @@ export async function handleCheckoutSessionCompleted(
     if (session.metadata?.utm_content) utmData.utm_content = session.metadata.utm_content
     if (session.metadata?.utm_term) utmData.utm_term = session.metadata.utm_term
 
+    const licenseStoragePath = session.metadata?.licenseStoragePath || null
+
     const { error: reservationError } = await supabase
       .from('reservations')
       .update({
@@ -169,6 +171,7 @@ export async function handleCheckoutSessionCompleted(
         stripe_checkout_session_id: session.id,
         updated_at: new Date().toISOString(),
         ...utmData,
+        ...(licenseStoragePath && { license_storage_path: licenseStoragePath }),
       })
       .eq('id', reservationId)
 
