@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: "Trade-In Your Vehicle | Planet Motors - Instant Online Offer",
   description: "Get an instant trade-in offer for your vehicle. No obligation, no hidden fees. Apply your trade-in value toward your next purchase at Planet Motors. VIN or plate lookup available.",
   keywords: [
-    "trade in car Ontario",
+    "trade in car Canada",
     "vehicle trade-in value",
     "sell my car Canada",
     "instant trade-in offer",

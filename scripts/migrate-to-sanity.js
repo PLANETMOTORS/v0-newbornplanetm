@@ -106,7 +106,7 @@ const faqs = [
     _type: 'faqItem',
     _id: 'faq-3',
     question: 'What financing options do you offer?',
-    answer: 'We work with over 30 lenders including major banks like TD, RBC, Scotiabank, BMO, and CIBC. We offer rates starting from 4.79% APR with terms up to 96 months. We specialize in helping customers with all credit situations.',
+    answer: 'We work with over 30 lenders including major banks like TD, RBC, Scotiabank, BMO, and CIBC. We offer rates starting from 6.29% APR with terms up to 96 months. We specialize in helping customers with all credit situations.',
     category: 'financing',
     order: 3,
   },
@@ -158,7 +158,7 @@ const lenders = [
   { _type: 'lender', _id: 'lender-scotiabank', name: 'Scotiabank', interestRate: 5.29, maxTerm: 84, featured: true, order: 3 },
   { _type: 'lender', _id: 'lender-bmo', name: 'BMO', interestRate: 5.99, maxTerm: 72, featured: true, order: 4 },
   { _type: 'lender', _id: 'lender-cibc', name: 'CIBC', interestRate: 5.49, maxTerm: 84, featured: true, order: 5 },
-  { _type: 'lender', _id: 'lender-desjardins', name: 'Desjardins', interestRate: 4.79, maxTerm: 96, featured: true, order: 6 },
+  { _type: 'lender', _id: 'lender-desjardins', name: 'Desjardins', interestRate: 6.29, maxTerm: 96, featured: true, order: 6 },
 ];
 
 const homepage = {
@@ -197,7 +197,7 @@ const financingPage = {
   heroSection: {
     headline: 'Get Pre-Approved in Minutes',
     subheadline: 'Access rates from 30+ lenders. No impact on your credit score.',
-    featuredRate: '4.79%',
+    featuredRate: '6.29%',
     rateSubtext: 'Rates as low as',
     primaryCta: { label: 'Apply Now', url: '/financing/apply' },
     secondaryCta: { label: 'Calculate Payment', url: '#calculator' },

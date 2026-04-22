@@ -3,6 +3,7 @@
 import Link from "next/link"
 import dynamic from "next/dynamic"
 import { ArrowRight } from "lucide-react"
+import { RATE_FLOOR } from "@/lib/rates"
 import { HeroImageServer } from "@/components/hero-image-server"
 
 // Code-split heavy below-fold sections into separate chunks.
@@ -117,9 +118,9 @@ export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProp
               </h1>
 
               <p className="mt-6 text-base sm:text-lg text-gray-600 max-w-lg mx-auto lg:mx-0 min-h-[3rem] sm:min-h-[3.5rem]">
-                Ontario&apos;s #1 certified pre-owned marketplace.
+                Aviloo-certified used EVs.
                 <br className="hidden sm:block" />
-                <span className="font-semibold text-gray-800">210-point inspected.</span> Delivered to your door.
+                <span className="font-semibold text-gray-800">210-point inspected.</span> Canada-wide delivery.
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row items-center gap-6 justify-center lg:justify-start min-h-[3.5rem] sm:min-h-[3rem]">
@@ -171,7 +172,7 @@ export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProp
 
               {/* Floating Badge */}
               <div className="absolute top-4 right-4 bg-[#dc2626] text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg z-10">
-                Low Rates Available
+                From {RATE_FLOOR}% APR
               </div>
             </div>
           </div>

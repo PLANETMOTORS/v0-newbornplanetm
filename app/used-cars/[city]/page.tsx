@@ -366,7 +366,7 @@ export default function CityLandingPage() {
                 <h3>Electric Vehicles in {city.name}</h3>
                 <p>
                   With rising fuel costs and environmental awareness, more {city.name} residents are switching 
-                  to electric vehicles. Planet Motors offers the largest selection of certified pre-owned EVs 
+                  to electric vehicles. Planet Motors offers a wide selection of certified pre-owned EVs
                   in Canada, including Tesla, Porsche Taycan, BMW i4, and more. Every EV includes a detailed 
                   battery health report so you know exactly what you&apos;re buying.
                 </p>

@@ -22,14 +22,14 @@ export async function generateMetadata({ params }: { params: Promise<{ make: str
   
   return {
     title: `${currentYear} ${makeFormatted} ${modelFormatted} for Sale in Richmond Hill, ON | Planet Motors`,
-    description: `Browse our selection of certified pre-owned ${makeFormatted} ${modelFormatted} vehicles in Richmond Hill, Ontario. 210-point inspection, 10-day money-back guarantee, and financing available. Visit Planet Motors today!`,
+    description: `Browse our selection of certified pre-owned ${makeFormatted} ${modelFormatted} vehicles at Planet Motors, Richmond Hill. 210-point inspection, 10-day money-back guarantee, and financing available. Canada-wide delivery.`,
     keywords: [
       `${makeFormatted} ${modelFormatted} for sale`,
-      `used ${makeFormatted} ${modelFormatted} Ontario`,
+      `used ${makeFormatted} ${modelFormatted} Canada`,
       `${makeFormatted} ${modelFormatted} Richmond Hill`,
       `certified pre-owned ${makeFormatted}`,
       `${makeFormatted} dealer Toronto`,
-      `${modelFormatted} financing Ontario`
+      `${modelFormatted} financing Canada`
     ],
     openGraph: {
       title: `${currentYear} ${makeFormatted} ${modelFormatted} for Sale | Planet Motors Richmond Hill`,
@@ -57,7 +57,7 @@ const modelData: Record<string, Record<string, {
   toyota: {
     'rav4': {
       tagline: "Canada&apos;s Best-Selling SUV - Now Available at Planet Motors",
-      description: "Experience the perfect blend of versatility and efficiency with the Toyota RAV4. Built for Canadian winters and Ontario roads, the RAV4 delivers exceptional fuel economy, spacious interior, and Toyota&apos;s legendary reliability.",
+      description: "Experience the perfect blend of versatility and efficiency with the Toyota RAV4. Built for Canadian winters, the RAV4 delivers exceptional fuel economy, spacious interior, and Toyota&apos;s legendary reliability.",
       startingPrice: 32990,
       mpg: { city: 8.4, highway: 6.8 },
       seating: 5,
@@ -69,8 +69,8 @@ const modelData: Record<string, Record<string, {
         { name: "Mazda CX-5", price: 33490, mpg: 8.1, safety: 5 }
       ],
       faqs: [
-        { question: "What is the towing capacity of a Toyota RAV4?", answer: "The Toyota RAV4 has a towing capacity of up to 1,500 kg (3,500 lbs) when properly equipped, making it suitable for small trailers, boats, and recreational equipment for Ontario cottage trips." },
-        { question: "Is the Toyota RAV4 good for Ontario winters?", answer: "Yes! The RAV4&apos;s available All-Wheel Drive system, combined with excellent ground clearance and Toyota&apos;s stability control, makes it an excellent choice for navigating snowy Ontario roads and harsh Canadian winters." },
+        { question: "What is the towing capacity of a Toyota RAV4?", answer: "The Toyota RAV4 has a towing capacity of up to 1,500 kg (3,500 lbs) when properly equipped, making it suitable for small trailers, boats, and recreational equipment for Canadian cottage trips." },
+        { question: "Is the Toyota RAV4 good for Canadian winters?", answer: "Yes! The RAV4&apos;s available All-Wheel Drive system, combined with excellent ground clearance and Toyota&apos;s stability control, makes it an excellent choice for navigating snowy Canadian roads and harsh winters." },
         { question: "What is the fuel economy of the RAV4?", answer: "The Toyota RAV4 achieves approximately 8.4 L/100km in city driving and 6.8 L/100km on the highway. The RAV4 Hybrid model offers even better efficiency at 5.8 L/100km combined." }
       ],
       winterReady: true,
@@ -78,7 +78,7 @@ const modelData: Record<string, Record<string, {
     },
     'camry': {
       tagline: "The Benchmark Sedan - Reliability Meets Refinement",
-      description: "The Toyota Camry sets the standard for mid-size sedans with its perfect balance of comfort, efficiency, and reliability. Available in hybrid configuration for maximum fuel savings on your Ontario commute.",
+      description: "The Toyota Camry sets the standard for mid-size sedans with its perfect balance of comfort, efficiency, and reliability. Available in hybrid configuration for maximum fuel savings on your daily commute.",
       startingPrice: 29990,
       mpg: { city: 8.1, highway: 5.6 },
       seating: 5,
@@ -90,7 +90,7 @@ const modelData: Record<string, Record<string, {
         { name: "Hyundai Sonata", price: 28990, mpg: 7.8, safety: 5 }
       ],
       faqs: [
-        { question: "Is the Toyota Camry available in hybrid?", answer: "Yes! The Camry Hybrid offers exceptional fuel economy of just 4.8 L/100km combined, making it one of the most fuel-efficient sedans available in Ontario." },
+        { question: "Is the Toyota Camry available in hybrid?", answer: "Yes! The Camry Hybrid offers exceptional fuel economy of just 4.8 L/100km combined, making it one of the most fuel-efficient sedans available in Canada." },
         { question: "What safety features come standard on the Camry?", answer: "Every Camry includes Toyota Safety Sense 3.0 with Pre-Collision System, Lane Departure Alert, Dynamic Radar Cruise Control, and Automatic High Beams as standard equipment." },
         { question: "How reliable is the Toyota Camry?", answer: "The Camry consistently ranks as one of the most reliable vehicles in its class, with many examples exceeding 300,000 km with proper maintenance. Toyota&apos;s reputation for longevity makes the Camry an excellent value." }
       ],
@@ -100,7 +100,7 @@ const modelData: Record<string, Record<string, {
   },
   honda: {
     'civic': {
-      tagline: "Canada&apos;s #1 Car - More Powerful and Efficient Than Ever",
+      tagline: "Canada&apos;s Best-Selling Car - More Powerful and Efficient Than Ever",
       description: "The Honda Civic has been Canada&apos;s best-selling car for over two decades. Built right here in Ontario, the Civic delivers unmatched value, efficiency, and driving enjoyment for GTA commuters and families alike.",
       startingPrice: 26990,
       mpg: { city: 7.7, highway: 5.9 },
@@ -122,7 +122,7 @@ const modelData: Record<string, Record<string, {
     },
     'cr-v': {
       tagline: "The Family-Friendly SUV Built for Canadian Adventures",
-      description: "The Honda CR-V combines spacious versatility with Honda&apos;s legendary reliability. Perfect for Ontario families, the CR-V offers excellent cargo space, available hybrid powertrain, and a comfortable ride for long cottage trips.",
+      description: "The Honda CR-V combines spacious versatility with Honda&apos;s legendary reliability. Perfect for Canadian families, the CR-V offers excellent cargo space, available hybrid powertrain, and a comfortable ride for long cottage trips.",
       startingPrice: 34990,
       mpg: { city: 8.4, highway: 6.9 },
       seating: 5,
@@ -135,7 +135,7 @@ const modelData: Record<string, Record<string, {
       ],
       faqs: [
         { question: "How much cargo space does the CR-V have?", answer: "The CR-V offers 1,110 litres of cargo space behind the rear seats, expanding to 2,166 litres with the rear seats folded. This makes it one of the most spacious compact SUVs available." },
-        { question: "Is the Honda CR-V good in snow?", answer: "Absolutely! The CR-V&apos;s Real Time AWD system automatically distributes power to the wheels with the most traction, making it excellent for Ontario&apos;s snowy winters and icy conditions." },
+        { question: "Is the Honda CR-V good in snow?", answer: "Absolutely! The CR-V&apos;s Real Time AWD system automatically distributes power to the wheels with the most traction, making it excellent for Canadian snowy winters and icy conditions." },
         { question: "Is there a hybrid CR-V available?", answer: "Yes, the CR-V Hybrid combines a 2.0L engine with dual electric motors for a combined 204 hp while achieving approximately 6.5 L/100km combined fuel economy." }
       ],
       winterReady: true,
@@ -555,7 +555,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                   <li className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
                     <div>
-                      <p className="font-semibold">Serving Ontario Since 2015</p>
+                      <p className="font-semibold">Serving Canada Since 2015</p>
                       <p className="text-muted-foreground">10+ years of trusted service in Richmond Hill</p>
                     </div>
                   </li>

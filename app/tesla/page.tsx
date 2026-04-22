@@ -15,11 +15,11 @@ import {
 } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "Used Tesla Ontario | Model 3, Model Y, Model S, Model X | Planet Motors",
-  description: "Shop certified pre-owned Tesla vehicles in Ontario. Model 3, Model Y, Model S & Model X with battery health reports. 210-point inspection, financing available. 4.8 Star Rating.",
-  keywords: "used Tesla Ontario, Tesla Model Y Canada, Tesla Model 3 used, Tesla Model S used, Tesla Model X used, buy Tesla Ontario, Tesla dealership Toronto",
+  title: "Used Tesla Canada | Model 3, Model Y, Model S, Model X | Planet Motors",
+  description: "Shop certified pre-owned Tesla vehicles in Canada. Model 3, Model Y, Model S & Model X with battery health reports. 210-point inspection, financing available. 4.8 Star Rating.",
+  keywords: "used Tesla Canada, Tesla Model Y Canada, Tesla Model 3 used, Tesla Model S used, Tesla Model X used, buy Tesla Canada, Tesla dealership Toronto",
   openGraph: {
-    title: "Used Tesla Ontario | Planet Motors",
+    title: "Used Tesla Canada | Planet Motors",
     description: "Certified pre-owned Tesla with battery health reports. Model 3, Y, S, X available.",
     url: "https://www.planetmotors.ca/tesla",
     type: "website",
@@ -94,7 +94,7 @@ export default function TeslaPage() {
                   Tesla Specialist
                 </Badge>
                 <h1 className="text-4xl lg:text-5xl font-bold tracking-[-0.01em] lg:tracking-[-0.02em] mb-6">
-                  Used Tesla Vehicles in Ontario
+                  Used Tesla Vehicles in Canada
                 </h1>
                 <p className="text-xl text-gray-300 mb-8 leading-relaxed">
                   Shop certified pre-owned Tesla Model 3, Model Y, Model S & Model X. 

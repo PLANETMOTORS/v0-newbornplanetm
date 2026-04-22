@@ -79,14 +79,14 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="text-3xl font-bold text-gray-900">Why Choose {siteSettings.dealerName}?</h2>
-            <p className="text-gray-600 mt-3">Industry-leading standards that set us apart</p>
+            <p className="text-gray-600 mt-3">The standards that set us apart</p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {([
               { icon: CheckCircle, title: "210-Point Inspection", description: "Every vehicle passes our comprehensive inspection with full transparency reports." },
               { icon: Battery, title: "EV Battery Health", description: "Exclusive Aviloo battery certification for EVs - know exactly what you're getting.", href: "/aviloo" },
               { icon: RotateCw, title: "10-Day Returns", description: "Not satisfied? Return your vehicle within 10 days, no questions asked." },
-              { icon: Truck, title: "Ontario-Wide Delivery", description: "Get your vehicle delivered anywhere in Ontario with our convenient delivery service." },
+              { icon: Truck, title: "Canada-Wide Delivery", description: "Get your vehicle delivered anywhere in Canada with our convenient delivery service." },
             ] as { icon: typeof CheckCircle; title: string; description: string; href?: string }[]).map((feature) => {
               const content = (
                 <div className="text-center p-6 rounded-xl bg-white hover:shadow-md transition-shadow h-full">
@@ -260,7 +260,7 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
                 <BadgeCheck className="w-8 h-8 text-white mb-4" />
                 <h3 className="font-semibold text-white">Licensed</h3>
                 <p className="text-sm text-white mt-1">OMVIC Registered</p>
-                <p className="text-sm text-white">Ontario Dealer</p>
+                <p className="text-sm text-white">Canadian Dealer</p>
               </div>
             </div>
           </div>
