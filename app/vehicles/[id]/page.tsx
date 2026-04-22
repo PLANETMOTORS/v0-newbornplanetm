@@ -774,6 +774,13 @@ export default function VehicleDetailPage() {
           </div>
         </nav>
 
+        {/* VDP H1 — SEO & accessibility: one H1 per page */}
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-[84px] pt-4 pb-2">
+          <h1 className="text-[28px] md:text-[40px] font-bold tracking-[-0.01em] md:tracking-[-0.02em] leading-tight">
+            {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim}
+          </h1>
+        </div>
+
         {/* Single Tabs wrapper so Radix links aria-controls correctly */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col gap-0">
           {/* Main Tabs - Mobile Optimized with Scroll Indicator */}
@@ -1662,7 +1669,7 @@ export default function VehicleDetailPage() {
                         <CardTitle className="text-sm text-muted-foreground">PAY ONCE (CASH)</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-3xl font-bold">${vehicle.price.toLocaleString()}</p>
+                        <p className="text-3xl font-bold tabular-nums">${vehicle.price.toLocaleString()}</p>
                         <p className="text-xs text-muted-foreground mt-1">As-is price · No Finance Docs Fee</p>
                         <div className="flex items-center gap-2 text-sm text-primary mt-2">
                           <Truck className="w-4 h-4" />
@@ -1972,16 +1979,16 @@ export default function VehicleDetailPage() {
               <Card className="sticky top-20 shadow-lg border-2">
                 <CardContent className="p-6">
                   {/* Vehicle Title */}
-                  <h2 data-testid="vdp-title" className="text-xl font-bold">
+                  <p data-testid="vdp-title" className="text-xl font-bold">
                     {vehicle.year} {vehicle.make} {vehicle.model}
-                  </h2>
+                  </p>
                   <p className="text-muted-foreground text-sm mt-1">
                     {vehicle.trim} · {vehicle.mileage.toLocaleString()} km
                   </p>
 
                   {/* Price */}
-                  <p className="text-3xl font-bold mt-5">${vehicle.price.toLocaleString()}</p>
-                  <div className="flex items-center gap-2 text-sm mt-2">
+                  <p className="text-3xl font-bold mt-5 tabular-nums">${vehicle.price.toLocaleString()}</p>
+                  <div className="flex items-center gap-2 text-sm mt-2 tabular-nums">
                     <span>Estimated <span className="font-semibold">${biweeklyPayment}/biweekly</span></span>
                     <span className="text-muted-foreground">·</span>
                     <span className="text-muted-foreground">$0 down</span>

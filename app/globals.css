@@ -77,7 +77,6 @@
 
 @theme inline {
   --font-sans: var(--font-inter), 'Inter', system-ui, sans-serif;
-  --font-serif: var(--font-playfair), 'Playfair Display', Georgia, serif;
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -138,6 +137,11 @@
   /* Typography: loosen default 14px line-height from 20px → 22px */
   .text-sm {
     line-height: 1.575; /* 14px × 1.575 ≈ 22px */
+  }
+
+  /* Tabular numerals — prices, rates, km stay column-aligned */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
   
   /* Fix for mobile horizontal scroll */

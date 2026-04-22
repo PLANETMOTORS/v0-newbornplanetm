@@ -29,7 +29,7 @@ const processSteps = [
     color: "bg-green-500",
     title: "Get Pre-Approved",
     description: "Apply for financing in minutes with 20+ lending partners. Get competitive rates without affecting your credit.",
-    features: ["Soft Credit Check", "No Credit Impact", "Rates from 4.99%", "Instant Decision"],
+    features: ["Soft Credit Check", "No Credit Impact", "Rates from 6.29%", "Instant Decision"],
   },
   {
     icon: FileCheck,
