@@ -224,18 +224,38 @@ export async function handleCheckoutSessionCompleted(
     if (session.metadata?.utm_content) utmData.utm_content = session.metadata.utm_content
     if (session.metadata?.utm_term) utmData.utm_term = session.metadata.utm_term
 
+    const licenseStoragePathFromCheckout = session.metadata?.licenseStoragePath || null
+
     const { error: orderError } = await supabase
       .from('orders')
       .update({
         status: 'confirmed',
         updated_at: new Date().toISOString(),
         ...utmData,
+        ...(licenseStoragePathFromCheckout && { license_storage_path: licenseStoragePathFromCheckout }),
       })
       .eq('vehicle_id', vehicleId)
       .eq('status', 'created')
 
     if (orderError) {
       throw new Error(`Failed to confirm order for vehicle ${vehicleId}: ${orderError.message}`)
+    }
+
+    // Best-effort: also link license to any matching reservation
+    if (licenseStoragePathFromCheckout && session.customer_email) {
+      const { error: resLinkError } = await supabase
+        .from('reservations')
+        .update({
+          license_storage_path: licenseStoragePathFromCheckout,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('vehicle_id', vehicleId)
+        .eq('customer_email', session.customer_email.toLowerCase())
+        .in('status', ['pending', 'confirmed'])
+
+      if (resLinkError) {
+        console.error(`[webhook] Best-effort reservation license link failed for ${vehicleId}:`, resLinkError.message)
+      }
     }
 
     const { data: transitioned, error: vehicleError } = await supabase

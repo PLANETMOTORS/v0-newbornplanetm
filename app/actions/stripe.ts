@@ -5,6 +5,14 @@ import type Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+const LICENSE_PATH_PATTERN = /^[a-zA-Z0-9_-]+\/\d+_license\.(jpg|png|webp|pdf)$/
+
+function isValidLicensePath(path: string, vehicleId: string): boolean {
+  if (!LICENSE_PATH_PATTERN.test(path)) return false
+  const sanitizedVehicleId = vehicleId.replace(/[^a-zA-Z0-9_-]/g, '_')
+  return path.startsWith(`${sanitizedVehicleId}/`)
+}
+
 const PROTECTION_PLANS: Record<string, { name: string; priceInCents: number }> = {
   'essential': { name: 'PlanetCare Essential', priceInCents: 195000 },
   'smart': { name: 'PlanetCare Smart', priceInCents: 300000 },
@@ -148,7 +156,7 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
       depositOnly: String(data.depositOnly || false),
       protectionPlanId: data.protectionPlanId || '',
       amountSource: 'server',
-      ...(data.licenseStoragePath && { licenseStoragePath: data.licenseStoragePath }),
+      ...(data.licenseStoragePath && isValidLicensePath(data.licenseStoragePath, data.vehicleId) && { licenseStoragePath: data.licenseStoragePath }),
       ...(data.utmSource && { utm_source: data.utmSource }),
       ...(data.utmMedium && { utm_medium: data.utmMedium }),
       ...(data.utmCampaign && { utm_campaign: data.utmCampaign }),
