@@ -28,7 +28,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { SocialProof } from "@/components/social-proof"
 import { useFavorites } from "@/contexts/favorites-context"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
-import { RATE_FLOOR, RATE_FLOOR_DISPLAY, DEFAULT_TERM_MONTHS } from "@/lib/rates"
+import { RATE_FLOOR, RATE_FLOOR_DISPLAY, DEFAULT_TERM_MONTHS, FINANCE_ADMIN_FEE, calculateBiweeklyPayment } from "@/lib/rates"
 import { toast } from "sonner"
 import {
   Dialog,
@@ -627,18 +627,12 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   const activeIndex = currentImageIndex
 
 
-  // Finance calculation: Vehicle Price + $895 Admin Fee (Finance Docs Set-up)
-  const FINANCE_ADMIN_FEE = 895
+  // Finance calculation — delegates to lib/rates.ts (CI-guarded)
   const safePrice = safeNum(vehicle.price)
   const financeSubtotal = safePrice + FINANCE_ADMIN_FEE
   const financeTax = financeSubtotal * PROVINCE_TAX_RATES.ON.hst
   const financeTotal = financeSubtotal + financeTax
-  // Amortized bi-weekly payment using standard formula (matches rate-disclosure.tsx)
-  const monthlyRate = RATE_FLOOR / 100 / 12
-  const monthlyPayment = monthlyRate === 0
-    ? financeTotal / DEFAULT_TERM_MONTHS
-    : financeTotal * (monthlyRate * Math.pow(1 + monthlyRate, DEFAULT_TERM_MONTHS)) / (Math.pow(1 + monthlyRate, DEFAULT_TERM_MONTHS) - 1)
-  const biweeklyPayment = Math.round(monthlyPayment * 12 / 26)
+  const biweeklyPayment = calculateBiweeklyPayment(safePrice, RATE_FLOOR, DEFAULT_TERM_MONTHS, PROVINCE_TAX_RATES.ON.hst)
 
   return (
     <div className="min-h-screen bg-background">
