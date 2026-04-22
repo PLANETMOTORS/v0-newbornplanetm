@@ -1,8 +1,11 @@
 /**
  * Tests for lib/blog-data.ts
  *
- * Validates the blogPosts data structure to prevent regressions.
- * The "tesla-warranty-used-cars" post uses a local .jpg image.
+ * The PR changes the image path for the "tesla-warranty-used-cars" post:
+ *   Before: https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=1200&h=600&fit=crop
+ *   After:  /images/blog/IMG_1903-2-scaled.jpg
+ *
+ * Also validates the overall blogPosts data structure to prevent regressions.
  */
 
 import { describe, it, expect } from 'vitest'
@@ -45,9 +48,24 @@ describe('tesla-warranty-used-cars post (image path change in PR)', () => {
     expect(blogPosts['tesla-warranty-used-cars']).toBeDefined()
   })
 
-  it('uses the local .jpg image', () => {
+  it('uses the self-hosted image', () => {
     const post = blogPosts['tesla-warranty-used-cars']
     expect(post.image).toBe('/images/blog/IMG_1903-2-scaled.jpg')
+  })
+
+  it('does NOT use the old external Unsplash URL', () => {
+    const post = blogPosts['tesla-warranty-used-cars']
+    expect(post.image).not.toMatch(/unsplash/)
+  })
+
+  it('ends with a valid image extension', () => {
+    const post = blogPosts['tesla-warranty-used-cars']
+    expect(post.image).toMatch(/\.(jpg|png|webp)$/)
+  })
+
+  it('is a local path, not an external URL', () => {
+    const post = blogPosts['tesla-warranty-used-cars']
+    expect(post.image.startsWith('/images/')).toBe(true)
   })
 
   it('has the correct title', () => {
@@ -66,10 +84,10 @@ describe('tesla-warranty-used-cars post (image path change in PR)', () => {
   })
 })
 
-describe('blogPosts — all images use local paths', () => {
-  it('every image starts with /images/', () => {
+describe('blogPosts — no post uses external image URLs', () => {
+  it('no post uses an external URL for its image', () => {
     for (const [slug, post] of Object.entries(blogPosts)) {
-      expect(post.image, `post "${slug}" should use local image`).toMatch(/^\/images\//)
+      expect(post.image, `post "${slug}" still uses an external URL`).toMatch(/^\/images\//)
     }
   })
 })
