@@ -1,3 +1,5 @@
+// DEPRECATED: The primary sitemap is now served by app/sitemap.ts (Next.js native MetadataRoute.Sitemap).
+// This API route is kept for backwards compatibility and can be removed once confirmed unnecessary.
 import { NextResponse } from 'next/server'
 import { getPublicSiteUrl } from '@/lib/site-url'
 import {
