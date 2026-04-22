@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
+import { safeNum } from "@/lib/pricing/format"
 import { createClient } from "@/lib/supabase/client"
 
 // Fetcher for featured vehicles
@@ -100,7 +101,7 @@ interface DbVehicle {
 }
 
 function transformToShowcase(v: DbVehicle) {
-  const priceInDollars = v.price / 100
+  const priceInDollars = safeNum(v.price) / 100
   
   // Determine badge
   let badge = "PM Certified"
@@ -124,7 +125,7 @@ function transformToShowcase(v: DbVehicle) {
     id: v.id,
     name: `${v.year} ${v.make} ${v.model} ${v.trim || ''}`.trim(),
     price: `$${priceInDollars.toLocaleString()}`,
-    monthlyPayment: `$${Math.round(priceInDollars / 84).toLocaleString()}`,
+    monthlyPayment: `$${(priceInDollars > 0 ? Math.round(priceInDollars / 84) : 0).toLocaleString()}`,
     image,
     mileage: `${v.mileage.toLocaleString()} km`,
     fuel: v.fuel_type || "Gasoline",

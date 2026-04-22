@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
 import { Car, Loader2, X } from "lucide-react"
 import type { VehicleInfo, TradeInInfo, FinancingTerms, FinancingResult } from "./types"
+import { safeNum } from "@/lib/pricing/format"
 
 interface VehicleFinancingFormProps {
   vehicleInfo: VehicleInfo
@@ -85,7 +86,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
       trim: vehicle.trim || "",
       color: vehicle.exterior_color || "",
       mileage: vehicle.mileage?.toString() || "",
-      totalPrice: (vehicle.price / 100).toString(), // Convert from cents
+      totalPrice: (safeNum(vehicle.price) / 100).toString(), // Convert from cents
     })
     setShowInventoryModal(false)
   }
@@ -164,7 +165,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                       </div>
                       <div className="text-right">
                         <p className="font-semibold text-primary tabular-nums" title="Price estimate — final all-in price confirmed at signing per OMVIC regulations">
-                          ${(vehicle.price / 100).toLocaleString()}*
+                          ${(safeNum(vehicle.price) / 100).toLocaleString()}*
                         </p>
                         <span className="inline-block mt-1 text-xs font-semibold text-primary">Select →</span>
                       </div>

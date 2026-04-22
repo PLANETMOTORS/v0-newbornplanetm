@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Shield, Clock, CheckCircle, ArrowLeft, Home } from "lucide-react"
 import { FinanceApplicationFullForm } from "@/components/finance-application-full-form"
 import { createClient } from "@/lib/supabase/server"
+import { safeNum } from "@/lib/pricing/format"
 
 export const metadata: Metadata = {
   title: "Finance Application | Planet Motors",
@@ -29,7 +30,7 @@ async function getVehicleData(vehicleId: string | undefined) {
         make: data.make,
         model: data.model,
         trim: data.trim || "",
-        price: data.price / 100, // Convert from cents
+        price: safeNum(data.price) / 100, // Convert from cents
         vin: data.vin || "",
         mileage: data.mileage || 0,
         color: data.exterior_color || "",

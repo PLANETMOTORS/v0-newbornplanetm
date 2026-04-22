@@ -37,7 +37,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { trackProductView, trackPhoneClick } from "@/components/analytics/google-tag-manager"
-import { calculateAllInPrice } from "@/lib/pricing/format"
+import { calculateAllInPrice, safeNum } from "@/lib/pricing/format"
 import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
 import { trackMetaViewContent, trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
 
@@ -555,7 +555,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   const handleShare = async () => {
     const shareUrl = typeof window !== "undefined" ? window.location.href : ""
     const shareTitle = `${vehicle.year} ${vehicle.make} ${vehicle.model} at Planet Motors`
-    const shareText = `Check out this ${vehicle.year} ${vehicle.make} ${vehicle.model} for $${vehicle.price.toLocaleString()}.`
+    const shareText = `Check out this ${vehicle.year} ${vehicle.make} ${vehicle.model} for $${safeNum(vehicle.price).toLocaleString()}.`
 
     try {
       if (navigator.share) {
@@ -628,7 +628,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
 
   // Finance calculation: Vehicle Price + $895 Admin Fee (Finance Docs Set-up)
   const FINANCE_ADMIN_FEE = 895
-  const financeSubtotal = vehicle.price + FINANCE_ADMIN_FEE
+  const safePrice = safeNum(vehicle.price)
+  const financeSubtotal = safePrice + FINANCE_ADMIN_FEE
   const financeTax = financeSubtotal * PROVINCE_TAX_RATES.ON.hst
   const financeTotal = financeSubtotal + financeTax
   const biweeklyPayment = Math.round(financeTotal / 208) // 8 years bi-weekly (26 payments x 8)
@@ -1541,7 +1542,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <div className="mt-3 space-y-1 text-xs text-muted-foreground tabular-nums">
                           <div className="flex justify-between">
                             <span>Vehicle Price</span>
-                            <span>${vehicle.price.toLocaleString()}</span>
+                            <span>${safeNum(vehicle.price).toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between text-primary font-semibold">
                             <span>Finance Docs Fee</span>
@@ -1575,7 +1576,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <CardTitle className="text-sm text-muted-foreground">PAY ONCE (CASH)</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-3xl font-bold tabular-nums">${vehicle.price.toLocaleString()}</p>
+                        <p className="text-3xl font-bold tabular-nums">${safeNum(vehicle.price).toLocaleString()}</p>
                         <p className="text-xs text-muted-foreground mt-1">As-is price · No Finance Docs Fee</p>
                         <div className="flex items-center gap-2 text-sm text-primary mt-2">
                           <Truck className="w-4 h-4" />
@@ -1628,7 +1629,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                     <CardContent className="space-y-2 tabular-nums">
                       <div className="flex justify-between py-2 border-b">
                         <span>Vehicle Price</span>
-                        <span className="font-semibold">${vehicle.price.toLocaleString()}</span>
+                        <span className="font-semibold">${safeNum(vehicle.price).toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between py-2 border-b">
                         <span>HST ({(PROVINCE_TAX_RATES.ON.hst * 100).toFixed(0)}%)</span>
@@ -1893,7 +1894,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                   </p>
 
                   {/* Price */}
-                  <p className="text-3xl font-bold mt-5 tabular-nums">${vehicle.price.toLocaleString()}</p>
+                  <p className="text-3xl font-bold mt-5 tabular-nums">${safeNum(vehicle.price).toLocaleString()}</p>
                   <div className="flex items-center gap-2 text-sm mt-2 tabular-nums">
                     <span>Estimated <span className="font-semibold">${biweeklyPayment}/biweekly</span></span>
                     <span className="text-muted-foreground">·</span>
@@ -2124,7 +2125,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
         <div className="flex items-center gap-3 max-w-lg mx-auto">
           <div className="shrink-0">
             <p className="text-xs text-muted-foreground">Price</p>
-            <p className="text-lg font-bold tabular-nums">${vehicle.price.toLocaleString()}</p>
+            <p className="text-lg font-bold tabular-nums">${safeNum(vehicle.price).toLocaleString()}</p>
           </div>
           <Button
             className="flex-1 h-12 min-h-[48px] bg-red-600 hover:bg-red-700 text-white text-sm font-semibold"

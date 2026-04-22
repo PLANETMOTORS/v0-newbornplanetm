@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
-import { FINANCE_ESTIMATE_DISCLAIMER } from "@/lib/pricing/format"
+import { FINANCE_ESTIMATE_DISCLAIMER, safeNum } from "@/lib/pricing/format"
 
 // Types for Sanity data
 interface CreditTier {
@@ -41,8 +41,8 @@ export function PaymentCalculator({
   finance, 
   specialFinance 
 }: PaymentCalculatorProps) {
-  // Use special price if available
-  const effectivePrice = specialPrice || price
+  // Use special price if available — guard against NaN
+  const effectivePrice = safeNum(specialPrice || price)
   
   // State for user selections
   const [selectedTierIndex, setSelectedTierIndex] = useState(0)
@@ -86,11 +86,11 @@ export function PaymentCalculator({
     const totalInterest = totalCost - principal
     
     return {
-      principal: Math.max(0, principal),
-      monthlyPayment: Math.round(monthlyPayment),
-      biWeeklyPayment: Math.round(biWeeklyPayment),
-      totalCost: Math.round(totalCost),
-      totalInterest: Math.round(totalInterest),
+      principal: Math.max(0, Number.isFinite(principal) ? principal : 0),
+      monthlyPayment: Number.isFinite(monthlyPayment) ? Math.round(monthlyPayment) : 0,
+      biWeeklyPayment: Number.isFinite(biWeeklyPayment) ? Math.round(biWeeklyPayment) : 0,
+      totalCost: Number.isFinite(totalCost) ? Math.round(totalCost) : 0,
+      totalInterest: Number.isFinite(totalInterest) ? Math.round(totalInterest) : 0,
       effectiveApr,
     }
   }, [effectivePrice, finance.taxRate, downPayment, tradeIn, term, effectiveApr])

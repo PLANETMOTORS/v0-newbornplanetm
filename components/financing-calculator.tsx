@@ -26,9 +26,10 @@ export function FinancingCalculator() {
   const principal = Math.max(vehiclePrice - downPayment, 0)
   const monthlyRate = interestRate / 100 / 12
   const months = parseInt(term)
-  const monthlyPayment = principal > 0 && monthlyRate > 0
+  const rawMonthly = principal > 0 && monthlyRate > 0
     ? (principal * monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1)
-    : principal > 0 ? principal / months : 0
+    : principal > 0 && months > 0 ? principal / months : 0
+  const monthlyPayment = Number.isFinite(rawMonthly) ? rawMonthly : 0
   const totalCost = monthlyPayment * months
   const totalInterest = totalCost - principal
 

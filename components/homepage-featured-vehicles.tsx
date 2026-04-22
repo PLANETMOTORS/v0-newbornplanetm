@@ -8,6 +8,7 @@ import { ArrowRight, Battery, Car, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import { getVehicleImage } from "@/lib/vehicle-images"
+import { safeNum } from "@/lib/pricing/format"
 
 type FeaturedTab = "all" | "electric" | "suvs"
 
@@ -137,8 +138,8 @@ const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
   }
 
   const mapped = (data || []).map((vehicle) => {
-    const priceCents = Number(vehicle.price || 0)
-    const monthlyPayment = Math.max(1, Math.round((priceCents / 100) / 108))
+    const priceCents = safeNum(vehicle.price)
+    const monthlyPayment = priceCents > 0 ? Math.max(1, Math.round((priceCents / 100) / 108)) : 0
     const fuelType = String(vehicle.fuel_type || "")
     const isEV = fuelType.toLowerCase() === "electric"
     const bodyStyle = String(vehicle.body_style || "").toLowerCase()
@@ -279,7 +280,7 @@ export function HomepageFeaturedVehicles() {
                 <div className="flex items-center justify-between mt-4">
                   <div>
                     <div className="text-xl font-bold text-[#1e3a8a] tabular-nums">
-                      ${(vehicle.priceCents / 100).toLocaleString()}
+                      ${(safeNum(vehicle.priceCents) / 100).toLocaleString()}
                     </div>
                     <div className="text-sm font-semibold text-gray-700 tabular-nums">
                       or <span className="font-bold">${vehicle.monthlyPayment}/mo</span>

@@ -130,10 +130,11 @@ export function FinanceApplicationForm() {
 
   const calculatePaymentPreview = () => {
     const rate = 6.29 / 100 / 12
-    const term = formData.requestedTerm
-    const amount = formData.requestedAmount
+    const term = formData.requestedTerm || 72
+    const amount = formData.requestedAmount || 0
+    if (amount <= 0 || term <= 0) return 0
     const payment = (amount * rate * Math.pow(1 + rate, term)) / (Math.pow(1 + rate, term) - 1)
-    return Math.round(payment)
+    return Number.isFinite(payment) ? Math.round(payment) : 0
   }
 
   const validateForm = (): Record<string, string> => {

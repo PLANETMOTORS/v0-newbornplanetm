@@ -58,6 +58,25 @@ export interface AllInPriceBreakdown {
 }
 
 // ---------------------------------------------------------------------------
+// Safe numeric helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Ensure a value is a finite number, returning `fallback` otherwise.
+ *
+ * Covers: null, undefined, NaN, Infinity, non-number types, and
+ * BigInt values that slipped through a DB driver.
+ */
+export function safeNum(value: unknown, fallback = 0): number {
+  if (typeof value === "number" && Number.isFinite(value)) return value
+  if (typeof value === "string") {
+    const parsed = Number(value)
+    if (Number.isFinite(parsed)) return parsed
+  }
+  return fallback
+}
+
+// ---------------------------------------------------------------------------
 // Functions
 // ---------------------------------------------------------------------------
 
