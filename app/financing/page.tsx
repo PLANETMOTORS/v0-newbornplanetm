@@ -218,11 +218,11 @@ export default async function FinancingPage() {
                       </tr>
                       <tr>
                         <th scope="row" className="text-left py-2 px-4 font-medium">TERMS</th>
-                        <td className="text-center py-2 px-4 tabular-nums">84 mo</td>
+                        <td className="text-center py-2 px-4 tabular-nums">96 mo</td>
                         <td className="text-center py-2 px-4 tabular-nums">84 mo</td>
                         <td className="text-center py-2 px-4 tabular-nums">72 mo</td>
                         <td className="text-center py-2 px-4 tabular-nums">84 mo</td>
-                        <td className="text-center py-2 px-4 tabular-nums">96 mo</td>
+                        <td className="text-center py-2 px-4 tabular-nums">60 mo</td>
                       </tr>
                     </tbody>
                   </table>
