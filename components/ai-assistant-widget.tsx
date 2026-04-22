@@ -95,7 +95,7 @@ export function AIAssistantWidget() {
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="w-4 h-4 text-yellow-500" />
-                <span className="text-sm font-medium">AI-Powered Features</span>
+                <span className="text-sm font-semibold">AI-Powered Features</span>
                 <Badge variant="secondary" className="text-xs">NEW</Badge>
               </div>
 
@@ -115,7 +115,7 @@ export function AIAssistantWidget() {
                       <feature.icon className="w-5 h-5" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-medium text-sm">{feature.title}</h4>
+                      <h4 className="font-semibold text-sm">{feature.title}</h4>
                       <p className="text-xs text-muted-foreground">{feature.description}</p>
                     </div>
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />

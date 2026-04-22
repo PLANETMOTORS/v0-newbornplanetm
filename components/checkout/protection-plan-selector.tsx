@@ -37,7 +37,7 @@ export function ProtectionPlanSelector({ value, onChange }: ProtectionPlanSelect
               <Label htmlFor={plan.id} className="flex-1 ml-3 cursor-pointer">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">{plan.name}</span>
+                    <span className="font-semibold">{plan.name}</span>
                     {plan.badge && (
                       <Badge variant={plan.badge === "Best Value" ? "default" : "secondary"} className="text-xs">
                         {plan.badge}

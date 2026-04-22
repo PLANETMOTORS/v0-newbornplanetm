@@ -130,7 +130,7 @@ export default function SchedulePage() {
               {/* Step 1: Appointment Type */}
               {step === 1 && (
                 <div className="space-y-6">
-                  <h2 className="text-xl font-semibold text-center mb-6">
+                  <h2 className="text-xl font-bold text-center mb-6">
                     How would you like to test drive?
                   </h2>
                   <RadioGroup 
@@ -168,7 +168,7 @@ export default function SchedulePage() {
               {/* Step 2: Date & Time */}
               {step === 2 && (
                 <div className="space-y-6">
-                  <h2 className="text-xl font-semibold text-center mb-6">
+                  <h2 className="text-xl font-bold text-center mb-6">
                     Select Date & Time
                     {appointmentType === "virtual" && (
                       <span className="block text-sm font-normal text-muted-foreground mt-1">
@@ -230,7 +230,7 @@ export default function SchedulePage() {
               {/* Step 3: Contact Info */}
               {step === 3 && (
                 <div className="space-y-6">
-                  <h2 className="text-xl font-semibold text-center mb-6">
+                  <h2 className="text-xl font-bold text-center mb-6">
                     Your Information
                   </h2>
                   <div className="grid md:grid-cols-2 gap-4">

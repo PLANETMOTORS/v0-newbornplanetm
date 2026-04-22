@@ -774,10 +774,10 @@ if (errors.length > 0) {
               <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                 <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
                 <div className="text-sm">
-                  <p className="font-medium text-amber-800">Payment temporarily unavailable</p>
+                  <p className="font-semibold text-amber-800">Payment temporarily unavailable</p>
                   <p className="text-amber-700">
                     We&apos;re unable to load the payment form right now. Please try again or call us at{" "}
-                    <a href="tel:+16479073334" className="underline font-medium">(647) 907-3334</a>.
+                    <a href="tel:+16479073334" className="underline font-semibold">(647) 907-3334</a>.
                   </p>
                 </div>
               </div>
@@ -823,7 +823,7 @@ if (errors.length > 0) {
                   )}
                 </div>
                 <span className={cn(
-                  "ml-2 text-sm font-medium hidden sm:block",
+                  "ml-2 text-sm font-semibold hidden sm:block",
                   currentStep >= step.number ? "text-foreground" : "text-muted-foreground"
                 )}>
                   {step.title}
@@ -870,7 +870,7 @@ if (errors.length > 0) {
                   checked={includeCoApplicant}
                   onCheckedChange={(checked) => setIncludeCoApplicant(checked as boolean)}
                 />
-                <Label htmlFor="includeCoApplicant" className="text-base font-medium cursor-pointer">
+                <Label htmlFor="includeCoApplicant" className="text-base font-semibold cursor-pointer">
                   Include Co-Applicant / Co-Signer
                 </Label>
               </div>
@@ -952,7 +952,7 @@ if (errors.length > 0) {
           <div className="flex items-start gap-2">
             <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-medium text-destructive">Please fix the following errors:</p>
+              <p className="font-semibold text-destructive">Please fix the following errors:</p>
               <ul className="list-disc list-inside mt-2 text-sm text-destructive">
                 {validationErrors.map((error, i) => (
                   <li key={i}>{error}</li>

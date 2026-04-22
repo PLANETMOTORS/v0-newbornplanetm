@@ -186,8 +186,8 @@ export function VehicleGrid() {
       {/* Results count */}
       <div className="flex items-center justify-between mb-6">
         <p className="text-sm text-muted-foreground">
-          Showing <span className="font-medium text-foreground">{vehicles.length}</span> of{" "}
-          <span className="font-medium text-foreground">available</span> vehicles
+          Showing <span className="font-semibold text-foreground">{vehicles.length}</span> of{" "}
+          <span className="font-semibold text-foreground">available</span> vehicles
         </p>
         <select className="text-sm border border-border rounded-lg px-3 py-2 bg-background">
           <option>Sort by: Featured</option>

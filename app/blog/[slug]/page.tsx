@@ -173,7 +173,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           <Separator className="my-12" />
           
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span className="font-medium">Share this article:</span>
+            <span className="font-semibold">Share this article:</span>
             <div className="flex items-center gap-3">
               <Button variant="outline" size="icon" aria-label="Share on Facebook">
                 <Facebook className="w-4 h-4" />
@@ -195,7 +195,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         {relatedPosts.length > 0 && (
           <section className="bg-muted/30 py-16">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
-              <h2 className="text-2xl font-semibold mb-8">Related Articles</h2>
+              <h2 className="text-2xl font-bold mb-8">Related Articles</h2>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {relatedPosts.map((relatedPost) => (
                   <Link key={relatedPost.slug} href={`/blog/${relatedPost.slug}`} className="group">
@@ -231,7 +231,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         {/* CTA Section */}
         <section className="py-16">
           <div className="mx-auto max-w-3xl px-6 lg:px-8 text-center">
-            <h2 className="text-2xl font-semibold mb-4">Ready to Find Your Next Vehicle?</h2>
+            <h2 className="text-2xl font-bold mb-4">Ready to Find Your Next Vehicle?</h2>
             <p className="text-muted-foreground mb-8">
               Browse our inventory of quality pre-owned vehicles or get a free trade-in appraisal today.
             </p>

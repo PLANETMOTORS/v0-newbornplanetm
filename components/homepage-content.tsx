@@ -170,7 +170,7 @@ export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProp
               </div>
 
               {/* Floating Badge */}
-              <div className="absolute top-4 right-4 bg-[#dc2626] text-white px-4 py-1.5 rounded-full text-sm font-medium shadow-lg z-10">
+              <div className="absolute top-4 right-4 bg-[#dc2626] text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg z-10">
                 Low Rates Available
               </div>
             </div>

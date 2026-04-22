@@ -189,7 +189,7 @@ function ComparisonModal({ onClose }: { onClose: () => void }) {
             <tbody>
               {COMPARISON_ROWS.map((row) => (
                 <tr key={row} className="border-b last:border-0">
-                  <td className="p-4 font-medium">{row}</td>
+                  <td className="p-4 font-semibold">{row}</td>
                   {PLANS.map((plan) => {
                     const val = plan.comparisonFeatures[row]
                     return (
@@ -205,7 +205,7 @@ function ComparisonModal({ onClose }: { onClose: () => void }) {
                             <span className="sr-only">Not included</span>
                           </>
                         ) : (
-                          <span className="font-medium">{val}</span>
+                          <span className="font-semibold">{val}</span>
                         )}
                       </td>
                     )
@@ -242,7 +242,7 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: ProtectionPl
       <div className="flex items-center justify-between">
         <button
           type="button"
-          className="text-sm text-blue-600 underline underline-offset-4 hover:text-blue-700 transition-colors font-medium"
+          className="text-sm text-blue-600 underline underline-offset-4 hover:text-blue-700 transition-colors font-semibold"
           onClick={() => setShowComparison(true)}
         >
           Compare coverage

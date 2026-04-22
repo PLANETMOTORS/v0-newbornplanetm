@@ -51,7 +51,7 @@ export default function CheckoutError({
           </p>
           <a
             href="tel:1-866-797-3332"
-            className="inline-flex items-center justify-center gap-2 text-primary hover:underline font-medium"
+            className="inline-flex items-center justify-center gap-2 text-primary hover:underline font-semibold"
           >
             <Phone className="w-4 h-4" />
             Call 1-866-797-3332

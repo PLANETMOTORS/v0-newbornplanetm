@@ -139,10 +139,10 @@ export function FinanceApplicationForm() {
         )}
 
         <div className="space-y-2">
-          <p className="text-sm font-medium">All Offers:</p>
+          <p className="text-sm font-semibold">All Offers:</p>
           {result.eligibleLenders.slice(0, 4).map((offer) => (
             <div key={offer.lenderId} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-              <span className="font-medium">{offer.lenderName}</span>
+              <span className="font-semibold">{offer.lenderName}</span>
               <div className="text-right">
                 <span className="font-bold">{offer.estimatedRate}%</span>
                 <span className="text-sm text-muted-foreground ml-2">${offer.estimatedMonthlyPayment}/mo</span>
@@ -311,7 +311,7 @@ export function FinanceApplicationForm() {
 
         {Object.values(validationErrors).some(Boolean) && (
           <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3">
-            <p className="font-medium text-sm text-destructive mb-1">Please fix the following:</p>
+            <p className="font-semibold text-sm text-destructive mb-1">Please fix the following:</p>
             <ul className="list-disc pl-5 space-y-1">
               {Object.values(validationErrors).filter(Boolean).map((error, i) => (
                 <li key={i} className="text-xs text-destructive">{error}</li>

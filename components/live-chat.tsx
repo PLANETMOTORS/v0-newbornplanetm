@@ -84,7 +84,7 @@ export function LiveChat() {
       <CardHeader className="p-3 bg-primary text-primary-foreground rounded-t-lg flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <CardTitle className="text-sm font-medium">Planet Motors Support</CardTitle>
+          <CardTitle className="text-sm font-semibold">Planet Motors Support</CardTitle>
         </div>
         <div className="flex gap-1">
           <Button 

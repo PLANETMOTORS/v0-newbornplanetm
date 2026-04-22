@@ -281,13 +281,13 @@ export default function FinanceCalculatorPage() {
                     <h2 className="text-xl font-bold">{vehicleName}</h2>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                       <div className="text-muted-foreground">Stock #:</div>
-                      <div className="font-medium">{vehicle.stock_number}</div>
+                      <div className="font-semibold">{vehicle.stock_number}</div>
                       <div className="text-muted-foreground">VIN:</div>
-                      <div className="font-medium font-mono text-xs">{vehicle.vin}</div>
+                      <div className="font-semibold font-mono text-xs">{vehicle.vin}</div>
                       <div className="text-muted-foreground">Colour:</div>
-                      <div className="font-medium">{vehicle.exterior_color}</div>
+                      <div className="font-semibold">{vehicle.exterior_color}</div>
                       <div className="text-muted-foreground">Mileage:</div>
-                      <div className="font-medium">{vehicle.mileage.toLocaleString()} km</div>
+                      <div className="font-semibold">{vehicle.mileage.toLocaleString()} km</div>
                     </div>
                     <div className="pt-2">
                       <Badge variant={vehicle.fuel_type === "Electric" ? "default" : "secondary"}>
@@ -310,7 +310,7 @@ export default function FinanceCalculatorPage() {
               <CardContent className="space-y-6">
                 {/* Agreement Type */}
                 <div>
-                  <Label className="text-base font-medium mb-3 block">Agreement Type</Label>
+                  <Label className="text-base font-semibold mb-3 block">Agreement Type</Label>
                   <Tabs value={agreementType} onValueChange={(v) => setAgreementType(v as "finance" | "cash")}>
                     <TabsList className="grid w-full grid-cols-2">
                       <TabsTrigger value="finance">Finance</TabsTrigger>
@@ -392,7 +392,7 @@ export default function FinanceCalculatorPage() {
                         <span className="font-semibold text-green-800">AI Instant Quote Applied</span>
                       </div>
                       <div className="text-sm text-green-700">
-                        <p className="font-medium">Quote ID: {urlQuoteId}</p>
+                        <p className="font-semibold">Quote ID: {urlQuoteId}</p>
                         {tradeInVehicleInfo && <p>Trade-In: {tradeInVehicleInfo}</p>}
                         <p className="text-lg font-bold mt-1">${tradeInValue.toLocaleString()} applied to your purchase</p>
                       </div>
@@ -610,7 +610,7 @@ export default function FinanceCalculatorPage() {
                       <span>+${financeDetails.hstAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                     <Separator />
-                    <div className="flex justify-between text-sm font-medium">
+                    <div className="flex justify-between text-sm font-semibold">
                       <span>Total Before Credits</span>
                       <span>${financeDetails.totalBeforeCredits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
@@ -642,7 +642,7 @@ export default function FinanceCalculatorPage() {
                           <span className="text-muted-foreground">Total Interest</span>
                           <span>${financeDetails.totalInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
-                        <div className="flex justify-between text-sm font-medium">
+                        <div className="flex justify-between text-sm font-semibold">
                           <span>Total Cost of Borrowing</span>
                           <span>${financeDetails.totalCostOfBorrowing.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>

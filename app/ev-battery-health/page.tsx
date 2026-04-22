@@ -360,7 +360,7 @@ export default function EVBatteryHealthPage() {
                     {/* Battery Health Meter */}
                     <div className="mb-8">
                       <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium">Battery State of Health</span>
+                        <span className="font-semibold">Battery State of Health</span>
                         <span className={`text-2xl font-bold ${getBatteryHealthColor(selectedVehicle.batteryHealth)}`}>
                           {selectedVehicle.batteryHealth}%
                         </span>
@@ -411,7 +411,7 @@ export default function EVBatteryHealthPage() {
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
                       <div className="flex items-center gap-2 mb-1">
                         <Shield className="h-5 w-5 text-green-600" />
-                        <span className="font-medium text-green-800">Battery Warranty</span>
+                        <span className="font-semibold text-green-800">Battery Warranty</span>
                       </div>
                       <p className="text-green-700">{selectedVehicle.warranty}</p>
                     </div>

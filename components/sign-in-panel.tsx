@@ -107,7 +107,7 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
               <div className="space-y-4">
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 text-center">
                   <LogIn className="w-12 h-12 text-primary mx-auto mb-3" />
-                  <p className="text-gray-600 font-medium">Sign in to your account</p>
+                  <p className="text-gray-600 font-semibold">Sign in to your account</p>
                   <p className="text-sm text-gray-500 mt-1">
                     Access your saved vehicles, applications, and more
                   </p>
@@ -131,7 +131,7 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
                   <p className="text-sm text-gray-600">
                     Get financing pre-approval without affecting your credit
                   </p>
-                  <span className="inline-block mt-2 text-xs font-medium text-primary">
+                  <span className="inline-block mt-2 text-xs font-semibold text-primary">
                     Learn More →
                   </span>
                 </Link>
@@ -141,7 +141,7 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
                   <p className="text-sm text-gray-600">
                     Get a real offer for your car in less than 2 minutes
                   </p>
-                  <span className="inline-block mt-2 text-xs font-medium text-primary">
+                  <span className="inline-block mt-2 text-xs font-semibold text-primary">
                     Get Offer →
                   </span>
                 </Link>
@@ -151,7 +151,7 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
                   <p className="text-sm text-gray-600">
                     Book a virtual or in-person tour of a vehicle
                   </p>
-                  <span className="inline-block mt-2 text-xs font-medium text-primary">
+                  <span className="inline-block mt-2 text-xs font-semibold text-primary">
                     Schedule →
                   </span>
                 </Link>
@@ -176,7 +176,7 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
               {/* Login Form */}
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div>
-                  <Label htmlFor="email" className="text-sm font-medium">
+                  <Label htmlFor="email" className="text-sm font-semibold">
                     Email Address
                   </Label>
                   <div className="relative mt-2">
@@ -195,10 +195,10 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
 
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <Label htmlFor="password" className="text-sm font-medium">
+                    <Label htmlFor="password" className="text-sm font-semibold">
                       Password
                     </Label>
-                    <Link href="/auth/forgot-password" className="text-xs font-medium text-primary hover:underline" onClick={onClose}>
+                    <Link href="/auth/forgot-password" className="text-xs font-semibold text-primary hover:underline" onClick={onClose}>
                       Forgot?
                     </Link>
                   </div>

@@ -306,7 +306,7 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
           </Link>
           <div className="flex items-center gap-2 sm:gap-4">
             {/* Countdown timer */}
-            <div className={`flex items-center gap-1.5 text-sm font-medium tabular-nums ${
+            <div className={`flex items-center gap-1.5 text-sm font-semibold tabular-nums ${
               timerUrgent ? "text-red-600" : "text-muted-foreground"
             }`} aria-label={`${timerMins} minutes ${timerSecs} seconds remaining`}>
               <Clock className="w-4 h-4" aria-hidden="true" />
@@ -358,7 +358,7 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 id="mobile-order-summary-title" className="font-semibold">Order Summary</h2>
+              <h2 id="mobile-order-summary-title" className="font-bold">Order Summary</h2>
               <Button variant="ghost" size="icon" onClick={() => setShowOrderSummary(false)} aria-label="Close order summary">
                 <X className="w-5 h-5" />
               </Button>

@@ -27,7 +27,7 @@ function FilterSection({ title, options, selected, onToggle }: FilterSectionProp
     <div className="border-b border-border pb-4">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-full py-2 text-sm font-medium"
+        className="flex items-center justify-between w-full py-2 text-sm font-semibold"
       >
         {title}
         <ChevronDown className={cn("w-4 h-4 transition-transform", isOpen && "rotate-180")} />
@@ -85,7 +85,7 @@ export function VehicleFilters() {
   const filterContent = (
     <>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-semibold">Filters</h2>
+        <h2 className="font-bold">Filters</h2>
         {totalFilters > 0 && (
           <button
             onClick={clearAllFilters}
@@ -154,7 +154,7 @@ export function VehicleFilters() {
           />
           <div className="absolute right-0 top-0 bottom-0 w-80 max-w-full bg-background p-6 shadow-xl overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-semibold text-lg">Filters</h2>
+              <h2 className="font-bold text-lg">Filters</h2>
               <Button
                 variant="ghost"
                 size="icon"

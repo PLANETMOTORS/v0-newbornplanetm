@@ -740,7 +740,7 @@ export default function VehicleDetailPage() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-3">
             <CheckCircle className="w-5 h-5" />
-            <span className="font-medium">
+            <span className="font-semibold">
               Your Trade-In: <span className="font-bold">${parseInt(tradeInValue).toLocaleString()}</span>
               {tradeInVehicle && <span className="text-white/80 ml-2">({decodeURIComponent(tradeInVehicle)})</span>}
             </span>
@@ -827,7 +827,7 @@ export default function VehicleDetailPage() {
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
                         />
                         {/* 360° overlay badge */}
-                        <div className="absolute top-4 left-4 bg-black/60 backdrop-blur text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5">
+                        <div className="absolute top-4 left-4 bg-black/60 backdrop-blur text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5">
                           <RotateCw className="h-3 w-3 animate-spin" style={{ animationDuration: "3s" }} />
                           Auto-Spin 360°
                         </div>
@@ -1035,10 +1035,10 @@ export default function VehicleDetailPage() {
                 {/* Overview Tab */}
                 <TabsContent value="overview" className="mt-0 space-y-6">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold">Overview</h2>
+                    <h2 className="text-xl font-bold">Overview</h2>
                     <div className="flex gap-4 text-sm text-muted-foreground">
                       <span>VIN <span className="font-mono text-foreground">{vehicle.vin}</span></span>
-                      <span>Stock # <span className="font-medium text-foreground">{vehicle.stockNumber}</span></span>
+                      <span>Stock # <span className="font-semibold text-foreground">{vehicle.stockNumber}</span></span>
                     </div>
                   </div>
 
@@ -1051,35 +1051,35 @@ export default function VehicleDetailPage() {
                         <Settings className="w-5 h-5" />
                       </div>
                       <span className="text-xs text-muted-foreground">TRANSMISSION</span>
-                      <span className="text-sm font-medium">{vehicle.transmission}</span>
+                      <span className="text-sm font-semibold">{vehicle.transmission}</span>
                     </div>
                     <div className="flex flex-col items-center text-center">
                       <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center mb-1">
                         <Fuel className="w-5 h-5" />
                       </div>
                       <span className="text-xs text-muted-foreground">FUEL TYPE</span>
-                      <span className="text-sm font-medium">{vehicle.fuelType}</span>
+                      <span className="text-sm font-semibold">{vehicle.fuelType}</span>
                     </div>
                     <div className="flex flex-col items-center text-center">
                       <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center mb-1">
                         <Zap className="w-5 h-5" />
                       </div>
                       <span className="text-xs text-muted-foreground">ENGINE</span>
-                      <span className="text-sm font-medium">{vehicle.engine || "N/A"}</span>
+                      <span className="text-sm font-semibold">{vehicle.engine || "N/A"}</span>
                     </div>
                     <div className="flex flex-col items-center text-center">
                       <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center mb-1">
                         <Users className="w-5 h-5" />
                       </div>
                       <span className="text-xs text-muted-foreground">SEATS</span>
-                      <span className="text-sm font-medium">{vehicle.seats || 5} seats</span>
+                      <span className="text-sm font-semibold">{vehicle.seats || 5} seats</span>
                     </div>
                     <div className="flex flex-col items-center text-center">
                       <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center mb-1">
                         <Key className="w-5 h-5" />
                       </div>
                       <span className="text-xs text-muted-foreground">KEYS</span>
-                      <span className="text-sm font-medium">{vehicle.keys || 2} keys</span>
+                      <span className="text-sm font-semibold">{vehicle.keys || 2} keys</span>
                     </div>
                     <div className="flex flex-col items-center text-center">
                       <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center mb-1">
@@ -1098,7 +1098,7 @@ export default function VehicleDetailPage() {
                         <CardContent className="p-3 flex items-center gap-2">
                           <CheckCircle className="w-5 h-5 text-pink-500" />
                           <div>
-                            <p className="font-medium text-sm">No accidents</p>
+                            <p className="font-semibold text-sm">No accidents</p>
                             <p className="text-xs text-muted-foreground">Reported by Carfax</p>
                           </div>
                         </CardContent>
@@ -1106,14 +1106,14 @@ export default function VehicleDetailPage() {
                       <Card className="flex-1 min-w-[140px]">
                         <CardContent className="p-3 flex items-center gap-2">
                           <Gauge className="w-5 h-5 text-muted-foreground" />
-                          <p className="font-medium text-sm">{vehicle.mileage.toLocaleString()} km</p>
+                          <p className="font-semibold text-sm">{vehicle.mileage.toLocaleString()} km</p>
                         </CardContent>
                       </Card>
                       <Card className="flex-1 min-w-[140px]">
                         <CardContent className="p-3 flex items-center gap-2">
                           <Shield className="w-5 h-5 text-purple-500" />
                           <div>
-                            <p className="font-medium text-sm">Safety certified</p>
+                            <p className="font-semibold text-sm">Safety certified</p>
                             <p className="text-xs text-muted-foreground">Ontario Safety Certificate</p>
                           </div>
                         </CardContent>
@@ -1131,7 +1131,7 @@ export default function VehicleDetailPage() {
                             <Car className="w-6 h-6 text-primary" />
                           </div>
                           <h4 className="font-semibold">Pick up at Planet Motors</h4>
-                          <p className="text-sm text-green-600 font-medium">FREE</p>
+                          <p className="text-sm text-green-600 font-semibold">FREE</p>
                           <p className="text-xs text-muted-foreground mt-1">
                             30 Major Mackenzie Dr E, Richmond Hill, ON. Open Mon–Sat.
                           </p>
@@ -1172,19 +1172,19 @@ export default function VehicleDetailPage() {
                         <div className="space-y-4 p-4 bg-primary/5 rounded-lg">
                           <p className="font-semibold">The Planet Motors way 🏆</p>
                           <div>
-                            <p className="font-medium">10 days to try it out</p>
+                            <p className="font-semibold">10 days to try it out</p>
                             <p className="text-sm text-muted-foreground">take your time to know the car</p>
                           </div>
                           <div>
-                            <p className="font-medium">You pick your route</p>
+                            <p className="font-semibold">You pick your route</p>
                             <p className="text-sm text-muted-foreground">city, highway, night, rain, etc.</p>
                           </div>
                           <div>
-                            <p className="font-medium">Completely unaccompanied</p>
+                            <p className="font-semibold">Completely unaccompanied</p>
                             <p className="text-sm text-muted-foreground">no pressure, no rush</p>
                           </div>
                           <div>
-                            <p className="font-medium">Full money-back guarantee</p>
+                            <p className="font-semibold">Full money-back guarantee</p>
                             <p className="text-sm text-muted-foreground">for any reason</p>
                           </div>
                         </div>
@@ -1194,19 +1194,19 @@ export default function VehicleDetailPage() {
                             <span className="text-xs bg-muted px-2 py-0.5 rounded">vs</span>
                           </div>
                           <div>
-                            <p className="font-medium text-muted-foreground">Only 15 mins on average</p>
+                            <p className="font-semibold text-muted-foreground">Only 15 mins on average</p>
                             <p className="text-sm text-muted-foreground">limited feel for comfort or quirks</p>
                           </div>
                           <div>
-                            <p className="font-medium text-muted-foreground">Seller picks route</p>
+                            <p className="font-semibold text-muted-foreground">Seller picks route</p>
                             <p className="text-sm text-muted-foreground">limited speeds/conditions</p>
                           </div>
                           <div>
-                            <p className="font-medium text-muted-foreground">Accompanied by salesperson</p>
+                            <p className="font-semibold text-muted-foreground">Accompanied by salesperson</p>
                             <p className="text-sm text-muted-foreground">pressure to decide</p>
                           </div>
                           <div>
-                            <p className="font-medium text-muted-foreground">No return option</p>
+                            <p className="font-semibold text-muted-foreground">No return option</p>
                             <p className="text-sm text-muted-foreground">sale is final</p>
                           </div>
                         </div>
@@ -1217,7 +1217,7 @@ export default function VehicleDetailPage() {
 
                 {/* Features Tab */}
                 <TabsContent value="features" className="mt-0 space-y-6">
-                  <h2 className="text-xl font-semibold">Features and specs</h2>
+                  <h2 className="text-xl font-bold">Features and specs</h2>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Features */}
@@ -1228,19 +1228,19 @@ export default function VehicleDetailPage() {
                       <CardContent className="space-y-0">
                         <div className="flex justify-between py-4 border-b">
                           <span className="text-muted-foreground">Comfort & Convenience</span>
-                          <span className="font-medium">Heated Seats</span>
+                          <span className="font-semibold">Heated Seats</span>
                         </div>
                         <div className="flex justify-between py-4 border-b">
                           <span className="text-muted-foreground">Safety & Security</span>
-                          <span className="font-medium">Autopilot</span>
+                          <span className="font-semibold">Autopilot</span>
                         </div>
                         <div className="flex justify-between py-4 border-b">
                           <span className="text-muted-foreground">Entertainment & Tech</span>
-                          <span className="font-medium">15&quot; Touchscreen</span>
+                          <span className="font-semibold">15&quot; Touchscreen</span>
                         </div>
                         <div className="flex justify-between py-4">
                           <span className="text-muted-foreground">Braking & Traction</span>
-                          <span className="font-medium">Brake Assist</span>
+                          <span className="font-semibold">Brake Assist</span>
                         </div>
                         <Button variant="link" className="p-0 h-auto text-primary" onClick={() => setActiveTab("features")}>
                           View all features →
@@ -1256,19 +1256,19 @@ export default function VehicleDetailPage() {
                       <CardContent className="space-y-0">
                         <div className="flex justify-between py-4 border-b">
                           <span className="text-muted-foreground">Range</span>
-                          <span className="font-medium">{vehicle.range || "N/A"}</span>
+                          <span className="font-semibold">{vehicle.range || "N/A"}</span>
                         </div>
                         <div className="flex justify-between py-4 border-b">
                           <span className="text-muted-foreground">Exterior</span>
-                          <span className="font-medium">{vehicle.exteriorColor}</span>
+                          <span className="font-semibold">{vehicle.exteriorColor}</span>
                         </div>
                         <div className="flex justify-between py-4 border-b">
                           <span className="text-muted-foreground">Interior</span>
-                          <span className="font-medium">{vehicle.interiorColor}</span>
+                          <span className="font-semibold">{vehicle.interiorColor}</span>
                         </div>
                         <div className="flex justify-between py-4">
                           <span className="text-muted-foreground">Drive</span>
-                          <span className="font-medium">{vehicle.drivetrain}</span>
+                          <span className="font-semibold">{vehicle.drivetrain}</span>
                         </div>
                         <Button variant="link" className="p-0 h-auto text-primary" onClick={() => setActiveTab("features")}>
                           View all specs →
@@ -1286,7 +1286,7 @@ export default function VehicleDetailPage() {
                       {vehicleData.packages.map((pkg, i) => (
                         <div key={i} className="py-4 border-b last:border-b-0">
                           <div className="flex justify-between items-center">
-                            <span className="font-medium">{pkg}</span>
+                            <span className="font-semibold">{pkg}</span>
                             <Button variant="link" className="p-0 h-auto text-primary text-sm" onClick={() => setActiveTab("features")}>
                               View details →
                             </Button>
@@ -1358,7 +1358,7 @@ export default function VehicleDetailPage() {
                         {vehicleData.inspectionCategories.map((cat, i) => (
                           <div key={i} className="text-center p-2 bg-muted/30 rounded-lg">
                             <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-primary mx-auto mb-1" />
-                            <p className="text-[11px] sm:text-xs font-medium leading-tight">{cat.name}</p>
+                            <p className="text-[11px] sm:text-xs font-semibold leading-tight">{cat.name}</p>
                             <p className="text-[11px] sm:text-xs text-primary">{cat.points} pts</p>
                           </div>
                         ))}
@@ -1367,7 +1367,7 @@ export default function VehicleDetailPage() {
                       {/* VIN & History — Items 1-10 */}
                       <div className="space-y-1">
                         <div className="bg-teal-600 text-white p-2 rounded-t-lg flex items-center gap-2">
-                          <span className="text-sm font-medium">VIN & History ��� Items 1-10</span>
+                          <span className="text-sm font-semibold">VIN & History ��� Items 1-10</span>
                         </div>
                         <div className="border rounded-b-lg">
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
@@ -1386,7 +1386,7 @@ export default function VehicleDetailPage() {
                       {/* Powertrain & Engine — Items 11-32 */}
                       <div className="space-y-1 mt-4">
                         <div className="bg-orange-600 text-white p-2 rounded-t-lg flex items-center gap-2">
-                          <span className="text-sm font-medium">Powertrain & Engine — Items 11-32</span>
+                          <span className="text-sm font-semibold">Powertrain & Engine — Items 11-32</span>
                         </div>
                         <div className="border rounded-b-lg">
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
@@ -1405,7 +1405,7 @@ export default function VehicleDetailPage() {
                       {/* Brakes & Suspension — Items 33-45 */}
                       <div className="space-y-1 mt-4">
                         <div className="bg-red-600 text-white p-2 rounded-t-lg flex items-center gap-2">
-                          <span className="text-sm font-medium">Brakes, Suspension & Steering — Items 33-45</span>
+                          <span className="text-sm font-semibold">Brakes, Suspension & Steering — Items 33-45</span>
                         </div>
                         <div className="border rounded-b-lg">
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
@@ -1424,7 +1424,7 @@ export default function VehicleDetailPage() {
                       {/* Tyres & Wheels — Items 46-53 */}
                       <div className="space-y-1 mt-4">
                         <div className="bg-teal-500 text-white p-2 rounded-t-lg flex items-center gap-2">
-                          <span className="text-sm font-medium">Tyres & Wheels — Items 46-53</span>
+                          <span className="text-sm font-semibold">Tyres & Wheels — Items 46-53</span>
                         </div>
                         <div className="border rounded-b-lg">
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
@@ -1443,7 +1443,7 @@ export default function VehicleDetailPage() {
                       {/* Vehicle Exterior — Items 54-74 */}
                       <div className="space-y-1 mt-4">
                         <div className="bg-green-600 text-white p-2 rounded-t-lg flex items-center gap-2">
-                          <span className="text-sm font-medium">Vehicle Exterior — Items 54-74</span>
+                          <span className="text-sm font-semibold">Vehicle Exterior — Items 54-74</span>
                         </div>
                         <div className="border rounded-b-lg">
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
@@ -1462,7 +1462,7 @@ export default function VehicleDetailPage() {
                       {/* Vehicle Interior — Items 75-94 */}
                       <div className="space-y-1 mt-4">
                         <div className="bg-purple-600 text-white p-2 rounded-t-lg flex items-center gap-2">
-                          <span className="text-sm font-medium">Vehicle Interior — Items 75-94</span>
+                          <span className="text-sm font-semibold">Vehicle Interior — Items 75-94</span>
                         </div>
                         <div className="border rounded-b-lg">
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
@@ -1481,7 +1481,7 @@ export default function VehicleDetailPage() {
                       {/* How it Drives — Items 95-104 */}
                       <div className="space-y-1 mt-4">
                         <div className="bg-amber-600 text-white p-2 rounded-t-lg flex items-center gap-2">
-                          <span className="text-sm font-medium">How it Drives — Items 95-104</span>
+                          <span className="text-sm font-semibold">How it Drives — Items 95-104</span>
                         </div>
                         <div className="border rounded-b-lg">
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
@@ -1500,7 +1500,7 @@ export default function VehicleDetailPage() {
                       {/* EV & Hybrid Systems — Items 105-116 */}
                       <div className="space-y-1 mt-4">
                         <div className="bg-teal-600 text-white p-2 rounded-t-lg flex items-center gap-2">
-                          <span className="text-sm font-medium">EV & Hybrid Systems — Items 105-116</span>
+                          <span className="text-sm font-semibold">EV & Hybrid Systems — Items 105-116</span>
                         </div>
                         <div className="border rounded-b-lg">
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
@@ -1519,7 +1519,7 @@ export default function VehicleDetailPage() {
                       {/* Detailing, Safety & Advanced — Items 117-210 */}
                       <div className="space-y-1 mt-4">
                         <div className="bg-pink-600 text-white p-2 rounded-t-lg flex items-center gap-2">
-                          <span className="text-sm font-medium">Detailing, Safety & Advanced — Items 117-210</span>
+                          <span className="text-sm font-semibold">Detailing, Safety & Advanced — Items 117-210</span>
                         </div>
                         <div className="border rounded-b-lg">
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
@@ -1576,15 +1576,15 @@ export default function VehicleDetailPage() {
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Estimated Range</span>
-                            <span className="font-medium">{vehicle.range || "N/A"}</span>
+                            <span className="font-semibold">{vehicle.range || "N/A"}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Battery Capacity</span>
-                            <span className="font-medium">{vehicle.batteryCapacity || "N/A"}</span>
+                            <span className="font-semibold">{vehicle.batteryCapacity || "N/A"}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Fast Charging</span>
-                            <span className="font-medium">{vehicle.chargingSpeed || "N/A"}</span>
+                            <span className="font-semibold">{vehicle.chargingSpeed || "N/A"}</span>
                           </div>
                         </div>
                         <Button variant="outline" size="sm" className="w-full mt-3 border-green-300 text-green-700 hover:bg-green-100" onClick={() => setActiveTab("inspection")}>
@@ -1630,7 +1630,7 @@ export default function VehicleDetailPage() {
                             <span>Vehicle Price</span>
                             <span>${vehicle.price.toLocaleString()}</span>
                           </div>
-                          <div className="flex justify-between text-primary font-medium">
+                          <div className="flex justify-between text-primary font-semibold">
                             <span>Finance Docs Fee</span>
                             <span>+${FINANCE_ADMIN_FEE}</span>
                           </div>
@@ -1646,7 +1646,7 @@ export default function VehicleDetailPage() {
                         <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg">
                           <p className="text-sm flex items-center gap-2">
                             <TrendingUp className="w-4 h-4 text-amber-600" />
-                            <span className="font-medium">80% of buyers finance with us</span>
+                            <span className="font-semibold">80% of buyers finance with us</span>
                           </p>
                           <p className="text-xs text-muted-foreground">Get personalized financing terms in 2 minutes — no impact to your credit score.</p>
                         </div>
@@ -1715,27 +1715,27 @@ export default function VehicleDetailPage() {
                     <CardContent className="space-y-2">
                       <div className="flex justify-between py-2 border-b">
                         <span>Vehicle Price</span>
-                        <span className="font-medium">${vehicle.price.toLocaleString()}</span>
+                        <span className="font-semibold">${vehicle.price.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between py-2 border-b">
                         <span>HST ({(PROVINCE_TAX_RATES.ON.hst * 100).toFixed(0)}%)</span>
-                        <span className="font-medium">${vehicle.pricing.hst.toLocaleString()}</span>
+                        <span className="font-semibold">${vehicle.pricing.hst.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between py-2 border-b">
                         <span>OMVIC Fee</span>
-                        <span className="font-medium">${vehicle.pricing.omvicFee}</span>
+                        <span className="font-semibold">${vehicle.pricing.omvicFee}</span>
                       </div>
                       <div className="flex justify-between py-2 border-b">
                         <span>Certification Fee</span>
-                        <span className="font-medium">${vehicle.pricing.certificationFee}</span>
+                        <span className="font-semibold">${vehicle.pricing.certificationFee}</span>
                       </div>
                       <div className="flex justify-between py-2 border-b">
                         <span>Licensing & Registration (est.)</span>
-                        <span className="font-medium">ON ~ ${vehicle.pricing.licensingReg}</span>
+                        <span className="font-semibold">ON ~ ${vehicle.pricing.licensingReg}</span>
                       </div>
                       <div className="flex justify-between py-2 border-b">
                         <span>Delivery</span>
-                        <span className="font-medium text-green-600">$0 (Ontario)</span>
+                        <span className="font-semibold text-green-600">$0 (Ontario)</span>
                       </div>
                       <div className="flex justify-between py-3 font-semibold text-lg">
                         <span>Estimated Total</span>
@@ -1776,7 +1776,7 @@ export default function VehicleDetailPage() {
 
                 {/* ARCHIVED: Ratings Tab - Commented out per request
                 <TabsContent value="ratings" className="mt-0 space-y-6">
-                  <h2 className="text-xl font-semibold">Our rating</h2>
+                  <h2 className="text-xl font-bold">Our rating</h2>
 
                   <Card>
                     <CardContent className="p-6">
@@ -1801,7 +1801,7 @@ export default function VehicleDetailPage() {
                                 style={{ width: `${(cat.score / 5) * 100}%` }}
                               />
                             </div>
-                            <span className="w-8 text-sm font-medium">{cat.score}</span>
+                            <span className="w-8 text-sm font-semibold">{cat.score}</span>
                           </div>
                         ))}
                       </div>
@@ -1813,7 +1813,7 @@ export default function VehicleDetailPage() {
                 {/* Protection Tab */}
                 <TabsContent value="protection" className="mt-0 space-y-6">
                   <div>
-                    <h2 className="text-xl font-semibold">Protection packages</h2>
+                    <h2 className="text-xl font-bold">Protection packages</h2>
                     <p className="text-muted-foreground mt-1">
                       This vehicle&apos;s manufacturer warranty has expired. But don&apos;t worry, we have options for you to stay covered!
                     </p>
@@ -1895,9 +1895,9 @@ export default function VehicleDetailPage() {
                           ))}
                         </tr>
                         <tr>
-                          <td className="py-3 px-4 font-medium">Price</td>
+                          <td className="py-3 px-4 font-semibold">Price</td>
                           {vehicleData.protectionPackages.map((pkg, i) => (
-                            <td key={i} className={`text-center py-3 px-4 font-medium ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                            <td key={i} className={`text-center py-3 px-4 font-semibold ${pkg.recommended ? "bg-primary/5" : ""}`}>
                               {pkg.price}
                             </td>
                           ))}
@@ -1908,7 +1908,7 @@ export default function VehicleDetailPage() {
                 </TabsContent>
               {/* Next Steps */}
               <div className="mt-12 pt-8 border-t">
-                <h2 className="text-xl font-semibold mb-6">Next steps</h2>
+                <h2 className="text-xl font-bold mb-6">Next steps</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                   {[
                     { step: 1, title: "Start", subtitle: "Purchase", active: true },
@@ -1919,7 +1919,7 @@ export default function VehicleDetailPage() {
                   ].map((item) => (
                     <div key={item.step} className="text-center p-3 border rounded-lg">
                       <p className="text-xl sm:text-2xl font-bold mb-1">{item.step}</p>
-                      <p className="font-medium text-xs sm:text-sm">{item.title}</p>
+                      <p className="font-semibold text-xs sm:text-sm">{item.title}</p>
                       {item.subtitle && <p className="text-xs text-muted-foreground">{item.subtitle}</p>}
                       {item.active && (
                         <Button size="sm" className="mt-3" asChild>
@@ -1992,11 +1992,11 @@ export default function VehicleDetailPage() {
                   <div className="mt-4 pt-4 border-t space-y-2">
                     <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
                       <CheckCircle className="w-5 h-5 text-green-600" />
-                      <span className="text-sm font-medium">10-Day Money Back Guarantee</span>
+                      <span className="text-sm font-semibold">10-Day Money Back Guarantee</span>
                     </div>
                     <div className="flex items-center gap-2 p-2 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
                       <LockKeyhole className="w-5 h-5 text-amber-600" />
-                      <span className="text-sm font-medium">$250 Refundable Deposit</span>
+                      <span className="text-sm font-semibold">$250 Refundable Deposit</span>
                     </div>
                   </div>
 
@@ -2140,7 +2140,7 @@ export default function VehicleDetailPage() {
 
                   {/* Delivery Calculator */}
                   <div className="mt-4 pt-4 border-t">
-                    <p className="font-medium text-sm flex items-center gap-2 mb-2">
+                    <p className="font-semibold text-sm flex items-center gap-2 mb-2">
                       <Truck className="w-4 h-4" />
                       Delivery Calculator
                     </p>
@@ -2197,7 +2197,7 @@ export default function VehicleDetailPage() {
 
         {/* Similar Vehicles */}
         <div className="container mx-auto px-4 py-8 border-t">
-          <h2 className="text-xl font-semibold mb-4">Other cars you might like</h2>
+          <h2 className="text-xl font-bold mb-4">Other cars you might like</h2>
           <SimilarVehicles
             currentVehicleId={vehicle.id}
             make={vehicle.make}
@@ -2214,7 +2214,7 @@ export default function VehicleDetailPage() {
             <p className="text-lg font-bold">${vehicle.price.toLocaleString()}</p>
           </div>
           <Button
-            className="flex-1 h-12 min-h-[48px] bg-red-600 hover:bg-red-700 text-white text-sm font-medium"
+            className="flex-1 h-12 min-h-[48px] bg-red-600 hover:bg-red-700 text-white text-sm font-semibold"
             onClick={() => handleProtectedAction("reserve this vehicle")}
           >
             <LockKeyhole className="w-4 h-4 mr-1.5 shrink-0" />

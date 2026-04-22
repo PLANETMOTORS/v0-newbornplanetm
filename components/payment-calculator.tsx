@@ -147,7 +147,7 @@ export function PaymentCalculator({
         <div className="space-y-2">
           <div className="flex justify-between">
             <Label>Down Payment</Label>
-            <span className="text-sm font-medium">${downPayment.toLocaleString()}</span>
+            <span className="text-sm font-semibold">${downPayment.toLocaleString()}</span>
           </div>
           <Slider
             aria-label="Down payment"
@@ -163,7 +163,7 @@ export function PaymentCalculator({
         <div className="space-y-2">
           <div className="flex justify-between">
             <Label>Trade-In Value</Label>
-            <span className="text-sm font-medium">${tradeIn.toLocaleString()}</span>
+            <span className="text-sm font-semibold">${tradeIn.toLocaleString()}</span>
           </div>
           <Slider
             aria-label="Trade-in value"
@@ -210,7 +210,7 @@ export function PaymentCalculator({
             <span className="text-muted-foreground">Total Interest</span>
             <span>${calculation.totalInterest.toLocaleString()}</span>
           </div>
-          <div className="flex justify-between font-medium pt-2 border-t">
+          <div className="flex justify-between font-semibold pt-2 border-t">
             <span>Total Cost</span>
             <span>${calculation.totalCost.toLocaleString()}</span>
           </div>

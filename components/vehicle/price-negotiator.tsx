@@ -243,7 +243,7 @@ export function PriceNegotiator({
                   <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${msg.role === "user" ? "bg-primary text-white" : "bg-muted"}`}>
                     <p>{msg.content}</p>
                     {msg.counterOffer && <p className="mt-2 font-semibold text-primary">Counter: ${msg.counterOffer.toLocaleString()}</p>}
-                    {msg.status === "accepted" && <p className="mt-2 text-green-600 font-medium">Offer Accepted!</p>}
+                    {msg.status === "accepted" && <p className="mt-2 text-green-600 font-semibold">Offer Accepted!</p>}
                   </div>
                   {msg.role === "user" && (
                     <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">

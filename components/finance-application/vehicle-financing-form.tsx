@@ -154,7 +154,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">
+                        <p className="font-semibold truncate">
                           {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim}
                         </p>
                         <p className="text-sm text-muted-foreground">
@@ -166,7 +166,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                         <p className="font-semibold text-primary" title="Price estimate — final all-in price confirmed at signing per OMVIC regulations">
                           ${(vehicle.price / 100).toLocaleString()}*
                         </p>
-                        <span className="inline-block mt-1 text-xs font-medium text-primary">Select →</span>
+                        <span className="inline-block mt-1 text-xs font-semibold text-primary">Select →</span>
                       </div>
                     </button>
                   ))}
@@ -181,7 +181,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
       {/* Left Column - Vehicle Info */}
       <div className="space-y-6">
         <section>
-          <h4 className="font-medium mb-4 flex items-center gap-2">
+          <h4 className="font-semibold mb-4 flex items-center gap-2">
             <Car className="w-4 h-4" />
             Vehicle Information
             {isVehicleSelected && (
@@ -302,7 +302,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
               checked={tradeIn.hasTradeIn}
               onCheckedChange={(checked) => setTradeIn({ ...tradeIn, hasTradeIn: checked as boolean })}
             />
-            <Label htmlFor="hasTradeIn" className="font-medium cursor-pointer">Include Trade-in</Label>
+            <Label htmlFor="hasTradeIn" className="font-semibold cursor-pointer">Include Trade-in</Label>
           </div>
           
           {tradeIn.hasTradeIn && (
@@ -424,7 +424,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
               
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                  <Label className="text-xs">Finance Docs Fee $ <span className="text-primary font-medium">($895)</span></Label>
+                  <Label className="text-xs">Finance Docs Fee $ <span className="text-primary font-semibold">($895)</span></Label>
                   <Input value={financingTerms.adminFee} onChange={(e) => setFinancingTerms({ ...financingTerms, adminFee: e.target.value })} readOnly className="bg-muted" />
                 </div>
                 <div>
@@ -515,8 +515,8 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                 </div>
                 {financing.adminFee > 0 && (
                   <div className="flex justify-between text-primary">
-                    <span className="font-medium">Finance Docs Fee:</span>
-                    <span className="font-medium">+${financing.adminFee.toLocaleString()}</span>
+                    <span className="font-semibold">Finance Docs Fee:</span>
+                    <span className="font-semibold">+${financing.adminFee.toLocaleString()}</span>
                   </div>
                 )}
                 <div className="flex justify-between">

@@ -159,7 +159,7 @@ export default function ClutchReplacementCostCanadaPage() {
               {costByProvince.map((item, index) => (
                 <Card key={index}>
                   <CardContent className="p-4 flex justify-between items-center">
-                    <span className="font-medium">{item.province}</span>
+                    <span className="font-semibold">{item.province}</span>
                     <span className="font-bold text-green-600">{item.range}</span>
                   </CardContent>
                 </Card>

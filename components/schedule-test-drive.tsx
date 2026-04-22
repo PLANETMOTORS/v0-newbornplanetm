@@ -188,7 +188,7 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
         <form onSubmit={handleSubmit} className="space-y-6">
           {step === 1 && (
             <div className="space-y-4">
-              <h3 className="font-medium flex items-center gap-2">
+              <h3 className="font-semibold flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
                 Select Date & Time
               </h3>
@@ -253,7 +253,7 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
                           : "hover:border-primary"
                       }`}
                     >
-                      <p className="font-medium">{loc.name}</p>
+                      <p className="font-semibold">{loc.name}</p>
                       <p className="text-sm text-muted-foreground">{loc.address}</p>
                     </button>
                   ))}
@@ -273,7 +273,7 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
 
           {step === 2 && (
             <div className="space-y-4">
-              <h3 className="font-medium flex items-center gap-2">
+              <h3 className="font-semibold flex items-center gap-2">
                 <Phone className="w-4 h-4" />
                 Your Contact Information
               </h3>
@@ -360,7 +360,7 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
 
               {/* Summary */}
               <div className="bg-muted p-4 rounded-lg">
-                <p className="text-sm font-medium mb-2">Test Drive Summary</p>
+                <p className="text-sm font-semibold mb-2">Test Drive Summary</p>
                 <div className="text-sm text-muted-foreground space-y-1">
                   <p>{vehicleTitle}</p>
                   <p>{formatDate(formData.date)} at {formData.time}</p>

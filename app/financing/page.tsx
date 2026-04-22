@@ -78,12 +78,12 @@ export default async function FinancingPage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-semibold mb-6">
                 <BadgeCheck className="w-4 h-4" />
                 <span>Rates from {lowestRate}% APR</span>
               </div>
 
-              <h1 className="font-serif text-4xl md:text-5xl font-semibold tracking-tight text-balance">
+              <h1 className="font-serif text-4xl md:text-5xl font-bold tracking-tight text-balance">
                 Get Pre-Approved for Auto Financing
               </h1>
               <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
@@ -114,7 +114,7 @@ export default async function FinancingPage() {
 
             {/* Pre-approval Form */}
             <div className="bg-card rounded-2xl border border-border p-8 shadow-lg">
-              <h2 className="font-semibold text-xl mb-2">Start Your Pre-Approval</h2>
+              <h2 className="font-bold text-xl mb-2">Start Your Pre-Approval</h2>
               <p className="text-muted-foreground text-sm mb-6">
                 Takes less than 5 minutes. No commitment required.
               </p>
@@ -139,7 +139,7 @@ export default async function FinancingPage() {
       <section className="py-16 lg:py-24 bg-card">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold">
+            <h2 className="font-serif text-3xl md:text-4xl font-bold">
               Multi-Lender Financing
             </h2>
             <p className="mt-4 text-muted-foreground">
@@ -169,7 +169,7 @@ export default async function FinancingPage() {
               {/* Flow diagram */}
               <div className="flex flex-col md:flex-row items-center justify-center gap-4">
                 <div className="bg-muted rounded-lg p-4 text-center">
-                  <p className="font-medium">CUSTOMER</p>
+                  <p className="font-semibold">CUSTOMER</p>
                   <p className="text-sm text-muted-foreground">Submits financing application</p>
                 </div>
 
@@ -177,7 +177,7 @@ export default async function FinancingPage() {
                 <div className="w-0.5 h-8 bg-muted-foreground/30 md:hidden" />
 
                 <div className="bg-primary/10 rounded-lg p-4 text-center border border-primary/30">
-                  <p className="font-medium text-primary">FINANCING SERVICE</p>
+                  <p className="font-semibold text-primary">FINANCING SERVICE</p>
                   <p className="text-sm text-muted-foreground">Equifax API</p>
                   <p className="text-xs text-muted-foreground mt-1">1. Soft credit pull (no score impact)</p>
                 </div>
@@ -186,7 +186,7 @@ export default async function FinancingPage() {
                 <div className="w-0.5 h-8 bg-muted-foreground/30 md:hidden" />
 
                 <div className="bg-muted rounded-lg p-4 text-center">
-                  <p className="font-medium">CREDIT BUREAU</p>
+                  <p className="font-semibold">CREDIT BUREAU</p>
                   <p className="text-sm text-muted-foreground">Equifax + TransUnion</p>
                   <p className="text-xs text-muted-foreground mt-1">2. Credit score + report</p>
                 </div>
@@ -210,7 +210,7 @@ export default async function FinancingPage() {
                     <tbody>
                       <tr className="border-b border-border">
                         <th scope="row" className="text-left py-2 px-4 font-medium">RATES</th>
-                        <td className="text-center py-2 px-4 text-primary font-medium">6.29%</td>
+                        <td className="text-center py-2 px-4 text-primary font-semibold">6.29%</td>
                         <td className="text-center py-2 px-4">6.49%</td>
                         <td className="text-center py-2 px-4">6.79%</td>
                         <td className="text-center py-2 px-4">6.99%</td>
@@ -238,7 +238,7 @@ export default async function FinancingPage() {
       <section id="calculator" className="py-16 lg:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold">
+            <h2 className="font-serif text-3xl md:text-4xl font-bold">
               Financing Calculator
             </h2>
             <p className="mt-4 text-muted-foreground">
@@ -256,7 +256,7 @@ export default async function FinancingPage() {
       <section className="py-16 lg:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold">
+            <h2 className="font-serif text-3xl md:text-4xl font-bold">
               How It Works
             </h2>
           </div>

@@ -65,7 +65,7 @@ export default function ContactPage() {
       <section className="pt-8 pb-16 lg:pt-16 lg:pb-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <h1 className="font-serif text-4xl md:text-5xl font-semibold tracking-tight">
+            <h1 className="font-serif text-4xl md:text-5xl font-bold tracking-tight">
               Contact Us
             </h1>
             <p className="mt-6 text-lg text-muted-foreground">
@@ -81,7 +81,7 @@ export default function ContactPage() {
                   <method.icon className="w-6 h-6 text-primary" />
                 </div>
                 <h3 className="font-semibold text-lg mb-1">{method.title}</h3>
-                <p className="text-primary font-medium">{method.primary}</p>
+                <p className="text-primary font-semibold">{method.primary}</p>
                 <p className="text-sm text-muted-foreground">{method.secondary}</p>
                 <p className="text-sm text-muted-foreground mt-2">{method.description}</p>
               </div>
@@ -91,7 +91,7 @@ export default function ContactPage() {
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Contact Form */}
             <div className="bg-card rounded-2xl border border-border p-8">
-              <h2 className="font-semibold text-xl mb-6">Send Us a Message</h2>
+              <h2 className="font-bold text-xl mb-6">Send Us a Message</h2>
               <ContactForm />
             </div>
 
@@ -124,15 +124,15 @@ export default function ContactPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Monday - Friday</span>
-                    <span className="font-medium">9:00 AM - 7:00 PM</span>
+                    <span className="font-semibold">9:00 AM - 7:00 PM</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Saturday</span>
-                    <span className="font-medium">9:00 AM - 6:00 PM</span>
+                    <span className="font-semibold">9:00 AM - 6:00 PM</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Sunday</span>
-                    <span className="font-medium">Closed</span>
+                    <span className="font-semibold">Closed</span>
                   </div>
                 </div>
               </div>
@@ -146,7 +146,7 @@ export default function ContactPage() {
                 <div className="space-y-4">
                   {departments.map((dept) => (
                     <div key={dept.name} className="flex items-center justify-between">
-                      <span className="font-medium">{dept.name}</span>
+                      <span className="font-semibold">{dept.name}</span>
                       <div className="text-right">
                         <a href={`tel:${dept.phone}`} className="text-sm text-primary hover:underline block">
                           {dept.phone}

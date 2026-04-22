@@ -159,7 +159,7 @@ export function DriversLicenseStep({
           }`}
         >
           <Upload className="w-10 h-10 text-blue-500 mx-auto mb-3" aria-hidden="true" />
-          <p className="font-medium">Click or drag to upload</p>
+          <p className="font-semibold">Click or drag to upload</p>
           <p className="text-sm text-muted-foreground mt-1">JPG, PNG, WebP, or PDF — max 5 MB</p>
           <input
             ref={fileInputRef}
@@ -191,7 +191,7 @@ export function DriversLicenseStep({
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <p className="font-medium truncate">{data.licenseFile.name}</p>
+              <p className="font-semibold truncate">{data.licenseFile.name}</p>
               <p className="text-sm text-muted-foreground">
                 {(data.licenseFile.size / 1024 / 1024).toFixed(1)} MB
               </p>

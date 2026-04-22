@@ -55,7 +55,7 @@ export function DocumentsStep({ documents, setDocuments, onSubmit: _onSubmit, is
                   )}
                 </div>
                 <div>
-                  <p className="font-medium">{docType.label}</p>
+                  <p className="font-semibold">{docType.label}</p>
                   {uploaded?.file && (
                     <p className="text-sm text-muted-foreground">{uploaded.file.name}</p>
                   )}
@@ -87,7 +87,7 @@ export function DocumentsStep({ documents, setDocuments, onSubmit: _onSubmit, is
       <div className="p-4 bg-muted/50 rounded-lg flex items-start gap-3">
         <Shield className="w-5 h-5 text-primary mt-0.5" />
         <div className="text-sm">
-          <p className="font-medium">Your documents are secure</p>
+          <p className="font-semibold">Your documents are secure</p>
           <p className="text-muted-foreground">
             All uploaded documents are encrypted and stored securely. They will only be used for verification purposes.
           </p>

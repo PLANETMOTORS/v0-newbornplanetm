@@ -60,9 +60,9 @@ export function PurchaseSidebar({ vehicle, steps, onStepClick, onCancel }: Purch
         {/* Progress */}
         <div className="bg-background rounded-xl border p-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-sm">Purchase process</h2>
+            <h2 className="font-bold text-sm">Purchase process</h2>
             <span className={cn(
-              "text-xs font-medium px-2.5 py-0.5 rounded-full",
+              "text-xs font-semibold px-2.5 py-0.5 rounded-full",
               allDone
                 ? "bg-green-100 text-green-700"
                 : "bg-blue-100 text-blue-700"
@@ -103,7 +103,7 @@ export function PurchaseSidebar({ vehicle, steps, onStepClick, onCancel }: Purch
 
                       <span className="flex-1 min-w-0">
                         <span className={cn(
-                          "block text-sm font-medium",
+                          "block text-sm font-semibold",
                           step.status === "current" && "text-blue-700",
                           step.status === "upcoming" && "text-muted-foreground"
                         )}>
@@ -143,21 +143,21 @@ export function PurchaseSidebar({ vehicle, steps, onStepClick, onCancel }: Purch
           <div className="flex items-center gap-3">
             <RotateCcw className="w-5 h-5 text-green-600 shrink-0" aria-hidden="true" />
             <div>
-              <p className="text-sm font-medium">7-Day Money-Back Guarantee</p>
+              <p className="text-sm font-semibold">7-Day Money-Back Guarantee</p>
               <p className="text-xs text-muted-foreground">Not satisfied? Full refund, no questions asked.</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <ClipboardCheck className="w-5 h-5 text-blue-600 shrink-0" aria-hidden="true" />
             <div>
-              <p className="text-sm font-medium">PM Certified™ 210-Point Inspection</p>
+              <p className="text-sm font-semibold">PM Certified™ 210-Point Inspection</p>
               <p className="text-xs text-muted-foreground">Every vehicle thoroughly inspected and reconditioned.</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <Shield className="w-5 h-5 text-blue-600 shrink-0" aria-hidden="true" />
             <div>
-              <p className="text-sm font-medium">OMVIC Registered Dealer</p>
+              <p className="text-sm font-semibold">OMVIC Registered Dealer</p>
               <p className="text-xs text-muted-foreground">Licensed and regulated for your protection.</p>
             </div>
           </div>

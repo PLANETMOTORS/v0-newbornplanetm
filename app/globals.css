@@ -132,6 +132,12 @@
     max-width: 100vw;
     min-height: 100vh;
     position: relative;
+    line-height: 1.575;
+  }
+
+  /* Typography: loosen default 14px line-height from 20px → 22px */
+  .text-sm {
+    line-height: 1.575; /* 14px × 1.575 ≈ 22px */
   }
   
   /* Fix for mobile horizontal scroll */

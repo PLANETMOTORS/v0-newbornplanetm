@@ -37,7 +37,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
   
   // Get error class for labels
   const getLabelClass = (fieldName: string): string => {
-    return hasFieldError(fieldName) ? "text-destructive font-medium" : ""
+    return hasFieldError(fieldName) ? "text-destructive font-semibold" : ""
   }
   
   return (
@@ -49,7 +49,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
       
       {/* Personal Information */}
       <section>
-        <h4 className="font-medium mb-4 flex items-center gap-2">
+        <h4 className="font-semibold mb-4 flex items-center gap-2">
           <User className="w-4 h-4" />
           Personal Information
         </h4>
@@ -148,7 +148,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             </Select>
           </div>
           <div>
-            <Label className={getLabelClass("Phone")}>Phone * <span className="text-xs text-primary font-medium">(3-digit area + 7-digit number)</span></Label>
+            <Label className={getLabelClass("Phone")}>Phone * <span className="text-xs text-primary font-semibold">(3-digit area + 7-digit number)</span></Label>
             <Input 
               type="tel" 
               value={data.phone} 
@@ -202,7 +202,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
       
       {/* Address */}
       <section>
-        <h4 className="font-medium mb-4 flex items-center gap-2">
+        <h4 className="font-semibold mb-4 flex items-center gap-2">
           <MapPin className="w-4 h-4" />
           Current Address
         </h4>
@@ -313,7 +313,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
       
       {/* Home/Mortgage Details */}
       <section>
-        <h4 className="font-medium mb-4 flex items-center gap-2">
+        <h4 className="font-semibold mb-4 flex items-center gap-2">
           <Home className="w-4 h-4" />
           Home/Mortgage Details
         </h4>
@@ -357,7 +357,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
       
       {/* Employment */}
       <section>
-        <h4 className="font-medium mb-4 flex items-center gap-2">
+        <h4 className="font-semibold mb-4 flex items-center gap-2">
           <Briefcase className="w-4 h-4" />
           Current Employment
         </h4>
@@ -400,7 +400,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
           </div>
 
 <div>
-  <Label>Employer Phone * <span className="text-xs text-primary font-medium">(3-digit area + 7-digit number)</span></Label>
+  <Label>Employer Phone * <span className="text-xs text-primary font-semibold">(3-digit area + 7-digit number)</span></Label>
   <div className="flex gap-2">
   <Input 
     type="tel" 
@@ -468,7 +468,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
       
       {/* Income */}
       <section>
-        <h4 className="font-medium mb-4 flex items-center gap-2">
+        <h4 className="font-semibold mb-4 flex items-center gap-2">
           <DollarSign className="w-4 h-4" />
           Income Details
         </h4>

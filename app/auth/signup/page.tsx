@@ -145,7 +145,7 @@ function SignUpForm() {
               </div>
 
               <div className="mt-12 p-6 bg-primary/5 rounded-xl">
-                <p className="text-lg font-medium mb-2">Already have an account?</p>
+                <p className="text-lg font-semibold mb-2">Already have an account?</p>
                 <Link href="/auth/login">
                   <Button variant="outline" className="w-full">
                     Sign In Instead
@@ -363,7 +363,7 @@ function SignUpForm() {
                 <CardFooter className="flex flex-col space-y-4 pt-0 lg:hidden">
                   <div className="text-center text-sm">
                     Already have an account?{" "}
-                    <Link href="/auth/login" className="text-primary font-medium hover:underline">
+                    <Link href="/auth/login" className="text-primary font-semibold hover:underline">
                       Sign in
                     </Link>
                   </div>

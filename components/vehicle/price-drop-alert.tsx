@@ -93,7 +93,7 @@ export function PriceDropAlert({
           <form onSubmit={handleSubmit} className="space-y-4">
             <Card className="bg-muted/50">
               <CardContent className="pt-4">
-                <p className="text-sm font-medium">{vehicleName}</p>
+                <p className="text-sm font-semibold">{vehicleName}</p>
                 <p className="text-lg font-bold text-primary">
                   ${currentPrice.toLocaleString()}
                 </p>
@@ -177,11 +177,11 @@ export function PriceDropAlert({
               <CardContent className="pt-4 space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Vehicle</span>
-                  <span className="font-medium">{vehicleName}</span>
+                  <span className="font-semibold">{vehicleName}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Current Price</span>
-                  <span className="font-medium">${currentPrice.toLocaleString()}</span>
+                  <span className="font-semibold">${currentPrice.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Alert ID</span>

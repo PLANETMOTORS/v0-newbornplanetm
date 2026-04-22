@@ -166,7 +166,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
               {/* Deposit Summary */}
               <div className="flex justify-between items-center p-3 bg-primary/5 rounded-lg">
                 <div>
-                  <p className="font-medium">Refundable Deposit</p>
+                  <p className="font-semibold">Refundable Deposit</p>
                   <p className="text-xs text-muted-foreground">Applied to purchase price</p>
                 </div>
                 <p className="text-2xl font-bold">${depositAmount} CAD</p>
@@ -301,7 +301,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
               </DialogDescription>
 
               <div className="bg-muted p-4 rounded-lg text-left mb-6">
-                <p className="text-sm font-medium mb-2">What happens next?</p>
+                <p className="text-sm font-semibold mb-2">What happens next?</p>
                 <ul className="text-sm text-muted-foreground space-y-2">
                   <li className="flex items-start gap-2">
                     <Badge variant="outline" className="mt-0.5">1</Badge>
@@ -330,7 +330,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
         )}
       {showStripeCheckout && (
           <div className="py-4">
-            <h3 className="font-medium mb-4">Complete Your ${depositAmount} Deposit</h3>
+            <h3 className="font-semibold mb-4">Complete Your ${depositAmount} Deposit</h3>
             {checkoutError ? (
               <div className="text-center py-8">
                 <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 mb-4">

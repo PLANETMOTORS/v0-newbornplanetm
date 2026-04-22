@@ -128,7 +128,7 @@ export default function ProtectionPlansPage() {
           <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-muted-foreground">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             <span>/</span>
-            <span className="text-foreground font-medium">Protection Plans</span>
+            <span className="text-foreground font-semibold">Protection Plans</span>
           </nav>
         </div>
 

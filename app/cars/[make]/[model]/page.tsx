@@ -248,7 +248,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
               <li className="text-muted-foreground">/</li>
               <li><Link href={`/inventory?make=${make}`} className="text-muted-foreground hover:text-foreground">{makeFormatted}</Link></li>
               <li className="text-muted-foreground">/</li>
-              <li aria-current="page" className="font-medium">{modelFormatted}</li>
+              <li aria-current="page" className="font-semibold">{modelFormatted}</li>
             </ol>
           </div>
         </nav>
@@ -457,21 +457,21 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                   </thead>
                   <tbody>
                     <tr className="border-b">
-                      <td className="p-4 font-medium">Starting Price</td>
+                      <td className="p-4 font-semibold">Starting Price</td>
                       <td className="p-4 text-center font-bold text-primary">${data.startingPrice.toLocaleString()}</td>
                       {data.competitors.map((comp, i) => (
                         <td key={i} className="p-4 text-center">${comp.price.toLocaleString()}</td>
                       ))}
                     </tr>
                     <tr className="border-b">
-                      <td className="p-4 font-medium">Fuel Economy (Hwy)</td>
+                      <td className="p-4 font-semibold">Fuel Economy (Hwy)</td>
                       <td className="p-4 text-center font-bold text-primary">{data.mpg.highway} L/100km</td>
                       {data.competitors.map((comp, i) => (
                         <td key={i} className="p-4 text-center">{comp.mpg} L/100km</td>
                       ))}
                     </tr>
                     <tr>
-                      <td className="p-4 font-medium">Safety Rating</td>
+                      <td className="p-4 font-semibold">Safety Rating</td>
                       <td className="p-4 text-center font-bold text-primary">{data.safetyRating} Stars</td>
                       {data.competitors.map((comp, i) => (
                         <td key={i} className="p-4 text-center">{comp.safety} Stars</td>

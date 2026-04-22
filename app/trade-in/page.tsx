@@ -793,7 +793,7 @@ function TradeInContent() {
                     <CheckCircle className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-white/80">Your Instant Quote for {instantQuote.vehicle}</p>
+                    <p className="text-sm font-semibold text-white/80">Your Instant Quote for {instantQuote.vehicle}</p>
                     <p className="text-2xl font-bold">${instantQuote.value.toLocaleString()}</p>
                   </div>
                 </div>
@@ -833,9 +833,9 @@ function TradeInContent() {
                     onValueChange={(v: string) => setLookupMethod(v as "vin" | "plate" | "manual")}
                   >
                     <TabsList className="grid w-full grid-cols-3 mb-6 bg-white/5 border border-white/10 h-12">
-                      <TabsTrigger value="vin" className="text-white/70 data-[state=active]:bg-primary data-[state=active]:text-white text-sm font-medium">VIN Lookup</TabsTrigger>
-                      <TabsTrigger value="plate" className="text-white/70 data-[state=active]:bg-primary data-[state=active]:text-white text-sm font-medium">Plate #</TabsTrigger>
-                      <TabsTrigger value="manual" className="text-white/70 data-[state=active]:bg-primary data-[state=active]:text-white text-sm font-medium">Manual</TabsTrigger>
+                      <TabsTrigger value="vin" className="text-white/70 data-[state=active]:bg-primary data-[state=active]:text-white text-sm font-semibold">VIN Lookup</TabsTrigger>
+                      <TabsTrigger value="plate" className="text-white/70 data-[state=active]:bg-primary data-[state=active]:text-white text-sm font-semibold">Plate #</TabsTrigger>
+                      <TabsTrigger value="manual" className="text-white/70 data-[state=active]:bg-primary data-[state=active]:text-white text-sm font-semibold">Manual</TabsTrigger>
                     </TabsList>
 
                     {/* VIN Tab */}
@@ -1048,7 +1048,7 @@ function TradeInContent() {
                   {/* Vehicle info summary */}
                   <div className="flex items-center gap-3 bg-muted/50 rounded-full px-4 py-2 mr-4">
                     <CheckCircle className="h-5 w-5 text-primary" />
-                    <span className="text-sm font-medium truncate">
+                    <span className="text-sm font-semibold truncate">
                       {selectedYear} {selectedMake} {selectedModel}
                     </span>
                   </div>
@@ -1066,7 +1066,7 @@ function TradeInContent() {
                         {step > s.num ? <CheckCircle className="h-5 w-5" /> : i + 1}
                       </div>
                       <span className={`ml-2 hidden sm:block text-sm ${
-                        step >= s.num ? "text-foreground font-medium" : "text-muted-foreground"
+                        step >= s.num ? "text-foreground font-semibold" : "text-muted-foreground"
                       }`}>
                         {s.label}
                       </span>
@@ -1136,7 +1136,7 @@ function TradeInContent() {
                             onCheckedChange={(c) => setHasAccident(c as boolean)}
                           />
                           <div className="space-y-1">
-                            <Label htmlFor="accident" className="cursor-pointer font-medium">
+                            <Label htmlFor="accident" className="cursor-pointer font-semibold">
                               Has this vehicle been in an accident?
                             </Label>
                             <p className="text-sm text-muted-foreground">
@@ -1152,7 +1152,7 @@ function TradeInContent() {
                             onCheckedChange={(c) => setHasMechanicalIssues(c as boolean)}
                           />
                           <div className="space-y-1">
-                            <Label htmlFor="mechanical" className="cursor-pointer font-medium">
+                            <Label htmlFor="mechanical" className="cursor-pointer font-semibold">
                               Are there any mechanical issues?
                             </Label>
                             <p className="text-sm text-muted-foreground">
@@ -1168,7 +1168,7 @@ function TradeInContent() {
                             onCheckedChange={(c) => setHasLien(c as boolean)}
                           />
                           <div className="space-y-1">
-                            <Label htmlFor="lien" className="cursor-pointer font-medium">
+                            <Label htmlFor="lien" className="cursor-pointer font-semibold">
                               Is there a loan or lien on this vehicle?
                             </Label>
                             <p className="text-sm text-muted-foreground">
@@ -1252,14 +1252,14 @@ function TradeInContent() {
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/photo:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                   <label
                                     htmlFor={`photo-upload-${angle}`}
-                                    className="bg-white text-black px-2 py-1 rounded text-xs font-medium cursor-pointer"
+                                    className="bg-white text-black px-2 py-1 rounded text-xs font-semibold cursor-pointer"
                                   >
                                     Replace
                                   </label>
                                   <button
                                     aria-label={`Remove ${angle} photo`}
                                     onClick={() => removePhoto(angle)}
-                                    className="bg-red-500 text-white px-2 py-1 rounded text-xs font-medium relative z-10"
+                                    className="bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold relative z-10"
                                   >
                                     Remove
                                   </button>
@@ -1279,7 +1279,7 @@ function TradeInContent() {
                         ))}
                       </div>
                       {Object.keys(photos).length > 0 && (
-                        <p className="text-sm text-green-600 font-medium">
+                        <p className="text-sm text-green-600 font-semibold">
                           ✓ {Object.keys(photos).length} photo{Object.keys(photos).length > 1 ? 's' : ''} added
                         </p>
                       )}
@@ -1288,7 +1288,7 @@ function TradeInContent() {
                         <div className="flex items-start gap-3">
                           <TrendingUp className="h-5 w-5 text-teal-600 mt-0.5" />
                           <div>
-                            <p className="font-medium text-teal-900 dark:text-teal-100">Photos boost your offer!</p>
+                            <p className="font-semibold text-teal-900 dark:text-teal-100">Photos boost your offer!</p>
                             <p className="text-sm text-teal-700 dark:text-teal-300">
                               Vehicles with photos typically receive offers 5-10% higher than those without.
                             </p>
@@ -1397,7 +1397,7 @@ function TradeInContent() {
                         <div className="flex items-start gap-3">
                           <Shield className="h-5 w-5 text-green-600 mt-0.5" />
                           <div>
-                            <p className="font-medium text-green-900 dark:text-green-100">Your privacy is protected</p>
+                            <p className="font-semibold text-green-900 dark:text-green-100">Your privacy is protected</p>
                             <p className="text-sm text-green-700 dark:text-green-300">
                               We never share your information. No spam calls, guaranteed.
                             </p>
@@ -1484,7 +1484,7 @@ function TradeInContent() {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">CBB Value Range</span>
-                        <span className="font-medium">${offer.cbbValue.low.toLocaleString()} - ${offer.cbbValue.high.toLocaleString()}</span>
+                        <span className="font-semibold">${offer.cbbValue.low.toLocaleString()} - ${offer.cbbValue.high.toLocaleString()}</span>
                       </div>
                       <div className="h-2 bg-muted rounded-full overflow-hidden">
                         <div 
@@ -1499,11 +1499,11 @@ function TradeInContent() {
                       <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg space-y-2">
                         <div className="flex justify-between">
                           <span>Trade-In Offer</span>
-                          <span className="font-medium">${offer.offerAmount.toLocaleString()}</span>
+                          <span className="font-semibold">${offer.offerAmount.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-red-600">
                           <span>Loan Payoff</span>
-                          <span className="font-medium">-${offer.payoff.toLocaleString()}</span>
+                          <span className="font-semibold">-${offer.payoff.toLocaleString()}</span>
                         </div>
                         <div className="border-t pt-2 flex justify-between font-bold text-lg">
                           <span>Your Equity</span>
@@ -1519,15 +1519,15 @@ function TradeInContent() {
                     <div className="grid grid-cols-3 gap-2 sm:gap-4 p-3 sm:p-4 bg-muted/30 rounded-lg">
                       <div className="text-center">
                         <p className="text-xs sm:text-sm text-muted-foreground mb-1">Dealer</p>
-                        <p className="font-medium text-xs sm:text-base text-muted-foreground line-through">${offer.comparison.dealerTrade.toLocaleString()}</p>
+                        <p className="font-semibold text-xs sm:text-base text-muted-foreground line-through">${offer.comparison.dealerTrade.toLocaleString()}</p>
                       </div>
                       <div className="text-center border-x">
-                        <p className="text-xs sm:text-sm text-primary font-medium mb-1">Planet Motors</p>
+                        <p className="text-xs sm:text-sm text-primary font-semibold mb-1">Planet Motors</p>
                         <p className="font-bold text-base sm:text-xl text-primary">${offer.offerAmount.toLocaleString()}</p>
                       </div>
                       <div className="text-center">
                         <p className="text-xs sm:text-sm text-muted-foreground mb-1">Private</p>
-                        <p className="font-medium text-xs sm:text-base text-muted-foreground">${offer.comparison.privateSale.toLocaleString()}</p>
+                        <p className="font-semibold text-xs sm:text-base text-muted-foreground">${offer.comparison.privateSale.toLocaleString()}</p>
                       </div>
                     </div>
 
@@ -1535,17 +1535,17 @@ function TradeInContent() {
                     <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center text-xs sm:text-sm">
                       <div>
                         <Zap className="h-6 w-6 mx-auto mb-1 text-primary" />
-                        <p className="font-medium">Instant Offer</p>
+                        <p className="font-semibold">Instant Offer</p>
                         <p className="text-xs text-muted-foreground">No waiting</p>
                       </div>
                       <div>
                         <Truck className="h-6 w-6 mx-auto mb-1 text-primary" />
-                        <p className="font-medium">Free Pickup</p>
+                        <p className="font-semibold">Free Pickup</p>
                         <p className="text-xs text-muted-foreground">Canada-wide</p>
                       </div>
                       <div>
                         <CreditCard className="h-6 w-6 mx-auto mb-1 text-primary" />
-                        <p className="font-medium">24h Payment</p>
+                        <p className="font-semibold">24h Payment</p>
                         <p className="text-xs text-muted-foreground">E-Transfer or cheque</p>
                       </div>
                     </div>
@@ -1715,7 +1715,7 @@ function TradeInContent() {
                       ["Haggling", "No games", "Expected"],
                     ].map(([feature, pm, dealer], i) => (
                       <tr key={i} className="border-b">
-                        <td className="p-4 font-medium">{feature}</td>
+                        <td className="p-4 font-semibold">{feature}</td>
                         <td className="p-4 bg-primary/5 text-center font-semibold text-primary">{pm}</td>
                         <td className="p-4 text-center text-muted-foreground">{dealer}</td>
                       </tr>
@@ -1735,7 +1735,7 @@ function TradeInContent() {
                 <h2 className="text-3xl font-bold mb-4">What Canadians Are Saying</h2>
                 <div className="flex items-center justify-center gap-2 text-amber-500">
                   {[1,2,3,4,5].map(i => <Star key={i} className="h-5 w-5 fill-current" />)}
-                  <span className="ml-2 text-foreground font-medium">4.8 Star Rating</span>
+                  <span className="ml-2 text-foreground font-semibold">4.8 Star Rating</span>
                 </div>
               </div>
               
@@ -1772,7 +1772,7 @@ function TradeInContent() {
                         {review.name[0]}
                       </div>
                       <div>
-                        <p className="font-medium">{review.name}</p>
+                        <p className="font-semibold">{review.name}</p>
                         <p className="text-sm text-muted-foreground">{review.location}</p>
                       </div>
                     </div>
@@ -1943,7 +1943,7 @@ function TradeInContent() {
               <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
                 <div>
-                  <p className="text-sm font-medium text-green-800">Signed in as {user.email}</p>
+                  <p className="text-sm font-semibold text-green-800">Signed in as {user.email}</p>
                   <p className="text-xs text-green-700">Your trade-in will be saved to your account</p>
                 </div>
               </div>
@@ -1958,7 +1958,7 @@ function TradeInContent() {
             </div>
             
             <div className="space-y-3">
-              <h4 className="font-medium">What are you looking for?</h4>
+              <h4 className="font-semibold">What are you looking for?</h4>
               <div className="grid grid-cols-2 gap-2">
                 {['SUV', 'Sedan', 'Truck', 'Electric', 'Luxury', 'Under $30k'].map((type) => (
                   <Button

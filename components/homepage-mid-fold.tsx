@@ -91,7 +91,7 @@ export function HomepageMidFold() {
       <section className="py-16" style={{ backgroundColor: "#FFFFFF" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-12">
-            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold mb-4">
               <Award className="w-4 h-4" />
               Simple 4-Step Process
             </div>
@@ -116,7 +116,7 @@ export function HomepageMidFold() {
                     <div className={`w-12 h-12 ${step.color} rounded-xl flex items-center justify-center shadow-lg`}>
                       <step.icon className="w-6 h-6 text-white" />
                     </div>
-                    <span className="text-sm font-medium text-gray-600">Step {index + 1}</span>
+                    <span className="text-sm font-semibold text-gray-600">Step {index + 1}</span>
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 mb-2">{step.title}</h3>
                   <p className="text-gray-600 text-sm mb-4">{step.description}</p>
@@ -135,7 +135,7 @@ export function HomepageMidFold() {
 
           {/* Money Back Guarantee Badge */}
           <div className="text-center mt-10">
-            <div className="inline-flex items-center gap-2 bg-green-50 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
+            <div className="inline-flex items-center gap-2 bg-green-50 text-green-800 px-4 py-2 rounded-full text-sm font-semibold">
               <Shield className="w-4 h-4" />
               Backed by our 10-Day Money-Back Guarantee
             </div>

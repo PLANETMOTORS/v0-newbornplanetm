@@ -629,7 +629,7 @@ export function InstantQuote() {
         
         {/* Contact Information Section */}
         <div className="border-t pt-4 mt-4">
-          <h3 className="font-medium mb-3 flex items-center gap-2">
+          <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Mail className="h-4 w-4" />
             Your Contact Information
           </h3>
@@ -711,7 +711,7 @@ export function InstantQuote() {
           <div className="border-t pt-4 mt-4 space-y-4">
             <div className="text-center">
               <CheckCircle className="h-8 w-8 text-primary mx-auto mb-2" />
-              <h3 className="font-medium">Verify Your {verifyMethod === "email" ? "Email" : "Phone"}</h3>
+              <h3 className="font-semibold">Verify Your {verifyMethod === "email" ? "Email" : "Phone"}</h3>
               <p className="text-sm text-muted-foreground">
                 Enter the 6-digit code sent to {verifyMethod === "email" ? formData.email : formData.phone}
               </p>

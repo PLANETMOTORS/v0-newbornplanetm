@@ -252,7 +252,7 @@ export default function EVBatteryPage() {
                     <div>
                       <div className="flex justify-between text-xs mb-1">
                         <span className="text-muted-foreground">Battery Health</span>
-                        <span className="font-medium text-green-600">{vehicle.batteryHealth}%</span>
+                        <span className="font-semibold text-green-600">{vehicle.batteryHealth}%</span>
                       </div>
                       <Progress value={vehicle.batteryHealth} className="h-1.5" />
                     </div>
@@ -260,19 +260,19 @@ export default function EVBatteryPage() {
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div>
                         <p className="text-muted-foreground">Current Range</p>
-                        <p className="font-medium">{vehicle.currentRange} km</p>
+                        <p className="font-semibold">{vehicle.currentRange} km</p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Capacity</p>
-                        <p className="font-medium">{vehicle.currentCapacity} kWh</p>
+                        <p className="font-semibold">{vehicle.currentCapacity} kWh</p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Charge Cycles</p>
-                        <p className="font-medium">{vehicle.chargeCycles}</p>
+                        <p className="font-semibold">{vehicle.chargeCycles}</p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Cell Balance</p>
-                        <p className="font-medium text-green-600">{vehicle.cellBalanceStatus}</p>
+                        <p className="font-semibold text-green-600">{vehicle.cellBalanceStatus}</p>
                       </div>
                     </div>
                     

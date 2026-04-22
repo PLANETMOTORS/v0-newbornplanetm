@@ -169,17 +169,17 @@ export default function HowItWorksPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 text-center">
               <div>
                 <p className="text-3xl sm:text-5xl font-bold text-primary mb-2">$250</p>
-                <p className="font-medium text-sm sm:text-base">Refundable Deposit</p>
+                <p className="font-semibold text-sm sm:text-base">Refundable Deposit</p>
                 <p className="text-xs sm:text-sm text-muted-foreground">Reserve any vehicle risk-free</p>
               </div>
               <div>
                 <p className="text-3xl sm:text-5xl font-bold text-primary mb-2">10 Days</p>
-                <p className="font-medium text-sm sm:text-base">Money-Back Guarantee</p>
+                <p className="font-semibold text-sm sm:text-base">Money-Back Guarantee</p>
                 <p className="text-xs sm:text-sm text-muted-foreground">Love it or return it</p>
               </div>
               <div>
                 <p className="text-3xl sm:text-5xl font-bold text-primary mb-2">FREE</p>
-                <p className="font-medium text-sm sm:text-base">Delivery within 300km</p>
+                <p className="font-semibold text-sm sm:text-base">Delivery within 300km</p>
                 <p className="text-xs sm:text-sm text-muted-foreground">Or competitive rates nationwide</p>
               </div>
             </div>

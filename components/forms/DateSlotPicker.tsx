@@ -63,7 +63,7 @@ export function DateSlotPicker({
     <div className="space-y-4">
       {/* Date Selection */}
       <div className="space-y-1.5">
-        <Label className="text-sm font-medium">
+        <Label className="text-sm font-semibold">
           Select Date <span className="text-destructive">*</span>
         </Label>
         <select
@@ -86,7 +86,7 @@ export function DateSlotPicker({
           )}
         </select>
         {selectedDate && (
-          <p className="text-sm text-green-600 font-medium mt-1">
+          <p className="text-sm text-green-600 font-semibold mt-1">
             Selected: {availability.find(a => a.date === selectedDate)?.dayLabel}
           </p>
         )}
@@ -94,7 +94,7 @@ export function DateSlotPicker({
 
       {/* Time Slot Selection */}
       <div className="space-y-1.5">
-        <Label className="text-sm font-medium">
+        <Label className="text-sm font-semibold">
           Select Time <span className="text-destructive">*</span>
         </Label>
         <select
@@ -117,7 +117,7 @@ export function DateSlotPicker({
           ))}
         </select>
         {selectedTime && (
-          <p className="text-sm text-green-600 font-medium mt-1">
+          <p className="text-sm text-green-600 font-semibold mt-1">
             Selected: {slots.find(s => s.time === selectedTime)?.label}
           </p>
         )}
