@@ -1,6 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5 MB
 const ACCEPTED_MIME_TYPES = new Set([
@@ -23,8 +24,13 @@ interface UploadLicenseResult {
  *
  * The client sends the file via FormData. The server validates it
  * (type, size) and uploads to the private `secure_documents` bucket
- * using the service role key — the browser never touches Supabase
+ * using the service role key -- the browser never touches Supabase
  * Storage directly.
+ *
+ * Authorization: If the caller is authenticated, their session email
+ * must match the customerEmail in the form data. For guest checkout,
+ * we verify an active reservation exists for the vehicle+email pair
+ * before allowing the upload.
  *
  * Returns the raw bucket path (e.g. `<vehicleId>/<timestamp>_license.jpg`)
  * which is stored in the `reservations.license_storage_path` column.
@@ -48,12 +54,23 @@ export async function uploadDriversLicense(formData: FormData): Promise<UploadLi
     return { success: false, error: 'Customer email is required' }
   }
 
+  const normalizedEmail = customerEmail.trim().toLowerCase()
+
+  // --- Authorization check ---
+  // If authenticated, verify the session email matches the claimed email.
+  // This prevents an authenticated user from uploading to another customer's reservation.
+  const authClient = await createClient()
+  const { data: { user } } = await authClient.auth.getUser()
+  if (user && user.email?.toLowerCase() !== normalizedEmail) {
+    return { success: false, error: 'Email does not match your account' }
+  }
+
   // Validate MIME type
   if (!ACCEPTED_MIME_TYPES.has(file.type)) {
     return { success: false, error: 'File must be a JPG, PNG, WebP, or PDF' }
   }
 
-  // Validate size (5 MB server-side limit, stricter than 10 MB client-side)
+  // Validate size (5 MB server-side limit)
   if (file.size > MAX_FILE_SIZE) {
     return { success: false, error: 'File must be under 5 MB' }
   }
@@ -78,6 +95,27 @@ export async function uploadDriversLicense(formData: FormData): Promise<UploadLi
     return { success: false, error: 'Service configuration error. Please try again later.' }
   }
 
+  // Verify an active reservation exists for this vehicle+email before uploading.
+  // This ensures the caller actually has a reservation in progress.
+  const { data: targetRow, error: selectError } = await supabase
+    .from('reservations')
+    .select('id')
+    .eq('vehicle_id', vehicleId)
+    .eq('customer_email', normalizedEmail)
+    .in('status', ['pending', 'confirmed'])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (selectError) {
+    console.error('[upload-license] Reservation lookup failed:', selectError.message)
+    return { success: false, error: 'Unable to verify reservation. Please try again.' }
+  }
+
+  if (!targetRow) {
+    return { success: false, error: 'No active reservation found for this vehicle and email' }
+  }
+
   // Upload to the private bucket using service role (bypasses RLS)
   const buffer = Buffer.from(await file.arrayBuffer())
   const { error: uploadError } = await supabase.storage
@@ -92,34 +130,17 @@ export async function uploadDriversLicense(formData: FormData): Promise<UploadLi
     return { success: false, error: 'Failed to upload document securely. Please try again.' }
   }
 
-  // Store the raw path in the most recent matching reservation.
-  // PostgREST .order().limit() on .update() only constrains the RETURNING
-  // clause, not the UPDATE itself — so we SELECT the target row first,
-  // then UPDATE by primary key to avoid overwriting other reservations.
-  const { data: targetRow, error: selectError } = await supabase
+  // Update the reservation with the license path
+  const { error: dbError } = await supabase
     .from('reservations')
-    .select('id')
-    .eq('vehicle_id', vehicleId)
-    .eq('customer_email', customerEmail.trim().toLowerCase())
-    .in('status', ['pending', 'confirmed'])
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
+    .update({
+      license_storage_path: storagePath,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', targetRow.id)
 
-  if (selectError) {
-    console.error('[upload-license] Reservation lookup failed:', selectError.message)
-  } else if (targetRow) {
-    const { error: dbError } = await supabase
-      .from('reservations')
-      .update({
-        license_storage_path: storagePath,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', targetRow.id)
-
-    if (dbError) {
-      console.error('[upload-license] DB update failed:', dbError.message)
-    }
+  if (dbError) {
+    console.error('[upload-license] DB update failed:', dbError.message)
   }
 
   console.info(`[upload-license] Uploaded ${storagePath} for vehicle ${vehicleId}`)
