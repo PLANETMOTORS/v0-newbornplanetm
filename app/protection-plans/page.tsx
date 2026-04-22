@@ -14,12 +14,23 @@ import { PROTECTION_PRODUCTS } from "@/lib/protection-products"
 import { getPublicSiteUrl } from "@/lib/site-url"
 
 export const metadata = {
-  title: "PlanetCare Protection Packages | Planet Motors",
-  description: "Personalized protection when you buy from Planet Motors. Compare Essential, Certified, and Certified Plus packages with extended warranty, GAP insurance, tire & rim, and rust protection.",
+  title: "Vehicle Protection Plans & Extended Warranty | Planet Motors",
+  description: "Starting from $1,950 — compare Essential, Certified, and Certified Plus protection packages with extended warranty, GAP insurance, tire & rim, and rust protection. Personalized coverage for every budget.",
   openGraph: {
-    title: "PlanetCare Protection Packages | Planet Motors",
-    description: "Compare Essential, Certified, and Certified Plus protection packages with extended warranty, GAP insurance, tire & rim, and rust protection.",
+    title: "Vehicle Protection Plans & Extended Warranty | Planet Motors",
+    description: "Starting from $1,950 — compare protection packages with extended warranty, GAP insurance, tire & rim, and rust protection for your used vehicle.",
     url: "https://www.planetmotors.ca/protection-plans",
+    siteName: "Planet Motors",
+    locale: "en_CA",
+    type: "website",
+    images: [
+      {
+        url: "https://www.planetmotors.ca/og-protection-plans.jpg",
+        width: 1200,
+        height: 630,
+        alt: "PlanetCare Vehicle Protection Plans — Planet Motors",
+      },
+    ],
   },
   alternates: {
     canonical: "https://www.planetmotors.ca/protection-plans",
@@ -63,6 +74,16 @@ function ProtectionPlansJsonLd() {
     })),
   }
 
+  // BreadcrumbList schema
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+      { "@type": "ListItem", position: 2, name: "Protection Plans", item: `${siteUrl}/protection-plans` },
+    ],
+  }
+
   // Service schema — one entry per product for Google Service rich results
   const serviceSchema = {
     "@context": "https://schema.org",
@@ -90,6 +111,7 @@ function ProtectionPlansJsonLd() {
     <>
       <Script id="protection-faq-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <Script id="protection-services-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
+      <Script id="protection-breadcrumb-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
     </>
   )
 }
@@ -101,6 +123,15 @@ export default function ProtectionPlansPage() {
       <Header />
 
       <main id="main-content" tabIndex={-1} className="pt-24 pb-20">
+        {/* ═══════════ BREADCRUMB ═══════════ */}
+        <div className="mx-auto max-w-7xl px-6 lg:px-8 py-4">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
+            <span>/</span>
+            <span className="text-foreground font-medium">Protection Plans</span>
+          </nav>
+        </div>
+
         {/* ═══════════ HERO ═══════════ */}
         <section className="relative py-20 lg:py-28 bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground overflow-hidden">
           {/* Decorative background elements */}

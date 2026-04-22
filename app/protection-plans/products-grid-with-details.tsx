@@ -207,10 +207,6 @@ export function ProductsGridWithDetails() {
     setOpenSlug((prev) => (prev === slug ? null : slug))
   }, [])
 
-  const openProduct = openSlug
-    ? PROTECTION_PRODUCTS.find((p) => p.slug === openSlug)
-    : null
-
   return (
     <section className="py-16 lg:py-24 bg-muted/30" id="product-details">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -267,21 +263,26 @@ export function ProductsGridWithDetails() {
           })}
         </div>
 
-        {/* Inline Detail Panel — expands below the grid */}
-        {openProduct && (
-          <div
-            id={`detail-${openProduct.slug}`}
-            ref={detailRef}
-            className="mt-10 scroll-mt-24 animate-in slide-in-from-top-4 fade-in duration-300"
-            role="region"
-            aria-label={`${openProduct.name} details`}
-          >
-            <ProductDetailPanel
-              product={openProduct}
-              onClose={() => setOpenSlug(null)}
-            />
-          </div>
-        )}
+        {/* Inline Detail Panels — all 9 rendered for SEO, only active one visible */}
+        {PROTECTION_PRODUCTS.map((product) => {
+          const isActive = openSlug === product.slug
+          return (
+            <div
+              key={product.slug}
+              id={`detail-${product.slug}`}
+              ref={isActive ? detailRef : undefined}
+              className={`mt-10 scroll-mt-24 ${isActive ? "animate-in slide-in-from-top-4 fade-in duration-300" : "hidden"}`}
+              role="region"
+              aria-label={`${product.name} details`}
+              aria-hidden={!isActive}
+            >
+              <ProductDetailPanel
+                product={product}
+                onClose={() => setOpenSlug(null)}
+              />
+            </div>
+          )
+        })}
       </div>
     </section>
   )

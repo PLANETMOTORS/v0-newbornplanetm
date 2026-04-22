@@ -25,6 +25,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: product.seo.title,
     description: product.seo.description,
     keywords: product.seo.keywords,
+    robots: {
+      index: false,
+      follow: true,
+    },
     openGraph: {
       title: product.seo.title,
       description: product.seo.description,
@@ -34,7 +38,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       type: "website",
     },
     alternates: {
-      canonical: `${siteUrl}/protection-plans/${slug}`,
+      canonical: `${siteUrl}/protection-plans#product-${slug}`,
     },
   }
 }
