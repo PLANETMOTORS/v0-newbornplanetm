@@ -632,8 +632,12 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   const financeSubtotal = safePrice + FINANCE_ADMIN_FEE
   const financeTax = financeSubtotal * PROVINCE_TAX_RATES.ON.hst
   const financeTotal = financeSubtotal + financeTax
-  const biweeklyPayments = (DEFAULT_TERM_MONTHS / 12) * 26
-  const biweeklyPayment = Math.round(financeTotal / biweeklyPayments)
+  // Amortized bi-weekly payment using standard formula (matches rate-disclosure.tsx)
+  const monthlyRate = RATE_FLOOR / 100 / 12
+  const monthlyPayment = monthlyRate === 0
+    ? financeTotal / DEFAULT_TERM_MONTHS
+    : financeTotal * (monthlyRate * Math.pow(1 + monthlyRate, DEFAULT_TERM_MONTHS)) / (Math.pow(1 + monthlyRate, DEFAULT_TERM_MONTHS) - 1)
+  const biweeklyPayment = Math.round(monthlyPayment * 12 / 26)
 
   return (
     <div className="min-h-screen bg-background">
