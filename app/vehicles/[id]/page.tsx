@@ -1983,7 +1983,7 @@ export default function VehicleDetailPage() {
                     {vehicle.year} {vehicle.make} {vehicle.model}
                   </p>
                   <p className="text-muted-foreground text-sm mt-1">
-                    <span className="tabular-nums">{vehicle.mileage.toLocaleString()}</span> km
+                    {vehicle.trim} · <span className="tabular-nums">{vehicle.mileage.toLocaleString()}</span> km
                   </p>
 
                   {/* Price */}
