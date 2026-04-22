@@ -66,6 +66,9 @@ export function OrganizationJsonLd() {
       "https://www.tiktok.com/@planetmotors.ca",
       "https://x.com/planetmotors_ca"
     ],
+    "owns": {
+      "@id": `${SITE_URL}/#website`
+    },
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
       "name": "Vehicle Inventory",
@@ -465,8 +468,13 @@ export function WebsiteSearchJsonLd() {
   const schema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": `${SITE_URL}/#website`,
     "name": "Planet Motors",
     "url": SITE_URL,
+    "inLanguage": "en-CA",
+    "publisher": {
+      "@id": `${SITE_URL}/#organization`
+    },
     "potentialAction": {
       "@type": "SearchAction",
       "target": {
