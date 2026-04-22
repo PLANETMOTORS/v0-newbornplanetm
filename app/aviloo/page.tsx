@@ -326,8 +326,8 @@ export default function EVBatteryHealthPage() {
                 <Image
                   src="/images/aviloo-sample-certificate.jpg"
                   alt="Aviloo FLASH Test Certificate — 2023 Tesla Model 3, 95.1% State of Health"
-                  width={800}
-                  height={1131}
+                  width={1132}
+                  height={1600}
                   className="w-full h-auto"
                   priority
                 />
