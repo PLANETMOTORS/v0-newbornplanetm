@@ -32,7 +32,7 @@ function getAllowedOrigins(): string[] {
     if (o) origins.push(o)
   }
 
-  // Custom domain(s) — comma-separated list (e.g. "ev.planetmotors.ca,planetmotors.ca")
+  // Custom domain(s) — comma-separated list (e.g. "www.planetmotors.ca,planetmotors.ca")
   const siteDomain = process.env.NEXT_PUBLIC_SITE_DOMAIN
   if (siteDomain) {
     for (const part of siteDomain.split(",")) {
