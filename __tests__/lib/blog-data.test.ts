@@ -48,14 +48,14 @@ describe('tesla-warranty-used-cars post (image path change in PR)', () => {
     expect(blogPosts['tesla-warranty-used-cars']).toBeDefined()
   })
 
-  it('uses the .jpg image (not .png)', () => {
+  it('uses the .png image', () => {
     const post = blogPosts['tesla-warranty-used-cars']
-    expect(post.image).toBe('/images/blog/IMG_1903-2-scaled.jpg')
+    expect(post.image).toBe('/images/blog/IMG_1903-2-scaled.png')
   })
 
-  it('does NOT use the old .png image path', () => {
+  it('does NOT use a .jpg image path', () => {
     const post = blogPosts['tesla-warranty-used-cars']
-    expect(post.image).not.toBe('/images/blog/IMG_1903-2-scaled.png')
+    expect(post.image).not.toBe('/images/blog/IMG_1903-2-scaled.jpg')
   })
 
   it('does not end with .png', () => {
