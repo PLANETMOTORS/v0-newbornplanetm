@@ -7,24 +7,28 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
-import { 
-  Zap, 
-  Battery, 
-  Leaf, 
-  Shield, 
-  TrendingDown, 
-  MapPin, 
+import {
+  Zap,
+  Battery,
+  Leaf,
+  Shield,
+  TrendingDown,
+  MapPin,
   Car,
   DollarSign,
   CheckCircle,
   ArrowRight,
   Star
 } from "lucide-react"
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
 
 export const metadata: Metadata = {
   title: "Used Electric Vehicles Ontario | Tesla, Hyundai, BMW EVs | Planet Motors",
   description: "Shop certified pre-owned electric vehicles in Ontario. Tesla Model 3, Model Y, Hyundai Ioniq, BMW i4 & more. Battery health reports, 210-point inspection, nationwide delivery. 4.8 Star Rating.",
   keywords: "electric cars Ontario, used Tesla Ontario, EV dealership Toronto, used electric cars Canada, buy EV online Ontario, Tesla Model Y Canada, Tesla Model 3 used, Hyundai Ioniq 5 used",
+  alternates: {
+    canonical: "/electric-vehicles",
+  },
   openGraph: {
     title: "Used Electric Vehicles Ontario | Planet Motors",
     description: "Certified pre-owned EVs with battery health reports. Tesla, Hyundai, BMW & more.",
@@ -59,8 +63,9 @@ const features = [
 export default function ElectricVehiclesPage() {
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Electric Vehicles", url: "/electric-vehicles" }]} />
       <Header />
-      
+
       <main id="main-content" role="main" aria-label="Electric vehicles">
         {/* Hero Section */}
         <section className="relative bg-gradient-to-br from-green-900 via-green-800 to-emerald-900 text-white py-16 lg:py-24">

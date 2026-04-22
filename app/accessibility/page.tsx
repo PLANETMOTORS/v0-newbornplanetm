@@ -3,6 +3,9 @@ import { Metadata } from "next"
 export const metadata: Metadata = {
   title: "Accessibility Statement | Planet Motors",
   description: "Planet Motors is committed to digital accessibility. Learn about our WCAG 2.1 AA compliance and how to contact us for accessibility support.",
+  alternates: {
+    canonical: "/accessibility",
+  },
 }
 
 import { Header } from "@/components/header"
