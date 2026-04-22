@@ -1,39 +1,46 @@
 "use client"
 
-import { useRef, useState, useEffect } from "react"
+import { useRef, useState, useEffect, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Upload, X, FileImage, AlertCircle } from "lucide-react"
+import { Upload, X, FileImage, AlertCircle, Loader2 } from "lucide-react"
+import { uploadDriversLicense } from "@/app/actions/upload-license"
 
 export interface DriversLicenseData {
   licenseFile: File | null
   licensePreviewUrl: string
   licenseFirstName: string
   licenseLastName: string
+  licenseStoragePath?: string
 }
 
 interface DriversLicenseStepProps {
   data: DriversLicenseData
   prefillFirstName: string
   prefillLastName: string
+  vehicleId: string
+  customerEmail: string
   onChange: (data: DriversLicenseData) => void
   onContinue: () => void
 }
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024
+const MAX_FILE_SIZE = 5 * 1024 * 1024
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"]
 
 export function DriversLicenseStep({
   data,
   prefillFirstName,
   prefillLastName,
+  vehicleId,
+  customerEmail,
   onChange,
   onContinue,
 }: DriversLicenseStepProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState("")
   const [isDragging, setIsDragging] = useState(false)
+  const [isPending, startTransition] = useTransition()
 
   // Re-create blob URL if we remount with a File but a stale/revoked preview URL
   useEffect(() => {
@@ -52,7 +59,7 @@ export function DriversLicenseStep({
       return
     }
     if (file.size > MAX_FILE_SIZE) {
-      setError("File must be under 10 MB.")
+      setError("File must be under 5 MB.")
       return
     }
 
@@ -65,6 +72,7 @@ export function DriversLicenseStep({
       ...data,
       licenseFile: file,
       licensePreviewUrl: previewUrl,
+      licenseStoragePath: undefined,
       licenseFirstName: data.licenseFirstName || prefillFirstName,
       licenseLastName: data.licenseLastName || prefillLastName,
     })
@@ -81,17 +89,41 @@ export function DriversLicenseStep({
     if (data.licensePreviewUrl) {
       URL.revokeObjectURL(data.licensePreviewUrl)
     }
-    onChange({ ...data, licenseFile: null, licensePreviewUrl: "" })
+    onChange({ ...data, licenseFile: null, licensePreviewUrl: "", licenseStoragePath: undefined })
     // Reset input so the same file can be re-selected
     if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
-  const validate = (): boolean => {
+  const handleContinue = () => {
     if (!data.licenseFile) {
       setError("Please upload your driver's license.")
-      return false
+      return
     }
-    return true
+
+    // If already uploaded to server, just advance
+    if (data.licenseStoragePath) {
+      onContinue()
+      return
+    }
+
+    // Upload to secure server-side storage
+    startTransition(async () => {
+      setError("")
+      const formData = new FormData()
+      formData.append("file", data.licenseFile as File)
+      formData.append("vehicleId", vehicleId)
+      formData.append("customerEmail", customerEmail)
+
+      const result = await uploadDriversLicense(formData)
+
+      if (!result.success) {
+        setError(result.error ?? "Upload failed. Please try again.")
+        return
+      }
+
+      onChange({ ...data, licenseStoragePath: result.storagePath })
+      onContinue()
+    })
   }
 
   return (
@@ -128,7 +160,7 @@ export function DriversLicenseStep({
         >
           <Upload className="w-10 h-10 text-blue-500 mx-auto mb-3" aria-hidden="true" />
           <p className="font-medium">Click or drag to upload</p>
-          <p className="text-sm text-muted-foreground mt-1">JPG, PNG, WebP, or PDF — max 10 MB</p>
+          <p className="text-sm text-muted-foreground mt-1">JPG, PNG, WebP, or PDF — max 5 MB</p>
           <input
             ref={fileInputRef}
             type="file"
@@ -163,11 +195,15 @@ export function DriversLicenseStep({
               <p className="text-sm text-muted-foreground">
                 {(data.licenseFile.size / 1024 / 1024).toFixed(1)} MB
               </p>
+              {data.licenseStoragePath && (
+                <p className="text-xs text-green-600 mt-1">Securely uploaded</p>
+              )}
             </div>
             <button
               type="button"
               onClick={removeFile}
-              className="p-2 rounded-full hover:bg-destructive/10 transition-colors"
+              disabled={isPending}
+              className="p-2 rounded-full hover:bg-destructive/10 transition-colors disabled:opacity-50"
               aria-label="Remove uploaded file"
             >
               <X className="w-5 h-5 text-destructive" />
@@ -187,6 +223,7 @@ export function DriversLicenseStep({
             <Input
               id="licenseFirstName"
               autoComplete="given-name"
+              disabled={isPending}
               value={data.licenseFirstName !== "" ? data.licenseFirstName : prefillFirstName}
               onChange={(e) => onChange({ ...data, licenseFirstName: e.target.value })}
             />
@@ -196,6 +233,7 @@ export function DriversLicenseStep({
             <Input
               id="licenseLastName"
               autoComplete="family-name"
+              disabled={isPending}
               value={data.licenseLastName !== "" ? data.licenseLastName : prefillLastName}
               onChange={(e) => onChange({ ...data, licenseLastName: e.target.value })}
             />
@@ -204,10 +242,18 @@ export function DriversLicenseStep({
       </fieldset>
 
       <Button
-        onClick={() => { if (validate()) onContinue() }}
+        onClick={handleContinue}
+        disabled={isPending}
         className="w-full h-12 text-base font-semibold"
       >
-        Continue
+        {isPending ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+            Uploading securely…
+          </>
+        ) : (
+          "Continue"
+        )}
       </Button>
     </div>
   )

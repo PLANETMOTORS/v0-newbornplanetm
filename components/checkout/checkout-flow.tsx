@@ -452,6 +452,8 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
                 data={license}
                 prefillFirstName={personal.firstName}
                 prefillLastName={personal.lastName}
+                vehicleId={vehicle.id}
+                customerEmail={personal.email}
                 onChange={setLicense}
                 onContinue={() => advanceFrom(5)}
               />

@@ -195,9 +195,15 @@ function ComparisonModal({ onClose }: { onClose: () => void }) {
                     return (
                       <td key={plan.id} className="p-4 text-center">
                         {val === true ? (
-                          <Check className="w-5 h-5 text-green-600 mx-auto" />
+                          <>
+                            <Check className="w-5 h-5 text-green-600 mx-auto" aria-hidden="true" />
+                            <span className="sr-only">Included</span>
+                          </>
                         ) : val === false ? (
-                          <span className="text-muted-foreground">—</span>
+                          <>
+                            <span className="text-muted-foreground" aria-hidden="true">—</span>
+                            <span className="sr-only">Not included</span>
+                          </>
                         ) : (
                           <span className="font-medium">{val}</span>
                         )}

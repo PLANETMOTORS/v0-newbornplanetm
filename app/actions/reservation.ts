@@ -108,6 +108,16 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
 
     const reservationId = claim.reservation_id!
 
+    // Look up vehicle details for notification metadata
+    const { data: vehicle } = await adminClient
+      .from('vehicles')
+      .select('year, make, model')
+      .eq('id', input.vehicleId)
+      .maybeSingle()
+    const vehicleName = vehicle
+      ? `${vehicle.year} ${vehicle.make} ${vehicle.model}`.trim()
+      : `Vehicle ${input.stockNumber}`
+
     // Create Stripe Checkout session
     const baseUrl = getPublicSiteUrl()
     const checkoutAttemptWindow = Math.floor(Date.now() / (15 * 60 * 1000))
@@ -158,6 +168,11 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
         customerEmail: input.customerEmail,
         customerPhone: input.customerPhone || '',
         customerName: input.customerName || '',
+        vehicleName,
+        vehicleYear: vehicle ? String(vehicle.year ?? '') : '',
+        vehicleMake: vehicle ? String(vehicle.make ?? '') : '',
+        vehicleModel: vehicle ? String(vehicle.model ?? '') : '',
+        depositOnly: 'true',
         type: 'vehicle-reservation',
       },
       payment_intent_data: {

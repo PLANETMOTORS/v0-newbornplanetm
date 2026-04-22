@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { extractNotificationData, sendPaymentNotifications } from '@/lib/webhook-notifications'
 
 // Stripe requires raw body for signature verification — Next.js must NOT parse it.
 export const dynamic = 'force-dynamic'
@@ -193,6 +194,15 @@ export async function handleCheckoutSessionCompleted(
     }
 
     console.info(`[webhook] Reservation ${reservationId} confirmed, vehicle ${vehicleId} reserved.`)
+
+    // Fire-and-forget: CRM lead + customer/admin email notifications
+    const notificationData = extractNotificationData(session)
+    if (notificationData) {
+      sendPaymentNotifications(notificationData).catch((err) =>
+        console.error('[webhook] Post-payment notification error (non-blocking):', err)
+      )
+    }
+
     return
   }
 
@@ -237,6 +247,14 @@ export async function handleCheckoutSessionCompleted(
     }
     if (!transitioned) {
       console.warn(`[webhook] Vehicle ${vehicleId} status transition to 'pending' was a no-op.`)
+    }
+
+    // Fire-and-forget: CRM lead + customer/admin email notifications
+    const notificationData = extractNotificationData(session)
+    if (notificationData) {
+      sendPaymentNotifications(notificationData).catch((err) =>
+        console.error('[webhook] Post-payment notification error (non-blocking):', err)
+      )
     }
 
     console.info(`[webhook] Vehicle ${vehicleId} order confirmed.`)
