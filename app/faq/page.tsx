@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { FAQJsonLd } from "@/components/seo/json-ld"
+import { FAQJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
 import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -137,6 +137,7 @@ export default function FAQPage() {
   return (
     <div className="min-h-screen bg-background">
       <FAQJsonLd faqs={allFaqs} />
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "FAQ", url: "/faq" }]} />
       <Header />
 
       <main id="main-content" tabIndex={-1}>

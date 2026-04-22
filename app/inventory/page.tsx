@@ -20,7 +20,7 @@ import {
   Filter, Battery, Car, ExternalLink, Bell, Loader2, Clock
 } from "lucide-react"
 import { useFavorites } from "@/contexts/favorites-context"
-import { InventoryPageJsonLd } from "@/components/seo/json-ld"
+import { InventoryPageJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
 import { PriceAlertModal } from "@/components/price-alert-modal"
 import { trackAddToWishlist } from "@/components/analytics/google-analytics"
 import { trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
@@ -1128,6 +1128,7 @@ export default function InventoryPage() {
   return (
     <>
       <InventoryPageJsonLd />
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Inventory", url: "/inventory" }]} />
       <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>}>
         <InventoryContent />
       </Suspense>

@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { ContactPageJsonLd } from "@/components/seo/json-ld"
+import { ContactPageJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
 import { LiveChatWidget } from "@/components/live-chat-widget"
 import { ContactForm } from "@/components/contact-form"
 import { Button } from "@/components/ui/button"
@@ -70,6 +70,7 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-background">
       <ContactPageJsonLd />
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Contact", url: "/contact" }]} />
       <Header />
 
       <main id="main-content" tabIndex={-1}>

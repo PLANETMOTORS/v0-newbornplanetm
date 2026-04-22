@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
-import { 
+import {
   Star, Shield, Fuel, Users, Package,
   ChevronRight, Check, Calculator, Car, MapPin,
   Phone, Clock, Award, Zap, Snowflake
 } from "lucide-react"
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
 
 // Dynamic metadata for SEO
 export async function generateMetadata({ params }: { params: Promise<{ make: string; model: string }> }): Promise<Metadata> {
@@ -241,6 +242,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
       />
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Inventory", url: "/inventory" }, { name: makeFormatted, url: `/inventory?make=${make}` }, { name: modelFormatted, url: `/cars/${make}/${model}` }]} />
 
       <main id="main-content" role="main">
         {/* Breadcrumb */}

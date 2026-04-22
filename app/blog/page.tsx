@@ -1,6 +1,7 @@
 import { BlogPageContent } from "@/components/blog-page-content"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
 
 export const metadata = {
   title: "Blog | Planet Motors - Car Buying Tips & Industry News",
@@ -14,6 +15,7 @@ export const metadata = {
 export default function BlogPage() {
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Blog", url: "/blog" }]} />
       <Header />
       <BlogPageContent />
       <Footer />
