@@ -1,18 +1,19 @@
 // Planet Motors CMS - Site Data Helper v18
 import { getSiteSettings, getNavigation } from "./fetch"
+import { WEEKDAY_HOURS_LONG, SATURDAY_HOURS_LONG, DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
 
 // Default site settings fallback
 export const DEFAULT_SITE_SETTINGS = {
   dealerName: "Planet Motors",
   phone: "1-866-797-3332",
   email: "info@planetmotors.ca",
-  streetAddress: "123 Auto Drive",
-  city: "Mississauga",
-  province: "ON",
-  postalCode: "L5A 1A1",
+  streetAddress: DEALERSHIP_LOCATION.streetAddress,
+  city: DEALERSHIP_LOCATION.city,
+  province: DEALERSHIP_LOCATION.province,
+  postalCode: DEALERSHIP_LOCATION.postalCode,
   businessHours: [
-    { day: "Monday - Friday", hours: "9:00 AM - 7:00 PM" },
-    { day: "Saturday", hours: "9:00 AM - 6:00 PM" },
+    { day: "Monday - Friday", hours: WEEKDAY_HOURS_LONG },
+    { day: "Saturday", hours: SATURDAY_HOURS_LONG },
     { day: "Sunday", hours: "Closed" },
   ],
   facebookUrl: "https://facebook.com/planetmotors",

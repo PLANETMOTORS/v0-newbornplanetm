@@ -13,6 +13,7 @@ import {
   Phone, Clock, Award, Zap, Snowflake
 } from "lucide-react"
 import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
+import { BUSINESS_HOURS_SHORT } from "@/lib/constants/dealership"
 
 // Dynamic metadata for SEO
 export async function generateMetadata({ params }: { params: Promise<{ make: string; model: string }> }): Promise<Metadata> {
@@ -589,7 +590,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                   </div>
                   <div className="flex items-center gap-2 mb-4">
                     <Clock className="h-4 w-4" />
-                    <span>Mon-Fri 9-7 | Sat 9-6</span>
+                    <span>{BUSINESS_HOURS_SHORT}</span>
                   </div>
                   <Button className="w-full" asChild>
                     <Link href="/contact">Schedule a Test Drive</Link>

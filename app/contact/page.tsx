@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import { getPublicSiteUrl } from "@/lib/site-url"
+import { WEEKDAY_HOURS_LONG, SATURDAY_HOURS_LONG, BUSINESS_HOURS_SHORT } from "@/lib/constants/dealership"
 
 const SITE_URL = getPublicSiteUrl()
 
@@ -137,11 +138,11 @@ export default function ContactPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Monday - Friday</span>
-                    <span className="font-semibold">9:00 AM - 7:00 PM</span>
+                    <span className="font-semibold">{WEEKDAY_HOURS_LONG}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Saturday</span>
-                    <span className="font-semibold">9:00 AM - 6:00 PM</span>
+                    <span className="font-semibold">{SATURDAY_HOURS_LONG}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Sunday</span>

@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import { getPublicSiteUrl } from "@/lib/site-url"
+import { WEEKDAY_HOURS_LONG, SATURDAY_HOURS_LONG } from "@/lib/constants/dealership"
 
 const SITE_URL = getPublicSiteUrl()
 
@@ -357,8 +358,8 @@ export default function AboutPage() {
                     <div className="mt-6 pt-6 border-t">
                       <p className="font-semibold mb-2">Business Hours</p>
                       <div className="text-sm text-muted-foreground space-y-1">
-                        <p>Monday - Friday: 9:00 AM - 7:00 PM</p>
-                        <p>Saturday: 9:00 AM - 6:00 PM</p>
+                        <p>Monday - Friday: {WEEKDAY_HOURS_LONG}</p>
+                        <p>Saturday: {SATURDAY_HOURS_LONG}</p>
                         <p>Sunday: Closed</p>
                       </div>
                     </div>

@@ -3,6 +3,7 @@ import { MapPin, Mail, Clock, Shield } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 import { FooterPhoneLink } from "@/components/footer-phone-link"
 import { FooterNewsletter } from "@/components/footer-newsletter"
+import { WEEKDAY_HOURS_FALLBACK, SATURDAY_HOURS_FALLBACK } from "@/lib/constants/dealership"
 
 export type FooterProps = {
   siteSettings: {
@@ -63,12 +64,12 @@ export function FooterContent({ siteSettings }: FooterProps) {
   const sundayHours = siteSettings.businessHours?.find(h => h.day === "Sunday")
 
   const formatHoursDisplay = () => {
-    const weekday = weekdayHours && !weekdayHours.isClosed 
-      ? `Mon-Fri: ${weekdayHours.open}-${weekdayHours.close}` 
-      : "Mon-Fri: 9AM-7PM"
-    const saturday = saturdayHours && !saturdayHours.isClosed 
-      ? `Sat: ${saturdayHours.open}-${saturdayHours.close}` 
-      : "Sat: 9AM-6PM"
+    const weekday = weekdayHours && !weekdayHours.isClosed
+      ? `Mon-Fri: ${weekdayHours.open}-${weekdayHours.close}`
+      : `Mon-Fri: ${WEEKDAY_HOURS_FALLBACK}`
+    const saturday = saturdayHours && !saturdayHours.isClosed
+      ? `Sat: ${saturdayHours.open}-${saturdayHours.close}`
+      : `Sat: ${SATURDAY_HOURS_FALLBACK}`
     const sunday = sundayHours?.isClosed ? "Sun: Closed" : ""
     
     return `${weekday} | ${saturday}${sunday ? ` | ${sunday}` : ""}`

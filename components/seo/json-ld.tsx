@@ -1,7 +1,7 @@
 import Script from "next/script"
 import { calculateAllInPrice } from "@/lib/pricing/format"
 import { getPublicSiteUrl } from "@/lib/site-url"
-import { DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
+import { DEALERSHIP_LOCATION, OPENING_HOURS_SPECIFICATION } from "@/lib/constants/dealership"
 import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
 
 // Resolve site URL once per render instead of hardcoding
@@ -38,20 +38,7 @@ export function OrganizationJsonLd() {
       "latitude": DEALERSHIP_LOCATION.lat,
       "longitude": DEALERSHIP_LOCATION.lng
     },
-    "openingHoursSpecification": [
-      {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-        "opens": "09:00",
-        "closes": "19:00"
-      },
-      {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": "Saturday",
-        "opens": "09:00",
-        "closes": "18:00"
-      }
-    ],
+    "openingHoursSpecification": OPENING_HOURS_SPECIFICATION,
     "priceRange": "$$",
     "currenciesAccepted": "CAD",
     "paymentAccepted": "Cash, Credit Card, Debit Card, Financing",
@@ -423,12 +410,7 @@ export function ContactPageJsonLd() {
         "contactType": "sales",
         "email": "sales@planetmotors.ca",
         "availableLanguage": "English",
-        "hoursAvailable": {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-          "opens": "09:00",
-          "closes": "19:00"
-        }
+        "hoursAvailable": OPENING_HOURS_SPECIFICATION[0]
       },
       {
         "@type": "ContactPoint",
@@ -438,20 +420,7 @@ export function ContactPageJsonLd() {
         "availableLanguage": "English"
       }
     ],
-    "openingHoursSpecification": [
-      {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-        "opens": "09:00",
-        "closes": "19:00"
-      },
-      {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": "Saturday",
-        "opens": "09:00",
-        "closes": "18:00"
-      }
-    ]
+    "openingHoursSpecification": OPENING_HOURS_SPECIFICATION
   }
 
   return (

@@ -12,6 +12,7 @@ import NavButton from "@/components/nav-button"
 const SearchAutocomplete = dynamic(() => import("@/components/search-autocomplete").then(m => ({ default: m.SearchAutocomplete })), { ssr: false })
 import { useAuth } from "@/contexts/auth-context"
 import { trackPhoneClick } from "@/components/analytics/google-tag-manager"
+import { BUSINESS_HOURS_SHORT } from "@/lib/constants/dealership"
 
 type NavItem = {
   name: string
@@ -196,7 +197,7 @@ export function Header() {
                 <span className="font-semibold">1-866-797-3332</span>
               </a>
               <span className="hidden sm:flex items-center text-primary-foreground/90">
-                Mon-Fri 9AM-7PM | Sat 9AM-6PM
+                {BUSINESS_HOURS_SHORT}
               </span>
             </div>
             <div className="flex items-center gap-4 sm:gap-6">
