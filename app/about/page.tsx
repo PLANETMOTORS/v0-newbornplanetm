@@ -26,6 +26,7 @@ import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Shield, Award, MapPin, Heart, Target, Star, Globe, Trophy } from "lucide-react"
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
 
 export default function AboutPage() {
   // Real team members from Planet Motors
@@ -69,6 +70,7 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "About", url: "/about" }]} />
       <Header />
 
       <main id="main-content" tabIndex={-1}>

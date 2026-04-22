@@ -7,6 +7,7 @@
 //      the ~2s element render delay caused by waiting for JS to swap content.
 //   4. Server-side preload hint for the LCP hero image
 //   5. Below-fold data (testimonials, FAQs) fetched client-side
+import type { Metadata } from "next"
 import { preload } from "react-dom"
 import dynamic from "next/dynamic"
 import { Header } from "@/components/header"
@@ -20,6 +21,12 @@ import { createStaticClient } from "@/lib/supabase/static"
 
 // ISR: regenerate the homepage at most every 60 seconds.
 export const revalidate = 60
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: '/',
+  },
+}
 
 // Default site settings - fallback when CMS is unavailable or slow
 const DEFAULT_SITE_SETTINGS = {

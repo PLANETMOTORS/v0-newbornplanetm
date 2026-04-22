@@ -53,6 +53,10 @@ export function generateSEOMetadata({
     metadataBase: new URL(BASE_URL),
     alternates: {
       canonical: url,
+      languages: {
+        'en-CA': url,
+        'x-default': url,
+      },
     },
     openGraph: {
       title: fullTitle,
@@ -131,7 +135,7 @@ export const pageMetadata = {
 
   contact: generateSEOMetadata({
     title: "Contact Planet Motors | Richmond Hill Ontario Dealership",
-    description: "Visit us at 30 Major Mackenzie Dr E, Richmond Hill. Call 1-866-797-3332. Mon–Fri 9AM–7PM, Sat 10AM–5PM.",
+    description: "Visit us at 30 Major Mackenzie Dr E, Richmond Hill. Call 1-866-797-3332. Mon–Fri 9AM–7PM, Sat 9AM–6PM.",
     path: "/contact",
     keywords: ["contact dealer", "dealership location", "phone number", "dealership hours"],
   }),

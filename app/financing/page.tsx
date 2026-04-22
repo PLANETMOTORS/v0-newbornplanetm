@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { FinancialServiceJsonLd } from "@/components/seo/json-ld"
+import { FinancialServiceJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
 import { LiveChatWidget } from "@/components/live-chat-widget"
 import { Button } from "@/components/ui/button"
 import { RateDisclosure } from "@/components/rate-disclosure"
@@ -84,6 +84,7 @@ export default async function FinancingPage() {
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       <FinancialServiceJsonLd />
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Financing", url: "/financing" }]} />
       <Header />
 
       <main id="main-content" tabIndex={-1}>

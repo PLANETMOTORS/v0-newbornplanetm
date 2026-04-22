@@ -9,6 +9,9 @@ import {
 export const metadata = {
   title: "Sitemap | Planet Motors",
   description: "Complete sitemap of Planet Motors website. Find all pages including inventory, financing, trade-in, and more.",
+  alternates: {
+    canonical: "/site-map",
+  },
 }
 
 const sitemapSections = [

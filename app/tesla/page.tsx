@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
-import { 
+import {
   Battery,
   Zap,
   ArrowRight,
   CheckCircle,
   Car
 } from "lucide-react"
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
 
 export const metadata: Metadata = {
   title: "Used Tesla Canada | Model 3, Model Y, Model S, Model X | Planet Motors",
@@ -85,8 +86,9 @@ const whyBuyTesla = [
 export default function TeslaPage() {
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Tesla", url: "/tesla" }]} />
       <Header />
-      
+
       <main id="main-content" role="main" aria-label="Tesla vehicles">
         {/* Hero Section */}
         <section className="relative bg-black text-white py-16 lg:py-24">

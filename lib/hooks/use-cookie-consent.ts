@@ -48,13 +48,29 @@ function writeStoredConsent(state: ConsentState) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
 }
 
+/** Push a Google Consent Mode v2 update so gtag respects the user's choice. */
+function updateGoogleConsent(categories: ConsentCategories) {
+  if (typeof window === "undefined" || typeof window.gtag !== "function") return
+  window.gtag("consent", "update", {
+    analytics_storage: categories.analytics ? "granted" : "denied",
+    ad_storage: categories.marketing ? "granted" : "denied",
+    ad_user_data: categories.marketing ? "granted" : "denied",
+    ad_personalization: categories.marketing ? "granted" : "denied",
+  })
+}
+
 export function useCookieConsent() {
   const [consent, setConsent] = useState<ConsentState>(DEFAULT_STATE)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setConsent(readStoredConsent())
+    const stored = readStoredConsent()
+    setConsent(stored)
     setMounted(true)
+    // Restore consent state for returning users who already accepted
+    if (stored.decided) {
+      updateGoogleConsent(stored.categories)
+    }
   }, [])
 
   const acceptAll = useCallback(() => {
@@ -65,6 +81,7 @@ export function useCookieConsent() {
     }
     writeStoredConsent(next)
     setConsent(next)
+    updateGoogleConsent(next.categories)
   }, [])
 
   const rejectAll = useCallback(() => {
@@ -75,6 +92,7 @@ export function useCookieConsent() {
     }
     writeStoredConsent(next)
     setConsent(next)
+    updateGoogleConsent(next.categories)
   }, [])
 
   const savePreferences = useCallback((categories: Omit<ConsentCategories, "essential">) => {
@@ -85,6 +103,7 @@ export function useCookieConsent() {
     }
     writeStoredConsent(next)
     setConsent(next)
+    updateGoogleConsent(next.categories)
   }, [])
 
   const resetConsent = useCallback(() => {

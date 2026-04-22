@@ -4,7 +4,7 @@ import { notFound } from "next/navigation"
 import { Calendar, Clock, ArrowLeft, Share2, Facebook, Twitter, Linkedin } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { ArticleJsonLd } from "@/components/seo/json-ld"
+import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
 import { getPublicSiteUrl } from "@/lib/site-url"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -96,6 +96,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Blog", url: "/blog" }, { name: post.title, url: `/blog/${slug}` }]} />
       <ArticleJsonLd
         article={{
           title: post.title,

@@ -8,6 +8,9 @@ import { safeNum } from "@/lib/pricing/format"
 export const metadata: Metadata = {
   title: "Finance Application | Planet Motors",
   description: "Complete your finance application for vehicle financing at Planet Motors. Get approved in minutes.",
+  alternates: {
+    canonical: "/financing/application",
+  },
 }
 
 async function getVehicleData(vehicleId: string | undefined) {

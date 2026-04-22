@@ -10,6 +10,7 @@ import { FAQSection } from '@/components/sell-your-car/faq-section'
 import { SellYourCarForm } from '@/components/sell-your-car/form'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
+import { BreadcrumbJsonLd } from '@/components/seo/json-ld'
 import type { SellYourCarPage as SellYourCarPageType } from '@/lib/sanity/types'
 
 export const metadata: Metadata = {
@@ -168,6 +169,7 @@ export default async function SellYourCarPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Sell Your Car", url: "/sell-your-car" }]} />
       <Header />
       <main id="main-content" tabIndex={-1}>
         {/* Hero Section with Form */}

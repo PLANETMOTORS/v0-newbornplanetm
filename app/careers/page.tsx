@@ -4,14 +4,18 @@ import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { 
+import {
   Briefcase, MapPin, Heart, TrendingUp, Users,
   Car, Zap, Shield, ArrowRight, CheckCircle
 } from "lucide-react"
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
 
 export const metadata = {
   title: "Careers | Planet Motors",
   description: "Join the Planet Motors team. Explore career opportunities in automotive sales, customer service, and technology.",
+  alternates: {
+    canonical: '/careers',
+  },
 }
 
 const openPositions = [
@@ -69,8 +73,9 @@ const benefits = [
 export default function CareersPage() {
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Careers", url: "/careers" }]} />
       <Header />
-      
+
       <main id="main-content" tabIndex={-1}>
         {/* Hero */}
         <section className="bg-primary py-20">

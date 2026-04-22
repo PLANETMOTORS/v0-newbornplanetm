@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Truck, MapPin, Clock, CheckCircle, Calculator } from "lucide-react"
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
 
 // Planet Motors shipping location: L4C 1G7, Richmond Hill, Ontario
 
@@ -869,8 +870,9 @@ export default function DeliveryPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Delivery", url: "/delivery" }]} />
       <Header />
-      
+
       <main id="main-content" tabIndex={-1}>
         {/* Hero Section */}
         <section className="bg-primary py-16">

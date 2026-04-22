@@ -3,7 +3,8 @@ import { Inter } from 'next/font/google'
 import { CompareProvider } from '@/contexts/compare-context'
 import { FavoritesProvider } from '@/contexts/favorites-context'
 import { AuthProvider } from '@/contexts/auth-context'
-import { OrganizationJsonLd, LocalBusinessJsonLd, WebsiteSearchJsonLd } from '@/components/seo/json-ld'
+import { OrganizationJsonLd, WebsiteSearchJsonLd } from '@/components/seo/json-ld'
+import { DynamicLocalBusinessJsonLd } from '@/components/seo/dynamic-local-business-jsonld'
 import { ClientLayoutWidgets } from '@/components/client-layout-widgets'
 import { SerwistProvider } from './serwist'
 import { getPublicSiteUrl } from '@/lib/site-url'
@@ -48,8 +49,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: `${SITE_URL}/images/planet-motors-logo.png`,
-        width: 800,
-        height: 320,
+        width: 1200,
+        height: 630,
         alt: 'Planet Motors — OMVIC Licensed Used Car Dealership, Richmond Hill Ontario',
       },
     ],
@@ -61,8 +62,13 @@ export const metadata: Metadata = {
     images: [`${SITE_URL}/images/planet-motors-logo.png`],
   },
   metadataBase: new URL(SITE_URL),
+  // Canonical is set per-page to avoid all sub-pages inheriting '/'
+  // Each page must define its own alternates.canonical
   alternates: {
-    canonical: '/',
+    languages: {
+      'en-CA': SITE_URL,
+      'x-default': SITE_URL,
+    },
   },
   robots: {
     index: true,
@@ -104,9 +110,6 @@ export default function RootLayout({
   return (
     <html lang="en-CA" className="bg-background" data-scroll-behavior="smooth">
       <head>
-        {/* Preconnect to external domains for performance */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* Preconnect to Supabase for faster API/auth calls */}
         {process.env.NEXT_PUBLIC_SUPABASE_URL && (
           <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
@@ -119,7 +122,7 @@ export default function RootLayout({
 
         {/* JSON-LD structured data — server-rendered, lightweight */}
         <OrganizationJsonLd />
-        <LocalBusinessJsonLd />
+        <DynamicLocalBusinessJsonLd />
         <WebsiteSearchJsonLd />
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>

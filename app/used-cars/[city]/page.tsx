@@ -8,10 +8,11 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { 
+import {
   Car, Shield, Truck, Star, CheckCircle,
   ArrowRight, Phone, Battery
 } from "lucide-react"
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
 
 // City data for SEO
 const cityData: Record<string, {
@@ -172,8 +173,9 @@ export default function CityLandingPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Used Cars", url: "/used-cars" }, { name: city.name, url: `/used-cars/${citySlug}` }]} />
       <Header />
-      
+
       <main id="main-content" tabIndex={-1}>
         {/* Hero Section */}
         <section className="relative bg-gradient-to-br from-primary/10 via-background to-background py-16 lg:py-24">

@@ -21,7 +21,7 @@ import {
   Camera, Upload, Zap, TrendingUp, Star, Truck,
   AlertCircle, Sparkles, Target, Award, ThumbsUp
 } from "lucide-react"
-import { TradeInPageJsonLd } from "@/components/seo/json-ld"
+import { TradeInPageJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
 import {
   isValidEmail,
   isValidCanadianPhoneNumber,
@@ -2081,6 +2081,7 @@ export default function TradeInPage() {
   return (
     <>
       <TradeInPageJsonLd />
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Trade-In", url: "/trade-in" }]} />
       <Suspense fallback={
         <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center">

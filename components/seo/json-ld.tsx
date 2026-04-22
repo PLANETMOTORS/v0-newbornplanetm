@@ -43,19 +43,13 @@ export function OrganizationJsonLd() {
         "@type": "OpeningHoursSpecification",
         "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
         "opens": "09:00",
-        "closes": "21:00"
+        "closes": "19:00"
       },
       {
         "@type": "OpeningHoursSpecification",
         "dayOfWeek": "Saturday",
         "opens": "09:00",
         "closes": "18:00"
-      },
-      {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": "Sunday",
-        "opens": "10:00",
-        "closes": "17:00"
       }
     ],
     "priceRange": "$$",
@@ -72,6 +66,9 @@ export function OrganizationJsonLd() {
       "https://www.tiktok.com/@planetmotors.ca",
       "https://x.com/planetmotors_ca"
     ],
+    "owns": {
+      "@id": `${SITE_URL}/#website`
+    },
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
       "name": "Vehicle Inventory",
@@ -357,40 +354,6 @@ export function BreadcrumbJsonLd({ items }: BreadcrumbJsonLdProps) {
   )
 }
 
-// Local Business with Reviews
-export function LocalBusinessJsonLd() {
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    "name": "Planet Motors",
-    "image": `${SITE_URL}/images/planet-motors-logo.png`,
-    "@id": SITE_URL,
-    "url": SITE_URL,
-    "telephone": "+1-866-797-3332",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "30 Major Mackenzie Dr E",
-      "addressLocality": "Richmond Hill",
-      "addressRegion": "ON",
-      "postalCode": "L4C 1G7",
-      "addressCountry": "CA"
-    },
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.8",
-      "reviewCount": "500"
-    }
-  }
-
-  return (
-    <Script
-      id="local-business-jsonld"
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  )
-}
-
 // Financial Service Schema - for financing page
 export function FinancialServiceJsonLd() {
   const schema = {
@@ -505,8 +468,13 @@ export function WebsiteSearchJsonLd() {
   const schema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": `${SITE_URL}/#website`,
     "name": "Planet Motors",
     "url": SITE_URL,
+    "inLanguage": "en-CA",
+    "publisher": {
+      "@id": `${SITE_URL}/#organization`
+    },
     "potentialAction": {
       "@type": "SearchAction",
       "target": {
@@ -586,7 +554,7 @@ export function WarrantyPageJsonLd() {
     "@type": "Product",
     "name": "Planet Motors Vehicle Warranty",
     "description": "Comprehensive warranty coverage for your certified pre-owned vehicle purchase.",
-    "url": `${SITE_URL}/warranty`,
+    "url": `${SITE_URL}/protection-plans`,
     "brand": {
       "@type": "Brand",
       "name": "Planet Motors"

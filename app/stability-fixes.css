@@ -15,7 +15,9 @@
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
+  /* text-rendering: optimizeLegibility removed — causes significant paint
+     slowdown on mobile (adds ~200ms to LCP on 4× CPU throttle).
+     Inter already renders well with default text-rendering. */
 }
 
 body {

@@ -12,6 +12,7 @@ import { ProductsGridWithDetails } from "./products-grid-with-details"
 import { ProtectionFaqAccordion } from "./protection-faq-accordion"
 import { PROTECTION_PRODUCTS } from "@/lib/protection-products"
 import { getPublicSiteUrl } from "@/lib/site-url"
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
 
 const siteUrl = getPublicSiteUrl()
 
@@ -82,16 +83,6 @@ function ProtectionPlansJsonLd() {
     })),
   }
 
-  // BreadcrumbList schema
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
-      { "@type": "ListItem", position: 2, name: "Protection Plans", item: `${siteUrl}/protection-plans` },
-    ],
-  }
-
   // Service schema — one entry per product for Google Service rich results
   const serviceSchema = {
     "@context": "https://schema.org",
@@ -119,7 +110,6 @@ function ProtectionPlansJsonLd() {
     <>
       <Script id="protection-faq-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <Script id="protection-services-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
-      <Script id="protection-breadcrumb-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
     </>
   )
 }
@@ -128,6 +118,7 @@ export default function ProtectionPlansPage() {
   return (
     <div className="min-h-screen bg-background">
       <ProtectionPlansJsonLd />
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Protection Plans", url: "/protection-plans" }]} />
       <Header />
 
       <main id="main-content" tabIndex={-1} className="pt-24 pb-20">
