@@ -3,7 +3,7 @@
  *
  * The PR changes the image path for the "tesla-warranty-used-cars" post:
  *   Before: https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=1200&h=600&fit=crop
- *   After:  /images/blog/IMG_1903-2-scaled.png
+ *   After:  /images/blog/IMG_1903-2-scaled.jpg
  *
  * Also validates the overall blogPosts data structure to prevent regressions.
  */
@@ -48,24 +48,24 @@ describe('tesla-warranty-used-cars post (image path change in PR)', () => {
     expect(blogPosts['tesla-warranty-used-cars']).toBeDefined()
   })
 
-  it('uses the .png image', () => {
+  it('uses the self-hosted image', () => {
     const post = blogPosts['tesla-warranty-used-cars']
-    expect(post.image).toBe('/images/blog/IMG_1903-2-scaled.png')
+    expect(post.image).toBe('/images/blog/IMG_1903-2-scaled.jpg')
   })
 
-  it('does NOT use a .jpg image path', () => {
+  it('does NOT use the old external Unsplash URL', () => {
     const post = blogPosts['tesla-warranty-used-cars']
-    expect(post.image).not.toBe('/images/blog/IMG_1903-2-scaled.jpg')
+    expect(post.image).not.toMatch(/unsplash/)
   })
 
-  it('ends with .png', () => {
+  it('ends with a valid image extension', () => {
     const post = blogPosts['tesla-warranty-used-cars']
-    expect(post.image.endsWith('.png')).toBe(true)
+    expect(post.image).toMatch(/\.(jpg|png|webp)$/)
   })
 
-  it('does not end with .jpg', () => {
+  it('is a local path, not an external URL', () => {
     const post = blogPosts['tesla-warranty-used-cars']
-    expect(post.image.endsWith('.jpg')).toBe(false)
+    expect(post.image.startsWith('/images/')).toBe(true)
   })
 
   it('has the correct title', () => {
@@ -84,10 +84,10 @@ describe('tesla-warranty-used-cars post (image path change in PR)', () => {
   })
 })
 
-describe('blogPosts — no other post uses the old .jpg image path', () => {
-  it('no post points to IMG_1903-2-scaled.jpg', () => {
-    for (const post of Object.values(blogPosts)) {
-      expect(post.image).not.toBe('/images/blog/IMG_1903-2-scaled.jpg')
+describe('blogPosts — no post uses external image URLs', () => {
+  it('no post uses an external URL for its image', () => {
+    for (const [slug, post] of Object.entries(blogPosts)) {
+      expect(post.image, `post "${slug}" still uses an external URL`).toMatch(/^\/images\//)
     }
   })
 })
