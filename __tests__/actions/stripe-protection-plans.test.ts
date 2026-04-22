@@ -33,10 +33,13 @@ vi.mock('@/lib/stripe', () => ({
 
 // ─── Mock Supabase admin client ────────────────────────────────────────────
 // The RPC must succeed and return a valid vehicle lock for any checkout to proceed.
+// After locking, the server action fetches vehicle data via .from('vehicles').
 const mockRpc = vi.fn()
+const mockFrom = vi.fn()
 vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: vi.fn(() => ({
     rpc: mockRpc,
+    from: mockFrom,
   })),
 }))
 
@@ -60,6 +63,16 @@ function makeLockResult(overrides: Record<string, unknown> = {}) {
   }
 }
 
+/** Default vehicle row returned by the .from('vehicles') query */
+const DEFAULT_VEHICLE_ROW = {
+  id: 'veh-001',
+  year: 2022,
+  make: 'Toyota',
+  model: 'Camry',
+  price: 2500000,
+  status: 'available',
+}
+
 /** Default Stripe session returned by the mock */
 const DEFAULT_SESSION = { client_secret: 'cs_test_abc123' }
 
@@ -67,6 +80,14 @@ beforeEach(() => {
   vi.clearAllMocks()
   mockRpc.mockResolvedValue(makeLockResult())
   mockSessionCreate.mockResolvedValue(DEFAULT_SESSION)
+  // Chain: .from('vehicles').select(...).eq(...).single()
+  mockFrom.mockReturnValue({
+    select: vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        single: vi.fn().mockResolvedValue({ data: DEFAULT_VEHICLE_ROW, error: null }),
+      }),
+    }),
+  })
 })
 
 // ─── New plan IDs: 'certified' ─────────────────────────────────────────────
