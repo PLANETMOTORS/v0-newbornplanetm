@@ -24,4 +24,4 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_vehicle_page_views_dedup
 ALTER TABLE vehicle_page_views ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Service role full access" ON vehicle_page_views
-  FOR ALL USING (true) WITH CHECK (true);
+  FOR ALL TO service_role USING (true) WITH CHECK (true);
