@@ -247,7 +247,13 @@ export async function handleCheckoutSessionCompleted(
     if (session.metadata?.utm_content) utmData.utm_content = session.metadata.utm_content
     if (session.metadata?.utm_term) utmData.utm_term = session.metadata.utm_term
 
-    const licenseStoragePath = session.metadata?.licenseStoragePath || null
+    const rawLicensePath = session.metadata?.licenseStoragePath || null
+    const licenseStoragePath = rawLicensePath && isValidLicensePath(rawLicensePath, vehicleId)
+      ? rawLicensePath
+      : null
+    if (rawLicensePath && !licenseStoragePath) {
+      console.warn(`[webhook] Dropped invalid licenseStoragePath from checkout-flow deposit for vehicle ${vehicleId}: failed validation`)
+    }
     const customerEmail = session.customer_email || session.customer_details?.email || ''
 
     // Insert a new reservation record for this checkout-flow deposit
@@ -270,10 +276,11 @@ export async function handleCheckoutSessionCompleted(
     }
 
     // Atomically mark vehicle as reserved using row-level lock.
+    // Include 'checkout_in_progress' since startVehicleCheckout already locked the vehicle.
     const { data: transitioned, error: vehicleError } = await supabase
       .rpc('transition_vehicle_status', {
         p_vehicle_id: vehicleId,
-        p_from_statuses: ['available', 'reserved'],
+        p_from_statuses: ['available', 'reserved', 'checkout_in_progress'],
         p_to_status: 'reserved',
       })
 
