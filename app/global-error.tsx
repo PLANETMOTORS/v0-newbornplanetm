@@ -17,8 +17,8 @@ export default function GlobalError({
   return (
     <html lang="en">
       <body>
-        <div style={{ padding: "2rem", textAlign: "center", fontFamily: "system-ui, sans-serif", maxWidth: "28rem", margin: "0 auto" }}>
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "0.5rem" }}>Something Went Wrong</h1>
+        <div style={{ padding: "2rem", textAlign: "center", fontFamily: "Inter, system-ui, sans-serif", maxWidth: "28rem", margin: "0 auto" }}>
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "0.5rem", letterSpacing: "-0.01em" }}>Something Went Wrong</h1>
           <p style={{ color: "#666", marginBottom: "1.5rem" }}>
             An unexpected error has occurred. Please try again or contact our support team.
           </p>
