@@ -14,12 +14,12 @@ export const metadata: Metadata = {
     "EV range test",
   ].join(", "),
   alternates: {
-    canonical: "/ev-battery-health",
+    canonical: "/aviloo",
   },
   openGraph: {
     title: "EV Battery Health & Diagnostics | Planet Motors",
     description: "Certified Aviloo battery State of Health reports on every EV. Know your battery's true condition before you buy.",
-    url: "/ev-battery-health",
+    url: "/aviloo",
     siteName: "Planet Motors",
     locale: "en_CA",
     type: "website",

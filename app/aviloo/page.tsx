@@ -125,7 +125,7 @@ export default function EVBatteryHealthPage() {
             <div className="max-w-4xl mx-auto text-center">
               <Badge className="mb-4 bg-green-500/20 text-green-100 border-green-400/30">
                 <BatteryCharging className="h-4 w-4 mr-1" />
-                Powered by Aviloo — Europe&apos;s #1 Battery Diagnostics
+                Powered by Aviloo — Independent EV battery diagnostics, trusted in 30+ countries
               </Badge>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] text-primary-foreground mb-6">
                 Certified EV Battery Health
@@ -320,6 +320,23 @@ export default function EVBatteryHealthPage() {
               </p>
             </div>
 
+            {/* Actual Aviloo Certificate Image — visual proof */}
+            <div className="max-w-2xl mx-auto mb-10">
+              <div className="rounded-xl overflow-hidden shadow-lg border border-green-200">
+                <Image
+                  src="/images/aviloo-sample-certificate.jpg"
+                  alt="Aviloo FLASH Test Certificate — 2023 Tesla Model 3, 95.1% State of Health"
+                  width={800}
+                  height={1131}
+                  className="w-full h-auto"
+                  priority
+                />
+              </div>
+              <p className="text-sm text-muted-foreground text-center mt-3">
+                Actual Aviloo FLASH certificate from a vehicle in our inventory (VIN redacted for privacy)
+              </p>
+            </div>
+
             <div className="max-w-4xl mx-auto">
               <Card className="overflow-hidden border-2 border-green-200">
                 <div className="grid md:grid-cols-2">
@@ -400,7 +417,7 @@ export default function EVBatteryHealthPage() {
                       </li>
                     </ul>
                     <p className="text-sm text-muted-foreground mt-6">
-                      Planet Motors is the first dealership in the GTA to offer Aviloo certification
+                      One of the first Canadian dealerships to adopt Aviloo certification
                       on every pre-owned EV — at no extra cost to you.
                     </p>
                   </div>

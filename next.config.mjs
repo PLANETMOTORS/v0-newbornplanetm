@@ -65,6 +65,11 @@ const nextConfig = {
         destination: '/protection-plans',
         permanent: true,
       },
+      {
+        source: '/ev-battery-health',
+        destination: '/aviloo',
+        permanent: true,
+      },
     ]
   },
 

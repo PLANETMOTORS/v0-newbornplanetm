@@ -36,7 +36,7 @@ export function buildPagesSitemap(baseUrl: string, currentDate: string): Sitemap
     { path: '/delivery', priority: 0.7, changeFrequency: 'monthly' },
     { path: '/protection-plans', priority: 0.7, changeFrequency: 'monthly' },
     { path: '/warranty', priority: 0.7, changeFrequency: 'monthly' },
-    { path: '/ev-battery-health', priority: 0.7, changeFrequency: 'monthly' },
+    { path: '/aviloo', priority: 0.7, changeFrequency: 'monthly' },
     { path: '/careers', priority: 0.5, changeFrequency: 'weekly' },
     { path: '/clutch-guide-canada', priority: 0.9, changeFrequency: 'weekly' },
     { path: '/electric-vehicles', priority: 0.95, changeFrequency: 'daily' },
