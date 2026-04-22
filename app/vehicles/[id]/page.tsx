@@ -777,7 +777,7 @@ export default function VehicleDetailPage() {
         {/* VDP H1 — SEO & accessibility: one H1 per page */}
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-[84px] pt-4 pb-2">
           <h1 className="text-[28px] md:text-[40px] font-bold tracking-[-0.01em] md:tracking-[-0.02em] leading-tight">
-            {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim}
+            {vehicle.year} {vehicle.make} {vehicle.model}{vehicle.trim ? ` ${vehicle.trim}` : ''}
           </h1>
         </div>
 

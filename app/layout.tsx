@@ -19,6 +19,7 @@ const inter = Inter({
   preload: true,
 });
 
+
 const SITE_URL = getPublicSiteUrl()
 
 export const metadata: Metadata = {

@@ -40,8 +40,8 @@ const documents = {
     _type: 'financingPage',
     title: 'Financing Page',
     headline: 'Flexible Auto Financing',
-    subheadline: 'Get approved in minutes with rates as low as 4.99% APR',
-    featuredRateText: '4.99%',
+    subheadline: 'Get approved in minutes with rates as low as 6.29% APR',
+    featuredRateText: '6.29%',
     rateSubtext: 'Starting APR',
     primaryCtaLabel: 'Apply Now',
     primaryCtaUrl: '/financing/apply',
@@ -67,7 +67,7 @@ const documents = {
       { _key: generateKey(), title: 'Flexible Terms', description: 'Choose payment terms that fit your budget' }
     ],
     metaTitle: 'Auto Financing | Planet Motors',
-    metaDescription: 'Get approved for auto financing with rates as low as 4.99% APR.'
+    metaDescription: 'Get approved for auto financing with rates as low as 6.29% APR.'
   },
 
   sellYourCarPage: {

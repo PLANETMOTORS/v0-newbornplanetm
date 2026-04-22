@@ -153,7 +153,7 @@ const faqs = [
 ];
 
 const lenders = [
-  { _type: 'lender', _id: 'lender-td', name: 'TD Auto Finance', interestRate: 4.99, maxTerm: 84, featured: true, order: 1 },
+  { _type: 'lender', _id: 'lender-td', name: 'TD Auto Finance', interestRate: 6.29, maxTerm: 84, featured: true, order: 1 },
   { _type: 'lender', _id: 'lender-rbc', name: 'RBC', interestRate: 5.49, maxTerm: 84, featured: true, order: 2 },
   { _type: 'lender', _id: 'lender-scotiabank', name: 'Scotiabank', interestRate: 5.29, maxTerm: 84, featured: true, order: 3 },
   { _type: 'lender', _id: 'lender-bmo', name: 'BMO', interestRate: 5.99, maxTerm: 72, featured: true, order: 4 },
