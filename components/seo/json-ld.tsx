@@ -2,6 +2,7 @@ import Script from "next/script"
 import { calculateAllInPrice } from "@/lib/pricing/format"
 import { getPublicSiteUrl } from "@/lib/site-url"
 import { DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
+import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
 
 // Resolve site URL once per render instead of hardcoding
 const SITE_URL = getPublicSiteUrl()
@@ -411,7 +412,7 @@ export function FinancialServiceJsonLd() {
     "serviceType": "Auto Financing",
     "offers": {
       "@type": "Offer",
-      "description": "Auto loan rates starting from 6.29% APR with terms from 24 to 96 months",
+      "description": `Auto loan rates starting from ${RATE_FLOOR_DISPLAY} APR with terms from 24 to 96 months`,
       "priceCurrency": "CAD"
     },
     "telephone": "+1-866-797-3332",

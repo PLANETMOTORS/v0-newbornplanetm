@@ -7,6 +7,7 @@ export const metadata: Metadata = {
 
 
 import Link from "next/link"
+import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -27,7 +28,7 @@ const buyingSteps = [
   {
     icon: CreditCard,
     title: "Reserve & Finance",
-    description: "Reserve your vehicle with a $250 refundable deposit. Get pre-approved for financing in minutes with rates starting at 6.29% APR.",
+    description: `Reserve your vehicle with a $250 refundable deposit. Get pre-approved for financing in minutes with rates starting at ${RATE_FLOOR_DISPLAY} APR.`,
     details: ["$250 refundable deposit", "20+ lender partners", "Pre-approval in minutes", "No credit score impact"]
   },
   {

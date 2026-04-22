@@ -27,6 +27,7 @@ import {
 import { useAuth } from "@/contexts/auth-context"
 import { useFavorites } from "@/contexts/favorites-context"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
+import { RATE_FLOOR, RATE_FLOOR_DISPLAY } from "@/lib/rates"
 import { toast } from "sonner"
 import {
   Dialog,
@@ -1535,7 +1536,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       <CardContent>
                         <p className="text-3xl font-bold tabular-nums">${biweeklyPayment}<span className="text-lg font-normal">/biweekly*</span></p>
                         <p className="text-xs text-muted-foreground mt-2">
-                          *Estimated payment based on 8.99% APR for 84 months, includes $0 cash down. OAC — on approved credit.
+                          *Estimated payment based on {RATE_FLOOR_DISPLAY} APR for 84 months, includes $0 cash down. OAC — on approved credit.
                         </p>
                         <div className="mt-3 space-y-1 text-xs text-muted-foreground tabular-nums">
                           <div className="flex justify-between">

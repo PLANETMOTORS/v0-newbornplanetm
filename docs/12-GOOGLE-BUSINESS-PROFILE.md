@@ -40,7 +40,7 @@
 **Short Description (750 characters max):**
 
 ```
-Planet Motors is Ontario's trusted destination for premium pre-owned vehicles. We specialize in certified electric vehicles, luxury cars, SUVs, and trucks with nationwide delivery across Canada. Every vehicle undergoes our rigorous 210-point inspection and comes with a 10-day money-back guarantee. We offer competitive multi-lender financing with rates as low as 4.99% APR, instant trade-in valuations, and transparent pricing with no hidden fees. OMVIC licensed dealer serving Richmond Hill, Toronto, Markham, and the Greater Toronto Area. Visit us for a hassle-free car buying experience.
+Planet Motors is Ontario's trusted destination for premium pre-owned vehicles. We specialize in certified electric vehicles, luxury cars, SUVs, and trucks with Canada-wide delivery. Every vehicle undergoes our rigorous 210-point inspection and comes with a 10-day money-back guarantee. We offer competitive multi-lender financing with rates as low as 6.29% APR, instant trade-in valuations, and transparent pricing with no hidden fees. OMVIC licensed dealer serving Richmond Hill, Toronto, Markham, and the Greater Toronto Area. Visit us for a hassle-free car buying experience.
 ```
 
 ## Step 4: Attributes to Enable
@@ -105,7 +105,7 @@ Planet Motors is Ontario's trusted destination for premium pre-owned vehicles. W
 
 ### Services
 
-1. **Vehicle Financing** - Rates from 4.99% APR
+1. **Vehicle Financing** - Rates from 6.29% APR
 2. **Trade-In Appraisal** - Instant CBB valuations
 3. **Home Delivery** - Nationwide shipping
 4. **Vehicle Protection Plans** - Extended warranties

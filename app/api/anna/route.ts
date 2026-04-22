@@ -4,6 +4,7 @@ import { NextResponse } from "next/server"
 import { getAISettings, getSiteSettings } from "@/lib/sanity/fetch"
 import { rateLimit } from "@/lib/redis"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
+import { RATE_FLOOR } from "@/lib/rates"
 import { z } from "zod"
 import { searchInventory, formatVehiclesForAnna, buildInventoryContext } from "@/lib/anna/inventory-search"
 import { createLead, saveConversation, saveChatMessage, escalateConversation } from "@/lib/anna/lead-capture"
@@ -133,7 +134,7 @@ function calculatePayment(principal: number, annualRate: number, termMonths: num
 }
 
 // Generate payment table for all terms (24-96 months)
-function generatePaymentTable(vehiclePrice: number, rate: number = 6.29): string {
+function generatePaymentTable(vehiclePrice: number, rate: number = RATE_FLOOR): string {
   const terms = [24, 36, 48, 60, 72, 84, 96]
   let table = `For $${vehiclePrice.toLocaleString()} at ${rate}% APR:\n`
   
@@ -203,7 +204,7 @@ export async function POST(req: Request) {
   const financing = typedAiSettings?.financing
   
   const businessStatus = isWithinBusinessHours()
-  const baseRate = financing?.lowestRate || 6.29
+  const baseRate = financing?.lowestRate || RATE_FLOOR
   const vehiclePrice = vehicleContext?.price || 35000
   const paymentTable = generatePaymentTable(vehiclePrice, baseRate)
 

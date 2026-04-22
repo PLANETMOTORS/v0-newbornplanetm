@@ -4,6 +4,7 @@ import { Search, CreditCard, CalendarCheck, Truck, ArrowRight, CheckCircle, Cloc
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
+import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
 
 const steps = [
   {
@@ -20,7 +21,7 @@ const steps = [
     step: 2,
     title: "Get Pre-Approved",
     description: "Apply in 2 minutes with no credit impact. Compare offers from 20+ Canadian lenders instantly.",
-    features: ["No Credit Impact", "20+ Lender Options", "Rates from 6.29%"],
+    features: ["No Credit Impact", "20+ Lender Options", `Rates from ${RATE_FLOOR_DISPLAY}`],
     time: "2 min",
     color: "from-green-500 to-green-600"
   },

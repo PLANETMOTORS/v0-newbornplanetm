@@ -6,6 +6,7 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
 import { 
   Zap, 
   Battery, 
@@ -243,7 +244,7 @@ export default function ElectricVehiclesPage() {
                 </p>
                 <ul className="space-y-3 mb-8">
                   {[
-                    "Rates starting at 6.29% OAC",
+                    `Rates starting at ${RATE_FLOOR_DISPLAY} OAC`,
                     "Terms from 24-84 months",
                     "Bad credit? No problem",
                     "First-time buyers welcome",
@@ -307,7 +308,7 @@ export default function ElectricVehiclesPage() {
                 },
                 {
                   q: "Do you offer financing for electric vehicles?",
-                  a: "Yes! We offer competitive EV financing rates starting at 6.29% OAC. We work with all credit situations including first-time buyers and those rebuilding credit."
+                  a: `Yes! We offer competitive EV financing rates starting at ${RATE_FLOOR_DISPLAY} OAC. We work with all credit situations including first-time buyers and those rebuilding credit.`
                 },
                 {
                   q: "Can you deliver an EV to my location?",
