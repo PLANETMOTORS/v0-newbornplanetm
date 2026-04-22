@@ -80,13 +80,27 @@ beforeEach(() => {
   vi.clearAllMocks()
   mockRpc.mockResolvedValue(makeLockResult())
   mockSessionCreate.mockResolvedValue(DEFAULT_SESSION)
-  // Chain: .from('vehicles').select(...).eq(...).single()
-  mockFrom.mockReturnValue({
-    select: vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        single: vi.fn().mockResolvedValue({ data: DEFAULT_VEHICLE_ROW, error: null }),
+  // Route .from() calls by table name:
+  //   'vehicles'     → .select(...).eq(...).single()
+  //   'reservations' → .insert(...).select(...).single()
+  mockFrom.mockImplementation((table: string) => {
+    if (table === 'reservations') {
+      return {
+        insert: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({ data: { id: 'res-mock-001' }, error: null }),
+          }),
+        }),
+      }
+    }
+    // Default: vehicles table
+    return {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({ data: DEFAULT_VEHICLE_ROW, error: null }),
+        }),
       }),
-    }),
+    }
   })
 })
 
@@ -447,6 +461,7 @@ describe('startVehicleCheckout — scalar boolean lockResult (PostgREST unwrap)'
 
     expect(mockSessionCreate).toHaveBeenCalledOnce()
     // Should NOT call .from('vehicles') when the RPC returns the full object
-    expect(mockFrom).not.toHaveBeenCalled()
+    // (it will still call .from('reservations') for depositOnly: true)
+    expect(mockFrom).not.toHaveBeenCalledWith('vehicles')
   })
 })
