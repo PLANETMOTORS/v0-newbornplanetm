@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -123,14 +123,52 @@ const COMPARISON_ROWS = [
 ] as const
 
 function ComparisonModal({ onClose }: { onClose: () => void }) {
+  const modalRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLElement | null>(null)
+
+  useEffect(() => {
+    // Capture the element that triggered the modal
+    triggerRef.current = document.activeElement as HTMLElement
+
+    // Focus the modal
+    if (modalRef.current) {
+      const firstFocusable = modalRef.current.querySelector<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+      if (firstFocusable) {
+        firstFocusable.focus()
+      } else {
+        modalRef.current.focus()
+      }
+    }
+
+    // Handle Escape key
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose()
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown)
+
+    // Cleanup: restore focus
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown)
+      triggerRef.current?.focus()
+    }
+  }, [onClose])
+
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="comparison-modal-title"
+        tabIndex={-1}
         className="bg-background rounded-2xl shadow-xl max-w-3xl w-full max-h-[85vh] overflow-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-background rounded-t-2xl z-10">
-          <h2 className="text-xl font-bold">Compare Coverage</h2>
+          <h2 id="comparison-modal-title" className="text-xl font-bold">Compare Coverage</h2>
           <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close comparison">
             <X className="w-5 h-5" />
           </Button>
@@ -223,7 +261,16 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: ProtectionPl
                     : "hover:border-blue-300"
               }`}
               onClick={() => handleSelect(plan.id as ProtectionPlanId)}
-              onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); handleSelect(plan.id as ProtectionPlanId) } }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  // Don't handle if event comes from a nested button
+                  if ((e.target as HTMLElement).closest('button') && e.target !== e.currentTarget) {
+                    return
+                  }
+                  e.preventDefault()
+                  handleSelect(plan.id as ProtectionPlanId)
+                }
+              }}
             >
               {plan.recommended && (
                 <div className="absolute -top-3 left-4">

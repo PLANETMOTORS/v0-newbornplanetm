@@ -20,22 +20,28 @@ interface DeliveryOptionsStepProps {
   onContinue: () => void
 }
 
-function getEstimatedDate(daysFromNow: number): string {
-  const d = new Date()
+function getEstimatedDate(baseDate: Date, daysFromNow: number): string {
+  const d = new Date(baseDate)
   d.setDate(d.getDate() + daysFromNow)
   return d.toLocaleDateString("en-CA", { weekday: "short", month: "short", day: "numeric" })
 }
 
 export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: DeliveryOptionsStepProps) {
   const [isCalculating, setIsCalculating] = useState(false)
+  const [baseDate, setBaseDate] = useState<Date | null>(null)
   const dataRef = useRef(data)
   dataRef.current = data
 
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
 
-  const pickupDate = useMemo(() => getEstimatedDate(1), [])
-  const deliveryDate = useMemo(() => getEstimatedDate(data.deliveryDistance > 200 ? 5 : 3), [data.deliveryDistance])
+  // Set base date after client mount to avoid hydration mismatch
+  useEffect(() => {
+    setBaseDate(new Date())
+  }, [])
+
+  const pickupDate = useMemo(() => baseDate ? getEstimatedDate(baseDate, 1) : "", [baseDate])
+  const deliveryDate = useMemo(() => baseDate ? getEstimatedDate(baseDate, data.deliveryDistance > 200 ? 5 : 3) : "", [baseDate, data.deliveryDistance])
 
   useEffect(() => {
     if (!postalCode || postalCode.replace(/\s/g, '').length < 6) return
@@ -98,7 +104,7 @@ export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: 
                   <h3 className="font-semibold text-lg">Pick it up</h3>
                   <p className="flex items-center gap-1.5 text-sm text-muted-foreground mt-0.5">
                     <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
-                    Pickup as soon as {pickupDate}
+                    {pickupDate ? `Pickup as soon as ${pickupDate}` : "Pickup available soon"}
                   </p>
                 </div>
               </div>
@@ -127,15 +133,22 @@ export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: 
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg">Have it delivered</h3>
-                  <p className="flex items-center gap-1.5 text-sm text-muted-foreground mt-0.5">
-                    <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
-                    Delivery as soon as {deliveryDate}
-                  </p>
+                  {!isCalculating && data.deliveryCost != null && deliveryDate ? (
+                    <p className="flex items-center gap-1.5 text-sm text-muted-foreground mt-0.5">
+                      <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
+                      Delivery as soon as {deliveryDate}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Delivery available
+                    </p>
+                  )}
                 </div>
               </div>
-              {isCalculating ? (
+              {isCalculating || data.deliveryCost == null ? (
                 <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
+                  <span className="sr-only">Calculating delivery quote</span>
                 </span>
               ) : (
                 <span className={`text-lg font-bold whitespace-nowrap ${

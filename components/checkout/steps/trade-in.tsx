@@ -19,7 +19,7 @@ interface TradeInStepProps {
 const TRADE_IN_BENEFITS = [
   "Get a real offer in 2 minutes",
   "Reduce your down payment and monthly payments",
-  "Save on taxes — trade-in value is tax-exempt in Ontario",
+  "Save on taxes — trade-in value may be tax-exempt",
 ]
 
 export function TradeInStep({ data, onChange, onContinue }: TradeInStepProps) {

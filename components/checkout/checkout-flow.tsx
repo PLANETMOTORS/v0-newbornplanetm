@@ -79,6 +79,8 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set())
   const [timeLeft, setTimeLeft] = useState(40 * 60) // 40 minute countdown
   const [showOrderSummary, setShowOrderSummary] = useState(false)
+  const orderSummaryTriggerRef = useRef<HTMLButtonElement>(null)
+  const orderSummaryModalRef = useRef<HTMLDivElement>(null)
 
   // Countdown timer — decrements every second
   useEffect(() => {
@@ -147,6 +149,60 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
       }
     }
   }, [])
+
+  // Focus management and keyboard handling for mobile order summary
+  useEffect(() => {
+    if (showOrderSummary && orderSummaryModalRef.current) {
+      // Focus the modal container
+      const modalEl = orderSummaryModalRef.current
+      const firstFocusable = modalEl.querySelector<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+      if (firstFocusable) {
+        firstFocusable.focus()
+      } else {
+        modalEl.focus()
+      }
+
+      // Handle Escape key
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          setShowOrderSummary(false)
+        }
+      }
+
+      // Focus trap
+      const handleFocusTrap = (e: KeyboardEvent) => {
+        if (e.key !== "Tab") return
+
+        const focusableElements = modalEl.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+        const firstFocusable = focusableElements[0]
+        const lastFocusable = focusableElements[focusableElements.length - 1]
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstFocusable) {
+            e.preventDefault()
+            lastFocusable?.focus()
+          }
+        } else {
+          if (document.activeElement === lastFocusable) {
+            e.preventDefault()
+            firstFocusable?.focus()
+          }
+        }
+      }
+
+      document.addEventListener("keydown", handleKeyDown)
+      modalEl.addEventListener("keydown", handleFocusTrap)
+
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown)
+        modalEl.removeEventListener("keydown", handleFocusTrap)
+        // Restore focus to trigger
+        orderSummaryTriggerRef.current?.focus()
+      }
+    }
+  }, [showOrderSummary])
 
   const markComplete = useCallback((step: number) => {
     setCompletedSteps((prev) => new Set([...prev, step]))
@@ -256,12 +312,14 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
 
             {/* Order Summary toggle (mobile) */}
             <Button
+              ref={orderSummaryTriggerRef}
               variant="outline"
               size="sm"
               className="lg:hidden"
               onClick={() => setShowOrderSummary(!showOrderSummary)}
               aria-expanded={showOrderSummary}
               aria-controls="mobile-order-summary"
+              aria-label="Toggle order summary"
             >
               <ShoppingCart className="w-4 h-4 mr-1" aria-hidden="true" />
               <span className="hidden sm:inline">Order Summary</span>
@@ -279,13 +337,18 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
       {showOrderSummary && (
         <div className="lg:hidden fixed inset-0 z-[60] bg-black/50" onClick={() => setShowOrderSummary(false)}>
           <div
+            ref={orderSummaryModalRef}
             id="mobile-order-summary"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mobile-order-summary-title"
+            tabIndex={-1}
             className="absolute right-0 top-0 h-full w-full max-w-sm bg-background shadow-xl overflow-y-auto p-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold">Order Summary</h2>
-              <Button variant="ghost" size="icon" onClick={() => setShowOrderSummary(false)}>
+              <h2 id="mobile-order-summary-title" className="font-semibold">Order Summary</h2>
+              <Button variant="ghost" size="icon" onClick={() => setShowOrderSummary(false)} aria-label="Close order summary">
                 <X className="w-5 h-5" />
               </Button>
             </div>
@@ -304,7 +367,10 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
                   setShowOrderSummary(false)
                 }
               }}
-              onCancel={() => router.push(`/vehicles/${vehicleId}`)}
+              onCancel={() => {
+                setShowOrderSummary(false)
+                router.push(`/vehicles/${vehicleId}`)
+              }}
             />
           </div>
         </div>
