@@ -18,7 +18,7 @@
  * mocking all external dependencies.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // ---------------------------------------------------------------------------
 // Mock next/navigation – required by the component module when imported
@@ -324,7 +324,7 @@ describe('fetchClientSecret logic', () => {
 
     // In the component: customerEmail: primaryApplicant.email || undefined
     // empty string coerces to undefined
-    const emptyEmail = ''
+    const emptyEmail = '' as string
     const customerEmail = emptyEmail || undefined
 
     const fetchClientSecret = makeFetchClientSecret({

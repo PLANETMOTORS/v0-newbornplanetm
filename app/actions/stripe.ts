@@ -24,11 +24,17 @@ interface VehicleCheckoutData {
   utmTerm?: string
 }
 
+const MAX_VEHICLE_PRICE_CENTS = 50_000_000 // $500,000 CAD
+
 function validateCentsAmount(value: unknown): number {
   const numericValue = typeof value === 'string' ? Number.parseFloat(value) : Number(value)
 
   if (!Number.isFinite(numericValue) || numericValue <= 0) {
     throw new Error('Invalid vehicle price')
+  }
+
+  if (numericValue > MAX_VEHICLE_PRICE_CENTS) {
+    throw new Error('Vehicle price exceeds maximum allowed amount')
   }
 
   // Prices in `vehicles` are persisted in cents; do not apply dollar->cent conversion.
