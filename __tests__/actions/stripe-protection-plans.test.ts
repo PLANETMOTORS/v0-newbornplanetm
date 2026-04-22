@@ -395,3 +395,58 @@ describe('startVehicleCheckout — lock failure', () => {
     ).rejects.toThrow('Vehicle already reserved')
   })
 })
+
+// ─── PostgREST scalar boolean lockResult (scalar unwrap) ──────────────────
+
+describe('startVehicleCheckout — scalar boolean lockResult (PostgREST unwrap)', () => {
+  it('succeeds when lockResult is scalar true and fetches vehicle data separately', async () => {
+    mockRpc.mockResolvedValue({ data: true, error: null })
+
+    await startVehicleCheckout({
+      vehicleId: 'veh-001',
+      vehicleName: '2022 Toyota Camry',
+      depositOnly: true,
+    })
+
+    expect(mockSessionCreate).toHaveBeenCalledOnce()
+    expect(mockFrom).toHaveBeenCalledWith('vehicles')
+  })
+
+  it('throws when lockResult is scalar false', async () => {
+    mockRpc.mockResolvedValue({ data: false, error: null })
+
+    await expect(
+      startVehicleCheckout({
+        vehicleId: 'veh-001',
+        vehicleName: '2022 Toyota Camry',
+        depositOnly: true,
+      })
+    ).rejects.toThrow('Vehicle is not available for checkout')
+  })
+
+  it('throws when lockResult is null', async () => {
+    mockRpc.mockResolvedValue({ data: null, error: null })
+
+    await expect(
+      startVehicleCheckout({
+        vehicleId: 'veh-001',
+        vehicleName: '2022 Toyota Camry',
+        depositOnly: true,
+      })
+    ).rejects.toThrow('Vehicle is not available for checkout')
+  })
+
+  it('uses vehicle data from lock object when RPC returns full JSONB (no separate query)', async () => {
+    mockRpc.mockResolvedValue(makeLockResult())
+
+    await startVehicleCheckout({
+      vehicleId: 'veh-001',
+      vehicleName: '2022 Toyota Camry',
+      depositOnly: true,
+    })
+
+    expect(mockSessionCreate).toHaveBeenCalledOnce()
+    // Should NOT call .from('vehicles') when the RPC returns the full object
+    expect(mockFrom).not.toHaveBeenCalled()
+  })
+})

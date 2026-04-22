@@ -108,6 +108,15 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
     if (vehicleError || !vehicleRow) {
       throw new Error('Failed to fetch vehicle details after lock')
     }
+    if (
+      vehicleRow.id == null ||
+      vehicleRow.year == null ||
+      vehicleRow.make == null ||
+      vehicleRow.model == null ||
+      vehicleRow.price == null
+    ) {
+      throw new Error('Vehicle data incomplete after lock')
+    }
     vehicle = {
       id: vehicleRow.id as string,
       year: vehicleRow.year as number,
