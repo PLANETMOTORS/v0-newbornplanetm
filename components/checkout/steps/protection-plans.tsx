@@ -207,7 +207,6 @@ function ComparisonModal({ onClose }: { onClose: () => void }) {
                         ) : (
                           <span className="font-medium">{val}</span>
                         )}
-                        )}
                       </td>
                     )
                   })}

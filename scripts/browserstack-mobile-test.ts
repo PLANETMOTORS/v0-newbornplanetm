@@ -237,22 +237,17 @@ async function runBrowserStackTests(): Promise<void> {
           : `${violationCount} violations: ${JSON.stringify(tapData.violations)}`,
       })
 
-      // Test 6: No JavaScript errors in console
-      const logsScript = await webDriverRequest('/execute/sync', 'POST', {
-        script: `
-          const errors = [];
-          const origError = console.error;
-          console.error = (...args) => { errors.push(args.join(' ')); origError.apply(console, args); };
-          return { errorCount: errors.length };
-        `,
-        args: [],
-      })
-      const logData = (logsScript as { value?: { errorCount?: number } }).value ?? {}
+      // Test 6: No JavaScript errors in console (via BrowserStack log API)
+      const logsResponse = await webDriverRequest('/log', 'POST', { type: 'browser' })
+      const logs = ((logsResponse as { value?: Array<{ level: string; message: string }> }).value ?? [])
+      const jsErrors = logs.filter(log => log.level === 'SEVERE')
       results.push({
         device: device.label,
         test: 'No JS errors',
-        passed: (logData.errorCount ?? 0) === 0,
-        details: `Errors captured: ${logData.errorCount ?? 'N/A'}`,
+        passed: jsErrors.length === 0,
+        details: jsErrors.length === 0
+          ? 'No severe errors in browser logs'
+          : `${jsErrors.length} errors: ${jsErrors.map(e => e.message).slice(0, 3).join('; ')}`,
       })
 
     } catch (err) {
