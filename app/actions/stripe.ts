@@ -138,6 +138,10 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
       : {}),
     metadata: {
       vehicleId: data.vehicleId,
+      vehicleName: serverVehicleName,
+      vehicleYear: String(vehicle.year ?? ''),
+      vehicleMake: String(vehicle.make ?? ''),
+      vehicleModel: String(vehicle.model ?? ''),
       depositOnly: String(data.depositOnly || false),
       protectionPlanId: data.protectionPlanId || '',
       amountSource: 'server',

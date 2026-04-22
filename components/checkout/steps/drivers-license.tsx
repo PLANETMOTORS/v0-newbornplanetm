@@ -25,7 +25,7 @@ interface DriversLicenseStepProps {
   onContinue: () => void
 }
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024
+const MAX_FILE_SIZE = 5 * 1024 * 1024
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"]
 
 export function DriversLicenseStep({
@@ -59,7 +59,7 @@ export function DriversLicenseStep({
       return
     }
     if (file.size > MAX_FILE_SIZE) {
-      setError("File must be under 10 MB.")
+      setError("File must be under 5 MB.")
       return
     }
 

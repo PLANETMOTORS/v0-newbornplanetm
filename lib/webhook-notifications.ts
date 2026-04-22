@@ -168,7 +168,7 @@ async function sendOrderConfirmationEmail(data: PaymentNotificationData): Promis
   if (error) {
     console.warn(`[webhook-notify] Customer email failed: ${JSON.stringify(error)}`)
   } else {
-    console.info(`[webhook-notify] Order confirmation sent to ${data.customerEmail}`)
+    console.info(`[webhook-notify] Order confirmation sent to ${data.customerEmail.replace(/(.{2}).*(@.*)/, '$1***$2')}`)
   }
 }
 

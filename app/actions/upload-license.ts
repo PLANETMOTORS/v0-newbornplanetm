@@ -67,7 +67,8 @@ export async function uploadDriversLicense(formData: FormData): Promise<UploadLi
   }
   const ext = extensions[file.type] ?? 'bin'
   const timestamp = Date.now()
-  const storagePath = `${vehicleId}/${timestamp}_license.${ext}`
+  const sanitizedVehicleId = vehicleId.replace(/[^a-zA-Z0-9_-]/g, '_')
+  const storagePath = `${sanitizedVehicleId}/${timestamp}_license.${ext}`
 
   const supabase = createAdminClient()
 
@@ -104,7 +105,7 @@ export async function uploadDriversLicense(formData: FormData): Promise<UploadLi
     // Orphan cleanup will handle dangling files if checkout is abandoned.
   }
 
-  console.info(`[upload-license] Uploaded ${storagePath} for vehicle ${vehicleId} (${customerEmail})`)
+  console.info(`[upload-license] Uploaded ${storagePath} for vehicle ${vehicleId}`)
 
   return { success: true, storagePath }
 }
