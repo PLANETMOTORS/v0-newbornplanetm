@@ -48,7 +48,7 @@ export function extractNotificationData(
   const metadata = session.metadata ?? {}
   const customerEmail = session.customer_details?.email ?? session.customer_email ?? ''
   const customerName =
-    session.customer_details?.name ?? metadata.customerName ?? customerEmail.split('@')[0] ?? 'Customer'
+    session.customer_details?.name || metadata.customerName || customerEmail.split('@')[0] || 'Customer'
   const customerPhone = session.customer_details?.phone ?? metadata.customerPhone ?? undefined
 
   if (!customerEmail) return null

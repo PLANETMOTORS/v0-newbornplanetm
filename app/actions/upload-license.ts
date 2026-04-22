@@ -70,7 +70,13 @@ export async function uploadDriversLicense(formData: FormData): Promise<UploadLi
   const sanitizedVehicleId = vehicleId.replace(/[^a-zA-Z0-9_-]/g, '_')
   const storagePath = `${sanitizedVehicleId}/${timestamp}_license.${ext}`
 
-  const supabase = createAdminClient()
+  let supabase: ReturnType<typeof createAdminClient>
+  try {
+    supabase = createAdminClient()
+  } catch (e) {
+    console.error('[upload-license] Admin client not configured:', e)
+    return { success: false, error: 'Service configuration error. Please try again later.' }
+  }
 
   // Upload to the private bucket using service role (bypasses RLS)
   const buffer = Buffer.from(await file.arrayBuffer())
