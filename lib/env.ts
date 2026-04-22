@@ -43,9 +43,10 @@ const optionalServerSchema = z.object({
   SANITY_WEBHOOK_SECRET: z.string().optional(),
   SANITY_API_TOKEN: z.string().optional(),
 
-  // AutoRaptor CRM
-  AUTORAPTOR_API_KEY: z.string().optional(),
+  // AutoRaptor CRM (ADF XML integration)
+  AUTORAPTOR_ADF_ENDPOINT: z.string().url().optional(),
   AUTORAPTOR_DEALER_ID: z.string().optional(),
+  AUTORAPTOR_DEALER_NAME: z.string().optional(),
 
   // Google
   GOOGLE_PLACE_ID: z.string().optional(),
@@ -107,8 +108,9 @@ function validateEnv(): Env {
     UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
     SANITY_WEBHOOK_SECRET: process.env.SANITY_WEBHOOK_SECRET,
     SANITY_API_TOKEN: process.env.SANITY_API_TOKEN,
-    AUTORAPTOR_API_KEY: process.env.AUTORAPTOR_API_KEY,
+    AUTORAPTOR_ADF_ENDPOINT: process.env.AUTORAPTOR_ADF_ENDPOINT,
     AUTORAPTOR_DEALER_ID: process.env.AUTORAPTOR_DEALER_ID,
+    AUTORAPTOR_DEALER_NAME: process.env.AUTORAPTOR_DEALER_NAME,
     GOOGLE_PLACE_ID: process.env.GOOGLE_PLACE_ID,
     GOOGLE_PLACES_API_KEY: process.env.GOOGLE_PLACES_API_KEY,
     TYPESENSE_API_KEY: process.env.TYPESENSE_API_KEY,

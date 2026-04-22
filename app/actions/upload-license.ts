@@ -1,6 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5 MB
 const ACCEPTED_MIME_TYPES = new Set([
@@ -23,8 +24,12 @@ interface UploadLicenseResult {
  *
  * The client sends the file via FormData. The server validates it
  * (type, size) and uploads to the private `secure_documents` bucket
- * using the service role key — the browser never touches Supabase
+ * using the service role key -- the browser never touches Supabase
  * Storage directly.
+ *
+ * Authorization:
+ * - Authenticated users: session email must match customerEmail.
+ * - Guest users: rejected (checkout requires authentication).
  *
  * Returns the raw bucket path (e.g. `<vehicleId>/<timestamp>_license.jpg`)
  * which is stored in the `reservations.license_storage_path` column.
@@ -48,12 +53,28 @@ export async function uploadDriversLicense(formData: FormData): Promise<UploadLi
     return { success: false, error: 'Customer email is required' }
   }
 
+  const normalizedEmail = customerEmail.trim().toLowerCase()
+
+  // --- Authorization: require authenticated user whose email matches ---
+  // The checkout flow requires login (checkout-flow.tsx redirects to auth).
+  // This prevents unauthenticated callers and cross-customer overwrites.
+  const authClient = await createClient()
+  const { data: { user } } = await authClient.auth.getUser()
+
+  if (!user) {
+    return { success: false, error: 'Authentication required' }
+  }
+
+  if (user.email?.toLowerCase() !== normalizedEmail) {
+    return { success: false, error: 'Email does not match your account' }
+  }
+
   // Validate MIME type
   if (!ACCEPTED_MIME_TYPES.has(file.type)) {
     return { success: false, error: 'File must be a JPG, PNG, WebP, or PDF' }
   }
 
-  // Validate size (5 MB server-side limit, stricter than 10 MB client-side)
+  // Validate size (5 MB server-side limit)
   if (file.size > MAX_FILE_SIZE) {
     return { success: false, error: 'File must be under 5 MB' }
   }
@@ -92,15 +113,15 @@ export async function uploadDriversLicense(formData: FormData): Promise<UploadLi
     return { success: false, error: 'Failed to upload document securely. Please try again.' }
   }
 
-  // Store the raw path in the most recent matching reservation.
-  // PostgREST .order().limit() on .update() only constrains the RETURNING
-  // clause, not the UPDATE itself — so we SELECT the target row first,
-  // then UPDATE by primary key to avoid overwriting other reservations.
+  // Best-effort: link the license to an existing reservation if one exists.
+  // In the normal checkout flow, the reservation row may not exist yet at
+  // step 5 (license upload) — it gets created later during deposit payment.
+  // The webhook will also store the path when it processes the payment.
   const { data: targetRow, error: selectError } = await supabase
     .from('reservations')
     .select('id')
     .eq('vehicle_id', vehicleId)
-    .eq('customer_email', customerEmail.trim().toLowerCase())
+    .eq('customer_email', normalizedEmail)
     .in('status', ['pending', 'confirmed'])
     .order('created_at', { ascending: false })
     .limit(1)
