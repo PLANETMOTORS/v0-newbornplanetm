@@ -25,6 +25,7 @@ import {
 } from "lucide-react"
 
 import { useAuth } from "@/contexts/auth-context"
+import { SocialProof } from "@/components/social-proof"
 import { useFavorites } from "@/contexts/favorites-context"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 import { RATE_FLOOR, RATE_FLOOR_DISPLAY, DEFAULT_TERM_MONTHS } from "@/lib/rates"
@@ -698,6 +699,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
             <span className="text-base md:text-lg font-semibold tabular-nums">${biweeklyPayment}/bi-weekly</span>
             <span className="text-sm text-muted-foreground tabular-nums">@ {RATE_FLOOR_DISPLAY} APR</span>
           </div>
+          {/* Social proof — mobile placement (below price header) */}
+          <SocialProof vehicleId={vehicle.id} className="mt-2 md:hidden" />
         </div>
 
         {/* Single Tabs wrapper so Radix links aria-controls correctly */}
@@ -1916,6 +1919,9 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       {RATE_FLOOR_DISPLAY} APR · {DEFAULT_TERM_MONTHS} mo · $0 down · OAC
                     </p>
                   </div>
+
+                  {/* Social proof — desktop placement (above CTA) */}
+                  <SocialProof vehicleId={vehicle.id} className="mt-3 hidden md:block" />
 
                   {/* Primary CTA — Get Pre-Approved */}
                   <div className="mt-4 space-y-2">
