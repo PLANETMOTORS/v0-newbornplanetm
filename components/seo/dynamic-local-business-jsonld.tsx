@@ -1,4 +1,5 @@
 import { headers } from "next/headers"
+import { getPublicSiteUrl } from "@/lib/site-url"
 
 async function getGoogleReviewsData() {
   try {
@@ -27,14 +28,15 @@ async function getGoogleReviewsData() {
 
 export async function DynamicLocalBusinessJsonLd() {
   const reviewsData = await getGoogleReviewsData()
-  
+  const siteUrl = getPublicSiteUrl()
+
   const schema = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "name": "Planet Motors",
-    "image": "https://www.planetmotors.ca/images/planet-motors-logo.png",
-    "@id": "https://www.planetmotors.ca",
-    "url": "https://www.planetmotors.ca",
+    "image": `${siteUrl}/images/planet-motors-logo.png`,
+    "@id": `${siteUrl}/#local-business`,
+    "url": siteUrl,
     "telephone": "+1-866-797-3332",
     "address": {
       "@type": "PostalAddress",
