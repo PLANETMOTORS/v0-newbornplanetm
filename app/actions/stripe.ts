@@ -148,6 +148,7 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
       vehicleMake: String(vehicle.make ?? ''),
       vehicleModel: String(vehicle.model ?? ''),
       depositOnly: String(data.depositOnly || false),
+      type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
       protectionPlanId: data.protectionPlanId || '',
       amountSource: 'server',
       ...(data.licenseStoragePath && isValidLicensePath(data.licenseStoragePath, data.vehicleId) && { licenseStoragePath: data.licenseStoragePath }),

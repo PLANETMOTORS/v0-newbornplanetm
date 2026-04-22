@@ -216,6 +216,87 @@ export async function handleCheckoutSessionCompleted(
     return
   }
 
+  // Checkout-flow deposits: type === 'vehicle-reservation' but no reservationId
+  // (created via startVehicleCheckout with depositOnly=true, not via createReservation)
+  if (type === 'vehicle-reservation' && !reservationId && vehicleId) {
+    if (!isSettled) {
+      // Delayed payment methods (e.g. ACSS debit) may complete checkout before settlement.
+      const { data: transitioned, error: holdVehicleError } = await supabase
+        .rpc('transition_vehicle_status', {
+          p_vehicle_id: vehicleId,
+          p_from_statuses: ['available', 'reserved'],
+          p_to_status: 'reserved',
+        })
+
+      if (holdVehicleError) {
+        throw new Error(`Failed to hold vehicle ${vehicleId} while payment is pending: ${holdVehicleError.message}`)
+      }
+      if (!transitioned) {
+        console.warn(`[webhook] Vehicle ${vehicleId} hold while payment pending was a no-op.`)
+      }
+
+      console.info(`[webhook] Checkout-flow deposit for vehicle ${vehicleId} completed with unsettled funds (payment_status=${session.payment_status}).`)
+      return
+    }
+
+    // Confirmed checkout-flow deposit: create reservation record
+    const utmData: Record<string, string> = {}
+    if (session.metadata?.utm_source) utmData.utm_source = session.metadata.utm_source
+    if (session.metadata?.utm_medium) utmData.utm_medium = session.metadata.utm_medium
+    if (session.metadata?.utm_campaign) utmData.utm_campaign = session.metadata.utm_campaign
+    if (session.metadata?.utm_content) utmData.utm_content = session.metadata.utm_content
+    if (session.metadata?.utm_term) utmData.utm_term = session.metadata.utm_term
+
+    const licenseStoragePath = session.metadata?.licenseStoragePath || null
+    const customerEmail = session.customer_email || session.customer_details?.email || ''
+
+    // Insert a new reservation record for this checkout-flow deposit
+    const { error: insertError } = await supabase
+      .from('reservations')
+      .insert({
+        vehicle_id: vehicleId,
+        customer_email: customerEmail,
+        customer_name: session.customer_details?.name || null,
+        deposit_amount: session.amount_total || 25000, // Default to $250 deposit
+        deposit_status: 'paid',
+        status: 'confirmed',
+        stripe_checkout_session_id: session.id,
+        ...(licenseStoragePath && { license_storage_path: licenseStoragePath }),
+        ...utmData,
+      })
+
+    if (insertError) {
+      throw new Error(`Failed to create reservation for vehicle ${vehicleId}: ${insertError.message}`)
+    }
+
+    // Atomically mark vehicle as reserved using row-level lock.
+    const { data: transitioned, error: vehicleError } = await supabase
+      .rpc('transition_vehicle_status', {
+        p_vehicle_id: vehicleId,
+        p_from_statuses: ['available', 'reserved'],
+        p_to_status: 'reserved',
+      })
+
+    if (vehicleError) {
+      throw new Error(`Failed to update vehicle ${vehicleId} after checkout-flow deposit: ${vehicleError.message}`)
+    }
+    if (!transitioned) {
+      console.warn(`[webhook] Vehicle ${vehicleId} status transition to 'reserved' was a no-op (already transitioned by concurrent webhook).`)
+    }
+
+    console.info(`[webhook] Checkout-flow deposit confirmed, vehicle ${vehicleId} reserved.`)
+
+    // Fire-and-forget: CRM lead + customer/admin email notifications
+    const notificationData = extractNotificationData(session)
+    if (notificationData) {
+      sendPaymentNotifications(notificationData).catch((err) =>
+        console.error('[webhook] Post-payment notification error (non-blocking):', err)
+      )
+    }
+
+    return
+  }
+
   if (type !== 'vehicle-reservation' && vehicleId) {
     if (!isSettled) {
       console.info(`[webhook] Vehicle checkout completed with unsettled funds for ${vehicleId} (payment_status=${session.payment_status}).`)
