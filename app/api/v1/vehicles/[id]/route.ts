@@ -57,8 +57,8 @@ const VEHICLE_DETAIL_FIELDS = [
 ].join(',')
 
 async function toPublicVehicle(vehicle: Record<string, unknown>) {
-  const price = typeof vehicle.price === "number" && Number.isFinite(vehicle.price) ? vehicle.price / 100 : 0
-  const msrp = typeof vehicle.msrp === "number" ? vehicle.msrp / 100 : null
+  const price = typeof vehicle.price === "number" && Number.isFinite(vehicle.price) ? vehicle.price / 100 : null
+  const msrp = typeof vehicle.msrp === "number" && Number.isFinite(vehicle.msrp) ? vehicle.msrp / 100 : null
   const vin = typeof vehicle.vin === "string" ? vehicle.vin : ""
   const drivee_mid = await getDriveeMidFromDb(vin)
 
