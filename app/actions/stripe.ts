@@ -80,33 +80,44 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
     | boolean
     | null
 
+  let vehicle: { id: string; year: number; make: string; model: string; price: number; status: string }
+
   if (typeof lock === 'object' && lock !== null) {
     if (!lock.success) {
       throw new Error(lock.error || 'Vehicle is not available for checkout')
     }
-  } else if (lock !== true) {
+    // Use the atomically-locked vehicle data from the RPC to preserve price
+    // integrity — the price was read under SELECT … FOR UPDATE.
+    vehicle = {
+      id: lock.id as string,
+      year: lock.year as number,
+      make: lock.make as string,
+      model: lock.model as string,
+      price: lock.price as number,
+      status: lock.status as string,
+    }
+  } else if (lock === true) {
+    // PostgREST unwrapped the JSONB to a scalar boolean — fetch vehicle data
+    // separately as a fallback.
+    const { data: vehicleRow, error: vehicleError } = await adminClient
+      .from('vehicles')
+      .select('id, year, make, model, price, status')
+      .eq('id', data.vehicleId)
+      .single()
+
+    if (vehicleError || !vehicleRow) {
+      throw new Error('Failed to fetch vehicle details after lock')
+    }
+    vehicle = {
+      id: vehicleRow.id as string,
+      year: vehicleRow.year as number,
+      make: vehicleRow.make as string,
+      model: vehicleRow.model as string,
+      price: vehicleRow.price as number,
+      status: vehicleRow.status as string,
+    }
+  } else {
     throw new Error('Vehicle is not available for checkout')
-  }
-
-  // Fetch vehicle data separately — the RPC may only return a success boolean
-  // via PostgREST instead of the full JSONB object with vehicle fields.
-  const { data: vehicleRow, error: vehicleError } = await adminClient
-    .from('vehicles')
-    .select('id, year, make, model, price, status')
-    .eq('id', data.vehicleId)
-    .single()
-
-  if (vehicleError || !vehicleRow) {
-    throw new Error('Failed to fetch vehicle details after lock')
-  }
-
-  const vehicle = {
-    id: vehicleRow.id as string,
-    year: vehicleRow.year as number,
-    make: vehicleRow.make as string,
-    model: vehicleRow.model as string,
-    price: vehicleRow.price as number,
-    status: vehicleRow.status as string,
   }
 
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
