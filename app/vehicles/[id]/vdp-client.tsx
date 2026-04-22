@@ -27,7 +27,7 @@ import {
 import { useAuth } from "@/contexts/auth-context"
 import { useFavorites } from "@/contexts/favorites-context"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
-import { RATE_FLOOR, RATE_FLOOR_DISPLAY } from "@/lib/rates"
+import { RATE_FLOOR, RATE_FLOOR_DISPLAY, DEFAULT_TERM_MONTHS } from "@/lib/rates"
 import { toast } from "sonner"
 import {
   Dialog,
@@ -632,7 +632,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   const financeSubtotal = safePrice + FINANCE_ADMIN_FEE
   const financeTax = financeSubtotal * PROVINCE_TAX_RATES.ON.hst
   const financeTotal = financeSubtotal + financeTax
-  const biweeklyPayment = Math.round(financeTotal / 208) // 8 years bi-weekly (26 payments x 8)
+  const biweeklyPayments = (DEFAULT_TERM_MONTHS / 12) * 26
+  const biweeklyPayment = Math.round(financeTotal / biweeklyPayments)
 
   return (
     <div className="min-h-screen bg-background">
@@ -1544,7 +1545,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       <CardContent>
                         <p className="text-3xl font-bold tabular-nums">${biweeklyPayment}<span className="text-lg font-normal">/biweekly*</span></p>
                         <p className="text-xs text-muted-foreground mt-2">
-                          *Estimated payment based on {RATE_FLOOR_DISPLAY} APR for 84 months, includes $0 cash down. OAC — on approved credit.
+                          *Estimated payment based on {RATE_FLOOR_DISPLAY} APR for {DEFAULT_TERM_MONTHS} months, includes $0 cash down. OAC — on approved credit.
                         </p>
                         <div className="mt-3 space-y-1 text-xs text-muted-foreground tabular-nums">
                           <div className="flex justify-between">
@@ -1908,7 +1909,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       <span className="text-sm text-primary">/bi-weekly</span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
-                      {RATE_FLOOR_DISPLAY} APR · 84 mo · $0 down · OAC
+                      {RATE_FLOOR_DISPLAY} APR · {DEFAULT_TERM_MONTHS} mo · $0 down · OAC
                     </p>
                   </div>
 
