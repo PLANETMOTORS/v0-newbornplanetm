@@ -6,8 +6,8 @@
  * is the source of truth for payment status.
  *
  * ADF spec: https://star-standards.org (ISO/IEC 15948)
- * Requires AUTORAPTOR_ADF_ENDPOINT env var (or falls back to
- * AUTORAPTOR_DEALER_ID to construct the default endpoint).
+ * Requires AUTORAPTOR_ADF_ENDPOINT env var.
+ * AUTORAPTOR_DEALER_ID is sent as an optional X-Dealer-ID header.
  */
 
 interface AutoRaptorLeadPayload {
