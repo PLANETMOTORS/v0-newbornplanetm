@@ -263,7 +263,6 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
     const errorMessageLower = errorMessage.toLowerCase()
     const structuredErrorCode = getStructuredErrorCode(error)
     const structuredErrorType = getStructuredErrorType(error)
-    const isStripeLike = structuredErrorType.startsWith('stripe') || structuredErrorCode.length > 0
 
     const paymentErrorCodes = new Set([
       'payment_method_not_available',
@@ -278,6 +277,8 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       'idempotency_key_in_use',
       'rate_limit',
     ])
+
+    const isStripeLike = structuredErrorType.startsWith('stripe') || paymentErrorCodes.has(structuredErrorCode)
 
     const customerEmailHash = createHash('sha256')
       .update(input.customerEmail.trim().toLowerCase())
