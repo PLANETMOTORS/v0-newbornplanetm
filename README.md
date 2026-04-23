@@ -2,12 +2,9 @@
 
 > Canada's Premier Online Used Car Marketplace
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org)
+[![Node.js](https://img.shields.io/badge/node-22-brightgreen.svg)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/typescript-5.0-blue.svg)](https://typescriptlang.org)
-[![Next.js](https://img.shields.io/badge/next.js-15-black.svg)](https://nextjs.org)
-
-## What Makes Planet Motors Different
+[![Next.js](https://img.shields.io/badge/next.js-16-black.svg)](https://nextjs.org)
 
 | Feature | Planet Motors |
 |---------|--------------|
@@ -23,19 +20,16 @@
 ## Quick Start
 
 ```bash
-# Clone the repository
-git clone https://github.com/planetmotors/planetmotors-app.git
-cd planetmotors-app
+# Clone
+git clone https://github.com/PLANETMOTORS/v0-newbornplanetm.git
+cd v0-newbornplanetm
 
 # Install dependencies
 pnpm install
 
 # Set up environment variables
 cp .env.example .env.local
-# Edit .env.local with your credentials
-
-# Run database migrations
-pnpm db:migrate
+# Edit .env.local with your Supabase, Sanity, Stripe, and Clerk credentials
 
 # Start development server
 pnpm dev
@@ -43,57 +37,95 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) to view the application.
 
+### Supabase Edge Functions (local development)
+
+```bash
+# Install Supabase CLI
+pnpm add -g supabase
+
+# Link to the project
+supabase link --project-ref ldervbcvkoawwknsemuz
+
+# Set secrets (AutoRaptor, Resend API keys)
+bash scripts/setup-edge-function-secrets.sh
+
+# Deploy Edge Functions
+supabase functions deploy capture-lead
+supabase functions deploy finance-prequalify
+supabase functions deploy price-drop-alert
+```
+
+### Sanity Studio (CMS)
+
+The CMS lives in a separate repo: [`v0-cms-site-build`](https://github.com/PLANETMOTORS/v0-cms-site-build).
+
+```bash
+cd v0-cms-site-build
+pnpm install
+pnpm dev          # Studio at http://localhost:3000/studio
+```
+
+Required env vars for Sanity Studio:
+- `NEXT_PUBLIC_SANITY_PROJECT_ID` — `wlxj8olw`
+- `NEXT_PUBLIC_SANITY_DATASET` — `production`
+- `SANITY_STUDIO_SUPABASE_URL` — your Supabase project URL
+- `SANITY_STUDIO_SUPABASE_ANON_KEY` — your Supabase anon key
+
 ## Tech Stack
 
 ### Frontend
-- **Framework**: Next.js 15 with App Router
+- **Framework**: Next.js 16 (App Router, React 19)
 - **Language**: TypeScript 5.0
 - **Styling**: Tailwind CSS 4.0
 - **Components**: shadcn/ui + Radix UI
-- **State**: React 19 + SWR
-- **3D/360 Viewer**: Custom AVIF-optimized viewer
+- **State**: SWR for server data, React Context for auth/favorites/compare
+- **360° Viewer**: Custom AVIF-optimized canvas viewer
 
 ### Backend
-- **Runtime**: Node.js 20 LTS
-- **API Framework**: Express.js 4.x
-- **Database**: PostgreSQL 15 (AWS RDS)
-- **Cache**: Redis 7 (AWS ElastiCache)
-- **Search**: OpenSearch 2.x
-- **Queue**: Apache Kafka (AWS MSK)
+- **Database**: Supabase (PostgreSQL) — auth, inventory, leads, reservations
+- **CMS**: Sanity v5 — pages, blog, settings, featured vehicles
+- **Edge Functions**: Supabase Deno — `capture-lead`, `finance-prequalify`, `price-drop-alert`
+- **Payments**: Stripe — deposits, checkout
+- **Email**: Resend — magic links, price drop alerts, ADF to AutoRaptor
+- **Auth**: Supabase Auth (magic link / OTP) + Clerk (legacy)
+- **Search**: Typesense (primary) with PostgreSQL fallback
 
 ### Infrastructure
-- **Cloud**: AWS (ca-central-1 Montreal)
-- **Container**: ECS Fargate
-- **CDN**: CloudFront + imgix
-- **IaC**: Terraform
-- **CI/CD**: GitHub Actions
-- **Security**: AWS Shield Advanced + WAF
+- **Hosting**: Vercel (frontend + API routes)
+- **Database**: Supabase (managed PostgreSQL)
+- **CDN**: Vercel Edge Network
+- **CI/CD**: GitHub Actions — lint → test → build → bundle-check → e2e → VRT
+- **VRT**: Playwright visual regression testing
+- **Monitoring**: Vercel Analytics
 
 ## Project Structure
 
 ```
-planetmotors/
+v0-newbornplanetm/
 ├── app/                    # Next.js App Router pages
-│   ├── (auth)/            # Authentication routes
-│   ├── (marketing)/       # Public marketing pages
-│   ├── account/           # Customer dashboard
-│   ├── api/               # API routes
-│   ├── financing/         # Multi-lender financing
-│   ├── inventory/         # Vehicle listings
-│   ├── trade-in/          # Trade-in valuation
-│   └── vehicles/          # Vehicle detail pages
+│   ├── api/               # API routes (financing, social proof, webhooks)
+│   ├── financing/         # Multi-lender financing flow
+│   ├── inventory/         # Vehicle listings (SRP)
+│   ├── vehicles/          # Vehicle detail pages (VDP)
+│   ├── checkout/          # 8-step Carvana-style checkout
+│   └── sell-your-car/     # Trade-in flow (Sanity CMS)
 ├── components/            # React components
 │   ├── ui/               # shadcn/ui components
-│   ├── forms/            # Form components
-│   ├── vehicle/          # Vehicle-specific components
-│   └── layout/           # Layout components
-├── lib/                   # Utilities and helpers
-│   ├── api/              # API client functions
-│   ├── db/               # Database utilities
-│   └── utils/            # General utilities
+│   ├── vehicle/          # VDP, 360° viewer, social proof
+│   └── finance-application-form.tsx  # Magic link financing
+├── lib/                   # Core utilities
+│   ├── rates.ts          # Single source of truth for finance math
+│   ├── sanity/           # Sanity client + GROQ queries
+│   ├── supabase/         # Supabase clients + Edge Function helpers
+│   └── seo/              # SEO metadata utilities
+├── supabase/
+│   └── functions/        # Edge Functions (Deno)
+│       ├── capture-lead/       # Pre-auth lead capture + AutoRaptor ADF
+│       ├── finance-prequalify/ # Post-auth soft credit pull
+│       └── price-drop-alert/   # Automated price drop emails
+├── e2e/                   # Playwright E2E + visual regression tests
 ├── docs/                  # Technical documentation
-├── infrastructure/        # Terraform configs
-├── scripts/              # Database migrations, seeds
+├── scripts/              # Migrations, bundle checks, utilities
 └── public/               # Static assets
 ```
 
@@ -102,100 +134,60 @@ planetmotors/
 Copy `.env.example` to `.env.local` and configure:
 
 ```bash
-# Required for development
-DATABASE_URL=postgresql://...
-REDIS_URL=redis://...
-STRIPE_SECRET_KEY=sk_test_...
-CARFAX_API_KEY=...
-CBB_API_KEY=...
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://ldervbcvkoawwknsemuz.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+
+# Sanity CMS
+NEXT_PUBLIC_SANITY_PROJECT_ID=wlxj8olw
+NEXT_PUBLIC_SANITY_DATASET=production
+
+# Stripe
+STRIPE_SECRET_KEY=sk_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Resend (email)
+RESEND_API_KEY=re_...
 ```
 
-See [.env.example](.env.example) for all available options.
-
-## API Documentation
-
-Interactive API documentation available at `/api/docs` when running locally.
-
-### Key Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/v1/vehicles` | GET | List vehicles with filtering |
-| `/api/v1/vehicles/:id` | GET | Get vehicle details |
-| `/api/v1/vehicles/:id/inspection` | GET | Get 210-point inspection |
-| `/api/v1/financing/prequalify` | POST | Soft credit pull |
-| `/api/v1/financing/offers` | GET | Get multi-lender offers |
-| `/api/v1/trade-in/instant-offer` | POST | Get instant trade-in offer |
-| `/api/v1/orders` | POST | Create purchase order |
-| `/api/v1/deliveries` | POST | Schedule delivery |
-
-## Database Schema
-
-Key tables:
-- `vehicles` - 50+ fields including EV battery health
-- `inspections` - 210-point inspection results
-- `financing_applications` - Multi-lender applications
-- `financing_offers` - Offers from 6 Canadian banks
-- `trade_ins` - CBB-powered valuations
-- `orders` - Full purchase workflow
-- `deliveries` - Scheduling and tracking
-
-See [COMPLETE_DATABASE_SCHEMA.md](docs/COMPLETE_DATABASE_SCHEMA.md) for full schema.
+See `.env.example` for all available options.
 
 ## Development
 
 ```bash
-# Run development server
-pnpm dev
-
-# Run tests
-pnpm test
-
-# Run linting
-pnpm lint
-
-# Type checking
-pnpm typecheck
-
-# Build for production
-pnpm build
+pnpm dev          # Development server (Turbopack)
+pnpm build        # Production build
+pnpm lint         # ESLint
+pnpm test         # Vitest unit/integration tests
+pnpm e2e          # Playwright E2E tests
+pnpm e2e:vrt      # Visual regression tests only
 ```
 
-## Deployment
+## CI Pipeline
 
-### Vercel (Recommended for Frontend)
-```bash
-vercel --prod
-```
+GitHub Actions runs on every PR and push to `main`:
 
-### AWS ECS (Backend Services)
-```bash
-cd infrastructure
-terraform init
-terraform plan
-terraform apply
-```
+1. **lint-and-build** — `pnpm lint` → `pnpm test` → `pnpm build`
+2. **bundle-check** — Enforces 1700 KB first-load JS budget per page
+3. **e2e** — Playwright accessibility + navigation tests
+4. **visual-regression** — Playwright `toHaveScreenshot` for VDP + finance form layouts
 
 ## Security
 
 - PIPEDA compliant (Canadian privacy)
 - PCI DSS Level 1 (Stripe tokenization)
 - OMVIC/AMVIC compliant (dealer regulations)
-- AWS Shield Advanced + WAF
-- JWT + OAuth 2.0 authentication
-- All data in ca-central-1 (Montreal)
+- All sensitive API keys stored in Supabase Secrets (never in browser)
+- PII redacted from Edge Function logs
 
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
+1. Create your feature branch (`git checkout -b feature/amazing-feature`)
+2. Run lint + tests before committing
+3. Open a Pull Request — CI must pass before merge
+4. See [docs/AI_SYSTEM_PROMPT.md](docs/AI_SYSTEM_PROMPT.md) for AI agent rules
 
 ## Contact
 
