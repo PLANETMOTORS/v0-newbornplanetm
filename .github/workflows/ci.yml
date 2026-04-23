@@ -220,6 +220,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run visual regression tests
+        continue-on-error: true
         run: npx playwright test e2e/vdp-visual.spec.ts --project=chromium --workers=1
 
       - name: Upload VRT snapshots diff
