@@ -10,12 +10,12 @@ CREATE TABLE IF NOT EXISTS public.price_drop_notifications (
   recipient_email VARCHAR(255) NOT NULL,
   old_price       INTEGER     NOT NULL, -- cents
   new_price       INTEGER     NOT NULL, -- cents
-  notified_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
-
-  -- Dedup: one alert per vehicle per recipient per week
-  CONSTRAINT uq_price_drop_weekly
-    UNIQUE (vehicle_id, recipient_email, (date_trunc('week', notified_at)))
+  notified_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Dedup: one alert per vehicle per recipient per week (expression-based unique index)
+CREATE UNIQUE INDEX IF NOT EXISTS uq_price_drop_weekly
+  ON public.price_drop_notifications (vehicle_id, recipient_email, date_trunc('week', notified_at));
 
 CREATE INDEX IF NOT EXISTS idx_pdn_vehicle_email
   ON public.price_drop_notifications (vehicle_id, recipient_email, notified_at DESC);

@@ -103,7 +103,7 @@ Deno.serve(async (req: Request) => {
   // Verify service role authorization (this endpoint is internal-only)
   const authHeader = req.headers.get("authorization")
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-  if (!authHeader?.includes(serviceRoleKey)) {
+  if (!serviceRoleKey || authHeader !== `Bearer ${serviceRoleKey}`) {
     log.warn("Unauthorized call attempt")
     return new Response(
       JSON.stringify({ success: false, error: "Unauthorized" }),
@@ -121,7 +121,7 @@ Deno.serve(async (req: Request) => {
     )
   }
 
-  if (!payload.vehicle_id || !payload.old_price || !payload.new_price) {
+  if (!payload.vehicle_id || typeof payload.old_price !== "number" || typeof payload.new_price !== "number") {
     return new Response(
       JSON.stringify({ success: false, error: "Missing required fields" }),
       { status: 400, headers: { ...corsHeaders(req), "Content-Type": "application/json" } }
