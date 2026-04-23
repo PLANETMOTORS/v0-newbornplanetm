@@ -267,10 +267,11 @@ export interface Testimonial {
 export interface BlogPost {
   _id: string
   title: string
-  slug: string
+  slug: string | { current: string }
   publishedAt: string
   excerpt?: string
   coverImage?: string
+  categories?: string[]
   body?: Record<string, unknown>[] // Portable Text blocks
   seo?: SeoFields
 }

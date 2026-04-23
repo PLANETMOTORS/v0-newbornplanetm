@@ -179,7 +179,10 @@ export const VEHICLE_WITH_PAYMENT_CONTEXT_QUERY = `
 
 export const BLOG_LIST_QUERY = `
   *[_type == "blogPost"] | order(publishedAt desc)[$start...$end] {
-    _id, title, slug, publishedAt, excerpt, "coverImage": coverImage.asset->url, seoTitle, seoDescription
+    _id, title, slug, publishedAt, excerpt,
+    "coverImage": coverImage.asset->url,
+    categories,
+    seoTitle, seoDescription
   }
 `
 
@@ -187,8 +190,17 @@ export const BLOG_COUNT_QUERY = `count(*[_type == "blogPost"])`
 
 export const BLOG_POST_QUERY = `
   *[_type == "blogPost" && slug.current == $slug][0] {
-    _id, title, slug, publishedAt, excerpt, "coverImage": coverImage.asset->url, body, seoTitle, seoDescription
+    _id, title, slug, publishedAt, excerpt,
+    "coverImage": coverImage.asset->url,
+    body,
+    categories,
+    seoTitle, seoDescription
   }
+`
+
+/** Fetch all blog post slugs — used for generateStaticParams */
+export const BLOG_SLUGS_QUERY = `
+  *[_type == "blogPost"] { "slug": slug.current }
 `
 
 // ==========================================
