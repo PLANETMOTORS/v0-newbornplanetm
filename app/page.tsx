@@ -17,7 +17,7 @@ import { PHONE_TOLL_FREE, EMAIL_INFO, DEALERSHIP_LOCATION } from "@/lib/constant
 // Lazy-load the footer — code-split into a separate chunk while keeping
 // its HTML in the SSR output for SEO (crawlers see footer links/contact).
 const Footer = dynamic(() => import("@/components/footer").then(m => ({ default: m.Footer })), { ssr: true })
-import { getSiteSettings } from "@/lib/sanity/fetch"
+import { getSiteSettings, getHomepageData } from "@/lib/sanity/fetch"
 import { createStaticClient } from "@/lib/supabase/static"
 
 // ISR: regenerate the homepage at most every 60 seconds.
@@ -52,6 +52,43 @@ async function withTimeout<T>(promise: Promise<T>, fallback: T, ms = 3000): Prom
   }
 }
 
+const VEHICLE_COLUMNS = 'id, year, make, model, trim, price, mileage, fuel_type, inspection_score, is_new_arrival, primary_image_url, image_urls'
+
+type ShowcaseVehicle = {
+  id: string
+  year: number
+  make: string
+  model: string
+  trim?: string
+  price: number
+  mileage: number
+  fuel_type?: string
+  inspection_score?: number
+  is_new_arrival?: boolean
+  primary_image_url?: string
+  image_urls?: string[]
+}
+
+// Fetch specific vehicles by ID (admin-curated from Sanity).
+async function getFeaturedVehiclesById(ids: string[]): Promise<ShowcaseVehicle[] | null> {
+  if (!ids.length) return null
+  try {
+    const supabase = createStaticClient()
+    const { data, error } = await supabase
+      .from('vehicles')
+      .select(VEHICLE_COLUMNS)
+      .in('id', ids)
+      .eq('status', 'available')
+    if (error || !data?.length) return null
+    // Preserve Sanity ordering
+    const rows = data as ShowcaseVehicle[]
+    const byId = new Map(rows.map(v => [v.id, v]))
+    return ids.map(id => byId.get(id)).filter((v): v is ShowcaseVehicle => v != null)
+  } catch {
+    return null
+  }
+}
+
 // Fetch showcase vehicles server-side so the LCP hero image is in the initial
 // HTML with a <link rel="preload">. Uses the stateless client (no cookies())
 // so the page remains ISR-eligible.
@@ -60,7 +97,7 @@ async function getShowcaseVehicles() {
     const supabase = createStaticClient()
     const { data, error } = await supabase
       .from('vehicles')
-      .select('id, year, make, model, trim, price, mileage, fuel_type, inspection_score, is_new_arrival, primary_image_url, image_urls')
+      .select(VEHICLE_COLUMNS)
       .eq('status', 'available')
       .order('price', { ascending: false })
       .limit(6)
@@ -77,10 +114,18 @@ async function getShowcaseVehicles() {
 // visible DOM — the browser can paint it immediately without waiting for
 // JavaScript to swap hidden streaming content.
 export default async function HomePage() {
-  const [siteSettings, showcaseVehicles] = await Promise.all([
+  const [siteSettings, homepageData, autoShowcaseVehicles] = await Promise.all([
     withTimeout(getSiteSettings(), null),
+    withTimeout(getHomepageData(), null),
     withTimeout(getShowcaseVehicles(), null),
   ])
+
+  // Prefer admin-curated featured vehicles from Sanity; fall back to auto-selected
+  const featuredIds: string[] = (homepageData as Record<string, unknown>)?.featuredVehicleIds as string[] ?? []
+  const curatedVehicles = featuredIds.length
+    ? await withTimeout(getFeaturedVehiclesById(featuredIds), null)
+    : null
+  const showcaseVehicles = curatedVehicles ?? autoShowcaseVehicles
 
   // Preload the LCP hero image — the first showcase vehicle image.
   // Uses imageSrcSet + imageSizes so the browser picks the exact same URL
