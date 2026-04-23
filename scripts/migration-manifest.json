@@ -1,0 +1,68 @@
+[
+  {
+    "mid": "190171976531",
+    "vehicle": "2021 Jeep Wrangler 4xe",
+    "frameCount": 37,
+    "firstUrl": "https://ldervbcvkoawwknsemuz.supabase.co/storage/v1/object/public/vehicle-360/190171976531/05.webp"
+  },
+  {
+    "mid": "744761075195",
+    "vehicle": "2025 Chevrolet Equinox EV",
+    "frameCount": 33,
+    "firstUrl": "https://ldervbcvkoawwknsemuz.supabase.co/storage/v1/object/public/vehicle-360/744761075195/01.webp"
+  },
+  {
+    "mid": "132601940353",
+    "vehicle": "2021 Tesla Model 3",
+    "frameCount": 40,
+    "firstUrl": "https://ldervbcvkoawwknsemuz.supabase.co/storage/v1/object/public/vehicle-360/132601940353/02.webp"
+  },
+  {
+    "mid": "806787519944",
+    "vehicle": "2023 Volkswagen Taos",
+    "frameCount": 36,
+    "firstUrl": "https://ldervbcvkoawwknsemuz.supabase.co/storage/v1/object/public/vehicle-360/806787519944/03.webp"
+  },
+  {
+    "mid": "890747363179",
+    "vehicle": "2024 Tesla Model 3",
+    "frameCount": 40,
+    "firstUrl": "https://ldervbcvkoawwknsemuz.supabase.co/storage/v1/object/public/vehicle-360/890747363179/03.webp"
+  },
+  {
+    "mid": "640326639530",
+    "vehicle": "2019 Tesla Model 3",
+    "frameCount": 39,
+    "firstUrl": "https://ldervbcvkoawwknsemuz.supabase.co/storage/v1/object/public/vehicle-360/640326639530/05.webp"
+  },
+  {
+    "mid": "061789806057",
+    "vehicle": "2022 Tesla Model 3",
+    "frameCount": 7,
+    "firstUrl": "https://ldervbcvkoawwknsemuz.supabase.co/storage/v1/object/public/vehicle-360/061789806057/04.webp"
+  },
+  {
+    "mid": "396425623701",
+    "vehicle": "2018 Volkswagen Tiguan",
+    "frameCount": 39,
+    "firstUrl": "https://ldervbcvkoawwknsemuz.supabase.co/storage/v1/object/public/vehicle-360/396425623701/06.webp"
+  },
+  {
+    "mid": "625294835450",
+    "vehicle": "2025 Hyundai Kona Electric",
+    "frameCount": 38,
+    "firstUrl": "https://ldervbcvkoawwknsemuz.supabase.co/storage/v1/object/public/vehicle-360/625294835450/02.webp"
+  },
+  {
+    "mid": "085109772520",
+    "vehicle": "2018 Audi Q3",
+    "frameCount": 37,
+    "firstUrl": "https://ldervbcvkoawwknsemuz.supabase.co/storage/v1/object/public/vehicle-360/085109772520/05.webp"
+  },
+  {
+    "mid": "860125156862",
+    "vehicle": "2021 Tesla Model 3 (2nd)",
+    "frameCount": 32,
+    "firstUrl": "https://ldervbcvkoawwknsemuz.supabase.co/storage/v1/object/public/vehicle-360/860125156862/04.webp"
+  }
+]

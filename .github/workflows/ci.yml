@@ -1,0 +1,275 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - staging
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 9.15.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+  bundle-check:
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 9.15.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build with bundle stats
+        run: pnpm build
+
+      - name: Check bundle budget (1700 KB first-load JS per page)
+        run: node scripts/check-bundle-size.mjs
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    timeout-minutes: 20
+    env:
+      TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+      TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 9.15.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Run E2E tests (Chromium — core specs)
+        run: >
+          npx playwright test
+          e2e/homepage.spec.ts
+          e2e/navigation.spec.ts
+          e2e/contact.spec.ts
+          e2e/inventory.spec.ts
+          e2e/vehicle-detail.spec.ts
+          --project=chromium --workers=1
+
+      - name: Run E2E tests (Chromium — human-click-timing)
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: npx playwright test e2e/human-click-timing-debug.spec.ts --project=chromium --workers=1
+
+      - name: Run E2E tests (Firefox — COMPAT-002)
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: npx playwright test e2e/human-click-timing-debug.spec.ts --project=firefox --workers=1
+
+      - name: Run E2E tests (WebKit/Safari — COMPAT-003)
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: npx playwright test e2e/human-click-timing-debug.spec.ts --project=webkit --workers=1
+
+      - name: Run auth-gated E2E tests
+        if: ${{ !cancelled() && env.TEST_USER_EMAIL != '' }}
+        run: >
+          npx playwright test
+          e2e/step4-personal-info.spec.ts
+          e2e/step5-financing-idv.spec.ts
+          --project=chromium --workers=1
+
+      - name: Upload test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  accessibility:
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 9.15.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run accessibility tests
+        run: npx playwright test e2e/accessibility.spec.ts --project=chromium --workers=1
+
+      - name: Upload accessibility results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: accessibility-report
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  visual-regression:
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 9.15.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run visual regression tests
+        continue-on-error: true
+        run: npx playwright test e2e/vdp-visual.spec.ts --project=chromium --workers=1
+
+      - name: Upload VRT snapshots diff
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: vrt-snapshots
+          path: |
+            e2e/vdp-visual.spec.ts-snapshots/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 9.15.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run Lighthouse CI
+        run: npx @lhci/cli autorun
+        env:
+          LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
+
+      - name: Upload Lighthouse report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: lighthouse-report
+          path: .lighthouseci/
+          retention-days: 7
+          if-no-files-found: ignore

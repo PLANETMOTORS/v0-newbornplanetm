@@ -1,0 +1,43 @@
+# v0 sandbox internal files
+__v0_runtime_loader.js
+__v0_devtools.tsx
+__v0_jsx-dev-runtime.ts
+.snowflake/
+.v0-trash/
+.vercel/
+next.user-config.*
+
+# TypeScript incremental build info
+tsconfig.tsbuildinfo
+
+# Environment variables
+.env*.local
+
+# Common ignores
+node_modules
+.next/
+.DS_Store
+
+# Serwist — generated service worker files
+public/sw*
+public/swe-worker*
+
+# Playwright MCP snapshots
+.playwright-mcp/
+
+# Playwright
+.playwright/
+test-results/
+playwright-report/
+.vercel
+.env.neon-check
+.env.neon-check
+# Screenshot artifacts — never track
+*.png
+!public/**/*.png
+!e2e/**/*-snapshots/**/*.png
+
+# Lighthouse reports
+lh-*.json
+lighthouse-*.json
+lighthouse-blog.json
