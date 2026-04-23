@@ -174,6 +174,7 @@ const nextConfig = {
       'https://googleads.g.doubleclick.net',  // Ads conversion pixel
       'https://www.googleadservices.com',     // Google Ads pixel
       'https://capig.planetmotors.ca',        // Server-side tagging pixel
+      'https://pagead2.googlesyndication.com', // Google Ads CCM image pixel
     ]
 
     const frameSrc = [
@@ -203,6 +204,7 @@ const nextConfig = {
       'https://www.google.com',                    // Remarketing + CCM
       'https://googleads.g.doubleclick.net',       // Google Ads data
       'https://www.merchant-center-analytics.goog', // Google Merchant Center
+      'https://pagead2.googlesyndication.com',     // Google Ads CCM collect
     ]
 
     const mainSiteCSP = [
