@@ -1,4 +1,4 @@
-"use server"
+// Server Component (Next.js App Router — no directive needed)
 /**
  * app/garage/page.tsx — Week 6 upgrade
  * Server Component: fetches customer, active deals, dossiers, saved vehicles

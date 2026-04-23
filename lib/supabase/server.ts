@@ -40,9 +40,9 @@ export async function createClient() {
   return createServerClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
       getAll: () => cookieStore.getAll(),
-      setAll: (all) =>
+      setAll: (all: Array<{ name: string; value: string; options?: Record<string, unknown> }>) =>
         all.forEach(({ name, value, options }) =>
-          cookieStore.set(name, value, options)
+          cookieStore.set(name, value, options as Parameters<typeof cookieStore.set>[2])
         ),
     },
   })

@@ -133,7 +133,7 @@ function formatMileage(km?: number): string {
 
 // ── Shared layout wrapper ──────────────────────────────────────────────────
 
-function emailWrapper(content: string, accentColor = BRAND.blue): string {
+function emailWrapper(content: string, accentColor: string = BRAND.blue): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
