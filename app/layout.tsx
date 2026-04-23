@@ -13,7 +13,7 @@ import './stability-fixes.css'
 
 // Planet Motors - OMVIC Licensed Dealer - Production Ready
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ["latin"],
   variable: '--font-inter',
   display: 'swap',
