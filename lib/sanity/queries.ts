@@ -86,6 +86,7 @@ export const HOMEPAGE_QUERY = `
   *[_type == "homepage"] | order(_updatedAt desc)[0] {
     heroSection { headline, subheadline, primaryCta, secondaryCta, "backgroundImage": backgroundImage.asset->url, altText, trustBadges },
     featuredVehicleStockNumbers,
+    "featuredVehicleIds": featuredVehicles[].vehicleId,
     promoBanner { showBanner, headline, bodyText, ctaLabel, ctaUrl, backgroundColor },
     testimonials, faqHighlights
   }
