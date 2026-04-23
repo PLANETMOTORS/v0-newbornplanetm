@@ -1,6 +1,7 @@
 import { defineConfig } from 'sanity'
 import { structureTool } from 'sanity/structure'
 import { visionTool } from '@sanity/vision'
+import { assist } from '@sanity/assist'
 import { schemaTypes } from './studio/schemas'
 import { structure } from './studio/structure'
 
@@ -16,6 +17,7 @@ export default defineConfig({
   plugins: [
     structureTool({ structure }),
     visionTool(),
+    assist(),
   ],
   
   schema: {
