@@ -141,11 +141,11 @@ export async function saveChatMessage(params: {
     // Update message count — RPC might not exist, ignore errors
     try {
       await client.rpc("increment_message_count", { conv_id: params.conversationId })
-    } catch {
-      // Fallback: just ignore — message count is non-critical
+    } catch (err) {
+      console.error("[anna] increment_message_count RPC failed:", err)
     }
-  } catch {
-    // Non-critical — don't fail the chat
+  } catch (err) {
+    console.error("[anna] saveChatMessage failed:", err)
   }
 }
 
@@ -170,8 +170,8 @@ export async function escalateConversation(params: {
         .from("chat_conversations")
         .update({ status: "escalated", escalated_at: new Date().toISOString() })
         .eq("id", params.conversationId)
-    } catch {
-      // Non-critical — continue with lead creation
+    } catch (err) {
+      console.error("[anna] escalateConversation status update failed:", err)
     }
   }
 

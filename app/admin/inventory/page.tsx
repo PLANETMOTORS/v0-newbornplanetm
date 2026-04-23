@@ -353,8 +353,8 @@ export default function AdminInventoryPage() {
         setDeleteConfirm(null)
         fetchVehicles()
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error("[inventory] Delete vehicle failed:", err)
     } finally {
       setDeleting(false)
     }

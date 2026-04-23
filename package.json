@@ -17,7 +17,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "db:types": "pnpm supabase gen types typescript --project-id $(grep NEXT_PUBLIC_SUPABASE_URL .env.local | sed 's|.*//||;s|\\..*||') > types/supabase.ts"
+    "db:types": "pnpm supabase gen types typescript --project-id $(grep NEXT_PUBLIC_SUPABASE_URL .env.local | sed 's|.*//||;s|\\..*||') > types/supabase.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@ai-sdk/gateway": "^3.0.87",
