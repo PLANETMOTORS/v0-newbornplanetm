@@ -1,123 +1,241 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
+/**
+ * components/search-autocomplete.tsx
+ *
+ * Real-time typo-tolerant search autocomplete powered by Typesense.
+ *
+ * Features:
+ *  - Calls /api/search/suggestions (→ getSmartSuggestions) for live suggestions
+ *  - Falls back to /api/search for full vehicle results when no suggestions match
+ *  - Keyboard navigation: ↑ ↓ Enter Escape
+ *  - 300 ms debounce + AbortController to cancel stale requests
+ *  - Loading spinner while fetching
+ *  - Popular / Recent searches shown when input is empty
+ *  - Field-type badge (make / model / trim) on each suggestion
+ */
+
+import { useState, useRef, useEffect, useCallback, useId } from "react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Search, TrendingUp, Clock, Car } from "lucide-react"
+import { Search, TrendingUp, Clock, Car, Loader2, Tag, Layers } from "lucide-react"
 import Link from "next/link"
+import type { SmartSuggestion } from "@/lib/typesense/search"
 
-interface SearchResult {
-  id: string
-  type: "vehicle" | "make" | "model" | "category"
-  title: string
-  subtitle?: string
-  url: string
-}
+// ── Static data ────────────────────────────────────────────────────────────
 
-const popularSearches = [
+const POPULAR_SEARCHES = [
   "Tesla Model 3",
   "BMW X5",
   "Mercedes GLE",
   "Toyota RAV4",
-  "Honda CR-V"
+  "Honda CR-V",
 ]
 
-const recentSearches = [
-  "Electric SUV",
-  "Under $40,000"
-]
+const RECENT_SEARCHES_KEY = "pm_recent_searches"
+const MAX_RECENT = 5
 
-// Sample search results - in production this would come from an API
-const sampleResults: SearchResult[] = [
-  { id: "1", type: "vehicle", title: "2024 Tesla Model 3 Long Range", subtitle: "$52,990 • 12,500 km", url: "/vehicles/1" },
-  { id: "2", type: "vehicle", title: "2023 BMW X5 xDrive40i", subtitle: "$72,995 • 15,200 km", url: "/vehicles/2" },
-  { id: "3", type: "make", title: "Tesla", subtitle: "12 vehicles available", url: "/vehicles?make=tesla" },
-  { id: "4", type: "category", title: "Electric Vehicles", subtitle: "28 vehicles available", url: "/vehicles?fuel=electric" },
-  { id: "5", type: "model", title: "Model 3", subtitle: "Tesla", url: "/vehicles?make=tesla&model=model-3" },
-]
+function loadRecentSearches(): string[] {
+  if (typeof window === "undefined") return []
+  try {
+    return JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY) ?? "[]")
+  } catch {
+    return []
+  }
+}
+
+function saveRecentSearch(query: string) {
+  if (typeof window === "undefined") return
+  try {
+    const existing = loadRecentSearches().filter((s) => s !== query)
+    const updated = [query, ...existing].slice(0, MAX_RECENT)
+    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated))
+  } catch {
+    // ignore
+  }
+}
+
+// ── Field icon helper ──────────────────────────────────────────────────────
+
+function FieldIcon({ field }: { field: SmartSuggestion["field"] }) {
+  switch (field) {
+    case "make":
+      return <Car className="h-4 w-4 text-muted-foreground" />
+    case "make_model":
+      return <Layers className="h-4 w-4 text-muted-foreground" />
+    case "trim":
+      return <Tag className="h-4 w-4 text-muted-foreground" />
+    default:
+      return <Search className="h-4 w-4 text-muted-foreground" />
+  }
+}
+
+// ── Component ──────────────────────────────────────────────────────────────
 
 export function SearchAutocomplete() {
+  const listboxId = useId()
   const [isOpen, setIsOpen] = useState(false)
   const [query, setQuery] = useState("")
-  const [results, setResults] = useState<SearchResult[]>([])
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [suggestions, setSuggestions] = useState<SmartSuggestion[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(-1)
+  const [recentSearches, setRecentSearches] = useState<string[]>([])
 
+  const containerRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
+
+  // Load recent searches from localStorage on mount
+  useEffect(() => {
+    setRecentSearches(loadRecentSearches())
+  }, [])
+
+  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false)
+        setActiveIndex(-1)
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  // Debounced search — waits 300ms after last keystroke before firing API call
-  const debounceRef = useRef<NodeJS.Timeout | null>(null)
-  const abortRef = useRef<AbortController | null>(null)
-
-  const debouncedSearch = useCallback((q: string) => {
-    // Clear previous debounce timer
+  // Fetch suggestions from /api/search/suggestions (Typesense Smart Suggestions)
+  const fetchSuggestions = useCallback((q: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    // Abort previous in-flight request
     if (abortRef.current) abortRef.current.abort()
 
-    if (q.length < 2) {
-      setResults([])
+    if (q.trim().length < 2) {
+      setSuggestions([])
+      setIsLoading(false)
       return
     }
 
-    debounceRef.current = setTimeout(() => {
+    setIsLoading(true)
+
+    debounceRef.current = setTimeout(async () => {
       const controller = new AbortController()
       abortRef.current = controller
-      fetch(`/api/search?q=${encodeURIComponent(q)}`, { signal: controller.signal })
-        .then(res => res.ok ? res.json() : null)
-        .then(data => {
-          if (data?.results?.length) {
-            setResults(data.results as SearchResult[])
-          } else {
-            const filtered = sampleResults.filter(r =>
-              r.title.toLowerCase().includes(q.toLowerCase())
-            )
-            setResults(filtered)
-          }
-        })
-        .catch(() => {
-          if (!controller.signal.aborted) {
-            const filtered = sampleResults.filter(r =>
-              r.title.toLowerCase().includes(q.toLowerCase())
-            )
-            setResults(filtered)
-          }
-        })
+
+      try {
+        const res = await fetch(
+          `/api/search/suggestions?q=${encodeURIComponent(q.trim())}`,
+          { signal: controller.signal }
+        )
+        if (!res.ok) throw new Error("suggestions fetch failed")
+        const data = (await res.json()) as { suggestions: SmartSuggestion[] }
+        setSuggestions(data.suggestions ?? [])
+      } catch (err) {
+        if (!(err instanceof DOMException && err.name === "AbortError")) {
+          setSuggestions([])
+        }
+      } finally {
+        if (!controller.signal.aborted) setIsLoading(false)
+      }
     }, 300)
   }, [])
 
   useEffect(() => {
-    debouncedSearch(query)
+    fetchSuggestions(query)
+    setActiveIndex(-1)
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
       if (abortRef.current) abortRef.current.abort()
     }
-  }, [query, debouncedSearch])
+  }, [query, fetchSuggestions])
+
+  // Navigate to inventory with the selected query
+  const handleSelect = useCallback(
+    (selectedQuery: string) => {
+      setQuery(selectedQuery)
+      setIsOpen(false)
+      setActiveIndex(-1)
+      saveRecentSearch(selectedQuery)
+      setRecentSearches(loadRecentSearches())
+      // Navigate to inventory search results
+      window.location.href = `/inventory?q=${encodeURIComponent(selectedQuery)}`
+    },
+    []
+  )
+
+  // Keyboard navigation
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (!isOpen) return
+
+      const itemCount = suggestions.length
+
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault()
+          setActiveIndex((prev) => (prev < itemCount - 1 ? prev + 1 : 0))
+          break
+        case "ArrowUp":
+          e.preventDefault()
+          setActiveIndex((prev) => (prev > 0 ? prev - 1 : itemCount - 1))
+          break
+        case "Enter":
+          e.preventDefault()
+          if (activeIndex >= 0 && suggestions[activeIndex]) {
+            handleSelect(suggestions[activeIndex].query)
+          } else if (query.trim().length >= 2) {
+            handleSelect(query.trim())
+          }
+          break
+        case "Escape":
+          setIsOpen(false)
+          setActiveIndex(-1)
+          inputRef.current?.blur()
+          break
+      }
+    },
+    [isOpen, suggestions, activeIndex, query, handleSelect]
+  )
+
+  const showDropdown = isOpen
+  const showEmpty = isOpen && query.trim().length >= 2 && !isLoading && suggestions.length === 0
 
   return (
     <div ref={containerRef} className="relative w-full max-w-xl">
+      {/* Input */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+        {isLoading && (
+          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+        )}
         <Input
+          ref={inputRef}
           data-testid="typesense-search-input"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={showDropdown}
+          aria-controls={listboxId}
+          aria-activedescendant={activeIndex >= 0 ? `suggestion-${activeIndex}` : undefined}
           placeholder="Search by make, model, or keyword..."
-          className="pl-10 pr-4"
+          className="pl-10 pr-10"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsOpen(true)}
+          onKeyDown={handleKeyDown}
+          autoComplete="off"
+          spellCheck={false}
         />
       </div>
 
-      {isOpen && (
-        <div data-testid="search-results-dropdown" aria-live="polite" className="absolute top-full left-0 right-0 mt-2 bg-background border rounded-lg shadow-lg z-50 overflow-hidden">
-          {query.length < 2 ? (
+      {/* Dropdown */}
+      {showDropdown && (
+        <div
+          id={listboxId}
+          role="listbox"
+          data-testid="search-results-dropdown"
+          aria-label="Search suggestions"
+          className="absolute top-full left-0 right-0 mt-2 bg-background border rounded-lg shadow-lg z-50 overflow-hidden"
+        >
+          {/* Empty state — show popular / recent */}
+          {query.trim().length < 2 ? (
             <div className="p-4">
               {/* Recent Searches */}
               {recentSearches.length > 0 && (
@@ -128,9 +246,9 @@ export function SearchAutocomplete() {
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {recentSearches.map((search) => (
-                      <Badge 
-                        key={search} 
-                        variant="secondary" 
+                      <Badge
+                        key={search}
+                        variant="secondary"
                         className="cursor-pointer hover:bg-secondary/80"
                         onClick={() => setQuery(search)}
                       >
@@ -148,7 +266,7 @@ export function SearchAutocomplete() {
                   Popular Searches
                 </div>
                 <div className="space-y-1">
-                  {popularSearches.map((search) => (
+                  {POPULAR_SEARCHES.map((search) => (
                     <button
                       key={search}
                       className="w-full text-left px-3 py-2 text-sm hover:bg-muted rounded-md flex items-center gap-2"
@@ -161,45 +279,79 @@ export function SearchAutocomplete() {
                 </div>
               </div>
             </div>
-          ) : results.length > 0 ? (
-            <div className="py-2">
-              {results.map((result) => (
-                <Link
-                  key={result.id}
-                  href={result.url}
+          ) : isLoading ? (
+            /* Loading skeleton */
+            <div className="py-3 px-4 space-y-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-3 animate-pulse">
+                  <div className="w-8 h-8 rounded bg-muted" />
+                  <div className="flex-1 space-y-1">
+                    <div className="h-3 bg-muted rounded w-3/4" />
+                    <div className="h-2 bg-muted rounded w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : suggestions.length > 0 ? (
+            /* Smart Suggestions from Typesense */
+            <div className="py-2" aria-live="polite">
+              <div className="px-4 py-1 text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                Suggestions
+              </div>
+              {suggestions.map((suggestion, index) => (
+                <button
+                  key={`${suggestion.field}-${suggestion.query}`}
+                  id={`suggestion-${index}`}
+                  role="option"
+                  aria-selected={activeIndex === index}
                   data-testid="search-result-item"
-                  className="flex items-center gap-3 px-4 py-2 hover:bg-muted"
-                  onClick={() => setIsOpen(false)}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-muted transition-colors ${
+                    activeIndex === index ? "bg-muted" : ""
+                  }`}
+                  onClick={() => handleSelect(suggestion.query)}
+                  onMouseEnter={() => setActiveIndex(index)}
                 >
-                  <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
-                    <Car className="h-4 w-4 text-muted-foreground" />
+                  <div className="w-8 h-8 rounded bg-muted/60 flex items-center justify-center flex-shrink-0">
+                    <FieldIcon field={suggestion.field} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">{result.title}</p>
-                    {result.subtitle && (
-                      <p className="text-xs text-muted-foreground">{result.subtitle}</p>
-                    )}
+                    <p className="text-sm font-medium truncate">{suggestion.label}</p>
                   </div>
-                  <Badge variant="outline" className="text-xs capitalize">
-                    {result.type}
+                  <Badge variant="outline" className="text-xs capitalize flex-shrink-0">
+                    {suggestion.field === "make_model" ? "model" : suggestion.field}
                   </Badge>
-                </Link>
+                </button>
               ))}
-              <div className="px-4 py-2 border-t">
+              {/* See all results link */}
+              <div className="px-4 py-2 border-t mt-1">
                 <Link
                   href={`/inventory?q=${encodeURIComponent(query)}`}
                   className="text-sm text-primary hover:underline"
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => {
+                    setIsOpen(false)
+                    saveRecentSearch(query.trim())
+                    setRecentSearches(loadRecentSearches())
+                  }}
                 >
-                  See all results for &quot;{query}&quot;
+                  See all results for &quot;{query}&quot; →
                 </Link>
               </div>
             </div>
-          ) : (
-            <div className="p-4 text-center text-sm text-muted-foreground">
-              No results found for &quot;{query}&quot;
+          ) : showEmpty ? (
+            /* No results */
+            <div className="p-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                No suggestions for &quot;{query}&quot;
+              </p>
+              <Link
+                href={`/inventory?q=${encodeURIComponent(query)}`}
+                className="text-sm text-primary hover:underline mt-1 inline-block"
+                onClick={() => setIsOpen(false)}
+              >
+                Search inventory anyway →
+              </Link>
             </div>
-          )}
+          ) : null}
         </div>
       )}
     </div>
