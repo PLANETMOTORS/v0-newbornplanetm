@@ -274,12 +274,15 @@ Deno.serve(async (req: Request) => {
 
       if (res.ok) {
         // Record notification for dedup
-        await adminClient.from("price_drop_notifications").insert({
+        const { error: dedupError } = await adminClient.from("price_drop_notifications").insert({
           vehicle_id: payload.vehicle_id,
           recipient_email: email,
           old_price: payload.old_price,
           new_price: payload.new_price,
         })
+        if (dedupError) {
+          log.warn("Dedup insert failed", { vehicleId: payload.vehicle_id, error: dedupError.message })
+        }
         sentCount++
         log.info("Email sent", { recipientHash: email.replace(/^(.)(.*)(@.*)$/, "$1***$3") })
       } else {
