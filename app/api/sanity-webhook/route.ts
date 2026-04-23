@@ -2,6 +2,9 @@ import { revalidateTag } from "next/cache"
 import { NextRequest, NextResponse } from "next/server"
 import crypto from "crypto"
 
+import { logger } from '@/lib/logger'
+import { setKey } from '@/lib/redis'
+
 // Verify Sanity webhook signature
 function verifySignature(body: string, signature: string, secret: string): boolean {
   const expectedSignature = crypto
@@ -22,6 +25,9 @@ const TYPE_TO_TAGS: Record<string, string[]> = {
   protectionPlan: ["sanity-protection"],
 }
 
+/** Redis key used by the system-health endpoint to read last trigger info */
+export const SANITY_WEBHOOK_REDIS_KEY = "system:sanity_webhook:last_trigger"
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text()
@@ -29,7 +35,7 @@ export async function POST(request: NextRequest) {
     const secret = process.env.SANITY_WEBHOOK_SECRET
 
     if (!secret) {
-      console.error("[Sanity Webhook] Missing SANITY_WEBHOOK_SECRET")
+      logger.error("[Sanity Webhook] Missing SANITY_WEBHOOK_SECRET")
       return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 })
     }
 
@@ -53,7 +59,21 @@ export async function POST(request: NextRequest) {
       revalidateTag(tag, "max")
     }
 
-    console.info(`[Sanity Webhook] Revalidated tags for ${documentType}:`, tagsToRevalidate)
+    logger.info(`[Sanity Webhook] Revalidated tags for ${documentType}:`, tagsToRevalidate)
+
+    // Persist last-trigger metadata for the system-health endpoint (fire-and-forget)
+    setKey(
+      SANITY_WEBHOOK_REDIS_KEY,
+      {
+        timestamp: new Date().toISOString(),
+        documentType,
+        tagsRevalidated: tagsToRevalidate,
+        status: "ok",
+      },
+      86400 // 24-hour TTL
+    ).catch((err) =>
+      logger.warn("[Sanity Webhook] Failed to persist trigger timestamp:", err)
+    )
 
     return NextResponse.json({
       success: true,
@@ -61,7 +81,7 @@ export async function POST(request: NextRequest) {
       documentType,
     })
   } catch (error) {
-    console.error("[Sanity Webhook] Error:", error)
+    logger.error("[Sanity Webhook] Error:", error)
     return NextResponse.json(
       { error: "Failed to process webhook" },
       { status: 500 }

@@ -3,6 +3,7 @@
 
 import type { Redis } from "@upstash/redis"
 
+import { logger } from '@/lib/logger'
 let redisClient: Redis | null = null
 
 async function getRedis(): Promise<Redis | null> {
@@ -20,7 +21,7 @@ async function getRedis(): Promise<Redis | null> {
     }) as Redis
     return redisClient
   } catch (error) {
-    console.warn("[Redis] Failed to initialize client:", (error as Error).message)
+    logger.warn("[Redis] Failed to initialize client:", (error as Error).message)
     return null
   }
 }
@@ -57,7 +58,7 @@ export async function rateLimit(
       remaining: Math.max(0, limit - current),
     }
   } catch (error) {
-    console.warn("[Redis] Rate limit check failed, allowing request:", (error as Error).message)
+    logger.warn("[Redis] Rate limit check failed, allowing request:", (error as Error).message)
     return { success: true, remaining: limit }
   }
 }
@@ -74,7 +75,7 @@ export async function setSession(
   try {
     await redis.set(`session:${sessionId}`, JSON.stringify(data), { ex: expiresInSeconds })
   } catch (error) {
-    console.warn("[Redis] Failed to set session:", (error as Error).message)
+    logger.warn("[Redis] Failed to set session:", (error as Error).message)
   }
 }
 
@@ -86,7 +87,7 @@ export async function getSession(sessionId: string): Promise<Record<string, unkn
     const data = await redis.get<string>(`session:${sessionId}`)
     return data ? JSON.parse(data) : null
   } catch (error) {
-    console.warn("[Redis] Failed to get session:", (error as Error).message)
+    logger.warn("[Redis] Failed to get session:", (error as Error).message)
     return null
   }
 }
@@ -103,7 +104,7 @@ export async function cacheSearchResults(
   try {
     await redis.set(`search:${queryHash}`, JSON.stringify(results), { ex: ttlSeconds })
   } catch (error) {
-    console.warn("[Redis] Failed to cache search results:", (error as Error).message)
+    logger.warn("[Redis] Failed to cache search results:", (error as Error).message)
   }
 }
 
@@ -114,7 +115,7 @@ export async function deleteCachedSearchResults(queryHash: string): Promise<void
   try {
     await redis.del(`search:${queryHash}`)
   } catch (error) {
-    console.warn("[Redis] Failed to delete cached search results:", (error as Error).message)
+    logger.warn("[Redis] Failed to delete cached search results:", (error as Error).message)
   }
 }
 
@@ -126,7 +127,7 @@ export async function getCachedSearchResults(queryHash: string): Promise<unknown
     const data = await redis.get<string>(`search:${queryHash}`)
     return data ? JSON.parse(data) : null
   } catch (error) {
-    console.warn("[Redis] Failed to get cached search results:", (error as Error).message)
+    logger.warn("[Redis] Failed to get cached search results:", (error as Error).message)
     return null
   }
 }
@@ -143,7 +144,7 @@ export async function lockVehicle(
     // reservations from bypassing the distributed mutex. The DB-level SELECT FOR
     // UPDATE in claim_vehicle_for_reservation is the real guard, but this prevents
     // unnecessary DB contention.
-    console.warn('[Redis] Redis unavailable — denying vehicle lock as a precaution. DB-level lock will still protect against double-booking.')
+    logger.warn('[Redis] Redis unavailable — denying vehicle lock as a precaution. DB-level lock will still protect against double-booking.')
     return false
   }
   
@@ -172,7 +173,7 @@ export async function lockVehicle(
     const result = await redis.set(key, userId, { nx: true, ex: lockDurationSeconds })
     return result === "OK"
   } catch (error) {
-    console.warn("[Redis] Failed to lock vehicle:", (error as Error).message)
+    logger.warn("[Redis] Failed to lock vehicle:", (error as Error).message)
     // Fail closed on error — deny the lock rather than silently allowing concurrent access.
     return false
   }
@@ -201,7 +202,7 @@ export async function unlockVehicle(stockNumber: string, userId: string): Promis
 
     return deleted === 1
   } catch (error) {
-    console.warn("[Redis] Failed to unlock vehicle:", (error as Error).message)
+    logger.warn("[Redis] Failed to unlock vehicle:", (error as Error).message)
     return false
   }
 }
@@ -220,7 +221,7 @@ export async function storeVerificationCode(
     await redis.set(key, code, { ex: ttlSeconds })
     return true
   } catch (error) {
-    console.warn("[Redis] Failed to store verification code:", (error as Error).message)
+    logger.warn("[Redis] Failed to store verification code:", (error as Error).message)
     return false
   }
 }
@@ -232,7 +233,7 @@ export async function getVerificationCode(destination: string): Promise<string |
   try {
     return await redis.get<string>(`verify:${destination}`)
   } catch (error) {
-    console.warn("[Redis] Failed to get verification code:", (error as Error).message)
+    logger.warn("[Redis] Failed to get verification code:", (error as Error).message)
     return null
   }
 }
@@ -244,7 +245,7 @@ export async function deleteVerificationCode(destination: string): Promise<void>
   try {
     await redis.del(`verify:${destination}`)
   } catch (error) {
-    console.warn("[Redis] Failed to delete verification code:", (error as Error).message)
+    logger.warn("[Redis] Failed to delete verification code:", (error as Error).message)
   }
 }
 
@@ -255,7 +256,7 @@ export async function getVehicleLock(stockNumber: string): Promise<string | null
   try {
     return await redis.get<string>(`vehicle_lock:${stockNumber}`)
   } catch (error) {
-    console.warn("[Redis] Failed to get vehicle lock:", (error as Error).message)
+    logger.warn("[Redis] Failed to get vehicle lock:", (error as Error).message)
     return null
   }
 }
@@ -297,7 +298,53 @@ export async function releaseDistributedLock(
 
     return deleted === 1
   } catch (error) {
-    console.warn('[Redis] Failed to release distributed lock:', (error as Error).message)
+    logger.warn('[Redis] Failed to release distributed lock:', (error as Error).message)
     return false
+  }
+}
+
+// ── Generic key/value helpers ──────────────────────────────────────────────
+
+/**
+ * Store an arbitrary JSON-serialisable value under a raw key.
+ * Returns true on success, false if Redis is unavailable or the write fails.
+ */
+export async function setKey(
+  key: string,
+  value: unknown,
+  ttlSeconds?: number
+): Promise<boolean> {
+  const redis = await getRedis()
+  if (!redis) return false
+
+  try {
+    const serialized = JSON.stringify(value)
+    if (ttlSeconds) {
+      await redis.set(key, serialized, { ex: ttlSeconds })
+    } else {
+      await redis.set(key, serialized)
+    }
+    return true
+  } catch (error) {
+    logger.warn("[Redis] Failed to set key:", (error as Error).message)
+    return false
+  }
+}
+
+/**
+ * Retrieve and deserialise a value stored with setKey.
+ * Returns null if Redis is unavailable, the key is missing, or parsing fails.
+ */
+export async function getKey<T = unknown>(key: string): Promise<T | null> {
+  const redis = await getRedis()
+  if (!redis) return null
+
+  try {
+    const raw = await redis.get<string>(key)
+    if (!raw) return null
+    return JSON.parse(raw) as T
+  } catch (error) {
+    logger.warn("[Redis] Failed to get key:", (error as Error).message)
+    return null
   }
 }
