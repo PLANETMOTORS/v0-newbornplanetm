@@ -35,6 +35,7 @@ const VEHICLE_DETAIL_FIELDS = [
   'primary_image_url',
   'image_urls',
   'has_360_spin',
+  'spin_frame_count',
   'video_url',
   'is_certified',
   'is_new_arrival',

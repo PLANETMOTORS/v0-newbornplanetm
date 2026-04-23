@@ -31,8 +31,9 @@ export async function GET(
       .maybeSingle()
 
     if (error) {
+      console.error("Supabase query error:", error)
       return NextResponse.json(
-        { success: false, error: { code: "DB_ERROR", message: error.message } },
+        { success: false, error: { code: "DB_ERROR", message: "Database query failed" } },
         { status: 500 }
       )
     }
@@ -87,9 +88,9 @@ export async function GET(
       }
     )
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error"
+    console.error("Unexpected error in spin-manifest route:", error)
     return NextResponse.json(
-      { success: false, error: { code: "INTERNAL_ERROR", message } },
+      { success: false, error: { code: "INTERNAL_ERROR", message: "An unexpected error occurred" } },
       { status: 500 }
     )
   }

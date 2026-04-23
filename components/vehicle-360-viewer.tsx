@@ -104,11 +104,13 @@ export function Vehicle360Viewer({
         const blob = new Blob([body], { type: 'application/json' })
         navigator.sendBeacon(endpoint, blob)
       } else {
-        void fetch(endpoint, {
+        fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body,
           keepalive: true,
+        }).catch(() => {
+          // Telemetry is best-effort; swallow network errors silently
         })
       }
       setTelemetrySent(true)
