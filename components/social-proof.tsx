@@ -48,7 +48,7 @@ export function SocialProof({ vehicleId, className = "" }: SocialProofProps) {
     fetch(`/api/v1/vehicles/${vehicleId}/social-proof`, {
       method: "POST",
       keepalive: true,
-    }).catch(() => {})
+    }).catch((err) => console.warn("[silent-catch]", err))
   }, [vehicleId])
 
   // Don't render anything until data arrives — prevents CLS

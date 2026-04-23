@@ -716,7 +716,7 @@ if (errors.length > 0) {
       }
       if (user) {
         const deleteParam = vehicleId ? `vehicleId=${vehicleId}` : "vehicleId="
-        fetch(`/api/v1/financing/drafts?${deleteParam}`, { method: "DELETE" }).catch(() => {})
+        fetch(`/api/v1/financing/drafts?${deleteParam}`, { method: "DELETE" }).catch((err) => console.warn("[silent-catch]", err))
       }
       setIsSubmitted(true)
   } catch (error) {

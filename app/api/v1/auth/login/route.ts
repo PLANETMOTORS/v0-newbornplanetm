@@ -2,8 +2,6 @@ import { NextRequest } from "next/server"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
 
-const SUPABASE_URL = "https://ldervbcvkoawwknsemuz.supabase.co"
-
 // POST /api/v1/auth/login - Customer login
 export async function POST(request: NextRequest) {
   try {
@@ -14,12 +12,13 @@ export async function POST(request: NextRequest) {
       return apiError(ErrorCode.VALIDATION_ERROR, "Email and password are required", 400)
     }
 
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    if (!supabaseAnonKey) {
+    if (!supabaseUrl || !supabaseAnonKey) {
       return apiError(ErrorCode.CONFIG_ERROR, "Server configuration error")
     }
 
-    const supabase = createSupabaseClient(SUPABASE_URL, supabaseAnonKey)
+    const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey)
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error || !data.session) {

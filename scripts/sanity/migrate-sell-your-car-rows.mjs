@@ -1,6 +1,6 @@
 import cli from 'sanity/cli'
 
-const client = cli.getCliClient({ apiVersion: '2024-01-01' })
+const client = cli.getCliClient({ apiVersion: '2025-04-01' })
 const DOC_ID = 'sellYourCarPage'
 
 const doc = await client.getDocument(DOC_ID)
