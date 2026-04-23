@@ -1,6 +1,0 @@
-- generic [active] [ref=e1]:
-  - generic [ref=e3]:
-    - status "Loading" [ref=e4]
-    - paragraph [ref=e6]: Loading...
-  - region "Notifications alt+T"
-  - alert [ref=e7]

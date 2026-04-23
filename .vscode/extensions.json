@@ -1,9 +1,0 @@
-{
-  "recommendations": [
-    "bradlc.vscode-tailwindcss",
-    "coderabbit.coderabbit-vscode",
-    "dbaeumer.vscode-eslint",
-    "github.vscode-github-actions",
-    "github.vscode-pull-request-github"
-  ]
-}
