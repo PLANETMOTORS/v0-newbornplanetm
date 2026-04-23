@@ -13,6 +13,7 @@ export default [
       'out/**',
       'dist/**',
       'coverage/**',
+      'supabase/functions/**',
     ],
   },
 

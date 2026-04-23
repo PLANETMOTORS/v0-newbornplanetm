@@ -8,6 +8,7 @@ import { Slider } from "@/components/ui/slider"
 import { ArrowRight, Calculator, Loader2, CheckCircle, Mail, RefreshCw, Shield } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { createClient } from "@/lib/supabase/client"
+import { invokeEdgeFunction } from "@/lib/supabase/edge-functions"
 
 interface LenderOffer {
   lenderId: string
@@ -71,17 +72,15 @@ export function FinanceApplicationForm() {
     setStage("verifying")
     setCreditPullError(null)
     try {
-      const response = await fetch("/api/v1/financing", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          annualIncome: formDataRef.current.annualIncome,
-          requestedAmount: formDataRef.current.requestedAmount,
-          requestedTerm: formDataRef.current.requestedTerm,
-        }),
-      })
+      // Get the current session token for authenticated Edge Function call
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
 
-      const data = await response.json()
+      const { data } = await invokeEdgeFunction<{ success: boolean; data: { prequalification: PrequalificationResult }; error?: string }>("finance-prequalify", {
+        annualIncome: formDataRef.current.annualIncome,
+        requestedAmount: formDataRef.current.requestedAmount,
+        requestedTerm: formDataRef.current.requestedTerm,
+      }, { accessToken: session?.access_token })
 
       if (data.success) {
         setResult(data.data.prequalification)
@@ -191,12 +190,8 @@ export function FinanceApplicationForm() {
     // If already authenticated, skip magic link — go straight to credit pull
     if (user) {
       setIsLoading(true)
-      // Still capture the lead for CRM tracking
-      fetch("/api/v1/financing/capture-lead", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      }).catch(() => {})
+      // Still capture the lead for CRM tracking via Edge Function
+      invokeEdgeFunction("capture-lead", formData).catch(() => {})
 
       await runCreditPull()
       setIsLoading(false)
@@ -209,14 +204,8 @@ export function FinanceApplicationForm() {
     setMagicLinkError(null)
 
     try {
-      // Step 1: Capture the lead (DB + AutoRaptor)
-      const captureResponse = await fetch("/api/v1/financing/capture-lead", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      })
-
-      const captureData = await captureResponse.json()
+      // Step 1: Capture the lead (DB + AutoRaptor) via Edge Function
+      const { data: captureData } = await invokeEdgeFunction<{ success: boolean; data: { leadId: string | null } }>("capture-lead", formData)
       if (captureData.data?.leadId) {
         setLeadId(captureData.data.leadId)
       }
