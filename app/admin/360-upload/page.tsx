@@ -59,8 +59,8 @@ export default function Admin360UploadPage() {
         const data = await res.json()
         setVehicles(data.vehicles ?? [])
       }
-    } catch {
-      // Silently fail — vehicles list is supplementary
+    } catch (err) {
+      console.error("[360-upload] Failed to load vehicles list:", err)
     } finally {
       setLoadingVehicles(false)
     }

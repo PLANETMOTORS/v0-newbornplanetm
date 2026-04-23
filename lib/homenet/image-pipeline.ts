@@ -202,7 +202,7 @@ async function processVehicleImages(
           primaryBlobUrl = blob.url
         }
         // Create thumbnail marker (non-blocking)
-        uploadThumbnailMarker(stock_number, idx, isSpin, blob.url).catch(() => {})
+        uploadThumbnailMarker(stock_number, idx, isSpin, blob.url).catch((err) => console.warn("[silent-catch]", err))
       }
     } catch (error) {
       result.failed++

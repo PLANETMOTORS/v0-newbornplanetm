@@ -17,7 +17,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "db:types": "pnpm supabase gen types typescript --project-id $(grep NEXT_PUBLIC_SUPABASE_URL .env.local | sed 's|.*//||;s|\\..*||') > types/supabase.ts"
+    "db:types": "pnpm supabase gen types typescript --project-id $(grep NEXT_PUBLIC_SUPABASE_URL .env.local | sed 's|.*//||;s|\\..*||') > types/supabase.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@ai-sdk/gateway": "^3.0.87",
@@ -109,8 +110,8 @@
     "@typescript-eslint/eslint-plugin": "^8.58.2",
     "@typescript-eslint/parser": "^8.58.2",
     "@vitejs/plugin-react": "^6.0.1",
+    "beasties": "^0.4.2",
     "concurrently": "^9.2.1",
-    "critters": "^0.0.25",
     "esbuild": "^0.28.0",
     "eslint": "^10.1.0",
     "eslint-config-next": "^16.2.3",

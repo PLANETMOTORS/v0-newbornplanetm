@@ -1988,7 +1988,7 @@ function TradeInContent() {
                             })
                           })
                         }
-                      } catch { /* save failed silently */ }
+                      } catch (err) { console.error("[trade-in] Save trade-in failed:", err) }
                       try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
                       setShowApplyModal(false)
                       // Build inventory URL with trade-in info + category filter

@@ -191,7 +191,7 @@ export function FinanceApplicationForm() {
     if (user) {
       setIsLoading(true)
       // Still capture the lead for CRM tracking via Edge Function
-      invokeEdgeFunction("capture-lead", formData).catch(() => {})
+      invokeEdgeFunction("capture-lead", formData).catch((err) => console.warn("[silent-catch]", err))
 
       await runCreditPull()
       setIsLoading(false)

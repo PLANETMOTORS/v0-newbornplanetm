@@ -25,8 +25,12 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"],
-      "@/lib/*": ["./lib/*"]
+      "@/*": [
+        "./*"
+      ],
+      "@/lib/*": [
+        "./lib/*"
+      ]
     }
   },
   "include": [
@@ -42,6 +46,7 @@
     "app/sw.ts",
     "scripts",
     "src",
-    "supabase/functions"
+    "supabase/functions",
+    ".next/dev/types"
   ]
 }

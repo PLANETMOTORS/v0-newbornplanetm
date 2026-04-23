@@ -205,7 +205,7 @@ export default function AdminInventoryPage() {
     fetch("/api/v1/admin/vehicles/homenet-sync")
       .then(r => r.json())
       .then(setSyncStatus)
-      .catch(() => {})
+      .catch((err) => console.warn("[silent-catch]", err))
   }, [])
 
   // ─── VIN Decode ───────────────────────────────────────────────────────
@@ -353,8 +353,8 @@ export default function AdminInventoryPage() {
         setDeleteConfirm(null)
         fetchVehicles()
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error("[inventory] Delete vehicle failed:", err)
     } finally {
       setDeleting(false)
     }
