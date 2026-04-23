@@ -266,6 +266,36 @@ export default async function SellYourCarPage() {
             <h2 className="text-2xl font-bold text-center mb-8">Related Services</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-3xl mx-auto">
               <Link
+                href="/sell-your-tesla"
+                className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-colors hover:bg-muted/50"
+              >
+                <span className="text-2xl">⚡</span>
+                <div>
+                  <p className="font-bold text-sm">Sell Your Tesla</p>
+                  <p className="text-xs text-muted-foreground">Top dollar for Tesla vehicles</p>
+                </div>
+              </Link>
+              <Link
+                href="/we-buy-cars"
+                className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-colors hover:bg-muted/50"
+              >
+                <span className="text-2xl">🏷️</span>
+                <div>
+                  <p className="font-bold text-sm">We Buy Cars</p>
+                  <p className="text-xs text-muted-foreground">Instant cash offers, any make or model</p>
+                </div>
+              </Link>
+              <Link
+                href="/free-pickup"
+                className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-colors hover:bg-muted/50"
+              >
+                <span className="text-2xl">🚚</span>
+                <div>
+                  <p className="font-bold text-sm">Free Pickup</p>
+                  <p className="text-xs text-muted-foreground">We come to you — anywhere in Canada</p>
+                </div>
+              </Link>
+              <Link
                 href="/trade-in"
                 className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-colors hover:bg-muted/50"
               >
@@ -276,16 +306,6 @@ export default async function SellYourCarPage() {
                 </div>
               </Link>
               <Link
-                href="/financing"
-                className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-colors hover:bg-muted/50"
-              >
-                <span className="text-2xl">💰</span>
-                <div>
-                  <p className="font-bold text-sm">Financing Options</p>
-                  <p className="text-xs text-muted-foreground">Competitive rates from 20+ lenders</p>
-                </div>
-              </Link>
-              <Link
                 href="/inventory"
                 className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-colors hover:bg-muted/50"
               >
@@ -293,6 +313,16 @@ export default async function SellYourCarPage() {
                 <div>
                   <p className="font-bold text-sm">Browse Inventory</p>
                   <p className="text-xs text-muted-foreground">Shop our certified pre-owned vehicles</p>
+                </div>
+              </Link>
+              <Link
+                href="/financing"
+                className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-colors hover:bg-muted/50"
+              >
+                <span className="text-2xl">💰</span>
+                <div>
+                  <p className="font-bold text-sm">Financing Options</p>
+                  <p className="text-xs text-muted-foreground">Competitive rates from 20+ lenders</p>
                 </div>
               </Link>
             </div>

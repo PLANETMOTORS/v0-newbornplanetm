@@ -208,6 +208,9 @@ export default function SellYourTeslaPage() {
               <Link href="/we-buy-cars" className="rounded-lg border bg-background px-6 py-3 text-sm font-semibold hover:bg-muted transition-colors">
                 We Buy Cars
               </Link>
+              <Link href="/inventory" className="rounded-lg border bg-background px-6 py-3 text-sm font-semibold hover:bg-muted transition-colors">
+                Browse Inventory
+              </Link>
             </div>
           </div>
         </section>
