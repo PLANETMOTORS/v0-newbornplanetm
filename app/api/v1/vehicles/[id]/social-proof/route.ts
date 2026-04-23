@@ -75,6 +75,7 @@ export async function GET(
         .from("reservations")
         .select("id", { count: "exact", head: true })
         .eq("vehicle_id", vehicleId)
+        .in("status", ["pending", "confirmed"])
         .gte("created_at", sevenDaysAgo)
     ),
     Promise.resolve(
