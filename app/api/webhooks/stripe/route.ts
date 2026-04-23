@@ -1,22 +1,18 @@
 /**
  * app/api/webhooks/stripe/route.ts
  *
- * Stripe Webhook Handler — Idempotent Deposit Processing
- *
- * Handles Stripe events for the Planet Motors reservation/deposit flow.
- * Uses Stripe's idempotency guarantees + Supabase upsert to ensure
- * each payment is processed exactly once, even on retries.
+ * Stripe Webhook Handler — Idempotent Deposit & Reservation Processing
  *
  * Events handled:
- *  - payment_intent.succeeded     → mark deposit as paid, lock vehicle
- *  - payment_intent.payment_failed → mark deposit as failed
- *  - checkout.session.completed    → fulfil reservation after checkout
- *  - charge.refunded               → process deposit refund
+ *  - checkout.session.completed           → confirm reservation/order, lock vehicle
+ *  - checkout.session.expired             → expire reservation, release vehicle
+ *  - checkout.session.async_payment_failed → fail reservation, release vehicle
+ *  - payment_intent.succeeded             → confirm deposit, hold vehicle
+ *  - payment_intent.payment_failed        → fail deposit, release vehicle
  *
  * Security:
  *  - Stripe-Signature header verified with STRIPE_WEBHOOK_SECRET
- *  - Raw body preserved for signature verification (no JSON.parse before verify)
- *  - All DB writes use upsert with stripe_payment_intent_id as idempotency key
+ *  - Raw body preserved for signature verification
  *
  * Environment variables:
  *  STRIPE_SECRET_KEY        — Stripe secret key (sk_live_... or sk_test_...)
@@ -25,79 +21,141 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
-import { createAdminClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { getStripe } from "@/lib/stripe"
 import { logger } from "@/lib/logger"
 
-// ── Stripe client ──────────────────────────────────────────────────────────
+// ── Type alias ─────────────────────────────────────────────────────────────
 
-function getStripe(): Stripe {
-  const key = process.env.STRIPE_SECRET_KEY
-  if (!key) throw new Error("STRIPE_SECRET_KEY is not set")
-  return new Stripe(key, { apiVersion: "2025-08-27.basil" })
-}
+type SupabaseAdminClient = ReturnType<typeof createAdminClient>
 
-// ── Idempotency guard ──────────────────────────────────────────────────────
+// ── Exported handlers (testable with injected supabase) ────────────────────
 
 /**
- * Check if this Stripe event has already been processed.
- * Uses the stripe_event_id column in the deposits table as the idempotency key.
+ * checkout.session.completed
+ * - reservation type → update reservations table + transition vehicle to 'reserved'
+ * - purchase type    → update orders table + transition vehicle to 'pending'
  */
-async function isEventAlreadyProcessed(stripeEventId: string): Promise<boolean> {
-  try {
-    const supabase = createAdminClient()
-    const { data } = await supabase
-      .from("deposits")
-      .select("id")
-      .eq("stripe_event_id", stripeEventId)
-      .maybeSingle()
-    return !!data
-  } catch {
-    return false
+export async function handleCheckoutSessionCompleted(
+  supabase: SupabaseAdminClient,
+  session: Stripe.Checkout.Session
+): Promise<void> {
+  const { reservationId, vehicleId, type } = session.metadata ?? {}
+
+  logger.info("[Stripe] checkout.session.completed", {
+    sessionId: session.id,
+    paymentStatus: session.payment_status,
+    reservationId,
+    vehicleId,
+    type,
+  })
+
+  const isReservation = type === "vehicle-reservation" || (type !== "purchase" && !!reservationId)
+
+  if (isReservation && reservationId) {
+    await supabase
+      .from("reservations")
+      .update({
+        status: session.payment_status === "paid" ? "confirmed" : "pending_payment",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", reservationId)
+  } else if (vehicleId) {
+    await supabase
+      .from("orders")
+      .update({
+        status: "confirmed",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("vehicle_id", vehicleId)
+  }
+
+  if (vehicleId) {
+    const toStatus = isReservation ? "reserved" : "pending"
+    await supabase.rpc("transition_vehicle_status", {
+      p_vehicle_id: vehicleId,
+      p_to_status: toStatus,
+    })
   }
 }
 
-// ── Event handlers ─────────────────────────────────────────────────────────
-
-async function handlePaymentIntentSucceeded(
-  paymentIntent: Stripe.PaymentIntent,
-  eventId: string
+/**
+ * checkout.session.expired
+ * - Expire reservation, release vehicle back to available
+ */
+export async function handleCheckoutSessionExpired(
+  supabase: SupabaseAdminClient,
+  session: Stripe.Checkout.Session
 ): Promise<void> {
-  const supabase = createAdminClient()
-  const reservationId = paymentIntent.metadata?.reservation_id
-  const vehicleId = paymentIntent.metadata?.vehicle_id
+  const { reservationId, vehicleId } = session.metadata ?? {}
+
+  logger.info("[Stripe] checkout.session.expired", { sessionId: session.id, reservationId, vehicleId })
+
+  if (reservationId) {
+    await supabase
+      .from("reservations")
+      .update({ status: "expired", updated_at: new Date().toISOString() })
+      .eq("id", reservationId)
+  }
+
+  if (vehicleId) {
+    await supabase.rpc("transition_vehicle_status", {
+      p_vehicle_id: vehicleId,
+      p_to_status: "available",
+    })
+  }
+}
+
+/**
+ * checkout.session.async_payment_failed
+ * - Fail reservation, release vehicle back to available
+ */
+export async function handleCheckoutSessionAsyncPaymentFailed(
+  supabase: SupabaseAdminClient,
+  session: Stripe.Checkout.Session
+): Promise<void> {
+  const { reservationId, vehicleId } = session.metadata ?? {}
+
+  logger.warn("[Stripe] checkout.session.async_payment_failed", { sessionId: session.id, reservationId, vehicleId })
+
+  if (reservationId) {
+    await supabase
+      .from("reservations")
+      .update({ status: "payment_failed", updated_at: new Date().toISOString() })
+      .eq("id", reservationId)
+  }
+
+  if (vehicleId) {
+    await supabase.rpc("transition_vehicle_status", {
+      p_vehicle_id: vehicleId,
+      p_to_status: "available",
+    })
+  }
+}
+
+/**
+ * payment_intent.succeeded
+ * - reservation type → update reservations + hold vehicle as 'reserved'
+ * - purchase type    → update orders + transition vehicle to 'pending'
+ */
+export async function handlePaymentIntentSucceeded(
+  supabase: SupabaseAdminClient,
+  paymentIntent: Stripe.PaymentIntent
+): Promise<void> {
+  const { reservationId, vehicleId, type } = paymentIntent.metadata ?? {}
 
   logger.info("[Stripe] payment_intent.succeeded", {
     paymentIntentId: paymentIntent.id,
     amount: paymentIntent.amount,
     reservationId,
     vehicleId,
+    type,
   })
 
-  // Upsert deposit record — idempotent via stripe_payment_intent_id
-  const { error: depositError } = await supabase
-    .from("deposits")
-    .upsert(
-      {
-        stripe_payment_intent_id: paymentIntent.id,
-        stripe_event_id: eventId,
-        amount_cents: paymentIntent.amount,
-        currency: paymentIntent.currency.toUpperCase(),
-        state: "paid",
-        paid_at: new Date().toISOString(),
-        reservation_id: reservationId ?? null,
-        vehicle_id: vehicleId ?? null,
-      },
-      { onConflict: "stripe_payment_intent_id" }
-    )
+  const isReservation = type !== "purchase" && (!!reservationId || type === "vehicle-reservation")
 
-  if (depositError) {
-    logger.error("[Stripe] Failed to upsert deposit:", depositError)
-    throw depositError
-  }
-
-  // Update reservation status if linked
-  if (reservationId) {
-    const { error: resError } = await supabase
+  if (isReservation && reservationId) {
+    await supabase
       .from("reservations")
       .update({
         deposit_status: "paid",
@@ -105,52 +163,41 @@ async function handlePaymentIntentSucceeded(
         updated_at: new Date().toISOString(),
       })
       .eq("id", reservationId)
-
-    if (resError) {
-      logger.warn("[Stripe] Failed to update reservation deposit_status:", resError)
-    }
+  } else if (vehicleId) {
+    await supabase
+      .from("orders")
+      .update({
+        status: "payment_received",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("vehicle_id", vehicleId)
   }
 
-  // Lock vehicle as reserved if linked
   if (vehicleId) {
-    const { error: vehicleError } = await supabase
-      .from("vehicles")
-      .update({ status: "reserved", updated_at: new Date().toISOString() })
-      .eq("id", vehicleId)
-      .eq("status", "available") // Only lock if still available (prevents race condition)
-
-    if (vehicleError) {
-      logger.warn("[Stripe] Failed to lock vehicle as reserved:", vehicleError)
-    }
+    const toStatus = isReservation ? "reserved" : "pending"
+    await supabase.rpc("transition_vehicle_status", {
+      p_vehicle_id: vehicleId,
+      p_to_status: toStatus,
+    })
   }
 }
 
-async function handlePaymentIntentFailed(
-  paymentIntent: Stripe.PaymentIntent,
-  eventId: string
+/**
+ * payment_intent.payment_failed
+ * - Mark deposit as failed, release vehicle back to available
+ */
+export async function handlePaymentIntentFailed(
+  supabase: SupabaseAdminClient,
+  paymentIntent: Stripe.PaymentIntent
 ): Promise<void> {
-  const supabase = createAdminClient()
-  const reservationId = paymentIntent.metadata?.reservation_id
+  const { reservationId, vehicleId } = paymentIntent.metadata ?? {}
 
   logger.warn("[Stripe] payment_intent.payment_failed", {
     paymentIntentId: paymentIntent.id,
     lastError: paymentIntent.last_payment_error?.message,
     reservationId,
+    vehicleId,
   })
-
-  await supabase
-    .from("deposits")
-    .upsert(
-      {
-        stripe_payment_intent_id: paymentIntent.id,
-        stripe_event_id: eventId,
-        amount_cents: paymentIntent.amount,
-        currency: paymentIntent.currency.toUpperCase(),
-        state: "failed",
-        reservation_id: reservationId ?? null,
-      },
-      { onConflict: "stripe_payment_intent_id" }
-    )
 
   if (reservationId) {
     await supabase
@@ -158,33 +205,12 @@ async function handlePaymentIntentFailed(
       .update({ deposit_status: "failed", updated_at: new Date().toISOString() })
       .eq("id", reservationId)
   }
-}
 
-async function handleChargeRefunded(
-  charge: Stripe.Charge,
-  eventId: string
-): Promise<void> {
-  const supabase = createAdminClient()
-  const paymentIntentId = typeof charge.payment_intent === "string"
-    ? charge.payment_intent
-    : charge.payment_intent?.id
-
-  logger.info("[Stripe] charge.refunded", {
-    chargeId: charge.id,
-    paymentIntentId,
-    amountRefunded: charge.amount_refunded,
-  })
-
-  if (paymentIntentId) {
-    await supabase
-      .from("deposits")
-      .update({
-        state: "refunded",
-        stripe_event_id: eventId,
-        refunded_at: new Date().toISOString(),
-        amount_refunded_cents: charge.amount_refunded,
-      })
-      .eq("stripe_payment_intent_id", paymentIntentId)
+  if (vehicleId) {
+    await supabase.rpc("transition_vehicle_status", {
+      p_vehicle_id: vehicleId,
+      p_to_status: "available",
+    })
   }
 }
 
@@ -216,47 +242,45 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: `Webhook signature invalid: ${message}` }, { status: 400 })
   }
 
-  // Idempotency check — skip if already processed
-  const alreadyProcessed = await isEventAlreadyProcessed(event.id)
-  if (alreadyProcessed) {
-    logger.info(`[Stripe] Event ${event.id} already processed — skipping`)
-    return NextResponse.json({ received: true, status: "already_processed" })
-  }
+  const supabase = createAdminClient()
 
   // Route to handler
   try {
     switch (event.type) {
+      case "checkout.session.completed":
+        await handleCheckoutSessionCompleted(
+          supabase,
+          event.data.object as Stripe.Checkout.Session
+        )
+        break
+
+      case "checkout.session.expired":
+        await handleCheckoutSessionExpired(
+          supabase,
+          event.data.object as Stripe.Checkout.Session
+        )
+        break
+
+      case "checkout.session.async_payment_failed":
+        await handleCheckoutSessionAsyncPaymentFailed(
+          supabase,
+          event.data.object as Stripe.Checkout.Session
+        )
+        break
+
       case "payment_intent.succeeded":
         await handlePaymentIntentSucceeded(
-          event.data.object as Stripe.PaymentIntent,
-          event.id
+          supabase,
+          event.data.object as Stripe.PaymentIntent
         )
         break
 
       case "payment_intent.payment_failed":
         await handlePaymentIntentFailed(
-          event.data.object as Stripe.PaymentIntent,
-          event.id
+          supabase,
+          event.data.object as Stripe.PaymentIntent
         )
         break
-
-      case "charge.refunded":
-        await handleChargeRefunded(
-          event.data.object as Stripe.Charge,
-          event.id
-        )
-        break
-
-      case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session
-        logger.info("[Stripe] checkout.session.completed", {
-          sessionId: session.id,
-          paymentStatus: session.payment_status,
-          customerEmail: session.customer_details?.email,
-        })
-        // Delegate to payment_intent.succeeded which fires separately
-        break
-      }
 
       default:
         logger.info(`[Stripe] Unhandled event type: ${event.type}`)
