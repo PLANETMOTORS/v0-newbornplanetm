@@ -517,6 +517,74 @@ export function TradeInPageJsonLd() {
   )
 }
 
+// Service Schema - for service pages (e.g. sell-your-car, trade-in)
+interface ServiceJsonLdProps {
+  name: string
+  description: string
+  serviceType: string
+  url: string
+}
+
+export function ServiceJsonLd({ name, description, serviceType, url }: ServiceJsonLdProps) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": name,
+    "description": description,
+    "serviceType": serviceType,
+    "url": toAbsoluteUrl(url),
+    "provider": {
+      "@type": "AutoDealer",
+      "name": "Planet Motors",
+      "url": SITE_URL,
+      "@id": `${SITE_URL}/#organization`,
+      "telephone": PHONE_TOLL_FREE_TEL
+    },
+    "areaServed": {
+      "@type": "Country",
+      "name": "Canada"
+    }
+  }
+
+  return (
+    <Script
+      id={`service-jsonld-${serviceType.toLowerCase().replace(/\s+/g, "-")}`}
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
+
+// HowTo Schema - for step-by-step process pages
+interface HowToJsonLdProps {
+  name: string
+  description: string
+  steps: Array<{ title: string; description: string }>
+}
+
+export function HowToJsonLd({ name, description, steps }: HowToJsonLdProps) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": name,
+    "description": description,
+    "step": steps.map((step, index) => ({
+      "@type": "HowToStep",
+      "position": index + 1,
+      "name": step.title,
+      "text": step.description
+    }))
+  }
+
+  return (
+    <Script
+      id="howto-jsonld"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
+
 export function WarrantyPageJsonLd() {
   const schema = {
     "@context": "https://schema.org",
