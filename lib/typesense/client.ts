@@ -1,25 +1,30 @@
 // Typesense client configuration for Planet Motors
 // Uses SDN endpoint with individual node fallbacks for HA
+//
+// NOTE: All process.env reads are done INSIDE functions (not at module level)
+// so Vercel serverless functions always see runtime env vars, not build-time snapshots.
 
 import { Client } from "typesense"
 import type { CollectionCreateSchema } from "typesense/lib/Typesense/Collections"
 import type { NodeConfiguration } from "typesense/lib/Typesense/Configuration"
 
-const TYPESENSE_HOST = process.env.TYPESENSE_HOST || process.env.NEXT_PUBLIC_TYPESENSE_HOST
-const TYPESENSE_API_KEY = process.env.TYPESENSE_API_KEY
-const TYPESENSE_SEARCH_KEY = process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_KEY
-
-/**
- * Build the `nodes` array from environment or fall back to hardcoded defaults.
- *
- * Set `TYPESENSE_NODES` to a comma-separated list of hostnames, e.g.:
- *   TYPESENSE_NODES=node1.a2.typesense.net,node2.a2.typesense.net,node3.a2.typesense.net
- */
 const DEFAULT_NODE_HOSTS = [
   "dptb8xe3mkuc45snp-1.a2.typesense.net",
   "dptb8xe3mkuc45snp-2.a2.typesense.net",
   "dptb8xe3mkuc45snp-3.a2.typesense.net",
 ]
+
+function getHost(): string | undefined {
+  return process.env.TYPESENSE_HOST || process.env.NEXT_PUBLIC_TYPESENSE_HOST
+}
+
+function getAdminKey(): string | undefined {
+  return process.env.TYPESENSE_API_KEY
+}
+
+function getSearchKey(): string | undefined {
+  return process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_KEY || process.env.TYPESENSE_API_KEY
+}
 
 function getNodes(): NodeConfiguration[] {
   const envNodes = process.env.TYPESENSE_NODES
@@ -30,48 +35,41 @@ function getNodes(): NodeConfiguration[] {
   return hosts.map((host) => ({ host, port: 443, protocol: "https" as const }))
 }
 
-/** Whether Typesense is configured (env vars present) */
+/** Whether Typesense is configured (env vars present) — reads at call time */
 export function isTypesenseConfigured(): boolean {
-  return !!(TYPESENSE_HOST && (TYPESENSE_API_KEY || TYPESENSE_SEARCH_KEY))
+  return !!(getHost() && (getAdminKey() || getSearchKey()))
 }
 
 /** Admin client (server-side only — uses admin API key for indexing) */
-let _adminClient: Client | null = null
-
 export function getAdminClient(): Client | null {
-  if (!TYPESENSE_HOST || !TYPESENSE_API_KEY) return null
-  if (_adminClient) return _adminClient
+  const host = getHost()
+  const apiKey = getAdminKey()
+  if (!host || !apiKey) return null
 
-  _adminClient = new Client({
-    nearestNode: { host: TYPESENSE_HOST, port: 443, protocol: "https" },
+  return new Client({
+    nearestNode: { host, port: 443, protocol: "https" },
     nodes: getNodes(),
-    apiKey: TYPESENSE_API_KEY,
+    apiKey,
     connectionTimeoutSeconds: 5,
     retryIntervalSeconds: 0.1,
     numRetries: 3,
   })
-
-  return _adminClient
 }
 
 /** Search-only client (safe for client-side / API routes doing reads) */
-let _searchClient: Client | null = null
-
 export function getSearchClient(): Client | null {
-  const key = TYPESENSE_SEARCH_KEY || TYPESENSE_API_KEY
-  if (!TYPESENSE_HOST || !key) return null
-  if (_searchClient) return _searchClient
+  const host = getHost()
+  const key = getSearchKey()
+  if (!host || !key) return null
 
-  _searchClient = new Client({
-    nearestNode: { host: TYPESENSE_HOST, port: 443, protocol: "https" },
+  return new Client({
+    nearestNode: { host, port: 443, protocol: "https" },
     nodes: getNodes(),
     apiKey: key,
     connectionTimeoutSeconds: 5,
     retryIntervalSeconds: 0.1,
     numRetries: 3,
   })
-
-  return _searchClient
 }
 
 /** Typesense collection name for vehicles */
