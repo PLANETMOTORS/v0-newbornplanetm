@@ -43,7 +43,7 @@ jobs:
     timeout-minutes: 15
 
     env:
-      SANITY_PROJECT_ID: wlxj8olw
+      SANITY_PROJECT_ID: 4588vjsz
       SANITY_DATASET: production
       BACKUPS_BRANCH: backups
       KEEP_LAST_N: 30
