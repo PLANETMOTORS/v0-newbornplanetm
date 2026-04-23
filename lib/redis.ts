@@ -36,15 +36,25 @@ export async function rateLimit(
   
   try {
     const key = `rate_limit:${identifier}`
-    const current = await redis.incr(key)
-    
-    if (current === 1) {
-      await redis.expire(key, windowSeconds)
-    }
-    
+
+    // Atomic: INCR and conditional EXPIRE execute as a single Lua transaction.
+    // Prevents the race where a crash between INCR and EXPIRE leaves a key
+    // with no TTL, permanently blocking the identifier.
+    const atomicIncrScript = `
+      local current = redis.call('INCR', KEYS[1])
+      if current == 1 then
+        redis.call('EXPIRE', KEYS[1], tonumber(ARGV[1]))
+      end
+      return current
+    `
+
+    const current = await (redis as unknown as {
+      eval: (script: string, keys: string[], args: string[]) => Promise<number>
+    }).eval(atomicIncrScript, [key], [String(windowSeconds)])
+
     return {
       success: current <= limit,
-      remaining: Math.max(0, limit - current)
+      remaining: Math.max(0, limit - current),
     }
   } catch (error) {
     console.warn("[Redis] Rate limit check failed, allowing request:", (error as Error).message)
@@ -247,5 +257,47 @@ export async function getVehicleLock(stockNumber: string): Promise<string | null
   } catch (error) {
     console.warn("[Redis] Failed to get vehicle lock:", (error as Error).message)
     return null
+  }
+}
+
+export async function acquireDistributedLock(
+  key: string,
+  ownerToken: string,
+  ttlSeconds: number = 120
+): Promise<boolean> {
+  const redis = await getRedis()
+  if (!redis) return true
+
+  try {
+    const result = await redis.set(key, ownerToken, { nx: true, ex: ttlSeconds })
+    return result === 'OK'
+  } catch {
+    return true
+  }
+}
+
+export async function releaseDistributedLock(
+  key: string,
+  ownerToken: string
+): Promise<boolean> {
+  const redis = await getRedis()
+  if (!redis) return true
+
+  try {
+    const compareAndDeleteScript = `
+      if redis.call('GET', KEYS[1]) == ARGV[1] then
+        return redis.call('DEL', KEYS[1])
+      end
+      return 0
+    `
+
+    const deleted = await (redis as unknown as {
+      eval: (script: string, keys: string[], args: string[]) => Promise<number>
+    }).eval(compareAndDeleteScript, [key], [ownerToken])
+
+    return deleted === 1
+  } catch (error) {
+    console.warn('[Redis] Failed to release distributed lock:', (error as Error).message)
+    return false
   }
 }
