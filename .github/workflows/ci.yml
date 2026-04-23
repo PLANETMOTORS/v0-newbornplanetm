@@ -85,6 +85,18 @@ jobs:
 
       - name: Build with bundle stats
         run: pnpm build
+        env:
+          NEXT_PUBLIC_SANITY_PROJECT_ID: "4588vjsz"
+          NEXT_PUBLIC_SANITY_DATASET: "production"
+          NEXT_PUBLIC_SITE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_BASE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_SUPABASE_URL: "https://ldervbcvkoawwknsemuz.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkZXJ2YmN2a29hd3drbnNlbXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NjI0MTAsImV4cCI6MjA5MDIzODQxMH0.jWTd3qESw1KMdtlvKXZTt6TJyCd5kHDCncuTltQu5j8"
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: "G-PLACEHOLDER"
+          NEXT_PUBLIC_GTM_ID: "GTM-PLACEHOLDER"
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
 
       - name: Check bundle budget (1700 KB first-load JS per page)
         run: node scripts/check-bundle-size.mjs
@@ -117,6 +129,18 @@ jobs:
 
       - name: Build
         run: pnpm build
+        env:
+          NEXT_PUBLIC_SANITY_PROJECT_ID: "4588vjsz"
+          NEXT_PUBLIC_SANITY_DATASET: "production"
+          NEXT_PUBLIC_SITE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_BASE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_SUPABASE_URL: "https://ldervbcvkoawwknsemuz.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkZXJ2YmN2a29hd3drbnNlbXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NjI0MTAsImV4cCI6MjA5MDIzODQxMH0.jWTd3qESw1KMdtlvKXZTt6TJyCd5kHDCncuTltQu5j8"
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: "G-PLACEHOLDER"
+          NEXT_PUBLIC_GTM_ID: "GTM-PLACEHOLDER"
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium firefox webkit
@@ -188,6 +212,18 @@ jobs:
 
       - name: Build
         run: pnpm build
+        env:
+          NEXT_PUBLIC_SANITY_PROJECT_ID: "4588vjsz"
+          NEXT_PUBLIC_SANITY_DATASET: "production"
+          NEXT_PUBLIC_SITE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_BASE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_SUPABASE_URL: "https://ldervbcvkoawwknsemuz.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkZXJ2YmN2a29hd3drbnNlbXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NjI0MTAsImV4cCI6MjA5MDIzODQxMH0.jWTd3qESw1KMdtlvKXZTt6TJyCd5kHDCncuTltQu5j8"
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: "G-PLACEHOLDER"
+          NEXT_PUBLIC_GTM_ID: "GTM-PLACEHOLDER"
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
@@ -229,6 +265,18 @@ jobs:
 
       - name: Build
         run: pnpm build
+        env:
+          NEXT_PUBLIC_SANITY_PROJECT_ID: "4588vjsz"
+          NEXT_PUBLIC_SANITY_DATASET: "production"
+          NEXT_PUBLIC_SITE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_BASE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_SUPABASE_URL: "https://ldervbcvkoawwknsemuz.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkZXJ2YmN2a29hd3drbnNlbXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NjI0MTAsImV4cCI6MjA5MDIzODQxMH0.jWTd3qESw1KMdtlvKXZTt6TJyCd5kHDCncuTltQu5j8"
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: "G-PLACEHOLDER"
+          NEXT_PUBLIC_GTM_ID: "GTM-PLACEHOLDER"
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
@@ -273,6 +321,18 @@ jobs:
 
       - name: Build
         run: pnpm build
+        env:
+          NEXT_PUBLIC_SANITY_PROJECT_ID: "4588vjsz"
+          NEXT_PUBLIC_SANITY_DATASET: "production"
+          NEXT_PUBLIC_SITE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_BASE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_SUPABASE_URL: "https://ldervbcvkoawwknsemuz.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkZXJ2YmN2a29hd3drbnNlbXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NjI0MTAsImV4cCI6MjA5MDIzODQxMH0.jWTd3qESw1KMdtlvKXZTt6TJyCd5kHDCncuTltQu5j8"
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: "G-PLACEHOLDER"
+          NEXT_PUBLIC_GTM_ID: "GTM-PLACEHOLDER"
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
 
       - name: Run Lighthouse CI
         run: npx @lhci/cli autorun
