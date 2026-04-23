@@ -45,6 +45,20 @@ jobs:
 
       - name: Build
         run: pnpm build
+        env:
+          # Public env vars required for Next.js static generation in CI
+          # Non-secret values safe to hardcode; secrets pulled from repo secrets
+          NEXT_PUBLIC_SANITY_PROJECT_ID: "4588vjsz"
+          NEXT_PUBLIC_SANITY_DATASET: "production"
+          NEXT_PUBLIC_SITE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_BASE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: "G-PLACEHOLDER"
+          NEXT_PUBLIC_GTM_ID: "GTM-PLACEHOLDER"
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
 
   bundle-check:
     runs-on: ubuntu-latest
