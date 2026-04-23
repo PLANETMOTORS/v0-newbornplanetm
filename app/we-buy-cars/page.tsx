@@ -46,9 +46,9 @@ const benefits = [
 ]
 
 const processSteps = [
-  { stepNumber: 1, title: 'Get Your Instant Quote', description: 'Fill out our simple online form with your vehicle details — VIN, mileage, and condition. You'll receive a no-obligation cash offer within minutes.' },
+  { stepNumber: 1, title: 'Get Your Instant Quote', description: "Fill out our simple online form with your vehicle details — VIN, mileage, and condition. You'll receive a no-obligation cash offer within minutes." },
   { stepNumber: 2, title: 'Accept & Schedule Pickup', description: 'Happy with your offer? Accept it and schedule a convenient pickup time. Our team comes to you anywhere in Canada at no extra cost.' },
-  { stepNumber: 3, title: 'Get Paid Same Day', description: 'We inspect the vehicle, handle all the paperwork, and pay you on the spot via e-transfer or certified cheque. It's that simple.' },
+  { stepNumber: 3, title: 'Get Paid Same Day', description: "We inspect the vehicle, handle all the paperwork, and pay you on the spot via e-transfer or certified cheque. It's that simple." },
 ]
 
 const comparisonRows = [

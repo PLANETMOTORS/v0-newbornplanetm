@@ -63,9 +63,9 @@ const testimonials = [
 
 
 const faqs = [
-  { question: 'How much is my Tesla worth?', answer: 'Your Tesla's value depends on the model, year, mileage, battery health, and condition. Fill out our form for a free, no-obligation instant quote based on current Canadian market data.' },
+  { question: 'How much is my Tesla worth?', answer: "Your Tesla's value depends on the model, year, mileage, battery health, and condition. Fill out our form for a free, no-obligation instant quote based on current Canadian market data." },
   { question: 'Do you buy all Tesla models?', answer: 'Yes. We buy the Model 3, Model Y, Model S, Model X, and Cybertruck — any year, any trim, any condition.' },
-  { question: 'How does the battery health affect my Tesla's value?', answer: 'Battery State of Health (SoH) is a key factor. We use Aviloo FLASH Test data when available to assess true battery condition, which means Tesla owners with well-maintained batteries get a fairer, higher offer.' },
+  { question: "How does the battery health affect my Tesla's value?", answer: 'Battery State of Health (SoH) is a key factor. We use Aviloo FLASH Test data when available to assess true battery condition, which means Tesla owners with well-maintained batteries get a fairer, higher offer.' },
   { question: 'How fast do I get paid?', answer: 'Same day. Once you accept our offer and we complete the inspection, payment is issued immediately by direct deposit or certified cheque.' },
   { question: 'Do I need to drive my Tesla to you?', answer: 'No. We offer free pickup anywhere in Canada. Our team comes to your location for the inspection and pickup — no trips to a dealership needed.' },
   { question: 'Is Planet Motors OMVIC licensed?', answer: 'Yes. Planet Motors has been OMVIC licensed since 2005. Your transaction is fully regulated and protected under Ontario dealer legislation.' },
@@ -76,13 +76,13 @@ const faqs = [
   { question: 'What if my Tesla has high mileage?', answer: 'We buy high-mileage Teslas. Mileage affects the offer, but Tesla drivetrains are built for longevity — and we factor that into our valuation.' },
   { question: 'How long does the entire process take?', answer: 'Most sales are completed within 24 hours — from submitting your details online to receiving payment.' },
   { question: 'Do you buy Teslas outside of Ontario?', answer: 'Yes. We buy Teslas from every province and territory in Canada with free pickup included.' },
-  { question: 'Is there any obligation after I get a quote?', answer: 'None at all. Our quotes are free and no-obligation. If our offer doesn't work for you, there is zero pressure.' },
-  { question: 'Can I sell my Tesla and buy another car from you?', answer: 'Yes. Many Tesla sellers upgrade or switch to a different vehicle from our inventory. We can apply your Tesla's value as a trade-in credit toward any vehicle we stock.' },
+  { question: 'Is there any obligation after I get a quote?', answer: "None at all. Our quotes are free and no-obligation. If our offer doesn't work for you, there is zero pressure." },
+  { question: 'Can I sell my Tesla and buy another car from you?', answer: "Yes. Many Tesla sellers upgrade or switch to a different vehicle from our inventory. We can apply your Tesla's value as a trade-in credit toward any vehicle we stock." },
 ]
 
 const teslaModels = [
   { name: 'Model 3', description: 'Standard Range Plus, Long Range, Performance — all years and trims.' },
-  { name: 'Model Y', description: 'Long Range and Performance — Canada's best-selling EV.' },
+  { name: 'Model Y', description: "Long Range and Performance — Canada's best-selling EV." },
   { name: 'Model S', description: 'Long Range, Plaid, and legacy trims — including older Model S 85/90/100D.' },
   { name: 'Model X', description: 'Long Range and Plaid — including early production models with Falcon Wing doors.' },
   { name: 'Cybertruck', description: 'All configurations — Foundation Series, AWD, and Cyberbeast.' },

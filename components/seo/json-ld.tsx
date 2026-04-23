@@ -611,3 +611,60 @@ export function WarrantyPageJsonLd() {
     />
   )
 }
+
+// Local Service Schema - for city-specific service pages (e.g. /sell-your-car/toronto)
+interface LocalServiceJsonLdProps {
+  name: string
+  description: string
+  serviceType: string
+  url: string
+  cityName: string
+  province: string
+}
+
+export function LocalServiceJsonLd({
+  name,
+  description,
+  serviceType,
+  url,
+  cityName,
+  province,
+}: LocalServiceJsonLdProps) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": name,
+    "description": description,
+    "serviceType": serviceType,
+    "url": toAbsoluteUrl(url),
+    "provider": {
+      "@type": "AutoDealer",
+      "name": "Planet Motors",
+      "url": SITE_URL,
+      "@id": `${SITE_URL}/#organization`,
+      "telephone": PHONE_TOLL_FREE_TEL,
+    },
+    "areaServed": [
+      {
+        "@type": "City",
+        "name": cityName,
+        "containedInPlace": {
+          "@type": "AdministrativeArea",
+          "name": province,
+        },
+      },
+      {
+        "@type": "Country",
+        "name": "Canada",
+      },
+    ],
+  }
+
+  return (
+    <Script
+      id={`local-service-jsonld-${cityName.toLowerCase().replace(/\s+/g, "-")}`}
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
