@@ -94,7 +94,10 @@ Deno.serve(async (req: Request) => {
 
   const monthlyIncome = data.annualIncome / 12
   const term = data.requestedTerm || 72
-  const estimatedPayment = data.requestedAmount / term
+  const dtiMonthlyRate = RATE_FLOOR / 100 / 12
+  const estimatedPayment =
+    (data.requestedAmount * dtiMonthlyRate * Math.pow(1 + dtiMonthlyRate, term)) /
+    (Math.pow(1 + dtiMonthlyRate, term) - 1)
   const dti = ((data.monthlyRent || 0) + estimatedPayment) / monthlyIncome
 
   const eligibleLenders = lenders
