@@ -13,6 +13,7 @@ import { ProtectionFaqAccordion } from "./protection-faq-accordion"
 import { PROTECTION_PRODUCTS } from "@/lib/protection-products"
 import { getPublicSiteUrl } from "@/lib/site-url"
 import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
+import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
 
 const siteUrl = getPublicSiteUrl()
 
@@ -156,7 +157,7 @@ export default function ProtectionPlansPage() {
                 <a href="#compare">Compare Packages</a>
               </Button>
               <Button size="lg" variant="outline" className="h-12 px-8 text-base font-semibold border-white/60 text-white bg-white/10 hover:bg-white/20" asChild>
-                <a href="tel:1-866-797-3332">
+                <a href={`tel:${PHONE_TOLL_FREE_TEL}`}>
                   <Phone className="w-4 h-4 mr-2" />
                   Call Us
                 </a>
@@ -265,9 +266,9 @@ export default function ProtectionPlansPage() {
                   <Link href="/contact">Contact Us</Link>
                 </Button>
                 <Button size="lg" asChild>
-                  <a href="tel:1-866-797-3332">
+                  <a href={`tel:${PHONE_TOLL_FREE_TEL}`}>
                     <Phone className="w-4 h-4 mr-2" />
-                    Call 1-866-797-3332
+                    Call {PHONE_TOLL_FREE}
                   </a>
                 </Button>
               </div>

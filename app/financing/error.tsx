@@ -4,6 +4,7 @@ import { useEffect } from "react"
 import { reportError } from "@/lib/error-reporting"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, RefreshCw, Home, Phone } from "lucide-react"
+import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
 
 export default function FinancingError({
   error,
@@ -46,11 +47,11 @@ export default function FinancingError({
             Need immediate assistance?
           </p>
           <a
-            href="tel:1-866-797-3332"
+            href={`tel:${PHONE_TOLL_FREE_TEL}`}
             className="inline-flex items-center justify-center gap-2 text-primary hover:underline"
           >
             <Phone className="w-4 h-4" />
-            Call 1-866-797-3332
+            Call {PHONE_TOLL_FREE}
           </a>
           {error.digest && (
             <p className="text-xs text-muted-foreground mt-4">

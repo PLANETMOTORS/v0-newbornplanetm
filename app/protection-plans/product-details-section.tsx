@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { PROTECTION_PRODUCTS, type ProtectionProduct } from "@/lib/protection-products"
+import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
 
 export function ProductDetailsSection() {
   const [openSlug, setOpenSlug] = useState<string | null>(null)
@@ -173,7 +174,7 @@ function ProductAccordion({
           {/* CTA */}
           <div className="flex flex-wrap gap-3 pt-4 border-t border-border/40">
             <Button size="lg" asChild>
-              <a href="tel:1-866-797-3332">
+              <a href={`tel:${PHONE_TOLL_FREE_TEL}`}>
                 <Phone className="w-4 h-4 mr-2" />
                 {product.ctaText}
               </a>
