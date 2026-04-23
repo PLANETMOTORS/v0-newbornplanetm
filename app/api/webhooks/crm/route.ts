@@ -168,7 +168,8 @@ export async function POST(request: NextRequest) {
     : undefined
 
   createLead({
-    source: lead.source,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    source: lead.source as any,
     customerName: `${lead.firstName} ${lead.lastName}`.trim(),
     customerEmail: lead.email,
     customerPhone: lead.phone,
@@ -180,19 +181,19 @@ export async function POST(request: NextRequest) {
   )
 
   // ── 2. Meta CAPI (non-blocking) ────────────────────────────────────────
-  trackLead(request, {
-    email: lead.email,
-    phone: lead.phone,
-    firstName: lead.firstName,
-    lastName: lead.lastName,
-    contentName: vehicleLabel ?? lead.source,
-    contentCategory: "lead",
-    contentIds: lead.vehicle?.id ? [lead.vehicle.id] : undefined,
-    value: lead.vehicle?.price,
-    currency: "CAD",
-  }).catch((err: unknown) =>
+  try {
+    trackLead(request, {
+      email: lead.email,
+      phone: lead.phone,
+      firstName: lead.firstName,
+      lastName: lead.lastName,
+      contentName: vehicleLabel ?? lead.source,
+      contentCategory: "lead",
+      value: lead.vehicle?.price,
+    })
+  } catch (err: unknown) {
     logger.error("CRM webhook: Meta CAPI failed", { error: String(err) })
-  )
+  }
 
   // ── 3. AutoRaptor CRM (non-blocking) ─────────────────────────────────────
   pushToAutoRaptor(mapLeadToAutoRaptor(lead)).catch((err: unknown) =>
