@@ -32,10 +32,22 @@ interface PriceDropPayload {
   primary_image_url: string
 }
 
+/**
+ * Format an amount given in cents as a dollar string.
+ *
+ * @param cents - Amount in cents
+ * @returns A `$`-prefixed string representing the amount in dollars formatted with grouping and no decimal digits (e.g., `$1,999`)
+ */
 function formatPrice(cents: number): string {
   return `$${(cents / 100).toLocaleString("en-CA", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
 }
 
+/**
+ * Escapes characters that have special meaning in HTML to their corresponding entities.
+ *
+ * @param str - The input text to escape for safe inclusion in HTML content or attributes
+ * @returns The input string with `&`, `<`, `>`, and `"` replaced by `&amp;`, `&lt;`, `&gt;`, and `&quot;` respectively
+ */
 function escapeHtml(str: string): string {
   return str
     .replace(/&/g, "&amp;")
@@ -44,6 +56,13 @@ function escapeHtml(str: string): string {
     .replace(/"/g, "&quot;")
 }
 
+/**
+ * Builds the complete HTML document for a price-drop notification email for a vehicle.
+ *
+ * @param vehicle - Vehicle data (identifiers, descriptive fields, and pricing) used to populate the email content
+ * @param siteUrl - Base site URL used to build the vehicle detail link and fallback image URL
+ * @returns The full HTML document as a string suitable for sending as an email body
+ */
 function buildEmailHtml(vehicle: PriceDropPayload, siteUrl: string): string {
   const vehicleTitle = `${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.trim ? ` ${vehicle.trim}` : ""}`
   const savings = vehicle.old_price - vehicle.new_price
