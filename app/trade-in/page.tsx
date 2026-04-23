@@ -1,4 +1,5 @@
 import Script from "next/script"
+import Image from "next/image"
 import Link from "next/link"
 import {
   Shield, Clock, DollarSign, TrendingUp, Truck, CheckCircle,
@@ -165,8 +166,18 @@ export default function TradeInPage() {
       <TradeInHowToJsonLd />
 
       {/* ── SEO Hero Section ── */}
-      <section className="border-b bg-gradient-to-b from-primary/5 to-background">
-        <div className="container mx-auto px-4 py-12 md:py-16">
+      <section className="relative overflow-hidden border-b bg-gradient-to-b from-primary/5 to-background">
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/acquisition/trade-in-hero.svg"
+            alt="Trade in your car at Planet Motors — instant valuation, Canadian Black Book pricing"
+            fill
+            className="object-cover opacity-[0.07] dark:opacity-[0.04]"
+            priority
+            sizes="100vw"
+          />
+        </div>
+        <div className="relative z-10 container mx-auto px-4 py-12 md:py-16">
           {/* Trust Chip Bar */}
           <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground mb-8">
             <span className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5 text-primary" /> OMVIC Licensed</span>
@@ -223,6 +234,25 @@ export default function TradeInPage() {
                 <span className="text-sm">{b.text}</span>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Lifestyle Image Break */}
+      <section className="relative h-64 md:h-80 lg:h-96 overflow-hidden">
+        <Image
+          src="/images/acquisition/trade-in-lifestyle.svg"
+          alt="Customer trading in their old car for a newer vehicle at Planet Motors"
+          fill
+          className="object-cover"
+          loading="lazy"
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/40 to-transparent" />
+        <div className="relative z-10 container mx-auto px-4 h-full flex items-center">
+          <div className="max-w-md">
+            <p className="text-2xl md:text-3xl font-bold text-foreground">Upgrade Your Ride Today</p>
+            <p className="text-muted-foreground mt-2">Apply your trade equity toward any vehicle in our inventory</p>
           </div>
         </div>
       </section>

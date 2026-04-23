@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import { SellYourCarHero } from '@/components/sell-your-car/hero'
 import { BenefitsSection } from '@/components/sell-your-car/benefits-section'
@@ -128,8 +129,18 @@ export default function SellYourTeslaPage() {
         </div>
 
         {/* Hero Section with Form */}
-        <section className="relative bg-gradient-to-br from-primary/10 via-background to-background">
-          <div className="container mx-auto px-4 py-12 md:py-20">
+        <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-background">
+          <div className="absolute inset-0 z-0">
+            <Image
+              src="/images/acquisition/sell-tesla-hero.svg"
+              alt="Sell your Tesla to Planet Motors — EV specialists, Aviloo battery expertise, top dollar offers"
+              fill
+              className="object-cover opacity-[0.07] dark:opacity-[0.04]"
+              priority
+              sizes="100vw"
+            />
+          </div>
+          <div className="relative z-10 container mx-auto px-4 py-12 md:py-20">
             <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
               <SellYourCarHero
                 headline="Sell Your Tesla for Top Dollar in Canada"
@@ -152,6 +163,25 @@ export default function SellYourTeslaPage() {
           title="How It Works — 3 Simple Steps"
           steps={processSteps}
         />
+
+        {/* Lifestyle Image Break */}
+        <section className="relative h-64 md:h-80 lg:h-96 overflow-hidden">
+          <Image
+            src="/images/acquisition/sell-tesla-lifestyle.svg"
+            alt="Tesla vehicle being inspected with Aviloo battery health certification at Planet Motors"
+            fill
+            className="object-cover"
+            loading="lazy"
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/40 to-transparent" />
+          <div className="relative z-10 container mx-auto px-4 h-full flex items-center">
+            <div className="max-w-md">
+              <p className="text-2xl md:text-3xl font-bold text-foreground">Canada&apos;s EV Acquisition Experts</p>
+              <p className="text-muted-foreground mt-2">Aviloo Battery Certified · Free Canada-Wide Pickup</p>
+            </div>
+          </div>
+        </section>
 
         {/* Tesla Models We Buy */}
         <section className="py-16 md:py-24 bg-muted/30">

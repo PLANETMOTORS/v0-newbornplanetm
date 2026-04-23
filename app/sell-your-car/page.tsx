@@ -11,6 +11,7 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { BreadcrumbJsonLd, FAQJsonLd, ServiceJsonLd, HowToJsonLd } from '@/components/seo/json-ld'
 import { generateSEOMetadata } from '@/lib/seo/metadata'
+import Image from 'next/image'
 import Link from 'next/link'
 import { Shield, Calendar, Banknote, Truck } from 'lucide-react'
 import type { SellYourCarPage as SellYourCarPageType } from '@/lib/sanity/types'
@@ -213,8 +214,19 @@ export default async function SellYourCarPage() {
         </div>
 
         {/* Hero Section with Form */}
-        <section className="relative bg-gradient-to-br from-primary/10 via-background to-background">
-          <div className="container mx-auto px-4 py-12 md:py-20">
+        <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-background">
+          {/* Hero background image */}
+          <div className="absolute inset-0 z-0">
+            <Image
+              src="/images/acquisition/sell-your-car-hero.svg"
+              alt="Sell your car to Planet Motors — instant cash offers, free pickup, same-day payment"
+              fill
+              className="object-cover opacity-[0.07] dark:opacity-[0.04]"
+              priority
+              sizes="100vw"
+            />
+          </div>
+          <div className="relative z-10 container mx-auto px-4 py-12 md:py-20">
             <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
               <SellYourCarHero
                 headline={heroContent.headline}
@@ -237,6 +249,25 @@ export default async function SellYourCarPage() {
           title={pageData?.processTitle || pageData?.howItWorks?.sectionTitle || 'How It Works'}
           steps={processSteps}
         />
+
+        {/* Lifestyle Image Break */}
+        <section className="relative h-64 md:h-80 lg:h-96 overflow-hidden">
+          <Image
+            src="/images/acquisition/sell-your-car-lifestyle.svg"
+            alt="Happy customer receiving same-day payment after selling their car to Planet Motors"
+            fill
+            className="object-cover"
+            loading="lazy"
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/40 to-transparent" />
+          <div className="relative z-10 container mx-auto px-4 h-full flex items-center">
+            <div className="max-w-md">
+              <p className="text-2xl md:text-3xl font-bold text-foreground">Trusted by thousands of Canadians</p>
+              <p className="text-muted-foreground mt-2">4.8★ Google Rating · OMVIC Licensed Since 2005</p>
+            </div>
+          </div>
+        </section>
 
         {/* Comparison Table */}
         <ComparisonTable

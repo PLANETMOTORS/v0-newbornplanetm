@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import Script from 'next/script'
 import { generateSEOMetadata } from '@/lib/seo/metadata'
@@ -213,8 +214,18 @@ export default function WeBuyCarsPage() {
         </div>
 
         {/* ═══ Hero Section with Form ═══ */}
-        <section className="relative bg-gradient-to-br from-primary/10 via-background to-background">
-          <div className="container mx-auto px-4 py-12 md:py-20">
+        <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-background">
+          <div className="absolute inset-0 z-0">
+            <Image
+              src="/images/acquisition/we-buy-cars-hero.svg"
+              alt="Planet Motors buys cars across Canada — any make, any model, instant cash offers"
+              fill
+              className="object-cover opacity-[0.07] dark:opacity-[0.04]"
+              priority
+              sizes="100vw"
+            />
+          </div>
+          <div className="relative z-10 container mx-auto px-4 py-12 md:py-20">
             <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
               <SellYourCarHero
                 headline="We Buy Cars Across Canada — Any Make, Any Model"
@@ -256,6 +267,25 @@ export default function WeBuyCarsPage() {
 
         {/* ═══ How It Works ═══ */}
         <ProcessSteps title="How It Works" steps={processSteps} />
+
+        {/* Lifestyle Image Break */}
+        <section className="relative h-64 md:h-80 lg:h-96 overflow-hidden">
+          <Image
+            src="/images/acquisition/we-buy-cars-lifestyle.svg"
+            alt="Customer and Planet Motors buyer completing a seamless car sale transaction"
+            fill
+            className="object-cover"
+            loading="lazy"
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/40 to-transparent" />
+          <div className="relative z-10 container mx-auto px-4 h-full flex items-center">
+            <div className="max-w-md">
+              <p className="text-2xl md:text-3xl font-bold text-foreground">Any Make, Any Model, Any Condition</p>
+              <p className="text-muted-foreground mt-2">From sedans to trucks — we buy them all across Canada</p>
+            </div>
+          </div>
+        </section>
 
         {/* ═══ Comparison Table ═══ */}
         <ComparisonTable

@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { generateSEOMetadata } from '@/lib/seo/metadata'
 import { SellYourCarHero } from '@/components/sell-your-car/hero'
@@ -113,8 +114,18 @@ export default function FreePickupPage() {
         </div>
 
         {/* Hero Section with Form */}
-        <section className="relative bg-gradient-to-br from-primary/10 via-background to-background">
-          <div className="container mx-auto px-4 py-12 md:py-20">
+        <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-background">
+          <div className="absolute inset-0 z-0">
+            <Image
+              src="/images/acquisition/free-pickup-hero.svg"
+              alt="Free car pickup service across Canada — flatbed loading a vehicle at customer's home"
+              fill
+              className="object-cover opacity-[0.07] dark:opacity-[0.04]"
+              priority
+              sizes="100vw"
+            />
+          </div>
+          <div className="relative z-10 container mx-auto px-4 py-12 md:py-20">
             <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
               <SellYourCarHero
                 headline="Free Car Pickup — Anywhere in Canada"
@@ -131,6 +142,25 @@ export default function FreePickupPage() {
           title="How Our Free Pickup Service Works"
           steps={pickupSteps}
         />
+
+        {/* Lifestyle Image Break */}
+        <section className="relative h-64 md:h-80 lg:h-96 overflow-hidden">
+          <Image
+            src="/images/acquisition/free-pickup-lifestyle.svg"
+            alt="Planet Motors transport truck on a Canadian highway providing free door-to-door car pickup"
+            fill
+            className="object-cover"
+            loading="lazy"
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/40 to-transparent" />
+          <div className="relative z-10 container mx-auto px-4 h-full flex items-center">
+            <div className="max-w-md">
+              <p className="text-2xl md:text-3xl font-bold text-foreground">Coast to Coast, at No Cost</p>
+              <p className="text-muted-foreground mt-2">Fully insured transport · Every province &amp; territory</p>
+            </div>
+          </div>
+        </section>
 
         {/* Coverage Map Section */}
         <section className="py-16 md:py-24 bg-muted/30">
