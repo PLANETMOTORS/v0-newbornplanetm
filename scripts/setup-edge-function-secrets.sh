@@ -3,7 +3,7 @@
 # Setup Supabase Edge Function Secrets
 # ──────────────────────────────────────────────────────────────────────
 # Run this script once to configure the secrets required by the
-# capture-lead and finance-prequalify Edge Functions.
+# capture-lead, finance-prequalify, and price-drop-alert Edge Functions.
 #
 # Prerequisites:
 #   - Supabase CLI installed: brew install supabase/tap/supabase
@@ -25,6 +25,7 @@ echo "  - AUTORAPTOR_DEALER_NAME"
 echo "  - RESEND_API_KEY"
 echo "  - ADMIN_EMAIL"
 echo "  - FROM_EMAIL"
+echo "  - SITE_URL (for price-drop-alert email links)"
 echo ""
 echo "Note: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are auto-injected"
 echo "by Supabase and do not need to be set manually."
@@ -47,6 +48,8 @@ read -rp "ADMIN_EMAIL [toni@planetmotors.ca]: " ADMIN_EMAIL
 ADMIN_EMAIL=${ADMIN_EMAIL:-"toni@planetmotors.ca"}
 read -rp "FROM_EMAIL [Planet Motors <notifications@planetmotors.ca>]: " FROM_EMAIL
 FROM_EMAIL=${FROM_EMAIL:-"Planet Motors <notifications@planetmotors.ca>"}
+read -rp "SITE_URL [https://planetmotors.ca]: " SITE_URL
+SITE_URL=${SITE_URL:-"https://planetmotors.ca"}
 
 echo ""
 echo "Setting secrets..."
@@ -57,7 +60,8 @@ supabase secrets set \
   AUTORAPTOR_DEALER_NAME="$AUTORAPTOR_DEALER_NAME" \
   RESEND_API_KEY="$RESEND_API_KEY" \
   ADMIN_EMAIL="$ADMIN_EMAIL" \
-  FROM_EMAIL="$FROM_EMAIL"
+  FROM_EMAIL="$FROM_EMAIL" \
+  SITE_URL="$SITE_URL"
 
 echo ""
 echo "Secrets set successfully."
@@ -65,3 +69,4 @@ echo ""
 echo "To deploy the Edge Functions:"
 echo "  supabase functions deploy capture-lead"
 echo "  supabase functions deploy finance-prequalify"
+echo "  supabase functions deploy price-drop-alert"
