@@ -116,8 +116,14 @@ export default function RootLayout({
         {process.env.NEXT_PUBLIC_SUPABASE_URL && (
           <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
         )}
+        {/* Preconnect to GTM/GA4 — reduces TTI by ~200ms (Lighthouse recommendation) */}
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.google-analytics.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        {/* Preconnect to Meta Pixel CDN — reduces LCP impact */}
+        <link rel="preconnect" href="https://connect.facebook.net" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://connect.facebook.net" />
         {/* Preconnect to vehicle image CDN for faster LCP */}
         <link rel="preconnect" href="https://content.homenetiol.com" />
         <link rel="preconnect" href="https://photos.homenetiol.com" />
