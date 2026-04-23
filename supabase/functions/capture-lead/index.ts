@@ -220,7 +220,7 @@ Deno.serve(async (req: Request) => {
       const dealerName = Deno.env.get("AUTORAPTOR_DEALER_NAME") || "Planet Motors"
       const adfXml = buildAdfXml(adfParams, dealerName)
 
-      log.info("Firing AutoRaptor ADF", { endpoint: adfEndpoint })
+      log.info("Firing AutoRaptor ADF")
 
       fetch(adfEndpoint, {
         method: "POST",

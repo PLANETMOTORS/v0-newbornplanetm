@@ -87,8 +87,8 @@ export function validatePrequalifyInput(
     data: {
       annualIncome: parsedIncome,
       requestedAmount: parsedAmount,
-      requestedTerm: requestedTerm ? Number(requestedTerm) : undefined,
-      monthlyRent: monthlyRent ? Number(monthlyRent) : undefined,
+      requestedTerm: requestedTerm ? (() => { const n = Number(requestedTerm); return Number.isInteger(n) && n > 0 ? n : undefined })() : undefined,
+      monthlyRent: monthlyRent ? (() => { const n = Number(monthlyRent); return Number.isFinite(n) && n >= 0 ? n : undefined })() : undefined,
       vehicleId: vehicleId ? String(vehicleId) : undefined,
     },
   }
