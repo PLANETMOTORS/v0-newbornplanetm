@@ -2,7 +2,8 @@
 
 > **Date:** 2026-04-23  
 > **Environment:** https://v0-newbornplanetm.vercel.app  
-> **Status:** 🟢 GO — Ready for Production Launch
+> **Status:** 🟢 GO — Ready for Production Launch  
+> **Lighthouse:** Performance 86 · Accessibility 96 · Best Practices 96 · SEO 100
 
 ---
 
@@ -79,13 +80,15 @@
 > Run via Chrome DevTools → Lighthouse → Mobile/Desktop against https://v0-newbornplanetm.vercel.app  
 > Or use: `npx lighthouse https://v0-newbornplanetm.vercel.app --output=json --quiet`
 
-| Metric | Target | Status |
-|--------|--------|--------|
-| Performance | > 80 | Run audit |
-| Accessibility | > 90 | Run audit |
-| Best Practices | > 90 | Run audit |
-| SEO | > 90 | Run audit |
-| PWA | Pass | ✅ SW + manifest confirmed |
+| Metric | Target | Score | Status |
+|--------|--------|-------|--------|
+| Performance | > 80 | **86** | ✅ Pass |
+| Accessibility | > 90 | **96** | ✅ Pass |
+| Best Practices | > 90 | **96** | ✅ Pass |
+| SEO | > 90 | **100** | ✅ Pass |
+| PWA | Pass | — | ✅ SW + manifest confirmed |
+
+> Audit run: 2026-04-23T22:09:00Z against https://v0-newbornplanetm.vercel.app (mobile, headless Chrome)
 
 ---
 
