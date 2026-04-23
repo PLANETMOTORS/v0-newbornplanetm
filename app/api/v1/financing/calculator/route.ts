@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { hashClientIp } from '@/lib/hash-client-ip'
 import { createClient } from '@/lib/supabase/server'
 import { cacheIdempotentResponse, getCachedIdempotentResponse, rateLimit } from '@/lib/redis'
 
@@ -298,7 +299,7 @@ export async function POST(request: NextRequest) {
 
       await supabase.from('finance_calc_audits').insert({
         user_id: user?.id || null,
-        client_ip: ip,
+        client_ip_hash: hashClientIp(ip),
         vehicle_price_cents: Math.round(numericVehiclePrice * 100),
         trade_in_cents: Math.round(numericTradeInValue * 100),
         down_payment_cents: Math.round(numericDownPayment * 100),

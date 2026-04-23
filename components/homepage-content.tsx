@@ -5,6 +5,7 @@ import { ArrowRight, Shield, RotateCw, Car, CheckCircle, Star, BadgeCheck, Clock
 import { Button } from "@/components/ui/button"
 import { HomepageFeaturedVehicles } from "@/components/homepage-featured-vehicles"
 import { VehicleShowcase } from "@/components/vehicle-showcase"
+import { ShareButton } from "@/components/share-button"
 
 
 export type HomepageProps = {

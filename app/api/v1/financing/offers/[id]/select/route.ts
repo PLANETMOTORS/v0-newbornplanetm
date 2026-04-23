@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { hashClientIp } from "@/lib/hash-client-ip"
 import { createClient } from "@/lib/supabase/server"
 import { cacheIdempotentResponse, getCachedIdempotentResponse, rateLimit } from "@/lib/redis"
 
@@ -91,7 +92,7 @@ export async function POST(
         application_id: application.id,
         offer_id: offerId,
         action: 'selection_attempted_unavailable_offer',
-        client_ip: ip,
+        client_ip_hash: hashClientIp(ip),
         created_at: new Date().toISOString(),
       })
     } catch {

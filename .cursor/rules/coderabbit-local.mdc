@@ -1,0 +1,19 @@
+---
+description: Run CodeRabbit from local chat for code review tasks
+alwaysApply: true
+---
+
+# CodeRabbit Local Workflow
+
+CodeRabbit CLI is already installed and authenticated in the terminal.
+
+When the user asks to review code, check code quality, find bugs, or fix CodeRabbit issues:
+- Run `coderabbit --agent -t uncommitted` in the current repository
+- If the user wants human-readable output, run `coderabbit --plain -t uncommitted`
+- Do not try to install CodeRabbit again
+- Do not run CodeRabbit from the home directory; run it from the active git repository
+- Do not run CodeRabbit more than 3 times for the same set of changes unless the user asks
+
+If the request is specifically about unresolved PR comments:
+- Prefer the CodeRabbit autofix workflow
+- Use GitHub CLI only if it is installed and authenticated

@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS public.negotiation_audits (
   listing_price_cents   BIGINT      NOT NULL CHECK (listing_price_cents > 0),
   customer_offer_cents  BIGINT      NOT NULL CHECK (customer_offer_cents > 0),
   min_acceptable_cents  BIGINT      NOT NULL CHECK (min_acceptable_cents > 0),
-  client_ip             TEXT,
+  client_ip_hash        TEXT,                 -- HMAC-SHA256 hex from hashClientIp(); never store raw IPs
   created_at            TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -93,7 +93,7 @@ CREATE POLICY "No user inserts to negotiation_audits"
 CREATE TABLE IF NOT EXISTS public.finance_calc_audits (
   id                     UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id                UUID        REFERENCES auth.users(id) ON DELETE SET NULL, -- nullable: anon calcs allowed
-  client_ip              TEXT,
+  client_ip_hash         TEXT,
   vehicle_price_cents    BIGINT      NOT NULL CHECK (vehicle_price_cents >= 0),
   trade_in_cents         BIGINT      NOT NULL CHECK (trade_in_cents >= 0),
   down_payment_cents     BIGINT      NOT NULL CHECK (down_payment_cents >= 0),
@@ -133,7 +133,7 @@ CREATE TABLE IF NOT EXISTS public.offer_access_audits (
   application_id   UUID        NOT NULL,       -- FK to finance_applications
   action           TEXT        NOT NULL DEFAULT 'offers_retrieved',
   offer_count      INT         NOT NULL DEFAULT 0 CHECK (offer_count >= 0),
-  client_ip        TEXT,
+  client_ip_hash   TEXT,
   created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -165,7 +165,7 @@ CREATE TABLE IF NOT EXISTS public.offer_selection_audits (
   application_id   UUID        NOT NULL,       -- FK to finance_applications
   offer_id         TEXT        NOT NULL,       -- lender-assigned offer identifier
   action           TEXT        NOT NULL,       -- e.g. 'selection_attempted_unavailable_offer'
-  client_ip        TEXT,
+  client_ip_hash   TEXT,
   created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

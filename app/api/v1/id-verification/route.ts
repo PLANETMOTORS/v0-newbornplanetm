@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { del, put } from "@vercel/blob"
+import { hashClientIp } from "@/lib/hash-client-ip"
 import { createClient } from "@/lib/supabase/server"
 import { rateLimit } from "@/lib/redis"
 
@@ -287,7 +288,7 @@ export async function POST(request: NextRequest) {
             id_type_submitted: primaryIdType,
             has_secondary: !!secondaryIdType,
             documents_count: uploadedDocuments.length,
-            client_ip: clientIp,
+            client_ip_hash: hashClientIp(clientIp),
             submitted_at: new Date().toISOString(),
           })
       } catch {

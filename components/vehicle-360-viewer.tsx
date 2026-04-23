@@ -38,6 +38,23 @@ export function Vehicle360Viewer({
     return () => observer.disconnect()
   }, [])
 
+  // Preload neighbors so drag-to-spin does not hit lazy-load gaps between frames.
+  useEffect(() => {
+    if (!isActivated) return
+    const preloadFrame = (frameIdx: number) => {
+      const n = ((frameIdx % totalFrames) + totalFrames) % totalFrames
+      const url = imgix(`vehicles/${stockNumber}/360/frame-${String(n).padStart(3, "0")}.jpg`, {
+        w: 1280,
+        h: 720,
+        q: 78,
+      })
+      const img = new window.Image()
+      img.src = url
+    }
+    preloadFrame(currentFrame - 1)
+    preloadFrame(currentFrame + 1)
+  }, [isActivated, currentFrame, stockNumber, totalFrames])
+
   // Fullscreen toggle
   const toggleFullscreen = () => {
     if (!containerRef.current) return
@@ -78,7 +95,6 @@ export function Vehicle360Viewer({
           sizes="(max-width: 768px) 100vw, (max-width: 1280px) 70vw, 50vw"
           className="object-cover"
           loading="lazy"
-          quality={70}
         />
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/50 transition-colors">
           <div className="text-center text-white">
@@ -106,8 +122,7 @@ export function Vehicle360Viewer({
         sizes="(max-width: 768px) 100vw, (max-width: 1280px) 70vw, 50vw"
         className="object-cover"
         draggable={false}
-        loading="lazy"
-        quality={78}
+        priority
       />
       
       {/* Controls */}

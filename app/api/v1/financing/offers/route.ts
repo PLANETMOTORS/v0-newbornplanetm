@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { hashClientIp } from "@/lib/hash-client-ip"
 import { createClient } from "@/lib/supabase/server"
 import { rateLimit } from "@/lib/redis"
 
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
         application_id: application.id,
         action: 'offers_retrieved',
         offer_count: offers.length,
-        client_ip: ip,
+        client_ip_hash: hashClientIp(ip),
         created_at: new Date().toISOString(),
       })
     } catch {

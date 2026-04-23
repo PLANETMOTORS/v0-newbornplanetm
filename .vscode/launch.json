@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "CodeRabbit Button: Review Uncommitted",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "coderabbit --agent -t uncommitted",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "CodeRabbit Button: Auth Status",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "coderabbit auth status",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 import { createHash } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
+import { hashClientIp } from "@/lib/hash-client-ip"
 import { generateObject } from "ai"
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
@@ -285,7 +286,7 @@ VALUE: 210-point inspection, 10-day guarantee, free delivery 300km, financing fr
           listing_price_cents: vehicle.listing_price_cents,
           customer_offer_cents: Math.round(customerOffer * 100),
           min_acceptable_cents: Math.round(minAcceptablePrice * 100),
-          client_ip: clientIp,
+          client_ip_hash: hashClientIp(clientIp),
           created_at: new Date().toISOString(),
         })
       } catch (err) {
