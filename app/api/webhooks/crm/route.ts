@@ -32,6 +32,7 @@ import { createLead } from "@/lib/anna/lead-capture"
 import { trackLead } from "@/lib/meta-capi-helpers"
 import { notifyLead, type LeadPayload } from "@/lib/email/lead-notifier"
 import { logger } from "@/lib/logger"
+import { pushToAutoRaptor, mapLeadToAutoRaptor } from "@/lib/crm/autoraptor"
 
 // ── HMAC verification ──────────────────────────────────────────────────────
 
@@ -193,7 +194,12 @@ export async function POST(request: NextRequest) {
     logger.error("CRM webhook: Meta CAPI failed", { error: String(err) })
   )
 
-  // ── 3. Email notifications ─────────────────────────────────────────────
+  // ── 3. AutoRaptor CRM (non-blocking) ─────────────────────────────────────
+  pushToAutoRaptor(mapLeadToAutoRaptor(lead)).catch((err: unknown) =>
+    logger.error("CRM webhook: AutoRaptor push failed", { error: String(err) })
+  )
+
+  // ── 4. Email notifications ─────────────────────────────────────────────
   const emailResult = await notifyLead(lead)
 
   const durationMs = Date.now() - startMs
