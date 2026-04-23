@@ -8,7 +8,6 @@
 import { createClient } from "@sanity/client"
 
 const PROJECT_ID = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "4588vjsz"
-const DATASET = "production"
 const TOKEN = process.env.SANITY_API_TOKEN
 
 if (!TOKEN) {
@@ -91,9 +90,4 @@ async function seed() {
   if (fail > 0) process.exit(1)
 }
 
-try {
-  await seed()
-} catch (e) {
-  console.error(e)
-  process.exit(1)
-}
+seed().catch(e => { console.error(e); process.exit(1) })
