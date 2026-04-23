@@ -3,26 +3,43 @@
 /**
  * components/search-autocomplete.tsx
  *
- * Real-time typo-tolerant search autocomplete powered by Typesense.
+ * Planet Motors — Typesense-powered search command palette.
  *
- * Features:
- *  - Calls /api/search/suggestions (→ getSmartSuggestions) for live suggestions
- *  - Falls back to /api/search for full vehicle results when no suggestions match
- *  - Keyboard navigation: ↑ ↓ Enter Escape
- *  - 300 ms debounce + AbortController to cancel stale requests
- *  - Loading spinner while fetching
- *  - Popular / Recent searches shown when input is empty
- *  - Field-type badge (make / model / trim) on each suggestion
+ * Built on top of the existing cmdk-based <Command> primitives in
+ * components/ui/command.tsx. Uses a Popover so it stays anchored to
+ * the header search input without a full-screen modal overlay.
+ *
+ * Features
+ * ─────────
+ * • useDebounce (300 ms) — no API hammering on every keystroke
+ * • getSmartSuggestions via /api/search/suggestions (server-side Typesense)
+ * • Keyboard navigation handled natively by cmdk (↑ ↓ Enter Escape)
+ * • Full ARIA combobox semantics via cmdk
+ * • Loading skeleton while fetching
+ * • Recent searches persisted in localStorage (max 5)
+ * • Popular searches shown when input is empty
+ * • Planet Motors blue (#1e3a8a) accent colour throughout
+ * • Graceful degradation when Typesense is unconfigured
  */
 
-import { useState, useRef, useEffect, useCallback, useId } from "react"
-import { Input } from "@/components/ui/input"
+import { useState, useEffect, useRef, useCallback } from "react"
+import { useRouter } from "next/navigation"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover"
 import { Badge } from "@/components/ui/badge"
-import { Search, TrendingUp, Clock, Car, Loader2, Tag, Layers } from "lucide-react"
-import Link from "next/link"
+import { Car, Layers, Tag, TrendingUp, Clock, Loader2 } from "lucide-react"
+import { useDebounce } from "@/lib/hooks/use-debounce"
 import type { SmartSuggestion } from "@/lib/typesense/search"
 
-// ── Static data ────────────────────────────────────────────────────────────
+// ── Constants ──────────────────────────────────────────────────────────────
 
 const POPULAR_SEARCHES = [
   "Tesla Model 3",
@@ -32,328 +49,275 @@ const POPULAR_SEARCHES = [
   "Honda CR-V",
 ]
 
-const RECENT_SEARCHES_KEY = "pm_recent_searches"
+const RECENT_KEY = "pm_recent_searches"
 const MAX_RECENT = 5
 
-function loadRecentSearches(): string[] {
+// ── localStorage helpers ───────────────────────────────────────────────────
+
+function loadRecent(): string[] {
   if (typeof window === "undefined") return []
   try {
-    return JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY) ?? "[]")
+    return JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]")
   } catch {
     return []
   }
 }
 
-function saveRecentSearch(query: string) {
+function saveRecent(q: string) {
   if (typeof window === "undefined") return
   try {
-    const existing = loadRecentSearches().filter((s) => s !== query)
-    const updated = [query, ...existing].slice(0, MAX_RECENT)
-    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated))
+    const next = [q, ...loadRecent().filter((s) => s !== q)].slice(0, MAX_RECENT)
+    localStorage.setItem(RECENT_KEY, JSON.stringify(next))
   } catch {
     // ignore
   }
 }
 
-// ── Field icon helper ──────────────────────────────────────────────────────
+// ── Field icon ─────────────────────────────────────────────────────────────
 
 function FieldIcon({ field }: { field: SmartSuggestion["field"] }) {
+  const cls = "h-3.5 w-3.5 text-[#1e3a8a]/60 shrink-0"
   switch (field) {
-    case "make":
-      return <Car className="h-4 w-4 text-muted-foreground" />
-    case "make_model":
-      return <Layers className="h-4 w-4 text-muted-foreground" />
-    case "trim":
-      return <Tag className="h-4 w-4 text-muted-foreground" />
-    default:
-      return <Search className="h-4 w-4 text-muted-foreground" />
+    case "make":       return <Car     className={cls} />
+    case "make_model": return <Layers  className={cls} />
+    case "trim":       return <Tag     className={cls} />
+    default:           return <Car     className={cls} />
   }
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
 
 export function SearchAutocomplete() {
-  const listboxId = useId()
-  const [isOpen, setIsOpen] = useState(false)
-  const [query, setQuery] = useState("")
-  const [suggestions, setSuggestions] = useState<SmartSuggestion[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [activeIndex, setActiveIndex] = useState(-1)
-  const [recentSearches, setRecentSearches] = useState<string[]>([])
-
-  const containerRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const [open, setOpen]               = useState(false)
+  const [query, setQuery]             = useState("")
+  const [suggestions, setSuggestions] = useState<SmartSuggestion[]>([])
+  const [isLoading, setIsLoading]     = useState(false)
+  const [recent, setRecent]           = useState<string[]>([])
+
+  const debouncedQuery = useDebounce(query, 300)
+
+  // Load recent searches on mount
+  useEffect(() => { setRecent(loadRecent()) }, [])
+
+  // Abort controller ref for cancelling stale fetches
   const abortRef = useRef<AbortController | null>(null)
 
-  // Load recent searches from localStorage on mount
+  // Fetch suggestions whenever debouncedQuery changes
   useEffect(() => {
-    setRecentSearches(loadRecentSearches())
-  }, [])
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
-        setActiveIndex(-1)
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
-
-  // Fetch suggestions from /api/search/suggestions (Typesense Smart Suggestions)
-  const fetchSuggestions = useCallback((q: string) => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
     if (abortRef.current) abortRef.current.abort()
 
-    if (q.trim().length < 2) {
+    if (debouncedQuery.trim().length < 2) {
       setSuggestions([])
       setIsLoading(false)
       return
     }
 
+    const controller = new AbortController()
+    abortRef.current = controller
     setIsLoading(true)
 
-    debounceRef.current = setTimeout(async () => {
-      const controller = new AbortController()
-      abortRef.current = controller
-
-      try {
-        const res = await fetch(
-          `/api/search/suggestions?q=${encodeURIComponent(q.trim())}`,
-          { signal: controller.signal }
-        )
-        if (!res.ok) throw new Error("suggestions fetch failed")
-        const data = (await res.json()) as { suggestions: SmartSuggestion[] }
-        setSuggestions(data.suggestions ?? [])
-      } catch (err) {
-        if (!(err instanceof DOMException && err.name === "AbortError")) {
-          setSuggestions([])
+    fetch(`/api/search/suggestions?q=${encodeURIComponent(debouncedQuery.trim())}`, {
+      signal: controller.signal,
+    })
+      .then((r) => (r.ok ? r.json() : { suggestions: [] }))
+      .then((data: { suggestions: SmartSuggestion[] }) => {
+        if (!controller.signal.aborted) {
+          setSuggestions(data.suggestions ?? [])
+          setIsLoading(false)
         }
-      } finally {
-        if (!controller.signal.aborted) setIsLoading(false)
-      }
-    }, 300)
-  }, [])
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setSuggestions([])
+          setIsLoading(false)
+        }
+      })
 
-  useEffect(() => {
-    fetchSuggestions(query)
-    setActiveIndex(-1)
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-      if (abortRef.current) abortRef.current.abort()
-    }
-  }, [query, fetchSuggestions])
+    return () => controller.abort()
+  }, [debouncedQuery])
 
-  // Navigate to inventory with the selected query
-  const handleSelect = useCallback(
-    (selectedQuery: string) => {
-      setQuery(selectedQuery)
-      setIsOpen(false)
-      setActiveIndex(-1)
-      saveRecentSearch(selectedQuery)
-      setRecentSearches(loadRecentSearches())
-      // Navigate to inventory search results
-      window.location.href = `/inventory?q=${encodeURIComponent(selectedQuery)}`
+  const navigate = useCallback(
+    (q: string) => {
+      saveRecent(q)
+      setRecent(loadRecent())
+      setOpen(false)
+      setQuery("")
+      router.push(`/inventory?q=${encodeURIComponent(q)}`)
     },
-    []
+    [router]
   )
 
-  // Keyboard navigation
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (!isOpen) return
-
-      const itemCount = suggestions.length
-
-      switch (e.key) {
-        case "ArrowDown":
-          e.preventDefault()
-          setActiveIndex((prev) => (prev < itemCount - 1 ? prev + 1 : 0))
-          break
-        case "ArrowUp":
-          e.preventDefault()
-          setActiveIndex((prev) => (prev > 0 ? prev - 1 : itemCount - 1))
-          break
-        case "Enter":
-          e.preventDefault()
-          if (activeIndex >= 0 && suggestions[activeIndex]) {
-            handleSelect(suggestions[activeIndex].query)
-          } else if (query.trim().length >= 2) {
-            handleSelect(query.trim())
-          }
-          break
-        case "Escape":
-          setIsOpen(false)
-          setActiveIndex(-1)
-          inputRef.current?.blur()
-          break
-      }
-    },
-    [isOpen, suggestions, activeIndex, query, handleSelect]
-  )
-
-  const showDropdown = isOpen
-  const showEmpty = isOpen && query.trim().length >= 2 && !isLoading && suggestions.length === 0
+  const showEmpty = !isLoading && debouncedQuery.trim().length >= 2 && suggestions.length === 0
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-xl">
-      {/* Input */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-        {isLoading && (
-          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
-        )}
-        <Input
-          ref={inputRef}
-          data-testid="typesense-search-input"
-          role="combobox"
-          aria-autocomplete="list"
-          aria-expanded={showDropdown}
-          aria-controls={listboxId}
-          aria-activedescendant={activeIndex >= 0 ? `suggestion-${activeIndex}` : undefined}
-          placeholder="Search by make, model, or keyword..."
-          className="pl-10 pr-10"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => setIsOpen(true)}
-          onKeyDown={handleKeyDown}
-          autoComplete="off"
-          spellCheck={false}
-        />
-      </div>
-
-      {/* Dropdown */}
-      {showDropdown && (
-        <div
-          id={listboxId}
-          role="listbox"
-          data-testid="search-results-dropdown"
-          aria-label="Search suggestions"
-          className="absolute top-full left-0 right-0 mt-2 bg-background border rounded-lg shadow-lg z-50 overflow-hidden"
-        >
-          {/* Empty state — show popular / recent */}
-          {query.trim().length < 2 ? (
-            <div className="p-4">
-              {/* Recent Searches */}
-              {recentSearches.length > 0 && (
-                <div className="mb-4">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                    <Clock className="h-3 w-3" />
-                    Recent Searches
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {recentSearches.map((search) => (
-                      <Badge
-                        key={search}
-                        variant="secondary"
-                        className="cursor-pointer hover:bg-secondary/80"
-                        onClick={() => setQuery(search)}
-                      >
-                        {search}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Popular Searches */}
-              <div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                  <TrendingUp className="h-3 w-3" />
-                  Popular Searches
-                </div>
-                <div className="space-y-1">
-                  {POPULAR_SEARCHES.map((search) => (
-                    <button
-                      key={search}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-muted rounded-md flex items-center gap-2"
-                      onClick={() => setQuery(search)}
-                    >
-                      <Search className="h-3 w-3 text-muted-foreground" />
-                      {search}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : isLoading ? (
-            /* Loading skeleton */
-            <div className="py-3 px-4 space-y-2">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center gap-3 animate-pulse">
-                  <div className="w-8 h-8 rounded bg-muted" />
-                  <div className="flex-1 space-y-1">
-                    <div className="h-3 bg-muted rounded w-3/4" />
-                    <div className="h-2 bg-muted rounded w-1/2" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : suggestions.length > 0 ? (
-            /* Smart Suggestions from Typesense */
-            <div className="py-2" aria-live="polite">
-              <div className="px-4 py-1 text-xs text-muted-foreground font-medium uppercase tracking-wide">
-                Suggestions
-              </div>
-              {suggestions.map((suggestion, index) => (
-                <button
-                  key={`${suggestion.field}-${suggestion.query}`}
-                  id={`suggestion-${index}`}
-                  role="option"
-                  aria-selected={activeIndex === index}
-                  data-testid="search-result-item"
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-muted transition-colors ${
-                    activeIndex === index ? "bg-muted" : ""
-                  }`}
-                  onClick={() => handleSelect(suggestion.query)}
-                  onMouseEnter={() => setActiveIndex(index)}
-                >
-                  <div className="w-8 h-8 rounded bg-muted/60 flex items-center justify-center flex-shrink-0">
-                    <FieldIcon field={suggestion.field} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{suggestion.label}</p>
-                  </div>
-                  <Badge variant="outline" className="text-xs capitalize flex-shrink-0">
-                    {suggestion.field === "make_model" ? "model" : suggestion.field}
-                  </Badge>
-                </button>
-              ))}
-              {/* See all results link */}
-              <div className="px-4 py-2 border-t mt-1">
-                <Link
-                  href={`/inventory?q=${encodeURIComponent(query)}`}
-                  className="text-sm text-primary hover:underline"
-                  onClick={() => {
-                    setIsOpen(false)
-                    saveRecentSearch(query.trim())
-                    setRecentSearches(loadRecentSearches())
-                  }}
-                >
-                  See all results for &quot;{query}&quot; →
-                </Link>
-              </div>
-            </div>
-          ) : showEmpty ? (
-            /* No results */
-            <div className="p-4 text-center">
-              <p className="text-sm text-muted-foreground">
-                No suggestions for &quot;{query}&quot;
-              </p>
-              <Link
-                href={`/inventory?q=${encodeURIComponent(query)}`}
-                className="text-sm text-primary hover:underline mt-1 inline-block"
-                onClick={() => setIsOpen(false)}
-              >
-                Search inventory anyway →
-              </Link>
-            </div>
-          ) : null}
+    <Popover open={open} onOpenChange={setOpen}>
+      {/* Anchor — the input sits here so the popover aligns to it */}
+      <PopoverAnchor asChild>
+        <div className="relative w-full">
+          <Command
+            shouldFilter={false}
+            className="rounded-lg border border-gray-200 bg-white shadow-none overflow-visible"
+          >
+            <CommandInput
+              ref={inputRef}
+              data-testid="typesense-search-input"
+              placeholder="Search make, model, keyword…"
+              value={query}
+              onValueChange={(v) => {
+                setQuery(v)
+                setOpen(true)
+              }}
+              onFocus={() => setOpen(true)}
+              className="text-sm h-9"
+            />
+            {/* Inline loading spinner inside the input row */}
+            {isLoading && (
+              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-[#1e3a8a]/50 pointer-events-none" />
+            )}
+          </Command>
         </div>
-      )}
-    </div>
+      </PopoverAnchor>
+
+      <PopoverContent
+        data-testid="search-results-dropdown"
+        className="p-0 w-[var(--radix-popover-trigger-width)] min-w-[320px] rounded-xl border border-gray-200 shadow-xl overflow-hidden"
+        align="start"
+        sideOffset={6}
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <Command shouldFilter={false} className="rounded-none border-0 shadow-none">
+          <CommandList className="max-h-[420px]">
+
+            {/* ── Empty query: show recent + popular ── */}
+            {query.trim().length < 2 && (
+              <>
+                {recent.length > 0 && (
+                  <CommandGroup
+                    heading={
+                      <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                        <Clock className="h-3 w-3" /> Recent
+                      </span>
+                    }
+                  >
+                    {recent.map((s) => (
+                      <CommandItem
+                        key={s}
+                        value={s}
+                        onSelect={() => navigate(s)}
+                        className="cursor-pointer text-sm text-gray-700 hover:text-[#1e3a8a] hover:bg-[#f0f4ff]"
+                      >
+                        <Clock className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                        {s}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+
+                {recent.length > 0 && <CommandSeparator />}
+
+                <CommandGroup
+                  heading={
+                    <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                      <TrendingUp className="h-3 w-3" /> Popular
+                    </span>
+                  }
+                >
+                  {POPULAR_SEARCHES.map((s) => (
+                    <CommandItem
+                      key={s}
+                      value={s}
+                      onSelect={() => navigate(s)}
+                      className="cursor-pointer text-sm text-gray-700 hover:text-[#1e3a8a] hover:bg-[#f0f4ff]"
+                    >
+                      <TrendingUp className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                      {s}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </>
+            )}
+
+            {/* ── Loading skeleton ── */}
+            {isLoading && query.trim().length >= 2 && (
+              <CommandGroup heading="Suggestions">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center gap-3 px-2 py-2 animate-pulse">
+                    <div className="h-4 w-4 rounded bg-gray-200 shrink-0" />
+                    <div className="h-3 rounded bg-gray-200 flex-1" />
+                    <div className="h-4 w-12 rounded bg-gray-100" />
+                  </div>
+                ))}
+              </CommandGroup>
+            )}
+
+            {/* ── Typesense suggestions ── */}
+            {!isLoading && suggestions.length > 0 && (
+              <CommandGroup
+                heading={
+                  <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#1e3a8a]/60">
+                    Suggestions
+                  </span>
+                }
+              >
+                {suggestions.map((s) => (
+                  <CommandItem
+                    key={`${s.field}-${s.query}`}
+                    value={s.query}
+                    data-testid="search-result-item"
+                    onSelect={() => navigate(s.query)}
+                    className="cursor-pointer group hover:bg-[#f0f4ff]"
+                  >
+                    <FieldIcon field={s.field} />
+                    <span className="flex-1 text-sm text-gray-800 group-hover:text-[#1e3a8a] truncate">
+                      {s.label}
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] capitalize border-gray-200 text-gray-400 group-hover:border-[#1e3a8a]/20 group-hover:text-[#1e3a8a]/60"
+                    >
+                      {s.field === "make_model" ? "model" : s.field}
+                    </Badge>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {/* ── No results ── */}
+            {showEmpty && (
+              <CommandEmpty className="py-8 text-center">
+                <p className="text-sm text-gray-500 mb-2">
+                  No suggestions for &ldquo;{debouncedQuery}&rdquo;
+                </p>
+                <button
+                  className="text-sm font-semibold text-[#1e3a8a] hover:underline"
+                  onClick={() => navigate(debouncedQuery.trim())}
+                >
+                  Search inventory anyway →
+                </button>
+              </CommandEmpty>
+            )}
+
+            {/* ── See all results footer ── */}
+            {!isLoading && suggestions.length > 0 && (
+              <>
+                <CommandSeparator />
+                <div className="px-3 py-2.5">
+                  <button
+                    className="w-full text-left text-sm font-semibold text-[#1e3a8a] hover:underline"
+                    onClick={() => navigate(query.trim())}
+                  >
+                    See all results for &ldquo;{query}&rdquo; →
+                  </button>
+                </div>
+              </>
+            )}
+
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   )
 }
