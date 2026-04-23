@@ -57,6 +57,17 @@ export async function invokeEdgeFunction<T = unknown>(
     body: JSON.stringify(body),
   })
 
+  if (!response.ok) {
+    let errorBody: unknown
+    try {
+      errorBody = await response.json()
+    } catch {
+      const text = await response.text().catch(() => "")
+      throw new Error(`Edge Function ${fnName} returned ${response.status}: ${text.slice(0, 200)}`)
+    }
+    return { data: errorBody as T, status: response.status }
+  }
+
   const data = await response.json() as T
   return { data, status: response.status }
 }

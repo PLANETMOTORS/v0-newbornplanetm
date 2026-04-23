@@ -12,8 +12,8 @@ const ALLOWED_ORIGINS = [
 function isAllowedOrigin(origin: string | null): boolean {
   if (!origin) return false
   if (ALLOWED_ORIGINS.includes(origin)) return true
-  // Allow Vercel preview deployments
-  if (origin.endsWith(".vercel.app")) return true
+  // Allow Planet Motors Vercel preview deployments only
+  if (/^https:\/\/v0-newbornplanetm[\w-]*\.vercel\.app$/.test(origin)) return true
   // Allow localhost in development
   if (origin.startsWith("http://localhost:")) return true
   if (origin.startsWith("http://127.0.0.1:")) return true

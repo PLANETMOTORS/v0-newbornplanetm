@@ -173,7 +173,7 @@ Deno.serve(async (req: Request) => {
   const { data } = validation
   const customerName = `${data.firstName} ${data.lastName}`
 
-  log.info("Lead capture started", { email: data.email, amount: data.requestedAmount })
+  log.info("Lead capture started", { emailHash: data.email.replace(/^(.)(.*)(@.*)$/, "$1***$3"), amount: data.requestedAmount })
 
   try {
     // Initialize Supabase admin client using secrets
