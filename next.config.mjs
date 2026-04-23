@@ -1,4 +1,5 @@
 import withBundleAnalyzer from '@next/bundle-analyzer'
+import { partytownSnippet } from '@builder.io/partytown/integration'
 
 const analyzeBundles = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',

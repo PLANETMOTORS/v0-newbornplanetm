@@ -24,6 +24,7 @@
   "dependencies": {
     "@ai-sdk/gateway": "^3.0.87",
     "@ai-sdk/react": "^3.0.145",
+    "@builder.io/partytown": "^0.10.3",
     "@hookform/resolvers": "^3.9.1",
     "@neondatabase/serverless": "^1.0.2",
     "@radix-ui/react-accordion": "1.2.12",

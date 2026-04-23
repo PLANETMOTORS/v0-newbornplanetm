@@ -17,6 +17,9 @@ importers:
       '@ai-sdk/react':
         specifier: ^3.0.145
         version: 3.0.145(react@19.2.4)(zod@3.25.76)
+      '@builder.io/partytown':
+        specifier: ^0.10.3
+        version: 0.10.3
       '@hookform/resolvers':
         specifier: ^3.9.1
         version: 3.10.0(react-hook-form@7.72.0(react@19.2.4))
@@ -447,6 +450,12 @@ packages:
 
   '@bramus/specificity@2.4.2':
     resolution: {integrity: sha512-ctxtJ/eA+t+6q2++vj5j7FYX3nRu311q1wfYH3xjlLOsczhlhxAg2FWNUXhpGvAw3BWo1xBcvOV6/YLc2r5FJw==}
+    hasBin: true
+
+  '@builder.io/partytown@0.10.3':
+    resolution: {integrity: sha512-N2SWA3c5vEad3rgdAFM3zMb6uc7aXqibkgAz4ijvYzycgQXJ4dE5oH6fGFMXSQWj6ayVlLT1/CmpflYUJHfmQg==}
+    engines: {node: '>=18.0.0'}
+    deprecated: Use @qwik.dev/partytown instead
     hasBin: true
 
   '@csstools/color-helpers@6.0.2':
@@ -6279,6 +6288,8 @@ snapshots:
     dependencies:
       css-tree: 3.2.1
     optional: true
+
+  '@builder.io/partytown@0.10.3': {}
 
   '@csstools/color-helpers@6.0.2':
     optional: true
