@@ -286,7 +286,8 @@ export async function releaseDistributedLock(
     }).eval(compareAndDeleteScript, [key], [ownerToken])
 
     return deleted === 1
-  } catch {
-    return true
+  } catch (error) {
+    console.warn('[Redis] Failed to release distributed lock:', (error as Error).message)
+    return false
   }
 }
