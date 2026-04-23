@@ -35,6 +35,7 @@ playwright-report/
 # Screenshot artifacts — never track
 *.png
 !public/**/*.png
+!e2e/**/*-snapshots/**/*.png
 
 # Lighthouse reports
 lh-*.json
