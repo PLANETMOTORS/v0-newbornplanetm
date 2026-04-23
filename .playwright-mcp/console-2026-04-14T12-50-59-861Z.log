@@ -1,2 +1,0 @@
-[   18135ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://ev.planetmotors.ca/icons/icon-144x144.png:0
-[   18138ms] [WARNING] Error while trying to use the following icon from the Manifest: https://ev.planetmotors.ca/icons/icon-144x144.png (Download error or resource isn't a valid image) @ https://ev.planetmotors.ca/:0
