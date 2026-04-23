@@ -1,4 +1,6 @@
 import { headers } from "next/headers"
+import { getPublicSiteUrl } from "@/lib/site-url"
+import { DEALERSHIP_LOCATION, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
 
 async function getGoogleReviewsData() {
   try {
@@ -27,22 +29,23 @@ async function getGoogleReviewsData() {
 
 export async function DynamicLocalBusinessJsonLd() {
   const reviewsData = await getGoogleReviewsData()
-  
+  const siteUrl = getPublicSiteUrl()
+
   const schema = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "name": "Planet Motors",
-    "image": "https://www.planetmotors.ca/images/planet-motors-logo.png",
-    "@id": "https://www.planetmotors.ca",
-    "url": "https://www.planetmotors.ca",
-    "telephone": "+1-866-797-3332",
+    "image": `${siteUrl}/images/planet-motors-logo.png`,
+    "@id": `${siteUrl}/#local-business`,
+    "url": siteUrl,
+    "telephone": PHONE_TOLL_FREE_TEL,
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "30 Major Mackenzie Dr E",
-      "addressLocality": "Richmond Hill",
-      "addressRegion": "ON",
-      "postalCode": "L4C 1G7",
-      "addressCountry": "CA"
+      "streetAddress": DEALERSHIP_LOCATION.streetAddress,
+      "addressLocality": DEALERSHIP_LOCATION.city,
+      "addressRegion": DEALERSHIP_LOCATION.province,
+      "postalCode": DEALERSHIP_LOCATION.postalCode,
+      "addressCountry": DEALERSHIP_LOCATION.country
     },
     "aggregateRating": {
       "@type": "AggregateRating",

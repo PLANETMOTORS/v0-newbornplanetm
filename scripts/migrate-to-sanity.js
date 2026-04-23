@@ -1,5 +1,9 @@
 const { createClient } = require('@sanity/client');
 
+// Keep in sync with lib/rates.ts RATE_FLOOR — single source of truth for advertised APR
+const RATE_FLOOR = 6.29;
+const RATE_FLOOR_DISPLAY = `${RATE_FLOOR}%`;
+
 const token = process.env.SANITY_API_WRITE_TOKEN;
 
 if (!token) {
@@ -106,7 +110,7 @@ const faqs = [
     _type: 'faqItem',
     _id: 'faq-3',
     question: 'What financing options do you offer?',
-    answer: 'We work with over 30 lenders including major banks like TD, RBC, Scotiabank, BMO, and CIBC. We offer rates starting from 4.79% APR with terms up to 96 months. We specialize in helping customers with all credit situations.',
+    answer: `We work with over 30 lenders including major banks like TD, RBC, Scotiabank, BMO, and CIBC. We offer rates starting from ${RATE_FLOOR_DISPLAY} APR with terms up to 96 months. We specialize in helping customers with all credit situations.`,
     category: 'financing',
     order: 3,
   },
@@ -153,12 +157,12 @@ const faqs = [
 ];
 
 const lenders = [
-  { _type: 'lender', _id: 'lender-td', name: 'TD Auto Finance', interestRate: 4.99, maxTerm: 84, featured: true, order: 1 },
+  { _type: 'lender', _id: 'lender-td', name: 'TD Auto Finance', interestRate: 6.29, maxTerm: 84, featured: true, order: 1 },
   { _type: 'lender', _id: 'lender-rbc', name: 'RBC', interestRate: 5.49, maxTerm: 84, featured: true, order: 2 },
   { _type: 'lender', _id: 'lender-scotiabank', name: 'Scotiabank', interestRate: 5.29, maxTerm: 84, featured: true, order: 3 },
   { _type: 'lender', _id: 'lender-bmo', name: 'BMO', interestRate: 5.99, maxTerm: 72, featured: true, order: 4 },
   { _type: 'lender', _id: 'lender-cibc', name: 'CIBC', interestRate: 5.49, maxTerm: 84, featured: true, order: 5 },
-  { _type: 'lender', _id: 'lender-desjardins', name: 'Desjardins', interestRate: 4.79, maxTerm: 96, featured: true, order: 6 },
+  { _type: 'lender', _id: 'lender-desjardins', name: 'Desjardins', interestRate: 6.29, maxTerm: 96, featured: true, order: 6 },
 ];
 
 const homepage = {
@@ -197,7 +201,7 @@ const financingPage = {
   heroSection: {
     headline: 'Get Pre-Approved in Minutes',
     subheadline: 'Access rates from 30+ lenders. No impact on your credit score.',
-    featuredRate: '4.79%',
+    featuredRate: RATE_FLOOR_DISPLAY,
     rateSubtext: 'Rates as low as',
     primaryCta: { label: 'Apply Now', url: '/financing/apply' },
     secondaryCta: { label: 'Calculate Payment', url: '#calculator' },

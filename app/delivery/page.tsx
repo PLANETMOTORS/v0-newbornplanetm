@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Truck, MapPin, Clock, CheckCircle, Calculator, Info } from "lucide-react"
+import { Truck, MapPin, Clock, CheckCircle, Calculator } from "lucide-react"
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
+import { DEALERSHIP_LOCATION, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 
 // Planet Motors shipping location: L4C 1G7, Richmond Hill, Ontario
-const ORIGIN_POSTAL_CODE = "L4C1G7"
+
 
 // Delivery pricing tiers based on distance from Richmond Hill, ON (L4C 1G7)
 // Updated transportation rules:
@@ -21,7 +23,7 @@ const ORIGIN_POSTAL_CODE = "L4C1G7"
 // 2001-9999 km: $0.65/km (bulk rate for long distance)
 // Max delivery distance: 9,999 km
 const MAX_DELIVERY_DISTANCE = 9999
-const FREE_DELIVERY_THRESHOLD = 300
+
 
 const DELIVERY_TIERS = [
   { minKm: 0, maxKm: 300, cost: 0, label: "FREE" },
@@ -799,14 +801,12 @@ export default function DeliveryPage() {
       const fsa = postalCode.replace(/\s/g, "").substring(0, 3).toUpperCase()
       
       // Find matching city or estimate distance
-      let distance = 500 // Default distance
-      let city = "Your Area"
-      let province = ""
-      
+      const city = CITY_DISTANCES[fsa]?.city ?? "Your Area"
+      const province = CITY_DISTANCES[fsa]?.province ?? ""
+
+      let distance: number
       if (CITY_DISTANCES[fsa]) {
         distance = CITY_DISTANCES[fsa].km
-        city = CITY_DISTANCES[fsa].city
-        province = CITY_DISTANCES[fsa].province
       } else {
         // Estimate based on first letter (province indicator)
         const firstLetter = fsa[0]
@@ -853,11 +853,10 @@ export default function DeliveryPage() {
       }
 
       // Estimate delivery days
-      let deliveryDays = "2-3 business days"
-      if (distance <= 300) deliveryDays = "1-2 business days"
-      else if (distance <= 1000) deliveryDays = "3-5 business days"
-      else if (distance <= 2500) deliveryDays = "5-7 business days"
-      else deliveryDays = "7-10 business days"
+      const deliveryDays = distance <= 300 ? "1-2 business days"
+        : distance <= 1000 ? "3-5 business days"
+        : distance <= 2500 ? "5-7 business days"
+        : "7-10 business days"
 
       setDeliveryEstimate({ distance, cost, city, province, deliveryDays })
       setIsCalculating(false)
@@ -872,14 +871,15 @@ export default function DeliveryPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Delivery", url: "/delivery" }]} />
       <Header />
-      
-      <main>
+
+      <main id="main-content" tabIndex={-1}>
         {/* Hero Section */}
         <section className="bg-primary py-16">
           <div className="container mx-auto px-4 text-center">
             <Badge className="mb-4 bg-accent text-accent-foreground">Nationwide Delivery</Badge>
-            <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] text-primary-foreground mb-4">
               Nationwide Delivery
             </h1>
             <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
@@ -925,7 +925,7 @@ export default function DeliveryPage() {
                   {/* Origin Info */}
                   <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
                     <MapPin className="h-4 w-4" />
-                    <span>Shipping from: <strong>30 Major Mackenzie Dr E, Richmond Hill, ON L4C 1G7</strong></span>
+                    <span>Shipping from: <strong>{DEALERSHIP_ADDRESS_FULL}</strong></span>
                   </div>
 
                   {/* Result */}
@@ -966,7 +966,7 @@ export default function DeliveryPage() {
                       {deliveryEstimate.cost === 0 && (
                         <div className="mt-4 flex items-center gap-2 text-green-700 bg-green-50 p-3 rounded-lg">
                           <CheckCircle className="h-5 w-5" />
-                          <span className="font-medium">You qualify for FREE delivery!</span>
+                          <span className="font-semibold">You qualify for FREE delivery!</span>
                         </div>
                       )}
                     </div>

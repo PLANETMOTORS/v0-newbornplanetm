@@ -10,11 +10,15 @@ import { FAQSection } from '@/components/sell-your-car/faq-section'
 import { SellYourCarForm } from '@/components/sell-your-car/form'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
+import { BreadcrumbJsonLd } from '@/components/seo/json-ld'
 import type { SellYourCarPage as SellYourCarPageType } from '@/lib/sanity/types'
 
 export const metadata: Metadata = {
   title: 'Sell Your Car | Planet Motors',
   description: 'Get the best price for your vehicle. No hassle, no hidden fees. Get an instant offer and same-day payment.',
+  alternates: {
+    canonical: '/sell-your-car',
+  },
 }
 
 type ComparisonRow = {
@@ -165,8 +169,9 @@ export default async function SellYourCarPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Sell Your Car", url: "/sell-your-car" }]} />
       <Header />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         {/* Hero Section with Form */}
         <section className="relative bg-gradient-to-br from-primary/10 via-background to-background">
           <div className="container mx-auto px-4 py-12 md:py-20">

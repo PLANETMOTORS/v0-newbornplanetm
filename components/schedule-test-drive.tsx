@@ -12,8 +12,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Calendar, Clock, MapPin, Car, CheckCircle, Phone, AlertCircle } from "lucide-react"
-import { isValidEmail, isValidCanadianPhone, formatCanadianPhone, isValidCanadianPostalCode, formatCanadianPostalCode } from "@/lib/form-validation"
+import { Calendar, MapPin, Car, CheckCircle, Phone, AlertCircle } from "lucide-react"
+import { isValidEmail, isValidCanadianPhone, formatCanadianPhone, isValidCanadianPostalCode, formatCanadianPostalCode } from "@/lib/validation"
+import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL, DEALERSHIP_LOCATION, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 
 interface ScheduleTestDriveProps {
   vehicleTitle: string
@@ -27,7 +28,7 @@ const timeSlots = [
 ]
 
 const locations = [
-  { id: "richmond-hill", name: "Richmond Hill Showroom", address: "30 Major Mackenzie Dr E, Richmond Hill, ON" },
+  { id: "richmond-hill", name: "Richmond Hill Showroom", address: DEALERSHIP_ADDRESS_FULL },
   { id: "home", name: "At Your Home/Office", address: "We come to you (GTA only)" },
 ]
 
@@ -109,7 +110,7 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
       
       setIsSubmitted(true)
     } catch {
-      setError("Failed to schedule. Please call us at 1-866-797-3332 or visit our Contact page.")
+      setError(`Failed to schedule. Please call us at ${PHONE_TOLL_FREE} or visit our Contact page.`)
     } finally {
       setIsSubmitting(false)
     }
@@ -188,7 +189,7 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
         <form onSubmit={handleSubmit} className="space-y-6">
           {step === 1 && (
             <div className="space-y-4">
-              <h3 className="font-medium flex items-center gap-2">
+              <h3 className="font-semibold flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
                 Select Date & Time
               </h3>
@@ -253,7 +254,7 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
                           : "hover:border-primary"
                       }`}
                     >
-                      <p className="font-medium">{loc.name}</p>
+                      <p className="font-semibold">{loc.name}</p>
                       <p className="text-sm text-muted-foreground">{loc.address}</p>
                     </button>
                   ))}
@@ -273,7 +274,7 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
 
           {step === 2 && (
             <div className="space-y-4">
-              <h3 className="font-medium flex items-center gap-2">
+              <h3 className="font-semibold flex items-center gap-2">
                 <Phone className="w-4 h-4" />
                 Your Contact Information
               </h3>
@@ -360,7 +361,7 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
 
               {/* Summary */}
               <div className="bg-muted p-4 rounded-lg">
-                <p className="text-sm font-medium mb-2">Test Drive Summary</p>
+                <p className="text-sm font-semibold mb-2">Test Drive Summary</p>
                 <div className="text-sm text-muted-foreground space-y-1">
                   <p>{vehicleTitle}</p>
                   <p>{formatDate(formData.date)} at {formData.time}</p>

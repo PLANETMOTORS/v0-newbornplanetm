@@ -11,28 +11,28 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Slider } from "@/components/ui/slider"
+
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { 
-  Car, CreditCard, FileText, Search, CheckCircle, ArrowRight, DollarSign, Clock, Shield, 
-  Camera, Upload, Zap, TrendingUp, Star, Truck, Phone, MessageSquare, ChevronRight,
-  AlertCircle, Sparkles, Target, Award, MapPin, Calendar, Users, ThumbsUp
+import {
+  Car, CreditCard, Search, CheckCircle, ArrowRight, DollarSign, Shield,
+  Camera, Upload, Zap, TrendingUp, Star, Truck,
+  AlertCircle, Sparkles, Target, Award, ThumbsUp
 } from "lucide-react"
-import { InstantQuote } from "@/components/trade-in/instant-quote"
+import { TradeInPageJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
 import {
   isValidEmail,
   isValidCanadianPhoneNumber,
   isValidCanadianPostalCode,
-  isValidName,
   formatCanadianPhoneNumber,
   formatCanadianPostalCode,
   ValidationMessages
 } from "@/lib/validation"
 import { useAuth } from "@/contexts/auth-context"
 import { AuthRequiredModal } from "@/components/auth-required-modal"
+import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
 
 // Vehicle makes with models
 const vehicleMakes = {
@@ -262,12 +262,15 @@ const conditionOptions = [
   { value: "poor", label: "Poor", description: "Significant wear, mechanical or body issues, needs work", multiplier: 0.75 },
 ]
 
+const TRADE_IN_DRAFT_KEY = "pm:trade-in-draft"
+
 function TradeInContent() {
   const searchParams = useSearchParams()
   const { user } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [step, setStep] = useState(1)
-  
+  const draftLoadedRef = useRef(false)
+
   // Ref for step content area to scroll to
   const stepContentRef = useRef<HTMLDivElement>(null)
   
@@ -311,7 +314,7 @@ function TradeInContent() {
         vehicle: decodeURIComponent(vehicle),
         value: parsedValue
       })
-      
+
       // Parse vehicle info and pre-fill form
       const parts = decodeURIComponent(vehicle).split(" ")
       if (parts.length >= 3) {
@@ -319,10 +322,10 @@ function TradeInContent() {
         setSelectedMake(parts[1])
         setSelectedModel(parts.slice(2).join(" "))
       }
-      
+
       // Skip to step 2 since we already have vehicle info
       goToStep(2)
-      
+
       // If user just signed in and has action=apply, open the apply modal
       if (action === "apply" && user) {
         // Set up the offer object for the modal
@@ -352,7 +355,24 @@ function TradeInContent() {
         // Small delay to ensure state is set
         setTimeout(() => setShowApplyModal(true), 100)
       }
+    } else if (vehicle && !quoteId) {
+      // Quick Estimate from homepage — pre-fill vehicle info
+      const vehicleStr = decodeURIComponent(vehicle)
+      const parts = vehicleStr.split(" ")
+      if (parts.length >= 3) {
+        setSelectedYear(parts[0])
+        setSelectedMake(parts[1])
+        setSelectedModel(parts.slice(2).join(" "))
+      } else if (parts.length === 2) {
+        setSelectedMake(parts[0])
+        setSelectedModel(parts[1])
+      }
+      const mileageParam = searchParams.get("mileage")
+      if (mileageParam) {
+        setMileage(mileageParam.replace(/[^0-9]/g, ""))
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, user])
   
   // Vehicle details
@@ -378,10 +398,11 @@ function TradeInContent() {
   const [hasLien, setHasLien] = useState(false)
   const [payoffAmount, setPayoffAmount] = useState("")
   const [additionalNotes, setAdditionalNotes] = useState("")
-  
-  // Photos
-  const [photos, setPhotos] = useState<string[]>([])
-  
+
+  // Photos — keyed by angle name for the upload grid
+  const [photos, setPhotos] = useState<Record<string, { file: File; preview: string }>>({})
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
+
   // Contact info
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
@@ -391,7 +412,95 @@ function TradeInContent() {
   const [emailError, setEmailError] = useState("")
   const [phoneError, setPhoneError] = useState("")
   const [postalCodeError, setPostalCodeError] = useState("")
-  
+
+  // Restore draft from localStorage on mount (skip if URL params pre-fill)
+  useEffect(() => {
+    if (draftLoadedRef.current) return
+    draftLoadedRef.current = true
+
+    // Don't restore draft if URL params are driving the form
+    const hasUrlPrefill = searchParams.get("quote") || searchParams.get("vehicle") || searchParams.get("value") || searchParams.get("mileage")
+    if (hasUrlPrefill) return
+
+    try {
+      const raw = window.localStorage.getItem(TRADE_IN_DRAFT_KEY)
+      if (!raw) return
+      const d = JSON.parse(raw) as Record<string, unknown>
+
+      // Only restore if saved within the last 7 days
+      if (d.savedAt && Date.now() - new Date(d.savedAt as string).getTime() > 7 * 24 * 60 * 60 * 1000) {
+        window.localStorage.removeItem(TRADE_IN_DRAFT_KEY)
+        return
+      }
+
+      if (typeof d.step === "number" && d.step >= 1 && d.step <= 3) setStep(d.step as number)
+      if (typeof d.lookupMethod === "string") setLookupMethod(d.lookupMethod as "plate" | "vin" | "manual")
+      if (typeof d.selectedYear === "string") setSelectedYear(d.selectedYear as string)
+      if (typeof d.selectedMake === "string") setSelectedMake(d.selectedMake as string)
+      if (typeof d.selectedModel === "string") setSelectedModel(d.selectedModel as string)
+      if (typeof d.selectedTrim === "string") setSelectedTrim(d.selectedTrim as string)
+      if (typeof d.mileage === "string") setMileage(d.mileage as string)
+      if (typeof d.condition === "string") setCondition(d.condition as string)
+      if (typeof d.hasAccident === "boolean") setHasAccident(d.hasAccident as boolean)
+      if (typeof d.hasMechanicalIssues === "boolean") setHasMechanicalIssues(d.hasMechanicalIssues as boolean)
+      if (typeof d.hasLien === "boolean") setHasLien(d.hasLien as boolean)
+      if (typeof d.payoffAmount === "string") setPayoffAmount(d.payoffAmount as string)
+      if (typeof d.additionalNotes === "string") setAdditionalNotes(d.additionalNotes as string)
+      if (typeof d.email === "string") setEmail(d.email as string)
+      if (typeof d.phone === "string") setPhone(d.phone as string)
+      if (typeof d.postalCode === "string") setPostalCode(d.postalCode as string)
+      if (typeof d.vinNumber === "string") setVinNumber(d.vinNumber as string)
+    } catch (err) {
+      console.error("Failed to restore trade-in draft:", err)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Auto-save draft to localStorage on every form change (debounced 500ms)
+  useEffect(() => {
+    if (!draftLoadedRef.current) return
+
+    const timeout = window.setTimeout(() => {
+      try {
+        // Don't save if user hasn't entered anything meaningful
+        const hasData = selectedYear || selectedMake || mileage || email || vinNumber
+        if (!hasData) return
+
+        const payload = {
+          step,
+          lookupMethod,
+          selectedYear,
+          selectedMake,
+          selectedModel,
+          selectedTrim,
+          mileage,
+          condition,
+          hasAccident,
+          hasMechanicalIssues,
+          hasLien,
+          payoffAmount,
+          additionalNotes,
+          email,
+          phone,
+          postalCode,
+          vinNumber,
+          savedAt: new Date().toISOString(),
+        }
+        window.localStorage.setItem(TRADE_IN_DRAFT_KEY, JSON.stringify(payload))
+      } catch (err) {
+        console.error("Failed to save trade-in draft:", err)
+      }
+    }, 500)
+
+    return () => window.clearTimeout(timeout)
+  }, [
+    step, lookupMethod,
+    selectedYear, selectedMake, selectedModel, selectedTrim,
+    mileage, condition,
+    hasAccident, hasMechanicalIssues, hasLien, payoffAmount, additionalNotes,
+    email, phone, postalCode, vinNumber,
+  ])
+
   // Validation handlers
   const handleEmailChange = (value: string) => {
     setEmail(value)
@@ -433,6 +542,31 @@ function TradeInContent() {
     }
   }
   
+  // Photo upload handler
+  const handlePhotoUpload = (angle: string, file: File | null) => {
+    if (!file) return
+    // Validate file type and size (max 10MB)
+    if (!file.type.startsWith('image/')) return
+    if (file.size > 10 * 1024 * 1024) return
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setPhotos(prev => ({
+        ...prev,
+        [angle]: { file, preview: reader.result as string }
+      }))
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const removePhoto = (angle: string) => {
+    setPhotos(prev => {
+      const next = { ...prev }
+      delete next[angle]
+      return next
+    })
+  }
+
   // Offer
   interface TradeInOffer {
     quoteId?: string
@@ -477,86 +611,159 @@ function TradeInContent() {
 
   const handleVinLookup = async () => {
     setIsLookingUp(true)
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    setVehicleFound(true)
-    setFoundVehicle({
-      year: 2022,
-      make: "Tesla",
-      model: "Model 3",
-      trim: "Long Range",
-      vin: vinNumber,
-      estimatedMileage: "32,000",
-      color: "Pearl White",
-    })
-    setSelectedYear("2022")
-    setSelectedMake("Tesla")
-    setSelectedModel("Model 3")
-    setSelectedTrim("Long Range")
-    setMileage("32000")
-    setIsLookingUp(false)
+    try {
+      const response = await fetch(`/api/v1/trade-in/vin-decode?vin=${encodeURIComponent(vinNumber)}`)
+      const data = await response.json()
+
+      if (data.success && data.vehicle) {
+        const v = data.vehicle
+        setVehicleFound(true)
+        setFoundVehicle({
+          year: parseInt(v.year) || 0,
+          make: v.make,
+          model: v.model,
+          trim: v.trim,
+          vin: v.vin,
+          estimatedMileage: "",
+          color: "",
+        })
+        setSelectedYear(v.year)
+        setSelectedMake(v.make)
+        setSelectedModel(v.model)
+        if (v.trim) setSelectedTrim(v.trim)
+      } else {
+        // Show inline error — vehicle not found
+        setVehicleFound(false)
+        setFoundVehicle(null)
+        alert(data.error || "Could not decode this VIN. Please check and try again.")
+      }
+    } catch {
+      alert("Failed to look up VIN. Please try again or enter details manually.")
+    } finally {
+      setIsLookingUp(false)
+    }
   }
 
   const calculateOffer = async () => {
     setIsCalculating(true)
     setCalculationProgress(0)
-    
-    // Simulate calculation with progress
-    const steps = [
-      "Checking Canadian Black Book values...",
-      "Analyzing market demand...",
-      "Reviewing auction data...",
-      "Calculating condition adjustments...",
-      "Generating your offer..."
-    ]
-    
-    for (let i = 0; i < steps.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 600))
-      setCalculationProgress((i + 1) * 20)
+
+    // Progress animation while API works
+    const progressInterval = setInterval(() => {
+      setCalculationProgress(prev => Math.min(prev + 5, 90))
+    }, 300)
+
+    let lowValue: number, midValue: number, highValue: number
+
+    try {
+      // Call the real vehicle-valuation API with postal code for regional pricing
+      const response = await fetch("/api/vehicle-valuation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          year: selectedYear,
+          make: selectedMake,
+          model: selectedModel,
+          trim: selectedTrim,
+          mileage,
+          condition,
+          postalCode,
+        }),
+      })
+
+      clearInterval(progressInterval)
+      setCalculationProgress(100)
+
+      if (response.ok) {
+        const valuation = await response.json()
+        lowValue = valuation.lowValue
+        midValue = valuation.midValue
+        highValue = valuation.highValue
+      } else {
+        // Fallback to local calculation
+        const fallback = calculateLocalFallback()
+        lowValue = fallback.low
+        midValue = fallback.mid
+        highValue = fallback.high
+      }
+    } catch {
+      clearInterval(progressInterval)
+      setCalculationProgress(100)
+      const fallback = calculateLocalFallback()
+      lowValue = fallback.low
+      midValue = fallback.mid
+      highValue = fallback.high
     }
-    
-    // Calculate base value
-    const baseValue = 28500
-    const conditionMultiplier = conditionOptions.find(c => c.value === condition)?.multiplier || 1
-    let finalValue = baseValue * conditionMultiplier
-    
-    // Adjustments
-    if (hasAccident) finalValue *= 0.85
-    if (hasMechanicalIssues) finalValue *= 0.92
-    
-    // Calculate range
-    const lowValue = Math.round(finalValue * 0.95 / 100) * 100
-    const highValue = Math.round(finalValue * 1.05 / 100) * 100
-    const midValue = Math.round(finalValue / 100) * 100
-    
-    // Calculate equity if lien
+
+    // Apply condition adjustments
+    if (hasAccident) {
+      lowValue = Math.round(lowValue * 0.85)
+      midValue = Math.round(midValue * 0.85)
+      highValue = Math.round(highValue * 0.85)
+    }
+    if (hasMechanicalIssues) {
+      lowValue = Math.round(lowValue * 0.92)
+      midValue = Math.round(midValue * 0.92)
+      highValue = Math.round(highValue * 0.92)
+    }
+
+    // Round to nearest 50
+    lowValue = Math.round(lowValue / 50) * 50
+    midValue = Math.round(midValue / 50) * 50
+    highValue = Math.round(highValue / 50) * 50
+
     const equity = hasLien && payoffAmount ? midValue - parseFloat(payoffAmount) : midValue
-    
+
+    const generatedQuoteId = `PQ-${Date.now().toString(36).toUpperCase()}`
     setOffer({
+      quoteId: generatedQuoteId,
       offerNumber: `PM-${Date.now().toString(36).toUpperCase()}`,
-      vehicle: `${selectedYear} ${selectedMake} ${selectedModel} ${selectedTrim}`,
-      mileage: mileage,
-      condition: condition,
-      cbbValue: {
-        low: lowValue,
-        mid: midValue,
-        high: highValue,
-      },
+      vehicle: `${selectedYear} ${selectedMake} ${selectedModel} ${selectedTrim}`.trim(),
+      mileage,
+      condition,
+      cbbValue: { low: lowValue, mid: midValue, high: highValue },
       adjustments: [
-        hasAccident && { reason: "Accident history", amount: -(baseValue * 0.15) },
-        hasMechanicalIssues && { reason: "Mechanical issues", amount: -(baseValue * 0.08) },
+        hasAccident && { reason: "Accident history", amount: Math.round(-(midValue * 0.15)) },
+        hasMechanicalIssues && { reason: "Mechanical issues", amount: Math.round(-(midValue * 0.08)) },
       ].filter(Boolean),
       offerAmount: midValue,
       payoff: hasLien ? parseFloat(payoffAmount) || 0 : 0,
-      equity: equity,
+      equity,
       validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-CA'),
       comparison: {
-        privateSale: Math.round(midValue * 1.15 / 100) * 100,
-        dealerTrade: Math.round(midValue * 0.88 / 100) * 100,
-      }
+        privateSale: Math.round(midValue * 1.15 / 50) * 50,
+        dealerTrade: Math.round(midValue * 0.88 / 50) * 50,
+      },
     })
-    
+
     setIsCalculating(false)
     setShowOffer(true)
+  }
+
+  // Local fallback when API is unavailable
+  const calculateLocalFallback = () => {
+    const currentYear = new Date().getFullYear()
+    const age = currentYear - parseInt(selectedYear)
+    const mileageNum = parseInt(mileage.replace(/,/g, '')) || 50000
+    const baseTiers: Record<string, number> = {
+      "BMW": 45000, "Mercedes-Benz": 48000, "Audi": 45000, "Lexus": 42000,
+      "Tesla": 55000, "Porsche": 70000, "Toyota": 28000, "Honda": 28000,
+      "Volkswagen": 27000, "Hyundai": 25000, "Kia": 25000, "Ford": 30000,
+      "Chevrolet": 28000, "Jeep": 32000, "Ram": 40000, "Subaru": 28000,
+    }
+    let value = baseTiers[selectedMake] || 28000
+    for (let y = 0; y < age; y++) {
+      if (y === 0) value *= 0.80
+      else if (y < 3) value *= 0.88
+      else if (y < 6) value *= 0.90
+      else value *= 0.92
+    }
+    const expectedKm = age * 20000
+    if (mileageNum > expectedKm) value -= (mileageNum - expectedKm) * 0.05
+    const condMul = { excellent: 1.10, good: 1.0, fair: 0.85, poor: 0.65 }[condition] || 1.0
+    value = Math.max(500, value * condMul)
+    value = Math.round(value / 50) * 50
+    return { low: Math.round(value * 0.90 / 50) * 50, mid: value, high: Math.round(value * 1.10 / 50) * 50 }
   }
 
   const nextStep = () => {
@@ -576,7 +783,7 @@ function TradeInContent() {
     <div className="min-h-screen bg-background overflow-x-hidden">
       <Header />
       
-      <main className="overflow-x-hidden max-w-full">
+      <main id="main-content" tabIndex={-1} className="overflow-x-hidden max-w-full">
         {/* Instant Quote Banner - Shows when coming from AI Quote */}
         {instantQuote && (
           <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4">
@@ -587,7 +794,7 @@ function TradeInContent() {
                     <CheckCircle className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-white/80">Your Instant Quote for {instantQuote.vehicle}</p>
+                    <p className="text-sm font-semibold text-white/80">Your Instant Quote for {instantQuote.vehicle}</p>
                     <p className="text-2xl font-bold">${instantQuote.value.toLocaleString()}</p>
                   </div>
                 </div>
@@ -600,170 +807,271 @@ function TradeInContent() {
           </div>
         )}
         
-        {/* Hero Section - Premium Design */}
-        <section className="relative bg-gradient-to-br from-primary via-primary to-primary/90 py-20 overflow-hidden">
-          {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-            <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
-          </div>
-          
+        {/* Hero Section — Clean, Clutch-Inspired */}
+        <section className="relative bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 py-16 sm:py-24 overflow-hidden">
+          {/* Subtle background grid */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.08),transparent_50%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(16,185,129,0.06),transparent_50%)]" />
+
           <div className="container mx-auto px-4 relative">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="text-center lg:text-left">
-                <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-full mb-6">
-                  <Sparkles className="h-4 w-4" />
-                  <span className="text-sm font-medium">Powered by Canadian Black Book</span>
-                </div>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 text-balance">
-                  Get Your Instant<br />Trade-In Offer
-                </h1>
-                <p className="text-xl text-white/90 mb-8 max-w-lg">
-                  Find out what your car is worth in 60 seconds. Competitive prices, free pickup, and payment within 24 hours.
-                </p>
-                
-                {/* Stats */}
-                <div className="grid grid-cols-3 gap-3 sm:gap-6 text-white mb-8">
-                  <div className="text-center lg:text-left">
-                    <div className="text-xl sm:text-3xl font-bold">$12M+</div>
-                    <div className="text-xs sm:text-sm text-white/70">Paid to Canadians</div>
-                  </div>
-                  <div className="text-center lg:text-left">
-                    <div className="text-xl sm:text-3xl font-bold">15K+</div>
-                    <div className="text-xs sm:text-sm text-white/70">Cars Purchased</div>
-                  </div>
-                  <div className="text-center lg:text-left">
-                    <div className="text-xl sm:text-3xl font-bold">4.8 Star Rating</div>
-                    <div className="text-xs sm:text-sm text-white/70">Google Reviews</div>
-                  </div>
-                </div>
-                
-                {/* Trust badges */}
-                <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
-                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                    <Shield className="h-3 w-3 mr-1" /> Best Price Guarantee
-                  </Badge>
-                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                    <Truck className="h-3 w-3 mr-1" /> Free Pickup Canada-Wide
-                  </Badge>
-                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                    <Zap className="h-3 w-3 mr-1" /> 24h Payment
-                  </Badge>
-                </div>
-              </div>
-              
-              {/* Quick Value Check */}
-              <div className="lg:pl-8">
-                <Card className="shadow-2xl border-0">
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="text-2xl">Start Your Offer</CardTitle>
-                        <CardDescription>Takes less than 60 seconds</CardDescription>
+            <div className="max-w-3xl mx-auto text-center mb-12">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 tracking-[-0.01em] sm:tracking-[-0.02em]">
+                What&apos;s Your Car Worth?
+              </h1>
+              <p className="text-lg sm:text-xl text-slate-300 max-w-xl mx-auto">
+                Get an instant trade-in offer in under 60 seconds.
+                <br className="hidden sm:block" />
+                No haggling. No spam. Just your number.
+              </p>
+            </div>
+
+            {/* VIN Lookup Card — Front and Center */}
+            <div className="max-w-xl mx-auto">
+              <Card className="shadow-2xl border-0 bg-white/[0.03] backdrop-blur-xl border border-white/10">
+                <CardContent className="p-6 sm:p-8">
+                  <Tabs
+                    value={lookupMethod}
+                    onValueChange={(v: string) => setLookupMethod(v as "vin" | "plate" | "manual")}
+                  >
+                    <TabsList className="grid w-full grid-cols-3 mb-6 bg-white/5 border border-white/10 h-12">
+                      <TabsTrigger value="vin" className="text-white/70 data-[state=active]:bg-primary data-[state=active]:text-white text-sm font-semibold">VIN Lookup</TabsTrigger>
+                      <TabsTrigger value="plate" className="text-white/70 data-[state=active]:bg-primary data-[state=active]:text-white text-sm font-semibold">Plate #</TabsTrigger>
+                      <TabsTrigger value="manual" className="text-white/70 data-[state=active]:bg-primary data-[state=active]:text-white text-sm font-semibold">Manual</TabsTrigger>
+                    </TabsList>
+
+                    {/* VIN Tab */}
+                    <TabsContent value="vin" className="space-y-4">
+                      <div className="relative">
+                        <Input
+                          placeholder="Enter your 17-character VIN"
+                          className="uppercase text-lg tracking-wider font-mono h-14 bg-white/5 border-white/20 text-white placeholder:text-white/30 pr-12"
+                          maxLength={17}
+                          value={vinNumber}
+                          onChange={(e) => setVinNumber(e.target.value.toUpperCase())}
+                        />
+                        {vinNumber.length > 0 && (
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-white/40 font-mono">
+                            {vinNumber.length}/17
+                          </span>
+                        )}
                       </div>
-                      <div className="flex items-center gap-1 text-amber-500">
-                        {[1,2,3,4,5].map(i => <Star key={i} className="h-4 w-4 fill-current" />)}
+                      <p className="text-xs text-white/40 flex items-center gap-1.5">
+                        <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                        Found on your registration, insurance card, or driver-side door jamb
+                      </p>
+                      <Button
+                        className="w-full h-14 text-lg font-semibold"
+                        size="lg"
+                        onClick={handleVinLookup}
+                        disabled={vinNumber.length !== 17 || isLookingUp}
+                      >
+                        {isLookingUp ? (
+                          <span className="flex items-center gap-2"><span className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" /> Decoding VIN...</span>
+                        ) : (
+                          <><Search className="mr-2 h-5 w-5" /> Look Up My Vehicle</>
+                        )}
+                      </Button>
+                    </TabsContent>
+
+                    {/* Plate Tab */}
+                    <TabsContent value="plate" className="space-y-4">
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="col-span-2">
+                          <Input
+                            placeholder="License plate"
+                            className="uppercase text-lg tracking-wider font-mono h-14 bg-white/5 border-white/20 text-white placeholder:text-white/30"
+                            value={plateNumber}
+                            onChange={(e) => setPlateNumber(e.target.value.toUpperCase())}
+                          />
+                        </div>
+                        <Select value={province} onValueChange={setProvince}>
+                          <SelectTrigger aria-label="Province" className="h-14 bg-white/5 border-white/20 text-white">
+                            <SelectValue placeholder="ON" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {["ON","QC","BC","AB","SK","MB","NS","NB","NL","PE","NT","NU","YT"].map(p => (
+                              <SelectItem key={p} value={p}>{p}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      <Select value={selectedYear} onValueChange={setSelectedYear}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Year" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from({ length: 25 }, (_, i) => 2025 - i).map((year) => (
-                            <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Select value={selectedMake} onValueChange={(v) => { setSelectedMake(v); setSelectedModel(""); }}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Make" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.keys(vehicleMakes).map((make) => (
-                            <SelectItem key={make} value={make}>{make}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Select value={selectedModel} onValueChange={(v) => { setSelectedModel(v); setSelectedTrim(""); }} disabled={!selectedMake}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Model" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {selectedMake && vehicleMakes[selectedMake as keyof typeof vehicleMakes]?.map((model) => (
-                            <SelectItem key={model} value={model}>{model}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Select value={selectedTrim} onValueChange={setSelectedTrim} disabled={!selectedModel}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Trim Level" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {selectedModel && (vehicleTrims[selectedModel] || vehicleTrims["default"])?.map((trim) => (
-                            <SelectItem key={trim} value={trim}>{trim}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <Input 
-                      placeholder="Mileage (km)" 
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      value={mileage}
-                      onChange={(e) => setMileage(e.target.value.replace(/[^0-9]/g, ''))}
-                      autoComplete="off"
-                    />
-                    <Button 
-                      className="w-full h-12 text-lg"
-                      size="lg"
-                      onClick={() => { goToStep(2); setVehicleFound(true); }}
-                      disabled={!selectedYear || !selectedMake || !selectedModel || !selectedTrim || !mileage}
-                    >
-                      Get My Instant Offer
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
-                    <p className="text-xs text-center text-muted-foreground">
-                      No phone calls, no spam. See your offer instantly.
-                    </p>
-                  </CardContent>
-                </Card>
+                      <Button
+                        className="w-full h-14 text-lg font-semibold"
+                        size="lg"
+                        onClick={handlePlateLookup}
+                        disabled={!plateNumber || isLookingUp}
+                      >
+                        {isLookingUp ? (
+                          <span className="flex items-center gap-2"><span className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" /> Looking Up...</span>
+                        ) : (
+                          <><Search className="mr-2 h-5 w-5" /> Look Up Vehicle</>
+                        )}
+                      </Button>
+                    </TabsContent>
+
+                    {/* Manual Tab */}
+                    <TabsContent value="manual" className="space-y-4">
+                      <div className="grid grid-cols-2 gap-3">
+                        <Select value={selectedYear} onValueChange={setSelectedYear}>
+                          <SelectTrigger aria-label="Year" className="h-12 bg-white/5 border-white/20 text-white">
+                            <SelectValue placeholder="Year" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 25 }, (_, i) => 2026 - i).map((year) => (
+                              <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Select value={selectedMake} onValueChange={(v) => { setSelectedMake(v); setSelectedModel(""); setSelectedTrim(""); }}>
+                          <SelectTrigger aria-label="Make" className="h-12 bg-white/5 border-white/20 text-white">
+                            <SelectValue placeholder="Make" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.keys(vehicleMakes).map((make) => (
+                              <SelectItem key={make} value={make}>{make}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Select value={selectedModel} onValueChange={(v) => { setSelectedModel(v); setSelectedTrim(""); }} disabled={!selectedMake}>
+                          <SelectTrigger aria-label="Model" className="h-12 bg-white/5 border-white/20 text-white">
+                            <SelectValue placeholder="Model" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {selectedMake && vehicleMakes[selectedMake as keyof typeof vehicleMakes]?.map((model) => (
+                              <SelectItem key={model} value={model}>{model}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Select value={selectedTrim} onValueChange={setSelectedTrim} disabled={!selectedModel}>
+                          <SelectTrigger aria-label="Trim" className="h-12 bg-white/5 border-white/20 text-white">
+                            <SelectValue placeholder="Trim" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {selectedModel && (vehicleTrims[selectedModel] || vehicleTrims["default"])?.map((trim) => (
+                              <SelectItem key={trim} value={trim}>{trim}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Input
+                        placeholder="Mileage (km)"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        className="h-12 bg-white/5 border-white/20 text-white placeholder:text-white/30"
+                        value={mileage}
+                        onChange={(e) => setMileage(e.target.value.replace(/[^0-9]/g, ''))}
+                        autoComplete="off"
+                      />
+                      <Button
+                        className="w-full h-14 text-lg font-semibold"
+                        size="lg"
+                        onClick={() => { goToStep(2); setVehicleFound(true); }}
+                        disabled={!selectedYear || !selectedMake || !selectedModel || !selectedTrim || !mileage}
+                      >
+                        Get My Instant Offer <ArrowRight className="ml-2 h-5 w-5" />
+                      </Button>
+                      {(!selectedYear || !selectedMake || !selectedModel || !selectedTrim || !mileage) && (
+                        <p className="text-xs text-white/50 text-center mt-2">
+                          Please fill in all fields above to get your offer
+                        </p>
+                      )}
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+
+              {/* Trust signals — minimal */}
+              <div className="flex items-center justify-center gap-6 mt-6 text-xs sm:text-sm text-white/40">
+                <span className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" /> No Obligation</span>
+                <span className="flex items-center gap-1.5"><Zap className="h-3.5 w-3.5" /> Instant Result</span>
+                <span className="flex items-center gap-1.5"><Truck className="h-3.5 w-3.5" /> Free Pickup</span>
               </div>
             </div>
           </div>
         </section>
 
+        {/* VIN Lookup Result — Shows when vehicle found via VIN/Plate */}
+        {vehicleFound && foundVehicle && (lookupMethod === "vin" || lookupMethod === "plate") && step === 1 && (
+          <section className="py-8 bg-emerald-50 dark:bg-emerald-950/20 border-b">
+            <div className="container mx-auto px-4">
+              <div className="max-w-xl mx-auto">
+                <Card className="shadow-lg border-emerald-200 dark:border-emerald-800">
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900 rounded-full flex items-center justify-center flex-shrink-0">
+                        <CheckCircle className="h-6 w-6 text-emerald-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg">Vehicle Found!</h3>
+                        <p className="text-2xl font-bold mt-1">
+                          {foundVehicle.year} {foundVehicle.make} {foundVehicle.model} {foundVehicle.trim}
+                        </p>
+                        {foundVehicle.vin && (
+                          <p className="text-sm text-muted-foreground font-mono mt-1">VIN: {foundVehicle.vin}</p>
+                        )}
+                        <div className="mt-4 space-y-3">
+                          <Input
+                            placeholder="Enter your mileage (km)"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            className="h-12"
+                            value={mileage}
+                            onChange={(e) => setMileage(e.target.value.replace(/[^0-9]/g, ''))}
+                            autoComplete="off"
+                          />
+                          <Button
+                            className="w-full h-12 text-lg"
+                            size="lg"
+                            onClick={() => goToStep(2)}
+                            disabled={!mileage}
+                          >
+                            Continue to Get Offer <ArrowRight className="ml-2 h-5 w-5" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Main Wizard Section */}
-        {!showOffer && (
+        {!showOffer && step >= 2 && (
           <section className="py-12 bg-muted/30">
 <div className="container mx-auto px-4">
   <div className="max-w-4xl mx-auto" ref={stepContentRef}>
   {/* Progress Steps */}
   <div className="flex items-center justify-between mb-8 px-4">
+                  {/* Vehicle info summary */}
+                  <div className="flex items-center gap-3 bg-muted/50 rounded-full px-4 py-2 mr-4">
+                    <CheckCircle className="h-5 w-5 text-primary" />
+                    <span className="text-sm font-semibold truncate">
+                      {selectedYear} {selectedMake} {selectedModel}
+                    </span>
+                  </div>
                   {[
-                    { num: 1, label: "Vehicle Info" },
                     { num: 2, label: "Condition" },
                     { num: 3, label: "Photos" },
                     { num: 4, label: "Your Offer" },
                   ].map((s, i) => (
                     <div key={s.num} className="flex items-center">
                       <div className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold transition-all ${
-                        step >= s.num 
-                          ? "bg-primary text-primary-foreground" 
+                        step >= s.num
+                          ? "bg-primary text-primary-foreground"
                           : "bg-muted text-muted-foreground"
                       }`}>
-                        {step > s.num ? <CheckCircle className="h-5 w-5" /> : s.num}
+                        {step > s.num ? <CheckCircle className="h-5 w-5" /> : i + 1}
                       </div>
                       <span className={`ml-2 hidden sm:block text-sm ${
-                        step >= s.num ? "text-foreground font-medium" : "text-muted-foreground"
+                        step >= s.num ? "text-foreground font-semibold" : "text-muted-foreground"
                       }`}>
                         {s.label}
                       </span>
-                      {i < 3 && (
+                      {i < 2 && (
                         <div className={`hidden sm:block w-12 lg:w-24 h-0.5 mx-3 ${
                           step > s.num ? "bg-primary" : "bg-muted"
                         }`} />
@@ -771,198 +1079,6 @@ function TradeInContent() {
                     </div>
                   ))}
                 </div>
-
-                {/* Step 1: Vehicle Info */}
-                {step === 1 && (
-                  <Card className="shadow-lg">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Car className="h-5 w-5 text-primary" />
-                        Vehicle Information
-                      </CardTitle>
-                      <CardDescription>
-                        Enter your vehicle details or look it up automatically
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Tabs
-                        value={lookupMethod}
-                        onValueChange={(value: string) => setLookupMethod(value as "plate" | "vin" | "manual")}
-                      >
-                        <TabsList className="grid w-full grid-cols-3 mb-6 h-auto gap-1">
-                          <TabsTrigger value="plate" className="text-xs sm:text-sm px-2 sm:px-4 py-2.5 min-h-[44px]">Plate</TabsTrigger>
-                          <TabsTrigger value="vin" className="text-xs sm:text-sm px-2 sm:px-4 py-2.5 min-h-[44px]">VIN</TabsTrigger>
-                          <TabsTrigger value="manual" className="text-xs sm:text-sm px-2 sm:px-4 py-2.5 min-h-[44px]">Manual</TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="plate" className="space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <Select value={province} onValueChange={setProvince}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Province" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="ON">Ontario</SelectItem>
-                                <SelectItem value="BC">British Columbia</SelectItem>
-                                <SelectItem value="AB">Alberta</SelectItem>
-                                <SelectItem value="QC">Quebec</SelectItem>
-                                <SelectItem value="MB">Manitoba</SelectItem>
-                                <SelectItem value="SK">Saskatchewan</SelectItem>
-                                <SelectItem value="NS">Nova Scotia</SelectItem>
-                                <SelectItem value="NB">New Brunswick</SelectItem>
-                                <SelectItem value="NL">Newfoundland</SelectItem>
-                                <SelectItem value="PE">Prince Edward Island</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <Input 
-                              placeholder="License Plate" 
-                              className="md:col-span-2 uppercase text-lg tracking-wider font-mono"
-                              value={plateNumber}
-                              onChange={(e) => setPlateNumber(e.target.value.toUpperCase())}
-                            />
-                          </div>
-                          <Button 
-                            className="w-full h-12" 
-                            size="lg"
-                            onClick={handlePlateLookup}
-                            disabled={!province || !plateNumber || isLookingUp}
-                          >
-                            {isLookingUp ? (
-                              <><span className="animate-pulse">Looking Up Vehicle...</span></>
-                            ) : (
-                              <><Search className="mr-2 h-5 w-5" />Look Up Vehicle</>
-                            )}
-                          </Button>
-                        </TabsContent>
-
-                        <TabsContent value="vin" className="space-y-4">
-                          <div className="space-y-2">
-                            <Input 
-                              placeholder="Enter 17-character VIN" 
-                              className="uppercase text-lg tracking-wider font-mono"
-                              maxLength={17}
-                              value={vinNumber}
-                              onChange={(e) => setVinNumber(e.target.value.toUpperCase())}
-                            />
-                            <p className="text-sm text-muted-foreground flex items-center gap-1">
-                              <AlertCircle className="h-3 w-3" />
-                              Find your VIN on your registration, insurance card, or driver-side door jamb
-                            </p>
-                          </div>
-                          <Button 
-                            className="w-full h-12" 
-                            size="lg"
-                            onClick={handleVinLookup}
-                            disabled={vinNumber.length !== 17 || isLookingUp}
-                          >
-                            {isLookingUp ? (
-                              <><span className="animate-pulse">Looking Up Vehicle...</span></>
-                            ) : (
-                              <><Search className="mr-2 h-5 w-5" />Look Up Vehicle</>
-                            )}
-                          </Button>
-                        </TabsContent>
-
-                        <TabsContent value="manual" className="space-y-4">
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <Select value={selectedYear} onValueChange={setSelectedYear}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Year" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {Array.from({ length: 25 }, (_, i) => 2025 - i).map((year) => (
-                                  <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <Select value={selectedMake} onValueChange={(v) => { setSelectedMake(v); setSelectedModel(""); }}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Make" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {Object.keys(vehicleMakes).map((make) => (
-                                  <SelectItem key={make} value={make}>{make}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <Select value={selectedModel} onValueChange={(v) => { setSelectedModel(v); setSelectedTrim(""); }} disabled={!selectedMake}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Model" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {selectedMake && vehicleMakes[selectedMake as keyof typeof vehicleMakes]?.map((model) => (
-                                  <SelectItem key={model} value={model}>{model}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <Select value={selectedTrim} onValueChange={setSelectedTrim} disabled={!selectedModel}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Trim Level" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {selectedModel && (vehicleTrims[selectedModel] || vehicleTrims["default"])?.map((trim) => (
-                                  <SelectItem key={trim} value={trim}>{trim}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <Input 
-                            placeholder="Current Mileage (km)" 
-                            type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            value={mileage}
-                            onChange={(e) => setMileage(e.target.value.replace(/[^0-9]/g, ''))}
-                            autoComplete="off"
-                            className="text-lg"
-                          />
-                          <Button 
-                            className="w-full h-12" 
-                            size="lg"
-                            onClick={() => { setVehicleFound(true); nextStep(); }}
-                            disabled={!selectedYear || !selectedMake || !selectedModel || !selectedTrim || !mileage}
-                          >
-                            <ArrowRight className="mr-2 h-5 w-5" />
-                            Continue
-                          </Button>
-                        </TabsContent>
-                      </Tabs>
-
-                      {/* Vehicle Found Result */}
-                      {vehicleFound && foundVehicle && lookupMethod !== "manual" && (
-                        <div className="mt-6 p-5 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-xl">
-                          <div className="flex items-center gap-2 mb-4">
-                            <CheckCircle className="h-5 w-5 text-green-600" />
-                            <span className="text-green-800 dark:text-green-200 font-semibold">Vehicle Found!</span>
-                            <Badge className="bg-green-600 text-white ml-auto">Auto-Filled</Badge>
-                          </div>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div>
-                              <span className="text-xs text-muted-foreground uppercase tracking-wide">Year</span>
-                              <p className="font-semibold text-lg">{foundVehicle.year}</p>
-                            </div>
-                            <div>
-                              <span className="text-xs text-muted-foreground uppercase tracking-wide">Make</span>
-                              <p className="font-semibold text-lg">{foundVehicle.make}</p>
-                            </div>
-                            <div>
-                              <span className="text-xs text-muted-foreground uppercase tracking-wide">Model</span>
-                              <p className="font-semibold text-lg">{foundVehicle.model}</p>
-                            </div>
-                            <div>
-                              <span className="text-xs text-muted-foreground uppercase tracking-wide">Trim</span>
-                              <p className="font-semibold text-lg">{foundVehicle.trim}</p>
-                            </div>
-                          </div>
-                          <Button className="w-full mt-4 bg-green-600 hover:bg-green-700 h-12" onClick={nextStep}>
-                            Continue with This Vehicle
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
 
                 {/* Step 2: Condition */}
                 {step === 2 && (
@@ -1021,7 +1137,7 @@ function TradeInContent() {
                             onCheckedChange={(c) => setHasAccident(c as boolean)}
                           />
                           <div className="space-y-1">
-                            <Label htmlFor="accident" className="cursor-pointer font-medium">
+                            <Label htmlFor="accident" className="cursor-pointer font-semibold">
                               Has this vehicle been in an accident?
                             </Label>
                             <p className="text-sm text-muted-foreground">
@@ -1037,7 +1153,7 @@ function TradeInContent() {
                             onCheckedChange={(c) => setHasMechanicalIssues(c as boolean)}
                           />
                           <div className="space-y-1">
-                            <Label htmlFor="mechanical" className="cursor-pointer font-medium">
+                            <Label htmlFor="mechanical" className="cursor-pointer font-semibold">
                               Are there any mechanical issues?
                             </Label>
                             <p className="text-sm text-muted-foreground">
@@ -1053,7 +1169,7 @@ function TradeInContent() {
                             onCheckedChange={(c) => setHasLien(c as boolean)}
                           />
                           <div className="space-y-1">
-                            <Label htmlFor="lien" className="cursor-pointer font-medium">
+                            <Label htmlFor="lien" className="cursor-pointer font-semibold">
                               Is there a loan or lien on this vehicle?
                             </Label>
                             <p className="text-sm text-muted-foreground">
@@ -1114,23 +1230,67 @@ function TradeInContent() {
                     <CardContent className="space-y-6">
                       {/* Photo Upload Grid */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {["Front", "Back", "Interior", "Dashboard"].map((angle, i) => (
-                          <div 
-                            key={angle}
-                            className="aspect-video border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-primary/5 cursor-pointer transition-all"
-                          >
-                            <Upload className="h-8 w-8 text-muted-foreground" />
-                            <span className="text-sm text-muted-foreground">{angle}</span>
+                        {["Front", "Back", "Interior", "Dashboard"].map((angle) => (
+                          <div key={angle} className="relative">
+                            {/* Hidden file input — uses opacity:0 instead of sr-only for iOS Safari compatibility */}
+                            <input
+                              id={`photo-upload-${angle}`}
+                              type="file"
+                              accept="image/*"
+                              capture="environment"
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              style={{ zIndex: photos[angle] ? -1 : 1 }}
+                              ref={(el) => { fileInputRefs.current[angle] = el }}
+                              onChange={(e) => {
+                                handlePhotoUpload(angle, e.target.files?.[0] || null)
+                                e.currentTarget.value = ""
+                              }}
+                            />
+                            {photos[angle] ? (
+                              <div className="aspect-video rounded-lg overflow-hidden relative group/photo border-2 border-green-500">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={photos[angle].preview} alt={angle} className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/photo:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                  <label
+                                    htmlFor={`photo-upload-${angle}`}
+                                    className="bg-white text-black px-2 py-1 rounded text-xs font-semibold cursor-pointer"
+                                  >
+                                    Replace
+                                  </label>
+                                  <button
+                                    aria-label={`Remove ${angle} photo`}
+                                    onClick={() => removePhoto(angle)}
+                                    className="bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold relative z-10"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                                <CheckCircle className="absolute top-2 right-2 w-5 h-5 text-green-500" />
+                              </div>
+                            ) : (
+                              <label
+                                htmlFor={`photo-upload-${angle}`}
+                                className="aspect-video border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-primary/5 cursor-pointer transition-all"
+                              >
+                                <Upload className="h-8 w-8 text-muted-foreground" />
+                                <span className="text-sm text-muted-foreground">{angle}</span>
+                              </label>
+                            )}
                           </div>
                         ))}
                       </div>
+                      {Object.keys(photos).length > 0 && (
+                        <p className="text-sm text-green-600 font-semibold">
+                          ✓ {Object.keys(photos).length} photo{Object.keys(photos).length > 1 ? 's' : ''} added
+                        </p>
+                      )}
 
-                      <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <div className="p-4 bg-teal-50 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-800 rounded-lg">
                         <div className="flex items-start gap-3">
-                          <TrendingUp className="h-5 w-5 text-blue-600 mt-0.5" />
+                          <TrendingUp className="h-5 w-5 text-teal-600 mt-0.5" />
                           <div>
-                            <p className="font-medium text-blue-900 dark:text-blue-100">Photos boost your offer!</p>
-                            <p className="text-sm text-blue-700 dark:text-blue-300">
+                            <p className="font-semibold text-teal-900 dark:text-teal-100">Photos boost your offer!</p>
+                            <p className="text-sm text-teal-700 dark:text-teal-300">
                               Vehicles with photos typically receive offers 5-10% higher than those without.
                             </p>
                           </div>
@@ -1238,7 +1398,7 @@ function TradeInContent() {
                         <div className="flex items-start gap-3">
                           <Shield className="h-5 w-5 text-green-600 mt-0.5" />
                           <div>
-                            <p className="font-medium text-green-900 dark:text-green-100">Your privacy is protected</p>
+                            <p className="font-semibold text-green-900 dark:text-green-100">Your privacy is protected</p>
                             <p className="text-sm text-green-700 dark:text-green-300">
                               We never share your information. No spam calls, guaranteed.
                             </p>
@@ -1325,7 +1485,7 @@ function TradeInContent() {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">CBB Value Range</span>
-                        <span className="font-medium">${offer.cbbValue.low.toLocaleString()} - ${offer.cbbValue.high.toLocaleString()}</span>
+                        <span className="font-semibold">${offer.cbbValue.low.toLocaleString()} - ${offer.cbbValue.high.toLocaleString()}</span>
                       </div>
                       <div className="h-2 bg-muted rounded-full overflow-hidden">
                         <div 
@@ -1340,11 +1500,11 @@ function TradeInContent() {
                       <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg space-y-2">
                         <div className="flex justify-between">
                           <span>Trade-In Offer</span>
-                          <span className="font-medium">${offer.offerAmount.toLocaleString()}</span>
+                          <span className="font-semibold">${offer.offerAmount.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-red-600">
                           <span>Loan Payoff</span>
-                          <span className="font-medium">-${offer.payoff.toLocaleString()}</span>
+                          <span className="font-semibold">-${offer.payoff.toLocaleString()}</span>
                         </div>
                         <div className="border-t pt-2 flex justify-between font-bold text-lg">
                           <span>Your Equity</span>
@@ -1360,15 +1520,15 @@ function TradeInContent() {
                     <div className="grid grid-cols-3 gap-2 sm:gap-4 p-3 sm:p-4 bg-muted/30 rounded-lg">
                       <div className="text-center">
                         <p className="text-xs sm:text-sm text-muted-foreground mb-1">Dealer</p>
-                        <p className="font-medium text-xs sm:text-base text-muted-foreground line-through">${offer.comparison.dealerTrade.toLocaleString()}</p>
+                        <p className="font-semibold text-xs sm:text-base text-muted-foreground line-through">${offer.comparison.dealerTrade.toLocaleString()}</p>
                       </div>
                       <div className="text-center border-x">
-                        <p className="text-xs sm:text-sm text-primary font-medium mb-1">Planet Motors</p>
+                        <p className="text-xs sm:text-sm text-primary font-semibold mb-1">Planet Motors</p>
                         <p className="font-bold text-base sm:text-xl text-primary">${offer.offerAmount.toLocaleString()}</p>
                       </div>
                       <div className="text-center">
                         <p className="text-xs sm:text-sm text-muted-foreground mb-1">Private</p>
-                        <p className="font-medium text-xs sm:text-base text-muted-foreground">${offer.comparison.privateSale.toLocaleString()}</p>
+                        <p className="font-semibold text-xs sm:text-base text-muted-foreground">${offer.comparison.privateSale.toLocaleString()}</p>
                       </div>
                     </div>
 
@@ -1376,17 +1536,17 @@ function TradeInContent() {
                     <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center text-xs sm:text-sm">
                       <div>
                         <Zap className="h-6 w-6 mx-auto mb-1 text-primary" />
-                        <p className="font-medium">Instant Offer</p>
+                        <p className="font-semibold">Instant Offer</p>
                         <p className="text-xs text-muted-foreground">No waiting</p>
                       </div>
                       <div>
                         <Truck className="h-6 w-6 mx-auto mb-1 text-primary" />
-                        <p className="font-medium">Free Pickup</p>
+                        <p className="font-semibold">Free Pickup</p>
                         <p className="text-xs text-muted-foreground">Canada-wide</p>
                       </div>
                       <div>
                         <CreditCard className="h-6 w-6 mx-auto mb-1 text-primary" />
-                        <p className="font-medium">24h Payment</p>
+                        <p className="font-semibold">24h Payment</p>
                         <p className="text-xs text-muted-foreground">E-Transfer or cheque</p>
                       </div>
                     </div>
@@ -1419,7 +1579,7 @@ function TradeInContent() {
   </div>
 
                     <p className="text-center text-sm text-muted-foreground">
-                      Questions? Call us at <strong>1-866-797-3332</strong>
+                      Questions? Call us at <strong>{PHONE_TOLL_FREE}</strong>
                     </p>
                   </CardContent>
                 </Card>
@@ -1556,7 +1716,7 @@ function TradeInContent() {
                       ["Haggling", "No games", "Expected"],
                     ].map(([feature, pm, dealer], i) => (
                       <tr key={i} className="border-b">
-                        <td className="p-4 font-medium">{feature}</td>
+                        <td className="p-4 font-semibold">{feature}</td>
                         <td className="p-4 bg-primary/5 text-center font-semibold text-primary">{pm}</td>
                         <td className="p-4 text-center text-muted-foreground">{dealer}</td>
                       </tr>
@@ -1576,7 +1736,7 @@ function TradeInContent() {
                 <h2 className="text-3xl font-bold mb-4">What Canadians Are Saying</h2>
                 <div className="flex items-center justify-center gap-2 text-amber-500">
                   {[1,2,3,4,5].map(i => <Star key={i} className="h-5 w-5 fill-current" />)}
-                  <span className="ml-2 text-foreground font-medium">4.8 Star Rating</span>
+                  <span className="ml-2 text-foreground font-semibold">4.8 Star Rating</span>
                 </div>
               </div>
               
@@ -1613,7 +1773,7 @@ function TradeInContent() {
                         {review.name[0]}
                       </div>
                       <div>
-                        <p className="font-medium">{review.name}</p>
+                        <p className="font-semibold">{review.name}</p>
                         <p className="text-sm text-muted-foreground">{review.location}</p>
                       </div>
                     </div>
@@ -1623,23 +1783,6 @@ function TradeInContent() {
             </div>
           </section>
         )}
-
-        {/* AI-Powered Instant Quote Alternative */}
-        <section id="instant-quote" className="py-16 bg-gradient-to-b from-background to-muted/30 scroll-mt-20">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-8">
-              <Badge className="mb-3 bg-blue-500">
-                <Sparkles className="w-3 h-3 mr-1" />
-                AI-Powered
-              </Badge>
-              <h2 className="text-3xl font-bold mb-3">Get an AI Instant Quote</h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">
-                Our AI can analyze your vehicle details and provide an instant estimate based on market data.
-              </p>
-            </div>
-            <InstantQuote />
-          </div>
-        </section>
 
         {/* Final CTA */}
         {!showOffer && (
@@ -1702,12 +1845,12 @@ function TradeInContent() {
             
             <div className="space-y-3">
               <div>
-                <Label htmlFor="accept-email">Confirm Email</Label>
-                <Input id="accept-email" type="email" placeholder="your@email.com" defaultValue={email} />
+                <Label htmlFor="accept-email">Confirm Email <span className="text-destructive">*</span></Label>
+                <Input id="accept-email" type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
               <div>
-                <Label htmlFor="accept-phone">Confirm Phone</Label>
-                <Input id="accept-phone" type="tel" placeholder="(416) 555-1234" defaultValue={phone} />
+                <Label htmlFor="accept-phone">Confirm Phone <span className="text-destructive">*</span></Label>
+                <Input id="accept-phone" type="tel" placeholder="(416) 555-1234" value={phone} onChange={(e) => setPhone(e.target.value)} />
               </div>
               <div className="flex items-start gap-2">
                 <Checkbox id="accept-terms" />
@@ -1722,10 +1865,22 @@ function TradeInContent() {
             <Button variant="outline" onClick={() => setShowAcceptModal(false)}>
               Cancel
             </Button>
-            <Button 
+            <Button
               className="bg-green-600 hover:bg-green-700"
+              disabled={!email || !phone}
               onClick={async () => {
+                if (!email || !phone) {
+                  alert('Please enter your email and phone number.')
+                  return
+                }
                 try {
+                  // Collect photo previews (base64) to send with the acceptance
+                  const photoData: Record<string, string> = {}
+                  for (const [angle, photo] of Object.entries(photos)) {
+                    if (photo?.preview) {
+                      photoData[angle] = photo.preview
+                    }
+                  }
                   // Call API to save acceptance and notify dealership
                   const response = await fetch('/api/v1/trade-in/accept', {
                     method: 'POST',
@@ -1738,6 +1893,7 @@ function TradeInContent() {
                       mileage,
                       condition: condition,
                       postalCode,
+                      photos: Object.keys(photoData).length > 0 ? photoData : undefined,
                       offerAmount: offer?.offerAmount,
                       customerEmail: email,
                       customerPhone: phone,
@@ -1747,14 +1903,16 @@ function TradeInContent() {
                   const data = await response.json()
                   
                   if (data.success) {
+                    try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
                     setShowAcceptModal(false)
                     alert(`Offer Accepted!\n\nYou will receive a confirmation email and SMS shortly.\n\nOur team will contact you within 2 hours to schedule your free pickup.\n\nQuote ID: ${offer?.quoteId}`)
                   } else {
-                    alert('There was an issue processing your acceptance. Please try again or call us at 1-866-797-3332.')
+                    alert(`There was an issue processing your acceptance. Please try again or call us at ${PHONE_TOLL_FREE}.`)
                   }
                 } catch (error) {
                   console.error('Error accepting offer:', error)
                   // Still show success to user - fallback for API errors
+                  try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
                   setShowAcceptModal(false)
                   alert(`Offer Accepted!\n\nOur team will contact you within 2 hours to schedule your free pickup.\n\nQuote ID: ${offer?.quoteId}`)
                 }
@@ -1786,7 +1944,7 @@ function TradeInContent() {
               <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
                 <div>
-                  <p className="text-sm font-medium text-green-800">Signed in as {user.email}</p>
+                  <p className="text-sm font-semibold text-green-800">Signed in as {user.email}</p>
                   <p className="text-xs text-green-700">Your trade-in will be saved to your account</p>
                 </div>
               </div>
@@ -1801,10 +1959,51 @@ function TradeInContent() {
             </div>
             
             <div className="space-y-3">
-              <h4 className="font-medium">What are you looking for?</h4>
+              <h4 className="font-semibold">What are you looking for?</h4>
               <div className="grid grid-cols-2 gap-2">
                 {['SUV', 'Sedan', 'Truck', 'Electric', 'Luxury', 'Under $30k'].map((type) => (
-                  <Button key={type} variant="outline" size="sm" className="justify-start">
+                  <Button
+                    key={type}
+                    variant="outline"
+                    size="sm"
+                    className="justify-start"
+                    onClick={async () => {
+                      // Save trade-in quote before navigating
+                      try {
+                        if (user) {
+                          await fetch('/api/v1/trade-in/save', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              quoteId: offer?.quoteId,
+                              vehicleYear: selectedYear,
+                              vehicleMake: selectedMake,
+                              vehicleModel: selectedModel,
+                              mileage,
+                              condition: condition,
+                              postalCode,
+                              offerAmount: offer?.offerAmount,
+                              customerEmail: email || user.email,
+                              customerPhone: phone,
+                            })
+                          })
+                        }
+                      } catch { /* save failed silently */ }
+                      try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
+                      setShowApplyModal(false)
+                      // Build inventory URL with trade-in info + category filter
+                      const params = new URLSearchParams({
+                        tradeIn: String(offer?.offerAmount || 0),
+                        quoteId: offer?.quoteId || '',
+                        tradeInVehicle: encodeURIComponent(offer?.vehicle || '')
+                      })
+                      if (type === 'Electric') params.set('fuelType', 'Electric')
+                      else if (type === 'Under $30k') params.set('maxPrice', '30000')
+                      else if (type === 'Luxury') params.set('category', 'Luxury')
+                      else params.set('bodyType', type)
+                      window.location.href = `/inventory?${params.toString()}`
+                    }}
+                  >
                     {type}
                   </Button>
                 ))}
@@ -1847,6 +2046,7 @@ function TradeInContent() {
                   console.error('Error saving trade-in:', error)
                 }
                 
+                try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
                 setShowApplyModal(false)
                 // Redirect to inventory with full trade-in info
                 const params = new URLSearchParams({
@@ -1880,15 +2080,19 @@ function TradeInContent() {
 // Wrap with Suspense for useSearchParams
 export default function TradeInPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading trade-in...</p>
+    <>
+      <TradeInPageJsonLd />
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Trade-In", url: "/trade-in" }]} />
+      <Suspense fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading trade-in...</p>
+          </div>
         </div>
-      </div>
-    }>
-      <TradeInContent />
-    </Suspense>
+      }>
+        <TradeInContent />
+      </Suspense>
+    </>
   )
 }

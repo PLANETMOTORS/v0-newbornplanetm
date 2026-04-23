@@ -6,24 +6,29 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Zap, 
-  Battery, 
-  Leaf, 
-  Shield, 
-  TrendingDown, 
-  MapPin, 
+import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
+import {
+  Zap,
+  Battery,
+  Leaf,
+  Shield,
+  TrendingDown,
+  MapPin,
   Car,
   DollarSign,
   CheckCircle,
   ArrowRight,
   Star
 } from "lucide-react"
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
 
 export const metadata: Metadata = {
   title: "Used Electric Vehicles Ontario | Tesla, Hyundai, BMW EVs | Planet Motors",
   description: "Shop certified pre-owned electric vehicles in Ontario. Tesla Model 3, Model Y, Hyundai Ioniq, BMW i4 & more. Battery health reports, 210-point inspection, nationwide delivery. 4.8 Star Rating.",
   keywords: "electric cars Ontario, used Tesla Ontario, EV dealership Toronto, used electric cars Canada, buy EV online Ontario, Tesla Model Y Canada, Tesla Model 3 used, Hyundai Ioniq 5 used",
+  alternates: {
+    canonical: "/electric-vehicles",
+  },
   openGraph: {
     title: "Used Electric Vehicles Ontario | Planet Motors",
     description: "Certified pre-owned EVs with battery health reports. Tesla, Hyundai, BMW & more.",
@@ -58,8 +63,9 @@ const features = [
 export default function ElectricVehiclesPage() {
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Electric Vehicles", url: "/electric-vehicles" }]} />
       <Header />
-      
+
       <main id="main-content" role="main" aria-label="Electric vehicles">
         {/* Hero Section */}
         <section className="relative bg-gradient-to-br from-green-900 via-green-800 to-emerald-900 text-white py-16 lg:py-24">
@@ -69,7 +75,7 @@ export default function ElectricVehiclesPage() {
                 <Zap className="w-3 h-3 mr-1" />
                 Electric Vehicle Specialist
               </Badge>
-              <h1 className="text-4xl lg:text-5xl font-bold mb-6 text-balance">
+              <h1 className="text-4xl lg:text-5xl font-bold tracking-[-0.01em] lg:tracking-[-0.02em] mb-6 text-balance">
                 Used Electric Vehicles in Ontario
               </h1>
               <p className="text-xl text-green-100 mb-8 leading-relaxed">
@@ -84,7 +90,7 @@ export default function ElectricVehiclesPage() {
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10" asChild>
-                  <Link href="/ev-battery-health">
+                  <Link href="/aviloo">
                     Learn About Battery Health
                   </Link>
                 </Button>
@@ -243,7 +249,7 @@ export default function ElectricVehiclesPage() {
                 </p>
                 <ul className="space-y-3 mb-8">
                   {[
-                    "Rates starting at 6.29% OAC",
+                    `Rates starting at ${RATE_FLOOR_DISPLAY} OAC`,
                     "Terms from 24-84 months",
                     "Bad credit? No problem",
                     "First-time buyers welcome",
@@ -307,7 +313,7 @@ export default function ElectricVehiclesPage() {
                 },
                 {
                   q: "Do you offer financing for electric vehicles?",
-                  a: "Yes! We offer competitive EV financing rates starting at 6.29% OAC. We work with all credit situations including first-time buyers and those rebuilding credit."
+                  a: `Yes! We offer competitive EV financing rates starting at ${RATE_FLOOR_DISPLAY} OAC. We work with all credit situations including first-time buyers and those rebuilding credit.`
                 },
                 {
                   q: "Can you deliver an EV to my location?",

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
+import { FINANCE_ESTIMATE_DISCLAIMER, safeNum } from "@/lib/pricing/format"
 
 // Types for Sanity data
 interface CreditTier {
@@ -40,8 +41,8 @@ export function PaymentCalculator({
   finance, 
   specialFinance 
 }: PaymentCalculatorProps) {
-  // Use special price if available
-  const effectivePrice = specialPrice || price
+  // Use special price if available — guard against NaN
+  const effectivePrice = safeNum(specialPrice || price)
   
   // State for user selections
   const [selectedTierIndex, setSelectedTierIndex] = useState(0)
@@ -85,11 +86,11 @@ export function PaymentCalculator({
     const totalInterest = totalCost - principal
     
     return {
-      principal: Math.max(0, principal),
-      monthlyPayment: Math.round(monthlyPayment),
-      biWeeklyPayment: Math.round(biWeeklyPayment),
-      totalCost: Math.round(totalCost),
-      totalInterest: Math.round(totalInterest),
+      principal: Math.max(0, Number.isFinite(principal) ? principal : 0),
+      monthlyPayment: Number.isFinite(monthlyPayment) ? Math.round(monthlyPayment) : 0,
+      biWeeklyPayment: Number.isFinite(biWeeklyPayment) ? Math.round(biWeeklyPayment) : 0,
+      totalCost: Number.isFinite(totalCost) ? Math.round(totalCost) : 0,
+      totalInterest: Number.isFinite(totalInterest) ? Math.round(totalInterest) : 0,
       effectiveApr,
     }
   }, [effectivePrice, finance.taxRate, downPayment, tradeIn, term, effectiveApr])
@@ -109,11 +110,11 @@ export function PaymentCalculator({
       <CardContent className="space-y-6">
         {/* Main Payment Display */}
         <div className="text-center p-6 bg-muted rounded-lg">
-          <div className="text-4xl font-bold text-foreground">
+          <div className="text-4xl font-bold text-foreground tabular-nums">
             ${calculation.monthlyPayment.toLocaleString()}<span className="text-lg font-normal text-muted-foreground">/mo*</span>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
-            Estimated for {selectedTier.label} credit at {calculation.effectiveApr}% APR
+            <span className="tabular-nums">Estimated for {selectedTier.label} credit at {calculation.effectiveApr}% APR</span>
           </p>
           {specialFinance && calculation.effectiveApr === specialFinance.promoRate && (
             <p className="text-xs text-green-600 mt-1">
@@ -129,7 +130,7 @@ export function PaymentCalculator({
             value={selectedTierIndex.toString()} 
             onValueChange={(val) => setSelectedTierIndex(parseInt(val))}
           >
-            <SelectTrigger>
+            <SelectTrigger aria-label="Credit profile">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -146,9 +147,10 @@ export function PaymentCalculator({
         <div className="space-y-2">
           <div className="flex justify-between">
             <Label>Down Payment</Label>
-            <span className="text-sm font-medium">${downPayment.toLocaleString()}</span>
+            <span className="text-sm font-semibold tabular-nums">${downPayment.toLocaleString()}</span>
           </div>
           <Slider
+            aria-label="Down payment"
             value={[downPayment]}
             onValueChange={([val]) => setDownPayment(val)}
             min={0}
@@ -161,9 +163,10 @@ export function PaymentCalculator({
         <div className="space-y-2">
           <div className="flex justify-between">
             <Label>Trade-In Value</Label>
-            <span className="text-sm font-medium">${tradeIn.toLocaleString()}</span>
+            <span className="text-sm font-semibold tabular-nums">${tradeIn.toLocaleString()}</span>
           </div>
           <Slider
+            aria-label="Trade-in value"
             value={[tradeIn]}
             onValueChange={([val]) => setTradeIn(val)}
             min={0}
@@ -190,7 +193,7 @@ export function PaymentCalculator({
         </div>
 
         {/* Summary */}
-        <div className="pt-4 border-t space-y-2 text-sm">
+        <div className="pt-4 border-t space-y-2 text-sm tabular-nums">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Vehicle Price</span>
             <span>${effectivePrice.toLocaleString()}</span>
@@ -207,7 +210,7 @@ export function PaymentCalculator({
             <span className="text-muted-foreground">Total Interest</span>
             <span>${calculation.totalInterest.toLocaleString()}</span>
           </div>
-          <div className="flex justify-between font-medium pt-2 border-t">
+          <div className="flex justify-between font-semibold pt-2 border-t">
             <span>Total Cost</span>
             <span>${calculation.totalCost.toLocaleString()}</span>
           </div>
@@ -219,8 +222,7 @@ export function PaymentCalculator({
 
         {/* Disclaimer */}
         <p className="text-xs text-muted-foreground">
-          *Estimated payment for illustration purposes only. Actual terms and rates 
-          subject to credit approval. Does not include fees, taxes may vary by location.
+          *{FINANCE_ESTIMATE_DISCLAIMER}
         </p>
       </CardContent>
     </Card>

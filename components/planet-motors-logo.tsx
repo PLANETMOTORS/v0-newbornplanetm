@@ -10,7 +10,7 @@ interface PlanetMotorsLogoProps {
 
 export function PlanetMotorsLogo({ 
   className = "", 
-  showTagline = false,
+  showTagline: _showTagline = false,
   size = "md" 
 }: PlanetMotorsLogoProps) {
   const sizes = {
@@ -29,11 +29,10 @@ export function PlanetMotorsLogo({
     >
       <Image
         src="/images/planet-motors-logo.png"
-        alt="Planet Motors - Fairness Integrity"
+        alt="Planet Motors — Fairness Integrity, OMVIC Licensed Used Car Dealership Richmond Hill Ontario"
         fill
         className="object-contain"
         sizes={`${width}px`}
-        unoptimized
         priority
       />
     </div>

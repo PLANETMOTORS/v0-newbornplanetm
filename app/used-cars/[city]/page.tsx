@@ -8,10 +8,12 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { 
-  MapPin, Car, Shield, Truck, Star, CheckCircle, 
-  ArrowRight, Phone, Clock, Battery 
+import {
+  Car, Shield, Truck, Star, CheckCircle,
+  ArrowRight, Phone, Battery
 } from "lucide-react"
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
+import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
 
 // City data for SEO
 const cityData: Record<string, {
@@ -172,9 +174,10 @@ export default function CityLandingPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Used Cars", url: "/used-cars" }, { name: city.name, url: `/used-cars/${citySlug}` }]} />
       <Header />
-      
-      <main>
+
+      <main id="main-content" tabIndex={-1}>
         {/* Hero Section */}
         <section className="relative bg-gradient-to-br from-primary/10 via-background to-background py-16 lg:py-24">
           <div className="container mx-auto px-4">
@@ -184,7 +187,7 @@ export default function CityLandingPage() {
                 {city.distance === 0 ? "Visit Our Showroom" : `Free Delivery to ${city.name}`}
               </Badge>
               
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] mb-6">
                 Used Cars for Sale in{" "}
                 <span className="text-primary">{city.name}</span>
               </h1>
@@ -366,7 +369,7 @@ export default function CityLandingPage() {
                 <h3>Electric Vehicles in {city.name}</h3>
                 <p>
                   With rising fuel costs and environmental awareness, more {city.name} residents are switching 
-                  to electric vehicles. Planet Motors offers the largest selection of certified pre-owned EVs 
+                  to electric vehicles. Planet Motors offers a wide selection of certified pre-owned EVs
                   in Canada, including Tesla, Porsche Taycan, BMW i4, and more. Every EV includes a detailed 
                   battery health report so you know exactly what you&apos;re buying.
                 </p>
@@ -389,8 +392,8 @@ export default function CityLandingPage() {
                   <div>
                     <p className="font-semibold">Questions about buying in {city.name}?</p>
                     <p className="text-muted-foreground">
-                      Call us toll-free at <a href="tel:1-866-797-3332" className="text-primary font-medium">1-866-797-3332</a> or{" "}
-                      <Link href="/contact" className="text-primary font-medium">chat with us online</Link>
+                      Call us toll-free at <a href={`tel:${PHONE_TOLL_FREE_TEL}`} className="text-primary font-semibold">{PHONE_TOLL_FREE}</a> or{" "}
+                      <Link href="/contact" className="text-primary font-semibold">chat with us online</Link>
                     </p>
                   </div>
                 </div>

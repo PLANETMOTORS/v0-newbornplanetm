@@ -221,19 +221,19 @@ export function DeliveryTracker({
         </div>
 
         {tracking.route.etaMinutes !== null && tracking.status === "in_transit" && (
-          <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="p-4 bg-teal-50 dark:bg-teal-950 rounded-lg border border-teal-200 dark:border-teal-800">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-blue-800 dark:text-blue-200 flex items-center gap-2">
+                <p className="text-sm font-semibold text-teal-800 dark:text-teal-200 flex items-center gap-2">
                   <Clock className="w-4 h-4" />
                   Estimated Arrival
                 </p>
-                <p className="text-lg font-bold text-blue-900 dark:text-blue-100 mt-1">
+                <p className="text-lg font-bold text-teal-900 dark:text-teal-100 mt-1">
                   {tracking.route.etaMinutes} minutes away
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-blue-700 dark:text-blue-300">
+                <p className="text-sm text-teal-700 dark:text-teal-300">
                   {tracking.route.distanceRemaining}
                 </p>
               </div>
@@ -244,11 +244,11 @@ export function DeliveryTracker({
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <p className="text-muted-foreground">Estimated Arrival</p>
-            <p className="font-medium">{tracking.estimatedArrival}</p>
+            <p className="font-semibold">{tracking.estimatedArrival}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Delivery To</p>
-            <p className="font-medium truncate">{tracking.route.destination.address}</p>
+            <p className="font-semibold truncate">{tracking.route.destination.address}</p>
           </div>
         </div>
 
@@ -256,7 +256,7 @@ export function DeliveryTracker({
           <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
             <div>
               <p className="text-sm text-muted-foreground">Your Driver</p>
-              <p className="font-medium">{tracking.driver.name}</p>
+              <p className="font-semibold">{tracking.driver.name}</p>
               <p className="text-xs text-muted-foreground">{tracking.driver.vehicleType}</p>
             </div>
             {tracking.driver.phone && (
@@ -272,11 +272,11 @@ export function DeliveryTracker({
 
         {tracking.updates.length > 0 && (
           <div className="space-y-2">
-            <p className="text-sm font-medium">Recent Updates</p>
+            <p className="text-sm font-semibold">Recent Updates</p>
             {tracking.updates.slice(0, 3).map((update, index) => (
               <div key={index} className="flex gap-3 text-sm">
                 <div className={`w-2 h-2 rounded-full mt-1.5 ${
-                  update.type === "info" ? "bg-blue-500" : 
+                  update.type === "info" ? "bg-teal-500" :
                   update.type === "success" ? "bg-green-500" : "bg-muted-foreground"
                 }`} />
                 <div>

@@ -1,9 +1,10 @@
 import type { Metadata } from "next"
 import { getPublicSiteUrl } from "@/lib/site-url"
+import { PHONE_TOLL_FREE, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 
 const BASE_URL = getPublicSiteUrl()
 const SITE_NAME = "Planet Motors"
-const DEFAULT_DESCRIPTION = "Canada's trusted destination for premium pre-owned vehicles with nationwide delivery. 210-point inspection, 10-day money-back guarantee, and competitive multi-lender financing."
+const DEFAULT_DESCRIPTION = "Canada's EV-focused used car dealership. Every electric vehicle independently battery-certified by Aviloo. OMVIC licensed, 210-point inspected, Canada-wide delivery. Financing from 6.29% APR."
 
 interface GenerateMetadataParams {
   title: string
@@ -18,26 +19,24 @@ export function generateSEOMetadata({
   title,
   description = DEFAULT_DESCRIPTION,
   path = "",
-  image = "/images/og-default.jpg",
+  image = "/images/planet-motors-logo.png",
   noIndex = false,
   keywords = [],
 }: GenerateMetadataParams): Metadata {
-  const fullTitle = title === "Home" ? `${SITE_NAME} | Premium Used Car Dealership` : `${title} | ${SITE_NAME}`
+  const fullTitle = title === "Home" ? `${SITE_NAME} Richmond Hill | Aviloo-Certified Used EVs | Canada-Wide Delivery` : `${title} | ${SITE_NAME}`
   const url = `${BASE_URL}${path}`
   const imageUrl = image.startsWith("http") ? image : `${BASE_URL}${image}`
 
   const defaultKeywords = [
-    "used cars",
-    "pre-owned vehicles",
-    "car dealership",
-    "Canada",
-    "Ontario",
-    "Toronto",
-    "Richmond Hill",
+    "used EVs Canada",
+    "Aviloo certified",
+    "pre-owned electric vehicles",
+    "car dealership Richmond Hill",
+    "Canada-wide delivery",
+    "OMVIC licensed",
+    "EV battery health",
     "financing",
     "trade-in",
-    "nationwide delivery",
-    "OMVIC licensed",
   ]
 
   return {
@@ -55,6 +54,10 @@ export function generateSEOMetadata({
     metadataBase: new URL(BASE_URL),
     alternates: {
       canonical: url,
+      languages: {
+        'en-CA': url,
+        'x-default': url,
+      },
     },
     openGraph: {
       title: fullTitle,
@@ -104,38 +107,38 @@ export const pageMetadata = {
   }),
 
   inventory: generateSEOMetadata({
-    title: "Vehicle Inventory",
-    description: "Browse 9,500+ certified pre-owned vehicles. Filter by make, model, price, and more. Free CARFAX reports and nationwide delivery.",
+    title: "Used EVs & Certified Pre-Owned Vehicles in Canada",
+    description: "Browse Aviloo-certified used EVs, hybrids, and SUVs. 210-point inspected, free Carfax. Canada-wide delivery. Financing from 6.29% APR.",
     path: "/inventory",
-    keywords: ["car inventory", "used cars for sale", "certified pre-owned", "search cars"],
+    keywords: ["car inventory", "used EVs for sale", "Aviloo certified", "search cars"],
   }),
 
   financing: generateSEOMetadata({
-    title: "Auto Financing",
-    description: "Get pre-approved for auto financing in minutes. Competitive rates from multiple lenders. All credit types welcome. No impact on credit score.",
+    title: "Used Car Financing in Canada | Rates from 6.29% APR",
+    description: "Compare rates from 20+ Canadian lenders. Soft credit check, pre-approval in 30 minutes. All credit types welcome. O.A.C.",
     path: "/financing",
-    keywords: ["auto financing", "car loan", "pre-approval", "bad credit financing", "zero down payment"],
+    keywords: ["auto financing", "car loan", "pre-approval", "6.29% APR", "Canadian lenders"],
   }),
 
   tradeIn: generateSEOMetadata({
-    title: "Sell or Trade Your Vehicle",
-    description: "Get an instant cash offer for your vehicle powered by Canadian Black Book. Trade in or sell outright. Fair market value guaranteed.",
+    title: "Sell or Trade Your Vehicle in Canada | Instant Offer",
+    description: "Get a competitive offer in 60 seconds. Canadian Black Book valuation. Same-day payment available. No obligation, no hidden fees.",
     path: "/trade-in",
     keywords: ["trade in car", "sell my car", "car valuation", "instant cash offer", "Canadian Black Book"],
   }),
 
   about: generateSEOMetadata({
-    title: "About Us",
-    description: "Planet Motors is an OMVIC licensed dealership committed to fairness and integrity. Learn about our 210-point inspection and customer-first approach.",
+    title: "About Planet Motors | OMVIC Licensed Used EV Dealership Richmond Hill",
+    description: "Canada's EV-focused used car dealership. Aviloo battery-certified. OMVIC licensed. Family-operated since 2015. 210-point inspection on every vehicle.",
     path: "/about",
-    keywords: ["OMVIC licensed", "car dealer about", "dealership history", "customer reviews"],
+    keywords: ["OMVIC licensed", "Aviloo certified", "dealership history", "customer reviews"],
   }),
 
   contact: generateSEOMetadata({
-    title: "Contact Us",
-    description: "Contact Planet Motors. Visit us at 30 Major Mackenzie Dr E, Richmond Hill. Call 1-866-797-3332 or email info@planetmotors.ca.",
+    title: "Contact Planet Motors | Richmond Hill Ontario Dealership",
+    description: `Visit us at ${DEALERSHIP_ADDRESS_FULL}. Call ${PHONE_TOLL_FREE}. Mon–Fri 9AM–7PM, Sat 9AM–6PM.`,
     path: "/contact",
-    keywords: ["contact dealer", "dealership location", "phone number", "email"],
+    keywords: ["contact dealer", "dealership location", "phone number", "dealership hours"],
   }),
 
   faq: generateSEOMetadata({
@@ -160,17 +163,17 @@ export const pageMetadata = {
   }),
 
   protectionPlans: generateSEOMetadata({
-    title: "Protection Plans & Warranty",
-    description: "Comprehensive vehicle protection plans including extended warranty, GAP insurance, tire & wheel protection, and maintenance packages.",
+    title: "Vehicle Protection Plans | Warranty Coverage",
+    description: "Bumper-to-bumper warranty coverage starting from $1,950. Plans from $29/month. Optional zero-deductible coverage. Fully transferable.",
     path: "/protection-plans",
-    keywords: ["extended warranty", "vehicle protection", "GAP insurance", "maintenance plan"],
+    keywords: ["extended warranty", "vehicle protection", "GAP insurance", "zero deductible"],
   }),
 
   evBatteryHealth: generateSEOMetadata({
-    title: "EV Battery Health Reports",
-    description: "Transparent battery health reports for all electric vehicles. Know the true range and condition before you buy.",
-    path: "/ev-battery-health",
-    keywords: ["EV battery health", "electric car battery", "battery degradation", "EV range"],
+    title: "Aviloo Battery Certification",
+    description: "Every used EV at Planet Motors includes an independent Aviloo FLASH Test battery certification with documented State of Health, usable capacity, and WLTP range projection.",
+    path: "/aviloo",
+    keywords: ["Aviloo certification", "EV battery health", "battery State of Health", "FLASH Test"],
   }),
 }
 

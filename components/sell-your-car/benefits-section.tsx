@@ -1,6 +1,6 @@
-import { DollarSign, Clock, Shield, Car, Zap, ThumbsUp } from 'lucide-react'
+import { DollarSign, Clock, Shield, Car, Zap, ThumbsUp, type LucideIcon } from 'lucide-react'
 
-const iconMap: Record<string, any> = {
+const iconMap: Record<string, LucideIcon> = {
   DollarSign,
   Clock,
   Shield,

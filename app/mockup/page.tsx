@@ -3,13 +3,14 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { 
-  ChevronRight, Shield, RotateCcw, CheckCircle, Star, ArrowRight, Menu, Phone, MapPin, 
+import {
+  ChevronRight, Shield, RotateCcw, CheckCircle, Star, ArrowRight, Menu, Phone, MapPin,
   Car, Zap, Battery, DollarSign, Truck, BadgeCheck, X
 } from "lucide-react"
+import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
 
 // Mockup V2: Trust-First Homepage Design for Planet Motors
-// Broader positioning: "Ontario's trusted used vehicle dealership specializing in EVs"
+// Broader positioning: "Canada's trusted used vehicle dealership specializing in EVs"
 // Brand colors: Navy Blue #1e3a8a, Red #dc2626
 
 export default function HomepageMockupV2() {
@@ -47,7 +48,7 @@ export default function HomepageMockupV2() {
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="hidden md:inline">Mon-Sat: 9AM-7PM</span>
+            <span className="hidden md:inline">Mon-Fri: 9AM-7PM | Sat: 9AM-6PM</span>
             <span className="bg-white/20 px-3 py-0.5 rounded-full font-medium">OMVIC Licensed</span>
           </div>
         </div>
@@ -142,7 +143,7 @@ export default function HomepageMockupV2() {
             </div>
             <div className="hidden md:flex items-center gap-2 whitespace-nowrap">
               <Truck className="w-4 h-4 text-[#1e3a8a]" />
-              <span className="font-medium">Ontario-Wide Delivery</span>
+              <span className="font-medium">Canada-Wide Delivery</span>
             </div>
           </div>
         </div>
@@ -162,7 +163,7 @@ export default function HomepageMockupV2() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Hero Text */}
             <div className="text-center lg:text-left">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 text-gray-900">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] leading-tight mb-6 text-gray-900">
                 Buy Your Next Vehicle
                 <span className="block text-[#1e3a8a]">
                   With Confidence
@@ -200,7 +201,7 @@ export default function HomepageMockupV2() {
 
               {/* Floating Badge */}
               <div className="absolute top-4 right-4 bg-[#dc2626] text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg z-10">
-                Low Rates Available
+                From {RATE_FLOOR_DISPLAY} APR
               </div>
             </div>
           </div>

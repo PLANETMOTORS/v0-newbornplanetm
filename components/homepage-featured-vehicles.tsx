@@ -1,11 +1,14 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { useMemo, useState } from "react"
 import useSWR from "swr"
 import { ArrowRight, Battery, Car, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
+import { getVehicleImage } from "@/lib/vehicle-images"
+import { safeNum } from "@/lib/pricing/format"
 
 type FeaturedTab = "all" | "electric" | "suvs"
 
@@ -19,7 +22,9 @@ type FeaturedVehicle = {
   mileageLabel: string
   badge: string
   isEV: boolean
+  isSUV: boolean
   isAvilooCertified: boolean
+  imageUrl: string | null
 }
 
 const fallbackVehicles: FeaturedVehicle[] = [
@@ -33,7 +38,9 @@ const fallbackVehicles: FeaturedVehicle[] = [
     mileageLabel: "358 km range",
     badge: "Popular",
     isEV: true,
+    isSUV: false,
     isAvilooCertified: true,
+    imageUrl: null,
   },
   {
     id: "fallback-2",
@@ -45,7 +52,9 @@ const fallbackVehicles: FeaturedVehicle[] = [
     mileageLabel: "41 MPG",
     badge: "Fuel Saver",
     isEV: false,
+    isSUV: true,
     isAvilooCertified: false,
+    imageUrl: null,
   },
   {
     id: "fallback-3",
@@ -57,7 +66,9 @@ const fallbackVehicles: FeaturedVehicle[] = [
     mileageLabel: "488 km range",
     badge: "New Arrival",
     isEV: true,
+    isSUV: true,
     isAvilooCertified: true,
+    imageUrl: null,
   },
   {
     id: "fallback-4",
@@ -69,7 +80,9 @@ const fallbackVehicles: FeaturedVehicle[] = [
     mileageLabel: "30 MPG",
     badge: "Popular",
     isEV: false,
+    isSUV: true,
     isAvilooCertified: false,
+    imageUrl: null,
   },
   {
     id: "fallback-5",
@@ -81,7 +94,9 @@ const fallbackVehicles: FeaturedVehicle[] = [
     mileageLabel: "402 km range",
     badge: "Premium",
     isEV: true,
+    isSUV: true,
     isAvilooCertified: true,
+    imageUrl: null,
   },
   {
     id: "fallback-6",
@@ -93,24 +108,26 @@ const fallbackVehicles: FeaturedVehicle[] = [
     mileageLabel: "26 MPG",
     badge: "Luxury",
     isEV: false,
+    isSUV: true,
     isAvilooCertified: false,
+    imageUrl: null,
   },
 ]
 
 function getBadgeClassName(badge: string) {
   if (badge === "Popular") return "bg-[#1e3a8a] text-white"
-  if (badge === "Fuel Saver") return "bg-green-600 text-white"
-  if (badge === "New Arrival") return "bg-orange-500 text-white"
-  if (badge === "Premium") return "bg-purple-600 text-white"
-  if (badge === "Luxury") return "bg-amber-600 text-white"
-  return "bg-gray-600 text-white"
+  if (badge === "Fuel Saver") return "bg-green-700 text-white"
+  if (badge === "New Arrival") return "bg-orange-700 text-white"
+  if (badge === "Premium") return "bg-purple-700 text-white"
+  if (badge === "Luxury") return "bg-amber-700 text-white"
+  return "bg-gray-700 text-white"
 }
 
 const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
   const supabase = createClient()
   const { data, error } = await supabase
     .from("vehicles")
-    .select("id, year, make, model, price, mileage, fuel_type, featured, inspection_score")
+    .select("id, year, make, model, price, mileage, fuel_type, body_style, featured, inspection_score, primary_image_url, image_urls")
     .eq("status", "available")
     .order("featured", { ascending: false })
     .order("created_at", { ascending: false })
@@ -121,10 +138,19 @@ const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
   }
 
   const mapped = (data || []).map((vehicle) => {
-    const priceCents = Number(vehicle.price || 0)
-    const monthlyPayment = Math.max(1, Math.round((priceCents / 100) / 108))
+    const priceCents = safeNum(vehicle.price)
+    const monthlyPayment = priceCents > 0 ? Math.max(1, Math.round((priceCents / 100) / 108)) : 0
     const fuelType = String(vehicle.fuel_type || "")
     const isEV = fuelType.toLowerCase() === "electric"
+    const bodyStyle = String(vehicle.body_style || "").toLowerCase()
+    const isSUV = bodyStyle.includes("sport utility") || bodyStyle.includes("suv")
+
+    // Get the best available image using the helper
+    const imageUrl = getVehicleImage({
+      primary_image_url: vehicle.primary_image_url,
+      image_urls: vehicle.image_urls,
+      make: String(vehicle.make || ""),
+    })
 
     return {
       id: String(vehicle.id),
@@ -136,11 +162,13 @@ const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
       mileageLabel: `${Math.max(0, Math.round(Number(vehicle.mileage || 0))).toLocaleString()} km`,
       badge: vehicle.featured ? "Popular" : (isEV ? "Electric" : "Certified"),
       isEV,
+      isSUV,
       isAvilooCertified: isEV && Number(vehicle.inspection_score || 0) >= 200,
+      imageUrl: imageUrl || null,
     }
   })
 
-  return mapped.slice(0, 6)
+  return mapped
 }
 
 export function HomepageFeaturedVehicles() {
@@ -153,17 +181,16 @@ export function HomepageFeaturedVehicles() {
 
   // Only use fallback vehicles when the fetch actually fails.
   // On initial load (data === undefined, no error) or empty results, skip fallback.
-  const vehicles = error ? fallbackVehicles : (data ?? [])
+  const isFallback = !!error
 
   const filteredVehicles = useMemo(() => {
+    const vehicles = error ? fallbackVehicles : (data ?? [])
     return vehicles.filter((vehicle) => {
       if (activeTab === "electric") return vehicle.isEV
-      if (activeTab === "suvs") {
-        return vehicle.model.includes("CR-V") || vehicle.model.includes("X3") || vehicle.model.includes("RAV4")
-      }
+      if (activeTab === "suvs") return vehicle.isSUV
       return true
-    })
-  }, [activeTab, vehicles])
+    }).slice(0, 6)
+  }, [activeTab, data, error])
 
   return (
     <section className="py-16" style={{ backgroundColor: "#FFFFFF" }}>
@@ -183,7 +210,7 @@ export function HomepageFeaturedVehicles() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as FeaturedTab)}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`px-4 py-2 text-sm font-semibold rounded-md transition-colors ${
                   activeTab === tab.key ? "bg-[#1e3a8a] text-white" : "text-gray-600 hover:bg-[#e4eaf2]"
                 }`}
                 type="button"
@@ -200,23 +227,40 @@ export function HomepageFeaturedVehicles() {
               key={vehicle.id}
               className="bg-white rounded-xl border border-[#dce3ed] overflow-hidden hover:shadow-lg transition-shadow group"
             >
-              <div className="relative aspect-[4/3] bg-[#eef2f7]">
-                <div className="absolute top-3 left-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getBadgeClassName(vehicle.badge)}`}>
+              <div className="relative aspect-[4/3] bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] overflow-hidden">
+                {/* Vehicle image or gradient fallback */}
+                {vehicle.imageUrl ? (
+                  <Image
+                    src={vehicle.imageUrl}
+                    alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                    fill
+                    loading="lazy"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500 [clip-path:inset(0_0_8%_0)]"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    onError={(e) => {
+                      // Hide broken image, fallback gradient + icon shows through
+                      (e.target as HTMLImageElement).style.display = "none"
+                    }}
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Car className="w-16 h-16 text-[#1e3a8a]/15" />
+                  </div>
+                )}
+
+                {/* Badges */}
+                <div className="absolute top-3 left-3 z-10">
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${getBadgeClassName(vehicle.badge)}`}>
                     {vehicle.badge}
                   </span>
                 </div>
 
                 {vehicle.isAvilooCertified && (
-                  <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-green-700">
+                  <div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-semibold text-green-700 shadow-sm">
                     <Battery className="w-3 h-3" />
                     Aviloo Certified
                   </div>
                 )}
-
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Car className="w-16 h-16 text-gray-300" />
-                </div>
               </div>
 
               <div className="p-5">
@@ -225,25 +269,25 @@ export function HomepageFeaturedVehicles() {
                     {vehicle.year} {vehicle.make} {vehicle.model}
                   </h3>
                   {vehicle.isEV && (
-                    <span className="flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                    <span className="flex items-center gap-1 text-xs font-semibold text-green-800 bg-green-50 px-2 py-0.5 rounded-full">
                       <Zap className="w-3 h-3" />
                       EV
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-500 mt-1">{vehicle.mileageLabel}</p>
+                <p className="text-sm text-gray-500 mt-1 tabular-nums">{vehicle.mileageLabel}</p>
 
                 <div className="flex items-center justify-between mt-4">
                   <div>
-                    <div className="text-xl font-bold text-[#1e3a8a]">
-                      ${(vehicle.priceCents / 100).toLocaleString()}
+                    <div className="text-xl font-bold text-[#1e3a8a] tabular-nums">
+                      ${(safeNum(vehicle.priceCents) / 100).toLocaleString()}
                     </div>
-                    <div className="text-sm font-medium text-gray-700">
+                    <div className="text-sm font-semibold text-gray-700 tabular-nums">
                       or <span className="font-bold">${vehicle.monthlyPayment}/mo</span>
                     </div>
                   </div>
                   <Button size="sm" className="bg-[#1e3a8a] hover:bg-[#172554]" asChild>
-                    <Link href={`/vehicles/${vehicle.id}`}>
+                    <Link href={isFallback ? "/inventory" : `/vehicles/${vehicle.id}`}>
                       View Details
                     </Link>
                   </Button>

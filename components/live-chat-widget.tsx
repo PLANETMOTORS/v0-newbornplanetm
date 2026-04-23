@@ -2,12 +2,13 @@
 
 // Planet Motors Live Chat Widget - Anna AI Assistant (AI SDK 6)
 import { useState, useEffect, useRef } from "react"
-import { MessageCircle, X, Send, Minimize2, Bot, Sparkles, Loader2 } from "lucide-react"
+import { X, Send, Minimize2, Bot, Sparkles, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
 import { cn } from "@/lib/utils"
+import { PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
 
 interface QuickAction {
   label: string
@@ -15,13 +16,25 @@ interface QuickAction {
   icon: string
 }
 
+interface ChatMessagePart {
+  type: string
+  text?: string
+}
+
+interface ChatMessage {
+  id: string
+  role: string
+  content?: string
+  parts?: ChatMessagePart[]
+}
+
 // Helper to extract text from message parts (AI SDK 6 format)
-function getMessageText(message: any): string {
+function getMessageText(message: ChatMessage): string {
   if (message.content) return message.content // Backwards compat
   if (!message.parts || !Array.isArray(message.parts)) return ""
   return message.parts
-    .filter((p: any) => p.type === "text")
-    .map((p: any) => p.text)
+    .filter((p) => p.type === "text")
+    .map((p) => p.text ?? "")
     .join("")
 }
 
@@ -86,10 +99,11 @@ export function LiveChatWidget() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-shadow min-h-[48px]"
+        aria-label="Chat with Anna AI assistant"
+        className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-[10000] flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-shadow min-h-[48px]"
       >
         <Bot className="w-5 h-5" />
-        <span className="font-medium hidden sm:inline">Chat with Anna</span>
+        <span className="font-semibold hidden sm:inline">Chat with Anna</span>
         <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
       </button>
     )
@@ -98,8 +112,8 @@ export function LiveChatWidget() {
   return (
     <div
       className={cn(
-        "fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 bg-card border border-border rounded-xl shadow-2xl",
-        isMinimized ? "w-72 h-14" : "w-[calc(100vw-2rem)] sm:w-96 max-h-[70vh] sm:max-h-[520px] flex flex-col"
+        "fixed bottom-20 md:bottom-6 right-4 md:right-6 z-[10000] bg-card border border-border rounded-xl shadow-2xl",
+        isMinimized ? "w-72 h-14" : "w-[calc(100vw-2rem)] sm:w-96 max-h-[50vh] sm:max-h-[520px] flex flex-col"
       )}
       style={{ contain: 'layout style paint', transform: 'translateZ(0)', transition: 'width 0.15s ease-out, height 0.15s ease-out' }}
     >
@@ -118,7 +132,7 @@ export function LiveChatWidget() {
               <Sparkles className="w-3 h-3 text-yellow-300" />
             </div>
             {!isMinimized && (
-              <div className="text-xs text-white/80">AI Assistant • Online</div>
+              <div className="text-xs text-white/90">AI Assistant • Online</div>
             )}
           </div>
         </div>
@@ -142,7 +156,7 @@ export function LiveChatWidget() {
         <>
           {/* Messages */}
           <div className="flex-1 p-4 space-y-4 overflow-y-auto min-h-[200px] max-h-[300px]">
-            {displayMessages.map((message: any) => (
+            {displayMessages.map((message: ChatMessage) => (
               <div
                 key={message.id}
                 className={cn(
@@ -213,7 +227,7 @@ export function LiveChatWidget() {
           <div className="px-4 py-2 border-t bg-muted/30 text-center">
             <p className="text-xs text-muted-foreground">
               AI-powered • Available 24/7 • 
-              <a href="tel:1-866-797-3332" className="text-primary hover:underline ml-1">
+              <a href={`tel:${PHONE_TOLL_FREE_TEL}`} className="text-primary hover:underline ml-1">
                 Or call us
               </a>
             </p>

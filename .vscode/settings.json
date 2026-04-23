@@ -3,7 +3,7 @@
     "origin",
     "upstream"
   ],
-  "coderabbit.agentType": "Codex CLI",
+  "coderabbit.agentType": "Native",
   "coderabbit.autoStartTask": true,
   "coderabbit.autoReviewMode": "auto",
   "editor.formatOnSave": true,

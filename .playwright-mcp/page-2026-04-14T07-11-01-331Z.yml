@@ -1,0 +1,95 @@
+- generic:
+  - generic [active]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - navigation [ref=e6]:
+          - button "previous" [disabled] [ref=e7]:
+            - img "previous" [ref=e8]
+          - generic [ref=e10]:
+            - generic [ref=e11]: 1/
+            - text: "1"
+          - button "next" [disabled] [ref=e12]:
+            - img "next" [ref=e13]
+        - link "Next.js 16.2.0 (stale) Turbopack" [ref=e16] [cursor=pointer]:
+          - /url: https://nextjs.org/docs/messages/version-staleness
+          - img [ref=e17]
+          - generic "There is a newer version (16.2.3) available, upgrade recommended!" [ref=e19]: Next.js 16.2.0 (stale)
+          - generic [ref=e20]: Turbopack
+      - generic [ref=e21]:
+        - dialog "Runtime Error" [ref=e22]:
+          - generic [ref=e25]:
+            - generic [ref=e26]:
+              - generic [ref=e27]:
+                - generic [ref=e29]: Runtime Error
+                - generic [ref=e30]:
+                  - button "Copy Error Info" [ref=e31] [cursor=pointer]:
+                    - img [ref=e32]
+                  - button "No related documentation found" [disabled] [ref=e34]:
+                    - img [ref=e35]
+                  - button "Attach Node.js inspector" [ref=e37] [cursor=pointer]:
+                    - img [ref=e38]
+              - generic [ref=e47]: NEXT_PUBLIC_SUPABASE_URL (or SUPABASE_URL) is required
+            - generic [ref=e80]:
+              - generic [ref=e81]:
+                - paragraph [ref=e83]:
+                  - img [ref=e85]
+                  - generic [ref=e89]: lib/supabase/config.ts (4:11) @ getSupabaseUrl
+                  - button "Open in editor" [ref=e90] [cursor=pointer]:
+                    - img [ref=e92]
+                - generic [ref=e95]:
+                  - generic [ref=e96]: 2 | const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+                  - generic [ref=e97]: "3 | if (!supabaseUrl) {"
+                  - generic [ref=e98]: "> 4 | throw new Error(\"NEXT_PUBLIC_SUPABASE_URL (or SUPABASE_URL) is required\")"
+                  - generic [ref=e99]: "| ^"
+                  - generic [ref=e100]: "5 | }"
+                  - generic [ref=e101]: 6 | return supabaseUrl
+                  - generic [ref=e102]: "7 | }"
+              - generic [ref=e103]:
+                - generic [ref=e104]:
+                  - paragraph [ref=e105]:
+                    - text: Call Stack
+                    - generic [ref=e106]: "21"
+                  - button "Show 18 ignore-listed frame(s)" [ref=e107] [cursor=pointer]:
+                    - text: Show 18 ignore-listed frame(s)
+                    - img [ref=e108]
+                - generic [ref=e110]:
+                  - generic [ref=e111]:
+                    - text: getSupabaseUrl
+                    - button "Open getSupabaseUrl in editor" [ref=e112] [cursor=pointer]:
+                      - img [ref=e113]
+                  - text: lib/supabase/config.ts (4:11)
+                - generic [ref=e115]:
+                  - generic [ref=e116]:
+                    - text: updateSession
+                    - button "Open updateSession in editor" [ref=e117] [cursor=pointer]:
+                      - img [ref=e118]
+                  - text: lib/supabase/middleware.ts (12:37)
+                - generic [ref=e120]:
+                  - generic [ref=e121]:
+                    - text: proxy
+                    - button "Open proxy in editor" [ref=e122] [cursor=pointer]:
+                      - img [ref=e123]
+                  - text: proxy.ts (11:49)
+          - generic [ref=e48]: "1"
+          - generic [ref=e49]: "2"
+        - contentinfo [ref=e50]:
+          - region "Error feedback" [ref=e51]:
+            - paragraph [ref=e52]:
+              - link "Was this helpful?" [ref=e53] [cursor=pointer]:
+                - /url: https://nextjs.org/telemetry#error-feedback
+            - button "Mark as helpful" [ref=e54] [cursor=pointer]:
+              - img [ref=e55]
+            - button "Mark as not helpful" [ref=e58] [cursor=pointer]:
+              - img [ref=e59]
+    - generic [ref=e65] [cursor=pointer]:
+      - button "Open Next.js Dev Tools" [ref=e66]:
+        - img [ref=e67]
+      - generic [ref=e70]:
+        - button "Open issues overlay" [ref=e71]:
+          - generic [ref=e72]:
+            - generic [ref=e73]: "0"
+            - generic [ref=e74]: "1"
+          - generic [ref=e75]: Issue
+        - button "Collapse issues badge" [ref=e76]:
+          - img [ref=e77]
+  - alert [ref=e79]

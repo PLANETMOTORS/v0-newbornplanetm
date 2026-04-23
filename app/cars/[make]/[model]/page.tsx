@@ -6,12 +6,14 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  Star, Shield, Fuel, Users, Package, Gauge, 
+
+import {
+  Star, Shield, Fuel, Users, Package,
   ChevronRight, Check, Calculator, Car, MapPin,
   Phone, Clock, Award, Zap, Snowflake
 } from "lucide-react"
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
+import { BUSINESS_HOURS_SHORT, PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL, DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
 
 // Dynamic metadata for SEO
 export async function generateMetadata({ params }: { params: Promise<{ make: string; model: string }> }): Promise<Metadata> {
@@ -19,22 +21,27 @@ export async function generateMetadata({ params }: { params: Promise<{ make: str
   const makeFormatted = make.charAt(0).toUpperCase() + make.slice(1)
   const modelFormatted = model.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
   const currentYear = 2026
-  
+  const canonicalPath = `/cars/${make}/${model}`
+
   return {
     title: `${currentYear} ${makeFormatted} ${modelFormatted} for Sale in Richmond Hill, ON | Planet Motors`,
-    description: `Browse our selection of certified pre-owned ${makeFormatted} ${modelFormatted} vehicles in Richmond Hill, Ontario. 210-point inspection, 10-day money-back guarantee, and financing available. Visit Planet Motors today!`,
+    description: `Browse our selection of certified pre-owned ${makeFormatted} ${modelFormatted} vehicles at Planet Motors, Richmond Hill. 210-point inspection, 10-day money-back guarantee, and financing available. Canada-wide delivery.`,
     keywords: [
       `${makeFormatted} ${modelFormatted} for sale`,
-      `used ${makeFormatted} ${modelFormatted} Ontario`,
+      `used ${makeFormatted} ${modelFormatted} Canada`,
       `${makeFormatted} ${modelFormatted} Richmond Hill`,
       `certified pre-owned ${makeFormatted}`,
       `${makeFormatted} dealer Toronto`,
-      `${modelFormatted} financing Ontario`
+      `${modelFormatted} financing Canada`
     ],
+    alternates: {
+      canonical: canonicalPath,
+    },
     openGraph: {
       title: `${currentYear} ${makeFormatted} ${modelFormatted} for Sale | Planet Motors Richmond Hill`,
       description: `Find your perfect ${makeFormatted} ${modelFormatted} at Planet Motors. PM Certified with 210-point inspection. Serving Richmond Hill, Toronto & the GTA.`,
       type: 'website',
+      url: canonicalPath,
     }
   }
 }
@@ -57,7 +64,7 @@ const modelData: Record<string, Record<string, {
   toyota: {
     'rav4': {
       tagline: "Canada&apos;s Best-Selling SUV - Now Available at Planet Motors",
-      description: "Experience the perfect blend of versatility and efficiency with the Toyota RAV4. Built for Canadian winters and Ontario roads, the RAV4 delivers exceptional fuel economy, spacious interior, and Toyota&apos;s legendary reliability.",
+      description: "Experience the perfect blend of versatility and efficiency with the Toyota RAV4. Built for Canadian winters, the RAV4 delivers exceptional fuel economy, spacious interior, and Toyota&apos;s legendary reliability.",
       startingPrice: 32990,
       mpg: { city: 8.4, highway: 6.8 },
       seating: 5,
@@ -69,8 +76,8 @@ const modelData: Record<string, Record<string, {
         { name: "Mazda CX-5", price: 33490, mpg: 8.1, safety: 5 }
       ],
       faqs: [
-        { question: "What is the towing capacity of a Toyota RAV4?", answer: "The Toyota RAV4 has a towing capacity of up to 1,500 kg (3,500 lbs) when properly equipped, making it suitable for small trailers, boats, and recreational equipment for Ontario cottage trips." },
-        { question: "Is the Toyota RAV4 good for Ontario winters?", answer: "Yes! The RAV4&apos;s available All-Wheel Drive system, combined with excellent ground clearance and Toyota&apos;s stability control, makes it an excellent choice for navigating snowy Ontario roads and harsh Canadian winters." },
+        { question: "What is the towing capacity of a Toyota RAV4?", answer: "The Toyota RAV4 has a towing capacity of up to 1,500 kg (3,500 lbs) when properly equipped, making it suitable for small trailers, boats, and recreational equipment for Canadian cottage trips." },
+        { question: "Is the Toyota RAV4 good for Canadian winters?", answer: "Yes! The RAV4&apos;s available All-Wheel Drive system, combined with excellent ground clearance and Toyota&apos;s stability control, makes it an excellent choice for navigating snowy Canadian roads and harsh winters." },
         { question: "What is the fuel economy of the RAV4?", answer: "The Toyota RAV4 achieves approximately 8.4 L/100km in city driving and 6.8 L/100km on the highway. The RAV4 Hybrid model offers even better efficiency at 5.8 L/100km combined." }
       ],
       winterReady: true,
@@ -78,7 +85,7 @@ const modelData: Record<string, Record<string, {
     },
     'camry': {
       tagline: "The Benchmark Sedan - Reliability Meets Refinement",
-      description: "The Toyota Camry sets the standard for mid-size sedans with its perfect balance of comfort, efficiency, and reliability. Available in hybrid configuration for maximum fuel savings on your Ontario commute.",
+      description: "The Toyota Camry sets the standard for mid-size sedans with its perfect balance of comfort, efficiency, and reliability. Available in hybrid configuration for maximum fuel savings on your daily commute.",
       startingPrice: 29990,
       mpg: { city: 8.1, highway: 5.6 },
       seating: 5,
@@ -90,7 +97,7 @@ const modelData: Record<string, Record<string, {
         { name: "Hyundai Sonata", price: 28990, mpg: 7.8, safety: 5 }
       ],
       faqs: [
-        { question: "Is the Toyota Camry available in hybrid?", answer: "Yes! The Camry Hybrid offers exceptional fuel economy of just 4.8 L/100km combined, making it one of the most fuel-efficient sedans available in Ontario." },
+        { question: "Is the Toyota Camry available in hybrid?", answer: "Yes! The Camry Hybrid offers exceptional fuel economy of just 4.8 L/100km combined, making it one of the most fuel-efficient sedans available in Canada." },
         { question: "What safety features come standard on the Camry?", answer: "Every Camry includes Toyota Safety Sense 3.0 with Pre-Collision System, Lane Departure Alert, Dynamic Radar Cruise Control, and Automatic High Beams as standard equipment." },
         { question: "How reliable is the Toyota Camry?", answer: "The Camry consistently ranks as one of the most reliable vehicles in its class, with many examples exceeding 300,000 km with proper maintenance. Toyota&apos;s reputation for longevity makes the Camry an excellent value." }
       ],
@@ -100,7 +107,7 @@ const modelData: Record<string, Record<string, {
   },
   honda: {
     'civic': {
-      tagline: "Canada&apos;s #1 Car - More Powerful and Efficient Than Ever",
+      tagline: "Canada&apos;s Best-Selling Car - More Powerful and Efficient Than Ever",
       description: "The Honda Civic has been Canada&apos;s best-selling car for over two decades. Built right here in Ontario, the Civic delivers unmatched value, efficiency, and driving enjoyment for GTA commuters and families alike.",
       startingPrice: 26990,
       mpg: { city: 7.7, highway: 5.9 },
@@ -122,7 +129,7 @@ const modelData: Record<string, Record<string, {
     },
     'cr-v': {
       tagline: "The Family-Friendly SUV Built for Canadian Adventures",
-      description: "The Honda CR-V combines spacious versatility with Honda&apos;s legendary reliability. Perfect for Ontario families, the CR-V offers excellent cargo space, available hybrid powertrain, and a comfortable ride for long cottage trips.",
+      description: "The Honda CR-V combines spacious versatility with Honda&apos;s legendary reliability. Perfect for Canadian families, the CR-V offers excellent cargo space, available hybrid powertrain, and a comfortable ride for long cottage trips.",
       startingPrice: 34990,
       mpg: { city: 8.4, highway: 6.9 },
       seating: 5,
@@ -135,7 +142,7 @@ const modelData: Record<string, Record<string, {
       ],
       faqs: [
         { question: "How much cargo space does the CR-V have?", answer: "The CR-V offers 1,110 litres of cargo space behind the rear seats, expanding to 2,166 litres with the rear seats folded. This makes it one of the most spacious compact SUVs available." },
-        { question: "Is the Honda CR-V good in snow?", answer: "Absolutely! The CR-V&apos;s Real Time AWD system automatically distributes power to the wheels with the most traction, making it excellent for Ontario&apos;s snowy winters and icy conditions." },
+        { question: "Is the Honda CR-V good in snow?", answer: "Absolutely! The CR-V&apos;s Real Time AWD system automatically distributes power to the wheels with the most traction, making it excellent for Canadian snowy winters and icy conditions." },
         { question: "Is there a hybrid CR-V available?", answer: "Yes, the CR-V Hybrid combines a 2.0L engine with dual electric motors for a combined 204 hp while achieving approximately 6.5 L/100km combined fuel economy." }
       ],
       winterReady: true,
@@ -208,10 +215,10 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
         "name": "Planet Motors",
         "address": {
           "@type": "PostalAddress",
-          "streetAddress": "30 Major Mackenzie Dr E",
-          "addressLocality": "Richmond Hill",
-          "addressRegion": "ON",
-          "postalCode": "L4C 1G7",
+          "streetAddress": DEALERSHIP_LOCATION.streetAddress,
+          "addressLocality": DEALERSHIP_LOCATION.city,
+          "addressRegion": DEALERSHIP_LOCATION.province,
+          "postalCode": DEALERSHIP_LOCATION.postalCode,
           "addressCountry": "CA"
         }
       }
@@ -236,6 +243,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
       />
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Inventory", url: "/inventory" }, { name: makeFormatted, url: `/inventory?make=${make}` }, { name: modelFormatted, url: `/cars/${make}/${model}` }]} />
 
       <main id="main-content" role="main">
         {/* Breadcrumb */}
@@ -248,7 +256,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
               <li className="text-muted-foreground">/</li>
               <li><Link href={`/inventory?make=${make}`} className="text-muted-foreground hover:text-foreground">{makeFormatted}</Link></li>
               <li className="text-muted-foreground">/</li>
-              <li aria-current="page" className="font-medium">{modelFormatted}</li>
+              <li aria-current="page" className="font-semibold">{modelFormatted}</li>
             </ol>
           </div>
         </nav>
@@ -263,7 +271,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                 </Badge>
                 
                 {/* H1 with local intent - Critical for SEO */}
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-balance">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.01em] lg:tracking-[-0.02em] mb-4 text-balance">
                   {currentYear} {makeFormatted} {modelFormatted} for Sale in Richmond Hill, ON
                 </h1>
                 
@@ -457,21 +465,21 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                   </thead>
                   <tbody>
                     <tr className="border-b">
-                      <td className="p-4 font-medium">Starting Price</td>
+                      <td className="p-4 font-semibold">Starting Price</td>
                       <td className="p-4 text-center font-bold text-primary">${data.startingPrice.toLocaleString()}</td>
                       {data.competitors.map((comp, i) => (
                         <td key={i} className="p-4 text-center">${comp.price.toLocaleString()}</td>
                       ))}
                     </tr>
                     <tr className="border-b">
-                      <td className="p-4 font-medium">Fuel Economy (Hwy)</td>
+                      <td className="p-4 font-semibold">Fuel Economy (Hwy)</td>
                       <td className="p-4 text-center font-bold text-primary">{data.mpg.highway} L/100km</td>
                       {data.competitors.map((comp, i) => (
                         <td key={i} className="p-4 text-center">{comp.mpg} L/100km</td>
                       ))}
                     </tr>
                     <tr>
-                      <td className="p-4 font-medium">Safety Rating</td>
+                      <td className="p-4 font-semibold">Safety Rating</td>
                       <td className="p-4 text-center font-bold text-primary">{data.safetyRating} Stars</td>
                       {data.competitors.map((comp, i) => (
                         <td key={i} className="p-4 text-center">{comp.safety} Stars</td>
@@ -555,7 +563,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                   <li className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
                     <div>
-                      <p className="font-semibold">Serving Ontario Since 2015</p>
+                      <p className="font-semibold">Serving Richmond Hill Since 2015</p>
                       <p className="text-muted-foreground">10+ years of trusted service in Richmond Hill</p>
                     </div>
                   </li>
@@ -574,15 +582,15 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                     <MapPin className="h-5 w-5 text-primary" />
                     <span className="font-semibold">Visit Us Today</span>
                   </div>
-                  <p className="mb-2">30 Major Mackenzie Dr E</p>
-                  <p className="mb-4">Richmond Hill, ON L4C 1G7</p>
+                  <p className="mb-2">{DEALERSHIP_LOCATION.streetAddress}</p>
+                  <p className="mb-4">{DEALERSHIP_LOCATION.city}, {DEALERSHIP_LOCATION.province} {DEALERSHIP_LOCATION.postalCode}</p>
                   <div className="flex items-center gap-2 mb-2">
                     <Phone className="h-4 w-4" />
-                    <a href="tel:1-866-797-3332" className="text-primary hover:underline">1-866-797-3332</a>
+                    <a href={`tel:${PHONE_TOLL_FREE_TEL}`} className="text-primary hover:underline">{PHONE_TOLL_FREE}</a>
                   </div>
                   <div className="flex items-center gap-2 mb-4">
                     <Clock className="h-4 w-4" />
-                    <span>Mon-Fri 9-7 | Sat 9-6</span>
+                    <span>{BUSINESS_HOURS_SHORT}</span>
                   </div>
                   <Button className="w-full" asChild>
                     <Link href="/contact">Schedule a Test Drive</Link>

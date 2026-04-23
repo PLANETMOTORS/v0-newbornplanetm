@@ -10,7 +10,7 @@ export default function AuthErrorPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="container mx-auto px-4 py-16">
+      <main id="main-content" tabIndex={-1} className="container mx-auto px-4 py-16">
         <div className="max-w-md mx-auto">
           <Card className="shadow-lg">
             <CardHeader className="text-center">

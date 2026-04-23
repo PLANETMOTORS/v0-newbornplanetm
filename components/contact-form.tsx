@@ -6,13 +6,17 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AlertCircle, CheckCircle, Loader2 } from "lucide-react"
-import { 
-  isValidEmail, 
-  isValidCanadianPhone, 
-  formatCanadianPhone, 
-  isValidCanadianPostalCode, 
-  formatCanadianPostalCode 
-} from "@/lib/form-validation"
+import {
+  isValidEmail,
+  isValidCanadianPhone,
+  formatCanadianPhone,
+  isValidCanadianPostalCode,
+  formatCanadianPostalCode
+} from "@/lib/validation"
+import { trackFormSubmission } from "@/components/analytics/google-tag-manager"
+import { trackLead } from "@/components/analytics/google-analytics"
+import { trackMetaLead } from "@/components/analytics/meta-pixel"
+import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
 
 interface ContactFormProps {
   onSuccess?: () => void
@@ -103,10 +107,13 @@ export function ContactForm({ onSuccess }: ContactFormProps) {
 
       if (!response.ok) throw new Error("Failed to send message")
 
+      trackFormSubmission("contact_form", { subject: formData.subject || "General Inquiry" })
+      trackLead("contact_form")
+      trackMetaLead("contact_form")
       setIsSubmitted(true)
       onSuccess?.()
     } catch {
-      setSubmitError("Failed to send message. Please try calling us at 416-985-2277.")
+      setSubmitError(`Failed to send message. Please try calling us at ${PHONE_LOCAL}.`)
     } finally {
       setIsSubmitting(false)
     }
@@ -180,7 +187,7 @@ export function ContactForm({ onSuccess }: ContactFormProps) {
           <Input
             id="phone"
             type="tel"
-            placeholder="(416) 985-2277"
+            placeholder="(416) 555-0123"
             value={formData.phone}
             onChange={(e) => handleInputChange("phone", e.target.value)}
             className={errors.phone ? "border-destructive" : ""}

@@ -1,3 +1,14 @@
+import { Metadata } from "next"
+import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
+
+export const metadata: Metadata = {
+  title: "Accessibility Statement | Planet Motors",
+  description: "Planet Motors is committed to digital accessibility. Learn about our WCAG 2.1 AA compliance and how to contact us for accessibility support.",
+  alternates: {
+    canonical: "/accessibility",
+  },
+}
+
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,16 +19,16 @@ export default function AccessibilityPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
-      <main className="pt-32 pb-16">
+
+      <main id="main-content" tabIndex={-1} className="pt-32 pb-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-4xl font-serif font-bold text-foreground mb-6">
+            <h1 className="text-4xl font-bold tracking-[-0.01em] text-foreground mb-6">
               Accessibility Statement
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
-              Planet Motors is committed to ensuring digital accessibility for people with disabilities. 
-              We are continually improving the user experience for everyone and applying the relevant 
+              Planet Motors is committed to ensuring digital accessibility for people with disabilities.
+              We are continually improving the user experience for everyone and applying the relevant
               accessibility standards.
             </p>
 
@@ -28,16 +39,16 @@ export default function AccessibilityPage() {
               </CardHeader>
               <CardContent className="prose prose-neutral dark:prose-invert max-w-none">
                 <p>
-                  We strive to ensure that our website and digital services are accessible to all users, 
-                  including those with visual, auditory, motor, and cognitive disabilities. Our goal is 
-                  to provide an inclusive experience that allows everyone to browse our inventory, apply 
+                  We strive to ensure that our website and digital services are accessible to all users,
+                  including those with visual, auditory, motor, and cognitive disabilities. Our goal is
+                  to provide an inclusive experience that allows everyone to browse our inventory, apply
                   for financing, and complete purchases with ease.
                 </p>
               </CardContent>
             </Card>
 
             {/* Accessibility Features */}
-            <h2 className="text-2xl font-serif font-bold mb-6">Accessibility Features</h2>
+            <h2 className="text-2xl font-bold mb-6">Accessibility Features</h2>
             <div className="grid md:grid-cols-2 gap-6 mb-12">
               <Card>
                 <CardHeader>
@@ -110,12 +121,12 @@ export default function AccessibilityPage() {
               </CardHeader>
               <CardContent className="prose prose-neutral dark:prose-invert max-w-none">
                 <p>
-                  We aim to conform to the Web Content Accessibility Guidelines (WCAG) 2.1 Level AA. 
-                  These guidelines explain how to make web content more accessible for people with 
+                  We aim to conform to the Web Content Accessibility Guidelines (WCAG) 2.1 Level AA.
+                  These guidelines explain how to make web content more accessible for people with
                   disabilities and more user-friendly for everyone.
                 </p>
                 <p>
-                  We also comply with the Accessibility for Ontarians with Disabilities Act (AODA) 
+                  We also comply with the Accessibility for Ontarians with Disabilities Act (AODA)
                   and follow the Ontario Human Rights Code requirements for accessible customer service.
                 </p>
               </CardContent>
@@ -145,14 +156,14 @@ export default function AccessibilityPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-6">
-                  We welcome your feedback on the accessibility of our website. If you encounter any 
+                  We welcome your feedback on the accessibility of our website. If you encounter any
                   barriers or have suggestions for improvement, please contact us:
                 </p>
                 <div className="flex flex-wrap gap-4">
                   <Button asChild>
-                    <a href="tel:1-866-797-3332">
+                    <a href={`tel:${PHONE_TOLL_FREE_TEL}`}>
                       <Phone className="w-4 h-4 mr-2" />
-                      1-866-797-3332
+                      {PHONE_TOLL_FREE}
                     </a>
                   </Button>
                   <Button variant="outline" asChild>

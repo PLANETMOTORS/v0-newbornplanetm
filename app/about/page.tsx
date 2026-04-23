@@ -1,9 +1,33 @@
+import { Metadata } from "next"
+import { getPublicSiteUrl } from "@/lib/site-url"
+import { WEEKDAY_HOURS_LONG, SATURDAY_HOURS_LONG, PHONE_TOLL_FREE, PHONE_LOCAL, EMAIL_INFO, DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
+
+const SITE_URL = getPublicSiteUrl()
+
+export const metadata: Metadata = {
+  title: "About Planet Motors | OMVIC Licensed Used EV Dealership Richmond Hill",
+  description: "Canada's EV-focused used car dealership. Aviloo battery-certified. OMVIC licensed. Family-operated since 2015. 210-point inspection on every vehicle.",
+  keywords: "Planet Motors, OMVIC licensed, Richmond Hill dealership, used EV dealer, Aviloo certified, about us",
+  alternates: {
+    canonical: '/about',
+  },
+  openGraph: {
+    title: "About Planet Motors | OMVIC Licensed Used EV Dealership Richmond Hill",
+    description: "Canada's EV-focused used car dealership. Aviloo battery-certified. OMVIC licensed. Family-operated since 2015.",
+    url: `${SITE_URL}/about`,
+    siteName: "Planet Motors",
+    locale: "en_CA",
+    type: "website",
+  },
+}
+
 import Image from "next/image"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Shield, Award, Users, MapPin, Heart, Target, Star, Globe, Trophy } from "lucide-react"
+import { Shield, Award, MapPin, Heart, Target, Star, Globe, Trophy } from "lucide-react"
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
 
 export default function AboutPage() {
   // Real team members from Planet Motors
@@ -32,7 +56,7 @@ export default function AboutPage() {
     { year: "2021", title: "Autotrader Award", description: "Recognized as Best Priced Dealer in the GTA" },
     { year: "2023", title: "CarGurus Top Rated", description: "Earned Top Rated Dealer status for customer satisfaction" },
     { year: "2024", title: "Nationwide Delivery", description: "Expanded to serve all of Canada with coast-to-coast delivery" },
-    { year: "2025", title: "EV Specialist", description: "Became a leading used EV dealer with battery health certification" }
+    { year: "2025", title: "EV Specialist", description: "Became an Aviloo-certified used EV dealer with battery health reports on every vehicle" }
   ]
 
   // Real customer reviews from Google
@@ -47,19 +71,20 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "About", url: "/about" }]} />
       <Header />
-      
-      <main>
+
+      <main id="main-content" tabIndex={-1}>
         {/* Hero Section */}
         <section className="bg-primary py-20">
           <div className="container mx-auto px-4 text-center">
             <Badge className="mb-4 bg-accent text-accent-foreground">Serving Canadians Since 2015</Badge>
-            <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] text-primary-foreground mb-4">
               Fairness &amp; Integrity
             </h1>
             <p className="text-xl text-primary-foreground/80 max-w-3xl mx-auto">
-              At Planet Motors, we believe buying a used car should be simple, transparent, and stress-free. 
-              Our mission is to provide Canadians with the best selection of quality pre-owned vehicles 
+              At Planet Motors, we believe buying a used car should be simple, transparent, and stress-free.
+              Our mission is to provide Canadians with a curated selection of quality pre-owned vehicles
               backed by our 210-point inspection and 10-day money-back guarantee.
             </p>
           </div>
@@ -106,7 +131,7 @@ export default function AboutPage() {
                 <Card key={i} className="p-6 text-center border-2 border-primary/20">
                   <award.icon className="h-12 w-12 mx-auto mb-4 text-primary" />
                   <h3 className="font-semibold text-lg mb-1">{award.title}</h3>
-                  <p className="text-primary font-medium">{award.years}</p>
+                  <p className="text-primary font-semibold">{award.years}</p>
                 </Card>
               ))}
             </div>
@@ -144,6 +169,65 @@ export default function AboutPage() {
         </section>
 
 
+
+        {/* OMVIC Compliance Section */}
+        <section id="omvic" className="py-16 bg-muted/30">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto">
+              <div className="flex items-center gap-3 mb-6">
+                <Shield className="h-8 w-8 text-primary" />
+                <h2 className="text-3xl font-bold">OMVIC Registered Dealer</h2>
+              </div>
+              <Card className="p-8">
+                <p className="text-muted-foreground mb-4">
+                  Planet Motors is a registered dealer with the{" "}
+                  <a
+                    href="https://www.omvic.on.ca"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline font-semibold"
+                  >
+                    Ontario Motor Vehicle Industry Council (OMVIC)
+                  </a>
+                  . OMVIC is the regulator of Ontario&apos;s motor vehicle sales industry and
+                  administers the{" "}
+                  <em>Motor Vehicle Dealers Act, 2002</em>.
+                </p>
+                <p className="text-muted-foreground mb-4">
+                  As an OMVIC-registered dealer we are legally required to operate with
+                  honesty, fairness, and in accordance with Ontario consumer-protection
+                  laws. Every vehicle we sell comes with the disclosures mandated by
+                  OMVIC, including a detailed vehicle history and condition report.
+                </p>
+                <p className="text-muted-foreground mb-6">
+                  If you have any questions about your rights as a consumer, please
+                  visit{" "}
+                  <a
+                    href="https://www.omvic.on.ca"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline font-semibold"
+                  >
+                    www.omvic.on.ca
+                  </a>{" "}
+                  or contact us directly.
+                </p>
+                <div className="flex flex-wrap gap-4 text-sm">
+                  <Badge variant="secondary" className="px-4 py-2">
+                    <Shield className="h-3.5 w-3.5 mr-1.5" />
+                    OMVIC Registered
+                  </Badge>
+                  <Badge variant="secondary" className="px-4 py-2">
+                    Consumer Protection
+                  </Badge>
+                  <Badge variant="secondary" className="px-4 py-2">
+                    Full Disclosure
+                  </Badge>
+                </div>
+              </Card>
+            </div>
+          </div>
+        </section>
 
         {/* Languages Section */}
         <section className="py-16 bg-muted/30">
@@ -262,20 +346,20 @@ export default function AboutPage() {
                     </div>
                     <address className="not-italic text-muted-foreground mb-4">
                       <strong>Planet Motors</strong><br />
-                      30 Major Mackenzie Dr E<br />
-                      Richmond Hill, ON L4C 1G7<br />
+                      {DEALERSHIP_LOCATION.streetAddress}<br />
+                      {DEALERSHIP_LOCATION.city}, {DEALERSHIP_LOCATION.province} {DEALERSHIP_LOCATION.postalCode}<br />
                       Canada
                     </address>
                     <div className="space-y-2 text-sm">
-                      <p><strong>Toll-Free:</strong> 1-866-797-3332</p>
-                      <p><strong>Local:</strong> 416-985-2277</p>
-                      <p><strong>Email:</strong> info@planetmotors.ca</p>
+                      <p><strong>Toll-Free:</strong> {PHONE_TOLL_FREE}</p>
+                      <p><strong>Local:</strong> {PHONE_LOCAL}</p>
+                      <p><strong>Email:</strong> {EMAIL_INFO}</p>
                     </div>
                     <div className="mt-6 pt-6 border-t">
-                      <p className="font-medium mb-2">Business Hours</p>
+                      <p className="font-semibold mb-2">Business Hours</p>
                       <div className="text-sm text-muted-foreground space-y-1">
-                        <p>Monday - Friday: 9:00 AM - 7:00 PM</p>
-                        <p>Saturday: 9:00 AM - 6:00 PM</p>
+                        <p>Monday - Friday: {WEEKDAY_HOURS_LONG}</p>
+                        <p>Saturday: {SATURDAY_HOURS_LONG}</p>
                         <p>Sunday: Closed</p>
                       </div>
                     </div>

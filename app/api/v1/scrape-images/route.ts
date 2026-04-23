@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-
-const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
+import { ADMIN_EMAILS } from "@/lib/admin"
 const DEFAULT_BATCH_LIMIT = 50
 const MAX_BATCH_LIMIT = 100
 const SCRAPE_CONCURRENCY = 5
@@ -34,7 +33,7 @@ async function scrapeVehicleImages(vdpUrl: string): Promise<{
     })
     
     if (!response.ok) {
-      console.log(`[v0] Failed to fetch VDP: ${vdpUrl}`)
+      console.warn(`[v0] Failed to fetch VDP: ${vdpUrl}`)
       return { images: [], has360: false }
     }
     

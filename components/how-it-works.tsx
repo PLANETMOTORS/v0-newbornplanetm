@@ -4,6 +4,7 @@ import { Search, CreditCard, CalendarCheck, Truck, ArrowRight, CheckCircle, Cloc
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
+import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
 
 const steps = [
   {
@@ -20,7 +21,7 @@ const steps = [
     step: 2,
     title: "Get Pre-Approved",
     description: "Apply in 2 minutes with no credit impact. Compare offers from 20+ Canadian lenders instantly.",
-    features: ["No Credit Impact", "20+ Lender Options", "Rates from 6.29%"],
+    features: ["No Credit Impact", "20+ Lender Options", `Rates from ${RATE_FLOOR_DISPLAY}`],
     time: "2 min",
     color: "from-green-500 to-green-600"
   },
@@ -53,7 +54,7 @@ export function HowItWorks() {
             <Sparkles className="w-3 h-3 mr-1" />
             Simple 4-Step Process
           </Badge>
-          <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
             Buy Your Car 100% Online
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -68,7 +69,7 @@ export function HowItWorks() {
           <div className="absolute top-24 left-[10%] right-[10%] h-1 bg-gradient-to-r from-blue-500 via-green-500 via-purple-500 to-orange-500 rounded-full" />
           
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-            {steps.map((item, index) => (
+            {steps.map((item) => (
               <div key={item.step} className="relative">
                 {/* Step Circle with gradient */}
                 <div className={`relative mx-auto w-20 h-20 rounded-full bg-gradient-to-br ${item.color} text-white shadow-lg flex items-center justify-center mb-6`}>
@@ -93,7 +94,7 @@ export function HowItWorks() {
                 <ul className="space-y-2">
                   {item.features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-sm">
-                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <CheckCircle className="w-4 h-4 text-green-700 flex-shrink-0" />
                       <span className="text-muted-foreground">{feature}</span>
                     </li>
                   ))}
@@ -128,7 +129,7 @@ export function HowItWorks() {
                   <ul className="space-y-1">
                     {item.features.map((feature) => (
                       <li key={feature} className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
+                        <CheckCircle className="w-3 h-3 text-green-700 flex-shrink-0" />
                         {feature}
                       </li>
                     ))}

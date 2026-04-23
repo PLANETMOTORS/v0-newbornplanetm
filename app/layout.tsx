@@ -1,28 +1,32 @@
 import type { Metadata, Viewport } from 'next'
-import { Analytics } from '@vercel/analytics/next'
-import { SpeedInsights } from '@vercel/speed-insights/next'
-import { GoogleAnalytics } from '@/components/analytics/google-analytics'
-import { GoogleTagManager, GoogleTagManagerNoScript } from '@/components/analytics/google-tag-manager'
-import { MetaPixel } from '@/components/analytics/meta-pixel'
-import { LiveChatWidget } from '@/components/live-chat-widget'
-import { CompareProvider } from '@/lib/compare-context'
-import { FavoritesProvider } from '@/lib/favorites-context'
+import { Inter } from 'next/font/google'
+import { CompareProvider } from '@/contexts/compare-context'
+import { FavoritesProvider } from '@/contexts/favorites-context'
 import { AuthProvider } from '@/contexts/auth-context'
-import { CompareBar } from '@/components/compare-bar'
-import { Toaster } from '@/components/ui/sonner'
-import { OrganizationJsonLd, LocalBusinessJsonLd, WebsiteSearchJsonLd } from '@/components/seo/json-ld'
+import { OrganizationJsonLd, WebsiteSearchJsonLd } from '@/components/seo/json-ld'
+import { DynamicLocalBusinessJsonLd } from '@/components/seo/dynamic-local-business-jsonld'
+import { ClientLayoutWidgets } from '@/components/client-layout-widgets'
+import { SerwistProvider } from './serwist'
 import { getPublicSiteUrl } from '@/lib/site-url'
 import './globals.css'
 import './stability-fixes.css'
 
 // Planet Motors - OMVIC Licensed Dealer - Production Ready
 
+const inter = Inter({
+  subsets: ["latin"],
+  variable: '--font-inter',
+  display: 'swap',
+  preload: true,
+});
+
+
 const SITE_URL = getPublicSiteUrl()
 
 export const metadata: Metadata = {
-  title: 'Planet Motors | Premium Used Car Dealership - Nationwide Delivery',
-  description: 'Shop certified pre-owned vehicles with free Carfax reports, 210-point inspections, and nationwide delivery across Canada. Get pre-approved in minutes.',
-  keywords: 'used cars, pre-owned vehicles, car dealership, Canada, Ontario, Toronto, Richmond Hill, financing, trade-in, nationwide delivery',
+  title: 'Planet Motors Richmond Hill | Aviloo-Certified Used EVs | Canada-Wide Delivery',
+  description: "Canada's EV-focused used car dealership. Every electric vehicle independently battery-certified by Aviloo. OMVIC licensed, 210-point inspected, Canada-wide delivery. Financing from 6.29% APR.",
+  keywords: 'used EVs Canada, Aviloo certified, pre-owned electric vehicles, used car dealership Richmond Hill, EV battery health, Canada-wide delivery, OMVIC licensed, financing, trade-in',
   authors: [{ name: 'Planet Motors' }],
   manifest: '/manifest.json',
   appleWebApp: {
@@ -36,17 +40,35 @@ export const metadata: Metadata = {
     address: true,
   },
   openGraph: {
-    title: 'Planet Motors | Premium Used Car Dealership',
-    description: 'Shop certified pre-owned vehicles with free Carfax reports and nationwide delivery across Canada.',
+    title: 'Planet Motors Richmond Hill | Aviloo-Certified Used EVs | Canada-Wide Delivery',
+    description: "Canada's EV-focused used car dealership. Every electric vehicle independently battery-certified by Aviloo. OMVIC licensed, 210-point inspected, Canada-wide delivery.",
     url: SITE_URL,
     siteName: 'Planet Motors',
     locale: 'en_CA',
     type: 'website',
+    images: [
+      {
+        url: `${SITE_URL}/images/planet-motors-logo.png`,
+        width: 1200,
+        height: 630,
+        alt: 'Planet Motors — OMVIC Licensed Used Car Dealership, Richmond Hill Ontario',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Planet Motors | Premium Used Car Dealership',
-    description: 'Shop certified pre-owned vehicles with free Carfax reports and nationwide delivery.',
+    title: 'Planet Motors Richmond Hill | Aviloo-Certified Used EVs',
+    description: "Canada's EV-focused used car dealership. Aviloo battery-certified. 210-point inspected. Canada-wide delivery.",
+    images: [`${SITE_URL}/images/planet-motors-logo.png`],
+  },
+  metadataBase: new URL(SITE_URL),
+  // Canonical is set per-page to avoid all sub-pages inheriting '/'
+  // Each page must define its own alternates.canonical
+  alternates: {
+    languages: {
+      'en-CA': SITE_URL,
+      'x-default': SITE_URL,
+    },
   },
   robots: {
     index: true,
@@ -78,8 +100,8 @@ export const viewport: Viewport = {
   ],
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5,
+  userScalable: true,
 }
 
 export default function RootLayout({
@@ -88,34 +110,35 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="bg-background" data-scroll-behavior="smooth">
+    <html lang="en-CA" className="bg-background" data-scroll-behavior="smooth">
       <head>
-        {/* Preconnect to external domains for performance */}
-        <link rel="preconnect" href="https://images.unsplash.com" />
+        {/* Preconnect to Supabase for faster API/auth calls */}
+        {process.env.NEXT_PUBLIC_SUPABASE_URL && (
+          <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
+        )}
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-        
-        <GoogleAnalytics />
-        <GoogleTagManager />
-        <MetaPixel />
+        {/* Preconnect to vehicle image CDN for faster LCP */}
+        <link rel="preconnect" href="https://content.homenetiol.com" />
+        <link rel="preconnect" href="https://photos.homenetiol.com" />
+
+        {/* JSON-LD structured data — server-rendered, lightweight */}
         <OrganizationJsonLd />
-        <LocalBusinessJsonLd />
+        <DynamicLocalBusinessJsonLd />
         <WebsiteSearchJsonLd />
       </head>
-      <body className="font-sans antialiased">
-        <GoogleTagManagerNoScript />
-        <AuthProvider>
-          <FavoritesProvider>
-            <CompareProvider>
-              {children}
-              <CompareBar />
-              <LiveChatWidget />
-              <Toaster richColors position="top-right" />
-            </CompareProvider>
-          </FavoritesProvider>
-        </AuthProvider>
-        <Analytics />
-        <SpeedInsights />
+      <body className={`${inter.variable} font-sans antialiased`}>
+        <SerwistProvider swUrl="/sw.js" disable={process.env.NODE_ENV === 'development'}>
+          <AuthProvider>
+            <FavoritesProvider>
+              <CompareProvider>
+                {children}
+                {/* Client-only widgets: analytics, chat, toaster, compare bar, etc. */}
+                <ClientLayoutWidgets />
+              </CompareProvider>
+            </FavoritesProvider>
+          </AuthProvider>
+        </SerwistProvider>
       </body>
     </html>
   )

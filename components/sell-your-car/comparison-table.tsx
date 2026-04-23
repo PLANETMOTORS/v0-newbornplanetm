@@ -31,7 +31,7 @@ export function ComparisonTable({ title, rows, usLabel = 'Planet Motors', others
           {/* Rows */}
           {rows.map((row, index) => (
             <div key={index} className={`grid grid-cols-3 ${index !== rows.length - 1 ? 'border-b' : ''}`}>
-              <div className="p-4 font-medium">{row.feature}</div>
+              <div className="p-4 font-semibold">{row.feature}</div>
               <div className="p-4 text-center">
                 {row.usValue !== undefined ? (
                   row.usValue ? (
@@ -40,7 +40,7 @@ export function ComparisonTable({ title, rows, usLabel = 'Planet Motors', others
                     <X className="h-5 w-5 text-red-500 mx-auto" />
                   )
                 ) : (
-                  <span className="text-green-600 font-medium">{row.us}</span>
+                  <span className="text-green-700 dark:text-green-500 font-semibold">{row.us}</span>
                 )}
               </div>
               <div className="p-4 text-center">

@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotificationEmail } from '@/lib/email'
+import { rateLimit } from '@/lib/redis'
+import { validateOrigin } from '@/lib/csrf'
+import { PHONE_TOLL_FREE } from '@/lib/constants/dealership'
 
-// Mock CBB valuation data
+// Estimated valuation data — uses simplified model as a starting point.
+// In production, connect to Canadian Black Book API for accurate market values.
 const getVehicleValue = (year: number, make: string, model: string, mileage: number, condition: string) => {
-  // Base values by segment (simplified)
+  // Base values by segment (simplified — estimate only)
   const baseValues: Record<string, number> = {
     'Honda Accord': 28000,
     'Honda Civic': 24000,
@@ -58,6 +62,25 @@ const getVehicleValue = (year: number, make: string, model: string, mileage: num
 
 // POST /api/v1/trade-in/instant-offer - Get instant offer
 export async function POST(request: NextRequest) {
+  // CSRF protection
+  if (!validateOrigin(request)) {
+    return NextResponse.json(
+      { success: false, error: { code: 'FORBIDDEN', message: 'Forbidden' } },
+      { status: 403 }
+    )
+  }
+
+  // Rate limit: 10 trade-in valuations per hour per IP
+  const forwarded = request.headers.get("x-forwarded-for") || ""
+  const ip = forwarded.split(",")[0]?.trim() || "unknown"
+  const limiter = await rateLimit(`trade-in:${ip}`, 10, 3600)
+  if (!limiter.success) {
+    return NextResponse.json(
+      { success: false, error: { code: 'RATE_LIMITED', message: 'Too many requests. Please try again later.' } },
+      { status: 429 }
+    )
+  }
+
   const body = await request.json()
   
   const {
@@ -154,7 +177,7 @@ export async function POST(request: NextRequest) {
       low: cbbValue.low,
       mid: cbbValue.mid,
       high: cbbValue.high,
-      source: 'Canadian Black Book',
+      source: 'Estimated (based on market data)',
       date: new Date().toISOString(),
     },
     
@@ -212,19 +235,20 @@ export async function POST(request: NextRequest) {
     data: {
       offer,
       message: `Your ${year} ${make} ${model} is worth approximately $${offer.offerAmount.toLocaleString()} CAD`,
+      _disclaimer: `This is a preliminary estimate only and not a guaranteed offer. Final trade-in value will be determined after an in-person vehicle inspection. Market conditions, vehicle history, and other factors may affect the final value. Contact Planet Motors at ${PHONE_TOLL_FREE} for an official appraisal.`,
       comparison: {
-        vsPrivateSale: Math.round(offer.offerAmount * 1.15), // Private sale usually higher
-        vsDealerTrade: Math.round(offer.offerAmount * 0.9), // Traditional dealer usually lower
-        planetMotorsAdvantage: 'Instant offer, no haggling, free pickup',
+        vsPrivateSale: Math.round(offer.offerAmount * 1.15),
+        vsDealerTrade: Math.round(offer.offerAmount * 0.9),
+        planetMotorsAdvantage: 'Instant estimate, no haggling, free pickup',
       },
     },
   })
 }
 
 // GET /api/v1/trade-in/valuation - Get CBB valuation (public)
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
-  
+
   const year = parseInt(searchParams.get('year') || '0')
   const make = searchParams.get('make') || ''
   const model = searchParams.get('model') || ''
@@ -256,8 +280,9 @@ export async function GET(request: NextRequest) {
         mileage,
         condition,
         value,
-        source: 'Canadian Black Book',
+        source: 'Estimated (based on market data)',
         date: new Date().toISOString(),
+        _disclaimer: 'This is a preliminary estimate only. Final value determined after in-person inspection.',
       },
     },
   })

@@ -18,7 +18,11 @@ import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 function SignUpForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectTo = searchParams.get("redirectTo") || "/account"
+  const rawRedirectTo = searchParams.get("redirectTo")
+  // Sanitize redirectTo to prevent open redirect (OWASP WSTG-SESS-04)
+  const redirectTo = (rawRedirectTo && /^\/[^/]/.test(rawRedirectTo) && !/[\r\n\t]/.test(rawRedirectTo))
+    ? rawRedirectTo
+    : "/account"
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -116,7 +120,7 @@ function SignUpForm() {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       <Header />
       
-      <main className="container mx-auto px-4 py-12">
+      <main id="main-content" tabIndex={-1} className="container mx-auto px-4 py-12">
         <div className="max-w-5xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-start">
             {/* Left Column - Benefits */}
@@ -124,7 +128,7 @@ function SignUpForm() {
               <Link href="/" className="inline-block mb-8">
                 <PlanetMotorsLogo size="xl" />
               </Link>
-              <h1 className="text-4xl font-bold mb-4">Join Planet Motors</h1>
+              <h1 className="text-4xl font-bold tracking-[-0.01em] mb-4">Join Planet Motors</h1>
               <p className="text-xl text-muted-foreground mb-8">
                 Create your account and unlock exclusive benefits
               </p>
@@ -141,7 +145,7 @@ function SignUpForm() {
               </div>
 
               <div className="mt-12 p-6 bg-primary/5 rounded-xl">
-                <p className="text-lg font-medium mb-2">Already have an account?</p>
+                <p className="text-lg font-semibold mb-2">Already have an account?</p>
                 <Link href="/auth/login">
                   <Button variant="outline" className="w-full">
                     Sign In Instead
@@ -156,7 +160,7 @@ function SignUpForm() {
                 <Link href="/" className="inline-block mb-6">
                   <PlanetMotorsLogo size="lg" />
                 </Link>
-                <h1 className="text-3xl font-bold mb-2">Create Account</h1>
+                <h1 className="text-3xl font-bold tracking-[-0.01em] mb-2">Create Account</h1>
                 <p className="text-muted-foreground">
                   Join thousands of happy customers
                 </p>
@@ -266,7 +270,7 @@ function SignUpForm() {
                           id="phone"
                           name="phone"
                           type="tel"
-                          placeholder="416-985-2277"
+                          placeholder="(416) 555-0123"
                           className="pl-10 h-12"
                           value={formData.phone}
                           onChange={handleChange}
@@ -359,7 +363,7 @@ function SignUpForm() {
                 <CardFooter className="flex flex-col space-y-4 pt-0 lg:hidden">
                   <div className="text-center text-sm">
                     Already have an account?{" "}
-                    <Link href="/auth/login" className="text-primary font-medium hover:underline">
+                    <Link href="/auth/login" className="text-primary font-semibold hover:underline">
                       Sign in
                     </Link>
                   </div>

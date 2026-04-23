@@ -1,52 +1,37 @@
 'use client'
 
 import { useCallback, useState } from 'react'
-import {
-  EmbeddedCheckout,
-  EmbeddedCheckoutProvider,
-} from '@stripe/react-stripe-js'
-import { loadStripe } from '@stripe/stripe-js'
+import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle, Shield, CreditCard, X } from 'lucide-react'
 import { startVehicleCheckout } from '@/app/actions/stripe'
+import { CHECKOUT_PLANS } from '@/lib/constants/protection-packages'
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+const EmbeddedCheckoutProvider = dynamic(
+  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckoutProvider })),
+  { ssr: false }
+)
+const EmbeddedCheckout = dynamic(
+  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckout })),
+  { ssr: false }
+)
 
-interface ProtectionPlan {
-  id: string
-  name: string
-  price: number
-  deposit: number
-  features: string[]
-  recommended?: boolean
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""
+let stripePromise: ReturnType<typeof import('@stripe/stripe-js').loadStripe> | null = null
+function getStripePromise() {
+  if (!stripePromise && stripeKey) {
+    stripePromise = import('@stripe/stripe-js').then(m => m.loadStripe(stripeKey))
+  }
+  return stripePromise
 }
 
-const PROTECTION_PLANS: ProtectionPlan[] = [
-  {
-    id: 'essential',
-    name: 'PlanetCare Essential Shield',
-    price: 1950,
-    deposit: 250,
-    features: ['Standard Warranty', '$50K GAP Coverage', 'Trade-in Credit'],
-  },
-  {
-    id: 'smart',
-    name: 'PlanetCare Smart Secure',
-    price: 3000,
-    deposit: 250,
-    features: ['Extended Warranty', '$60K GAP Coverage', 'Tire & Rim Protection', '~$1M Life Coverage'],
-    recommended: true,
-  },
-  {
-    id: 'lifeproof',
-    name: 'PlanetCare Life Proof',
-    price: 4850,
-    deposit: 250,
-    features: ['Extended Warranty', '$60K GAP Coverage', 'Tire & Rim', 'Anti-Theft', '~$1M Life Coverage'],
-  },
-]
+// Filter out "basic" (no protection) — this component only shows paid plans
+const PROTECTION_PLANS = CHECKOUT_PLANS.filter(p => p.price > 0)
+
+/** Vehicle reservation deposit — separate from protection plan deposit */
+const VEHICLE_RESERVATION_DEPOSIT = 250
 
 interface VehicleCheckoutProps {
   vehicleId: string
@@ -60,14 +45,14 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
   const [depositOnly, setDepositOnly] = useState(true)
   const [showCheckout, setShowCheckout] = useState(false)
 
-  const totalDeposit = 250 + (selectedPlan ? 250 : 0)
-  const totalFull = vehiclePrice + (selectedPlan ? PROTECTION_PLANS.find(p => p.id === selectedPlan)?.price || 0 : 0)
+  const selectedPkg = selectedPlan ? PROTECTION_PLANS.find(p => p.id === selectedPlan) : null
+  const totalDeposit = 250
+  const totalFull = vehiclePrice + (selectedPkg?.price ?? 0)
 
   const fetchClientSecret = useCallback(async () => {
     const clientSecret = await startVehicleCheckout({
       vehicleId,
       vehicleName,
-      vehiclePriceCents: Math.round(vehiclePrice * 100),
       protectionPlanId: selectedPlan || undefined,
       depositOnly,
     })
@@ -75,7 +60,7 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
       throw new Error("Failed to create vehicle checkout session")
     }
     return clientSecret
-  }, [vehicleId, vehicleName, vehiclePrice, selectedPlan, depositOnly])
+  }, [vehicleId, vehicleName, selectedPlan, depositOnly])
 
   if (showCheckout) {
     return (
@@ -87,7 +72,7 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
           </Button>
         </div>
         <div className="bg-muted/50 p-4 rounded-lg mb-4">
-          <p className="font-medium">{vehicleName}</p>
+          <p className="font-semibold">{vehicleName}</p>
           <p className="text-sm text-muted-foreground">
             {depositOnly ? `Deposit: $${totalDeposit.toLocaleString()}` : `Total: $${totalFull.toLocaleString()}`}
           </p>
@@ -98,7 +83,7 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
           )}
         </div>
         <EmbeddedCheckoutProvider
-          stripe={stripePromise}
+          stripe={getStripePromise()}
           options={{ fetchClientSecret }}
         >
           <EmbeddedCheckout />
@@ -133,7 +118,7 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
 
       {/* Protection Plans */}
       <div>
-        <h4 className="font-medium mb-3 flex items-center gap-2">
+        <h4 className="font-semibold mb-3 flex items-center gap-2">
           <Shield className="w-4 h-4 text-primary" />
           Add Protection (Optional)
         </h4>
@@ -157,13 +142,13 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
                       {selectedPlan === plan.id && <CheckCircle className="w-3 h-3 text-white" />}
                     </div>
                     <div>
-                      <p className="font-medium text-sm">{plan.name}</p>
+                      <p className="font-semibold text-sm">{plan.name}</p>
                       <p className="text-xs text-muted-foreground">{plan.features.slice(0, 2).join(' • ')}</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="font-semibold">${plan.price.toLocaleString()}</p>
-                    {plan.recommended && <Badge variant="secondary" className="text-xs">Recommended</Badge>}
+                    {plan.highlighted && <Badge variant="secondary" className="text-xs">Recommended</Badge>}
                   </div>
                 </div>
               </CardContent>
@@ -174,27 +159,33 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
 
       {/* Payment Options */}
       <div>
-        <h4 className="font-medium mb-3 flex items-center gap-2">
+        <h4 className="font-semibold mb-3 flex items-center gap-2">
           <CreditCard className="w-4 h-4 text-primary" />
-          Payment Option
+          Choose a payment option
         </h4>
         <div className="grid grid-cols-2 gap-3">
           <Card
-            className={`cursor-pointer transition-all ${depositOnly ? 'ring-2 ring-primary' : ''}`}
+            className={`cursor-pointer transition-all ${depositOnly ? 'ring-2 ring-primary bg-primary/5' : 'hover:border-primary/50'}`}
             onClick={() => setDepositOnly(true)}
           >
-            <CardContent className="py-4 text-center">
-              <p className="font-semibold">${totalDeposit.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">Refundable Deposit</p>
+            <CardContent className="py-4 text-center space-y-1">
+              {depositOnly && <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">Recommended</span>}
+              <p className="text-[10px] font-semibold text-primary uppercase tracking-wide">Option 1</p>
+              <p className="font-bold text-lg">${totalDeposit.toLocaleString()}</p>
+              <p className="text-xs font-semibold">Reserve with Deposit</p>
+              <p className="text-[10px] text-muted-foreground">100% refundable • Holds vehicle for you • Credited toward full price</p>
             </CardContent>
           </Card>
           <Card
-            className={`cursor-pointer transition-all ${!depositOnly ? 'ring-2 ring-primary' : ''}`}
+            className={`cursor-pointer transition-all ${!depositOnly ? 'ring-2 ring-primary bg-primary/5' : 'hover:border-primary/50'}`}
             onClick={() => setDepositOnly(false)}
           >
-            <CardContent className="py-4 text-center">
-              <p className="font-semibold">${totalFull.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">Pay in Full</p>
+            <CardContent className="py-4 text-center space-y-1">
+              {!depositOnly && <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">Selected</span>}
+              <p className="text-[10px] font-semibold text-primary uppercase tracking-wide">Option 2</p>
+              <p className="font-bold text-lg">${totalFull.toLocaleString()}</p>
+              <p className="text-xs font-semibold">Pay in Full Now</p>
+              <p className="text-[10px] text-muted-foreground">Complete your purchase today</p>
             </CardContent>
           </Card>
         </div>

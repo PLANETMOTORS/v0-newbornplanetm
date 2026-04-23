@@ -1,15 +1,24 @@
 "use client"
 
 import Script from "next/script"
+import { useCookieConsent } from "@/lib/hooks/use-cookie-consent"
+
+declare global {
+  interface Window {
+    fbq?: (...args: [string, ...unknown[]]) => void
+  }
+}
 
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID
 
 export function MetaPixel() {
-  if (!META_PIXEL_ID) return null
+  const { hasMarketingConsent } = useCookieConsent()
+
+  if (!META_PIXEL_ID || !hasMarketingConsent) return null
 
   return (
     <>
-      <Script id="meta-pixel" strategy="afterInteractive">
+      <Script id="meta-pixel" strategy="lazyOnload">
         {`
           !function(f,b,e,v,n,t,s)
           {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -38,9 +47,9 @@ export function MetaPixel() {
 }
 
 // Meta Pixel event helpers
-export function trackMetaEvent(event: string, data?: Record<string, any>) {
-  if (typeof window !== "undefined" && (window as any).fbq) {
-    (window as any).fbq("track", event, data)
+export function trackMetaEvent(event: string, data?: Record<string, unknown>) {
+  if (typeof window !== "undefined" && window.fbq) {
+    window.fbq("track", event, data)
   }
 }
 

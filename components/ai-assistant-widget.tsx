@@ -13,7 +13,7 @@ import Link from "next/link"
 
 export function AIAssistantWidget() {
   const [isOpen, setIsOpen] = useState(false)
-  const [activeFeature, setActiveFeature] = useState<string | null>(null)
+
 
   const features = [
     {
@@ -29,7 +29,7 @@ export function AIAssistantWidget() {
       icon: Video,
       title: "Live Video Tour",
       description: "Schedule a live video walkthrough",
-      color: "bg-blue-500",
+      color: "bg-teal-500",
       href: "/inventory?ai=video"
     },
     {
@@ -78,7 +78,7 @@ export function AIAssistantWidget() {
                   </div>
                   <div>
                     <CardTitle className="text-lg">AI Assistant</CardTitle>
-                    <p className="text-xs text-white/80">Powered by Planet Motors</p>
+                    <p className="text-xs text-white/90">Powered by Planet Motors</p>
                   </div>
                 </div>
                 <Button 
@@ -95,7 +95,7 @@ export function AIAssistantWidget() {
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="w-4 h-4 text-yellow-500" />
-                <span className="text-sm font-medium">AI-Powered Features</span>
+                <span className="text-sm font-semibold">AI-Powered Features</span>
                 <Badge variant="secondary" className="text-xs">NEW</Badge>
               </div>
 
@@ -115,7 +115,7 @@ export function AIAssistantWidget() {
                       <feature.icon className="w-5 h-5" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-medium text-sm">{feature.title}</h4>
+                      <h4 className="font-semibold text-sm">{feature.title}</h4>
                       <p className="text-xs text-muted-foreground">{feature.description}</p>
                     </div>
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />

@@ -1,5 +1,9 @@
 const { createClient } = require('@sanity/client');
 
+// Keep in sync with lib/rates.ts RATE_FLOOR — single source of truth for advertised APR
+const RATE_FLOOR = 6.29;
+const RATE_FLOOR_DISPLAY = `${RATE_FLOOR}%`;
+
 const client = createClient({
   projectId: '4588vjsz',
   dataset: 'planetmotors_cms',
@@ -50,7 +54,7 @@ const homepageContent = {
     linkUrl: '/inventory?sort=newest'
   },
   financingPromo: {
-    rate: '4.79',
+    rate: String(RATE_FLOOR),
     rateLabel: 'Financing from',
     ctaLabel: 'Get Pre-Approved',
     ctaUrl: '/financing'
@@ -143,8 +147,8 @@ const financingPageContent = {
   title: 'Financing - Planet Motors',
   heroSection: {
     headline: 'Financing Made Simple',
-    subheadline: 'Get pre-approved in minutes with rates as low as 4.79% APR. We work with 20+ lenders to find you the best rate.',
-    featuredRateText: '4.79%',
+    subheadline: `Get pre-approved in minutes with rates as low as ${RATE_FLOOR_DISPLAY} APR. We work with 20+ lenders to find you the best rate.`,
+    featuredRateText: RATE_FLOOR_DISPLAY,
     rateSubtext: 'APR as low as',
     primaryCta: {
       label: 'Get Pre-Approved',
@@ -202,13 +206,13 @@ const financingPageContent = {
   calculator: {
     defaultVehiclePrice: 25000,
     defaultDownPayment: 2500,
-    defaultInterestRate: 6.29,
+    defaultInterestRate: RATE_FLOOR,
     defaultTerm: 72,
     termOptions: [24, 36, 48, 60, 72, 84, 96]
   },
   seo: {
-    metaTitle: 'Auto Financing | Low Rates from 4.79% APR | Planet Motors',
-    metaDescription: 'Get pre-approved for auto financing in minutes. Competitive rates from 4.79% APR, all credit welcome. 20+ lender partners for the best rate.'
+    metaTitle: `Auto Financing | Rates from ${RATE_FLOOR_DISPLAY} APR | Planet Motors`,
+    metaDescription: `Get pre-approved for auto financing in minutes. Competitive rates from ${RATE_FLOOR_DISPLAY} APR, all credit welcome. 20+ lender partners for the best rate.`
   }
 };
 

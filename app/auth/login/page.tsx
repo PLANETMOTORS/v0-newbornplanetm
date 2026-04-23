@@ -18,7 +18,11 @@ import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectTo = searchParams.get("redirectTo") || "/account"
+  const rawRedirectTo = searchParams.get("redirectTo")
+  // Sanitize redirectTo to prevent open redirect (OWASP WSTG-SESS-04)
+  const redirectTo = (rawRedirectTo && /^\/[^/]/.test(rawRedirectTo) && !/[\r\n\t]/.test(rawRedirectTo))
+    ? rawRedirectTo
+    : "/account"
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -79,13 +83,13 @@ function LoginForm() {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       <Header />
       
-      <main className="container mx-auto px-4 py-16">
+      <main id="main-content" tabIndex={-1} className="container mx-auto px-4 py-16">
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8">
             <Link href="/" className="inline-block mb-6">
               <PlanetMotorsLogo size="lg" />
             </Link>
-            <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
+            <h1 className="text-3xl font-bold tracking-[-0.01em] mb-2">Welcome Back</h1>
             <p className="text-muted-foreground">
               Sign in to manage your vehicles, reservations, and more
             </p>
@@ -209,18 +213,24 @@ function LoginForm() {
             </CardContent>
             <CardFooter className="flex flex-col space-y-4 pt-0">
               <div className="text-center text-sm">
-                Don&apos;t have an account?{" "}
-                <Link href="/auth/signup" className="text-primary font-medium hover:underline">
-                  Create account
-                </Link>
+                Don&apos;t have an account?
               </div>
+              <Button variant="outline" className="w-full h-12" asChild>
+                <Link href="/auth/signup">
+                  Create Account
+                </Link>
+              </Button>
             </CardFooter>
           </Card>
 
           {/* Trust Indicators */}
           <div className="mt-8 text-center text-sm text-muted-foreground">
             <p>Protected by industry-standard encryption</p>
-            <p className="mt-1">OMVIC Licensed Dealer</p>
+            <p className="mt-1">
+              <a href="https://www.omvic.on.ca" target="_blank" rel="noopener noreferrer" className="hover:underline">
+                OMVIC Licensed Dealer
+              </a>
+            </p>
           </div>
         </div>
       </main>

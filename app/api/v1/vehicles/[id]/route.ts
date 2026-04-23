@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
+import { getCachedSearchResults, cacheSearchResults, deleteCachedSearchResults } from "@/lib/redis"
+import { getDriveeMidFromDb } from "@/lib/drivee-db"
+import { ADMIN_EMAILS } from "@/lib/admin"
+const VEHICLE_DETAIL_TTL = 300 // 5 minutes
 
-const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
+/** UUID v4 pattern — used to decide whether to query by `id` or `stock_number`. */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+/** Standard 17-character VIN pattern (digits + uppercase letters, excluding I/O/Q). */
+const VIN_RE = /^[A-HJ-NPR-Z0-9]{17}$/i
 
 const ALLOWED_STATUSES = new Set([
   "available",
@@ -49,54 +56,17 @@ const VEHICLE_DETAIL_FIELDS = [
   'updated_at',
 ].join(',')
 
-function sanitizeStockNumber(value: unknown): string | null {
-  if (typeof value !== 'string') return null
-  const trimmed = value.trim()
-  if (!trimmed) return null
-  return trimmed
-}
-
-function asNumber(value: unknown): number | null {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value
-  }
-
-  if (typeof value === 'string') {
-    const parsed = Number.parseInt(value, 10)
-    if (Number.isFinite(parsed)) {
-      return parsed
-    }
-  }
-
-  return null
-}
-
-function toPublicVehicle(vehicle: Record<string, unknown>) {
-  const price = typeof vehicle.price === "number" ? vehicle.price / 100 : null
-  const msrp = typeof vehicle.msrp === "number" ? vehicle.msrp / 100 : null
-  const has360Spin = vehicle.has_360_spin === true
-  const stockNumber = sanitizeStockNumber(vehicle.stock_number)
-  const configuredFrameCount = asNumber(vehicle.spin_frame_count)
-  const spinFrameCount = has360Spin ? Math.max(24, configuredFrameCount || 72) : null
-  const spinFrameTemplate = has360Spin && stockNumber
-    ? `vehicles/${stockNumber}/360/frame-{frame}.jpg`
-    : null
-  const spinPreviewUrl = has360Spin
-    ? (typeof vehicle.primary_image_url === 'string' ? vehicle.primary_image_url : null)
-    : null
-  const spinManifestVersion = has360Spin ? 'v1' : null
-  const mediaProvider = has360Spin ? 'driveai' : null
+async function toPublicVehicle(vehicle: Record<string, unknown>) {
+  const price = typeof vehicle.price === "number" && Number.isFinite(vehicle.price) ? vehicle.price / 100 : null
+  const msrp = typeof vehicle.msrp === "number" && Number.isFinite(vehicle.msrp) ? vehicle.msrp / 100 : null
+  const vin = typeof vehicle.vin === "string" ? vehicle.vin : ""
+  const drivee_mid = await getDriveeMidFromDb(vin)
 
   return {
     ...vehicle,
     price,
     msrp,
-    media_provider: mediaProvider,
-    spin_frame_count: spinFrameCount,
-    spin_frame_template: spinFrameTemplate,
-    spin_preview_url: spinPreviewUrl,
-    spin_last_synced_at: vehicle.updated_at || null,
-    spin_manifest_version: spinManifestVersion,
+    drivee_mid,
   }
 }
 
@@ -107,12 +77,46 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const supabase = await createClient()
+    const cacheKey = `vehicles:detail:${id}`
+
+    // Serve from Redis when available
+    const cached = await getCachedSearchResults(cacheKey)
+    if (cached) {
+      return NextResponse.json(cached, {
+        headers: {
+          'Cache-Control': `public, s-maxage=${VEHICLE_DETAIL_TTL}, stale-while-revalidate=${VEHICLE_DETAIL_TTL * 2}`,
+          'X-Cache': 'HIT',
+        },
+      })
+    }
+
+    let supabase: Awaited<ReturnType<typeof createClient>>
+    try {
+      supabase = await createClient()
+    } catch {
+      // Supabase not configured — return mock vehicle for local development
+      const mock = getMockVehicleDetail(id)
+      if (mock) {
+        return NextResponse.json({ success: true, data: { vehicle: mock } }, {
+          headers: { 'Cache-Control': 'no-store', 'X-Cache': 'MOCK' },
+        })
+      }
+      return NextResponse.json(
+        { success: false, error: { code: "NOT_FOUND", message: "Vehicle not found" } },
+        { status: 404 }
+      )
+    }
+
+    // Determine which column to query based on the id format:
+    //  - UUID → primary key `id`
+    //  - 17-char VIN → `vin`
+    //  - anything else → `stock_number`
+    const lookupColumn = UUID_RE.test(id) ? "id" : VIN_RE.test(id) ? "vin" : "stock_number"
 
     const { data: vehicle, error } = await supabase
       .from("vehicles")
       .select(VEHICLE_DETAIL_FIELDS)
-      .eq("id", id)
+      .eq(lookupColumn, id)
       .maybeSingle()
 
     if (error) {
@@ -129,19 +133,22 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(
-      {
-        success: true,
-        data: {
-          vehicle: toPublicVehicle(vehicle as unknown as Record<string, unknown>),
-        },
+    const responseBody = {
+      success: true,
+      data: {
+        vehicle: await toPublicVehicle(vehicle as unknown as Record<string, unknown>),
       },
-      {
-        headers: {
-          'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=1800',
-        },
-      }
-    )
+    }
+
+    // Cache the result
+    await cacheSearchResults(cacheKey, responseBody, VEHICLE_DETAIL_TTL)
+
+    return NextResponse.json(responseBody, {
+      headers: {
+        'Cache-Control': `public, s-maxage=${VEHICLE_DETAIL_TTL}, stale-while-revalidate=${VEHICLE_DETAIL_TTL * 2}`,
+        'X-Cache': 'MISS',
+      },
+    })
   } catch (error) {
     console.error("Vehicle details error:", error)
     return NextResponse.json(
@@ -206,6 +213,12 @@ export async function PATCH(
       )
     }
 
+    // Invalidate cached vehicle detail and facets so stale data isn't served
+    await Promise.allSettled([
+      deleteCachedSearchResults(`vehicles:detail:${id}`),
+      deleteCachedSearchResults('vehicles:facets:snapshot'),
+    ])
+
     return NextResponse.json({
       success: true,
       data: {
@@ -221,4 +234,21 @@ export async function PATCH(
       { status: 500 }
     )
   }
+}
+
+// Mock vehicle detail for local development when Supabase is unavailable
+function getMockVehicleDetail(id: string) {
+  const mocks: Record<string, Record<string, unknown>> = {
+    "mock-tesla-3": { id: "mock-tesla-3", year: 2024, make: "Tesla", model: "Model 3", trim: "Long Range AWD", price: 54995, msrp: 57995, mileage: 8200, fuel_type: "Electric", body_style: "Sedan", transmission: "Automatic", drivetrain: "AWD", exterior_color: "Pearl White", interior_color: "Black", primary_image_url: "/placeholder.jpg", image_urls: ["/placeholder.jpg", "/placeholder-user.jpg", "/placeholder-logo.png"], status: "available", stock_number: "PM-2024-001", vin: "5YJ3E1EA1PF000001", is_certified: true, is_new_arrival: true, is_ev: true, battery_capacity_kwh: 82, range_miles: 358, ev_battery_health_percent: 98, inspection_score: 195, engine: "Dual Motor Electric", features: ["Autopilot", "Premium Interior", "Long Range Battery"], description: "2024 Tesla Model 3 Long Range AWD in excellent condition." },
+    "mock-tesla-y": { id: "mock-tesla-y", year: 2024, make: "Tesla", model: "Model Y", trim: "Performance", price: 61995, msrp: 63995, mileage: 5100, fuel_type: "Electric", body_style: "SUV", transmission: "Automatic", drivetrain: "AWD", exterior_color: "Midnight Silver", interior_color: "White", primary_image_url: "/placeholder.jpg", image_urls: ["/placeholder.jpg", "/placeholder.jpg"], status: "available", stock_number: "PM-2024-002", vin: "5YJ3E1EA1PF000002", is_certified: true, is_new_arrival: false, is_ev: true, battery_capacity_kwh: 75, range_miles: 303, ev_battery_health_percent: 99, inspection_score: 200, engine: "Dual Motor Electric", features: ["Performance Package", "Full Self-Driving"], description: "2024 Tesla Model Y Performance." },
+    "mock-bmw-i4": { id: "mock-bmw-i4", year: 2023, make: "BMW", model: "i4", trim: "eDrive40", price: 52995, msrp: 56995, mileage: 12300, fuel_type: "Electric", body_style: "Sedan", transmission: "Automatic", drivetrain: "RWD", exterior_color: "Black Sapphire", interior_color: "Cognac", primary_image_url: "/placeholder.jpg", image_urls: ["/placeholder.jpg"], status: "available", stock_number: "PM-2024-003", vin: "WBA53BJ01PCK00003", is_certified: true, is_new_arrival: false, is_ev: true, battery_capacity_kwh: 83.9, range_miles: 301, ev_battery_health_percent: 97, inspection_score: 188, engine: "Single Motor Electric", features: ["iDrive 8", "Driving Assistant Pro"], description: "2023 BMW i4 eDrive40." },
+  }
+  const vehicle = mocks[id]
+  if (!vehicle) return null
+  // Attach known Drivee MIDs for testing the 360° viewer locally
+  const testMids: Record<string, string> = {
+    "mock-tesla-3": "640326639530", // 2019 Tesla Model 3 — 37 frames (1200×900, transparent nobg)
+    "mock-tesla-y": "890747363179", // 2024 Tesla Model 3 — 39 frames (1200×900, transparent nobg)
+  }
+  return { ...vehicle, drivee_mid: testMids[id] ?? null }
 }

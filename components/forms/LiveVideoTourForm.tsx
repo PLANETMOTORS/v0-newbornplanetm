@@ -134,7 +134,7 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVid
       {/* Form Fields */}
       <div className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="name" className="text-sm font-medium">
+          <Label htmlFor="name" className="text-sm font-semibold">
             Your Name <span className="text-destructive">*</span>
           </Label>
           <Input
@@ -152,7 +152,7 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVid
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="email" className="text-sm font-medium">
+          <Label htmlFor="email" className="text-sm font-semibold">
             Email <span className="text-destructive">*</span>
           </Label>
           <Input
@@ -171,7 +171,7 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVid
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="phone" className="text-sm font-medium">
+          <Label htmlFor="phone" className="text-sm font-semibold">
             Phone <span className="text-destructive">*</span>
           </Label>
           <Input
@@ -196,7 +196,7 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVid
 
         {/* Video Call Method Selection */}
         <div className="space-y-2">
-          <Label className="text-sm font-medium">
+          <Label className="text-sm font-semibold">
             Preferred Video Call Method <span className="text-destructive">*</span>
           </Label>
           <RadioGroup
@@ -224,7 +224,7 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVid
                     <Video className="w-4 h-4 text-primary" />
                   )}
                   <div>
-                    <p className="font-medium text-sm">{option.label}</p>
+                    <p className="font-semibold text-sm">{option.label}</p>
                     <p className="text-xs text-muted-foreground">{option.description}</p>
                   </div>
                 </div>
@@ -246,7 +246,7 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVid
         />
 
         <div className="space-y-1.5">
-          <Label htmlFor="notes" className="text-sm font-medium">
+          <Label htmlFor="notes" className="text-sm font-semibold">
             Questions or Special Requests
           </Label>
           <Textarea

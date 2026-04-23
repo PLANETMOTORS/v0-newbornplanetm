@@ -1,6 +1,7 @@
 import type { LiveVideoTourBooking } from "@/types/liveVideoTour"
 import { DEALERSHIP_TIMEZONE } from "./constants"
 import { Resend } from "resend"
+import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
 
 // Notification service for live video tour bookings
 function getResendClient(): Resend | null {
@@ -116,7 +117,7 @@ function getCustomerConfirmationTemplate(booking: LiveVideoTourBooking, formatte
 
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
         <p style="color: #64748b; font-size: 14px; text-align: center;">
-          Questions? Call us at <a href="tel:416-985-2277" style="color: #7c3aed;">416-985-2277</a>
+          Questions? Call us at <a href="tel:${PHONE_LOCAL_TEL}" style="color: #7c3aed;">${PHONE_LOCAL}</a>
         </p>
       </div>
       <div style="padding: 15px; background: #1e293b; text-align: center;">
@@ -193,7 +194,7 @@ export async function sendLiveVideoTourNotifications(
         results.email.error = error.message
       } else {
         results.email.sent = true
-        console.log("[liveVideoTour] Customer email sent to:", booking.customerEmail)
+        console.info("[liveVideoTour] Customer email sent to:", booking.customerEmail)
       }
     } else {
       console.warn("[liveVideoTour] Resend API key not configured")
@@ -206,7 +207,7 @@ export async function sendLiveVideoTourNotifications(
 
   // 2. SMS reminder - placeholder for Twilio integration
   // For now, log only. In production: integrate with Twilio
-  console.log("[liveVideoTour] SMS would be sent to:", booking.customerPhone)
+  console.info("[liveVideoTour] SMS would be sent to:", booking.customerPhone)
   results.sms.sent = false
   results.sms.error = "SMS not configured"
 
@@ -226,7 +227,7 @@ export async function sendLiveVideoTourNotifications(
         results.staff.error = error.message
       } else {
         results.staff.notified = true
-        console.log("[liveVideoTour] Staff notification sent to:", ADMIN_EMAIL)
+        console.info("[liveVideoTour] Staff notification sent to:", ADMIN_EMAIL)
       }
     }
   } catch (error) {
@@ -274,7 +275,7 @@ export async function sendTourReminder(booking: LiveVideoTourBooking): Promise<b
             ` : ''}
 
             <p style="color: #64748b; font-size: 14px; text-align: center;">
-              Can't make it? Call us at <a href="tel:416-985-2277">416-985-2277</a> to reschedule.
+              Can't make it? Call us at <a href="tel:${PHONE_LOCAL_TEL}">${PHONE_LOCAL}</a> to reschedule.
             </p>
           </div>
         </div>
@@ -286,7 +287,7 @@ export async function sendTourReminder(booking: LiveVideoTourBooking): Promise<b
       return false
     }
 
-    console.log("[liveVideoTour] Reminder sent to:", booking.customerEmail)
+    console.info("[liveVideoTour] Reminder sent to:", booking.customerEmail)
     return true
   } catch (error) {
     console.error("[liveVideoTour] Reminder failed:", error)
@@ -317,7 +318,7 @@ export async function sendCancellationNotification(booking: LiveVideoTourBooking
           <div style="padding: 20px; background: #f8fafc;">
             <p>Hi ${booking.customerName},</p>
             <p>Your video tour for <strong>${booking.vehicleName}</strong> scheduled for ${formattedDate} at ${formattedTime} has been cancelled.</p>
-            <p>If you'd like to reschedule, please visit our website or call us at <a href="tel:416-985-2277">416-985-2277</a>.</p>
+            <p>If you'd like to reschedule, please visit our website or call us at <a href="tel:${PHONE_LOCAL_TEL}">${PHONE_LOCAL}</a>.</p>
           </div>
         </div>
       `,
@@ -344,7 +345,7 @@ export async function sendCancellationNotification(booking: LiveVideoTourBooking
       `,
     })
 
-    console.log("[liveVideoTour] Cancellation notifications sent")
+    console.info("[liveVideoTour] Cancellation notifications sent")
     return true
   } catch (error) {
     console.error("[liveVideoTour] Cancellation notification failed:", error)

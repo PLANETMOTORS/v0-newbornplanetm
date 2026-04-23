@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-
-// Admin emails - in production, check against database role
-const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
+import { ADMIN_EMAILS } from "@/lib/admin"
 
 export async function PATCH(
   request: NextRequest,
@@ -30,8 +28,8 @@ export async function PATCH(
     // Use service role for admin updates
     const { createClient: createServiceClient } = await import("@supabase/supabase-js")
     const serviceClient = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+      process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
     )
 
     // Get current application state
@@ -46,7 +44,7 @@ export async function PATCH(
     }
 
     // Update application status
-    const updateData: Record<string, any> = {
+    const updateData: Record<string, string | number | boolean> = {
       status,
       updated_at: new Date().toISOString()
     }

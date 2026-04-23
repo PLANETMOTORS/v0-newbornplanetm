@@ -1,4 +1,15 @@
 import { Resend } from 'resend'
+import { PHONE_LOCAL } from "@/lib/constants/dealership"
+
+/** Escape user-supplied strings before interpolating into HTML templates. */
+export function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
 
 function getResendClient(): Resend | null {
   const apiKey = process.env.API_KEY_RESEND || process.env.RESEND_API_KEY
@@ -29,13 +40,14 @@ interface EmailData {
   applicationId?: string
   quoteId?: string
   tradeInValue?: number
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Template values of mixed types
   additionalData?: Record<string, any>
 }
 
 // Email templates
 const templates: Record<NotificationType, (data: EmailData) => { subject: string; html: string }> = {
   finance_application: (data) => ({
-    subject: `🚗 New Finance Application - ${data.customerName}`,
+    subject: `🚗 New Finance Application - ${escapeHtml(data.customerName)}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #1e40af; color: white; padding: 20px; text-align: center;">
@@ -45,11 +57,11 @@ const templates: Record<NotificationType, (data: EmailData) => { subject: string
         <div style="padding: 20px; background: #f8fafc;">
           <h2 style="color: #1e40af;">Application Details</h2>
           <table style="width: 100%; border-collapse: collapse;">
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Customer:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.customerName}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Email:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><a href="mailto:${data.customerEmail}">${data.customerEmail}</a></td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Phone:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><a href="tel:${data.customerPhone}">${data.customerPhone || 'N/A'}</a></td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Vehicle:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.vehicleInfo || 'N/A'}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Application ID:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.applicationId || 'N/A'}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Customer:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.customerName)}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Email:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><a href="mailto:${escapeHtml(data.customerEmail)}">${escapeHtml(data.customerEmail)}</a></td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Phone:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><a href="tel:${escapeHtml(data.customerPhone || '')}">${escapeHtml(data.customerPhone || 'N/A')}</a></td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Vehicle:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.vehicleInfo || 'N/A')}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Application ID:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.applicationId || 'N/A')}</td></tr>
           </table>
           <div style="margin-top: 20px; text-align: center;">
             <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://planetmotors.ca'}/admin/finance" style="background: #1e40af; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">View Application</a>
@@ -63,7 +75,7 @@ const templates: Record<NotificationType, (data: EmailData) => { subject: string
   }),
 
   trade_in_quote: (data) => ({
-    subject: `💰 New Trade-In Quote Request - ${data.customerName}`,
+    subject: `💰 New Trade-In Quote Request - ${escapeHtml(data.customerName)}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #059669; color: white; padding: 20px; text-align: center;">
@@ -73,11 +85,11 @@ const templates: Record<NotificationType, (data: EmailData) => { subject: string
         <div style="padding: 20px; background: #f8fafc;">
           <h2 style="color: #059669;">Quote Details</h2>
           <table style="width: 100%; border-collapse: collapse;">
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Customer:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.customerName}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Email:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><a href="mailto:${data.customerEmail}">${data.customerEmail}</a></td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Phone:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.customerPhone || 'N/A'}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Vehicle:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.vehicleInfo || 'N/A'}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Quote ID:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.quoteId || 'N/A'}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Customer:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.customerName)}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Email:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><a href="mailto:${escapeHtml(data.customerEmail)}">${escapeHtml(data.customerEmail)}</a></td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Phone:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.customerPhone || 'N/A')}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Vehicle:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.vehicleInfo || 'N/A')}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Quote ID:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.quoteId || 'N/A')}</td></tr>
           </table>
           <div style="margin-top: 20px; text-align: center;">
             <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://planetmotors.ca'}/admin/trade-ins" style="background: #059669; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">View Quote</a>
@@ -88,7 +100,7 @@ const templates: Record<NotificationType, (data: EmailData) => { subject: string
   }),
 
   ico_accepted: (data) => ({
-    subject: `✅ ICO Offer Accepted - ${data.customerName} - $${data.tradeInValue?.toLocaleString()}`,
+    subject: `✅ ICO Offer Accepted - ${escapeHtml(data.customerName)} - $${data.tradeInValue?.toLocaleString()}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #7c3aed; color: white; padding: 20px; text-align: center;">
@@ -100,11 +112,11 @@ const templates: Record<NotificationType, (data: EmailData) => { subject: string
             <h2 style="color: #166534; margin: 0;">Offer Accepted: $${data.tradeInValue?.toLocaleString()}</h2>
           </div>
           <table style="width: 100%; border-collapse: collapse;">
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Customer:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.customerName}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Email:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><a href="mailto:${data.customerEmail}">${data.customerEmail}</a></td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Phone:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.customerPhone || 'N/A'}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Vehicle:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.vehicleInfo || 'N/A'}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Quote ID:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.quoteId || 'N/A'}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Customer:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.customerName)}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Email:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><a href="mailto:${escapeHtml(data.customerEmail)}">${escapeHtml(data.customerEmail)}</a></td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Phone:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.customerPhone || 'N/A')}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Vehicle:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.vehicleInfo || 'N/A')}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Quote ID:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.quoteId || 'N/A')}</td></tr>
           </table>
           <div style="margin-top: 20px; text-align: center;">
             <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://planetmotors.ca'}/admin/trade-ins" style="background: #7c3aed; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">View Details</a>
@@ -115,7 +127,7 @@ const templates: Record<NotificationType, (data: EmailData) => { subject: string
   }),
 
   vehicle_inquiry: (data) => ({
-    subject: `📩 Vehicle Inquiry - ${data.vehicleInfo}`,
+    subject: `📩 Vehicle Inquiry - ${escapeHtml(data.vehicleInfo || '')}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #0891b2; color: white; padding: 20px; text-align: center;">
@@ -125,11 +137,11 @@ const templates: Record<NotificationType, (data: EmailData) => { subject: string
         <div style="padding: 20px; background: #f8fafc;">
           <h2 style="color: #0891b2;">Inquiry Details</h2>
           <table style="width: 100%; border-collapse: collapse;">
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Customer:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.customerName}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Email:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><a href="mailto:${data.customerEmail}">${data.customerEmail}</a></td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Phone:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.customerPhone || 'N/A'}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Vehicle:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.vehicleInfo || 'N/A'}</td></tr>
-            ${data.additionalData?.message ? `<tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Message:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.additionalData.message}</td></tr>` : ''}
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Customer:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.customerName)}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Email:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><a href="mailto:${escapeHtml(data.customerEmail)}">${escapeHtml(data.customerEmail)}</a></td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Phone:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.customerPhone || 'N/A')}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Vehicle:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.vehicleInfo || 'N/A')}</td></tr>
+            ${data.additionalData?.message ? `<tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Message:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.additionalData.message)}</td></tr>` : ''}
           </table>
         </div>
       </div>
@@ -137,7 +149,7 @@ const templates: Record<NotificationType, (data: EmailData) => { subject: string
   }),
 
   test_drive_request: (data) => ({
-    subject: `🚙 Test Drive Request - ${data.vehicleInfo}`,
+    subject: `🚙 Test Drive Request - ${escapeHtml(data.vehicleInfo || '')}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #ea580c; color: white; padding: 20px; text-align: center;">
@@ -147,11 +159,11 @@ const templates: Record<NotificationType, (data: EmailData) => { subject: string
         <div style="padding: 20px; background: #f8fafc;">
           <h2 style="color: #ea580c;">Test Drive Details</h2>
           <table style="width: 100%; border-collapse: collapse;">
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Customer:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.customerName}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Email:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><a href="mailto:${data.customerEmail}">${data.customerEmail}</a></td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Phone:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.customerPhone || 'N/A'}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Vehicle:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.vehicleInfo || 'N/A'}</td></tr>
-            ${data.additionalData?.preferredDate ? `<tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Preferred Date:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.additionalData.preferredDate}</td></tr>` : ''}
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Customer:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.customerName)}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Email:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><a href="mailto:${escapeHtml(data.customerEmail)}">${escapeHtml(data.customerEmail)}</a></td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Phone:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.customerPhone || 'N/A')}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Vehicle:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.vehicleInfo || 'N/A')}</td></tr>
+            ${data.additionalData?.preferredDate ? `<tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Preferred Date:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.additionalData.preferredDate)}</td></tr>` : ''}
           </table>
         </div>
       </div>
@@ -159,7 +171,7 @@ const templates: Record<NotificationType, (data: EmailData) => { subject: string
   }),
 
   document_uploaded: (data) => ({
-    subject: `📄 Documents Uploaded - ${data.customerName}`,
+    subject: `📄 Documents Uploaded - ${escapeHtml(data.customerName)}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #4f46e5; color: white; padding: 20px; text-align: center;">
@@ -167,9 +179,9 @@ const templates: Record<NotificationType, (data: EmailData) => { subject: string
           <p style="margin: 5px 0 0;">Documents Uploaded</p>
         </div>
         <div style="padding: 20px; background: #f8fafc;">
-          <p>Customer <strong>${data.customerName}</strong> has uploaded documents for their finance application.</p>
+          <p>Customer <strong>${escapeHtml(data.customerName)}</strong> has uploaded documents for their finance application.</p>
           <table style="width: 100%; border-collapse: collapse;">
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Application ID:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.applicationId || 'N/A'}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Application ID:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.applicationId || 'N/A')}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Documents:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.additionalData?.documentCount || 1} file(s)</td></tr>
           </table>
           <div style="margin-top: 20px; text-align: center;">
@@ -181,7 +193,7 @@ const templates: Record<NotificationType, (data: EmailData) => { subject: string
   }),
 
   application_status_changed: (data) => ({
-    subject: `📋 Application Status Updated - ${data.additionalData?.newStatus}`,
+    subject: `📋 Application Status Updated - ${escapeHtml(data.additionalData?.newStatus || '')}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #1e40af; color: white; padding: 20px; text-align: center;">
@@ -190,12 +202,12 @@ const templates: Record<NotificationType, (data: EmailData) => { subject: string
         </div>
         <div style="padding: 20px; background: #f8fafc;">
           <div style="background: #dbeafe; border: 2px solid #3b82f6; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
-            <p style="margin: 0;">Status changed to: <strong>${data.additionalData?.newStatus}</strong></p>
+            <p style="margin: 0;">Status changed to: <strong>${escapeHtml(data.additionalData?.newStatus || '')}</strong></p>
           </div>
           <table style="width: 100%; border-collapse: collapse;">
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Customer:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.customerName}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Application ID:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.applicationId || 'N/A'}</td></tr>
-            ${data.additionalData?.notes ? `<tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Notes:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${data.additionalData.notes}</td></tr>` : ''}
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Customer:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.customerName)}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Application ID:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.applicationId || 'N/A')}</td></tr>
+            ${data.additionalData?.notes ? `<tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>Notes:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${escapeHtml(data.additionalData.notes)}</td></tr>` : ''}
           </table>
         </div>
       </div>
@@ -211,15 +223,15 @@ const templates: Record<NotificationType, (data: EmailData) => { subject: string
           <p style="margin: 5px 0 0;">Verification Code</p>
         </div>
         <div style="padding: 30px; background: #f8fafc; text-align: center;">
-          <p style="margin: 0 0 20px; color: #64748b;">Your verification code to ${data.additionalData?.purpose} is:</p>
+          <p style="margin: 0 0 20px; color: #64748b;">Your verification code to ${escapeHtml(data.additionalData?.purpose || '')} is:</p>
           <div style="background: #1e40af; color: white; font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 20px 30px; border-radius: 8px; display: inline-block;">
-            ${data.additionalData?.code}
+            ${escapeHtml(data.additionalData?.code || '')}
           </div>
-          <p style="margin: 20px 0 0; color: #94a3b8; font-size: 14px;">This code expires in ${data.additionalData?.expiresIn || '10 minutes'}.</p>
+          <p style="margin: 20px 0 0; color: #94a3b8; font-size: 14px;">This code expires in ${escapeHtml(data.additionalData?.expiresIn || '10 minutes')}.</p>
           <p style="margin: 10px 0 0; color: #94a3b8; font-size: 14px;">If you didn&apos;t request this code, please ignore this email.</p>
         </div>
         <div style="padding: 15px; background: #e2e8f0; text-align: center; font-size: 12px; color: #64748b;">
-          Planet Motors | 416-985-2277 | planetmotors.ca
+          Planet Motors | ${PHONE_LOCAL} | planetmotors.ca
         </div>
       </div>
     `
@@ -278,13 +290,13 @@ export async function sendCustomerConfirmationEmail(
             <h1 style="margin: 0;">Planet Motors</h1>
           </div>
           <div style="padding: 20px;">
-            <h2>Thank you, ${data.customerName}!</h2>
+            <h2>Thank you, ${escapeHtml(data.customerName)}!</h2>
             <p>Your finance application has been received. Our team will review it within 24 hours.</p>
-            ${data.referenceId ? `<p><strong>Reference:</strong> ${data.referenceId}</p>` : ''}
-            ${data.vehicleInfo ? `<p><strong>Vehicle:</strong> ${data.vehicleInfo}</p>` : ''}
+            ${data.referenceId ? `<p><strong>Reference:</strong> ${escapeHtml(data.referenceId)}</p>` : ''}
+            ${data.vehicleInfo ? `<p><strong>Vehicle:</strong> ${escapeHtml(data.vehicleInfo)}</p>` : ''}
             <p>We'll contact you soon with next steps.</p>
             <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-            <p style="color: #64748b; font-size: 14px;">Questions? Call us at 416-985-2277</p>
+            <p style="color: #64748b; font-size: 14px;">Questions? Call us at ${PHONE_LOCAL}</p>
           </div>
         </div>
       `
@@ -296,9 +308,9 @@ export async function sendCustomerConfirmationEmail(
             <h1 style="margin: 0;">Planet Motors</h1>
           </div>
           <div style="padding: 20px;">
-            <h2>Thank you, ${data.customerName}!</h2>
+            <h2>Thank you, ${escapeHtml(data.customerName)}!</h2>
             <p>We've received your trade-in quote request and will get back to you shortly.</p>
-            ${data.vehicleInfo ? `<p><strong>Your Vehicle:</strong> ${data.vehicleInfo}</p>` : ''}
+            ${data.vehicleInfo ? `<p><strong>Your Vehicle:</strong> ${escapeHtml(data.vehicleInfo)}</p>` : ''}
             <p>Our team will evaluate your vehicle and provide a competitive offer.</p>
           </div>
         </div>
@@ -311,15 +323,15 @@ export async function sendCustomerConfirmationEmail(
             <h1 style="margin: 0;">Planet Motors</h1>
           </div>
           <div style="padding: 20px;">
-            <h2>Congratulations, ${data.customerName}!</h2>
+            <h2>Congratulations, ${escapeHtml(data.customerName)}!</h2>
             <div style="background: #dcfce7; border: 2px solid #22c55e; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
               <p style="margin: 0; font-size: 24px; color: #166534;"><strong>$${data.offerAmount?.toLocaleString()}</strong></p>
               <p style="margin: 5px 0 0; color: #166534;">Accepted Offer</p>
             </div>
-            ${data.vehicleInfo ? `<p><strong>Vehicle:</strong> ${data.vehicleInfo}</p>` : ''}
+            ${data.vehicleInfo ? `<p><strong>Vehicle:</strong> ${escapeHtml(data.vehicleInfo)}</p>` : ''}
             <p>Our team will contact you within 24 hours to schedule vehicle inspection and payment.</p>
             <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-            <p style="color: #64748b; font-size: 14px;">Questions? Call us at 416-985-2277</p>
+            <p style="color: #64748b; font-size: 14px;">Questions? Call us at ${PHONE_LOCAL}</p>
           </div>
         </div>
       `

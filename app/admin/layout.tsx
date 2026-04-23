@@ -5,27 +5,28 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import { 
-  LayoutDashboard, Car, Users, FileText, DollarSign, 
-  MessageSquare, Settings, LogOut, Menu, X, ChevronDown,
-  BarChart3, Bell, Search, Shield
+  LayoutDashboard, Car, Users, FileText, DollarSign,
+  MessageSquare, Settings, LogOut, Menu, X,
+  BarChart3, Bell, Search, Shield, Camera,
+  Bot, CalendarCheck, Mail
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
+import { ADMIN_EMAILS } from "@/lib/admin"
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { name: "Inventory", href: "/admin/inventory", icon: Car },
+  { name: "Vehicles", href: "/admin/inventory", icon: Car },
   { name: "Customers", href: "/admin/customers", icon: Users },
   { name: "Leads", href: "/admin/leads", icon: MessageSquare },
+  { name: "Reservations", href: "/admin/reservations", icon: CalendarCheck },
   { name: "Orders", href: "/admin/orders", icon: FileText },
   { name: "Finance Apps", href: "/admin/finance", icon: DollarSign },
+  { name: "AI Agents", href: "/admin/ai-agents", icon: Bot },
+  { name: "Workflows", href: "/admin/workflows", icon: Mail },
+  { name: "360° Photos", href: "/admin/360-upload", icon: Camera },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ]
-
-// Admin emails - in production, check against database role
-const ADMIN_EMAILS = ["admin@planetmotors.ca", "toni@planetmotors.ca"]
 
 export default function AdminLayout({
   children,

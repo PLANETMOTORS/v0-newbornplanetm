@@ -1,18 +1,34 @@
 import { streamText, Output } from "ai"
+import { gateway } from "@ai-sdk/gateway"
 import { z } from "zod"
+import { NextResponse } from "next/server"
 import { getAISettings } from "@/lib/sanity/fetch"
+import { validateOrigin } from "@/lib/csrf"
+import { rateLimit } from "@/lib/redis"
+import { RATE_FLOOR } from "@/lib/rates"
 
 export async function POST(req: Request) {
-  const { vehicleId, vehiclePrice, customerOffer, customerMessage, vehicleInfo } = await req.json()
+  // CSRF origin validation
+  if (!validateOrigin(req)) {
+    return NextResponse.json({ error: "Forbidden: invalid origin" }, { status: 403 })
+  }
+
+  // IP-based rate limiting: 10 negotiations per hour per IP
+  const forwarded = req.headers.get("x-forwarded-for") || ""
+  const ip = forwarded.split(",")[0]?.trim() || "unknown"
+  const limiter = await rateLimit(`negotiate:${ip}`, 10, 3600)
+  if (!limiter.success) {
+    return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 })
+  }
+
+  const { vehiclePrice, customerOffer, customerMessage, vehicleInfo } = await req.json()
 
   // Fetch AI settings from CMS
   const aiSettings = await getAISettings()
   const rules = aiSettings?.priceNegotiator?.negotiationRules
   const fees = aiSettings?.fees
 
-  const offerPercentage = (customerOffer / vehiclePrice) * 100
   const daysListed = vehicleInfo?.daysListed || 30
-  const isHotSeller = vehicleInfo?.viewsLastWeek > 50
   
   // Calculate max discount based on CMS rules
   const isLowPrice = vehiclePrice < (rules?.lowPriceThreshold || 30000)
@@ -84,10 +100,10 @@ RULES:
 - Be warm and conversational
 
 FEES TO MENTION: Certification $${fees?.certification || 595}, Doc $${fees?.financeDocFee || 895}, OMVIC $${fees?.omvic || 22}
-VALUE: 210-point inspection, 10-day guarantee, free delivery 300km, financing from ${aiSettings?.financing?.lowestRate || 4.79}%`
+VALUE: 210-point inspection, 10-day guarantee, free delivery 300km, financing from ${aiSettings?.financing?.lowestRate || RATE_FLOOR}%`
 
   const result = streamText({
-    model: "openai/gpt-4o-mini",
+    model: gateway("openai/gpt-4o-mini"),
     system: systemPrompt,
     messages: [
       {

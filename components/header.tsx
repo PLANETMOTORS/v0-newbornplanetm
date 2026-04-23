@@ -4,9 +4,15 @@ import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
 import { ChevronDown, Phone, MapPin, Star, Award, CheckCircle, Shield, Truck } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
-import { SignInPanel } from "@/components/sign-in-panel"
+import dynamic from "next/dynamic"
+// Lazy-load SignInPanel — it's only shown when user clicks sign-in
+const SignInPanel = dynamic(() => import("@/components/sign-in-panel").then(m => ({ default: m.SignInPanel })), { ssr: false })
 import NavButton from "@/components/nav-button"
+// Lazy-load SearchAutocomplete — heavy component only needed on interaction
+const SearchAutocomplete = dynamic(() => import("@/components/search-autocomplete").then(m => ({ default: m.SearchAutocomplete })), { ssr: false })
 import { useAuth } from "@/contexts/auth-context"
+import { trackPhoneClick } from "@/components/analytics/google-tag-manager"
+import { BUSINESS_HOURS_SHORT, PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 
 type NavItem = {
   name: string
@@ -49,7 +55,7 @@ const navigation: NavItem[] = [
     href: "/about",
     submenu: [
       { name: "About", href: "/about" },
-      { name: "EV Battery Health", href: "/ev-battery-health" },
+      { name: "EV Battery Health", href: "/aviloo" },
       { name: "Car Value Calculator", href: "/trade-in" },
       { name: "Protection Plans", href: "/protection-plans" },
       { name: "FAQ", href: "/faq" },
@@ -101,7 +107,7 @@ function DesktopNav({
           {item.submenu ? (
             <button
               type="button"
-              className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
+              className="flex items-center gap-1 px-4 py-2 text-[15px] font-semibold text-gray-800 hover:text-[#1e3a8a] transition-colors"
               onClick={() => setActiveSubmenu(activeSubmenu === item.name ? null : item.name)}
             >
               {item.name}
@@ -110,7 +116,7 @@ function DesktopNav({
           ) : (
             <Link
               href={item.href}
-              className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
+              className="flex items-center gap-1 px-4 py-2 text-[15px] font-semibold text-gray-800 hover:text-[#1e3a8a] transition-colors"
             >
               {item.name}
             </Link>
@@ -127,7 +133,7 @@ function DesktopNav({
                   <Link
                     key={subitem.name}
                     href={subitem.href}
-                    className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                    className="block px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
                     onClick={() => setActiveSubmenu(null)}
                   >
                     {subitem.name}
@@ -169,8 +175,9 @@ export function Header() {
 
   return (
     <>
-      <a 
-        href="#main-content" 
+      <a
+        href="#main-content"
+        data-testid="skip-nav-link"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-md"
       >
         Skip to main content
@@ -181,23 +188,24 @@ export function Header() {
       <div className="bg-primary text-primary-foreground text-sm py-2">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-4 sm:gap-6">
-              <a 
-                href="tel:1-866-797-3332" 
-                className="flex items-center gap-1.5 hover:text-primary-foreground/80 transition-colors"
+              <a
+                href={`tel:${PHONE_TOLL_FREE_TEL}`}
+                className="flex items-center gap-1.5 min-h-[44px] py-1 hover:text-primary-foreground/80 transition-colors"
+                onClick={() => trackPhoneClick(PHONE_TOLL_FREE)}
               >
                 <Phone className="w-3.5 h-3.5" />
-                <span className="font-medium">1-866-797-3332</span>
+                <span className="font-semibold">{PHONE_TOLL_FREE}</span>
               </a>
               <span className="hidden sm:flex items-center text-primary-foreground/90">
-                Mon-Fri 9AM-7PM | Sat 9AM-6PM
+                {BUSINESS_HOURS_SHORT}
               </span>
             </div>
             <div className="flex items-center gap-4 sm:gap-6">
               <div className="flex items-center gap-1.5">
                 <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                <span className="font-medium">4.8 Star Rating</span>
+                <span className="font-semibold">4.8 Star Rating</span>
               </div>
-              <span className="hidden md:flex items-center gap-1.5 font-medium">
+              <span className="hidden md:flex items-center gap-1.5 font-semibold">
                 <Award className="w-3.5 h-3.5" />
                 OMVIC Licensed
               </span>
@@ -208,7 +216,7 @@ export function Header() {
                 className="hidden lg:flex items-center gap-1.5 hover:text-primary-foreground/80 transition-colors"
               >
                 <MapPin className="w-3.5 h-3.5" />
-                <span>30 Major Mackenzie Dr E, Richmond Hill, ON L4C 1G7</span>
+                <span>{DEALERSHIP_ADDRESS_FULL}</span>
               </a>
             </div>
           </div>
@@ -223,10 +231,14 @@ export function Header() {
               </div>
             </Link>
 
-            <DesktopNav 
-              activeSubmenu={activeSubmenu} 
-              setActiveSubmenu={setActiveSubmenu} 
+            <DesktopNav
+              activeSubmenu={activeSubmenu}
+              setActiveSubmenu={setActiveSubmenu}
             />
+          </div>
+
+          <div className="hidden md:flex flex-1 max-w-sm mx-4">
+            <SearchAutocomplete />
           </div>
 
           <div className="hidden lg:flex items-center gap-2">
@@ -319,7 +331,7 @@ export function Header() {
                       <button
                         id={`mobile-nav-${item.name}`}
                         aria-expanded={activeSubmenu === item.name}
-                        className="w-full text-left flex items-center justify-between px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded"
+                        className="w-full text-left flex items-center justify-between px-3 py-3 min-h-[44px] text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded"
                         onClick={() => setActiveSubmenu(activeSubmenu === item.name ? null : item.name)}
                       >
                         {item.name}
@@ -331,7 +343,7 @@ export function Header() {
                             <Link
                               key={subitem.name}
                               href={subitem.href}
-                              className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded"
+                              className="block px-3 py-3 min-h-[44px] text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded"
                               onClick={() => setMobileMenuOpen(false)}
                             >
                               {subitem.name}
@@ -343,7 +355,7 @@ export function Header() {
                   ) : (
                     <Link
                       href={item.href}
-                      className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded"
+                      className="block px-3 py-3 min-h-[44px] text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       {item.name}
@@ -356,27 +368,27 @@ export function Header() {
         )}
       </header>
 
-      <div className="pointer-events-none bg-gray-100 border-b border-gray-200 text-gray-700 text-sm py-2.5">
+      <div className="pointer-events-none bg-[#f0f4ff] border-b border-[#e0e7f5] text-gray-700 text-sm py-2.5">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-center gap-3 sm:gap-6 md:gap-10 overflow-x-auto scrollbar-hide">
               <div className="flex items-center gap-2 whitespace-nowrap">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                <span className="font-medium text-xs sm:text-sm">10-Day Money Back Guarantee</span>
+                <CheckCircle className="w-4 h-4 text-green-700" />
+                <span className="font-semibold text-xs sm:text-sm">10-Day Money Back Guarantee</span>
               </div>
               <span className="hidden sm:block text-gray-300">|</span>
               <div className="flex items-center gap-2 whitespace-nowrap">
-                <Shield className="w-4 h-4 text-blue-600" />
-                <span className="font-medium text-xs sm:text-sm">$250 Refundable Deposit</span>
+                <Shield className="w-4 h-4 text-teal-600" />
+                <span className="font-semibold text-xs sm:text-sm">$250 Refundable Deposit</span>
               </div>
               <span className="hidden sm:block text-gray-300">|</span>
               <div className="hidden sm:flex items-center gap-2 whitespace-nowrap">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                <span className="font-medium text-xs sm:text-sm">210-Point Inspection</span>
+                <CheckCircle className="w-4 h-4 text-green-700" />
+                <span className="font-semibold text-xs sm:text-sm">210-Point Inspection</span>
               </div>
               <span className="hidden md:block text-gray-300">|</span>
               <div className="hidden md:flex items-center gap-2 whitespace-nowrap">
-                <Truck className="w-4 h-4 text-blue-600" />
-                <span className="font-medium text-xs sm:text-sm">Canada-Wide Delivery</span>
+                <Truck className="w-4 h-4 text-teal-600" />
+                <span className="font-semibold text-xs sm:text-sm">Canada-Wide Delivery</span>
               </div>
             </div>
           </div>

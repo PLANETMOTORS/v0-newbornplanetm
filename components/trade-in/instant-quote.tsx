@@ -11,15 +11,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { 
-  Car, Sparkles, TrendingUp, Shield, Clock, CheckCircle, 
-  DollarSign, ArrowRight, Star, Zap, AlertCircle, Mail, Phone, Loader2
+  Car, Sparkles, TrendingUp, Shield, Clock, CheckCircle,
+  ArrowRight, Star, Zap, AlertCircle, Mail, Phone, Loader2
 } from "lucide-react"
 import {
   isValidEmail,
   isValidCanadianPhoneNumber,
-  isValidCanadianPostalCode,
   formatCanadianPhoneNumber,
-  formatCanadianPostalCode,
   ValidationMessages
 } from "@/lib/validation"
 
@@ -219,7 +217,7 @@ export function InstantQuote() {
   const [verificationStep, setVerificationStep] = useState<"form" | "verify" | "result">("form")
   const [verifyMethod, setVerifyMethod] = useState<"email" | "phone">("email")
   const [verificationCode, setVerificationCode] = useState("")
-  const [sentCode, setSentCode] = useState("")
+
   const [isSendingCode, setIsSendingCode] = useState(false)
   const [isVerifyingCode, setIsVerifyingCode] = useState(false)
   
@@ -328,8 +326,6 @@ export function InstantQuote() {
     if (!isFormValid()) return
     
     setIsSendingCode(true)
-    const code = Math.floor(100000 + Math.random() * 900000).toString()
-    setSentCode(code)
     
     try {
       await fetch("/api/verify/send-code", {
@@ -338,29 +334,40 @@ export function InstantQuote() {
         body: JSON.stringify({
           method: verifyMethod,
           destination: verifyMethod === "email" ? formData.email : formData.phone,
-          code,
           purpose: "instant_cash_offer",
           vehicleInfo: `${formData.year} ${formData.make} ${formData.model}`,
         }),
       })
     } catch {
-      // Continue anyway for demo
+      // Continue anyway — server generates and stores the code
     } finally {
       setIsSendingCode(false)
       setVerificationStep("verify")
     }
   }
 
-  // Verify code and calculate quote
+  // Verify code server-side and calculate quote
   const verifyAndCalculate = async () => {
-    if (verificationCode !== sentCode && verificationCode !== "123456") {
-      return // Invalid code
-    }
-    
     setIsVerifyingCode(true)
-    setVerificationStep("result")
-    await calculateQuote()
-    setIsVerifyingCode(false)
+    try {
+      const destination = verifyMethod === "email" ? formData.email : formData.phone
+      const response = await fetch("/api/verify/check-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ destination, code: verificationCode }),
+      })
+      const result = await response.json()
+      if (!result.verified) {
+        setIsVerifyingCode(false)
+        return // Invalid code
+      }
+      setVerificationStep("result")
+      await calculateQuote()
+    } catch {
+      // Verification failed — user can retry
+    } finally {
+      setIsVerifyingCode(false)
+    }
   }
   
   // Local fallback valuation calculation (used if API fails)
@@ -430,72 +437,50 @@ export function InstantQuote() {
     setIsCalculating(true)
     setCalculationProgress(0)
     
-    // Simulate calculation with progress
-    const steps = [
-      "Checking Canadian Black Book values...",
-      "Analyzing current market demand...",
-      "Reviewing auction data...",
-      "Calculating regional adjustments...",
-      "Generating your instant offer..."
-    ]
-    
     // Call AI-powered valuation API
-    let lowValue = 0
-    let midValue = 0
-    let highValue = 0
-    let valuationFactors: string[] = []
-    
-    try {
-      // Start progress animation
-      const progressInterval = setInterval(() => {
-        setCalculationProgress(prev => Math.min(prev + 5, 90))
-      }, 300)
-      
-      const response = await fetch("/api/vehicle-valuation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          year: formData.year,
-          make: formData.make,
-          model: formData.model,
-          trim: formData.trim,
-          mileage: formData.mileage,
-          condition: formData.condition,
-        }),
-      })
-      
-      clearInterval(progressInterval)
-      setCalculationProgress(100)
-      
-      if (response.ok) {
-        const valuation = await response.json()
-        lowValue = valuation.lowValue
-        midValue = valuation.midValue
-        highValue = valuation.highValue
-        valuationFactors = valuation.factors || []
-      } else {
+    const result = await (async () => {
+      try {
+        // Start progress animation
+        const progressInterval = setInterval(() => {
+          setCalculationProgress(prev => Math.min(prev + 5, 90))
+        }, 300)
+
+        const response = await fetch("/api/vehicle-valuation", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            year: formData.year,
+            make: formData.make,
+            model: formData.model,
+            trim: formData.trim,
+            mileage: formData.mileage,
+            condition: formData.condition,
+          }),
+        })
+
+        clearInterval(progressInterval)
+        setCalculationProgress(100)
+
+        if (response.ok) {
+          const valuation = await response.json()
+          return { lowValue: valuation.lowValue as number, midValue: valuation.midValue as number, highValue: valuation.highValue as number }
+        }
         // Fallback to local calculation if API fails
-        const fallbackResult = calculateLocalValue(formData)
-        lowValue = fallbackResult.lowValue
-        midValue = fallbackResult.midValue
-        highValue = fallbackResult.highValue
+        return calculateLocalValue(formData)
+      } catch {
+        // Fallback to local calculation on network error
+        setCalculationProgress(100)
+        return calculateLocalValue(formData)
       }
-    } catch {
-      // Fallback to local calculation on network error
-      setCalculationProgress(100)
-      const fallbackResult = calculateLocalValue(formData)
-      lowValue = fallbackResult.lowValue
-      midValue = fallbackResult.midValue
-      highValue = fallbackResult.highValue
-    }
-    
+    })()
+
     const quoteId = `PQ-${Date.now().toString(36).toUpperCase()}`
-    
+
     setQuoteResult({
       quoteId,
-      lowValue,
-      midValue,
-      highValue,
+      lowValue: result.lowValue,
+      midValue: result.midValue,
+      highValue: result.highValue,
       vehicle: `${formData.year} ${formData.make} ${formData.model} ${formData.trim}`,
     })
     
@@ -644,7 +629,7 @@ export function InstantQuote() {
         
         {/* Contact Information Section */}
         <div className="border-t pt-4 mt-4">
-          <h3 className="font-medium mb-3 flex items-center gap-2">
+          <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Mail className="h-4 w-4" />
             Your Contact Information
           </h3>
@@ -726,7 +711,7 @@ export function InstantQuote() {
           <div className="border-t pt-4 mt-4 space-y-4">
             <div className="text-center">
               <CheckCircle className="h-8 w-8 text-primary mx-auto mb-2" />
-              <h3 className="font-medium">Verify Your {verifyMethod === "email" ? "Email" : "Phone"}</h3>
+              <h3 className="font-semibold">Verify Your {verifyMethod === "email" ? "Email" : "Phone"}</h3>
               <p className="text-sm text-muted-foreground">
                 Enter the 6-digit code sent to {verifyMethod === "email" ? formData.email : formData.phone}
               </p>
@@ -831,7 +816,7 @@ export function InstantQuote() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Mileage:</span>
-                  <span>{parseInt(formData.mileage).toLocaleString()} km</span>
+                  <span className="tabular-nums">{parseInt(formData.mileage).toLocaleString()} km</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Location:</span>

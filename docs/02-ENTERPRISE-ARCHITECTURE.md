@@ -1,3 +1,5 @@
+> ⚠️ Note: This document describes a planned enterprise architecture. The current production deployment uses:Hosting: Vercel (Next.js serverless)Database: Supabase (PostgreSQL)Cache: Upstash RedisCMS: SanityCI/CD: GitHub Actions (.github/workflows/ci.yml)The AWS infrastructure described below is a future migration target, not the current state.
+
 # PLANET MOTORS - ENTERPRISE ARCHITECTURE
 
 ## 1. System Context Diagram
@@ -43,8 +45,6 @@
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
-
----
 
 ## 2. Application Architecture
 
@@ -122,8 +122,6 @@
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
-
 ## 3. Network Architecture
 
 ```
@@ -159,8 +157,6 @@
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```
-
----
 
 ## 4. Data Flow Diagrams
 
@@ -227,8 +223,6 @@ Customer          Frontend           API            Lender API        Database
    │<────────────────│                │                  │                │
 ```
 
----
-
 ## 5. Deployment Architecture
 
 ```
@@ -264,7 +258,4 @@ Customer          Frontend           API            Lender API        Database
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
-
-*Document Version: 1.0*
-*Last Updated: March 28, 2026*
+*Document Version: 1.0**Last Updated: March 28, 2026*

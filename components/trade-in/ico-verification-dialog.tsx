@@ -39,7 +39,6 @@ export function ICOVerificationDialog({
 }: ICOVerificationDialogProps) {
   const [step, setStep] = useState<"contact" | "verify" | "result">("contact")
   const [verificationCode, setVerificationCode] = useState("")
-  const [sentCode, setSentCode] = useState("")
   const [verifyMethod, setVerifyMethod] = useState<"email" | "phone">("email")
   const [isSendingCode, setIsSendingCode] = useState(false)
   const [isVerifying, setIsVerifying] = useState(false)
@@ -47,8 +46,6 @@ export function ICOVerificationDialog({
   const sendVerificationCode = async (method: "email" | "phone") => {
     setVerifyMethod(method)
     setIsSendingCode(true)
-    const code = Math.floor(100000 + Math.random() * 900000).toString()
-    setSentCode(code)
     
     try {
       await fetch("/api/verify/send-code", {
@@ -57,26 +54,35 @@ export function ICOVerificationDialog({
         body: JSON.stringify({
           method,
           destination: method === "email" ? formData.email : formData.phone,
-          code,
           purpose: "ico_quote",
           vehicleInfo: quoteResult?.vehicle,
         }),
       })
     } catch {
-      // Continue anyway
+      // Continue anyway — server generates and stores the code
     }
     setStep("verify")
     setIsSendingCode(false)
   }
 
-  const verifyCode = () => {
+  const verifyCode = async () => {
     setIsVerifying(true)
-    setTimeout(() => {
-      if (verificationCode === sentCode || verificationCode === "123456") {
+    try {
+      const destination = verifyMethod === "email" ? formData.email : formData.phone
+      const response = await fetch("/api/verify/check-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ destination, code: verificationCode }),
+      })
+      const result = await response.json()
+      if (result.verified) {
         setStep("result")
       }
+    } catch {
+      // Verification failed — user can retry
+    } finally {
       setIsVerifying(false)
-    }, 1000)
+    }
   }
 
   const handleClose = () => {

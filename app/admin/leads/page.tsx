@@ -1,327 +1,360 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { 
-  Search, Filter, Phone, Mail, MessageSquare, Clock, 
-  CheckCircle, AlertCircle, User, Car, ChevronRight
+import { useState, useEffect, useCallback } from "react"
+import {
+  MessageSquare, Search, RefreshCw, Phone, Mail,
+  Clock, Bot, DollarSign, Car, CalendarCheck, ChevronLeft, ChevronRight,
+  User
 } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 
-const leadsData = [
-  {
-    id: 1,
-    name: "John Smith",
-    email: "john.smith@example.com",
-    phone: "416-985-2277",
-    type: "Finance Application",
-    vehicle: "2024 Tesla Model Y Long Range AWD",
-    vehicleId: "2024-tesla-model-y",
-    status: "new",
-    source: "Website",
-    createdAt: "2026-03-28T10:30:00",
-    notes: "Looking for low down payment options"
-  },
-  {
-    id: 2,
-    name: "Sarah Johnson",
-    email: "sarah.j@example.com",
-    phone: "416-985-2277",
-    type: "Trade-In Request",
-    vehicle: "2024 BMW M4 Competition",
-    vehicleId: "2024-bmw-m4",
-    status: "contacted",
-    source: "Phone",
-    createdAt: "2026-03-28T09:15:00",
-    notes: "Has 2020 Mercedes C300 to trade"
-  },
-  {
-    id: 3,
-    name: "Mike Brown",
-    email: "mike.brown@example.com",
-    phone: "416-985-2277",
-    type: "Test Drive",
-    vehicle: "2024 Porsche Taycan 4S",
-    vehicleId: "2024-porsche-taycan",
-    status: "new",
-    source: "Website",
-    createdAt: "2026-03-28T08:45:00",
-    notes: "Available weekends only"
-  },
-  {
-    id: 4,
-    name: "Emily Davis",
-    email: "emily.d@example.com",
-    phone: "416-985-2277",
-    type: "Reservation",
-    vehicle: "2023 Mercedes EQS 580",
-    vehicleId: "2023-mercedes-eqs",
-    status: "pending",
-    source: "Chat",
-    createdAt: "2026-03-28T07:30:00",
-    notes: "Wants to pay full amount"
-  },
-  {
-    id: 5,
-    name: "David Wilson",
-    email: "david.w@example.com",
-    phone: "416-985-2277",
-    type: "General Inquiry",
-    vehicle: "2024 Ford F-150 Lightning",
-    vehicleId: "2024-ford-f150",
-    status: "qualified",
-    source: "Referral",
-    createdAt: "2026-03-27T16:20:00",
-    notes: "Referred by John Smith"
-  },
-]
+interface Lead {
+  id: string
+  source: string
+  status: string
+  priority: string
+  customer_name: string
+  customer_email: string
+  customer_phone: string | null
+  subject: string
+  message: string | null
+  vehicle_info: string | null
+  notes: string | null
+  assigned_to: string | null
+  created_at: string
+  source_table?: string
+}
 
-const statusColors: Record<string, string> = {
-  new: "bg-blue-100 text-blue-800",
-  contacted: "bg-yellow-100 text-yellow-800",
-  qualified: "bg-green-100 text-green-800",
-  pending: "bg-purple-100 text-purple-800",
-  closed: "bg-gray-100 text-gray-800",
-  lost: "bg-red-100 text-red-800",
+interface LeadStats {
+  total: number
+  new: number
+  contacted: number
+  qualified: number
+  converted: number
+}
+
+const SOURCE_LABELS: Record<string, string> = {
+  contact_form: "Contact Form",
+  chat: "Anna Chat",
+  phone: "Phone",
+  finance_app: "Finance App",
+  trade_in: "Trade-In",
+  reservation: "Reservation",
+  test_drive: "Test Drive",
+  walk_in: "Walk-In",
+  referral: "Referral",
+  other: "Other",
+}
+
+const STATUS_OPTIONS = ["all", "new", "contacted", "qualified", "negotiating", "converted", "lost", "archived"]
+const SOURCE_OPTIONS = ["all", "contact_form", "chat", "finance_app", "trade_in", "reservation", "test_drive"]
+
+function timeAgo(dateStr: string): string {
+  const now = new Date()
+  const date = new Date(dateStr)
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+  if (seconds < 60) return "just now"
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
+  return `${Math.floor(seconds / 86400)}d ago`
+}
+
+function sourceIcon(source: string) {
+  switch (source) {
+    case "contact_form": return MessageSquare
+    case "chat": return Bot
+    case "finance_app": return DollarSign
+    case "reservation": return CalendarCheck
+    case "trade_in": return Car
+    case "test_drive": return Clock
+    default: return MessageSquare
+  }
+}
+
+function statusVariant(status: string): "default" | "secondary" | "outline" | "destructive" {
+  switch (status) {
+    case "new": return "default"
+    case "contacted": return "secondary"
+    case "qualified": return "outline"
+    case "converted": return "default"
+    case "lost": return "destructive"
+    default: return "secondary"
+  }
+}
+
+function priorityColor(priority: string): string {
+  switch (priority) {
+    case "urgent": return "bg-red-100 text-red-700"
+    case "high": return "bg-orange-100 text-orange-700"
+    case "medium": return "bg-blue-100 text-blue-700"
+    case "low": return "bg-gray-100 text-gray-700"
+    default: return "bg-gray-100 text-gray-700"
+  }
 }
 
 export default function AdminLeadsPage() {
-  const [searchQuery, setSearchQuery] = useState("")
+  const [leads, setLeads] = useState<Lead[]>([])
+  const [stats, setStats] = useState<LeadStats>({ total: 0, new: 0, contacted: 0, qualified: 0, converted: 0 })
+  const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState("all")
-  const [typeFilter, setTypeFilter] = useState("all")
-  const [selectedLead, setSelectedLead] = useState<typeof leadsData[0] | null>(null)
+  const [sourceFilter, setSourceFilter] = useState("all")
+  const [search, setSearch] = useState("")
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
+  const limit = 20
 
-  const [isMounted, setIsMounted] = useState(false)
+  const fetchLeads = useCallback(async () => {
+    try {
+      setLoading(true)
+      const params = new URLSearchParams()
+      if (statusFilter !== "all") params.set("status", statusFilter)
+      if (sourceFilter !== "all") params.set("source", sourceFilter)
+      if (search) params.set("search", search)
+      params.set("page", String(page))
+      params.set("limit", String(limit))
 
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
+      const res = await fetch(`/api/v1/admin/leads?${params}`)
+      if (!res.ok) throw new Error("Failed to fetch leads")
+      const data = await res.json()
+      setLeads(data.leads || [])
+      setStats(data.stats || { total: 0, new: 0, contacted: 0, qualified: 0, converted: 0 })
+      setTotal(data.total || 0)
+    } catch (err) {
+      console.error("Leads fetch error:", err)
+    } finally {
+      setLoading(false)
+    }
+  }, [statusFilter, sourceFilter, search, page])
 
-  const filteredLeads = leadsData.filter(lead => {
-    const matchesSearch = `${lead.name} ${lead.email} ${lead.vehicle}`
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase())
-    const matchesStatus = statusFilter === "all" || lead.status === statusFilter
-    const matchesType = typeFilter === "all" || lead.type === typeFilter
-    return matchesSearch && matchesStatus && matchesType
-  })
+  useEffect(() => { fetchLeads() }, [fetchLeads])
 
-  const formatDate = (dateString: string) => {
-    if (!isMounted) return ""
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMs / 3600000)
-    
-    if (diffMins < 60) return `${diffMins} min ago`
-    if (diffHours < 24) return `${diffHours} hours ago`
-    return date.toLocaleDateString()
+  const updateLeadStatus = async (leadId: string, newStatus: string) => {
+    try {
+      const res = await fetch("/api/v1/admin/leads", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: leadId, status: newStatus }),
+      })
+      if (res.ok) {
+        setLeads(prev => prev.map(l => l.id === leadId ? { ...l, status: newStatus } : l))
+        if (selectedLead?.id === leadId) setSelectedLead(prev => prev ? { ...prev, status: newStatus } : null)
+      }
+    } catch (err) {
+      console.error("Status update error:", err)
+    }
   }
+
+  const totalPages = Math.ceil(total / limit)
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Lead Management</h1>
-          <p className="text-gray-500">{leadsData.length} total leads</p>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">Leads & Inquiries</h1>
+          <p className="text-sm text-gray-500">All customer inquiries from contact form, Anna chat, finance apps, and more</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline">Export Leads</Button>
-          <Button>Add Lead Manually</Button>
-        </div>
+        <Button variant="outline" size="sm" onClick={fetchLeads}>
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Refresh
+        </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         {[
-          { label: "New", count: 23, color: "blue" },
-          { label: "Contacted", count: 34, color: "yellow" },
-          { label: "Qualified", count: 18, color: "green" },
-          { label: "Pending", count: 12, color: "purple" },
-          { label: "Closed", count: 45, color: "gray" },
-        ].map((stat) => (
-          <Card key={stat.label} className="cursor-pointer hover:shadow-md transition-shadow">
+          { label: "Total", value: stats.total, color: "text-gray-900" },
+          { label: "New", value: stats.new, color: "text-blue-600" },
+          { label: "Contacted", value: stats.contacted, color: "text-yellow-600" },
+          { label: "Qualified", value: stats.qualified, color: "text-green-600" },
+          { label: "Converted", value: stats.converted, color: "text-purple-600" },
+        ].map(s => (
+          <Card key={s.label}>
             <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold">{stat.count}</p>
-              <p className="text-sm text-gray-500">{stat.label}</p>
+              <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+              <p className="text-xs text-gray-500">{s.label}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder="Search by name, email, vehicle..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border rounded-lg"
-            >
-              <option value="all">All Status</option>
-              <option value="new">New</option>
-              <option value="contacted">Contacted</option>
-              <option value="qualified">Qualified</option>
-              <option value="pending">Pending</option>
-              <option value="closed">Closed</option>
-            </select>
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-3 py-2 border rounded-lg"
-            >
-              <option value="all">All Types</option>
-              <option value="Finance Application">Finance</option>
-              <option value="Trade-In Request">Trade-In</option>
-              <option value="Test Drive">Test Drive</option>
-              <option value="Reservation">Reservation</option>
-              <option value="General Inquiry">General</option>
-            </select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Leads List */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-4">
-          {filteredLeads.map((lead) => (
-            <Card 
-              key={lead.id} 
-              className={`cursor-pointer transition-all ${
-                selectedLead?.id === lead.id ? "ring-2 ring-blue-500" : "hover:shadow-md"
-              }`}
-              onClick={() => setSelectedLead(lead)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                      {lead.name.split(" ").map(n => n[0]).join("")}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">{lead.name}</h3>
-                        <Badge className={statusColors[lead.status]}>
-                          {lead.status}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-gray-600">{lead.type}</p>
-                      <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                        <Car className="w-3 h-3" />
-                        {lead.vehicle}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-gray-500">{formatDate(lead.createdAt)}</p>
-                    <p className="text-xs text-gray-400 mt-1">via {lead.source}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+      <div className="flex flex-wrap gap-3">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Input
+            placeholder="Search by name, email, phone..."
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+            className="pl-10"
+          />
+        </div>
+        <select
+          value={statusFilter}
+          onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
+          className="border rounded-md px-3 py-2 text-sm"
+        >
+          {STATUS_OPTIONS.map(s => (
+            <option key={s} value={s}>{s === "all" ? "All Statuses" : s.charAt(0).toUpperCase() + s.slice(1)}</option>
           ))}
+        </select>
+        <select
+          value={sourceFilter}
+          onChange={(e) => { setSourceFilter(e.target.value); setPage(1) }}
+          className="border rounded-md px-3 py-2 text-sm"
+        >
+          {SOURCE_OPTIONS.map(s => (
+            <option key={s} value={s}>{s === "all" ? "All Sources" : SOURCE_LABELS[s] || s}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Leads List + Detail Panel */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Leads List */}
+        <div className="lg:col-span-2">
+          <Card>
+            <CardContent className="p-0">
+              {loading ? (
+                <div className="p-8 text-center text-gray-500">Loading leads...</div>
+              ) : leads.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <p>No leads found</p>
+                  <p className="text-xs mt-1">Leads will appear when customers submit inquiries, chat with Anna, or apply for financing</p>
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {leads.map(lead => {
+                    const Icon = sourceIcon(lead.source)
+                    return (
+                      <div
+                        key={lead.id}
+                        className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${selectedLead?.id === lead.id ? "bg-blue-50" : ""}`}
+                        onClick={() => setSelectedLead(lead)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              <Icon className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-medium text-sm truncate">{lead.customer_name || lead.customer_email || "Unknown"}</p>
+                              <p className="text-xs text-gray-500 truncate">{lead.subject}</p>
+                              {lead.vehicle_info && (
+                                <p className="text-xs text-gray-400 truncate">{lead.vehicle_info}</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right flex-shrink-0 ml-2">
+                            <Badge variant={statusVariant(lead.status)} className="text-xs">{lead.status}</Badge>
+                            {lead.priority && lead.priority !== "medium" && (
+                              <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded mt-1 ${priorityColor(lead.priority)}`}>
+                                {lead.priority}
+                              </span>
+                            )}
+                            <p className="text-xs text-gray-400 mt-1">{timeAgo(lead.created_at)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <p className="text-sm text-gray-500">Page {page} of {totalPages} ({total} leads)</p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Lead Details Sidebar */}
-        <div className="lg:col-span-1">
+        {/* Detail Panel */}
+        <Card className="h-fit">
           {selectedLead ? (
-            <Card className="sticky top-4">
+            <>
               <CardHeader>
-                <CardTitle>Lead Details</CardTitle>
+                <CardTitle className="text-lg">{selectedLead.customer_name || "Unknown"}</CardTitle>
+                <CardDescription>{SOURCE_LABELS[selectedLead.source] || selectedLead.source}</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto mb-3">
-                    {selectedLead.name.split(" ").map(n => n[0]).join("")}
-                  </div>
-                  <h3 className="font-semibold text-lg">{selectedLead.name}</h3>
-                  <Badge className={statusColors[selectedLead.status]}>
-                    {selectedLead.status}
-                  </Badge>
+              <CardContent className="space-y-4">
+                {/* Contact Info */}
+                <div className="space-y-2">
+                  {selectedLead.customer_email && (
+                    <a href={`mailto:${selectedLead.customer_email}`} className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
+                      <Mail className="w-4 h-4" />
+                      {selectedLead.customer_email}
+                    </a>
+                  )}
+                  {selectedLead.customer_phone && (
+                    <a href={`tel:${selectedLead.customer_phone}`} className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
+                      <Phone className="w-4 h-4" />
+                      {selectedLead.customer_phone}
+                    </a>
+                  )}
                 </div>
 
-                <div className="space-y-3">
-                  <a 
-                    href={`mailto:${selectedLead.email}`}
-                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
-                  >
-                    <Mail className="w-5 h-5 text-gray-400" />
-                    <span className="text-sm">{selectedLead.email}</span>
-                  </a>
-                  <a 
-                    href={`tel:${selectedLead.phone}`}
-                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
-                  >
-                    <Phone className="w-5 h-5 text-gray-400" />
-                    <span className="text-sm">{selectedLead.phone}</span>
-                  </a>
-                </div>
-
+                {/* Subject & Message */}
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Interest</h4>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm font-medium">{selectedLead.type}</p>
-                    <p className="text-sm text-gray-600">{selectedLead.vehicle}</p>
-                  </div>
+                  <p className="text-xs font-medium text-gray-500 uppercase mb-1">Subject</p>
+                  <p className="text-sm">{selectedLead.subject}</p>
                 </div>
-
-                {selectedLead.notes && (
+                {selectedLead.message && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-500 mb-2">Notes</h4>
-                    <p className="text-sm bg-gray-50 p-3 rounded-lg">{selectedLead.notes}</p>
+                    <p className="text-xs font-medium text-gray-500 uppercase mb-1">Message</p>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedLead.message}</p>
+                  </div>
+                )}
+                {selectedLead.vehicle_info && (
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase mb-1">Vehicle Interest</p>
+                    <p className="text-sm">{selectedLead.vehicle_info}</p>
                   </div>
                 )}
 
-                <div className="space-y-2">
-                  <Button className="w-full">
-                    <Phone className="w-4 h-4 mr-2" />
-                    Call Now
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    <Mail className="w-4 h-4 mr-2" />
-                    Send Email
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Add Note
-                  </Button>
+                {/* Status Actions */}
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase mb-2">Update Status</p>
+                  <div className="flex flex-wrap gap-2">
+                    {["new", "contacted", "qualified", "negotiating", "converted", "lost"].map(s => (
+                      <Button
+                        key={s}
+                        variant={selectedLead.status === s ? "default" : "outline"}
+                        size="sm"
+                        className="text-xs"
+                        onClick={() => updateLeadStatus(selectedLead.id, s)}
+                      >
+                        {s}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
 
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Update Status</h4>
-                  <select className="w-full px-3 py-2 border rounded-lg">
-                    <option value="new">New</option>
-                    <option value="contacted">Contacted</option>
-                    <option value="qualified">Qualified</option>
-                    <option value="pending">Pending</option>
-                    <option value="closed">Closed - Won</option>
-                    <option value="lost">Closed - Lost</option>
-                  </select>
-                </div>
+                <p className="text-xs text-gray-400">Created {new Date(selectedLead.created_at).toLocaleString()}</p>
               </CardContent>
-            </Card>
+            </>
           ) : (
-            <Card>
-              <CardContent className="p-8 text-center text-gray-500">
-                <User className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <p>Select a lead to view details</p>
-              </CardContent>
-            </Card>
+            <CardContent className="p-8 text-center text-gray-500">
+              <User className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <p className="text-sm">Select a lead to view details</p>
+            </CardContent>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   )

@@ -1,0 +1,216 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e118]:
+    - link "Skip to main content" [ref=e119] [cursor=pointer]:
+      - /url: "#main-content"
+    - generic [ref=e120]:
+      - generic [ref=e122]:
+        - generic [ref=e123]:
+          - link "1-866-797-3332" [ref=e124] [cursor=pointer]:
+            - /url: tel:1-866-797-3332
+            - img [ref=e125]
+            - generic [ref=e127]: 1-866-797-3332
+          - generic [ref=e128]: Mon-Fri 9AM-7PM | Sat 9AM-6PM
+        - generic [ref=e129]:
+          - generic [ref=e130]:
+            - img [ref=e131]
+            - generic [ref=e133]: 4.8 Star Rating
+          - generic [ref=e134]:
+            - img [ref=e135]
+            - text: OMVIC Licensed
+          - link "30 Major Mackenzie Dr E, Richmond Hill, ON L4C 1G7" [ref=e138] [cursor=pointer]:
+            - /url: https://maps.google.com/?q=30+Major+Mackenzie+E+Richmond+Hill+ON
+            - img [ref=e139]
+            - generic [ref=e142]: 30 Major Mackenzie Dr E, Richmond Hill, ON L4C 1G7
+      - banner [ref=e143]:
+        - navigation "Main navigation" [ref=e144]:
+          - generic [ref=e145]:
+            - link "Planet Motors - Fairness Integrity" [ref=e146] [cursor=pointer]:
+              - /url: /
+              - img "Planet Motors - Fairness Integrity" [ref=e149]
+            - generic [ref=e150]:
+              - button "Shop Inventory" [ref=e152]:
+                - text: Shop Inventory
+                - img [ref=e153]
+              - button "Sell or Trade" [ref=e156]:
+                - text: Sell or Trade
+                - img [ref=e157]
+              - button "Finance" [ref=e160]:
+                - text: Finance
+                - img [ref=e161]
+              - button "More" [ref=e164]:
+                - text: More
+                - img [ref=e165]
+          - button "Sign In" [ref=e170]:
+            - generic [ref=e171]: Sign In
+            - img [ref=e173]
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - img
+              - generic: 10-Day Money Back Guarantee
+            - generic: "|"
+            - generic:
+              - img
+              - generic: $250 Refundable Deposit
+            - generic: "|"
+            - generic:
+              - img
+              - generic: 210-Point Inspection
+            - generic: "|"
+            - generic:
+              - img
+              - generic: Canada-Wide Delivery
+    - generic [ref=e177]:
+      - generic [ref=e179]: Vehicle unavailable
+      - generic [ref=e180]:
+        - paragraph [ref=e181]: Database connection not available. Please try again later.
+        - link "Return to inventory" [ref=e182] [cursor=pointer]:
+          - /url: /inventory
+    - contentinfo "Site footer" [ref=e183]:
+      - generic [ref=e184]:
+        - generic [ref=e185]:
+          - generic [ref=e186]:
+            - img "Planet Motors - Fairness Integrity" [ref=e189]
+            - paragraph [ref=e190]: Canada's trusted destination for premium pre-owned vehicles with nationwide delivery. 210-point inspection, 10-day money-back guarantee, and competitive multi-lender financing.
+            - heading "Contact Us" [level=3] [ref=e191]
+            - generic [ref=e192]:
+              - link "1-866-797-3332 (Toll Free)" [ref=e193] [cursor=pointer]:
+                - /url: tel:18667973332
+                - img [ref=e194]
+                - generic [ref=e196]: 1-866-797-3332 (Toll Free)
+              - link "info@planetmotors.ca" [ref=e197] [cursor=pointer]:
+                - /url: mailto:info@planetmotors.ca
+                - img [ref=e198]
+                - generic [ref=e201]: info@planetmotors.ca
+              - link "30 Major Mackenzie Dr E Richmond Hill, ON L4C 1G7" [ref=e202] [cursor=pointer]:
+                - /url: https://share.google/YAlbvyp4und6Nrka
+                - img [ref=e203]
+                - generic [ref=e206]:
+                  - text: 30 Major Mackenzie Dr E
+                  - text: Richmond Hill, ON L4C 1G7
+              - generic [ref=e207]:
+                - img [ref=e208]
+                - generic [ref=e211]: "Mon-Fri: 9AM-7PM | Sat: 9AM-6PM"
+          - generic [ref=e212]:
+            - heading "Vehicles" [level=3] [ref=e213]
+            - list [ref=e214]:
+              - listitem [ref=e215]:
+                - link "Browse Inventory" [ref=e216] [cursor=pointer]:
+                  - /url: /inventory
+              - listitem [ref=e217]:
+                - link "Certified Pre-Owned" [ref=e218] [cursor=pointer]:
+                  - /url: /inventory?condition=cpo
+              - listitem [ref=e219]:
+                - link "360 Spin Viewer" [ref=e220] [cursor=pointer]:
+                  - /url: /viewer
+              - listitem [ref=e221]:
+                - link "New Arrivals" [ref=e222] [cursor=pointer]:
+                  - /url: /inventory?sort=newest
+              - listitem [ref=e223]:
+                - link "Electric Vehicles" [ref=e224] [cursor=pointer]:
+                  - /url: /inventory?type=electric
+          - generic [ref=e225]:
+            - heading "Services" [level=3] [ref=e226]
+            - list [ref=e227]:
+              - listitem [ref=e228]:
+                - link "Protection Plans" [ref=e229] [cursor=pointer]:
+                  - /url: /protection-plans
+              - listitem [ref=e230]:
+                - link "Financing" [ref=e231] [cursor=pointer]:
+                  - /url: /financing
+              - listitem [ref=e232]:
+                - link "Trade-In" [ref=e233] [cursor=pointer]:
+                  - /url: /trade-in
+              - listitem [ref=e234]:
+                - link "Service Center" [ref=e235] [cursor=pointer]:
+                  - /url: /service
+          - generic [ref=e236]:
+            - heading "Company" [level=3] [ref=e237]
+            - list [ref=e238]:
+              - listitem [ref=e239]:
+                - link "About Us" [ref=e240] [cursor=pointer]:
+                  - /url: /about
+              - listitem [ref=e241]:
+                - link "Careers" [ref=e242] [cursor=pointer]:
+                  - /url: /careers
+              - listitem [ref=e243]:
+                - link "Contact" [ref=e244] [cursor=pointer]:
+                  - /url: /contact
+              - listitem [ref=e245]:
+                - link "Blog" [ref=e246] [cursor=pointer]:
+                  - /url: /blog
+          - generic [ref=e247]:
+            - heading "Legal" [level=3] [ref=e248]
+            - list [ref=e249]:
+              - listitem [ref=e250]:
+                - link "Privacy Policy" [ref=e251] [cursor=pointer]:
+                  - /url: /privacy
+              - listitem [ref=e252]:
+                - link "Terms of Service" [ref=e253] [cursor=pointer]:
+                  - /url: /terms
+              - listitem [ref=e254]:
+                - link "Accessibility" [ref=e255] [cursor=pointer]:
+                  - /url: /accessibility
+              - listitem [ref=e256]:
+                - link "Sitemap" [ref=e257] [cursor=pointer]:
+                  - /url: /sitemap
+        - generic [ref=e259]:
+          - paragraph [ref=e260]: Follow us on social media
+          - generic [ref=e261]:
+            - link "Facebook" [ref=e262] [cursor=pointer]:
+              - /url: https://www.facebook.com/PlanetMotors.ca
+              - img [ref=e263]
+            - link "X" [ref=e265] [cursor=pointer]:
+              - /url: https://x.com/PlanetMotorsCA
+              - img [ref=e266]
+            - link "Instagram" [ref=e268] [cursor=pointer]:
+              - /url: https://www.instagram.com/planetmotors.ca
+              - img [ref=e269]
+            - link "YouTube" [ref=e271] [cursor=pointer]:
+              - /url: https://www.youtube.com/@PlanetMotors_ca
+              - img [ref=e272]
+            - link "TikTok" [ref=e274] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@planetmotors.ca
+              - img [ref=e275]
+            - link "LinkedIn" [ref=e277] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/planetmotors
+              - img [ref=e278]
+        - generic [ref=e281]:
+          - generic [ref=e282]:
+            - img [ref=e283]
+            - generic [ref=e285]:
+              - paragraph [ref=e286]: OMVIC Registered Dealer
+              - paragraph [ref=e287]: Ontario Motor Vehicle Industry Council Licensed
+          - generic [ref=e288]:
+            - generic [ref=e289]:
+              - paragraph [ref=e290]: "210"
+              - paragraph [ref=e291]: Point Inspection
+            - generic [ref=e292]:
+              - paragraph [ref=e293]: 10-Day
+              - paragraph [ref=e294]: Money Back
+            - generic [ref=e295]:
+              - paragraph [ref=e296]: $250
+              - paragraph [ref=e297]: Refundable Deposit
+            - generic [ref=e298]:
+              - paragraph [ref=e299]: Canada
+              - paragraph [ref=e300]: Wide Delivery
+        - paragraph [ref=e302]: © 2026 Planet Motors. All rights reserved.
+  - button "Chat with Anna" [ref=e92]:
+    - img [ref=e93]
+    - generic [ref=e96]: Chat with Anna
+  - region "Notifications alt+T"
+  - generic [ref=e102] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e103]:
+      - img [ref=e104]
+    - generic [ref=e107]:
+      - button "Open issues overlay" [ref=e108]:
+        - generic [ref=e109]:
+          - generic [ref=e110]: "2"
+          - generic [ref=e111]: "3"
+        - generic [ref=e112]:
+          - text: Issue
+          - generic [ref=e113]: s
+      - button "Collapse issues badge" [ref=e114]:
+        - img [ref=e115]
+  - alert [ref=e117]

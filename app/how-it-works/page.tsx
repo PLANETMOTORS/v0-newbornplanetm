@@ -1,13 +1,24 @@
-import Image from "next/image"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "How It Works | Planet Motors - Buy a Car Online in 4 Steps",
+  description: "Browse, finance, and get your car delivered to your door. 210-point inspection, 10-day money-back guarantee, and nationwide delivery included.",
+  alternates: {
+    canonical: '/how-it-works',
+  },
+}
+
+
 import Link from "next/link"
+import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Search, CreditCard, FileCheck, Truck, Car, Shield, 
-  CheckCircle, ArrowRight, RotateCcw, Heart, Star
+import {
+  Search, CreditCard, FileCheck, Truck, Car, Shield,
+  CheckCircle, ArrowRight, RotateCcw, Star
 } from "lucide-react"
 
 const buyingSteps = [
@@ -20,7 +31,7 @@ const buyingSteps = [
   {
     icon: CreditCard,
     title: "Reserve & Finance",
-    description: "Reserve your vehicle with a $250 refundable deposit. Get pre-approved for financing in minutes with rates starting at 6.29% APR.",
+    description: `Reserve your vehicle with a $250 refundable deposit. Get pre-approved for financing in minutes with rates starting at ${RATE_FLOOR_DISPLAY} APR.`,
     details: ["$250 refundable deposit", "20+ lender partners", "Pre-approval in minutes", "No credit score impact"]
   },
   {
@@ -70,17 +81,17 @@ export default function HowItWorksPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
-      <main>
+
+      <main id="main-content" tabIndex={-1}>
         {/* Hero Section */}
         <section className="bg-primary py-20">
           <div className="container mx-auto px-4 text-center">
             <Badge className="mb-4 bg-accent text-accent-foreground">Simple Process</Badge>
-            <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] text-primary-foreground mb-4">
               How Planet Motors Works
             </h1>
             <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
-              Buying or selling a car has never been easier. Our streamlined process 
+              Buying or selling a car has never been easier. Our streamlined process
               takes the stress out of car shopping.
             </p>
           </div>
@@ -162,17 +173,17 @@ export default function HowItWorksPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 text-center">
               <div>
                 <p className="text-3xl sm:text-5xl font-bold text-primary mb-2">$250</p>
-                <p className="font-medium text-sm sm:text-base">Refundable Deposit</p>
+                <p className="font-semibold text-sm sm:text-base">Refundable Deposit</p>
                 <p className="text-xs sm:text-sm text-muted-foreground">Reserve any vehicle risk-free</p>
               </div>
               <div>
                 <p className="text-3xl sm:text-5xl font-bold text-primary mb-2">10 Days</p>
-                <p className="font-medium text-sm sm:text-base">Money-Back Guarantee</p>
+                <p className="font-semibold text-sm sm:text-base">Money-Back Guarantee</p>
                 <p className="text-xs sm:text-sm text-muted-foreground">Love it or return it</p>
               </div>
               <div>
                 <p className="text-3xl sm:text-5xl font-bold text-primary mb-2">FREE</p>
-                <p className="font-medium text-sm sm:text-base">Delivery within 300km</p>
+                <p className="font-semibold text-sm sm:text-base">Delivery within 300km</p>
                 <p className="text-xs sm:text-sm text-muted-foreground">Or competitive rates nationwide</p>
               </div>
             </div>

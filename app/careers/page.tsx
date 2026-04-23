@@ -1,17 +1,21 @@
 import Link from "next/link"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Briefcase, MapPin, Clock, Heart, TrendingUp, Users, 
+import {
+  Briefcase, MapPin, Heart, TrendingUp, Users,
   Car, Zap, Shield, ArrowRight, CheckCircle
 } from "lucide-react"
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
 
 export const metadata = {
   title: "Careers | Planet Motors",
   description: "Join the Planet Motors team. Explore career opportunities in automotive sales, customer service, and technology.",
+  alternates: {
+    canonical: '/careers',
+  },
 }
 
 const openPositions = [
@@ -69,9 +73,10 @@ const benefits = [
 export default function CareersPage() {
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Careers", url: "/careers" }]} />
       <Header />
-      
-      <main>
+
+      <main id="main-content" tabIndex={-1}>
         {/* Hero */}
         <section className="bg-primary py-20">
           <div className="container mx-auto px-4 text-center">
@@ -79,7 +84,7 @@ export default function CareersPage() {
               <Briefcase className="w-3 h-3 mr-1" />
               We are Hiring
             </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] text-primary-foreground mb-4">
               Join the Planet Motors Team
             </h1>
             <p className="text-xl text-primary-foreground/80 max-w-3xl mx-auto">
@@ -143,7 +148,7 @@ export default function CareersPage() {
                         </div>
                         
                         <div className="space-y-1">
-                          <p className="text-sm font-medium">Requirements:</p>
+                          <p className="text-sm font-semibold">Requirements:</p>
                           <ul className="text-sm text-muted-foreground space-y-1">
                             {position.requirements.map((req, j) => (
                               <li key={j} className="flex items-center gap-2">

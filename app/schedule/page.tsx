@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Calendar, Clock, MapPin, Video, Car, Home, CheckCircle2 } from "lucide-react"
+import { Calendar, Clock, MapPin, Video, Home, CheckCircle2 } from "lucide-react"
+import { DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
 
 const timeSlots = [
   "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM",
@@ -54,12 +55,12 @@ export default function SchedulePage() {
       <div className="min-h-screen bg-background">
         <Header />
         
-        <main className="pt-32 pb-16">
+        <main id="main-content" tabIndex={-1} className="pt-32 pb-16">
           <div className="container mx-auto px-4 max-w-lg text-center">
             <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 className="w-10 h-10 text-green-600" />
             </div>
-            <h1 className="text-3xl font-serif font-bold mb-4">Appointment Confirmed!</h1>
+            <h1 className="text-3xl font-bold tracking-[-0.01em] mb-4">Appointment Confirmed!</h1>
             <p className="text-muted-foreground mb-8">
               We&apos;ve sent a confirmation email with all the details. Our team will contact you shortly 
               to confirm your appointment.
@@ -76,7 +77,7 @@ export default function SchedulePage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <MapPin className="w-5 h-5 text-primary" />
-                  <span>30 Major Mackenzie Dr E, Richmond Hill, ON L4C 1G7</span>
+                  <span>{DEALERSHIP_LOCATION.streetAddress}, {DEALERSHIP_LOCATION.city}, {DEALERSHIP_LOCATION.province} {DEALERSHIP_LOCATION.postalCode}</span>
                 </div>
               </CardContent>
             </Card>
@@ -100,11 +101,11 @@ export default function SchedulePage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="pt-32 pb-16">
+      <main id="main-content" tabIndex={-1} className="pt-32 pb-16">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
+              <h1 className="text-3xl font-bold tracking-[-0.01em] text-foreground mb-2">
                 Schedule a Test Drive
               </h1>
               <p className="text-muted-foreground">
@@ -130,7 +131,7 @@ export default function SchedulePage() {
               {/* Step 1: Appointment Type */}
               {step === 1 && (
                 <div className="space-y-6">
-                  <h2 className="text-xl font-semibold text-center mb-6">
+                  <h2 className="text-xl font-bold text-center mb-6">
                     How would you like to test drive?
                   </h2>
                   <RadioGroup 
@@ -168,7 +169,7 @@ export default function SchedulePage() {
               {/* Step 2: Date & Time */}
               {step === 2 && (
                 <div className="space-y-6">
-                  <h2 className="text-xl font-semibold text-center mb-6">
+                  <h2 className="text-xl font-bold text-center mb-6">
                     Select Date & Time
                     {appointmentType === "virtual" && (
                       <span className="block text-sm font-normal text-muted-foreground mt-1">
@@ -230,7 +231,7 @@ export default function SchedulePage() {
               {/* Step 3: Contact Info */}
               {step === 3 && (
                 <div className="space-y-6">
-                  <h2 className="text-xl font-semibold text-center mb-6">
+                  <h2 className="text-xl font-bold text-center mb-6">
                     Your Information
                   </h2>
                   <div className="grid md:grid-cols-2 gap-4">

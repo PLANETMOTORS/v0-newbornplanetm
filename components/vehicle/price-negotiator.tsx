@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { MessageSquare, Send, Bot, User, Sparkles, Mail, Phone, CheckCircle, Loader2 } from "lucide-react"
+import { Send, Bot, User, Sparkles, Mail, Phone, CheckCircle, Loader2 } from "lucide-react"
+import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
 
 interface Message {
   role: "user" | "assistant"
@@ -33,7 +34,6 @@ export function PriceNegotiator({
   const [step, setStep] = useState<"contact" | "verify" | "negotiate">("contact")
   const [contactInfo, setContactInfo] = useState({ name: "", email: "", phone: "" })
   const [verificationCode, setVerificationCode] = useState("")
-  const [sentCode, setSentCode] = useState("")
   const [isVerifying, setIsVerifying] = useState(false)
   const [isSendingCode, setIsSendingCode] = useState(false)
   const [verifyMethod, setVerifyMethod] = useState<"email" | "phone">("email")
@@ -54,8 +54,6 @@ export function PriceNegotiator({
 
   const sendVerificationCode = async () => {
     setIsSendingCode(true)
-    const code = Math.floor(100000 + Math.random() * 900000).toString()
-    setSentCode(code)
     
     try {
       await fetch("/api/verify/send-code", {
@@ -64,30 +62,39 @@ export function PriceNegotiator({
         body: JSON.stringify({
           method: verifyMethod,
           destination: verifyMethod === "email" ? contactInfo.email : contactInfo.phone,
-          code,
           purpose: "price_negotiation",
           vehicleName,
         }),
       })
     } catch {
-      // Continue anyway for demo
+      // Continue anyway — server generates and stores the code
     }
     setStep("verify")
     setIsSendingCode(false)
   }
 
-  const verifyCode = () => {
+  const verifyCode = async () => {
     setIsVerifying(true)
-    setTimeout(() => {
-      if (verificationCode === sentCode || verificationCode === "123456") {
+    try {
+      const destination = verifyMethod === "email" ? contactInfo.email : contactInfo.phone
+      const response = await fetch("/api/verify/check-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ destination, code: verificationCode }),
+      })
+      const result = await response.json()
+      if (result.verified) {
         setStep("negotiate")
         setMessages([{
           role: "assistant",
           content: `Hi ${contactInfo.name}! I'm the Planet Motors AI negotiator. I see you're interested in the ${vehicleName} listed at $${vehiclePrice.toLocaleString()}. What offer would you like to make?`,
         }])
       }
+    } catch {
+      // Verification failed — user can retry
+    } finally {
       setIsVerifying(false)
-    }, 1000)
+    }
   }
 
   const handleSubmitOffer = async () => {
@@ -136,7 +143,7 @@ export function PriceNegotiator({
             try {
               const parsed = JSON.parse(data)
               if (parsed.type === "text-delta" && parsed.delta) fullContent += parsed.delta
-            } catch {}
+            } catch { /* ignore parse errors for streaming chunks */ }
           }
         }
       }
@@ -148,7 +155,7 @@ export function PriceNegotiator({
         setMessages((prev) => [...prev, { role: "assistant", content: fullContent || "I'd be happy to discuss pricing. What price did you have in mind?", status: "negotiating" }])
       }
     } catch {
-      setMessages((prev) => [...prev, { role: "assistant", content: "I'm having trouble processing. Please try again or call 416-985-2277.", status: "escalate" }])
+      setMessages((prev) => [...prev, { role: "assistant", content: `I'm having trouble processing. Please try again or call ${PHONE_LOCAL}.`, status: "escalate" }])
     } finally {
       setIsLoading(false)
     }
@@ -237,7 +244,7 @@ export function PriceNegotiator({
                   <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${msg.role === "user" ? "bg-primary text-white" : "bg-muted"}`}>
                     <p>{msg.content}</p>
                     {msg.counterOffer && <p className="mt-2 font-semibold text-primary">Counter: ${msg.counterOffer.toLocaleString()}</p>}
-                    {msg.status === "accepted" && <p className="mt-2 text-green-600 font-medium">Offer Accepted!</p>}
+                    {msg.status === "accepted" && <p className="mt-2 text-green-600 font-semibold">Offer Accepted!</p>}
                   </div>
                   {msg.role === "user" && (
                     <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">

@@ -40,8 +40,8 @@ const documents = {
     _type: 'financingPage',
     title: 'Financing Page',
     headline: 'Flexible Auto Financing',
-    subheadline: 'Get approved in minutes with rates as low as 4.99% APR',
-    featuredRateText: '4.99%',
+    subheadline: 'Get approved in minutes with rates as low as 6.29% APR',
+    featuredRateText: '6.29%',
     rateSubtext: 'Starting APR',
     primaryCtaLabel: 'Apply Now',
     primaryCtaUrl: '/financing/apply',
@@ -67,7 +67,7 @@ const documents = {
       { _key: generateKey(), title: 'Flexible Terms', description: 'Choose payment terms that fit your budget' }
     ],
     metaTitle: 'Auto Financing | Planet Motors',
-    metaDescription: 'Get approved for auto financing with rates as low as 4.99% APR.'
+    metaDescription: 'Get approved for auto financing with rates as low as 6.29% APR.'
   },
 
   sellYourCarPage: {
@@ -114,12 +114,12 @@ async function publishDocuments() {
       try {
         await client.delete(publishedId)
         console.log(`  Deleted existing published: ${publishedId}`)
-      } catch (e) { /* Ignore if doesn't exist */ }
+      } catch (_e) { /* Ignore if doesn't exist */ }
       
       try {
         await client.delete(draftId)
         console.log(`  Deleted existing draft: ${draftId}`)
-      } catch (e) { /* Ignore if doesn't exist */ }
+      } catch (_e) { /* Ignore if doesn't exist */ }
 
       // Step 2: Create draft document
       const draftDoc = {

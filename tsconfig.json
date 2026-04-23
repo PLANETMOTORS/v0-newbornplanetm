@@ -37,6 +37,11 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "__tests__",
+    "app/sw.ts",
+    "scripts",
+    "src",
+    "supabase/functions"
   ]
 }

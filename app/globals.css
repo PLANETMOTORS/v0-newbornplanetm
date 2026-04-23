@@ -77,7 +77,6 @@
 
 @theme inline {
   --font-sans: var(--font-inter), 'Inter', system-ui, sans-serif;
-  --font-serif: var(--font-playfair), 'Playfair Display', Georgia, serif;
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -132,6 +131,17 @@
     max-width: 100vw;
     min-height: 100vh;
     position: relative;
+    line-height: 1.575;
+  }
+
+  /* Typography: loosen default 14px line-height from 20px → 22px */
+  .text-sm {
+    line-height: 1.575; /* 14px × 1.575 ≈ 22px */
+  }
+
+  /* Tabular numerals — prices, rates, km stay column-aligned */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
   
   /* Fix for mobile horizontal scroll */
@@ -222,10 +232,20 @@ html {
 
 /* Mobile-friendly button sizes - exclude inline elements */
 @layer base {
-  button:not(.inline-btn), 
-  a:not(.inline-link), 
+  button:not(.inline-btn),
+  a:not(.inline-link),
   [role="button"]:not(.inline-btn) {
     min-height: auto;
     min-width: auto;
+  }
+}
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

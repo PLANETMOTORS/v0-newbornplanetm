@@ -1,12 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
+
 import { 
   DollarSign, Search, Filter, Download, Eye, CheckCircle, 
   XCircle, Clock, FileText, User, Car, Phone, Mail,
-  ChevronDown, ChevronRight, AlertCircle, RefreshCw,
-  Calendar, Building, CreditCard, Truck
+  RefreshCw,
+  CreditCard
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -75,6 +75,14 @@ const statusIcons: Record<string, React.ReactNode> = {
   cancelled: <XCircle className="w-4 h-4" />
 }
 
+/**
+ * Admin page for listing, filtering, viewing, and updating finance applications.
+ *
+ * Renders UI for application statistics, searchable & filterable application list, and a detail dialog
+ * that exposes documents, vehicle info, financing terms, and status update actions.
+ *
+ * @returns A JSX element containing the finance applications admin interface (list, filters, stats, and detail dialog).
+ */
 export default function AdminFinancePage() {
   const [applications, setApplications] = useState<FinanceApplication[]>([])
   const [loading, setLoading] = useState(true)
@@ -95,6 +103,7 @@ export default function AdminFinancePage() {
 
   useEffect(() => {
     fetchApplications()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter])
 
   const fetchApplications = async () => {
@@ -170,7 +179,7 @@ export default function AdminFinancePage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Finance Applications</h1>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">Finance Applications</h1>
           <p className="text-gray-500">Manage and review customer financing applications</p>
         </div>
         <div className="flex items-center gap-2">
@@ -186,7 +195,7 @@ export default function AdminFinancePage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -261,6 +270,7 @@ export default function AdminFinancePage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
+                aria-label="Search finance applications by name, email, or application number"
                 placeholder="Search by name, email, or application #..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -305,11 +315,11 @@ export default function AdminFinancePage() {
                   <tr>
                     <th className="text-left py-3 px-4 font-medium text-gray-500">Application</th>
                     <th className="text-left py-3 px-4 font-medium text-gray-500">Applicant</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Vehicle</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-500 hidden md:table-cell">Vehicle</th>
                     <th className="text-left py-3 px-4 font-medium text-gray-500">Amount</th>
                     <th className="text-left py-3 px-4 font-medium text-gray-500">Status</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Documents</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Date</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-500 hidden lg:table-cell">Documents</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-500 hidden sm:table-cell">Date</th>
                     <th className="text-right py-3 px-4 font-medium text-gray-500">Actions</th>
                   </tr>
                 </thead>
@@ -326,7 +336,7 @@ export default function AdminFinancePage() {
                         </p>
                         <p className="text-sm text-gray-500">{app.primary_applicant?.email}</p>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 hidden md:table-cell">
                         {app.vehicle ? (
                           <>
                             <p className="font-medium">{app.vehicle.year} {app.vehicle.make}</p>
@@ -350,13 +360,13 @@ export default function AdminFinancePage() {
                           </span>
                         </Badge>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 hidden lg:table-cell">
                         <div className="flex items-center gap-1">
                           <FileText className="w-4 h-4 text-gray-400" />
                           <span className="text-sm">{app.documents?.length || 0} files</span>
                         </div>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 hidden sm:table-cell">
                         <p className="text-sm">
                           {new Date(app.submitted_at || app.created_at).toLocaleDateString()}
                         </p>

@@ -6,22 +6,25 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Battery, 
-  Shield, 
-  Zap, 
-  Star,
+import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
+import {
+  Battery,
+  Zap,
   ArrowRight,
   CheckCircle,
   Car
 } from "lucide-react"
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
 
 export const metadata: Metadata = {
-  title: "Used Tesla Ontario | Model 3, Model Y, Model S, Model X | Planet Motors",
-  description: "Shop certified pre-owned Tesla vehicles in Ontario. Model 3, Model Y, Model S & Model X with battery health reports. 210-point inspection, financing available. 4.8 Star Rating.",
-  keywords: "used Tesla Ontario, Tesla Model Y Canada, Tesla Model 3 used, Tesla Model S used, Tesla Model X used, buy Tesla Ontario, Tesla dealership Toronto",
+  title: "Used Tesla Canada | Model 3, Model Y, Model S, Model X | Planet Motors",
+  description: "Shop certified pre-owned Tesla vehicles in Canada. Model 3, Model Y, Model S & Model X with battery health reports. 210-point inspection, financing available. 4.8 Star Rating.",
+  keywords: "used Tesla Canada, Tesla Model Y Canada, Tesla Model 3 used, Tesla Model S used, Tesla Model X used, buy Tesla Canada, Tesla dealership Toronto",
+  alternates: {
+    canonical: "/tesla",
+  },
   openGraph: {
-    title: "Used Tesla Ontario | Planet Motors",
+    title: "Used Tesla Canada | Planet Motors",
     description: "Certified pre-owned Tesla with battery health reports. Model 3, Y, S, X available.",
     url: "https://www.planetmotors.ca/tesla",
     type: "website",
@@ -77,14 +80,15 @@ const whyBuyTesla = [
   { title: "Supercharger Ready", description: "All our Teslas are ready to use the Supercharger network across Canada" },
   { title: "Software Updated", description: "We ensure all Teslas have the latest software updates installed" },
   { title: "10-Day Guarantee", description: "Not happy? Return within 10 days for a full refund" },
-  { title: "Financing Available", description: "Competitive rates starting at 6.29% OAC" },
+  { title: "Financing Available", description: `Competitive rates starting at ${RATE_FLOOR_DISPLAY} OAC` },
 ]
 
 export default function TeslaPage() {
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Tesla", url: "/tesla" }]} />
       <Header />
-      
+
       <main id="main-content" role="main" aria-label="Tesla vehicles">
         {/* Hero Section */}
         <section className="relative bg-black text-white py-16 lg:py-24">
@@ -95,8 +99,8 @@ export default function TeslaPage() {
                   <Zap className="w-3 h-3 mr-1" />
                   Tesla Specialist
                 </Badge>
-                <h1 className="text-4xl lg:text-5xl font-bold mb-6">
-                  Used Tesla Vehicles in Ontario
+                <h1 className="text-4xl lg:text-5xl font-bold tracking-[-0.01em] lg:tracking-[-0.02em] mb-6">
+                  Used Tesla Vehicles in Canada
                 </h1>
                 <p className="text-xl text-gray-300 mb-8 leading-relaxed">
                   Shop certified pre-owned Tesla Model 3, Model Y, Model S & Model X. 
@@ -110,7 +114,7 @@ export default function TeslaPage() {
                     </Link>
                   </Button>
                   <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10" asChild>
-                    <Link href="/ev-battery-health">
+                    <Link href="/aviloo">
                       Battery Health Info
                     </Link>
                   </Button>
@@ -208,7 +212,7 @@ export default function TeslaPage() {
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold mb-4">Tesla Financing Available</h2>
             <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
-              Get approved for Tesla financing in minutes. Rates starting at 6.29% OAC. 
+              Get approved for Tesla financing in minutes. Rates starting at {RATE_FLOOR_DISPLAY} OAC.
               We work with all credit situations.
             </p>
             <div className="flex flex-wrap justify-center gap-4">

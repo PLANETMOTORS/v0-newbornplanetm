@@ -10,8 +10,9 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import {
   MapPin, Phone, Clock, Truck, CheckCircle, Circle,
-  ArrowLeft, RefreshCw, Navigation, User
+  ArrowLeft, RefreshCw, Navigation
 } from "lucide-react"
+import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
 
 interface DeliveryData {
   orderId: string
@@ -68,6 +69,7 @@ export default function DeliveryTrackingPage({ params }: { params: Promise<{ id:
     // Auto-refresh every 30 seconds
     const interval = setInterval(fetchDelivery, 30000)
     return () => clearInterval(interval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
   const getStatusColor = (status: string) => {
@@ -94,7 +96,7 @@ export default function DeliveryTrackingPage({ params }: { params: Promise<{ id:
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container mx-auto px-4 py-16 text-center">
+        <main id="main-content" tabIndex={-1} className="container mx-auto px-4 py-16 text-center">
           <div className="animate-pulse">
             <div className="h-8 bg-muted rounded w-64 mx-auto mb-4" />
             <div className="h-4 bg-muted rounded w-48 mx-auto" />
@@ -109,8 +111,8 @@ export default function DeliveryTrackingPage({ params }: { params: Promise<{ id:
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container mx-auto px-4 py-16 text-center">
-          <h1 className="text-2xl font-bold mb-4">Delivery Not Found</h1>
+        <main id="main-content" tabIndex={-1} className="container mx-auto px-4 py-16 text-center">
+          <h1 className="text-2xl font-bold tracking-[-0.01em] mb-4">Delivery Not Found</h1>
           <p className="text-muted-foreground mb-6">
             We couldn&apos;t find a delivery with order ID: {id}
           </p>
@@ -130,7 +132,7 @@ export default function DeliveryTrackingPage({ params }: { params: Promise<{ id:
     <div className="min-h-screen bg-muted/30">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
+      <main id="main-content" tabIndex={-1} className="container mx-auto px-4 py-8">
         {/* Back button */}
         <Button variant="ghost" asChild className="mb-4">
           <Link href="/" className="gap-2">
@@ -149,7 +151,7 @@ export default function DeliveryTrackingPage({ params }: { params: Promise<{ id:
               Order: {delivery.orderId}
             </span>
           </div>
-          <h1 className="text-2xl font-bold">{delivery.vehicleName}</h1>
+          <h1 className="text-2xl font-bold tracking-[-0.01em]">{delivery.vehicleName}</h1>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -333,7 +335,7 @@ export default function DeliveryTrackingPage({ params }: { params: Promise<{ id:
               <CardContent className="pt-4 text-center">
                 <p className="text-sm font-medium mb-2">Need Help?</p>
                 <Button variant="outline" size="sm" asChild>
-                  <a href="tel:416-985-2277">Call Support: 416-985-2277</a>
+                  <a href={`tel:${PHONE_LOCAL_TEL}`}>Call Support: {PHONE_LOCAL}</a>
                 </Button>
               </CardContent>
             </Card>

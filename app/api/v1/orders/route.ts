@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
+import { PROVINCE_TAX_RATES } from '@/lib/tax/canada'
 
 const PROTECTION_PLAN_PRICES_CENTS: Record<string, number> = {
   essential: 195000,
@@ -67,7 +68,32 @@ export async function POST(request: NextRequest) {
     preferredTimeSlot,
     protectionPlanId,
     downPayment,
+    province,
   } = body
+
+  // Validate province and resolve tax rate.
+  // If province is explicitly provided but unrecognised, reject immediately.
+  // If province is absent, default to ON for backward-compat and log a warning.
+  const hasProvince = typeof province === 'string' && province.trim() !== ''
+  if (hasProvince && !(province.toUpperCase() in PROVINCE_TAX_RATES)) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'INVALID_PROVINCE',
+          message: `Unknown province code "${province}". Use a valid 2-letter Canadian province code (e.g. ON, BC, AB).`,
+        },
+      },
+      { status: 400 }
+    )
+  }
+  if (!hasProvince) {
+    console.warn(
+      `[orders] Province not provided for order by user ${user.id}. Defaulting to ON.`
+    )
+  }
+  const resolvedProvince = hasProvince ? province.toUpperCase() : 'ON'
+  const taxInfo = PROVINCE_TAX_RATES[resolvedProvince]
 
   if (!vehicleId || !paymentMethod) {
     return NextResponse.json(
@@ -111,68 +137,45 @@ export async function POST(request: NextRequest) {
 
   const normalizedDeliveryType = deliveryType === 'delivery' ? 'delivery' : 'pickup'
 
-  const { data: vehicle, error: vehicleError } = await supabase
-    .from('vehicles')
-    .select('id, year, make, model, trim, price, status')
-    .eq('id', vehicleId)
-    .maybeSingle()
+  // --- ATOMIC claim via DB-level SELECT FOR UPDATE ---
+  // Replaces the old read-then-update pattern that allowed two concurrent requests
+  // to both read status='available' before either transitioned to 'pending'.
+  const { data: claimResult, error: claimError } = await adminClient
+    .rpc('claim_vehicle_for_order', {
+      p_vehicle_id: vehicleId,
+      p_user_id: user.id,
+    })
 
-  if (vehicleError) {
-    return NextResponse.json({ success: false, error: { code: 'DB_ERROR', message: vehicleError.message } }, { status: 500 })
+  if (claimError) {
+    return NextResponse.json({ success: false, error: { code: 'DB_ERROR', message: claimError.message } }, { status: 500 })
   }
 
-  if (!vehicle) {
-    return NextResponse.json({ success: false, error: { code: 'NOT_FOUND', message: 'Vehicle not found' } }, { status: 404 })
+  const claim = claimResult as {
+    success: boolean; error?: string;
+    vehicle_id?: string; stock_number?: string;
+    year?: number; make?: string; model?: string; trim?: string; price?: number;
+    previous_status?: string;
   }
 
-  const currentVehicleStatus = String(vehicle.status || '')
-
-  if (!['available', 'reserved'].includes(String(vehicle.status || ''))) {
+  if (!claim?.success) {
+    const errorMsg = claim?.error || 'Vehicle is not available for ordering'
+    const isNotFound = errorMsg.includes('not found')
     return NextResponse.json(
-      { success: false, error: { code: 'VEHICLE_UNAVAILABLE', message: 'Vehicle is not available for ordering' } },
-      { status: 409 }
+      { success: false, error: { code: isNotFound ? 'NOT_FOUND' : 'VEHICLE_UNAVAILABLE', message: errorMsg } },
+      { status: isNotFound ? 404 : 409 }
     )
   }
 
-  if (currentVehicleStatus === 'reserved') {
-    const { data: activeReservation } = await supabase
-      .from('reservations')
-      .select('id, user_id, status, expires_at')
-      .eq('vehicle_id', vehicleId)
-      .in('status', ['pending', 'confirmed'])
-      .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    // Allow if the caller owns the reservation OR it was a guest reservation (user_id is null).
-    // Guest reservations have no associated auth user; the first authenticated user to order may claim it.
-    if (!activeReservation || (activeReservation.user_id !== null && activeReservation.user_id !== user.id)) {
-      return NextResponse.json(
-        { success: false, error: { code: 'VEHICLE_UNAVAILABLE', message: 'Vehicle is reserved by another customer' } },
-        { status: 409 }
-      )
-    }
+  const vehicle = {
+    id: claim.vehicle_id as string,
+    year: claim.year as number,
+    make: claim.make as string,
+    model: claim.model as string,
+    trim: claim.trim as string,
+    price: claim.price as number,
+    status: claim.previous_status as string,
   }
-
-  const { data: statusLock, error: statusLockError } = await adminClient
-    .from('vehicles')
-    .update({ status: 'pending', updated_at: new Date().toISOString() })
-    .eq('id', vehicleId)
-    .eq('status', currentVehicleStatus)
-    .select('id')
-    .maybeSingle()
-
-  if (statusLockError) {
-    return NextResponse.json({ success: false, error: { code: 'DB_ERROR', message: statusLockError.message } }, { status: 500 })
-  }
-
-  if (!statusLock) {
-    return NextResponse.json(
-      { success: false, error: { code: 'VEHICLE_UNAVAILABLE', message: 'Vehicle was taken by another request' } },
-      { status: 409 }
-    )
-  }
+  const currentVehicleStatus = vehicle.status
 
   const vehiclePriceCents = validateCentsAmount(vehicle.price)
 
@@ -194,10 +197,13 @@ export async function POST(request: NextRequest) {
   const omvicFeeCents = 1000
   const deliveryFeeCents = normalizedDeliveryType === 'delivery' ? 0 : 0
   const protectionPlanFeeCents = protectionPlanId ? (PROTECTION_PLAN_PRICES_CENTS[String(protectionPlanId)] || 0) : 0
-  const taxRatePercent = 13
+  // taxInfo.total is the full decimal rate (e.g. 0.14975 for QC).
+  // taxAmountCents and the stored/returned taxRate both derive from it directly
+  // so that taxRate * subtotal always equals taxAmount with no rounding disagreement.
+  const taxRate = taxInfo.total  // e.g. 0.13, 0.14975
 
   const subtotalCents = vehiclePriceCents + documentationFeeCents + omvicFeeCents + deliveryFeeCents + protectionPlanFeeCents
-  const taxAmountCents = Math.round(subtotalCents * (taxRatePercent / 100))
+  const taxAmountCents = Math.round(subtotalCents * taxRate)
   const totalBeforeCreditsCents = subtotalCents + taxAmountCents
 
   const tradeInCreditCents = 0
@@ -256,7 +262,7 @@ export async function POST(request: NextRequest) {
       omvic_fee_cents: omvicFeeCents,
       delivery_fee_cents: deliveryFeeCents,
       protection_plan_fee_cents: protectionPlanFeeCents,
-      tax_rate_percent: taxRatePercent,
+      tax_rate_percent: taxRate * 100,
       tax_amount_cents: taxAmountCents,
       total_before_credits_cents: totalBeforeCreditsCents,
       trade_in_credit_cents: tradeInCreditCents,
@@ -328,7 +334,13 @@ export async function POST(request: NextRequest) {
           deliveryFee: fromCents(deliveryFeeCents),
           protectionPlanPrice: fromCents(protectionPlanFeeCents),
           subtotal: fromCents(subtotalCents),
-          taxRate: taxRatePercent / 100,
+          province: resolvedProvince,
+          taxRate,
+          taxBreakdown: {
+            gst: taxInfo.gst,
+            pst: taxInfo.pst,
+            hst: taxInfo.hst,
+          },
           taxAmount: fromCents(taxAmountCents),
           totalBeforeCredits: fromCents(totalBeforeCreditsCents),
           tradeInCredit: fromCents(tradeInCreditCents),

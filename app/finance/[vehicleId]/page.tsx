@@ -9,15 +9,16 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { createClient } from "@/lib/supabase/client"
+import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
+import { safeNum } from "@/lib/pricing/format"
 
-// Ontario HST rate
-const HST_RATE = 0.13
+const HST_RATE = PROVINCE_TAX_RATES.ON.hst
 
 // Loan term options in months
 const LOAN_TERMS = [24, 36, 48, 60, 72, 84, 96]
@@ -51,7 +52,7 @@ interface Vehicle {
 
 export default function FinanceCalculatorPage() {
   const params = useParams()
-  const router = useRouter()
+  useRouter()
   const searchParams = useSearchParams()
   const vehicleId = params.vehicleId as string
 
@@ -73,10 +74,9 @@ export default function FinanceCalculatorPage() {
   const [interestRate, setInterestRate] = useState(7.99)
   const [adminFee, setAdminFee] = useState(895) // Finance Docs Fee
   const [omvicFee] = useState(22) // OMVIC Fee - fixed
-  const [certificationFee, setCertificationFee] = useState(595) // Certification Fee
+  const [certificationFee] = useState(595) // Certification Fee
   const [licensingFee] = useState(59) // Licensing Fee - fixed
-  const [deliveryFee, setDeliveryFee] = useState(0) // Delivery Fee - conditional
-  const [deliveryPostalCode, setDeliveryPostalCode] = useState("")
+  const [deliveryFee] = useState(0) // Delivery Fee - conditional
   const [loanTerm, setLoanTerm] = useState(60)
   const [paymentFrequency, setPaymentFrequency] = useState("biweekly")
   const [showAmortization, setShowAmortization] = useState(false)
@@ -108,7 +108,7 @@ export default function FinanceCalculatorPage() {
   const financeDetails = useMemo(() => {
     if (!vehicle) return null
 
-    const vehiclePrice = vehicle.price / 100 // Convert from cents
+    const vehiclePrice = safeNum(vehicle.price) / 100 // Convert from cents
     
     // Admin fee ($895 Finance Docs Fee) ONLY applies when financing, NOT for cash
     const applicableAdminFee = agreementType === "finance" ? adminFee : 0
@@ -282,13 +282,13 @@ export default function FinanceCalculatorPage() {
                     <h2 className="text-xl font-bold">{vehicleName}</h2>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                       <div className="text-muted-foreground">Stock #:</div>
-                      <div className="font-medium">{vehicle.stock_number}</div>
+                      <div className="font-semibold">{vehicle.stock_number}</div>
                       <div className="text-muted-foreground">VIN:</div>
-                      <div className="font-medium font-mono text-xs">{vehicle.vin}</div>
+                      <div className="font-semibold font-mono text-xs">{vehicle.vin}</div>
                       <div className="text-muted-foreground">Colour:</div>
-                      <div className="font-medium">{vehicle.exterior_color}</div>
+                      <div className="font-semibold">{vehicle.exterior_color}</div>
                       <div className="text-muted-foreground">Mileage:</div>
-                      <div className="font-medium">{vehicle.mileage.toLocaleString()} km</div>
+                      <div className="font-semibold">{vehicle.mileage.toLocaleString()} km</div>
                     </div>
                     <div className="pt-2">
                       <Badge variant={vehicle.fuel_type === "Electric" ? "default" : "secondary"}>
@@ -311,7 +311,7 @@ export default function FinanceCalculatorPage() {
               <CardContent className="space-y-6">
                 {/* Agreement Type */}
                 <div>
-                  <Label className="text-base font-medium mb-3 block">Agreement Type</Label>
+                  <Label className="text-base font-semibold mb-3 block">Agreement Type</Label>
                   <Tabs value={agreementType} onValueChange={(v) => setAgreementType(v as "finance" | "cash")}>
                     <TabsList className="grid w-full grid-cols-2">
                       <TabsTrigger value="finance">Finance</TabsTrigger>
@@ -330,7 +330,7 @@ export default function FinanceCalculatorPage() {
                       <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
                         id="vehiclePrice"
-                        value={(vehicle.price / 100).toLocaleString()}
+                        value={(safeNum(vehicle.price) / 100).toLocaleString()}
                         disabled
                         className="pl-9 bg-muted"
                       />
@@ -393,7 +393,7 @@ export default function FinanceCalculatorPage() {
                         <span className="font-semibold text-green-800">AI Instant Quote Applied</span>
                       </div>
                       <div className="text-sm text-green-700">
-                        <p className="font-medium">Quote ID: {urlQuoteId}</p>
+                        <p className="font-semibold">Quote ID: {urlQuoteId}</p>
                         {tradeInVehicleInfo && <p>Trade-In: {tradeInVehicleInfo}</p>}
                         <p className="text-lg font-bold mt-1">${tradeInValue.toLocaleString()} applied to your purchase</p>
                       </div>
@@ -607,11 +607,11 @@ export default function FinanceCalculatorPage() {
                       </div>
                     )}
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">HST (13%)</span>
+                      <span className="text-muted-foreground">HST ({(HST_RATE * 100).toFixed(0)}%)</span>
                       <span>+${financeDetails.hstAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                     <Separator />
-                    <div className="flex justify-between text-sm font-medium">
+                    <div className="flex justify-between text-sm font-semibold">
                       <span>Total Before Credits</span>
                       <span>${financeDetails.totalBeforeCredits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
@@ -643,7 +643,7 @@ export default function FinanceCalculatorPage() {
                           <span className="text-muted-foreground">Total Interest</span>
                           <span>${financeDetails.totalInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
-                        <div className="flex justify-between text-sm font-medium">
+                        <div className="flex justify-between text-sm font-semibold">
                           <span>Total Cost of Borrowing</span>
                           <span>${financeDetails.totalCostOfBorrowing.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
@@ -655,12 +655,21 @@ export default function FinanceCalculatorPage() {
 
               {/* CTA Buttons */}
               <div className="space-y-3">
-                <Button className="w-full h-12 text-base" size="lg" asChild>
-                  <Link href={`/financing/application?vehicleId=${vehicleId}${urlTradeIn ? `&tradeIn=${urlTradeIn}&quoteId=${urlQuoteId || ''}&tradeInVehicle=${encodeURIComponent(urlTradeInVehicle || '')}` : ''}`}>
-                    <CreditCard className="w-5 h-5 mr-2" />
-                    Apply for Financing
-                  </Link>
-                </Button>
+                {agreementType === "finance" ? (
+                  <Button className="w-full h-12 text-base" size="lg" asChild>
+                    <Link href={`/financing/application?vehicleId=${vehicleId}${urlTradeIn ? `&tradeIn=${urlTradeIn}&quoteId=${urlQuoteId || ''}&tradeInVehicle=${encodeURIComponent(urlTradeInVehicle || '')}` : ''}`}>
+                      <CreditCard className="w-5 h-5 mr-2" />
+                      Apply for Financing
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button className="w-full h-12 text-base" size="lg" asChild>
+                    <Link href={`/checkout/${vehicleId}/payment`}>
+                      <DollarSign className="w-5 h-5 mr-2" />
+                      Reserve for $250 Deposit
+                    </Link>
+                  </Button>
+                )}
                 <Button variant="outline" className="w-full" asChild>
                   <Link href={`/vehicles/${vehicleId}`}>
                     <FileText className="w-4 h-4 mr-2" />

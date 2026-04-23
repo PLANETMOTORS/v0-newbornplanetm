@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { RATE_FLOOR } from '@/lib/rates'
 
 // Partner lenders configuration
 const lenders = [
-  { id: 'lender_a', name: 'Partner Lender A', code: 'PLA', type: 'bank', minScore: 600, maxTerm: 84, baseRate: 6.29 },
+  { id: 'lender_a', name: 'Partner Lender A', code: 'PLA', type: 'bank', minScore: 600, maxTerm: 84, baseRate: RATE_FLOOR },
   { id: 'lender_b', name: 'Partner Lender B', code: 'PLB', type: 'bank', minScore: 620, maxTerm: 84, baseRate: 6.49 },
   { id: 'lender_c', name: 'Partner Lender C', code: 'PLC', type: 'bank', minScore: 600, maxTerm: 84, baseRate: 6.79 },
   { id: 'lender_d', name: 'Partner Lender D', code: 'PLD', type: 'bank', minScore: 640, maxTerm: 72, baseRate: 6.99 },
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
   const {
     customerId,
     vehicleId,
-    employmentStatus,
+    employmentStatus: _employmentStatus,
     annualIncome,
     monthlyRent,
     requestedAmount,
@@ -122,7 +123,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET /api/v1/financing/lenders - List available lenders
-export async function GET() {
+export function GET() {
   return NextResponse.json({
     success: true,
     data: {

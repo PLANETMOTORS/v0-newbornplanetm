@@ -1,8 +1,21 @@
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "FAQ | Planet Motors - Frequently Asked Questions",
+  description: "Find answers to common questions about buying, financing, trade-ins, delivery, warranties, and returns at Planet Motors.",
+  alternates: {
+    canonical: '/faq',
+  },
+}
+
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import { FAQJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
+import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
+import { PHONE_TOLL_FREE } from "@/lib/constants/dealership"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Search, ShoppingCart, CreditCard, Truck, RotateCcw, Shield, Wrench, HelpCircle } from "lucide-react"
@@ -40,7 +53,7 @@ const faqCategories = [
       },
       {
         question: "How do I initiate a return?",
-        answer: "Contact our customer service team at 1-866-797-3332 or through our website chat. We will arrange free pickup of the vehicle and process your refund within 5-7 business days."
+        answer: `Contact our customer service team at ${PHONE_TOLL_FREE} or through our website chat. We will arrange free pickup of the vehicle and process your refund within 5-7 business days.`
       }
     ]
   },
@@ -50,7 +63,7 @@ const faqCategories = [
     faqs: [
       {
         question: "What financing options are available?",
-        answer: "We work with 20+ Canadian lenders including major banks, credit unions, and specialized auto finance companies. Rates start as low as 6.29% APR depending on your credit profile. Get pre-approved in minutes with no impact to your credit score."
+        answer: `We work with 20+ Canadian lenders including major banks, credit unions, and specialized auto finance companies. Rates start as low as ${RATE_FLOOR_DISPLAY} APR depending on your credit profile. Get pre-approved in minutes with no impact to your credit score.`
       },
       {
         question: "Can I get approved with bad credit?",
@@ -118,27 +131,32 @@ const faqCategories = [
   }
 ]
 
+// Flatten all FAQ items for JSON-LD
+const allFaqs = faqCategories.flatMap(category => category.faqs)
+
 export default function FAQPage() {
   return (
     <div className="min-h-screen bg-background">
+      <FAQJsonLd faqs={allFaqs} />
+      <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "FAQ", url: "/faq" }]} />
       <Header />
-      
-      <main>
+
+      <main id="main-content" tabIndex={-1}>
         {/* Hero Section */}
         <section className="bg-primary py-16">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] text-primary-foreground mb-4">
               Frequently Asked Questions
             </h1>
             <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto mb-8">
               Find answers to common questions about buying, financing, and delivery.
             </p>
             <div className="max-w-md mx-auto flex gap-2">
-              <Input 
-                placeholder="Search FAQs..." 
+              <Input
+                placeholder="Search FAQs..."
                 className="bg-background"
               />
-              <Button variant="secondary">
+              <Button variant="secondary" aria-label="Search FAQs">
                 <Search className="h-4 w-4" />
               </Button>
             </div>
@@ -208,7 +226,7 @@ export default function FAQPage() {
                 Chat With Us
               </Button>
               <Button variant="outline">
-                Call 1-866-797-3332
+                Call {PHONE_TOLL_FREE}
               </Button>
             </div>
           </div>

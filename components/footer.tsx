@@ -1,18 +1,19 @@
 // Planet Motors Footer - v19 - CMS Complete
 import { FooterContent } from "@/components/footer-content"
+import { PHONE_TOLL_FREE, EMAIL_INFO, DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
 
-// Default site settings - no external imports needed
+// Default site settings - driven by centralized constants
 const DEFAULT_SITE_SETTINGS = {
-  dealerName: "Planet Motors",
-  phone: "1-866-797-3332",
-  email: "info@planetmotors.ca",
-  streetAddress: "30 Major Mackenzie Dr E",
-  city: "Richmond Hill",
-  province: "ON",
-  postalCode: "L4C 1G7",
+  dealerName: DEALERSHIP_LOCATION.name,
+  phone: PHONE_TOLL_FREE,
+  email: EMAIL_INFO,
+  streetAddress: DEALERSHIP_LOCATION.streetAddress,
+  city: DEALERSHIP_LOCATION.city,
+  province: DEALERSHIP_LOCATION.province,
+  postalCode: DEALERSHIP_LOCATION.postalCode,
   googleMapsUrl: "https://share.google/YAlbvyp4und6Nrka",
 }
 
-export async function Footer() {
+export function Footer() {
   return <FooterContent siteSettings={DEFAULT_SITE_SETTINGS} />
 }

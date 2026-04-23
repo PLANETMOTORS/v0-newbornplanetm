@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ArrowRight, Car } from 'lucide-react'
+import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
 
 const currentYear = new Date().getFullYear()
 const earliestYear = 1980
@@ -43,7 +44,9 @@ export function SellYourCarForm() {
   const canContinue =
     Boolean(formData.year) &&
     Boolean(formData.make) &&
-    Boolean(formData.model.trim())
+    Boolean(formData.model.trim()) &&
+    Boolean(formData.mileage) &&
+    Boolean(formData.condition)
 
   const handleStepOneSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,7 +82,7 @@ export function SellYourCarForm() {
       
       setStep(3)
     } catch {
-      setError('Failed to submit. Please try again or call us at 416-985-2277.')
+      setError(`Failed to submit. Please try again or call us at ${PHONE_LOCAL}.`)
     } finally {
       setIsSubmitting(false)
     }
@@ -163,7 +166,7 @@ export function SellYourCarForm() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="mileage">Mileage (km)</Label>
+                <Label htmlFor="mileage">Mileage (km) *</Label>
                 <Input
                   id="mileage"
                   name="mileage"
@@ -176,7 +179,7 @@ export function SellYourCarForm() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="condition">Condition</Label>
+                <Label htmlFor="condition">Condition *</Label>
                 <select
                   id="condition"
                   name="condition"
@@ -232,7 +235,7 @@ export function SellYourCarForm() {
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="416-985-2277"
+                  placeholder={PHONE_LOCAL}
                   value={formData.phone}
                   onChange={(e) => handleChange('phone', e.target.value)}
                   required
@@ -249,7 +252,7 @@ export function SellYourCarForm() {
                 rows={3}
               />
             </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
             <div className="flex gap-3">
               <Button type="button" variant="outline" onClick={() => setStep(1)} disabled={isSubmitting}>
                 Back
@@ -262,7 +265,7 @@ export function SellYourCarForm() {
         )}
 
         {step === 3 && (
-          <div className="text-center py-6 space-y-4">
+          <div role="status" aria-live="polite" className="text-center py-6 space-y-4">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
               <svg className="h-8 w-8 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

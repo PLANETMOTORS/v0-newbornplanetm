@@ -134,7 +134,7 @@ export default function TestResultsPage() {
       <div className="max-w-6xl mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">CI/CD Test Results</h1>
+          <h1 className="text-3xl font-bold tracking-[-0.01em] text-gray-900 mb-2">CI/CD Test Results</h1>
           <p className="text-gray-600">Planet Motors Production Readiness - Comprehensive Test Report</p>
         </div>
 

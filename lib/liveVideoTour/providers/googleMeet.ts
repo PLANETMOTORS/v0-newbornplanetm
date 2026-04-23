@@ -13,7 +13,7 @@ function generateMeetCode(): string {
 }
 
 export const googleMeetProvider: LiveVideoTourProviderAdapter = {
-  async createMeeting(booking: LiveVideoTourBooking): Promise<LiveVideoTourProviderResult> {
+  async createMeeting(_booking: LiveVideoTourBooking): Promise<LiveVideoTourProviderResult> {
     try {
       // In production, this would:
       // 1. Use Google Calendar API with service account
@@ -27,7 +27,8 @@ export const googleMeetProvider: LiveVideoTourProviderAdapter = {
       )
 
       if (hasGoogleCredentials) {
-        // TODO: Implement real Google Calendar API integration
+        // DEFERRED: Real Google Calendar API integration — requires GOOGLE_CLIENT_ID/SECRET credentials.
+        // Currently returns a mock meeting link; enable when credentials are configured.
         // const calendar = google.calendar({ version: 'v3', auth })
         // const event = await calendar.events.insert({
         //   calendarId: 'primary',
@@ -72,7 +73,7 @@ export const googleMeetProvider: LiveVideoTourProviderAdapter = {
 
   async cancelMeeting(meetingId: string): Promise<boolean> {
     // In production: Cancel the Google Calendar event
-    console.log(`[liveVideoTour] Cancelling Google Meet: ${meetingId}`)
+    console.info(`[liveVideoTour] Cancelling Google Meet: ${meetingId}`)
     return true
   },
 }

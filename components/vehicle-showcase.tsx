@@ -2,11 +2,14 @@
 
 import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import useSWR from "swr"
-import { ChevronLeft, ChevronRight, RotateCw, Shield, Heart, Share2, Fuel, Gauge, Calendar } from "lucide-react"
+import { ChevronLeft, ChevronRight, RotateCw, Shield, Heart, Share2, Fuel, Gauge, Calendar, Car } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
+import { safeNum } from "@/lib/pricing/format"
 import { createClient } from "@/lib/supabase/client"
 
 // Fetcher for featured vehicles
@@ -14,7 +17,7 @@ const fetcher = async () => {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('vehicles')
-    .select('id, year, make, model, trim, price, mileage, fuel_type, inspection_score, is_new_arrival')
+    .select('id, year, make, model, trim, price, mileage, fuel_type, inspection_score, is_new_arrival, primary_image_url, image_urls')
     .eq('status', 'available')
     .order('price', { ascending: false })
     .limit(6)
@@ -23,21 +26,7 @@ const fetcher = async () => {
   return data
 }
 
-// Make-specific placeholder images
-const makePlaceholders: Record<string, string> = {
-  'Tesla': 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&auto=format&fit=crop&q=80',
-  'BMW': 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&auto=format&fit=crop&q=80',
-  'Audi': 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&auto=format&fit=crop&q=80',
-  'Toyota': 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&auto=format&fit=crop&q=80',
-  'Hyundai': 'https://images.unsplash.com/photo-1629897048514-3dd7414fe72a?w=800&auto=format&fit=crop&q=80',
-  'Kia': 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&auto=format&fit=crop&q=80',
-  'Chevrolet': 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&auto=format&fit=crop&q=80',
-  'Volkswagen': 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&auto=format&fit=crop&q=80',
-  'Jeep': 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&auto=format&fit=crop&q=80',
-  'Honda': 'https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=800&auto=format&fit=crop&q=80',
-  'Lexus': 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&auto=format&fit=crop&q=80',
-  'default': 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&auto=format&fit=crop&q=80'
-}
+// No Unsplash placeholders — use gradient fallback for vehicles without real images
 
 // Fallback vehicles when database is empty or loading fails
 const fallbackVehicles = [
@@ -46,58 +35,73 @@ const fallbackVehicles = [
     name: "2024 Tesla Model Y Long Range",
     price: "$54,990",
     monthlyPayment: "$654",
-    image: makePlaceholders['Tesla'],
+    image: null as string | null,
     mileage: "12,500 km",
     fuel: "Electric",
     year: "2024",
     inspectionScore: 210,
     badge: "Electric",
-    badgeColor: "bg-blue-500"
+    badgeColor: "bg-blue-700"
   },
   {
     id: "featured-2",
     name: "2023 BMW X5 xDrive40i",
     price: "$72,900",
     monthlyPayment: "$868",
-    image: makePlaceholders['BMW'],
+    image: null as string | null,
     mileage: "18,200 km",
     fuel: "Gasoline",
     year: "2023",
     inspectionScore: 208,
     badge: "Premium",
-    badgeColor: "bg-purple-500"
+    badgeColor: "bg-purple-700"
   },
   {
     id: "featured-3",
     name: "2024 Toyota RAV4 Hybrid XLE",
     price: "$42,500",
     monthlyPayment: "$506",
-    image: makePlaceholders['Toyota'],
+    image: null as string | null,
     mileage: "8,400 km",
     fuel: "Hybrid",
     year: "2024",
     inspectionScore: 210,
     badge: "Fuel Saver",
-    badgeColor: "bg-green-500"
+    badgeColor: "bg-green-700"
   },
   {
     id: "featured-4",
     name: "2023 Audi Q5 Sportback",
     price: "$58,900",
     monthlyPayment: "$701",
-    image: makePlaceholders['Audi'],
+    image: null as string | null,
     mileage: "22,100 km",
     fuel: "Gasoline",
     year: "2023",
     inspectionScore: 207,
     badge: "Just Arrived",
-    badgeColor: "bg-green-500"
+    badgeColor: "bg-green-700"
   }
 ]
 
 // Transform database vehicle to showcase format
-function transformToShowcase(v: any) {
-  const priceInDollars = v.price / 100
+interface DbVehicle {
+  id: string
+  year: number
+  make: string
+  model: string
+  trim?: string
+  price: number
+  mileage: number
+  fuel_type?: string
+  is_new_arrival?: boolean
+  inspection_score?: number
+  primary_image_url?: string
+  image_urls?: string[]
+}
+
+function transformToShowcase(v: DbVehicle) {
+  const priceInDollars = safeNum(v.price) / 100
   
   // Determine badge
   let badge = "PM Certified"
@@ -105,24 +109,23 @@ function transformToShowcase(v: any) {
   
   if (v.fuel_type === "Electric") {
     badge = "Electric"
-    badgeColor = "bg-blue-500"
+    badgeColor = "bg-blue-700"
   } else if (priceInDollars > 100000) {
     badge = "Premium"
-    badgeColor = "bg-purple-500"
+    badgeColor = "bg-purple-700"
   } else if (v.is_new_arrival) {
     badge = "Just Arrived"
-    badgeColor = "bg-green-500"
+    badgeColor = "bg-green-700"
   }
   
-  // Always use make-specific placeholder images for reliable loading
-  // The database URLs may be VDP links or unreliable CDN links
-  const image = makePlaceholders[v.make] || makePlaceholders['default']
+  // Use real vehicle image from HomeNet, fall back to null (gradient fallback)
+  const image: string | null = v.primary_image_url || (v.image_urls && v.image_urls.length > 0 ? v.image_urls[0] : null)
   
   return {
     id: v.id,
     name: `${v.year} ${v.make} ${v.model} ${v.trim || ''}`.trim(),
     price: `$${priceInDollars.toLocaleString()}`,
-    monthlyPayment: `$${Math.round(priceInDollars / 84).toLocaleString()}`,
+    monthlyPayment: `$${(priceInDollars > 0 ? Math.round(priceInDollars / 84) : 0).toLocaleString()}`,
     image,
     mileage: `${v.mileage.toLocaleString()} km`,
     fuel: v.fuel_type || "Gasoline",
@@ -133,20 +136,24 @@ function transformToShowcase(v: any) {
   }
 }
 
-export function VehicleShowcase() {
+export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle[] } = {}) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
   const [imageError, setImageError] = useState(false)
 
-  // Fetch vehicles from Supabase
+  // Fetch vehicles from Supabase — use server-fetched data as fallbackData
+  // so the first render already has real vehicle data + images (enables LCP preload).
   const { data: dbVehicles } = useSWR('showcase-vehicles', fetcher, {
     refreshInterval: 120000,
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- server data matches fetcher shape
+    ...(serverVehicles ? { fallbackData: serverVehicles as any } : {}),
   })
 
   // Transform to showcase format - use fallback if no DB data
+  const isFallback = !dbVehicles || dbVehicles.length === 0
   const showcaseVehicles = useMemo(() => {
     if (!dbVehicles || dbVehicles.length === 0) return fallbackVehicles
     return dbVehicles.map(transformToShowcase)
@@ -159,17 +166,8 @@ export function VehicleShowcase() {
     setImageError(false)
   }, [currentIndex])
   
-  // Get the image source - fallback to make placeholder if error or no valid image
-  const getImageSrc = () => {
-    if (!currentVehicle) return makePlaceholders['default']
-    if (imageError) {
-      // Extract make from vehicle name (e.g., "2023 Tesla Model Y" -> "Tesla")
-      const makeParts = currentVehicle.name.split(' ')
-      const make = makeParts[1] || 'default'
-      return makePlaceholders[make] || makePlaceholders['default']
-    }
-    return currentVehicle.image
-  }
+  // Get the image source — null means gradient fallback
+  const imageSrc = currentVehicle?.image && !imageError ? currentVehicle.image : null
 
   // Carousel auto-rotation - depends only on hover state and vehicle count
   useEffect(() => {
@@ -206,18 +204,24 @@ export function VehicleShowcase() {
       {/* Main carousel container - prevent cutoff */}
       <div className="w-full max-w-6xl mx-auto px-2 sm:px-4">
         {/* Main image container */}
-        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted shadow-2xl">
-        {/* Use native img for maximum compatibility with external URLs */}
-        <img
-          src={getImageSrc()}
-          alt={currentVehicle.name}
-          loading="eager"
-          onError={() => setImageError(true)}
-          className={cn(
-            "absolute inset-0 w-full h-full object-cover transition-all duration-500",
-            isAnimating ? "scale-105 opacity-80" : "scale-100 opacity-100"
-          )}
-        />
+        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] shadow-2xl">
+        {imageSrc ? (
+          <Image
+            src={imageSrc}
+            alt={currentVehicle.name}
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            onError={() => setImageError(true)}
+            className={cn(
+              "object-cover transition-all duration-500 [clip-path:inset(0_0_8%_0)]",
+              isAnimating ? "scale-105 opacity-80" : "scale-100 opacity-100"
+            )}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Car className="w-24 h-24 text-[#1e3a8a]/15" />
+          </div>
+        )}
 
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -254,19 +258,19 @@ export function VehicleShowcase() {
           </div>
         </div>
 
-        {/* Bottom info overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+        {/* Bottom info overlay — min-h prevents CLS from dynamic content */}
+        <div className="absolute bottom-0 left-0 right-0 p-5 text-white min-h-[120px]">
           <div className="flex items-center gap-2 mb-2">
-            <Shield className="w-4 h-4 text-green-400" />
-            <span className="text-sm text-green-400 font-medium">
+            <Shield className="w-4 h-4 text-green-300" />
+            <span className="text-sm text-green-300 font-semibold">
               {currentVehicle.inspectionScore}/210 Inspection Score
             </span>
           </div>
-          <h3 className="font-semibold text-xl mb-1">{currentVehicle.name}</h3>
-          <div className="flex items-center gap-4 text-sm text-white/80 mb-3">
+          <h2 className="font-bold text-xl mb-1">{currentVehicle.name}</h2>
+          <div className="flex items-center gap-4 text-sm text-white/90 mb-3">
             <span className="flex items-center gap-1">
               <Gauge className="w-3.5 h-3.5" />
-              {currentVehicle.mileage}
+              <span className="tabular-nums">{currentVehicle.mileage}</span>
             </span>
             <span className="flex items-center gap-1">
               <Fuel className="w-3.5 h-3.5" />
@@ -279,13 +283,13 @@ export function VehicleShowcase() {
           </div>
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-2xl font-bold">{currentVehicle.price}</p>
-              <p className="text-sm text-white/70">
-                Est. {currentVehicle.monthlyPayment}/mo at 6.29% APR
+              <p className="text-2xl font-bold tabular-nums">{currentVehicle.price}</p>
+              <p className="text-sm text-white/90">
+                <span className="tabular-nums">Est. {currentVehicle.monthlyPayment}/mo at {RATE_FLOOR_DISPLAY} APR</span>
               </p>
             </div>
             <Button size="sm" className="bg-white text-primary hover:bg-white/90" asChild>
-              <Link href={`/vehicles/${currentVehicle.id}`}>
+              <Link href={isFallback ? "/inventory" : `/vehicles/${currentVehicle.id}`}>
                 View Details
               </Link>
             </Button>
@@ -351,11 +355,17 @@ export function VehicleShowcase() {
               )}
               aria-label={`View ${vehicle.name}`}
             >
-              <img
-                src={vehicle.image}
-                alt={vehicle.name}
-                className="absolute inset-0 w-full h-full object-cover"
-              />
+              {vehicle.image ? (
+                <Image
+                  src={vehicle.image}
+                  alt={vehicle.name}
+                  fill
+                  sizes="64px"
+                  className="object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-gray-200" />
+              )}
             </button>
           ))}
         </div>

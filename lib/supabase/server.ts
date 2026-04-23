@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabase/config'
+import { getSupabaseAnonKey, getSupabasePooledUrl, getSupabaseUrl } from '@/lib/supabase/config'
 
 type CookieMutation = {
   name: string
@@ -9,12 +9,14 @@ type CookieMutation = {
 }
 
 export async function createClient() {
-  const supabaseUrl = getSupabaseUrl()
+  // Prefer the pooled URL (?pgbouncer=true) for server-side connections to reduce
+  // direct Postgres connection pressure under high concurrency.
+  const supabaseUrl = getSupabasePooledUrl() || getSupabaseUrl()
   const supabaseAnonKey = getSupabaseAnonKey()
 
-  if (!supabaseAnonKey) {
+  if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(
-      'Missing Supabase anon key. Please connect Supabase in Settings.'
+      'Missing Supabase credentials. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.'
     )
   }
 

@@ -1,9 +1,13 @@
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import { PHONE_TOLL_FREE, PHONE_LOCAL, DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
 
 export const metadata = {
   title: "Privacy Policy | Planet Motors",
   description: "Privacy Policy for Planet Motors Inc. - How we collect, use, and protect your personal information.",
+  alternates: {
+    canonical: '/privacy',
+  },
 }
 
 export default function PrivacyPolicyPage() {
@@ -11,14 +15,14 @@ export default function PrivacyPolicyPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="pt-24 pb-20">
+      <main id="main-content" tabIndex={-1} className="pt-24 pb-20">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <h1 className="font-serif text-4xl font-bold mb-2">Privacy Policy</h1>
+          <h1 className="text-4xl font-bold tracking-[-0.01em] mb-2">Privacy Policy</h1>
           <p className="text-muted-foreground mb-8">Last updated: March 28, 2026</p>
           
           <div className="prose prose-lg dark:prose-invert max-w-none">
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
+              <h2 className="text-2xl font-bold mb-4">1. Introduction</h2>
               <p className="text-muted-foreground mb-4">
                 Planet Motors Inc. (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website planetmotors.ca, use our mobile application, or engage with our services.
               </p>
@@ -28,8 +32,8 @@ export default function PrivacyPolicyPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">2. Information We Collect</h2>
-              <h3 className="text-xl font-medium mb-3">Personal Information</h3>
+              <h2 className="text-2xl font-bold mb-4">2. Information We Collect</h2>
+              <h3 className="text-xl font-semibold mb-3">Personal Information</h3>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2 mb-4">
                 <li>Name, email address, phone number, and mailing address</li>
                 <li>Driver&apos;s license information for test drives and purchases</li>
@@ -38,7 +42,7 @@ export default function PrivacyPolicyPage() {
                 <li>Payment information (credit card, bank account details)</li>
               </ul>
               
-              <h3 className="text-xl font-medium mb-3">Automatically Collected Information</h3>
+              <h3 className="text-xl font-semibold mb-3">Automatically Collected Information</h3>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
                 <li>IP address, browser type, device information</li>
                 <li>Pages visited, time spent on pages, click patterns</li>
@@ -48,7 +52,7 @@ export default function PrivacyPolicyPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">3. How We Use Your Information</h2>
+              <h2 className="text-2xl font-bold mb-4">3. How We Use Your Information</h2>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
                 <li>Process vehicle purchases, trade-ins, and financing applications</li>
                 <li>Provide customer support and respond to inquiries</li>
@@ -61,7 +65,7 @@ export default function PrivacyPolicyPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">4. Information Sharing</h2>
+              <h2 className="text-2xl font-bold mb-4">4. Information Sharing</h2>
               <p className="text-muted-foreground mb-4">We may share your information with:</p>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
                 <li><strong>Financing Partners:</strong> Major banks, credit unions, and specialized auto finance lenders (for credit applications)</li>
@@ -76,7 +80,7 @@ export default function PrivacyPolicyPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">5. Data Security</h2>
+              <h2 className="text-2xl font-bold mb-4">5. Data Security</h2>
               <p className="text-muted-foreground mb-4">
                 We implement industry-standard security measures including:
               </p>
@@ -90,7 +94,7 @@ export default function PrivacyPolicyPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">6. Your Rights</h2>
+              <h2 className="text-2xl font-bold mb-4">6. Your Rights</h2>
               <p className="text-muted-foreground mb-4">Under PIPEDA, you have the right to:</p>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
                 <li>Access your personal information we hold</li>
@@ -102,7 +106,7 @@ export default function PrivacyPolicyPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">7. Cookies and Tracking</h2>
+              <h2 className="text-2xl font-bold mb-4">7. Cookies and Tracking</h2>
               <p className="text-muted-foreground mb-4">
                 We use cookies and similar technologies to enhance your experience. You can manage cookie preferences through your browser settings. We use:
               </p>
@@ -114,30 +118,30 @@ export default function PrivacyPolicyPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">8. Data Retention</h2>
+              <h2 className="text-2xl font-bold mb-4">8. Data Retention</h2>
               <p className="text-muted-foreground">
                 We retain your personal information for as long as necessary to provide our services and comply with legal obligations. Vehicle purchase records are retained for 7 years as required by OMVIC and tax regulations. You may request deletion of marketing data at any time.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">9. Contact Us</h2>
+              <h2 className="text-2xl font-bold mb-4">9. Contact Us</h2>
               <p className="text-muted-foreground mb-4">
                 For privacy-related inquiries or to exercise your rights, contact our Privacy Officer:
               </p>
               <div className="bg-muted/50 p-6 rounded-lg">
                 <p className="font-semibold">Planet Motors Inc.</p>
                 <p className="text-muted-foreground">Privacy Officer</p>
-                <p className="text-muted-foreground">30 Major Mackenzie Dr E</p>
-                <p className="text-muted-foreground">Richmond Hill, ON L4C 1G7</p>
+                <p className="text-muted-foreground">{DEALERSHIP_LOCATION.streetAddress}</p>
+                <p className="text-muted-foreground">{DEALERSHIP_LOCATION.city}, {DEALERSHIP_LOCATION.province} {DEALERSHIP_LOCATION.postalCode}</p>
                 <p className="text-muted-foreground mt-2">Email: privacy@planetmotors.ca</p>
-                <p className="text-muted-foreground">Toll-Free: 1-866-797-3332</p>
-                <p className="text-muted-foreground">Local: 416-985-2277</p>
+                <p className="text-muted-foreground">Toll-Free: {PHONE_TOLL_FREE}</p>
+                <p className="text-muted-foreground">Local: {PHONE_LOCAL}</p>
               </div>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold mb-4">10. Changes to This Policy</h2>
+              <h2 className="text-2xl font-bold mb-4">10. Changes to This Policy</h2>
               <p className="text-muted-foreground">
                 We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new policy on this page and updating the &quot;Last updated&quot; date. We encourage you to review this policy periodically.
               </p>

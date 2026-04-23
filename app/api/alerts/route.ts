@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { Resend } from "resend"
+import { PHONE_LOCAL } from "@/lib/constants/dealership"
 
 function getResendClient() {
   const apiKey = process.env.API_KEY_RESEND || process.env.RESEND_API_KEY
@@ -10,7 +11,7 @@ function getResendClient() {
 
 export async function POST(req: Request) {
   try {
-    const { vehicleId, vehicleName, currentPrice, email, phone, make, model, maxPrice, preferences } = await req.json()
+    const { vehicleId, vehicleName, currentPrice, email, make, model, maxPrice, preferences } = await req.json()
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 })
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
                   ${currentPrice ? `<p style="margin: 8px 0 0; font-size: 24px; color: #7c3aed;">$${Number(currentPrice).toLocaleString()}</p>` : ""}
                 </div>
                 <p>We'll email you when the price drops.</p>
-                <p style="color: #64748b; font-size: 14px; margin-top: 20px;">Planet Motors | 416-985-2277</p>
+                <p style="color: #64748b; font-size: 14px; margin-top: 20px;">Planet Motors | ${PHONE_LOCAL}</p>
               </div>
             </div>
           `,
@@ -96,14 +97,26 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
+    const supabase = await createClient()
+
+    // Require authentication to prevent email enumeration (PIPEDA compliance)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 })
+    }
+
     const { searchParams } = new URL(req.url)
-    const email = searchParams.get("email")
+    const email = searchParams.get("email") || user.email
 
     if (!email) {
       return NextResponse.json({ error: "Email required" }, { status: 400 })
     }
 
-    const supabase = await createClient()
+    // Users can only view their own alerts
+    if (email !== user.email) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
     const { data: alerts, error } = await supabase
       .from("price_alerts")
       .select("*")
@@ -122,17 +135,27 @@ export async function GET(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
+    const supabase = await createClient()
+
+    // Require authentication to prevent unauthorized deletion
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 })
+    }
+
     const { searchParams } = new URL(req.url)
     const alertId = searchParams.get("alertId")
-    const email = searchParams.get("email")
+    const email = searchParams.get("email") || user.email
 
-    // Require both alertId AND email for authorization
     if (!alertId || !email) {
       return NextResponse.json({ error: "Alert ID and email required" }, { status: 400 })
     }
 
-    const supabase = await createClient()
-    
+    // Users can only delete their own alerts
+    if (email !== user.email) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
     // Only delete if alertId matches the email (ownership check)
     const { data, error } = await supabase
       .from("price_alerts")

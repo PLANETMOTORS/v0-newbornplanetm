@@ -148,7 +148,7 @@ const criticalBlockers = [
 ]
 
 export default function ProductionReadinessPage() {
-  const [siteUrl, setSiteUrl] = useState("https://ev.planetmotors.ca")
+  const [siteUrl, setSiteUrl] = useState("https://www.planetmotors.ca")
   const [testerName, setTesterName] = useState("")
   const [steps, setSteps] = useState<TestStep[]>(initialSteps)
   const [blockerNotes, setBlockerNotes] = useState("")
@@ -259,7 +259,7 @@ ${step.notes ? `  Notes: ${step.notes}` : ""}
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Production Readiness Test Order</h1>
+          <h1 className="text-3xl font-bold tracking-[-0.01em] text-gray-900 mb-2">Production Readiness Test Order</h1>
           <p className="text-gray-600">Complete pre-launch checklist for website quality assurance</p>
         </div>
 
@@ -306,7 +306,7 @@ ${step.notes ? `  Notes: ${step.notes}` : ""}
                   id="site-url"
                   value={siteUrl}
                   onChange={(e) => setSiteUrl(e.target.value)}
-                  placeholder="https://ev.planetmotors.ca"
+                  placeholder="https://www.planetmotors.ca"
                   className="h-11"
                 />
               </div>

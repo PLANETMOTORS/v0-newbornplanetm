@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Heart, Trash2, Share2, Bell, Car, Clock, TrendingDown } from "lucide-react"
 import Link from "next/link"
-import { useFavorites } from "@/lib/favorites-context"
+import { useFavorites } from "@/contexts/favorites-context"
 
 export default function FavoritesPage() {
   const { favorites, removeFavorite } = useFavorites()
@@ -25,12 +25,12 @@ export default function FavoritesPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="pt-32 pb-16">
+      <main id="main-content" tabIndex={-1} className="pt-32 pb-16">
         <div className="container mx-auto px-4">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
+              <h1 className="text-3xl font-bold tracking-[-0.01em] text-foreground mb-2">
                 Saved Vehicles
               </h1>
               <p className="text-muted-foreground">
@@ -48,7 +48,7 @@ export default function FavoritesPage() {
           {favorites.length === 0 ? (
             <Card className="p-12 text-center">
               <Heart className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2">No saved vehicles</h2>
+              <h2 className="text-xl font-bold mb-2">No saved vehicles</h2>
               <p className="text-muted-foreground mb-6">
                 Start browsing our inventory and save vehicles you&apos;re interested in.
               </p>

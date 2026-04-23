@@ -1,8 +1,10 @@
 "use client"
 
 import { useEffect } from "react"
+import { reportError } from "@/lib/error-reporting"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, RefreshCw, Home, Phone } from "lucide-react"
+import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
 
 export default function Error({
   error,
@@ -12,8 +14,7 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-    // Log the error to an error reporting service
-    console.error(error)
+    reportError(error)
   }, [error])
 
   return (
@@ -24,7 +25,7 @@ export default function Error({
           <AlertTriangle className="w-10 h-10 text-destructive" />
         </div>
 
-        <h1 className="text-3xl font-serif font-bold text-foreground mb-4">
+        <h1 className="text-3xl font-bold tracking-[-0.01em] text-foreground mb-4">
           Something Went Wrong
         </h1>
         <p className="text-muted-foreground mb-8">
@@ -37,11 +38,9 @@ export default function Error({
             <RefreshCw className="w-4 h-4 mr-2" />
             Try Again
           </Button>
-          <Button variant="outline" asChild>
-            <a href="/">
-              <Home className="w-4 h-4 mr-2" />
-              Go Home
-            </a>
+          <Button variant="outline" onClick={() => window.location.href = "/"}>
+            <Home className="w-4 h-4 mr-2" />
+            Go Home
           </Button>
         </div>
 
@@ -49,12 +48,12 @@ export default function Error({
           <p className="text-sm text-muted-foreground mb-4">
             Need immediate assistance?
           </p>
-          <a 
-            href="tel:1-866-797-3332" 
+          <a
+            href={`tel:${PHONE_TOLL_FREE_TEL}`}
             className="inline-flex items-center justify-center gap-2 text-primary hover:underline"
           >
             <Phone className="w-4 h-4" />
-            Call 1-866-797-3332
+            Call {PHONE_TOLL_FREE}
           </a>
           {error.digest && (
             <p className="text-xs text-muted-foreground mt-4">

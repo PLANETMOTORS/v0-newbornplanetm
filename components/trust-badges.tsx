@@ -4,7 +4,7 @@ const badges = [
   {
     icon: ClipboardCheck,
     title: "210-Point Inspection",
-    description: "Industry-leading standard",
+    description: "Comprehensive 210-point process",
     highlight: true
   },
   {
@@ -15,8 +15,8 @@ const badges = [
   },
   {
     icon: Truck,
-    title: "Ontario-Wide Delivery",
-    description: "Convenient delivery across Ontario",
+    title: "Canada-Wide Delivery",
+    description: "Convenient delivery across Canada",
     highlight: false
   },
   {
@@ -45,8 +45,8 @@ export function TrustBadges() {
       <div className="container mx-auto px-4">
         {/* Section header */}
         <div className="text-center mb-10">
-          <p className="text-sm font-medium text-primary mb-2">Why Customers Trust Us</p>
-          <h2 className="text-2xl md:text-3xl font-serif font-semibold">The Planet Motors Promise</h2>
+          <p className="text-sm font-semibold text-primary mb-2">Why Customers Trust Us</p>
+          <h2 className="text-2xl md:text-3xl font-bold">The Planet Motors Promise</h2>
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-4">
@@ -68,9 +68,9 @@ export function TrustBadges() {
               <h3 className="font-semibold text-sm mb-1">{badge.title}</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">{badge.description}</p>
               {badge.highlight && (
-                <div className="mt-2 flex items-center gap-1 text-xs text-green-600 font-medium">
+                <div className="mt-2 flex items-center gap-1 text-xs text-green-800 font-semibold">
                   <CheckCircle className="w-3 h-3" />
-                  <span>Industry Best</span>
+                  <span>Certified Standard</span>
                 </div>
               )}
             </div>
@@ -80,11 +80,11 @@ export function TrustBadges() {
         {/* Bottom trust line */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
           <span className="flex items-center gap-2">
-            <LockKeyhole className="w-4 h-4 text-green-600" />
+            <LockKeyhole className="w-4 h-4 text-green-700" />
             256-bit SSL Encryption
           </span>
           <span className="hidden md:inline">|</span>
-          <span>OMVIC Licensed Dealer</span>
+          <a href="https://www.omvic.on.ca" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">OMVIC Licensed Dealer</a>
           <span className="hidden md:inline">|</span>
           <span>BBB A+ Rating</span>
           <span className="hidden md:inline">|</span>

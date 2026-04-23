@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 
 // Origin location: Planet Motors, Richmond Hill, Ontario (L4B postal code area)
-const ORIGIN_POSTAL = "L4B"
 
-// Canadian postal code distance estimates (simplified - in production use Google Maps API)
+
+// Canadian postal code distance estimates (approximate — in production use Google Maps Distance Matrix API)
 // First 3 characters of postal code (FSA) mapped to approximate distance from Richmond Hill
 const POSTAL_DISTANCES: Record<string, number> = {
   // GTA - Very Close (0-50km) - FREE
@@ -238,7 +238,7 @@ function calculateDeliveryCost(distanceKm: number): { cost: number; isFree: bool
 }
 
 // GET /api/v1/deliveries/quote?postalCode=M5V1A1
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const postalCode = searchParams.get("postalCode")
 
@@ -287,11 +287,12 @@ export async function GET(request: NextRequest) {
     isFreeDelivery: isFree,
     isDeliveryAvailable,
     freeDeliveryThreshold: 300,
+    _disclaimer: "Delivery distance and cost are estimates only. Final delivery fees will be confirmed at time of purchase. Contact Planet Motors for an exact quote.",
     message: !isDeliveryAvailable
       ? `Delivery not available to ${province} (${distance}km)`
       : isFree 
-        ? `Free delivery to ${cleanPostal} (${distance}km from Richmond Hill)`
-        : `Delivery fee: $${cost.toFixed(2)} (${distance}km from Richmond Hill)`,
+        ? `Free delivery to ${cleanPostal} (estimated ${distance}km from Richmond Hill)`
+        : `Estimated delivery fee: $${cost.toFixed(2)} (estimated ${distance}km from Richmond Hill)`,
     breakdown: isFree ? null : {
       baseDistance: 300,
       chargeableDistance: distance - 300,

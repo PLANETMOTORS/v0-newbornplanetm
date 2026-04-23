@@ -4,7 +4,7 @@ import { getAvailableDates, getAvailableSlots, normalizeIsoDate } from "@/lib/li
 // GET /api/live-video-tour/availability
 // Returns available dates and time slots
 // Optional query param: ?date=2026-04-03 for specific date slots
-export async function GET(req: Request) {
+export function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
     const specificDate = searchParams.get("date")

@@ -1,159 +1,55 @@
 "use client"
 
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import dynamic from "next/dynamic"
+import { useAuth } from "@/contexts/auth-context"
+import { startVehicleCheckout } from "@/app/actions/stripe"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { 
-  User, MapPin, Home, Briefcase, DollarSign, Car, FileText, Upload,
-  ArrowRight, ArrowLeft, CheckCircle, Loader2, Shield, AlertCircle, X
+import { Card, CardContent } from "@/components/ui/card"
+
+import {
+  User, Car, FileText, Upload,
+  ArrowRight, ArrowLeft, CheckCircle, Loader2, Shield, AlertCircle
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-// =====================================================
-// TYPES
-// =====================================================
-interface ApplicantData {
-  // Personal Info
-  salutation: string
-  firstName: string
-  middleName: string
-  lastName: string
-  suffix: string
-  dateOfBirth: { day: string; month: string; year: string }
-  gender: string
-  maritalStatus: string
-  phone: string
-  mobilePhone: string
-  email: string
-  noEmail: boolean
-  languagePreference: string
-  creditRating: string
-  
-  // Address
-  postalCode: string
-  addressType: string
-  suiteNumber: string
-  streetNumber: string
-  streetName: string
-  streetType: string
-  streetDirection: string
-  city: string
-  province: string
-  durationYears: string
-  durationMonths: string
-  
-  // Housing
-  homeStatus: string
-  marketValue: string
-  mortgageAmount: string
-  mortgageHolder: string
-  monthlyPayment: string
-  outstandingMortgage: string
-  
-  // Employment
-  employmentCategory: string
-  employmentStatus: string
-  employerName: string
-  occupation: string
-  jobTitle: string
-  employerStreet: string
-  employerCity: string
-  employerProvince: string
-  employerPostalCode: string
-  employerPhone: string
-  employerPhoneExt: string
-  employmentYears: string
-  employmentMonths: string
-  
-  // Income
-  grossIncome: string
-  incomeFrequency: string
-  otherIncomeType: string
-  otherIncomeAmount: string
-  otherIncomeFrequency: string
-  otherIncomeDescription: string
-  annualTotal: string
-}
+const EmbeddedCheckoutProvider = dynamic(
+  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckoutProvider })),
+  { ssr: false }
+)
+const EmbeddedCheckout = dynamic(
+  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckout })),
+  { ssr: false }
+)
 
-interface VehicleInfo {
-  vin: string
-  year: string
-  make: string
-  model: string
-  trim: string
-  color: string
-  mileage: string
-  totalPrice: string
-  downPayment: string
-  maxDownPayment: string
-}
-
-interface TradeInInfo {
-  hasTradeIn: boolean
-  vin: string
-  year: string
-  make: string
-  model: string
-  trim: string
-  color: string
-  mileage: string
-  condition: string
-  estimatedValue: string
-  hasLien: boolean
-  lienHolder: string
-  lienAmount: string
-}
-
-interface FinancingTerms {
-  agreementType: "finance" | "cash"
-  salesTaxRate: string
-  interestRate: string
-  adminFee: string
-  omvicFee: string
-  certificationFee: string
-  licensingFee: string
-  deliveryFee: string
-  deliveryPostalCode: string
-  loanTermMonths: number
-  paymentFrequency: "weekly" | "bi-weekly" | "semi-monthly" | "monthly"
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+let stripePromise: ReturnType<typeof import('@stripe/stripe-js').loadStripe> | null = null
+function getStripePromise() {
+  if (!stripePromise && stripeKey) {
+    stripePromise = import('@stripe/stripe-js').then(m => m.loadStripe(stripeKey))
   }
-
-interface DocumentUpload {
-  type: string
-  name: string
-  file: File | null
-  url?: string
+  return stripePromise
 }
+import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
+import {
+  type ApplicantData, type VehicleInfo, type TradeInInfo,
+  type FinancingTerms, type DocumentUpload,
+  emptyApplicant,
+  isApplicantData, isVehicleInfo, isTradeInInfo, isFinancingTerms,
+} from "@/components/finance-application"
+import { ApplicantForm } from "@/components/finance-application/applicant-form"
+import { VehicleFinancingForm } from "@/components/finance-application/vehicle-financing-form"
+import { ReviewStep } from "@/components/finance-application/review-step"
+import { DocumentsStep } from "@/components/finance-application/documents-step"
 
-// Initial state
-const emptyApplicant: ApplicantData = {
-  salutation: "", firstName: "", middleName: "", lastName: "", suffix: "",
-  dateOfBirth: { day: "", month: "", year: "" },
-  gender: "", maritalStatus: "", phone: "", mobilePhone: "", email: "",
-  noEmail: false, languagePreference: "en", creditRating: "",
-  postalCode: "", addressType: "", suiteNumber: "", streetNumber: "",
-  streetName: "", streetType: "", streetDirection: "", city: "", province: "Ontario",
-  durationYears: "", durationMonths: "",
-  homeStatus: "", marketValue: "", mortgageAmount: "", mortgageHolder: "",
-  monthlyPayment: "", outstandingMortgage: "",
-  employmentCategory: "", employmentStatus: "", employerName: "", occupation: "",
-  jobTitle: "", employerStreet: "", employerCity: "", employerProvince: "",
-  employerPostalCode: "", employerPhone: "", employerPhoneExt: "",
-  employmentYears: "", employmentMonths: "",
-  grossIncome: "", incomeFrequency: "", otherIncomeType: "",
-  otherIncomeAmount: "", otherIncomeFrequency: "", otherIncomeDescription: "",
-  annualTotal: ""
-}
+// Types, sub-components, and emptyApplicant imported from @/components/finance-application/
 
 // =====================================================
-// MAIN COMPONENT
+// MAIN COMPONENT — orchestrator only (sub-forms extracted)
 // =====================================================
 interface FinanceApplicationFullFormProps {
   vehicleId?: string
@@ -177,7 +73,9 @@ interface FinanceApplicationFullFormProps {
 
 export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData }: FinanceApplicationFullFormProps) {
   const router = useRouter()
+  const { user, isLoading: isAuthLoading } = useAuth()
   const draftLoadedRef = useRef(false)
+  const serverSyncTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const draftKey = useMemo(() => `pm:finance-draft:${vehicleId || "general"}`, [vehicleId])
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -301,57 +199,199 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   const [documents, setDocuments] = useState<DocumentUpload[]>([])
   const [additionalNotes, setAdditionalNotes] = useState("")
 
-  // Recover in-progress form data if user was interrupted or page refreshed.
+  // Stripe checkout client secret fetcher – memoized to avoid re-initializing the
+  // EmbeddedCheckoutProvider on auth-triggered re-renders.
+  const fetchClientSecret = useCallback(() => {
+    // When no vehicle is selected (user started from generic /financing page),
+    // use the simpler product-based checkout that doesn't require vehicle locking.
+    if (!vehicleId) {
+      return import("@/app/actions/stripe").then(({ startCheckoutSession }) =>
+        startCheckoutSession("deposit")
+      ).then((secret) => {
+        if (!secret) throw new Error("Missing checkout client secret")
+        return secret
+      })
+    }
+
+    const vehicleName = vehicleData
+      ? `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`.trim()
+      : "Vehicle Deposit"
+    return startVehicleCheckout({
+      vehicleId,
+      vehicleName,
+      depositOnly: true,
+      customerEmail: primaryApplicant.email || undefined,
+    }).then((secret) => {
+      if (!secret) throw new Error("Missing checkout client secret")
+      return secret
+    })
+  }, [vehicleId, vehicleData, primaryApplicant.email])
+
+  // Helper: restore form state from a draft object
+  const restoreFromDraft = useCallback((draft: Record<string, unknown>) => {
+    if (typeof draft.currentStep === "number") setCurrentStep(draft.currentStep)
+    if (isApplicantData(draft.primaryApplicant)) setPrimaryApplicant(draft.primaryApplicant)
+    if (typeof draft.includeCoApplicant === "boolean") setIncludeCoApplicant(draft.includeCoApplicant)
+    if (isApplicantData(draft.coApplicant)) setCoApplicant(draft.coApplicant)
+    if (typeof draft.coApplicantRelation === "string") setCoApplicantRelation(draft.coApplicantRelation)
+    if (isVehicleInfo(draft.vehicleInfo)) setVehicleInfo(draft.vehicleInfo)
+    if (isTradeInInfo(draft.tradeIn)) setTradeIn(draft.tradeIn)
+    if (isFinancingTerms(draft.financingTerms)) setFinancingTerms(draft.financingTerms)
+    if (typeof draft.additionalNotes === "string") setAdditionalNotes(draft.additionalNotes)
+  }, [])
+
+  // Recover in-progress form data: try server first (if logged in), fall back to localStorage.
+  // Wait for auth to settle so we don't skip the server fetch when user is still loading.
   useEffect(() => {
-    if (draftLoadedRef.current) return
-    try {
-      const raw = window.localStorage.getItem(draftKey)
-      if (!raw) {
-        draftLoadedRef.current = true
-        return
+    if (draftLoadedRef.current || isAuthLoading) return
+
+    async function loadDraft() {
+      let serverDraft: Record<string, unknown> | null = null
+      let localDraft: Record<string, unknown> | null = null
+
+      // Try server draft (persists across devices)
+      if (user) {
+        try {
+          const res = await fetch("/api/v1/financing/drafts")
+          if (res.ok) {
+            const data = await res.json()
+            const drafts = data.data || []
+            const match = drafts.find(
+              (d: { vehicle_id: string | null }) =>
+                (vehicleId && d.vehicle_id === vehicleId) || (!vehicleId && !d.vehicle_id)
+            )
+            if (match?.form_data && Object.keys(match.form_data).length > 0) {
+              serverDraft = match.form_data as Record<string, unknown>
+            }
+          }
+        } catch {
+          // Fall through to localStorage
+        }
       }
-      const draft = JSON.parse(raw) as Record<string, unknown>
-      if (typeof draft.currentStep === "number") setCurrentStep(draft.currentStep)
-      if (draft.primaryApplicant) setPrimaryApplicant(draft.primaryApplicant as ApplicantData)
-      if (typeof draft.includeCoApplicant === "boolean") setIncludeCoApplicant(draft.includeCoApplicant)
-      if (draft.coApplicant) setCoApplicant(draft.coApplicant as ApplicantData)
-      if (typeof draft.coApplicantRelation === "string") setCoApplicantRelation(draft.coApplicantRelation)
-      if (draft.vehicleInfo) setVehicleInfo(draft.vehicleInfo as VehicleInfo)
-      if (draft.tradeIn) setTradeIn(draft.tradeIn as TradeInInfo)
-      if (draft.financingTerms) setFinancingTerms(draft.financingTerms as FinancingTerms)
-      if (typeof draft.additionalNotes === "string") setAdditionalNotes(draft.additionalNotes)
-    } catch (error) {
-      console.error("Failed to restore finance draft:", error)
-    } finally {
+
+      // Try sessionStorage (non-PII subset, written after 250ms for unauthenticated users)
+      try {
+        const raw = window.sessionStorage.getItem(draftKey) || window.localStorage.getItem(draftKey)
+        if (raw) {
+          localDraft = JSON.parse(raw) as Record<string, unknown>
+          // Clean up any legacy localStorage draft (PII migration)
+          window.localStorage.removeItem(draftKey)
+        }
+      } catch (error) {
+        console.error("Failed to restore finance draft:", error)
+      }
+
+      const getSavedAt = (draft: Record<string, unknown> | null) => {
+        if (!draft || typeof draft.savedAt !== "string") return 0
+        const parsed = Date.parse(draft.savedAt)
+        return Number.isFinite(parsed) ? parsed : 0
+      }
+
+      const freshestDraft =
+        getSavedAt(localDraft) > getSavedAt(serverDraft) ? localDraft : serverDraft
+
+      if (freshestDraft) {
+        restoreFromDraft(freshestDraft)
+      }
+
       draftLoadedRef.current = true
     }
-  }, [draftKey])
 
-  // Persist in-progress form data to protect users from accidental session drops.
+    loadDraft()
+  }, [draftKey, user, isAuthLoading, vehicleId, restoreFromDraft])
+
+  // Persist in-progress form data.
+  // Authenticated users → server only (full payload, no PII on client).
+  // Unauthenticated fallback → sessionStorage with minimal, non-PII subset.
   useEffect(() => {
     if (!draftLoadedRef.current || isSubmitted) return
 
-    const timeout = window.setTimeout(() => {
-      try {
-        const payload = {
-          currentStep,
-          primaryApplicant,
-          includeCoApplicant,
-          coApplicant,
-          coApplicantRelation,
-          vehicleInfo,
-          tradeIn,
-          financingTerms,
-          additionalNotes,
-          savedAt: new Date().toISOString(),
-        }
-        window.localStorage.setItem(draftKey, JSON.stringify(payload))
-      } catch (error) {
-        console.error("Failed to save finance draft:", error)
-      }
-    }, 250)
+    const now = new Date().toISOString()
 
-    return () => window.clearTimeout(timeout)
+    // Full payload — only sent to server, never stored client-side
+    const fullPayload = {
+      currentStep,
+      primaryApplicant,
+      includeCoApplicant,
+      coApplicant,
+      coApplicantRelation,
+      vehicleInfo,
+      tradeIn,
+      financingTerms,
+      additionalNotes,
+      savedAt: now,
+    }
+
+    // Minimal non-PII subset for client-side fallback
+    const localPayload = {
+      currentStep,
+      includeCoApplicant,
+      vehicleInfo: {
+        vin: vehicleInfo.vin,
+        year: vehicleInfo.year,
+        make: vehicleInfo.make,
+        model: vehicleInfo.model,
+        trim: vehicleInfo.trim,
+        color: vehicleInfo.color,
+        mileage: vehicleInfo.mileage,
+        totalPrice: vehicleInfo.totalPrice,
+        downPayment: vehicleInfo.downPayment,
+        maxDownPayment: vehicleInfo.maxDownPayment,
+      },
+      tradeIn: {
+        hasTradeIn: tradeIn.hasTradeIn,
+        vin: tradeIn.vin,
+        year: tradeIn.year,
+        make: tradeIn.make,
+        model: tradeIn.model,
+        trim: tradeIn.trim,
+        color: tradeIn.color,
+        mileage: tradeIn.mileage,
+        condition: tradeIn.condition,
+        estimatedValue: tradeIn.estimatedValue,
+        hasLien: tradeIn.hasLien,
+        lienHolder: tradeIn.lienHolder,
+        lienAmount: tradeIn.lienAmount,
+      },
+      financingTerms,
+      additionalNotes,
+      savedAt: now,
+    }
+
+    if (user) {
+      // Authenticated: save full payload to server only, clear any client remnant
+      if (serverSyncTimer.current) clearTimeout(serverSyncTimer.current)
+      serverSyncTimer.current = setTimeout(() => {
+        fetch("/api/v1/financing/drafts", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ vehicleId: vehicleId || null, formData: fullPayload }),
+        }).catch((error) => {
+          console.error("Failed to save finance draft to server:", error)
+        })
+      }, 2000)
+
+      // Remove any stale localStorage/sessionStorage PII from before login
+      try { window.localStorage.removeItem(draftKey) } catch { /* noop */ }
+      try { window.sessionStorage.removeItem(draftKey) } catch { /* noop */ }
+    } else {
+      // Unauthenticated: save minimal non-PII subset to sessionStorage (tab-scoped)
+      const localTimeout = window.setTimeout(() => {
+        try {
+          window.sessionStorage.setItem(draftKey, JSON.stringify(localPayload))
+        } catch (error) {
+          console.error("Failed to save finance draft to sessionStorage:", error)
+        }
+      }, 250)
+
+      return () => {
+        window.clearTimeout(localTimeout)
+      }
+    }
+
+    return () => {
+      if (serverSyncTimer.current) clearTimeout(serverSyncTimer.current)
+    }
   }, [
     draftKey,
     isSubmitted,
@@ -364,6 +404,8 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     tradeIn,
     financingTerms,
     additionalNotes,
+    user,
+    vehicleId,
   ])
   
   const steps = [
@@ -387,20 +429,20 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     const certificationFee = parseFloat(financingTerms.certificationFee) || 595
     const licensingFee = parseFloat(financingTerms.licensingFee) || 59
     const deliveryFee = parseFloat(financingTerms.deliveryFee) || 0
-    const taxRate = parseFloat(financingTerms.salesTaxRate) / 100 || 0.13
+    const taxRate = parseFloat(financingTerms.salesTaxRate) / 100 || PROVINCE_TAX_RATES.ON.total
     
     // All fees: Admin Fee (finance only) + OMVIC + Certification + Licensing + Delivery
     const totalFees = adminFee + omvicFee + certificationFee + licensingFee + deliveryFee
     
     // For Finance: Price + All Fees + Tax - Down Payment - Trade
     // For Cash: Price + fees (no admin fee) + Tax - Down Payment - Trade
-    const subtotalBeforeTax = price + totalFees - downPayment - netTrade
+
     const tax = (price + totalFees) * taxRate // Tax on price + fees before credits
     const amountFinanced = price + totalFees + tax - downPayment - netTrade
     
     // Calculate payment
     const rate = (parseFloat(financingTerms.interestRate) || 8.99) / 100
-    const monthlyRate = rate / 12
+
     const term = financingTerms.loanTermMonths
     
     let paymentsPerYear = 12
@@ -442,20 +484,7 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   
   // Helper to check if a field has an error and return the error class
-  const getFieldErrorClass = (fieldName: string): string => {
-    const hasError = validationErrors.some(err => 
-      err.toLowerCase().includes(fieldName.toLowerCase())
-    )
-    return hasError ? "border-destructive ring-1 ring-destructive bg-destructive/5" : ""
-  }
-  
-  // Helper to get Label class with error styling
-  const getLabelErrorClass = (fieldName: string): string => {
-    const hasError = validationErrors.some(err => 
-      err.toLowerCase().includes(fieldName.toLowerCase())
-    )
-    return hasError ? "text-destructive" : ""
-  }
+
   
   // Phone number validation - strict rules for real Canadian phone numbers
   const validatePhone = (phone: string): { valid: boolean; error?: string } => {
@@ -518,16 +547,7 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     return { valid: true }
   }
   
-  // Simple boolean check for backward compatibility
-  const isPhoneValid = (phone: string): boolean => validatePhone(phone).valid
-  
-  // Format phone number as (XXX) XXX-XXXX
-  const formatPhone = (value: string): string => {
-    const digits = value.replace(/\D/g, '').slice(0, 10)
-    if (digits.length <= 3) return digits
-    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
-    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
-  }
+
   
   // Validate Step 1 - Primary Applicant
   const validateStep1 = (): string[] => {
@@ -625,7 +645,7 @@ if (errors.length > 0) {
     setIsSubmitting(true)
     setSubmitError(null)
     try {
-      const response = await fetch("/api/v1/financing/apply", {
+      const response = await fetch("/api/v1/financing/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -643,13 +663,19 @@ if (errors.length > 0) {
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(
+        const rawMsg =
           result?.error?.message ||
           result?.error ||
           result?.message ||
           JSON.stringify(result) ||
           "Failed to submit application"
-        )
+        const friendly =
+          response.status === 403
+            ? "You don't have permission to submit this application. Please log in and try again."
+            : response.status === 401
+              ? "Your session has expired. Please log in again and resubmit."
+              : rawMsg
+        throw new Error(friendly)
       }
 
       const applicationId =
@@ -681,10 +707,16 @@ if (errors.length > 0) {
     }
   }
   
+      // Clean up drafts after successful submission
       try {
         window.localStorage.removeItem(draftKey)
+        window.sessionStorage.removeItem(draftKey)
       } catch {
-        // Ignore localStorage failures.
+        // Ignore storage failures.
+      }
+      if (user) {
+        const deleteParam = vehicleId ? `vehicleId=${vehicleId}` : "vehicleId="
+        fetch(`/api/v1/financing/drafts?${deleteParam}`, { method: "DELETE" }).catch(() => {})
       }
       setIsSubmitted(true)
   } catch (error) {
@@ -695,28 +727,72 @@ if (errors.length > 0) {
   }
   }
   
-  // Render success state - redirect to ID verification
+  // Render success state — mandatory $250 deposit via Stripe Embedded Checkout
   if (isSubmitted) {
+    const stripeInstance = getStripePromise()
+    const canCheckout = !!stripeInstance
+
     return (
-      <div className="max-w-2xl mx-auto p-8 text-center">
-        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-          <Shield className="w-8 h-8 text-primary" />
+      <div className="max-w-2xl mx-auto p-8">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-8 h-8 text-green-600" />
+          </div>
+          <h2 className="text-2xl font-bold mb-2">Application Received!</h2>
+          <p className="text-muted-foreground">
+            Your finance application has been submitted successfully.
+            {canCheckout
+              ? vehicleId
+                ? " Complete your $250 refundable deposit below to secure this vehicle."
+                : " Complete your $250 refundable deposit below to fast-track your application."
+              : " A team member will contact you shortly to finalize your purchase."}
+          </p>
         </div>
-        <h2 className="text-2xl font-bold mb-2">Application Received!</h2>
-        <p className="text-muted-foreground mb-6">
-          Your finance application has been saved. Complete identity verification to finalize your application.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button onClick={() => router.push(`/financing/verification?vehicleId=${vehicleId || ""}`)}>
-            <Shield className="w-4 h-4 mr-2" />
-            Continue to ID Verification
-          </Button>
-          <Button variant="outline" onClick={() => router.push("/inventory")}>
-            Complete Later
-          </Button>
-        </div>
-        <p className="text-xs text-muted-foreground mt-4">
-          ID verification is required to complete your application
+
+        {canCheckout ? (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Shield className="w-5 h-5 text-green-600" />
+                <h3 className="font-semibold">Secure Payment — $250 Refundable Deposit</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-6">
+                {vehicleId
+                  ? "Your deposit holds this vehicle for 48 hours while we process your application. Fully refundable."
+                  : "Your deposit fast-tracks your application review. Fully refundable."}
+              </p>
+              <div className="min-h-[400px]">
+                <EmbeddedCheckoutProvider stripe={stripeInstance} options={{ fetchClientSecret }}>
+                  <EmbeddedCheckout />
+                </EmbeddedCheckoutProvider>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+                <div className="text-sm">
+                  <p className="font-semibold text-amber-800">Payment temporarily unavailable</p>
+                  <p className="text-amber-700">
+                    We&apos;re unable to load the payment form right now. Please try again or call us at{" "}
+                    <a href="tel:+16479073334" className="underline font-semibold">(647) 907-3334</a>.
+                  </p>
+                </div>
+              </div>
+              <Button
+                className="w-full mt-4"
+                onClick={() => window.location.reload()}
+              >
+                Retry Payment
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        <p className="text-center text-xs text-muted-foreground mt-6">
+          Powered by Stripe. Your payment information is secure and encrypted.
         </p>
       </div>
     )
@@ -747,7 +823,7 @@ if (errors.length > 0) {
                   )}
                 </div>
                 <span className={cn(
-                  "ml-2 text-sm font-medium hidden sm:block",
+                  "ml-2 text-sm font-semibold hidden sm:block",
                   currentStep >= step.number ? "text-foreground" : "text-muted-foreground"
                 )}>
                   {step.title}
@@ -794,7 +870,7 @@ if (errors.length > 0) {
                   checked={includeCoApplicant}
                   onCheckedChange={(checked) => setIncludeCoApplicant(checked as boolean)}
                 />
-                <Label htmlFor="includeCoApplicant" className="text-base font-medium cursor-pointer">
+                <Label htmlFor="includeCoApplicant" className="text-base font-semibold cursor-pointer">
                   Include Co-Applicant / Co-Signer
                 </Label>
               </div>
@@ -876,7 +952,7 @@ if (errors.length > 0) {
           <div className="flex items-start gap-2">
             <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-medium text-destructive">Please fix the following errors:</p>
+              <p className="font-semibold text-destructive">Please fix the following errors:</p>
               <ul className="list-disc list-inside mt-2 text-sm text-destructive">
                 {validationErrors.map((error, i) => (
                   <li key={i}>{error}</li>
@@ -921,1445 +997,6 @@ if (errors.length > 0) {
             )}
           </Button>
         )}
-      </div>
-    </div>
-  )
-}
-
-// =====================================================
-// APPLICANT FORM COMPONENT
-// =====================================================
-interface ApplicantFormProps {
-  title: string
-  description: string
-  data: ApplicantData
-  onChange: (data: ApplicantData) => void
-  isPrimary: boolean
-  validationErrors?: string[]
-  }
-
-// =====================================================
-// POSTAL CODE INPUT WITH ADDRESS LOOKUP
-// =====================================================
-interface AddressSuggestion {
-  streetName: string
-  streetType: string
-  direction?: string
-  city: string
-  province: string
-  postalCode: string
-  fullAddress: string
-}
-
-interface PostalCodeInputProps {
-  value: string
-  onChange: (postalCode: string, addressData?: { city?: string; province?: string; streetName?: string; streetType?: string; direction?: string }) => void
-  label?: string
-}
-
-function PostalCodeInput({ value, onChange, label = "Postal Code *" }: PostalCodeInputProps) {
-  const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([])
-  const [showSuggestions, setShowSuggestions] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [cityProvince, setCityProvince] = useState<{ city: string; province: string }>({ city: '', province: '' })
-  
-  const formatPostalCode = (val: string): string => {
-    let formatted = val.toUpperCase().replace(/[^A-Z0-9]/g, '')
-    if (formatted.length > 3) {
-      formatted = formatted.slice(0, 3) + ' ' + formatted.slice(3, 6)
-    }
-    return formatted.slice(0, 7)
-  }
-  
-  const fetchAddressSuggestions = async (postalCode: string) => {
-    const cleanPostal = postalCode.replace(/\s/g, '')
-    if (cleanPostal.length < 3) {
-      setSuggestions([])
-      setCityProvince({ city: '', province: '' })
-      return
-    }
-    
-    setIsLoading(true)
-    try {
-      const res = await fetch(`/api/address-lookup?postalCode=${cleanPostal}`)
-      const data = await res.json()
-      setSuggestions(data.suggestions || [])
-      setCityProvince({ city: data.city || '', province: data.province || '' })
-      
-      // Auto-fill city and province immediately
-      if (data.city || data.province) {
-        onChange(postalCode, { city: data.city, province: data.province })
-      }
-      
-      if (data.suggestions?.length > 0) {
-        setShowSuggestions(true)
-      }
-    } catch (error) {
-      console.error("Error fetching address:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-  
-  const handleSelectSuggestion = (suggestion: AddressSuggestion) => {
-    console.log("[v0] handleSelectSuggestion CLICKED - suggestion:", suggestion)
-    console.log("[v0] Calling onChange with:", {
-      city: suggestion.city,
-      province: suggestion.province,
-      streetName: suggestion.streetName,
-      streetType: suggestion.streetType,
-      direction: suggestion.direction,
-    })
-    onChange(value, {
-      city: suggestion.city,
-      province: suggestion.province,
-      streetName: suggestion.streetName,
-      streetType: suggestion.streetType,
-      direction: suggestion.direction,
-    })
-    setShowSuggestions(false)
-    console.log("[v0] handleSelectSuggestion COMPLETE")
-  }
-  
-  return (
-    <div className="relative">
-      <Label>{label} <span className="text-xs text-primary font-medium">(Auto-fills address)</span></Label>
-      <div className="relative">
-        <Input 
-          value={value} 
-          onChange={(e) => {
-            const formatted = formatPostalCode(e.target.value)
-            onChange(formatted)
-            fetchAddressSuggestions(formatted)
-          }}
-onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-  onBlur={() => setTimeout(() => setShowSuggestions(false), 500)}
-  placeholder="L4B 0G2"
-  className="font-mono uppercase pr-8 border-primary/50 focus:border-primary"
-        />
-        {isLoading && (
-          <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-primary" />
-        )}
-      </div>
-      
-      {/* City/Province indicator */}
-      {cityProvince.city && (
-        <p className="text-xs text-green-600 mt-1 font-medium flex items-center gap-1">
-          <CheckCircle className="w-3 h-3" />
-          {cityProvince.city}, {cityProvince.province}
-        </p>
-      )}
-      
-      {/* Street suggestions dropdown - MANDATORY SELECTION */}
-      {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute z-[9999] left-0 top-full w-[350px] mt-1 bg-background border-2 border-primary rounded-lg shadow-xl max-h-64 overflow-y-auto">
-          <div className="px-3 py-2 bg-primary/10 border-b border-primary/20 sticky top-0">
-            <p className="text-xs font-semibold text-primary">
-              Select your street to auto-fill address:
-            </p>
-          </div>
-          {suggestions.map((suggestion, idx) => (
-            <button
-              key={idx}
-              type="button"
-              className="w-full px-3 py-3 text-left text-sm hover:bg-primary/10 flex items-center gap-3 border-b last:border-b-0 transition-colors"
-              onClick={() => handleSelectSuggestion(suggestion)}
-            >
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <MapPin className="w-4 h-4 text-primary" />
-              </div>
-              <div>
-                <span className="font-semibold text-foreground">{suggestion.streetName} {suggestion.streetType}</span>
-                {suggestion.direction && <span className="text-primary font-medium"> {suggestion.direction}</span>}
-                <span className="text-muted-foreground text-xs block">{suggestion.city}, {suggestion.province}</span>
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function ApplicantForm({ title, description, data, onChange, isPrimary, validationErrors = [] }: ApplicantFormProps) {
-  const updateField = (field: keyof ApplicantData, value: any) => {
-    onChange({ ...data, [field]: value })
-  }
-  
-  // Helper to check if a field has an error
-  const hasFieldError = (fieldName: string): boolean => {
-    return validationErrors.some(err => 
-      err.toLowerCase().includes(fieldName.toLowerCase())
-    )
-  }
-  
-  // Get error class for inputs
-  const getInputErrorClass = (fieldName: string): string => {
-    return hasFieldError(fieldName) ? "border-destructive ring-1 ring-destructive bg-destructive/5" : ""
-  }
-  
-  // Get error class for labels
-  const getLabelClass = (fieldName: string): string => {
-    return hasFieldError(fieldName) ? "text-destructive font-medium" : ""
-  }
-  
-  return (
-    <div className="space-y-8">
-      <div>
-        <h3 className="text-lg font-semibold">{title}</h3>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </div>
-      
-      {/* Personal Information */}
-      <section>
-        <h4 className="font-medium mb-4 flex items-center gap-2">
-          <User className="w-4 h-4" />
-          Personal Information
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <Label>Salutation</Label>
-            <Select value={data.salutation} onValueChange={(v) => updateField("salutation", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Mr.">Mr.</SelectItem>
-                <SelectItem value="Mrs.">Mrs.</SelectItem>
-                <SelectItem value="Ms.">Ms.</SelectItem>
-                <SelectItem value="Miss">Miss</SelectItem>
-                <SelectItem value="Dr.">Dr.</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label className={getLabelClass("First Name")}>First Name *</Label>
-            <Input value={data.firstName} onChange={(e) => updateField("firstName", e.target.value)} required className={getInputErrorClass("First Name")} />
-          </div>
-          <div>
-            <Label>Middle Name</Label>
-            <Input value={data.middleName} onChange={(e) => updateField("middleName", e.target.value)} />
-          </div>
-          <div>
-            <Label className={getLabelClass("Last Name")}>Last Name *</Label>
-            <Input value={data.lastName} onChange={(e) => updateField("lastName", e.target.value)} required className={getInputErrorClass("Last Name")} />
-          </div>
-          <div>
-            <Label>Suffix</Label>
-            <Select value={data.suffix} onValueChange={(v) => updateField("suffix", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Jr.">Jr.</SelectItem>
-                <SelectItem value="Sr.">Sr.</SelectItem>
-                <SelectItem value="II">II</SelectItem>
-                <SelectItem value="III">III</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label className={getLabelClass("Date of Birth")}>Date of Birth *</Label>
-            <div className="grid grid-cols-3 gap-2">
-              <Select value={data.dateOfBirth.day} onValueChange={(v) => updateField("dateOfBirth", { ...data.dateOfBirth, day: v })}>
-                <SelectTrigger className={getInputErrorClass("Date of Birth")}><SelectValue placeholder="Day" /></SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 31 }, (_, i) => (
-                    <SelectItem key={i + 1} value={String(i + 1)}>{i + 1}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={data.dateOfBirth.month} onValueChange={(v) => updateField("dateOfBirth", { ...data.dateOfBirth, month: v })}>
-                <SelectTrigger><SelectValue placeholder="Month" /></SelectTrigger>
-                <SelectContent>
-                  {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((m, i) => (
-                    <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={data.dateOfBirth.year} onValueChange={(v) => updateField("dateOfBirth", { ...data.dateOfBirth, year: v })}>
-                <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 80 }, (_, i) => {
-                    const year = new Date().getFullYear() - 18 - i
-                    return <SelectItem key={year} value={String(year)}>{year}</SelectItem>
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div>
-            <Label className={getLabelClass("Gender")}>Gender *</Label>
-            <Select value={data.gender} onValueChange={(v) => updateField("gender", v)}>
-              <SelectTrigger className={getInputErrorClass("Gender")}><SelectValue placeholder="Select" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-                <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Marital Status *</Label>
-            <Select value={data.maritalStatus} onValueChange={(v) => updateField("maritalStatus", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="single">Single</SelectItem>
-                <SelectItem value="married">Married</SelectItem>
-                <SelectItem value="common_law">Common-Law</SelectItem>
-                <SelectItem value="divorced">Divorced</SelectItem>
-                <SelectItem value="separated">Separated</SelectItem>
-                <SelectItem value="widowed">Widowed</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Phone * <span className="text-xs text-primary font-medium">(3-digit area + 7-digit number)</span></Label>
-            <Input 
-              type="tel" 
-              value={data.phone} 
-              onChange={(e) => {
-                const digits = e.target.value.replace(/\D/g, '').slice(0, 10)
-                const formatted = digits.length <= 3 ? digits :
-                  digits.length <= 6 ? `(${digits.slice(0, 3)}) ${digits.slice(3)}` :
-                  `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
-                updateField("phone", formatted)
-              }} 
-              placeholder="(XXX) XXX-XXXX" 
-            />
-          </div>
-          <div>
-            <Label>Mobile Phone</Label>
-            <Input 
-              type="tel" 
-              value={data.mobilePhone} 
-              onChange={(e) => {
-                const digits = e.target.value.replace(/\D/g, '').slice(0, 10)
-                const formatted = digits.length <= 3 ? digits :
-                  digits.length <= 6 ? `(${digits.slice(0, 3)}) ${digits.slice(3)}` :
-                  `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
-                updateField("mobilePhone", formatted)
-              }} 
-              placeholder="(XXX) XXX-XXXX" 
-            />
-          </div>
-          <div>
-            <Label>Email *</Label>
-            <Input type="email" value={data.email} onChange={(e) => updateField("email", e.target.value)} />
-          </div>
-          <div>
-            <Label>Credit Rating *</Label>
-            <Select value={data.creditRating} onValueChange={(v) => updateField("creditRating", v)}>
-              <SelectTrigger><SelectValue placeholder="Select rating" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="excellent">Excellent [750+]</SelectItem>
-                <SelectItem value="good">Good [700+]</SelectItem>
-                <SelectItem value="average">Average [600+]</SelectItem>
-                <SelectItem value="poor">Poor [500+]</SelectItem>
-                <SelectItem value="unknown">Unknown</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </section>
-      
-      <Separator />
-      
-      {/* Address */}
-      <section>
-        <h4 className="font-medium mb-4 flex items-center gap-2">
-          <MapPin className="w-4 h-4" />
-          Current Address
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <PostalCodeInput
-            value={data.postalCode}
-            onChange={(postalCode, addressData) => {
-              console.log("[v0] PostalCodeInput onChange RECEIVED:", { postalCode, addressData })
-              const newData = {
-                ...data,
-                postalCode,
-                ...(addressData?.city && { city: addressData.city }),
-                ...(addressData?.province && { province: addressData.province }),
-                ...(addressData?.streetName && { streetName: addressData.streetName }),
-                ...(addressData?.streetType && { streetType: addressData.streetType }),
-                ...(addressData?.direction && { direction: addressData.direction }),
-              }
-              console.log("[v0] Updating applicant data with:", newData)
-              onChange(newData)
-            }}
-          />
-<div>
-  <Label className={getLabelClass("Address Type")}>Address Type *</Label>
-  <Select value={data.addressType} onValueChange={(v) => updateField("addressType", v)}>
-  <SelectTrigger className={getInputErrorClass("Address Type")}><SelectValue placeholder="Select" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="house">House</SelectItem>
-                <SelectItem value="apartment">Apartment</SelectItem>
-                <SelectItem value="condo">Condo</SelectItem>
-                <SelectItem value="townhouse">Townhouse</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Suite/Unit No.</Label>
-            <Input value={data.suiteNumber} onChange={(e) => updateField("suiteNumber", e.target.value)} />
-          </div>
-<div>
-  <Label className={getLabelClass("Street Number")}>Street Number *</Label>
-  <Input value={data.streetNumber} onChange={(e) => updateField("streetNumber", e.target.value)} className={getInputErrorClass("Street Number")} />
-  </div>
-          <div className="md:col-span-2">
-            <Label>Street Name *</Label>
-            <Input value={data.streetName} onChange={(e) => updateField("streetName", e.target.value)} />
-          </div>
-          <div>
-            <Label>Street Type</Label>
-            <Select value={data.streetType} onValueChange={(v) => updateField("streetType", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Street">Street</SelectItem>
-                <SelectItem value="Avenue">Avenue</SelectItem>
-                <SelectItem value="Road">Road</SelectItem>
-                <SelectItem value="Drive">Drive</SelectItem>
-                <SelectItem value="Boulevard">Boulevard</SelectItem>
-                <SelectItem value="Crescent">Crescent</SelectItem>
-                <SelectItem value="Court">Court</SelectItem>
-                <SelectItem value="Way">Way</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Direction</Label>
-            <Select value={data.streetDirection} onValueChange={(v) => updateField("streetDirection", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="N">North</SelectItem>
-                <SelectItem value="S">South</SelectItem>
-                <SelectItem value="E">East</SelectItem>
-                <SelectItem value="W">West</SelectItem>
-                <SelectItem value="NE">Northeast</SelectItem>
-                <SelectItem value="NW">Northwest</SelectItem>
-                <SelectItem value="SE">Southeast</SelectItem>
-                <SelectItem value="SW">Southwest</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>City * <span className="text-xs text-muted-foreground">(from postal code)</span></Label>
-            <Input 
-              value={data.city} 
-              onChange={(e) => updateField("city", e.target.value)}
-              readOnly={Boolean(data.city && data.postalCode.length >= 6)}
-              className={data.city && data.postalCode.length >= 6 ? "bg-muted" : ""}
-            />
-          </div>
-          <div>
-            <Label>Province * <span className="text-xs text-muted-foreground">(from postal code)</span></Label>
-            <Input 
-              value={data.province} 
-              readOnly={Boolean(data.province && data.postalCode.length >= 6)}
-              className={data.province && data.postalCode.length >= 6 ? "bg-muted" : ""}
-            />
-          </div>
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <Label>Years at Address</Label>
-              <Input type="number" value={data.durationYears} onChange={(e) => updateField("durationYears", e.target.value)} min="0" />
-            </div>
-            <div className="flex-1">
-              <Label>Months</Label>
-              <Input type="number" value={data.durationMonths} onChange={(e) => updateField("durationMonths", e.target.value)} min="0" max="11" />
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      <Separator />
-      
-      {/* Home/Mortgage Details */}
-      <section>
-        <h4 className="font-medium mb-4 flex items-center gap-2">
-          <Home className="w-4 h-4" />
-          Home/Mortgage Details
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <Label>Home Status *</Label>
-            <Select value={data.homeStatus} onValueChange={(v) => updateField("homeStatus", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="own">Own</SelectItem>
-                <SelectItem value="rent">Rent</SelectItem>
-                <SelectItem value="live_with_parents">Live with Parents</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {data.homeStatus === "own" && (
-            <>
-              <div>
-                <Label>Market Value</Label>
-                <Input type="number" value={data.marketValue} onChange={(e) => updateField("marketValue", e.target.value)} placeholder="$0.00" />
-              </div>
-              <div>
-                <Label>Mortgage Amount</Label>
-                <Input type="number" value={data.mortgageAmount} onChange={(e) => updateField("mortgageAmount", e.target.value)} placeholder="$0.00" />
-              </div>
-              <div>
-                <Label>Mortgage Holder</Label>
-                <Input value={data.mortgageHolder} onChange={(e) => updateField("mortgageHolder", e.target.value)} />
-              </div>
-            </>
-          )}
-          <div>
-            <Label>Monthly Payment *</Label>
-            <Input type="number" value={data.monthlyPayment} onChange={(e) => updateField("monthlyPayment", e.target.value)} placeholder="$0.00" />
-          </div>
-        </div>
-      </section>
-      
-      <Separator />
-      
-      {/* Employment */}
-      <section>
-        <h4 className="font-medium mb-4 flex items-center gap-2">
-          <Briefcase className="w-4 h-4" />
-          Current Employment
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <Label>Employment Type *</Label>
-            <Select value={data.employmentCategory} onValueChange={(v) => updateField("employmentCategory", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="full_time">Full-Time</SelectItem>
-                <SelectItem value="part_time">Part-Time</SelectItem>
-                <SelectItem value="self_employed">Self-Employed</SelectItem>
-                <SelectItem value="retired">Retired</SelectItem>
-                <SelectItem value="student">Student</SelectItem>
-                <SelectItem value="unemployed">Unemployed</SelectItem>
-                <SelectItem value="disability">Disability</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Status *</Label>
-            <Select value={data.employmentStatus} onValueChange={(v) => updateField("employmentStatus", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="employed">Employed</SelectItem>
-                <SelectItem value="probation">On Probation</SelectItem>
-                <SelectItem value="contract">Contract</SelectItem>
-                <SelectItem value="seasonal">Seasonal</SelectItem>
-                <SelectItem value="temporary">Temporary</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Employer Name *</Label>
-            <Input value={data.employerName} onChange={(e) => updateField("employerName", e.target.value)} />
-          </div>
-          <div>
-            <Label>Occupation *</Label>
-            <Input value={data.occupation} onChange={(e) => updateField("occupation", e.target.value)} />
-          </div>
-          <div>
-            <Label>Job Title</Label>
-            <Input value={data.jobTitle} onChange={(e) => updateField("jobTitle", e.target.value)} />
-          </div>
-<div>
-  <Label>Employer Phone * <span className="text-xs text-primary font-medium">(3-digit area + 7-digit number)</span></Label>
-  <div className="flex gap-2">
-  <Input 
-    type="tel" 
-    value={data.employerPhone} 
-    onChange={(e) => {
-      const digits = e.target.value.replace(/\D/g, '').slice(0, 10)
-      const formatted = digits.length <= 3 ? digits :
-        digits.length <= 6 ? `(${digits.slice(0, 3)}) ${digits.slice(3)}` :
-        `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
-      updateField("employerPhone", formatted)
-    }} 
-    placeholder="(XXX) XXX-XXXX"
-    className="flex-1" 
-  />
-              <Input value={data.employerPhoneExt} onChange={(e) => updateField("employerPhoneExt", e.target.value)} placeholder="Ext." className="w-20" />
-            </div>
-          </div>
-          <PostalCodeInput
-            value={data.employerPostalCode}
-            label="Employer Postal Code *"
-            onChange={(postalCode, addressData) => {
-              onChange({
-                ...data,
-                employerPostalCode: postalCode,
-                ...(addressData?.city && { employerCity: addressData.city }),
-                ...(addressData?.province && { employerProvince: addressData.province }),
-              })
-            }}
-          />
-          <div className="md:col-span-2">
-            <Label>Employer Address</Label>
-            <Input value={data.employerStreet} onChange={(e) => updateField("employerStreet", e.target.value)} placeholder="Street address" />
-          </div>
-          <div>
-            <Label>City <span className="text-xs text-muted-foreground">(from postal code)</span></Label>
-            <Input 
-              value={data.employerCity} 
-              onChange={(e) => updateField("employerCity", e.target.value)}
-              readOnly={Boolean(data.employerCity && data.employerPostalCode.length >= 6)}
-              className={data.employerCity && data.employerPostalCode.length >= 6 ? "bg-muted" : ""}
-            />
-          </div>
-          <div>
-            <Label>Province <span className="text-xs text-muted-foreground">(from postal code)</span></Label>
-            <Input 
-              value={data.employerProvince} 
-              readOnly={Boolean(data.employerProvince && data.employerPostalCode.length >= 6)}
-              className={data.employerProvince && data.employerPostalCode.length >= 6 ? "bg-muted" : ""}
-            />
-          </div>
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <Label>Years Employed</Label>
-              <Input type="number" value={data.employmentYears} onChange={(e) => updateField("employmentYears", e.target.value)} min="0" />
-            </div>
-            <div className="flex-1">
-              <Label>Months</Label>
-              <Input type="number" value={data.employmentMonths} onChange={(e) => updateField("employmentMonths", e.target.value)} min="0" max="11" />
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      <Separator />
-      
-      {/* Income */}
-      <section>
-        <h4 className="font-medium mb-4 flex items-center gap-2">
-          <DollarSign className="w-4 h-4" />
-          Income Details
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <Label>Gross Income *</Label>
-            <Input type="number" value={data.grossIncome} onChange={(e) => updateField("grossIncome", e.target.value)} placeholder="$0.00" />
-          </div>
-          <div>
-            <Label>Income Frequency *</Label>
-            <Select value={data.incomeFrequency} onValueChange={(v) => updateField("incomeFrequency", v)}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="bi-weekly">Bi-Weekly</SelectItem>
-                <SelectItem value="semi-monthly">Semi-Monthly</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="annually">Annually</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Other Income Type</Label>
-            <Select value={data.otherIncomeType} onValueChange={(v) => updateField("otherIncomeType", v)}>
-              <SelectTrigger><SelectValue placeholder="Select if applicable" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pension">Pension</SelectItem>
-                <SelectItem value="rental">Rental Income</SelectItem>
-                <SelectItem value="investment">Investment</SelectItem>
-                <SelectItem value="child_support">Child Support</SelectItem>
-                <SelectItem value="government">Government Benefits</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {data.otherIncomeType && (
-            <>
-              <div>
-                <Label>Other Income Amount</Label>
-                <Input type="number" value={data.otherIncomeAmount} onChange={(e) => updateField("otherIncomeAmount", e.target.value)} placeholder="$0.00" />
-              </div>
-              <div>
-                <Label>Frequency</Label>
-                <Select value={data.otherIncomeFrequency} onValueChange={(v) => updateField("otherIncomeFrequency", v)}>
-                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="annually">Annually</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {data.otherIncomeType === "other" && (
-                <div>
-                  <Label>Description</Label>
-                  <Input value={data.otherIncomeDescription} onChange={(e) => updateField("otherIncomeDescription", e.target.value)} />
-                </div>
-              )}
-            </>
-          )}
-          <div>
-            <Label>Annual Total * <span className="text-xs text-muted-foreground">(Auto-calculated)</span></Label>
-            <Input 
-              type="text" 
-              value={data.annualTotal ? `$${parseFloat(data.annualTotal).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "$0.00"} 
-              readOnly 
-              className="bg-amber-50 font-semibold" 
-            />
-          </div>
-        </div>
-      </section>
-    </div>
-  )
-}
-
-// =====================================================
-// VEHICLE & FINANCING FORM
-// =====================================================
-interface VehicleFinancingFormProps {
-  vehicleInfo: VehicleInfo
-  setVehicleInfo: (v: VehicleInfo) => void
-  tradeIn: TradeInInfo
-  setTradeIn: (t: TradeInInfo) => void
-  financingTerms: FinancingTerms
-  setFinancingTerms: (f: FinancingTerms) => void
-  financing: ReturnType<typeof calculateFinancing>
-  additionalNotes: string
-  setAdditionalNotes: (n: string) => void
-}
-
-function calculateFinancing(): { price: number; downPayment: number; netTrade: number; adminFee: number; omvicFee: number; certificationFee: number; licensingFee: number; deliveryFee: number; totalFees: number; tax: number; amountFinanced: number; payment: number; totalToRepay: number; totalInterest: number; totalPayments: number } {
-  return { price: 0, downPayment: 0, netTrade: 0, adminFee: 0, omvicFee: 0, certificationFee: 0, licensingFee: 0, deliveryFee: 0, totalFees: 0, tax: 0, amountFinanced: 0, payment: 0, totalToRepay: 0, totalInterest: 0, totalPayments: 0 }
-  }
-
-function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn, financingTerms, setFinancingTerms, financing, additionalNotes, setAdditionalNotes }: VehicleFinancingFormProps) {
-  // Check if vehicle data was pre-filled (has year and make)
-  const isVehicleSelected = Boolean(vehicleInfo.year && vehicleInfo.make && vehicleInfo.totalPrice)
-  const [showInventoryModal, setShowInventoryModal] = useState(false)
-  const [inventoryVehicles, setInventoryVehicles] = useState<any[]>([])
-  const [isLoadingInventory, setIsLoadingInventory] = useState(false)
-  const [inventorySearch, setInventorySearch] = useState("")
-  
-  // Fetch vehicles from inventory when modal opens
-  useEffect(() => {
-    if (showInventoryModal && inventoryVehicles.length === 0) {
-      fetchInventory()
-    }
-  }, [showInventoryModal])
-  
-  const fetchInventory = async () => {
-    setIsLoadingInventory(true)
-    try {
-      const { createClient } = await import("@/lib/supabase/client")
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from("vehicles")
-        .select("id, year, make, model, trim, price, vin, mileage, exterior_color, primary_image_url, stock_number")
-        .eq("status", "available")
-        .order("created_at", { ascending: false })
-        .limit(50)
-      
-      if (data) {
-        setInventoryVehicles(data)
-      }
-    } catch (error) {
-      console.error("Error fetching inventory:", error)
-    } finally {
-      setIsLoadingInventory(false)
-    }
-  }
-  
-  const handleSelectVehicle = (vehicle: any) => {
-    setVehicleInfo({
-      ...vehicleInfo,
-      vin: vehicle.vin || "",
-      year: vehicle.year?.toString() || "",
-      make: vehicle.make || "",
-      model: vehicle.model || "",
-      trim: vehicle.trim || "",
-      color: vehicle.exterior_color || "",
-      mileage: vehicle.mileage?.toString() || "",
-      totalPrice: (vehicle.price / 100).toString(), // Convert from cents
-    })
-    setShowInventoryModal(false)
-  }
-  
-  const filteredVehicles = inventoryVehicles.filter(v => {
-    if (!inventorySearch) return true
-    const searchLower = inventorySearch.toLowerCase()
-    return (
-      v.make?.toLowerCase().includes(searchLower) ||
-      v.model?.toLowerCase().includes(searchLower) ||
-      v.year?.toString().includes(searchLower) ||
-      v.vin?.toLowerCase().includes(searchLower)
-    )
-  })
-  
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      {/* Inventory Selection Modal */}
-      {showInventoryModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-background rounded-xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col">
-            <div className="p-4 border-b flex items-center justify-between">
-              <h3 className="font-semibold text-lg">Select Vehicle from Inventory</h3>
-              <Button variant="ghost" size="sm" onClick={() => setShowInventoryModal(false)}>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-            <div className="p-4 border-b">
-              <Input
-                placeholder="Search by make, model, year, or VIN..."
-                value={inventorySearch}
-                onChange={(e) => setInventorySearch(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <div className="flex-1 overflow-y-auto p-4">
-              {isLoadingInventory ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </div>
-              ) : filteredVehicles.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  No vehicles found in inventory
-                </div>
-              ) : (
-                <div className="grid gap-3">
-                  {filteredVehicles.map((vehicle) => (
-                    <div
-                      key={vehicle.id}
-                      className="flex items-center gap-4 p-3 rounded-lg border hover:border-primary hover:bg-primary/5 cursor-pointer transition-colors"
-                      onClick={() => handleSelectVehicle(vehicle)}
-                    >
-                      <div className="w-24 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
-                        {vehicle.primary_image_url ? (
-                          <img 
-                            src={vehicle.primary_image_url} 
-                            alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Car className="w-8 h-8 text-muted-foreground" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">
-                          {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {vehicle.mileage?.toLocaleString()} km | Stock #{vehicle.stock_number}
-                        </p>
-                        <p className="text-xs text-muted-foreground font-mono">{vehicle.vin}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-primary">
-                          ${(vehicle.price / 100).toLocaleString()}
-                        </p>
-                        <Button size="sm" className="mt-1">Select</Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Left Column - Vehicle Info */}
-      <div className="space-y-6">
-        <section>
-          <h4 className="font-medium mb-4 flex items-center gap-2">
-            <Car className="w-4 h-4" />
-            Vehicle Information
-            {isVehicleSelected && (
-              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Selected from inventory</span>
-            )}
-          </h4>
-          
-          {!isVehicleSelected ? (
-            // No vehicle selected - show browse button
-            <div className="border-2 border-dashed border-primary/30 bg-primary/5 rounded-xl p-8 text-center">
-              <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <Car className="w-8 h-8 text-primary" />
-              </div>
-              <h5 className="font-semibold text-lg mb-2">Select Your Vehicle</h5>
-              <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
-                Choose a vehicle from our inventory to proceed with your financing application. Vehicle information will be filled automatically.
-              </p>
-              <Button size="lg" onClick={() => setShowInventoryModal(true)}>
-                <Car className="w-5 h-5 mr-2" />
-                Browse Available Inventory
-              </Button>
-              <p className="text-xs text-muted-foreground mt-4">
-                Vehicle selection is required to continue
-              </p>
-            </div>
-          ) : (
-            // Vehicle selected - show read-only details
-            <>
-              <p className="text-sm text-muted-foreground mb-4">
-                Vehicle details have been automatically filled from your selected vehicle.
-              </p>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <Label>VIN</Label>
-                  <Input 
-                    value={vehicleInfo.vin} 
-                    readOnly
-                    className="bg-muted font-mono text-sm"
-                  />
-                </div>
-                <div>
-                  <Label>Year</Label>
-                  <Input 
-                    value={vehicleInfo.year} 
-                    readOnly
-                    className="bg-muted"
-                  />
-                </div>
-                <div>
-                  <Label>Make</Label>
-                  <Input 
-                    value={vehicleInfo.make} 
-                    readOnly
-                    className="bg-muted"
-                  />
-                </div>
-                <div>
-                  <Label>Model/Trim</Label>
-                  <Input 
-                    value={`${vehicleInfo.model}${vehicleInfo.trim ? ` ${vehicleInfo.trim}` : ''}`} 
-                    readOnly
-                    className="bg-muted"
-                  />
-                </div>
-                <div>
-                  <Label>Color</Label>
-                  <Input 
-                    value={vehicleInfo.color} 
-                    readOnly
-                    className="bg-muted"
-                  />
-                </div>
-                <div>
-                  <Label>Current KMs</Label>
-                  <Input 
-                    value={vehicleInfo.mileage ? parseInt(vehicleInfo.mileage).toLocaleString() : ""} 
-                    readOnly
-                    className="bg-muted"
-                  />
-                </div>
-                <div>
-                  <Label>Total Price Before Tax</Label>
-                  <Input 
-                    value={vehicleInfo.totalPrice ? `$${parseFloat(vehicleInfo.totalPrice).toLocaleString()}` : ""} 
-                    readOnly
-                    className="bg-muted font-semibold"
-                  />
-                </div>
-                <div>
-                  <Label>Down Payment</Label>
-                  <Input type="number" value={vehicleInfo.downPayment} onChange={(e) => setVehicleInfo({ ...vehicleInfo, downPayment: e.target.value })} className="bg-green-50" />
-                </div>
-                <div>
-                  <Label>Max Down Payment If Needed</Label>
-                  <Input type="number" value={vehicleInfo.maxDownPayment} onChange={(e) => setVehicleInfo({ ...vehicleInfo, maxDownPayment: e.target.value })} />
-                </div>
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="mt-4"
-                onClick={() => setShowInventoryModal(true)}
-              >
-                <Car className="w-4 h-4 mr-2" />
-                Change Vehicle
-              </Button>
-            </>
-          )}
-        </section>
-        
-        <Separator />
-        
-        {/* Trade-In */}
-        <section>
-          <div className="flex items-center gap-3 mb-4">
-            <Checkbox
-              id="hasTradeIn"
-              checked={tradeIn.hasTradeIn}
-              onCheckedChange={(checked) => setTradeIn({ ...tradeIn, hasTradeIn: checked as boolean })}
-            />
-            <Label htmlFor="hasTradeIn" className="font-medium cursor-pointer">Include Trade-in</Label>
-          </div>
-          
-          {tradeIn.hasTradeIn && (
-            <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
-              <div className="col-span-2">
-                <Label>VIN</Label>
-                <Input value={tradeIn.vin} onChange={(e) => setTradeIn({ ...tradeIn, vin: e.target.value })} />
-              </div>
-              <div>
-                <Label>Year</Label>
-                <Input value={tradeIn.year} onChange={(e) => setTradeIn({ ...tradeIn, year: e.target.value })} />
-              </div>
-              <div>
-                <Label>Make</Label>
-                <Input value={tradeIn.make} onChange={(e) => setTradeIn({ ...tradeIn, make: e.target.value })} />
-              </div>
-              <div>
-                <Label>Model</Label>
-                <Input value={tradeIn.model} onChange={(e) => setTradeIn({ ...tradeIn, model: e.target.value })} />
-              </div>
-              <div>
-                <Label>Mileage (km)</Label>
-                <Input type="text" inputMode="numeric" pattern="[0-9]*" value={tradeIn.mileage} onChange={(e) => setTradeIn({ ...tradeIn, mileage: e.target.value.replace(/[^0-9]/g, '') })} autoComplete="off" />
-              </div>
-              <div>
-                <Label>Condition</Label>
-                <Select value={tradeIn.condition} onValueChange={(v) => setTradeIn({ ...tradeIn, condition: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="excellent">Excellent</SelectItem>
-                    <SelectItem value="good">Good</SelectItem>
-                    <SelectItem value="fair">Fair</SelectItem>
-                    <SelectItem value="poor">Poor</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Estimated Value</Label>
-                <Input type="number" value={tradeIn.estimatedValue} onChange={(e) => setTradeIn({ ...tradeIn, estimatedValue: e.target.value })} />
-              </div>
-              <div className="col-span-2 flex items-center gap-3 mt-2">
-                <Checkbox
-                  id="hasLien"
-                  checked={tradeIn.hasLien}
-                  onCheckedChange={(checked) => setTradeIn({ ...tradeIn, hasLien: checked as boolean })}
-                />
-                <Label htmlFor="hasLien" className="cursor-pointer">Vehicle has existing lien</Label>
-              </div>
-              {tradeIn.hasLien && (
-                <>
-                  <div>
-                    <Label>Lien Holder</Label>
-                    <Input value={tradeIn.lienHolder} onChange={(e) => setTradeIn({ ...tradeIn, lienHolder: e.target.value })} />
-                  </div>
-                  <div>
-                    <Label>Lien Amount</Label>
-                    <Input type="number" value={tradeIn.lienAmount} onChange={(e) => setTradeIn({ ...tradeIn, lienAmount: e.target.value })} />
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-        </section>
-        
-        <Separator />
-        
-        {/* Additional Notes */}
-        <section>
-          <Label>Additional Notes</Label>
-          <Textarea
-            value={additionalNotes}
-            onChange={(e) => setAdditionalNotes(e.target.value)}
-            placeholder="Any additional information for your application..."
-            rows={3}
-          />
-        </section>
-      </div>
-      
-      {/* Right Column - Financing */}
-      <div className="space-y-6">
-        <section className="bg-muted/30 rounded-xl p-6">
-          <h4 className="font-semibold mb-4">Financing</h4>
-          
-          {/* Agreement Type */}
-          <div className="mb-4">
-            <Label className="text-xs uppercase text-muted-foreground">Agreement Type</Label>
-            <div className="flex gap-2 mt-2">
-              <Button
-                type="button"
-                variant={financingTerms.agreementType === "finance" ? "default" : "outline"}
-                onClick={() => setFinancingTerms({ ...financingTerms, agreementType: "finance" })}
-                className="flex-1"
-              >
-                Finance
-              </Button>
-              <Button
-                type="button"
-                variant={financingTerms.agreementType === "cash" ? "default" : "outline"}
-                onClick={() => setFinancingTerms({ ...financingTerms, agreementType: "cash" })}
-                className="flex-1"
-              >
-                Cash (Out-the-Door)
-              </Button>
-            </div>
-          </div>
-          
-          {financingTerms.agreementType === "finance" && (
-            <>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <Label className="text-xs">Sales Tax %</Label>
-                  <Input value={financingTerms.salesTaxRate} onChange={(e) => setFinancingTerms({ ...financingTerms, salesTaxRate: e.target.value })} />
-                </div>
-                <div>
-                  <Label className="text-xs">Interest Rate %</Label>
-                  <Input value={financingTerms.interestRate} onChange={(e) => setFinancingTerms({ ...financingTerms, interestRate: e.target.value })} placeholder="8.99" />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <Label className="text-xs">Finance Docs Fee $ <span className="text-primary font-medium">($895)</span></Label>
-                  <Input value={financingTerms.adminFee} onChange={(e) => setFinancingTerms({ ...financingTerms, adminFee: e.target.value })} readOnly className="bg-muted" />
-                </div>
-                <div>
-                  <Label className="text-xs">Delivery Fee $ <span className="text-muted-foreground">(Enter postal code)</span></Label>
-                  <div className="flex gap-2">
-                    <Input 
-                      value={financingTerms.deliveryPostalCode} 
-                      onChange={(e) => setFinancingTerms({ ...financingTerms, deliveryPostalCode: e.target.value.toUpperCase() })}
-                      placeholder="L4C 1G7"
-                      className="flex-1 font-mono uppercase"
-                    />
-                    <Button 
-                      type="button" 
-                      size="sm" 
-                      variant="outline"
-                      onClick={async () => {
-                        if (financingTerms.deliveryPostalCode.length >= 3) {
-                          try {
-                            const res = await fetch(`/api/v1/deliveries/quote?postalCode=${financingTerms.deliveryPostalCode}`)
-                            const data = await res.json()
-                            if (data.deliveryCost !== undefined) {
-                              setFinancingTerms({ ...financingTerms, deliveryFee: data.deliveryCost.toString() })
-                            }
-                          } catch {
-                            setFinancingTerms({ ...financingTerms, deliveryFee: "0" })
-                          }
-                        }
-                      }}
-                    >
-                      Check
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {parseFloat(financingTerms.deliveryFee) > 0 
-                      ? `Delivery: $${parseFloat(financingTerms.deliveryFee).toFixed(0)}` 
-                      : "Free within 300km of Richmond Hill"}
-                  </p>
-                </div>
-              </div>
-              
-              {/* Loan Term */}
-              <div className="mb-4">
-                <Label className="text-xs uppercase text-muted-foreground">Loan Term (Months)</Label>
-                <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 mt-2">
-                  {[24, 36, 48, 60, 72, 84, 96].map((term) => (
-                    <Button
-                      key={term}
-                      type="button"
-                      size="sm"
-                      variant={financingTerms.loanTermMonths === term ? "default" : "outline"}
-                      onClick={() => setFinancingTerms({ ...financingTerms, loanTermMonths: term })}
-                    >
-                      {term}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Payment Frequency */}
-              <div className="mb-6">
-                <Label className="text-xs uppercase text-muted-foreground">Payment Frequency</Label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
-                  {[
-                    { value: "weekly", label: "Weekly" },
-                    { value: "bi-weekly", label: "Bi-Weekly" },
-                    { value: "semi-monthly", label: "Semi-Mo" },
-                    { value: "monthly", label: "Monthly" },
-                  ].map((freq) => (
-                    <Button
-                      key={freq.value}
-                      type="button"
-                      size="sm"
-                      variant={financingTerms.paymentFrequency === freq.value ? "default" : "outline"}
-                      onClick={() => setFinancingTerms({ ...financingTerms, paymentFrequency: freq.value as any })}
-                    >
-                      {freq.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Loan Breakdown */}
-              <Separator className="my-4" />
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Vehicle Price:</span>
-                  <span>${financing.price.toLocaleString()}</span>
-                </div>
-                {financing.adminFee > 0 && (
-                  <div className="flex justify-between text-primary">
-                    <span className="font-medium">Finance Docs Fee:</span>
-                    <span className="font-medium">+${financing.adminFee.toLocaleString()}</span>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">OMVIC Fee:</span>
-                  <span>+${financing.omvicFee.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Certification Fee:</span>
-                  <span>+${financing.certificationFee.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Licensing Fee:</span>
-                  <span>+${financing.licensingFee.toLocaleString()}</span>
-                </div>
-                {financing.deliveryFee > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Delivery Fee:</span>
-                    <span>+${financing.deliveryFee.toLocaleString()}</span>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Sales Tax ({financingTerms.salesTaxRate}%):</span>
-                  <span>+${financing.tax.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Down Payment:</span>
-                  <span>-${financing.downPayment.toLocaleString()}</span>
-                </div>
-                {financing.netTrade > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Net Trade Value:</span>
-                    <span>-${financing.netTrade.toLocaleString()}</span>
-                  </div>
-                )}
-                <Separator />
-                <div className="flex justify-between font-semibold">
-                  <span>Amount Financed:</span>
-                  <span>${financing.amountFinanced.toLocaleString()}</span>
-                </div>
-              </div>
-              
-              {/* Total Cost */}
-              <div className="mt-4 p-4 bg-background rounded-lg border">
-                <div className="text-xs text-muted-foreground mb-1">TOTAL COST</div>
-                <div className="flex justify-between text-sm">
-                  <span>{financing.totalPayments.toFixed(0)} payments x ${financing.payment.toFixed(2)}:</span>
-                  <span>${financing.totalToRepay.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Total to Repay:</span>
-                  <span>${financing.totalToRepay.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Total Interest:</span>
-                  <span>${financing.totalInterest.toLocaleString()}</span>
-                </div>
-              </div>
-              
-              {/* Payment Display */}
-              <div className="mt-4 p-6 bg-primary/10 rounded-xl text-center">
-                <div className="text-sm text-muted-foreground mb-1">
-                  {financingTerms.paymentFrequency === "bi-weekly" ? "Bi-Weekly" : 
-                   financingTerms.paymentFrequency === "weekly" ? "Weekly" :
-                   financingTerms.paymentFrequency === "semi-monthly" ? "Semi-Monthly" : "Monthly"} Payment
-                </div>
-                <div className="text-4xl font-bold text-primary">
-                  ${financing.payment.toFixed(2)}
-                </div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  {financingTerms.loanTermMonths} months @ {financingTerms.interestRate || "0"}% APR
-                </div>
-              </div>
-            </>
-          )}
-        </section>
-      </div>
-    </div>
-  )
-}
-
-// =====================================================
-// REVIEW STEP
-// =====================================================
-interface ReviewStepProps {
-  primaryApplicant: ApplicantData
-  coApplicant: ApplicantData | null
-  vehicleInfo: VehicleInfo
-  tradeIn: TradeInInfo
-  financingTerms: FinancingTerms
-  financing: any
-}
-
-function ReviewStep({ primaryApplicant, coApplicant, vehicleInfo, tradeIn, financingTerms, financing }: ReviewStepProps) {
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-        <AlertCircle className="w-5 h-5 text-amber-600" />
-        <p className="text-sm text-amber-800">Please review all information carefully before submitting.</p>
-      </div>
-      
-      {/* Primary Applicant Summary */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Primary Applicant</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-          <div><span className="text-muted-foreground">Name:</span> <span className="font-medium">{primaryApplicant.firstName} {primaryApplicant.lastName}</span></div>
-          <div><span className="text-muted-foreground">Phone:</span> <span className="font-medium">{primaryApplicant.phone}</span></div>
-          <div><span className="text-muted-foreground">Email:</span> <span className="font-medium">{primaryApplicant.email}</span></div>
-          <div><span className="text-muted-foreground">Address:</span> <span className="font-medium">{primaryApplicant.streetNumber} {primaryApplicant.streetName}, {primaryApplicant.city}</span></div>
-          <div><span className="text-muted-foreground">Employer:</span> <span className="font-medium">{primaryApplicant.employerName}</span></div>
-          <div><span className="text-muted-foreground">Annual Income:</span> <span className="font-medium">${primaryApplicant.annualTotal}</span></div>
-          <div><span className="text-muted-foreground">Credit Rating:</span> <span className="font-medium capitalize">{primaryApplicant.creditRating}</span></div>
-        </CardContent>
-      </Card>
-      
-      {/* Co-Applicant Summary */}
-      {coApplicant && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Co-Applicant</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-            <div><span className="text-muted-foreground">Name:</span> <span className="font-medium">{coApplicant.firstName} {coApplicant.lastName}</span></div>
-            <div><span className="text-muted-foreground">Phone:</span> <span className="font-medium">{coApplicant.phone}</span></div>
-            <div><span className="text-muted-foreground">Employer:</span> <span className="font-medium">{coApplicant.employerName}</span></div>
-            <div><span className="text-muted-foreground">Annual Income:</span> <span className="font-medium">${coApplicant.annualTotal}</span></div>
-          </CardContent>
-        </Card>
-      )}
-      
-      {/* Vehicle Summary */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Vehicle & Financing</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-          <div><span className="text-muted-foreground">Vehicle:</span> <span className="font-medium">{vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}</span></div>
-          <div><span className="text-muted-foreground">Price:</span> <span className="font-medium">${parseFloat(vehicleInfo.totalPrice).toLocaleString()}</span></div>
-          <div><span className="text-muted-foreground">Down Payment:</span> <span className="font-medium">${parseFloat(vehicleInfo.downPayment).toLocaleString()}</span></div>
-          <div><span className="text-muted-foreground">Term:</span> <span className="font-medium">{financingTerms.loanTermMonths} months</span></div>
-          <div><span className="text-muted-foreground">Payment:</span> <span className="font-medium">${financing.payment.toFixed(2)}/{financingTerms.paymentFrequency}</span></div>
-          <div><span className="text-muted-foreground">Amount Financed:</span> <span className="font-medium">${financing.amountFinanced.toLocaleString()}</span></div>
-        </CardContent>
-      </Card>
-      
-      {/* Trade-In Summary */}
-      {tradeIn.hasTradeIn && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Trade-In Vehicle</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-            <div><span className="text-muted-foreground">Vehicle:</span> <span className="font-medium">{tradeIn.year} {tradeIn.make} {tradeIn.model}</span></div>
-            <div><span className="text-muted-foreground">Value:</span> <span className="font-medium">${(parseFloat(tradeIn.estimatedValue) || 0).toLocaleString()}</span></div>
-            {tradeIn.hasLien && (
-              <div><span className="text-muted-foreground">Lien:</span> <span className="font-medium">${parseFloat(tradeIn.lienAmount).toLocaleString()}</span></div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  )
-}
-
-// =====================================================
-// DOCUMENTS STEP
-// =====================================================
-interface DocumentsStepProps {
-  documents: DocumentUpload[]
-  setDocuments: (d: DocumentUpload[]) => void
-  onSubmit: () => void
-  isSubmitting: boolean
-}
-
-function DocumentsStep({ documents, setDocuments, onSubmit, isSubmitting }: DocumentsStepProps) {
-  const documentTypes = [
-    { value: "drivers_license", label: "Driver's License", required: true },
-    { value: "proof_of_income", label: "Proof of Income (Pay Stub/T4)", required: true },
-    { value: "proof_of_address", label: "Proof of Address (Utility Bill)", required: false },
-    { value: "void_cheque", label: "Void Cheque", required: false },
-  ]
-  
-  const handleFileChange = (type: string, file: File | null) => {
-    const existing = documents.find(d => d.type === type)
-    if (existing) {
-      setDocuments(documents.map(d => d.type === type ? { ...d, file } : d))
-    } else {
-      setDocuments([...documents, { type, name: file?.name || "", file }])
-    }
-  }
-  
-  return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold mb-2">Upload Verification Documents</h3>
-        <p className="text-sm text-muted-foreground">
-          Please upload the following documents to verify your identity and income.
-        </p>
-      </div>
-      
-      <div className="grid gap-4">
-        {documentTypes.map((docType) => {
-          const uploaded = documents.find(d => d.type === docType.value)
-          return (
-            <div key={docType.value} className="flex items-center justify-between p-4 border rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center",
-                  uploaded?.file ? "bg-green-100" : "bg-muted"
-                )}>
-                  {uploaded?.file ? (
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                  ) : (
-                    <FileText className="w-5 h-5 text-muted-foreground" />
-                  )}
-                </div>
-                <div>
-                  <p className="font-medium">{docType.label}</p>
-                  {uploaded?.file && (
-                    <p className="text-sm text-muted-foreground">{uploaded.file.name}</p>
-                  )}
-                </div>
-              </div>
-              <div>
-                <input
-                  type="file"
-                  id={docType.value}
-                  className="hidden"
-                  accept="image/*,.pdf"
-                  onChange={(e) => handleFileChange(docType.value, e.target.files?.[0] || null)}
-                />
-                <Button
-                  type="button"
-                  variant={uploaded?.file ? "outline" : "secondary"}
-                  size="sm"
-                  onClick={() => document.getElementById(docType.value)?.click()}
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  {uploaded?.file ? "Replace" : "Upload"}
-                </Button>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-      
-      <div className="p-4 bg-muted/50 rounded-lg flex items-start gap-3">
-        <Shield className="w-5 h-5 text-primary mt-0.5" />
-        <div className="text-sm">
-          <p className="font-medium">Your documents are secure</p>
-          <p className="text-muted-foreground">
-            All uploaded documents are encrypted and stored securely. They will only be used for verification purposes.
-          </p>
-        </div>
       </div>
     </div>
   )

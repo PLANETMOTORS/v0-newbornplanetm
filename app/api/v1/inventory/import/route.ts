@@ -129,7 +129,7 @@ export async function POST(request: Request) {
     }
 
     // Upsert vehicles (update existing by VIN, insert new)
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("vehicles")
       .upsert(vehicles, { 
         onConflict: "vin",
@@ -161,7 +161,7 @@ export async function POST(request: Request) {
 }
 
 // GET endpoint to download CSV template
-export async function GET() {
+export function GET() {
   const headers = [
     "stock_number",
     "vin",

@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Plus, X, CheckCircle, XCircle, Minus, ArrowRight, Share2, Printer, Download } from "lucide-react"
-import { useCompare, type CompareVehicle } from "@/lib/compare-context"
+import { Plus, X, CheckCircle, ArrowRight, Share2, Printer } from "lucide-react"
+import { useCompare, type CompareVehicle } from "@/contexts/compare-context"
 
 // Sample vehicles for comparison - will be replaced with API call: GET /api/vehicles/compare
 const availableVehicles: CompareVehicle[] = [
@@ -181,7 +181,7 @@ export default function ComparePage() {
     if (fromContext) return fromContext
     return availableVehicles.find(v => v.id === id)
   }
-  const selectedVehicleData = selectedVehicles.map(id => getVehicle(id)!).filter(Boolean)
+  const selectedVehicleData = selectedVehicles.map(id => getVehicle(id)).filter((v): v is NonNullable<typeof v> => Boolean(v))
 
   const compareValue = (values: (string | number)[], type: "lower" | "higher" = "higher") => {
     const numericValues = values.map(v => typeof v === "string" ? parseFloat(v) : v)
@@ -193,11 +193,11 @@ export default function ComparePage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main>
+      <main id="main-content" tabIndex={-1}>
         {/* Hero Section */}
         <section className="bg-primary py-8 sm:py-12">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary-foreground mb-3 sm:mb-4">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-[-0.01em] text-primary-foreground mb-3 sm:mb-4">
               Compare Vehicles
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-primary-foreground/80 max-w-2xl mx-auto mb-4 sm:mb-6">
@@ -297,7 +297,7 @@ export default function ComparePage() {
                     <tbody>
                       {/* Price */}
                       <tr className="border-b">
-                        <td className="p-4 font-medium">Price</td>
+                        <td className="p-4 font-semibold">Price</td>
                         {selectedVehicleData.map((vehicle, i) => {
                           const isBest = compareValue(selectedVehicleData.map(v => v.price), "lower")[i]
                           return (
@@ -313,7 +313,7 @@ export default function ComparePage() {
 
                       {/* Mileage */}
                       <tr className="border-b bg-muted/10">
-                        <td className="p-4 font-medium">Mileage</td>
+                        <td className="p-4 font-semibold">Mileage</td>
                         {selectedVehicleData.map((vehicle, i) => {
                           const isBest = compareValue(selectedVehicleData.map(v => v.mileage), "lower")[i]
                           return (
@@ -328,7 +328,7 @@ export default function ComparePage() {
 
                       {/* Fuel Type */}
                       <tr className="border-b">
-                        <td className="p-4 font-medium">Fuel Type</td>
+                        <td className="p-4 font-semibold">Fuel Type</td>
                         {selectedVehicleData.map(vehicle => (
                           <td key={vehicle.id} className="p-4 text-center">
                             <Badge variant="secondary">{vehicle.fuelType}</Badge>
@@ -338,7 +338,7 @@ export default function ComparePage() {
 
                       {/* Range */}
                       <tr className="border-b bg-muted/10">
-                        <td className="p-4 font-medium">Range</td>
+                        <td className="p-4 font-semibold">Range</td>
                         {selectedVehicleData.map((vehicle, i) => {
                           const ranges = selectedVehicleData.map(v => parseInt(v.range))
                           const isBest = compareValue(ranges, "higher")[i]
@@ -354,7 +354,7 @@ export default function ComparePage() {
 
                       {/* Horsepower */}
                       <tr className="border-b">
-                        <td className="p-4 font-medium">Horsepower</td>
+                        <td className="p-4 font-semibold">Horsepower</td>
                         {selectedVehicleData.map((vehicle, i) => {
                           const isBest = compareValue(selectedVehicleData.map(v => v.horsepower), "higher")[i]
                           return (
@@ -369,7 +369,7 @@ export default function ComparePage() {
 
                       {/* Acceleration */}
                       <tr className="border-b bg-muted/10">
-                        <td className="p-4 font-medium">0-100 km/h</td>
+                        <td className="p-4 font-semibold">0-100 km/h</td>
                         {selectedVehicleData.map((vehicle, i) => {
                           const times = selectedVehicleData.map(v => parseFloat(v.acceleration))
                           const isBest = compareValue(times, "lower")[i]
@@ -385,7 +385,7 @@ export default function ComparePage() {
 
                       {/* Cargo */}
                       <tr className="border-b">
-                        <td className="p-4 font-medium">Cargo Space</td>
+                        <td className="p-4 font-semibold">Cargo Space</td>
                         {selectedVehicleData.map(vehicle => (
                           <td key={vehicle.id} className="p-4 text-center">{vehicle.cargo}</td>
                         ))}
@@ -393,7 +393,7 @@ export default function ComparePage() {
 
                       {/* Transmission */}
                       <tr className="border-b bg-muted/10">
-                        <td className="p-4 font-medium">Transmission</td>
+                        <td className="p-4 font-semibold">Transmission</td>
                         {selectedVehicleData.map(vehicle => (
                           <td key={vehicle.id} className="p-4 text-center">{vehicle.transmission}</td>
                         ))}
@@ -401,7 +401,7 @@ export default function ComparePage() {
 
                       {/* Drivetrain */}
                       <tr className="border-b">
-                        <td className="p-4 font-medium">Drivetrain</td>
+                        <td className="p-4 font-semibold">Drivetrain</td>
                         {selectedVehicleData.map(vehicle => (
                           <td key={vehicle.id} className="p-4 text-center">
                             <Badge variant="secondary">{vehicle.drivetrain}</Badge>
@@ -411,7 +411,7 @@ export default function ComparePage() {
 
                       {/* Inspection Score */}
                       <tr className="border-b bg-muted/10">
-                        <td className="p-4 font-medium">210-Point Inspection</td>
+                        <td className="p-4 font-semibold">210-Point Inspection</td>
                         {selectedVehicleData.map((vehicle, i) => {
                           const isBest = compareValue(selectedVehicleData.map(v => v.inspectionScore), "higher")[i]
                           return (
@@ -427,11 +427,11 @@ export default function ComparePage() {
                       {/* Battery Health (for EVs) */}
                       {selectedVehicleData.some(v => v.batteryHealth) && (
                         <tr className="border-b">
-                          <td className="p-4 font-medium">Battery Health</td>
-                          {selectedVehicleData.map((vehicle, i) => {
+                          <td className="p-4 font-semibold">Battery Health</td>
+                          {selectedVehicleData.map((vehicle) => {
                             const evVehicles = selectedVehicleData.filter(v => v.batteryHealth)
                             const isBest = vehicle.batteryHealth && evVehicles.length > 1 
-                              ? compareValue(evVehicles.map(v => v.batteryHealth!), "higher")[evVehicles.indexOf(vehicle)]
+                              ? compareValue(evVehicles.map(v => v.batteryHealth ?? 0), "higher")[evVehicles.indexOf(vehicle)]
                               : false
                             return (
                               <td key={vehicle.id} className="p-4 text-center">
@@ -450,7 +450,7 @@ export default function ComparePage() {
 
                       {/* Warranty */}
                       <tr className="border-b bg-muted/10">
-                        <td className="p-4 font-medium">Warranty</td>
+                        <td className="p-4 font-semibold">Warranty</td>
                         {selectedVehicleData.map(vehicle => (
                           <td key={vehicle.id} className="p-4 text-center">{vehicle.warranty}</td>
                         ))}
@@ -458,7 +458,7 @@ export default function ComparePage() {
                       
                       {/* CARFAX */}
                       <tr className="border-b">
-                        <td className="p-4 font-medium">CARFAX Report</td>
+                        <td className="p-4 font-semibold">CARFAX Report</td>
                         {selectedVehicleData.map(vehicle => (
                           <td key={vehicle.id} className="p-4 text-center">
                             {vehicle.carfaxUrl ? (
@@ -480,7 +480,7 @@ export default function ComparePage() {
 
                       {/* Features Comparison */}
                       <tr className="border-b">
-                        <td className="p-4 font-medium">Key Features</td>
+                        <td className="p-4 font-semibold">Key Features</td>
                         {selectedVehicleData.map(vehicle => (
                           <td key={vehicle.id} className="p-4">
                             <ul className="space-y-1">
@@ -507,7 +507,7 @@ export default function ComparePage() {
                               </Link>
                             </Button>
                             {vehicle.originalPrice && vehicle.originalPrice > vehicle.price && (
-                              <p className="text-sm text-green-600 font-medium">
+                              <p className="text-sm text-green-600 font-semibold">
                                 Save ${(vehicle.originalPrice - vehicle.price).toLocaleString()}
                               </p>
                             )}

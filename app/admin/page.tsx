@@ -1,160 +1,177 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { 
-  Car, Users, DollarSign, TrendingUp, ArrowUpRight, ArrowDownRight,
-  Eye, Heart, MessageSquare, Clock, CheckCircle, AlertCircle,
-  Calendar, ChevronRight
+  Car, DollarSign, TrendingUp, ArrowUpRight,
+  MessageSquare, Clock,
+  ChevronRight, CalendarCheck, Users, Bot, RefreshCw, FileText
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
-// Mock data - will be replaced with Supabase queries
-const stats = [
-  { 
-    name: "Total Inventory", 
-    value: "247", 
-    change: "+12", 
-    changeType: "increase",
-    icon: Car,
-    href: "/admin/inventory"
-  },
-  { 
-    name: "Active Leads", 
-    value: "89", 
-    change: "+23", 
-    changeType: "increase",
-    icon: MessageSquare,
-    href: "/admin/leads"
-  },
-  { 
-    name: "Monthly Revenue", 
-    value: "$1.2M", 
-    change: "+18%", 
-    changeType: "increase",
-    icon: DollarSign,
-    href: "/admin/analytics"
-  },
-  { 
-    name: "Conversion Rate", 
-    value: "4.8%", 
-    change: "-0.3%", 
-    changeType: "decrease",
-    icon: TrendingUp,
-    href: "/admin/analytics"
-  },
-]
+interface DashboardStats {
+  totalInventory: number
+  availableVehicles: number
+  soldVehicles: number
+  totalOrders: number
+  recentOrders: number
+  totalFinanceApps: number
+  pendingFinanceApps: number
+  activeReservations: number
+  totalCustomers: number
+  newCustomersThisWeek: number
+  totalTradeIns: number
+}
 
-const recentLeads = [
-  { 
-    id: 1, 
-    name: "John Smith", 
-    email: "john@example.com",
-    type: "Finance Application",
-    vehicle: "2024 Tesla Model Y",
-    time: "5 min ago",
-    status: "new"
-  },
-  { 
-    id: 2, 
-    name: "Sarah Johnson", 
-    email: "sarah@example.com",
-    type: "Trade-In Request",
-    vehicle: "2022 BMW X5",
-    time: "23 min ago",
-    status: "contacted"
-  },
-  { 
-    id: 3, 
-    name: "Mike Brown", 
-    email: "mike@example.com",
-    type: "Test Drive",
-    vehicle: "2024 Porsche Taycan",
-    time: "1 hour ago",
-    status: "new"
-  },
-  { 
-    id: 4, 
-    name: "Emily Davis", 
-    email: "emily@example.com",
-    type: "Reservation",
-    vehicle: "2023 Mercedes EQS",
-    time: "2 hours ago",
-    status: "pending"
-  },
-]
+interface RecentLead {
+  id: string
+  source: string
+  status: string
+  customer_name: string
+  customer_email: string
+  subject: string
+  vehicle_info: string | null
+  created_at: string
+}
 
-const recentActivity = [
-  { action: "New vehicle added", details: "2024 Tesla Model 3 Performance", time: "10 min ago" },
-  { action: "Lead converted", details: "Sarah Johnson - 2024 BMW M4", time: "45 min ago" },
-  { action: "Price updated", details: "2023 Audi e-tron GT: $178,900 → $172,500", time: "1 hour ago" },
-  { action: "New finance application", details: "Mike Brown - Pre-approval request", time: "2 hours ago" },
-  { action: "Vehicle sold", details: "2024 Honda CR-V Touring", time: "3 hours ago" },
-]
+interface ActivityItem {
+  type: string
+  title: string
+  detail: string
+  time: string
+  status: string
+  id: string
+}
 
-const topVehicles = [
-  { name: "2024 Tesla Model Y", views: 1247, favorites: 89, inquiries: 23 },
-  { name: "2024 BMW M4 Competition", views: 986, favorites: 67, inquiries: 18 },
-  { name: "2023 Porsche Taycan 4S", views: 854, favorites: 54, inquiries: 15 },
-  { name: "2024 Ford F-150 Lightning", views: 723, favorites: 45, inquiries: 12 },
-]
+function timeAgo(dateStr: string): string {
+  const now = new Date()
+  const date = new Date(dateStr)
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+  if (seconds < 60) return "just now"
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
+  return `${Math.floor(seconds / 86400)}d ago`
+}
+
+function sourceIcon(source: string) {
+  switch (source) {
+    case "contact_form": return MessageSquare
+    case "chat": return Bot
+    case "finance_app": return DollarSign
+    case "reservation": return CalendarCheck
+    case "trade_in": return Car
+    case "test_drive": return Clock
+    default: return MessageSquare
+  }
+}
+
+function statusColor(status: string): "default" | "secondary" | "outline" | "destructive" {
+  switch (status) {
+    case "new": return "default"
+    case "contacted": return "secondary"
+    case "qualified": return "outline"
+    case "converted": return "default"
+    case "lost": return "destructive"
+    default: return "secondary"
+  }
+}
 
 export default function AdminDashboard() {
-  const [dateRange, setDateRange] = useState("7d")
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [recentLeads, setRecentLeads] = useState<RecentLead[]>([])
+  const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchDashboard = useCallback(async () => {
+    try {
+      setLoading(true)
+      const res = await fetch("/api/v1/admin/dashboard")
+      if (!res.ok) throw new Error("Failed to fetch dashboard data")
+      const data = await res.json()
+      setStats(data.stats)
+      setRecentLeads(data.recentLeads || [])
+      setRecentActivity(data.recentActivity || [])
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load dashboard")
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { fetchDashboard() }, [fetchDashboard])
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">Dashboard</h1>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+          {[1,2,3,4,5,6].map(i => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-4"><div className="h-16 bg-gray-200 rounded" /></CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !stats) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardContent className="p-6 text-center">
+            <p className="text-red-600">{error || "Failed to load dashboard"}</p>
+            <Button onClick={fetchDashboard} className="mt-4">Retry</Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  const statCards = [
+    { name: "Available Vehicles", value: stats.availableVehicles, sub: `${stats.soldVehicles} sold`, icon: Car, href: "/admin/inventory", color: "text-blue-600", bg: "bg-blue-50" },
+    { name: "Active Leads", value: recentLeads.filter(l => l.status === "new").length || stats.pendingFinanceApps, sub: `${recentLeads.length} total`, icon: MessageSquare, href: "/admin/leads", color: "text-green-600", bg: "bg-green-50" },
+    { name: "Finance Apps", value: stats.pendingFinanceApps, sub: `${stats.totalFinanceApps} total`, icon: DollarSign, href: "/admin/finance", color: "text-purple-600", bg: "bg-purple-50" },
+    { name: "Reservations", value: stats.activeReservations, sub: "active", icon: CalendarCheck, href: "/admin/reservations", color: "text-orange-600", bg: "bg-orange-50" },
+    { name: "Customers", value: stats.totalCustomers, sub: `+${stats.newCustomersThisWeek} this week`, icon: Users, href: "/admin/customers", color: "text-indigo-600", bg: "bg-indigo-50" },
+    { name: "Trade-Ins", value: stats.totalTradeIns, sub: "requests", icon: TrendingUp, href: "/admin/trade-ins", color: "text-teal-600", bg: "bg-teal-50" },
+  ]
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-500">Welcome back! Here&apos;s what&apos;s happening today.</p>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">Dashboard</h1>
+          <p className="text-sm text-gray-500">Real-time overview of Planet Motors operations</p>
         </div>
-        <div className="flex items-center gap-2">
-          <select 
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
-            className="px-3 py-2 border rounded-lg text-sm"
-          >
-            <option value="24h">Last 24 hours</option>
-            <option value="7d">Last 7 days</option>
-            <option value="30d">Last 30 days</option>
-            <option value="90d">Last 90 days</option>
-          </select>
-          <Button>
-            <Calendar className="w-4 h-4 mr-2" />
-            Custom Range
-          </Button>
-        </div>
+        <Button variant="outline" size="sm" onClick={fetchDashboard}>
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Refresh
+        </Button>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        {statCards.map((stat) => (
           <Link key={stat.name} href={stat.href}>
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <stat.icon className="w-6 h-6 text-blue-600" />
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className={`p-2 rounded-lg ${stat.bg}`}>
+                    <stat.icon className={`w-4 h-4 ${stat.color}`} />
                   </div>
-                  <div className={`flex items-center gap-1 text-sm ${
-                    stat.changeType === "increase" ? "text-green-600" : "text-red-600"
-                  }`}>
-                    {stat.changeType === "increase" ? (
-                      <ArrowUpRight className="w-4 h-4" />
-                    ) : (
-                      <ArrowDownRight className="w-4 h-4" />
-                    )}
-                    {stat.change}
-                  </div>
+                  <ArrowUpRight className="w-3 h-3 text-gray-400" />
                 </div>
-                <div className="mt-4">
-                  <p className="text-2xl font-bold">{stat.value}</p>
-                  <p className="text-sm text-gray-500">{stat.name}</p>
-                </div>
+                <p className="text-2xl font-bold">{stat.value}</p>
+                <p className="text-xs text-gray-500">{stat.name}</p>
+                <p className="text-xs text-gray-400 mt-1">{stat.sub}</p>
               </CardContent>
             </Card>
           </Link>
@@ -168,7 +185,7 @@ export default function AdminDashboard() {
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Recent Leads</CardTitle>
-              <CardDescription>Latest customer inquiries and applications</CardDescription>
+              <CardDescription>Latest customer inquiries from all sources</CardDescription>
             </div>
             <Link href="/admin/leads">
               <Button variant="outline" size="sm">
@@ -178,33 +195,32 @@ export default function AdminDashboard() {
             </Link>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentLeads.map((lead) => (
-                <div 
-                  key={lead.id} 
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium">
-                      {lead.name.split(" ").map(n => n[0]).join("")}
+            {recentLeads.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-8">No leads yet. They&apos;ll appear here when customers submit inquiries, chat with Anna, or apply for financing.</p>
+            ) : (
+              <div className="space-y-3">
+                {recentLeads.slice(0, 6).map((lead) => {
+                  const Icon = sourceIcon(lead.source)
+                  return (
+                    <div key={lead.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white shrink-0">
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm truncate">{lead.customer_name || lead.customer_email}</p>
+                          <p className="text-xs text-gray-500 truncate">{lead.subject}</p>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <Badge variant={statusColor(lead.status)}>{lead.status}</Badge>
+                        <p className="text-xs text-gray-400 mt-1">{timeAgo(lead.created_at)}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium">{lead.name}</p>
-                      <p className="text-sm text-gray-500">{lead.type} - {lead.vehicle}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <Badge variant={
-                      lead.status === "new" ? "default" :
-                      lead.status === "contacted" ? "secondary" : "outline"
-                    }>
-                      {lead.status}
-                    </Badge>
-                    <p className="text-xs text-gray-500 mt-1">{lead.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  )
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -212,120 +228,80 @@ export default function AdminDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest actions and updates</CardDescription>
+            <CardDescription>Latest orders, finance apps, and reservations</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentActivity.map((activity, index) => (
-                <div key={index} className="flex gap-3">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <p className="text-sm font-medium">{activity.action}</p>
-                    <p className="text-xs text-gray-500">{activity.details}</p>
-                    <p className="text-xs text-gray-400 mt-1">{activity.time}</p>
+            {recentActivity.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-8">No recent activity</p>
+            ) : (
+              <div className="space-y-4">
+                {recentActivity.slice(0, 8).map((activity, index) => (
+                  <div key={`${activity.id}-${index}`} className="flex gap-3">
+                    <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                      activity.type === "order" ? "bg-green-600" :
+                      activity.type === "finance" ? "bg-purple-600" :
+                      activity.type === "reservation" ? "bg-orange-600" :
+                      "bg-blue-600"
+                    }`} />
+                    <div>
+                      <p className="text-sm font-medium">{activity.title}</p>
+                      <p className="text-xs text-gray-500">{activity.detail}</p>
+                      <p className="text-xs text-gray-400 mt-1">{timeAgo(activity.time)}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Top Performing Vehicles */}
+      {/* Quick Actions */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Top Performing Vehicles</CardTitle>
-            <CardDescription>Most viewed and inquired vehicles this week</CardDescription>
-          </div>
-          <Link href="/admin/inventory">
-            <Button variant="outline" size="sm">
-              Manage Inventory
-              <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
-          </Link>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-4 font-medium text-gray-500">Vehicle</th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-500">
-                    <div className="flex items-center justify-center gap-1">
-                      <Eye className="w-4 h-4" /> Views
-                    </div>
-                  </th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-500">
-                    <div className="flex items-center justify-center gap-1">
-                      <Heart className="w-4 h-4" /> Favorites
-                    </div>
-                  </th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-500">
-                    <div className="flex items-center justify-center gap-1">
-                      <MessageSquare className="w-4 h-4" /> Inquiries
-                    </div>
-                  </th>
-                  <th className="text-right py-3 px-4 font-medium text-gray-500">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {topVehicles.map((vehicle, index) => (
-                  <tr key={index} className="border-b last:border-0 hover:bg-gray-50">
-                    <td className="py-3 px-4 font-medium">{vehicle.name}</td>
-                    <td className="py-3 px-4 text-center">{vehicle.views.toLocaleString()}</td>
-                    <td className="py-3 px-4 text-center">{vehicle.favorites}</td>
-                    <td className="py-3 px-4 text-center">{vehicle.inquiries}</td>
-                    <td className="py-3 px-4 text-right">
-                      <Button variant="ghost" size="sm">Edit</Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <Link href="/admin/inventory">
+              <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 py-4">
+                <Car className="w-5 h-5 text-blue-600" />
+                <span className="text-xs">Add Vehicle</span>
+              </Button>
+            </Link>
+            <Link href="/admin/leads">
+              <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 py-4">
+                <MessageSquare className="w-5 h-5 text-green-600" />
+                <span className="text-xs">View Leads</span>
+              </Button>
+            </Link>
+            <Link href="/admin/finance">
+              <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 py-4">
+                <FileText className="w-5 h-5 text-purple-600" />
+                <span className="text-xs">Finance Apps</span>
+              </Button>
+            </Link>
+            <Link href="/admin/reservations">
+              <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 py-4">
+                <CalendarCheck className="w-5 h-5 text-orange-600" />
+                <span className="text-xs">Reservations</span>
+              </Button>
+            </Link>
+            <Link href="/admin/ai-agents">
+              <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 py-4">
+                <Bot className="w-5 h-5 text-indigo-600" />
+                <span className="text-xs">AI Agents</span>
+              </Button>
+            </Link>
+            <Link href="/admin/customers">
+              <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 py-4">
+                <Users className="w-5 h-5 text-teal-600" />
+                <span className="text-xs">Customers</span>
+              </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Link href="/admin/inventory/new">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer border-dashed border-2 hover:border-blue-300">
-            <CardContent className="p-6 text-center">
-              <Car className="w-8 h-8 mx-auto text-blue-600 mb-2" />
-              <p className="font-medium">Add New Vehicle</p>
-              <p className="text-sm text-gray-500">List a new vehicle for sale</p>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link href="/admin/leads">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer border-dashed border-2 hover:border-green-300">
-            <CardContent className="p-6 text-center">
-              <MessageSquare className="w-8 h-8 mx-auto text-green-600 mb-2" />
-              <p className="font-medium">View Leads</p>
-              <p className="text-sm text-gray-500">89 leads awaiting response</p>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link href="/admin/finance">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer border-dashed border-2 hover:border-yellow-300">
-            <CardContent className="p-6 text-center">
-              <DollarSign className="w-8 h-8 mx-auto text-yellow-600 mb-2" />
-              <p className="font-medium">Finance Apps</p>
-              <p className="text-sm text-gray-500">12 pending applications</p>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link href="/admin/settings">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer border-dashed border-2 hover:border-purple-300">
-            <CardContent className="p-6 text-center">
-              <Clock className="w-8 h-8 mx-auto text-purple-600 mb-2" />
-              <p className="font-medium">Business Hours</p>
-              <p className="text-sm text-gray-500">Update store hours</p>
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
     </div>
   )
 }

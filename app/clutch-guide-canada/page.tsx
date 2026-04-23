@@ -96,22 +96,22 @@ export default function ClutchGuideCanadaPage() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main>
+      <main id="main-content" tabIndex={-1}>
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-blue-900 via-blue-800 to-slate-900 text-white py-16 md:py-24">
+        <section className="bg-gradient-to-br from-teal-800 via-teal-700 to-slate-800 text-white py-16 md:py-24">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
-              <Badge className="bg-red-500 text-white mb-4">Complete Guide</Badge>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+              <Badge className="bg-teal-500 text-white mb-4">Complete Guide</Badge>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] mb-6">
                 Clutch Guide Canada
               </h1>
-              <p className="text-xl md:text-2xl text-blue-100 mb-8">
+              <p className="text-xl md:text-2xl text-teal-100 mb-8">
                 Everything Canadians need to know about clutch systems, replacement costs, 
                 manual transmission cars, and clutch repair services across Canada.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Link href="/inventory?transmission=Manual">
-                  <Button size="lg" className="bg-red-600 hover:bg-red-700">
+                  <Button size="lg" className="bg-teal-600 hover:bg-teal-700">
                     <Car className="w-5 h-5 mr-2" />
                     Browse Manual Cars
                   </Button>
@@ -141,7 +141,7 @@ export default function ClutchGuideCanadaPage() {
                 <div className="grid md:grid-cols-3 gap-6 mt-8">
                   <Card>
                     <CardHeader>
-                      <Settings className="w-10 h-10 text-blue-600 mb-2" />
+                      <Settings className="w-10 h-10 text-teal-600 mb-2" />
                       <CardTitle>Clutch Disc</CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -152,7 +152,7 @@ export default function ClutchGuideCanadaPage() {
                   </Card>
                   <Card>
                     <CardHeader>
-                      <Gauge className="w-10 h-10 text-blue-600 mb-2" />
+                      <Gauge className="w-10 h-10 text-teal-600 mb-2" />
                       <CardTitle>Pressure Plate</CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -163,7 +163,7 @@ export default function ClutchGuideCanadaPage() {
                   </Card>
                   <Card>
                     <CardHeader>
-                      <Wrench className="w-10 h-10 text-blue-600 mb-2" />
+                      <Wrench className="w-10 h-10 text-teal-600 mb-2" />
                       <CardTitle>Flywheel</CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -230,7 +230,7 @@ export default function ClutchGuideCanadaPage() {
                   <Card key={index}>
                     <CardContent className="p-6">
                       <div className="flex items-center gap-3 mb-4">
-                        <MapPin className="w-5 h-5 text-blue-600" />
+                        <MapPin className="w-5 h-5 text-teal-600" />
                         <h3 className="font-semibold text-lg">{item.province}</h3>
                       </div>
                       <div className="space-y-2">
@@ -250,7 +250,7 @@ export default function ClutchGuideCanadaPage() {
               
               <div className="mt-8 p-6 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
                 <h3 className="font-semibold mb-2 flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-blue-600" />
+                  <DollarSign className="w-5 h-5 text-teal-600" />
                   What&apos;s Included in Clutch Replacement?
                 </h3>
                 <ul className="grid md:grid-cols-2 gap-2 text-muted-foreground">
@@ -287,7 +287,7 @@ export default function ClutchGuideCanadaPage() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Clutch Life:</span>
-                          <span className="font-medium">{car.clutchLife}</span>
+                          <span className="font-semibold">{car.clutchLife}</span>
                         </div>
                       </div>
                       <Link href={`/inventory?search=${encodeURIComponent(car.name)}`}>
@@ -326,7 +326,7 @@ export default function ClutchGuideCanadaPage() {
                   <Card key={index}>
                     <CardContent className="p-6">
                       <h3 className="font-semibold text-lg mb-2 flex items-start gap-3">
-                        <HelpCircle className="w-5 h-5 text-blue-600 mt-1 flex-shrink-0" />
+                        <HelpCircle className="w-5 h-5 text-teal-600 mt-1 flex-shrink-0" />
                         {faq.question}
                       </h3>
                       <p className="text-muted-foreground ml-8">{faq.answer}</p>
@@ -339,29 +339,29 @@ export default function ClutchGuideCanadaPage() {
         </section>
 
         {/* Why Planet Motors Section */}
-        <section className="py-16 bg-blue-900 text-white">
+        <section className="py-16 bg-teal-800 text-white">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
               <h2 className="text-3xl font-bold mb-6">Why Buy Manual Cars from Planet Motors?</h2>
               <div className="grid md:grid-cols-3 gap-8 mb-10">
                 <div>
-                  <Shield className="w-12 h-12 mx-auto mb-4 text-blue-300" />
+                  <Shield className="w-12 h-12 mx-auto mb-4 text-teal-300" />
                   <h3 className="font-semibold text-xl mb-2">210-Point Inspection</h3>
-                  <p className="text-blue-100">Every clutch system thoroughly tested and verified</p>
+                  <p className="text-teal-100">Every clutch system thoroughly tested and verified</p>
                 </div>
                 <div>
                   <Star className="w-12 h-12 mx-auto mb-4 text-yellow-400" />
                   <h3 className="font-semibold text-xl mb-2">4.8 Star Rating</h3>
-                  <p className="text-blue-100">500+ verified customer reviews since 2015</p>
+                  <p className="text-teal-100">500+ verified customer reviews since 2015</p>
                 </div>
                 <div>
-                  <Clock className="w-12 h-12 mx-auto mb-4 text-blue-300" />
+                  <Clock className="w-12 h-12 mx-auto mb-4 text-teal-300" />
                   <h3 className="font-semibold text-xl mb-2">10-Day Guarantee</h3>
-                  <p className="text-blue-100">Full refund if you&apos;re not satisfied with your clutch car</p>
+                  <p className="text-teal-100">Full refund if you&apos;re not satisfied with your clutch car</p>
                 </div>
               </div>
               <Link href="/inventory?transmission=Manual">
-                <Button size="lg" className="bg-red-600 hover:bg-red-700">
+                <Button size="lg" className="bg-teal-600 hover:bg-teal-700">
                   Browse Our Manual Transmission Inventory
                 </Button>
               </Link>

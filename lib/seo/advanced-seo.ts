@@ -1,5 +1,7 @@
 // Advanced SEO Utilities for Planet Motors
 
+import { DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
+
 export const DOMAIN = "www.planetmotors.ca"
 export const BASE_URL = `https://${DOMAIN}`
 
@@ -318,10 +320,10 @@ export function generateEventSchema(event: {
       "name": event.location || "Planet Motors",
       "address": {
         "@type": "PostalAddress",
-        "streetAddress": "30 Major Mackenzie Dr E",
-        "addressLocality": "Richmond Hill",
-        "addressRegion": "ON",
-        "postalCode": "L4C 1G7",
+        "streetAddress": DEALERSHIP_LOCATION.streetAddress,
+        "addressLocality": DEALERSHIP_LOCATION.city,
+        "addressRegion": DEALERSHIP_LOCATION.province,
+        "postalCode": DEALERSHIP_LOCATION.postalCode,
         "addressCountry": "CA",
       },
     },

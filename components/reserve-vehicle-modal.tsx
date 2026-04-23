@@ -10,11 +10,29 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { LockKeyhole, Shield, Clock, CheckCircle, CreditCard, ArrowRight, Sparkles, Loader2 } from "lucide-react"
-import { loadStripe } from "@stripe/stripe-js"
-import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js"
+import dynamic from 'next/dynamic'
 import { createReservation } from "@/app/actions/reservation"
+import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+// Lazy-load Stripe — only fetched when user reaches the payment step
+const EmbeddedCheckoutProvider = dynamic(
+  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckoutProvider })),
+  { ssr: false }
+)
+const EmbeddedCheckout = dynamic(
+  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckout })),
+  { ssr: false }
+)
+
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+// Defer loadStripe until first use — avoids loading the 40 KB Stripe.js on every VDP
+let stripePromise: ReturnType<typeof import('@stripe/stripe-js').loadStripe> | null = null
+function getStripePromise() {
+  if (!stripePromise && stripeKey) {
+    stripePromise = import('@stripe/stripe-js').then(m => m.loadStripe(stripeKey))
+  }
+  return stripePromise
+}
 
 interface ReserveVehicleModalProps {
   vehicle: {
@@ -63,7 +81,6 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
 
       if (!result.success || !result.clientSecret) {
         setCheckoutError(result.error || "Failed to initialize payment. Please try again.")
-        setShowStripeCheckout(false)
         return
       }
 
@@ -71,8 +88,15 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
       setShowStripeCheckout(true)
     } catch (error) {
       console.error("Error creating reservation:", error)
-      setCheckoutError("Failed to initialize payment. Please try again.")
-      setShowStripeCheckout(false)
+      const message = error instanceof Error ? error.message : "Unknown error"
+      const normalizedMessage = message.toLowerCase()
+      if (normalizedMessage.includes("not available") || normalizedMessage.includes("not found")) {
+        setCheckoutError("This vehicle is no longer available for reservation.")
+      } else if (normalizedMessage.includes("rate limit") || normalizedMessage.includes("too many")) {
+        setCheckoutError("Too many attempts. Please wait a few minutes and try again.")
+      } else {
+        setCheckoutError(`Unable to process your reservation right now. Please try again or call us at ${PHONE_LOCAL}.`)
+      }
     } finally {
       setIsProcessing(false)
     }
@@ -125,7 +149,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
                   <span>100% Refundable</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-blue-600" />
+                  <Clock className="w-4 h-4 text-teal-600" />
                   <span>48-Hour Hold</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -143,7 +167,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
               {/* Deposit Summary */}
               <div className="flex justify-between items-center p-3 bg-primary/5 rounded-lg">
                 <div>
-                  <p className="font-medium">Refundable Deposit</p>
+                  <p className="font-semibold">Refundable Deposit</p>
                   <p className="text-xs text-muted-foreground">Applied to purchase price</p>
                 </div>
                 <p className="text-2xl font-bold">${depositAmount} CAD</p>
@@ -278,7 +302,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
               </DialogDescription>
 
               <div className="bg-muted p-4 rounded-lg text-left mb-6">
-                <p className="text-sm font-medium mb-2">What happens next?</p>
+                <p className="text-sm font-semibold mb-2">What happens next?</p>
                 <ul className="text-sm text-muted-foreground space-y-2">
                   <li className="flex items-start gap-2">
                     <Badge variant="outline" className="mt-0.5">1</Badge>
@@ -307,13 +331,28 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
         )}
       {showStripeCheckout && (
           <div className="py-4">
-            <h3 className="font-medium mb-4">Complete Your ${depositAmount} Deposit</h3>
+            <h3 className="font-semibold mb-4">Complete Your ${depositAmount} Deposit</h3>
             {checkoutError ? (
               <div className="text-center py-8">
-                <p className="text-destructive mb-4">{checkoutError}</p>
-                <Button onClick={() => { setCheckoutError(null); setClientSecret(null); }}>
-                  Try Again
-                </Button>
+                <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 mb-4">
+                  <p className="text-sm text-destructive">{checkoutError}</p>
+                </div>
+                <div className="flex gap-3 justify-center">
+                  <Button
+                    disabled={isProcessing}
+                    onClick={async () => {
+                      if (isProcessing) return
+                      setCheckoutError(null)
+                      setClientSecret(null)
+                      await handleSubmit()
+                    }}
+                  >
+                    {isProcessing ? "Retrying..." : "Try Again"}
+                  </Button>
+                  <Button variant="outline" asChild>
+                    <a href={`tel:${PHONE_LOCAL_TEL}`}>Call Support</a>
+                  </Button>
+                </div>
               </div>
             ) : !clientSecret ? (
               <div className="flex items-center justify-center py-8">
@@ -321,7 +360,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
                 <span>Initializing payment...</span>
               </div>
             ) : (
-              <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret }}>
+              <EmbeddedCheckoutProvider stripe={getStripePromise()} options={{ clientSecret }}>
                 <EmbeddedCheckout />
               </EmbeddedCheckoutProvider>
             )}
