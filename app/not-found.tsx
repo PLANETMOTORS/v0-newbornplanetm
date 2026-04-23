@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Home, Search, Phone } from "lucide-react"
+import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
 
 export default function NotFound() {
   return (
@@ -46,12 +47,12 @@ export default function NotFound() {
             Need help finding something?
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center text-sm">
-            <a 
-              href="tel:1-866-797-3332" 
+            <a
+              href={`tel:${PHONE_TOLL_FREE_TEL}`}
               className="flex items-center justify-center gap-2 text-primary hover:underline"
             >
               <Phone className="w-4 h-4" />
-              1-866-797-3332
+              {PHONE_TOLL_FREE}
             </a>
             <span className="hidden sm:inline text-muted-foreground">|</span>
             <Link 

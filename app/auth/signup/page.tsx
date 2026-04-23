@@ -270,7 +270,7 @@ function SignUpForm() {
                           id="phone"
                           name="phone"
                           type="tel"
-                          placeholder="416-985-2277"
+                          placeholder="(416) 555-0123"
                           className="pl-10 h-12"
                           value={formData.phone}
                           onChange={handleChange}

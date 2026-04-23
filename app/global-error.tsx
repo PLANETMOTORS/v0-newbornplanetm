@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { reportError } from "@/lib/error-reporting"
+import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
 
 export default function GlobalError({
   error,
@@ -50,7 +51,7 @@ export default function GlobalError({
           </div>
           <p style={{ fontSize: "0.875rem", color: "#666", marginTop: "1.5rem" }}>
             Need help? Call{" "}
-            <a href="tel:1-866-797-3332" style={{ color: "#2563eb" }}>1-866-797-3332</a>
+            <a href={`tel:${PHONE_TOLL_FREE_TEL}`} style={{ color: "#2563eb" }}>{PHONE_TOLL_FREE}</a>
           </p>
           {error.digest && (
             <p style={{ fontSize: "0.75rem", color: "#999", marginTop: "1rem" }}>

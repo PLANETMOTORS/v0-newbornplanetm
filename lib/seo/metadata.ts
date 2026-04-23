@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { getPublicSiteUrl } from "@/lib/site-url"
+import { PHONE_TOLL_FREE, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 
 const BASE_URL = getPublicSiteUrl()
 const SITE_NAME = "Planet Motors"
@@ -135,7 +136,7 @@ export const pageMetadata = {
 
   contact: generateSEOMetadata({
     title: "Contact Planet Motors | Richmond Hill Ontario Dealership",
-    description: "Visit us at 30 Major Mackenzie Dr E, Richmond Hill. Call 1-866-797-3332. Mon–Fri 9AM–7PM, Sat 9AM–6PM.",
+    description: `Visit us at ${DEALERSHIP_ADDRESS_FULL}. Call ${PHONE_TOLL_FREE}. Mon–Fri 9AM–7PM, Sat 9AM–6PM.`,
     path: "/contact",
     keywords: ["contact dealer", "dealership location", "phone number", "dealership hours"],
   }),

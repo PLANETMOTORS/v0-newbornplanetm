@@ -16,6 +16,7 @@ import {
 import { trackFormSubmission } from "@/components/analytics/google-tag-manager"
 import { trackLead } from "@/components/analytics/google-analytics"
 import { trackMetaLead } from "@/components/analytics/meta-pixel"
+import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
 
 interface ContactFormProps {
   onSuccess?: () => void
@@ -112,7 +113,7 @@ export function ContactForm({ onSuccess }: ContactFormProps) {
       setIsSubmitted(true)
       onSuccess?.()
     } catch {
-      setSubmitError("Failed to send message. Please try calling us at 416-985-2277.")
+      setSubmitError(`Failed to send message. Please try calling us at ${PHONE_LOCAL}.`)
     } finally {
       setIsSubmitting(false)
     }
@@ -186,7 +187,7 @@ export function ContactForm({ onSuccess }: ContactFormProps) {
           <Input
             id="phone"
             type="tel"
-            placeholder="(416) 985-2277"
+            placeholder="(416) 555-0123"
             value={formData.phone}
             onChange={(e) => handleInputChange("phone", e.target.value)}
             className={errors.phone ? "border-destructive" : ""}

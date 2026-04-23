@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { Resend } from "resend"
+import { PHONE_LOCAL } from "@/lib/constants/dealership"
 
 function getResendClient() {
   const apiKey = process.env.API_KEY_RESEND || process.env.RESEND_API_KEY
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
                   ${currentPrice ? `<p style="margin: 8px 0 0; font-size: 24px; color: #7c3aed;">$${Number(currentPrice).toLocaleString()}</p>` : ""}
                 </div>
                 <p>We'll email you when the price drops.</p>
-                <p style="color: #64748b; font-size: 14px; margin-top: 20px;">Planet Motors | 416-985-2277</p>
+                <p style="color: #64748b; font-size: 14px; margin-top: 20px;">Planet Motors | ${PHONE_LOCAL}</p>
               </div>
             </div>
           `,

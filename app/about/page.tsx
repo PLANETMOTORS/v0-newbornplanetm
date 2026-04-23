@@ -1,6 +1,6 @@
 import { Metadata } from "next"
 import { getPublicSiteUrl } from "@/lib/site-url"
-import { WEEKDAY_HOURS_LONG, SATURDAY_HOURS_LONG } from "@/lib/constants/dealership"
+import { WEEKDAY_HOURS_LONG, SATURDAY_HOURS_LONG, PHONE_TOLL_FREE, PHONE_LOCAL, EMAIL_INFO, DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
 
 const SITE_URL = getPublicSiteUrl()
 
@@ -346,14 +346,14 @@ export default function AboutPage() {
                     </div>
                     <address className="not-italic text-muted-foreground mb-4">
                       <strong>Planet Motors</strong><br />
-                      30 Major Mackenzie Dr E<br />
-                      Richmond Hill, ON L4C 1G7<br />
+                      {DEALERSHIP_LOCATION.streetAddress}<br />
+                      {DEALERSHIP_LOCATION.city}, {DEALERSHIP_LOCATION.province} {DEALERSHIP_LOCATION.postalCode}<br />
                       Canada
                     </address>
                     <div className="space-y-2 text-sm">
-                      <p><strong>Toll-Free:</strong> 1-866-797-3332</p>
-                      <p><strong>Local:</strong> 416-985-2277</p>
-                      <p><strong>Email:</strong> info@planetmotors.ca</p>
+                      <p><strong>Toll-Free:</strong> {PHONE_TOLL_FREE}</p>
+                      <p><strong>Local:</strong> {PHONE_LOCAL}</p>
+                      <p><strong>Email:</strong> {EMAIL_INFO}</p>
                     </div>
                     <div className="mt-6 pt-6 border-t">
                       <p className="font-semibold mb-2">Business Hours</p>

@@ -1,12 +1,12 @@
 // Planet Motors CMS - Site Data Helper v18
 import { getSiteSettings, getNavigation } from "./fetch"
-import { WEEKDAY_HOURS_LONG, SATURDAY_HOURS_LONG, DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
+import { WEEKDAY_HOURS_LONG, SATURDAY_HOURS_LONG, DEALERSHIP_LOCATION, PHONE_TOLL_FREE, EMAIL_INFO } from "@/lib/constants/dealership"
 
 // Default site settings fallback
 export const DEFAULT_SITE_SETTINGS = {
   dealerName: "Planet Motors",
-  phone: "1-866-797-3332",
-  email: "info@planetmotors.ca",
+  phone: PHONE_TOLL_FREE,
+  email: EMAIL_INFO,
   streetAddress: DEALERSHIP_LOCATION.streetAddress,
   city: DEALERSHIP_LOCATION.city,
   province: DEALERSHIP_LOCATION.province,

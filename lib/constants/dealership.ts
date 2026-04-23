@@ -18,6 +18,24 @@ export const DEALERSHIP_LOCATION = {
 /** Pre-formatted address string for display. */
 export const DEALERSHIP_ADDRESS_DISPLAY = `${DEALERSHIP_LOCATION.streetAddress}, ${DEALERSHIP_LOCATION.city}, ${DEALERSHIP_LOCATION.province}`
 
+/** Full address with postal code for display. */
+export const DEALERSHIP_ADDRESS_FULL = `${DEALERSHIP_LOCATION.streetAddress}, ${DEALERSHIP_LOCATION.city}, ${DEALERSHIP_LOCATION.province} ${DEALERSHIP_LOCATION.postalCode}`
+
+// ─── Contact Info — Single Source of Truth ────────────────────────
+// Change phone numbers or email HERE and every component, schema,
+// and display string across the site will update automatically.
+
+/** Toll-free phone — display format */
+export const PHONE_TOLL_FREE = "1-866-797-3332"
+/** Toll-free phone — tel: href format */
+export const PHONE_TOLL_FREE_TEL = "+18667973332"
+/** Local phone — display format */
+export const PHONE_LOCAL = "416-985-2277"
+/** Local phone — tel: href format */
+export const PHONE_LOCAL_TEL = "+14169852277"
+/** Primary contact email */
+export const EMAIL_INFO = "info@planetmotors.ca"
+
 // ─── Business Hours — Single Source of Truth ───────────────────────
 // Change hours HERE and every component, JSON-LD schema, API route,
 // and display string across the site will update automatically.

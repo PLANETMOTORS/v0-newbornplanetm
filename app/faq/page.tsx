@@ -12,6 +12,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { FAQJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
 import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
+import { PHONE_TOLL_FREE } from "@/lib/constants/dealership"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -52,7 +53,7 @@ const faqCategories = [
       },
       {
         question: "How do I initiate a return?",
-        answer: "Contact our customer service team at 1-866-797-3332 or through our website chat. We will arrange free pickup of the vehicle and process your refund within 5-7 business days."
+        answer: `Contact our customer service team at ${PHONE_TOLL_FREE} or through our website chat. We will arrange free pickup of the vehicle and process your refund within 5-7 business days.`
       }
     ]
   },
@@ -225,7 +226,7 @@ export default function FAQPage() {
                 Chat With Us
               </Button>
               <Button variant="outline">
-                Call 1-866-797-3332
+                Call {PHONE_TOLL_FREE}
               </Button>
             </div>
           </div>

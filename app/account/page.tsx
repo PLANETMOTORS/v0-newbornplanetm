@@ -483,7 +483,7 @@ export default function AccountPage() {
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="registerPhone">Phone</Label>
-                          <Input id="registerPhone" name="registerPhone" type="tel" placeholder="416-985-2277" required />
+                          <Input id="registerPhone" name="registerPhone" type="tel" placeholder="(416) 555-0123" required />
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="registerPassword">Password</Label>

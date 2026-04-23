@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ArrowRight, Car } from 'lucide-react'
+import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
 
 const currentYear = new Date().getFullYear()
 const earliestYear = 1980
@@ -81,7 +82,7 @@ export function SellYourCarForm() {
       
       setStep(3)
     } catch {
-      setError('Failed to submit. Please try again or call us at 416-985-2277.')
+      setError(`Failed to submit. Please try again or call us at ${PHONE_LOCAL}.`)
     } finally {
       setIsSubmitting(false)
     }
@@ -234,7 +235,7 @@ export function SellYourCarForm() {
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="416-985-2277"
+                  placeholder={PHONE_LOCAL}
                   value={formData.phone}
                   onChange={(e) => handleChange('phone', e.target.value)}
                   required

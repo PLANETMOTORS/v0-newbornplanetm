@@ -13,7 +13,7 @@ import {
   Phone, Clock, Award, Zap, Snowflake
 } from "lucide-react"
 import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
-import { BUSINESS_HOURS_SHORT } from "@/lib/constants/dealership"
+import { BUSINESS_HOURS_SHORT, PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL, DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
 
 // Dynamic metadata for SEO
 export async function generateMetadata({ params }: { params: Promise<{ make: string; model: string }> }): Promise<Metadata> {
@@ -215,10 +215,10 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
         "name": "Planet Motors",
         "address": {
           "@type": "PostalAddress",
-          "streetAddress": "30 Major Mackenzie Dr E",
-          "addressLocality": "Richmond Hill",
-          "addressRegion": "ON",
-          "postalCode": "L4C 1G7",
+          "streetAddress": DEALERSHIP_LOCATION.streetAddress,
+          "addressLocality": DEALERSHIP_LOCATION.city,
+          "addressRegion": DEALERSHIP_LOCATION.province,
+          "postalCode": DEALERSHIP_LOCATION.postalCode,
           "addressCountry": "CA"
         }
       }
@@ -582,11 +582,11 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                     <MapPin className="h-5 w-5 text-primary" />
                     <span className="font-semibold">Visit Us Today</span>
                   </div>
-                  <p className="mb-2">30 Major Mackenzie Dr E</p>
-                  <p className="mb-4">Richmond Hill, ON L4C 1G7</p>
+                  <p className="mb-2">{DEALERSHIP_LOCATION.streetAddress}</p>
+                  <p className="mb-4">{DEALERSHIP_LOCATION.city}, {DEALERSHIP_LOCATION.province} {DEALERSHIP_LOCATION.postalCode}</p>
                   <div className="flex items-center gap-2 mb-2">
                     <Phone className="h-4 w-4" />
-                    <a href="tel:1-866-797-3332" className="text-primary hover:underline">1-866-797-3332</a>
+                    <a href={`tel:${PHONE_TOLL_FREE_TEL}`} className="text-primary hover:underline">{PHONE_TOLL_FREE}</a>
                   </div>
                   <div className="flex items-center gap-2 mb-4">
                     <Clock className="h-4 w-4" />

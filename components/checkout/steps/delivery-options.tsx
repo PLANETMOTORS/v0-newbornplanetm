@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { MapPin, Truck, Loader2, Calendar } from "lucide-react"
+import { DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
 
 export interface DeliveryData {
   deliveryType: "pickup" | "delivery"
@@ -113,7 +114,7 @@ export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: 
             <div className="ml-[4.5rem] mt-2">
               <p className="text-sm font-semibold">Planet Motors</p>
               <p className="text-sm text-muted-foreground">
-                30 Major Mackenzie Dr E, Richmond Hill, ON L4C 0H3
+                {DEALERSHIP_LOCATION.streetAddress}, {DEALERSHIP_LOCATION.city}, {DEALERSHIP_LOCATION.province} {DEALERSHIP_LOCATION.postalCode}
               </p>
             </div>
           </CardContent>
