@@ -180,7 +180,7 @@ export function TransactionHistory({ deposits, orders, financePayments }: Transa
           } else if (entry.kind === "order") {
             icon = <ShoppingCart className="h-4 w-4 text-blue-600" />
             const v = entry.data.vehicles
-            title = v ? `${v.year} ${v.make} ${v.model}` : "Order"
+            title = v ? [v.year, v.make, v.model].filter(Boolean).join(" ") || "Order" : "Order"
             subtitle = `Order #${entry.data.id.slice(0, 8)}`
             amount = entry.data.total_cents
             state = entry.data.state

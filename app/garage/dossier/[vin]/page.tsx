@@ -34,7 +34,7 @@ export default async function DossierDetailPage({ params }: PageProps) {
   const { data: { user } } = await sb.auth.getUser()
   if (!user) redirect(`/auth/login?return_to=/garage/dossier/${vin}`)
 
-  const { data: dossier } = await sb
+  const { data: dossier, error: dossierError } = await sb
     .from("vehicle_dossiers")
     .select(`
       id, vin, year, make, model, trim, color, odometer_km, purchase_date,
@@ -47,6 +47,10 @@ export default async function DossierDetailPage({ params }: PageProps) {
     .eq("owner_user_id", user.id)
     .single()
 
+  if (dossierError) {
+    console.error("Failed to fetch dossier:", dossierError.message)
+    throw new Error(`Failed to load dossier: ${dossierError.message}`)
+  }
   if (!dossier) notFound()
 
   const sohHistory = ((dossier.aviloo_soh_history as Array<{ tested_at: string; soh_pct: number; report_url?: string }>) ?? [])
@@ -60,12 +64,23 @@ export default async function DossierDetailPage({ params }: PageProps) {
   const nextDue = dossier.next_aviloo_due_at ? new Date(dossier.next_aviloo_due_at) : null
   const dueOverdue = nextDue && nextDue < new Date()
 
-  // Auto-acknowledge unread docs
+  // Auto-acknowledge unread docs and update local state for consistent UI
   const unreadIds = docs.filter(d => !d.customer_acknowledged_at).map(d => d.id)
   if (unreadIds.length > 0) {
-    await sb.from("dossier_documents")
-      .update({ customer_acknowledged_at: new Date().toISOString() })
+    const now = new Date().toISOString()
+    const { error: ackError } = await sb.from("dossier_documents")
+      .update({ customer_acknowledged_at: now })
       .in("id", unreadIds)
+    if (!ackError) {
+      // Update local state so UI renders documents as acknowledged immediately
+      docs.forEach(d => {
+        if (unreadIds.includes(d.id)) {
+          d.customer_acknowledged_at = now
+        }
+      })
+    } else {
+      console.error("Failed to acknowledge documents:", ackError.message)
+    }
   }
 
   return (

@@ -16,27 +16,35 @@ export default async function TransactionsPage() {
   const { data: { user } } = await sb.auth.getUser()
   if (!user) redirect("/auth/login?return_to=/garage/transactions")
 
+  const PAGE_SIZE = 50
+
   // Fetch deposits
-  const { data: deposits } = await sb
+  const { data: deposits, error: depositsError } = await sb
     .from("deposits")
     .select("id, amount_cents, state, created_at, deal_id, deals(vin)")
     .eq("customer_user_id", user.id)
     .order("created_at", { ascending: false })
+    .limit(PAGE_SIZE)
 
   // Fetch orders
-  const { data: orders } = await sb
+  const { data: orders, error: ordersError } = await sb
     .from("orders")
     .select("id, total_cents, state, created_at, vehicle_id, vehicles(year, make, model)")
     .eq("customer_user_id", user.id)
     .order("created_at", { ascending: false })
+    .limit(PAGE_SIZE)
 
   // Fetch financing payments
-  const { data: financePayments } = await sb
+  const { data: financePayments, error: paymentsError } = await sb
     .from("financing_payments")
     .select("id, amount_cents, state, payment_date, financing_application_id, financing_applications(lender, deal_id)")
     .eq("customer_user_id", user.id)
     .order("payment_date", { ascending: false })
-    .limit(50)
+    .limit(PAGE_SIZE)
+
+  if (depositsError || ordersError || paymentsError) {
+    console.error("Transaction fetch errors:", { depositsError, ordersError, paymentsError })
+  }
 
   return (
     <div className="min-h-screen bg-background">
