@@ -43,7 +43,7 @@ check_status() {
 
   if [[ "$status" == "$expected" ]]; then
     pass "$label (HTTP $status)"
-  elif [[ "$status" == "401" || "$status" == "403" ]]; then
+  elif [[ "$expected" == "401" || "$expected" == "403" ]] && [[ "$status" == "401" || "$status" == "403" ]]; then
     warn "$label — Auth required (HTTP $status) — expected in prod without token"
   elif [[ "$status" == "000" ]]; then
     fail "$label — Connection refused / timeout"
