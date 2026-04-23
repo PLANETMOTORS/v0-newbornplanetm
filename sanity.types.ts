@@ -12,7 +12,14 @@
  * ---------------------------------------------------------------------------------
  */
 
+export declare const internalGroqTypeReferenceTo: unique symbol;
+
 // Source: schema.json
+export type SupabaseVehicleReference = {
+  _type: "supabaseVehicleReference";
+  vehicleId?: string;
+};
+
 export type Navigation = {
   _id: string;
   _type: "navigation";
@@ -22,27 +29,19 @@ export type Navigation = {
   title?: string;
   topBar?: {
     showTopBar?: boolean;
-    enabled?: boolean;
     phoneNumber?: string;
-    phone?: string;
     phoneDisplayText?: string;
-    phoneDisplay?: string;
     address?: string;
     addressLink?: string;
-    addressUrl?: string;
-    trustBadges?: Array<{
-      _key: string;
-    } & TrustBadge>;
   };
-  trustBadges?: Array<{
-    _key: string;
-  } & TrustBadge>;
+  trustBadges?: Array<
+    {
+      _key: string;
+    } & TrustBadge
+  >;
   mainNavigation?: Array<{
     label?: string;
     url?: string;
-    href?: string;
-    external?: boolean;
-    highlight?: boolean;
     children?: Array<{
       label?: string;
       url?: string;
@@ -58,30 +57,6 @@ export type Navigation = {
     buttonUrl?: string;
     buttonStyle?: "primary" | "secondary" | "outline";
   };
-  mainNav?: Array<{
-    label?: string;
-    url?: string;
-    href?: string;
-    external?: boolean;
-    highlight?: boolean;
-    _key: string;
-  }>;
-  ctaButton?: {
-    enabled?: boolean;
-    label?: string;
-    href?: string;
-    style?: string;
-  };
-  footerColumns?: Array<{
-    title?: string;
-    links?: Array<{
-      label?: string;
-      href?: string;
-      external?: boolean;
-      _key: string;
-    }>;
-    _key: string;
-  }>;
   footerLinkColumns?: Array<{
     title?: string;
     links?: Array<{
@@ -96,7 +71,6 @@ export type Navigation = {
     legalLinks?: Array<{
       label?: string;
       url?: string;
-      href?: string;
       _key: string;
     }>;
   };
@@ -111,7 +85,12 @@ export type InventorySettings = {
   title?: string;
   showFiltersSidebar?: boolean;
   itemsPerPage?: number;
-  defaultSortOrder?: "newest" | "price_asc" | "price_desc" | "mileage_asc" | "year_desc";
+  defaultSortOrder?:
+    | "newest"
+    | "price_asc"
+    | "price_desc"
+    | "mileage_asc"
+    | "year_desc";
   showComparisonTool?: boolean;
   showQuickView?: boolean;
   filterOptions?: {
@@ -145,6 +124,13 @@ export type InventorySettings = {
   noResultsMessage?: string;
 };
 
+export type SanityImageAssetReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+};
+
 export type SeoSettings = {
   _id: string;
   _type: "seoSettings";
@@ -156,12 +142,7 @@ export type SeoSettings = {
   description?: string;
   keywords?: Array<string>;
   ogImage?: {
-    asset?: {
-      _ref: string;
-      _type: "reference";
-      _weak?: boolean;
-      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-    };
+    asset?: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
@@ -172,6 +153,22 @@ export type SeoSettings = {
   structuredData?: string;
 };
 
+export type SanityImageCrop = {
+  _type: "sanity.imageCrop";
+  top?: number;
+  bottom?: number;
+  left?: number;
+  right?: number;
+};
+
+export type SanityImageHotspot = {
+  _type: "sanity.imageHotspot";
+  x?: number;
+  y?: number;
+  height?: number;
+  width?: number;
+};
+
 export type SiteSettings = {
   _id: string;
   _type: "siteSettings";
@@ -180,68 +177,17 @@ export type SiteSettings = {
   _rev: string;
   title?: string;
   showFiltersSidebar?: boolean;
-  streetAddress?: string;
-  city?: string;
-  province?: string;
-  postalCode?: string;
-  phoneSecondary?: string;
-  googleMapsEmbedUrl?: string;
-  lat?: number;
-  lng?: number;
-  omvicNumber?: string;
-  depositAmountCad?: number;
-  navigationItems?: Array<{
-    label?: string;
-    href?: string;
-    external?: boolean;
-    _key: string;
-  }>;
-  ratingDisplay?: {
-    ratingValue?: string;
-    reviewCount?: string;
-  };
-  mandatoryFees?: {
-    adminFee?: number;
-    certification?: number;
-    financeDocFee?: number;
-    licensing?: number;
-    omvic?: number;
-  };
-  negotiationRules?: {
-    lowPriceThreshold?: number;
-    lowPrice_0to31_discount?: number;
-    lowPrice_32to46_discount?: number;
-    lowPrice_47plus_discount?: number;
-    highPrice_0to46_discount?: number;
-    highPrice_47plus_discount?: number;
-  };
-  deliveryConfig?: {
-    originPostalCode?: string;
-    originLabel?: string;
-    maxDeliveryKm?: number;
-    freeDeliveryKm?: number;
-  };
   dealerName?: string;
   tagline?: string;
   logo?: {
-    asset?: {
-      _ref: string;
-      _type: "reference";
-      _weak?: boolean;
-      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-    };
+    asset?: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     _type: "image";
   };
   favicon?: {
-    asset?: {
-      _ref: string;
-      _type: "reference";
-      _weak?: boolean;
-      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-    };
+    asset?: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
@@ -251,7 +197,13 @@ export type SiteSettings = {
   phone?: string;
   tollFree?: string;
   email?: string;
-  address?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    province?: string;
+    postalCode?: string;
+    country?: string;
+  };
   googleMapsUrl?: string;
   latitude?: number;
   longitude?: number;
@@ -262,11 +214,11 @@ export type SiteSettings = {
     isClosed?: boolean;
     _key: string;
   }>;
-  hours?: Array<{
-    day?: string;
-    hours?: string;
-    _key: string;
-  }>;
+  hours?: {
+    weekdays?: string;
+    saturday?: string;
+    sunday?: string;
+  };
   financing?: {
     minDownPayment?: number;
     maxTerm?: number;
@@ -274,7 +226,6 @@ export type SiteSettings = {
   };
   financingDefaults?: {
     annualInterestRate?: number;
-    annualRatePercent?: number;
     amortizationMonths?: number;
   };
   delivery?: {
@@ -305,14 +256,10 @@ export type SiteSettings = {
   };
   announcementBar?: {
     showBar?: boolean;
-    enabled?: boolean;
     message?: string;
-    link?: string;
     linkUrl?: string;
   };
   defaultSeo?: {
-    title?: string;
-    description?: string;
     metaTitle?: string;
     metaDescription?: string;
   };
@@ -358,18 +305,19 @@ export type ProtectionPlan = {
   features?: Array<string>;
   coverage?: string;
   icon?: {
-    asset?: {
-      _ref: string;
-      _type: "reference";
-      _weak?: boolean;
-      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-    };
+    asset?: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     _type: "image";
   };
   featured?: boolean;
+};
+
+export type Slug = {
+  _type: "slug";
+  current?: string;
+  source?: string;
 };
 
 export type FaqEntry = {
@@ -418,12 +366,7 @@ export type Testimonial = {
   order?: number;
   source?: "google" | "facebook" | "direct" | "dealerrater";
   customerPhoto?: {
-    asset?: {
-      _ref: string;
-      _type: "reference";
-      _weak?: boolean;
-      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-    };
+    asset?: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
@@ -442,47 +385,48 @@ export type BlogPost = {
   publishedAt?: string;
   excerpt?: string;
   coverImage?: {
-    asset?: {
-      _ref: string;
-      _type: "reference";
-      _weak?: boolean;
-      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-    };
+    asset?: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     _type: "image";
   };
-  body?: Array<{
-    children?: Array<{
-      marks?: Array<string>;
-      text?: string;
-      _type: "span";
-      _key: string;
-    }>;
-    style?: "normal" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "blockquote";
-    listItem?: "bullet" | "number";
-    markDefs?: Array<{
-      href?: string;
-      _type: "link";
-      _key: string;
-    }>;
-    level?: number;
-    _type: "block";
-    _key: string;
-  } | {
-    asset?: {
-      _ref: string;
-      _type: "reference";
-      _weak?: boolean;
-      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-    };
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    _type: "image";
-    _key: string;
-  }>;
+  body?: Array<
+    | {
+        children?: Array<{
+          marks?: Array<string>;
+          text?: string;
+          _type: "span";
+          _key: string;
+        }>;
+        style?:
+          | "normal"
+          | "h1"
+          | "h2"
+          | "h3"
+          | "h4"
+          | "h5"
+          | "h6"
+          | "blockquote";
+        listItem?: "bullet" | "number";
+        markDefs?: Array<{
+          href?: string;
+          _type: "link";
+          _key: string;
+        }>;
+        level?: number;
+        _type: "block";
+        _key: string;
+      }
+    | {
+        asset?: SanityImageAssetReference;
+        media?: unknown;
+        hotspot?: SanityImageHotspot;
+        crop?: SanityImageCrop;
+        _type: "image";
+        _key: string;
+      }
+  >;
   categories?: Array<string>;
   seoTitle?: string;
   seoDescription?: string;
@@ -500,12 +444,7 @@ export type Promotion = {
   ctaLabel?: string;
   ctaUrl?: string;
   image?: {
-    asset?: {
-      _ref: string;
-      _type: "reference";
-      _weak?: boolean;
-      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-    };
+    asset?: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
@@ -526,59 +465,55 @@ export type Page = {
   title?: string;
   slug?: Slug;
   heroImage?: {
-    asset?: {
-      _ref: string;
-      _type: "reference";
-      _weak?: boolean;
-      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-    };
+    asset?: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     _type: "image";
   };
   heroHeadline?: string;
-  content?: Array<{
-    children?: Array<{
-      marks?: Array<string>;
-      text?: string;
-      _type: "span";
-      _key: string;
-    }>;
-    style?: "normal" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "blockquote";
-    listItem?: "bullet" | "number";
-    markDefs?: Array<{
-      href?: string;
-      _type: "link";
-      _key: string;
-    }>;
-    level?: number;
-    _type: "block";
-    _key: string;
-  } | {
-    asset?: {
-      _ref: string;
-      _type: "reference";
-      _weak?: boolean;
-      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-    };
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt?: string;
-    caption?: string;
-    _type: "image";
-    _key: string;
-  }>;
+  content?: Array<
+    | {
+        children?: Array<{
+          marks?: Array<string>;
+          text?: string;
+          _type: "span";
+          _key: string;
+        }>;
+        style?:
+          | "normal"
+          | "h1"
+          | "h2"
+          | "h3"
+          | "h4"
+          | "h5"
+          | "h6"
+          | "blockquote";
+        listItem?: "bullet" | "number";
+        markDefs?: Array<{
+          href?: string;
+          _type: "link";
+          _key: string;
+        }>;
+        level?: number;
+        _type: "block";
+        _key: string;
+      }
+    | {
+        asset?: SanityImageAssetReference;
+        media?: unknown;
+        hotspot?: SanityImageHotspot;
+        crop?: SanityImageCrop;
+        alt?: string;
+        caption?: string;
+        _type: "image";
+        _key: string;
+      }
+  >;
   seoTitle?: string;
   seoDescription?: string;
   seoImage?: {
-    asset?: {
-      _ref: string;
-      _type: "reference";
-      _weak?: boolean;
-      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-    };
+    asset?: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
@@ -619,12 +554,7 @@ export type HomepageHero = {
   secondaryCtaLabel?: string;
   secondaryCtaUrl?: string;
   backgroundImage?: {
-    asset?: {
-      _ref: string;
-      _type: "reference";
-      _weak?: boolean;
-      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-    };
+    asset?: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
@@ -801,7 +731,6 @@ export type AiSettings = {
   };
   priceNegotiator?: {
     enabled?: boolean;
-    requireVerification?: boolean;
     negotiationRules?: {
       lowPriceThreshold?: number;
       lowPriceMaxDiscount_0_31days?: number;
@@ -815,21 +744,17 @@ export type AiSettings = {
     enabled?: boolean;
     offerValidDays?: number;
     hstRate?: number;
-    dataSources?: Array<string>;
-    requireVerification?: boolean;
   };
   fees?: {
     adminFee?: number;
     certification?: number;
     licensing?: number;
     omvic?: number;
-    financeDocFee?: number;
   };
   financing?: {
     lowestRate?: number;
     numberOfLenders?: number;
     terms?: Array<number>;
-    paymentFrequencies?: Array<string>;
   };
 };
 
@@ -844,10 +769,6 @@ export type SellPage = {
   hero?: {
     headline?: string;
     subheadline?: string;
-    highlightText?: string;
-    trustBadges?: Array<{
-      _key: string;
-    } & TrustBadge>;
     form?: {
       placeholderVin?: string;
       placeholderPlate?: string;
@@ -865,42 +786,9 @@ export type SellPage = {
   };
   cta?: {
     headline?: string;
-    subheadline?: string;
     bonusText?: string;
     buttonText?: string;
     buttonUrl?: string;
-  };
-  comparison?: {
-    sectionTitle?: string;
-    sectionSubtitle?: string;
-    headers?: Array<string>;
-    competitors?: Array<{
-      name?: string;
-      isUs?: boolean;
-      _key: string;
-    }>;
-    rows?: Array<{
-      feature?: string;
-      us?: string;
-      others?: string;
-      values?: Array<{
-        value?: string;
-        status?: string;
-        _key: string;
-      }>;
-      _key: string;
-    }>;
-  };
-  process?: {
-    sectionTitle?: string;
-    steps?: Array<{
-      step?: number;
-      stepNumber?: string;
-      title?: string;
-      description?: string;
-      icon?: string;
-      _key: string;
-    }>;
   };
 };
 
@@ -921,42 +809,75 @@ export type SellYourCarPage = {
       submitButtonText?: string;
     };
   };
+  formSettings?: {
+    enabled?: boolean;
+    title?: string;
+    ctaLabel?: string;
+  };
   benefits?: Array<{
     icon?: string;
     title?: string;
     description?: string;
     _key: string;
   }>;
-  comparisonTable?: {
+  whySellToUs?: {
     sectionTitle?: string;
-    ourColumnTitle?: string;
-    othersColumnTitle?: string;
-    headers?: Array<string>;
-    rows?: Array<{
-      feature?: string;
-      us?: string;
-      others?: string;
-      tradeIn?: string;
-      planetMotors?: string;
-      competitors?: string;
-      columns?: Array<string>;
-      _type: "sellComparisonRow";
+    benefitItems?: Array<{
+      icon?: string;
+      title?: string;
+      description?: string;
       _key: string;
     }>;
   };
-  processSteps?: Array<{
-    step?: number;
-    stepNumber?: number;
-    title?: string;
-    description?: string;
-    icon?: string;
-    _key: string;
-  }>;
+  comparisonTable?: {
+    sectionTitle?: string;
+    headline?: string;
+    planetMotorsLabel?: string;
+    othersLabel?: string;
+    headers?: Array<string>;
+    rows?: Array<{
+      cells?: Array<string>;
+      feature?: string;
+      planetMotors?: string;
+      others?: string;
+      highlight?: boolean;
+      _key: string;
+    }>;
+  };
   avilooBattery?: {
     enabled?: boolean;
     title?: string;
     description?: string;
   };
+  processSteps?: Array<{
+    step?: number;
+    title?: string;
+    description?: string;
+    _key: string;
+  }>;
+  testimonials?: Array<{
+    name?: string;
+    quote?: string;
+    rating?: number;
+    _key: string;
+  }>;
+  howItWorks?: {
+    sectionTitle?: string;
+    steps?: Array<{
+      stepNumber?: number;
+      title?: string;
+      description?: string;
+      _key: string;
+    }>;
+  };
+  ctaSection?: {
+    headline?: string;
+    subheadline?: string;
+    ctaLabel?: string;
+    ctaUrl?: string;
+  };
+  seoTitle?: string;
+  seoDescription?: string;
   seo?: {
     metaTitle?: string;
     metaDescription?: string;
@@ -973,16 +894,29 @@ export type FinancingPage = {
   heroSection?: {
     headline?: string;
     subheadline?: string;
+    highlight?: string;
+    highlightText?: string;
     featuredRateText?: string;
     rateSubtext?: string;
     primaryCta?: {
       label?: string;
       url?: string;
     };
-    secondaryCta?: {
-      label?: string;
-      url?: string;
-    };
+  };
+  highlight?: string;
+  formSettings?: {
+    enabled?: boolean;
+    title?: string;
+    ctaLabel?: string;
+  };
+  benefitsSection?: {
+    sectionTitle?: string;
+    items?: Array<{
+      icon?: string;
+      title?: string;
+      description?: string;
+      _key: string;
+    }>;
   };
   benefits?: Array<{
     icon?: string;
@@ -994,7 +928,6 @@ export type FinancingPage = {
     defaultVehiclePrice?: number;
     defaultDownPayment?: number;
     defaultTerm?: number;
-    defaultInterestRate?: number;
     termOptions?: Array<number>;
   };
   processSteps?: Array<{
@@ -1003,6 +936,23 @@ export type FinancingPage = {
     description?: string;
     _key: string;
   }>;
+  howItWorks?: {
+    sectionTitle?: string;
+    steps?: Array<{
+      stepNumber?: number;
+      title?: string;
+      description?: string;
+      _key: string;
+    }>;
+  };
+  ctaSection?: {
+    headline?: string;
+    subheadline?: string;
+    ctaLabel?: string;
+    ctaUrl?: string;
+  };
+  seoTitle?: string;
+  seoDescription?: string;
   seo?: {
     metaTitle?: string;
     metaDescription?: string;
@@ -1016,6 +966,10 @@ export type Homepage = {
   _updatedAt: string;
   _rev: string;
   title?: string;
+  heroHeadline?: string;
+  heroSubheadline?: string;
+  heroCta?: CtaButton;
+  heroSecondaryCta?: CtaButton;
   heroSection?: {
     headline?: string;
     headlineHighlight?: string;
@@ -1028,17 +982,18 @@ export type Homepage = {
       label?: string;
       url?: string;
     };
-    highlightCta?: {
-      label?: string;
-      url?: string;
-    };
   };
-  trustBadges?: Array<{
-    _key: string;
-  } & TrustBadge>;
+  trustBadges?: Array<
+    {
+      _key: string;
+    } & TrustBadge
+  >;
   promoBanner?: {
     enabled?: boolean;
+    showBanner?: boolean;
     text?: string;
+    headline?: string;
+    bodyText?: string;
     ctaLabel?: string;
     ctaUrl?: string;
     backgroundColor?: string;
@@ -1060,6 +1015,13 @@ export type Homepage = {
     linkText?: string;
     linkUrl?: string;
   };
+  seoTitle?: string;
+  seoDescription?: string;
+  featuredVehicles?: Array<
+    {
+      _key: string;
+    } & SupabaseVehicleReference
+  >;
   seo?: {
     metaTitle?: string;
     metaDescription?: string;
@@ -1079,9 +1041,16 @@ export type TrustBadge = {
   icon?: string;
   text?: string;
   title?: string;
-  description?: string;
   label?: string;
+  description?: string;
   value?: string;
+};
+
+export type LenderReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "lender";
 };
 
 export type Vehicle = {
@@ -1099,12 +1068,7 @@ export type Vehicle = {
   price?: number;
   msrp?: number;
   specialPrice?: number;
-  specialFinance?: {
-    _ref: string;
-    _type: "reference";
-    _weak?: boolean;
-    [internalGroqTypeReferenceTo]?: "lender";
-  };
+  specialFinance?: LenderReference;
   status?: "available" | "in-transit" | "reserved" | "pending" | "sold";
   estimatedArrivalDate?: string;
   condition?: "new" | "used" | "certified";
@@ -1112,7 +1076,15 @@ export type Vehicle = {
   mileage?: number;
   exteriorColor?: string;
   interiorColor?: string;
-  bodyStyle?: "sedan" | "suv" | "truck" | "coupe" | "hatchback" | "wagon" | "van" | "convertible";
+  bodyStyle?:
+    | "sedan"
+    | "suv"
+    | "truck"
+    | "coupe"
+    | "hatchback"
+    | "wagon"
+    | "van"
+    | "convertible";
   fuelType?: "gasoline" | "diesel" | "electric" | "hybrid" | "phev";
   transmission?: "automatic" | "manual" | "cvt";
   drivetrain?: "fwd" | "rwd" | "awd" | "4wd";
@@ -1125,12 +1097,7 @@ export type Vehicle = {
   features?: Array<string>;
   safetyFeatures?: Array<string>;
   images?: Array<{
-    asset?: {
-      _ref: string;
-      _type: "reference";
-      _weak?: boolean;
-      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-    };
+    asset?: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
@@ -1140,12 +1107,7 @@ export type Vehicle = {
     _key: string;
   }>;
   mainImage?: {
-    asset?: {
-      _ref: string;
-      _type: "reference";
-      _weak?: boolean;
-      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-    };
+    asset?: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
@@ -1201,20 +1163,16 @@ export type SanityImageDimensions = {
   aspectRatio?: number;
 };
 
-export type SanityImageHotspot = {
-  _type: "sanity.imageHotspot";
-  x?: number;
-  y?: number;
-  height?: number;
-  width?: number;
-};
-
-export type SanityImageCrop = {
-  _type: "sanity.imageCrop";
-  top?: number;
-  bottom?: number;
-  left?: number;
-  right?: number;
+export type SanityImageMetadata = {
+  _type: "sanity.imageMetadata";
+  location?: Geopoint;
+  dimensions?: SanityImageDimensions;
+  palette?: SanityImagePalette;
+  lqip?: string;
+  blurHash?: string;
+  thumbHash?: string;
+  hasAlpha?: boolean;
+  isOpaque?: boolean;
 };
 
 export type SanityFileAsset = {
@@ -1237,6 +1195,13 @@ export type SanityFileAsset = {
   path?: string;
   url?: string;
   source?: SanityAssetSourceData;
+};
+
+export type SanityAssetSourceData = {
+  _type: "sanity.assetSourceData";
+  name?: string;
+  id?: string;
+  url?: string;
 };
 
 export type SanityImageAsset = {
@@ -1262,17 +1227,6 @@ export type SanityImageAsset = {
   source?: SanityAssetSourceData;
 };
 
-export type SanityImageMetadata = {
-  _type: "sanity.imageMetadata";
-  location?: Geopoint;
-  dimensions?: SanityImageDimensions;
-  palette?: SanityImagePalette;
-  lqip?: string;
-  blurHash?: string;
-  hasAlpha?: boolean;
-  isOpaque?: boolean;
-};
-
 export type Geopoint = {
   _type: "geopoint";
   lat?: number;
@@ -1280,18 +1234,44 @@ export type Geopoint = {
   alt?: number;
 };
 
-export type Slug = {
-  _type: "slug";
-  current?: string;
-  source?: string;
-};
-
-export type SanityAssetSourceData = {
-  _type: "sanity.assetSourceData";
-  name?: string;
-  id?: string;
-  url?: string;
-};
-
-export type AllSanitySchemaTypes = Navigation | InventorySettings | SeoSettings | SiteSettings | ProtectionPlan | FaqEntry | Testimonial | BlogPost | Promotion | Page | Banner | HomepageHero | CustomerAuthSettings | CalculatorSettings | DeliverySettings | VdpSettings | FaqItem | AiSettings | SellPage | SellYourCarPage | FinancingPage | Homepage | CtaButton | TrustBadge | Vehicle | Lender | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageHotspot | SanityImageCrop | SanityFileAsset | SanityImageAsset | SanityImageMetadata | Geopoint | Slug | SanityAssetSourceData;
-export declare const internalGroqTypeReferenceTo: unique symbol;
+export type AllSanitySchemaTypes =
+  | SupabaseVehicleReference
+  | Navigation
+  | InventorySettings
+  | SanityImageAssetReference
+  | SeoSettings
+  | SanityImageCrop
+  | SanityImageHotspot
+  | SiteSettings
+  | ProtectionPlan
+  | Slug
+  | FaqEntry
+  | Testimonial
+  | BlogPost
+  | Promotion
+  | Page
+  | Banner
+  | HomepageHero
+  | CustomerAuthSettings
+  | CalculatorSettings
+  | DeliverySettings
+  | VdpSettings
+  | FaqItem
+  | AiSettings
+  | SellPage
+  | SellYourCarPage
+  | FinancingPage
+  | Homepage
+  | CtaButton
+  | TrustBadge
+  | LenderReference
+  | Vehicle
+  | Lender
+  | SanityImagePaletteSwatch
+  | SanityImagePalette
+  | SanityImageDimensions
+  | SanityImageMetadata
+  | SanityFileAsset
+  | SanityAssetSourceData
+  | SanityImageAsset
+  | Geopoint;
