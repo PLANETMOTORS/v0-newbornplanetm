@@ -1,0 +1,72 @@
+{
+  "name": "Planet Motors - Premium Pre-Owned Vehicles",
+  "short_name": "Planet Motors",
+  "description": "Canada's trusted destination for premium pre-owned vehicles with nationwide delivery, 210-point inspection, and 10-day money-back guarantee.",
+  "id": "/",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#1e3a5f",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon-dark-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["auto", "shopping"],
+  "shortcuts": [
+    {
+      "name": "Browse Inventory",
+      "short_name": "Inventory",
+      "description": "View all available vehicles",
+      "url": "/inventory"
+    },
+    {
+      "name": "Trade-In",
+      "short_name": "Trade",
+      "description": "Get a trade-in offer for your vehicle",
+      "url": "/trade-in"
+    },
+    {
+      "name": "Get Financing",
+      "short_name": "Finance",
+      "description": "Pre-qualify for financing",
+      "url": "/financing"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

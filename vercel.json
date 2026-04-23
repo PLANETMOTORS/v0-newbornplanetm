@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "crons": [
+    {
+      "path": "/api/cron/homenet-sync",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/drivee-sync",
+      "schedule": "0 */6 * * *"
+    }
+  ]
+}
