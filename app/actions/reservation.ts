@@ -27,6 +27,24 @@ export interface ReservationResult {
   remaining?: number
 }
 
+type StructuredError = {
+  code?: unknown
+  type?: unknown
+  message?: unknown
+}
+
+function getStructuredErrorCode(error: unknown): string {
+  if (typeof error !== 'object' || error === null) return ''
+  const candidate = (error as StructuredError).code
+  return typeof candidate === 'string' ? candidate.toLowerCase() : ''
+}
+
+function getStructuredErrorType(error: unknown): string {
+  if (typeof error !== 'object' || error === null) return ''
+  const candidate = (error as StructuredError).type
+  return typeof candidate === 'string' ? candidate.toLowerCase() : ''
+}
+
 export async function createReservation(input: ReservationInput): Promise<ReservationResult> {
   const headersList = await headers()
   const forwardedFor = headersList.get('x-forwarded-for')
@@ -194,13 +212,7 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
         idempotencyKey,
       })
     } catch (sessionError) {
-      const stripeErrorCode =
-        typeof sessionError === 'object' &&
-        sessionError !== null &&
-        'code' in sessionError &&
-        typeof (sessionError as { code?: unknown }).code === 'string'
-          ? (sessionError as { code: string }).code
-          : ''
+      const stripeErrorCode = getStructuredErrorCode(sessionError)
       const sessionErrorMessage = sessionError instanceof Error ? sessionError.message.toLowerCase() : ''
       const canRetryCardOnly =
         enableAcssDebit &&
@@ -249,11 +261,24 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     const errorMessageLower = errorMessage.toLowerCase()
-    const isStripeLike =
-      typeof error === 'object' &&
-      error !== null &&
-      'type' in error &&
-      typeof (error as { type?: unknown }).type === 'string'
+    const structuredErrorCode = getStructuredErrorCode(error)
+    const structuredErrorType = getStructuredErrorType(error)
+
+    const paymentErrorCodes = new Set([
+      'payment_method_not_available',
+      'payment_method_invalid_parameter',
+      'parameter_invalid_empty',
+      'parameter_invalid_integer',
+      'resource_missing',
+      'card_declined',
+      'processing_error',
+      'api_connection_error',
+      'api_error',
+      'idempotency_key_in_use',
+      'rate_limit',
+    ])
+
+    const isStripeLike = structuredErrorType.startsWith('stripe') || paymentErrorCodes.has(structuredErrorCode)
 
     const customerEmailHash = createHash('sha256')
       .update(input.customerEmail.trim().toLowerCase())
@@ -271,6 +296,7 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
     
     // Return more specific error messages to help with debugging
     if (
+      paymentErrorCodes.has(structuredErrorCode) ||
       isStripeLike ||
       errorMessageLower.includes('stripe') ||
       errorMessageLower.includes('payment_method') ||
