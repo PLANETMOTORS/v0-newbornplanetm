@@ -1,0 +1,122 @@
+# .github/workflows/sanity-backup.yml
+#
+# Sanity CMS Daily Backup
+#
+# Runs every 24 hours at 02:00 UTC (off-peak).
+# Can also be triggered manually from the GitHub Actions UI.
+#
+# Strategy:
+#   1. Export the full Sanity dataset to NDJSON using the Sanity CLI
+#   2. Commit the file to the orphan `backups` branch (never touches main)
+#   3. Keep only the last 30 backups on that branch (auto-prune)
+#
+# Required GitHub Secrets (Settings -> Secrets -> Actions):
+#   SANITY_API_TOKEN  -- Sanity token with "Viewer" role or higher
+#                        Create at: https://www.sanity.io/manage -> API -> Tokens
+#
+# The `backups` branch is an orphan -- it has no shared history with main.
+# Create it once manually if it doesn't exist:
+#   git checkout --orphan backups
+#   git rm -rf .
+#   git commit --allow-empty -m "chore: init backups branch"
+#   git push origin backups
+
+name: Sanity CMS Daily Backup
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Reason for manual backup"
+        required: false
+        default: "Manual trigger"
+
+permissions:
+  contents: write
+
+jobs:
+  backup:
+    name: Export and commit Sanity dataset
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      SANITY_PROJECT_ID: wlxj8olw
+      SANITY_DATASET: production
+      BACKUPS_BRANCH: backups
+      KEEP_LAST_N: 30
+
+    steps:
+      - name: Checkout backups branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ env.BACKUPS_BRANCH }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Export Sanity dataset
+        env:
+          SANITY_API_TOKEN: ${{ secrets.SANITY_API_TOKEN }}
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%S")
+          FILENAME="sanity-${SANITY_DATASET}-${TIMESTAMP}.ndjson"
+          echo "BACKUP_FILE=${FILENAME}" >> $GITHUB_ENV
+          echo "BACKUP_TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
+
+          npx --yes @sanity/cli@latest \
+            dataset export "${SANITY_DATASET}" "${FILENAME}" \
+            --project "${SANITY_PROJECT_ID}" \
+            --token "${SANITY_API_TOKEN}" \
+            --no-compress \
+            --overwrite
+
+          LINE_COUNT=$(wc -l < "${FILENAME}" | tr -d ' ')
+          echo "Exported ${LINE_COUNT} documents to ${FILENAME}"
+          if [ "${LINE_COUNT}" -lt 1 ]; then
+            echo "Export produced an empty file -- aborting"
+            exit 1
+          fi
+          du -sh "${FILENAME}"
+
+      - name: Prune old backups
+        run: |
+          FILES=$(ls -1t sanity-*.ndjson 2>/dev/null || true)
+          COUNT=$(echo "${FILES}" | grep -c . || true)
+          echo "Current backup count (before prune): ${COUNT}"
+          if [ "${COUNT}" -gt "${KEEP_LAST_N}" ]; then
+            TO_DELETE=$(echo "${FILES}" | tail -n +$((KEEP_LAST_N + 1)))
+            echo "Deleting: ${TO_DELETE}"
+            echo "${TO_DELETE}" | xargs rm -f
+          fi
+
+      - name: Commit backup to backups branch
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "*.ndjson"
+          if git diff --cached --quiet; then
+            echo "No changes to commit (backup identical to previous)"
+          else
+            git commit -m "backup: Sanity ${SANITY_DATASET} @ ${BACKUP_TIMESTAMP}"
+            git push origin "${BACKUPS_BRANCH}"
+            echo "Backup committed and pushed to ${BACKUPS_BRANCH} branch"
+          fi
+
+      - name: Job summary
+        if: always()
+        run: |
+          echo "## Sanity Backup Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Project | \`${SANITY_PROJECT_ID}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dataset | \`${SANITY_DATASET}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| File | \`${BACKUP_FILE}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | \`${BACKUPS_BRANCH}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Trigger | \`${{ github.event_name }}\` |" >> $GITHUB_STEP_SUMMARY
