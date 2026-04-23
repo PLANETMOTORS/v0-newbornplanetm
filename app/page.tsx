@@ -12,6 +12,7 @@ import { preload } from "react-dom"
 import dynamic from "next/dynamic"
 import { Header } from "@/components/header"
 import { HomepageContent } from "@/components/homepage-content"
+import { PHONE_TOLL_FREE, EMAIL_INFO, DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
 
 // Lazy-load the footer — code-split into a separate chunk while keeping
 // its HTML in the SSR output for SEO (crawlers see footer links/contact).
@@ -30,13 +31,13 @@ export const metadata: Metadata = {
 
 // Default site settings - fallback when CMS is unavailable or slow
 const DEFAULT_SITE_SETTINGS = {
-  dealerName: "Planet Motors",
-  phone: "1-866-797-3332",
-  email: "info@planetmotors.ca",
-  streetAddress: "30 Major Mackenzie Dr E",
-  city: "Richmond Hill",
-  province: "ON",
-  postalCode: "L4C 1G7",
+  dealerName: DEALERSHIP_LOCATION.name,
+  phone: PHONE_TOLL_FREE,
+  email: EMAIL_INFO,
+  streetAddress: DEALERSHIP_LOCATION.streetAddress,
+  city: DEALERSHIP_LOCATION.city,
+  province: DEALERSHIP_LOCATION.province,
+  postalCode: DEALERSHIP_LOCATION.postalCode,
 }
 
 // Timeout wrapper — if Sanity takes >3s, use fallback so we don't block the page

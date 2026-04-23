@@ -73,7 +73,7 @@ export type HomepageProps = {
       day: string
       open: string
       close: string
-      isClosed: boolean
+      isClosed?: boolean
     }>
   }
   showcaseVehicles?: Array<{

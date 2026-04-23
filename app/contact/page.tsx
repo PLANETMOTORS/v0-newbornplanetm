@@ -1,18 +1,19 @@
 import { Metadata } from "next"
 import { getPublicSiteUrl } from "@/lib/site-url"
+import { WEEKDAY_HOURS_LONG, SATURDAY_HOURS_LONG, BUSINESS_HOURS_SHORT, PHONE_TOLL_FREE, PHONE_LOCAL, EMAIL_INFO, DEALERSHIP_LOCATION, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 
 const SITE_URL = getPublicSiteUrl()
 
 export const metadata: Metadata = {
   title: "Contact Planet Motors | Richmond Hill Ontario Dealership",
-  description: "Visit us at 30 Major Mackenzie Dr E, Richmond Hill. Call 1-866-797-3332. Mon–Fri 9AM–7PM, Sat 9AM–6PM. Email info@planetmotors.ca.",
+  description: `Visit us at ${DEALERSHIP_ADDRESS_FULL}. Call ${PHONE_TOLL_FREE}. Mon–Fri 9AM–7PM, Sat 9AM–6PM. Email ${EMAIL_INFO}.`,
   keywords: "contact Planet Motors, Richmond Hill dealership, phone number, dealership hours, visit us",
   alternates: {
     canonical: '/contact',
   },
   openGraph: {
     title: "Contact Planet Motors | Richmond Hill Ontario Dealership",
-    description: "Visit us at 30 Major Mackenzie Dr E, Richmond Hill. Call 1-866-797-3332.",
+    description: `Visit us at ${DEALERSHIP_ADDRESS_FULL}. Call ${PHONE_TOLL_FREE}.`,
     url: `${SITE_URL}/contact`,
     siteName: "Planet Motors",
     locale: "en_CA",
@@ -32,14 +33,14 @@ const contactMethods = [
   {
     icon: Phone,
     title: "Phone",
-    primary: "1-866-797-3332",
-    secondary: "Local: 416-985-2277",
+    primary: PHONE_TOLL_FREE,
+    secondary: `Local: ${PHONE_LOCAL}`,
     description: "Speak directly with our team",
   },
   {
     icon: Mail,
     title: "Email",
-    primary: "info@planetmotors.ca",
+    primary: EMAIL_INFO,
     secondary: "sales@planetmotors.ca",
     description: "We respond within 2 hours",
   },
@@ -53,17 +54,17 @@ const contactMethods = [
   {
     icon: MapPin,
     title: "Visit Us",
-    primary: "30 Major Mackenzie Dr E",
-    secondary: "Richmond Hill, ON L4C 1G7",
+    primary: DEALERSHIP_LOCATION.streetAddress,
+    secondary: `${DEALERSHIP_LOCATION.city}, ${DEALERSHIP_LOCATION.province} ${DEALERSHIP_LOCATION.postalCode}`,
     description: "Walk-ins welcome",
   },
 ]
 
 const departments = [
-  { name: "Sales", phone: "416-985-2277", email: "sales@planetmotors.ca" },
-  { name: "Financing", phone: "416-985-2277", email: "financing@planetmotors.ca" },
-  { name: "Service", phone: "416-985-2277", email: "service@planetmotors.ca" },
-  { name: "Trade-In", phone: "416-985-2277", email: "tradein@planetmotors.ca" },
+  { name: "Sales", phone: PHONE_LOCAL, email: "sales@planetmotors.ca" },
+  { name: "Financing", phone: PHONE_LOCAL, email: "financing@planetmotors.ca" },
+  { name: "Service", phone: PHONE_LOCAL, email: "service@planetmotors.ca" },
+  { name: "Trade-In", phone: PHONE_LOCAL, email: "tradein@planetmotors.ca" },
 ]
 
 export default function ContactPage() {
@@ -114,8 +115,8 @@ export default function ContactPage() {
               <div className="bg-muted rounded-xl h-64 flex items-center justify-center">
                 <div className="text-center">
                   <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-muted-foreground">30 Major Mackenzie Dr E</p>
-                  <p className="text-muted-foreground">Richmond Hill, ON L4C 1G7</p>
+                  <p className="text-muted-foreground">{DEALERSHIP_LOCATION.streetAddress}</p>
+                  <p className="text-muted-foreground">{DEALERSHIP_LOCATION.city}, {DEALERSHIP_LOCATION.province} {DEALERSHIP_LOCATION.postalCode}</p>
                   <Button variant="outline" size="sm" className="mt-4" asChild>
                     <a
                       href="https://maps.google.com/?q=30+Major+Mackenzie+Dr+E+Richmond+Hill+ON"
@@ -137,11 +138,11 @@ export default function ContactPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Monday - Friday</span>
-                    <span className="font-semibold">9:00 AM - 7:00 PM</span>
+                    <span className="font-semibold">{WEEKDAY_HOURS_LONG}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Saturday</span>
-                    <span className="font-semibold">9:00 AM - 6:00 PM</span>
+                    <span className="font-semibold">{SATURDAY_HOURS_LONG}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Sunday</span>

@@ -41,6 +41,7 @@ import { trackProductView, trackPhoneClick } from "@/components/analytics/google
 import { calculateAllInPrice, safeNum } from "@/lib/pricing/format"
 import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
 import { trackMetaViewContent, trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
+import { PHONE_LOCAL, PHONE_LOCAL_TEL, DEALERSHIP_LOCATION, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 
 // ── Lazy-load heavy below-fold components ──
 const DriveeViewer = dynamic(
@@ -1056,7 +1057,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           <h4 className="font-semibold">Pick up at Planet Motors</h4>
                           <p className="text-sm text-green-600 font-semibold">FREE</p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            30 Major Mackenzie Dr E, Richmond Hill, ON. Open Mon–Sat.
+                            {DEALERSHIP_ADDRESS_FULL}. Open Mon–Sat.
                           </p>
                           <Button className="mt-3" size="sm" asChild>
                             <Link href={getFinanceLink(vehicle.id)}>Start purchase</Link>
@@ -2128,7 +2129,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                   <div className="mt-4 pt-4 border-t text-center">
                     <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
                       <Phone className="w-4 h-4" />
-                      Questions? <Link href="tel:416-985-2277" className="font-semibold text-foreground" onClick={() => trackPhoneClick("416-985-2277")}>416-985-2277</Link>
+                      Questions? <Link href={`tel:${PHONE_LOCAL_TEL}`} className="font-semibold text-foreground" onClick={() => trackPhoneClick(PHONE_LOCAL)}>{PHONE_LOCAL}</Link>
                     </p>
                   </div>
                 </CardContent>

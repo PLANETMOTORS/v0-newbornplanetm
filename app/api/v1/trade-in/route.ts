@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sendNotificationEmail } from '@/lib/email'
 import { rateLimit } from '@/lib/redis'
 import { validateOrigin } from '@/lib/csrf'
+import { PHONE_TOLL_FREE } from '@/lib/constants/dealership'
 
 // Estimated valuation data — uses simplified model as a starting point.
 // In production, connect to Canadian Black Book API for accurate market values.
@@ -234,7 +235,7 @@ export async function POST(request: NextRequest) {
     data: {
       offer,
       message: `Your ${year} ${make} ${model} is worth approximately $${offer.offerAmount.toLocaleString()} CAD`,
-      _disclaimer: 'This is a preliminary estimate only and not a guaranteed offer. Final trade-in value will be determined after an in-person vehicle inspection. Market conditions, vehicle history, and other factors may affect the final value. Contact Planet Motors at 1-866-797-3332 for an official appraisal.',
+      _disclaimer: `This is a preliminary estimate only and not a guaranteed offer. Final trade-in value will be determined after an in-person vehicle inspection. Market conditions, vehicle history, and other factors may affect the final value. Contact Planet Motors at ${PHONE_TOLL_FREE} for an official appraisal.`,
       comparison: {
         vsPrivateSale: Math.round(offer.offerAmount * 1.15),
         vsDealerTrade: Math.round(offer.offerAmount * 0.9),

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Truck, MapPin, Clock, CheckCircle, Calculator } from "lucide-react"
 import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
+import { DEALERSHIP_LOCATION, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 
 // Planet Motors shipping location: L4C 1G7, Richmond Hill, Ontario
 
@@ -924,7 +925,7 @@ export default function DeliveryPage() {
                   {/* Origin Info */}
                   <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
                     <MapPin className="h-4 w-4" />
-                    <span>Shipping from: <strong>30 Major Mackenzie Dr E, Richmond Hill, ON L4C 1G7</strong></span>
+                    <span>Shipping from: <strong>{DEALERSHIP_ADDRESS_FULL}</strong></span>
                   </div>
 
                   {/* Result */}

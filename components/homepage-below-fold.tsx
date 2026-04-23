@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { ArrowRight, Shield, RotateCw, CheckCircle, Star, BadgeCheck, Clock, Battery, Phone, MapPin, DollarSign, Truck } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { WEEKDAY_HOURS_FALLBACK, SATURDAY_HOURS_FALLBACK } from "@/lib/constants/dealership"
 
 const protectionPlans = [
   {
@@ -253,8 +254,8 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
               <div className="bg-white/10 rounded-xl p-6">
                 <Clock className="w-8 h-8 text-white mb-4" />
                 <h3 className="font-semibold text-white">Hours</h3>
-                <p className="text-sm text-white mt-1">Mon-Fri: {weekdayHours?.open || "9AM"}-{weekdayHours?.close || "7PM"}</p>
-                <p className="text-sm text-white">Sat: {saturdayHours?.open || "10AM"}-{saturdayHours?.close || "5PM"}</p>
+                <p className="text-sm text-white mt-1">Mon-Fri: {weekdayHours?.open && weekdayHours?.close ? `${weekdayHours.open}-${weekdayHours.close}` : WEEKDAY_HOURS_FALLBACK}</p>
+                <p className="text-sm text-white">Sat: {saturdayHours?.open && saturdayHours?.close ? `${saturdayHours.open}-${saturdayHours.close}` : SATURDAY_HOURS_FALLBACK}</p>
               </div>
               <div className="bg-white/10 rounded-xl p-6">
                 <BadgeCheck className="w-8 h-8 text-white mb-4" />

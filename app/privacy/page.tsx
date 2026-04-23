@@ -1,5 +1,6 @@
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import { PHONE_TOLL_FREE, PHONE_LOCAL, DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
 
 export const metadata = {
   title: "Privacy Policy | Planet Motors",
@@ -131,11 +132,11 @@ export default function PrivacyPolicyPage() {
               <div className="bg-muted/50 p-6 rounded-lg">
                 <p className="font-semibold">Planet Motors Inc.</p>
                 <p className="text-muted-foreground">Privacy Officer</p>
-                <p className="text-muted-foreground">30 Major Mackenzie Dr E</p>
-                <p className="text-muted-foreground">Richmond Hill, ON L4C 1G7</p>
+                <p className="text-muted-foreground">{DEALERSHIP_LOCATION.streetAddress}</p>
+                <p className="text-muted-foreground">{DEALERSHIP_LOCATION.city}, {DEALERSHIP_LOCATION.province} {DEALERSHIP_LOCATION.postalCode}</p>
                 <p className="text-muted-foreground mt-2">Email: privacy@planetmotors.ca</p>
-                <p className="text-muted-foreground">Toll-Free: 1-866-797-3332</p>
-                <p className="text-muted-foreground">Local: 416-985-2277</p>
+                <p className="text-muted-foreground">Toll-Free: {PHONE_TOLL_FREE}</p>
+                <p className="text-muted-foreground">Local: {PHONE_LOCAL}</p>
               </div>
             </section>
 

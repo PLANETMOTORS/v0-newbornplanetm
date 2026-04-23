@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Calendar, Clock, MapPin, Video, Home, CheckCircle2 } from "lucide-react"
+import { DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
 
 const timeSlots = [
   "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM",
@@ -76,7 +77,7 @@ export default function SchedulePage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <MapPin className="w-5 h-5 text-primary" />
-                  <span>30 Major Mackenzie Dr E, Richmond Hill, ON L4C 1G7</span>
+                  <span>{DEALERSHIP_LOCATION.streetAddress}, {DEALERSHIP_LOCATION.city}, {DEALERSHIP_LOCATION.province} {DEALERSHIP_LOCATION.postalCode}</span>
                 </div>
               </CardContent>
             </Card>

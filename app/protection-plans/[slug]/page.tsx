@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { getProductBySlug, getAllProductSlugs, PROTECTION_PRODUCTS, WARRANTY_COVERAGE_MATRIX } from "@/lib/protection-products"
 import { getPublicSiteUrl } from "@/lib/site-url"
+import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL, DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
 
 export async function generateStaticParams() {
   return getAllProductSlugs().map((slug) => ({ slug }))
@@ -76,10 +77,10 @@ export default async function ProtectionProductPage({ params }: { params: Promis
       url: siteUrl,
       address: {
         "@type": "PostalAddress",
-        streetAddress: "30 Major Mackenzie Dr E",
-        addressLocality: "Richmond Hill",
-        addressRegion: "ON",
-        postalCode: "L4C 1G7",
+        streetAddress: DEALERSHIP_LOCATION.streetAddress,
+        addressLocality: DEALERSHIP_LOCATION.city,
+        addressRegion: DEALERSHIP_LOCATION.province,
+        postalCode: DEALERSHIP_LOCATION.postalCode,
         addressCountry: "CA",
       },
     },
@@ -138,8 +139,8 @@ export default async function ProtectionProductPage({ params }: { params: Promis
                     </Link>
                   </Button>
                   <Button size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10" asChild>
-                    <a href="tel:1-866-797-3332">
-                      <Phone className="mr-2 w-4 h-4" /> Call 1-866-797-3332
+                    <a href={`tel:${PHONE_TOLL_FREE_TEL}`}>
+                      <Phone className="mr-2 w-4 h-4" /> Call {PHONE_TOLL_FREE}
                     </a>
                   </Button>
                 </div>
@@ -407,7 +408,7 @@ export default async function ProtectionProductPage({ params }: { params: Promis
                 </Link>
               </Button>
               <Button size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10" asChild>
-                <a href="tel:1-866-797-3332">
+                <a href={`tel:${PHONE_TOLL_FREE_TEL}`}>
                   <Phone className="mr-2 w-4 h-4" /> Call Now
                 </a>
               </Button>

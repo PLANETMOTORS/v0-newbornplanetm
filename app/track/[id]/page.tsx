@@ -12,6 +12,7 @@ import {
   MapPin, Phone, Clock, Truck, CheckCircle, Circle,
   ArrowLeft, RefreshCw, Navigation
 } from "lucide-react"
+import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
 
 interface DeliveryData {
   orderId: string
@@ -334,7 +335,7 @@ export default function DeliveryTrackingPage({ params }: { params: Promise<{ id:
               <CardContent className="pt-4 text-center">
                 <p className="text-sm font-medium mb-2">Need Help?</p>
                 <Button variant="outline" size="sm" asChild>
-                  <a href="tel:416-985-2277">Call Support: 416-985-2277</a>
+                  <a href={`tel:${PHONE_LOCAL_TEL}`}>Call Support: {PHONE_LOCAL}</a>
                 </Button>
               </CardContent>
             </Card>

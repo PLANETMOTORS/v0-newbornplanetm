@@ -9,6 +9,13 @@ import { z } from "zod"
 import { searchInventory, formatVehiclesForAnna, buildInventoryContext } from "@/lib/anna/inventory-search"
 import { createLead, saveConversation, saveChatMessage, escalateConversation } from "@/lib/anna/lead-capture"
 import { buildKnowledgePrompt } from "@/lib/anna/knowledge"
+import {
+  DEALERSHIP_TIMEZONE,
+  WEEKDAY_OPEN, WEEKDAY_CLOSE,
+  SATURDAY_OPEN, SATURDAY_CLOSE,
+  WEEKDAY_HOURS_LONG, SATURDAY_HOURS_LONG,
+  PHONE_TOLL_FREE, PHONE_LOCAL, EMAIL_INFO, DEALERSHIP_LOCATION,
+} from "@/lib/constants/dealership"
 
 // Allowed origins for the AI assistant endpoint — use exact origin matching
 // to prevent bypass via domains like "https://www.planetmotors.ca.attacker.tld"
@@ -94,36 +101,37 @@ interface VehicleContext {
 }
 
 // Check if current time is within business hours (Eastern Time)
+// Hours imported from central config — lib/constants/dealership.ts
 function isWithinBusinessHours(): { isOpen: boolean; currentDay: string; message: string } {
   const now = new Date()
   const eastern = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/Toronto',
+    timeZone: DEALERSHIP_TIMEZONE,
     weekday: 'long',
     hour: 'numeric',
     minute: 'numeric',
     hour12: false
   }).formatToParts(now)
-  
+
   const day = eastern.find(p => p.type === 'weekday')?.value || ''
   const hour = parseInt(eastern.find(p => p.type === 'hour')?.value || '0')
   const minute = parseInt(eastern.find(p => p.type === 'minute')?.value || '0')
   const currentTime = hour + minute / 60
-  
+
   if (day === 'Sunday') {
-    return { isOpen: false, currentDay: day, message: "We're closed on Sundays. We reopen Monday at 9:00 AM." }
+    return { isOpen: false, currentDay: day, message: `We're closed on Sundays. We reopen Monday at ${WEEKDAY_OPEN}:00 AM.` }
   }
-  
+
   if (day === 'Saturday') {
-    if (currentTime >= 10 && currentTime < 17) {
-      return { isOpen: true, currentDay: day, message: "We're open until 5:00 PM today." }
+    if (currentTime >= SATURDAY_OPEN && currentTime < SATURDAY_CLOSE) {
+      return { isOpen: true, currentDay: day, message: `We're open until ${SATURDAY_CLOSE > 12 ? SATURDAY_CLOSE - 12 : SATURDAY_CLOSE}:00 PM today.` }
     }
-    return { isOpen: false, currentDay: day, message: "We're closed. Saturday hours are 10:00 AM - 5:00 PM." }
+    return { isOpen: false, currentDay: day, message: `We're closed. Saturday hours are ${SATURDAY_HOURS_LONG}.` }
   }
-  
-  if (currentTime >= 9 && currentTime < 19) {
-    return { isOpen: true, currentDay: day, message: "We're open until 7:00 PM today." }
+
+  if (currentTime >= WEEKDAY_OPEN && currentTime < WEEKDAY_CLOSE) {
+    return { isOpen: true, currentDay: day, message: `We're open until ${WEEKDAY_CLOSE > 12 ? WEEKDAY_CLOSE - 12 : WEEKDAY_CLOSE}:00 PM today.` }
   }
-  return { isOpen: false, currentDay: day, message: "We're closed. We're open Monday-Friday 9:00 AM - 7:00 PM." }
+  return { isOpen: false, currentDay: day, message: `We're closed. We're open Monday-Friday ${WEEKDAY_HOURS_LONG}.` }
 }
 
 // Finance calculator - PMT formula
@@ -227,10 +235,10 @@ ${anna?.quickActions?.map((qa: QuickAction) => `- ${qa.label}: ${qa.prompt}`).jo
 DEALERSHIP INFORMATION:
 =============================================
 - Name: ${siteSettings?.dealerName || 'Planet Motors'}
-- Address: ${siteSettings?.streetAddress || '30 Major Mackenzie Dr E'}, ${siteSettings?.city || 'Richmond Hill'}, ${siteSettings?.province || 'Ontario'} ${siteSettings?.postalCode || 'L4C 1G7'}
-- Phone: ${siteSettings?.phone || '1-866-797-3332'}
-- Secondary Phone: ${siteSettings?.phoneSecondary || '416-985-2277'}
-- Email: ${siteSettings?.email || 'info@planetmotors.ca'}
+- Address: ${siteSettings?.streetAddress || DEALERSHIP_LOCATION.streetAddress}, ${siteSettings?.city || DEALERSHIP_LOCATION.city}, ${siteSettings?.province || DEALERSHIP_LOCATION.province} ${siteSettings?.postalCode || DEALERSHIP_LOCATION.postalCode}
+- Phone: ${siteSettings?.phone || PHONE_TOLL_FREE}
+- Secondary Phone: ${siteSettings?.phoneSecondary || PHONE_LOCAL}
+- Email: ${siteSettings?.email || EMAIL_INFO}
 - Website: planetmotors.ca
 - Google Maps: ${siteSettings?.googleMapsUrl || 'https://maps.google.com/?q=30+Major+Mackenzie+E+Richmond+Hill'}
 - Rating: ${siteSettings?.ratingDisplay?.ratingValue || '4.9'}/5 (${siteSettings?.ratingDisplay?.reviewCount || '500'}+ reviews)
@@ -239,8 +247,8 @@ DEALERSHIP INFORMATION:
 =============================================
 BUSINESS HOURS:
 =============================================
-- Monday - Friday: 9:00 AM - 7:00 PM
-- Saturday: 10:00 AM - 5:00 PM  
+- Monday - Friday: ${WEEKDAY_HOURS_LONG}
+- Saturday: ${SATURDAY_HOURS_LONG}
 - Sunday: Closed
 
 CURRENT STATUS: ${businessStatus.message}
@@ -405,7 +413,7 @@ If a customer:
 - Needs to discuss a specific deal or existing order
 
 Use the escalate_to_human tool. Tell them:
-"I'd be happy to connect you with our team! I'm saving your conversation so they have full context. ${businessStatus.isOpen ? "Someone will reach out to you shortly — you can also call us directly at 1-866-797-3332." : "We're currently closed, but I've flagged your request as priority. Our team will contact you first thing when we reopen."}"
+"I'd be happy to connect you with our team! I'm saving your conversation so they have full context. ${businessStatus.isOpen ? `Someone will reach out to you shortly — you can also call us directly at ${PHONE_TOLL_FREE}.` : "We're currently closed, but I've flagged your request as priority. Our team will contact you first thing when we reopen."}"
 
 =============================================
 LEAD CAPTURE:

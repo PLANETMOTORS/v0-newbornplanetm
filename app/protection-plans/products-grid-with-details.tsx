@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Separator } from "@/components/ui/separator"
 import { PROTECTION_PRODUCTS, type ProtectionProduct } from "@/lib/protection-products"
+import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
 
 /* ── Icon + colour map per product ── */
 const PRODUCT_META: Record<string, { icon: typeof Shield; gradient: string; accent: string }> = {
@@ -158,7 +159,7 @@ function ProductDetailPanel({ product, onClose }: { product: ProtectionProduct; 
         {/* ▸ CTA bar */}
         <div className="flex flex-wrap items-center gap-4 pt-6 border-t border-border/40">
           <Button size="lg" className="h-12 px-6 text-sm font-semibold shadow-md" asChild>
-            <a href="tel:1-866-797-3332">
+            <a href={`tel:${PHONE_TOLL_FREE_TEL}`}>
               <Phone className="w-4 h-4 mr-2" />
               {product.ctaText}
             </a>
@@ -169,7 +170,7 @@ function ProductDetailPanel({ product, onClose }: { product: ProtectionProduct; 
             </a>
           </Button>
           <span className="hidden sm:inline-flex text-xs text-muted-foreground ml-auto">
-            Or call <strong className="ml-1">1-866-797-3332</strong>
+            Or call <strong className="ml-1">{PHONE_TOLL_FREE}</strong>
           </span>
         </div>
       </div>

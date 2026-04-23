@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { PHONE_LOCAL } from "@/lib/constants/dealership"
 
 /** Escape user-supplied strings before interpolating into HTML templates. */
 export function escapeHtml(str: string): string {
@@ -230,7 +231,7 @@ const templates: Record<NotificationType, (data: EmailData) => { subject: string
           <p style="margin: 10px 0 0; color: #94a3b8; font-size: 14px;">If you didn&apos;t request this code, please ignore this email.</p>
         </div>
         <div style="padding: 15px; background: #e2e8f0; text-align: center; font-size: 12px; color: #64748b;">
-          Planet Motors | 416-985-2277 | planetmotors.ca
+          Planet Motors | ${PHONE_LOCAL} | planetmotors.ca
         </div>
       </div>
     `
@@ -295,7 +296,7 @@ export async function sendCustomerConfirmationEmail(
             ${data.vehicleInfo ? `<p><strong>Vehicle:</strong> ${escapeHtml(data.vehicleInfo)}</p>` : ''}
             <p>We'll contact you soon with next steps.</p>
             <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-            <p style="color: #64748b; font-size: 14px;">Questions? Call us at 416-985-2277</p>
+            <p style="color: #64748b; font-size: 14px;">Questions? Call us at ${PHONE_LOCAL}</p>
           </div>
         </div>
       `
@@ -330,7 +331,7 @@ export async function sendCustomerConfirmationEmail(
             ${data.vehicleInfo ? `<p><strong>Vehicle:</strong> ${escapeHtml(data.vehicleInfo)}</p>` : ''}
             <p>Our team will contact you within 24 hours to schedule vehicle inspection and payment.</p>
             <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-            <p style="color: #64748b; font-size: 14px;">Questions? Call us at 416-985-2277</p>
+            <p style="color: #64748b; font-size: 14px;">Questions? Call us at ${PHONE_LOCAL}</p>
           </div>
         </div>
       `

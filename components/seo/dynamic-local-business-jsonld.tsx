@@ -1,5 +1,6 @@
 import { headers } from "next/headers"
 import { getPublicSiteUrl } from "@/lib/site-url"
+import { DEALERSHIP_LOCATION, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
 
 async function getGoogleReviewsData() {
   try {
@@ -37,14 +38,14 @@ export async function DynamicLocalBusinessJsonLd() {
     "image": `${siteUrl}/images/planet-motors-logo.png`,
     "@id": `${siteUrl}/#local-business`,
     "url": siteUrl,
-    "telephone": "+1-866-797-3332",
+    "telephone": PHONE_TOLL_FREE_TEL,
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "30 Major Mackenzie Dr E",
-      "addressLocality": "Richmond Hill",
-      "addressRegion": "ON",
-      "postalCode": "L4C 1G7",
-      "addressCountry": "CA"
+      "streetAddress": DEALERSHIP_LOCATION.streetAddress,
+      "addressLocality": DEALERSHIP_LOCATION.city,
+      "addressRegion": DEALERSHIP_LOCATION.province,
+      "postalCode": DEALERSHIP_LOCATION.postalCode,
+      "addressCountry": DEALERSHIP_LOCATION.country
     },
     "aggregateRating": {
       "@type": "AggregateRating",

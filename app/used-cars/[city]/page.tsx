@@ -13,6 +13,7 @@ import {
   ArrowRight, Phone, Battery
 } from "lucide-react"
 import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
+import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
 
 // City data for SEO
 const cityData: Record<string, {
@@ -391,7 +392,7 @@ export default function CityLandingPage() {
                   <div>
                     <p className="font-semibold">Questions about buying in {city.name}?</p>
                     <p className="text-muted-foreground">
-                      Call us toll-free at <a href="tel:1-866-797-3332" className="text-primary font-semibold">1-866-797-3332</a> or{" "}
+                      Call us toll-free at <a href={`tel:${PHONE_TOLL_FREE_TEL}`} className="text-primary font-semibold">{PHONE_TOLL_FREE}</a> or{" "}
                       <Link href="/contact" className="text-primary font-semibold">chat with us online</Link>
                     </p>
                   </div>

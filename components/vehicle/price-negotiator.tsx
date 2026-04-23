@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Send, Bot, User, Sparkles, Mail, Phone, CheckCircle, Loader2 } from "lucide-react"
+import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
 
 interface Message {
   role: "user" | "assistant"
@@ -154,7 +155,7 @@ export function PriceNegotiator({
         setMessages((prev) => [...prev, { role: "assistant", content: fullContent || "I'd be happy to discuss pricing. What price did you have in mind?", status: "negotiating" }])
       }
     } catch {
-      setMessages((prev) => [...prev, { role: "assistant", content: "I'm having trouble processing. Please try again or call 416-985-2277.", status: "escalate" }])
+      setMessages((prev) => [...prev, { role: "assistant", content: `I'm having trouble processing. Please try again or call ${PHONE_LOCAL}.`, status: "escalate" }])
     } finally {
       setIsLoading(false)
     }

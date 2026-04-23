@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { MessageCircle, X, Send, Phone, Minimize2 } from "lucide-react"
+import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
 
 interface Message {
   id: string
@@ -154,12 +155,12 @@ export function LiveChat() {
 
           {/* Call Option */}
           <div className="p-2 border-t bg-muted/30 text-center">
-            <a 
-              href="tel:1-866-797-3332" 
+            <a
+              href={`tel:${PHONE_TOLL_FREE_TEL}`}
               className="text-xs text-muted-foreground hover:text-primary flex items-center justify-center gap-1"
             >
               <Phone className="h-3 w-3" />
-              Prefer to call? 1-866-797-3332
+              Prefer to call? {PHONE_TOLL_FREE}
             </a>
           </div>
         </CardContent>

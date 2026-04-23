@@ -32,6 +32,7 @@ import {
 } from "@/lib/validation"
 import { useAuth } from "@/contexts/auth-context"
 import { AuthRequiredModal } from "@/components/auth-required-modal"
+import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
 
 // Vehicle makes with models
 const vehicleMakes = {
@@ -1578,7 +1579,7 @@ function TradeInContent() {
   </div>
 
                     <p className="text-center text-sm text-muted-foreground">
-                      Questions? Call us at <strong>1-866-797-3332</strong>
+                      Questions? Call us at <strong>{PHONE_TOLL_FREE}</strong>
                     </p>
                   </CardContent>
                 </Card>
@@ -1906,7 +1907,7 @@ function TradeInContent() {
                     setShowAcceptModal(false)
                     alert(`Offer Accepted!\n\nYou will receive a confirmation email and SMS shortly.\n\nOur team will contact you within 2 hours to schedule your free pickup.\n\nQuote ID: ${offer?.quoteId}`)
                   } else {
-                    alert('There was an issue processing your acceptance. Please try again or call us at 1-866-797-3332.')
+                    alert(`There was an issue processing your acceptance. Please try again or call us at ${PHONE_TOLL_FREE}.`)
                   }
                 } catch (error) {
                   console.error('Error accepting offer:', error)

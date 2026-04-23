@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Bell, Check, Mail, Phone } from "lucide-react"
+import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
 
 interface PriceDropAlertProps {
   vehicleId: string
@@ -122,7 +123,7 @@ export function PriceDropAlert({
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: formatPhoneNumber(e.target.value) })}
-                placeholder="416-985-2277"
+                placeholder={PHONE_LOCAL}
               />
             </div>
 

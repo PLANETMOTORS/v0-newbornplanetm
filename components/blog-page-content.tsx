@@ -3,18 +3,17 @@
 import { useState, useMemo } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Calendar, Clock, ArrowRight, Search, ChevronDown, Loader2 } from "lucide-react"
+import { Calendar, Clock, ArrowRight, Search, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { blogPosts } from "@/lib/blog-data"
+import { blogPostsMeta } from "@/lib/blog-data"
 
 const POSTS_PER_PAGE = 9
 
-// Build sorted post array from the single source of truth (blog-data.ts)
-const allPosts = Object.entries(blogPosts)
-  .map(([slug, post]) => ({ slug, ...post }))
+// Pre-sorted lightweight metadata — no heavy `content` fields in the client bundle
+const allPosts = [...blogPostsMeta]
   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
 const categories = [
@@ -22,7 +21,12 @@ const categories = [
   ...Array.from(new Set(allPosts.map((p) => p.category))).sort(),
 ]
 
-export function BlogPageContent() {
+interface BlogPageContentProps {
+  /** Slug of the server-rendered featured post to exclude from the grid */
+  featuredSlug?: string
+}
+
+export function BlogPageContent({ featuredSlug }: BlogPageContentProps) {
   const [visibleCount, setVisibleCount] = useState(POSTS_PER_PAGE)
   const [selectedCategory, setSelectedCategory] = useState("All")
   const [searchQuery, setSearchQuery] = useState("")
@@ -30,6 +34,10 @@ export function BlogPageContent() {
 
   const filteredPosts = useMemo(() => {
     let result = allPosts
+    // Skip the featured post that's already rendered server-side
+    if (featuredSlug) {
+      result = result.filter((p) => p.slug !== featuredSlug)
+    }
     if (selectedCategory !== "All") {
       result = result.filter((p) => p.category === selectedCategory)
     }
@@ -42,12 +50,11 @@ export function BlogPageContent() {
       )
     }
     return result
-  }, [selectedCategory, searchQuery])
+  }, [selectedCategory, searchQuery, featuredSlug])
 
   // Reset visible count when filters change
   const visiblePosts = filteredPosts.slice(0, visibleCount)
   const hasMore = visibleCount < filteredPosts.length
-  const featuredPost = filteredPosts[0]
 
   function handleLoadMore() {
     setIsLoadingMore(true)
@@ -69,19 +76,10 @@ export function BlogPageContent() {
   }
 
   return (
-    <main id="main-content" tabIndex={-1} className="pt-24 pb-20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
-      {/* Hero */}
-      <section className="py-12 lg:py-16 bg-muted/30">
+    <>
+      {/* Search & Filters */}
+      <section className="bg-muted/30 pb-12 lg:pb-16">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-10">
-            <h1 className="text-4xl md:text-5xl font-bold tracking-[-0.01em] md:tracking-[-0.02em]">
-              Planet Motors Blog
-            </h1>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Expert advice on car buying, financing tips, EV trends, and automotive news for Canadian drivers.
-            </p>
-          </div>
-
           {/* Search */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <div className="relative w-full max-w-md">
@@ -111,52 +109,6 @@ export function BlogPageContent() {
         </div>
       </section>
 
-      {/* Featured Post */}
-      {featuredPost && (
-        <section className="py-12 lg:py-16">
-          <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <h2 className="font-bold text-xl mb-6">Featured Article</h2>
-
-            <Link href={`/blog/${featuredPost.slug}`} className="group">
-              <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="grid md:grid-cols-2 gap-0">
-                  <div className="aspect-video md:aspect-auto relative">
-                    <Image
-                      src={featuredPost.image}
-                      alt={featuredPost.title}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <CardContent className="p-8 flex flex-col justify-center">
-                    <Badge variant="secondary" className="w-fit mb-4">
-                      {featuredPost.category}
-                    </Badge>
-                    <h3 className="text-2xl md:text-3xl font-semibold mb-4 group-hover:text-primary transition-colors">
-                      {featuredPost.title}
-                    </h3>
-                    <p className="text-muted-foreground mb-6">
-                      {featuredPost.excerpt}
-                    </p>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        {featuredPost.date}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        {featuredPost.readTime}
-                      </span>
-                    </div>
-                  </CardContent>
-                </div>
-              </Card>
-            </Link>
-          </div>
-        </section>
-      )}
-
       {/* Posts Grid */}
       <section className="py-12 lg:py-16">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -185,8 +137,7 @@ export function BlogPageContent() {
           ) : (
             <>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {/* Skip the featured post (index 0) in the grid */}
-                {visiblePosts.slice(1).map((post) => (
+                {visiblePosts.map((post) => (
                   <Link key={post.slug} href={`/blog/${post.slug}`} className="group">
                     <Card className="overflow-hidden h-full hover:shadow-lg transition-shadow">
                       <div className="aspect-video overflow-hidden relative">
@@ -272,6 +223,6 @@ export function BlogPageContent() {
           </p>
         </div>
       </section>
-    </main>
+    </>
   )
 }

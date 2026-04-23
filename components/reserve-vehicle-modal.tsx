@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator"
 import { LockKeyhole, Shield, Clock, CheckCircle, CreditCard, ArrowRight, Sparkles, Loader2 } from "lucide-react"
 import dynamic from 'next/dynamic'
 import { createReservation } from "@/app/actions/reservation"
+import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
 
 // Lazy-load Stripe — only fetched when user reaches the payment step
 const EmbeddedCheckoutProvider = dynamic(
@@ -94,7 +95,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
       } else if (normalizedMessage.includes("rate limit") || normalizedMessage.includes("too many")) {
         setCheckoutError("Too many attempts. Please wait a few minutes and try again.")
       } else {
-        setCheckoutError("Unable to process your reservation right now. Please try again or call us at 416-985-2277.")
+        setCheckoutError(`Unable to process your reservation right now. Please try again or call us at ${PHONE_LOCAL}.`)
       }
     } finally {
       setIsProcessing(false)
@@ -349,7 +350,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
                     {isProcessing ? "Retrying..." : "Try Again"}
                   </Button>
                   <Button variant="outline" asChild>
-                    <a href="tel:416-985-2277">Call Support</a>
+                    <a href={`tel:${PHONE_LOCAL_TEL}`}>Call Support</a>
                   </Button>
                 </div>
               </div>

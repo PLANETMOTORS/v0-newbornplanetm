@@ -1,4 +1,5 @@
 import { Metadata } from "next"
+import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
 
 export const metadata: Metadata = {
   title: "Accessibility Statement | Planet Motors",
@@ -160,9 +161,9 @@ export default function AccessibilityPage() {
                 </p>
                 <div className="flex flex-wrap gap-4">
                   <Button asChild>
-                    <a href="tel:1-866-797-3332">
+                    <a href={`tel:${PHONE_TOLL_FREE_TEL}`}>
                       <Phone className="w-4 h-4 mr-2" />
-                      1-866-797-3332
+                      {PHONE_TOLL_FREE}
                     </a>
                   </Button>
                   <Button variant="outline" asChild>

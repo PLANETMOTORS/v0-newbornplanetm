@@ -13,6 +13,7 @@ import type { DeliveryData } from "./delivery-options"
 import type { ProtectionPlanId } from "./protection-plans"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 import { OMVIC_FEE, CERTIFICATION_FEE, LICENSING_FEE } from "@/lib/pricing/format"
+import { DEALERSHIP_LOCATION, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 
 const PROVINCE_NAME_TO_CODE: Record<string, string> = {
   'Ontario': 'ON', 'British Columbia': 'BC', 'Alberta': 'AB', 'Quebec': 'QC',
@@ -136,7 +137,7 @@ export function ReviewOrderStep({
       <ReviewSection title="Delivery" editLabel="Edit delivery options" onEdit={() => onEditStep(3)}>
         <p>
           {delivery.deliveryType === "pickup"
-            ? "Pickup at Planet Motors — 30 Major Mackenzie Dr E, Richmond Hill"
+            ? `Pickup at Planet Motors — ${DEALERSHIP_ADDRESS_FULL}`
             : `Home delivery — ${personal.address}, ${personal.city}`
           }
         </p>

@@ -1,7 +1,7 @@
 import Script from "next/script"
 import { calculateAllInPrice } from "@/lib/pricing/format"
 import { getPublicSiteUrl } from "@/lib/site-url"
-import { DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
+import { DEALERSHIP_LOCATION, OPENING_HOURS_SPECIFICATION, PHONE_TOLL_FREE_TEL, PHONE_LOCAL_TEL, EMAIL_INFO } from "@/lib/constants/dealership"
 import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
 
 // Resolve site URL once per render instead of hardcoding
@@ -23,8 +23,8 @@ export function OrganizationJsonLd() {
     "logo": `${SITE_URL}/images/planet-motors-logo.png`,
     "image": `${SITE_URL}/images/dealership.jpg`,
     "description": "Canada's trusted destination for premium pre-owned vehicles with nationwide delivery. 210-point inspection, 10-day money-back guarantee, and competitive multi-lender financing.",
-    "telephone": "+1-866-797-3332",
-    "email": "info@planetmotors.ca",
+    "telephone": PHONE_TOLL_FREE_TEL,
+    "email": EMAIL_INFO,
     "address": {
       "@type": "PostalAddress",
       "streetAddress": DEALERSHIP_LOCATION.streetAddress,
@@ -38,20 +38,7 @@ export function OrganizationJsonLd() {
       "latitude": DEALERSHIP_LOCATION.lat,
       "longitude": DEALERSHIP_LOCATION.lng
     },
-    "openingHoursSpecification": [
-      {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-        "opens": "09:00",
-        "closes": "19:00"
-      },
-      {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": "Saturday",
-        "opens": "09:00",
-        "closes": "18:00"
-      }
-    ],
+    "openingHoursSpecification": OPENING_HOURS_SPECIFICATION,
     "priceRange": "$$",
     "currenciesAccepted": "CAD",
     "paymentAccepted": "Cash, Credit Card, Debit Card, Financing",
@@ -378,14 +365,14 @@ export function FinancialServiceJsonLd() {
       "description": `Auto loan rates starting from ${RATE_FLOOR_DISPLAY} APR with terms from 24 to 96 months`,
       "priceCurrency": "CAD"
     },
-    "telephone": "+1-866-797-3332",
+    "telephone": PHONE_TOLL_FREE_TEL,
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "30 Major Mackenzie Dr E",
-      "addressLocality": "Richmond Hill",
-      "addressRegion": "ON",
-      "postalCode": "L4C 1G7",
-      "addressCountry": "CA"
+      "streetAddress": DEALERSHIP_LOCATION.streetAddress,
+      "addressLocality": DEALERSHIP_LOCATION.city,
+      "addressRegion": DEALERSHIP_LOCATION.province,
+      "postalCode": DEALERSHIP_LOCATION.postalCode,
+      "addressCountry": DEALERSHIP_LOCATION.country
     }
   }
 
@@ -406,52 +393,34 @@ export function ContactPageJsonLd() {
     "name": "Planet Motors",
     "url": `${SITE_URL}/contact`,
     "@id": `${SITE_URL}/#organization`,
-    "telephone": "+1-866-797-3332",
-    "email": "info@planetmotors.ca",
+    "telephone": PHONE_TOLL_FREE_TEL,
+    "email": EMAIL_INFO,
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "30 Major Mackenzie Dr E",
-      "addressLocality": "Richmond Hill",
-      "addressRegion": "ON",
-      "postalCode": "L4C 1G7",
-      "addressCountry": "CA"
+      "streetAddress": DEALERSHIP_LOCATION.streetAddress,
+      "addressLocality": DEALERSHIP_LOCATION.city,
+      "addressRegion": DEALERSHIP_LOCATION.province,
+      "postalCode": DEALERSHIP_LOCATION.postalCode,
+      "addressCountry": DEALERSHIP_LOCATION.country
     },
     "contactPoint": [
       {
         "@type": "ContactPoint",
-        "telephone": "+1-866-797-3332",
+        "telephone": PHONE_TOLL_FREE_TEL,
         "contactType": "sales",
         "email": "sales@planetmotors.ca",
         "availableLanguage": "English",
-        "hoursAvailable": {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-          "opens": "09:00",
-          "closes": "19:00"
-        }
+        "hoursAvailable": OPENING_HOURS_SPECIFICATION[0]
       },
       {
         "@type": "ContactPoint",
-        "telephone": "+1-416-985-2277",
+        "telephone": PHONE_LOCAL_TEL,
         "contactType": "customer service",
-        "email": "info@planetmotors.ca",
+        "email": EMAIL_INFO,
         "availableLanguage": "English"
       }
     ],
-    "openingHoursSpecification": [
-      {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-        "opens": "09:00",
-        "closes": "19:00"
-      },
-      {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": "Saturday",
-        "opens": "09:00",
-        "closes": "18:00"
-      }
-    ]
+    "openingHoursSpecification": OPENING_HOURS_SPECIFICATION
   }
 
   return (
@@ -534,7 +503,7 @@ export function TradeInPageJsonLd() {
       "@type": "AutoDealer",
       "name": "Planet Motors",
       "url": SITE_URL,
-      "telephone": "+18667973332"
+      "telephone": PHONE_TOLL_FREE_TEL
     },
     "serviceType": "Vehicle Trade-In"
   }

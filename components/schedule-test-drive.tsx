@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog"
 import { Calendar, MapPin, Car, CheckCircle, Phone, AlertCircle } from "lucide-react"
 import { isValidEmail, isValidCanadianPhone, formatCanadianPhone, isValidCanadianPostalCode, formatCanadianPostalCode } from "@/lib/validation"
+import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL, DEALERSHIP_LOCATION, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 
 interface ScheduleTestDriveProps {
   vehicleTitle: string
@@ -27,7 +28,7 @@ const timeSlots = [
 ]
 
 const locations = [
-  { id: "richmond-hill", name: "Richmond Hill Showroom", address: "30 Major Mackenzie Dr E, Richmond Hill, ON" },
+  { id: "richmond-hill", name: "Richmond Hill Showroom", address: DEALERSHIP_ADDRESS_FULL },
   { id: "home", name: "At Your Home/Office", address: "We come to you (GTA only)" },
 ]
 
@@ -109,7 +110,7 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
       
       setIsSubmitted(true)
     } catch {
-      setError("Failed to schedule. Please call us at 1-866-797-3332 or visit our Contact page.")
+      setError(`Failed to schedule. Please call us at ${PHONE_TOLL_FREE} or visit our Contact page.`)
     } finally {
       setIsSubmitting(false)
     }

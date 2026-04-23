@@ -12,6 +12,7 @@ import NavButton from "@/components/nav-button"
 const SearchAutocomplete = dynamic(() => import("@/components/search-autocomplete").then(m => ({ default: m.SearchAutocomplete })), { ssr: false })
 import { useAuth } from "@/contexts/auth-context"
 import { trackPhoneClick } from "@/components/analytics/google-tag-manager"
+import { BUSINESS_HOURS_SHORT, PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 
 type NavItem = {
   name: string
@@ -188,15 +189,15 @@ export function Header() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-4 sm:gap-6">
               <a
-                href="tel:1-866-797-3332"
+                href={`tel:${PHONE_TOLL_FREE_TEL}`}
                 className="flex items-center gap-1.5 min-h-[44px] py-1 hover:text-primary-foreground/80 transition-colors"
-                onClick={() => trackPhoneClick("1-866-797-3332")}
+                onClick={() => trackPhoneClick(PHONE_TOLL_FREE)}
               >
                 <Phone className="w-3.5 h-3.5" />
-                <span className="font-semibold">1-866-797-3332</span>
+                <span className="font-semibold">{PHONE_TOLL_FREE}</span>
               </a>
               <span className="hidden sm:flex items-center text-primary-foreground/90">
-                Mon-Fri 9AM-7PM | Sat 9AM-6PM
+                {BUSINESS_HOURS_SHORT}
               </span>
             </div>
             <div className="flex items-center gap-4 sm:gap-6">
@@ -215,7 +216,7 @@ export function Header() {
                 className="hidden lg:flex items-center gap-1.5 hover:text-primary-foreground/80 transition-colors"
               >
                 <MapPin className="w-3.5 h-3.5" />
-                <span>30 Major Mackenzie Dr E, Richmond Hill, ON L4C 1G7</span>
+                <span>{DEALERSHIP_ADDRESS_FULL}</span>
               </a>
             </div>
           </div>
