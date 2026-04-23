@@ -9,18 +9,33 @@ import { Button } from "@/components/ui/button"
 
 interface Vehicle360ViewerProps {
   stockNumber: string
+  vehicleId?: string
+  enabled?: boolean
   totalFrames?: number
+  frameTemplate?: string
+  previewUrl?: string
   className?: string
 }
 
 export function Vehicle360Viewer({ 
   stockNumber, 
+  vehicleId,
+  enabled = true,
   totalFrames = 72,
+  frameTemplate,
+  previewUrl,
   className = ""
 }: Vehicle360ViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isVisible, setIsVisible] = useState(false)
   const [isActivated, setIsActivated] = useState(false)
+  const [failedFrames, setFailedFrames] = useState<Set<number>>(new Set())
+  const [frameRetries, setFrameRetries] = useState<Record<number, number>>({})
+  const [fallbackMode, setFallbackMode] = useState(false)
+  const [telemetrySent, setTelemetrySent] = useState(false)
+
+  const minFramesToEnable = 24
+  const canRenderViewer = enabled && totalFrames >= minFramesToEnable
 
   const { currentFrame, isPlaying, toggle, handlers } = use360Spin({ 
     totalFrames,
@@ -50,13 +65,92 @@ export function Vehicle360Viewer({
 
   // AVIF-first frame URL via imgix + CloudFront.
   // Keep payloads bounded so interactive spin remains responsive on mobile.
-  const frameUrl = imgix(`vehicles/${stockNumber}/360/frame-${String(currentFrame).padStart(3, '0')}.jpg`, {
+  const resolvedFramePath = frameTemplate
+    ? frameTemplate.replace('{frame}', String(currentFrame).padStart(3, '0'))
+    : `vehicles/${stockNumber}/360/frame-${String(currentFrame).padStart(3, '0')}.jpg`
+
+  const frameUrl = imgix(resolvedFramePath, {
     w: 1280, h: 720, q: 78
   })
 
-  const previewUrl = imgix(`vehicles/${stockNumber}/360/frame-000.jpg`, {
+  const defaultPreviewUrl = previewUrl || imgix(`vehicles/${stockNumber}/360/frame-000.jpg`, {
     w: 640, h: 360, q: 70
   })
+
+  useEffect(() => {
+    if (failedFrames.size / totalFrames > 0.15) {
+      setFallbackMode(true)
+      setIsActivated(false)
+    }
+  }, [failedFrames, totalFrames])
+
+  useEffect(() => {
+    if (!fallbackMode || telemetrySent) return
+
+    const payload = {
+      eventType: 'vdp_360_fallback_activated',
+      vehicleId: vehicleId || null,
+      stockNumber,
+      failedFrames: failedFrames.size,
+      totalFrames,
+      failureRatio: Number((failedFrames.size / totalFrames).toFixed(4)),
+    }
+
+    const endpoint = '/api/v1/telemetry/vdp-360'
+    const body = JSON.stringify(payload)
+
+    try {
+      if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+        const blob = new Blob([body], { type: 'application/json' })
+        navigator.sendBeacon(endpoint, blob)
+      } else {
+        void fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body,
+          keepalive: true,
+        })
+      }
+      setTelemetrySent(true)
+    } catch {
+      // Telemetry is best-effort only and must never impact viewer UX.
+    }
+  }, [fallbackMode, telemetrySent, vehicleId, stockNumber, failedFrames.size, totalFrames])
+
+  const handleFrameError = () => {
+    const retryCount = frameRetries[currentFrame] || 0
+    if (retryCount < 2) {
+      setFrameRetries((prev) => ({ ...prev, [currentFrame]: retryCount + 1 }))
+      return
+    }
+
+    setFailedFrames((prev) => {
+      const next = new Set(prev)
+      next.add(currentFrame)
+      return next
+    })
+  }
+
+  if (!canRenderViewer || fallbackMode) {
+    return (
+      <div ref={containerRef} className={`relative aspect-video bg-muted rounded-lg overflow-hidden ${className}`}>
+        <Image
+          src={defaultPreviewUrl}
+          alt={`${stockNumber} preview`}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 70vw, 50vw"
+          className="object-cover"
+          loading="lazy"
+          quality={70}
+        />
+        {fallbackMode && (
+          <div className="absolute bottom-3 left-3 right-3 bg-black/70 text-white text-xs px-3 py-2 rounded">
+            360 temporarily unavailable. Showing photo gallery fallback.
+          </div>
+        )}
+      </div>
+    )
+  }
 
   // Not visible - placeholder
   if (!isVisible) {
@@ -72,7 +166,7 @@ export function Vehicle360Viewer({
         onClick={() => setIsActivated(true)}
       >
         <Image
-          src={previewUrl}
+          src={defaultPreviewUrl}
           alt={`${stockNumber} 360 preview`}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1280px) 70vw, 50vw"
@@ -100,7 +194,7 @@ export function Vehicle360Viewer({
       onPointerLeave={handlers.onPointerUp}
     >
       <Image
-        src={frameUrl}
+        src={`${frameUrl}${frameRetries[currentFrame] ? `&retry=${frameRetries[currentFrame]}` : ''}`}
         alt={`${stockNumber} 360 frame ${currentFrame + 1}`}
         fill
         sizes="(max-width: 768px) 100vw, (max-width: 1280px) 70vw, 50vw"
@@ -108,6 +202,7 @@ export function Vehicle360Viewer({
         draggable={false}
         loading="lazy"
         quality={78}
+        onError={handleFrameError}
       />
       
       {/* Controls */}

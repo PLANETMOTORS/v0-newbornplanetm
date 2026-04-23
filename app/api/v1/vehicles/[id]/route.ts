@@ -49,14 +49,54 @@ const VEHICLE_DETAIL_FIELDS = [
   'updated_at',
 ].join(',')
 
+function sanitizeStockNumber(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  return trimmed
+}
+
+function asNumber(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value
+  }
+
+  if (typeof value === 'string') {
+    const parsed = Number.parseInt(value, 10)
+    if (Number.isFinite(parsed)) {
+      return parsed
+    }
+  }
+
+  return null
+}
+
 function toPublicVehicle(vehicle: Record<string, unknown>) {
   const price = typeof vehicle.price === "number" ? vehicle.price / 100 : null
   const msrp = typeof vehicle.msrp === "number" ? vehicle.msrp / 100 : null
+  const has360Spin = vehicle.has_360_spin === true
+  const stockNumber = sanitizeStockNumber(vehicle.stock_number)
+  const configuredFrameCount = asNumber(vehicle.spin_frame_count)
+  const spinFrameCount = has360Spin ? Math.max(24, configuredFrameCount || 72) : null
+  const spinFrameTemplate = has360Spin && stockNumber
+    ? `vehicles/${stockNumber}/360/frame-{frame}.jpg`
+    : null
+  const spinPreviewUrl = has360Spin
+    ? (typeof vehicle.primary_image_url === 'string' ? vehicle.primary_image_url : null)
+    : null
+  const spinManifestVersion = has360Spin ? 'v1' : null
+  const mediaProvider = has360Spin ? 'driveai' : null
 
   return {
     ...vehicle,
     price,
     msrp,
+    media_provider: mediaProvider,
+    spin_frame_count: spinFrameCount,
+    spin_frame_template: spinFrameTemplate,
+    spin_preview_url: spinPreviewUrl,
+    spin_last_synced_at: vehicle.updated_at || null,
+    spin_manifest_version: spinManifestVersion,
   }
 }
 

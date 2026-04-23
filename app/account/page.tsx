@@ -92,10 +92,11 @@ export default function AccountPage() {
 
     try {
       const supabase = createClient()
+      const redirectToAccount = encodeURIComponent('/account')
       const callbackUrl =
         typeof window !== "undefined" && window.location?.origin
-          ? `${window.location.origin}/auth/callback?redirectTo=%2Faccount`
-          : (process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || "https://www.planetmotors.ca/auth/callback?redirectTo=%2Faccount")
+          ? `${window.location.origin}/auth/callback?redirectTo=${redirectToAccount}`
+          : (process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `https://www.planetmotors.ca/auth/callback?redirectTo=${redirectToAccount}`)
       const { data: signUpData, error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -128,7 +129,7 @@ export default function AccountPage() {
 
     try {
       const supabase = createClient()
-      const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=%2Faccount`
+      const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent('/account')}`
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: { redirectTo: callbackUrl },

@@ -181,3 +181,44 @@ export async function getVehicleLock(stockNumber: string): Promise<string | null
     return null
   }
 }
+
+export async function acquireDistributedLock(
+  key: string,
+  ownerToken: string,
+  ttlSeconds: number = 120
+): Promise<boolean> {
+  const redis = await getRedis()
+  if (!redis) return true
+
+  try {
+    const result = await redis.set(key, ownerToken, { nx: true, ex: ttlSeconds })
+    return result === 'OK'
+  } catch {
+    return true
+  }
+}
+
+export async function releaseDistributedLock(
+  key: string,
+  ownerToken: string
+): Promise<boolean> {
+  const redis = await getRedis()
+  if (!redis) return true
+
+  try {
+    const compareAndDeleteScript = `
+      if redis.call('GET', KEYS[1]) == ARGV[1] then
+        return redis.call('DEL', KEYS[1])
+      end
+      return 0
+    `
+
+    const deleted = await (redis as unknown as {
+      eval: (script: string, keys: string[], args: string[]) => Promise<number>
+    }).eval(compareAndDeleteScript, [key], [ownerToken])
+
+    return deleted === 1
+  } catch {
+    return true
+  }
+}

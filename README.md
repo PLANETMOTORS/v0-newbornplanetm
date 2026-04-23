@@ -161,6 +161,44 @@ pnpm typecheck
 pnpm build
 ```
 
+### CodeRabbit Reviews
+
+CodeRabbit is the default review workflow for this workspace.
+
+Preferred ways to run it:
+
+```bash
+# Review current local changes
+pnpm review
+
+# Review all changes in the workspace context
+pnpm review:all
+
+# Open the full-screen interactive CodeRabbit UI
+pnpm review:ui
+```
+
+Direct CLI equivalents:
+
+```bash
+coderabbit --agent -t uncommitted
+coderabbit --agent
+coderabbit review --interactive
+```
+
+In VS Code, you can also use:
+
+- `CodeRabbit: Start Review` from the Command Palette when available
+- `Run Task` -> `CodeRabbit: Review Uncommitted`
+- `Run Task` -> `CodeRabbit: Review All`
+- `Run Task` -> `CodeRabbit: Review Interactive`
+
+If the CLI is not authenticated yet, run:
+
+```bash
+coderabbit auth login
+```
+
 ## Deployment
 
 ### Vercel (Recommended for Frontend)

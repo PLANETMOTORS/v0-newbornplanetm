@@ -1,11 +1,99 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { headers } from 'next/headers'
-import Stripe from 'stripe'
+import { randomUUID } from 'node:crypto'
+import { acquireDistributedLock, releaseDistributedLock } from '@/lib/redis'
 import { getStripe } from '@/lib/stripe'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { headers } from 'next/headers'
+import { NextRequest, NextResponse } from 'next/server'
+import Stripe from 'stripe'
 
 // Stripe requires raw body for signature verification — Next.js must NOT parse it.
 export const dynamic = 'force-dynamic'
+
+const WEBHOOK_EVENT_LOCK_TTL_SECONDS = 120
+const RESERVATION_CURRENCY = 'cad'
+
+function normalizeAmount(value: unknown): number {
+  const numericValue = typeof value === 'string' ? Number.parseFloat(value) : Number(value)
+  if (!Number.isFinite(numericValue) || numericValue <= 0) {
+    throw new Error('Invalid reservation amount stored in database')
+  }
+
+  return Math.round(numericValue)
+}
+
+async function assertReservationSessionIntegrity(
+  supabase: ReturnType<typeof createAdminClient>,
+  reservationId: string,
+  session: Stripe.Checkout.Session
+) {
+  const { data: reservation, error } = await supabase
+    .from('reservations')
+    .select('deposit_amount')
+    .eq('id', reservationId)
+    .maybeSingle()
+
+  if (error) {
+    throw new Error(`Failed to read reservation ${reservationId} for amount verification: ${error.message}`)
+  }
+
+  if (!reservation) {
+    throw new Error(`Reservation ${reservationId} not found during webhook processing`)
+  }
+
+  const expectedAmount = normalizeAmount(reservation.deposit_amount)
+  const receivedAmount = session.amount_total
+  const receivedCurrency = (session.currency || '').toLowerCase()
+
+  if (receivedAmount !== expectedAmount) {
+    throw new Error(
+      `Reservation amount mismatch for ${reservationId}: expected ${expectedAmount}, got ${String(receivedAmount)}`
+    )
+  }
+
+  if (receivedCurrency !== RESERVATION_CURRENCY) {
+    throw new Error(
+      `Reservation currency mismatch for ${reservationId}: expected ${RESERVATION_CURRENCY}, got ${receivedCurrency || 'none'}`
+    )
+  }
+}
+
+async function assertReservationPaymentIntentIntegrity(
+  supabase: ReturnType<typeof createAdminClient>,
+  reservationId: string,
+  paymentIntent: Stripe.PaymentIntent
+) {
+  const { data: reservation, error } = await supabase
+    .from('reservations')
+    .select('deposit_amount')
+    .eq('id', reservationId)
+    .maybeSingle()
+
+  if (error) {
+    throw new Error(`Failed to read reservation ${reservationId} for payment intent verification: ${error.message}`)
+  }
+
+  if (!reservation) {
+    throw new Error(`Reservation ${reservationId} not found during payment intent processing`)
+  }
+
+  const expectedAmount = normalizeAmount(reservation.deposit_amount)
+  const receivedAmount = typeof paymentIntent.amount_received === 'number' && paymentIntent.amount_received > 0
+    ? paymentIntent.amount_received
+    : paymentIntent.amount
+  const receivedCurrency = (paymentIntent.currency || '').toLowerCase()
+
+  if (receivedAmount !== expectedAmount) {
+    throw new Error(
+      `Payment intent amount mismatch for ${reservationId}: expected ${expectedAmount}, got ${String(receivedAmount)}`
+    )
+  }
+
+  if (receivedCurrency !== RESERVATION_CURRENCY) {
+    throw new Error(
+      `Payment intent currency mismatch for ${reservationId}: expected ${RESERVATION_CURRENCY}, got ${receivedCurrency || 'none'}`
+    )
+  }
+}
 
 async function markEventProcessed(
   supabase: ReturnType<typeof createAdminClient>,
@@ -74,6 +162,8 @@ async function handleCheckoutSessionCompleted(
       return
     }
 
+    await assertReservationSessionIntegrity(supabase, reservationId, session)
+
     // Confirm the reservation deposit
     const { error: reservationError } = await supabase
       .from('reservations')
@@ -84,6 +174,8 @@ async function handleCheckoutSessionCompleted(
         updated_at: new Date().toISOString(),
       })
       .eq('id', reservationId)
+      .in('status', ['pending'])
+      .in('deposit_status', ['pending'])
 
     if (reservationError) {
       throw new Error(`Failed to confirm reservation ${reservationId}: ${reservationError.message}`)
@@ -256,6 +348,8 @@ async function handlePaymentIntentSucceeded(
   const { reservationId, vehicleId, type } = paymentIntent.metadata || {}
 
   if (reservationId) {
+    await assertReservationPaymentIntentIntegrity(supabase, reservationId, paymentIntent)
+
     const { error } = await supabase
       .from('reservations')
       .update({
@@ -264,6 +358,7 @@ async function handlePaymentIntentSucceeded(
         updated_at: new Date().toISOString(),
       })
       .eq('id', reservationId)
+      .in('status', ['pending'])
       .in('deposit_status', ['pending'])
 
     if (error) {
@@ -345,6 +440,16 @@ async function hydratePaymentIntent(
   }
 }
 
+function hasCheckoutSessionMapping(session: Stripe.Checkout.Session): boolean {
+  const metadata = session.metadata
+  return !!metadata && (!!metadata.reservationId || !!metadata.vehicleId || !!metadata.type)
+}
+
+function hasPaymentIntentMapping(paymentIntent: Stripe.PaymentIntent): boolean {
+  const metadata = paymentIntent.metadata
+  return !!metadata && (!!metadata.reservationId || !!metadata.vehicleId)
+}
+
 export async function POST(request: NextRequest) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 
@@ -381,6 +486,14 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = createAdminClient()
+  const lockKey = `stripe_webhook_lock:${event.id}`
+  const lockToken = randomUUID()
+
+  const acquiredLock = await acquireDistributedLock(lockKey, lockToken, WEBHOOK_EVENT_LOCK_TTL_SECONDS)
+  if (!acquiredLock) {
+    // Another worker is currently handling this event; return success to avoid duplicate execution.
+    return NextResponse.json({ received: true, skipped: 'in_progress' })
+  }
 
   // Idempotency: skip replayed events.
   // If the idempotency check itself fails, log and continue — better to risk
@@ -398,36 +511,54 @@ export async function POST(request: NextRequest) {
       case 'checkout.session.completed': {
         const rawSession = event.data.object as Stripe.Checkout.Session
         const session = await hydrateCheckoutSession(stripe, rawSession)
+        if (!hasCheckoutSessionMapping(session)) {
+          throw new Error(`Missing domain mapping metadata for ${event.type} (${event.id})`)
+        }
         await handleCheckoutSessionCompleted(supabase, session)
         break
       }
       case 'checkout.session.expired': {
         const rawSession = event.data.object as Stripe.Checkout.Session
         const session = await hydrateCheckoutSession(stripe, rawSession)
+        if (!hasCheckoutSessionMapping(session)) {
+          throw new Error(`Missing domain mapping metadata for ${event.type} (${event.id})`)
+        }
         await handleCheckoutSessionExpired(supabase, session)
         break
       }
       case 'checkout.session.async_payment_succeeded': {
         const rawSession = event.data.object as Stripe.Checkout.Session
         const session = await hydrateCheckoutSession(stripe, rawSession)
+        if (!hasCheckoutSessionMapping(session)) {
+          throw new Error(`Missing domain mapping metadata for ${event.type} (${event.id})`)
+        }
         await handleCheckoutSessionCompleted(supabase, session)
         break
       }
       case 'checkout.session.async_payment_failed': {
         const rawSession = event.data.object as Stripe.Checkout.Session
         const session = await hydrateCheckoutSession(stripe, rawSession)
+        if (!hasCheckoutSessionMapping(session)) {
+          throw new Error(`Missing domain mapping metadata for ${event.type} (${event.id})`)
+        }
         await handleCheckoutSessionAsyncPaymentFailed(supabase, session)
         break
       }
       case 'payment_intent.succeeded': {
         const rawPaymentIntent = event.data.object as Stripe.PaymentIntent
         const paymentIntent = await hydratePaymentIntent(stripe, rawPaymentIntent)
+        if (!hasPaymentIntentMapping(paymentIntent)) {
+          throw new Error(`Missing domain mapping metadata for ${event.type} (${event.id})`)
+        }
         await handlePaymentIntentSucceeded(supabase, paymentIntent)
         break
       }
       case 'payment_intent.payment_failed': {
         const rawPaymentIntent = event.data.object as Stripe.PaymentIntent
         const paymentIntent = await hydratePaymentIntent(stripe, rawPaymentIntent)
+        if (!hasPaymentIntentMapping(paymentIntent)) {
+          throw new Error(`Missing domain mapping metadata for ${event.type} (${event.id})`)
+        }
         await handlePaymentIntentFailed(supabase, paymentIntent)
         break
       }
@@ -449,5 +580,7 @@ export async function POST(request: NextRequest) {
     }
     // Return 500 so Stripe retries the event.
     return NextResponse.json({ error: 'Handler error' }, { status: 500 })
+  } finally {
+    await releaseDistributedLock(lockKey, lockToken)
   }
 }

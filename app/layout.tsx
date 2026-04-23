@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, Playfair_Display } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { GoogleAnalytics } from '@/components/analytics/google-analytics'
@@ -17,16 +16,6 @@ import './globals.css'
 import './stability-fixes.css'
 
 // Planet Motors - OMVIC Licensed Dealer - Production Ready
-
-const inter = Inter({ 
-  subsets: ["latin"],
-  variable: '--font-inter'
-});
-
-const playfair = Playfair_Display({ 
-  subsets: ["latin"],
-  variable: '--font-playfair'
-});
 
 const SITE_URL = getPublicSiteUrl()
 
@@ -102,8 +91,6 @@ export default function RootLayout({
     <html lang="en" className="bg-background" data-scroll-behavior="smooth">
       <head>
         {/* Preconnect to external domains for performance */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
@@ -115,7 +102,7 @@ export default function RootLayout({
         <LocalBusinessJsonLd />
         <WebsiteSearchJsonLd />
       </head>
-      <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
+      <body className="font-sans antialiased">
         <GoogleTagManagerNoScript />
         <AuthProvider>
           <FavoritesProvider>

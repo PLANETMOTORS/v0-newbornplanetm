@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/client"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -31,6 +30,7 @@ import { PriceNegotiator } from "@/components/vehicle/price-negotiator"
 import { LiveVideoCall } from "@/components/vehicle/live-video-call"
 import { PriceDropAlert } from "@/components/vehicle/price-drop-alert"
 import { AddToCompare } from "@/components/vehicle/add-to-compare"
+import { Vehicle360Viewer } from "@/components/vehicle-360-viewer"
 import { toast } from "sonner"
 import {
   Dialog,
@@ -364,7 +364,7 @@ export default function VehicleDetailPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isFavorite, setIsFavorite] = useState(false)
   const [activeTab, setActiveTab] = useState("photos")
-  const [imageType, setImageType] = useState<"exterior" | "interior">("exterior")
+  const [imageType, setImageType] = useState<"exterior" | "interior" | "spin360">("exterior")
   const [postalCode, setPostalCode] = useState("")
   const [isCheckingDelivery, setIsCheckingDelivery] = useState(false)
   const [deliveryError, setDeliveryError] = useState("")
@@ -404,29 +404,42 @@ export default function VehicleDetailPage() {
   // Fetch vehicle from database
   useEffect(() => {
     async function fetchVehicle() {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from("vehicles")
-        .select("*")
-        .eq("id", vehicleId)
-        .single()
+      try {
+        const vehicleResponse = await fetch(`/api/v1/vehicles/${vehicleId}`)
+        const vehiclePayload = await vehicleResponse.json()
 
-      if (error || !data) {
-        setVehicle(null)
-        setLoadError("Vehicle not found or no longer available.")
-        setIsLoading(false)
-        return
-      }
-      
-      if (data) {
-        // Transform database vehicle to page format
-        const priceInDollars = data.price / 100
-        // Calculate subtotal (vehicle + all fees) for HST
+        if (!vehicleResponse.ok || !vehiclePayload?.success || !vehiclePayload?.data?.vehicle) {
+          setVehicle(null)
+          setLoadError("Vehicle not found or no longer available.")
+          setIsLoading(false)
+          return
+        }
+
+        const data = vehiclePayload.data.vehicle
+
+        // Optional manifest adapter call for stable vendor mapping.
+        // Falls back to detail payload fields if unavailable.
+        let manifest: Record<string, unknown> | null = null
+        if (data.has_360_spin) {
+          try {
+            const manifestResponse = await fetch(`/api/v1/vehicles/${vehicleId}/spin-manifest`)
+            const manifestPayload = await manifestResponse.json()
+            if (manifestResponse.ok && manifestPayload?.success && manifestPayload?.data?.manifest) {
+              manifest = manifestPayload.data.manifest as Record<string, unknown>
+            }
+          } catch {
+            manifest = null
+          }
+        }
+
+        // Transform API vehicle to page format
+        const priceInDollars = Number(data.price || 0)
         const omvicFee = 22
         const certificationFee = 595
         const licensingFee = 59
         const subtotalForHst = priceInDollars + omvicFee + certificationFee + licensingFee
         const hst = subtotalForHst * 0.13
+
         setVehicle({
           ...vehicleData, // Keep mock inspection data etc.
           id: data.id,
@@ -444,18 +457,34 @@ export default function VehicleDetailPage() {
           bodyStyle: data.body_style,
           vin: data.vin,
           stockNumber: data.stock_number,
+          has360Spin: Boolean(data.has_360_spin && data.stock_number),
+          spinFrameCount: typeof manifest?.frameCount === "number"
+            ? manifest.frameCount
+            : (typeof data.spin_frame_count === "number" ? data.spin_frame_count : 72),
+          spinFrameTemplate: typeof manifest?.frameTemplate === "string"
+            ? manifest.frameTemplate
+            : (typeof data.spin_frame_template === "string" ? data.spin_frame_template : undefined),
+          spinPreviewUrl: typeof manifest?.previewUrl === "string"
+            ? manifest.previewUrl
+            : (typeof data.spin_preview_url === "string"
+              ? data.spin_preview_url
+              : (typeof data.primary_image_url === "string" ? data.primary_image_url : undefined)),
           images: data.primary_image_url ? [data.primary_image_url] : vehicleData.images,
           pricing: {
             vehiclePrice: priceInDollars,
             deliveryFee: 0,
             hst: Math.round(hst),
-            omvicFee: omvicFee,
-            certificationFee: 595,
-            licensingReg: 59,
-            totalWithHst: Math.round(priceInDollars + hst + 22 + 595 + 59)
+            omvicFee,
+            certificationFee,
+            licensingReg: licensingFee,
+            totalWithHst: Math.round(priceInDollars + hst + omvicFee + certificationFee + licensingFee)
           }
         })
+      } catch {
+        setVehicle(null)
+        setLoadError("Vehicle not found or no longer available.")
       }
+
       setIsLoading(false)
     }
     
@@ -533,11 +562,13 @@ export default function VehicleDetailPage() {
 
 
   const nextImage = () => {
+    if (imageType === "spin360") return
     const images = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
     setCurrentImageIndex((prev) => (prev + 1) % images.length)
   }
 
   const prevImage = () => {
+    if (imageType === "spin360") return
     const images = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
   }
@@ -580,7 +611,11 @@ export default function VehicleDetailPage() {
     )
   }
 
-  const currentImages: string[] = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
+  const currentImages: string[] = imageType === "exterior"
+    ? vehicle.images
+    : imageType === "interior"
+      ? vehicle.interiorImages
+      : []
   const savings = (vehicleData.originalPrice || vehicle.price * 1.1) - vehicle.price
   
   // Finance calculation: Vehicle Price + $895 Admin Fee (Finance Docs Set-up)
@@ -676,35 +711,47 @@ export default function VehicleDetailPage() {
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
-                  <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-muted group">
-                    <Image
-                      src={currentImages[currentImageIndex]}
-                      alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                      fill
-                      className="object-cover"
-                      priority
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
+                  {imageType === "spin360" ? (
+                    <Vehicle360Viewer
+                        vehicleId={vehicle.id}
+                      stockNumber={vehicle.stockNumber}
+                      enabled={Boolean(vehicle.has360Spin)}
+                      totalFrames={vehicle.spinFrameCount || 72}
+                      frameTemplate={vehicle.spinFrameTemplate}
+                      previewUrl={vehicle.spinPreviewUrl}
+                      className="aspect-[16/10]"
                     />
-                    
-                    {/* Expand Button */}
-                    <button className="absolute top-4 right-4 w-10 h-10 bg-background/80 backdrop-blur rounded-lg flex items-center justify-center hover:bg-background transition">
-                      <Expand className="w-5 h-5" />
-                    </button>
-                    
-                    {/* Navigation Arrows */}
-                    <button
-                      onClick={prevImage}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
-                    >
-                      <ChevronLeft className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={nextImage}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
-                    >
-                      <ChevronRight className="h-5 w-5" />
-                    </button>
-                  </div>
+                  ) : (
+                    <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-muted group">
+                      <Image
+                        src={currentImages[currentImageIndex]}
+                        alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                        fill
+                        className="object-cover"
+                        priority
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
+                      />
+                      
+                      {/* Expand Button */}
+                      <button className="absolute top-4 right-4 w-10 h-10 bg-background/80 backdrop-blur rounded-lg flex items-center justify-center hover:bg-background transition">
+                        <Expand className="w-5 h-5" />
+                      </button>
+                      
+                      {/* Navigation Arrows */}
+                      <button
+                        onClick={prevImage}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
+                      >
+                        <ChevronLeft className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={nextImage}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
+                      >
+                        <ChevronRight className="h-5 w-5" />
+                      </button>
+                    </div>
+                  )}
 
                   {/* Image Type Toggle */}
                   <div className="flex gap-2 flex-wrap overflow-x-auto scrollbar-hide pb-1">
@@ -722,6 +769,15 @@ export default function VehicleDetailPage() {
                     >
                       Interior
                     </Button>
+                    {vehicle.has360Spin && (
+                      <Button
+                        variant={imageType === "spin360" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setImageType("spin360")}
+                      >
+                        360 View
+                      </Button>
+                    )}
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button variant="outline" size="sm" className="gap-2">
@@ -760,19 +816,21 @@ export default function VehicleDetailPage() {
                   </div>
 
                   {/* Thumbnails */}
-                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                    {currentImages.map((img: string, i: number) => (
-                      <button
-                        key={i}
-                        onClick={() => setCurrentImageIndex(i)}
-                        className={`relative w-16 sm:w-20 h-12 sm:h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
-                          i === currentImageIndex ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"
-                        }`}
-                      >
-                        <Image src={img} alt="" fill className="object-cover" sizes="80px" />
-                      </button>
-                    ))}
-                  </div>
+                  {imageType !== "spin360" && (
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                      {currentImages.map((img: string, i: number) => (
+                        <button
+                          key={i}
+                          onClick={() => setCurrentImageIndex(i)}
+                          className={`relative w-16 sm:w-20 h-12 sm:h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
+                            i === currentImageIndex ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"
+                          }`}
+                        >
+                          <Image src={img} alt="" fill className="object-cover" sizes="80px" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Trade and Upgrade CTA */}
                   <Card className="bg-primary text-primary-foreground">
