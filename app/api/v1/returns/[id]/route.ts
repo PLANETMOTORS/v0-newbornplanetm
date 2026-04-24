@@ -13,7 +13,9 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { id } = await params
+  // Destructure params to satisfy Next.js dynamic route contract, but the
+  // value is not used until the returns table is implemented (see TODO below).
+  await params
 
   // TODO: Connect to real returns database table once available.
   // Until then, return a placeholder indicating no return record was found.

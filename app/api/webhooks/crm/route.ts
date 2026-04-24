@@ -25,7 +25,7 @@
  *  CRM_WEBHOOK_SECRET  — shared secret for HMAC signature (min 32 chars)
  */
 
-import { createHmac, timingSafeEqual } from "crypto"
+import { createHmac, timingSafeEqual } from "node:crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { rateLimit } from "@/lib/redis"
 import { createLead } from "@/lib/anna/lead-capture"

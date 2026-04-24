@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createHash, randomBytes, createCipheriv } from "crypto"
+import { createHash, randomBytes, createCipheriv } from "node:crypto"
 import { createClient } from "@/lib/supabase/server"
 import { validateOrigin } from "@/lib/csrf"
 
