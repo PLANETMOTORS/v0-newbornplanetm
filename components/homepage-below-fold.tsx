@@ -195,16 +195,16 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="text-3xl font-bold text-white">Protection Plans</h2>
-            <p className="mt-3 text-pm-text-muted">Choose the coverage that fits your needs. All plans include our satisfaction guarantee.</p>
+            <p className="mt-3 text-white/70">Choose the coverage that fits your needs. All plans include our satisfaction guarantee.</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {protectionPlans.map((plan) => (
-              <div key={plan.name} className={`rounded-xl p-8 ${plan.highlighted ? "bg-white text-pm-text-primary ring-2 ring-white ring-offset-2 ring-offset-pm-brand-dark" : "bg-white/10 text-white border border-white/20"}`}>
+              <div key={plan.name} className={`rounded-xl p-8 ${plan.highlighted ? "bg-white text-pm-text-primary ring-2 ring-white ring-offset-2 ring-offset-pm-brand-dark" : "bg-white/15 text-white border border-white/30"}`}>
                 <h3 className="font-semibold text-lg">{plan.name}</h3>
-                <p className={`mt-2 text-sm ${plan.highlighted ? "text-pm-text-secondary" : "text-pm-text-muted"}`}>{plan.description}</p>
+                <p className={`mt-2 text-sm ${plan.highlighted ? "text-pm-text-secondary" : "text-white/70"}`}>{plan.description}</p>
                 <div className="mt-6 flex items-baseline gap-1">
                   <span className="text-4xl font-bold">${plan.price}</span>
-                  <span className={`text-sm ${plan.highlighted ? "text-pm-text-secondary" : "text-pm-text-muted"}`}>{plan.period}</span>
+                  <span className={`text-sm ${plan.highlighted ? "text-pm-text-secondary" : "text-white/70"}`}>{plan.period}</span>
                 </div>
                 <ul className="mt-8 space-y-3">
                   {plan.features.map((feature) => (
