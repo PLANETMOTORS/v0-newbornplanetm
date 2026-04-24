@@ -236,6 +236,9 @@ export default function AdminLeadsPage() {
                         key={lead.id}
                         className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${selectedLead?.id === lead.id ? "bg-blue-50" : ""}`}
                         onClick={() => setSelectedLead(lead)}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSelectedLead(lead) }}
+                        role="button"
+                        tabIndex={0}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-3">

@@ -91,7 +91,7 @@ export function TransactionHistory({ deposits, orders, financePayments }: Transa
 
   const totalPaid = entries
     .filter(e => ["succeeded", "paid", "completed"].includes(
-      (e.kind === "finance" ? e.data.state : e.data.state).toLowerCase()
+      e.data.state.toLowerCase()
     ))
     .reduce((sum, e) => {
       const cents = e.kind === "deposit" ? e.data.amount_cents
