@@ -134,7 +134,7 @@ export function DeliveryTracker({
             )}
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => mutate()}>
+            <Button variant="ghost" size="icon" onClick={() => mutate()} aria-label="Refresh delivery status">
               <RefreshCw className="w-4 h-4" />
             </Button>
             <Badge variant={tracking.status === "delivered" ? "default" : "secondary"}>

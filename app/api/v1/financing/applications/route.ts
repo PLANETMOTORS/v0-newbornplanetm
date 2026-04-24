@@ -1,9 +1,31 @@
 import { NextRequest } from "next/server"
+import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
 import { sendNotificationEmail } from "@/lib/email"
 import { validateOrigin } from "@/lib/csrf"
 import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
+
+// Zod envelope validation — checks required top-level shape without breaking
+// existing downstream code that uses the fields directly (passthrough preserves all fields)
+const financeApplicationSchema = z.object({
+  primaryApplicant: z.object({
+    firstName: z.string().min(1).max(100),
+    lastName: z.string().min(1).max(100),
+  }).passthrough(),
+  vehicleInfo: z.object({
+    totalPrice: z.string().max(20),
+    downPayment: z.string().max(20),
+  }).passthrough(),
+  financingTerms: z.object({
+    agreementType: z.enum(["finance", "cash"]),
+    loanTermMonths: z.number().int().min(12).max(96),
+    paymentFrequency: z.enum(["weekly", "bi-weekly", "semi-monthly", "monthly"]),
+  }).passthrough(),
+  additionalNotes: z.string().max(2000).optional().or(z.literal("")),
+  vehicleId: z.string().max(100).nullable().optional(),
+  utm: z.record(z.string().max(200)).optional(),
+}).passthrough()
 
 // POST /api/v1/financing/applications - Create new finance application
 export async function POST(request: NextRequest) {
@@ -14,7 +36,13 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     
-    const body = await request.json()
+    const rawBody = await request.json()
+    const parseResult = financeApplicationSchema.safeParse(rawBody)
+    if (!parseResult.success) {
+      return apiError(ErrorCode.VALIDATION_ERROR, "Invalid application data", 400)
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body = rawBody as any
     const {
       primaryApplicant,
       coApplicant,

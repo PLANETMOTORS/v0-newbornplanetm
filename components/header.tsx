@@ -367,8 +367,9 @@ export function Header() {
           </div>
         )}
       </header>
+      </div>{/* end sticky */}
 
-      <div className="pointer-events-none bg-[#f0f4ff] border-b border-[#e0e7f5] text-gray-700 text-sm py-2.5">
+      <div className="bg-[#f0f4ff] border-b border-[#e0e7f5] text-gray-700 text-sm py-2.5">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-center gap-3 sm:gap-6 md:gap-10 overflow-x-auto scrollbar-hide">
               <div className="flex items-center gap-2 whitespace-nowrap">
@@ -393,8 +394,6 @@ export function Header() {
             </div>
           </div>
         </div>
-
-      </div>
 
       <SignInPanel isOpen={signInPanelOpen} onClose={() => setSignInPanelOpen(false)} />
     </>

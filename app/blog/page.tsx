@@ -76,6 +76,7 @@ export default async function BlogPage() {
                         alt={featuredPost.title}
                         fill
                         priority
+                        quality={90}
                         sizes="(max-width: 768px) 100vw, 50vw"
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
                       />

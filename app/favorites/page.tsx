@@ -121,7 +121,7 @@ export default function FavoritesPage() {
                           >
                             <Bell className={`w-4 h-4 ${notifications[vehicle.id] ? "fill-current" : ""}`} />
                           </Button>
-                          <Button variant="outline" size="icon">
+                          <Button variant="outline" size="icon" aria-label="Share vehicle">
                             <Share2 className="w-4 h-4" />
                           </Button>
                           <Button 

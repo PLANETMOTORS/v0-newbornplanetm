@@ -148,7 +148,7 @@ export function LiveChat() {
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               className="flex-1"
             />
-            <Button size="icon" onClick={sendMessage}>
+            <Button size="icon" onClick={sendMessage} aria-label="Send message">
               <Send className="h-4 w-4" />
             </Button>
           </div>

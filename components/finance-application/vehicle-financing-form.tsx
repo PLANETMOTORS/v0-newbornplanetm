@@ -218,7 +218,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                 <div className="col-span-2">
                   <Label>VIN</Label>
                   <Input 
-                    value={vehicleInfo.vin} 
+                    data-testid="finance-step-3-vin" value={vehicleInfo.vin} 
                     readOnly
                     className="bg-muted font-mono text-sm"
                   />
@@ -226,7 +226,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                 <div>
                   <Label>Year</Label>
                   <Input 
-                    value={vehicleInfo.year} 
+                    data-testid="finance-step-3-year" value={vehicleInfo.year} 
                     readOnly
                     className="bg-muted"
                   />
@@ -234,7 +234,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                 <div>
                   <Label>Make</Label>
                   <Input 
-                    value={vehicleInfo.make} 
+                    data-testid="finance-step-3-make" value={vehicleInfo.make} 
                     readOnly
                     className="bg-muted"
                   />
@@ -273,7 +273,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                 </div>
                 <div>
                   <Label>Down Payment</Label>
-                  <Input type="number" value={vehicleInfo.downPayment} onChange={(e) => setVehicleInfo({ ...vehicleInfo, downPayment: e.target.value })} className="bg-green-50" />
+                  <Input type="number" data-testid="finance-step-3-down-payment" value={vehicleInfo.downPayment} onChange={(e) => setVehicleInfo({ ...vehicleInfo, downPayment: e.target.value })} className="bg-green-50" />
                 </div>
                 <div>
                   <Label>Max Down Payment If Needed</Label>
@@ -310,7 +310,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
             <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
               <div className="col-span-2">
                 <Label>VIN</Label>
-                <Input value={tradeIn.vin} onChange={(e) => setTradeIn({ ...tradeIn, vin: e.target.value })} />
+                <Input data-testid="finance-step-3-trade-vin" value={tradeIn.vin} onChange={(e) => setTradeIn({ ...tradeIn, vin: e.target.value })} />
               </div>
               <div>
                 <Label>Year</Label>
@@ -342,7 +342,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
               </div>
               <div>
                 <Label>Estimated Value</Label>
-                <Input type="number" value={tradeIn.estimatedValue} onChange={(e) => setTradeIn({ ...tradeIn, estimatedValue: e.target.value })} />
+                <Input type="number" data-testid="finance-step-3-trade-value" value={tradeIn.estimatedValue} onChange={(e) => setTradeIn({ ...tradeIn, estimatedValue: e.target.value })} />
               </div>
               <div className="col-span-2 flex items-center gap-3 mt-2">
                 <Checkbox
@@ -374,7 +374,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
         <section>
           <Label>Additional Notes</Label>
           <Textarea
-            value={additionalNotes}
+            data-testid="finance-step-3-notes" value={additionalNotes}
             onChange={(e) => setAdditionalNotes(e.target.value)}
             placeholder="Any additional information for your application..."
             rows={3}

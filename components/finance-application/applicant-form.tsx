@@ -39,6 +39,31 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
   const getLabelClass = (fieldName: string): string => {
     return hasFieldError(fieldName) ? "text-destructive font-semibold" : ""
   }
+
+  // Get aria-invalid for inputs
+  const getAriaInvalid = (fieldName: string): boolean | undefined => {
+    return hasFieldError(fieldName) ? true : undefined
+  }
+
+  // Get aria-describedby for inputs (links to error message element)
+  const getAriaDescribedBy = (fieldName: string): string | undefined => {
+    return hasFieldError(fieldName) ? `error-${fieldName.toLowerCase().replace(/\s+/g, "-")}` : undefined
+  }
+
+  // Render inline error message with proper id for aria-describedby
+  const FieldError = ({ fieldName }: { fieldName: string }) => {
+    if (!hasFieldError(fieldName)) return null
+    const errorMsg = validationErrors.find(err => err.toLowerCase().includes(fieldName.toLowerCase()))
+    return (
+      <p
+        id={`error-${fieldName.toLowerCase().replace(/\s+/g, "-")}`}
+        role="alert"
+        className="text-xs text-destructive mt-1"
+      >
+        {errorMsg}
+      </p>
+    )
+  }
   
   return (
     <div className="space-y-8">
@@ -69,15 +94,17 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
           </div>
           <div>
             <Label htmlFor="firstName" className={getLabelClass("First Name")}>First Name *</Label>
-            <Input id="firstName" value={data.firstName} onChange={(e) => updateField("firstName", e.target.value)} required className={getInputErrorClass("First Name")} />
+            <Input id="firstName" data-testid="finance-step-1-first-name" value={data.firstName} onChange={(e) => updateField("firstName", e.target.value)} required aria-invalid={getAriaInvalid("First Name")} aria-describedby={getAriaDescribedBy("First Name")} className={getInputErrorClass("First Name")} />
+            <FieldError fieldName="First Name" />
           </div>
           <div>
             <Label htmlFor="middleName">Middle Name</Label>
-            <Input id="middleName" value={data.middleName} onChange={(e) => updateField("middleName", e.target.value)} />
+            <Input id="middleName" data-testid="finance-step-1-middle-name" aria-invalid={getAriaInvalid("Middle Name")} aria-describedby={getAriaDescribedBy("Middle Name")} value={data.middleName} onChange={(e) => updateField("middleName", e.target.value)} />
           </div>
           <div>
             <Label htmlFor="lastName" className={getLabelClass("Last Name")}>Last Name *</Label>
-            <Input id="lastName" value={data.lastName} onChange={(e) => updateField("lastName", e.target.value)} required className={getInputErrorClass("Last Name")} />
+            <Input id="lastName" data-testid="finance-step-1-last-name" value={data.lastName} onChange={(e) => updateField("lastName", e.target.value)} required aria-invalid={getAriaInvalid("Last Name")} aria-describedby={getAriaDescribedBy("Last Name")} className={getInputErrorClass("Last Name")} />
+            <FieldError fieldName="Last Name" />
           </div>
           <div>
             <Label>Suffix</Label>
@@ -159,7 +186,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
                   `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
                 updateField("phone", formatted)
               }} 
-              placeholder="(XXX) XXX-XXXX" 
+              placeholder="(416) 555-0100" 
               className={getInputErrorClass("Phone")}
             />
           </div>
@@ -175,12 +202,12 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
                   `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
                 updateField("mobilePhone", formatted)
               }} 
-              placeholder="(XXX) XXX-XXXX" 
+              placeholder="(416) 555-0100" 
             />
           </div>
           <div>
             <Label htmlFor="email" className={getLabelClass("Email")}>Email *</Label>
-            <Input id="email" type="email" value={data.email} onChange={(e) => updateField("email", e.target.value)} className={getInputErrorClass("Email")} />
+            <Input id="email" data-testid="finance-step-1-email" aria-invalid={getAriaInvalid("Email")} aria-describedby={getAriaDescribedBy("Email")} type="email" value={data.email} onChange={(e) => updateField("email", e.target.value)} className={getInputErrorClass("Email")} />
           </div>
           <div>
             <Label className={getLabelClass("Credit Rating")}>Credit Rating *</Label>
@@ -412,7 +439,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
         `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
       updateField("employerPhone", formatted)
     }} 
-    placeholder="(XXX) XXX-XXXX"
+    placeholder="(416) 555-0100"
     className="flex-1" 
   />
               <Input value={data.employerPhoneExt} onChange={(e) => updateField("employerPhoneExt", e.target.value)} placeholder="Ext." className="w-20" />
