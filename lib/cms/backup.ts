@@ -124,7 +124,8 @@ export async function backupSanityDataset(): Promise<BackupResult> {
     // shell injection. All values (DATASET, filePath, PROJECT_ID, token) come
     // from environment variables or path.join — never from user input — but
     // avoiding a shell interpreter is the correct defence-in-depth approach.
-    const result = spawnSync(
+    // NOSONAR: spawnSync with shell:false and a fixed args array — no user input reaches this call.
+    const result = spawnSync( // NOSONAR
       "npx",
       [
         "--yes", "@sanity/cli@latest",
