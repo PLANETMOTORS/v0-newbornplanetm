@@ -172,6 +172,9 @@ export function SearchAutocomplete() {
               }}
               onFocus={() => setOpen(true)}
               className="text-sm h-9"
+              aria-expanded={open}
+              aria-controls="search-results-listbox"
+              aria-haspopup="listbox"
             />
             {/* Inline loading spinner inside the input row */}
             {isLoading && (
@@ -189,7 +192,7 @@ export function SearchAutocomplete() {
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <Command shouldFilter={false} className="rounded-none border-0 shadow-none">
-          <CommandList className="max-h-[420px]">
+          <CommandList id="search-results-listbox" role="listbox" className="max-h-[420px]">
 
             {/* ── Empty query: show recent + popular ── */}
             {query.trim().length < 2 && (
