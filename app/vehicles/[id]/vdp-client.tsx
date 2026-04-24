@@ -476,7 +476,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
 
   // Helper to build finance link with trade-in info
   const getFinanceLink = (vId: string) => {
-    if (tradeInValue && parseInt(tradeInValue) > 0) {
+    if (tradeInValue && Number.parseInt(tradeInValue) > 0) {
       const params = new URLSearchParams({
         tradeIn: tradeInValue,
         quoteId: tradeInQuoteId || '',
@@ -642,14 +642,14 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
 
 <main id="main-content" tabIndex={-1} className="pb-32 md:pb-20 overflow-x-hidden max-w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" role="main" aria-label="Vehicle details" data-vin={vehicle.vin} data-stock={vehicle.stockNumber}>
   {/* Trade-In Banner */}
-  {tradeInValue && parseInt(tradeInValue) > 0 && (
+  {tradeInValue && Number.parseInt(tradeInValue) > 0 && (
     <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3">
       <div className="container mx-auto px-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-3">
             <CheckCircle className="w-5 h-5" />
             <span className="font-semibold">
-              Your Trade-In: <span className="font-bold tabular-nums">${parseInt(tradeInValue).toLocaleString()}</span>
+              Your Trade-In: <span className="font-bold tabular-nums">${Number.parseInt(tradeInValue).toLocaleString()}</span>
               {tradeInVehicle && <span className="text-white/80 ml-2">({decodeURIComponent(tradeInVehicle)})</span>}
             </span>
           </div>
@@ -928,7 +928,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                       {currentImages.map((img: string, i: number) => (
                         <button
-                          key={i}
+                          key={img}
                           onClick={() => setCurrentImageIndex(i)}
                           aria-label={`View image ${i + 1} of ${currentImages.length}`}
                           className={`relative w-16 sm:w-20 h-12 sm:h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
@@ -1207,8 +1207,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       <CardTitle className="text-base">PACKAGES</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {vehicleData.packages.map((pkg, i) => (
-                        <div key={i} className="py-4 border-b last:border-b-0">
+                      {vehicleData.packages.map((pkg) => (
+                        <div key={pkg.name} className="py-4 border-b last:border-b-0">
                           <div className="flex justify-between items-center">
                             <span className="font-semibold">{pkg}</span>
                             <Button variant="link" className="p-0 h-auto text-primary text-sm" onClick={() => setActiveTab("features")}>
@@ -1249,8 +1249,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                   {/* Inspection Items */}
                   <Card>
                     <CardContent className="p-0">
-                      {vehicleData.inspectionItems.map((item, i) => (
-                        <div key={i} className="flex justify-between items-center px-4 py-4 border-b last:border-b-0">
+                      {vehicleData.inspectionItems.map((item) => (
+                        <div key={item.category} className="flex justify-between items-center px-4 py-4 border-b last:border-b-0">
                           <span>{item.category}</span>
                           <span className={`flex items-center gap-1 text-sm ${item.status === "Passed" || item.status === "No reported accidents" ? "text-primary" : "text-green-600"}`}>
                             <Check className="w-4 h-4" />
@@ -1279,8 +1279,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
 
                       {/* Category Grid */}
                       <div className="grid grid-cols-3 md:grid-cols-5 gap-2 py-4">
-                        {vehicleData.inspectionCategories.map((cat, i) => (
-                          <div key={i} className="text-center p-2 bg-muted/30 rounded-lg">
+                        {vehicleData.inspectionCategories.map((cat) => (
+                          <div key={cat.name} className="text-center p-2 bg-muted/30 rounded-lg">
                             <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-primary mx-auto mb-1" />
                             <p className="text-[11px] sm:text-xs font-semibold leading-tight">{cat.name}</p>
                             <p className="text-[11px] sm:text-xs text-primary">{cat.points} pts</p>
@@ -1297,8 +1297,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
-                          {vehicleData.fullInspection.vinHistory.map((item, i) => (
-                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                          {vehicleData.fullInspection.vinHistory.map((item) => (
+                            <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 1}</span>
                               <span>{item}</span>
                               <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
@@ -1316,8 +1316,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
-                          {vehicleData.fullInspection.powertrainEngine.map((item, i) => (
-                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                          {vehicleData.fullInspection.powertrainEngine.map((item) => (
+                            <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 11}</span>
                               <span>{item}</span>
                               <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
@@ -1335,8 +1335,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
-                          {vehicleData.fullInspection.brakesSuspension.map((item, i) => (
-                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                          {vehicleData.fullInspection.brakesSuspension.map((item) => (
+                            <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 33}</span>
                               <span>{item}</span>
                               <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
@@ -1354,8 +1354,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
-                          {vehicleData.fullInspection.tyresWheels.map((item, i) => (
-                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                          {vehicleData.fullInspection.tyresWheels.map((item) => (
+                            <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 46}</span>
                               <span>{item}</span>
                               <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
@@ -1373,8 +1373,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
-                          {vehicleData.fullInspection.exterior.map((item, i) => (
-                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                          {vehicleData.fullInspection.exterior.map((item) => (
+                            <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 54}</span>
                               <span>{item}</span>
                               <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
@@ -1392,8 +1392,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
-                          {vehicleData.fullInspection.interior.map((item, i) => (
-                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                          {vehicleData.fullInspection.interior.map((item) => (
+                            <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 75}</span>
                               <span>{item}</span>
                               <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
@@ -1411,8 +1411,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
-                          {vehicleData.fullInspection.driveTest.map((item, i) => (
-                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                          {vehicleData.fullInspection.driveTest.map((item) => (
+                            <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 95}</span>
                               <span>{item}</span>
                               <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
@@ -1430,8 +1430,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
-                          {vehicleData.fullInspection.evSystems.map((item, i) => (
-                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                          {vehicleData.fullInspection.evSystems.map((item) => (
+                            <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 105}</span>
                               <span>{item}</span>
                               <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
@@ -1449,8 +1449,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
-                          {vehicleData.fullInspection.detailingSafety.map((item, i) => (
-                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                          {vehicleData.fullInspection.detailingSafety.map((item) => (
+                            <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 117}-{i + 117 + 9}</span>
                               <span>{item}</span>
                               <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
@@ -1524,8 +1524,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       <CardTitle className="text-base">Condition</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      {vehicleData.conditionItems.map((item, i) => (
-                        <div key={i} className="flex items-start gap-2">
+                      {vehicleData.conditionItems.map((item) => (
+                        <div key={item} className="flex items-start gap-2">
                           <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                           <span className="text-sm">{item}</span>
                         </div>
@@ -1716,8 +1716,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       </div>
 
                       <div className="mt-6 space-y-3">
-                        {vehicleData.ratings.categories.map((cat, i) => (
-                          <div key={i} className="flex items-center gap-4">
+                        {vehicleData.ratings.categories.map((cat) => (
+                          <div key={cat.name} className="flex items-center gap-4">
                             <span className="w-24 text-sm text-muted-foreground">{cat.name}</span>
                             <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                               <div
@@ -1748,8 +1748,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       <thead>
                         <tr className="border-b">
                           <th className="text-left py-3 px-4 font-medium"></th>
-                          {vehicleData.protectionPackages.map((pkg, i) => (
-                            <th key={i} className={`text-center py-3 px-4 font-medium ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                          {vehicleData.protectionPackages.map((pkg) => (
+                            <th key={pkg.name} className={`text-center py-3 px-4 font-medium `}>
                               {pkg.name}
                               {pkg.recommended && <Badge className="ml-2 bg-primary text-xs">Recommended</Badge>}
                             </th>
@@ -1759,32 +1759,32 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       <tbody>
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">Payment method</td>
-                          {vehicleData.protectionPackages.map((pkg, i) => (
-                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                          {vehicleData.protectionPackages.map((pkg) => (
+                            <td key={pkg.name} className={`text-center py-3 px-4 `}>
                               {pkg.paymentMethod}
                             </td>
                           ))}
                         </tr>
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">Money back guarantee</td>
-                          {vehicleData.protectionPackages.map((pkg, i) => (
-                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                          {vehicleData.protectionPackages.map((pkg) => (
+                            <td key={pkg.name} className={`text-center py-3 px-4 `}>
                               {pkg.moneyBack ? <Check className="w-5 h-5 text-primary mx-auto" /> : "—"}
                             </td>
                           ))}
                         </tr>
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">Due at checkout</td>
-                          {vehicleData.protectionPackages.map((pkg, i) => (
-                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                          {vehicleData.protectionPackages.map((pkg) => (
+                            <td key={pkg.name} className={`text-center py-3 px-4 `}>
                               {pkg.dueAtCheckout}
                             </td>
                           ))}
                         </tr>
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">Warranty</td>
-                          {vehicleData.protectionPackages.map((pkg, i) => (
-                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                          {vehicleData.protectionPackages.map((pkg) => (
+                            <td key={pkg.name} className={`text-center py-3 px-4 `}>
                               {pkg.warranty !== "—" && pkg.warranty !== "Standard" ? (
                                 <span className="flex items-center justify-center gap-1 text-primary">
                                   <Check className="w-4 h-4" /><Check className="w-4 h-4" />
@@ -1796,32 +1796,32 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         </tr>
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">Tire & rim protection</td>
-                          {vehicleData.protectionPackages.map((pkg, i) => (
-                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                          {vehicleData.protectionPackages.map((pkg) => (
+                            <td key={pkg.name} className={`text-center py-3 px-4 `}>
                               {pkg.tireRim === true ? <Check className="w-5 h-5 text-primary mx-auto" /> : pkg.tireRim}
                             </td>
                           ))}
                         </tr>
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">GAP coverage</td>
-                          {vehicleData.protectionPackages.map((pkg, i) => (
-                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                          {vehicleData.protectionPackages.map((pkg) => (
+                            <td key={pkg.name} className={`text-center py-3 px-4 `}>
                               {pkg.gapCoverage}
                             </td>
                           ))}
                         </tr>
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">Life & disability</td>
-                          {vehicleData.protectionPackages.map((pkg, i) => (
-                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                          {vehicleData.protectionPackages.map((pkg) => (
+                            <td key={pkg.name} className={`text-center py-3 px-4 `}>
                               {pkg.lifeDisability}
                             </td>
                           ))}
                         </tr>
                         <tr>
                           <td className="py-3 px-4 font-semibold">Price</td>
-                          {vehicleData.protectionPackages.map((pkg, i) => (
-                            <td key={i} className={`text-center py-3 px-4 font-semibold tabular-nums ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                          {vehicleData.protectionPackages.map((pkg) => (
+                            <td key={pkg.name} className={`text-center py-3 px-4 font-semibold tabular-nums `}>
                               {pkg.price}
                             </td>
                           ))}

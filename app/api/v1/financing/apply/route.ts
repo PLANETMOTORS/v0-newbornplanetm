@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { randomBytes } from "crypto"
 import { createClient } from '@/lib/supabase/server'
 import { sendNotificationEmail } from '@/lib/email'
 import { validateOrigin } from '@/lib/csrf'
@@ -19,7 +20,7 @@ function validateEmail(email: string): boolean {
 
 function generateApplicationNumber(): string {
   const ts = Date.now().toString(36).toUpperCase()
-  const rand = Math.floor(Math.random() * 36 ** 4).toString(36).toUpperCase().padStart(4, '0')
+  const rand = randomBytes(3).toString("hex").toUpperCase()
   return `PM-FA-${ts}-${rand}`
 }
 

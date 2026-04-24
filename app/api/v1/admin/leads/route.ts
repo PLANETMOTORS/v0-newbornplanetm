@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status")
     const source = searchParams.get("source")
     const search = searchParams.get("search")
-    const page = parseInt(searchParams.get("page") || "1")
-    const limit = parseInt(searchParams.get("limit") || "20")
+    const page = Number.parseInt(searchParams.get("page") || "1")
+    const limit = Number.parseInt(searchParams.get("limit") || "20")
     const offset = (page - 1) * limit
 
     // Try the leads table first

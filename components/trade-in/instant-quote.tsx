@@ -373,8 +373,8 @@ export function InstantQuote() {
   // Local fallback valuation calculation (used if API fails)
   const calculateLocalValue = (data: typeof formData) => {
     const currentYear = new Date().getFullYear()
-    const age = currentYear - parseInt(data.year)
-    const mileageNum = parseInt(data.mileage.replace(/,/g, '')) || 50000
+    const age = currentYear - Number.parseInt(data.year)
+    const mileageNum = Number.parseInt(data.mileage.replace(/,/g, '')) || 50000
     
     // Base values by model/make
     const baseValues: Record<string, number> = {
@@ -816,7 +816,7 @@ export function InstantQuote() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Mileage:</span>
-                  <span className="tabular-nums">{parseInt(formData.mileage).toLocaleString()} km</span>
+                  <span className="tabular-nums">{Number.parseInt(formData.mileage).toLocaleString()} km</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Location:</span>

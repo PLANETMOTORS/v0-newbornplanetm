@@ -260,8 +260,8 @@ export default function AIAgentsPage() {
                           </Button>
                         </div>
                         <div className="space-y-2">
-                          {((editForm.quick_actions || []) as QuickAction[]).map((qa, i) => (
-                            <div key={i} className="flex gap-2 items-center">
+                          {((editForm.quick_actions || []) as QuickAction[]).map((qa) => (
+                            <div key={qa.label} className="flex gap-2 items-center">
                               <Input
                                 value={qa.label}
                                 onChange={(e) => updateQuickAction(i, "label", e.target.value)}
@@ -287,7 +287,7 @@ export default function AIAgentsPage() {
                           <Input
                             type="number"
                             value={String(config.rateLimit || 20)}
-                            onChange={(e) => updateConfig("rateLimit", parseInt(e.target.value))}
+                            onChange={(e) => updateConfig("rateLimit", Number.parseInt(e.target.value))}
                           />
                         </div>
                         <div>
@@ -317,7 +317,7 @@ export default function AIAgentsPage() {
                               type="number"
                               step="0.25"
                               value={String(config.lowPriceMaxDiscount_0_31days || 1)}
-                              onChange={(e) => updateConfig("lowPriceMaxDiscount_0_31days", parseFloat(e.target.value))}
+                              onChange={(e) => updateConfig("lowPriceMaxDiscount_0_31days", Number.parseFloat(e.target.value))}
                             />
                           </div>
                           <div>
@@ -326,7 +326,7 @@ export default function AIAgentsPage() {
                               type="number"
                               step="0.25"
                               value={String(config.lowPriceMaxDiscount_32_46days || 1.25)}
-                              onChange={(e) => updateConfig("lowPriceMaxDiscount_32_46days", parseFloat(e.target.value))}
+                              onChange={(e) => updateConfig("lowPriceMaxDiscount_32_46days", Number.parseFloat(e.target.value))}
                             />
                           </div>
                           <div>
@@ -335,7 +335,7 @@ export default function AIAgentsPage() {
                               type="number"
                               step="0.25"
                               value={String(config.lowPriceMaxDiscount_47plus || 1.5)}
-                              onChange={(e) => updateConfig("lowPriceMaxDiscount_47plus", parseFloat(e.target.value))}
+                              onChange={(e) => updateConfig("lowPriceMaxDiscount_47plus", Number.parseFloat(e.target.value))}
                             />
                           </div>
                         </div>
@@ -349,7 +349,7 @@ export default function AIAgentsPage() {
                               type="number"
                               step="0.25"
                               value={String(config.highPriceMaxDiscount_0_46days || 0.75)}
-                              onChange={(e) => updateConfig("highPriceMaxDiscount_0_46days", parseFloat(e.target.value))}
+                              onChange={(e) => updateConfig("highPriceMaxDiscount_0_46days", Number.parseFloat(e.target.value))}
                             />
                           </div>
                           <div>
@@ -358,7 +358,7 @@ export default function AIAgentsPage() {
                               type="number"
                               step="0.25"
                               value={String(config.highPriceMaxDiscount_47plus || 1)}
-                              onChange={(e) => updateConfig("highPriceMaxDiscount_47plus", parseFloat(e.target.value))}
+                              onChange={(e) => updateConfig("highPriceMaxDiscount_47plus", Number.parseFloat(e.target.value))}
                             />
                           </div>
                         </div>
@@ -368,7 +368,7 @@ export default function AIAgentsPage() {
                         <Input
                           type="number"
                           value={String(config.lowPriceThreshold || 30000)}
-                          onChange={(e) => updateConfig("lowPriceThreshold", parseInt(e.target.value))}
+                          onChange={(e) => updateConfig("lowPriceThreshold", Number.parseInt(e.target.value))}
                         />
                         <p className="text-xs text-gray-400 mt-1">Vehicles below this price use the &quot;Under $30K&quot; discount tiers</p>
                       </div>
@@ -387,7 +387,7 @@ export default function AIAgentsPage() {
                             min="0"
                             max="1"
                             value={String(config.temperature || 0.3)}
-                            onChange={(e) => updateConfig("temperature", parseFloat(e.target.value))}
+                            onChange={(e) => updateConfig("temperature", Number.parseFloat(e.target.value))}
                           />
                           <p className="text-xs text-gray-400 mt-1">Lower = more consistent, Higher = more creative</p>
                         </div>

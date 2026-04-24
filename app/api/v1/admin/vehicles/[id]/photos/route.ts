@@ -1,3 +1,4 @@
+import { randomBytes } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -89,7 +90,7 @@ export async function POST(
     // Generate unique filename
     const ext = photo.name.split(".").pop()?.toLowerCase() || "jpg"
     const timestamp = Date.now()
-    const randomSuffix = Math.random().toString(36).substring(2, 8)
+    const randomSuffix = randomBytes(3).toString("hex")
     const storagePath = `${id}/${timestamp}-${randomSuffix}.${ext}`
 
     const arrayBuffer = await photo.arrayBuffer()

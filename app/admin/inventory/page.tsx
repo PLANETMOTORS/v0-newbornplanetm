@@ -294,7 +294,7 @@ export default function AdminInventoryPage() {
 
     // Guard: reject blank or non-numeric price (required field)
     const priceNum = Number(formData.price)
-    if (!formData.price.trim() || isNaN(priceNum) || priceNum <= 0) {
+    if (!formData.price.trim() || Number.isNaN(priceNum) || priceNum <= 0) {
       setFormError("Price is required and must be greater than zero")
       setSaving(false)
       return
@@ -303,12 +303,12 @@ export default function AdminInventoryPage() {
     // Build payload — prices stored as cents in DB
     const payload = {
       ...formData,
-      year: parseInt(formData.year),
+      year: Number.parseInt(formData.year),
       price: Math.round(priceNum * 100),
-      msrp: formData.msrp?.trim() && !isNaN(Number(formData.msrp)) ? Math.round(Number(formData.msrp) * 100) : null,
-      mileage: parseInt(formData.mileage),
-      battery_capacity_kwh: formData.battery_capacity_kwh ? parseFloat(formData.battery_capacity_kwh) : null,
-      range_miles: formData.range_miles ? parseInt(formData.range_miles) : null,
+      msrp: formData.msrp?.trim() && !Number.isNaN(Number(formData.msrp)) ? Math.round(Number(formData.msrp) * 100) : null,
+      mileage: Number.parseInt(formData.mileage),
+      battery_capacity_kwh: formData.battery_capacity_kwh ? Number.parseFloat(formData.battery_capacity_kwh) : null,
+      range_miles: formData.range_miles ? Number.parseInt(formData.range_miles) : null,
       primary_image_url: formData.primary_image_url || null,
       video_url: formData.video_url || null,
     }

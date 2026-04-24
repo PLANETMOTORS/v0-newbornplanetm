@@ -178,7 +178,7 @@ export function PersonalDetailsStep({ data, onChange, onContinue }: PersonalDeta
         <div className="flex gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-lg" role="alert">
           <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
           <ul className="text-sm text-destructive space-y-1">
-            {errors.map((e, i) => <li key={i}>{e}</li>)}
+            {errors.map((e) => <li key={e}>{e}</li>)}
           </ul>
         </div>
       )}
@@ -280,8 +280,8 @@ export function PersonalDetailsStep({ data, onChange, onContinue }: PersonalDeta
                 role="listbox"
                 className="absolute z-50 w-full mt-1 bg-background border rounded-lg shadow-lg max-h-48 overflow-y-auto"
               >
-                {streetSuggestions.map((s, i) => (
-                  <li key={i} role="option" aria-selected={false}>
+                {streetSuggestions.map((s) => (
+                  <li key={s} role="option" aria-selected={false}>
                     <button
                       type="button"
                       className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors"

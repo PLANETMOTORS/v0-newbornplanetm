@@ -594,8 +594,8 @@ export function FinanceApplicationForm() {
         <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3">
           <p className="font-semibold text-sm text-destructive mb-1">Please fix the following:</p>
           <ul className="list-disc pl-5 space-y-1">
-            {Object.values(validationErrors).filter(Boolean).map((error, i) => (
-              <li key={i} className="text-xs text-destructive">{error}</li>
+            {Object.values(validationErrors).filter(Boolean).map((error) => (
+              <li key={error} className="text-xs text-destructive">{error}</li>
             ))}
           </ul>
         </div>

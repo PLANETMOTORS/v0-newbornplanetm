@@ -27,9 +27,9 @@ export async function POST(request: NextRequest) {
       return apiError(ErrorCode.VALIDATION_ERROR, "Missing required fields", 400)
     }
 
-    const mileageNum = parseInt(String(mileage).replace(/,/g, ""))
+    const mileageNum = Number.parseInt(String(mileage).replace(/,/g, ""))
     const currentYear = new Date().getFullYear()
-    const vehicleAge = currentYear - parseInt(year)
+    const vehicleAge = currentYear - Number.parseInt(year)
 
     // Resolve the client's region from their postal code
     const region = getRegionFromPostalCode(postalCode)
@@ -127,7 +127,7 @@ Respond ONLY with a JSON object (no markdown, no explanation):
     // Return fallback calculation on any error
     try {
       const { year, make, model, mileage, condition, postalCode } = await request.json()
-      const fallback = calculateFallbackValue(year, make, model, parseInt(String(mileage).replace(/,/g, "")), condition, postalCode)
+      const fallback = calculateFallbackValue(year, make, model, Number.parseInt(String(mileage).replace(/,/g, "")), condition, postalCode)
       return NextResponse.json({ ...fallback, source: "fallback-algorithm" })
     } catch {
       return apiError(ErrorCode.INTERNAL_ERROR, "Valuation failed")
@@ -138,7 +138,7 @@ Respond ONLY with a JSON object (no markdown, no explanation):
 // Fallback algorithmic calculation with regional pricing
 function calculateFallbackValue(year: string, make: string, model: string, mileage: number, condition: string, postalCode?: string) {
   const currentYear = new Date().getFullYear()
-  const age = currentYear - parseInt(year)
+  const age = currentYear - Number.parseInt(year)
 
   // Base values by vehicle class
   const baseValues: Record<string, number> = {

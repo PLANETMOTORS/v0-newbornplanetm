@@ -435,8 +435,8 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
           <div className="container mx-auto px-4">
             <h2 className="text-2xl font-bold mb-8">Frequently Asked Questions About the {makeFormatted} {modelFormatted}</h2>
             <div className="grid md:grid-cols-2 gap-6">
-              {data.faqs.map((faq, i) => (
-                <Card key={i}>
+              {data.faqs.map((faq) => (
+                <Card key={faq.question}>
                   <CardContent className="p-6">
                     <h3 className="font-semibold text-lg mb-3">{faq.question}</h3>
                     <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
@@ -458,8 +458,8 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                     <tr>
                       <th className="p-4 text-left">Feature</th>
                       <th className="p-4 text-center">{makeFormatted} {modelFormatted}</th>
-                      {data.competitors.map((comp, i) => (
-                        <th key={i} className="p-4 text-center">{comp.name}</th>
+                      {data.competitors.map((comp) => (
+                        <th key={comp.name} className="p-4 text-center">{comp.name}</th>
                       ))}
                     </tr>
                   </thead>
@@ -467,22 +467,22 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                     <tr className="border-b">
                       <td className="p-4 font-semibold">Starting Price</td>
                       <td className="p-4 text-center font-bold text-primary">${data.startingPrice.toLocaleString()}</td>
-                      {data.competitors.map((comp, i) => (
-                        <td key={i} className="p-4 text-center">${comp.price.toLocaleString()}</td>
+                      {data.competitors.map((comp) => (
+                        <td key={`price-`} className="p-4 text-center">${comp.price.toLocaleString()}</td>
                       ))}
                     </tr>
                     <tr className="border-b">
                       <td className="p-4 font-semibold">Fuel Economy (Hwy)</td>
                       <td className="p-4 text-center font-bold text-primary">{data.mpg.highway} L/100km</td>
-                      {data.competitors.map((comp, i) => (
-                        <td key={i} className="p-4 text-center">{comp.mpg} L/100km</td>
+                      {data.competitors.map((comp) => (
+                        <td key={`mpg-`} className="p-4 text-center">{comp.mpg} L/100km</td>
                       ))}
                     </tr>
                     <tr>
                       <td className="p-4 font-semibold">Safety Rating</td>
                       <td className="p-4 text-center font-bold text-primary">{data.safetyRating} Stars</td>
-                      {data.competitors.map((comp, i) => (
-                        <td key={i} className="p-4 text-center">{comp.safety} Stars</td>
+                      {data.competitors.map((comp) => (
+                        <td key={`safety-`} className="p-4 text-center">{comp.safety} Stars</td>
                       ))}
                     </tr>
                   </tbody>
@@ -497,8 +497,8 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
           <div className="container mx-auto px-4">
             <h2 className="text-2xl font-bold mb-8">Key Features</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {data.features.map((feature, i) => (
-                <div key={i} className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+              {data.features.map((feature) => (
+                <div key={feature} className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
                   <Check className="h-5 w-5 text-green-600 flex-shrink-0" />
                   <span>{feature}</span>
                 </div>

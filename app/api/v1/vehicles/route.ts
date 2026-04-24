@@ -191,12 +191,12 @@ export async function GET(request: NextRequest) {
       query = query.textSearch('search_vector', sanitizedQ, { type: 'websearch', config: 'english' })
     }
   }
-  if (minYear) query = query.gte('year', parseInt(minYear))
-  if (maxYear) query = query.lte('year', parseInt(maxYear))
-  if (minPrice) query = query.gte('price', parseInt(minPrice) * 100)
-  if (maxPrice) query = query.lte('price', parseInt(maxPrice) * 100)
-  if (minMileage) query = query.gte('mileage', parseInt(minMileage))
-  if (maxMileage) query = query.lte('mileage', parseInt(maxMileage))
+  if (minYear) query = query.gte('year', Number.parseInt(minYear))
+  if (maxYear) query = query.lte('year', Number.parseInt(maxYear))
+  if (minPrice) query = query.gte('price', Number.parseInt(minPrice) * 100)
+  if (maxPrice) query = query.lte('price', Number.parseInt(maxPrice) * 100)
+  if (minMileage) query = query.gte('mileage', Number.parseInt(minMileage))
+  if (maxMileage) query = query.lte('mileage', Number.parseInt(maxMileage))
   if (exteriorColor) query = query.ilike('exterior_color', exteriorColor)
   if (bodyStyle) {
     // Map customer-friendly terms (SUV, Sedan) to actual DB values (Sport Utility, 4dr Car)

@@ -57,8 +57,8 @@ export function ReviewStep({ primaryApplicant, coApplicant, vehicleInfo, tradeIn
         </CardHeader>
         <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
           <div><span className="text-muted-foreground">Vehicle:</span> <span className="font-semibold">{vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}</span></div>
-          <div><span className="text-muted-foreground">Price:</span> <span className="font-semibold">${parseFloat(vehicleInfo.totalPrice).toLocaleString()}*</span></div>
-          <div><span className="text-muted-foreground">Down Payment:</span> <span className="font-semibold">${parseFloat(vehicleInfo.downPayment).toLocaleString()}</span></div>
+          <div><span className="text-muted-foreground">Price:</span> <span className="font-semibold">${Number.parseFloat(vehicleInfo.totalPrice).toLocaleString()}*</span></div>
+          <div><span className="text-muted-foreground">Down Payment:</span> <span className="font-semibold">${Number.parseFloat(vehicleInfo.downPayment).toLocaleString()}</span></div>
           <div><span className="text-muted-foreground">Term:</span> <span className="font-semibold">{financingTerms.loanTermMonths} months</span></div>
           <div><span className="text-muted-foreground">Payment:</span> <span className="font-semibold">${financing.payment.toFixed(2)}/{financingTerms.paymentFrequency}</span></div>
           <div><span className="text-muted-foreground">Amount Financed:</span> <span className="font-semibold">${financing.amountFinanced.toLocaleString()}</span></div>
@@ -76,9 +76,9 @@ export function ReviewStep({ primaryApplicant, coApplicant, vehicleInfo, tradeIn
           </CardHeader>
           <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
             <div><span className="text-muted-foreground">Vehicle:</span> <span className="font-semibold">{tradeIn.year} {tradeIn.make} {tradeIn.model}</span></div>
-            <div><span className="text-muted-foreground">Value:</span> <span className="font-semibold">${(parseFloat(tradeIn.estimatedValue) || 0).toLocaleString()}</span></div>
+            <div><span className="text-muted-foreground">Value:</span> <span className="font-semibold">${(Number.parseFloat(tradeIn.estimatedValue) || 0).toLocaleString()}</span></div>
             {tradeIn.hasLien && (
-              <div><span className="text-muted-foreground">Lien:</span> <span className="font-semibold">${parseFloat(tradeIn.lienAmount).toLocaleString()}</span></div>
+              <div><span className="text-muted-foreground">Lien:</span> <span className="font-semibold">${Number.parseFloat(tradeIn.lienAmount).toLocaleString()}</span></div>
             )}
           </CardContent>
         </Card>

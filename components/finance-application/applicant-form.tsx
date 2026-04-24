@@ -559,7 +559,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             <Label>Annual Total * <span className="text-xs text-muted-foreground">(Auto-calculated)</span></Label>
             <Input 
               type="text" 
-              value={data.annualTotal ? `$${parseFloat(data.annualTotal).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "$0.00"} 
+              value={data.annualTotal ? `$${Number.parseFloat(data.annualTotal).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "$0.00"} 
               readOnly 
               className="bg-amber-50 font-semibold" 
             />

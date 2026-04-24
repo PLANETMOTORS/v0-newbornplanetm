@@ -127,8 +127,8 @@ export default function AboutPage() {
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-center mb-12">Awards &amp; Recognition</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-              {awards.map((award, i) => (
-                <Card key={i} className="p-6 text-center border-2 border-primary/20">
+              {awards.map((award) => (
+                <Card key={award.title} className="p-6 text-center border-2 border-primary/20">
                   <award.icon className="h-12 w-12 mx-auto mb-4 text-primary" />
                   <h3 className="font-semibold text-lg mb-1">{award.title}</h3>
                   <p className="text-primary font-semibold">{award.years}</p>
@@ -255,8 +255,8 @@ export default function AboutPage() {
             <h2 className="text-3xl font-bold text-center mb-4">What Our Customers Say</h2>
             <p className="text-center text-muted-foreground mb-12">Real reviews from our Google Business Profile</p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-              {customerReviews.map((review, i) => (
-                <Card key={i} className="p-6">
+              {customerReviews.map((review) => (
+                <Card key={review.name} className="p-6">
                   <div className="flex items-center gap-2 mb-3">
                     {[...Array(review.rating)].map((_, j) => (
                       <Star key={j} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
@@ -278,8 +278,8 @@ export default function AboutPage() {
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-center mb-12">Our Journey</h2>
             <div className="max-w-3xl mx-auto">
-              {milestones.map((milestone, i) => (
-                <div key={i} className="flex gap-6 mb-8 last:mb-0">
+              {milestones.map((milestone) => (
+                <div key={milestone.title} className="flex gap-6 mb-8 last:mb-0">
                   <div className="flex flex-col items-center">
                     <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
                       {milestone.year}
@@ -303,8 +303,8 @@ export default function AboutPage() {
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-center mb-12">Meet Our Team</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-              {teamMembers.map((member, i) => (
-                <Card key={i} className="overflow-hidden text-center">
+              {teamMembers.map((member) => (
+                <Card key={member.name} className="overflow-hidden text-center">
                   <div className="relative aspect-square">
                     <Image
                       src={member.image}

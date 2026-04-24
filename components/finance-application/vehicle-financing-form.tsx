@@ -258,7 +258,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                 <div>
                   <Label>Current KMs</Label>
                   <Input 
-                    value={vehicleInfo.mileage ? parseInt(vehicleInfo.mileage).toLocaleString() : ""} 
+                    value={vehicleInfo.mileage ? Number.parseInt(vehicleInfo.mileage).toLocaleString() : ""} 
                     readOnly
                     className="bg-muted"
                   />
@@ -266,7 +266,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                 <div>
                   <Label>Total Price Before Tax</Label>
                   <Input 
-                    value={vehicleInfo.totalPrice ? `$${parseFloat(vehicleInfo.totalPrice).toLocaleString()}` : ""} 
+                    value={vehicleInfo.totalPrice ? `$${Number.parseFloat(vehicleInfo.totalPrice).toLocaleString()}` : ""} 
                     readOnly
                     className="bg-muted font-semibold"
                   />
@@ -459,8 +459,8 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {parseFloat(financingTerms.deliveryFee) > 0 
-                      ? `Delivery: $${parseFloat(financingTerms.deliveryFee).toFixed(0)}` 
+                    {Number.parseFloat(financingTerms.deliveryFee) > 0 
+                      ? `Delivery: $${Number.parseFloat(financingTerms.deliveryFee).toFixed(0)}` 
                       : "Free within 300km of Richmond Hill"}
                   </p>
                 </div>

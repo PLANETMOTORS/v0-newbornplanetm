@@ -113,11 +113,7 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   // Idempotency key — generated once per form mount, prevents duplicate submissions
-  const idempotencyKey = useRef<string>(
-    typeof crypto !== "undefined" && crypto.randomUUID
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2)}`
-  )
+  const idempotencyKey = useRef<string>(crypto.randomUUID())
   
   // Form state
   const [primaryApplicant, setPrimaryApplicant] = useState<ApplicantData>(emptyApplicant)
@@ -157,9 +153,9 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
   
   // Auto-calculate annual income when gross income or frequency changes
   useEffect(() => {
-    const grossAmount = parseFloat(primaryApplicant.grossIncome) || 0
+    const grossAmount = Number.parseFloat(primaryApplicant.grossIncome) || 0
     const frequency = primaryApplicant.incomeFrequency
-    const otherAmount = parseFloat(primaryApplicant.otherIncomeAmount) || 0
+    const otherAmount = Number.parseFloat(primaryApplicant.otherIncomeAmount) || 0
     const otherFreq = primaryApplicant.otherIncomeFrequency
     
     // Calculate annual gross income based on frequency
@@ -456,17 +452,17 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   
   // Calculate financing details
   const calculateFinancing = () => {
-    const price = parseFloat(vehicleInfo.totalPrice) || 0
-    const downPayment = parseFloat(vehicleInfo.downPayment) || 0
-    const tradeValue = tradeIn.hasTradeIn ? (parseFloat(tradeIn.estimatedValue) || 0) : 0
-    const lienAmount = tradeIn.hasLien ? (parseFloat(tradeIn.lienAmount) || 0) : 0
+    const price = Number.parseFloat(vehicleInfo.totalPrice) || 0
+    const downPayment = Number.parseFloat(vehicleInfo.downPayment) || 0
+    const tradeValue = tradeIn.hasTradeIn ? (Number.parseFloat(tradeIn.estimatedValue) || 0) : 0
+    const lienAmount = tradeIn.hasLien ? (Number.parseFloat(tradeIn.lienAmount) || 0) : 0
     const netTrade = tradeValue - lienAmount
-    const adminFee = financingTerms.agreementType === "finance" ? (parseFloat(financingTerms.adminFee) || 895) : 0
-    const omvicFee = parseFloat(financingTerms.omvicFee) || 22
-    const certificationFee = parseFloat(financingTerms.certificationFee) || 595
-    const licensingFee = parseFloat(financingTerms.licensingFee) || 59
-    const deliveryFee = parseFloat(financingTerms.deliveryFee) || 0
-    const taxRate = parseFloat(financingTerms.salesTaxRate) / 100 || PROVINCE_TAX_RATES.ON.total
+    const adminFee = financingTerms.agreementType === "finance" ? (Number.parseFloat(financingTerms.adminFee) || 895) : 0
+    const omvicFee = Number.parseFloat(financingTerms.omvicFee) || 22
+    const certificationFee = Number.parseFloat(financingTerms.certificationFee) || 595
+    const licensingFee = Number.parseFloat(financingTerms.licensingFee) || 59
+    const deliveryFee = Number.parseFloat(financingTerms.deliveryFee) || 0
+    const taxRate = Number.parseFloat(financingTerms.salesTaxRate) / 100 || PROVINCE_TAX_RATES.ON.total
     
     // All fees: Admin Fee (finance only) + OMVIC + Certification + Licensing + Delivery
     const totalFees = adminFee + omvicFee + certificationFee + licensingFee + deliveryFee
@@ -478,7 +474,7 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     const amountFinanced = price + totalFees + tax - downPayment - netTrade
     
     // Calculate payment
-    const rate = (parseFloat(financingTerms.interestRate) || 8.99) / 100
+    const rate = (Number.parseFloat(financingTerms.interestRate) || 8.99) / 100
 
     const term = financingTerms.loanTermMonths
     
@@ -508,9 +504,9 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
       totalFees,
       tax,
       amountFinanced,
-      payment: isNaN(payment) ? 0 : payment,
-      totalToRepay: isNaN(totalToRepay) ? 0 : totalToRepay,
-      totalInterest: isNaN(totalInterest) ? 0 : totalInterest,
+      payment: Number.isNaN(payment) ? 0 : payment,
+      totalToRepay: Number.isNaN(totalToRepay) ? 0 : totalToRepay,
+      totalInterest: Number.isNaN(totalInterest) ? 0 : totalInterest,
       totalPayments
     }
   }
@@ -572,8 +568,8 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     const isSequential = (str: string): boolean => {
       let ascending = true, descending = true
       for (let i = 1; i < str.length; i++) {
-        if (parseInt(str[i]) !== parseInt(str[i-1]) + 1) ascending = false
-        if (parseInt(str[i]) !== parseInt(str[i-1]) - 1) descending = false
+        if (Number.parseInt(str[i]) !== Number.parseInt(str[i-1]) + 1) ascending = false
+        if (Number.parseInt(str[i]) !== Number.parseInt(str[i-1]) - 1) descending = false
       }
       return (ascending || descending) && str.length >= 7
     }
@@ -647,13 +643,13 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   const validateStep3 = (): string[] => {
     const errors: string[] = []
     // Vehicle must be selected from inventory
-    const isVehicleSelected = Boolean(vehicleInfo.year && vehicleInfo.make && vehicleInfo.totalPrice && parseFloat(vehicleInfo.totalPrice) > 0)
+    const isVehicleSelected = Boolean(vehicleInfo.year && vehicleInfo.make && vehicleInfo.totalPrice && Number.parseFloat(vehicleInfo.totalPrice) > 0)
     if (!isVehicleSelected) {
       errors.push("Please select a vehicle from inventory")
     }
     // Down payment validation: must be >= 0 and <= vehicle price
-    const dp = parseFloat(vehicleInfo.downPayment) || 0
-    const price = parseFloat(vehicleInfo.totalPrice) || 0
+    const dp = Number.parseFloat(vehicleInfo.downPayment) || 0
+    const price = Number.parseFloat(vehicleInfo.totalPrice) || 0
     if (dp < 0) {
       errors.push("Down payment cannot be negative")
     }
@@ -1037,8 +1033,8 @@ if (errors.length > 0) {
             <div>
               <p className="font-semibold text-destructive">Please fix the following errors:</p>
               <ul className="list-disc list-inside mt-2 text-sm text-destructive">
-                {validationErrors.map((error, i) => (
-                  <li key={i}>{error}</li>
+                {validationErrors.map((error) => (
+                  <li key={error}>{error}</li>
                 ))}
               </ul>
             </div>

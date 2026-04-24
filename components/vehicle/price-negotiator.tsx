@@ -98,8 +98,8 @@ export function PriceNegotiator({
   }
 
   const handleSubmitOffer = async () => {
-    const offerAmount = parseFloat(offer.replace(/[^0-9.]/g, ""))
-    if (isNaN(offerAmount) || offerAmount <= 0) return
+    const offerAmount = Number.parseFloat(offer.replace(/[^0-9.]/g, ""))
+    if (Number.isNaN(offerAmount) || offerAmount <= 0) return
 
     setCurrentOffer(offerAmount)
     const userMessage = customMessage || `I'd like to offer $${offerAmount.toLocaleString()} for this vehicle.`
@@ -235,7 +235,7 @@ export function PriceNegotiator({
           <>
             <div className="max-h-64 overflow-y-auto space-y-3">
               {messages.map((msg, i) => (
-                <div key={i} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div key={`-`} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   {msg.role === "assistant" && (
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <Bot className="w-4 h-4 text-primary" />

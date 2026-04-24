@@ -222,7 +222,7 @@ export function ICOVerificationDialog({
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Mileage:</span>
-                  <span>{parseInt(formData.mileage).toLocaleString()} km</span>
+                  <span>{Number.parseInt(formData.mileage).toLocaleString()} km</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Location:</span>

@@ -134,8 +134,8 @@ function SignUpForm() {
               </p>
               
               <div className="space-y-4">
-                {benefits.map((benefit, i) => (
-                  <div key={i} className="flex items-center gap-3">
+                {benefits.map((benefit) => (
+                  <div key={benefit} className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
                       <CheckCircle className="h-5 w-5 text-green-600" />
                     </div>

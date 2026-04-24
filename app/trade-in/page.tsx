@@ -308,7 +308,7 @@ function TradeInContent() {
     const action = searchParams.get("action")
     
     if (quoteId && vehicle && value) {
-      const parsedValue = parseInt(value) || 0
+      const parsedValue = Number.parseInt(value) || 0
       setInstantQuote({
         quoteId,
         vehicle: decodeURIComponent(vehicle),
@@ -333,21 +333,21 @@ function TradeInContent() {
           quoteId,
           offerNumber: `PM-${Date.now().toString(36).toUpperCase()}`,
           vehicle: decodeURIComponent(vehicle),
-          offerAmount: parseInt(value) || 0,
+          offerAmount: Number.parseInt(value) || 0,
           validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
           mileage: mileage || "N/A",
           condition: "good",
           cbbValue: {
-            low: parseInt(value) || 0,
-            mid: parseInt(value) || 0,
-            high: parseInt(value) || 0,
+            low: Number.parseInt(value) || 0,
+            mid: Number.parseInt(value) || 0,
+            high: Number.parseInt(value) || 0,
           },
           adjustments: [],
           payoff: 0,
-          equity: parseInt(value) || 0,
+          equity: Number.parseInt(value) || 0,
           comparison: {
-            privateSale: Math.round((parseInt(value) || 0) * 1.1),
-            dealerTrade: Math.round((parseInt(value) || 0) * 0.9),
+            privateSale: Math.round((Number.parseInt(value) || 0) * 1.1),
+            dealerTrade: Math.round((Number.parseInt(value) || 0) * 0.9),
           },
         }
         setOffer(offerData)
@@ -619,7 +619,7 @@ function TradeInContent() {
         const v = data.vehicle
         setVehicleFound(true)
         setFoundVehicle({
-          year: parseInt(v.year) || 0,
+          year: Number.parseInt(v.year) || 0,
           make: v.make,
           model: v.model,
           trim: v.trim,
@@ -712,7 +712,7 @@ function TradeInContent() {
     midValue = Math.round(midValue / 50) * 50
     highValue = Math.round(highValue / 50) * 50
 
-    const equity = hasLien && payoffAmount ? midValue - parseFloat(payoffAmount) : midValue
+    const equity = hasLien && payoffAmount ? midValue - Number.parseFloat(payoffAmount) : midValue
 
     const generatedQuoteId = `PQ-${Date.now().toString(36).toUpperCase()}`
     setOffer({
@@ -727,7 +727,7 @@ function TradeInContent() {
         hasMechanicalIssues && { reason: "Mechanical issues", amount: Math.round(-(midValue * 0.08)) },
       ].filter(Boolean),
       offerAmount: midValue,
-      payoff: hasLien ? parseFloat(payoffAmount) || 0 : 0,
+      payoff: hasLien ? Number.parseFloat(payoffAmount) || 0 : 0,
       equity,
       validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-CA'),
       comparison: {
@@ -743,8 +743,8 @@ function TradeInContent() {
   // Local fallback when API is unavailable
   const calculateLocalFallback = () => {
     const currentYear = new Date().getFullYear()
-    const age = currentYear - parseInt(selectedYear)
-    const mileageNum = parseInt(mileage.replace(/,/g, '')) || 50000
+    const age = currentYear - Number.parseInt(selectedYear)
+    const mileageNum = Number.parseInt(mileage.replace(/,/g, '')) || 50000
     const baseTiers: Record<string, number> = {
       "BMW": 45000, "Mercedes-Benz": 48000, "Audi": 45000, "Lexus": 42000,
       "Tesla": 55000, "Porsche": 70000, "Toyota": 28000, "Honda": 28000,
@@ -1101,7 +1101,7 @@ function TradeInContent() {
                       <div className="p-4 bg-muted/50 rounded-lg flex items-center justify-between">
                         <div>
                           <p className="font-semibold">{selectedYear} {selectedMake} {selectedModel} {selectedTrim}</p>
-                          <p className="text-sm text-muted-foreground">{mileage ? parseInt(mileage).toLocaleString() : '0'} km</p>
+                          <p className="text-sm text-muted-foreground">{mileage ? Number.parseInt(mileage).toLocaleString() : '0'} km</p>
                         </div>
                         <Button variant="outline" size="sm" onClick={() => goToStep(1)}>Edit</Button>
                       </div>
@@ -1334,7 +1334,7 @@ function TradeInContent() {
                       <div className="p-4 bg-muted/50 rounded-lg">
                         <p className="font-semibold text-lg">{selectedYear} {selectedMake} {selectedModel} {selectedTrim}</p>
                         <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
-                          <span>{mileage ? parseInt(mileage).toLocaleString() : '0'} km</span>
+                          <span>{mileage ? Number.parseInt(mileage).toLocaleString() : '0'} km</span>
                           <span>|</span>
                           <span className="capitalize">{condition} condition</span>
                           {hasAccident && <><span>|</span><span>Accident history</span></>}
@@ -1480,7 +1480,7 @@ function TradeInContent() {
                     <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                       <div>
                         <p className="font-semibold text-lg">{offer.vehicle}</p>
-                        <p className="text-sm text-muted-foreground">{offer.mileage && offer.mileage !== "N/A" ? parseInt(offer.mileage).toLocaleString() + ' km' : ''}{offer.mileage && offer.mileage !== "N/A" && offer.condition ? ' | ' : ''}{offer.condition ? offer.condition + ' condition' : ''}</p>
+                        <p className="text-sm text-muted-foreground">{offer.mileage && offer.mileage !== "N/A" ? Number.parseInt(offer.mileage).toLocaleString() + ' km' : ''}{offer.mileage && offer.mileage !== "N/A" && offer.condition ? ' | ' : ''}{offer.condition ? offer.condition + ' condition' : ''}</p>
                       </div>
                       <Car className="h-8 w-8 text-muted-foreground" />
                     </div>
@@ -1667,8 +1667,8 @@ function TradeInContent() {
                     desc: "Get paid within 24 hours via e-Transfer or certified cheque.",
                     highlight: "Fast Cash"
                   },
-                ].map((item, i) => (
-                  <Card key={i} className="relative overflow-hidden border-2 hover:border-primary transition-all group">
+                ].map((item) => (
+                  <Card key={item.title} className="relative overflow-hidden border-2 hover:border-primary transition-all group">
                     <CardContent className="p-6">
                       <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                         <item.icon className="h-7 w-7 text-primary" />
@@ -1718,8 +1718,8 @@ function TradeInContent() {
                       ["Valuation Source", "Canadian Black Book", "Trade-in guides"],
                       ["Phone Calls Required", "None", "Many"],
                       ["Haggling", "No games", "Expected"],
-                    ].map(([feature, pm, dealer], i) => (
-                      <tr key={i} className="border-b">
+                    ].map(([feature, pm, dealer]) => (
+                      <tr key={feature} className="border-b">
                         <td className="p-4 font-semibold">{feature}</td>
                         <td className="p-4 bg-primary/5 text-center font-semibold text-primary">{pm}</td>
                         <td className="p-4 text-center text-muted-foreground">{dealer}</td>
@@ -1764,8 +1764,8 @@ function TradeInContent() {
                     text: "They paid off my loan directly and e-Transferred my equity the next day. So easy compared to trading in at a dealership.",
                     rating: 5,
                   },
-                ].map((review, i) => (
-                  <Card key={i} className="p-6">
+                ].map((review) => (
+                  <Card key={review.name} className="p-6">
                     <div className="flex items-center gap-1 mb-3 text-amber-500">
                       {Array(review.rating).fill(0).map((_, j) => (
                         <Star key={j} className="h-4 w-4 fill-current" />

@@ -112,8 +112,8 @@ export default function SitemapPage() {
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {sitemapSections.map((section, i) => (
-                <div key={i}>
+              {sitemapSections.map((section) => (
+                <div key={section.title}>
                   <div className="flex items-center gap-2 mb-4">
                     <section.icon className="w-5 h-5 text-primary" />
                     <h2 className="font-semibold text-lg">{section.title}</h2>

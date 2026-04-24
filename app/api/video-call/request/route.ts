@@ -1,3 +1,4 @@
+import { randomBytes } from "crypto"
 import { NextResponse } from "next/server"
 import { sendNotificationEmail } from "@/lib/email"
 import { rateLimit } from "@/lib/redis"
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
     }
 
     // Generate a unique call ID
-    const callId = `VC-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    const callId = `VC-${Date.now()}-${randomBytes(5).toString("hex")}`
 
     // In production, this would:
     // 1. Save to database

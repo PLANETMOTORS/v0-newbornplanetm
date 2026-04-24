@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
             vehicle_make: vehicleMake,
             vehicle_model: vehicleModel,
             vehicle_trim: vehicleTrim,
-            mileage: mileage ? parseInt(mileage) : null,
+            mileage: mileage ? Number.parseInt(mileage) : null,
             condition,
             postal_code: postalCode,
             vin,

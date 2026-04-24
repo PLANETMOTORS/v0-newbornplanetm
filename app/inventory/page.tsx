@@ -322,9 +322,9 @@ function InventoryContent() {
     const quoteId = searchParams.get("quoteId")
     const tradeInVehicle = searchParams.get("tradeInVehicle")
 
-    if (tradeIn && parseInt(tradeIn) > 0) {
+    if (tradeIn && Number.parseInt(tradeIn) > 0) {
       setTradeInInfo({
-        value: parseInt(tradeIn),
+        value: Number.parseInt(tradeIn),
         quoteId: quoteId || '',
         vehicle: tradeInVehicle ? decodeURIComponent(tradeInVehicle) : ''
       })
@@ -365,9 +365,9 @@ function InventoryContent() {
     }
 
     if (minPrice || maxPrice) {
-      const min = minPrice ? parseInt(minPrice) : 0
-      const max = maxPrice ? parseInt(maxPrice) : 400000
-      setPriceRange([isNaN(min) ? 0 : min, isNaN(max) ? 400000 : max])
+      const min = minPrice ? Number.parseInt(minPrice) : 0
+      const max = maxPrice ? Number.parseInt(maxPrice) : 400000
+      setPriceRange([Number.isNaN(min) ? 0 : min, Number.isNaN(max) ? 400000 : max])
     }
 
     if (transmission) {

@@ -128,7 +128,7 @@ export function PaymentCalculator({
           <Label>Your Credit Score</Label>
           <Select 
             value={selectedTierIndex.toString()} 
-            onValueChange={(val) => setSelectedTierIndex(parseInt(val))}
+            onValueChange={(val) => setSelectedTierIndex(Number.parseInt(val))}
           >
             <SelectTrigger aria-label="Credit profile">
               <SelectValue />
@@ -178,7 +178,7 @@ export function PaymentCalculator({
         {/* Term Selector */}
         <div className="space-y-2">
           <Label>Loan Term</Label>
-          <Select value={term.toString()} onValueChange={(val) => setTerm(parseInt(val))}>
+          <Select value={term.toString()} onValueChange={(val) => setTerm(Number.parseInt(val))}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>

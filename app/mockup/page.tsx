@@ -220,7 +220,7 @@ export default function HomepageMockupV2() {
               { label: "Hybrids", icon: Battery },
               { label: "Luxury", icon: BadgeCheck },
               { label: "Family", icon: Car },
-            ].map((chip, i) => (
+            ].map((chip) => (
               <button 
                 key={i}
                 className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-[#1e3a8a] hover:text-white rounded-full text-sm font-medium whitespace-nowrap transition-colors"
@@ -357,7 +357,7 @@ export default function HomepageMockupV2() {
               { icon: Battery, title: "Aviloo Battery Health", desc: "EV battery certified by independent experts." },
               { icon: Shield, title: "No Hidden Fees", desc: "The price you see is the price you pay." },
             ].map((item, i) => (
-              <div key={i} className="bg-white p-6 rounded-2xl border border-gray-200 hover:shadow-lg hover:border-[#1e3a8a]/30 transition-all">
+              <div key={item.title} className="bg-white p-6 rounded-2xl border border-gray-200 hover:shadow-lg hover:border-[#1e3a8a]/30 transition-all">
                 <div className="w-12 h-12 bg-[#1e3a8a]/10 rounded-xl flex items-center justify-center mb-4">
                   <item.icon className="w-6 h-6 text-[#1e3a8a]" />
                 </div>
@@ -386,7 +386,7 @@ export default function HomepageMockupV2() {
               </p>
               <ul className="space-y-3 mb-8">
                 {["Instant online offer", "Free vehicle pickup", "Same-day payment available", "No obligation to buy from us"].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3">
+                  <li key={item} className="flex items-center gap-3">
                     <CheckCircle className="w-5 h-5 text-green-600" />
                     <span className="text-gray-700">{item}</span>
                   </li>
@@ -428,8 +428,8 @@ export default function HomepageMockupV2() {
               { num: "1", title: "Browse & Select", desc: "Explore our inventory with detailed photos, history, and inspection reports." },
               { num: "2", title: "Get Approved", desc: "Apply for financing in minutes. We work with 20+ lenders for the best rate." },
               { num: "3", title: "Delivery or Pickup", desc: "Get your car delivered or pick it up. 10-day return guarantee included." },
-            ].map((step, i) => (
-              <div key={i} className="text-center">
+            ].map((step) => (
+              <div key={step.title} className="text-center">
                 <div className="w-16 h-16 mx-auto mb-6 bg-[#1e3a8a] rounded-2xl flex items-center justify-center">
                   <span className="text-2xl font-bold text-white">{step.num}</span>
                 </div>
@@ -461,8 +461,8 @@ export default function HomepageMockupV2() {
               { name: "James D.", location: "Toronto", car: "Tesla Model Y", text: "Planet Motors made buying a car online incredibly easy. The 10-day return policy gave me peace of mind." },
               { name: "Sarah M.", location: "Mississauga", car: "Hyundai Ioniq 5", text: "Best car buying experience ever. No pressure, transparent pricing, and the car was exactly as described." },
               { name: "Michael K.", location: "Scarborough", car: "Toyota RAV4", text: "Traded in my old car and got a great deal. The whole process took less than an hour!" },
-            ].map((review, i) => (
-              <div key={i} className="bg-white p-6 rounded-2xl border border-gray-200">
+            ].map((review) => (
+              <div key={review.name} className="bg-white p-6 rounded-2xl border border-gray-200">
                 <div className="flex items-center gap-1 mb-4">
                   {[1,2,3,4,5].map(j => (
                     <Star key={j} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
