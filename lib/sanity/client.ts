@@ -2,7 +2,7 @@
 import { createClient } from "@sanity/client"
 
 // Hardcode safe default values - env vars may have invalid characters
-const SANITY_PROJECT_ID = "wlxj8olw"
+const SANITY_PROJECT_ID = "4588vjsz"
 const SANITY_DATASET = "production"
 
 export const sanityClient = createClient({

@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator"
 import sanitizeHtml from "sanitize-html"
 import { blogPosts } from "@/lib/blog-data"
 import { BlogShareButtons } from "@/components/blog/blog-share-buttons"
+import { getBlogPost } from "@/lib/sanity/fetch"
 
 const SITE_URL = getPublicSiteUrl()
 
@@ -51,15 +52,21 @@ function getRelatedPosts(slugs: string[]): RelatedPost[] {
 }
 
 export function generateStaticParams() {
-  return Object.keys(blogPosts).map((slug) => ({
-    slug,
-  }))
+  // Static slugs always included — Sanity slugs added at runtime via fallback: "blocking"
+  return Object.keys(blogPosts).map((slug) => ({ slug }))
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const post = blogPosts[slug]
-  
+  // Try Sanity first, fall back to static data
+  const sanityPost = await getBlogPost(slug)
+  const staticPost = blogPosts[slug]
+  const post = sanityPost
+    ? { title: sanityPost.title, excerpt: sanityPost.excerpt, image: sanityPost.coverImage ?? "/images/blog/1.png", date: sanityPost.publishedAt ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA") : "" }
+    : staticPost
+    ? { title: staticPost.title, excerpt: staticPost.excerpt, image: staticPost.image, date: staticPost.date }
+    : null
+
   if (!post) {
     return {
       title: "Post Not Found | Planet Motors Blog",
@@ -87,11 +94,40 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const post = blogPosts[slug]
 
-  if (!post) {
+  // Try Sanity CMS first; fall back to static blog-data.ts
+  const sanityPost = await getBlogPost(slug)
+  const staticPost = blogPosts[slug]
+
+  if (!sanityPost && !staticPost) {
     notFound()
   }
+
+  // Merge: prefer Sanity fields, fill gaps from static data
+  const post = staticPost
+    ? {
+        ...staticPost,
+        title: sanityPost?.title ?? staticPost.title,
+        excerpt: sanityPost?.excerpt ?? staticPost.excerpt,
+        image: sanityPost?.coverImage ?? staticPost.image,
+        date: sanityPost?.publishedAt ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "2-digit" }) : staticPost.date,
+        content: staticPost.content, // full HTML content always from static (rich content)
+        relatedPosts: staticPost.relatedPosts,
+        readTime: staticPost.readTime,
+        author: staticPost.author,
+        category: staticPost.category,
+      }
+    : {
+        title: sanityPost!.title ?? "",
+        excerpt: sanityPost!.excerpt ?? "",
+        image: sanityPost!.coverImage ?? "/images/blog/1.png",
+        date: sanityPost!.publishedAt ? new Date(sanityPost!.publishedAt).toLocaleDateString("en-CA") : "",
+        content: `<p>${sanityPost!.excerpt ?? ""}</p>`,
+        relatedPosts: [],
+        readTime: "5 min read",
+        author: "Planet Motors Team",
+        category: "General",
+      }
 
   const relatedPosts = getRelatedPosts(post.relatedPosts)
 
