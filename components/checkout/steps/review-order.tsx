@@ -73,11 +73,14 @@ export function ReviewOrderStep({
   const provinceCode = PROVINCE_NAME_TO_CODE[personal.province] || "ON"
   const provinceTax = PROVINCE_TAX_RATES[provinceCode] || PROVINCE_TAX_RATES.ON
   const formatPct = (rate: number) => Number.parseFloat((rate * 100).toFixed(3)).toString()
-  const taxLabel = provinceTax.hst > 0
-    ? `HST (${formatPct(provinceTax.hst)}%)`
-    : provinceTax.pst > 0
-      ? `GST+PST (${formatPct(provinceTax.total)}%)`
-      : `GST (${formatPct(provinceTax.gst)}%)`
+  let taxLabel: string
+  if (provinceTax.hst > 0) {
+    taxLabel = `HST (${formatPct(provinceTax.hst)}%)`
+  } else if (provinceTax.pst > 0) {
+    taxLabel = `GST+PST (${formatPct(provinceTax.total)}%)`
+  } else {
+    taxLabel = `GST (${formatPct(provinceTax.gst)}%)`
+  }
 
   const subtotal =
     vehicle.price +
@@ -126,11 +129,11 @@ export function ReviewOrderStep({
       {/* Payment Method */}
       <ReviewSection title="Payment method" editLabel="Edit payment method" onEdit={() => onEditStep(2)}>
         <p>
-          {paymentMethod.purchaseType === "finance"
-            ? "Finance with Planet Motors"
-            : paymentMethod.purchaseType === "pre-approved"
-              ? `Pre-approved with ${paymentMethod.preApprovedLender || "another lender"}`
-              : "Pay with cash"}
+          {(() => {
+            if (paymentMethod.purchaseType === "finance") return "Finance with Planet Motors"
+            if (paymentMethod.purchaseType === "pre-approved") return `Pre-approved with ${paymentMethod.preApprovedLender || "another lender"}`
+            return "Pay with cash"
+          })()}
         </p>
       </ReviewSection>
 

@@ -95,7 +95,7 @@ export function TransactionHistory({ deposits, orders, financePayments }: Transa
       e.data.state.toLowerCase()
     ))
     .reduce((sum, e) => {
-      const cents = e.kind === "order" ? (e.data as Order).total_cents : (e.data as Deposit | FinancePayment).amount_cents
+      const cents = e.kind === "order" ? e.data.total_cents : e.data.amount_cents
       return sum + cents
     }, 0)
 

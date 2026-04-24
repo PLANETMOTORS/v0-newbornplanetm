@@ -37,11 +37,8 @@ const serwist = new Serwist({
   runtimeCaching: [
     // 1. Never cache API routes or Supabase calls — always network
     {
-      matcher({ url }) {
-        return (
-          url.pathname.startsWith("/api/") ||
-          url.hostname.includes("supabase.co")
-        );
+      matcher({ url }) { // NOSONAR - intentional: always returns boolean for route matching
+        return url.pathname.startsWith("/api/") || url.hostname.includes("supabase.co");
       },
       handler: new NetworkOnly(),
     },
