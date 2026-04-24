@@ -16,7 +16,7 @@ export const metadata: Metadata = {
  */
 export default function OfflinePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0f172a] to-[#1e293b] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-linear-to-b from-[#0f172a] to-[#1e293b] flex items-center justify-center px-4">
       <div className="max-w-md w-full text-center space-y-8">
         {/* Logo — plain img so it works from precache with no server */}
         {/* eslint-disable-next-line @next/next/no-img-element */}

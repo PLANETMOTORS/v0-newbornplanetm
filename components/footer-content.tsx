@@ -80,7 +80,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
   return (
     <footer className="bg-foreground text-background" role="contentinfo" aria-label="Site footer">
       {/* ── Row 1: Trust Bar — gradient bridge from CTA blue → footer black ── */}
-      <div className="bg-gradient-to-b from-[#1e3a8a] to-[#0a0a0a]">
+      <div className="bg-linear-to-b from-[#1e3a8a] to-[#0a0a0a]">
         <div className="mx-auto max-w-7xl px-6 py-5 lg:px-8">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
             <div>
@@ -131,7 +131,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
                 <FooterPhoneLink phone={siteSettings.phone} />
                 <a
                   href={`mailto:${siteSettings.email}`}
-                  className="flex items-center gap-2.5 min-h-[44px] text-sm text-white/90 hover:text-white transition-colors"
+                  className="flex items-center gap-2.5 min-h-11 text-sm text-white/90 hover:text-white transition-colors"
                 >
                   <Mail className="w-4 h-4 shrink-0" />
                   <span>{siteSettings.email}</span>
@@ -140,7 +140,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
                   href={siteSettings.googleMapsUrl || `https://maps.google.com/?q=${encodeURIComponent(`${siteSettings.streetAddress} ${siteSettings.city} ${siteSettings.province}`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2.5 min-h-[44px] text-sm text-white/90 hover:text-white transition-colors"
+                  className="flex items-center gap-2.5 min-h-11 text-sm text-white/90 hover:text-white transition-colors"
                 >
                   <MapPin className="w-4 h-4 shrink-0" />
                   <span>{siteSettings.streetAddress}, {siteSettings.city}</span>
@@ -157,7 +157,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
               <ul className="space-y-1">
                 {footerLinks.vehicles.map((link) => (
                   <li key={link.name}>
-                    <Link href={link.href} className="block py-1.5 min-h-[44px] flex items-center text-sm text-white/60 hover:text-white transition-colors">
+                    <Link href={link.href} className="block py-1.5 min-h-11 flex items-center text-sm text-white/60 hover:text-white transition-colors">
                       {link.name}
                     </Link>
                   </li>
@@ -171,7 +171,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
               <ul className="space-y-1">
                 {footerLinks.services.map((link) => (
                   <li key={link.name}>
-                    <Link href={link.href} className="block py-1.5 min-h-[44px] flex items-center text-sm text-white/60 hover:text-white transition-colors">
+                    <Link href={link.href} className="block py-1.5 min-h-11 flex items-center text-sm text-white/60 hover:text-white transition-colors">
                       {link.name}
                     </Link>
                   </li>
@@ -185,7 +185,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
               <ul className="space-y-1">
                 {footerLinks.company.map((link) => (
                   <li key={link.name}>
-                    <Link href={link.href} className="block py-1.5 min-h-[44px] flex items-center text-sm text-white/60 hover:text-white transition-colors">
+                    <Link href={link.href} className="block py-1.5 min-h-11 flex items-center text-sm text-white/60 hover:text-white transition-colors">
                       {link.name}
                     </Link>
                   </li>
@@ -199,7 +199,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
               <ul className="space-y-1">
                 {footerLinks.legal.map((link) => (
                   <li key={link.name}>
-                    <Link href={link.href} className="block py-1.5 min-h-[44px] flex items-center text-sm text-white/60 hover:text-white transition-colors">
+                    <Link href={link.href} className="block py-1.5 min-h-11 flex items-center text-sm text-white/60 hover:text-white transition-colors">
                       {link.name}
                     </Link>
                   </li>
@@ -245,14 +245,14 @@ export function FooterContent({ siteSettings }: FooterProps) {
               href="https://www.omvic.on.ca"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 min-h-[44px] py-1 text-white/90 hover:text-white transition-colors"
+              className="flex items-center gap-2 min-h-11 py-1 text-white/90 hover:text-white transition-colors"
             >
               <Shield className="w-3.5 h-3.5 shrink-0" />
               <span className="text-xs font-semibold">OMVIC Registered Dealer</span>
             </a>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               {footerLinks.legal.map((link) => (
-                <Link key={link.name} href={link.href} className="min-h-[44px] flex items-center text-xs font-semibold text-white/90 hover:text-white transition-colors">
+                <Link key={link.name} href={link.href} className="min-h-11 flex items-center text-xs font-semibold text-white/90 hover:text-white transition-colors">
                   {link.name}
                 </Link>
               ))}

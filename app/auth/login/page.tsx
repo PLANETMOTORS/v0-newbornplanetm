@@ -80,7 +80,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen bg-linear-to-b from-background to-muted/30">
       <Header />
       
       <main id="main-content" tabIndex={-1} className="container mx-auto px-4 py-16">
@@ -242,7 +242,7 @@ function LoginForm() {
 
 function LoginLoading() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex items-center justify-center">
+    <div className="min-h-screen bg-linear-to-b from-background to-muted/30 flex items-center justify-center">
       <Loader2 className="h-8 w-8 animate-spin text-primary" />
     </div>
   )

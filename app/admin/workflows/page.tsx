@@ -260,7 +260,7 @@ export default function AdminWorkflowsPage() {
                         </div>
                         <button
                           onClick={() => toggleWorkflow(workflow.id)}
-                          className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                          className="p-1 hover:bg-gray-100 rounded shrink-0"
                         >
                           {workflow.enabled ? (
                             <ToggleRight className="w-8 h-8 text-green-600" />

@@ -141,7 +141,7 @@ export default function EVBatteryPage() {
       
       <main id="main-content" tabIndex={-1} className="pt-32 pb-16">
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-primary/10 via-background to-accent/5 py-16">
+        <section className="bg-linear-to-br from-primary/10 via-background to-accent/5 py-16">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center">
               <Badge className="mb-4 bg-green-500/10 text-green-600 border-green-500/20">
@@ -210,7 +210,7 @@ export default function EVBatteryPage() {
               <div className="space-y-6">
                 {certificationProcess.map((item, index) => (
                   <div key={item.step} className="flex gap-4 items-start">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
+                    <div className="shrink-0 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
                       {item.step}
                     </div>
                     <div className="flex-1 pb-6 border-b border-border last:border-0">
@@ -236,7 +236,7 @@ export default function EVBatteryPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {sampleVehicles.map((vehicle) => (
               <Card key={vehicle.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="aspect-video bg-gradient-to-br from-green-500/20 to-primary/20 flex items-center justify-center relative">
+                <div className="aspect-video bg-linear-to-br from-green-500/20 to-primary/20 flex items-center justify-center relative">
                   <Battery className="w-16 h-16 text-green-600/50" />
                   <Badge className="absolute top-2 right-2 bg-green-600">
                     {vehicle.batteryHealth}% Health

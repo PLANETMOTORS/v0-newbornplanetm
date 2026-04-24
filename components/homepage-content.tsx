@@ -131,14 +131,14 @@ export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProp
                   className="inline-flex items-center gap-2 sm:gap-3 bg-[#dc2626] hover:bg-[#b91c1c] text-white text-base sm:text-lg font-semibold px-6 sm:px-8 py-3.5 sm:py-4 rounded-full shadow-lg shadow-red-600/25 transition-all hover:shadow-xl hover:shadow-red-600/30"
                 >
                   <span>Find Your Car</span>
-                  <ArrowRight className="w-5 h-5 flex-shrink-0" />
+                  <ArrowRight className="w-5 h-5 shrink-0" />
                 </a>
                 <Link
                   href="/trade-in"
                   className="inline-flex items-center gap-2 sm:gap-3 border-2 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white text-base sm:text-lg font-semibold px-6 sm:px-8 py-3 sm:py-[14px] rounded-full transition-all"
                 >
                   <span>Get Trade-In Value</span>
-                  <ArrowRight className="w-5 h-5 flex-shrink-0" />
+                  <ArrowRight className="w-5 h-5 shrink-0" />
                 </Link>
               </div>
 
@@ -151,7 +151,7 @@ export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProp
                   needed.  Paints immediately from SSR HTML so the browser
                   has a valid LCP candidate before React hydrates (~2s on 4×
                   mobile).  Positioned absolutely behind the carousel's
-                  aspect-[4/3] area so the interactive VehicleShowcase can
+                  aspect-4/3 area so the interactive VehicleShowcase can
                   render in normal document flow (preserving space for its
                   thumbnail navigation below the carousel). */}
               <div

@@ -101,7 +101,7 @@ export function SimilarVehicles({ currentVehicleId, make, priceRange }: SimilarV
           {filtered.map((vehicle) => (
             <Link key={vehicle.id} href={`/vehicles/${vehicle.id}`}>
               <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
-                <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5]">
+                <div className="relative aspect-4/3 overflow-hidden bg-linear-to-br from-[#f0f4ff] to-[#e8eef5]">
                   {vehicle.image ? (
                     <Image
                       src={vehicle.image}

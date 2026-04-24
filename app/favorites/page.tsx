@@ -64,7 +64,7 @@ export default function FavoritesPage() {
                     <div className="flex flex-col md:flex-row">
                       {/* Image */}
                       <div className="relative md:w-72 aspect-video md:aspect-auto bg-muted">
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                        <div className="absolute inset-0 bg-linear-to-br from-primary/20 to-accent/20 flex items-center justify-center">
                           <Car className="w-12 h-12 text-primary/50" />
                         </div>
                         {vehicle.originalPrice && vehicle.price < vehicle.originalPrice && (
