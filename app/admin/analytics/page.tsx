@@ -112,16 +112,16 @@ export default function AdminAnalyticsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <RefreshCw className="w-8 h-8 animate-spin text-gray-400" />
-        <span className="ml-3 text-gray-500 text-lg">Loading analytics...</span>
+        <RefreshCw className="w-8 h-8 animate-spin text-pm-text-muted" />
+        <span className="ml-3 text-pm-text-secondary text-lg">Loading analytics...</span>
       </div>
     )
   }
 
   if (error || !data) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 text-gray-500">
-        <BarChart3 className="w-16 h-16 mb-4 text-gray-300" />
+      <div className="flex flex-col items-center justify-center py-24 text-pm-text-secondary">
+        <BarChart3 className="w-16 h-16 mb-4 text-pm-text-muted" />
         <p className="text-lg font-medium">{error || "No data available"}</p>
         <Button variant="outline" onClick={fetchAnalytics} className="mt-4">
           <RefreshCw className="w-4 h-4 mr-2" />
@@ -138,8 +138,8 @@ export default function AdminAnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">Analytics</h1>
-          <p className="text-gray-500">Business overview and key metrics</p>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-pm-text-primary">Analytics</h1>
+          <p className="text-pm-text-secondary">Business overview and key metrics</p>
         </div>
         <Button variant="outline" onClick={fetchAnalytics}>
           <RefreshCw className="w-4 h-4 mr-2" />
@@ -164,7 +164,7 @@ export default function AdminAnalyticsPage() {
             </div>
             <div className="mt-4">
               <p className="text-2xl font-bold">{formatCurrency(overview.totalRevenue)}</p>
-              <p className="text-sm text-gray-500">Total Revenue</p>
+              <p className="text-sm text-pm-text-secondary">Total Revenue</p>
               {overview.recentRevenue > 0 && (
                 <p className="text-xs text-green-600 mt-1">{formatCurrency(overview.recentRevenue)} last 30 days</p>
               )}
@@ -187,7 +187,7 @@ export default function AdminAnalyticsPage() {
             </div>
             <div className="mt-4">
               <p className="text-2xl font-bold">{overview.totalOrders}</p>
-              <p className="text-sm text-gray-500">Total Orders</p>
+              <p className="text-sm text-pm-text-secondary">Total Orders</p>
               {overview.recentOrders > 0 && (
                 <p className="text-xs text-blue-600 mt-1">{overview.recentOrders} in last 30 days</p>
               )}
@@ -210,7 +210,7 @@ export default function AdminAnalyticsPage() {
             </div>
             <div className="mt-4">
               <p className="text-2xl font-bold">{overview.totalCustomers}</p>
-              <p className="text-sm text-gray-500">Total Customers</p>
+              <p className="text-sm text-pm-text-secondary">Total Customers</p>
               {overview.newCustomers30d > 0 && (
                 <p className="text-xs text-purple-600 mt-1">{overview.newCustomers30d} new in 30 days</p>
               )}
@@ -225,8 +225,8 @@ export default function AdminAnalyticsPage() {
             </div>
             <div className="mt-4">
               <p className="text-2xl font-bold">{overview.totalVehicles}</p>
-              <p className="text-sm text-gray-500">Total Vehicles</p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-sm text-pm-text-secondary">Total Vehicles</p>
+              <p className="text-xs text-pm-text-secondary mt-1">
                 {overview.activeVehicles} active • {overview.soldVehicles} sold • {overview.reservedVehicles} reserved
               </p>
             </div>
@@ -281,7 +281,7 @@ export default function AdminAnalyticsPage() {
           </CardHeader>
           <CardContent>
             {breakdowns.topMakes.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No vehicle data</p>
+              <p className="text-pm-text-muted text-center py-8">No vehicle data</p>
             ) : (
               <div className="space-y-3">
                 {breakdowns.topMakes.map((item) => {
@@ -289,8 +289,8 @@ export default function AdminAnalyticsPage() {
                   const width = Math.max(8, (item.count / maxCount) * 100)
                   return (
                     <div key={item.make} className="flex items-center gap-3">
-                      <span className="w-24 text-sm text-gray-600 truncate">{item.make}</span>
-                      <div className="flex-1 bg-gray-100 rounded-full h-6 overflow-hidden">
+                      <span className="w-24 text-sm text-pm-text-secondary truncate">{item.make}</span>
+                      <div className="flex-1 bg-pm-surface-light rounded-full h-6 overflow-hidden">
                         <div
                           className="bg-blue-500 h-full rounded-full flex items-center justify-end pr-2"
                           style={{ width: `${width}%` }}
@@ -319,21 +319,21 @@ export default function AdminAnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="text-center p-3 bg-pm-surface-subtle rounded-lg">
                 <p className="text-2xl font-bold">{finance.total}</p>
-                <p className="text-sm text-gray-500">Total</p>
+                <p className="text-sm text-pm-text-secondary">Total</p>
               </div>
               <div className="text-center p-3 bg-yellow-50 rounded-lg">
                 <p className="text-2xl font-bold text-yellow-600">{finance.pending}</p>
-                <p className="text-sm text-gray-500">Pending</p>
+                <p className="text-sm text-pm-text-secondary">Pending</p>
               </div>
               <div className="text-center p-3 bg-green-50 rounded-lg">
                 <p className="text-2xl font-bold text-green-600">{finance.approved}</p>
-                <p className="text-sm text-gray-500">Approved</p>
+                <p className="text-sm text-pm-text-secondary">Approved</p>
               </div>
               <div className="text-center p-3 bg-blue-50 rounded-lg">
                 <p className="text-2xl font-bold text-blue-600">{formatDollars(finance.totalValue)}</p>
-                <p className="text-sm text-gray-500">Total Value</p>
+                <p className="text-sm text-pm-text-secondary">Total Value</p>
               </div>
             </div>
           </CardContent>
@@ -349,21 +349,21 @@ export default function AdminAnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="text-center p-3 bg-pm-surface-subtle rounded-lg">
                 <p className="text-2xl font-bold">{tradeIns.total}</p>
-                <p className="text-sm text-gray-500">Total</p>
+                <p className="text-sm text-pm-text-secondary">Total</p>
               </div>
               <div className="text-center p-3 bg-yellow-50 rounded-lg">
                 <p className="text-2xl font-bold text-yellow-600">{tradeIns.pending}</p>
-                <p className="text-sm text-gray-500">Pending</p>
+                <p className="text-sm text-pm-text-secondary">Pending</p>
               </div>
               <div className="text-center p-3 bg-green-50 rounded-lg">
                 <p className="text-2xl font-bold text-green-600">{tradeIns.accepted}</p>
-                <p className="text-sm text-gray-500">Accepted</p>
+                <p className="text-sm text-pm-text-secondary">Accepted</p>
               </div>
               <div className="text-center p-3 bg-blue-50 rounded-lg">
                 <p className="text-2xl font-bold text-blue-600">{formatDollars(tradeIns.totalValue)}</p>
-                <p className="text-sm text-gray-500">Accepted Value</p>
+                <p className="text-sm text-pm-text-secondary">Accepted Value</p>
               </div>
             </div>
           </CardContent>
@@ -379,14 +379,14 @@ export default function AdminAnalyticsPage() {
           </CardHeader>
           <CardContent>
             {Object.keys(breakdowns.ordersByStatus).length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No order data</p>
+              <p className="text-pm-text-muted text-center py-8">No order data</p>
             ) : (
               <div className="space-y-3">
                 {Object.entries(breakdowns.ordersByStatus)
                   .sort((a, b) => b[1] - a[1])
                   .map(([status, count]) => (
                     <div key={status} className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 capitalize">{status.replace(/_/g, " ")}</span>
+                      <span className="text-sm text-pm-text-secondary capitalize">{status.replace(/_/g, " ")}</span>
                       <span className="font-bold">{count}</span>
                     </div>
                   ))}
@@ -402,14 +402,14 @@ export default function AdminAnalyticsPage() {
           </CardHeader>
           <CardContent>
             {Object.keys(breakdowns.ordersByPayment).length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No payment data</p>
+              <p className="text-pm-text-muted text-center py-8">No payment data</p>
             ) : (
               <div className="space-y-3">
                 {Object.entries(breakdowns.ordersByPayment)
                   .sort((a, b) => b[1] - a[1])
                   .map(([method, count]) => (
                     <div key={method} className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 capitalize">{method.replace(/_/g, " ")}</span>
+                      <span className="text-sm text-pm-text-secondary capitalize">{method.replace(/_/g, " ")}</span>
                       <span className="font-bold">{count}</span>
                     </div>
                   ))}

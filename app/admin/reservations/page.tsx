@@ -62,7 +62,7 @@ function depositBadge(status: string): { color: string; label: string } {
     case "pending": return { color: "bg-yellow-100 text-yellow-700", label: "Pending" }
     case "refunded": return { color: "bg-blue-100 text-blue-700", label: "Refunded" }
     case "failed": return { color: "bg-red-100 text-red-700", label: "Failed" }
-    default: return { color: "bg-gray-100 text-gray-700", label: status }
+    default: return { color: "bg-pm-surface-light text-pm-text-secondary", label: status }
   }
 }
 
@@ -127,8 +127,8 @@ export default function AdminReservationsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">Reservations & Deposits</h1>
-          <p className="text-sm text-gray-500">Track vehicle reservations and deposit payments</p>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-pm-text-primary">Reservations & Deposits</h1>
+          <p className="text-sm text-pm-text-secondary">Track vehicle reservations and deposit payments</p>
         </div>
         <Button variant="outline" size="sm" onClick={fetchReservations}>
           <RefreshCw className="w-4 h-4 mr-2" />
@@ -142,35 +142,35 @@ export default function AdminReservationsPage() {
           <CardContent className="p-4 text-center">
             <Clock className="w-5 h-5 mx-auto mb-1 text-yellow-600" />
             <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
-            <p className="text-xs text-gray-500">Pending</p>
+            <p className="text-xs text-pm-text-secondary">Pending</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <CheckCircle2 className="w-5 h-5 mx-auto mb-1 text-green-600" />
             <p className="text-2xl font-bold text-green-600">{stats.confirmed}</p>
-            <p className="text-xs text-gray-500">Confirmed</p>
+            <p className="text-xs text-pm-text-secondary">Confirmed</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <CalendarCheck className="w-5 h-5 mx-auto mb-1 text-blue-600" />
             <p className="text-2xl font-bold text-blue-600">{stats.completed}</p>
-            <p className="text-xs text-gray-500">Completed</p>
+            <p className="text-xs text-pm-text-secondary">Completed</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <Ban className="w-5 h-5 mx-auto mb-1 text-red-600" />
             <p className="text-2xl font-bold text-red-600">{stats.cancelled}</p>
-            <p className="text-xs text-gray-500">Cancelled</p>
+            <p className="text-xs text-pm-text-secondary">Cancelled</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <DollarSign className="w-5 h-5 mx-auto mb-1 text-emerald-600" />
             <p className="text-2xl font-bold text-emerald-600">${stats.totalDeposits.toLocaleString()}</p>
-            <p className="text-xs text-gray-500">Total Deposits</p>
+            <p className="text-xs text-pm-text-secondary">Total Deposits</p>
           </CardContent>
         </Card>
       </div>
@@ -193,11 +193,11 @@ export default function AdminReservationsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           {loading ? (
-            <Card><CardContent className="p-8 text-center text-gray-500">Loading reservations...</CardContent></Card>
+            <Card><CardContent className="p-8 text-center text-pm-text-secondary">Loading reservations...</CardContent></Card>
           ) : reservations.length === 0 ? (
             <Card>
-              <CardContent className="p-8 text-center text-gray-500">
-                <CalendarCheck className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <CardContent className="p-8 text-center text-pm-text-secondary">
+                <CalendarCheck className="w-12 h-12 mx-auto mb-3 text-pm-text-muted" />
                 <p>No reservations found</p>
               </CardContent>
             </Card>
@@ -218,22 +218,22 @@ export default function AdminReservationsPage() {
                           {res.vehicle?.primary_image_url ? (
                             <Image src={res.vehicle.primary_image_url} alt="" width={64} height={48} className="w-16 h-12 object-cover rounded" />
                           ) : (
-                            <div className="w-16 h-12 bg-gray-200 rounded flex items-center justify-center">
-                              <Car className="w-6 h-6 text-gray-400" />
+                            <div className="w-16 h-12 bg-pm-border rounded flex items-center justify-center">
+                              <Car className="w-6 h-6 text-pm-text-muted" />
                             </div>
                           )}
                           <div>
                             <p className="font-medium text-sm">
                               {res.vehicle ? `${res.vehicle.year} ${res.vehicle.make} ${res.vehicle.model}` : "Vehicle"}
                             </p>
-                            <p className="text-xs text-gray-500">{res.customer_name || res.customer_email}</p>
+                            <p className="text-xs text-pm-text-secondary">{res.customer_name || res.customer_email}</p>
                             <div className="flex items-center gap-2 mt-1">
                               <Badge variant={sb.variant} className="text-xs">{sb.label}</Badge>
                               <span className={`text-xs px-2 py-0.5 rounded ${db.color}`}>{formatCents(res.deposit_amount)} — {db.label}</span>
                             </div>
                           </div>
                         </div>
-                        <p className="text-xs text-gray-400">{timeAgo(res.created_at)}</p>
+                        <p className="text-xs text-pm-text-muted">{timeAgo(res.created_at)}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -258,7 +258,7 @@ export default function AdminReservationsPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm">
-                    <User className="w-4 h-4 text-gray-400" />
+                    <User className="w-4 h-4 text-pm-text-muted" />
                     {selectedRes.customer_name || "No name"}
                   </div>
                   <a href={`mailto:${selectedRes.customer_email}`} className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
@@ -275,41 +275,41 @@ export default function AdminReservationsPage() {
 
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <p className="text-xs text-gray-500 uppercase">Deposit</p>
+                    <p className="text-xs text-pm-text-secondary uppercase">Deposit</p>
                     <p className="font-medium">{formatCents(selectedRes.deposit_amount)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 uppercase">Deposit Status</p>
+                    <p className="text-xs text-pm-text-secondary uppercase">Deposit Status</p>
                     <span className={`text-xs px-2 py-1 rounded ${depositBadge(selectedRes.deposit_status).color}`}>
                       {selectedRes.deposit_status}
                     </span>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 uppercase">Expires</p>
+                    <p className="text-xs text-pm-text-secondary uppercase">Expires</p>
                     <p className="text-sm">{new Date(selectedRes.expires_at).toLocaleDateString()}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 uppercase">Created</p>
+                    <p className="text-xs text-pm-text-secondary uppercase">Created</p>
                     <p className="text-sm">{new Date(selectedRes.created_at).toLocaleDateString()}</p>
                   </div>
                 </div>
 
                 {selectedRes.stripe_payment_intent_id && (
                   <div>
-                    <p className="text-xs text-gray-500 uppercase mb-1">Stripe Payment</p>
-                    <p className="text-xs font-mono text-gray-600 truncate">{selectedRes.stripe_payment_intent_id}</p>
+                    <p className="text-xs text-pm-text-secondary uppercase mb-1">Stripe Payment</p>
+                    <p className="text-xs font-mono text-pm-text-secondary truncate">{selectedRes.stripe_payment_intent_id}</p>
                   </div>
                 )}
 
                 {selectedRes.notes && (
                   <div>
-                    <p className="text-xs text-gray-500 uppercase mb-1">Notes</p>
-                    <p className="text-sm text-gray-700">{selectedRes.notes}</p>
+                    <p className="text-xs text-pm-text-secondary uppercase mb-1">Notes</p>
+                    <p className="text-sm text-pm-text-secondary">{selectedRes.notes}</p>
                   </div>
                 )}
 
                 <div>
-                  <p className="text-xs text-gray-500 uppercase mb-2">Update Status</p>
+                  <p className="text-xs text-pm-text-secondary uppercase mb-2">Update Status</p>
                   <div className="flex flex-wrap gap-2">
                     {["pending", "confirmed", "completed", "cancelled"].map(s => (
                       <Button
@@ -327,8 +327,8 @@ export default function AdminReservationsPage() {
               </CardContent>
             </>
           ) : (
-            <CardContent className="p-8 text-center text-gray-500">
-              <CalendarCheck className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+            <CardContent className="p-8 text-center text-pm-text-secondary">
+              <CalendarCheck className="w-12 h-12 mx-auto mb-3 text-pm-text-muted" />
               <p className="text-sm">Select a reservation to view details</p>
             </CardContent>
           )}

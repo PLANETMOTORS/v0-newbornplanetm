@@ -209,8 +209,8 @@ export default function VehiclePhotoManager({
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Manage Photos</h2>
-            <p className="text-sm text-gray-500">{vehicleTitle}</p>
+            <h2 className="text-lg font-bold text-pm-text-primary">Manage Photos</h2>
+            <p className="text-sm text-pm-text-secondary">{vehicleTitle}</p>
           </div>
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="w-5 h-5" />
@@ -250,15 +250,15 @@ export default function VehiclePhotoManager({
             {uploading ? (
               <div className="flex flex-col items-center gap-2">
                 <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-                <p className="text-sm text-gray-600">{uploadProgress}</p>
+                <p className="text-sm text-pm-text-secondary">{uploadProgress}</p>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-2">
-                <Upload className="w-8 h-8 text-gray-400" />
-                <p className="text-sm font-medium text-gray-700">
+                <Upload className="w-8 h-8 text-pm-text-muted" />
+                <p className="text-sm font-medium text-pm-text-secondary">
                   Drop photos here or click to upload
                 </p>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-pm-text-muted">
                   JPEG, PNG, WebP, AVIF — max 10 MB per file
                 </p>
               </div>
@@ -282,10 +282,10 @@ export default function VehiclePhotoManager({
         <div className="px-4 pb-4 sm:px-6 sm:pb-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+              <Loader2 className="w-6 h-6 text-pm-text-muted animate-spin" />
             </div>
           ) : imageUrls.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+            <div className="flex flex-col items-center justify-center py-12 text-pm-text-muted">
               <ImagePlus className="w-12 h-12 mb-3" />
               <p className="text-sm font-medium">No photos yet</p>
               <p className="text-xs">Upload photos to get started</p>
@@ -293,10 +293,10 @@ export default function VehiclePhotoManager({
           ) : (
             <>
               <div className="flex items-center justify-between mb-4">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-pm-text-secondary">
                   {imageUrls.length} photo{imageUrls.length !== 1 ? "s" : ""}
                 </p>
-                <div className="flex items-center gap-2 text-xs text-gray-400">
+                <div className="flex items-center gap-2 text-xs text-pm-text-muted">
                   <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                   <span>= Primary image (shown on listing cards)</span>
                 </div>
@@ -315,7 +315,7 @@ export default function VehiclePhotoManager({
                       }`}
                     >
                       {/* Image */}
-                      <div className="aspect-[4/3] relative bg-gray-100">
+                      <div className="aspect-[4/3] relative bg-pm-surface-light">
                         <Image
                           src={url}
                           alt={`Photo ${idx + 1}`}
@@ -390,7 +390,7 @@ export default function VehiclePhotoManager({
 
         {/* Footer */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-t">
-          <p className="text-xs text-gray-400 hidden sm:block">
+          <p className="text-xs text-pm-text-muted hidden sm:block">
             Photos are stored in Supabase Storage and served via CDN
           </p>
           <Button variant="outline" onClick={onClose}>

@@ -28,7 +28,7 @@ export function HeroImageServer({ firstVehicle }: HeroImageServerProps) {
     : "Featured vehicle"
 
   return (
-    <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] shadow-2xl">
+    <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] shadow-2xl">
       {imageUrl ? (
         <Image
           src={imageUrl}
@@ -45,7 +45,7 @@ export function HeroImageServer({ firstVehicle }: HeroImageServerProps) {
             xmlns="http://www.w3.org/2000/svg"
             aria-hidden="true"
             focusable="false"
-            className="w-24 h-24 text-[#1e3a8a]/15"
+            className="w-24 h-24 text-pm-brand/15"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"

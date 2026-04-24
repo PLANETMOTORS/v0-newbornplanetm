@@ -76,7 +76,7 @@ function saveRecent(q: string) {
 // ── Field icon ─────────────────────────────────────────────────────────────
 
 function FieldIcon({ field }: { field: SmartSuggestion["field"] }) {
-  const cls = "h-3.5 w-3.5 text-[#1e3a8a]/60 shrink-0"
+  const cls = "h-3.5 w-3.5 text-pm-brand/60 shrink-0"
   switch (field) {
     case "make":       return <Car     className={cls} />
     case "make_model": return <Layers  className={cls} />
@@ -159,7 +159,7 @@ export function SearchAutocomplete() {
         <div className="relative w-full">
           <Command
             shouldFilter={false}
-            className="rounded-lg border border-gray-200 bg-white shadow-none overflow-visible"
+            className="rounded-lg border border-pm-border bg-white shadow-none overflow-visible"
           >
             <CommandInput
               ref={inputRef}
@@ -175,7 +175,7 @@ export function SearchAutocomplete() {
             />
             {/* Inline loading spinner inside the input row */}
             {isLoading && (
-              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-[#1e3a8a]/50 pointer-events-none" />
+              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-pm-brand/50 pointer-events-none" />
             )}
           </Command>
         </div>
@@ -183,7 +183,7 @@ export function SearchAutocomplete() {
 
       <PopoverContent
         data-testid="search-results-dropdown"
-        className="p-0 w-[var(--radix-popover-trigger-width)] min-w-[320px] rounded-xl border border-gray-200 shadow-xl overflow-hidden"
+        className="p-0 w-[var(--radix-popover-trigger-width)] min-w-[320px] rounded-xl border border-pm-border shadow-xl overflow-hidden"
         align="start"
         sideOffset={6}
         onOpenAutoFocus={(e) => e.preventDefault()}
@@ -197,7 +197,7 @@ export function SearchAutocomplete() {
                 {recent.length > 0 && (
                   <CommandGroup
                     heading={
-                      <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                      <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-pm-text-muted">
                         <Clock className="h-3 w-3" /> Recent
                       </span>
                     }
@@ -207,9 +207,9 @@ export function SearchAutocomplete() {
                         key={s}
                         value={s}
                         onSelect={() => navigate(s)}
-                        className="cursor-pointer text-sm text-gray-700 hover:text-[#1e3a8a] hover:bg-[#f0f4ff]"
+                        className="cursor-pointer text-sm text-pm-text-secondary hover:text-pm-brand hover:bg-pm-brand-light"
                       >
-                        <Clock className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                        <Clock className="h-3.5 w-3.5 text-pm-text-muted shrink-0" />
                         {s}
                       </CommandItem>
                     ))}
@@ -220,7 +220,7 @@ export function SearchAutocomplete() {
 
                 <CommandGroup
                   heading={
-                    <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                    <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-pm-text-muted">
                       <TrendingUp className="h-3 w-3" /> Popular
                     </span>
                   }
@@ -230,9 +230,9 @@ export function SearchAutocomplete() {
                       key={s}
                       value={s}
                       onSelect={() => navigate(s)}
-                      className="cursor-pointer text-sm text-gray-700 hover:text-[#1e3a8a] hover:bg-[#f0f4ff]"
+                      className="cursor-pointer text-sm text-pm-text-secondary hover:text-pm-brand hover:bg-pm-brand-light"
                     >
-                      <TrendingUp className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                      <TrendingUp className="h-3.5 w-3.5 text-pm-text-muted shrink-0" />
                       {s}
                     </CommandItem>
                   ))}
@@ -245,9 +245,9 @@ export function SearchAutocomplete() {
               <CommandGroup heading="Suggestions">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="flex items-center gap-3 px-2 py-2 animate-pulse">
-                    <div className="h-4 w-4 rounded bg-gray-200 shrink-0" />
-                    <div className="h-3 rounded bg-gray-200 flex-1" />
-                    <div className="h-4 w-12 rounded bg-gray-100" />
+                    <div className="h-4 w-4 rounded bg-pm-border shrink-0" />
+                    <div className="h-3 rounded bg-pm-border flex-1" />
+                    <div className="h-4 w-12 rounded bg-pm-surface-light" />
                   </div>
                 ))}
               </CommandGroup>
@@ -257,7 +257,7 @@ export function SearchAutocomplete() {
             {!isLoading && suggestions.length > 0 && (
               <CommandGroup
                 heading={
-                  <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#1e3a8a]/60">
+                  <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-pm-brand/60">
                     Suggestions
                   </span>
                 }
@@ -268,15 +268,15 @@ export function SearchAutocomplete() {
                     value={s.query}
                     data-testid="search-result-item"
                     onSelect={() => navigate(s.query)}
-                    className="cursor-pointer group hover:bg-[#f0f4ff]"
+                    className="cursor-pointer group hover:bg-pm-brand-light"
                   >
                     <FieldIcon field={s.field} />
-                    <span className="flex-1 text-sm text-gray-800 group-hover:text-[#1e3a8a] truncate">
+                    <span className="flex-1 text-sm text-pm-text-primary group-hover:text-pm-brand truncate">
                       {s.label}
                     </span>
                     <Badge
                       variant="outline"
-                      className="text-[10px] capitalize border-gray-200 text-gray-400 group-hover:border-[#1e3a8a]/20 group-hover:text-[#1e3a8a]/60"
+                      className="text-[10px] capitalize border-pm-border text-pm-text-muted group-hover:border-pm-brand/20 group-hover:text-pm-brand/60"
                     >
                       {s.field === "make_model" ? "model" : s.field}
                     </Badge>
@@ -288,11 +288,11 @@ export function SearchAutocomplete() {
             {/* ── No results ── */}
             {showEmpty && (
               <CommandEmpty className="py-8 text-center">
-                <p className="text-sm text-gray-500 mb-2">
+                <p className="text-sm text-pm-text-secondary mb-2">
                   No suggestions for &ldquo;{debouncedQuery}&rdquo;
                 </p>
                 <button
-                  className="text-sm font-semibold text-[#1e3a8a] hover:underline"
+                  className="text-sm font-semibold text-pm-brand hover:underline"
                   onClick={() => navigate(debouncedQuery.trim())}
                 >
                   Search inventory anyway →
@@ -306,7 +306,7 @@ export function SearchAutocomplete() {
                 <CommandSeparator />
                 <div className="px-3 py-2.5">
                   <button
-                    className="w-full text-left text-sm font-semibold text-[#1e3a8a] hover:underline"
+                    className="w-full text-left text-sm font-semibold text-pm-brand hover:underline"
                     onClick={() => navigate(query.trim())}
                   >
                     See all results for &ldquo;{query}&rdquo; →

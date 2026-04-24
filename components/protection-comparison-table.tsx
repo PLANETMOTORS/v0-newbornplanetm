@@ -135,7 +135,7 @@ function MobilePackageCard({ pkg, index, onSelect }: { pkg: ProtectionPackage; i
 
   return (
     <div
-      className={`rounded-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-3 border ${
+      className={`rounded-xl overflow-hidden animate-in fade-in slide-in-from-bottom-3 border ${
         pkg.highlighted
           ? "border-primary/30 ring-2 ring-primary/20 shadow-lg shadow-primary/10"
           : "border-border shadow-sm"
@@ -246,7 +246,7 @@ function DesktopTable({ onSelect }: { onSelect?: (id: string) => void }) {
               {!pkg.badge && <div className="h-[30px]" />}
 
               {/* Card header */}
-              <div className={`rounded-2xl ${style.headerBg} border ${
+              <div className={`rounded-xl ${style.headerBg} border ${
                 pkg.highlighted ? "border-primary/30 shadow-lg shadow-primary/10 ring-1 ring-primary/20" : "border-border"
               } p-5 pb-4`}>
                 <div className={`w-11 h-11 rounded-xl ${style.iconBg} flex items-center justify-center mx-auto mb-3`}>

@@ -108,12 +108,12 @@ export default function AdminDashboard() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-pm-text-primary">Dashboard</h1>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
           {[1,2,3,4,5,6].map(i => (
             <Card key={i} className="animate-pulse">
-              <CardContent className="p-4"><div className="h-16 bg-gray-200 rounded" /></CardContent>
+              <CardContent className="p-4"><div className="h-16 bg-pm-border rounded" /></CardContent>
             </Card>
           ))}
         </div>
@@ -148,8 +148,8 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500">Real-time overview of Planet Motors operations</p>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-pm-text-primary">Dashboard</h1>
+          <p className="text-sm text-pm-text-secondary">Real-time overview of Planet Motors operations</p>
         </div>
         <Button variant="outline" size="sm" onClick={fetchDashboard}>
           <RefreshCw className="w-4 h-4 mr-2" />
@@ -167,11 +167,11 @@ export default function AdminDashboard() {
                   <div className={`p-2 rounded-lg ${stat.bg}`}>
                     <stat.icon className={`w-4 h-4 ${stat.color}`} />
                   </div>
-                  <ArrowUpRight className="w-3 h-3 text-gray-400" />
+                  <ArrowUpRight className="w-3 h-3 text-pm-text-muted" />
                 </div>
                 <p className="text-2xl font-bold">{stat.value}</p>
-                <p className="text-xs text-gray-500">{stat.name}</p>
-                <p className="text-xs text-gray-400 mt-1">{stat.sub}</p>
+                <p className="text-xs text-pm-text-secondary">{stat.name}</p>
+                <p className="text-xs text-pm-text-muted mt-1">{stat.sub}</p>
               </CardContent>
             </Card>
           </Link>
@@ -196,25 +196,25 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             {recentLeads.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-8">No leads yet. They&apos;ll appear here when customers submit inquiries, chat with Anna, or apply for financing.</p>
+              <p className="text-sm text-pm-text-secondary text-center py-8">No leads yet. They&apos;ll appear here when customers submit inquiries, chat with Anna, or apply for financing.</p>
             ) : (
               <div className="space-y-3">
                 {recentLeads.slice(0, 6).map((lead) => {
                   const Icon = sourceIcon(lead.source)
                   return (
-                    <div key={lead.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div key={lead.id} className="flex items-center justify-between p-3 bg-pm-surface-subtle rounded-lg hover:bg-pm-surface-light transition-colors">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white shrink-0">
                           <Icon className="w-4 h-4" />
                         </div>
                         <div className="min-w-0">
                           <p className="font-medium text-sm truncate">{lead.customer_name || lead.customer_email}</p>
-                          <p className="text-xs text-gray-500 truncate">{lead.subject}</p>
+                          <p className="text-xs text-pm-text-secondary truncate">{lead.subject}</p>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
                         <Badge variant={statusColor(lead.status)}>{lead.status}</Badge>
-                        <p className="text-xs text-gray-400 mt-1">{timeAgo(lead.created_at)}</p>
+                        <p className="text-xs text-pm-text-muted mt-1">{timeAgo(lead.created_at)}</p>
                       </div>
                     </div>
                   )
@@ -232,7 +232,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             {recentActivity.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-8">No recent activity</p>
+              <p className="text-sm text-pm-text-secondary text-center py-8">No recent activity</p>
             ) : (
               <div className="space-y-4">
                 {recentActivity.slice(0, 8).map((activity, index) => (
@@ -245,8 +245,8 @@ export default function AdminDashboard() {
                     }`} />
                     <div>
                       <p className="text-sm font-medium">{activity.title}</p>
-                      <p className="text-xs text-gray-500">{activity.detail}</p>
-                      <p className="text-xs text-gray-400 mt-1">{timeAgo(activity.time)}</p>
+                      <p className="text-xs text-pm-text-secondary">{activity.detail}</p>
+                      <p className="text-xs text-pm-text-muted mt-1">{timeAgo(activity.time)}</p>
                     </div>
                   </div>
                 ))}

@@ -198,11 +198,11 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
       {/* Header + Add button */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-pm-text-primary flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-indigo-600" />
             Knowledge & Training — {agentName}
           </h3>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-pm-text-secondary">
             Teach {agentName} specific responses. When a customer asks a matching question, the trained response takes priority.
           </p>
         </div>
@@ -227,16 +227,16 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
               className={`p-3 rounded-lg border text-left transition-all ${
                 filterCategory === cat.value
                   ? "ring-2 ring-indigo-500 border-indigo-300 bg-indigo-50"
-                  : "hover:bg-gray-50"
+                  : "hover:bg-pm-surface-subtle"
               }`}
             >
               <div className="flex items-center gap-2">
                 <div className={`p-1 rounded ${cat.color.split(" ")[1]}`}>
                   <Icon className={`w-3.5 h-3.5 ${cat.color.split(" ")[0]}`} />
                 </div>
-                <span className="text-xs font-medium text-gray-700">{cat.label}</span>
+                <span className="text-xs font-medium text-pm-text-secondary">{cat.label}</span>
               </div>
-              <p className="text-lg font-bold text-gray-900 mt-1">{count}</p>
+              <p className="text-lg font-bold text-pm-text-primary mt-1">{count}</p>
             </button>
           )
         })}
@@ -245,7 +245,7 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
       {/* Search + Filters */}
       <div className="flex gap-3 items-center">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-pm-text-muted" />
           <Input
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
@@ -275,7 +275,7 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
           <CardContent className="space-y-4">
             {/* Category selector */}
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-2">Category</label>
+              <label className="text-sm font-medium text-pm-text-secondary block mb-2">Category</label>
               <div className="flex gap-2 flex-wrap">
                 {CATEGORIES.map(cat => (
                   <button
@@ -284,21 +284,21 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
                     className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
                       formData.category === cat.value
                         ? "bg-indigo-600 text-white border-indigo-600"
-                        : "bg-white text-gray-600 border-gray-300 hover:border-indigo-300"
+                        : "bg-white text-pm-text-secondary border-gray-300 hover:border-indigo-300"
                     }`}
                   >
                     {cat.label}
                   </button>
                 ))}
               </div>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-pm-text-muted mt-1">
                 {CATEGORIES.find(c => c.value === formData.category)?.description}
               </p>
             </div>
 
             {/* Trigger phrase */}
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">
+              <label className="text-sm font-medium text-pm-text-secondary block mb-1">
                 {formData.category === "instruction" ? "Instruction / Rule" : "IF customer asks..."}
               </label>
               <textarea
@@ -319,7 +319,7 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
 
             {/* Response */}
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">
+              <label className="text-sm font-medium text-pm-text-secondary block mb-1">
                 {formData.category === "instruction" ? "Details / Context" : "THEN respond with..."}
               </label>
               <textarea
@@ -339,7 +339,7 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
             {/* Priority + Tags row */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Priority</label>
+                <label className="text-sm font-medium text-pm-text-secondary block mb-1">Priority</label>
                 <Input
                   type="number"
                   value={formData.priority}
@@ -347,10 +347,10 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
                   min={0}
                   max={100}
                 />
-                <p className="text-xs text-gray-400 mt-1">Higher number = matched first (0-100)</p>
+                <p className="text-xs text-pm-text-muted mt-1">Higher number = matched first (0-100)</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Tags (comma-separated)</label>
+                <label className="text-sm font-medium text-pm-text-secondary block mb-1">Tags (comma-separated)</label>
                 <Input
                   value={formData.tags}
                   onChange={e => setFormData({ ...formData, tags: e.target.value })}
@@ -379,15 +379,15 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
-            <div key={i} className="h-20 bg-gray-100 rounded-lg animate-pulse" />
+            <div key={i} className="h-20 bg-pm-surface-light rounded-lg animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center">
-            <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 font-medium">No knowledge entries yet</p>
-            <p className="text-sm text-gray-400 mt-1">
+            <BookOpen className="w-12 h-12 text-pm-text-muted mx-auto mb-3" />
+            <p className="text-pm-text-secondary font-medium">No knowledge entries yet</p>
+            <p className="text-sm text-pm-text-muted mt-1">
               {entries.length === 0
                 ? `Add Q&A pairs to train ${agentName} on specific responses`
                 : "No entries match your search/filter"}
@@ -404,7 +404,7 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
             return (
               <Card
                 key={entry.id}
-                className={`transition-all ${!entry.is_active ? "opacity-60 bg-gray-50" : ""} ${
+                className={`transition-all ${!entry.is_active ? "opacity-60 bg-pm-surface-subtle" : ""} ${
                   isExpanded ? "ring-1 ring-indigo-200" : ""
                 }`}
               >
@@ -414,7 +414,7 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
                 >
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5">
-                      <GripVertical className="w-4 h-4 text-gray-300" />
+                      <GripVertical className="w-4 h-4 text-pm-text-muted" />
                     </div>
                     <div className={`p-1.5 rounded ${cat.color.split(" ")[1]} shrink-0`}>
                       <CatIcon className={`w-4 h-4 ${cat.color.split(" ")[0]}`} />
@@ -433,23 +433,23 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
                           <Badge variant="destructive" className="text-xs">Disabled</Badge>
                         )}
                         {entry.tags && entry.tags.length > 0 && entry.tags.map(tag => (
-                          <Badge key={tag} variant="outline" className="text-xs text-gray-400">
+                          <Badge key={tag} variant="outline" className="text-xs text-pm-text-muted">
                             {tag}
                           </Badge>
                         ))}
                       </div>
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        <span className="text-gray-400">IF:</span> {entry.trigger_phrase}
+                      <p className="text-sm font-medium text-pm-text-primary truncate">
+                        <span className="text-pm-text-muted">IF:</span> {entry.trigger_phrase}
                       </p>
-                      <p className="text-sm text-gray-500 truncate mt-0.5">
-                        <span className="text-gray-400">THEN:</span> {entry.response}
+                      <p className="text-sm text-pm-text-secondary truncate mt-0.5">
+                        <span className="text-pm-text-muted">THEN:</span> {entry.response}
                       </p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       {isExpanded ? (
-                        <ChevronUp className="w-4 h-4 text-gray-400" />
+                        <ChevronUp className="w-4 h-4 text-pm-text-muted" />
                       ) : (
-                        <ChevronDown className="w-4 h-4 text-gray-400" />
+                        <ChevronDown className="w-4 h-4 text-pm-text-muted" />
                       )}
                     </div>
                   </div>
@@ -460,19 +460,19 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
                   <div className="px-4 pb-4 border-t pt-3 space-y-3">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs font-medium text-gray-500 uppercase">Trigger / Question</label>
-                        <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap bg-gray-50 p-3 rounded">
+                        <label className="text-xs font-medium text-pm-text-secondary uppercase">Trigger / Question</label>
+                        <p className="text-sm text-pm-text-primary mt-1 whitespace-pre-wrap bg-pm-surface-subtle p-3 rounded">
                           {entry.trigger_phrase}
                         </p>
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-gray-500 uppercase">Trained Response</label>
-                        <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap bg-gray-50 p-3 rounded">
+                        <label className="text-xs font-medium text-pm-text-secondary uppercase">Trained Response</label>
+                        <p className="text-sm text-pm-text-primary mt-1 whitespace-pre-wrap bg-pm-surface-subtle p-3 rounded">
                           {entry.response}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between text-xs text-gray-400">
+                    <div className="flex items-center justify-between text-xs text-pm-text-muted">
                       <span>
                         Created {new Date(entry.created_at).toLocaleDateString()} by {entry.created_by || "system"}
                         {entry.updated_by && entry.updated_at !== entry.created_at && (
@@ -518,7 +518,7 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
 
       {/* Summary */}
       {entries.length > 0 && (
-        <p className="text-xs text-gray-400 text-center">
+        <p className="text-xs text-pm-text-muted text-center">
           {entries.length} knowledge {entries.length === 1 ? "entry" : "entries"} total ·{" "}
           {entries.filter(e => e.is_active).length} active ·{" "}
           {filtered.length} shown

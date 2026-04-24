@@ -203,7 +203,7 @@ export default function ProductionReadinessPage() {
   const getStatusBadge = (status: TestStatus) => {
     switch (status) {
       case "not-started":
-        return <Badge variant="secondary" className="bg-gray-100 text-gray-600">Not Started</Badge>
+        return <Badge variant="secondary" className="bg-pm-surface-light text-pm-text-secondary">Not Started</Badge>
       case "running":
         return <Badge className="bg-blue-100 text-blue-700">Running</Badge>
       case "pass":
@@ -255,12 +255,12 @@ ${step.notes ? `  Notes: ${step.notes}` : ""}
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-pm-surface-subtle">
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-[-0.01em] text-gray-900 mb-2">Production Readiness Test Order</h1>
-          <p className="text-gray-600">Complete pre-launch checklist for website quality assurance</p>
+          <h1 className="text-3xl font-bold tracking-[-0.01em] text-pm-text-primary mb-2">Production Readiness Test Order</h1>
+          <p className="text-pm-text-secondary">Complete pre-launch checklist for website quality assurance</p>
         </div>
 
         {/* Final Release Gate - Top Card */}
@@ -286,8 +286,8 @@ ${step.notes ? `  Notes: ${step.notes}` : ""}
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-sm text-gray-500 mb-1">Overall Progress</div>
-                <div className="text-2xl font-bold text-gray-900">{progressPercent}%</div>
+                <div className="text-sm text-pm-text-secondary mb-1">Overall Progress</div>
+                <div className="text-2xl font-bold text-pm-text-primary">{progressPercent}%</div>
               </div>
             </div>
             <Progress value={progressPercent} className="mt-4 h-3" />
@@ -347,8 +347,8 @@ ${step.notes ? `  Notes: ${step.notes}` : ""}
                   <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center mx-auto mb-2 text-sm font-bold">
                     {item.num}
                   </div>
-                  <div className="font-medium text-gray-900 text-sm">{item.name}</div>
-                  <div className="text-xs text-gray-500">{item.desc}</div>
+                  <div className="font-medium text-pm-text-primary text-sm">{item.name}</div>
+                  <div className="text-xs text-pm-text-secondary">{item.desc}</div>
                 </div>
               ))}
             </div>
@@ -360,37 +360,37 @@ ${step.notes ? `  Notes: ${step.notes}` : ""}
           {steps.map((step, index) => (
             <Card key={step.id} className="overflow-hidden">
               <div 
-                className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
+                className="flex items-center justify-between p-4 cursor-pointer hover:bg-pm-surface-subtle"
                 onClick={() => toggleExpanded(step.id)}
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
+                  <div className="w-10 h-10 rounded-full bg-pm-surface-light flex items-center justify-center text-pm-text-secondary">
                     {step.icon}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-400">Step {index + 1}</span>
-                      <h3 className="font-semibold text-gray-900">{step.name}</h3>
+                      <span className="text-sm font-medium text-pm-text-muted">Step {index + 1}</span>
+                      <h3 className="font-semibold text-pm-text-primary">{step.name}</h3>
                     </div>
-                    <p className="text-sm text-gray-500">{step.purpose}</p>
+                    <p className="text-sm text-pm-text-secondary">{step.purpose}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1 text-sm text-gray-500">
+                  <div className="flex items-center gap-1 text-sm text-pm-text-secondary">
                     <Clock className="w-4 h-4" />
                     {step.estimatedTime}
                   </div>
                   {getStatusBadge(step.status)}
                   {step.isExpanded ? (
-                    <ChevronUp className="w-5 h-5 text-gray-400" />
+                    <ChevronUp className="w-5 h-5 text-pm-text-muted" />
                   ) : (
-                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                    <ChevronDown className="w-5 h-5 text-pm-text-muted" />
                   )}
                 </div>
               </div>
 
               {step.isExpanded && (
-                <CardContent className="border-t bg-gray-50 pt-4">
+                <CardContent className="border-t bg-pm-surface-subtle pt-4">
                   {/* Status Buttons */}
                   <div className="flex gap-2 mb-4">
                     <Button 
@@ -424,7 +424,7 @@ ${step.notes ? `  Notes: ${step.notes}` : ""}
                     {step.checkItems.map((item) => (
                       <div 
                         key={item.id}
-                        className={`flex items-center gap-3 p-2 rounded ${item.critical ? "bg-yellow-50 border border-yellow-200" : "bg-white border border-gray-100"}`}
+                        className={`flex items-center gap-3 p-2 rounded ${item.critical ? "bg-yellow-50 border border-yellow-200" : "bg-white border border-pm-border"}`}
                       >
                         <Checkbox 
                           id={`${step.id}-${item.id}`}
@@ -433,7 +433,7 @@ ${step.notes ? `  Notes: ${step.notes}` : ""}
                         />
                         <Label 
                           htmlFor={`${step.id}-${item.id}`}
-                          className={`flex-1 cursor-pointer ${item.checked ? "line-through text-gray-400" : "text-gray-700"}`}
+                          className={`flex-1 cursor-pointer ${item.checked ? "line-through text-pm-text-muted" : "text-pm-text-secondary"}`}
                         >
                           {item.label}
                         </Label>
@@ -448,7 +448,7 @@ ${step.notes ? `  Notes: ${step.notes}` : ""}
 
                   {/* Notes */}
                   <div>
-                    <Label htmlFor={`notes-${step.id}`} className="text-sm text-gray-500 mb-1 block">
+                    <Label htmlFor={`notes-${step.id}`} className="text-sm text-pm-text-secondary mb-1 block">
                       Notes
                     </Label>
                     <Textarea 
@@ -513,7 +513,7 @@ ${step.notes ? `  Notes: ${step.notes}` : ""}
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-4 text-sm text-pm-text-secondary">
                 <div className="flex items-center gap-1">
                   <Link2 className="w-4 h-4" />
                   {siteUrl}
@@ -536,7 +536,7 @@ ${step.notes ? `  Notes: ${step.notes}` : ""}
         </Card>
 
         {/* Footer */}
-        <div className="mt-8 text-center text-sm text-gray-400">
+        <div className="mt-8 text-center text-sm text-pm-text-muted">
           Production Readiness Dashboard for Planet Motors
         </div>
       </div>

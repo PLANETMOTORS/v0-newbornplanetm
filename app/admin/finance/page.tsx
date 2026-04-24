@@ -56,13 +56,13 @@ interface FinanceApplication {
 }
 
 const statusColors: Record<string, string> = {
-  draft: "bg-gray-100 text-gray-800",
+  draft: "bg-pm-surface-light text-pm-text-primary",
   submitted: "bg-blue-100 text-blue-800",
   under_review: "bg-yellow-100 text-yellow-800",
   approved: "bg-green-100 text-green-800",
   declined: "bg-red-100 text-red-800",
   funded: "bg-purple-100 text-purple-800",
-  cancelled: "bg-gray-100 text-gray-600"
+  cancelled: "bg-pm-surface-light text-pm-text-secondary"
 }
 
 const statusIcons: Record<string, React.ReactNode> = {
@@ -179,8 +179,8 @@ export default function AdminFinancePage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">Finance Applications</h1>
-          <p className="text-gray-500">Manage and review customer financing applications</p>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-pm-text-primary">Finance Applications</h1>
+          <p className="text-pm-text-secondary">Manage and review customer financing applications</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={fetchApplications}>
@@ -200,7 +200,7 @@ export default function AdminFinancePage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Total Applications</p>
+                <p className="text-sm text-pm-text-secondary">Total Applications</p>
                 <p className="text-2xl font-bold">{stats.total}</p>
               </div>
               <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -213,7 +213,7 @@ export default function AdminFinancePage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Pending Review</p>
+                <p className="text-sm text-pm-text-secondary">Pending Review</p>
                 <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
               </div>
               <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
@@ -226,7 +226,7 @@ export default function AdminFinancePage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Approved</p>
+                <p className="text-sm text-pm-text-secondary">Approved</p>
                 <p className="text-2xl font-bold text-green-600">{stats.approved}</p>
               </div>
               <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
@@ -239,7 +239,7 @@ export default function AdminFinancePage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Funded</p>
+                <p className="text-sm text-pm-text-secondary">Funded</p>
                 <p className="text-2xl font-bold text-purple-600">{stats.funded}</p>
               </div>
               <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
@@ -252,7 +252,7 @@ export default function AdminFinancePage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Total Value</p>
+                <p className="text-sm text-pm-text-secondary">Total Value</p>
                 <p className="text-2xl font-bold">${(stats.totalValue / 1000000).toFixed(1)}M</p>
               </div>
               <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -268,7 +268,7 @@ export default function AdminFinancePage() {
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-pm-text-muted" />
               <Input
                 aria-label="Search finance applications by name, email, or application number"
                 placeholder="Search by name, email, or application #..."
@@ -300,55 +300,55 @@ export default function AdminFinancePage() {
         <CardContent className="p-0">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
-              <span className="ml-2 text-gray-500">Loading applications...</span>
+              <RefreshCw className="w-6 h-6 animate-spin text-pm-text-muted" />
+              <span className="ml-2 text-pm-text-secondary">Loading applications...</span>
             </div>
           ) : filteredApplications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <FileText className="w-12 h-12 text-gray-300 mb-4" />
-              <p className="text-gray-500">No applications found</p>
+              <FileText className="w-12 h-12 text-pm-text-muted mb-4" />
+              <p className="text-pm-text-secondary">No applications found</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b">
+                <thead className="bg-pm-surface-subtle border-b">
                   <tr>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Application</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Applicant</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500 hidden md:table-cell">Vehicle</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Amount</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Status</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500 hidden lg:table-cell">Documents</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500 hidden sm:table-cell">Date</th>
-                    <th className="text-right py-3 px-4 font-medium text-gray-500">Actions</th>
+                    <th className="text-left py-3 px-4 font-medium text-pm-text-secondary">Application</th>
+                    <th className="text-left py-3 px-4 font-medium text-pm-text-secondary">Applicant</th>
+                    <th className="text-left py-3 px-4 font-medium text-pm-text-secondary hidden md:table-cell">Vehicle</th>
+                    <th className="text-left py-3 px-4 font-medium text-pm-text-secondary">Amount</th>
+                    <th className="text-left py-3 px-4 font-medium text-pm-text-secondary">Status</th>
+                    <th className="text-left py-3 px-4 font-medium text-pm-text-secondary hidden lg:table-cell">Documents</th>
+                    <th className="text-left py-3 px-4 font-medium text-pm-text-secondary hidden sm:table-cell">Date</th>
+                    <th className="text-right py-3 px-4 font-medium text-pm-text-secondary">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {filteredApplications.map((app) => (
-                    <tr key={app.id} className="hover:bg-gray-50">
+                    <tr key={app.id} className="hover:bg-pm-surface-subtle">
                       <td className="py-3 px-4">
                         <p className="font-mono text-sm font-medium">{app.application_number}</p>
-                        <p className="text-xs text-gray-500 capitalize">{app.agreement_type}</p>
+                        <p className="text-xs text-pm-text-secondary capitalize">{app.agreement_type}</p>
                       </td>
                       <td className="py-3 px-4">
                         <p className="font-medium">
                           {app.primary_applicant?.first_name} {app.primary_applicant?.last_name}
                         </p>
-                        <p className="text-sm text-gray-500">{app.primary_applicant?.email}</p>
+                        <p className="text-sm text-pm-text-secondary">{app.primary_applicant?.email}</p>
                       </td>
                       <td className="py-3 px-4 hidden md:table-cell">
                         {app.vehicle ? (
                           <>
                             <p className="font-medium">{app.vehicle.year} {app.vehicle.make}</p>
-                            <p className="text-sm text-gray-500">{app.vehicle.model}</p>
+                            <p className="text-sm text-pm-text-secondary">{app.vehicle.model}</p>
                           </>
                         ) : (
-                          <span className="text-gray-400">Pre-approval</span>
+                          <span className="text-pm-text-muted">Pre-approval</span>
                         )}
                       </td>
                       <td className="py-3 px-4">
                         <p className="font-medium">${app.requested_amount?.toLocaleString()}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-pm-text-secondary">
                           ${app.estimated_payment?.toLocaleString()}/{app.payment_frequency?.replace("_", "-")}
                         </p>
                       </td>
@@ -362,7 +362,7 @@ export default function AdminFinancePage() {
                       </td>
                       <td className="py-3 px-4 hidden lg:table-cell">
                         <div className="flex items-center gap-1">
-                          <FileText className="w-4 h-4 text-gray-400" />
+                          <FileText className="w-4 h-4 text-pm-text-muted" />
                           <span className="text-sm">{app.documents?.length || 0} files</span>
                         </div>
                       </td>
@@ -370,7 +370,7 @@ export default function AdminFinancePage() {
                         <p className="text-sm">
                           {new Date(app.submitted_at || app.created_at).toLocaleDateString()}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-pm-text-secondary">
                           {new Date(app.submitted_at || app.created_at).toLocaleTimeString()}
                         </p>
                       </td>
@@ -431,26 +431,26 @@ export default function AdminFinancePage() {
                   </CardHeader>
                   <CardContent className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-gray-500">Name</Label>
+                      <Label className="text-pm-text-secondary">Name</Label>
                       <p className="font-medium">
                         {selectedApp.primary_applicant?.first_name} {selectedApp.primary_applicant?.last_name}
                       </p>
                     </div>
                     <div>
-                      <Label className="text-gray-500">Credit Rating</Label>
+                      <Label className="text-pm-text-secondary">Credit Rating</Label>
                       <p className="font-medium capitalize">{selectedApp.primary_applicant?.credit_rating || "Unknown"}</p>
                     </div>
                     <div>
-                      <Label className="text-gray-500">Email</Label>
+                      <Label className="text-pm-text-secondary">Email</Label>
                       <p className="font-medium flex items-center gap-1">
-                        <Mail className="w-4 h-4 text-gray-400" />
+                        <Mail className="w-4 h-4 text-pm-text-muted" />
                         {selectedApp.primary_applicant?.email}
                       </p>
                     </div>
                     <div>
-                      <Label className="text-gray-500">Phone</Label>
+                      <Label className="text-pm-text-secondary">Phone</Label>
                       <p className="font-medium flex items-center gap-1">
-                        <Phone className="w-4 h-4 text-gray-400" />
+                        <Phone className="w-4 h-4 text-pm-text-muted" />
                         {selectedApp.primary_applicant?.phone}
                       </p>
                     </div>
@@ -467,28 +467,28 @@ export default function AdminFinancePage() {
                   </CardHeader>
                   <CardContent className="grid grid-cols-3 gap-4">
                     <div>
-                      <Label className="text-gray-500">Amount Financed</Label>
+                      <Label className="text-pm-text-secondary">Amount Financed</Label>
                       <p className="font-medium text-lg">${selectedApp.requested_amount?.toLocaleString()}</p>
                     </div>
                     <div>
-                      <Label className="text-gray-500">Down Payment</Label>
+                      <Label className="text-pm-text-secondary">Down Payment</Label>
                       <p className="font-medium text-lg">${selectedApp.down_payment?.toLocaleString()}</p>
                     </div>
                     <div>
-                      <Label className="text-gray-500">Term</Label>
+                      <Label className="text-pm-text-secondary">Term</Label>
                       <p className="font-medium text-lg">{selectedApp.loan_term_months} months</p>
                     </div>
                     <div>
-                      <Label className="text-gray-500">Payment Frequency</Label>
+                      <Label className="text-pm-text-secondary">Payment Frequency</Label>
                       <p className="font-medium capitalize">{selectedApp.payment_frequency?.replace("_", "-")}</p>
                     </div>
                     <div>
-                      <Label className="text-gray-500">Estimated Payment</Label>
+                      <Label className="text-pm-text-secondary">Estimated Payment</Label>
                       <p className="font-medium text-lg text-primary">${selectedApp.estimated_payment?.toLocaleString()}</p>
                     </div>
                     {selectedApp.has_trade_in && (
                       <div>
-                        <Label className="text-gray-500">Trade-In Value</Label>
+                        <Label className="text-pm-text-secondary">Trade-In Value</Label>
                         <p className="font-medium text-lg text-green-600">${selectedApp.trade_in_value?.toLocaleString()}</p>
                       </div>
                     )}
@@ -501,15 +501,15 @@ export default function AdminFinancePage() {
                   <CardContent className="p-4">
                     {selectedApp.documents?.length === 0 ? (
                       <div className="text-center py-8">
-                        <FileText className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                        <p className="text-gray-500">No documents uploaded</p>
+                        <FileText className="w-12 h-12 text-pm-text-muted mx-auto mb-2" />
+                        <p className="text-pm-text-secondary">No documents uploaded</p>
                       </div>
                     ) : (
                       <div className="space-y-3">
                         {selectedApp.documents?.map((doc) => (
                           <div
                             key={doc.id}
-                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                            className="flex items-center justify-between p-3 bg-pm-surface-subtle rounded-lg"
                           >
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -517,7 +517,7 @@ export default function AdminFinancePage() {
                               </div>
                               <div>
                                 <p className="font-medium">{doc.document_name}</p>
-                                <p className="text-sm text-gray-500 capitalize">
+                                <p className="text-sm text-pm-text-secondary capitalize">
                                   {doc.document_type.replace(/_/g, " ")}
                                 </p>
                               </div>
@@ -562,20 +562,20 @@ export default function AdminFinancePage() {
                     {selectedApp.vehicle ? (
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label className="text-gray-500">Vehicle</Label>
+                          <Label className="text-pm-text-secondary">Vehicle</Label>
                           <p className="font-medium text-lg">
                             {selectedApp.vehicle.year} {selectedApp.vehicle.make} {selectedApp.vehicle.model}
                           </p>
                         </div>
                         <div>
-                          <Label className="text-gray-500">Price</Label>
+                          <Label className="text-pm-text-secondary">Price</Label>
                           <p className="font-medium text-lg">${selectedApp.vehicle.price?.toLocaleString()}</p>
                         </div>
                       </div>
                     ) : (
                       <div className="text-center py-8">
-                        <Car className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                        <p className="text-gray-500">Pre-approval application - no vehicle selected</p>
+                        <Car className="w-12 h-12 text-pm-text-muted mx-auto mb-2" />
+                        <p className="text-pm-text-secondary">Pre-approval application - no vehicle selected</p>
                       </div>
                     )}
                   </CardContent>

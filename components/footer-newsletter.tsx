@@ -8,11 +8,11 @@ export function FooterNewsletter() {
         <input
           type="email"
           placeholder="your@email.com"
-          className="flex-1 px-3.5 py-2.5 bg-white/5 border border-white/10 border-r-0 rounded-l-lg text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-[#1e3a8a] transition-colors"
+          className="flex-1 px-3.5 py-2.5 bg-white/5 border border-white/10 border-r-0 rounded-l-lg text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-pm-brand transition-colors"
         />
         <button
           type="submit"
-          className="px-4 py-2.5 bg-[#1e3a8a] hover:bg-[#1e40af] text-white text-sm font-semibold rounded-r-lg transition-colors"
+          className="px-4 py-2.5 bg-pm-brand hover:bg-[#1e40af] text-white text-sm font-semibold rounded-r-lg transition-colors"
         >
           Subscribe
         </button>

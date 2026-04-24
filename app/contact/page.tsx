@@ -103,7 +103,7 @@ export default function ContactPage() {
 
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Contact Form */}
-            <div className="bg-card rounded-2xl border border-border p-8">
+            <div className="bg-card rounded-xl border border-border p-8">
               <h2 className="font-bold text-xl mb-6">Send Us a Message</h2>
               <ContactForm />
             </div>

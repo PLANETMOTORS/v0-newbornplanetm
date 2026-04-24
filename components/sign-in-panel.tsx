@@ -92,7 +92,7 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
           <h2 className="text-xl font-bold">Welcome to Planet Motors</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-pm-surface-light rounded-lg transition-colors"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -107,8 +107,8 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
               <div className="space-y-4">
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 text-center">
                   <LogIn className="w-12 h-12 text-primary mx-auto mb-3" />
-                  <p className="text-gray-600 font-semibold">Sign in to your account</p>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-pm-text-secondary font-semibold">Sign in to your account</p>
+                  <p className="text-sm text-pm-text-secondary mt-1">
                     Access your saved vehicles, applications, and more
                   </p>
                 </div>
@@ -127,8 +127,8 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
               {/* Quick Actions */}
               <div className="space-y-3">
                 <Link href="/financing" onClick={onClose} className="block p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 hover:border-green-300 transition-colors cursor-pointer">
-                  <h3 className="font-semibold text-gray-900 mb-1">Get Pre-Qualified</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="font-semibold text-pm-text-primary mb-1">Get Pre-Qualified</h3>
+                  <p className="text-sm text-pm-text-secondary">
                     Get financing pre-approval without affecting your credit
                   </p>
                   <span className="inline-block mt-2 text-xs font-semibold text-primary">
@@ -137,8 +137,8 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
                 </Link>
 
                 <Link href="/trade-in" onClick={onClose} className="block p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200 hover:border-blue-300 transition-colors cursor-pointer">
-                  <h3 className="font-semibold text-gray-900 mb-1">Get Your Offer</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="font-semibold text-pm-text-primary mb-1">Get Your Offer</h3>
+                  <p className="text-sm text-pm-text-secondary">
                     Get a real offer for your car in less than 2 minutes
                   </p>
                   <span className="inline-block mt-2 text-xs font-semibold text-primary">
@@ -147,8 +147,8 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
                 </Link>
 
                 <Link href="/schedule" onClick={onClose} className="block p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200 hover:border-purple-300 transition-colors cursor-pointer">
-                  <h3 className="font-semibold text-gray-900 mb-1">Schedule Tour</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="font-semibold text-pm-text-primary mb-1">Schedule Tour</h3>
+                  <p className="text-sm text-pm-text-secondary">
                     Book a virtual or in-person tour of a vehicle
                   </p>
                   <span className="inline-block mt-2 text-xs font-semibold text-primary">
@@ -161,7 +161,7 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
 
               {/* Sign Up */}
               <div className="text-center">
-                <p className="text-sm text-gray-600 mb-3">
+                <p className="text-sm text-pm-text-secondary mb-3">
                   Don&apos;t have an account?
                 </p>
                 <Button variant="outline" className="w-full h-10" asChild>
@@ -180,7 +180,7 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
                     Email Address
                   </Label>
                   <div className="relative mt-2">
-                    <Mail className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                    <Mail className="absolute left-3 top-3 w-4 h-4 text-pm-text-muted" />
                     <Input
                       id="email"
                       type="email"
@@ -203,7 +203,7 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
                     </Link>
                   </div>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                    <Lock className="absolute left-3 top-3 w-4 h-4 text-pm-text-muted" />
                     <Input
                       id="password"
                       type="password"
@@ -233,7 +233,7 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
 
               {/* Social Login */}
               <div className="space-y-3">
-                <p className="text-center text-sm text-gray-600">Or continue with</p>
+                <p className="text-center text-sm text-pm-text-secondary">Or continue with</p>
                 <Button
                   variant="outline"
                   className="w-full h-10"

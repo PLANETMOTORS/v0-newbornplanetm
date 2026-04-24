@@ -157,8 +157,8 @@ export default function Admin360UploadPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">360° Photo Upload</h1>
-        <p className="text-gray-500">Upload walk-around frames for vehicles</p>
+        <h1 className="text-2xl font-bold tracking-[-0.01em] text-pm-text-primary">360° Photo Upload</h1>
+        <p className="text-pm-text-secondary">Upload walk-around frames for vehicles</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -179,7 +179,7 @@ export default function Admin360UploadPage() {
               {/* Vehicle Info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-pm-text-secondary mb-1">
                     Media ID (MID)
                   </label>
                   <Input
@@ -188,12 +188,12 @@ export default function Admin360UploadPage() {
                     onChange={e => setMid(e.target.value.replace(/\D/g, ""))}
                     maxLength={15}
                   />
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-pm-text-muted mt-1">
                     Numeric ID from Drivee dashboard or generate a new one
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-pm-text-secondary mb-1">
                     Vehicle Name
                   </label>
                   <Input
@@ -214,15 +214,15 @@ export default function Admin360UploadPage() {
                   border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
                   ${isDragOver
                     ? "border-blue-500 bg-blue-50"
-                    : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                    : "border-gray-300 hover:border-gray-400 hover:bg-pm-surface-subtle"
                   }
                 `}
               >
-                <Camera className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-                <p className="text-sm font-medium text-gray-700">
+                <Camera className="w-10 h-10 text-pm-text-muted mx-auto mb-3" />
+                <p className="text-sm font-medium text-pm-text-secondary">
                   Drag & drop frames here, or click to browse
                 </p>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-pm-text-muted mt-1">
                   WebP only • Max 5MB per frame • Files sorted by name
                 </p>
                 <input
@@ -239,7 +239,7 @@ export default function Admin360UploadPage() {
               {selectedFiles.length > 0 && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-700">
+                    <p className="text-sm font-medium text-pm-text-secondary">
                       {selectedFiles.length} frame{selectedFiles.length !== 1 ? "s" : ""} selected
                     </p>
                     <Button variant="ghost" size="sm" onClick={clearFiles}>
@@ -253,11 +253,11 @@ export default function Admin360UploadPage() {
                       .map((file, i) => (
                         <div key={`${file.name}-${i}`} className="flex items-center justify-between px-3 py-2 text-sm">
                           <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-gray-400 font-mono text-xs w-6">
+                            <span className="text-pm-text-muted font-mono text-xs w-6">
                               {String(i + 1).padStart(2, "0")}
                             </span>
                             <span className="truncate">{file.name}</span>
-                            <span className="text-gray-400 text-xs flex-shrink-0">
+                            <span className="text-pm-text-muted text-xs flex-shrink-0">
                               {(file.size / 1024).toFixed(0)} KB
                             </span>
                           </div>
@@ -267,7 +267,7 @@ export default function Admin360UploadPage() {
                               const originalIndex = selectedFiles.indexOf(file)
                               if (originalIndex >= 0) removeFile(originalIndex)
                             }}
-                            className="text-gray-400 hover:text-red-500 flex-shrink-0 ml-2"
+                            className="text-pm-text-muted hover:text-red-500 flex-shrink-0 ml-2"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -345,20 +345,20 @@ export default function Admin360UploadPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                <p className="text-sm text-gray-700">
+              <div className="bg-pm-surface-subtle rounded-lg p-4 space-y-3">
+                <p className="text-sm text-pm-text-secondary">
                   To enable the 360° viewer for a new vehicle, two files need a one-line edit:
                 </p>
                 <div className="space-y-2">
                   <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase">1. Add VIN → MID mapping</p>
+                    <p className="text-xs font-medium text-pm-text-secondary uppercase">1. Add VIN → MID mapping</p>
                     <code className="block text-xs bg-gray-900 text-green-400 p-2 rounded mt-1 overflow-x-auto">
                       {`// lib/drivee.ts — add inside DRIVEE_VIN_MAP`}<br />
                       {mid ? `"YOUR_VIN_HERE": "${mid}",  // ${vehicleName || "Vehicle Name"}` : `"VIN": "MID",  // Vehicle Name`}
                     </code>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase">2. Add frame count to manifest</p>
+                    <p className="text-xs font-medium text-pm-text-secondary uppercase">2. Add frame count to manifest</p>
                     <code className="block text-xs bg-gray-900 text-green-400 p-2 rounded mt-1 overflow-x-auto">
                       {`// lib/drivee-frames.ts — add inside FRAME_MANIFEST`}<br />
                       {mid
@@ -367,7 +367,7 @@ export default function Admin360UploadPage() {
                     </code>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-pm-text-secondary">
                   Note: New MIDs without a manifest entry will still be discoverable via automatic
                   probing, but this is slower. <strong className="text-red-600">If you are replacing frames
                   for an MID already in the manifest, you MUST update the frame count — the old
@@ -400,10 +400,10 @@ export default function Admin360UploadPage() {
             <CardContent>
               {loadingVehicles ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                  <Loader2 className="w-6 h-6 animate-spin text-pm-text-muted" />
                 </div>
               ) : vehicles.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-8">
+                <p className="text-sm text-pm-text-secondary text-center py-8">
                   No 360° vehicles found
                 </p>
               ) : (
@@ -414,11 +414,11 @@ export default function Admin360UploadPage() {
                     return (
                       <div
                         key={v.mid}
-                        className="border rounded-lg p-3 hover:bg-gray-50 transition-colors"
+                        className="border rounded-lg p-3 hover:bg-pm-surface-subtle transition-colors"
                       >
                         <div className="flex items-start gap-3">
                           {v.firstFrameUrl ? (
-                            <div className="w-16 h-12 relative rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                            <div className="w-16 h-12 relative rounded overflow-hidden bg-pm-surface-light flex-shrink-0">
                               <Image
                                 src={v.firstFrameUrl}
                                 alt={`MID ${v.mid}`}
@@ -428,12 +428,12 @@ export default function Admin360UploadPage() {
                               />
                             </div>
                           ) : (
-                            <div className="w-16 h-12 bg-gray-100 rounded flex items-center justify-center flex-shrink-0">
-                              <Camera className="w-5 h-5 text-gray-300" />
+                            <div className="w-16 h-12 bg-pm-surface-light rounded flex items-center justify-center flex-shrink-0">
+                              <Camera className="w-5 h-5 text-pm-text-muted" />
                             </div>
                           )}
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-gray-900 font-mono truncate">
+                            <p className="text-sm font-medium text-pm-text-primary font-mono truncate">
                               {v.mid}
                             </p>
                             <div className="flex items-center gap-2 mt-1">
@@ -455,7 +455,7 @@ export default function Admin360UploadPage() {
                               )}
                             </div>
                             {vins.length > 0 && (
-                              <p className="text-xs text-gray-400 mt-1 truncate">
+                              <p className="text-xs text-pm-text-muted mt-1 truncate">
                                 VIN: {vins[0]}{vins.length > 1 ? ` +${vins.length - 1}` : ""}
                               </p>
                             )}

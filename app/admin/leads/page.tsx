@@ -90,8 +90,8 @@ function priorityColor(priority: string): string {
     case "urgent": return "bg-red-100 text-red-700"
     case "high": return "bg-orange-100 text-orange-700"
     case "medium": return "bg-blue-100 text-blue-700"
-    case "low": return "bg-gray-100 text-gray-700"
-    default: return "bg-gray-100 text-gray-700"
+    case "low": return "bg-pm-surface-light text-pm-text-secondary"
+    default: return "bg-pm-surface-light text-pm-text-secondary"
   }
 }
 
@@ -155,8 +155,8 @@ export default function AdminLeadsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">Leads & Inquiries</h1>
-          <p className="text-sm text-gray-500">All customer inquiries from contact form, Anna chat, finance apps, and more</p>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-pm-text-primary">Leads & Inquiries</h1>
+          <p className="text-sm text-pm-text-secondary">All customer inquiries from contact form, Anna chat, finance apps, and more</p>
         </div>
         <Button variant="outline" size="sm" onClick={fetchLeads}>
           <RefreshCw className="w-4 h-4 mr-2" />
@@ -167,7 +167,7 @@ export default function AdminLeadsPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         {[
-          { label: "Total", value: stats.total, color: "text-gray-900" },
+          { label: "Total", value: stats.total, color: "text-pm-text-primary" },
           { label: "New", value: stats.new, color: "text-blue-600" },
           { label: "Contacted", value: stats.contacted, color: "text-yellow-600" },
           { label: "Qualified", value: stats.qualified, color: "text-green-600" },
@@ -176,7 +176,7 @@ export default function AdminLeadsPage() {
           <Card key={s.label}>
             <CardContent className="p-4 text-center">
               <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-              <p className="text-xs text-gray-500">{s.label}</p>
+              <p className="text-xs text-pm-text-secondary">{s.label}</p>
             </CardContent>
           </Card>
         ))}
@@ -185,7 +185,7 @@ export default function AdminLeadsPage() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-pm-text-muted" />
           <Input
             placeholder="Search by name, email, phone..."
             value={search}
@@ -220,10 +220,10 @@ export default function AdminLeadsPage() {
           <Card>
             <CardContent className="p-0">
               {loading ? (
-                <div className="p-8 text-center text-gray-500">Loading leads...</div>
+                <div className="p-8 text-center text-pm-text-secondary">Loading leads...</div>
               ) : leads.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">
-                  <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <div className="p-8 text-center text-pm-text-secondary">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-3 text-pm-text-muted" />
                   <p>No leads found</p>
                   <p className="text-xs mt-1">Leads will appear when customers submit inquiries, chat with Anna, or apply for financing</p>
                 </div>
@@ -234,7 +234,7 @@ export default function AdminLeadsPage() {
                     return (
                       <div
                         key={lead.id}
-                        className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${selectedLead?.id === lead.id ? "bg-blue-50" : ""}`}
+                        className={`p-4 hover:bg-pm-surface-subtle cursor-pointer transition-colors ${selectedLead?.id === lead.id ? "bg-blue-50" : ""}`}
                         onClick={() => setSelectedLead(lead)}
                       >
                         <div className="flex items-start justify-between">
@@ -244,9 +244,9 @@ export default function AdminLeadsPage() {
                             </div>
                             <div className="min-w-0">
                               <p className="font-medium text-sm truncate">{lead.customer_name || lead.customer_email || "Unknown"}</p>
-                              <p className="text-xs text-gray-500 truncate">{lead.subject}</p>
+                              <p className="text-xs text-pm-text-secondary truncate">{lead.subject}</p>
                               {lead.vehicle_info && (
-                                <p className="text-xs text-gray-400 truncate">{lead.vehicle_info}</p>
+                                <p className="text-xs text-pm-text-muted truncate">{lead.vehicle_info}</p>
                               )}
                             </div>
                           </div>
@@ -257,7 +257,7 @@ export default function AdminLeadsPage() {
                                 {lead.priority}
                               </span>
                             )}
-                            <p className="text-xs text-gray-400 mt-1">{timeAgo(lead.created_at)}</p>
+                            <p className="text-xs text-pm-text-muted mt-1">{timeAgo(lead.created_at)}</p>
                           </div>
                         </div>
                       </div>
@@ -271,7 +271,7 @@ export default function AdminLeadsPage() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-4">
-              <p className="text-sm text-gray-500">Page {page} of {totalPages} ({total} leads)</p>
+              <p className="text-sm text-pm-text-secondary">Page {page} of {totalPages} ({total} leads)</p>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
                   <ChevronLeft className="w-4 h-4" />
@@ -311,25 +311,25 @@ export default function AdminLeadsPage() {
 
                 {/* Subject & Message */}
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase mb-1">Subject</p>
+                  <p className="text-xs font-medium text-pm-text-secondary uppercase mb-1">Subject</p>
                   <p className="text-sm">{selectedLead.subject}</p>
                 </div>
                 {selectedLead.message && (
                   <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase mb-1">Message</p>
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedLead.message}</p>
+                    <p className="text-xs font-medium text-pm-text-secondary uppercase mb-1">Message</p>
+                    <p className="text-sm text-pm-text-secondary whitespace-pre-wrap">{selectedLead.message}</p>
                   </div>
                 )}
                 {selectedLead.vehicle_info && (
                   <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase mb-1">Vehicle Interest</p>
+                    <p className="text-xs font-medium text-pm-text-secondary uppercase mb-1">Vehicle Interest</p>
                     <p className="text-sm">{selectedLead.vehicle_info}</p>
                   </div>
                 )}
 
                 {/* Status Actions */}
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase mb-2">Update Status</p>
+                  <p className="text-xs font-medium text-pm-text-secondary uppercase mb-2">Update Status</p>
                   <div className="flex flex-wrap gap-2">
                     {["new", "contacted", "qualified", "negotiating", "converted", "lost"].map(s => (
                       <Button
@@ -345,12 +345,12 @@ export default function AdminLeadsPage() {
                   </div>
                 </div>
 
-                <p className="text-xs text-gray-400">Created {new Date(selectedLead.created_at).toLocaleString()}</p>
+                <p className="text-xs text-pm-text-muted">Created {new Date(selectedLead.created_at).toLocaleString()}</p>
               </CardContent>
             </>
           ) : (
-            <CardContent className="p-8 text-center text-gray-500">
-              <User className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+            <CardContent className="p-8 text-center text-pm-text-secondary">
+              <User className="w-12 h-12 mx-auto mb-3 text-pm-text-muted" />
               <p className="text-sm">Select a lead to view details</p>
             </CardContent>
           )}

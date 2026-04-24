@@ -470,8 +470,8 @@ export default function AdminInventoryPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">Vehicle Management</h1>
-          <p className="text-gray-500">{totalAll} vehicles in inventory</p>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-pm-text-primary">Vehicle Management</h1>
+          <p className="text-pm-text-secondary">{totalAll} vehicles in inventory</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {/* HomeNet Sync */}
@@ -523,16 +523,16 @@ export default function AdminInventoryPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 text-sm">
               <div className="flex items-center gap-2 flex-wrap">
                 <div className={`w-2 h-2 rounded-full shrink-0 ${syncStatus.configured ? "bg-green-500" : "bg-yellow-500"}`} />
-                <span className="text-gray-600">
+                <span className="text-pm-text-secondary">
                   HomeNet SFTP: {syncStatus.configured ? "Connected" : "Not configured"}
                 </span>
                 {syncStatus.lastSyncEstimate && (
-                  <span className="text-gray-400 hidden sm:inline">
+                  <span className="text-pm-text-muted hidden sm:inline">
                     &middot; Last update: {new Date(syncStatus.lastSyncEstimate).toLocaleString()}
                   </span>
                 )}
               </div>
-              <span className="text-gray-400 text-xs sm:text-sm">Auto-sync: {syncStatus.cronDescription}</span>
+              <span className="text-pm-text-muted text-xs sm:text-sm">Auto-sync: {syncStatus.cronDescription}</span>
             </div>
           </CardContent>
         </Card>
@@ -548,7 +548,7 @@ export default function AdminInventoryPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{statusCounts.available}</p>
-                <p className="text-sm text-gray-500">Available</p>
+                <p className="text-sm text-pm-text-secondary">Available</p>
               </div>
             </div>
           </CardContent>
@@ -561,7 +561,7 @@ export default function AdminInventoryPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{statusCounts.reserved}</p>
-                <p className="text-sm text-gray-500">Reserved</p>
+                <p className="text-sm text-pm-text-secondary">Reserved</p>
               </div>
             </div>
           </CardContent>
@@ -574,7 +574,7 @@ export default function AdminInventoryPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{statusCounts.pending}</p>
-                <p className="text-sm text-gray-500">Pending</p>
+                <p className="text-sm text-pm-text-secondary">Pending</p>
               </div>
             </div>
           </CardContent>
@@ -587,7 +587,7 @@ export default function AdminInventoryPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{statusCounts.sold}</p>
-                <p className="text-sm text-gray-500">Sold</p>
+                <p className="text-sm text-pm-text-secondary">Sold</p>
               </div>
             </div>
           </CardContent>
@@ -599,7 +599,7 @@ export default function AdminInventoryPage() {
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-pm-text-muted" />
               <Input
                 aria-label="Search inventory by make, model, trim, VIN, or stock number"
                 placeholder="Search by make, model, trim, VIN, stock #..."
@@ -628,11 +628,11 @@ export default function AdminInventoryPage() {
         <CardContent className="p-0">
           {loading ? (
             <div className="flex items-center justify-center p-12">
-              <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+              <Loader2 className="w-8 h-8 animate-spin text-pm-text-muted" />
             </div>
           ) : error ? (
-            <div className="text-center p-12 text-gray-500">
-              <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+            <div className="text-center p-12 text-pm-text-secondary">
+              <AlertCircle className="w-12 h-12 mx-auto mb-4 text-pm-text-muted" />
               <p className="font-medium">{error}</p>
               <Button variant="outline" onClick={fetchVehicles} className="mt-4">
                 <RefreshCw className="w-4 h-4 mr-2" />
@@ -640,8 +640,8 @@ export default function AdminInventoryPage() {
               </Button>
             </div>
           ) : vehicles.length === 0 ? (
-            <div className="text-center p-12 text-gray-500">
-              <Car className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+            <div className="text-center p-12 text-pm-text-secondary">
+              <Car className="w-12 h-12 mx-auto mb-4 text-pm-text-muted" />
               <p className="font-medium">No vehicles found</p>
               <p className="text-sm">
                 {searchQuery || statusFilter !== "all"
@@ -653,7 +653,7 @@ export default function AdminInventoryPage() {
             <>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b">
+                  <thead className="bg-pm-surface-subtle border-b">
                     <tr>
                       <th className="py-3 px-4 text-left">
                         <input
@@ -663,19 +663,19 @@ export default function AdminInventoryPage() {
                           className="rounded"
                         />
                       </th>
-                      <th className="py-3 px-4 text-left font-medium text-gray-500">Vehicle</th>
-                      <th className="py-3 px-4 text-left font-medium text-gray-500 hidden md:table-cell">Stock #</th>
-                      <th className="py-3 px-4 text-left font-medium text-gray-500">Price</th>
-                      <th className="py-3 px-4 text-left font-medium text-gray-500 hidden sm:table-cell">Mileage</th>
-                      <th className="py-3 px-4 text-left font-medium text-gray-500">Status</th>
-                      <th className="py-3 px-4 text-center font-medium text-gray-500 hidden lg:table-cell">360°</th>
-                      <th className="py-3 px-4 text-center font-medium text-gray-500 hidden lg:table-cell">Days</th>
-                      <th className="py-3 px-4 text-right font-medium text-gray-500">Actions</th>
+                      <th className="py-3 px-4 text-left font-medium text-pm-text-secondary">Vehicle</th>
+                      <th className="py-3 px-4 text-left font-medium text-pm-text-secondary hidden md:table-cell">Stock #</th>
+                      <th className="py-3 px-4 text-left font-medium text-pm-text-secondary">Price</th>
+                      <th className="py-3 px-4 text-left font-medium text-pm-text-secondary hidden sm:table-cell">Mileage</th>
+                      <th className="py-3 px-4 text-left font-medium text-pm-text-secondary">Status</th>
+                      <th className="py-3 px-4 text-center font-medium text-pm-text-secondary hidden lg:table-cell">360°</th>
+                      <th className="py-3 px-4 text-center font-medium text-pm-text-secondary hidden lg:table-cell">Days</th>
+                      <th className="py-3 px-4 text-right font-medium text-pm-text-secondary">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {vehicles.map((vehicle) => (
-                      <tr key={vehicle.id} className="border-b hover:bg-gray-50">
+                      <tr key={vehicle.id} className="border-b hover:bg-pm-surface-subtle">
                         <td className="py-3 px-4">
                           <input
                             type="checkbox"
@@ -696,16 +696,16 @@ export default function AdminInventoryPage() {
                                 unoptimized
                               />
                             ) : (
-                              <div className="w-20 h-[60px] bg-gray-100 rounded flex items-center justify-center">
-                                <ImagePlus className="w-5 h-5 text-gray-300" />
+                              <div className="w-20 h-[60px] bg-pm-surface-light rounded flex items-center justify-center">
+                                <ImagePlus className="w-5 h-5 text-pm-text-muted" />
                               </div>
                             )}
                             <div>
                               <p className="font-medium">
                                 {vehicle.year} {vehicle.make} {vehicle.model}
                               </p>
-                              <p className="text-sm text-gray-500">{vehicle.trim}</p>
-                              <p className="text-xs text-gray-400 font-mono">{vehicle.vin}</p>
+                              <p className="text-sm text-pm-text-secondary">{vehicle.trim}</p>
+                              <p className="text-xs text-pm-text-muted font-mono">{vehicle.vin}</p>
                             </div>
                           </div>
                         </td>
@@ -721,7 +721,7 @@ export default function AdminInventoryPage() {
                           {vehicle.has_360_spin ? (
                             <span className="text-green-600 text-sm font-medium">Yes</span>
                           ) : (
-                            <span className="text-gray-300 text-sm">No</span>
+                            <span className="text-pm-text-muted text-sm">No</span>
                           )}
                         </td>
                         <td className="py-3 px-4 text-center hidden lg:table-cell">
@@ -752,7 +752,7 @@ export default function AdminInventoryPage() {
                                 <Camera className="w-4 h-4 mr-2" />
                                 Manage Photos
                                 {vehicle.image_urls?.length ? (
-                                  <span className="ml-auto text-xs text-gray-400">{vehicle.image_urls.length}</span>
+                                  <span className="ml-auto text-xs text-pm-text-muted">{vehicle.image_urls.length}</span>
                                 ) : null}
                               </DropdownMenuItem>
                               <DropdownMenuItem
@@ -773,14 +773,14 @@ export default function AdminInventoryPage() {
 
               {/* Pagination */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-2 p-4 border-t">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-pm-text-secondary">
                   Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total}
                 </p>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
                     <ChevronLeft className="w-4 h-4" />
                   </Button>
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-pm-text-secondary">
                     Page {page + 1} of {totalPages || 1}
                   </span>
                   <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>
@@ -801,7 +801,7 @@ export default function AdminInventoryPage() {
           <Button size="sm" variant="destructive" disabled title="Bulk delete coming soon">Delete</Button>
           <button
             onClick={() => setSelectedVehicles([])}
-            className="text-gray-400 hover:text-white ml-2"
+            className="text-pm-text-muted hover:text-white ml-2"
           >
             Cancel
           </button>
@@ -817,7 +817,7 @@ export default function AdminInventoryPage() {
               <h2 className="text-xl font-bold">
                 {showDialog === "create" ? "Add New Vehicle" : `Edit ${editingVehicle?.year} ${editingVehicle?.make} ${editingVehicle?.model}`}
               </h2>
-              <button onClick={() => setShowDialog(null)} className="p-2 hover:bg-gray-100 rounded">
+              <button onClick={() => setShowDialog(null)} className="p-2 hover:bg-pm-surface-light rounded">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -830,7 +830,7 @@ export default function AdminInventoryPage() {
 
               {/* VIN Section */}
               <div>
-                <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <h3 className="font-semibold text-pm-text-secondary mb-3 flex items-center gap-2">
                   <Scan className="w-4 h-4" /> VIN Decoder
                 </h3>
                 <div className="flex gap-2">
@@ -846,17 +846,17 @@ export default function AdminInventoryPage() {
                     <span className="ml-2">Decode</span>
                   </Button>
                 </div>
-                <p className="text-xs text-gray-400 mt-1">Enter VIN and click Decode to auto-fill vehicle details from NHTSA</p>
+                <p className="text-xs text-pm-text-muted mt-1">Enter VIN and click Decode to auto-fill vehicle details from NHTSA</p>
               </div>
 
               {/* Identity */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Stock Number *</label>
+                  <label className="text-sm font-medium text-pm-text-secondary">Stock Number *</label>
                   <Input value={formData.stock_number} onChange={e => setFormData(prev => ({ ...prev, stock_number: e.target.value }))} placeholder="PM-2024-001" />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Status</label>
+                  <label className="text-sm font-medium text-pm-text-secondary">Status</label>
                   <select value={formData.status} onChange={e => setFormData(prev => ({ ...prev, status: e.target.value }))} className="w-full px-3 py-2 border rounded-lg">
                     <option value="available">Available</option>
                     <option value="reserved">Reserved</option>
@@ -868,22 +868,22 @@ export default function AdminInventoryPage() {
 
               {/* Vehicle Info */}
               <div>
-                <h3 className="font-semibold text-gray-700 mb-3">Vehicle Information</h3>
+                <h3 className="font-semibold text-pm-text-secondary mb-3">Vehicle Information</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Year *</label>
+                    <label className="text-sm font-medium text-pm-text-secondary">Year *</label>
                     <Input type="number" value={formData.year} onChange={e => setFormData(prev => ({ ...prev, year: e.target.value }))} placeholder="2024" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Make *</label>
+                    <label className="text-sm font-medium text-pm-text-secondary">Make *</label>
                     <Input value={formData.make} onChange={e => setFormData(prev => ({ ...prev, make: e.target.value }))} placeholder="Tesla" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Model *</label>
+                    <label className="text-sm font-medium text-pm-text-secondary">Model *</label>
                     <Input value={formData.model} onChange={e => setFormData(prev => ({ ...prev, model: e.target.value }))} placeholder="Model 3" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Trim</label>
+                    <label className="text-sm font-medium text-pm-text-secondary">Trim</label>
                     <Input value={formData.trim} onChange={e => setFormData(prev => ({ ...prev, trim: e.target.value }))} placeholder="Long Range" />
                   </div>
                 </div>
@@ -891,34 +891,34 @@ export default function AdminInventoryPage() {
 
               {/* Specs */}
               <div>
-                <h3 className="font-semibold text-gray-700 mb-3">Specifications</h3>
+                <h3 className="font-semibold text-pm-text-secondary mb-3">Specifications</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Body Style</label>
+                    <label className="text-sm font-medium text-pm-text-secondary">Body Style</label>
                     <Input value={formData.body_style} onChange={e => setFormData(prev => ({ ...prev, body_style: e.target.value }))} placeholder="Sedan" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Drivetrain</label>
+                    <label className="text-sm font-medium text-pm-text-secondary">Drivetrain</label>
                     <Input value={formData.drivetrain} onChange={e => setFormData(prev => ({ ...prev, drivetrain: e.target.value }))} placeholder="AWD" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Transmission</label>
+                    <label className="text-sm font-medium text-pm-text-secondary">Transmission</label>
                     <Input value={formData.transmission} onChange={e => setFormData(prev => ({ ...prev, transmission: e.target.value }))} placeholder="Automatic" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Engine</label>
+                    <label className="text-sm font-medium text-pm-text-secondary">Engine</label>
                     <Input value={formData.engine} onChange={e => setFormData(prev => ({ ...prev, engine: e.target.value }))} placeholder="Electric Motor" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Fuel Type</label>
+                    <label className="text-sm font-medium text-pm-text-secondary">Fuel Type</label>
                     <Input value={formData.fuel_type} onChange={e => setFormData(prev => ({ ...prev, fuel_type: e.target.value }))} placeholder="Electric" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Ext. Color</label>
+                    <label className="text-sm font-medium text-pm-text-secondary">Ext. Color</label>
                     <Input value={formData.exterior_color} onChange={e => setFormData(prev => ({ ...prev, exterior_color: e.target.value }))} placeholder="White" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Int. Color</label>
+                    <label className="text-sm font-medium text-pm-text-secondary">Int. Color</label>
                     <Input value={formData.interior_color} onChange={e => setFormData(prev => ({ ...prev, interior_color: e.target.value }))} placeholder="Black" />
                   </div>
                 </div>
@@ -926,18 +926,18 @@ export default function AdminInventoryPage() {
 
               {/* Pricing */}
               <div>
-                <h3 className="font-semibold text-gray-700 mb-3">Pricing & Mileage</h3>
+                <h3 className="font-semibold text-pm-text-secondary mb-3">Pricing & Mileage</h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Price (CAD) *</label>
+                    <label className="text-sm font-medium text-pm-text-secondary">Price (CAD) *</label>
                     <Input type="number" step="0.01" value={formData.price} onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))} placeholder="39990.50" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">MSRP (CAD)</label>
+                    <label className="text-sm font-medium text-pm-text-secondary">MSRP (CAD)</label>
                     <Input type="number" step="0.01" value={formData.msrp} onChange={e => setFormData(prev => ({ ...prev, msrp: e.target.value }))} placeholder="45990.00" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Mileage (km) *</label>
+                    <label className="text-sm font-medium text-pm-text-secondary">Mileage (km) *</label>
                     <Input type="number" value={formData.mileage} onChange={e => setFormData(prev => ({ ...prev, mileage: e.target.value }))} placeholder="15000" />
                   </div>
                 </div>
@@ -945,7 +945,7 @@ export default function AdminInventoryPage() {
 
               {/* EV Fields */}
               <div>
-                <h3 className="font-semibold text-gray-700 mb-3">EV / Electric</h3>
+                <h3 className="font-semibold text-pm-text-secondary mb-3">EV / Electric</h3>
                 <div className="flex items-center gap-4 mb-3">
                   <label className="flex items-center gap-2">
                     <input type="checkbox" checked={formData.is_ev} onChange={e => setFormData(prev => ({ ...prev, is_ev: e.target.checked }))} className="rounded" />
@@ -955,11 +955,11 @@ export default function AdminInventoryPage() {
                 {formData.is_ev && (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Battery (kWh)</label>
+                      <label className="text-sm font-medium text-pm-text-secondary">Battery (kWh)</label>
                       <Input type="number" step="0.1" value={formData.battery_capacity_kwh} onChange={e => setFormData(prev => ({ ...prev, battery_capacity_kwh: e.target.value }))} placeholder="75" />
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Range (miles)</label>
+                      <label className="text-sm font-medium text-pm-text-secondary">Range (miles)</label>
                       <Input type="number" value={formData.range_miles} onChange={e => setFormData(prev => ({ ...prev, range_miles: e.target.value }))} placeholder="358" />
                     </div>
                   </div>
@@ -968,7 +968,7 @@ export default function AdminInventoryPage() {
 
               {/* Flags */}
               <div>
-                <h3 className="font-semibold text-gray-700 mb-3">Flags</h3>
+                <h3 className="font-semibold text-pm-text-secondary mb-3">Flags</h3>
                 <div className="flex flex-wrap gap-4">
                   <label className="flex items-center gap-2">
                     <input type="checkbox" checked={formData.is_certified} onChange={e => setFormData(prev => ({ ...prev, is_certified: e.target.checked }))} className="rounded" />
@@ -991,18 +991,18 @@ export default function AdminInventoryPage() {
 
               {/* Media */}
               <div>
-                <h3 className="font-semibold text-gray-700 mb-3">Media</h3>
+                <h3 className="font-semibold text-pm-text-secondary mb-3">Media</h3>
                 <div className="grid grid-cols-1 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Primary Image URL</label>
+                    <label className="text-sm font-medium text-pm-text-secondary">Primary Image URL</label>
                     <Input value={formData.primary_image_url} onChange={e => setFormData(prev => ({ ...prev, primary_image_url: e.target.value }))} placeholder="https://..." />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Video URL</label>
+                    <label className="text-sm font-medium text-pm-text-secondary">Video URL</label>
                     <Input value={formData.video_url} onChange={e => setFormData(prev => ({ ...prev, video_url: e.target.value }))} placeholder="https://..." />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Location</label>
+                    <label className="text-sm font-medium text-pm-text-secondary">Location</label>
                     <Input value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))} placeholder="Richmond Hill, ON" />
                   </div>
                 </div>
@@ -1035,8 +1035,8 @@ export default function AdminInventoryPage() {
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-2">Delete Vehicle?</h2>
-            <p className="text-gray-600 mb-4">
+            <h2 className="text-lg font-bold text-pm-text-primary mb-2">Delete Vehicle?</h2>
+            <p className="text-pm-text-secondary mb-4">
               This will permanently delete <strong>{deleteConfirm.year} {deleteConfirm.make} {deleteConfirm.model}</strong> ({deleteConfirm.vin}).
               This action cannot be undone.
             </p>

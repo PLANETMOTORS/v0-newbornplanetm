@@ -113,7 +113,7 @@ export function SimilarVehicles({ currentVehicleId, make, priceRange }: SimilarV
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <Car className="w-12 h-12 text-[#1e3a8a]/15" />
+                      <Car className="w-12 h-12 text-pm-brand/15" />
                     </div>
                   )}
                   {vehicle.fuelType === "Electric" && (

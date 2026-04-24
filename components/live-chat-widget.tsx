@@ -166,7 +166,7 @@ export function LiveChatWidget() {
               >
                 <div
                   className={cn(
-                    "max-w-[85%] px-4 py-2 rounded-2xl text-sm whitespace-pre-wrap",
+                    "max-w-[85%] px-4 py-2 rounded-xl text-sm whitespace-pre-wrap",
                     message.role === "user"
                       ? "bg-primary text-primary-foreground rounded-br-md"
                       : "bg-muted text-foreground rounded-bl-md"
@@ -178,7 +178,7 @@ export function LiveChatWidget() {
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-muted text-foreground rounded-2xl rounded-bl-md px-4 py-2 flex items-center gap-2">
+                <div className="bg-muted text-foreground rounded-xl rounded-bl-md px-4 py-2 flex items-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span className="text-sm text-muted-foreground">Anna is typing...</span>
                 </div>

@@ -42,10 +42,10 @@ function FeaturedVehiclesSkeleton() {
   return (
     <div className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="h-8 w-64 bg-gray-200 rounded mx-auto mb-8 animate-pulse" />
+        <div className="h-8 w-64 bg-pm-border rounded mx-auto mb-8 animate-pulse" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map(i => (
-            <div key={i} className="h-80 bg-gray-100 rounded-2xl animate-pulse" />
+            <div key={i} className="h-80 bg-pm-surface-light rounded-xl animate-pulse" />
           ))}
         </div>
       </div>
@@ -111,17 +111,17 @@ export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProp
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Hero Text */}
             <div className="text-center lg:text-left min-w-0">
-              <h1 className="text-[2rem] sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-[-0.01em] sm:tracking-[-0.02em] text-gray-900">
+              <h1 className="text-[2rem] sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-[-0.01em] sm:tracking-[-0.02em] text-pm-text-primary">
                 Canada&apos;s Battery-Certified
-                <span className="block text-[#1e3a8a]">
+                <span className="block text-pm-brand">
                   Used EV Dealership
                 </span>
               </h1>
 
-              <p className="mt-6 text-base sm:text-lg text-gray-600 max-w-lg mx-auto lg:mx-0 min-h-[3rem] sm:min-h-[3.5rem]">
+              <p className="mt-6 text-base sm:text-lg text-pm-text-secondary max-w-lg mx-auto lg:mx-0 min-h-[3rem] sm:min-h-[3.5rem]">
                 Aviloo-certified used EVs.
                 <br className="hidden sm:block" />
-                <span className="font-semibold text-gray-800">210-point inspected.</span> Canada-wide delivery.
+                <span className="font-semibold text-pm-text-primary">210-point inspected.</span> Canada-wide delivery.
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row items-center gap-6 justify-center lg:justify-start min-h-[3.5rem] sm:min-h-[3rem]">
@@ -135,7 +135,7 @@ export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProp
                 </a>
                 <Link
                   href="/trade-in"
-                  className="inline-flex items-center gap-2 sm:gap-3 border-2 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white text-base sm:text-lg font-semibold px-6 sm:px-8 py-3 sm:py-[14px] rounded-full transition-all"
+                  className="inline-flex items-center gap-2 sm:gap-3 border-2 border-pm-brand text-pm-brand hover:bg-pm-brand hover:text-white text-base sm:text-lg font-semibold px-6 sm:px-8 py-3 sm:py-[14px] rounded-full transition-all"
                 >
                   <span>Get Trade-In Value</span>
                   <ArrowRight className="w-5 h-5 flex-shrink-0" />

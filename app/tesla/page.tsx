@@ -102,7 +102,7 @@ export default function TeslaPage() {
                 <h1 className="text-4xl lg:text-5xl font-bold tracking-[-0.01em] lg:tracking-[-0.02em] mb-6">
                   Used Tesla Vehicles in Canada
                 </h1>
-                <p className="text-xl text-gray-300 mb-8 leading-relaxed">
+                <p className="text-xl text-pm-text-muted mb-8 leading-relaxed">
                   Shop certified pre-owned Tesla Model 3, Model Y, Model S & Model X. 
                   Every Tesla includes a battery health report and our comprehensive 210-point inspection.
                 </p>
@@ -211,7 +211,7 @@ export default function TeslaPage() {
         <section className="py-16 bg-black text-white">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold mb-4">Tesla Financing Available</h2>
-            <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
+            <p className="text-pm-text-muted mb-8 max-w-2xl mx-auto">
               Get approved for Tesla financing in minutes. Rates starting at {RATE_FLOOR_DISPLAY} OAC.
               We work with all credit situations.
             </p>

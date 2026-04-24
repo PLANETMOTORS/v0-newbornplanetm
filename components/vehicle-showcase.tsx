@@ -204,7 +204,7 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
       {/* Main carousel container - prevent cutoff */}
       <div className="w-full max-w-6xl mx-auto px-2 sm:px-4">
         {/* Main image container */}
-        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] shadow-2xl">
+        <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] shadow-2xl">
         {imageSrc ? (
           <Image
             src={imageSrc}
@@ -219,7 +219,7 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <Car className="w-24 h-24 text-[#1e3a8a]/15" />
+            <Car className="w-24 h-24 text-pm-brand/15" />
           </div>
         )}
 
@@ -364,7 +364,7 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
                   className="object-cover"
                 />
               ) : (
-                <div className="absolute inset-0 bg-gray-200" />
+                <div className="absolute inset-0 bg-pm-border" />
               )}
             </button>
           ))}

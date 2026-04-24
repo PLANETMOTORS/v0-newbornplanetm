@@ -52,12 +52,12 @@ const STATE_COLORS: Record<string, string> = {
   pending:     "bg-yellow-100 text-yellow-800",
   processing:  "bg-yellow-100 text-yellow-800",
   failed:      "bg-red-100 text-red-800",
-  refunded:    "bg-gray-100 text-gray-700",
-  cancelled:   "bg-gray-100 text-gray-700",
+  refunded:    "bg-pm-surface-light text-pm-text-secondary",
+  cancelled:   "bg-pm-surface-light text-pm-text-secondary",
 }
 
 function stateColor(state: string) {
-  return STATE_COLORS[state.toLowerCase()] ?? "bg-gray-100 text-gray-700"
+  return STATE_COLORS[state.toLowerCase()] ?? "bg-pm-surface-light text-pm-text-secondary"
 }
 
 function formatCAD(cents: number) {

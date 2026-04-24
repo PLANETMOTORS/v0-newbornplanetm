@@ -831,7 +831,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       </>
                     ) : (
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                        <Car className="w-20 h-20 text-[#1e3a8a]/15" />
+                        <Car className="w-20 h-20 text-pm-brand/15" />
                         <p className="text-sm text-muted-foreground">Photos coming soon</p>
                       </div>
                     )}

@@ -147,8 +147,8 @@ export default function AdminSettingsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">Settings</h1>
-        <p className="text-gray-500">Environment configuration and integrations</p>
+        <h1 className="text-2xl font-bold tracking-[-0.01em] text-pm-text-primary">Settings</h1>
+        <p className="text-pm-text-secondary">Environment configuration and integrations</p>
       </div>
 
       {/* Important Notice */}
@@ -191,12 +191,12 @@ export default function AdminSettingsPage() {
         return (
           <Card key={section.title}>
             <CardHeader
-              className="cursor-pointer hover:bg-gray-50 transition-colors"
+              className="cursor-pointer hover:bg-pm-surface-subtle transition-colors"
               onClick={() => setExpandedSection(isExpanded ? null : section.title)}
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <SectionIcon className="w-5 h-5 text-gray-600" />
+                <div className="w-10 h-10 bg-pm-surface-light rounded-lg flex items-center justify-center">
+                  <SectionIcon className="w-5 h-5 text-pm-text-secondary" />
                 </div>
                 <div className="flex-1">
                   <CardTitle className="text-lg">{section.title}</CardTitle>
@@ -213,18 +213,18 @@ export default function AdminSettingsPage() {
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-gray-900">{item.label}</p>
+                            <p className="font-medium text-pm-text-primary">{item.label}</p>
                             {item.sensitive && (
                               <Badge className="bg-red-100 text-red-700 text-xs">sensitive</Badge>
                             )}
                           </div>
-                          <p className="text-sm text-gray-500 mt-0.5">{item.description}</p>
-                          <code className="text-xs bg-gray-100 px-2 py-0.5 rounded mt-2 inline-block text-gray-600">
+                          <p className="text-sm text-pm-text-secondary mt-0.5">{item.description}</p>
+                          <code className="text-xs bg-pm-surface-light px-2 py-0.5 rounded mt-2 inline-block text-pm-text-secondary">
                             {item.envVar}
                           </code>
                           {item.defaultValue && (
-                            <p className="text-xs text-gray-400 mt-1">
-                              Default: <code className="bg-gray-50 px-1 rounded">{item.defaultValue}</code>
+                            <p className="text-xs text-pm-text-muted mt-1">
+                              Default: <code className="bg-pm-surface-subtle px-1 rounded">{item.defaultValue}</code>
                             </p>
                           )}
                         </div>
@@ -252,40 +252,40 @@ export default function AdminSettingsPage() {
               href="https://supabase.com/dashboard"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 p-3 rounded-lg border hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 p-3 rounded-lg border hover:bg-pm-surface-subtle transition-colors"
             >
               <Database className="w-5 h-5 text-green-600" />
               <div>
                 <p className="font-medium text-sm">Supabase Dashboard</p>
-                <p className="text-xs text-gray-500">Database, Auth, Storage</p>
+                <p className="text-xs text-pm-text-secondary">Database, Auth, Storage</p>
               </div>
-              <ExternalLink className="w-4 h-4 text-gray-400 ml-auto" />
+              <ExternalLink className="w-4 h-4 text-pm-text-muted ml-auto" />
             </a>
             <a
               href="https://dashboard.stripe.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 p-3 rounded-lg border hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 p-3 rounded-lg border hover:bg-pm-surface-subtle transition-colors"
             >
               <DollarSign className="w-5 h-5 text-purple-600" />
               <div>
                 <p className="font-medium text-sm">Stripe Dashboard</p>
-                <p className="text-xs text-gray-500">Payments, Subscriptions</p>
+                <p className="text-xs text-pm-text-secondary">Payments, Subscriptions</p>
               </div>
-              <ExternalLink className="w-4 h-4 text-gray-400 ml-auto" />
+              <ExternalLink className="w-4 h-4 text-pm-text-muted ml-auto" />
             </a>
             <a
               href="https://www.sanity.io/manage"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 p-3 rounded-lg border hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 p-3 rounded-lg border hover:bg-pm-surface-subtle transition-colors"
             >
               <Globe className="w-5 h-5 text-red-600" />
               <div>
                 <p className="font-medium text-sm">Sanity Studio</p>
-                <p className="text-xs text-gray-500">Content Management</p>
+                <p className="text-xs text-pm-text-secondary">Content Management</p>
               </div>
-              <ExternalLink className="w-4 h-4 text-gray-400 ml-auto" />
+              <ExternalLink className="w-4 h-4 text-pm-text-muted ml-auto" />
             </a>
           </div>
         </CardContent>

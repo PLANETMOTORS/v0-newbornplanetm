@@ -56,7 +56,7 @@ const STAGE_LABELS: Record<string, { label: string; color: string; description: 
   contracted:   { label: "Contracts Signed",    color: "bg-purple-100 text-purple-800", description: "Awaiting funding from the lender." },
   funded:       { label: "Funded",              color: "bg-purple-100 text-purple-800", description: "Delivery is being scheduled." },
   delivered:    { label: "Delivered 🚗",         color: "bg-emerald-100 text-emerald-800", description: "Enjoy your new vehicle!" },
-  closed:       { label: "Complete",            color: "bg-gray-100 text-gray-800",    description: "Deal complete. Check your Dossier for documents." },
+  closed:       { label: "Complete",            color: "bg-pm-surface-light text-pm-text-primary",    description: "Deal complete. Check your Dossier for documents." },
 }
 
 // ── Main Component ─────────────────────────────────────────────────────────
@@ -155,7 +155,7 @@ export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedV
             </h2>
             <div className="grid gap-4">
               {deals.map(deal => {
-                const stageInfo = STAGE_LABELS[deal.stage] ?? { label: deal.stage, color: "bg-gray-100 text-gray-800", description: "" }
+                const stageInfo = STAGE_LABELS[deal.stage] ?? { label: deal.stage, color: "bg-pm-surface-light text-pm-text-primary", description: "" }
                 const finance = deal.finance_applications?.[0]
                 const delivery = deal.deliveries?.[0]
                 const deposit = deal.deposits?.[0]

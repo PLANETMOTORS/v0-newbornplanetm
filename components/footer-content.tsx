@@ -80,7 +80,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
   return (
     <footer className="bg-foreground text-background" role="contentinfo" aria-label="Site footer">
       {/* ── Row 1: Trust Bar — gradient bridge from CTA blue → footer black ── */}
-      <div className="bg-gradient-to-b from-[#1e3a8a] to-[#0a0a0a]">
+      <div className="bg-gradient-to-b from-pm-brand to-pm-brand-dark">
         <div className="mx-auto max-w-7xl px-6 py-5 lg:px-8">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
             <div>
@@ -104,7 +104,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
       </div>
 
       {/* ── Row 2: Main Footer Content (Carvana-style dark) ── */}
-      <div className="bg-[#0a0a0a]">
+      <div className="bg-pm-brand-dark">
         <div className="mx-auto max-w-7xl px-6 py-14 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-14">
 
@@ -224,7 +224,7 @@ export function FooterContent({ siteSettings }: FooterProps) {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-11 h-11 rounded-full bg-white/[0.06] flex items-center justify-center text-white/50 hover:bg-[#1e3a8a] hover:text-white transition-all"
+                  className="w-11 h-11 rounded-full bg-white/[0.06] flex items-center justify-center text-white/50 hover:bg-pm-brand hover:text-white transition-all"
                   aria-label={social.label}
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">

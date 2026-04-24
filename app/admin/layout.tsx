@@ -56,17 +56,17 @@ export default function AdminLayout({
 
   if (isLoading || !user || !isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-pm-surface-light">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Verifying access...</p>
+          <p className="text-pm-text-secondary">Verifying access...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-pm-surface-light">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
@@ -125,17 +125,17 @@ export default function AdminLayout({
       {/* Main content */}
       <div className="lg:pl-64">
         {/* Top bar */}
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+        <header className="bg-white border-b border-pm-border sticky top-0 z-30">
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-4">
               <button 
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 hover:bg-gray-100 rounded"
+                className="lg:hidden p-2 hover:bg-pm-surface-light rounded"
               >
                 <Menu className="w-5 h-5" />
               </button>
               <div className="relative hidden sm:block">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-pm-text-muted" />
                 <Input 
                   placeholder="Search..." 
                   className="pl-10 w-64"
@@ -144,8 +144,8 @@ export default function AdminLayout({
             </div>
 
             <div className="flex items-center gap-3">
-              <button className="relative p-2 hover:bg-gray-100 rounded-full">
-                <Bell className="w-5 h-5 text-gray-600" />
+              <button className="relative p-2 hover:bg-pm-surface-light rounded-full">
+                <Bell className="w-5 h-5 text-pm-text-secondary" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
               <div className="flex items-center gap-2 pl-3 border-l">
@@ -154,7 +154,7 @@ export default function AdminLayout({
                 </div>
                 <div className="hidden sm:block">
                   <p className="text-sm font-medium">{user.email}</p>
-                  <p className="text-xs text-gray-500">Administrator</p>
+                  <p className="text-xs text-pm-text-secondary">Administrator</p>
                 </div>
               </div>
             </div>

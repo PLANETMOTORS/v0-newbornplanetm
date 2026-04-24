@@ -34,7 +34,7 @@ function ProductDetailPanel({ product, onClose }: { product: ProtectionProduct; 
 
   return (
     <article
-      className="rounded-2xl border border-border/60 bg-background shadow-2xl overflow-hidden"
+      className="rounded-xl border border-border/60 bg-background shadow-2xl overflow-hidden"
       aria-label={`${product.name} — full details`}
     >
       {/* ▸ Gradient hero header */}
@@ -42,7 +42,7 @@ function ProductDetailPanel({ product, onClose }: { product: ProtectionProduct; 
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iMzAiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wOCkiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjYSkiLz48L3N2Zz4=')] opacity-50" />
         <div className="relative flex items-start justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center ring-1 ring-white/20">
+            <div className="w-14 h-14 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center ring-1 ring-white/20">
               <Icon className="w-7 h-7 text-white" />
             </div>
             <div>
@@ -236,7 +236,7 @@ export function ProductsGridWithDetails() {
                 role="listitem"
                 aria-expanded={isActive}
                 aria-controls={isActive ? `detail-${product.slug}` : undefined}
-                className={`text-left w-full rounded-2xl border-2 transition-all duration-300 p-5 group focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                className={`text-left w-full rounded-xl border-2 transition-all duration-300 p-5 group focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                   isActive
                     ? "border-primary bg-primary/5 shadow-lg"
                     : "border-transparent bg-background shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-primary/20"

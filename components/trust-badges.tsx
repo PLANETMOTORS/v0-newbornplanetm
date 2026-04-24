@@ -54,13 +54,13 @@ export function TrustBadges() {
             <div 
               key={badge.title} 
               className={`
-                group flex flex-col items-center text-center p-4 rounded-2xl transition-all duration-300
+                group flex flex-col items-center text-center p-4 rounded-xl transition-all duration-300
                 hover:bg-card hover:shadow-lg hover:-translate-y-1
                 ${badge.highlight ? "bg-primary/5 border border-primary/20" : ""}
               `}
             >
               <div className={`
-                w-14 h-14 rounded-2xl flex items-center justify-center mb-4
+                w-14 h-14 rounded-xl flex items-center justify-center mb-4
                 ${badge.highlight ? "bg-primary text-primary-foreground" : "bg-primary/10"}
               `}>
                 <badge.icon className={`w-7 h-7 ${badge.highlight ? "text-primary-foreground" : "text-primary"}`} />

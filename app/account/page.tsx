@@ -800,7 +800,7 @@ export default function AccountPage() {
                                 approved: "bg-green-100 text-green-800",
                                 declined: "bg-red-100 text-red-800",
                                 funded: "bg-emerald-100 text-emerald-800",
-                                cancelled: "bg-gray-100 text-gray-800",
+                                cancelled: "bg-pm-surface-light text-pm-text-primary",
                               }
                               return (
                                 <div key={app.id} className="flex items-center justify-between p-3 rounded-lg border">
@@ -812,7 +812,7 @@ export default function AccountPage() {
                                       {app.requested_amount ? `$${Math.round(app.requested_amount).toLocaleString()}` : ""} &middot; {new Date(app.created_at).toLocaleDateString()}
                                     </p>
                                   </div>
-                                  <Badge className={statusColors[app.status] || "bg-gray-100 text-gray-800"}>
+                                  <Badge className={statusColors[app.status] || "bg-pm-surface-light text-pm-text-primary"}>
                                     {app.status.replace(/_/g, " ")}
                                   </Badge>
                                 </div>

@@ -182,7 +182,7 @@ export default function AdminOrdersPage() {
   const totalPages = Math.ceil(totalCount / PAGE_SIZE)
 
   const getStatusBadge = (status: string) => {
-    const config = statusConfig[status] || { label: status, color: "bg-gray-100 text-gray-800", icon: null }
+    const config = statusConfig[status] || { label: status, color: "bg-pm-surface-light text-pm-text-primary", icon: null }
     return (
       <Badge className={`${config.color} flex items-center gap-1`}>
         {config.icon}
@@ -196,8 +196,8 @@ export default function AdminOrdersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">Order Management</h1>
-          <p className="text-gray-500">{stats.total} total orders</p>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-pm-text-primary">Order Management</h1>
+          <p className="text-pm-text-secondary">{stats.total} total orders</p>
         </div>
         <Button variant="outline" onClick={fetchOrders} disabled={loading}>
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
@@ -234,7 +234,7 @@ export default function AdminOrdersPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Total Revenue</CardDescription>
-            <CardTitle className="text-2xl text-gray-900">{formatCents(stats.totalRevenue)}</CardTitle>
+            <CardTitle className="text-2xl text-pm-text-primary">{formatCents(stats.totalRevenue)}</CardTitle>
           </CardHeader>
         </Card>
       </div>
@@ -244,7 +244,7 @@ export default function AdminOrdersPage() {
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-pm-text-muted" />
               <Input
                 aria-label="Search orders by order number"
                 placeholder="Search by order number..."
@@ -278,11 +278,11 @@ export default function AdminOrdersPage() {
         <CardContent className="p-0">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
-              <span className="ml-2 text-gray-500">Loading orders...</span>
+              <RefreshCw className="w-6 h-6 animate-spin text-pm-text-muted" />
+              <span className="ml-2 text-pm-text-secondary">Loading orders...</span>
             </div>
           ) : error ? (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+            <div className="flex flex-col items-center justify-center py-12 text-pm-text-secondary">
               <XCircle className="w-12 h-12 mb-4 text-red-300" />
               <p className="text-lg font-medium text-red-600">{error}</p>
               <Button variant="outline" onClick={fetchOrders} className="mt-4">
@@ -291,8 +291,8 @@ export default function AdminOrdersPage() {
               </Button>
             </div>
           ) : orders.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-              <FileText className="w-12 h-12 mb-4 text-gray-300" />
+            <div className="flex flex-col items-center justify-center py-12 text-pm-text-secondary">
+              <FileText className="w-12 h-12 mb-4 text-pm-text-muted" />
               <p className="text-lg font-medium">No orders found</p>
               <p className="text-sm">
                 {debouncedSearch || statusFilter !== "all" ? "Try adjusting your filters" : "Orders will appear here when customers purchase vehicles"}
@@ -315,7 +315,7 @@ export default function AdminOrdersPage() {
                 {orders.map((order) => (
                   <TableRow
                     key={order.id}
-                    className="cursor-pointer hover:bg-gray-50"
+                    className="cursor-pointer hover:bg-pm-surface-subtle"
                     onClick={() => { setSelectedOrder(order); setDetailOpen(true) }}
                   >
                     <TableCell>
@@ -329,10 +329,10 @@ export default function AdminOrdersPage() {
                               ? `${order.customer.firstName || ""} ${order.customer.lastName || ""}`.trim()
                               : order.customer.email}
                           </p>
-                          <p className="text-xs text-gray-500">{order.customer.email}</p>
+                          <p className="text-xs text-pm-text-secondary">{order.customer.email}</p>
                         </div>
                       ) : (
-                        <span className="text-gray-400">—</span>
+                        <span className="text-pm-text-muted">—</span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -341,10 +341,10 @@ export default function AdminOrdersPage() {
                           <p className="font-medium text-sm">
                             {order.vehicle.year} {order.vehicle.make} {order.vehicle.model}
                           </p>
-                          <p className="text-xs text-gray-500">{order.vehicle.trim}</p>
+                          <p className="text-xs text-pm-text-secondary">{order.vehicle.trim}</p>
                         </div>
                       ) : (
-                        <span className="text-gray-400">—</span>
+                        <span className="text-pm-text-muted">—</span>
                       )}
                     </TableCell>
                     <TableCell>{getStatusBadge(order.status)}</TableCell>
@@ -356,7 +356,7 @@ export default function AdminOrdersPage() {
                     <TableCell className="text-right font-medium">
                       {formatCents(order.totalPriceCents)}
                     </TableCell>
-                    <TableCell className="text-sm text-gray-500">
+                    <TableCell className="text-sm text-pm-text-secondary">
                       {formatDate(order.createdAt)}
                     </TableCell>
                   </TableRow>
@@ -368,14 +368,14 @@ export default function AdminOrdersPage() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-pm-text-secondary">
                 Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount}
               </p>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={() => setPage(p => p - 1)} disabled={page === 0}>
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
-                <span className="text-sm text-gray-600">Page {page + 1} of {totalPages}</span>
+                <span className="text-sm text-pm-text-secondary">Page {page + 1} of {totalPages}</span>
                 <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} disabled={page >= totalPages - 1}>
                   <ChevronRight className="w-4 h-4" />
                 </Button>
@@ -404,8 +404,8 @@ export default function AdminOrdersPage() {
               </div>
 
               {/* Customer Info */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-medium text-sm text-gray-500 mb-2 flex items-center gap-2">
+              <div className="bg-pm-surface-subtle rounded-lg p-4">
+                <h3 className="font-medium text-sm text-pm-text-secondary mb-2 flex items-center gap-2">
                   <User className="w-4 h-4" /> Customer
                 </h3>
                 {selectedOrder.customer ? (
@@ -415,16 +415,16 @@ export default function AdminOrdersPage() {
                         ? `${selectedOrder.customer.firstName || ""} ${selectedOrder.customer.lastName || ""}`.trim()
                         : "No name on file"}
                     </p>
-                    <p className="text-sm text-gray-600">{selectedOrder.customer.email}</p>
+                    <p className="text-sm text-pm-text-secondary">{selectedOrder.customer.email}</p>
                   </div>
                 ) : (
-                  <p className="text-gray-400">Customer data unavailable</p>
+                  <p className="text-pm-text-muted">Customer data unavailable</p>
                 )}
               </div>
 
               {/* Vehicle Info */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-medium text-sm text-gray-500 mb-2 flex items-center gap-2">
+              <div className="bg-pm-surface-subtle rounded-lg p-4">
+                <h3 className="font-medium text-sm text-pm-text-secondary mb-2 flex items-center gap-2">
                   <Car className="w-4 h-4" /> Vehicle
                 </h3>
                 {selectedOrder.vehicle ? (
@@ -432,26 +432,26 @@ export default function AdminOrdersPage() {
                     <p className="font-medium">
                       {selectedOrder.vehicle.year} {selectedOrder.vehicle.make} {selectedOrder.vehicle.model}
                     </p>
-                    <p className="text-sm text-gray-600">{selectedOrder.vehicle.trim}</p>
-                    <p className="text-sm text-gray-500">Stock #: {selectedOrder.vehicle.stockNumber}</p>
+                    <p className="text-sm text-pm-text-secondary">{selectedOrder.vehicle.trim}</p>
+                    <p className="text-sm text-pm-text-secondary">Stock #: {selectedOrder.vehicle.stockNumber}</p>
                   </div>
                 ) : (
-                  <p className="text-gray-400">Vehicle data unavailable</p>
+                  <p className="text-pm-text-muted">Vehicle data unavailable</p>
                 )}
               </div>
 
               {/* Pricing */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-medium text-sm text-gray-500 mb-2 flex items-center gap-2">
+              <div className="bg-pm-surface-subtle rounded-lg p-4">
+                <h3 className="font-medium text-sm text-pm-text-secondary mb-2 flex items-center gap-2">
                   <DollarSign className="w-4 h-4" /> Pricing
                 </h3>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Vehicle Price</span>
+                    <span className="text-pm-text-secondary">Vehicle Price</span>
                     <span>{formatCents(selectedOrder.vehiclePriceCents)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Tax</span>
+                    <span className="text-pm-text-secondary">Tax</span>
                     <span>{formatCents(selectedOrder.taxAmountCents)}</span>
                   </div>
                   {selectedOrder.downPaymentCents > 0 && (
@@ -467,7 +467,7 @@ export default function AdminOrdersPage() {
                 </div>
               </div>
 
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-pm-text-secondary">
                 Created: {formatDate(selectedOrder.createdAt)}
                 {selectedOrder.updatedAt && ` • Updated: ${formatDate(selectedOrder.updatedAt)}`}
               </div>

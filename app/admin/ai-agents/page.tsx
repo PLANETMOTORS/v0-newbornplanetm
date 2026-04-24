@@ -134,11 +134,11 @@ export default function AIAgentsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">AI Agents</h1>
+        <h1 className="text-2xl font-bold tracking-[-0.01em] text-pm-text-primary">AI Agents</h1>
         <div className="grid gap-6">
           {[1,2,3].map(i => (
             <Card key={i} className="animate-pulse">
-              <CardContent className="p-6"><div className="h-32 bg-gray-200 rounded" /></CardContent>
+              <CardContent className="p-6"><div className="h-32 bg-pm-border rounded" /></CardContent>
             </Card>
           ))}
         </div>
@@ -151,8 +151,8 @@ export default function AIAgentsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">AI Agents</h1>
-          <p className="text-sm text-gray-500">Configure Anna, Price Negotiator, and Vehicle Valuator</p>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-pm-text-primary">AI Agents</h1>
+          <p className="text-sm text-pm-text-secondary">Configure Anna, Price Negotiator, and Vehicle Valuator</p>
         </div>
         <Button variant="outline" size="sm" onClick={fetchAgents}>
           <RefreshCw className="w-4 h-4 mr-2" />
@@ -190,8 +190,8 @@ export default function AIAgentsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => toggleAgent(agent.agent_type, agent.is_active)} className="p-2 hover:bg-gray-100 rounded-lg">
-                      {agent.is_active ? <ToggleRight className="w-6 h-6 text-green-600" /> : <ToggleLeft className="w-6 h-6 text-gray-400" />}
+                    <button onClick={() => toggleAgent(agent.agent_type, agent.is_active)} className="p-2 hover:bg-pm-surface-light rounded-lg">
+                      {agent.is_active ? <ToggleRight className="w-6 h-6 text-green-600" /> : <ToggleLeft className="w-6 h-6 text-pm-text-muted" />}
                     </button>
                     {!isEditing && knowledgeAgent !== agent.agent_type ? (
                       <div className="flex gap-2">
@@ -225,7 +225,7 @@ export default function AIAgentsPage() {
                   {agent.agent_type === "anna" && (
                     <>
                       <div>
-                        <label className="text-sm font-medium text-gray-700 block mb-1">Display Name</label>
+                        <label className="text-sm font-medium text-pm-text-secondary block mb-1">Display Name</label>
                         <Input
                           value={(editForm.display_name as string) || ""}
                           onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })}
@@ -233,7 +233,7 @@ export default function AIAgentsPage() {
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-700 block mb-1">Welcome Message</label>
+                        <label className="text-sm font-medium text-pm-text-secondary block mb-1">Welcome Message</label>
                         <textarea
                           className="w-full border rounded-md p-3 text-sm min-h-[80px] resize-y"
                           value={(editForm.welcome_message as string) || ""}
@@ -242,18 +242,18 @@ export default function AIAgentsPage() {
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-700 block mb-1">Custom System Prompt (optional — overrides default)</label>
+                        <label className="text-sm font-medium text-pm-text-secondary block mb-1">Custom System Prompt (optional — overrides default)</label>
                         <textarea
                           className="w-full border rounded-md p-3 text-sm min-h-[120px] resize-y font-mono"
                           value={(editForm.system_prompt as string) || ""}
                           onChange={(e) => setEditForm({ ...editForm, system_prompt: e.target.value })}
                           placeholder="Leave empty to use default. Add custom instructions here to change Anna's behavior..."
                         />
-                        <p className="text-xs text-gray-400 mt-1">Anna already knows your inventory, fees, hours, and policies. Add extra instructions only if needed.</p>
+                        <p className="text-xs text-pm-text-muted mt-1">Anna already knows your inventory, fees, hours, and policies. Add extra instructions only if needed.</p>
                       </div>
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <label className="text-sm font-medium text-gray-700">Quick Actions</label>
+                          <label className="text-sm font-medium text-pm-text-secondary">Quick Actions</label>
                           <Button variant="outline" size="sm" onClick={addQuickAction}>
                             <Plus className="w-3 h-3 mr-1" />
                             Add
@@ -283,7 +283,7 @@ export default function AIAgentsPage() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="text-sm font-medium text-gray-700 block mb-1">Rate Limit (requests/hour)</label>
+                          <label className="text-sm font-medium text-pm-text-secondary block mb-1">Rate Limit (requests/hour)</label>
                           <Input
                             type="number"
                             value={String(config.rateLimit || 20)}
@@ -291,7 +291,7 @@ export default function AIAgentsPage() {
                           />
                         </div>
                         <div>
-                          <label className="text-sm font-medium text-gray-700 block mb-1">AI Model</label>
+                          <label className="text-sm font-medium text-pm-text-secondary block mb-1">AI Model</label>
                           <select
                             className="w-full border rounded-md px-3 py-2 text-sm"
                             value={String(config.model || "gpt-4o-mini")}
@@ -309,10 +309,10 @@ export default function AIAgentsPage() {
                   {agent.agent_type === "negotiator" && (
                     <>
                       <div>
-                        <label className="text-sm font-medium text-gray-700 block mb-3">Discount Tiers — Vehicles Under $30K</label>
+                        <label className="text-sm font-medium text-pm-text-secondary block mb-3">Discount Tiers — Vehicles Under $30K</label>
                         <div className="grid grid-cols-3 gap-4">
                           <div>
-                            <label className="text-xs text-gray-500">0-31 days (%)</label>
+                            <label className="text-xs text-pm-text-secondary">0-31 days (%)</label>
                             <Input
                               type="number"
                               step="0.25"
@@ -321,7 +321,7 @@ export default function AIAgentsPage() {
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-gray-500">32-46 days (%)</label>
+                            <label className="text-xs text-pm-text-secondary">32-46 days (%)</label>
                             <Input
                               type="number"
                               step="0.25"
@@ -330,7 +330,7 @@ export default function AIAgentsPage() {
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-gray-500">47+ days (%)</label>
+                            <label className="text-xs text-pm-text-secondary">47+ days (%)</label>
                             <Input
                               type="number"
                               step="0.25"
@@ -341,10 +341,10 @@ export default function AIAgentsPage() {
                         </div>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-700 block mb-3">Discount Tiers — Vehicles $30K+</label>
+                        <label className="text-sm font-medium text-pm-text-secondary block mb-3">Discount Tiers — Vehicles $30K+</label>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="text-xs text-gray-500">0-46 days (%)</label>
+                            <label className="text-xs text-pm-text-secondary">0-46 days (%)</label>
                             <Input
                               type="number"
                               step="0.25"
@@ -353,7 +353,7 @@ export default function AIAgentsPage() {
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-gray-500">47+ days (%)</label>
+                            <label className="text-xs text-pm-text-secondary">47+ days (%)</label>
                             <Input
                               type="number"
                               step="0.25"
@@ -364,13 +364,13 @@ export default function AIAgentsPage() {
                         </div>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-700 block mb-1">Low Price Threshold ($)</label>
+                        <label className="text-sm font-medium text-pm-text-secondary block mb-1">Low Price Threshold ($)</label>
                         <Input
                           type="number"
                           value={String(config.lowPriceThreshold || 30000)}
                           onChange={(e) => updateConfig("lowPriceThreshold", parseInt(e.target.value))}
                         />
-                        <p className="text-xs text-gray-400 mt-1">Vehicles below this price use the &quot;Under $30K&quot; discount tiers</p>
+                        <p className="text-xs text-pm-text-muted mt-1">Vehicles below this price use the &quot;Under $30K&quot; discount tiers</p>
                       </div>
                     </>
                   )}
@@ -380,7 +380,7 @@ export default function AIAgentsPage() {
                     <>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="text-sm font-medium text-gray-700 block mb-1">AI Temperature</label>
+                          <label className="text-sm font-medium text-pm-text-secondary block mb-1">AI Temperature</label>
                           <Input
                             type="number"
                             step="0.1"
@@ -389,10 +389,10 @@ export default function AIAgentsPage() {
                             value={String(config.temperature || 0.3)}
                             onChange={(e) => updateConfig("temperature", parseFloat(e.target.value))}
                           />
-                          <p className="text-xs text-gray-400 mt-1">Lower = more consistent, Higher = more creative</p>
+                          <p className="text-xs text-pm-text-muted mt-1">Lower = more consistent, Higher = more creative</p>
                         </div>
                         <div>
-                          <label className="text-sm font-medium text-gray-700 block mb-1">AI Model</label>
+                          <label className="text-sm font-medium text-pm-text-secondary block mb-1">AI Model</label>
                           <select
                             className="w-full border rounded-md px-3 py-2 text-sm"
                             value={String(config.model || "gpt-4o-mini")}
@@ -408,7 +408,7 @@ export default function AIAgentsPage() {
 
                   {/* Common: Last updated info */}
                   {agent.updated_by && (
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-pm-text-muted">
                       Last updated by {agent.updated_by}
                       {agent.updated_at && ` on ${new Date(agent.updated_at).toLocaleString()}`}
                     </p>
@@ -429,7 +429,7 @@ export default function AIAgentsPage() {
               {/* Collapsed view — show key stats */}
               {!isEditing && knowledgeAgent !== agent.agent_type && (
                 <CardContent className="border-t pt-4">
-                  <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+                  <div className="flex flex-wrap gap-4 text-sm text-pm-text-secondary">
                     {agent.agent_type === "anna" && (
                       <>
                         <span>Model: {String(config.model || "gpt-4o-mini")}</span>

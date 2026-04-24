@@ -231,7 +231,7 @@ export default function ProtectionPlansPage() {
                 { icon: Award, title: "Fully Transferable", description: "Coverage transfers to new owners, increasing your vehicle's resale value" },
               ].map((benefit) => (
                 <div key={benefit.title} className="text-center group">
-                  <div className="w-16 h-16 bg-primary/10 group-hover:bg-primary/15 rounded-2xl flex items-center justify-center mx-auto mb-5 transition-all duration-300 group-hover:scale-105">
+                  <div className="w-16 h-16 bg-primary/10 group-hover:bg-primary/15 rounded-xl flex items-center justify-center mx-auto mb-5 transition-all duration-300 group-hover:scale-105">
                     <benefit.icon className="w-7 h-7 text-primary" />
                   </div>
                   <h3 className="font-bold text-base mb-2">{benefit.title}</h3>

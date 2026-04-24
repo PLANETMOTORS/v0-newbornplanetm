@@ -79,8 +79,8 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
       <section className="py-16 content-visibility-auto contain-intrinsic-size-[auto_500px]" style={{ backgroundColor: "#F3F4F6" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">Why Choose {siteSettings.dealerName}?</h2>
-            <p className="text-gray-600 mt-3">The standards that set us apart</p>
+            <h2 className="text-3xl font-bold text-pm-text-primary">Why Choose {siteSettings.dealerName}?</h2>
+            <p className="text-pm-text-secondary mt-3">The standards that set us apart</p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {([
@@ -91,13 +91,13 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
             ] as { icon: typeof CheckCircle; title: string; description: string; href?: string }[]).map((feature) => {
               const content = (
                 <div className="text-center p-6 rounded-xl bg-white hover:shadow-md transition-shadow h-full">
-                  <div className="w-14 h-14 mx-auto bg-[#1e3a8a]/10 rounded-xl flex items-center justify-center mb-4">
-                    <feature.icon className="w-7 h-7 text-[#1e3a8a]" />
+                  <div className="w-14 h-14 mx-auto bg-pm-brand/10 rounded-xl flex items-center justify-center mb-4">
+                    <feature.icon className="w-7 h-7 text-pm-brand" />
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                  <p className="text-sm text-gray-600">{feature.description}</p>
+                  <h3 className="font-semibold text-pm-text-primary mb-2">{feature.title}</h3>
+                  <p className="text-sm text-pm-text-secondary">{feature.description}</p>
                   {feature.href && (
-                    <p className="text-xs text-[#1e3a8a] font-medium mt-3">Learn more →</p>
+                    <p className="text-xs text-pm-brand font-medium mt-3">Learn more →</p>
                   )}
                 </div>
               )
@@ -122,13 +122,13 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
                 <DollarSign className="w-4 h-4" />
                 Sell or Trade
               </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Have a Vehicle to Sell or Trade?</h2>
-              <p className="text-gray-600 text-lg mb-6">Get a competitive offer in minutes. We buy all makes and models - you don&apos;t need to purchase from us to sell to us.</p>
+              <h2 className="text-3xl font-bold text-pm-text-primary mb-4">Have a Vehicle to Sell or Trade?</h2>
+              <p className="text-pm-text-secondary text-lg mb-6">Get a competitive offer in minutes. We buy all makes and models - you don&apos;t need to purchase from us to sell to us.</p>
               <ul className="space-y-3 mb-8">
                 {["Instant online offer", "Free vehicle pickup", "Same-day payment available", "No obligation to buy from us"].map((item, i) => (
                   <li key={i} className="flex items-center gap-3">
                     <CheckCircle className="w-5 h-5 text-green-700" />
-                    <span className="text-gray-700">{item}</span>
+                    <span className="text-pm-text-secondary">{item}</span>
                   </li>
                 ))}
               </ul>
@@ -136,16 +136,16 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
                 <Link href="/trade-in">Get My Offer</Link>
               </Button>
             </div>
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-[#dce3ed]">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">Quick Estimate</h3>
+            <div className="bg-white rounded-xl p-8 shadow-lg border border-[#dce3ed]">
+              <h3 className="text-xl font-semibold text-pm-text-primary mb-6">Quick Estimate</h3>
               <div className="space-y-4">
-                <p className="text-gray-600">Get an instant offer for your vehicle in under 60 seconds. No obligation, no haggling.</p>
-                <ul className="space-y-2 text-sm text-gray-600">
+                <p className="text-pm-text-secondary">Get an instant offer for your vehicle in under 60 seconds. No obligation, no haggling.</p>
+                <ul className="space-y-2 text-sm text-pm-text-secondary">
                   <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-600" /> VIN or license plate lookup</li>
                   <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-600" /> Canadian Black Book valuation</li>
                   <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-600" /> Results in 60 seconds</li>
                 </ul>
-                <Button className="w-full bg-[#1e3a8a] hover:bg-[#172554]" asChild>
+                <Button className="w-full bg-pm-brand hover:bg-pm-brand-hover" asChild>
                   <Link href="/trade-in">Get Instant Offer</Link>
                 </Button>
               </div>
@@ -158,14 +158,14 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
       <section className="py-16 content-visibility-auto contain-intrinsic-size-[auto_400px]" style={{ backgroundColor: "#FFFFFF" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">What Our Customers Say</h2>
+            <h2 className="text-3xl font-bold text-pm-text-primary">What Our Customers Say</h2>
             <div className="mt-4 flex items-center justify-center gap-2">
               <div className="flex">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star key={star} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                 ))}
               </div>
-              <span className="text-gray-600">{ratingValue}/5 Star Rating</span>
+              <span className="text-pm-text-secondary">{ratingValue}/5 Star Rating</span>
             </div>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
@@ -173,16 +173,16 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
               <div key={index} className="bg-[#f0f4f8] rounded-xl p-6 border border-[#dce3ed]">
                 <div className="flex items-center gap-1 mb-4">
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className={`w-4 h-4 ${star <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />
+                    <Star key={star} className={`w-4 h-4 ${star <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-pm-text-muted"}`} />
                   ))}
                 </div>
-                <p className="text-gray-700 mb-4">&quot;{review.text}&quot;</p>
+                <p className="text-pm-text-secondary mb-4">&quot;{review.text}&quot;</p>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-semibold text-gray-900">{review.name}</p>
-                    <p className="text-sm text-gray-600">{review.location}</p>
+                    <p className="font-semibold text-pm-text-primary">{review.name}</p>
+                    <p className="text-sm text-pm-text-secondary">{review.location}</p>
                   </div>
-                  <span className="text-xs text-gray-600">{review.date}</span>
+                  <span className="text-xs text-pm-text-secondary">{review.date}</span>
                 </div>
               </div>
             ))}
@@ -191,30 +191,30 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
       </section>
 
       {/* ========== PROTECTION PLANS ========== */}
-      <section id="protection-plans" className="py-16 content-visibility-auto contain-intrinsic-size-[auto_600px]" style={{ backgroundColor: "#1A202C" }}>
+      <section id="protection-plans" className="py-16 content-visibility-auto contain-intrinsic-size-[auto_600px]" style={{ backgroundColor: "var(--pm-brand-dark)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="text-3xl font-bold text-white">Protection Plans</h2>
-            <p className="mt-3 text-gray-300">Choose the coverage that fits your needs. All plans include our satisfaction guarantee.</p>
+            <p className="mt-3 text-pm-text-muted">Choose the coverage that fits your needs. All plans include our satisfaction guarantee.</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {protectionPlans.map((plan) => (
-              <div key={plan.name} className={`rounded-xl p-8 ${plan.highlighted ? "bg-white text-gray-900 ring-2 ring-white ring-offset-2 ring-offset-[#1A202C]" : "bg-white/10 text-white border border-white/20"}`}>
+              <div key={plan.name} className={`rounded-xl p-8 ${plan.highlighted ? "bg-white text-pm-text-primary ring-2 ring-white ring-offset-2 ring-offset-pm-brand-dark" : "bg-white/10 text-white border border-white/20"}`}>
                 <h3 className="font-semibold text-lg">{plan.name}</h3>
-                <p className={`mt-2 text-sm ${plan.highlighted ? "text-gray-500" : "text-gray-300"}`}>{plan.description}</p>
+                <p className={`mt-2 text-sm ${plan.highlighted ? "text-pm-text-secondary" : "text-pm-text-muted"}`}>{plan.description}</p>
                 <div className="mt-6 flex items-baseline gap-1">
                   <span className="text-4xl font-bold">${plan.price}</span>
-                  <span className={`text-sm ${plan.highlighted ? "text-gray-500" : "text-gray-300"}`}>{plan.period}</span>
+                  <span className={`text-sm ${plan.highlighted ? "text-pm-text-secondary" : "text-pm-text-muted"}`}>{plan.period}</span>
                 </div>
                 <ul className="mt-8 space-y-3">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-3 text-sm">
-                      <CheckCircle className={`w-5 h-5 flex-shrink-0 ${plan.highlighted ? "text-[#1e3a8a]" : "text-green-400"}`} />
+                      <CheckCircle className={`w-5 h-5 flex-shrink-0 ${plan.highlighted ? "text-pm-brand" : "text-green-400"}`} />
                       <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
-                <Button className={`w-full mt-8 ${plan.highlighted ? "bg-[#1e3a8a] text-white hover:bg-[#172554]" : "bg-white text-[#1A202C] hover:bg-[#eef2f7]"}`} asChild>
+                <Button className={`w-full mt-8 ${plan.highlighted ? "bg-pm-brand text-white hover:bg-pm-brand-hover" : "bg-white text-pm-brand-dark hover:bg-pm-brand-light"}`} asChild>
                   <Link href={`/protection-plans#${plan.name.toLowerCase().replace(" ", "-")}`}>Get Started</Link>
                 </Button>
               </div>
@@ -231,7 +231,7 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
               <h2 className="text-3xl font-bold text-white">Ready to find your perfect vehicle?</h2>
               <p className="mt-4 text-white max-w-xl">Browse our inventory of certified pre-owned vehicles. Get pre-approved for financing in minutes with rates from {lowestRate}% APR.</p>
               <div className="mt-8 flex flex-wrap gap-6">
-                <Button size="lg" className="bg-white text-[#1e5a8e] hover:bg-[#eef2f7]" asChild>
+                <Button size="lg" className="bg-white text-[#1e5a8e] hover:bg-pm-brand-light" asChild>
                   <Link href="/inventory">Browse Inventory<ArrowRight className="ml-2 w-4 h-4" /></Link>
                 </Button>
                 <Button size="lg" variant="outline" className="border-white/30 text-white bg-transparent hover:bg-white/10" asChild>

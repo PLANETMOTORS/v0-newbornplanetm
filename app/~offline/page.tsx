@@ -60,7 +60,7 @@ export default function OfflinePage() {
         {/* Retry button — simple anchor back to homepage */}
         <a
           href="/"
-          className="inline-flex items-center gap-2 bg-[#1e3a8a] hover:bg-[#1e40af] text-white font-semibold px-8 py-3 rounded-full transition-colors"
+          className="inline-flex items-center gap-2 bg-pm-brand hover:bg-[#1e40af] text-white font-semibold px-8 py-3 rounded-full transition-colors"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

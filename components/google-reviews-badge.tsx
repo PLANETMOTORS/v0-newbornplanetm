@@ -46,7 +46,7 @@ export function GoogleReviewsBadge({
               className={`w-4 h-4 ${
                 star <= Math.round(rating)
                   ? "fill-yellow-400 text-yellow-400"
-                  : "fill-gray-200 text-gray-200"
+                  : "fill-pm-border text-pm-border"
               }`}
             />
           ))}
@@ -102,7 +102,7 @@ export function GoogleReviewsStatic({
             className={`w-4 h-4 ${
               star <= Math.round(rating)
                 ? "fill-yellow-400 text-yellow-400"
-                : "fill-gray-200 text-gray-200"
+                : "fill-pm-border text-pm-border"
             }`}
           />
         ))}

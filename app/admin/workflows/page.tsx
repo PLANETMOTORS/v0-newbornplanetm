@@ -166,8 +166,8 @@ const WORKFLOWS: Workflow[] = [
     trigger: "Vehicle listed_at > 45 days ago",
     action: "Weekly email digest to admin",
     icon: Car,
-    color: "text-gray-600",
-    bg: "bg-gray-50",
+    color: "text-pm-text-secondary",
+    bg: "bg-pm-surface-subtle",
     enabled: false,
     recipients: "admin@planetmotors.ca, toni@planetmotors.ca",
     category: "followup",
@@ -194,8 +194,8 @@ export default function AdminWorkflowsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">Automated Workflows</h1>
-          <p className="text-sm text-gray-500">Configure email notifications and automated processes</p>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-pm-text-primary">Automated Workflows</h1>
+          <p className="text-sm text-pm-text-secondary">Configure email notifications and automated processes</p>
         </div>
         <Badge variant="outline" className="text-sm">
           <Zap className="w-3 h-3 mr-1 text-yellow-500" />
@@ -225,10 +225,10 @@ export default function AdminWorkflowsPage() {
         return (
           <div key={category.key} className="space-y-3">
             <div className="flex items-center gap-2">
-              <CatIcon className="w-5 h-5 text-gray-500" />
+              <CatIcon className="w-5 h-5 text-pm-text-secondary" />
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">{category.label}</h2>
-                <p className="text-xs text-gray-500">{category.description}</p>
+                <h2 className="text-lg font-semibold text-pm-text-primary">{category.label}</h2>
+                <p className="text-xs text-pm-text-secondary">{category.description}</p>
               </div>
             </div>
 
@@ -250,8 +250,8 @@ export default function AdminWorkflowsPage() {
                                 {workflow.enabled ? "Active" : "Disabled"}
                               </Badge>
                             </div>
-                            <p className="text-xs text-gray-500 mt-0.5">{workflow.description}</p>
-                            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-gray-400">
+                            <p className="text-xs text-pm-text-secondary mt-0.5">{workflow.description}</p>
+                            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-pm-text-muted">
                               <span><strong>Trigger:</strong> {workflow.trigger}</span>
                               <span><strong>Action:</strong> {workflow.action}</span>
                               <span><strong>Recipients:</strong> {workflow.recipients}</span>
@@ -260,12 +260,12 @@ export default function AdminWorkflowsPage() {
                         </div>
                         <button
                           onClick={() => toggleWorkflow(workflow.id)}
-                          className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                          className="p-1 hover:bg-pm-surface-light rounded flex-shrink-0"
                         >
                           {workflow.enabled ? (
                             <ToggleRight className="w-8 h-8 text-green-600" />
                           ) : (
-                            <ToggleLeft className="w-8 h-8 text-gray-300" />
+                            <ToggleLeft className="w-8 h-8 text-pm-text-muted" />
                           )}
                         </button>
                       </div>

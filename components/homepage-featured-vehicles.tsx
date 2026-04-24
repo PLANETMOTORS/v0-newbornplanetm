@@ -115,12 +115,12 @@ const fallbackVehicles: FeaturedVehicle[] = [
 ]
 
 function getBadgeClassName(badge: string) {
-  if (badge === "Popular") return "bg-[#1e3a8a] text-white"
+  if (badge === "Popular") return "bg-pm-brand text-white"
   if (badge === "Fuel Saver") return "bg-green-700 text-white"
   if (badge === "New Arrival") return "bg-orange-700 text-white"
   if (badge === "Premium") return "bg-purple-700 text-white"
   if (badge === "Luxury") return "bg-amber-700 text-white"
-  return "bg-gray-700 text-white"
+  return "bg-pm-brand-dark text-white"
 }
 
 const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
@@ -197,8 +197,8 @@ export function HomepageFeaturedVehicles() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h2 className="text-3xl font-bold text-[#1e3a8a]">Featured Vehicles</h2>
-            <p className="text-gray-600 mt-1">Quality vehicles ready for delivery</p>
+            <h2 className="text-3xl font-bold text-pm-brand">Featured Vehicles</h2>
+            <p className="text-pm-text-secondary mt-1">Quality vehicles ready for delivery</p>
           </div>
 
           <div className="flex items-center gap-1 bg-[#eef2f7] rounded-lg p-1">
@@ -211,7 +211,7 @@ export function HomepageFeaturedVehicles() {
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as FeaturedTab)}
                 className={`px-4 py-2 text-sm font-semibold rounded-md transition-colors ${
-                  activeTab === tab.key ? "bg-[#1e3a8a] text-white" : "text-gray-600 hover:bg-[#e4eaf2]"
+                  activeTab === tab.key ? "bg-pm-brand text-white" : "text-pm-text-secondary hover:bg-[#e4eaf2]"
                 }`}
                 type="button"
               >
@@ -244,7 +244,7 @@ export function HomepageFeaturedVehicles() {
                   />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <Car className="w-16 h-16 text-[#1e3a8a]/15" />
+                    <Car className="w-16 h-16 text-pm-brand/15" />
                   </div>
                 )}
 
@@ -265,7 +265,7 @@ export function HomepageFeaturedVehicles() {
 
               <div className="p-5">
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold text-gray-900">
+                  <h3 className="font-semibold text-pm-text-primary">
                     {vehicle.year} {vehicle.make} {vehicle.model}
                   </h3>
                   {vehicle.isEV && (
@@ -275,18 +275,18 @@ export function HomepageFeaturedVehicles() {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-500 mt-1 tabular-nums">{vehicle.mileageLabel}</p>
+                <p className="text-sm text-pm-text-secondary mt-1 tabular-nums">{vehicle.mileageLabel}</p>
 
                 <div className="flex items-center justify-between mt-4">
                   <div>
-                    <div className="text-xl font-bold text-[#1e3a8a] tabular-nums">
+                    <div className="text-xl font-bold text-pm-brand tabular-nums">
                       ${(safeNum(vehicle.priceCents) / 100).toLocaleString()}
                     </div>
-                    <div className="text-sm font-semibold text-gray-700 tabular-nums">
+                    <div className="text-sm font-semibold text-pm-text-secondary tabular-nums">
                       or <span className="font-bold">${vehicle.monthlyPayment}/mo</span>
                     </div>
                   </div>
-                  <Button size="sm" className="bg-[#1e3a8a] hover:bg-[#172554]" asChild>
+                  <Button size="sm" className="bg-pm-brand hover:bg-[#172554]" asChild>
                     <Link href={isFallback ? "/inventory" : `/vehicles/${vehicle.id}`}>
                       View Details
                     </Link>
@@ -298,7 +298,7 @@ export function HomepageFeaturedVehicles() {
         </div>
 
         <div className="text-center mt-10">
-          <Button variant="outline" size="lg" className="border-2 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white" asChild>
+          <Button variant="outline" size="lg" className="border-2 border-pm-brand text-pm-brand hover:bg-pm-brand hover:text-white" asChild>
             <Link href="/inventory">
               View All Inventory
               <ArrowRight className="ml-2 w-4 h-4" />

@@ -111,8 +111,8 @@ export default function AdminCustomersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-[-0.01em] text-gray-900">Customer Management</h1>
-          <p className="text-gray-500">{totalCustomers} total customers</p>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-pm-text-primary">Customer Management</h1>
+          <p className="text-pm-text-secondary">{totalCustomers} total customers</p>
         </div>
         <Button variant="outline" onClick={fetchCustomers} disabled={loading}>
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
@@ -156,7 +156,7 @@ export default function AdminCustomersPage() {
       <Card>
         <CardContent className="p-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-pm-text-muted" />
             <Input
               aria-label="Search customers by name, email, or phone"
               placeholder="Search by name, email, or phone..."
@@ -173,12 +173,12 @@ export default function AdminCustomersPage() {
         <CardContent className="p-0">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
-              <span className="ml-2 text-gray-500">Loading customers...</span>
+              <RefreshCw className="w-6 h-6 animate-spin text-pm-text-muted" />
+              <span className="ml-2 text-pm-text-secondary">Loading customers...</span>
             </div>
           ) : error ? (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-              <Users className="w-12 h-12 mb-4 text-gray-300" />
+            <div className="flex flex-col items-center justify-center py-12 text-pm-text-secondary">
+              <Users className="w-12 h-12 mb-4 text-pm-text-muted" />
               <p className="text-lg font-medium">{error}</p>
               <Button variant="outline" onClick={fetchCustomers} className="mt-4">
                 <RefreshCw className="w-4 h-4 mr-2" />
@@ -186,8 +186,8 @@ export default function AdminCustomersPage() {
               </Button>
             </div>
           ) : customers.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-              <Users className="w-12 h-12 mb-4 text-gray-300" />
+            <div className="flex flex-col items-center justify-center py-12 text-pm-text-secondary">
+              <Users className="w-12 h-12 mb-4 text-pm-text-muted" />
               <p className="text-lg font-medium">No customers found</p>
               <p className="text-sm">
                 {debouncedSearch ? "Try adjusting your search" : "Customers will appear here when they sign up"}
@@ -215,23 +215,23 @@ export default function AdminCustomersPage() {
                           </span>
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-pm-text-primary">
                             {customer.firstName || customer.lastName
                               ? `${customer.firstName || ""} ${customer.lastName || ""}`.trim()
                               : "—"}
                           </p>
-                          <p className="text-sm text-gray-500">{customer.email}</p>
+                          <p className="text-sm text-pm-text-secondary">{customer.email}</p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
                       <div className="space-y-1">
-                        <div className="flex items-center gap-1 text-sm text-gray-600">
+                        <div className="flex items-center gap-1 text-sm text-pm-text-secondary">
                           <Mail className="w-3.5 h-3.5" />
                           <span className="truncate max-w-[200px]">{customer.email}</span>
                         </div>
                         {customer.phone && (
-                          <div className="flex items-center gap-1 text-sm text-gray-600">
+                          <div className="flex items-center gap-1 text-sm text-pm-text-secondary">
                             <Phone className="w-3.5 h-3.5" />
                             <span>{customer.phone}</span>
                           </div>
@@ -245,7 +245,7 @@ export default function AdminCustomersPage() {
                           {customer.orderCount}
                         </Badge>
                       ) : (
-                        <span className="text-gray-400">0</span>
+                        <span className="text-pm-text-muted">0</span>
                       )}
                     </TableCell>
                     <TableCell className="text-center hidden sm:table-cell">
@@ -254,11 +254,11 @@ export default function AdminCustomersPage() {
                           {customer.reservationCount}
                         </Badge>
                       ) : (
-                        <span className="text-gray-400">0</span>
+                        <span className="text-pm-text-muted">0</span>
                       )}
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
+                      <div className="flex items-center gap-1 text-sm text-pm-text-secondary">
                         <Calendar className="w-3.5 h-3.5" />
                         {formatDate(customer.createdAt)}
                       </div>
@@ -272,7 +272,7 @@ export default function AdminCustomersPage() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-2 px-4 py-3 border-t">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-pm-text-secondary">
                 Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount}
               </p>
               <div className="flex items-center gap-2">
@@ -284,7 +284,7 @@ export default function AdminCustomersPage() {
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-pm-text-secondary">
                   Page {page + 1} of {totalPages}
                 </span>
                 <Button

@@ -167,7 +167,7 @@ export default async function ProtectionProductPage({ params }: { params: Promis
             <div className="grid md:grid-cols-3 gap-8">
               {product.howItWorks.map((step) => (
                 <div key={step.step} className="relative text-center">
-                  <div className="w-16 h-16 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl font-bold">
+                  <div className="w-16 h-16 bg-primary text-primary-foreground rounded-xl flex items-center justify-center mx-auto mb-6 text-2xl font-bold">
                     {step.step}
                   </div>
                   {step.step < product.howItWorks.length && (
@@ -277,7 +277,7 @@ export default async function ProtectionProductPage({ params }: { params: Promis
               </div>
 
               {/* Summary stat bar */}
-              <div className="mt-10 bg-primary/5 rounded-2xl border p-6 md:p-8">
+              <div className="mt-10 bg-primary/5 rounded-xl border p-6 md:p-8">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
                   <div>
                     <div className="text-3xl font-bold text-primary">

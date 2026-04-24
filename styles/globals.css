@@ -4,6 +4,17 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* ── PM Design Tokens ──*/
+  --pm-brand: #1e3a8a;
+  --pm-brand-hover: #172554;
+  --pm-brand-light: #eef2ff;
+  --pm-brand-dark: #0f172a;
+  --pm-text-primary: #0f172a;
+  --pm-text-secondary: #475569;
+  --pm-text-muted: #94a3b8;
+  --pm-surface-subtle: #f8fafc;
+  --pm-surface-light: #f1f5f9;
+  --pm-border: #e2e8f0;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -28,7 +39,7 @@
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
+  --radius: 0.75rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -113,6 +124,17 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  /* Planet Motors brand tokens as Tailwind utilities */
+  --color-pm-brand:          var(--pm-brand);
+  --color-pm-brand-hover:    var(--pm-brand-hover);
+  --color-pm-brand-light:    var(--pm-brand-light);
+  --color-pm-brand-dark:     var(--pm-brand-dark);
+  --color-pm-text-primary:   var(--pm-text-primary);
+  --color-pm-text-secondary: var(--pm-text-secondary);
+  --color-pm-text-muted:     var(--pm-text-muted);
+  --color-pm-surface-subtle: var(--pm-surface-subtle);
+  --color-pm-surface-light:  var(--pm-surface-light);
+  --color-pm-border:         var(--pm-border);
 }
 
 @layer base {

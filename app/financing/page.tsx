@@ -127,7 +127,7 @@ export default async function FinancingPage() {
             </div>
 
             {/* Pre-approval Form */}
-            <div className="bg-card rounded-2xl border border-border p-8 shadow-lg">
+            <div className="bg-card rounded-xl border border-border p-8 shadow-lg">
               <h2 className="font-bold text-xl mb-2">Start Your Pre-Approval</h2>
               <p className="text-muted-foreground text-sm mb-6">
                 Takes less than 5 minutes. No commitment required.
@@ -176,7 +176,7 @@ export default async function FinancingPage() {
           </div>
 
           {/* Financing Flow Diagram */}
-          <div className="mt-16 bg-background rounded-2xl border border-border p-8">
+          <div className="mt-16 bg-background rounded-xl border border-border p-8">
             <h3 className="font-semibold text-xl mb-8 text-center">Multi-Lender Financing Flow</h3>
 
             <div className="relative">
@@ -260,7 +260,7 @@ export default async function FinancingPage() {
             </p>
           </div>
 
-          <div className="max-w-xl mx-auto bg-card rounded-2xl border border-border p-8 shadow-lg">
+          <div className="max-w-xl mx-auto bg-card rounded-xl border border-border p-8 shadow-lg">
             <FinancingCalculator />
           </div>
         </div>

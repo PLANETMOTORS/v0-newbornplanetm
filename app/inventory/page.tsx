@@ -899,7 +899,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <Car className="w-16 h-16 text-[#1e3a8a]/15" />
+                      <Car className="w-16 h-16 text-pm-brand/15" />
                     </div>
                   )}
                   

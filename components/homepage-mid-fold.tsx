@@ -57,7 +57,7 @@ export function HomepageMidFold() {
       <section className="py-16 bg-white border-b border-[#dce3ed]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
+            <h2 className="text-3xl md:text-4xl font-bold text-pm-text-primary tracking-tight">
               What Are You Looking For?
             </h2>
           </div>
@@ -128,10 +128,10 @@ export function HomepageMidFold() {
               <Award className="w-4 h-4" />
               Simple 4-Step Process
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+            <h2 className="text-3xl md:text-4xl font-bold text-pm-text-primary">
               Buy Your Car 100% Online
             </h2>
-            <p className="mt-4 text-gray-600 text-lg">
+            <p className="mt-4 text-pm-text-secondary text-lg">
               From browsing to delivery, complete your entire car purchase from the comfort of your home. Most customers complete the process in under 30 minutes.
             </p>
           </div>
@@ -144,18 +144,18 @@ export function HomepageMidFold() {
                 {index < processSteps.length - 1 && (
                   <div className="hidden lg:block absolute top-12 left-full w-full h-0.5 bg-[#dce3ed] -translate-y-1/2 z-0" />
                 )}
-                <div className="bg-white border border-[#dce3ed] rounded-2xl p-6 relative z-10 h-full hover:shadow-lg transition-shadow">
+                <div className="bg-white border border-[#dce3ed] rounded-xl p-6 relative z-10 h-full hover:shadow-lg transition-shadow">
                   <div className="flex items-center gap-3 mb-4">
                     <div className={`w-12 h-12 ${step.color} rounded-xl flex items-center justify-center shadow-lg`}>
                       <step.icon className="w-6 h-6 text-white" />
                     </div>
-                    <span className="text-sm font-semibold text-gray-600">Step {index + 1}</span>
+                    <span className="text-sm font-semibold text-pm-text-secondary">Step {index + 1}</span>
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">{step.title}</h3>
-                  <p className="text-gray-600 text-sm mb-4">{step.description}</p>
+                  <h3 className="text-lg font-bold text-pm-text-primary mb-2">{step.title}</h3>
+                  <p className="text-pm-text-secondary text-sm mb-4">{step.description}</p>
                   <ul className="space-y-2">
                     {step.features.map((feature) => (
-                      <li key={feature} className="flex items-center gap-2 text-sm text-gray-600">
+                      <li key={feature} className="flex items-center gap-2 text-sm text-pm-text-secondary">
                         <CheckCircle className="w-4 h-4 text-green-700 flex-shrink-0" />
                         {feature}
                       </li>
@@ -176,13 +176,13 @@ export function HomepageMidFold() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-8">
-            <Button size="lg" className="bg-[#1e3a8a] hover:bg-[#172554] text-white px-8" asChild>
+            <Button size="lg" className="bg-pm-brand hover:bg-[#172554] text-white px-8" asChild>
               <Link href="/inventory">
                 Start Shopping
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="border-[#c5d0de] text-gray-700 hover:bg-[#f0f4f8]" asChild>
+            <Button size="lg" variant="outline" className="border-[#c5d0de] text-pm-text-secondary hover:bg-[#f0f4f8]" asChild>
               <Link href="/how-it-works">
                 Learn how it works
               </Link>
