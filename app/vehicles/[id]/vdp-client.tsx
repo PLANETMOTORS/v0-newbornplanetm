@@ -1209,7 +1209,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       <CardTitle className="text-base">PACKAGES</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {vehicleData.packages.map((pkg) => (
+                      {(vehicleData.packages as (string | { name: string })[]).map((pkg) => (
                         <div key={typeof pkg === "string" ? pkg : pkg.name} className="py-4 border-b last:border-b-0">
                           <div className="flex justify-between items-center">
                             <span className="font-semibold">{typeof pkg === "string" ? pkg : pkg.name}</span>
