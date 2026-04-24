@@ -191,7 +191,7 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
       </section>
 
       {/* ========== PROTECTION PLANS ========== */}
-      <section id="protection-plans" className="py-16 content-visibility-auto contain-intrinsic-size-[auto_600px]" style={{ backgroundColor: "var(--pm-brand-dark)" }}>
+      <section id="protection-plans" className="py-16" style={{ backgroundColor: "var(--pm-brand-dark)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="text-3xl font-bold text-white">Protection Plans</h2>
@@ -199,7 +199,7 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {protectionPlans.map((plan) => (
-              <div key={plan.name} className={`rounded-xl p-8 ${plan.highlighted ? "bg-white text-pm-text-primary ring-2 ring-white ring-offset-2 ring-offset-pm-brand-dark" : "bg-white/15 text-white border border-white/30"}`}>
+              <div key={plan.name} className={`rounded-xl p-8 ${plan.highlighted ? "bg-white text-pm-text-primary ring-2 ring-white ring-offset-2 ring-offset-pm-brand-dark" : "bg-slate-700 text-white border border-slate-600"}`}>
                 <h3 className="font-semibold text-lg">{plan.name}</h3>
                 <p className={`mt-2 text-sm ${plan.highlighted ? "text-pm-text-secondary" : "text-white/70"}`}>{plan.description}</p>
                 <div className="mt-6 flex items-baseline gap-1">
