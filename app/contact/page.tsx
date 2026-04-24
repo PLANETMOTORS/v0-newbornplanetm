@@ -24,7 +24,6 @@ export const metadata: Metadata = {
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { ContactPageJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
-import { LiveChatWidget } from "@/components/live-chat-widget"
 import { ContactForm } from "@/components/contact-form"
 import { Button } from "@/components/ui/button"
 import { Phone, MapPin, Mail, Clock, MessageCircle, Car } from "lucide-react"
@@ -180,7 +179,6 @@ export default function ContactPage() {
       </main>
 
       <Footer />
-      <LiveChatWidget />
     </div>
   )
 }
