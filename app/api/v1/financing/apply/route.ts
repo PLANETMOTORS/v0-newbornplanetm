@@ -15,15 +15,7 @@ function asNumber(value: unknown, fallback = 0): number {
 function validateEmail(email: string): boolean {
   // Linear-time email check: anchored, no nested quantifiers, no backtracking risk.
   // Accepts the vast majority of valid RFC 5321 addresses without catastrophic backtracking.
-  if (!/^[^\s@]{1,64}@[^\s@]{1,253}$/.test(email)) {
-    return false
-  }
-
-  const atIndex = email.lastIndexOf('@')
-  const domain = email.slice(atIndex + 1)
-  // Domain must contain a dot AND the dot must not be the first or last character
-  const dotIndex = domain.indexOf(".")
-  return dotIndex > 0 && dotIndex < domain.length - 1
+  return /^[^\s@]{1,64}@[^\s@]{1,253}$/.test(email) && email.includes(".")
 }
 
 function generateApplicationNumber(): string {
