@@ -101,13 +101,7 @@
     "tailwind-merge": "^3.3.1",
     "typesense": "^3.0.5",
     "vaul": "^1.1.2",
-    "zod": "^3.24.1",
-    "sanity": "^5.22.0",
-    "next-sanity": "^12.3.0",
-    "@sanity/vision": "^5.22.0",
-    "@sanity/icons": "^3.7.4",
-    "@sanity/image-url": "^2.1.1",
-    "@sanity/ui": "^3.1.14"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",

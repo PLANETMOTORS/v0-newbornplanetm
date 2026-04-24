@@ -154,7 +154,7 @@ export default function HomepageMockupV2() {
         {/* Subtle Background Pattern */}
         <div className="absolute inset-0 opacity-40">
           <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle at 2px 2px, #1e3a8a 0.5px, transparent 0)`,
+            backgroundImage: `radial-gradient(circle at 2px 2px, var(--pm-brand) 0.5px, transparent 0)`,
             backgroundSize: '40px 40px'
           }} />
         </div>
@@ -179,7 +179,7 @@ export default function HomepageMockupV2() {
                   Browse Inventory
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
-                <button className="px-8 py-4 bg-white hover:bg-pm-surface-subtle text-pm-brand font-semibold rounded-xl transition-colors border-2 border-[#1e3a8a]">
+                <button className="px-8 py-4 bg-white hover:bg-pm-surface-subtle text-pm-brand font-semibold rounded-xl transition-colors border-2 border-pm-brand">
                   Sell / Trade Your Car
                 </button>
               </div>
@@ -268,7 +268,7 @@ export default function HomepageMockupV2() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredVehicles.slice(0, 6).map((car) => (
-              <div key={car.id} className="group bg-white rounded-xl border border-pm-border overflow-hidden hover:shadow-xl hover:border-[#1e3a8a]/30 transition-all">
+              <div key={car.id} className="group bg-white rounded-xl border border-pm-border overflow-hidden hover:shadow-xl hover:border-pm-brand/30 transition-all">
                 {/* Image */}
                 <div className="relative aspect-[16/10] bg-pm-surface-light">
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -320,7 +320,7 @@ export default function HomepageMockupV2() {
                       <div className="text-2xl font-bold text-pm-brand">{car.price}</div>
                       <div className="text-sm text-pm-text-secondary">or {car.monthly}</div>
                     </div>
-                    <button className="px-4 py-2 bg-pm-brand hover:bg-[#172554] text-white text-sm font-medium rounded-lg transition-colors">
+                    <button className="px-4 py-2 bg-pm-brand hover:bg-pm-brand-hover text-white text-sm font-medium rounded-lg transition-colors">
                       View Details
                     </button>
                   </div>
@@ -330,7 +330,7 @@ export default function HomepageMockupV2() {
           </div>
 
           <div className="text-center mt-10">
-            <Link href="#" className="inline-flex items-center gap-2 px-6 py-3 border-2 border-[#1e3a8a] text-pm-brand font-semibold rounded-xl hover:bg-pm-brand hover:text-white transition-colors">
+            <Link href="#" className="inline-flex items-center gap-2 px-6 py-3 border-2 border-pm-brand text-pm-brand font-semibold rounded-xl hover:bg-pm-brand hover:text-white transition-colors">
               View All Inventory
               <ChevronRight className="w-5 h-5" />
             </Link>
@@ -357,7 +357,7 @@ export default function HomepageMockupV2() {
               { icon: Battery, title: "Aviloo Battery Health", desc: "EV battery certified by independent experts." },
               { icon: Shield, title: "No Hidden Fees", desc: "The price you see is the price you pay." },
             ].map((item, i) => (
-              <div key={i} className="bg-white p-6 rounded-xl border border-pm-border hover:shadow-lg hover:border-[#1e3a8a]/30 transition-all">
+              <div key={i} className="bg-white p-6 rounded-xl border border-pm-border hover:shadow-lg hover:border-pm-brand/30 transition-all">
                 <div className="w-12 h-12 bg-pm-brand/10 rounded-xl flex items-center justify-center mb-4">
                   <item.icon className="w-6 h-6 text-pm-brand" />
                 </div>
@@ -514,7 +514,7 @@ export default function HomepageMockupV2() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#0f172a] text-white py-12">
+      <footer className="bg-pm-brand-dark text-white py-12">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>

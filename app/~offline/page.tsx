@@ -16,7 +16,7 @@ export const metadata: Metadata = {
  */
 export default function OfflinePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0f172a] to-[#1e293b] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-b from-pm-brand-dark to-pm-brand-dark flex items-center justify-center px-4">
       <div className="max-w-md w-full text-center space-y-8">
         {/* Logo — plain img so it works from precache with no server */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -60,7 +60,7 @@ export default function OfflinePage() {
         {/* Retry button — simple anchor back to homepage */}
         <a
           href="/"
-          className="inline-flex items-center gap-2 bg-pm-brand hover:bg-[#1e40af] text-white font-semibold px-8 py-3 rounded-full transition-colors"
+          className="inline-flex items-center gap-2 bg-pm-brand hover:bg-pm-brand-hover text-white font-semibold px-8 py-3 rounded-full transition-colors"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

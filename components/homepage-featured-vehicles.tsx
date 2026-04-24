@@ -225,7 +225,7 @@ export function HomepageFeaturedVehicles() {
           {filteredVehicles.map((vehicle) => (
             <div
               key={vehicle.id}
-              className="bg-white rounded-xl border border-[#dce3ed] overflow-hidden hover:shadow-lg transition-shadow group"
+              className="bg-white rounded-xl border border-pm-border overflow-hidden hover:shadow-lg transition-shadow group"
             >
               <div className="relative aspect-[4/3] bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] overflow-hidden">
                 {/* Vehicle image or gradient fallback */}

@@ -12,7 +12,7 @@ export function FooterNewsletter() {
         />
         <button
           type="submit"
-          className="px-4 py-2.5 bg-pm-brand hover:bg-[#1e40af] text-white text-sm font-semibold rounded-r-lg transition-colors"
+          className="px-4 py-2.5 bg-pm-brand hover:bg-pm-brand-hover text-white text-sm font-semibold rounded-r-lg transition-colors"
         >
           Subscribe
         </button>

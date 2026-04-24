@@ -136,7 +136,7 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
                 <Link href="/trade-in">Get My Offer</Link>
               </Button>
             </div>
-            <div className="bg-white rounded-xl p-8 shadow-lg border border-[#dce3ed]">
+            <div className="bg-white rounded-xl p-8 shadow-lg border border-pm-border">
               <h3 className="text-xl font-semibold text-pm-text-primary mb-6">Quick Estimate</h3>
               <div className="space-y-4">
                 <p className="text-pm-text-secondary">Get an instant offer for your vehicle in under 60 seconds. No obligation, no haggling.</p>
@@ -170,7 +170,7 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {displayReviews.map((review, index) => (
-              <div key={index} className="bg-[#f0f4f8] rounded-xl p-6 border border-[#dce3ed]">
+              <div key={index} className="bg-pm-surface-light rounded-xl p-6 border border-pm-border">
                 <div className="flex items-center gap-1 mb-4">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star key={star} className={`w-4 h-4 ${star <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-pm-text-muted"}`} />

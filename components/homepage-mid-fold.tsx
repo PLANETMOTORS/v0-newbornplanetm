@@ -54,7 +54,7 @@ export function HomepageMidFold() {
   return (
     <>
       {/* Shop By Category — horizontal pills */}
-      <section className="py-16 bg-white border-b border-[#dce3ed]">
+      <section className="py-16 bg-white border-b border-pm-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-bold text-pm-text-primary tracking-tight">
@@ -142,9 +142,9 @@ export function HomepageMidFold() {
               <div key={step.title} className="relative">
                 {/* Connector Line */}
                 {index < processSteps.length - 1 && (
-                  <div className="hidden lg:block absolute top-12 left-full w-full h-0.5 bg-[#dce3ed] -translate-y-1/2 z-0" />
+                  <div className="hidden lg:block absolute top-12 left-full w-full h-0.5 bg-pm-border -translate-y-1/2 z-0" />
                 )}
-                <div className="bg-white border border-[#dce3ed] rounded-xl p-6 relative z-10 h-full hover:shadow-lg transition-shadow">
+                <div className="bg-white border border-pm-border rounded-xl p-6 relative z-10 h-full hover:shadow-lg transition-shadow">
                   <div className="flex items-center gap-3 mb-4">
                     <div className={`w-12 h-12 ${step.color} rounded-xl flex items-center justify-center shadow-lg`}>
                       <step.icon className="w-6 h-6 text-white" />
@@ -176,13 +176,13 @@ export function HomepageMidFold() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-8">
-            <Button size="lg" className="bg-pm-brand hover:bg-[#172554] text-white px-8" asChild>
+            <Button size="lg" className="bg-pm-brand hover:bg-pm-brand-hover text-white px-8" asChild>
               <Link href="/inventory">
                 Start Shopping
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="border-[#c5d0de] text-pm-text-secondary hover:bg-[#f0f4f8]" asChild>
+            <Button size="lg" variant="outline" className="border-pm-border text-pm-text-secondary hover:bg-pm-surface-light" asChild>
               <Link href="/how-it-works">
                 Learn how it works
               </Link>
