@@ -844,6 +844,7 @@ function TradeInContent() {
                       <div className="relative">
                         <Input
                           placeholder="Enter your 17-character VIN"
+                          aria-label="Vehicle Identification Number (VIN)"
                           className="uppercase text-lg tracking-wider font-mono h-14 bg-white/5 border-white/20 text-white placeholder:text-white/30 pr-12"
                           maxLength={17}
                           value={vinNumber}
@@ -879,6 +880,7 @@ function TradeInContent() {
                         <div className="col-span-2">
                           <Input
                             placeholder="License plate"
+                            aria-label="License plate number"
                             className="uppercase text-lg tracking-wider font-mono h-14 bg-white/5 border-white/20 text-white placeholder:text-white/30"
                             value={plateNumber}
                             onChange={(e) => setPlateNumber(e.target.value.toUpperCase())}
@@ -955,6 +957,7 @@ function TradeInContent() {
                       </div>
                       <Input
                         placeholder="Mileage (km)"
+                        aria-label="Vehicle mileage in kilometres"
                         type="text"
                         inputMode="numeric"
                         pattern="[0-9]*"
@@ -1013,6 +1016,7 @@ function TradeInContent() {
                         <div className="mt-4 space-y-3">
                           <Input
                             placeholder="Enter your mileage (km)"
+                            aria-label="Vehicle mileage in kilometres"
                             type="text"
                             inputMode="numeric"
                             pattern="[0-9]*"

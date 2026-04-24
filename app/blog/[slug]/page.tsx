@@ -129,6 +129,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             alt={post.title}
             fill
             priority
+            quality={90}
+            sizes="100vw"
             className="object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -208,6 +210,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                           src={relatedPost.image}
                           alt={relatedPost.title}
                           fill
+                          quality={80}
                           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                           className="object-cover group-hover:scale-105 transition-transform duration-300"
                         />

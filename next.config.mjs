@@ -8,6 +8,12 @@ const analyzeBundles = withBundleAnalyzer({
 /** @type {import('next').NextConfig} */
 // Planet Motors - Next.js Config
 const nextConfig = {
+  // Enforce React strict mode — catches double-render bugs, deprecated APIs
+  reactStrictMode: true,
+
+  // Enable gzip/brotli compression for all responses
+  compress: true,
+
   // SEC-06: Remove x-powered-by: Next.js header (OWASP WSTG-CONF-08)
   poweredByHeader: false,
 

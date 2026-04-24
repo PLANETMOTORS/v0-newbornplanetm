@@ -274,7 +274,7 @@ export function PriceNegotiator({
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                   <Input type="text" placeholder="Enter your offer" value={offer} onChange={(e) => setOffer(e.target.value)} className="pl-7" disabled={isLoading} />
                 </div>
-                <Button onClick={handleSubmitOffer} disabled={isLoading || !offer} size="icon">
+                <Button onClick={handleSubmitOffer} disabled={isLoading || !offer} size="icon" aria-label="Submit offer">
                   <Send className="w-4 h-4" />
                 </Button>
               </div>
