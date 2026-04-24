@@ -1,39 +1,43 @@
 "use client"
 import { useTradeIn } from "./trade-in-context"
-import { Award, Star } from "lucide-react"
 import { Card } from "@/components/ui/card"
+import { Award, Star } from "lucide-react"
 
 export function TradeInComparison() {
   const { showOffer } = useTradeIn()
   if (showOffer) return null
   return (
     <>
-      <section className="py-20 bg-background">
+      {/* Comparison Table */}
+      <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Planet Motors vs. The Rest</h2>
-            <p className="text-muted-foreground">See why thousands of Canadians choose us</p>
+            <h2 className="text-3xl font-bold mb-4">How We Compare</h2>
+            <p className="text-muted-foreground">See why Canadians choose Planet Motors</p>
           </div>
-          <div className="max-w-3xl mx-auto overflow-x-auto">
+          <div className="max-w-4xl mx-auto overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b-2">
                   <th className="text-left p-4">Feature</th>
                   <th className="p-4 bg-primary text-primary-foreground rounded-t-lg">
-                    <div className="flex items-center justify-center gap-2"><Award className="h-5 w-5" />Planet Motors</div>
+                    <div className="flex items-center justify-center gap-2">
+                      <Award className="h-5 w-5" />
+                      Planet Motors
+                    </div>
                   </th>
                   <th className="p-4 text-muted-foreground">Traditional Dealer</th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  ["Offer Speed","60 seconds","2+ hours"],
-                  ["Price Guarantee","Beat by $500","No"],
-                  ["Pickup Service","Free, Canada-wide","N/A"],
-                  ["Payment Time","24 hours","Same day (cheque)"],
-                  ["Valuation Source","Canadian Black Book","Trade-in guides"],
-                  ["Phone Calls Required","None","Many"],
-                  ["Haggling","No games","Expected"],
+                  ["Offer Speed", "60 seconds", "2+ hours"],
+                  ["Price Guarantee", "Beat by $500", "No"],
+                  ["Pickup Service", "Free, Canada-wide", "N/A"],
+                  ["Payment Time", "24 hours", "Same day (cheque)"],
+                  ["Valuation Source", "Canadian Black Book", "Trade-in guides"],
+                  ["Phone Calls Required", "None", "Many"],
+                  ["Haggling", "No games", "Expected"],
                 ].map(([feature, pm, dealer], i) => (
                   <tr key={i} className="border-b">
                     <td className="p-4 font-semibold">{feature}</td>
@@ -47,6 +51,7 @@ export function TradeInComparison() {
         </div>
       </section>
 
+      {/* Testimonials */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
@@ -63,11 +68,20 @@ export function TradeInComparison() {
               { name: "Jennifer L.", location: "Calgary, AB", text: "They paid off my loan directly and e-Transferred my equity the next day. So easy compared to trading in at a dealership.", rating: 5 },
             ].map((review, i) => (
               <Card key={i} className="p-6">
-                <div className="flex items-center gap-1 mb-3 text-amber-500">{Array(review.rating).fill(0).map((_,j) => <Star key={j} className="h-4 w-4 fill-current" />)}</div>
+                <div className="flex items-center gap-1 mb-3 text-amber-500">
+                  {Array(review.rating).fill(0).map((_, j) => (
+                    <Star key={j} className="h-4 w-4 fill-current" />
+                  ))}
+                </div>
                 <p className="text-muted-foreground mb-4">&quot;{review.text}&quot;</p>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center font-bold text-primary">{review.name[0]}</div>
-                  <div><p className="font-semibold">{review.name}</p><p className="text-sm text-muted-foreground">{review.location}</p></div>
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center font-bold text-primary">
+                    {review.name[0]}
+                  </div>
+                  <div>
+                    <p className="font-semibold">{review.name}</p>
+                    <p className="text-sm text-muted-foreground">{review.location}</p>
+                  </div>
                 </div>
               </Card>
             ))}

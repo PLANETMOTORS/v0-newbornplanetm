@@ -1,33 +1,41 @@
 "use client"
 import { useTradeIn } from "./trade-in-context"
-import { ClipboardList, DollarSign, Truck } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Zap, TrendingUp, Truck, CreditCard } from "lucide-react"
 
 export function TradeInHowItWorks() {
   const { showOffer } = useTradeIn()
   if (showOffer) return null
   return (
-    <section className="py-20 bg-muted/30">
+    <section className="py-20 bg-background">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">How It Works</h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">Three simple steps to turn your car into cash</p>
+        <div className="text-center mb-16">
+          <Badge className="mb-4">Why Planet Motors</Badge>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            The Smarter Way to Trade-In
+          </h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Skip the dealership games. Get a fair price in 60 seconds, not 6 hours.
+          </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {[
-            { icon: ClipboardList, step: "01", title: "Tell Us About Your Car", desc: "Enter your VIN, plate number, or manually select your vehicle details. Takes less than 2 minutes." },
-            { icon: DollarSign, step: "02", title: "Get Your Instant Offer", desc: "Receive a real offer powered by Canadian Black Book data. No waiting, no back-and-forth." },
-            { icon: Truck, step: "03", title: "Get Paid Fast", desc: "Accept your offer and we'll pick up your vehicle for free anywhere in Canada. Payment within 24 hours." },
-          ].map((item) => (
-            <div key={item.step} className="text-center">
-              <div className="relative inline-flex mb-6">
-                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center">
-                  <item.icon className="h-8 w-8 text-primary" />
+            { icon: Zap, title: "60-Second Offers", desc: "Get an instant offer powered by Canadian Black Book. No waiting, no haggling.", highlight: "Instant Offer" },
+            { icon: TrendingUp, title: "Best Price Guarantee", desc: "We beat any competitor offer by $500 or we will give you $100.", highlight: "Guaranteed" },
+            { icon: Truck, title: "Free Canada-Wide Pickup", desc: "We come to your home or office. No need to drive anywhere.", highlight: "100% Free" },
+            { icon: CreditCard, title: "24-Hour Payment", desc: "Get paid within 24 hours via e-Transfer or certified cheque.", highlight: "Fast Cash" },
+          ].map((item, i) => (
+            <Card key={i} className="relative overflow-hidden border-2 hover:border-primary transition-all group">
+              <CardContent className="p-6">
+                <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                  <item.icon className="h-7 w-7 text-primary" />
                 </div>
-                <span className="absolute -top-2 -right-2 w-6 h-6 bg-primary text-primary-foreground rounded-full text-xs font-bold flex items-center justify-center">{item.step.replace("0","")}</span>
-              </div>
-              <h3 className="text-xl font-bold mb-3">{item.title}</h3>
-              <p className="text-muted-foreground">{item.desc}</p>
-            </div>
+                <h3 className="font-bold text-lg mb-2">{item.title}</h3>
+                <p className="text-muted-foreground text-sm mb-3">{item.desc}</p>
+                <Badge variant="secondary" className="text-xs">{item.highlight}</Badge>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
