@@ -109,7 +109,7 @@ function getProvinceFromPostalCode(postalCode: string): string {
 
 // Get city from postal code prefix (first 3 characters)
 function getCityFromPostalCode(postalCode: string): string {
-  const prefix = postalCode.replaceAll(/\s/g, '').slice(0, 3).toUpperCase()
+  const prefix = postalCode.replaceAll(' ', '').slice(0, 3).toUpperCase()
   const cityMap: Record<string, string> = {
     // Ontario - GTA
     'L4B': 'Richmond Hill', 'L4C': 'Richmond Hill', 'L4E': 'Richmond Hill', 'L4S': 'Richmond Hill',
@@ -201,7 +201,7 @@ const PROV_ABBR_TO_NAME: Record<string, string> = {
 // Fallback: look up city/province via geocoder.ca when local map has no match
 async function lookupPostalCodeOnline(postalCode: string): Promise<{ city: string; province: string; street?: string } | null> {
   try {
-    const clean = postalCode.replaceAll(/\s/g, '').toUpperCase()
+    const clean = postalCode.replaceAll(' ', '').toUpperCase()
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 3000) // 3s timeout
     const response = await fetch(
@@ -224,51 +224,62 @@ async function lookupPostalCodeOnline(postalCode: string): Promise<{ city: strin
   }
 }
 
+/** Build a street suggestion from an online geocoder result. */
+function buildOnlineStreetSuggestion(online: { city: string; province: string; street: string }, prefix: string): AddressSuggestion {
+  const parts = online.street.split(' ')
+  const streetType = parts.length > 1 ? parts.pop()! : 'Street'
+  const streetName = parts.join(' ') || online.street
+  return {
+    streetName,
+    streetType,
+    city: online.city,
+    province: online.province,
+    postalCode: prefix,
+    fullAddress: `${online.street}, ${online.city}, ${online.province}`,
+  }
+}
+
+/** Apply online geocoder results to fill in missing city/province/street data. */
+async function applyOnlineFallback(
+  postalCode: string,
+  prefix: string,
+  city: string,
+  province: string,
+  streetSuggestions: AddressSuggestion[],
+): Promise<{ city: string; province: string; streetSuggestions: AddressSuggestion[] }> {
+  const online = await lookupPostalCodeOnline(postalCode)
+  if (!online) return { city, province, streetSuggestions }
+
+  const resolvedCity = city || online.city
+  const resolvedProvince = province || online.province
+  const resolvedStreets =
+    streetSuggestions.length === 0 && online.street && online.city
+      ? [buildOnlineStreetSuggestion({ city: online.city, province: online.province, street: online.street }, prefix)]
+      : streetSuggestions
+
+  return { city: resolvedCity, province: resolvedProvince, streetSuggestions: resolvedStreets }
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
-  const postalCode = searchParams.get("postalCode")?.replaceAll(/\s/g, '').toUpperCase() || ""
+  const postalCode = searchParams.get("postalCode")?.replaceAll(' ', '').toUpperCase() ?? ""
 
   if (postalCode.length < 3) {
     return NextResponse.json({ suggestions: [], city: '', province: '' })
   }
 
-  // Get city and province from local postal code map
+  const prefix = postalCode.slice(0, 3)
   let city = getCityFromPostalCode(postalCode)
   let province = getProvinceFromPostalCode(postalCode)
-
-  // Get prefix (first 3 characters)
-  const prefix = postalCode.slice(0, 3)
-
-  // Check if we have street-level data for this postal code prefix
-  let streetSuggestions = postalCodePrefixStreets[prefix] || []
+  let streetSuggestions: AddressSuggestion[] = postalCodePrefixStreets[prefix] ?? []
 
   // If local map has no city match or no street suggestions, try online lookup (geocoder.ca)
-  if ((!city || streetSuggestions.length === 0) && postalCode.length >= 3) {
-    const online = await lookupPostalCodeOnline(postalCode)
-    if (online) {
-      if (!city) city = online.city
-      if (!province) province = online.province
-      // If the online lookup returned a street and we have no local street data, build a suggestion
-      if (streetSuggestions.length === 0 && online.street && online.city) {
-        const parts = online.street.split(' ')
-        const streetType = parts.length > 1 ? (parts.pop() ?? 'Street') : 'Street'
-        const streetName = parts.join(' ') || online.street
-        streetSuggestions = [{
-          streetName,
-          streetType,
-          city: online.city,
-          province: online.province,
-          postalCode: prefix,
-          fullAddress: `${online.street}, ${online.city}, ${online.province}`,
-        }]
-      }
-    }
+  if (!city || streetSuggestions.length === 0) {
+    const fallback = await applyOnlineFallback(postalCode, prefix, city, province, streetSuggestions)
+    city = fallback.city
+    province = fallback.province
+    streetSuggestions = fallback.streetSuggestions
   }
 
-  // Return suggestions + city/province
-  return NextResponse.json({
-    suggestions: streetSuggestions,
-    city,
-    province,
-  })
+  return NextResponse.json({ suggestions: streetSuggestions, city, province })
 }

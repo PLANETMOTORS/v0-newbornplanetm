@@ -2,16 +2,10 @@
 // Tests: API Performance, Schema Validation, Field Matching, Content Delivery
 
 // ── Security: all credentials from environment — never hardcoded ──────────
-const PROJECT_ID = process.env.SANITY_PROJECT_ID
+const PROJECT_ID = process.env.SANITY_PROJECT_ID || '4588vjsz'
 const DATASET = process.env.SANITY_DATASET || 'production'
 const API_VERSION = process.env.SANITY_API_VERSION || '2024-01-01'
 const TOKEN = process.env.SANITY_API_TOKEN
-
-if (!PROJECT_ID) {
-  console.error('❌ SANITY_PROJECT_ID environment variable is not set.')
-  console.error('   Run: export SANITY_PROJECT_ID=your_project_id_here')
-  process.exit(1)
-}
 
 if (!TOKEN) {
   console.error('❌ SANITY_API_TOKEN environment variable is not set.')
@@ -267,7 +261,10 @@ async function runComprehensiveTest() {
   console.log(`   Content query time: ${contentTime}ms`)
   console.log(`   Homepage content check:`)
   if (contentData) {
-    console.log(JSON.stringify({ title: contentData.title || '(not set)', hasHero: contentData.hasHero, hasTrustBadges: contentData.hasTrustBadges, hasSeo: contentData.hasSeo }))
+    console.log(`      Title: ${contentData.title || '(not set)'}`)
+    console.log(`      Has Hero: ${contentData.hasHero ? '✅' : '❌'}`)
+    console.log(`      Has Trust Badges: ${contentData.hasTrustBadges ? '✅' : '❌'}`)
+    console.log(`      Has SEO: ${contentData.hasSeo ? '✅' : '❌'}`)
   }
 
   // ============================================
@@ -286,7 +283,10 @@ async function runComprehensiveTest() {
 
   const validationData = await sanityQuery(validationQuery)
 
-  console.log(JSON.stringify({ documentsWithoutType: validationData.documentsWithoutType, documentsWithoutId: validationData.documentsWithoutId, draftDocuments: validationData.draftDocuments, publishedDocuments: validationData.publishedDocuments }))
+  console.log(`   Documents without _type: ${validationData.documentsWithoutType}`)
+  console.log(`   Documents without _id: ${validationData.documentsWithoutId}`)
+  console.log(`   Draft documents: ${validationData.draftDocuments}`)
+  console.log(`   Published documents: ${validationData.publishedDocuments}`)
 
   if (validationData.documentsWithoutType === 0 && validationData.documentsWithoutId === 0) {
     console.log('   ✅ All documents have valid _type and _id')
