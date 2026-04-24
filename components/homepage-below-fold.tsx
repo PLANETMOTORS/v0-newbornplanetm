@@ -169,8 +169,8 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
             </div>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
-            {displayReviews.map((review, index) => (
-              <div key={index} className="bg-[#f0f4f8] rounded-xl p-6 border border-[#dce3ed]">
+            {displayReviews.map((review) => (
+              <div key={review.name} className="bg-[#f0f4f8] rounded-xl p-6 border border-[#dce3ed]">
                 <div className="flex items-center gap-1 mb-4">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star key={star} className={`w-4 h-4 ${star <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />

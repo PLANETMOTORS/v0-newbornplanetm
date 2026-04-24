@@ -22,8 +22,8 @@ export function TestimonialsSection({ title, testimonials }: TestimonialsSection
       <div className="container mx-auto px-4">
         <h2 className="text-3xl font-bold text-center mb-12 md:text-4xl">{title}</h2>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-          {testimonials.map((testimonial, index) => (
-            <Card key={index} className="h-full">
+          {testimonials.map((testimonial) => (
+            <Card key={testimonial.name} className="h-full">
               <CardContent className="p-6 flex flex-col h-full">
                 {/* Stars */}
                 <div className="flex gap-1 mb-4">
