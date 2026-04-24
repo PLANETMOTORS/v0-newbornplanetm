@@ -7,8 +7,7 @@ import { ADMIN_EMAILS } from "@/lib/admin"
 /** Authenticate the request and return a service-role admin client.
  *  Returns null (with a 401 response already sent) if the user is not an admin. */
 async function requireAdminClient(): Promise<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  | { adminClient: SupabaseClient<any>; unauthorized: null }
+  | { adminClient: ReturnType<typeof createServiceClient>; unauthorized: null }
   | { adminClient: null; unauthorized: NextResponse }
 > {
   const supabase = await createClient()
@@ -26,7 +25,7 @@ async function requireAdminClient(): Promise<
 export async function GET(request: NextRequest) {
   try {
     const { adminClient, unauthorized } = await requireAdminClient()
-    if (!adminClient) return unauthorized as NextResponse
+    if (!adminClient) return unauthorized!
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get("status")
@@ -95,7 +94,7 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const { adminClient, unauthorized } = await requireAdminClient()
-    if (!adminClient) return unauthorized as NextResponse
+    if (!adminClient) return unauthorized!
 
     const { id, ...updates } = await request.json()
     if (!id) return NextResponse.json({ error: "Reservation ID required" }, { status: 400 })
