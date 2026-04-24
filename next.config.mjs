@@ -40,6 +40,7 @@ const nextConfig = {
       'framer-motion', 'swr',
       '@supabase/supabase-js', '@vercel/analytics', '@vercel/speed-insights',
       'sonner', '@stripe/stripe-js', '@stripe/react-stripe-js',
+      'zod', '@sentry/nextjs',
     ],
   },
   

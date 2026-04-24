@@ -23,7 +23,6 @@ export const metadata: Metadata = {
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { FinancialServiceJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
-import { LiveChatWidget } from "@/components/live-chat-widget"
 import { Button } from "@/components/ui/button"
 import { RateDisclosure } from "@/components/rate-disclosure"
 import { RATE_FLOOR, RATE_FLOOR_DISPLAY } from "@/lib/rates"
@@ -298,7 +297,6 @@ export default async function FinancingPage() {
       </main>
 
       <Footer />
-      <LiveChatWidget />
     </div>
   )
 }
