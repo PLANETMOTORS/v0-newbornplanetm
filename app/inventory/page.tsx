@@ -104,7 +104,7 @@ function transformVehicle(v: Vehicle) {
     badgeColor = "bg-teal-700"
   } else if (v.is_certified) {
     badge = "PM Certified"
-    badgeColor = "bg-primary"
+    // badgeColor stays "bg-primary" (the default)
   } else if (priceInDollars > 100000) {
     badge = "Premium"
     badgeColor = "bg-purple-700"

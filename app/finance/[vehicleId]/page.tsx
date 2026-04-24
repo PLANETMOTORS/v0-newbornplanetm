@@ -136,10 +136,8 @@ export default function FinanceCalculatorPage() {
     if (agreementType === "finance" && amountToFinance > 0 && periodicRate > 0) {
       payment = amountToFinance * (periodicRate * Math.pow(1 + periodicRate, totalPayments)) / (Math.pow(1 + periodicRate, totalPayments) - 1)
       totalInterest = (payment * totalPayments) - amountToFinance
-    } else if (agreementType === "cash") {
-      payment = 0
-      totalInterest = 0
     }
+    // For cash purchases, payment and totalInterest remain 0 (their initial values)
 
     const totalCostOfBorrowing = amountToFinance + totalInterest
 

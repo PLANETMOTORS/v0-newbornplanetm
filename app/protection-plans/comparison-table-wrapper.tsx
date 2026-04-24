@@ -6,7 +6,7 @@ import { ProtectionComparisonTable } from "@/components/protection-comparison-ta
 
 export function ComparisonTableWrapper() {
   const router = useRouter()
-  const [selectedProtection, setSelectedProtection] = useState<string>("")
+  const [, setSelectedProtection] = useState<string>("")
 
   useEffect(() => {
     if (typeof window !== "undefined") {
