@@ -31,7 +31,3 @@ export const config = {
   ],
 }
 
-// Explicitly declare Edge runtime so Vercel runs this middleware at the Edge
-// (no round-trip to origin for redirects/auth checks).
-// Docs: https://nextjs.org/docs/app/building-your-application/routing/middleware#runtime
-export const runtime = 'edge'
