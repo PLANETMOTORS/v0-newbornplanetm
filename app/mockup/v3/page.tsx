@@ -170,8 +170,8 @@ export default function MockupV3ProposalsPage() {
                   { name: "Premium", price: "$59", features: ["Everything Basic", "Electrical", "A/C"], highlighted: true, broken: false },
                   { name: "Ultimate", price: "$99", features: ["Everything Premium", "Full mechanical", "Zero deductible"], highlighted: false, broken: true },
                 ].map((plan) => (
-                  <div key={plan.name} className="rounded-xl p-4" style={plan.highlighted ? {} : { backgroundColor: "rgba(255,255,255,0.10)", border: "1px solid rgba(255,255,255,0.20)" }} className2={plan.highlighted ? "bg-white" : ""}>
-                    <div className={plan.highlighted ? "bg-white rounded-xl p-4" : ""}>
+                  <div key={plan.name} className={plan.highlighted ? "rounded-xl p-4 bg-white" : "rounded-xl p-4"} style={plan.highlighted ? {} : { backgroundColor: "rgba(255,255,255,0.10)", border: "1px solid rgba(255,255,255,0.20)" }}>
+                    <div>
                       <h3 className={`font-semibold text-sm ${plan.highlighted ? "text-pm-text-primary" : "text-white"}`}>{plan.name}</h3>
                       <p className="mt-1 text-xs" style={{ color: plan.highlighted ? "#475569" : "#94a3b8" }}>Coverage plan</p>
                       <div className={`mt-3 text-2xl font-bold ${plan.highlighted ? "text-pm-text-primary" : "text-white"}`}>{plan.price}</div>
