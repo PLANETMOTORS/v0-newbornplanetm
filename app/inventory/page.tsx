@@ -706,8 +706,9 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                   {/* Make */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Make</label>
+                    <label htmlFor="filter-make" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Make</label>
                     <select
+                      id="filter-make"
                       value={selectedMake}
                       onChange={(e) => { setSelectedMake(e.target.value) }}
                       className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
@@ -722,6 +723,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   <div>
                     <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Year</label>
                     <select
+                      id="filter-year"
                       value={selectedYear}
                       onChange={(e) => setSelectedYear(e.target.value)}
                       className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
@@ -736,6 +738,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   <div>
                     <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Fuel</label>
                     <select
+                      id="filter-fuel"
                       value={selectedFuelType}
                       onChange={(e) => setSelectedFuelType(e.target.value)}
                       className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
@@ -750,6 +753,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   <div>
                     <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Trans</label>
                     <select
+                      id="filter-trans"
                       value={selectedTransmission}
                       onChange={(e) => setSelectedTransmission(e.target.value)}
                       className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
@@ -764,6 +768,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   <div>
                     <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Drive</label>
                     <select
+                      id="filter-drive"
                       value={selectedDrivetrain}
                       onChange={(e) => setSelectedDrivetrain(e.target.value)}
                       className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
@@ -778,6 +783,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   <div>
                     <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Color</label>
                     <select
+                      id="filter-color"
                       value={selectedColor}
                       onChange={(e) => setSelectedColor(e.target.value)}
                       className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
