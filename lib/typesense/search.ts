@@ -91,6 +91,20 @@ export async function getSmartSuggestions(query: string): Promise<SmartSuggestio
 
 // ── Internal helpers ───────────────────────────────────────────────────────
 
+/** Add a suggestion if the key hasn't been seen yet. */
+function addUnique(
+  seen: Set<string>,
+  suggestions: SmartSuggestion[],
+  label: string,
+  field: SmartSuggestion["field"],
+): void {
+  const key = label.toLowerCase()
+  if (!seen.has(key)) {
+    seen.add(key)
+    suggestions.push({ label, query: label, field })
+  }
+}
+
 /**
  * Build a deduplicated, ranked list of suggestions from Typesense hits.
  *
@@ -105,47 +119,26 @@ function buildSuggestions(
 ): SmartSuggestion[] {
   const seen = new Set<string>()
   const suggestions: SmartSuggestion[] = []
-
   const lowerQuery = query.toLowerCase()
 
-  // Pass 1: collect unique makes that match the query
-  for (const hit of hits) {
-    const make = String(hit.document.make || "").trim()
-    if (!make) continue
-
-    const key = make.toLowerCase()
-    if (!seen.has(key) && key.includes(lowerQuery)) {
-      seen.add(key)
-      suggestions.push({ label: make, query: make, field: "make" })
-    }
-  }
-
-  // Pass 2: collect unique make+model combinations
-  for (const hit of hits) {
-    const make = String(hit.document.make || "").trim()
-    const model = String(hit.document.model || "").trim()
-    if (!make || !model) continue
-
-    const makeModel = `${make} ${model}`
-    const key = makeModel.toLowerCase()
-    if (!seen.has(key)) {
-      seen.add(key)
-      suggestions.push({ label: makeModel, query: makeModel, field: "make_model" })
-    }
-  }
-
-  // Pass 3: collect unique make+model+trim combinations (only if trim adds value)
   for (const hit of hits) {
     const make = String(hit.document.make || "").trim()
     const model = String(hit.document.model || "").trim()
     const trim = String(hit.document.trim || "").trim()
-    if (!make || !model || !trim) continue
 
-    const full = `${make} ${model} ${trim}`
-    const key = full.toLowerCase()
-    if (!seen.has(key)) {
-      seen.add(key)
-      suggestions.push({ label: full, query: full, field: "trim" })
+    // Pass 1: makes that match the query
+    if (make && make.toLowerCase().includes(lowerQuery)) {
+      addUnique(seen, suggestions, make, "make")
+    }
+
+    // Pass 2: make+model combinations
+    if (make && model) {
+      addUnique(seen, suggestions, `${make} ${model}`, "make_model")
+    }
+
+    // Pass 3: make+model+trim combinations
+    if (make && model && trim) {
+      addUnique(seen, suggestions, `${make} ${model} ${trim}`, "trim")
     }
   }
 
