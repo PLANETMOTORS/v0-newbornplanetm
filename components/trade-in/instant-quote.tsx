@@ -539,7 +539,7 @@ export function InstantQuote() {
                 <SelectValue placeholder="Select make" />
               </SelectTrigger>
               <SelectContent>
-                {Object.keys(vehicleData).sort().map((make) => (
+                {Object.keys(vehicleData).sort((a, b) => a.localeCompare(b)).map((make) => (
                   <SelectItem key={make} value={make}>{make}</SelectItem>
                 ))}
               </SelectContent>
