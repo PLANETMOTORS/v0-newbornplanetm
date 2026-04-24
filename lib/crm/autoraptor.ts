@@ -85,21 +85,6 @@ function escapeXml(s: string): string {
     .replace(/'/g, "&apos;")
 }
 
-/** Build the optional secondary vehicle block (for vehicleBlock variable). */
-function buildVehicleOptionalBlock(v: AutoRaptorLeadPayload["vehicle"], condition: string): string {
-  if (!v) return ""
-  return `
-    <vehicle interest="buy" status="${escapeXml(condition)}">
-      ${v.year ? `<year>${v.year}</year>` : ""}
-      ${v.make ? `<make>${escapeXml(v.make)}</make>` : ""}
-      ${v.model ? `<model>${escapeXml(v.model)}</model>` : ""}
-      ${v.trim ? `<trim>${escapeXml(v.trim)}</trim>` : ""}
-      ${v.vin ? `<vin>${escapeXml(v.vin)}</vin>` : ""}
-      ${v.stockNumber ? `<stock>${escapeXml(v.stockNumber)}</stock>` : ""}
-      ${v.price ? `<price type="quote" currency="CAD">${v.price}</price>` : ""}
-    </vehicle>`
-}
-
 /** Build the required primary vehicle block (always present in ADF). */
 function buildVehiclePrimaryBlock(v: AutoRaptorLeadPayload["vehicle"], requestType: string, condition: string): string {
   return `<vehicle interest="${escapeXml(requestType)}" status="${escapeXml(condition)}">
@@ -121,7 +106,6 @@ function buildAdfXml(lead: AutoRaptorLeadPayload): string {
   const requestType = lead.requestType ?? "buy"
   const condition = lead.vehicle?.condition ?? "used"
 
-  const vehicleBlock = buildVehicleOptionalBlock(lead.vehicle, condition)
   const primaryVehicleBlock = buildVehiclePrimaryBlock(lead.vehicle, requestType, condition)
   const phoneBlock = lead.phone
     ? `<phone type="voice" time="nopreference">${escapeXml(lead.phone)}</phone>`
@@ -132,9 +116,6 @@ function buildAdfXml(lead: AutoRaptorLeadPayload): string {
   const sourceLabel = lead.source
     ? escapeXml(lead.source.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()))
     : "Website"
-
-  // vehicleBlock is the optional secondary block (unused in final XML but kept for reference)
-  void vehicleBlock
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <?adf version="1.0"?>

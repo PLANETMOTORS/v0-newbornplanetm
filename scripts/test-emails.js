@@ -5,7 +5,6 @@
 // The canonical source of truth is test-emails.mjs (ESM).
 // This file exists only for tooling that requires a .js entry point.
 
-const { createRequire } = require('module')
 const { pathToFileURL } = require('url')
 
 // Dynamically import the ESM module and run it

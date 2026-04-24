@@ -2,7 +2,7 @@
 // Tests: API Performance, Schema Validation, Field Matching, Content Delivery
 
 // ── Security: all credentials from environment — never hardcoded ──────────
-const PROJECT_ID = process.env.SANITY_PROJECT_ID || '4588vjsz'
+const PROJECT_ID = process.env.SANITY_PROJECT_ID || 'wlxj8olw'
 const DATASET = process.env.SANITY_DATASET || 'production'
 const API_VERSION = process.env.SANITY_API_VERSION || '2024-01-01'
 const TOKEN = process.env.SANITY_API_TOKEN
