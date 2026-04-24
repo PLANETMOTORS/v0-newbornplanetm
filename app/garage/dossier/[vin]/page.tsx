@@ -141,7 +141,7 @@ export default async function DossierDetailPage({ params }: PageProps) {
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">History</p>
                   <div className="space-y-2">
                     {sohHistory.map((h) => (
-                      <div key={h.date} className="flex items-center justify-between text-sm">
+                      <div key={h.tested_at} className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">{new Date(h.tested_at).toLocaleDateString("en-CA")}</span>
                         <div className="flex items-center gap-3">
                           <span className="font-medium">{h.soh_pct}%</span>

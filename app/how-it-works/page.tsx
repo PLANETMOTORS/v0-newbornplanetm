@@ -127,7 +127,7 @@ export default function HowItWorksPage() {
             </div>
 
             <div className="max-w-4xl mx-auto">
-              {buyingSteps.map((step) => (
+              {buyingSteps.map((step, i) => (
                 <div key={step.title} className="flex gap-6 mb-12 last:mb-0">
                   <div className="flex flex-col items-center">
                     <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
@@ -202,7 +202,7 @@ export default function HowItWorksPage() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 max-w-5xl mx-auto">
-              {sellingSteps.map((step) => (
+              {sellingSteps.map((step, i) => (
                 <Card key={step.title} className="text-center relative">
                   {i < sellingSteps.length - 1 && (
                     <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2">
