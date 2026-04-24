@@ -4,8 +4,7 @@
  * Sanity CMS Backup Utility
  *
  * Exports the full Sanity dataset to a timestamped NDJSON file in the
- * local backups/ directory by shelling out to the Sanity CLI
- * (`npx @sanity/cli dataset export`).
+ * local backups/ directory using the Sanity HTTP Export API.
  *
  * Usage (run directly with tsx):
  *   SANITY_API_TOKEN=<token> npx tsx lib/cms/backup.ts
@@ -25,8 +24,7 @@
  *   NEXT_PUBLIC_SANITY_PROJECT_ID — project ID (falls back to hardcoded value)
  */
 
-import { spawnSync } from "child_process"
-import { mkdirSync, statSync, existsSync, readFileSync } from "fs"
+import { mkdirSync, statSync, existsSync, readFileSync, writeFileSync } from "fs"
 import { join } from "path"
 import { logger } from "@/lib/logger"
 
@@ -93,8 +91,8 @@ export interface BackupResult {
 /**
  * Export the full Sanity dataset to a local NDJSON file.
  *
- * Uses `npx @sanity/cli dataset export` (Sanity CLI v3) via child_process.
- * The CLI streams all documents as newline-delimited JSON directly to disk.
+ * Uses the Sanity HTTP Export API (no shell commands required):
+ * GET https://<projectId>.api.sanity.io/v2021-06-07/data/export/<dataset>
  *
  * @returns BackupResult — never throws; errors are captured in the result object
  */
@@ -117,37 +115,23 @@ export async function backupSanityDataset(): Promise<BackupResult> {
   logger.info(`[Sanity Backup] Output: ${filePath}`)
 
   try {
-    // Shell out to the Sanity CLI — this is the officially supported export method.
-    // --no-compress keeps the output as plain NDJSON (not .tar.gz).
-    // --overwrite allows re-running without manual cleanup.
-    //
-    // Use spawnSync with an explicit args array (shell: false) to prevent
-    // shell injection. All values (DATASET, filePath, PROJECT_ID, token) come
-    // from environment variables or path.join — never from user input — but
-    // avoiding a shell interpreter is the correct defence-in-depth approach.
-    // NOSONAR: spawnSync with shell:false and a fixed args array — no user input reaches this call.
-    const result = spawnSync( // NOSONAR
-      "npx",
-      [
-        "--yes", "@sanity/cli@latest",
-        "dataset", "export", DATASET, filePath,
-        "--project", PROJECT_ID,
-        "--token", token,
-        "--no-compress",
-        "--overwrite",
-      ],
-      {
-        shell: false,
-        stdio: "pipe",
-        env: { ...process.env, SANITY_AUTH_TOKEN: token },
-        timeout: 120_000, // 2 minute timeout
-      }
-    )
+    // Use the Sanity HTTP Export API — no shell commands needed.
+    // This is the officially supported programmatic export method.
+    const exportUrl = `https://${PROJECT_ID}.api.sanity.io/v2021-06-07/data/export/${DATASET}`
 
-    if (result.status !== 0) {
-      const stderr = result.stderr?.toString() ?? ""
-      throw new Error(`Sanity CLI exited with code ${result.status}: ${stderr}`)
+    const response = await fetch(exportUrl, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      signal: AbortSignal.timeout(120_000), // 2 minute timeout
+    })
+
+    if (!response.ok) {
+      throw new Error(`Sanity Export API returned ${response.status}: ${response.statusText}`)
     }
+
+    const ndjsonText = await response.text()
+    writeFileSync(filePath, ndjsonText, "utf8")
 
     // ── Validate the output ──────────────────────────────────────────────
     const validation = validateNdjson(filePath)
