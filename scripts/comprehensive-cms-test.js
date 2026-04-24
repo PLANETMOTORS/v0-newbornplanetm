@@ -261,7 +261,7 @@ async function runComprehensiveTest() {
   console.log(`   Content query time: ${contentTime}ms`)
   console.log(`   Homepage content check:`)
   if (contentData) {
-    console.log(JSON.stringify({ title: contentData.title || '(not set)', hasHero: contentData.hasHero, hasTrustBadges: contentData.hasTrustBadges, hasSeo: contentData.hasSeo })
+    console.log(JSON.stringify({ title: contentData.title || '(not set)', hasHero: contentData.hasHero, hasTrustBadges: contentData.hasTrustBadges, hasSeo: contentData.hasSeo }))
   }
 
   // ============================================
