@@ -261,10 +261,7 @@ async function runComprehensiveTest() {
   console.log(`   Content query time: ${contentTime}ms`)
   console.log(`   Homepage content check:`)
   if (contentData) {
-    console.log(`      Title: ${contentData.title || '(not set)'}`)
-    console.log(`      Has Hero: ${contentData.hasHero ? '✅' : '❌'}`)
-    console.log(`      Has Trust Badges: ${contentData.hasTrustBadges ? '✅' : '❌'}`)
-    console.log(`      Has SEO: ${contentData.hasSeo ? '✅' : '❌'}`)
+    console.log({ title: contentData.title || '(not set)', hasHero: contentData.hasHero, hasTrustBadges: contentData.hasTrustBadges, hasSeo: contentData.hasSeo })
   }
 
   // ============================================
@@ -283,10 +280,7 @@ async function runComprehensiveTest() {
 
   const validationData = await sanityQuery(validationQuery)
 
-  console.log(`   Documents without _type: ${validationData.documentsWithoutType}`)
-  console.log(`   Documents without _id: ${validationData.documentsWithoutId}`)
-  console.log(`   Draft documents: ${validationData.draftDocuments}`)
-  console.log(`   Published documents: ${validationData.publishedDocuments}`)
+  console.log({ documentsWithoutType: validationData.documentsWithoutType, documentsWithoutId: validationData.documentsWithoutId, draftDocuments: validationData.draftDocuments, publishedDocuments: validationData.publishedDocuments })
 
   if (validationData.documentsWithoutType === 0 && validationData.documentsWithoutId === 0) {
     console.log('   ✅ All documents have valid _type and _id')
