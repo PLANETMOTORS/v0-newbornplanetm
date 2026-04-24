@@ -260,7 +260,7 @@ export default function AIAgentsPage() {
                           </Button>
                         </div>
                         <div className="space-y-2">
-                          {((editForm.quick_actions || []) as QuickAction[]).map((qa) => (
+                          {((editForm.quick_actions || []) as QuickAction[]).map((qa, i) => (
                             <div key={qa.label} className="flex gap-2 items-center">
                               <Input
                                 value={qa.label}

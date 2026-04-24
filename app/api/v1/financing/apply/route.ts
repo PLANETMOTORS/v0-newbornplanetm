@@ -19,8 +19,11 @@ function validateEmail(email: string): boolean {
     return false
   }
 
-  const domain = email.slice(email.lastIndexOf('@') + 1)
-  return domain.includes(".")
+  const atIndex = email.lastIndexOf('@')
+  const domain = email.slice(atIndex + 1)
+  // Domain must contain a dot AND the dot must not be the first or last character
+  const dotIndex = domain.indexOf(".")
+  return dotIndex > 0 && dotIndex < domain.length - 1
 }
 
 function generateApplicationNumber(): string {

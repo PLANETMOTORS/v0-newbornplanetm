@@ -468,21 +468,21 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                       <td className="p-4 font-semibold">Starting Price</td>
                       <td className="p-4 text-center font-bold text-primary">${data.startingPrice.toLocaleString()}</td>
                       {data.competitors.map((comp) => (
-                        <td key={`price-`} className="p-4 text-center">${comp.price.toLocaleString()}</td>
+                        <td key={`price-${comp.name}`} className="p-4 text-center">${comp.price.toLocaleString()}</td>
                       ))}
                     </tr>
                     <tr className="border-b">
                       <td className="p-4 font-semibold">Fuel Economy (Hwy)</td>
                       <td className="p-4 text-center font-bold text-primary">{data.mpg.highway} L/100km</td>
                       {data.competitors.map((comp) => (
-                        <td key={`mpg-`} className="p-4 text-center">{comp.mpg} L/100km</td>
+                        <td key={`mpg-${comp.name}`} className="p-4 text-center">{comp.mpg} L/100km</td>
                       ))}
                     </tr>
                     <tr>
                       <td className="p-4 font-semibold">Safety Rating</td>
                       <td className="p-4 text-center font-bold text-primary">{data.safetyRating} Stars</td>
                       {data.competitors.map((comp) => (
-                        <td key={`safety-`} className="p-4 text-center">{comp.safety} Stars</td>
+                        <td key={`safety-${comp.name}`} className="p-4 text-center">{comp.safety} Stars</td>
                       ))}
                     </tr>
                   </tbody>

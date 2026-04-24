@@ -1208,9 +1208,9 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                     </CardHeader>
                     <CardContent>
                       {vehicleData.packages.map((pkg) => (
-                        <div key={pkg.name} className="py-4 border-b last:border-b-0">
+                        <div key={typeof pkg === "string" ? pkg : pkg.name} className="py-4 border-b last:border-b-0">
                           <div className="flex justify-between items-center">
-                            <span className="font-semibold">{pkg}</span>
+                            <span className="font-semibold">{typeof pkg === "string" ? pkg : pkg.name}</span>
                             <Button variant="link" className="p-0 h-auto text-primary text-sm" onClick={() => setActiveTab("features")}>
                               View details →
                             </Button>
@@ -1297,7 +1297,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
-                          {vehicleData.fullInspection.vinHistory.map((item) => (
+                          {vehicleData.fullInspection.vinHistory.map((item, i) => (
                             <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 1}</span>
                               <span>{item}</span>
@@ -1316,7 +1316,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
-                          {vehicleData.fullInspection.powertrainEngine.map((item) => (
+                          {vehicleData.fullInspection.powertrainEngine.map((item, i) => (
                             <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 11}</span>
                               <span>{item}</span>
@@ -1335,7 +1335,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
-                          {vehicleData.fullInspection.brakesSuspension.map((item) => (
+                          {vehicleData.fullInspection.brakesSuspension.map((item, i) => (
                             <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 33}</span>
                               <span>{item}</span>
@@ -1354,7 +1354,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
-                          {vehicleData.fullInspection.tyresWheels.map((item) => (
+                          {vehicleData.fullInspection.tyresWheels.map((item, i) => (
                             <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 46}</span>
                               <span>{item}</span>
@@ -1373,7 +1373,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
-                          {vehicleData.fullInspection.exterior.map((item) => (
+                          {vehicleData.fullInspection.exterior.map((item, i) => (
                             <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 54}</span>
                               <span>{item}</span>
@@ -1392,7 +1392,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
-                          {vehicleData.fullInspection.interior.map((item) => (
+                          {vehicleData.fullInspection.interior.map((item, i) => (
                             <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 75}</span>
                               <span>{item}</span>
@@ -1411,7 +1411,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
-                          {vehicleData.fullInspection.driveTest.map((item) => (
+                          {vehicleData.fullInspection.driveTest.map((item, i) => (
                             <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 95}</span>
                               <span>{item}</span>
@@ -1430,7 +1430,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
-                          {vehicleData.fullInspection.evSystems.map((item) => (
+                          {vehicleData.fullInspection.evSystems.map((item, i) => (
                             <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 105}</span>
                               <span>{item}</span>
@@ -1449,7 +1449,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
-                          {vehicleData.fullInspection.detailingSafety.map((item) => (
+                          {vehicleData.fullInspection.detailingSafety.map((item, i) => (
                             <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 117}-{i + 117 + 9}</span>
                               <span>{item}</span>
@@ -1749,7 +1749,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <tr className="border-b">
                           <th className="text-left py-3 px-4 font-medium"></th>
                           {vehicleData.protectionPackages.map((pkg) => (
-                            <th key={pkg.name} className={`text-center py-3 px-4 font-medium `}>
+                            <th key={pkg.name} className={`text-center py-3 px-4 font-medium ${pkg.recommended ? "bg-primary/5" : ""}`}>
                               {pkg.name}
                               {pkg.recommended && <Badge className="ml-2 bg-primary text-xs">Recommended</Badge>}
                             </th>
