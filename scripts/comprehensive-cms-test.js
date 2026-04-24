@@ -1,10 +1,37 @@
 // Comprehensive CMS Test - Wide Range Verification
 // Tests: API Performance, Schema Validation, Field Matching, Content Delivery
 
-const PROJECT_ID = '4588vjsz'
-const DATASET = 'production'
-const API_VERSION = '2024-01-01'
+// ── Security: all credentials from environment — never hardcoded ──────────
+const PROJECT_ID = process.env.SANITY_PROJECT_ID || '4588vjsz'
+const DATASET = process.env.SANITY_DATASET || 'production'
+const API_VERSION = process.env.SANITY_API_VERSION || '2024-01-01'
 const TOKEN = process.env.SANITY_API_TOKEN
+
+if (!TOKEN) {
+  console.error('❌ SANITY_API_TOKEN environment variable is not set.')
+  console.error('   Run: export SANITY_API_TOKEN=your_token_here')
+  process.exit(1)
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+
+const BASE_URL = `https://${PROJECT_ID}.api.sanity.io/v${API_VERSION}/data/query/${DATASET}`
+const AUTH_HEADERS = { Authorization: `Bearer ${TOKEN}` }
+
+/**
+ * Execute a GROQ query against the Sanity API.
+ * Throws on HTTP errors or missing result.
+ */
+async function sanityQuery(query) {
+  const url = `${BASE_URL}?query=${encodeURIComponent(query)}`
+  const response = await fetch(url, { headers: AUTH_HEADERS })
+  if (!response.ok) {
+    const body = await response.text().catch(() => '')
+    throw new Error(`Sanity API error ${response.status}: ${body.slice(0, 200)}`)
+  }
+  const data = await response.json()
+  return data.result
+}
 
 async function runComprehensiveTest() {
   console.log('='.repeat(80))
@@ -29,9 +56,7 @@ async function runComprehensiveTest() {
   const latencyTests = []
   for (let i = 0; i < 5; i++) {
     const start = Date.now()
-    await fetch(`https://${PROJECT_ID}.api.sanity.io/v${API_VERSION}/data/query/${DATASET}?query=*[0]`, {
-      headers: { Authorization: `Bearer ${TOKEN}` }
-    })
+    await sanityQuery('*[0]')
     latencyTests.push(Date.now() - start)
   }
   const avgLatency = latencyTests.reduce((a, b) => a + b, 0) / latencyTests.length
@@ -71,15 +96,11 @@ async function runComprehensiveTest() {
     }
   }`
 
-  const typesRes = await fetch(
-    `https://${PROJECT_ID}.api.sanity.io/v${API_VERSION}/data/query/${DATASET}?query=${encodeURIComponent(typesQuery)}`,
-    { headers: { Authorization: `Bearer ${TOKEN}` } }
-  )
-  const typesData = await typesRes.json()
+  const typesData = await sanityQuery(typesQuery)
 
-  console.log('   Document Types Found:', typesData.result.allTypes.join(', '))
+  console.log('   Document Types Found:', typesData.allTypes.join(', '))
   console.log('\n   Document Counts:')
-  for (const [type, count] of Object.entries(typesData.result.counts)) {
+  for (const [type, count] of Object.entries(typesData.counts)) {
     console.log(`      ${type}: ${count}`)
   }
 
@@ -138,14 +159,15 @@ async function runComprehensiveTest() {
   // Verify each document type
   for (const [docType, schema] of Object.entries(expectedSchemas)) {
     console.log(`\n   📄 ${docType}:`)
-    
-    const docQuery = `*[_type == "${docType}"][0]`
-    const docRes = await fetch(
-      `https://${PROJECT_ID}.api.sanity.io/v${API_VERSION}/data/query/${DATASET}?query=${encodeURIComponent(docQuery)}`,
-      { headers: { Authorization: `Bearer ${TOKEN}` } }
-    )
-    const docData = await docRes.json()
-    const doc = docData.result
+
+    let doc
+    try {
+      doc = await sanityQuery(`*[_type == "${docType}"][0]`)
+    } catch (err) {
+      console.log(`      ❌ Query failed: ${err.message}`)
+      results.failed++
+      continue
+    }
 
     if (!doc) {
       console.log(`      ⚠️ No document found`)
@@ -154,7 +176,7 @@ async function runComprehensiveTest() {
     }
 
     const docFields = Object.keys(doc).filter(k => !k.startsWith('_') || k === '_type' || k === '_id')
-    
+
     // Check required fields
     let allRequiredPresent = true
     for (const field of schema.required) {
@@ -179,7 +201,7 @@ async function runComprehensiveTest() {
         missingExpected.push(field)
       }
     }
-    
+
     if (presentExpected.length > 0) {
       console.log(`      ✅ Present: ${presentExpected.join(', ')}`)
     }
@@ -194,11 +216,11 @@ async function runComprehensiveTest() {
       for (const part of parentParts) {
         parentObj = parentObj?.[part]
       }
-      
+
       if (parentObj && typeof parentObj === 'object') {
         const presentNested = nestedFields.filter(f => parentObj[f] !== undefined)
         const missingNested = nestedFields.filter(f => parentObj[f] === undefined)
-        
+
         if (presentNested.length > 0) {
           console.log(`      ✅ ${parent}: ${presentNested.join(', ')}`)
           results.passed++
@@ -231,22 +253,18 @@ async function runComprehensiveTest() {
     "hasTrustBadges": defined(trustBadges) && count(trustBadges) > 0,
     "hasSeo": defined(seo)
   }`
-  
+
   const contentStart = Date.now()
-  const contentRes = await fetch(
-    `https://${PROJECT_ID}.api.sanity.io/v${API_VERSION}/data/query/${DATASET}?query=${encodeURIComponent(contentQuery)}`,
-    { headers: { Authorization: `Bearer ${TOKEN}` } }
-  )
+  const contentData = await sanityQuery(contentQuery)
   const contentTime = Date.now() - contentStart
-  const contentData = await contentRes.json()
 
   console.log(`   Content query time: ${contentTime}ms`)
   console.log(`   Homepage content check:`)
-  if (contentData.result) {
-    console.log(`      Title: ${contentData.result.title || '(not set)'}`)
-    console.log(`      Has Hero: ${contentData.result.hasHero ? '✅' : '❌'}`)
-    console.log(`      Has Trust Badges: ${contentData.result.hasTrustBadges ? '✅' : '❌'}`)
-    console.log(`      Has SEO: ${contentData.result.hasSeo ? '✅' : '❌'}`)
+  if (contentData) {
+    console.log(`      Title: ${contentData.title || '(not set)'}`)
+    console.log(`      Has Hero: ${contentData.hasHero ? '✅' : '❌'}`)
+    console.log(`      Has Trust Badges: ${contentData.hasTrustBadges ? '✅' : '❌'}`)
+    console.log(`      Has SEO: ${contentData.hasSeo ? '✅' : '❌'}`)
   }
 
   // ============================================
@@ -263,18 +281,14 @@ async function runComprehensiveTest() {
     "publishedDocuments": count(*[!(_id match "drafts.*")])
   }`
 
-  const validationRes = await fetch(
-    `https://${PROJECT_ID}.api.sanity.io/v${API_VERSION}/data/query/${DATASET}?query=${encodeURIComponent(validationQuery)}`,
-    { headers: { Authorization: `Bearer ${TOKEN}` } }
-  )
-  const validationData = await validationRes.json()
+  const validationData = await sanityQuery(validationQuery)
 
-  console.log(`   Documents without _type: ${validationData.result.documentsWithoutType}`)
-  console.log(`   Documents without _id: ${validationData.result.documentsWithoutId}`)
-  console.log(`   Draft documents: ${validationData.result.draftDocuments}`)
-  console.log(`   Published documents: ${validationData.result.publishedDocuments}`)
+  console.log(`   Documents without _type: ${validationData.documentsWithoutType}`)
+  console.log(`   Documents without _id: ${validationData.documentsWithoutId}`)
+  console.log(`   Draft documents: ${validationData.draftDocuments}`)
+  console.log(`   Published documents: ${validationData.publishedDocuments}`)
 
-  if (validationData.result.documentsWithoutType === 0 && validationData.result.documentsWithoutId === 0) {
+  if (validationData.documentsWithoutType === 0 && validationData.documentsWithoutId === 0) {
     console.log('   ✅ All documents have valid _type and _id')
     results.passed++
   } else {
@@ -302,4 +316,7 @@ async function runComprehensiveTest() {
   console.log('\n' + '='.repeat(80))
 }
 
-runComprehensiveTest().catch(console.error)
+runComprehensiveTest().catch(err => {
+  console.error('❌ Test suite crashed:', err.message)
+  process.exit(1)
+})
