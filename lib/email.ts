@@ -318,7 +318,7 @@ const confirmationTemplates: Record<ConfirmationType, (data: ConfirmationData) =
         <div style="padding: 20px;">
           <h2>Congratulations, ${escapeHtml(data.customerName)}!</h2>
           <div style="background: #dcfce7; border: 2px solid #22c55e; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
-            <p style="margin: 0; font-size: 24px; color: #166534;"><strong>$${data.offerAmount?.toLocaleString()}</strong></p>
+            <p style="margin: 0; font-size: 24px; color: #166534;"><strong>${data.offerAmount != null ? `$${data.offerAmount.toLocaleString()}` : 'N/A'}</strong></p>
             <p style="margin: 5px 0 0; color: #166534;">Accepted Offer</p>
           </div>
           ${data.vehicleInfo ? `<p><strong>Vehicle:</strong> ${escapeHtml(data.vehicleInfo)}</p>` : ''}
