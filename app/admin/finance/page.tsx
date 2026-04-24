@@ -156,7 +156,7 @@ export default function AdminFinancePage() {
         document.body.appendChild(a)
         a.click()
         window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
+        a.remove()
       }
     } catch (error) {
       console.error("Error downloading document:", error)

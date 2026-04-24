@@ -186,7 +186,7 @@ export async function POST(req: Request) {
   })
 
   // Save user's latest message (non-blocking)
-  const latestUserMessage = messages.filter(m => m.role === "user").pop()
+  const latestUserMessage = messages.findLast((m: { role: string }) => m.role === "user")
   if (latestUserMessage) {
     conversationPromise.then(convId => {
       if (convId) {

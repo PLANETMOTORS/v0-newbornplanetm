@@ -5,7 +5,7 @@ import { isAdminEmail } from "@/lib/admin"
 
 const BUCKET = "vehicle-photos"
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB per image
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"]
+const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"])
 
 /**
  * POST /api/v1/admin/vehicles/[id]/photos
@@ -68,7 +68,7 @@ export async function POST(
           { status: 400 },
         )
       }
-      if (!ALLOWED_TYPES.includes(value.type)) {
+      if (!ALLOWED_TYPES.has(value.type)) {
         return NextResponse.json(
           { error: `File "${value.name}" has unsupported type "${value.type}". Allowed: JPEG, PNG, WebP, AVIF.` },
           { status: 400 },
