@@ -77,6 +77,25 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
   const draftLoadedRef = useRef(false)
   const serverSyncTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const draftKey = useMemo(() => `pm:finance-draft:${vehicleId || "general"}`, [vehicleId])
+  // Capture UTM params from URL on mount (persisted to submission payload)
+  const utmParams = useRef<Record<string, string>>({})
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const sp = new URLSearchParams(window.location.search)
+    const utm: Record<string, string> = {}
+    for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"]) {
+      const val = sp.get(key)
+      if (val) utm[key] = val
+    }
+    // Also check sessionStorage for previously captured UTMs
+    try {
+      const stored = sessionStorage.getItem("pm:utm")
+      if (stored) Object.assign(utm, JSON.parse(stored))
+      if (Object.keys(utm).length > 0) sessionStorage.setItem("pm:utm", JSON.stringify(utm))
+    } catch { /* noop */ }
+    utmParams.current = utm
+  }, [])
+
   // GA4 form_start — fires once on first user interaction
   const formStartFired = useRef(false)
   const fireFormStart = useCallback(() => {
@@ -632,6 +651,15 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     if (!isVehicleSelected) {
       errors.push("Please select a vehicle from inventory")
     }
+    // Down payment validation: must be >= 0 and <= vehicle price
+    const dp = parseFloat(vehicleInfo.downPayment) || 0
+    const price = parseFloat(vehicleInfo.totalPrice) || 0
+    if (dp < 0) {
+      errors.push("Down payment cannot be negative")
+    }
+    if (price > 0 && dp > price) {
+      errors.push("Down payment cannot exceed the vehicle price")
+    }
     return errors
   }
   
@@ -671,7 +699,7 @@ if (errors.length > 0) {
     setIsSubmitting(true)
     setSubmitError(null)
     try {
-      // Fire GA4 form_submit event
+      // Fire GA4 form_submit event (respects consent mode — gtag handles consent internally)
       if (typeof window !== "undefined" && (window as any).gtag) {
         (window as any).gtag("event", "form_submit", {
           event_category: "finance_application",
@@ -694,7 +722,8 @@ if (errors.length > 0) {
           tradeIn: tradeIn.hasTradeIn ? tradeIn : null,
           financingTerms,
           additionalNotes,
-          vehicleId
+          vehicleId,
+          utm: utmParams.current,
         })
       })
       

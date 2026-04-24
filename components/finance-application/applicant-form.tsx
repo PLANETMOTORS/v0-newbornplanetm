@@ -99,7 +99,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
           </div>
           <div>
             <Label htmlFor="middleName">Middle Name</Label>
-            <Input id="middleName" value={data.middleName} onChange={(e) => updateField("middleName", e.target.value)} />
+            <Input id="middleName" data-testid="finance-step-1-middle-name" aria-invalid={getAriaInvalid("Middle Name")} aria-describedby={getAriaDescribedBy("Middle Name")} value={data.middleName} onChange={(e) => updateField("middleName", e.target.value)} />
           </div>
           <div>
             <Label htmlFor="lastName" className={getLabelClass("Last Name")}>Last Name *</Label>
@@ -207,7 +207,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
           </div>
           <div>
             <Label htmlFor="email" className={getLabelClass("Email")}>Email *</Label>
-            <Input id="email" type="email" value={data.email} onChange={(e) => updateField("email", e.target.value)} className={getInputErrorClass("Email")} />
+            <Input id="email" data-testid="finance-step-1-email" aria-invalid={getAriaInvalid("Email")} aria-describedby={getAriaDescribedBy("Email")} type="email" value={data.email} onChange={(e) => updateField("email", e.target.value)} className={getInputErrorClass("Email")} />
           </div>
           <div>
             <Label className={getLabelClass("Credit Rating")}>Credit Rating *</Label>
