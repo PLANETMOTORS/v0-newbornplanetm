@@ -57,7 +57,7 @@ export async function getSmartSuggestions(query: string): Promise<SmartSuggestio
   if (!client) return []
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const result = await client
       .collections(VEHICLES_COLLECTION)
       .documents()
@@ -79,7 +79,7 @@ export async function getSmartSuggestions(query: string): Promise<SmartSuggestio
         include_fields: "make,model,trim",
       })
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const hits = (result.hits || []) as Array<{ document: Record<string, unknown> }>
 
     return buildSuggestions(trimmed, hits)
