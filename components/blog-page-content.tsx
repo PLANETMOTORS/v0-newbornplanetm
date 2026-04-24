@@ -39,7 +39,7 @@ export function BlogPageContent({ featuredSlug, initialPosts }: BlogPageContentP
 
   const categories = [
     "All",
-    ...Array.from(new Set(allPosts.map((p) => p.category))).sort(),
+    ...Array.from(new Set(allPosts.map((p) => p.category))).sort((a, b) => a.localeCompare(b)),
   ]
 
   const [visibleCount, setVisibleCount] = useState(POSTS_PER_PAGE)
