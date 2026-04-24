@@ -38,7 +38,7 @@ export default function VehiclesLoading() {
             <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <Card key={i} className="overflow-hidden">
-                  <Skeleton className="aspect-[4/3]" />
+                  <Skeleton className="aspect-4/3" />
                   <CardContent className="p-4 space-y-3">
                     <Skeleton className="h-6 w-3/4" />
                     <Skeleton className="h-4 w-1/2" />

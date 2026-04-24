@@ -221,14 +221,14 @@ export default function VehiclePhotoManager({
         <div className="px-6 pt-4 space-y-2">
           {error && (
             <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <AlertCircle className="w-4 h-4 shrink-0" />
               {error}
               <button onClick={() => setError(null)} className="ml-auto font-bold">&times;</button>
             </div>
           )}
           {successMsg && (
             <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 rounded-lg text-sm">
-              <CheckCircle className="w-4 h-4 flex-shrink-0" />
+              <CheckCircle className="w-4 h-4 shrink-0" />
               {successMsg}
             </div>
           )}
@@ -315,7 +315,7 @@ export default function VehiclePhotoManager({
                       }`}
                     >
                       {/* Image */}
-                      <div className="aspect-[4/3] relative bg-gray-100">
+                      <div className="aspect-4/3 relative bg-gray-100">
                         <Image
                           src={url}
                           alt={`Photo ${idx + 1}`}

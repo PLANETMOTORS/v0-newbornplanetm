@@ -68,7 +68,7 @@ export default function ElectricVehiclesPage() {
 
       <main id="main-content" role="main" aria-label="Electric vehicles">
         {/* Hero Section */}
-        <section className="relative bg-gradient-to-br from-green-900 via-green-800 to-emerald-900 text-white py-16 lg:py-24">
+        <section className="relative bg-linear-to-br from-green-900 via-green-800 to-emerald-900 text-white py-16 lg:py-24">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl">
               <Badge className="bg-green-500/20 text-green-300 border-green-500/30 mb-4">
@@ -129,7 +129,7 @@ export default function ElectricVehiclesPage() {
                   className="group"
                 >
                   <Card className="overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1">
-                    <div className="relative aspect-[4/3]">
+                    <div className="relative aspect-4/3">
                       <Image
                         src={make.image}
                         alt={`Used ${make.name} electric vehicles`}
@@ -137,7 +137,7 @@ export default function ElectricVehiclesPage() {
                         className="object-cover group-hover:scale-105 transition-transform"
                         sizes="(max-width: 768px) 50vw, 16vw"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
                       <div className="absolute bottom-2 left-2 right-2">
                         <p className="text-white font-semibold">{make.name}</p>
                         <p className="text-white/80 text-xs">{make.count} available</p>

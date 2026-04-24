@@ -234,7 +234,7 @@ export default function ComparePage() {
                     >
                       <X className="h-4 w-4" />
                     </button>
-                    <div className="relative aspect-[4/3]">
+                    <div className="relative aspect-4/3">
                       <Image
                         src={getVehicle(selectedVehicles[slot])?.image || "/images/vehicle-placeholder.jpg"}
                         alt={getVehicle(selectedVehicles[slot])?.name || "Vehicle image"}
@@ -286,9 +286,9 @@ export default function ComparePage() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b bg-muted/30">
-                        <th className="text-left p-4 font-medium min-w-[200px]">Specification</th>
+                        <th className="text-left p-4 font-medium min-w-50">Specification</th>
                         {selectedVehicleData.map(vehicle => (
-                          <th key={vehicle.id} className="text-center p-4 font-medium min-w-[200px]">
+                          <th key={vehicle.id} className="text-center p-4 font-medium min-w-50">
                             {vehicle.name.split(" ").slice(0, 3).join(" ")}
                           </th>
                         ))}
@@ -486,7 +486,7 @@ export default function ComparePage() {
                             <ul className="space-y-1">
                               {vehicle.features.map((feature, i) => (
                                 <li key={i} className="flex items-center gap-2 text-sm">
-                                  <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                  <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
                                   {feature}
                                 </li>
                               ))}

@@ -8,7 +8,7 @@ import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 
 export default function VerifyEmailPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen bg-linear-to-b from-background to-muted/30">
       <Header />
       
       <main id="main-content" tabIndex={-1} className="container mx-auto px-4 py-16">
@@ -38,15 +38,15 @@ export default function VerifyEmailPage() {
 
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
                   <p className="text-sm">Check your inbox and spam folder</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
                   <p className="text-sm">Click the verification link within 24 hours</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
                   <p className="text-sm">Return here to sign in once verified</p>
                 </div>
               </div>

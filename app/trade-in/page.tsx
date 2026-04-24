@@ -786,7 +786,7 @@ function TradeInContent() {
       <main id="main-content" tabIndex={-1} className="overflow-x-hidden max-w-full">
         {/* Instant Quote Banner - Shows when coming from AI Quote */}
         {instantQuote && (
-          <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4">
+          <div className="bg-linear-to-r from-green-600 to-emerald-600 text-white py-4">
             <div className="container mx-auto px-4">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -808,7 +808,7 @@ function TradeInContent() {
         )}
         
         {/* Hero Section — Clean, Clutch-Inspired */}
-        <section className="relative bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 py-16 sm:py-24 overflow-hidden">
+        <section className="relative bg-linear-to-b from-slate-950 via-slate-900 to-slate-950 py-16 sm:py-24 overflow-hidden">
           {/* Subtle background grid */}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.08),transparent_50%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(16,185,129,0.06),transparent_50%)]" />
@@ -827,7 +827,7 @@ function TradeInContent() {
 
             {/* VIN Lookup Card — Front and Center */}
             <div className="max-w-xl mx-auto">
-              <Card className="shadow-2xl border-0 bg-white/[0.03] backdrop-blur-xl border border-white/10">
+              <Card className="shadow-2xl border-0 bg-white/3 backdrop-blur-xl border border-white/10">
                 <CardContent className="p-6 sm:p-8">
                   <Tabs
                     value={lookupMethod}
@@ -857,7 +857,7 @@ function TradeInContent() {
                         )}
                       </div>
                       <p className="text-xs text-white/40 flex items-center gap-1.5">
-                        <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                        <AlertCircle className="h-3 w-3 shrink-0" />
                         Found on your registration, insurance card, or driver-side door jamb
                       </p>
                       <Button
@@ -1002,7 +1002,7 @@ function TradeInContent() {
                 <Card className="shadow-lg border-emerald-200 dark:border-emerald-800">
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900 rounded-full flex items-center justify-center flex-shrink-0">
+                      <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900 rounded-full flex items-center justify-center shrink-0">
                         <CheckCircle className="h-6 w-6 text-emerald-600" />
                       </div>
                       <div className="flex-1">
@@ -1493,7 +1493,7 @@ function TradeInContent() {
                       </div>
                       <div className="h-2 bg-muted rounded-full overflow-hidden">
                         <div 
-                          className="h-full bg-gradient-to-r from-primary/50 via-primary to-primary/50 rounded-full"
+                          className="h-full bg-linear-to-r from-primary/50 via-primary to-primary/50 rounded-full"
                           style={{ width: '100%' }}
                         />
                       </div>
@@ -1599,21 +1599,21 @@ function TradeInContent() {
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="flex gap-4">
-                        <div className="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center font-bold text-primary">1</div>
+                        <div className="shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center font-bold text-primary">1</div>
                         <div>
                           <h4 className="font-semibold">Accept Your Offer</h4>
                           <p className="text-sm text-muted-foreground">Click accept and confirm your details</p>
                         </div>
                       </div>
                       <div className="flex gap-4">
-                        <div className="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center font-bold text-primary">2</div>
+                        <div className="shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center font-bold text-primary">2</div>
                         <div>
                           <h4 className="font-semibold">Schedule Pickup</h4>
                           <p className="text-sm text-muted-foreground">We come to you, anywhere in Canada</p>
                         </div>
                       </div>
                       <div className="flex gap-4">
-                        <div className="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center font-bold text-primary">3</div>
+                        <div className="shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center font-bold text-primary">3</div>
                         <div>
                           <h4 className="font-semibold">Get Paid</h4>
                           <p className="text-sm text-muted-foreground">Payment within 24 hours via e-Transfer</p>
@@ -1833,15 +1833,15 @@ function TradeInContent() {
               <h4 className="font-semibold text-green-800 mb-2">What happens next:</h4>
               <ol className="text-sm text-green-700 space-y-2">
                 <li className="flex items-start gap-2">
-                  <span className="bg-green-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">1</span>
+                  <span className="bg-green-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shrink-0 mt-0.5">1</span>
                   <span>We&apos;ll contact you within 2 hours to schedule a pickup</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="bg-green-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">2</span>
+                  <span className="bg-green-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shrink-0 mt-0.5">2</span>
                   <span>Free pickup anywhere in Canada at your convenience</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="bg-green-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">3</span>
+                  <span className="bg-green-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shrink-0 mt-0.5">3</span>
                   <span>Get paid within 24 hours via e-Transfer or cheque</span>
                 </li>
               </ol>

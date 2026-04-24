@@ -124,7 +124,7 @@ export function PostalCodeInput({ value, onChange, label = "Postal Code *", id }
               className="w-full px-3 py-3 text-left text-sm hover:bg-primary/10 flex items-center gap-3 border-b last:border-b-0 transition-colors"
               onClick={() => handleSelectSuggestion(suggestion)}
             >
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                 <MapPin className="w-4 h-4 text-primary" />
               </div>
               <div>

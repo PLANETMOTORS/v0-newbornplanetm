@@ -58,7 +58,7 @@ export function AIAssistantWidget() {
           <Button
             onClick={() => setIsOpen(true)}
             size="lg"
-            className="rounded-full w-16 h-16 shadow-2xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 animate-pulse hover:animate-none"
+            className="rounded-full w-16 h-16 shadow-2xl bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 animate-pulse hover:animate-none"
           >
             <Bot className="w-7 h-7" />
           </Button>
@@ -70,7 +70,7 @@ export function AIAssistantWidget() {
         <div className="fixed bottom-6 right-6 z-[9999] w-80 sm:w-96">
           <Card className="shadow-2xl border-2 overflow-hidden">
             {/* Header */}
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
+            <CardHeader className="bg-linear-to-r from-blue-600 to-purple-600 text-white p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
