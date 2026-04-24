@@ -1,6 +1,22 @@
 "use client"
-import { ErrorBoundaryUI } from "@/components/error-boundary-ui"
-export default function GlobalError({ error, reset }: Readonly<{ error: Error & { digest?: string }; reset: () => void }>) {
+
+import { useEffect } from "react"
+import { reportError } from "@/lib/error-reporting"
+import { Button } from "@/components/ui/button"
+import { AlertTriangle, RefreshCw, Home, Phone } from "lucide-react"
+import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
+
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  useEffect(() => {
+    reportError(error)
+  }, [error])
+
   return (
     <ErrorBoundaryUI
       error={error}

@@ -1114,12 +1114,15 @@ function TradeInContent() {
                           {conditionOptions.map((opt) => (
                             <div
                               key={opt.value}
+                              role="button"
+                              tabIndex={0}
                               className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                                 condition === opt.value 
                                   ? "border-primary bg-primary/5" 
                                   : "border-muted hover:border-primary/50"
                               }`}
                               onClick={() => setCondition(opt.value)}
+                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setCondition(opt.value) }}
                             >
                               <div className="flex items-center justify-between mb-1">
                                 <span className="font-semibold">{opt.label}</span>

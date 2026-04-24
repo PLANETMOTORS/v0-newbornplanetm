@@ -342,7 +342,7 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
 
       {/* Mobile Order Summary Drawer */}
       {showOrderSummary && (
-        <div className="lg:hidden fixed inset-0 z-[60] bg-black/50" onClick={() => setShowOrderSummary(false)}>
+        <div className="lg:hidden fixed inset-0 z-[60] bg-black/50" role="button" tabIndex={0} onClick={() => setShowOrderSummary(false)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowOrderSummary(false) }}>
           <div
             ref={orderSummaryModalRef}
             id="mobile-order-summary"

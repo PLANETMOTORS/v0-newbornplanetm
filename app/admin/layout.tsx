@@ -69,13 +69,12 @@ export default function AdminLayout({
     <div className="min-h-screen bg-gray-100">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSidebarOpen(false) }}
+        <div 
           role="button"
           tabIndex={0}
-          aria-label="Close sidebar"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSidebarOpen(false) }}
         />
       )}
 

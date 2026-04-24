@@ -206,13 +206,13 @@ export default function Admin360UploadPage() {
 
               {/* Drop Zone */}
               <div
+                role="button"
+                tabIndex={0}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
-                role="button"
-                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click() }}
                 className={`
                   border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
                   ${isDragOver
