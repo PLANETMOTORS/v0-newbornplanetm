@@ -141,7 +141,7 @@ function ProductDetailPanel({ product, onClose }: { product: ProtectionProduct; 
           <Accordion type="single" collapsible className="space-y-3">
             {product.faqs.map((faq, index) => (
               <AccordionItem
-                key={index}
+                key={faq.question}
                 value={`faq-${index}`}
                 className="bg-muted/30 rounded-xl border border-border/40 px-5 data-[state=open]:shadow-sm data-[state=open]:border-primary/20"
               >
