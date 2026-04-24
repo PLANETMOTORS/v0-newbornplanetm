@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { createClient as createServiceClient } from "@supabase/supabase-js"
+import { createClient as createServiceClient, SupabaseClient } from "@supabase/supabase-js"
 import { ADMIN_EMAILS } from "@/lib/admin"
 
 /** Authenticate the request and return a service-role admin client.
  *  Returns null (with a 401 response already sent) if the user is not an admin. */
 async function requireAdminClient(): Promise<
-  | { adminClient: ReturnType<typeof createServiceClient>; unauthorized: null }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  | { adminClient: SupabaseClient<any>; unauthorized: null }
   | { adminClient: null; unauthorized: NextResponse }
 > {
   const supabase = await createClient()

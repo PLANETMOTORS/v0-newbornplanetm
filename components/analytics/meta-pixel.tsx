@@ -49,7 +49,7 @@ export function MetaPixel() {
 // Meta Pixel event helpers
 export function trackMetaEvent(event: string, data?: Record<string, unknown>) {
   if (typeof window !== "undefined" && window.fbq) {
-    globalThis.fbq("track", event, data)
+    window.fbq("track", event, data)
   }
 }
 
