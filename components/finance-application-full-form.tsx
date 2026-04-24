@@ -77,10 +77,28 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
   const draftLoadedRef = useRef(false)
   const serverSyncTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const draftKey = useMemo(() => `pm:finance-draft:${vehicleId || "general"}`, [vehicleId])
+  // GA4 form_start — fires once on first user interaction
+  const formStartFired = useRef(false)
+  const fireFormStart = useCallback(() => {
+    if (formStartFired.current) return
+    formStartFired.current = true
+    if (typeof window !== "undefined" && (window as any).gtag) {
+      (window as any).gtag("event", "form_start", {
+        event_category: "finance_application",
+        vehicle_id: vehicleId || "general",
+      })
+    }
+  }, [vehicleId])
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  // Idempotency key — generated once per form mount, prevents duplicate submissions
+  const idempotencyKey = useRef<string>(
+    typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  )
   
   // Form state
   const [primaryApplicant, setPrimaryApplicant] = useState<ApplicantData>(emptyApplicant)
@@ -638,6 +656,14 @@ if (errors.length > 0) {
   }
     
     setValidationErrors([])
+    // GA4 step complete event
+    if (typeof window !== "undefined" && (window as any).gtag) {
+      (window as any).gtag("event", "form_step_complete", {
+        event_category: "finance_application",
+        step_number: currentStep,
+        vehicle_id: vehicleId || "general",
+      })
+    }
     setCurrentStep(prev => prev + 1)
   }
   
@@ -645,9 +671,21 @@ if (errors.length > 0) {
     setIsSubmitting(true)
     setSubmitError(null)
     try {
+      // Fire GA4 form_submit event
+      if (typeof window !== "undefined" && (window as any).gtag) {
+        (window as any).gtag("event", "form_submit", {
+          event_category: "finance_application",
+          vehicle_id: vehicleId || "general",
+          has_co_applicant: includeCoApplicant,
+          has_trade_in: tradeIn.hasTradeIn,
+        })
+      }
       const response = await fetch("/api/v1/financing/applications", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKey.current,
+        },
         body: JSON.stringify({
           primaryApplicant,
           coApplicant: includeCoApplicant ? coApplicant : null,
@@ -721,7 +759,16 @@ if (errors.length > 0) {
       setIsSubmitted(true)
   } catch (error) {
       console.error("Submit error:", error)
-      setSubmitError(error instanceof Error ? error.message : "Unable to submit application right now.")
+      const errMsg = error instanceof Error ? error.message : "Unable to submit application right now."
+      setSubmitError(errMsg)
+      // Fire GA4 form_error event
+      if (typeof window !== "undefined" && (window as any).gtag) {
+        (window as any).gtag("event", "form_error", {
+          event_category: "finance_application",
+          error_message: errMsg,
+          vehicle_id: vehicleId || "general",
+        })
+      }
   } finally {
     setIsSubmitting(false)
   }
@@ -801,7 +848,7 @@ if (errors.length > 0) {
   return (
     <div className="max-w-5xl mx-auto">
       {/* Progress Steps */}
-      <div className="mb-8">
+      <div className="mb-8" data-testid="finance-progress-indicator" role="status" aria-live="polite" aria-label={`Step ${currentStep} of 5`}>
         <div className="flex items-center justify-between">
           {steps.map((step, index) => {
             // Skip co-applicant step if not needed
@@ -844,8 +891,15 @@ if (errors.length > 0) {
       <Card>
         <CardContent className="p-6">
           {submitError ? (
-            <div className="mb-6 rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
-              {submitError}
+            <div
+              data-testid="finance-error-summary"
+              role="alert"
+              aria-live="assertive"
+              tabIndex={-1}
+              className="mb-6 rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive flex items-start gap-2"
+            >
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
+              <span>{submitError}</span>
             </div>
           ) : null}
 
@@ -967,6 +1021,7 @@ if (errors.length > 0) {
       <div className="flex justify-between mt-6">
         <Button
           variant="outline"
+          data-testid="finance-btn-back"
           onClick={() => {
             setValidationErrors([])
             setCurrentStep(prev => Math.max(1, prev - 1))
@@ -978,12 +1033,12 @@ if (errors.length > 0) {
         </Button>
         
         {currentStep < 5 ? (
-          <Button onClick={handleNextStep}>
+          <Button data-testid="finance-btn-continue" onClick={handleNextStep}>
             Continue
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         ) : (
-          <Button onClick={handleSubmit} disabled={isSubmitting}>
+          <Button data-testid="finance-btn-submit" aria-busy={isSubmitting} onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
