@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getCachedSearchResults, cacheSearchResults } from '@/lib/redis'
-import { createHash } from 'node:crypto'
+import { createHash } from "node:crypto"
 import { getDriveeMidFromDb } from '@/lib/drivee-db'
 
 const ALLOWED_SORT_COLUMNS = new Set(['created_at', 'price', 'year', 'mileage', 'make', 'model'])
@@ -186,7 +186,7 @@ export async function GET(request: NextRequest) {
   if (q) {
     // Use the pre-built tsvector GIN index for safe, efficient full-text search.
     // .or() with user input can be manipulated via special chars (commas, parens).
-    const sanitizedQ = q.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s-]/g, '').trim()
+    const sanitizedQ = q.trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s-]/g, '').trim()
     if (sanitizedQ) {
       query = query.textSearch('search_vector', sanitizedQ, { type: 'websearch', config: 'english' })
     }
@@ -304,9 +304,9 @@ export async function GET(request: NextRequest) {
       const years = allVehicles?.map(v => v.year) || []
 
       filters = {
-        makes: makes.toSorted((a, b) => a.localeCompare(b)),
-        bodyStyles: bodyStyles.toSorted((a, b) => a.localeCompare(b)),
-        fuelTypes: fuelTypes.toSorted((a, b) => a.localeCompare(b)),
+        makes: makes.sort(),
+        bodyStyles: bodyStyles.sort(),
+        fuelTypes: fuelTypes.sort(),
         priceRange: {
           min: prices.length > 0 ? Math.min(...prices) : 0,
           max: prices.length > 0 ? Math.max(...prices) : 100000,
@@ -398,7 +398,7 @@ export async function POST(request: NextRequest) {
 
   // Text search across multiple fields
   if (searchQuery) {
-    const sanitizedQuery = String(searchQuery).trim().slice(0, 200).replace(/[^a-zA-Z0-9\s-]/g, '').trim()
+    const sanitizedQuery = String(searchQuery).trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s-]/g, '').trim()
     if (sanitizedQuery) {
       query = query.textSearch('search_vector', sanitizedQuery, { type: 'websearch', config: 'english' })
     }

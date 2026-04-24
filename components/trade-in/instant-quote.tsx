@@ -154,7 +154,7 @@ const vehicleData: Record<string, Record<string, string[]>> = {
 
 // Format postal code: A1A 1A1
 function formatPostalCode(value: string): string {
-  const cleaned = value.toUpperCase().replace(/[^A-Z0-9]/g, '')
+  const cleaned = value.toUpperCase().replaceAll(/[^A-Z0-9]/g, '')
   if (cleaned.length <= 3) return cleaned
   return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)}`
 }
@@ -251,7 +251,7 @@ export function InstantQuote() {
   
   // Mileage handler - only allow numbers, prevent scroll glitches
   const handleMileageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9]/g, '')
+    const value = e.target.value.replaceAll(/[^0-9]/g, '')
     setFormData(prev => ({ ...prev, mileage: value }))
   }, [])
   
@@ -292,7 +292,7 @@ export function InstantQuote() {
     const formatted = formatCanadianPhoneNumber(e.target.value)
     setFormData(prev => ({ ...prev, phone: formatted }))
     
-    const digitsOnly = e.target.value.replace(/\D/g, '')
+    const digitsOnly = e.target.value.replaceAll(/\D/g, '')
     if (digitsOnly.length > 0 && digitsOnly.length < 10) {
       setPhoneError("Please enter a complete 10-digit phone number")
     } else if (digitsOnly.length >= 10 && !isValidCanadianPhoneNumber(formatted)) {
@@ -374,7 +374,7 @@ export function InstantQuote() {
   const calculateLocalValue = (data: typeof formData) => {
     const currentYear = new Date().getFullYear()
     const age = currentYear - Number.parseInt(data.year)
-    const mileageNum = Number.parseInt(data.mileage.replace(/,/g, '')) || 50000
+    const mileageNum = Number.parseInt(data.mileage.replaceAll(/,/g, '')) || 50000
     
     // Base values by model/make
     const baseValues: Record<string, number> = {
@@ -539,7 +539,7 @@ export function InstantQuote() {
                 <SelectValue placeholder="Select make" />
               </SelectTrigger>
               <SelectContent>
-                {Object.keys(vehicleData).sort((a, b) => a.localeCompare(b)).map((make) => (
+                {Object.keys(vehicleData).sort().map((make) => (
                   <SelectItem key={make} value={make}>{make}</SelectItem>
                 ))}
               </SelectContent>
@@ -719,7 +719,7 @@ export function InstantQuote() {
             <Input
               placeholder="Enter 6-digit code"
               value={verificationCode}
-              onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              onChange={(e) => setVerificationCode(e.target.value.replaceAll(/\D/g, "").slice(0, 6))}
               className="text-center text-2xl tracking-widest"
               maxLength={6}
             />

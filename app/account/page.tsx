@@ -813,7 +813,7 @@ export default function AccountPage() {
                                     </p>
                                   </div>
                                   <Badge className={statusColors[app.status] || "bg-gray-100 text-gray-800"}>
-                                    {app.status.replace(/_/g, " ")}
+                                    {app.status.replaceAll(/_/g, " ")}
                                   </Badge>
                                 </div>
                               )

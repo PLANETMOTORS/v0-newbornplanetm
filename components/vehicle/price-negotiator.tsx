@@ -44,9 +44,9 @@ export function PriceNegotiator({
   const [currentOffer, setCurrentOffer] = useState<number | null>(null)
 
   const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-  const isValidPhone = (phone: string) => phone.replace(/\D/g, "").length >= 10
+  const isValidPhone = (phone: string) => phone.replaceAll(/\D/g, "").length >= 10
   const formatPhone = (value: string) => {
-    const digits = value.replace(/\D/g, "").slice(0, 10)
+    const digits = value.replaceAll(/\D/g, "").slice(0, 10)
     if (digits.length <= 3) return digits
     if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
     return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
@@ -98,7 +98,7 @@ export function PriceNegotiator({
   }
 
   const handleSubmitOffer = async () => {
-    const offerAmount = Number.parseFloat(offer.replace(/[^0-9.]/g, ""))
+    const offerAmount = Number.parseFloat(offer.replaceAll(/[^0-9.]/g, ""))
     if (Number.isNaN(offerAmount) || offerAmount <= 0) return
 
     setCurrentOffer(offerAmount)
@@ -220,7 +220,7 @@ export function PriceNegotiator({
             </div>
             <div>
               <Label htmlFor="verify-code">Verification Code</Label>
-              <Input id="verify-code" placeholder="123456" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))} className="text-center text-lg tracking-widest" maxLength={6} />
+              <Input id="verify-code" placeholder="123456" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value.replaceAll(/\D/g, "").slice(0, 6))} className="text-center text-lg tracking-widest" maxLength={6} />
             </div>
             <Button className="w-full" onClick={verifyCode} disabled={verificationCode.length !== 6 || isVerifying}>
               {isVerifying && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
@@ -235,7 +235,7 @@ export function PriceNegotiator({
           <>
             <div className="max-h-64 overflow-y-auto space-y-3">
               {messages.map((msg, i) => (
-                <div key={`msg-${i}`} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div key={i} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   {msg.role === "assistant" && (
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <Bot className="w-4 h-4 text-primary" />

@@ -45,7 +45,7 @@ export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: 
   const deliveryDate = useMemo(() => baseDate ? getEstimatedDate(baseDate, data.deliveryDistance > 200 ? 5 : 3) : "", [baseDate, data.deliveryDistance])
 
   useEffect(() => {
-    if (!postalCode || postalCode.replace(/\s/g, '').length < 6) return
+    if (!postalCode || postalCode.replaceAll(/\s/g, '').length < 6) return
 
     let cancelled = false
     setIsCalculating(true)

@@ -12,7 +12,7 @@
  * Docs: https://developers.facebook.com/docs/marketing-api/conversions-api
  */
 
-import { createHash } from "crypto"
+import { createHash } from "node:crypto"
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID
 const ACCESS_TOKEN = process.env.META_CAPI_ACCESS_TOKEN
@@ -83,12 +83,12 @@ function hashValue(value: string | undefined): string | undefined {
 function hashUserData(user: UserData) {
   return {
     em: user.email ? [hashValue(user.email)] : undefined,
-    ph: user.phone ? [hashValue(user.phone.replace(/\D/g, ""))] : undefined,
+    ph: user.phone ? [hashValue(user.phone.replaceAll(/\D/g, ""))] : undefined,
     fn: hashValue(user.firstName),
     ln: hashValue(user.lastName),
     ct: hashValue(user.city),
     st: hashValue(user.state),
-    zp: hashValue(user.postalCode?.replace(/\s/g, "")),
+    zp: hashValue(user.postalCode?.replaceAll(/\s/g, "")),
     country: hashValue(user.country || "ca"),
     client_ip_address: user.clientIpAddress,
     client_user_agent: user.clientUserAgent,

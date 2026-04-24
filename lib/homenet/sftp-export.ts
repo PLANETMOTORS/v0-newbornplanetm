@@ -37,7 +37,7 @@ interface ImageEntry {
 
 function getExportConfig(): ExportConfig {
   const host = process.env.HOMENET_EXPORT_FTP_HOST || "iol.homenetinc.com"
-  const port = parseInt(process.env.HOMENET_EXPORT_FTP_PORT || "22", 10)
+  const port = Number.parseInt(process.env.HOMENET_EXPORT_FTP_PORT || "22", 10)
   const username = process.env.HOMENET_EXPORT_FTP_USER || "hndatafeed"
   const password = process.env.HOMENET_EXPORT_FTP_PASS || ""
 

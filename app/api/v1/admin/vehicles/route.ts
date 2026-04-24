@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     // Search filter
     if (search) {
-      const s = search.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s-]/g, "").trim()
+      const s = search.trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s-]/g, "").trim()
       if (s) {
         query = query.or(
           `vin.ilike.%${s}%,stock_number.ilike.%${s}%,make.ilike.%${s}%,model.ilike.%${s}%,trim.ilike.%${s}%`
