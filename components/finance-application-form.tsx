@@ -156,7 +156,7 @@ export function FinanceApplicationForm() {
   const sendMagicLink = async (email: string) => {
     try {
       const supabase = createClient()
-      const redirectTo = `${window.location.origin}/financing?verified=true`
+      const redirectTo = `${globalThis.location.origin}/financing?verified=true`
 
       const { error } = await supabase.auth.signInWithOtp({
         email,
@@ -326,7 +326,7 @@ export function FinanceApplicationForm() {
           ))}
         </div>
 
-        <Button className="w-full" size="lg" onClick={() => window.location.href = "/financing/application"}>
+        <Button className="w-full" size="lg" onClick={() => globalThis.location.href = "/financing/application"}>
           Continue Application
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>

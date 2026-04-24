@@ -131,7 +131,7 @@ export function DepositPaymentStep({
               variant="outline"
               size="sm"
               className="mt-2"
-              onClick={() => { setError(""); window.location.reload() }}
+              onClick={() => { setError(""); globalThis.location.reload() }}
             >
               Try again
             </Button>

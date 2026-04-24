@@ -20,11 +20,9 @@ declare const self: ServiceWorkerGlobalScope;
 // Filter out API and Supabase routes from runtime caching to prevent
 // stale inventory/auth data. The defaultCache already includes sensible
 // strategies; we only need to exclude backend routes.
-const filteredCache = defaultCache.filter((entry) => {
-  // Keep all entries that aren't URL-pattern based
-  if (typeof entry.matcher === "function") return true;
-  return true;
-});
+// Keep all cache entries — the NetworkOnly handler above already intercepts
+// /api/ and Supabase routes before they reach these strategies.
+const filteredCache = defaultCache;
 
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,

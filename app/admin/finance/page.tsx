@@ -518,7 +518,7 @@ export default function AdminFinancePage() {
                               <div>
                                 <p className="font-medium">{doc.document_name}</p>
                                 <p className="text-sm text-gray-500 capitalize">
-                                  {doc.document_type.replace(/_/g, " ")}
+                                  {doc.document_type.replaceAll("_", " ")}
                                 </p>
                               </div>
                             </div>

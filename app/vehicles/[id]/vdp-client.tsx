@@ -822,7 +822,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         />
                         {/* Expand Button — opens image in new tab */}
                         <button
-                          onClick={() => window.open(currentImages[activeIndex], "_blank")}
+                          onClick={() => globalThis.open(currentImages[activeIndex], "_blank")}
                           className="absolute top-4 right-4 w-10 h-10 bg-background/80 backdrop-blur rounded-lg flex items-center justify-center hover:bg-background transition"
                           aria-label="View full-size image"
                         >
@@ -1464,7 +1464,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <Shield className="w-8 h-8 mx-auto mb-2 text-primary" />
                         <p className="text-xl font-bold">210 Points — All Passed</p>
                         <p className="text-sm text-slate-300 mt-1">Planet Motors Inc. · Richmond Hill, ON · OMVIC Reg.</p>
-                        <Button className="mt-4" variant="outline" onClick={() => window.print()}>
+                        <Button className="mt-4" variant="outline" onClick={() => globalThis.print()}>
                           <Download className="w-4 h-4 mr-2" />
                           Print Inspection Report
                         </Button>
@@ -1619,7 +1619,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           </div>
                         </div>
                         <Button className="w-full mt-4" onClick={() => handleProtectedAction("start your purchase", () => {
-                          window.location.href = `/checkout/${vehicle.id}`
+                          globalThis.location.href = `/checkout/${vehicle.id}`
                         })}>Start your purchase</Button>
                       </CardContent>
                     </Card>

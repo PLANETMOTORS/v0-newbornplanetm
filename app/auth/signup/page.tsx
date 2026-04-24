@@ -64,7 +64,7 @@ function SignUpForm() {
         password: formData.password,
         options: {
           emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-            `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`,
+            `${globalThis.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`,
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
@@ -89,7 +89,7 @@ function SignUpForm() {
     
     try {
       const supabase = createClient()
-      const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`
+      const callbackUrl = `${globalThis.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -100,7 +100,7 @@ function SignUpForm() {
       
       if (error) throw error
       if (data?.url) {
-        window.location.assign(data.url)
+        globalThis.location.assign(data.url)
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "OAuth signup failed")

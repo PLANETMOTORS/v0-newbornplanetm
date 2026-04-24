@@ -185,14 +185,14 @@ export function ProductsGridWithDetails() {
   // Listen for hash changes
   useEffect(() => {
     function handleHash() {
-      const hash = window.location.hash.replace("#product-", "")
+      const hash = globalThis.location.hash.replace("#product-", "")
       if (hash && PROTECTION_PRODUCTS.some((p) => p.slug === hash)) {
         setOpenSlug(hash)
       }
     }
     handleHash()
-    window.addEventListener("hashchange", handleHash)
-    return () => window.removeEventListener("hashchange", handleHash)
+    globalThis.addEventListener("hashchange", handleHash)
+    return () => globalThis.removeEventListener("hashchange", handleHash)
   }, [])
 
   // Scroll detail panel into view when opened

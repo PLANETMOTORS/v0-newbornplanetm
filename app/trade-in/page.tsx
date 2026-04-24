@@ -423,13 +423,13 @@ function TradeInContent() {
     if (hasUrlPrefill) return
 
     try {
-      const raw = window.localStorage.getItem(TRADE_IN_DRAFT_KEY)
+      const raw = globalThis.localStorage.getItem(TRADE_IN_DRAFT_KEY)
       if (!raw) return
       const d = JSON.parse(raw) as Record<string, unknown>
 
       // Only restore if saved within the last 7 days
       if (d.savedAt && Date.now() - new Date(d.savedAt as string).getTime() > 7 * 24 * 60 * 60 * 1000) {
-        window.localStorage.removeItem(TRADE_IN_DRAFT_KEY)
+        globalThis.localStorage.removeItem(TRADE_IN_DRAFT_KEY)
         return
       }
 
@@ -460,7 +460,7 @@ function TradeInContent() {
   useEffect(() => {
     if (!draftLoadedRef.current) return
 
-    const timeout = window.setTimeout(() => {
+    const timeout = globalThis.setTimeout(() => {
       try {
         // Don't save if user hasn't entered anything meaningful
         const hasData = selectedYear || selectedMake || mileage || email || vinNumber
@@ -486,13 +486,13 @@ function TradeInContent() {
           vinNumber,
           savedAt: new Date().toISOString(),
         }
-        window.localStorage.setItem(TRADE_IN_DRAFT_KEY, JSON.stringify(payload))
+        globalThis.localStorage.setItem(TRADE_IN_DRAFT_KEY, JSON.stringify(payload))
       } catch (err) {
         console.error("Failed to save trade-in draft:", err)
       }
     }, 500)
 
-    return () => window.clearTimeout(timeout)
+    return () => globalThis.clearTimeout(timeout)
   }, [
     step, lookupMethod,
     selectedYear, selectedMake, selectedModel, selectedTrim,
@@ -1767,7 +1767,7 @@ function TradeInContent() {
                 ].map((review) => (
                   <Card key={review.name} className="p-6">
                     <div className="flex items-center gap-1 mb-3 text-amber-500">
-                      {Array(review.rating).fill(0).map((_, j) => (
+                      {new Array(review.rating).fill(0).map((_, j) => (
                         <Star key={j} className="h-4 w-4 fill-current" />
                       ))}
                     </div>
@@ -1802,7 +1802,7 @@ function TradeInContent() {
                 size="lg" 
                 variant="secondary" 
                 className="h-14 px-8 text-lg"
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                onClick={() => globalThis.scrollTo({ top: 0, behavior: 'smooth' })}
               >
                 Get My Instant Offer
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -1907,7 +1907,7 @@ function TradeInContent() {
                   const data = await response.json()
                   
                   if (data.success) {
-                    try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
+                    try { globalThis.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
                     setShowAcceptModal(false)
                     alert(`Offer Accepted!\n\nYou will receive a confirmation email and SMS shortly.\n\nOur team will contact you within 2 hours to schedule your free pickup.\n\nQuote ID: ${offer?.quoteId}`)
                   } else {
@@ -1916,7 +1916,7 @@ function TradeInContent() {
                 } catch (error) {
                   console.error('Error accepting offer:', error)
                   // Still show success to user - fallback for API errors
-                  try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
+                  try { globalThis.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
                   setShowAcceptModal(false)
                   alert(`Offer Accepted!\n\nOur team will contact you within 2 hours to schedule your free pickup.\n\nQuote ID: ${offer?.quoteId}`)
                 }
@@ -1993,7 +1993,7 @@ function TradeInContent() {
                           })
                         }
                       } catch (err) { console.error("[trade-in] Save trade-in failed:", err) }
-                      try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
+                      try { globalThis.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
                       setShowApplyModal(false)
                       // Build inventory URL with trade-in info + category filter
                       const params = new URLSearchParams({
@@ -2005,7 +2005,7 @@ function TradeInContent() {
                       else if (type === 'Under $30k') params.set('maxPrice', '30000')
                       else if (type === 'Luxury') params.set('category', 'Luxury')
                       else params.set('bodyType', type)
-                      window.location.href = `/inventory?${params.toString()}`
+                      globalThis.location.href = `/inventory?${params.toString()}`
                     }}
                   >
                     {type}
@@ -2050,7 +2050,7 @@ function TradeInContent() {
                   console.error('Error saving trade-in:', error)
                 }
                 
-                try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
+                try { globalThis.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
                 setShowApplyModal(false)
                 // Redirect to inventory with full trade-in info
                 const params = new URLSearchParams({
@@ -2058,7 +2058,7 @@ function TradeInContent() {
                   quoteId: offer?.quoteId || '',
                   tradeInVehicle: encodeURIComponent(offer?.vehicle || '')
                 })
-                window.location.href = `/inventory?${params.toString()}`
+                globalThis.location.href = `/inventory?${params.toString()}`
               }}
             >
               <ArrowRight className="mr-2 h-4 w-4" />

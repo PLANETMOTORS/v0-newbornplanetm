@@ -39,7 +39,7 @@ export function BlogShareButtons({ title, url }: BlogShareButtonsProps) {
   }
 
   const openShare = (shareUrl: string) => {
-    window.open(shareUrl, "_blank", "width=600,height=400,noopener,noreferrer")
+    globalThis.open(shareUrl, "_blank", "width=600,height=400,noopener,noreferrer")
   }
 
   return (

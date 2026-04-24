@@ -350,7 +350,7 @@ export default function AdminOrdersPage() {
                     <TableCell>{getStatusBadge(order.status)}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className="capitalize">
-                        {order.paymentMethod.replace(/_/g, " ")}
+                        {order.paymentMethod.replaceAll("_", " ")}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right font-medium">
@@ -396,7 +396,7 @@ export default function AdminOrdersPage() {
               <div className="flex items-center gap-3">
                 {getStatusBadge(selectedOrder.status)}
                 <Badge variant="outline" className="capitalize">
-                  {selectedOrder.paymentMethod.replace(/_/g, " ")}
+                  {selectedOrder.paymentMethod.replaceAll("_", " ")}
                 </Badge>
                 <Badge variant="outline" className="capitalize">
                   {selectedOrder.deliveryType}

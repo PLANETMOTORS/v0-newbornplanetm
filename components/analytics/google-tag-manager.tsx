@@ -16,7 +16,7 @@ export function GoogleTagManager() {
   return (
     <Script id="gtm" strategy="worker">
       {`
-        window.dataLayer = window.dataLayer || [];
+        globalThis.dataLayer = globalThis.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
 
         gtag('consent', 'default', {
@@ -55,8 +55,8 @@ export function GoogleTagManagerNoScript() {
 // DataLayer push helper
 export function pushToDataLayer(data: Record<string, unknown>) {
   if (typeof window !== "undefined") {
-    window.dataLayer = window.dataLayer || []
-    window.dataLayer.push(data)
+    globalThis.dataLayer = globalThis.dataLayer || []
+    globalThis.dataLayer.push(data)
   }
 }
 

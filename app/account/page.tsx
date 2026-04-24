@@ -280,7 +280,7 @@ export default function AccountPage() {
       const redirectPath = "/account"
       const callbackUrl =
         typeof window !== "undefined" && window.location?.origin
-          ? `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`
+          ? `${globalThis.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`
           : (process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://www.planetmotors.ca'}/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`)
       const { data: signUpData, error } = await supabase.auth.signUp({
         email: data.email,
@@ -314,7 +314,7 @@ export default function AccountPage() {
 
     try {
       const supabase = createClient()
-      const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent("/account")}`
+      const callbackUrl = `${globalThis.location.origin}/auth/callback?redirectTo=${encodeURIComponent("/account")}`
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: { redirectTo: callbackUrl },
@@ -327,7 +327,7 @@ export default function AccountPage() {
       }
 
       if (data?.url) {
-        window.location.assign(data.url)
+        globalThis.location.assign(data.url)
         return
       }
 
@@ -576,7 +576,7 @@ export default function AccountPage() {
                 <Button 
                   variant="ghost" 
                   className="shrink-0 md:w-full justify-start text-destructive min-h-[44px]"
-                  onClick={() => void signOut()}
+                  onClick={() => { signOut().catch(console.error) }}
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
@@ -956,7 +956,7 @@ export default function AccountPage() {
                           variant="outline"
                           className="w-full justify-start"
                           onClick={() => {
-                            window.location.href = "/auth/forgot-password"
+                            globalThis.location.href = "/auth/forgot-password"
                           }}
                         >
                           <Shield className="w-4 h-4 mr-2" />

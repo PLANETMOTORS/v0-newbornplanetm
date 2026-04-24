@@ -185,7 +185,7 @@ function makeFetchClientSecret(params: {
       vehicleId: params.vehicleId || '',
       vehicleName: params.vehicleName,
       depositOnly: true,
-      customerEmail: params.customerEmail || undefined,
+      customerEmail: params.customerEmail,
     }).then((secret: string | null | undefined) => {
       if (!secret) throw new Error('Missing checkout client secret')
       return secret

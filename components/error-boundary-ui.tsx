@@ -35,7 +35,7 @@ export function ErrorBoundaryUI({ error, reset }: ErrorBoundaryUIProps) {
             <RefreshCw className="w-4 h-4 mr-2" />
             Try Again
           </Button>
-          <Button variant="outline" onClick={() => window.location.href = "/"}>
+          <Button variant="outline" onClick={() => globalThis.location.href = "/"}>
             <Home className="w-4 h-4 mr-2" />
             Go Home
           </Button>

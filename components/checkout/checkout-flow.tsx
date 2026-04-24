@@ -221,7 +221,7 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
 
   const goToStep = useCallback((step: number) => {
     setCurrentStep(step)
-    window.scrollTo({ top: 0, behavior: "smooth" })
+    globalThis.scrollTo({ top: 0, behavior: "smooth" })
   }, [])
 
   const advanceFrom = useCallback((step: number) => {

@@ -166,13 +166,13 @@ export default function ComparePage() {
   }
 
   const handleShare = () => {
-    const url = `${window.location.origin}/compare?vehicles=${selectedVehicles.join(",")}`
+    const url = `${globalThis.location.origin}/compare?vehicles=${selectedVehicles.join(",")}`
     navigator.clipboard.writeText(url)
     alert("Comparison link copied to clipboard!")
   }
 
   const handlePrint = () => {
-    window.print()
+    globalThis.print()
   }
 
   const getVehicle = (id: string) => {

@@ -83,7 +83,7 @@ function applySetFilters(
   const params = new URLSearchParams(existing)
   Object.entries(newFilters).forEach(([key, value]) => {
     if (value && value !== defaultFilters[key as keyof VehicleFilters]) {
-      params.set(key, value as string)
+      params.set(key, String(value))
     } else {
       params.delete(key)
     }

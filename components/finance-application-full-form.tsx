@@ -81,7 +81,7 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
   const utmParams = useRef<Record<string, string>>({})
   useEffect(() => {
     if (typeof window === "undefined") return
-    const sp = new URLSearchParams(window.location.search)
+    const sp = new URLSearchParams(globalThis.location.search)
     const utm: Record<string, string> = {}
     for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"]) {
       const val = sp.get(key)
@@ -304,11 +304,11 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
 
       // Try sessionStorage (non-PII subset, written after 250ms for unauthenticated users)
       try {
-        const raw = window.sessionStorage.getItem(draftKey) || window.localStorage.getItem(draftKey)
+        const raw = globalThis.sessionStorage.getItem(draftKey) || globalThis.localStorage.getItem(draftKey)
         if (raw) {
           localDraft = JSON.parse(raw) as Record<string, unknown>
           // Clean up any legacy localStorage draft (PII migration)
-          window.localStorage.removeItem(draftKey)
+          globalThis.localStorage.removeItem(draftKey)
         }
       } catch (error) {
         console.error("Failed to restore finance draft:", error)
@@ -405,20 +405,20 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
       }, 2000)
 
       // Remove any stale localStorage/sessionStorage PII from before login
-      try { window.localStorage.removeItem(draftKey) } catch { /* noop */ }
-      try { window.sessionStorage.removeItem(draftKey) } catch { /* noop */ }
+      try { globalThis.localStorage.removeItem(draftKey) } catch { /* noop */ }
+      try { globalThis.sessionStorage.removeItem(draftKey) } catch { /* noop */ }
     } else {
       // Unauthenticated: save minimal non-PII subset to sessionStorage (tab-scoped)
-      const localTimeout = window.setTimeout(() => {
+      const localTimeout = globalThis.setTimeout(() => {
         try {
-          window.sessionStorage.setItem(draftKey, JSON.stringify(localPayload))
+          globalThis.sessionStorage.setItem(draftKey, JSON.stringify(localPayload))
         } catch (error) {
           console.error("Failed to save finance draft to sessionStorage:", error)
         }
       }, 250)
 
       return () => {
-        window.clearTimeout(localTimeout)
+        globalThis.clearTimeout(localTimeout)
       }
     }
 
@@ -675,7 +675,7 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
 if (errors.length > 0) {
   setValidationErrors(errors)
   // Scroll to top to show errors
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  globalThis.scrollTo({ top: 0, behavior: 'smooth' })
   return
   }
     
@@ -772,8 +772,8 @@ if (errors.length > 0) {
   
       // Clean up drafts after successful submission
       try {
-        window.localStorage.removeItem(draftKey)
-        window.sessionStorage.removeItem(draftKey)
+        globalThis.localStorage.removeItem(draftKey)
+        globalThis.sessionStorage.removeItem(draftKey)
       } catch {
         // Ignore storage failures.
       }
@@ -855,7 +855,7 @@ if (errors.length > 0) {
               </div>
               <Button
                 className="w-full mt-4"
-                onClick={() => window.location.reload()}
+                onClick={() => globalThis.location.reload()}
               >
                 Retry Payment
               </Button>

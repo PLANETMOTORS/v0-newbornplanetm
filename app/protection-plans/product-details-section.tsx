@@ -14,14 +14,14 @@ export function ProductDetailsSection() {
   // Listen for hash changes to open the right product
   useEffect(() => {
     function handleHash() {
-      const hash = window.location.hash.replace("#product-", "")
+      const hash = globalThis.location.hash.replace("#product-", "")
       if (hash && PROTECTION_PRODUCTS.some((p) => p.slug === hash)) {
         setOpenSlug(hash)
       }
     }
     handleHash()
-    window.addEventListener("hashchange", handleHash)
-    return () => window.removeEventListener("hashchange", handleHash)
+    globalThis.addEventListener("hashchange", handleHash)
+    return () => globalThis.removeEventListener("hashchange", handleHash)
   }, [])
 
   // Scroll into view when a product opens

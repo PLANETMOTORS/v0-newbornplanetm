@@ -98,10 +98,10 @@ describe('sanitizeTypesenseFilterValue', () => {
 
   it('escapes multiple backslashes', () => {
     // Input: a\\b → becomes a\\\\b when wrapped
-    expect(sanitizeTypesenseFilterValue('a\\\\b')).toBe('`a\\\\\\\\b`')
+    expect(sanitizeTypesenseFilterValue(String.raw`a\\b`)).toBe(String.raw`\`a\\\\b\``)
   })
 
   it('handles backslash in the middle of a multi-word value', () => {
-    expect(sanitizeTypesenseFilterValue('Land\\Rover')).toBe('`Land\\\\Rover`')
+    expect(sanitizeTypesenseFilterValue(String.raw`Land\Rover`)).toBe(String.raw`\`Land\\Rover\``)
   })
 })

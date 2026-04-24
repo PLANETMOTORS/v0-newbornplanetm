@@ -839,7 +839,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
           {showError && (
             <div className="flex flex-col items-center justify-center py-20">
               <p className="text-red-500 mb-4">Error loading inventory</p>
-              <Button onClick={() => window.location.reload()}>Try Again</Button>
+              <Button onClick={() => globalThis.location.reload()}>Try Again</Button>
             </div>
           )}
 
