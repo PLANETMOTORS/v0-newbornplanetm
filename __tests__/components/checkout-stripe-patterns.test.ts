@@ -112,37 +112,39 @@ vi.mock('@/app/actions/stripe', () => ({
 }))
 
 // ===========================================================================
+// Helpers (moved to outer scope to avoid re-creation on every test run)
+// ===========================================================================
+
+/**
+ * Replicates the vehicleName construction logic used inline in checkout components:
+ *   const vehicleName = vehicleData
+ *     ? `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`.trim()
+ *     : "Vehicle Deposit"
+ */
+function buildVehicleName(vehicleData?: {
+  year: number
+  make: string
+  model: string
+  [key: string]: unknown
+}): string {
+  return vehicleData
+    ? `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`.trim()
+    : 'Vehicle Deposit'
+}
+
+// ===========================================================================
 // Section 1 – vehicleName construction
 // ===========================================================================
 
 describe('vehicleName construction from vehicleData', () => {
-  /**
-   * The PR builds vehicleName inline (inside the isSubmitted branch):
-   *
-   *   const vehicleName = vehicleData
-   *     ? `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`.trim()
-   *     : "Vehicle Deposit"
-   *
-   * These tests verify the exact same logic.
-   */
-  function buildVehicleName(vehicleData?: {
-    year: number
-    make: string
-    model: string
-    [key: string]: unknown
-  }): string {
-    return vehicleData
-      ? `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`.trim()
-      : 'Vehicle Deposit'
-  }
 
   it('concatenates year, make, and model when vehicleData is provided', () => {
     expect(buildVehicleName({ year: 2022, make: 'Tesla', model: 'Model 3' }))
       .toBe('2022 Tesla Model 3')
   })
 
-  it('falls back to "Vehicle Deposit" when vehicleData is undefined', () => {
-    expect(buildVehicleName(undefined)).toBe('Vehicle Deposit')
+  it('falls back to "Vehicle Deposit" when vehicleData is not provided', () => {
+    expect(buildVehicleName()).toBe('Vehicle Deposit')
   })
 
   it('trims leading/trailing whitespace from the result', () => {
@@ -166,42 +168,35 @@ describe('vehicleName construction from vehicleData', () => {
 // Section 2 – fetchClientSecret logic
 // ===========================================================================
 
+/**
+ * Replicates the fetchClientSecret closure used in checkout components:
+ *   const fetchClientSecret = () =>
+ *     startVehicleCheckout({ vehicleId: vehicleId || "", vehicleName, depositOnly: true,
+ *       customerEmail: primaryApplicant.email || undefined })
+ *     .then((secret) => { if (!secret) throw new Error("Missing checkout client secret"); return secret })
+ */
+function makeFetchClientSecret(params: {
+  vehicleId: string | undefined
+  vehicleName: string
+  customerEmail: string | undefined
+}) {
+  return () =>
+    mockStartVehicleCheckout({
+      vehicleId: params.vehicleId || '',
+      vehicleName: params.vehicleName,
+      depositOnly: true,
+      customerEmail: params.customerEmail || undefined,
+    }).then((secret: string | null | undefined) => {
+      if (!secret) throw new Error('Missing checkout client secret')
+      return secret
+    })
+}
+
 describe('fetchClientSecret logic', () => {
   /**
-   * The PR defines fetchClientSecret inline:
-   *
-   *   const fetchClientSecret = () =>
-   *     startVehicleCheckout({
-   *       vehicleId: vehicleId || "",
-   *       vehicleName,
-   *       depositOnly: true,
-   *       customerEmail: primaryApplicant.email || undefined,
-   *     }).then((secret) => {
-   *       if (!secret) throw new Error("Missing checkout client secret")
-   *       return secret
-   *     })
-   *
-   * These tests exercise that contract end-to-end, driving through the real
-   * startVehicleCheckout mock.
+   * These tests exercise the fetchClientSecret contract end-to-end,
+   * driving through the real startVehicleCheckout mock.
    */
-
-  // Replicate the exact closure used in the component
-  function makeFetchClientSecret(params: {
-    vehicleId: string | undefined
-    vehicleName: string
-    customerEmail: string | undefined
-  }) {
-    return () =>
-      mockStartVehicleCheckout({
-        vehicleId: params.vehicleId || '',
-        vehicleName: params.vehicleName,
-        depositOnly: true,
-        customerEmail: params.customerEmail || undefined,
-      }).then((secret: string | null | undefined) => {
-        if (!secret) throw new Error('Missing checkout client secret')
-        return secret
-      })
-  }
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -358,33 +353,29 @@ describe('fetchClientSecret logic', () => {
 // Section 3 – getStripePromise singleton pattern
 // ===========================================================================
 
-describe('getStripePromise singleton pattern', () => {
-  /**
-   * The PR introduces:
-   *
-   *   const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-   *   let stripePromise = null
-   *   function getStripePromise() {
-   *     if (!stripePromise && stripeKey) {
-   *       stripePromise = import('@stripe/stripe-js').then(m => m.loadStripe(stripeKey))
-   *     }
-   *     return stripePromise
-   *   }
-   *
-   * We test the exact same logic in isolation, controlling the env variable.
-   */
-
-  function makeGetStripePromise(keyOverride: string | undefined) {
-    const key = keyOverride
-    let promise: ReturnType<typeof mockLoadStripe> | null = null
-    return function getStripePromise() {
-      if (!promise && key) {
-        promise = Promise.resolve().then(() => mockLoadStripe(key))
-      }
-      return promise
+/**
+ * Replicates the getStripePromise singleton pattern used in checkout components:
+ *   const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+ *   let stripePromise = null
+ *   function getStripePromise() {
+ *     if (!stripePromise && stripeKey) {
+ *       stripePromise = import('@stripe/stripe-js').then(m => m.loadStripe(stripeKey))
+ *     }
+ *     return stripePromise
+ *   }
+ */
+function makeGetStripePromise(keyOverride: string | undefined) {
+  const key = keyOverride
+  let promise: ReturnType<typeof mockLoadStripe> | null = null
+  return function getStripePromise() {
+    if (!promise && key) {
+      promise = Promise.resolve().then(() => mockLoadStripe(key))
     }
+    return promise
   }
+}
 
+describe('getStripePromise singleton pattern', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockLoadStripe.mockResolvedValue({ /* fake Stripe instance */ })
