@@ -4,7 +4,7 @@
  *
  * Adapted for:
  *  - Supabase Auth (not Clerk)
- *  - FinanceApplicationFullForm component (Label-based selectors, no data-testid)
+ *  - FinanceApplicationFullForm component (data-testid selectors added Apr 2026)
  *  - Shadcn/ui Select + Input components
  *  - 5-step internal form: Step 1 = Primary Applicant, Step 2 = Co-Applicant,
  *    Step 3 = Vehicle & Financing, Step 4 = Documents, Step 5 = Review

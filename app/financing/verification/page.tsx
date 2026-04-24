@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { useRouter } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -51,10 +52,9 @@ interface IDDocument {
 
 function IDVerificationContent() {
   useRouter()
-  // Read applicationId from URL without triggering Suspense boundary delay
-  const applicationId = typeof window !== 'undefined'
-    ? new URLSearchParams(window.location.search).get("applicationId")
-    : null
+  // useSearchParams is SSR-safe — no hydration mismatch
+  const searchParams = useSearchParams()
+  const applicationId = searchParams.get("applicationId")
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isVerified, setIsVerified] = useState(false)
@@ -577,5 +577,9 @@ function IDVerificationContent() {
 }
 
 export default function IDVerificationPage() {
-  return <IDVerificationContent />
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
+      <IDVerificationContent />
+    </Suspense>
+  )
 }
