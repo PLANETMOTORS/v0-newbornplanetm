@@ -221,8 +221,8 @@ export default function HomepageMockupV2() {
               { label: "Hybrids", icon: Battery },
               { label: "Luxury", icon: BadgeCheck },
               { label: "Family", icon: Car },
-            ].map((chip, i) => (
-              <button
+            ].map((chip) => (
+              <button 
                 key={i}
                 className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-[#1e3a8a] hover:text-white rounded-full text-sm font-medium whitespace-nowrap transition-colors"
               >
@@ -357,7 +357,7 @@ export default function HomepageMockupV2() {
               { icon: CheckCircle, title: "210-Point Inspection", desc: "Every vehicle rigorously inspected and certified." },
               { icon: Battery, title: "Aviloo Battery Health", desc: "EV battery certified by independent experts." },
               { icon: Shield, title: "No Hidden Fees", desc: "The price you see is the price you pay." },
-            ].map((item) => (
+            ].map((item, i) => (
               <div key={item.title} className="bg-white p-6 rounded-2xl border border-gray-200 hover:shadow-lg hover:border-[#1e3a8a]/30 transition-all">
                 <div className="w-12 h-12 bg-[#1e3a8a]/10 rounded-xl flex items-center justify-center mb-4">
                   <item.icon className="w-6 h-6 text-[#1e3a8a]" />
@@ -386,7 +386,7 @@ export default function HomepageMockupV2() {
                 Get a competitive offer in minutes. We buy all makes and models - you don&apos;t need to purchase from us to sell to us.
               </p>
               <ul className="space-y-3 mb-8">
-                {["Instant online offer", "Free vehicle pickup", "Same-day payment available", "No obligation to buy from us"].map((item) => (
+                {["Instant online offer", "Free vehicle pickup", "Same-day payment available", "No obligation to buy from us"].map((item, i) => (
                   <li key={item} className="flex items-center gap-3">
                     <CheckCircle className="w-5 h-5 text-green-600" />
                     <span className="text-gray-700">{item}</span>

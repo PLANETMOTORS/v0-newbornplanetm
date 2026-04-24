@@ -281,7 +281,7 @@ export function PersonalDetailsStep({ data, onChange, onContinue }: PersonalDeta
                 className="absolute z-50 w-full mt-1 bg-background border rounded-lg shadow-lg max-h-48 overflow-y-auto"
               >
                 {streetSuggestions.map((s) => (
-                  <li key={s.fullAddress} role="option" aria-selected={false}>
+                  <li key={s} role="option" aria-selected={false}>
                     <button
                       type="button"
                       className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors"

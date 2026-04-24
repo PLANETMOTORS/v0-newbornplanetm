@@ -374,7 +374,7 @@ export function InstantQuote() {
   const calculateLocalValue = (data: typeof formData) => {
     const currentYear = new Date().getFullYear()
     const age = currentYear - Number.parseInt(data.year)
-    const mileageNum = Number.parseInt(data.mileage.replaceAll(/,/g, '')) || 50000
+    const mileageNum = Number.parseInt(data.mileage.replace(/,/g, '')) || 50000
     
     // Base values by model/make
     const baseValues: Record<string, number> = {

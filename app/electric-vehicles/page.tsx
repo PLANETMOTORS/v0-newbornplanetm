@@ -320,7 +320,7 @@ export default function ElectricVehiclesPage() {
                   a: "Absolutely! We offer nationwide delivery across Canada. Your EV will arrive fully charged and ready to drive."
                 },
               ].map((faq) => (
-                <Card key={faq.q} className="p-6">
+                <Card key={faq.question} className="p-6">
                   <h3 className="font-semibold text-lg mb-2">{faq.q}</h3>
                   <p className="text-muted-foreground">{faq.a}</p>
                 </Card>

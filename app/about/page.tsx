@@ -278,7 +278,7 @@ export default function AboutPage() {
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-center mb-12">Our Journey</h2>
             <div className="max-w-3xl mx-auto">
-              {milestones.map((milestone, i) => (
+              {milestones.map((milestone) => (
                 <div key={milestone.title} className="flex gap-6 mb-8 last:mb-0">
                   <div className="flex flex-col items-center">
                     <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
