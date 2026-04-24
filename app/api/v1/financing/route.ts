@@ -55,7 +55,14 @@ export async function POST(request: NextRequest) {
 
   // Soft credit pull (calls Equifax/TransUnion in production)
   // Use income-based estimation for pre-qualification
-  const creditScore = annualIncome >= 80000 ? 750 : annualIncome >= 50000 ? 700 : 680
+  let creditScore: number
+  if (annualIncome >= 80000) {
+    creditScore = 750
+  } else if (annualIncome >= 50000) {
+    creditScore = 700
+  } else {
+    creditScore = 680
+  }
   const creditBureau = 'Equifax'
 
   // Calculate debt-to-income ratio
@@ -86,7 +93,7 @@ export async function POST(request: NextRequest) {
         estimatedTerm: term,
         estimatedMonthlyPayment: Math.round(monthlyPayment * 100) / 100,
         prequalified: true,
-        confidence: creditScore >= 700 ? 'high' : creditScore >= 650 ? 'medium' : 'low',
+        confidence: creditScore >= 700 ? 'high' : (creditScore >= 650 ? 'medium' : 'low'),
       }
     })
     .sort((a, b) => a.estimatedRate - b.estimatedRate)
@@ -136,11 +143,11 @@ export function GET() {
         maxTermMonths: l.maxTerm,
         rateFrom: l.baseRate - 0.5,
         rateTo: l.baseRate + 1.5,
-        features: l.code === 'TD' 
-          ? ['Lowest rates', 'No prepayment penalty', 'Flexible terms']
-          : l.code === 'DESJ'
-          ? ['Longest terms available', 'Credit union rates', 'Quebec specialty']
-          : ['Competitive rates', 'Fast approval', 'Online management'],
+        features: (() => {
+          if (l.code === 'TD') return ['Lowest rates', 'No prepayment penalty', 'Flexible terms']
+          if (l.code === 'DESJ') return ['Longest terms available', 'Credit union rates', 'Quebec specialty']
+          return ['Competitive rates', 'Fast approval', 'Online management']
+        })(),
       })),
     },
   })

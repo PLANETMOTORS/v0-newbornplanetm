@@ -195,11 +195,9 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
             e.preventDefault()
             lastFocusable?.focus()
           }
-        } else {
-          if (document.activeElement === lastFocusable) {
-            e.preventDefault()
-            firstFocusable?.focus()
-          }
+        } else if (document.activeElement === lastFocusable) {
+          e.preventDefault()
+          firstFocusable?.focus()
         }
       }
 
@@ -246,11 +244,7 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
     id: def.id,
     label: def.label,
     timeEstimate: def.timeEstimate,
-    status: completedSteps.has(idx)
-      ? "complete"
-      : idx === currentStep
-        ? "current"
-        : "upcoming",
+    status: completedSteps.has(idx) ? "complete" : (idx === currentStep ? "current" : "upcoming"),
   }))
 
   // --- Loading / error states ---

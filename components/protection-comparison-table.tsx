@@ -254,9 +254,11 @@ function DesktopTable({ onSelect }: { onSelect?: (id: string) => void }) {
                 </div>
                 <div className="font-bold text-[15px] leading-tight">{pkg.name}</div>
                 <div className="text-[11px] text-muted-foreground mt-1">
-                  {pkg.id === "basic" ? "Cash buyers" :
-                   pkg.paymentMethod === "finance" ? "Finance buyers" :
-                   "Cash & finance"}
+                  {(() => {
+                    if (pkg.id === "basic") return "Cash buyers"
+                    if (pkg.paymentMethod === "finance") return "Finance buyers"
+                    return "Cash & finance"
+                  })()}
                 </div>
                 {pkg.priceFrom > 0 ? (
                   <div className="mt-3">

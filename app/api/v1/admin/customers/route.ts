@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     if (search) {
       // Sanitize to prevent PostgREST filter injection via commas/parentheses
       // Allow @ and . for email searches, - for phone numbers
-      const sanitizedSearch = search.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s@.-]/g, "").trim()
+      const sanitizedSearch = search.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s@.-]/gu, "").trim()
       if (sanitizedSearch) {
         query = query.or(
           `email.ilike.%${sanitizedSearch}%,first_name.ilike.%${sanitizedSearch}%,last_name.ilike.%${sanitizedSearch}%,phone.ilike.%${sanitizedSearch}%`

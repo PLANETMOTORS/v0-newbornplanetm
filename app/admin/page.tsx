@@ -238,10 +238,13 @@ export default function AdminDashboard() {
                 {recentActivity.slice(0, 8).map((activity, index) => (
                   <div key={`${activity.id}-${index}`} className="flex gap-3">
                     <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                      activity.type === "order" ? "bg-green-600" :
-                      activity.type === "finance" ? "bg-purple-600" :
-                      activity.type === "reservation" ? "bg-orange-600" :
-                      "bg-blue-600"
+                      activity.type === "order"
+                        ? "bg-green-600"
+                        : activity.type === "finance"
+                          ? "bg-purple-600"
+                          : activity.type === "reservation"
+                            ? "bg-orange-600"
+                            : "bg-blue-600"
                     }`} />
                     <div>
                       <p className="text-sm font-medium">{activity.title}</p>

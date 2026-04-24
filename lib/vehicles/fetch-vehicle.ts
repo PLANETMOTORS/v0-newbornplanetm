@@ -80,11 +80,14 @@ export const fetchVehicleForSSR = cache(async (
   try {
     const supabase = createStaticClient()
 
-    const lookupColumn = UUID_RE.test(idOrVinOrStock)
-      ? "id"
-      : VIN_RE.test(idOrVinOrStock)
-        ? "vin"
-        : "stock_number"
+    let lookupColumn: string
+    if (UUID_RE.test(idOrVinOrStock)) {
+      lookupColumn = "id"
+    } else if (VIN_RE.test(idOrVinOrStock)) {
+      lookupColumn = "vin"
+    } else {
+      lookupColumn = "stock_number"
+    }
 
     const { data: row, error } = await supabase
       .from("vehicles")

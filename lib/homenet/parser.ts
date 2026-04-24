@@ -198,8 +198,9 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
     isCertified = true
   } else if (rawCondition === "new") {
     a2Condition = "new"
-  } else if (rawCondition === "used" || !rawCondition) {
-    a2Condition = "used"
+  } else if (!rawCondition) {
+    if (!get(["is_certified", "certified", "cpo"])) isCertified = false
+  } else {
     if (!get(["is_certified", "certified", "cpo"])) isCertified = false
   }
 

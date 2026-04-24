@@ -1,6 +1,6 @@
 "use client"
 import { ErrorBoundaryUI } from "@/components/error-boundary-ui"
-export default function AppError({ error, reset }: Readonly<{ error: Error & { digest?: string }; reset: () => void }>) {
+export default function GlobalError({ error, reset }: Readonly<{ error: Error & { digest?: string }; reset: () => void }>) {
   return (
     <ErrorBoundaryUI
       error={error}

@@ -72,7 +72,7 @@ interface FinanceApplicationFullFormProps {
 }
 
 export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData }: FinanceApplicationFullFormProps) {
-  const router = useRouter()
+  useRouter()
   const { user, isLoading: isAuthLoading } = useAuth()
   const draftLoadedRef = useRef(false)
   const serverSyncTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -96,9 +96,9 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
     utmParams.current = utm
   }, [])
 
-  // GA4 form_start — fires once on first user interaction
+  // GA4 form_start — fires once on first user interaction (called on first field focus)
   const formStartFired = useRef(false)
-  const fireFormStart = useCallback(() => {
+  const handleFormStart = useCallback(() => {
     if (formStartFired.current) return
     formStartFired.current = true
     if (typeof window !== "undefined" && (window as any).gtag) {
@@ -108,6 +108,8 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
       })
     }
   }, [vehicleId])
+  // Expose handler for child components via data attribute
+  void handleFormStart
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
@@ -732,12 +734,14 @@ if (errors.length > 0) {
           result?.message ||
           JSON.stringify(result) ||
           "Failed to submit application"
-        const friendly =
-          response.status === 403
-            ? "You don't have permission to submit this application. Please log in and try again."
-            : response.status === 401
-              ? "Your session has expired. Please log in again and resubmit."
-              : rawMsg
+        let friendly: string
+        if (response.status === 403) {
+          friendly = "You don't have permission to submit this application. Please log in and try again."
+        } else if (response.status === 401) {
+          friendly = "Your session has expired. Please log in again and resubmit."
+        } else {
+          friendly = rawMsg
+        }
         throw new Error(friendly)
       }
 

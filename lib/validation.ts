@@ -55,11 +55,11 @@ export function isValidCanadianPhoneNumber(phone: string): boolean {
   
   // Area code (first 3 digits) cannot start with 0 or 1
   const areaCode = digits.substring(0, 3)
-  if (areaCode[0] === '0' || areaCode[0] === '1') return false
-  
+  if (areaCode.startsWith('0') || areaCode.startsWith('1')) return false
+
   // Exchange code (digits 4-6) cannot start with 0 or 1
   const exchangeCode = digits.substring(3, 6)
-  if (exchangeCode[0] === '0' || exchangeCode[0] === '1') return false
+  if (exchangeCode.startsWith('0') || exchangeCode.startsWith('1')) return false
   
   // Common fake number patterns to reject
   const fakePatterns = [

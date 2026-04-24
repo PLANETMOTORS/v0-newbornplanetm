@@ -73,7 +73,7 @@ async function runWideRangeTest() {
       }
     }
 
-    const fieldList = Array.from(allFields).sort()
+    const fieldList = Array.from(allFields).sort((a, b) => a.localeCompare(b))
     console.log(`Fields found in database: ${fieldList.join(', ')}`)
 
     // Check against expected schema

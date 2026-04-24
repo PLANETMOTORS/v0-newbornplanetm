@@ -19,7 +19,7 @@ export function reportError(
   context?: Record<string, unknown>,
 ): void {
   // Sentry capture would go here when @sentry/nextjs is installed
-  void isSentryInitialized()
+  isSentryInitialized()
 
   // Always log to console for local development visibility
   if (context) {
@@ -39,7 +39,7 @@ export function reportMessage(
   context?: Record<string, unknown>,
 ): void {
   // Sentry capture would go here when @sentry/nextjs is installed
-  void isSentryInitialized()
+  isSentryInitialized()
 
   // Always log to console for local development visibility
   const logFn =

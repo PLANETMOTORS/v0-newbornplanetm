@@ -53,7 +53,7 @@ async function main() {
   
   for (const [type, fields] of Object.entries(fieldsByType)) {
     console.log(`\n--- ${type.toUpperCase()} (${fields.size} fields) ---`);
-    const sortedFields = Array.from(fields).sort();
+    const sortedFields = Array.from(fields).sort((a, b) => a.localeCompare(b));
     sortedFields.forEach(f => console.log(`  ${f}`));
   }
   
