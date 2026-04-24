@@ -10,7 +10,7 @@ vi.mock('next/headers', () => ({ headers: vi.fn() }))
 // chains as well as `await supabase.from(...).select(...).eq(...).maybeSingle()`.
 const DEFAULT_QUERY_RESULT: { data?: unknown; error?: unknown } = { data: null, error: null }
 
-function createMockSupabase(queryResult: { data?: unknown; error?: unknown } = DEFAULT_QUERY_RESULT) {
+function createMockSupabase(queryResult: { data?: unknown; error?: unknown } = { data: null, error: null }) {
   const handler: ProxyHandler<Record<string, unknown>> = {
     get(_target, prop: string) {
       if (prop === 'then') {

@@ -1,5 +1,5 @@
 "use client"
 import { ErrorBoundaryUI } from "@/components/error-boundary-ui"
-export default function ContactError(props: { error: Error & { digest?: string }; reset: () => void }) {
-  return <ErrorBoundaryUI {...props} />
+export default function ContactError({ error, reset }: Readonly<{ error: Error & { digest?: string }; reset: () => void }>) {
+  return <ErrorBoundaryUI error={error} reset={reset} />
 }

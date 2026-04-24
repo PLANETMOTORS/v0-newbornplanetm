@@ -21,16 +21,12 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope;
 
-// ─── Precache manifest filtering ─────────────────────────────────────────────
-// Exclude any JS chunk matching the 4.16MB offender from the precache manifest.
-// These large chunks are served via StaleWhileRevalidate at runtime instead,
-// so they don't block the SW install step on first load.
-const LARGE_CHUNK_PATTERN = /09okea7j~1zn8/;
-
-const filteredManifest = (self.__SW_MANIFEST ?? []).filter((entry) => {
-  const url = typeof entry === "string" ? entry : entry.url;
-  return !LARGE_CHUNK_PATTERN.test(url);
-});
+// Filter out API and Supabase routes from runtime caching to prevent
+// stale inventory/auth data. The defaultCache already includes sensible
+// strategies; we only need to exclude backend routes.
+// Keep all cache entries — the NetworkOnly handler above already intercepts
+// /api/ and Supabase routes before they reach these strategies.
+const filteredCache = defaultCache;
 
 // ─── Runtime caching strategies ──────────────────────────────────────────────
 const serwist = new Serwist({
