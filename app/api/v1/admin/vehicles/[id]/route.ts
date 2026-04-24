@@ -118,11 +118,11 @@ export async function PUT(
     const intFields = ["year", "price", "msrp", "mileage", "fuel_economy_city", "fuel_economy_highway", "range_miles", "inspection_score", "ev_battery_health_percent", "savings"]
     for (const f of intFields) {
       if (f in update && update[f] !== null) {
-        update[f] = parseInt(String(update[f]))
+        update[f] = Number.parseInt(String(update[f]))
       }
     }
     if ("battery_capacity_kwh" in update && update.battery_capacity_kwh !== null) {
-      update.battery_capacity_kwh = parseFloat(String(update.battery_capacity_kwh))
+      update.battery_capacity_kwh = Number.parseFloat(String(update.battery_capacity_kwh))
     }
 
     update.updated_at = new Date().toISOString()

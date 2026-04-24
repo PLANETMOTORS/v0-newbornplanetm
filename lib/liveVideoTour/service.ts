@@ -32,7 +32,7 @@ export async function createLiveVideoTourBooking(
 
   // 2. Validate business hours
   const scheduledDateTime = new Date(data.preferredTime)
-  if (isNaN(scheduledDateTime.getTime())) {
+  if (Number.isNaN(scheduledDateTime.getTime())) {
     return { ok: false, error: "Invalid date/time format" }
   }
 

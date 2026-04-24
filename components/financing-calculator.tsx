@@ -25,7 +25,7 @@ export function FinancingCalculator() {
 
   const principal = Math.max(vehiclePrice - downPayment, 0)
   const monthlyRate = interestRate / 100 / 12
-  const months = parseInt(term)
+  const months = Number.parseInt(term)
   const rawMonthly = principal > 0 && monthlyRate > 0
     ? (principal * monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1)
     : principal > 0 && months > 0 ? principal / months : 0
@@ -49,7 +49,7 @@ export function FinancingCalculator() {
             type="number"
             value={vehiclePrice}
             onChange={(e) => {
-              handleVehiclePriceChange(clamp(parseInt(e.target.value) || 0, VEHICLE_PRICE_MIN, VEHICLE_PRICE_MAX))
+              handleVehiclePriceChange(clamp(Number.parseInt(e.target.value) || 0, VEHICLE_PRICE_MIN, VEHICLE_PRICE_MAX))
             }}
             min={VEHICLE_PRICE_MIN}
             max={VEHICLE_PRICE_MAX}
@@ -79,7 +79,7 @@ export function FinancingCalculator() {
             type="number"
             value={downPayment}
             onChange={(e) =>
-              setDownPayment(clamp(parseInt(e.target.value) || 0, 0, Math.min(vehiclePrice, DOWN_PAYMENT_CAP)))
+              setDownPayment(clamp(Number.parseInt(e.target.value) || 0, 0, Math.min(vehiclePrice, DOWN_PAYMENT_CAP)))
             }
             min={0}
             max={Math.min(vehiclePrice, DOWN_PAYMENT_CAP)}
@@ -103,7 +103,7 @@ export function FinancingCalculator() {
             id="calc-interest-rate"
             type="number"
             value={interestRate}
-            onChange={(e) => setInterestRate(clamp(parseFloat(e.target.value) || 0, 0, 30))}
+            onChange={(e) => setInterestRate(clamp(Number.parseFloat(e.target.value) || 0, 0, 30))}
             min={0}
             max={30}
             step={0.1}

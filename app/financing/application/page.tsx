@@ -55,7 +55,7 @@ export default async function FinanceApplicationPage({
   
   // Parse trade-in data from URL params
   const tradeInData = params.tradeIn ? {
-    value: parseInt(params.tradeIn) || 0,
+    value: Number.parseInt(params.tradeIn) || 0,
     vehicle: params.tradeInVehicle ? decodeURIComponent(params.tradeInVehicle) : undefined,
     quoteId: params.quoteId
   } : undefined

@@ -147,7 +147,7 @@ export function FinanceApplicationForm() {
     }
     if (!formData.phone.trim()) {
       errors.phone = "Phone Number is required"
-    } else if (formData.phone.replace(/\D/g, "").length < 10) {
+    } else if (formData.phone.replaceAll(/\D/g, "").length < 10) {
       errors.phone = "Phone must be at least 10 digits"
     }
     return errors

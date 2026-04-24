@@ -11,7 +11,7 @@ export function isValidCanadianPostalCode(postalCode: string): boolean {
   if (!postalCode) return false
   
   // Remove spaces and convert to uppercase
-  const cleaned = postalCode.replace(/\s/g, '').toUpperCase()
+  const cleaned = postalCode.replaceAll(/\s/g, '').toUpperCase()
   
   // Must be exactly 6 characters after removing spaces
   if (cleaned.length !== 6) return false
@@ -30,7 +30,7 @@ export function isValidCanadianPostalCode(postalCode: string): boolean {
 
 // Format postal code to standard format (A1A 1A1)
 export function formatCanadianPostalCode(postalCode: string): string {
-  const cleaned = postalCode.replace(/\s/g, '').toUpperCase()
+  const cleaned = postalCode.replaceAll(/\s/g, '').toUpperCase()
   if (cleaned.length >= 3) {
     return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)}`
   }
@@ -45,7 +45,7 @@ export function isValidCanadianPhoneNumber(phone: string): boolean {
   if (!phone) return false
   
   // Remove all non-digits except leading +
-  const cleaned = phone.replace(/[^\d+]/g, '')
+  const cleaned = phone.replaceAll(/[^\d+]/g, '')
   
   // Remove +1 country code if present
   const digits = cleaned.replace(/^\+?1/, '')
@@ -86,7 +86,7 @@ export function isValidCanadianPhoneNumber(phone: string): boolean {
 
 // Format phone number to standard format (416) 555-1234
 export function formatCanadianPhoneNumber(phone: string): string {
-  const cleaned = phone.replace(/[^\d]/g, '')
+  const cleaned = phone.replaceAll(/[^\d]/g, '')
   const digits = cleaned.replace(/^1/, '') // Remove leading 1 if present
   
   if (digits.length === 10) {
@@ -169,7 +169,7 @@ export function isValidName(name: string): boolean {
 export function isValidVIN(vin: string): boolean {
   if (!vin) return true // VIN is often optional
   
-  const cleaned = vin.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, '')
+  const cleaned = vin.toUpperCase().replaceAll(/[^A-HJ-NPR-Z0-9]/g, '')
   
   if (cleaned.length !== 17) return false
   
@@ -182,9 +182,9 @@ export function isValidVIN(vin: string): boolean {
 // Mileage Validation
 // Must be a positive number, reasonable range (0 - 1,000,000 km)
 export function isValidMileage(mileage: string | number): boolean {
-  const num = typeof mileage === 'string' ? parseInt(mileage.replace(/,/g, ''), 10) : mileage
+  const num = typeof mileage === 'string' ? Number.parseInt(mileage.replaceAll(/,/g, ''), 10) : mileage
   
-  if (isNaN(num)) return false
+  if (Number.isNaN(num)) return false
   if (num < 0 || num > 1000000) return false
   
   return true
@@ -192,8 +192,8 @@ export function isValidMileage(mileage: string | number): boolean {
 
 // Format mileage with commas
 export function formatMileage(mileage: string | number): string {
-  const num = typeof mileage === 'string' ? parseInt(mileage.replace(/,/g, ''), 10) : mileage
-  if (isNaN(num)) return '0'
+  const num = typeof mileage === 'string' ? Number.parseInt(mileage.replaceAll(/,/g, ''), 10) : mileage
+  if (Number.isNaN(num)) return '0'
   return num.toLocaleString()
 }
 

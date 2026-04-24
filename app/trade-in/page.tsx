@@ -308,7 +308,7 @@ function TradeInContent() {
     const action = searchParams.get("action")
     
     if (quoteId && vehicle && value) {
-      const parsedValue = parseInt(value) || 0
+      const parsedValue = Number.parseInt(value) || 0
       setInstantQuote({
         quoteId,
         vehicle: decodeURIComponent(vehicle),
@@ -333,21 +333,21 @@ function TradeInContent() {
           quoteId,
           offerNumber: `PM-${Date.now().toString(36).toUpperCase()}`,
           vehicle: decodeURIComponent(vehicle),
-          offerAmount: parseInt(value) || 0,
+          offerAmount: Number.parseInt(value) || 0,
           validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
           mileage: mileage || "N/A",
           condition: "good",
           cbbValue: {
-            low: parseInt(value) || 0,
-            mid: parseInt(value) || 0,
-            high: parseInt(value) || 0,
+            low: Number.parseInt(value) || 0,
+            mid: Number.parseInt(value) || 0,
+            high: Number.parseInt(value) || 0,
           },
           adjustments: [],
           payoff: 0,
-          equity: parseInt(value) || 0,
+          equity: Number.parseInt(value) || 0,
           comparison: {
-            privateSale: Math.round((parseInt(value) || 0) * 1.1),
-            dealerTrade: Math.round((parseInt(value) || 0) * 0.9),
+            privateSale: Math.round((Number.parseInt(value) || 0) * 1.1),
+            dealerTrade: Math.round((Number.parseInt(value) || 0) * 0.9),
           },
         }
         setOffer(offerData)
@@ -369,7 +369,7 @@ function TradeInContent() {
       }
       const mileageParam = searchParams.get("mileage")
       if (mileageParam) {
-        setMileage(mileageParam.replace(/[^0-9]/g, ""))
+        setMileage(mileageParam.replaceAll(/[^0-9]/g, ""))
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -518,7 +518,7 @@ function TradeInContent() {
     const formatted = formatCanadianPhoneNumber(value)
     setPhone(formatted)
     // Show error if user has entered some digits but format is incomplete/invalid
-    const digitsOnly = value.replace(/\D/g, '')
+    const digitsOnly = value.replaceAll(/\D/g, '')
     if (digitsOnly.length > 0 && digitsOnly.length < 10) {
       setPhoneError("Please enter a complete 10-digit phone number")
     } else if (digitsOnly.length >= 10 && !isValidCanadianPhoneNumber(formatted)) {
@@ -532,7 +532,7 @@ function TradeInContent() {
     const formatted = formatCanadianPostalCode(value)
     setPostalCode(formatted)
     // Show error if user has started entering but it's incomplete
-    const cleanValue = value.replace(/\s/g, '')
+    const cleanValue = value.replaceAll(/\s/g, '')
     if (cleanValue.length > 0 && cleanValue.length < 6) {
       setPostalCodeError("Please enter a complete postal code (e.g., L4C 2G1)")
     } else if (cleanValue.length >= 6 && !isValidCanadianPostalCode(formatted)) {
@@ -619,7 +619,7 @@ function TradeInContent() {
         const v = data.vehicle
         setVehicleFound(true)
         setFoundVehicle({
-          year: parseInt(v.year) || 0,
+          year: Number.parseInt(v.year) || 0,
           make: v.make,
           model: v.model,
           trim: v.trim,
@@ -712,7 +712,7 @@ function TradeInContent() {
     midValue = Math.round(midValue / 50) * 50
     highValue = Math.round(highValue / 50) * 50
 
-    const equity = hasLien && payoffAmount ? midValue - parseFloat(payoffAmount) : midValue
+    const equity = hasLien && payoffAmount ? midValue - Number.parseFloat(payoffAmount) : midValue
 
     const generatedQuoteId = `PQ-${Date.now().toString(36).toUpperCase()}`
     setOffer({
@@ -727,7 +727,7 @@ function TradeInContent() {
         hasMechanicalIssues && { reason: "Mechanical issues", amount: Math.round(-(midValue * 0.08)) },
       ].filter(Boolean),
       offerAmount: midValue,
-      payoff: hasLien ? parseFloat(payoffAmount) || 0 : 0,
+      payoff: hasLien ? Number.parseFloat(payoffAmount) || 0 : 0,
       equity,
       validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-CA'),
       comparison: {
@@ -743,8 +743,8 @@ function TradeInContent() {
   // Local fallback when API is unavailable
   const calculateLocalFallback = () => {
     const currentYear = new Date().getFullYear()
-    const age = currentYear - parseInt(selectedYear)
-    const mileageNum = parseInt(mileage.replace(/,/g, '')) || 50000
+    const age = currentYear - Number.parseInt(selectedYear)
+    const mileageNum = Number.parseInt(mileage.replaceAll(/,/g, '')) || 50000
     const baseTiers: Record<string, number> = {
       "BMW": 45000, "Mercedes-Benz": 48000, "Audi": 45000, "Lexus": 42000,
       "Tesla": 55000, "Porsche": 70000, "Toyota": 28000, "Honda": 28000,
@@ -963,7 +963,7 @@ function TradeInContent() {
                         pattern="[0-9]*"
                         className="h-12 bg-white/5 border-white/20 text-white placeholder:text-white/30"
                         value={mileage}
-                        onChange={(e) => setMileage(e.target.value.replace(/[^0-9]/g, ''))}
+                        onChange={(e) => setMileage(e.target.value.replaceAll(/[^0-9]/g, ''))}
                         autoComplete="off"
                       />
                       <Button
@@ -1022,7 +1022,7 @@ function TradeInContent() {
                             pattern="[0-9]*"
                             className="h-12"
                             value={mileage}
-                            onChange={(e) => setMileage(e.target.value.replace(/[^0-9]/g, ''))}
+                            onChange={(e) => setMileage(e.target.value.replaceAll(/[^0-9]/g, ''))}
                             autoComplete="off"
                           />
                           <Button
@@ -1101,7 +1101,7 @@ function TradeInContent() {
                       <div className="p-4 bg-muted/50 rounded-lg flex items-center justify-between">
                         <div>
                           <p className="font-semibold">{selectedYear} {selectedMake} {selectedModel} {selectedTrim}</p>
-                          <p className="text-sm text-muted-foreground">{mileage ? parseInt(mileage).toLocaleString() : '0'} km</p>
+                          <p className="text-sm text-muted-foreground">{mileage ? Number.parseInt(mileage).toLocaleString() : '0'} km</p>
                         </div>
                         <Button variant="outline" size="sm" onClick={() => goToStep(1)}>Edit</Button>
                       </div>
@@ -1334,7 +1334,7 @@ function TradeInContent() {
                       <div className="p-4 bg-muted/50 rounded-lg">
                         <p className="font-semibold text-lg">{selectedYear} {selectedMake} {selectedModel} {selectedTrim}</p>
                         <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
-                          <span>{mileage ? parseInt(mileage).toLocaleString() : '0'} km</span>
+                          <span>{mileage ? Number.parseInt(mileage).toLocaleString() : '0'} km</span>
                           <span>|</span>
                           <span className="capitalize">{condition} condition</span>
                           {hasAccident && <><span>|</span><span>Accident history</span></>}
@@ -1480,7 +1480,7 @@ function TradeInContent() {
                     <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                       <div>
                         <p className="font-semibold text-lg">{offer.vehicle}</p>
-                        <p className="text-sm text-muted-foreground">{offer.mileage && offer.mileage !== "N/A" ? parseInt(offer.mileage).toLocaleString() + ' km' : ''}{offer.mileage && offer.mileage !== "N/A" && offer.condition ? ' | ' : ''}{offer.condition ? offer.condition + ' condition' : ''}</p>
+                        <p className="text-sm text-muted-foreground">{offer.mileage && offer.mileage !== "N/A" ? Number.parseInt(offer.mileage).toLocaleString() + ' km' : ''}{offer.mileage && offer.mileage !== "N/A" && offer.condition ? ' | ' : ''}{offer.condition ? offer.condition + ' condition' : ''}</p>
                       </div>
                       <Car className="h-8 w-8 text-muted-foreground" />
                     </div>

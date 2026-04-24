@@ -69,8 +69,8 @@ export async function POST(request: Request) {
           case "range_miles":
           case "inspection_score":
           case "ev_battery_health_percent": {
-            const parsed = parseInt(value, 10)
-            if (isNaN(parsed)) {
+            const parsed = Number.parseInt(value, 10)
+            if (Number.isNaN(parsed)) {
               errors.push({ row: i + 1, error: `Invalid numeric value for ${header}: "${value}"` })
               invalidRow = true
             } else {
@@ -79,8 +79,8 @@ export async function POST(request: Request) {
             break
           }
           case "battery_capacity_kwh": {
-            const parsed = parseFloat(value)
-            if (isNaN(parsed)) {
+            const parsed = Number.parseFloat(value)
+            if (Number.isNaN(parsed)) {
               errors.push({ row: i + 1, error: `Invalid numeric value for ${header}: "${value}"` })
               invalidRow = true
             } else {

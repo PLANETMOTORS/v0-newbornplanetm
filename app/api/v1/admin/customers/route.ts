@@ -27,10 +27,10 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const search = searchParams.get("search") || ""
-    const rawLimit = parseInt(searchParams.get("limit") || "50")
-    const limit = Math.min(Math.max(1, isNaN(rawLimit) ? 50 : rawLimit), 200)
-    const rawOffset = parseInt(searchParams.get("offset") || "0")
-    const offset = Math.max(0, isNaN(rawOffset) ? 0 : rawOffset)
+    const rawLimit = Number.parseInt(searchParams.get("limit") || "50")
+    const limit = Math.min(Math.max(1, Number.isNaN(rawLimit) ? 50 : rawLimit), 200)
+    const rawOffset = Number.parseInt(searchParams.get("offset") || "0")
+    const offset = Math.max(0, Number.isNaN(rawOffset) ? 0 : rawOffset)
 
     let adminClient: ReturnType<typeof createAdminClient>
     try {
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     if (search) {
       // Sanitize to prevent PostgREST filter injection via commas/parentheses
       // Allow @ and . for email searches, - for phone numbers
-      const sanitizedSearch = search.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s@.\-]/g, "").trim()
+      const sanitizedSearch = search.trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s@.\-]/g, "").trim()
       if (sanitizedSearch) {
         query = query.or(
           `email.ilike.%${sanitizedSearch}%,first_name.ilike.%${sanitizedSearch}%,last_name.ilike.%${sanitizedSearch}%,phone.ilike.%${sanitizedSearch}%`

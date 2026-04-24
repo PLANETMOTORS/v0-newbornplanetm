@@ -184,7 +184,7 @@ export default function ComparePage() {
   const selectedVehicleData = selectedVehicles.map(id => getVehicle(id)).filter((v): v is NonNullable<typeof v> => Boolean(v))
 
   const compareValue = (values: (string | number)[], type: "lower" | "higher" = "higher") => {
-    const numericValues = values.map(v => typeof v === "string" ? parseFloat(v) : v)
+    const numericValues = values.map(v => typeof v === "string" ? Number.parseFloat(v) : v)
     const best = type === "higher" ? Math.max(...numericValues) : Math.min(...numericValues)
     return numericValues.map(v => v === best)
   }
@@ -340,7 +340,7 @@ export default function ComparePage() {
                       <tr className="border-b bg-muted/10">
                         <td className="p-4 font-semibold">Range</td>
                         {selectedVehicleData.map((vehicle, i) => {
-                          const ranges = selectedVehicleData.map(v => parseInt(v.range))
+                          const ranges = selectedVehicleData.map(v => Number.parseInt(v.range))
                           const isBest = compareValue(ranges, "higher")[i]
                           return (
                             <td key={vehicle.id} className="p-4 text-center">
@@ -371,7 +371,7 @@ export default function ComparePage() {
                       <tr className="border-b bg-muted/10">
                         <td className="p-4 font-semibold">0-100 km/h</td>
                         {selectedVehicleData.map((vehicle, i) => {
-                          const times = selectedVehicleData.map(v => parseFloat(v.acceleration))
+                          const times = selectedVehicleData.map(v => Number.parseFloat(v.acceleration))
                           const isBest = compareValue(times, "lower")[i]
                           return (
                             <td key={vehicle.id} className="p-4 text-center">

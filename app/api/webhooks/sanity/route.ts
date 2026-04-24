@@ -13,7 +13,7 @@
 //   Secret: value of SANITY_WEBHOOK_SECRET env var
 import { revalidatePath, revalidateTag } from "next/cache"
 import { NextRequest, NextResponse } from "next/server"
-import crypto from "crypto"
+import crypto from "node:crypto"
 import { logger } from "@/lib/logger"
 import { syncVehicleToTypesense } from "@/lib/typesense/sync"
 

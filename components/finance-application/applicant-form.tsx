@@ -47,7 +47,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
 
   // Get aria-describedby for inputs (links to error message element)
   const getAriaDescribedBy = (fieldName: string): string | undefined => {
-    return hasFieldError(fieldName) ? `error-${fieldName.toLowerCase().replace(/\s+/g, "-")}` : undefined
+    return hasFieldError(fieldName) ? `error-${fieldName.toLowerCase().replaceAll(/\s+/g, "-")}` : undefined
   }
 
   // Render inline error message with proper id for aria-describedby
@@ -56,7 +56,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
     const errorMsg = validationErrors.find(err => err.toLowerCase().includes(fieldName.toLowerCase()))
     return (
       <p
-        id={`error-${fieldName.toLowerCase().replace(/\s+/g, "-")}`}
+        id={`error-${fieldName.toLowerCase().replaceAll(/\s+/g, "-")}`}
         role="alert"
         className="text-xs text-destructive mt-1"
       >
@@ -180,7 +180,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
               type="tel" 
               value={data.phone} 
               onChange={(e) => {
-                const digits = e.target.value.replace(/\D/g, '').slice(0, 10)
+                const digits = e.target.value.replaceAll(/\D/g, '').slice(0, 10)
                 const formatted = digits.length <= 3 ? digits :
                   digits.length <= 6 ? `(${digits.slice(0, 3)}) ${digits.slice(3)}` :
                   `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
@@ -196,7 +196,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
               type="tel" 
               value={data.mobilePhone} 
               onChange={(e) => {
-                const digits = e.target.value.replace(/\D/g, '').slice(0, 10)
+                const digits = e.target.value.replaceAll(/\D/g, '').slice(0, 10)
                 const formatted = digits.length <= 3 ? digits :
                   digits.length <= 6 ? `(${digits.slice(0, 3)}) ${digits.slice(3)}` :
                   `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
@@ -433,7 +433,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
     type="tel" 
     value={data.employerPhone} 
     onChange={(e) => {
-      const digits = e.target.value.replace(/\D/g, '').slice(0, 10)
+      const digits = e.target.value.replaceAll(/\D/g, '').slice(0, 10)
       const formatted = digits.length <= 3 ? digits :
         digits.length <= 6 ? `(${digits.slice(0, 3)}) ${digits.slice(3)}` :
         `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
@@ -559,7 +559,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             <Label>Annual Total * <span className="text-xs text-muted-foreground">(Auto-calculated)</span></Label>
             <Input 
               type="text" 
-              value={data.annualTotal ? `$${parseFloat(data.annualTotal).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "$0.00"} 
+              value={data.annualTotal ? `$${Number.parseFloat(data.annualTotal).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "$0.00"} 
               readOnly 
               className="bg-amber-50 font-semibold" 
             />
