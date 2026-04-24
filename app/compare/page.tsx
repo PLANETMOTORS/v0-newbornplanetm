@@ -484,8 +484,8 @@ export default function ComparePage() {
                         {selectedVehicleData.map(vehicle => (
                           <td key={vehicle.id} className="p-4">
                             <ul className="space-y-1">
-                              {vehicle.features.map((feature, i) => (
-                                <li key={i} className="flex items-center gap-2 text-sm">
+                              {vehicle.features.map((feature) => (
+                                <li key={feature} className="flex items-center gap-2 text-sm">
                                   <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
                                   {feature}
                                 </li>

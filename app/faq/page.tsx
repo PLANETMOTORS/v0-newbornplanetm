@@ -196,7 +196,7 @@ export default function FAQPage() {
                   <CardContent>
                     <Accordion type="single" collapsible className="w-full">
                       {category.faqs.map((faq, i) => (
-                        <AccordionItem key={i} value={`item-${i}`}>
+                        <AccordionItem key={faq.question} value={`item-${i}`}>
                           <AccordionTrigger className="text-left">
                             {faq.question}
                           </AccordionTrigger>

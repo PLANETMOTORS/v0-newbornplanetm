@@ -310,8 +310,8 @@ export default function Admin360UploadPage() {
                       {uploadResult.errors && uploadResult.errors.length > 0 && (
                         <div className="mt-2 text-sm text-red-600">
                           <p className="font-medium">Errors:</p>
-                          {uploadResult.errors.map((err, i) => (
-                            <p key={i}>• {err}</p>
+                          {uploadResult.errors.map((err) => (
+                            <p key={err}>• {err}</p>
                           ))}
                         </div>
                       )}

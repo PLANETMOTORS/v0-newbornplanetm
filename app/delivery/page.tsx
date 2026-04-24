@@ -993,8 +993,8 @@ export default function DeliveryPage() {
                   { range: "500 - 999 km", price: "$0.75/km", examples: "Montreal, Quebec City, Thunder Bay" },
                   { range: "1,000 - 2,000 km", price: "$0.80/km", examples: "Halifax, Winnipeg, Moncton" },
                   { range: "2,001 - 5,000 km", price: "$0.65/km", examples: "Calgary, Edmonton, Regina, Vancouver" }
-                ].map((tier, i) => (
-                  <Card key={i} className={tier.highlight ? "border-green-500 bg-green-50" : ""}>
+                ].map((tier) => (
+                  <Card key={tier.range} className={tier.highlight ? "border-green-500 bg-green-50" : ""}>
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-2">
                         <span className="text-sm text-muted-foreground">{tier.range}</span>

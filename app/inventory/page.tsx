@@ -993,8 +993,8 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     {/* Features Preview */}
                     {viewMode === "list" && (
                       <div className="flex flex-wrap gap-2 mt-3">
-                        {vehicle.features.map((feature, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">
+                        {vehicle.features.map((feature) => (
+                          <Badge key={feature} variant="secondary" className="text-xs">
                             {feature}
                           </Badge>
                         ))}
