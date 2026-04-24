@@ -382,8 +382,8 @@ export default function AccountPage() {
                   className="w-full"
                 >
                   <TabsList className="grid w-full grid-cols-2 h-auto">
-                    <TabsTrigger value="signin" className="px-4 py-2.5 min-h-[44px]">Sign In</TabsTrigger>
-                    <TabsTrigger value="register" className="px-4 py-2.5 min-h-[44px]">Register</TabsTrigger>
+                    <TabsTrigger value="signin" className="px-4 py-2.5 min-h-11">Sign In</TabsTrigger>
+                    <TabsTrigger value="register" className="px-4 py-2.5 min-h-11">Register</TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="signin" className="space-y-4 mt-6">
@@ -533,7 +533,7 @@ export default function AccountPage() {
               <div className="flex md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0 md:space-y-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 <Button 
                   variant={activeTab === "profile" ? "secondary" : "ghost"} 
-                  className="shrink-0 md:w-full justify-start min-h-[44px]"
+                  className="shrink-0 md:w-full justify-start min-h-11"
                   onClick={() => setActiveTab("profile")}
                 >
                   <User className="w-4 h-4 mr-2" />
@@ -541,7 +541,7 @@ export default function AccountPage() {
                 </Button>
                 <Button 
                   variant={activeTab === "saved" ? "secondary" : "ghost"} 
-                  className="shrink-0 md:w-full justify-start min-h-[44px]"
+                  className="shrink-0 md:w-full justify-start min-h-11"
                   onClick={() => setActiveTab("saved")}
                 >
                   <Heart className="w-4 h-4 mr-2" />
@@ -550,7 +550,7 @@ export default function AccountPage() {
                 </Button>
                 <Button 
                   variant={activeTab === "preapproval" ? "secondary" : "ghost"} 
-                  className="shrink-0 md:w-full justify-start min-h-[44px]"
+                  className="shrink-0 md:w-full justify-start min-h-11"
                   onClick={() => setActiveTab("preapproval")}
                 >
                   <CreditCard className="w-4 h-4 mr-2" />
@@ -558,7 +558,7 @@ export default function AccountPage() {
                 </Button>
                 <Button 
                   variant={activeTab === "orders" ? "secondary" : "ghost"} 
-                  className="shrink-0 md:w-full justify-start min-h-[44px]"
+                  className="shrink-0 md:w-full justify-start min-h-11"
                   onClick={() => setActiveTab("orders")}
                 >
                   <Car className="w-4 h-4 mr-2" />
@@ -566,7 +566,7 @@ export default function AccountPage() {
                 </Button>
                 <Button 
                   variant={activeTab === "settings" ? "secondary" : "ghost"} 
-                  className="shrink-0 md:w-full justify-start min-h-[44px]"
+                  className="shrink-0 md:w-full justify-start min-h-11"
                   onClick={() => setActiveTab("settings")}
                 >
                   <Settings className="w-4 h-4 mr-2" />
@@ -575,7 +575,7 @@ export default function AccountPage() {
                 <Separator className="hidden md:block my-4" />
                 <Button 
                   variant="ghost" 
-                  className="shrink-0 md:w-full justify-start text-destructive min-h-[44px]"
+                  className="shrink-0 md:w-full justify-start text-destructive min-h-11"
                   onClick={() => { signOut().catch(console.error) }}
                 >
                   <LogOut className="w-4 h-4 mr-2" />

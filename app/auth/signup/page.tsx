@@ -117,7 +117,7 @@ function SignUpForm() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen bg-linear-to-b from-background to-muted/30">
       <Header />
       
       <main id="main-content" tabIndex={-1} className="container mx-auto px-4 py-12">

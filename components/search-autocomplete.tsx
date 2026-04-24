@@ -183,13 +183,13 @@ export function SearchAutocomplete() {
 
       <PopoverContent
         data-testid="search-results-dropdown"
-        className="p-0 w-[var(--radix-popover-trigger-width)] min-w-[320px] rounded-xl border border-gray-200 shadow-xl overflow-hidden"
+        className="p-0 w-(--radix-popover-trigger-width) min-w-[320px] rounded-xl border border-gray-200 shadow-xl overflow-hidden"
         align="start"
         sideOffset={6}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <Command shouldFilter={false} className="rounded-none border-0 shadow-none">
-          <CommandList className="max-h-[420px]">
+          <CommandList className="max-h-105">
 
             {/* ── Empty query: show recent + popular ── */}
             {query.trim().length < 2 && (

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState, useMemo, useEffect, useRef, useCallback, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
@@ -450,7 +450,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 <main id="main-content" tabIndex={-1} className="pt-20 pb-20 overflow-x-hidden max-w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
   {/* Trade-In Banner */}
   {tradeInInfo && tradeInInfo.value > 0 && (
-    <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3">
+    <div className="bg-linear-to-r from-green-600 to-emerald-600 text-white py-3">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-3">
@@ -520,7 +520,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   <button
                     onClick={() => { setSearchQuery(""); setSearchInput("") }}
                     aria-label="Clear search"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 min-w-11 min-h-11 flex items-center justify-center"
                   >
                     <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
                   </button>
@@ -558,7 +558,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   onClick={() => setViewMode("grid")}
                   aria-label="Grid view"
                   aria-pressed={viewMode === "grid"}
-                  className={`px-3 h-11 flex items-center min-w-[44px] justify-center transition-colors ${
+                  className={`px-3 h-11 flex items-center min-w-11 justify-center transition-colors ${
                     viewMode === "grid" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                   }`}
                 >
@@ -568,7 +568,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   onClick={() => setViewMode("list")}
                   aria-label="List view"
                   aria-pressed={viewMode === "list"}
-                  className={`px-3 h-11 flex items-center min-w-[44px] justify-center transition-colors ${
+                  className={`px-3 h-11 flex items-center min-w-11 justify-center transition-colors ${
                     viewMode === "list" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                   }`}
                 >
@@ -639,7 +639,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 aria-label="Sort vehicles"
-                className="h-12 px-4 border rounded-lg bg-background min-w-[180px]"
+                className="h-12 px-4 border rounded-lg bg-background min-w-45"
               >
                 <option value="featured">Featured</option>
                 <option value="price-low">Price: Low to High</option>
@@ -660,7 +660,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     setEvOnly(false)
                     setSelectedMake(selectedMake === make ? "All Makes" : make)
                   }}
-                  className={`px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition-colors whitespace-nowrap shrink-0 min-h-[44px] ${
+                  className={`px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition-colors whitespace-nowrap shrink-0 min-h-11 ${
                     selectedMake === make
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted hover:bg-muted/80"
@@ -678,7 +678,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     setSelectedMake("All Makes")
                   }
                 }}
-                className={`px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition-colors flex items-center gap-1 whitespace-nowrap shrink-0 min-h-[44px] ${
+                className={`px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition-colors flex items-center gap-1 whitespace-nowrap shrink-0 min-h-11 ${
                   evOnly
                     ? "bg-green-500 text-white"
                     : "bg-muted hover:bg-muted/80"
@@ -697,7 +697,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     <Filter className="w-4 sm:w-5 h-4 sm:h-5" />
                     Filters
                   </h3>
-                  <Button variant="ghost" size="sm" onClick={clearFilters} className="min-h-[44px]">
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="min-h-11">
                     <RotateCcw className="w-4 h-4 mr-1" />
                     Clear
                   </Button>
@@ -848,7 +848,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 py-8">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="rounded-xl border overflow-hidden animate-pulse">
-                  <div className="aspect-[4/3] bg-muted" />
+                  <div className="aspect-4/3 bg-muted" />
                   <div className="p-4 space-y-3">
                     <div className="h-5 bg-muted rounded w-3/4" />
                     <div className="h-4 bg-muted rounded w-1/2" />
@@ -876,12 +876,12 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   viewMode === "list" ? "flex flex-col sm:flex-row" : ""
                 }`}
               >
-                {/* Image with gradient fallback — entire image area is clickable */}
-                <div className={`relative bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] ${viewMode === "list" ? "w-full sm:w-48 md:w-72 flex-shrink-0 aspect-[4/3] sm:aspect-auto" : "aspect-[4/3]"}`}>
+                {/* Image container — gradient fallback; entire image area is clickable */}
+                <div className={`relative bg-linear-to-br from-[#f0f4ff] to-[#e8eef5] ${viewMode === "list" ? "w-full sm:w-48 md:w-72 shrink-0 aspect-4/3 sm:aspect-auto" : "aspect-4/3"}`}>
                   {/* Clickable image link to VDP */}
                   <Link
                     href={tradeInInfo ? `/vehicles/${vehicle.id}?tradeIn=${tradeInInfo.value}&quoteId=${tradeInInfo.quoteId}&tradeInVehicle=${encodeURIComponent(tradeInInfo.vehicle)}` : `/vehicles/${vehicle.id}`}
-                    className="absolute inset-0 z-[1]"
+                    className="absolute inset-0 z-1"
                     aria-label={`View ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                   />
                   {vehicle.image ? (
@@ -903,8 +903,8 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     </div>
                   )}
                   
-                  {/* Badges — z-[2] to sit above the image link */}
-                  <div className="absolute top-3 left-3 flex flex-col gap-2 z-[2] pointer-events-none">
+                  {/* Badges — z-2 to sit above the image link */}
+                  <div className="absolute top-3 left-3 flex flex-col gap-2 z-2 pointer-events-none">
                     <Badge className={`${vehicle.badgeColor} text-white shadow-lg`}>
                       {vehicle.badge}
                     </Badge>
@@ -921,8 +921,8 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     </Badge>
                   </div>
 
-                  {/* Actions — z-[2] to sit above the image link */}
-                  <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-[2]">
+                  {/* Actions — z-2 to sit above the image link */}
+                  <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-2">
                     <button
                       onClick={() => toggleFavorite(vehicle)}
                       aria-label={isFavorite(vehicle.id) ? "Remove from favorites" : "Add to favorites"}
@@ -1090,7 +1090,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 size="lg"
                 onClick={() => setPagination({ filterKey, page: effectivePage + 1 })}
                 disabled={isValidating}
-                className="min-w-[200px]"
+                className="min-w-50"
               >
                 {isValidating ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Loading...</>

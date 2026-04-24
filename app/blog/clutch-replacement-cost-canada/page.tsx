@@ -251,7 +251,7 @@ export default function ClutchReplacementCostCanadaPage() {
           </div>
 
           {/* CTA Section */}
-          <Card className="mt-12 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+          <Card className="mt-12 bg-linear-to-r from-blue-600 to-blue-800 text-white">
             <CardContent className="p-8 text-center">
               <h2 className="text-2xl font-bold mb-4">Looking for a Quality Manual Transmission Car?</h2>
               <p className="text-blue-100 mb-6">

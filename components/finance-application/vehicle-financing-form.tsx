@@ -140,7 +140,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                       className="flex items-center gap-4 p-3 rounded-lg border hover:border-primary hover:bg-primary/5 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary w-full text-left"
                       onClick={() => handleSelectVehicle(vehicle)}
                     >
-                      <div className="w-24 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
+                      <div className="w-24 h-16 bg-muted rounded overflow-hidden shrink-0">
                         {vehicle.primary_image_url ? (
                           /* eslint-disable-next-line @next/next/no-img-element -- External CDN URL in modal */
                           <img

@@ -1033,7 +1033,7 @@ if (errors.length > 0) {
       {validationErrors.length > 0 && (
         <div className="bg-destructive/10 border border-destructive rounded-lg p-4 mb-4">
           <div className="flex items-start gap-2">
-            <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold text-destructive">Please fix the following errors:</p>
               <ul className="list-disc list-inside mt-2 text-sm text-destructive">

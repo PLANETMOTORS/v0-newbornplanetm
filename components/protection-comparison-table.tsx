@@ -51,7 +51,7 @@ const TIER_STYLES: Record<string, {
     ring: "ring-amber-300/60 dark:ring-amber-700",
     iconBg: "bg-amber-100 dark:bg-amber-900",
     iconColor: "text-amber-600 dark:text-amber-500",
-    badgeBg: "bg-gradient-to-r from-amber-500 to-amber-600",
+    badgeBg: "bg-linear-to-r from-amber-500 to-amber-600",
     badgeText: "text-white",
     colBg: "bg-amber-50/20 dark:bg-amber-950/10",
     colHoverBg: "group-hover:bg-amber-50/40 dark:group-hover:bg-amber-950/20",
@@ -145,7 +145,7 @@ function MobilePackageCard({ pkg, index, onSelect }: { pkg: ProtectionPackage; i
       {/* Badge above header */}
       {pkg.badge && (
         <div className={`flex justify-center py-1.5 ${
-          pkg.highlighted ? "bg-primary" : "bg-gradient-to-r from-amber-500 to-amber-600"
+          pkg.highlighted ? "bg-primary" : "bg-linear-to-r from-amber-500 to-amber-600"
         }`}>
           <span className="text-[11px] font-semibold text-white flex items-center gap-1">
             {pkg.highlighted && <Star className="w-3 h-3 fill-current" />}
@@ -212,7 +212,7 @@ function DesktopTable({ onSelect }: { onSelect?: (id: string) => void }) {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Use CSS grid so badge overflow is never clipped */}
-      <div className="grid grid-cols-[220px_repeat(4,1fr)] gap-0 min-w-[840px]">
+      <div className="grid grid-cols-[220px_repeat(4,1fr)] gap-0 min-w-210">
 
         {/* ── Column headers ── */}
         {/* Label column header */}
@@ -235,7 +235,7 @@ function DesktopTable({ onSelect }: { onSelect?: (id: string) => void }) {
                   <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-3 py-1 rounded-full shadow-sm ${
                     pkg.highlighted
                       ? "bg-primary text-primary-foreground shadow-primary/25"
-                      : "bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-amber-500/25"
+                      : "bg-linear-to-r from-amber-500 to-amber-600 text-white shadow-amber-500/25"
                   }`}>
                     {pkg.highlighted && <Star className="w-3 h-3 fill-current" />}
                     {pkg.badge}
@@ -243,7 +243,7 @@ function DesktopTable({ onSelect }: { onSelect?: (id: string) => void }) {
                 </div>
               )}
               {/* Spacer when no badge so cards align */}
-              {!pkg.badge && <div className="h-[30px]" />}
+              {!pkg.badge && <div className="h-7.5" />}
 
               {/* Card header */}
               <div className={`rounded-2xl ${style.headerBg} border ${
@@ -292,7 +292,7 @@ function DesktopTable({ onSelect }: { onSelect?: (id: string) => void }) {
                 <div
                   key={`${row.key}-${pkg.id}`}
                   className={`group flex items-center justify-center text-center py-3.5 px-2 border-b border-border/40 transition-colors ${style.colBg} ${style.colHoverBg} ${ri === 0 ? "mt-4 border-t border-border/40" : ""} ${
-                    pkg.highlighted ? "bg-primary/[0.02]" : ""
+                    pkg.highlighted ? "bg-primary/2" : ""
                   }`}
                 >
                   <CellValue pkg={pkg} rowKey={row.key} />

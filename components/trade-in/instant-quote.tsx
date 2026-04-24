@@ -498,7 +498,7 @@ export function InstantQuote() {
   }
   
   return (
-    <Card className="shadow-xl border-0 bg-gradient-to-br from-card to-card/95">
+    <Card className="shadow-xl border-0 bg-linear-to-br from-card to-card/95">
       <CardHeader className="pb-4">
         <div className="flex items-center gap-2 mb-2">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">

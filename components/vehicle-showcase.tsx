@@ -204,7 +204,7 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
       {/* Main carousel container - prevent cutoff */}
       <div className="w-full max-w-6xl mx-auto px-2 sm:px-4">
         {/* Main image container */}
-        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] shadow-2xl">
+        <div className="relative aspect-4/3 rounded-2xl overflow-hidden bg-linear-to-br from-[#f0f4ff] to-[#e8eef5] shadow-2xl">
         {imageSrc ? (
           <Image
             src={imageSrc}
@@ -329,7 +329,7 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
         <Button
           variant="ghost"
           size="icon"
-          className="flex-shrink-0 h-10 w-10 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
+          className="shrink-0 h-10 w-10 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
           onClick={() => {
             const container = document.querySelector('.thumbnail-scroll-container')
             if (container) {
@@ -348,7 +348,7 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
               key={vehicle.id}
               onClick={() => setCurrentIndex(index)}
               className={cn(
-                "relative w-12 h-9 sm:w-16 sm:h-12 rounded-lg overflow-hidden transition-all duration-200 flex-shrink-0 border-2",
+                "relative w-12 h-9 sm:w-16 sm:h-12 rounded-lg overflow-hidden transition-all duration-200 shrink-0 border-2",
                 index === currentIndex 
                   ? "border-primary shadow-md" 
                   : "border-transparent opacity-60 hover:opacity-100 hover:border-gray-300"
@@ -374,7 +374,7 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
         <Button
           variant="ghost"
           size="icon"
-          className="flex-shrink-0 h-10 w-10 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
+          className="shrink-0 h-10 w-10 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
           onClick={() => {
             const container = document.querySelector('.thumbnail-scroll-container')
             if (container) {

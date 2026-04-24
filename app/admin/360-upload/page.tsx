@@ -260,7 +260,7 @@ export default function Admin360UploadPage() {
                               {String(i + 1).padStart(2, "0")}
                             </span>
                             <span className="truncate">{file.name}</span>
-                            <span className="text-gray-400 text-xs flex-shrink-0">
+                            <span className="text-gray-400 text-xs shrink-0">
                               {(file.size / 1024).toFixed(0)} KB
                             </span>
                           </div>
@@ -270,7 +270,7 @@ export default function Admin360UploadPage() {
                               const originalIndex = selectedFiles.indexOf(file)
                               if (originalIndex >= 0) removeFile(originalIndex)
                             }}
-                            className="text-gray-400 hover:text-red-500 flex-shrink-0 ml-2"
+                            className="text-gray-400 hover:text-red-500 shrink-0 ml-2"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -304,7 +304,7 @@ export default function Admin360UploadPage() {
               {uploadResult && (
                 <div className="rounded-lg border border-green-200 bg-green-50 p-4">
                   <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 shrink-0" />
                     <div>
                       <p className="font-medium text-green-800">{uploadResult.message}</p>
                       <p className="text-sm text-green-600 mt-1">
@@ -327,7 +327,7 @@ export default function Admin360UploadPage() {
               {uploadError && (
                 <div className="rounded-lg border border-red-200 bg-red-50 p-4">
                   <div className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                    <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
                     <p className="text-red-800">{uploadError}</p>
                   </div>
                 </div>
@@ -421,7 +421,7 @@ export default function Admin360UploadPage() {
                       >
                         <div className="flex items-start gap-3">
                           {v.firstFrameUrl ? (
-                            <div className="w-16 h-12 relative rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                            <div className="w-16 h-12 relative rounded overflow-hidden bg-gray-100 shrink-0">
                               <Image
                                 src={v.firstFrameUrl}
                                 alt={`MID ${v.mid}`}
@@ -431,7 +431,7 @@ export default function Admin360UploadPage() {
                               />
                             </div>
                           ) : (
-                            <div className="w-16 h-12 bg-gray-100 rounded flex items-center justify-center flex-shrink-0">
+                            <div className="w-16 h-12 bg-gray-100 rounded flex items-center justify-center shrink-0">
                               <Camera className="w-5 h-5 text-gray-300" />
                             </div>
                           )}

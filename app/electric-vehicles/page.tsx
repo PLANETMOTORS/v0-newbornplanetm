@@ -68,7 +68,7 @@ export default function ElectricVehiclesPage() {
 
       <main id="main-content" role="main" aria-label="Electric vehicles">
         {/* Hero Section */}
-        <section className="relative bg-gradient-to-br from-green-900 via-green-800 to-emerald-900 text-white py-16 lg:py-24">
+        <section className="relative bg-linear-to-br from-green-900 via-green-800 to-emerald-900 text-white py-16 lg:py-24">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl">
               <Badge className="bg-green-500/20 text-green-300 border-green-500/30 mb-4">
@@ -129,7 +129,7 @@ export default function ElectricVehiclesPage() {
                   className="group"
                 >
                   <Card className="overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1">
-                    <div className="relative aspect-[4/3]">
+                    <div className="relative aspect-4/3">
                       <Image
                         src={make.image}
                         alt={`Used ${make.name} electric vehicles`}

@@ -205,7 +205,7 @@ export function AddressAutocomplete({
               className="w-full px-3 py-2 text-left hover:bg-muted flex items-start gap-2 border-b last:border-b-0"
               onClick={() => handleSelect(suggestion)}
             >
-              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
               <div>
                 <p className="font-medium text-sm">{suggestion.text}</p>
                 <p className="text-xs text-muted-foreground">{suggestion.description}</p>

@@ -80,7 +80,7 @@ function ProductAccordion({
         className="w-full flex items-center gap-4 p-5 bg-background rounded-xl border border-border hover:border-primary/30 transition-all duration-300 text-left group"
         aria-expanded={isOpen}
       >
-        <div className="w-11 h-11 rounded-xl bg-primary/10 group-hover:bg-primary/15 flex items-center justify-center flex-shrink-0 transition-colors">
+        <div className="w-11 h-11 rounded-xl bg-primary/10 group-hover:bg-primary/15 flex items-center justify-center shrink-0 transition-colors">
           <Icon className="w-5 h-5 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
@@ -124,7 +124,7 @@ function ProductAccordion({
               <ul className="space-y-2">
                 {product.covered.map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -137,7 +137,7 @@ function ProductAccordion({
               <ul className="space-y-2">
                 {product.notCovered.map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <X className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                    <X className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
                     <span>{item}</span>
                   </li>
                 ))}
