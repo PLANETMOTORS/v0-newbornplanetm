@@ -286,7 +286,7 @@ export function HomepageFeaturedVehicles() {
                       or <span className="font-bold">${vehicle.monthlyPayment}/mo</span>
                     </div>
                   </div>
-                  <Button size="sm" className="bg-pm-brand hover:bg-[#172554]" asChild>
+                  <Button size="sm" className="bg-pm-brand hover:bg-pm-brand-hover" asChild>
                     <Link href={isFallback ? "/inventory" : `/vehicles/${vehicle.id}`}>
                       View Details
                     </Link>

@@ -399,10 +399,19 @@ export default function HomepageMockupV2() {
             <div className="bg-white rounded-3xl p-8 shadow-xl border border-pm-border">
               <h3 className="text-xl font-semibold mb-6 text-pm-text-primary">Quick Estimate</h3>
               <div className="space-y-4">
-                <input type="text" placeholder="Year, Make, Model" className="w-full px-4 py-3 bg-pm-surface-subtle border border-pm-border rounded-xl text-pm-text-primary placeholder:text-pm-text-muted focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20" />
-                <input type="text" placeholder="Mileage (km)" className="w-full px-4 py-3 bg-pm-surface-subtle border border-pm-border rounded-xl text-pm-text-primary placeholder:text-pm-text-muted focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20" />
-                <input type="email" placeholder="Your Email" className="w-full px-4 py-3 bg-pm-surface-subtle border border-pm-border rounded-xl text-pm-text-primary placeholder:text-pm-text-muted focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#1e3a8a]/20" />
-                <button className="w-full px-6 py-3 bg-pm-brand hover:bg-[#172554] text-white font-semibold rounded-xl transition-colors">
+                <div>
+                  <label htmlFor="quick-estimate-vehicle" className="sr-only">Vehicle Information</label>
+                  <input id="quick-estimate-vehicle" type="text" placeholder="Year, Make, Model" className="w-full px-4 py-3 bg-pm-surface-subtle border border-pm-border rounded-xl text-pm-text-primary placeholder:text-pm-text-muted focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-brand/20" />
+                </div>
+                <div>
+                  <label htmlFor="quick-estimate-mileage" className="sr-only">Mileage</label>
+                  <input id="quick-estimate-mileage" type="text" placeholder="Mileage (km)" className="w-full px-4 py-3 bg-pm-surface-subtle border border-pm-border rounded-xl text-pm-text-primary placeholder:text-pm-text-muted focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-brand/20" />
+                </div>
+                <div>
+                  <label htmlFor="quick-estimate-email" className="sr-only">Email</label>
+                  <input id="quick-estimate-email" type="email" placeholder="Your Email" className="w-full px-4 py-3 bg-pm-surface-subtle border border-pm-border rounded-xl text-pm-text-primary placeholder:text-pm-text-muted focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-brand/20" />
+                </div>
+                <button className="w-full px-6 py-3 bg-pm-brand hover:bg-pm-brand-hover text-white font-semibold rounded-xl transition-colors">
                   Get Instant Offer
                 </button>
               </div>

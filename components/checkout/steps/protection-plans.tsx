@@ -164,7 +164,7 @@ function ComparisonModal({ onClose }: { onClose: () => void }) {
         aria-modal="true"
         aria-labelledby="comparison-modal-title"
         tabIndex={-1}
-        className="bg-background rounded-xl shadow-xl max-w-3xl w-full max-h-[85vh] overflow-auto"
+        className="bg-background rounded-2xl shadow-xl max-w-3xl w-full max-h-[85vh] overflow-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-background rounded-t-2xl z-10">
