@@ -25,7 +25,7 @@
  *   NEXT_PUBLIC_SANITY_PROJECT_ID — project ID (falls back to hardcoded value)
  */
 
-import { execSync } from "child_process"
+import { spawnSync } from "child_process"
 import { mkdirSync, statSync, existsSync, readFileSync } from "fs"
 import { join } from "path"
 import { logger } from "@/lib/logger"
@@ -120,20 +120,33 @@ export async function backupSanityDataset(): Promise<BackupResult> {
     // Shell out to the Sanity CLI — this is the officially supported export method.
     // --no-compress keeps the output as plain NDJSON (not .tar.gz).
     // --overwrite allows re-running without manual cleanup.
-    const cmd = [
-      `npx --yes @sanity/cli@latest`,
-      `dataset export "${DATASET}" "${filePath}"`,
-      `--project "${PROJECT_ID}"`,
-      `--token "${token}"`,
-      `--no-compress`,
-      `--overwrite`,
-    ].join(" ")
+    //
+    // Use spawnSync with an explicit args array (shell: false) to prevent
+    // shell injection. All values (DATASET, filePath, PROJECT_ID, token) come
+    // from environment variables or path.join — never from user input — but
+    // avoiding a shell interpreter is the correct defence-in-depth approach.
+    const result = spawnSync(
+      "npx",
+      [
+        "--yes", "@sanity/cli@latest",
+        "dataset", "export", DATASET, filePath,
+        "--project", PROJECT_ID,
+        "--token", token,
+        "--no-compress",
+        "--overwrite",
+      ],
+      {
+        shell: false,
+        stdio: "pipe",
+        env: { ...process.env, SANITY_AUTH_TOKEN: token },
+        timeout: 120_000, // 2 minute timeout
+      }
+    )
 
-    execSync(cmd, {
-      stdio: "pipe",
-      env: { ...process.env, SANITY_AUTH_TOKEN: token },
-      timeout: 120_000, // 2 minute timeout
-    })
+    if (result.status !== 0) {
+      const stderr = result.stderr?.toString() ?? ""
+      throw new Error(`Sanity CLI exited with code ${result.status}: ${stderr}`)
+    }
 
     // ── Validate the output ──────────────────────────────────────────────
     const validation = validateNdjson(filePath)

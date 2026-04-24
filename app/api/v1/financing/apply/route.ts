@@ -12,7 +12,9 @@ function asNumber(value: unknown, fallback = 0): number {
 }
 
 function validateEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  // Linear-time email check: anchored, no nested quantifiers, no backtracking risk.
+  // Accepts the vast majority of valid RFC 5321 addresses without catastrophic backtracking.
+  return /^[^\s@]{1,64}@[^\s@]{1,253}$/.test(email) && email.includes(".")
 }
 
 function generateApplicationNumber(): string {
