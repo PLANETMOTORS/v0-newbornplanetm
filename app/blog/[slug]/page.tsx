@@ -1,7 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
-import { Calendar, Clock, ArrowLeft, Share2, Facebook, Twitter, Linkedin } from "lucide-react"
+import { Calendar, Clock, ArrowLeft } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import sanitizeHtml from "sanitize-html"
 import { blogPosts } from "@/lib/blog-data"
+import { BlogShareButtons } from "@/components/blog/blog-share-buttons"
 
 const SITE_URL = getPublicSiteUrl()
 
@@ -160,11 +161,26 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'iframe', 'video', 'source']),
               allowedAttributes: {
                 ...sanitizeHtml.defaults.allowedAttributes,
+                a: ['href', 'name', 'target', 'rel', 'class'],
                 img: ['src', 'alt', 'width', 'height', 'loading', 'class'],
                 iframe: ['src', 'width', 'height', 'frameborder', 'allow', 'allowfullscreen', 'title'],
                 video: ['src', 'controls', 'width', 'height', 'poster'],
                 source: ['src', 'type'],
                 '*': ['class', 'id', 'style'],
+              },
+              transformTags: {
+                // Ensure internal links open in same tab, external in new tab
+                a: (tagName, attribs) => {
+                  const href = attribs.href || ''
+                  const isExternal = href.startsWith('http') && !href.includes('planetmotors')
+                  return {
+                    tagName,
+                    attribs: {
+                      ...attribs,
+                      ...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {}),
+                    },
+                  }
+                },
               },
               allowedIframeHostnames: ['www.youtube.com', 'player.vimeo.com'],
             }) }}
@@ -172,24 +188,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
           {/* Share Section */}
           <Separator className="my-12" />
-          
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span className="font-semibold">Share this article:</span>
-            <div className="flex items-center gap-3">
-              <Button variant="outline" size="icon" aria-label="Share on Facebook">
-                <Facebook className="w-4 h-4" />
-              </Button>
-              <Button variant="outline" size="icon" aria-label="Share on X (Twitter)">
-                <Twitter className="w-4 h-4" />
-              </Button>
-              <Button variant="outline" size="icon" aria-label="Share on LinkedIn">
-                <Linkedin className="w-4 h-4" />
-              </Button>
-              <Button variant="outline" size="icon" aria-label="Copy link">
-                <Share2 className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
+          <BlogShareButtons
+            title={post.title}
+            url={`${getPublicSiteUrl()}/blog/${slug}`}
+          />
         </article>
 
         {/* Related Posts */}
