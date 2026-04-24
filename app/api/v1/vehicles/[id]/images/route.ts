@@ -64,7 +64,7 @@ async function scrapeImagesFromVDP(vdpUrl: string): Promise<{
     // Filter and sort images
     const images = Array.from(allImages)
       .filter(url => !url.includes('thumb') && !url.includes('icon'))
-      .sort()
+      .sort((a, b) => a.localeCompare(b))
     
     return {
       images,

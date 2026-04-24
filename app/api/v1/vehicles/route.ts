@@ -304,9 +304,9 @@ export async function GET(request: NextRequest) {
       const years = allVehicles?.map(v => v.year) || []
 
       filters = {
-        makes: makes.sort(),
-        bodyStyles: bodyStyles.sort(),
-        fuelTypes: fuelTypes.sort(),
+        makes: makes.sort((a, b) => a.localeCompare(b)),
+        bodyStyles: bodyStyles.sort((a, b) => a.localeCompare(b)),
+        fuelTypes: fuelTypes.sort((a, b) => a.localeCompare(b)),
         priceRange: {
           min: prices.length > 0 ? Math.min(...prices) : 0,
           max: prices.length > 0 ? Math.max(...prices) : 100000,

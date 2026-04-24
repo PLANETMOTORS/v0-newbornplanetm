@@ -84,11 +84,11 @@ export async function GET() {
   }
 
   const payload: FacetsPayload = {
-    makes: [...makesSet].sort(),
-    bodyStyles: [...bodyStylesSet].sort(),
-    fuelTypes: [...fuelTypesSet].sort(),
-    transmissions: [...transmissionsSet].sort(),
-    drivetrains: [...drivetrainsSet].sort(),
+    makes: [...makesSet].sort((a, b) => a.localeCompare(b)),
+    bodyStyles: [...bodyStylesSet].sort((a, b) => a.localeCompare(b)),
+    fuelTypes: [...fuelTypesSet].sort((a, b) => a.localeCompare(b)),
+    transmissions: [...transmissionsSet].sort((a, b) => a.localeCompare(b)),
+    drivetrains: [...drivetrainsSet].sort((a, b) => a.localeCompare(b)),
     priceRange: {
       min: minPrice === Infinity ? 0 : minPrice / 100,
       max: maxPrice === -Infinity ? 0 : maxPrice / 100,
