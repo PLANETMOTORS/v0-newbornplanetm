@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status")
     const source = searchParams.get("source")
     const search = searchParams.get("search")
-    const page = parseInt(searchParams.get("page") || "1")
-    const limit = parseInt(searchParams.get("limit") || "20")
+    const page = Number.parseInt(searchParams.get("page") || "1")
+    const limit = Number.parseInt(searchParams.get("limit") || "20")
     const offset = (page - 1) * limit
 
     // Try the leads table first
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     if (search) {
       // Sanitize search input: escape characters that PostgREST uses as delimiters
       // in .or() filter strings (commas, dots, parens, backslashes, percent signs)
-      const sanitized = search.replace(/[\\%,().]/g, "")
+      const sanitized = search.replaceAll(/[\\%,().]/g, "")
       if (sanitized.length > 0) {
         query = query.or(`customer_name.ilike.%${sanitized}%,customer_email.ilike.%${sanitized}%,customer_phone.ilike.%${sanitized}%,subject.ilike.%${sanitized}%`)
       }

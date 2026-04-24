@@ -68,7 +68,7 @@ export default function FinanceCalculatorPage() {
   // Finance calculator state
   const [agreementType, setAgreementType] = useState<"finance" | "cash">("finance")
   const [downPayment, setDownPayment] = useState(0)
-  const [tradeInValue, setTradeInValue] = useState(urlTradeIn ? (parseInt(urlTradeIn) || 0) : 0)
+  const [tradeInValue, setTradeInValue] = useState(urlTradeIn ? (Number.parseInt(urlTradeIn) || 0) : 0)
   const [hasTradeIn, setHasTradeIn] = useState(!!urlTradeIn)
   const [tradeInVehicleInfo] = useState(urlTradeInVehicle ? decodeURIComponent(urlTradeInVehicle) : "")
   const [interestRate, setInterestRate] = useState(7.99)

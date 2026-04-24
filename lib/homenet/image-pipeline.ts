@@ -1,6 +1,6 @@
 import { put, list } from "@vercel/blob"
 import { neon } from "@neondatabase/serverless"
-import crypto from "crypto"
+import crypto from "node:crypto"
 
 function getSql() {
   const url = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || process.env.NEON_POSTGRES_URL

@@ -113,8 +113,8 @@ function isWithinBusinessHours(): { isOpen: boolean; currentDay: string; message
   }).formatToParts(now)
 
   const day = eastern.find(p => p.type === 'weekday')?.value || ''
-  const hour = parseInt(eastern.find(p => p.type === 'hour')?.value || '0')
-  const minute = parseInt(eastern.find(p => p.type === 'minute')?.value || '0')
+  const hour = Number.parseInt(eastern.find(p => p.type === 'hour')?.value || '0')
+  const minute = Number.parseInt(eastern.find(p => p.type === 'minute')?.value || '0')
   const currentTime = hour + minute / 60
 
   if (day === 'Sunday') {

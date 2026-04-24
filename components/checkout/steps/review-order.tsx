@@ -71,7 +71,7 @@ export function ReviewOrderStep({
 
   const provinceCode = PROVINCE_NAME_TO_CODE[personal.province] || "ON"
   const provinceTax = PROVINCE_TAX_RATES[provinceCode] || PROVINCE_TAX_RATES.ON
-  const formatPct = (rate: number) => parseFloat((rate * 100).toFixed(3)).toString()
+  const formatPct = (rate: number) => Number.parseFloat((rate * 100).toFixed(3)).toString()
   const taxLabel = provinceTax.hst > 0
     ? `HST (${formatPct(provinceTax.hst)}%)`
     : provinceTax.pst > 0

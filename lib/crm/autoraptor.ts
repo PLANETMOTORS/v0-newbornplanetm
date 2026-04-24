@@ -78,11 +78,11 @@ export interface AutoRaptorResult {
 
 function escapeXml(s: string): string {
   return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;")
+    .replaceAll(/&/g, "&amp;")
+    .replaceAll(/</g, "&lt;")
+    .replaceAll(/>/g, "&gt;")
+    .replaceAll(/"/g, "&quot;")
+    .replaceAll(/'/g, "&apos;")
 }
 
 function buildAdfXml(lead: AutoRaptorLeadPayload): string {
@@ -119,7 +119,7 @@ function buildAdfXml(lead: AutoRaptorLeadPayload): string {
 
   // Source label
   const sourceLabel = lead.source
-    ? escapeXml(lead.source.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()))
+    ? escapeXml(lead.source.replaceAll(/_/g, " ").replaceAll(/\b\w/g, c => c.toUpperCase()))
     : "Website"
 
   return `<?xml version="1.0" encoding="UTF-8"?>

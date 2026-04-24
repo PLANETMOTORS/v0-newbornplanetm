@@ -1,6 +1,6 @@
 import { revalidateTag } from "next/cache"
 import { NextRequest, NextResponse } from "next/server"
-import crypto from "crypto"
+import crypto from "node:crypto"
 
 import { logger } from '@/lib/logger'
 import { setKey } from '@/lib/redis'

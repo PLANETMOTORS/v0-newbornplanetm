@@ -25,9 +25,9 @@
  *   NEXT_PUBLIC_SANITY_PROJECT_ID — project ID (falls back to hardcoded value)
  */
 
-import { execSync } from "child_process"
-import { mkdirSync, statSync, existsSync, readFileSync } from "fs"
-import { join } from "path"
+import { execSync } from "node:child_process"
+import { mkdirSync, statSync, existsSync, readFileSync } from "node:fs"
+import { join } from "node:path"
 import { logger } from "@/lib/logger"
 
 // ── Config ─────────────────────────────────────────────────────────────────
@@ -45,7 +45,7 @@ const BACKUPS_DIR = join(process.cwd(), "backups")
 
 /** Returns a filesystem-safe ISO timestamp: 2025-04-23T08-30-00 */
 function safeTimestamp(): string {
-  return new Date().toISOString().replace(/:/g, "-").replace(/\.\d{3}Z$/, "")
+  return new Date().toISOString().replaceAll(/:/g, "-").replace(/\.\d{3}Z$/, "")
 }
 
 /** Ensures the backups/ directory exists */

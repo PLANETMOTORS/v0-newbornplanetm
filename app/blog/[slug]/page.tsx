@@ -20,7 +20,7 @@ const SITE_URL = getPublicSiteUrl()
 /** Convert display date "Apr 09, 2026" → ISO "2026-04-09" for structured data. */
 function toISODate(displayDate: string): string {
   const d = new Date(displayDate)
-  if (isNaN(d.getTime())) return displayDate
+  if (Number.isNaN(d.getTime())) return displayDate
   return d.toISOString().slice(0, 10)
 }
 

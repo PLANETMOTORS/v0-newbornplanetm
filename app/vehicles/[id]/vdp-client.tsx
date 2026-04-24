@@ -476,7 +476,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
 
   // Helper to build finance link with trade-in info
   const getFinanceLink = (vId: string) => {
-    if (tradeInValue && parseInt(tradeInValue) > 0) {
+    if (tradeInValue && Number.parseInt(tradeInValue) > 0) {
       const params = new URLSearchParams({
         tradeIn: tradeInValue,
         quoteId: tradeInQuoteId || '',
@@ -578,7 +578,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   }
 
   const normalizePostalCode = (value: string) =>
-    value.toUpperCase().replace(/\s/g, "").slice(0, 6)
+    value.toUpperCase().replaceAll(/\s/g, "").slice(0, 6)
 
   const handleDeliveryCheck = async () => {
     const cleaned = normalizePostalCode(postalCode)
@@ -642,14 +642,14 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
 
 <main id="main-content" tabIndex={-1} className="pb-32 md:pb-20 overflow-x-hidden max-w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" role="main" aria-label="Vehicle details" data-vin={vehicle.vin} data-stock={vehicle.stockNumber}>
   {/* Trade-In Banner */}
-  {tradeInValue && parseInt(tradeInValue) > 0 && (
+  {tradeInValue && Number.parseInt(tradeInValue) > 0 && (
     <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3">
       <div className="container mx-auto px-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-3">
             <CheckCircle className="w-5 h-5" />
             <span className="font-semibold">
-              Your Trade-In: <span className="font-bold tabular-nums">${parseInt(tradeInValue).toLocaleString()}</span>
+              Your Trade-In: <span className="font-bold tabular-nums">${Number.parseInt(tradeInValue).toLocaleString()}</span>
               {tradeInVehicle && <span className="text-white/80 ml-2">({decodeURIComponent(tradeInVehicle)})</span>}
             </span>
           </div>

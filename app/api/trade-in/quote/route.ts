@@ -97,10 +97,10 @@ export async function POST(req: Request) {
 
     // Calculate estimate
     const estimate = estimateTradeInValue({
-      year: parseInt(year),
+      year: Number.parseInt(year),
       make,
       model,
-      mileage: parseInt(mileage),
+      mileage: Number.parseInt(mileage),
       condition,
       vin,
     })

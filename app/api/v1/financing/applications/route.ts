@@ -55,20 +55,20 @@ export async function POST(request: NextRequest) {
     } = body
     
     // Calculate financing values
-    const price = parseFloat(vehicleInfo.totalPrice) || 0
-    const downPayment = parseFloat(vehicleInfo.downPayment) || 0
-    const tradeValue = tradeIn ? (parseFloat(tradeIn.estimatedValue) || 0) : 0
-    const lienAmount = tradeIn?.hasLien ? (parseFloat(tradeIn.lienAmount) || 0) : 0
+    const price = Number.parseFloat(vehicleInfo.totalPrice) || 0
+    const downPayment = Number.parseFloat(vehicleInfo.downPayment) || 0
+    const tradeValue = tradeIn ? (Number.parseFloat(tradeIn.estimatedValue) || 0) : 0
+    const lienAmount = tradeIn?.hasLien ? (Number.parseFloat(tradeIn.lienAmount) || 0) : 0
     const netTrade = tradeValue - lienAmount
-    const adminFee = parseFloat(financingTerms.adminFee) || 895
-    const taxRate = parseFloat(financingTerms.salesTaxRate) / 100 || PROVINCE_TAX_RATES.ON.total
+    const adminFee = Number.parseFloat(financingTerms.adminFee) || 895
+    const taxRate = Number.parseFloat(financingTerms.salesTaxRate) / 100 || PROVINCE_TAX_RATES.ON.total
     
     const subtotal = price + adminFee - downPayment - netTrade
     const tax = subtotal * taxRate
     const amountFinanced = subtotal + tax
     
     // Calculate payment
-    const rate = (parseFloat(financingTerms.interestRate) || 8.99) / 100
+    const rate = (Number.parseFloat(financingTerms.interestRate) || 8.99) / 100
     let paymentsPerYear = 12
     if (financingTerms.paymentFrequency === "weekly") paymentsPerYear = 52
     else if (financingTerms.paymentFrequency === "bi-weekly") paymentsPerYear = 26
@@ -93,19 +93,19 @@ export async function POST(request: NextRequest) {
         agreement_type: financingTerms.agreementType,
         requested_amount: amountFinanced,
         down_payment: downPayment,
-        max_down_payment: parseFloat(vehicleInfo.maxDownPayment) || null,
+        max_down_payment: Number.parseFloat(vehicleInfo.maxDownPayment) || null,
         loan_term_months: financingTerms.loanTermMonths,
         payment_frequency: financingTerms.paymentFrequency,
-        interest_rate: parseFloat(financingTerms.interestRate) || null,
+        interest_rate: Number.parseFloat(financingTerms.interestRate) || null,
         admin_fee: adminFee,
-        sales_tax_rate: parseFloat(financingTerms.salesTaxRate) || null,
+        sales_tax_rate: Number.parseFloat(financingTerms.salesTaxRate) || null,
         has_trade_in: tradeIn?.hasTradeIn || false,
         trade_in_value: tradeIn?.hasTradeIn ? tradeValue : null,
         trade_in_lien_amount: tradeIn?.hasLien ? lienAmount : null,
         total_amount_financed: amountFinanced,
-        estimated_payment: isNaN(payment) ? null : payment,
-        total_interest: isNaN(totalInterest) ? null : totalInterest,
-        total_to_repay: isNaN(totalToRepay) ? null : totalToRepay,
+        estimated_payment: Number.isNaN(payment) ? null : payment,
+        total_interest: Number.isNaN(totalInterest) ? null : totalInterest,
+        total_to_repay: Number.isNaN(totalToRepay) ? null : totalToRepay,
         additional_notes: additionalNotes,
         submitted_at: new Date().toISOString()
       })
@@ -162,19 +162,19 @@ export async function POST(request: NextRequest) {
         city: primaryApplicant.city || null,
         province: primaryApplicant.province || "Ontario",
         postal_code: primaryApplicant.postalCode || null,
-        duration_years: parseInt(primaryApplicant.durationYears) || 0,
-        duration_months: parseInt(primaryApplicant.durationMonths) || 0
+        duration_years: Number.parseInt(primaryApplicant.durationYears) || 0,
+        duration_months: Number.parseInt(primaryApplicant.durationMonths) || 0
       })
       
       // Create housing info
       await supabase.from("applicant_housing").insert({
         applicant_id: primaryApp.id,
         home_status: primaryApplicant.homeStatus || null,
-        market_value: parseFloat(primaryApplicant.marketValue) || null,
-        mortgage_amount: parseFloat(primaryApplicant.mortgageAmount) || null,
+        market_value: Number.parseFloat(primaryApplicant.marketValue) || null,
+        mortgage_amount: Number.parseFloat(primaryApplicant.mortgageAmount) || null,
         mortgage_holder: primaryApplicant.mortgageHolder || null,
-        monthly_payment: parseFloat(primaryApplicant.monthlyPayment) || null,
-        outstanding_mortgage: parseFloat(primaryApplicant.outstandingMortgage) || null
+        monthly_payment: Number.parseFloat(primaryApplicant.monthlyPayment) || null,
+        outstanding_mortgage: Number.parseFloat(primaryApplicant.outstandingMortgage) || null
       })
       
       // Create employment info
@@ -192,20 +192,20 @@ export async function POST(request: NextRequest) {
         employer_postal_code: primaryApplicant.employerPostalCode || null,
         employer_phone: primaryApplicant.employerPhone || null,
         employer_phone_ext: primaryApplicant.employerPhoneExt || null,
-        duration_years: parseInt(primaryApplicant.employmentYears) || 0,
-        duration_months: parseInt(primaryApplicant.employmentMonths) || 0
+        duration_years: Number.parseInt(primaryApplicant.employmentYears) || 0,
+        duration_months: Number.parseInt(primaryApplicant.employmentMonths) || 0
       })
       
       // Create income info
       await supabase.from("applicant_income").insert({
         applicant_id: primaryApp.id,
-        gross_income: parseFloat(primaryApplicant.grossIncome) || 0,
+        gross_income: Number.parseFloat(primaryApplicant.grossIncome) || 0,
         income_frequency: primaryApplicant.incomeFrequency || "annually",
         other_income_type: primaryApplicant.otherIncomeType || null,
-        other_income_amount: parseFloat(primaryApplicant.otherIncomeAmount) || null,
+        other_income_amount: Number.parseFloat(primaryApplicant.otherIncomeAmount) || null,
         other_income_frequency: primaryApplicant.otherIncomeFrequency || null,
         other_income_description: primaryApplicant.otherIncomeDescription || null,
-        annual_total: parseFloat(primaryApplicant.annualTotal) || null
+        annual_total: Number.parseFloat(primaryApplicant.annualTotal) || null
       })
     }
     
@@ -249,14 +249,14 @@ export async function POST(request: NextRequest) {
           city: coApplicant.city || null,
           province: coApplicant.province || "Ontario",
           postal_code: coApplicant.postalCode || null,
-          duration_years: parseInt(coApplicant.durationYears) || 0,
-          duration_months: parseInt(coApplicant.durationMonths) || 0
+          duration_years: Number.parseInt(coApplicant.durationYears) || 0,
+          duration_months: Number.parseInt(coApplicant.durationMonths) || 0
         })
         
         await supabase.from("applicant_housing").insert({
           applicant_id: coApp.id,
           home_status: coApplicant.homeStatus || null,
-          monthly_payment: parseFloat(coApplicant.monthlyPayment) || null
+          monthly_payment: Number.parseFloat(coApplicant.monthlyPayment) || null
         })
         
         await supabase.from("applicant_employment").insert({
@@ -266,15 +266,15 @@ export async function POST(request: NextRequest) {
           employer_name: coApplicant.employerName || null,
           occupation: coApplicant.occupation || null,
           employer_phone: coApplicant.employerPhone || null,
-          duration_years: parseInt(coApplicant.employmentYears) || 0,
-          duration_months: parseInt(coApplicant.employmentMonths) || 0
+          duration_years: Number.parseInt(coApplicant.employmentYears) || 0,
+          duration_months: Number.parseInt(coApplicant.employmentMonths) || 0
         })
         
         await supabase.from("applicant_income").insert({
           applicant_id: coApp.id,
-          gross_income: parseFloat(coApplicant.grossIncome) || 0,
+          gross_income: Number.parseFloat(coApplicant.grossIncome) || 0,
           income_frequency: coApplicant.incomeFrequency || "annually",
-          annual_total: parseFloat(coApplicant.annualTotal) || null
+          annual_total: Number.parseFloat(coApplicant.annualTotal) || null
         })
       }
     }
@@ -284,17 +284,17 @@ export async function POST(request: NextRequest) {
       await supabase.from("finance_trade_ins").insert({
         application_id: application.id,
         vin: tradeIn.vin || null,
-        year: parseInt(tradeIn.year) || null,
+        year: Number.parseInt(tradeIn.year) || null,
         make: tradeIn.make || null,
         model: tradeIn.model || null,
         trim: tradeIn.trim || null,
         color: tradeIn.color || null,
-        mileage: parseInt(tradeIn.mileage) || null,
+        mileage: Number.parseInt(tradeIn.mileage) || null,
         condition: tradeIn.condition || null,
-        estimated_value: parseFloat(tradeIn.estimatedValue) || null,
+        estimated_value: Number.parseFloat(tradeIn.estimatedValue) || null,
         has_lien: tradeIn.hasLien || false,
         lien_holder: tradeIn.lienHolder || null,
-        lien_amount: parseFloat(tradeIn.lienAmount) || null,
+        lien_amount: Number.parseFloat(tradeIn.lienAmount) || null,
         net_trade_value: netTrade
       })
     }

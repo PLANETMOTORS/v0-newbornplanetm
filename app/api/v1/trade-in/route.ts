@@ -249,10 +249,10 @@ export async function POST(request: NextRequest) {
 export function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
 
-  const year = parseInt(searchParams.get('year') || '0')
+  const year = Number.parseInt(searchParams.get('year') || '0')
   const make = searchParams.get('make') || ''
   const model = searchParams.get('model') || ''
-  const mileage = parseInt(searchParams.get('mileage') || '0')
+  const mileage = Number.parseInt(searchParams.get('mileage') || '0')
   const condition = searchParams.get('condition') || 'good'
 
   if (!year || !make || !model || !mileage) {
