@@ -82,10 +82,107 @@ export async function GET(request: NextRequest) {
   }
 }
 
+type AggregatedLead = {
+  id: string
+  source: string
+  status: string
+  customer_name: string
+  customer_email: string
+  customer_phone: string | null
+  subject: string
+  vehicle_info: string | null
+  created_at: string
+  source_table: string
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapFinanceAppToLead(app: any, applicant: any): AggregatedLead {
+  let status: string
+  if (["submitted", "under_review"].includes(app.status)) status = "new"
+  else if (app.status === "approved") status = "qualified"
+  else if (app.status === "funded") status = "converted"
+  else status = "archived"
+
+  return {
+    id: app.id,
+    source: "finance_app",
+    status,
+    customer_name: applicant ? `${applicant.first_name} ${applicant.last_name}` : "Unknown",
+    customer_email: applicant?.email || "",
+    customer_phone: applicant?.phone || null,
+    subject: `Finance Application — $${(app.requested_amount || 0).toLocaleString()}`,
+    vehicle_info: null,
+    created_at: app.created_at,
+    source_table: "finance_applications_v2",
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapReservationToLead(res: any): AggregatedLead {
+  let status: string
+  if (res.status === "completed") status = "converted"
+  else if (res.status === "confirmed") status = "qualified"
+  else if (res.status === "cancelled") status = "lost"
+  else status = "new"
+
+  return {
+    id: res.id,
+    source: "reservation",
+    status,
+    customer_name: res.customer_name || "Unknown",
+    customer_email: res.customer_email,
+    customer_phone: res.customer_phone,
+    subject: `Reservation — $${Math.round((res.deposit_amount || 0) / 100).toLocaleString()} deposit`,
+    vehicle_info: null,
+    created_at: res.created_at,
+    source_table: "reservations",
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapTradeInToLead(ti: any): AggregatedLead {
+  let status: string
+  if (ti.status === "accepted") status = "converted"
+  else if (ti.status === "pending") status = "new"
+  else status = "archived"
+
+  return {
+    id: ti.id,
+    source: "trade_in",
+    status,
+    customer_name: ti.customer_name || "Unknown",
+    customer_email: ti.customer_email || "",
+    customer_phone: ti.customer_phone || null,
+    subject: `Trade-In: ${ti.vehicle_year} ${ti.vehicle_make} ${ti.vehicle_model}`,
+    vehicle_info: `Offered $${(ti.offer_amount || 0).toLocaleString()}`,
+    created_at: ti.created_at,
+    source_table: "trade_in_quotes",
+  }
+}
+
+function filterLeads(
+  leads: AggregatedLead[],
+  filters: { status: string | null; source: string | null; search: string | null }
+): AggregatedLead[] {
+  let filtered = leads
+  if (filters.source && filters.source !== "all") filtered = filtered.filter(l => l.source === filters.source)
+  if (filters.status && filters.status !== "all") filtered = filtered.filter(l => l.status === filters.status)
+  if (filters.search) {
+    const s = filters.search.toLowerCase()
+    filtered = filtered.filter(
+      l =>
+        l.customer_name.toLowerCase().includes(s) ||
+        l.customer_email.toLowerCase().includes(s) ||
+        (l.customer_phone || "").toLowerCase().includes(s) ||
+        l.subject.toLowerCase().includes(s)
+    )
+  }
+  return filtered
+}
+
 // Fallback: aggregate leads from existing tables if leads table doesn't exist yet
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function aggregateLeads(adminClient: any, filters: { status: string | null; source: string | null; search: string | null; offset: number; limit: number }) {
-  type AggregatedLead = { id: string; source: string; status: string; customer_name: string; customer_email: string; customer_phone: string | null; subject: string; vehicle_info: string | null; created_at: string; source_table: string }
   const allLeads: AggregatedLead[] = []
 
   // Finance applications as leads
@@ -97,26 +194,13 @@ async function aggregateLeads(adminClient: any, filters: { status: string | null
 
   if (finApps) {
     for (const app of finApps) {
-      // Get applicant name
       const { data: applicant } = await adminClient
         .from("finance_applicants")
         .select("first_name, last_name, email, phone")
         .eq("application_id", app.id)
         .eq("applicant_type", "primary")
         .maybeSingle()
-
-      allLeads.push({
-        id: app.id,
-        source: "finance_app",
-        status: ["submitted", "under_review"].includes(app.status) ? "new" : app.status === "approved" ? "qualified" : app.status === "funded" ? "converted" : "archived",
-        customer_name: applicant ? `${applicant.first_name} ${applicant.last_name}` : "Unknown",
-        customer_email: applicant?.email || "",
-        customer_phone: applicant?.phone || null,
-        subject: `Finance Application — $${(app.requested_amount || 0).toLocaleString()}`,
-        vehicle_info: null,
-        created_at: app.created_at,
-        source_table: "finance_applications_v2",
-      })
+      allLeads.push(mapFinanceAppToLead(app, applicant))
     }
   }
 
@@ -129,18 +213,7 @@ async function aggregateLeads(adminClient: any, filters: { status: string | null
 
   if (reservations) {
     for (const res of reservations) {
-      allLeads.push({
-        id: res.id,
-        source: "reservation",
-        status: res.status === "completed" ? "converted" : res.status === "confirmed" ? "qualified" : res.status === "cancelled" ? "lost" : "new",
-        customer_name: res.customer_name || "Unknown",
-        customer_email: res.customer_email,
-        customer_phone: res.customer_phone,
-        subject: `Reservation — $${Math.round((res.deposit_amount || 0) / 100).toLocaleString()} deposit`,
-        vehicle_info: null,
-        created_at: res.created_at,
-        source_table: "reservations",
-      })
+      allLeads.push(mapReservationToLead(res))
     }
   }
 
@@ -153,37 +226,14 @@ async function aggregateLeads(adminClient: any, filters: { status: string | null
 
   if (tradeIns) {
     for (const ti of tradeIns) {
-      allLeads.push({
-        id: ti.id,
-        source: "trade_in",
-        status: ti.status === "accepted" ? "converted" : ti.status === "pending" ? "new" : "archived",
-        customer_name: ti.customer_name || "Unknown",
-        customer_email: ti.customer_email || "",
-        customer_phone: ti.customer_phone || null,
-        subject: `Trade-In: ${ti.vehicle_year} ${ti.vehicle_make} ${ti.vehicle_model}`,
-        vehicle_info: `Offered $${(ti.offer_amount || 0).toLocaleString()}`,
-        created_at: ti.created_at,
-        source_table: "trade_in_quotes",
-      })
+      allLeads.push(mapTradeInToLead(ti))
     }
   }
 
   // Sort all by created_at descending
   allLeads.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 
-  // Apply filters
-  let filtered = allLeads
-  if (filters.source && filters.source !== "all") filtered = filtered.filter(l => l.source === filters.source)
-  if (filters.status && filters.status !== "all") filtered = filtered.filter(l => l.status === filters.status)
-  if (filters.search) {
-    const s = filters.search.toLowerCase()
-    filtered = filtered.filter(l =>
-      l.customer_name.toLowerCase().includes(s) ||
-      l.customer_email.toLowerCase().includes(s) ||
-      (l.customer_phone || "").toLowerCase().includes(s) ||
-      l.subject.toLowerCase().includes(s)
-    )
-  }
+  const filtered = filterLeads(allLeads, filters)
 
   return {
     leads: filtered.slice(filters.offset, filters.offset + filters.limit),

@@ -19,6 +19,35 @@ async function authorize() {
   return user
 }
 
+const VEHICLE_ALLOWED_UPDATE_FIELDS = [
+  "stock_number", "vin", "year", "make", "model", "trim", "body_style",
+  "exterior_color", "interior_color", "price", "msrp", "mileage",
+  "drivetrain", "transmission", "engine", "fuel_type",
+  "fuel_economy_city", "fuel_economy_highway", "is_ev",
+  "battery_capacity_kwh", "range_miles", "status", "is_certified",
+  "is_new_arrival", "featured", "has_360_spin",
+  "primary_image_url", "image_urls", "video_url", "location",
+  "inspection_score", "inspection_date", "ev_battery_health_percent",
+]
+
+function buildVehicleUpdateFields(body: Record<string, unknown>, allowedFields: string[]): Record<string, unknown> {
+  const update: Record<string, unknown> = {}
+  for (const field of allowedFields) {
+    if (field in body) update[field] = body[field]
+  }
+  return update
+}
+
+function coerceNumericFields(update: Record<string, unknown>): void {
+  const intFields = ["year", "price", "msrp", "mileage", "fuel_economy_city", "fuel_economy_highway", "range_miles", "inspection_score", "ev_battery_health_percent", "savings"]
+  for (const f of intFields) {
+    if (f in update && update[f] !== null) update[f] = parseInt(String(update[f]))
+  }
+  if ("battery_capacity_kwh" in update && update.battery_capacity_kwh !== null) {
+    update.battery_capacity_kwh = parseFloat(String(update.battery_capacity_kwh))
+  }
+}
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -72,25 +101,7 @@ export async function PUT(
 
     const body = await request.json()
 
-    // Build update object — only include fields that are present in the request
-    const allowedFields = [
-      "stock_number", "vin", "year", "make", "model", "trim", "body_style",
-      "exterior_color", "interior_color", "price", "msrp", "mileage",
-      "drivetrain", "transmission", "engine", "fuel_type",
-      "fuel_economy_city", "fuel_economy_highway", "is_ev",
-      "battery_capacity_kwh", "range_miles", "status", "is_certified",
-      "is_new_arrival", "featured", "has_360_spin",
-      "primary_image_url", "image_urls", "video_url", "location",
-      "inspection_score", "inspection_date",
-      "ev_battery_health_percent",
-    ]
-
-    const update: Record<string, unknown> = {}
-    for (const field of allowedFields) {
-      if (field in body) {
-        update[field] = body[field]
-      }
-    }
+    const update = buildVehicleUpdateFields(body, VEHICLE_ALLOWED_UPDATE_FIELDS)
 
     if (Object.keys(update).length === 0) {
       return NextResponse.json({ error: "No fields to update" }, { status: 400 })
@@ -115,15 +126,7 @@ export async function PUT(
     }
 
     // Numeric conversions
-    const intFields = ["year", "price", "msrp", "mileage", "fuel_economy_city", "fuel_economy_highway", "range_miles", "inspection_score", "ev_battery_health_percent", "savings"]
-    for (const f of intFields) {
-      if (f in update && update[f] !== null) {
-        update[f] = parseInt(String(update[f]))
-      }
-    }
-    if ("battery_capacity_kwh" in update && update.battery_capacity_kwh !== null) {
-      update.battery_capacity_kwh = parseFloat(String(update.battery_capacity_kwh))
-    }
+    coerceNumericFields(update)
 
     update.updated_at = new Date().toISOString()
 

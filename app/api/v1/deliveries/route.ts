@@ -2,6 +2,42 @@ import { NextRequest } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
 
+function buildDeliveryNotes(normalizedPostal: string, specialInstructions: unknown): string | null {
+  const parts = [
+    `Destination postal code: ${normalizedPostal}`,
+    typeof specialInstructions === "string" && specialInstructions.trim()
+      ? `Instructions: ${specialInstructions.trim()}`
+      : null,
+  ].filter(Boolean)
+  return parts.join(" | ") || null
+}
+
+function buildDeliveryResponseBody(delivery: Record<string, unknown>, orderId: string) {
+  return {
+    id: delivery.id,
+    orderId,
+    status: delivery.status,
+    scheduledDate: delivery.scheduled_date,
+    timeSlot: delivery.scheduled_time_slot,
+    estimatedDeliveryDate: delivery.estimated_delivery_date,
+    distanceKm: delivery.distance_km,
+    cost: delivery.delivery_fee,
+    isFree: Number(delivery.delivery_fee || 0) === 0,
+    createdAt: delivery.created_at,
+  }
+}
+
+function validateDeliveryBody(body: Record<string, unknown>): string | null {
+  if (!body.orderId || !body.destinationPostalCode || !body.scheduledDate) {
+    return "Missing required fields: orderId, destinationPostalCode, scheduledDate"
+  }
+  return null
+}
+
+function vehicleMatchesOrder(vehicleId: unknown, order: { vehicle_id?: string }): boolean {
+  return !vehicleId || !order.vehicle_id || vehicleId === order.vehicle_id
+}
+
 // POST /api/v1/deliveries - Schedule delivery
 export async function POST(request: NextRequest) {
   try {
@@ -14,8 +50,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { orderId, vehicleId, destinationPostalCode, scheduledDate, timeSlot, specialInstructions, addressId } = body
 
-    if (!orderId || !destinationPostalCode || !scheduledDate) {
-      return apiError(ErrorCode.VALIDATION_ERROR, "Missing required fields: orderId, destinationPostalCode, scheduledDate", 400)
+    const validationError = validateDeliveryBody(body)
+    if (validationError) {
+      return apiError(ErrorCode.VALIDATION_ERROR, validationError, 400)
     }
 
     const quoteUrl = new URL(`/api/v1/deliveries/quote?postalCode=${encodeURIComponent(destinationPostalCode)}`, request.url)
@@ -55,7 +92,7 @@ export async function POST(request: NextRequest) {
       return apiError(ErrorCode.NOT_FOUND, "Order not found", 404)
     }
 
-    if (vehicleId && order.vehicle_id && vehicleId !== order.vehicle_id) {
+    if (!vehicleMatchesOrder(vehicleId, order)) {
       return apiError(ErrorCode.VALIDATION_ERROR, "Vehicle does not match order", 409)
     }
 
@@ -76,36 +113,13 @@ export async function POST(request: NextRequest) {
       const isSameSchedule =
         String(existing.scheduled_date || "") === String(scheduledDate) &&
         String(existing.scheduled_time_slot || "") === String(normalizedTimeSlot || "")
-
       if (isSameSchedule) {
-        return apiSuccess({
-          idempotentReplay: true,
-          delivery: {
-            id: existing.id,
-            orderId: order.order_number || order.id,
-            status: existing.status,
-            scheduledDate: existing.scheduled_date,
-            timeSlot: existing.scheduled_time_slot,
-            estimatedDeliveryDate: existing.estimated_delivery_date,
-            distanceKm: existing.distance_km,
-            cost: existing.delivery_fee,
-            isFree: Number(existing.delivery_fee || 0) === 0,
-            createdAt: existing.created_at,
-          },
-        })
+        return apiSuccess({ idempotentReplay: true, delivery: buildDeliveryResponseBody(existing as Record<string, unknown>, String(order.order_number || order.id)) })
       }
-
       return apiError(ErrorCode.VALIDATION_ERROR, "An active delivery already exists for this order", 409)
     }
 
-    const notes = [
-      `Destination postal code: ${normalizedPostal}`,
-      typeof specialInstructions === "string" && specialInstructions.trim()
-        ? `Instructions: ${specialInstructions.trim()}`
-        : null,
-    ]
-      .filter(Boolean)
-      .join(" | ")
+    const notes = buildDeliveryNotes(normalizedPostal, specialInstructions)
 
     const { data: insertedRows, error: insertError } = await supabase
       .from("deliveries")
@@ -129,18 +143,7 @@ export async function POST(request: NextRequest) {
     }
 
     return apiSuccess({
-      delivery: {
-        id: insertedRows.id,
-        orderId: order.order_number || order.id,
-        status: insertedRows.status,
-        scheduledDate: insertedRows.scheduled_date,
-        timeSlot: insertedRows.scheduled_time_slot,
-        estimatedDeliveryDate: insertedRows.estimated_delivery_date,
-        distanceKm: insertedRows.distance_km,
-        cost: insertedRows.delivery_fee,
-        isFree: Number(insertedRows.delivery_fee || 0) === 0,
-        createdAt: insertedRows.created_at,
-      },
+      delivery: buildDeliveryResponseBody(insertedRows as unknown as Record<string, unknown>, String(order.order_number || order.id)),
     })
   } catch (_error) {
     return apiError(ErrorCode.INTERNAL_ERROR, "Failed to schedule delivery")

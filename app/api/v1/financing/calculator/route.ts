@@ -2,6 +2,107 @@ import { NextRequest, NextResponse } from 'next/server'
 import { PROVINCE_TAX_RATES as taxRates } from '@/lib/tax/canada'
 import { rateLimit } from '@/lib/redis'
 
+type CalcInputs = {
+  numericVehiclePrice: number
+  numericTermMonths: number
+  numericInterestRate: number
+  numericTradeInValue: number
+  numericDownPayment: number
+  numericWarrantyPrice: number
+  numericProtectionPrice: number
+}
+
+function validateCalculatorInputs(inputs: CalcInputs): string | null {
+  if (!Number.isFinite(inputs.numericVehiclePrice) || inputs.numericVehiclePrice <= 0) {
+    return 'Valid vehicle price is required'
+  }
+  if (!Number.isFinite(inputs.numericTermMonths) || inputs.numericTermMonths < 12 || inputs.numericTermMonths > 96) {
+    return 'termMonths must be between 12 and 96'
+  }
+  if (!Number.isFinite(inputs.numericInterestRate) || inputs.numericInterestRate < 0 || inputs.numericInterestRate > 29.99) {
+    return 'interestRate must be between 0 and 29.99'
+  }
+  if (
+    inputs.numericTradeInValue < 0 ||
+    inputs.numericDownPayment < 0 ||
+    inputs.numericWarrantyPrice < 0 ||
+    inputs.numericProtectionPrice < 0
+  ) {
+    return 'Price and credit inputs cannot be negative'
+  }
+  return null
+}
+
+function computeMonthlyPayment(amountToFinance: number, monthlyRate: number, termMonths: number): number {
+  if (monthlyRate === 0) return amountToFinance / termMonths
+  const factor = Math.pow(1 + monthlyRate, termMonths)
+  return (amountToFinance * monthlyRate * factor) / (factor - 1)
+}
+
+function mapValidationErrorCode(message: string): string {
+  if (message.includes('vehicle price')) return 'INVALID_PRICE'
+  if (message.includes('termMonths')) return 'INVALID_TERM'
+  if (message.includes('interestRate')) return 'INVALID_RATE'
+  return 'INVALID_INPUT'
+}
+
+function buildAmortizationPreview(
+  amountToFinance: number,
+  monthlyRate: number,
+  monthlyPayment: number,
+  termMonths: number
+): Array<{ month: number; payment: number; principal: number; interest: number; balance: number }> {
+  const preview = []
+  let balance = amountToFinance
+  for (let month = 1; month <= Math.min(6, termMonths); month++) {
+    const interestPayment = balance * monthlyRate
+    const principalPayment = monthlyPayment - interestPayment
+    balance -= principalPayment
+    preview.push({
+      month,
+      payment: Math.round(monthlyPayment * 100) / 100,
+      principal: Math.round(principalPayment * 100) / 100,
+      interest: Math.round(interestPayment * 100) / 100,
+      balance: Math.round(Math.max(0, balance) * 100) / 100,
+    })
+  }
+  return preview
+}
+
+function buildTermComparison(amountToFinance: number, monthlyRate: number) {
+  return [48, 60, 72, 84].map((term) => {
+    const payment = computeMonthlyPayment(amountToFinance, monthlyRate, term)
+    const total = payment * term
+    const interest = total - amountToFinance
+    return {
+      termMonths: term,
+      monthlyPayment: Math.round(payment * 100) / 100,
+      totalInterest: Math.round(interest * 100) / 100,
+      totalCost: Math.round(total * 100) / 100,
+    }
+  })
+}
+
+function buildPaymentTips(
+  downPayment: number,
+  vehiclePrice: number,
+  termMonths: number,
+  totalInterest: number,
+  tradeInValue: number
+): (string | null)[] {
+  return [
+    downPayment < vehiclePrice * 0.1
+      ? `Increase your down payment to $${Math.round(vehiclePrice * 0.1)} to reduce monthly payments by ~$${Math.round((vehiclePrice * 0.1 - downPayment) / termMonths)}`
+      : null,
+    termMonths > 60
+      ? `Choosing a 60-month term instead saves $${Math.round(totalInterest * (termMonths - 60) / termMonths)} in interest`
+      : null,
+    tradeInValue === 0
+      ? 'Trading in your current vehicle could significantly reduce your financing amount'
+      : null,
+  ]
+}
+
 // POST /api/v1/financing/calculator - Calculate payments
 export async function POST(request: NextRequest) {
   // Rate limit: 30 calculations per hour per IP
@@ -38,31 +139,20 @@ export async function POST(request: NextRequest) {
   const numericWarrantyPrice = Number(warrantyPrice)
   const numericProtectionPrice = Number(protectionPrice)
 
-  // Validate
-  if (!Number.isFinite(numericVehiclePrice) || numericVehiclePrice <= 0) {
-    return NextResponse.json(
-      { success: false, error: { code: 'INVALID_PRICE', message: 'Valid vehicle price is required' } },
-      { status: 400 }
-    )
+  const inputs: CalcInputs = {
+    numericVehiclePrice,
+    numericTermMonths,
+    numericInterestRate,
+    numericTradeInValue,
+    numericDownPayment,
+    numericWarrantyPrice,
+    numericProtectionPrice,
   }
 
-  if (!Number.isFinite(numericTermMonths) || numericTermMonths < 12 || numericTermMonths > 96) {
+  const validationError = validateCalculatorInputs(inputs)
+  if (validationError) {
     return NextResponse.json(
-      { success: false, error: { code: 'INVALID_TERM', message: 'termMonths must be between 12 and 96' } },
-      { status: 400 }
-    )
-  }
-
-  if (!Number.isFinite(numericInterestRate) || numericInterestRate < 0 || numericInterestRate > 29.99) {
-    return NextResponse.json(
-      { success: false, error: { code: 'INVALID_RATE', message: 'interestRate must be between 0 and 29.99' } },
-      { status: 400 }
-    )
-  }
-
-  if (numericTradeInValue < 0 || numericDownPayment < 0 || numericWarrantyPrice < 0 || numericProtectionPrice < 0) {
-    return NextResponse.json(
-      { success: false, error: { code: 'INVALID_INPUT', message: 'Price and credit inputs cannot be negative' } },
+      { success: false, error: { code: mapValidationErrorCode(validationError), message: validationError } },
       { status: 400 }
     )
   }
@@ -92,14 +182,7 @@ export async function POST(request: NextRequest) {
   
   // Calculate monthly payment
   const monthlyRate = numericInterestRate / 100 / 12
-  let monthlyPayment: number
-  
-  if (monthlyRate === 0) {
-    monthlyPayment = amountToFinance / numericTermMonths
-  } else {
-    monthlyPayment = (amountToFinance * monthlyRate * Math.pow(1 + monthlyRate, numericTermMonths)) /
-                     (Math.pow(1 + monthlyRate, numericTermMonths) - 1)
-  }
+  const monthlyPayment = computeMonthlyPayment(amountToFinance, monthlyRate, numericTermMonths)
   
   // Calculate totals
   const totalPayments = monthlyPayment * numericTermMonths
@@ -110,22 +193,7 @@ export async function POST(request: NextRequest) {
   const biWeeklyPayment = (monthlyPayment * 12) / 26
   
   // Generate amortization schedule (first 6 months)
-  const amortizationPreview = []
-  let balance = amountToFinance
-  
-  for (let month = 1; month <= Math.min(6, numericTermMonths); month++) {
-    const interestPayment = balance * monthlyRate
-    const principalPayment = monthlyPayment - interestPayment
-    balance -= principalPayment
-    
-    amortizationPreview.push({
-      month,
-      payment: Math.round(monthlyPayment * 100) / 100,
-      principal: Math.round(principalPayment * 100) / 100,
-      interest: Math.round(interestPayment * 100) / 100,
-      balance: Math.round(Math.max(0, balance) * 100) / 100,
-    })
-  }
+  const amortizationPreview = buildAmortizationPreview(amountToFinance, monthlyRate, monthlyPayment, numericTermMonths)
 
   return NextResponse.json({
     success: true,
@@ -180,37 +248,8 @@ export async function POST(request: NextRequest) {
       },
       
       amortizationPreview,
-      
-      // Comparison at different terms
-      termComparison: [48, 60, 72, 84].map((term) => {
-        const rate = monthlyRate
-        const payment = rate === 0
-          ? amountToFinance / term
-          : (amountToFinance * rate * Math.pow(1 + rate, term)) /
-            (Math.pow(1 + rate, term) - 1)
-        const total = payment * term
-        const interest = total - amountToFinance
-        
-        return {
-          termMonths: term,
-          monthlyPayment: Math.round(payment * 100) / 100,
-          totalInterest: Math.round(interest * 100) / 100,
-          totalCost: Math.round(total * 100) / 100,
-        }
-      }),
-      
-      // Savings tips
-      tips: [
-        numericDownPayment < numericVehiclePrice * 0.1
-          ? `Increase your down payment to $${Math.round(numericVehiclePrice * 0.1)} to reduce monthly payments by ~$${Math.round((numericVehiclePrice * 0.1 - numericDownPayment) / numericTermMonths)}`
-          : null,
-        numericTermMonths > 60
-          ? `Choosing a 60-month term instead saves $${Math.round(totalInterest * (numericTermMonths - 60) / numericTermMonths)} in interest`
-          : null,
-        numericTradeInValue === 0
-          ? 'Trading in your current vehicle could significantly reduce your financing amount'
-          : null,
-      ].filter(Boolean),
+      termComparison: buildTermComparison(amountToFinance, monthlyRate),
+      tips: buildPaymentTips(numericDownPayment, numericVehiclePrice, numericTermMonths, totalInterest, numericTradeInValue).filter(Boolean),
     },
   })
 }

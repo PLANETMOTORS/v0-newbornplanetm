@@ -46,6 +46,31 @@ export async function GET(_request: NextRequest) {
 const NAME_RE = /^[\p{L}'\s-]{1,50}$/u
 const PHONE_RE = /^[+\d\s().-]{0,20}$/
 
+function validateProfileUpdateBody(
+  firstName: unknown,
+  lastName: unknown,
+  phone: unknown
+): string | null {
+  if (firstName !== undefined) {
+    const name = String(firstName).normalize('NFC').trim()
+    if (name.length === 0 || name.length > 50 || !NAME_RE.test(name)) {
+      return "Invalid firstName: must be 1-50 characters containing only letters, spaces, hyphens, or apostrophes"
+    }
+  }
+  if (lastName !== undefined) {
+    const name = String(lastName).normalize('NFC').trim()
+    if (name.length === 0 || name.length > 50 || !NAME_RE.test(name)) {
+      return "Invalid lastName: must be 1-50 characters containing only letters, spaces, hyphens, or apostrophes"
+    }
+  }
+  if (phone !== undefined && phone !== null) {
+    if (!PHONE_RE.test(String(phone).trim())) {
+      return "Invalid phone number format"
+    }
+  }
+  return null
+}
+
 // PUT /api/v1/customers/me - Update customer profile
 export async function PUT(request: NextRequest) {
   try {
@@ -58,25 +83,9 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const { firstName, lastName, phone, notificationPreferences } = body
 
-    // Validate provided fields
-    if (firstName !== undefined) {
-      // Normalize to NFC to prevent homograph attacks with lookalike Unicode characters
-      const name = String(firstName).normalize('NFC').trim()
-      if (name.length === 0 || name.length > 50 || !NAME_RE.test(name)) {
-        return apiError(ErrorCode.VALIDATION_ERROR, "Invalid firstName: must be 1-50 characters containing only letters, spaces, hyphens, or apostrophes", 400)
-      }
-    }
-    if (lastName !== undefined) {
-      const name = String(lastName).normalize('NFC').trim()
-      if (name.length === 0 || name.length > 50 || !NAME_RE.test(name)) {
-        return apiError(ErrorCode.VALIDATION_ERROR, "Invalid lastName: must be 1-50 characters containing only letters, spaces, hyphens, or apostrophes", 400)
-      }
-    }
-    if (phone !== undefined && phone !== null) {
-      const ph = String(phone).trim()
-      if (!PHONE_RE.test(ph)) {
-        return apiError(ErrorCode.VALIDATION_ERROR, "Invalid phone number format", 400)
-      }
+    const fieldError = validateProfileUpdateBody(firstName, lastName, phone)
+    if (fieldError) {
+      return apiError(ErrorCode.VALIDATION_ERROR, fieldError, 400)
     }
 
     const updates: Record<string, unknown> = {

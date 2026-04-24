@@ -3,8 +3,43 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { ADMIN_EMAILS } from "@/lib/admin"
 
+async function fetchTotalRevenue(adminClient: ReturnType<typeof createAdminClient>): Promise<number> {
+  let totalRevenue = 0
+  let revenueOffset = 0
+  const revenueBatchSize = 1000
+  while (true) {
+    const { data: batch } = await adminClient
+      .from("orders")
+      .select("total_price_cents")
+      .order("id")
+      .range(revenueOffset, revenueOffset + revenueBatchSize - 1)
+    if (!batch || batch.length === 0) break
+    totalRevenue += batch.reduce((sum, o) => sum + (o.total_price_cents || 0), 0)
+    if (batch.length < revenueBatchSize) break
+    revenueOffset += revenueBatchSize
+  }
+  return totalRevenue
+}
+
+function buildAdminOrdersQuery(
+  adminClient: ReturnType<typeof createAdminClient>,
+  { status, search, limit, offset }: { status: string | null; search: string; limit: number; offset: number }
+) {
+  let query = adminClient
+    .from("orders")
+    .select("*", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1)
+  if (status && status !== "all") query = query.eq("status", status)
+  if (search) {
+    const sanitized = search.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s\-]/g, "").trim()
+    if (sanitized) query = query.or(`order_number.ilike.%${sanitized}%`)
+  }
+  return query
+}
+
 /**
- * Handle GET /api/v1/admin/orders: authenticate an admin and return a paginated, optionally filtered list of orders enriched with customer and vehicle data plus aggregate stats.
+ * Handle GET /api/v1/admin/orders
  *
  * The handler checks the caller's Supabase session and restricts access to emails in `ADMIN_EMAILS`. It supports `status`, `search`, `limit`, and `offset` query parameters, sanitizes `search`, clamps `limit` to 1–200 and `offset` to >= 0, and paginates results. Returned orders include selected order fields and attached `customer` and `vehicle` objects when available. The response also includes counts by status and the total revenue computed by batching through all orders.
  *
@@ -41,27 +76,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Admin client not configured" }, { status: 500 })
     }
 
-    let query = adminClient
-      .from("orders")
-      .select("*", { count: "exact" })
-      .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1)
-
-    if (status && status !== "all") {
-      query = query.eq("status", status)
-    }
-
-    if (search) {
-      // Sanitize to prevent PostgREST filter injection via commas/parentheses
-      const sanitizedSearch = search.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s\-]/g, "").trim()
-      if (sanitizedSearch) {
-        query = query.or(
-          `order_number.ilike.%${sanitizedSearch}%`
-        )
-      }
-    }
-
-    const { data: orders, error, count } = await query
+    const { data: orders, error, count } = await buildAdminOrdersQuery(adminClient, { status, search, limit, offset })
 
     if (error) {
       console.error("Error fetching orders:", error)
@@ -140,21 +155,8 @@ export async function GET(request: NextRequest) {
       adminClient.from("orders").select("id", { count: "exact", head: true }).eq("status", "cancelled"),
     ])
 
-    // For revenue, we still need row data but paginate to avoid truncation
-    let totalRevenue = 0
-    let revenueOffset = 0
-    const revenueBatchSize = 1000
-    while (true) {
-      const { data: batch } = await adminClient
-        .from("orders")
-        .select("total_price_cents")
-        .order("id")
-        .range(revenueOffset, revenueOffset + revenueBatchSize - 1)
-      if (!batch || batch.length === 0) break
-      totalRevenue += batch.reduce((sum, o) => sum + (o.total_price_cents || 0), 0)
-      if (batch.length < revenueBatchSize) break
-      revenueOffset += revenueBatchSize
-    }
+    // For revenue, we paginate to avoid Supabase's default 1000-row limit
+    const totalRevenue = await fetchTotalRevenue(adminClient)
 
     const stats = {
       total: totalResult.count ?? 0,

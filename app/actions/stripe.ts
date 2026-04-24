@@ -7,6 +7,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 
 import { isValidLicensePath } from '@/lib/license-path'
 
+const MAX_VEHICLE_PRICE_CENTS = 50_000_000 // $500,000 CAD
+
 const PROTECTION_PLANS: Record<string, { name: string; priceInCents: number }> = {
   'essential': { name: 'PlanetCare Essential', priceInCents: 195000 },
   'smart': { name: 'PlanetCare Smart', priceInCents: 300000 },
@@ -31,7 +33,129 @@ interface VehicleCheckoutData {
   utmTerm?: string
 }
 
-const MAX_VEHICLE_PRICE_CENTS = 50_000_000 // $500,000 CAD
+type VehicleRow = { id: string; year: number; make: string; model: string; price: number; status: string }
+
+type LockResult =
+  | { success: boolean; error?: string; id?: string; year?: number; make?: string; model?: string; price?: number; status?: string }
+  | boolean
+  | null
+
+/**
+ * Resolve the vehicle data from the RPC lock result.
+ * The PostgREST JSONB return can be either a structured object OR a bare boolean.
+ * Returns the vehicle or throws with a user-visible message.
+ */
+async function resolveVehicleFromLockResult(
+  lock: LockResult,
+  vehicleId: string,
+  adminClient: ReturnType<typeof createAdminClient>
+): Promise<VehicleRow> {
+  if (typeof lock === 'object' && lock !== null) {
+    if (!lock.success) {
+      throw new Error(lock.error || 'Vehicle is not available for checkout')
+    }
+    return {
+      id: lock.id as string,
+      year: lock.year as number,
+      make: lock.make as string,
+      model: lock.model as string,
+      price: lock.price as number,
+      status: lock.status as string,
+    }
+  }
+
+  if (lock === true) {
+    // PostgREST unwrapped the JSONB to a scalar boolean — fetch vehicle data separately.
+    const { data: vehicleRow, error: vehicleError } = await adminClient
+      .from('vehicles')
+      .select('id, year, make, model, price, status')
+      .eq('id', vehicleId)
+      .single()
+
+    if (vehicleError || !vehicleRow) {
+      throw new Error('Failed to fetch vehicle details after lock')
+    }
+    if (vehicleRow.id == null || vehicleRow.year == null || vehicleRow.make == null || vehicleRow.model == null || vehicleRow.price == null) {
+      throw new Error('Vehicle data incomplete after lock')
+    }
+    return {
+      id: vehicleRow.id as string,
+      year: vehicleRow.year as number,
+      make: vehicleRow.make as string,
+      model: vehicleRow.model as string,
+      price: vehicleRow.price as number,
+      status: vehicleRow.status as string,
+    }
+  }
+
+  throw new Error('Vehicle is not available for checkout')
+}
+
+/** Build the ACSS debit payment method options spread for Stripe sessions. */
+function buildAcssDebitOptions() {
+  return {
+    payment_method_options: {
+      acss_debit: {
+        currency: 'cad' as const,
+        mandate_options: {
+          payment_schedule: 'sporadic' as const,
+          transaction_type: 'personal' as const,
+        },
+      },
+    },
+  }
+}
+
+/** Build Stripe payment_intent metadata from checkout data. */
+function buildPaymentIntentMetadata(
+  data: VehicleCheckoutData,
+  reservationId?: string
+): Record<string, string> {
+  const meta: Record<string, string> = {
+    vehicleId: data.vehicleId,
+    depositOnly: String(data.depositOnly || false),
+    protectionPlanId: data.protectionPlanId || '',
+    amountSource: 'server',
+    type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
+  }
+  if (reservationId) meta.reservationId = reservationId
+  if (data.utmSource) meta.utm_source = data.utmSource
+  if (data.utmMedium) meta.utm_medium = data.utmMedium
+  if (data.utmCampaign) meta.utm_campaign = data.utmCampaign
+  if (data.utmContent) meta.utm_content = data.utmContent
+  if (data.utmTerm) meta.utm_term = data.utmTerm
+  return meta
+}
+
+/** Build Stripe session metadata from checkout data and resolved vehicle. */
+function buildSessionMetadata(
+  data: VehicleCheckoutData,
+  serverVehicleName: string,
+  vehicle: VehicleRow,
+  reservationId?: string
+): Record<string, string> {
+  const meta: Record<string, string> = {
+    vehicleId: data.vehicleId,
+    vehicleName: serverVehicleName,
+    vehicleYear: String(vehicle.year ?? ''),
+    vehicleMake: String(vehicle.make ?? ''),
+    vehicleModel: String(vehicle.model ?? ''),
+    depositOnly: String(data.depositOnly || false),
+    type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
+    protectionPlanId: data.protectionPlanId || '',
+    amountSource: 'server',
+  }
+  if (reservationId) meta.reservationId = reservationId
+  if (data.licenseStoragePath && isValidLicensePath(data.licenseStoragePath, data.vehicleId)) {
+    meta.licenseStoragePath = data.licenseStoragePath
+  }
+  if (data.utmSource) meta.utm_source = data.utmSource
+  if (data.utmMedium) meta.utm_medium = data.utmMedium
+  if (data.utmCampaign) meta.utm_campaign = data.utmCampaign
+  if (data.utmContent) meta.utm_content = data.utmContent
+  if (data.utmTerm) meta.utm_term = data.utmTerm
+  return meta
+}
 
 function validateCentsAmount(value: unknown): number {
   const numericValue = typeof value === 'string' ? Number.parseFloat(value) : Number(value)
@@ -77,62 +201,8 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
     throw new Error(`Failed to verify vehicle availability: ${lockError.message}`)
   }
 
-  // PostgREST may unwrap single-row JSONB returns to a scalar (e.g. `true`
-  // instead of `{success:true, …}`). Handle both formats: the full object
-  // returned by some PostgREST versions and the scalar boolean.
-  const lock = lockResult as
-    | { success: boolean; error?: string; id?: string; year?: number; make?: string; model?: string; price?: number; status?: string }
-    | boolean
-    | null
-
-  let vehicle: { id: string; year: number; make: string; model: string; price: number; status: string }
-
-  if (typeof lock === 'object' && lock !== null) {
-    if (!lock.success) {
-      throw new Error(lock.error || 'Vehicle is not available for checkout')
-    }
-    // Use the atomically-locked vehicle data from the RPC to preserve price
-    // integrity — the price was read under SELECT … FOR UPDATE.
-    vehicle = {
-      id: lock.id as string,
-      year: lock.year as number,
-      make: lock.make as string,
-      model: lock.model as string,
-      price: lock.price as number,
-      status: lock.status as string,
-    }
-  } else if (lock === true) {
-    // PostgREST unwrapped the JSONB to a scalar boolean — fetch vehicle data
-    // separately as a fallback.
-    const { data: vehicleRow, error: vehicleError } = await adminClient
-      .from('vehicles')
-      .select('id, year, make, model, price, status')
-      .eq('id', data.vehicleId)
-      .single()
-
-    if (vehicleError || !vehicleRow) {
-      throw new Error('Failed to fetch vehicle details after lock')
-    }
-    if (
-      vehicleRow.id == null ||
-      vehicleRow.year == null ||
-      vehicleRow.make == null ||
-      vehicleRow.model == null ||
-      vehicleRow.price == null
-    ) {
-      throw new Error('Vehicle data incomplete after lock')
-    }
-    vehicle = {
-      id: vehicleRow.id as string,
-      year: vehicleRow.year as number,
-      make: vehicleRow.make as string,
-      model: vehicleRow.model as string,
-      price: vehicleRow.price as number,
-      status: vehicleRow.status as string,
-    }
-  } else {
-    throw new Error('Vehicle is not available for checkout')
-  }
+  const lock = lockResult as LockResult
+  const vehicle = await resolveVehicleFromLockResult(lock, data.vehicleId, adminClient)
 
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
   const serverVehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`.trim() || data.vehicleName
@@ -204,51 +274,10 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
     line_items: lineItems,
     mode: 'payment',
     payment_method_types: paymentMethodTypes,
-    ...(enableAcssDebit
-      ? {
-          payment_method_options: {
-            acss_debit: {
-              currency: 'cad',
-              mandate_options: {
-                payment_schedule: 'sporadic',
-                transaction_type: 'personal',
-              },
-            },
-          },
-        }
-      : {}),
-    metadata: {
-      vehicleId: data.vehicleId,
-      vehicleName: serverVehicleName,
-      vehicleYear: String(vehicle.year ?? ''),
-      vehicleMake: String(vehicle.make ?? ''),
-      vehicleModel: String(vehicle.model ?? ''),
-      depositOnly: String(data.depositOnly || false),
-      type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
-      protectionPlanId: data.protectionPlanId || '',
-      amountSource: 'server',
-      ...(reservationId && { reservationId }),
-      ...(data.licenseStoragePath && isValidLicensePath(data.licenseStoragePath, data.vehicleId) && { licenseStoragePath: data.licenseStoragePath }),
-      ...(data.utmSource && { utm_source: data.utmSource }),
-      ...(data.utmMedium && { utm_medium: data.utmMedium }),
-      ...(data.utmCampaign && { utm_campaign: data.utmCampaign }),
-      ...(data.utmContent && { utm_content: data.utmContent }),
-      ...(data.utmTerm && { utm_term: data.utmTerm }),
-    },
+    ...(enableAcssDebit ? buildAcssDebitOptions() : {}),
+    metadata: buildSessionMetadata(data, serverVehicleName, vehicle, reservationId),
     payment_intent_data: {
-      metadata: {
-        vehicleId: data.vehicleId,
-        depositOnly: String(data.depositOnly || false),
-        protectionPlanId: data.protectionPlanId || '',
-        amountSource: 'server',
-        type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
-        ...(reservationId && { reservationId }),
-        ...(data.utmSource && { utm_source: data.utmSource }),
-        ...(data.utmMedium && { utm_medium: data.utmMedium }),
-        ...(data.utmCampaign && { utm_campaign: data.utmCampaign }),
-        ...(data.utmContent && { utm_content: data.utmContent }),
-        ...(data.utmTerm && { utm_term: data.utmTerm }),
-      },
+      metadata: buildPaymentIntentMetadata(data, reservationId),
     },
     ...(data.customerEmail && { customer_email: data.customerEmail }),
   }, {
@@ -289,19 +318,7 @@ export async function startCheckoutSession(productId: string) {
       },
     },
     payment_method_types: paymentMethodTypes,
-    ...(enableAcssDebit
-      ? {
-          payment_method_options: {
-            acss_debit: {
-              currency: 'cad',
-              mandate_options: {
-                payment_schedule: 'sporadic',
-                transaction_type: 'personal',
-              },
-            },
-          },
-        }
-      : {}),
+    ...(enableAcssDebit ? buildAcssDebitOptions() : {}),
   })
 
   return session.client_secret

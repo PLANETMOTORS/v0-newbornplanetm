@@ -20,6 +20,30 @@ const HOMENET_API_KEY = process.env.HOMENET_API_KEY
  * Flow: HomenetIOL -> This Webhook -> Parse XML/CSV -> Upsert to Neon -> Response
  */
 
+async function parseVehiclesFromRequest(request: Request, contentType: string): Promise<VehicleData[] | Response> {
+  if (contentType.includes("multipart/form-data")) {
+    const formData = await request.formData()
+    const file = formData.get("file") as File
+    if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 })
+    const text = await file.text()
+    const filename = file.name.toLowerCase()
+    if (filename.endsWith(".xml")) return parseHomenetXML(text)
+    if (filename.endsWith(".csv") || filename.endsWith(".txt")) return parseHomenetCSV(text)
+    return NextResponse.json({ error: "Unsupported file format. Use XML, CSV, or TXT." }, { status: 400 })
+  }
+  if (contentType.includes("application/xml") || contentType.includes("text/xml")) {
+    return parseHomenetXML(await request.text())
+  }
+  if (contentType.includes("application/json")) {
+    const json = await request.json()
+    return Array.isArray(json) ? json : json.vehicles || []
+  }
+  // Try to parse as text (CSV or XML)
+  const text = await request.text()
+  if (text.trim().startsWith("<?xml") || text.trim().startsWith("<")) return parseHomenetXML(text)
+  return parseHomenetCSV(text)
+}
+
 export async function POST(request: Request) {
   const sql = getSql()
   if (!sql) {
@@ -40,45 +64,10 @@ export async function POST(request: Request) {
     }
 
     const contentType = request.headers.get("content-type") || ""
-    let vehicles: VehicleData[] = []
 
-    // Handle different content types
-    if (contentType.includes("multipart/form-data")) {
-      // File upload (XML or CSV)
-      const formData = await request.formData()
-      const file = formData.get("file") as File
-      
-      if (!file) {
-        return NextResponse.json({ error: "No file provided" }, { status: 400 })
-      }
-
-      const text = await file.text()
-      const filename = file.name.toLowerCase()
-
-      if (filename.endsWith(".xml")) {
-        vehicles = parseHomenetXML(text)
-      } else if (filename.endsWith(".csv") || filename.endsWith(".txt")) {
-        vehicles = parseHomenetCSV(text)
-      } else {
-        return NextResponse.json({ error: "Unsupported file format. Use XML, CSV, or TXT." }, { status: 400 })
-      }
-    } else if (contentType.includes("application/xml") || contentType.includes("text/xml")) {
-      // Direct XML body
-      const text = await request.text()
-      vehicles = parseHomenetXML(text)
-    } else if (contentType.includes("application/json")) {
-      // JSON payload (alternative)
-      const json = await request.json()
-      vehicles = Array.isArray(json) ? json : json.vehicles || []
-    } else {
-      // Try to parse as text (CSV or XML)
-      const text = await request.text()
-      if (text.trim().startsWith("<?xml") || text.trim().startsWith("<")) {
-        vehicles = parseHomenetXML(text)
-      } else {
-        vehicles = parseHomenetCSV(text)
-      }
-    }
+    const parseResult = await parseVehiclesFromRequest(request, contentType)
+    if (parseResult instanceof Response) return parseResult
+    const vehicles: VehicleData[] = parseResult
 
     if (vehicles.length === 0) {
       return NextResponse.json({ 

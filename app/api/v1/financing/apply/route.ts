@@ -21,6 +21,29 @@ function generateApplicationNumber(): string {
   return `PM-FA-${ts}-${rand}`
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function validateVehicleForFinancing(supabase: any, vehicleId: string): Promise<Response | null> {
+  const { data: vehicle, error: vehicleError } = await supabase
+    .from('vehicles')
+    .select('id, status')
+    .eq('id', vehicleId)
+    .maybeSingle()
+
+  if (vehicleError) {
+    return NextResponse.json(
+      { success: false, error: { code: 'DB_ERROR', message: vehicleError.message } },
+      { status: 500 }
+    )
+  }
+  if (!vehicle) {
+    return NextResponse.json(
+      { success: false, error: { code: 'NOT_FOUND', message: 'Vehicle not found' } },
+      { status: 404 }
+    )
+  }
+  return null
+}
+
 // POST /api/v1/financing/apply - Full application submission (review pipeline)
 export async function POST(request: NextRequest) {
   try {
@@ -116,37 +139,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (customerId) {
-      if (customerId !== user.id) {
-        return NextResponse.json(
-          { success: false, error: { code: 'FORBIDDEN', message: 'customerId must match authenticated user' } },
-          { status: 403 }
-        )
-      }
+    if (customerId && customerId !== user.id) {
+      return NextResponse.json(
+        { success: false, error: { code: 'FORBIDDEN', message: 'customerId must match authenticated user' } },
+        { status: 403 }
+      )
     }
 
     const effectiveCustomerId = customerId || user.id
 
     if (vehicleId) {
-      const { data: vehicle, error: vehicleError } = await supabase
-        .from('vehicles')
-        .select('id, status')
-        .eq('id', vehicleId)
-        .maybeSingle()
-
-      if (vehicleError) {
-        return NextResponse.json(
-          { success: false, error: { code: 'DB_ERROR', message: vehicleError.message } },
-          { status: 500 }
-        )
-      }
-
-      if (!vehicle) {
-        return NextResponse.json(
-          { success: false, error: { code: 'NOT_FOUND', message: 'Vehicle not found' } },
-          { status: 404 }
-        )
-      }
+      const vehicleError = await validateVehicleForFinancing(supabase, vehicleId)
+      if (vehicleError) return vehicleError
     }
 
     const applicationNumber = generateApplicationNumber()

@@ -45,6 +45,66 @@ function getStructuredErrorType(error: unknown): string {
   return typeof candidate === 'string' ? candidate.toLowerCase() : ''
 }
 
+const PAYMENT_ERROR_CODES = new Set([
+  'payment_method_not_available',
+  'payment_method_invalid_parameter',
+  'parameter_invalid_empty',
+  'parameter_invalid_integer',
+  'resource_missing',
+  'card_declined',
+  'processing_error',
+  'api_connection_error',
+  'api_error',
+  'idempotency_key_in_use',
+  'rate_limit',
+])
+
+/** Classify a caught error and return the user-facing message, or null if unrecognised. */
+function classifyReservationError(error: unknown): string {
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+  const errorMessageLower = errorMessage.toLowerCase()
+  const structuredErrorCode = getStructuredErrorCode(error)
+  const structuredErrorType = getStructuredErrorType(error)
+  const isStripeLike = structuredErrorType.startsWith('stripe') || PAYMENT_ERROR_CODES.has(structuredErrorCode)
+
+  if (
+    PAYMENT_ERROR_CODES.has(structuredErrorCode) ||
+    isStripeLike ||
+    errorMessageLower.includes('stripe') ||
+    errorMessageLower.includes('payment_method') ||
+    errorMessageLower.includes('checkout') ||
+    errorMessageLower.includes('acss')
+  ) {
+    return 'Payment system error. Please try again in a moment.'
+  }
+  if (errorMessageLower.includes('vehicle')) {
+    return 'Unable to verify vehicle details. Please refresh and try again.'
+  }
+  if (
+    errorMessageLower.includes('database') ||
+    errorMessageLower.includes('supabase') ||
+    errorMessageLower.includes('permission') ||
+    errorMessageLower.includes('relation') ||
+    errorMessageLower.includes('column') ||
+    errorMessageLower.includes('row-level security')
+  ) {
+    return 'Database error. Please try again shortly.'
+  }
+  return 'An unexpected error occurred. Please try again.'
+}
+
+/** Returns true if an ACSS checkout session failure is safe to retry with card-only. */
+function isAcssRetryable(sessionError: unknown): boolean {
+  const stripeErrorCode = getStructuredErrorCode(sessionError)
+  const sessionErrorMessage = sessionError instanceof Error ? sessionError.message.toLowerCase() : ''
+  return (
+    stripeErrorCode === 'payment_method_not_available' ||
+    stripeErrorCode === 'payment_method_invalid_parameter' ||
+    sessionErrorMessage.includes('acss') ||
+    sessionErrorMessage.includes('payment_method_options')
+  )
+}
+
 export async function createReservation(input: ReservationInput): Promise<ReservationResult> {
   const headersList = await headers()
   const forwardedFor = headersList.get('x-forwarded-for')
@@ -212,26 +272,14 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
         idempotencyKey,
       })
     } catch (sessionError) {
-      const stripeErrorCode = getStructuredErrorCode(sessionError)
-      const sessionErrorMessage = sessionError instanceof Error ? sessionError.message.toLowerCase() : ''
-      const canRetryCardOnly =
-        enableAcssDebit &&
-        (
-          stripeErrorCode === 'payment_method_not_available' ||
-          stripeErrorCode === 'payment_method_invalid_parameter' ||
-          sessionErrorMessage.includes('acss') ||
-          sessionErrorMessage.includes('payment_method_options')
-        )
-
-      if (!canRetryCardOnly) {
-        throw sessionError
-      }
+      const canRetryCardOnly = enableAcssDebit && isAcssRetryable(sessionError)
+      if (!canRetryCardOnly) throw sessionError
 
       console.warn('ACSS checkout session failed, retrying with card only', {
         reservationId,
         stockNumber: input.stockNumber,
-        errorCode: stripeErrorCode || undefined,
-        error: sessionErrorMessage,
+        errorCode: getStructuredErrorCode(sessionError) || undefined,
+        error: sessionError instanceof Error ? sessionError.message.toLowerCase() : '',
       })
 
       session = await stripe.checkout.sessions.create(createSessionParams(false), {
@@ -260,26 +308,6 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    const errorMessageLower = errorMessage.toLowerCase()
-    const structuredErrorCode = getStructuredErrorCode(error)
-    const structuredErrorType = getStructuredErrorType(error)
-
-    const paymentErrorCodes = new Set([
-      'payment_method_not_available',
-      'payment_method_invalid_parameter',
-      'parameter_invalid_empty',
-      'parameter_invalid_integer',
-      'resource_missing',
-      'card_declined',
-      'processing_error',
-      'api_connection_error',
-      'api_error',
-      'idempotency_key_in_use',
-      'rate_limit',
-    ])
-
-    const isStripeLike = structuredErrorType.startsWith('stripe') || paymentErrorCodes.has(structuredErrorCode)
-
     const customerEmailHash = createHash('sha256')
       .update(input.customerEmail.trim().toLowerCase())
       .digest('hex')
@@ -293,33 +321,8 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       stack: error instanceof Error ? error.stack : undefined,
     })
     await unlockVehicle(input.stockNumber, input.customerEmail)
-    
-    // Return more specific error messages to help with debugging
-    if (
-      paymentErrorCodes.has(structuredErrorCode) ||
-      isStripeLike ||
-      errorMessageLower.includes('stripe') ||
-      errorMessageLower.includes('payment_method') ||
-      errorMessageLower.includes('checkout') ||
-      errorMessageLower.includes('acss')
-    ) {
-      return { error: 'Payment system error. Please try again in a moment.' }
-    }
-    if (errorMessageLower.includes('vehicle')) {
-      return { error: 'Unable to verify vehicle details. Please refresh and try again.' }
-    }
-    if (
-      errorMessageLower.includes('database') ||
-      errorMessageLower.includes('supabase') ||
-      errorMessageLower.includes('permission') ||
-      errorMessageLower.includes('relation') ||
-      errorMessageLower.includes('column') ||
-      errorMessageLower.includes('row-level security')
-    ) {
-      return { error: 'Database error. Please try again shortly.' }
-    }
-    
-    return { error: 'An unexpected error occurred. Please try again.' }
+
+    return { error: classifyReservationError(error) }
   }
 }
 

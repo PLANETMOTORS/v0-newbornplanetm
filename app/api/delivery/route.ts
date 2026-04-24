@@ -30,6 +30,38 @@ function formatVehicleName(vehicle: {
   return parts.length > 0 ? parts.join(" ") : "Vehicle"
 }
 
+function computeEstimatedArrival(
+  delivery: { estimated_delivery_date?: string | null; scheduled_date?: string | null },
+  orderCreatedAt: string
+): string {
+  if (delivery.estimated_delivery_date) {
+    return new Date(`${delivery.estimated_delivery_date}T17:00:00.000Z`).toISOString()
+  }
+  if (delivery.scheduled_date) {
+    return new Date(`${delivery.scheduled_date}T17:00:00.000Z`).toISOString()
+  }
+  return new Date(orderCreatedAt).toISOString()
+}
+
+function buildDeliveryTimeline(
+  order: { created_at: string },
+  delivery: { scheduled_date?: string | null; created_at: string; updated_at: string; scheduled_time_slot?: string | null; delivery_notes?: string | null; delivered_at?: string | null }
+) {
+  const timeline = [
+    { status: "Order confirmed", timestamp: order.created_at, description: "Order has been confirmed and queued for delivery processing." },
+    {
+      status: "Delivery scheduled",
+      timestamp: delivery.scheduled_date ? new Date(`${delivery.scheduled_date}T00:00:00.000Z`).toISOString() : delivery.created_at,
+      description: delivery.scheduled_time_slot ? `Scheduled window: ${delivery.scheduled_time_slot}` : "Delivery has been scheduled.",
+    },
+    { status: "Status update", timestamp: delivery.updated_at, description: delivery.delivery_notes || "Latest delivery status has been recorded." },
+  ]
+  if (delivery.delivered_at) {
+    timeline.push({ status: "Delivered", timestamp: delivery.delivered_at, description: "Vehicle delivery has been completed." })
+  }
+  return timeline
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const orderId = searchParams.get("orderId")?.trim()
@@ -103,39 +135,8 @@ export async function GET(req: Request) {
   }
 
   const vehicle = Array.isArray(order.vehicles) ? order.vehicles[0] : order.vehicles
-  const estimatedArrival = delivery.estimated_delivery_date
-    ? new Date(`${delivery.estimated_delivery_date}T17:00:00.000Z`).toISOString()
-    : delivery.scheduled_date
-      ? new Date(`${delivery.scheduled_date}T17:00:00.000Z`).toISOString()
-      : new Date(order.created_at).toISOString()
-
-  const timeline = [
-    {
-      status: "Order confirmed",
-      timestamp: order.created_at,
-      description: "Order has been confirmed and queued for delivery processing.",
-    },
-    {
-      status: "Delivery scheduled",
-      timestamp: delivery.scheduled_date ? new Date(`${delivery.scheduled_date}T00:00:00.000Z`).toISOString() : delivery.created_at,
-      description: delivery.scheduled_time_slot
-        ? `Scheduled window: ${delivery.scheduled_time_slot}`
-        : "Delivery has been scheduled.",
-    },
-    {
-      status: "Status update",
-      timestamp: delivery.updated_at,
-      description: delivery.delivery_notes || "Latest delivery status has been recorded.",
-    },
-  ]
-
-  if (delivery.delivered_at) {
-    timeline.push({
-      status: "Delivered",
-      timestamp: delivery.delivered_at,
-      description: "Vehicle delivery has been completed.",
-    })
-  }
+  const estimatedArrival = computeEstimatedArrival(delivery, order.created_at)
+  const timeline = buildDeliveryTimeline(order, delivery)
 
   return NextResponse.json({
     success: true,

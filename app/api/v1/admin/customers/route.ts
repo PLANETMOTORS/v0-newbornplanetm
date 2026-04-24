@@ -16,6 +16,31 @@ import { ADMIN_EMAILS } from "@/lib/admin"
  * - `limit`: the applied limit
  * - `offset`: the applied offset
  */
+async function buildCustomerCountMaps(
+  adminClient: ReturnType<typeof createAdminClient>,
+  customerIds: string[]
+): Promise<{ orderCounts: Record<string, number>; reservationCounts: Record<string, number> }> {
+  const [orderResults, reservationResults] = await Promise.all([
+    Promise.all(customerIds.map(async (id) => {
+      const { count } = await adminClient.from("orders").select("id", { count: "exact", head: true }).eq("customer_id", id)
+      return { id, count: count ?? 0 }
+    })),
+    Promise.all(customerIds.map(async (id) => {
+      const { count } = await adminClient.from("reservations").select("id", { count: "exact", head: true }).eq("user_id", id)
+      return { id, count: count ?? 0 }
+    })),
+  ])
+  const orderCounts: Record<string, number> = {}
+  const reservationCounts: Record<string, number> = {}
+  for (const r of orderResults) {
+    if (r.count > 0) orderCounts[r.id] = r.count
+  }
+  for (const r of reservationResults) {
+    if (r.count > 0) reservationCounts[r.id] = r.count
+  }
+  return { orderCounts, reservationCounts }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
@@ -67,38 +92,9 @@ export async function GET(request: NextRequest) {
     // Fetch order and reservation counts per customer using exact count queries
     // to avoid Supabase's default 1000-row limit silently truncating results
     const customerIds = (profiles || []).map(p => p.id)
-    let orderCounts: Record<string, number> = {}
-    let reservationCounts: Record<string, number> = {}
-
-    if (customerIds.length > 0) {
-      const [orderResults, reservationResults] = await Promise.all([
-        Promise.all(
-          customerIds.map(async (id) => {
-            const { count } = await adminClient
-              .from("orders")
-              .select("id", { count: "exact", head: true })
-              .eq("customer_id", id)
-            return { id, count: count ?? 0 }
-          })
-        ),
-        Promise.all(
-          customerIds.map(async (id) => {
-            const { count } = await adminClient
-              .from("reservations")
-              .select("id", { count: "exact", head: true })
-              .eq("user_id", id)
-            return { id, count: count ?? 0 }
-          })
-        ),
-      ])
-
-      for (const r of orderResults) {
-        if (r.count > 0) orderCounts[r.id] = r.count
-      }
-      for (const r of reservationResults) {
-        if (r.count > 0) reservationCounts[r.id] = r.count
-      }
-    }
+    const { orderCounts, reservationCounts } = customerIds.length > 0
+      ? await buildCustomerCountMaps(adminClient, customerIds)
+      : { orderCounts: {} as Record<string, number>, reservationCounts: {} as Record<string, number> }
 
     const customers = (profiles || []).map(p => ({
       id: p.id,

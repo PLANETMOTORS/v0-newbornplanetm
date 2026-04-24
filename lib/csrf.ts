@@ -16,48 +16,65 @@ function parseOrigin(raw: string, defaultScheme = "https"): string | null {
   }
 }
 
+/** Safely extract the hostname from a URL string (empty string on failure). */
+function parseHostname(raw: string): string {
+  try {
+    const withScheme = raw.startsWith("http") ? raw : `https://${raw}`
+    return new URL(withScheme).hostname
+  } catch {
+    return ""
+  }
+}
+
+/** Push the parsed origin of a single URL into `origins` if valid. */
+function addOriginIfValid(origins: string[], url: string): void {
+  const o = parseOrigin(url)
+  if (o) origins.push(o)
+}
+
+/** Add the www. variant of a host if the host is not already www.-prefixed. */
+function addWwwVariant(origins: string[], host: string): void {
+  if (!host || host.startsWith("www.")) return
+  const wwwOrigin = parseOrigin(`www.${host}`)
+  if (wwwOrigin) origins.push(wwwOrigin)
+}
+
+/** Collect origins contributed by NEXT_PUBLIC_BASE_URL. */
+function addBaseUrlOrigins(origins: string[], baseUrl: string): void {
+  addOriginIfValid(origins, baseUrl)
+  const host = parseHostname(baseUrl)
+  addWwwVariant(origins, host)
+}
+
+/** Collect origins contributed by VERCEL_URL / NEXT_PUBLIC_VERCEL_URL. */
+function addVercelOrigins(origins: string[], vercelUrl: string): void {
+  addOriginIfValid(origins, vercelUrl)
+}
+
+/** Collect origins contributed by the comma-separated NEXT_PUBLIC_SITE_DOMAIN list. */
+function addSiteDomainOrigins(origins: string[], siteDomain: string): void {
+  for (const part of siteDomain.split(",")) {
+    const trimmed = part.trim()
+    if (!trimmed) continue
+    addOriginIfValid(origins, trimmed)
+    // Auto-add www. variant for bare domains that aren't already www.
+    if (!trimmed.startsWith("www.") && !trimmed.includes("://www.")) {
+      addWwwVariant(origins, trimmed)
+    }
+  }
+}
+
 function getAllowedOrigins(): string[] {
   const origins: string[] = []
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
-  if (baseUrl) {
-    const o = parseOrigin(baseUrl)
-    if (o) origins.push(o)
-  }
+  if (baseUrl) addBaseUrlOrigins(origins, baseUrl)
 
-  // Vercel deployment URL (auto-set by Vercel)
   const vercelUrl = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_VERCEL_URL
-  if (vercelUrl) {
-    const o = parseOrigin(vercelUrl)
-    if (o) origins.push(o)
-  }
+  if (vercelUrl) addVercelOrigins(origins, vercelUrl)
 
-  // Custom domain(s) — comma-separated list (e.g. "www.planetmotors.ca,planetmotors.ca")
   const siteDomain = process.env.NEXT_PUBLIC_SITE_DOMAIN
-  if (siteDomain) {
-    for (const part of siteDomain.split(",")) {
-      const trimmed = part.trim()
-      if (!trimmed) continue
-      const o = parseOrigin(trimmed)
-      if (o) {
-        origins.push(o)
-        // Auto-add www. variant if not already a www. domain
-        if (!trimmed.startsWith("www.") && !trimmed.includes("://www.")) {
-          const wwwOrigin = parseOrigin(`www.${trimmed}`)
-          if (wwwOrigin) origins.push(wwwOrigin)
-        }
-      }
-    }
-  }
-
-  // Also auto-add www. variant of the base URL
-  if (baseUrl) {
-    const baseHost = (() => { try { return new URL(baseUrl.startsWith("http") ? baseUrl : `https://${baseUrl}`).hostname } catch { return "" } })()
-    if (baseHost && !baseHost.startsWith("www.")) {
-      const wwwOrigin = parseOrigin(`www.${baseHost}`)
-      if (wwwOrigin) origins.push(wwwOrigin)
-    }
-  }
+  if (siteDomain) addSiteDomainOrigins(origins, siteDomain)
 
   // Only allow localhost variants in development — never in production
   if (process.env.NODE_ENV !== "production") {

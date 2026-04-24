@@ -7,6 +7,76 @@ const BUCKET = "vehicle-360"
 const MAX_FRAME_SIZE = 5 * 1024 * 1024 // 5 MB per frame
 const ALLOWED_TYPES = ["image/webp"]
 
+type FrameValidationResult =
+  | { ok: true; frames: File[] }
+  | { ok: false; response: ReturnType<typeof NextResponse.json> }
+
+function collectAndValidateFrames(formData: FormData): FrameValidationResult {
+  const frames: File[] = []
+  for (const [key, value] of formData.entries()) {
+    if (key !== "frames" || !(value instanceof File)) continue
+    if (value.size > MAX_FRAME_SIZE) {
+      return {
+        ok: false,
+        response: NextResponse.json(
+          { error: `Frame "${value.name}" exceeds ${MAX_FRAME_SIZE / 1024 / 1024}MB limit` },
+          { status: 400 },
+        ),
+      }
+    }
+    if (!ALLOWED_TYPES.includes(value.type)) {
+      return {
+        ok: false,
+        response: NextResponse.json(
+          { error: `Frame "${value.name}" has unsupported type "${value.type}". Only WebP files are allowed.` },
+          { status: 400 },
+        ),
+      }
+    }
+    frames.push(value)
+  }
+  if (frames.length === 0) {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: "No frames provided" }, { status: 400 }),
+    }
+  }
+  frames.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+  return { ok: true, frames }
+}
+
+async function uploadFramesToStorage(
+  adminClient: ReturnType<typeof createAdminClient>,
+  frames: File[],
+  mid: string
+): Promise<{ uploaded: string[]; errors: string[] }> {
+  const uploaded: string[] = []
+  const errors: string[] = []
+  for (let i = 0; i < frames.length; i++) {
+    const frame = frames[i]
+    const padded = String(i + 1).padStart(2, "0")
+    const storagePath = `${mid}/nobg/${padded}.webp`
+    const arrayBuffer = await frame.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    const { error } = await adminClient.storage
+      .from(BUCKET)
+      .upload(storagePath, buffer, { contentType: "image/webp", upsert: true })
+    if (error) {
+      errors.push(`Frame ${padded}: ${error.message}`)
+    } else {
+      const { data: urlData } = adminClient.storage.from(BUCKET).getPublicUrl(storagePath)
+      uploaded.push(urlData.publicUrl)
+    }
+  }
+  return { uploaded, errors }
+}
+
+function buildFrameUploadMessage(uploaded: string[], errors: string[], total: number, vehicleName: string): string {
+  if (uploaded.length === 0 && errors.length > 0) return `All ${errors.length} frames failed to upload`
+  if (errors.length > 0) return `Uploaded ${uploaded.length}/${total} frames (${errors.length} failed)`
+  return `Successfully uploaded ${uploaded.length} frames for ${vehicleName}`
+}
+
 /**
  * POST /api/v1/admin/360-upload
  *
@@ -57,35 +127,10 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Collect all frame files from formData
-  const frames: File[] = []
-  for (const [key, value] of formData.entries()) {
-    if (key === "frames" && value instanceof File) {
-      if (value.size > MAX_FRAME_SIZE) {
-        return NextResponse.json(
-          { error: `Frame "${value.name}" exceeds ${MAX_FRAME_SIZE / 1024 / 1024}MB limit` },
-          { status: 400 },
-        )
-      }
-      if (!ALLOWED_TYPES.includes(value.type)) {
-        return NextResponse.json(
-          { error: `Frame "${value.name}" has unsupported type "${value.type}". Only WebP files are allowed.` },
-          { status: 400 },
-        )
-      }
-      frames.push(value)
-    }
-  }
-
-  if (frames.length === 0) {
-    return NextResponse.json(
-      { error: "No frames provided" },
-      { status: 400 },
-    )
-  }
-
-  // Sort frames by name to ensure consistent ordering
-  frames.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+  // Collect and validate all frame files from formData
+  const frameResult = collectAndValidateFrames(formData)
+  if (!frameResult.ok) return frameResult.response
+  const frames = frameResult.frames
 
   const adminClient = createAdminClient()
 
@@ -105,33 +150,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const uploaded: string[] = []
-  const errors: string[] = []
-
-  for (let i = 0; i < frames.length; i++) {
-    const frame = frames[i]
-    const padded = String(i + 1).padStart(2, "0")
-    const storagePath = `${mid}/nobg/${padded}.webp`
-
-    const arrayBuffer = await frame.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-
-    const { error } = await adminClient.storage
-      .from(BUCKET)
-      .upload(storagePath, buffer, {
-        contentType: "image/webp",
-        upsert: true,
-      })
-
-    if (error) {
-      errors.push(`Frame ${padded}: ${error.message}`)
-    } else {
-      const { data: urlData } = adminClient.storage
-        .from(BUCKET)
-        .getPublicUrl(storagePath)
-      uploaded.push(urlData.publicUrl)
-    }
-  }
+  const { uploaded, errors } = await uploadFramesToStorage(adminClient, frames, mid)
 
   const allFailed = uploaded.length === 0 && errors.length > 0
 
@@ -143,11 +162,7 @@ export async function POST(request: NextRequest) {
       frames: uploaded,
       errors: errors.length > 0 ? errors : undefined,
       error: allFailed ? `All ${errors.length} frames failed to upload` : undefined,
-      message: allFailed
-        ? `All ${errors.length} frames failed to upload`
-        : errors.length > 0
-          ? `Uploaded ${uploaded.length}/${frames.length} frames (${errors.length} failed)`
-          : `Successfully uploaded ${uploaded.length} frames for ${vehicleName}`,
+      message: buildFrameUploadMessage(uploaded, errors, frames.length, vehicleName as string),
     },
     allFailed ? { status: 500 } : undefined,
   )

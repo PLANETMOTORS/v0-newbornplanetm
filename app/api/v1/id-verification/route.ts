@@ -5,6 +5,54 @@ import { createClient } from "@/lib/supabase/server"
 const MAX_ID_IMAGE_SIZE_BYTES = 10 * 1024 * 1024 // 10MB
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
 
+async function uploadIdImage(
+  userId: string,
+  verificationId: string,
+  image: File,
+  idType: string,
+  side: string,
+  blobPaths: string[]
+): Promise<{ type: string; side: string; url: string; uploadedAt: string }> {
+  const ext = image.name.split('.').pop()
+  const blob = await put(
+    `id-verification/${userId}/${verificationId}/${idType}-${side}.${ext}`,
+    image,
+    { access: "private", addRandomSuffix: true }
+  )
+  blobPaths.push(blob.pathname)
+  return { type: idType, side, url: blob.pathname, uploadedAt: new Date().toISOString() }
+}
+
+async function linkVerificationToApplication(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  applicationId: string,
+  verificationId: string,
+  userId: string,
+  uploadedBlobPaths: string[]
+): Promise<{ error?: string }> {
+  const { data: updatedApplications, error: updateError } = await supabase
+    .from("finance_applications")
+    .update({ id_verification_status: "submitted", id_verification_id: verificationId })
+    .eq("id", applicationId)
+    .eq("user_id", userId)
+    .select("id")
+
+  if (updateError || !updatedApplications || updatedApplications.length === 0) {
+    console.error("Failed to update finance application:", updateError)
+    const { error: rollbackError } = await supabase
+      .from("id_verifications")
+      .delete()
+      .eq("id", verificationId)
+      .eq("user_id", userId)
+    if (rollbackError) {
+      console.error("Failed to rollback ID verification after linking failure:", rollbackError)
+    }
+    await cleanupUploadedBlobs(uploadedBlobPaths)
+    return { error: "Failed to link ID verification to the financing application." }
+  }
+  return {}
+}
+
 export async function POST(request: NextRequest) {
   const uploadedBlobPaths: string[] = []
 
@@ -73,65 +121,16 @@ export async function POST(request: NextRequest) {
 
     // Upload primary ID front
     if (primaryFrontImage) {
-      const blob = await put(
-        `id-verification/${user.id}/${verificationId}/primary-front.${primaryFrontImage.name.split('.').pop()}`,
-        primaryFrontImage,
-        { access: "private", addRandomSuffix: true }
-      )
-      uploadedDocuments.push({
-        type: "primary",
-        side: "front",
-        url: blob.pathname,
-        uploadedAt: new Date().toISOString()
-      })
-      uploadedBlobPaths.push(blob.pathname)
+      uploadedDocuments.push(await uploadIdImage(user.id, verificationId, primaryFrontImage, "primary", "front", uploadedBlobPaths))
     }
-
-    // Upload primary ID back
     if (primaryBackImage) {
-      const blob = await put(
-        `id-verification/${user.id}/${verificationId}/primary-back.${primaryBackImage.name.split('.').pop()}`,
-        primaryBackImage,
-        { access: "private", addRandomSuffix: true }
-      )
-      uploadedDocuments.push({
-        type: "primary",
-        side: "back",
-        url: blob.pathname,
-        uploadedAt: new Date().toISOString()
-      })
-      uploadedBlobPaths.push(blob.pathname)
+      uploadedDocuments.push(await uploadIdImage(user.id, verificationId, primaryBackImage, "primary", "back", uploadedBlobPaths))
     }
-
-    // Upload secondary ID images if provided
     if (secondaryFrontImage) {
-      const blob = await put(
-        `id-verification/${user.id}/${verificationId}/secondary-front.${secondaryFrontImage.name.split('.').pop()}`,
-        secondaryFrontImage,
-        { access: "private", addRandomSuffix: true }
-      )
-      uploadedDocuments.push({
-        type: "secondary",
-        side: "front",
-        url: blob.pathname,
-        uploadedAt: new Date().toISOString()
-      })
-      uploadedBlobPaths.push(blob.pathname)
+      uploadedDocuments.push(await uploadIdImage(user.id, verificationId, secondaryFrontImage, "secondary", "front", uploadedBlobPaths))
     }
-
     if (secondaryBackImage) {
-      const blob = await put(
-        `id-verification/${user.id}/${verificationId}/secondary-back.${secondaryBackImage.name.split('.').pop()}`,
-        secondaryBackImage,
-        { access: "private", addRandomSuffix: true }
-      )
-      uploadedDocuments.push({
-        type: "secondary",
-        side: "back",
-        url: blob.pathname,
-        uploadedAt: new Date().toISOString()
-      })
-      uploadedBlobPaths.push(blob.pathname)
+      uploadedDocuments.push(await uploadIdImage(user.id, verificationId, secondaryBackImage, "secondary", "back", uploadedBlobPaths))
     }
 
     // Save verification record to Supabase
@@ -168,34 +167,9 @@ export async function POST(request: NextRequest) {
 
     // Update finance application status if applicationId provided
     if (applicationId) {
-      const { data: updatedApplications, error: updateError } = await supabase
-        .from("finance_applications")
-        .update({ 
-          id_verification_status: "submitted",
-          id_verification_id: verificationId
-        })
-        .eq("id", applicationId)
-        .eq("user_id", user.id)
-        .select("id")
-      
-      if (updateError || !updatedApplications || updatedApplications.length === 0) {
-        console.error("Failed to update finance application:", updateError)
-
-        const { error: rollbackError } = await supabase
-          .from("id_verifications")
-          .delete()
-          .eq("id", verificationId)
-          .eq("user_id", user.id)
-
-        if (rollbackError) {
-          console.error("Failed to rollback ID verification after linking failure:", rollbackError)
-        }
-
-        await cleanupUploadedBlobs(uploadedBlobPaths)
-        return NextResponse.json(
-          { error: "Failed to link ID verification to the financing application." },
-          { status: 500 }
-        )
+      const { error: linkError } = await linkVerificationToApplication(supabase, applicationId, verificationId, user.id, uploadedBlobPaths)
+      if (linkError) {
+        return NextResponse.json({ error: linkError }, { status: 500 })
       }
     }
 

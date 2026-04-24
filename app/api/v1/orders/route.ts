@@ -35,6 +35,175 @@ function generateOrderNumber() {
   return `PM-${ts}-${rand}`
 }
 
+async function rollbackVehicleStatus(
+  adminClient: ReturnType<typeof createAdminClient>,
+  vehicleId: string,
+  previousStatus: string
+): Promise<void> {
+  await adminClient
+    .from('vehicles')
+    .update({ status: previousStatus, updated_at: new Date().toISOString() })
+    .eq('id', vehicleId)
+    .eq('status', 'pending')
+}
+
+function buildClaimErrorResponse(errorMsg: string) {
+  const isNotFound = errorMsg.includes('not found')
+  return NextResponse.json(
+    { success: false, error: { code: isNotFound ? 'NOT_FOUND' : 'VEHICLE_UNAVAILABLE', message: errorMsg } },
+    { status: isNotFound ? 404 : 409 }
+  )
+}
+
+function resolveProvinceAndTax(province: unknown): {
+  resolvedProvince: string
+  taxInfo: (typeof PROVINCE_TAX_RATES)[string]
+  error?: NextResponse
+} {
+  const hasProvince = typeof province === 'string' && province.trim() !== ''
+  if (hasProvince && !(String(province).toUpperCase() in PROVINCE_TAX_RATES)) {
+    return {
+      resolvedProvince: 'ON',
+      taxInfo: PROVINCE_TAX_RATES['ON'],
+      error: NextResponse.json({
+        success: false,
+        error: { code: 'INVALID_PROVINCE', message: `Unknown province code "${province}". Use a valid 2-letter Canadian province code (e.g. ON, BC, AB).` },
+      }, { status: 400 }),
+    }
+  }
+  const resolvedProvince = hasProvince ? String(province).toUpperCase() : 'ON'
+  return { resolvedProvince, taxInfo: PROVINCE_TAX_RATES[resolvedProvince] }
+}
+
+function validateOrderInputs(
+  vehicleId: unknown, paymentMethod: unknown, customerId: unknown, userId: string
+): { effectiveCustomerId: string; error?: NextResponse } {
+  if (!vehicleId || !paymentMethod) {
+    return { effectiveCustomerId: '', error: NextResponse.json({ success: false, error: { code: 'MISSING_FIELDS', message: 'vehicleId and paymentMethod are required' } }, { status: 400 }) }
+  }
+  const effectiveCustomerId = (customerId as string | undefined) || userId
+  if (effectiveCustomerId !== userId) {
+    return { effectiveCustomerId, error: NextResponse.json({ success: false, error: { code: 'FORBIDDEN', message: 'customerId must match authenticated user' } }, { status: 403 }) }
+  }
+  if (!['financing', 'cash', 'bank_draft'].includes(String(paymentMethod))) {
+    return { effectiveCustomerId, error: NextResponse.json({ success: false, error: { code: 'INVALID_PAYMENT_METHOD', message: 'paymentMethod must be one of financing, cash, bank_draft' } }, { status: 400 }) }
+  }
+  return { effectiveCustomerId }
+}
+
+function buildInsertFailureResponse(insertError: { code?: string; message?: string } | null): NextResponse {
+  if (insertError?.code === '23505') {
+    return NextResponse.json({ success: false, error: { code: 'VEHICLE_UNAVAILABLE', message: 'An active order already exists for this vehicle' } }, { status: 409 })
+  }
+  return NextResponse.json({ success: false, error: { code: 'DB_ERROR', message: insertError?.message || 'Failed to create order' } }, { status: 500 })
+}
+
+function buildFinancingField(paymentMethod: string, financingOfferId: string | undefined, amountFinancedCents: number) {
+  return paymentMethod === 'financing'
+    ? { offerId: financingOfferId || null, amountFinanced: fromCents(amountFinancedCents) }
+    : null
+}
+function buildTradeInField(tradeInOfferId: string | undefined, tradeInCreditCents: number) {
+  return tradeInOfferId ? { offerId: tradeInOfferId, value: fromCents(tradeInCreditCents) } : null
+}
+function buildDeliveryField(
+  type: string, addressId: string | undefined, hubId: string | undefined,
+  preferredDate: string | undefined, preferredTimeSlot: string | undefined, estimatedDate: string
+) {
+  return {
+    type, addressId: addressId || null,
+    hubId: type === 'pickup' ? (hubId || null) : null,
+    preferredDate: preferredDate || null,
+    preferredTimeSlot: preferredTimeSlot || null,
+    estimatedDate,
+  }
+}
+function buildProtectionPlanField(protectionPlanId: string | undefined, feeCents: number) {
+  return protectionPlanId ? { id: protectionPlanId, price: fromCents(feeCents) } : null
+}
+
+function buildOrderInsertPayload(opts: {
+  orderNumber: string; customerId: string; vehicleId: string; paymentMethod: string
+  financingOfferId?: string; tradeInOfferId?: string; normalizedDeliveryType: string
+  deliveryAddressId?: string; hubId?: string; preferredDate?: string; preferredTimeSlot?: string
+  protectionPlanId?: string; vehiclePriceCents: number; documentationFeeCents: number
+  omvicFeeCents: number; deliveryFeeCents: number; protectionPlanFeeCents: number
+  taxRate: number; taxAmountCents: number; totalBeforeCreditsCents: number
+  tradeInCreditCents: number; downPaymentCents: number; totalCreditsCents: number
+  totalPriceCents: number; amountFinancedCents: number
+  timeline: unknown; documentsRequired: unknown; returnPolicy: unknown
+}) {
+  return {
+    order_number: opts.orderNumber,
+    customer_id: opts.customerId,
+    vehicle_id: opts.vehicleId,
+    status: 'created',
+    payment_method: opts.paymentMethod,
+    financing_offer_id: opts.financingOfferId || null,
+    trade_in_offer_id: opts.tradeInOfferId || null,
+    delivery_type: opts.normalizedDeliveryType,
+    delivery_address_id: opts.deliveryAddressId || null,
+    hub_id: opts.normalizedDeliveryType === 'pickup' ? (opts.hubId || null) : null,
+    preferred_date: opts.preferredDate || null,
+    preferred_time_slot: opts.preferredTimeSlot || null,
+    protection_plan_id: opts.protectionPlanId || null,
+    vehicle_price_cents: opts.vehiclePriceCents,
+    documentation_fee_cents: opts.documentationFeeCents,
+    omvic_fee_cents: opts.omvicFeeCents,
+    delivery_fee_cents: opts.deliveryFeeCents,
+    protection_plan_fee_cents: opts.protectionPlanFeeCents,
+    tax_rate_percent: opts.taxRate * 100,
+    tax_amount_cents: opts.taxAmountCents,
+    total_before_credits_cents: opts.totalBeforeCreditsCents,
+    trade_in_credit_cents: opts.tradeInCreditCents,
+    down_payment_cents: opts.downPaymentCents,
+    total_credits_cents: opts.totalCreditsCents,
+    total_price_cents: opts.totalPriceCents,
+    amount_financed_cents: opts.amountFinancedCents,
+    timeline: opts.timeline,
+    documents_required: opts.documentsRequired,
+    return_policy: opts.returnPolicy,
+  }
+}
+
+function buildOrderTimeline(nowIso: string) {
+  return [
+    { step: 'Order Created', status: 'complete', date: nowIso },
+    { step: 'Documents Pending', status: 'current', date: null },
+    { step: 'Payment Processing', status: 'pending', date: null },
+    { step: 'Vehicle Preparation', status: 'pending', date: null },
+    { step: 'Delivery Scheduled', status: 'pending', date: null },
+    { step: 'Delivered', status: 'pending', date: null },
+  ]
+}
+
+function buildDocumentsRequired(paymentMethod: string) {
+  return [
+    { type: 'drivers_license', name: "Driver's License", status: 'pending' },
+    { type: 'proof_of_insurance', name: 'Proof of Insurance', status: 'pending' },
+    {
+      type: 'financing_agreement',
+      name: 'Financing Agreement',
+      status: paymentMethod === 'financing' ? 'pending' : 'not_required',
+    },
+    { type: 'purchase_agreement', name: 'Purchase Agreement', status: 'pending' },
+  ]
+}
+
+function buildReturnPolicy() {
+  return {
+    eligible: true,
+    deadline: new Date(Date.now() + 17 * 24 * 60 * 60 * 1000).toISOString(),
+    maxMileage: 750,
+    conditions: [
+      'Vehicle must be in same condition as delivered',
+      'Maximum 750 km driven',
+      'All original documents present',
+      'No modifications made',
+    ],
+  }
+}
+
 // POST /api/v1/orders - Create order
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -72,68 +241,15 @@ export async function POST(request: NextRequest) {
   } = body
 
   // Validate province and resolve tax rate.
-  // If province is explicitly provided but unrecognised, reject immediately.
-  // If province is absent, default to ON for backward-compat and log a warning.
-  const hasProvince = typeof province === 'string' && province.trim() !== ''
-  if (hasProvince && !(province.toUpperCase() in PROVINCE_TAX_RATES)) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'INVALID_PROVINCE',
-          message: `Unknown province code "${province}". Use a valid 2-letter Canadian province code (e.g. ON, BC, AB).`,
-        },
-      },
-      { status: 400 }
-    )
-  }
-  if (!hasProvince) {
-    console.warn(
-      `[orders] Province not provided for order by user ${user.id}. Defaulting to ON.`
-    )
-  }
-  const resolvedProvince = hasProvince ? province.toUpperCase() : 'ON'
-  const taxInfo = PROVINCE_TAX_RATES[resolvedProvince]
-
-  if (!vehicleId || !paymentMethod) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'MISSING_FIELDS',
-          message: 'vehicleId and paymentMethod are required',
-        },
-      },
-      { status: 400 }
-    )
+  const { resolvedProvince, taxInfo, error: provinceError } = resolveProvinceAndTax(province)
+  if (provinceError) return provinceError
+  if (typeof province !== 'string' || !province.trim()) {
+    console.warn(`[orders] Province not provided for order by user ${user.id}. Defaulting to ON.`)
   }
 
-  const effectiveCustomerId = customerId || user.id
-  if (effectiveCustomerId !== user.id) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'FORBIDDEN',
-          message: 'customerId must match authenticated user',
-        },
-      },
-      { status: 403 }
-    )
-  }
-
-  if (!['financing', 'cash', 'bank_draft'].includes(String(paymentMethod))) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'INVALID_PAYMENT_METHOD',
-          message: 'paymentMethod must be one of financing, cash, bank_draft',
-        },
-      },
-      { status: 400 }
-    )
-  }
+  // Validate order inputs and resolve effective customer ID
+  const { effectiveCustomerId, error: inputError } = validateOrderInputs(vehicleId, paymentMethod, customerId, user.id)
+  if (inputError) return inputError
 
   const normalizedDeliveryType = deliveryType === 'delivery' ? 'delivery' : 'pickup'
 
@@ -159,11 +275,7 @@ export async function POST(request: NextRequest) {
 
   if (!claim?.success) {
     const errorMsg = claim?.error || 'Vehicle is not available for ordering'
-    const isNotFound = errorMsg.includes('not found')
-    return NextResponse.json(
-      { success: false, error: { code: isNotFound ? 'NOT_FOUND' : 'VEHICLE_UNAVAILABLE', message: errorMsg } },
-      { status: isNotFound ? 404 : 409 }
-    )
+    return buildClaimErrorResponse(errorMsg)
   }
 
   const vehicle = {
@@ -181,12 +293,7 @@ export async function POST(request: NextRequest) {
 
   if (vehiclePriceCents <= 0) {
     // Rollback the provisional vehicle status lock.
-    await adminClient
-      .from('vehicles')
-      .update({ status: currentVehicleStatus, updated_at: new Date().toISOString() })
-      .eq('id', vehicleId)
-      .eq('status', 'pending')
-
+    await rollbackVehicleStatus(adminClient, vehicleId, currentVehicleStatus)
     return NextResponse.json(
       { success: false, error: { code: 'INVALID_VEHICLE', message: 'Vehicle does not have a valid price' } },
       { status: 400 }
@@ -215,99 +322,28 @@ export async function POST(request: NextRequest) {
   const orderNumber = generateOrderNumber()
   const nowIso = new Date().toISOString()
   const estimatedDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-  const timeline = [
-    { step: 'Order Created', status: 'complete', date: nowIso },
-    { step: 'Documents Pending', status: 'current', date: null },
-    { step: 'Payment Processing', status: 'pending', date: null },
-    { step: 'Vehicle Preparation', status: 'pending', date: null },
-    { step: 'Delivery Scheduled', status: 'pending', date: null },
-    { step: 'Delivered', status: 'pending', date: null },
-  ]
-  const documentsRequired = [
-    { type: 'drivers_license', name: "Driver's License", status: 'pending' },
-    { type: 'proof_of_insurance', name: 'Proof of Insurance', status: 'pending' },
-    { type: 'financing_agreement', name: 'Financing Agreement', status: paymentMethod === 'financing' ? 'pending' : 'not_required' },
-    { type: 'purchase_agreement', name: 'Purchase Agreement', status: 'pending' },
-  ]
-  const returnPolicy = {
-    eligible: true,
-    deadline: new Date(Date.now() + 17 * 24 * 60 * 60 * 1000).toISOString(),
-    maxMileage: 750,
-    conditions: [
-      'Vehicle must be in same condition as delivered',
-      'Maximum 750 km driven',
-      'All original documents present',
-      'No modifications made',
-    ],
-  }
+  const timeline = buildOrderTimeline(nowIso)
+  const documentsRequired = buildDocumentsRequired(paymentMethod)
+  const returnPolicy = buildReturnPolicy()
 
   const { data: insertedOrder, error: insertError } = await supabase
     .from('orders')
-    .insert({
-      order_number: orderNumber,
-      customer_id: effectiveCustomerId,
-      vehicle_id: vehicle.id,
-      status: 'created',
-      payment_method: paymentMethod,
-      financing_offer_id: financingOfferId || null,
-      trade_in_offer_id: tradeInOfferId || null,
-      delivery_type: normalizedDeliveryType,
-      delivery_address_id: deliveryAddressId || null,
-      hub_id: normalizedDeliveryType === 'pickup' ? (hubId || null) : null,
-      preferred_date: preferredDate || null,
-      preferred_time_slot: preferredTimeSlot || null,
-      protection_plan_id: protectionPlanId || null,
-      vehicle_price_cents: vehiclePriceCents,
-      documentation_fee_cents: documentationFeeCents,
-      omvic_fee_cents: omvicFeeCents,
-      delivery_fee_cents: deliveryFeeCents,
-      protection_plan_fee_cents: protectionPlanFeeCents,
-      tax_rate_percent: taxRate * 100,
-      tax_amount_cents: taxAmountCents,
-      total_before_credits_cents: totalBeforeCreditsCents,
-      trade_in_credit_cents: tradeInCreditCents,
-      down_payment_cents: downPaymentCents,
-      total_credits_cents: totalCreditsCents,
-      total_price_cents: totalPriceCents,
-      amount_financed_cents: amountFinancedCents,
-      timeline,
-      documents_required: documentsRequired,
-      return_policy: returnPolicy,
-    })
+    .insert(buildOrderInsertPayload({
+      orderNumber, customerId: effectiveCustomerId, vehicleId: vehicle.id,
+      paymentMethod, financingOfferId, tradeInOfferId, normalizedDeliveryType,
+      deliveryAddressId, hubId, preferredDate, preferredTimeSlot, protectionPlanId,
+      vehiclePriceCents, documentationFeeCents, omvicFeeCents, deliveryFeeCents,
+      protectionPlanFeeCents, taxRate, taxAmountCents, totalBeforeCreditsCents,
+      tradeInCreditCents, downPaymentCents, totalCreditsCents, totalPriceCents,
+      amountFinancedCents, timeline, documentsRequired, returnPolicy,
+    }))
     .select('id, order_number, status, created_at')
     .single()
 
   if (insertError || !insertedOrder) {
     // Best-effort rollback of the provisional vehicle status lock.
-    await adminClient
-      .from('vehicles')
-      .update({ status: currentVehicleStatus, updated_at: new Date().toISOString() })
-      .eq('id', vehicleId)
-      .eq('status', 'pending')
-
-    if (insertError?.code === '23505') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'VEHICLE_UNAVAILABLE',
-            message: 'An active order already exists for this vehicle',
-          },
-        },
-        { status: 409 }
-      )
-    }
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'DB_ERROR',
-          message: insertError?.message || 'Failed to create order',
-        },
-      },
-      { status: 500 }
-    )
+    await rollbackVehicleStatus(adminClient, vehicleId, currentVehicleStatus)
+    return buildInsertFailureResponse(insertError)
   }
 
   return NextResponse.json({
@@ -320,12 +356,8 @@ export async function POST(request: NextRequest) {
         vehicleId: vehicle.id,
         status: insertedOrder.status,
         vehicle: {
-          id: vehicle.id,
-          year: vehicle.year,
-          make: vehicle.make,
-          model: vehicle.model,
-          trim: vehicle.trim,
-          price: fromCents(vehiclePriceCents),
+          id: vehicle.id, year: vehicle.year, make: vehicle.make,
+          model: vehicle.model, trim: vehicle.trim, price: fromCents(vehiclePriceCents),
         },
         pricing: {
           vehiclePrice: fromCents(vehiclePriceCents),
@@ -336,11 +368,7 @@ export async function POST(request: NextRequest) {
           subtotal: fromCents(subtotalCents),
           province: resolvedProvince,
           taxRate,
-          taxBreakdown: {
-            gst: taxInfo.gst,
-            pst: taxInfo.pst,
-            hst: taxInfo.hst,
-          },
+          taxBreakdown: { gst: taxInfo.gst, pst: taxInfo.pst, hst: taxInfo.hst },
           taxAmount: fromCents(taxAmountCents),
           totalBeforeCredits: fromCents(totalBeforeCreditsCents),
           tradeInCredit: fromCents(tradeInCreditCents),
@@ -348,32 +376,10 @@ export async function POST(request: NextRequest) {
           totalCredits: fromCents(totalCreditsCents),
           totalPrice: fromCents(totalPriceCents),
         },
-        financing: paymentMethod === 'financing'
-          ? {
-              offerId: financingOfferId || null,
-              amountFinanced: fromCents(amountFinancedCents),
-            }
-          : null,
-        tradeIn: tradeInOfferId
-          ? {
-              offerId: tradeInOfferId,
-              value: fromCents(tradeInCreditCents),
-            }
-          : null,
-        delivery: {
-          type: normalizedDeliveryType,
-          addressId: deliveryAddressId || null,
-          hubId: normalizedDeliveryType === 'pickup' ? (hubId || null) : null,
-          preferredDate: preferredDate || null,
-          preferredTimeSlot: preferredTimeSlot || null,
-          estimatedDate,
-        },
-        protectionPlan: protectionPlanId
-          ? {
-              id: protectionPlanId,
-              price: fromCents(protectionPlanFeeCents),
-            }
-          : null,
+        financing: buildFinancingField(paymentMethod, financingOfferId, amountFinancedCents),
+        tradeIn: buildTradeInField(tradeInOfferId, tradeInCreditCents),
+        delivery: buildDeliveryField(normalizedDeliveryType, deliveryAddressId, hubId, preferredDate, preferredTimeSlot, estimatedDate),
+        protectionPlan: buildProtectionPlanField(protectionPlanId, protectionPlanFeeCents),
         timeline,
         documentsRequired,
         returnPolicy,
@@ -381,12 +387,7 @@ export async function POST(request: NextRequest) {
         updatedAt: insertedOrder.created_at,
       },
       message: `Order ${insertedOrder.order_number} created successfully`,
-      nextSteps: [
-        'Upload required documents',
-        'Complete e-signatures',
-        'Confirm delivery date',
-        'Make down payment',
-      ],
+      nextSteps: ['Upload required documents', 'Complete e-signatures', 'Confirm delivery date', 'Make down payment'],
     },
   })
 }

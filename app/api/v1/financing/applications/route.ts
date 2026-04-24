@@ -27,6 +27,190 @@ const financeApplicationSchema = z.object({
   utm: z.record(z.string().max(200)).optional(),
 }).passthrough()
 
+function resolvePaymentsPerYear(frequency: string): number {
+  if (frequency === "weekly") return 52
+  if (frequency === "bi-weekly") return 26
+  if (frequency === "semi-monthly") return 24
+  return 12
+}
+
+function computeFinancingCalc(
+  price: number,
+  adminFee: number,
+  downPayment: number,
+  netTrade: number,
+  taxRate: number,
+  interestRate: number,
+  loanTermMonths: number,
+  paymentFrequency: string
+) {
+  const subtotal = price + adminFee - downPayment - netTrade
+  const tax = subtotal * taxRate
+  const amountFinanced = subtotal + tax
+  const rate = interestRate / 100
+  const paymentsPerYear = resolvePaymentsPerYear(paymentFrequency)
+  const periodicRate = rate / paymentsPerYear
+  const totalPayments = (loanTermMonths / 12) * paymentsPerYear
+  const payment = amountFinanced * (periodicRate * Math.pow(1 + periodicRate, totalPayments)) /
+    (Math.pow(1 + periodicRate, totalPayments) - 1)
+  const totalToRepay = payment * totalPayments
+  const totalInterest = totalToRepay - amountFinanced
+  return { amountFinanced, payment, totalToRepay, totalInterest }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function insertTradeIn(supabase: any, applicationId: string, tradeIn: any, netTrade: number): Promise<void> {
+  if (!tradeIn?.hasTradeIn) return
+  await supabase.from("finance_trade_ins").insert({
+    application_id: applicationId,
+    vin: tradeIn.vin || null,
+    year: parseInt(tradeIn.year) || null,
+    make: tradeIn.make || null,
+    model: tradeIn.model || null,
+    trim: tradeIn.trim || null,
+    color: tradeIn.color || null,
+    mileage: parseInt(tradeIn.mileage) || null,
+    condition: tradeIn.condition || null,
+    estimated_value: parseFloat(tradeIn.estimatedValue) || null,
+    has_lien: tradeIn.hasLien || false,
+    lien_holder: tradeIn.lienHolder || null,
+    lien_amount: parseFloat(tradeIn.lienAmount) || null,
+    net_trade_value: netTrade
+  })
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function insertCoApplicantIfPresent(supabase: any, application: { id: string }, coApplicant: any, coApplicantRelation: string | null): Promise<void> {
+  if (!coApplicant || !coApplicant.firstName) return
+  const { data: coApp, error: coError } = await supabase
+    .from("finance_applicants")
+    .insert({
+      application_id: application.id,
+      applicant_type: "co-applicant",
+      is_active: true,
+      relation_to_primary: coApplicantRelation || null,
+      salutation: coApplicant.salutation || null,
+      first_name: coApplicant.firstName,
+      middle_name: coApplicant.middleName || null,
+      last_name: coApplicant.lastName,
+      suffix: coApplicant.suffix || null,
+      date_of_birth: coApplicant.dateOfBirth?.year
+        ? `${coApplicant.dateOfBirth.year}-${coApplicant.dateOfBirth.month.padStart(2, '0')}-${coApplicant.dateOfBirth.day.padStart(2, '0')}`
+        : null,
+      gender: coApplicant.gender || null,
+      marital_status: coApplicant.maritalStatus || null,
+      phone: coApplicant.phone,
+      mobile_phone: coApplicant.mobilePhone || null,
+      email: coApplicant.email,
+      no_email: coApplicant.noEmail,
+      language_preference: coApplicant.languagePreference,
+      credit_rating: coApplicant.creditRating || null
+    })
+    .select()
+    .single()
+  if (coApp && !coError) {
+    await insertCoApplicantRelatedData(supabase, coApp.id, coApplicant)
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function insertApplicantRelatedData(supabase: any, applicantId: string, applicant: any): Promise<void> {
+  await supabase.from("applicant_addresses").insert({
+    applicant_id: applicantId,
+    address_type: "current",
+    address_category: applicant.addressType || null,
+    suite_number: applicant.suiteNumber || null,
+    street_number: applicant.streetNumber || null,
+    street_name: applicant.streetName || null,
+    street_type: applicant.streetType || null,
+    street_direction: applicant.streetDirection || null,
+    city: applicant.city || null,
+    province: applicant.province || "Ontario",
+    postal_code: applicant.postalCode || null,
+    duration_years: parseInt(applicant.durationYears) || 0,
+    duration_months: parseInt(applicant.durationMonths) || 0
+  })
+
+  await supabase.from("applicant_housing").insert({
+    applicant_id: applicantId,
+    home_status: applicant.homeStatus || null,
+    market_value: parseFloat(applicant.marketValue) || null,
+    mortgage_amount: parseFloat(applicant.mortgageAmount) || null,
+    mortgage_holder: applicant.mortgageHolder || null,
+    monthly_payment: parseFloat(applicant.monthlyPayment) || null,
+    outstanding_mortgage: parseFloat(applicant.outstandingMortgage) || null
+  })
+
+  await supabase.from("applicant_employment").insert({
+    applicant_id: applicantId,
+    employment_type: "current",
+    employment_category: applicant.employmentCategory || null,
+    employment_status: applicant.employmentStatus || null,
+    employer_name: applicant.employerName || null,
+    occupation: applicant.occupation || null,
+    job_title: applicant.jobTitle || null,
+    employer_street_name: applicant.employerStreet || null,
+    employer_city: applicant.employerCity || null,
+    employer_province: applicant.employerProvince || null,
+    employer_postal_code: applicant.employerPostalCode || null,
+    employer_phone: applicant.employerPhone || null,
+    employer_phone_ext: applicant.employerPhoneExt || null,
+    duration_years: parseInt(applicant.employmentYears) || 0,
+    duration_months: parseInt(applicant.employmentMonths) || 0
+  })
+
+  await supabase.from("applicant_income").insert({
+    applicant_id: applicantId,
+    gross_income: parseFloat(applicant.grossIncome) || 0,
+    income_frequency: applicant.incomeFrequency || "annually",
+    other_income_type: applicant.otherIncomeType || null,
+    other_income_amount: parseFloat(applicant.otherIncomeAmount) || null,
+    other_income_frequency: applicant.otherIncomeFrequency || null,
+    other_income_description: applicant.otherIncomeDescription || null,
+    annual_total: parseFloat(applicant.annualTotal) || null
+  })
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function insertCoApplicantRelatedData(supabase: any, applicantId: string, coApplicant: any): Promise<void> {
+  await supabase.from("applicant_addresses").insert({
+    applicant_id: applicantId,
+    address_type: "current",
+    address_category: coApplicant.addressType || null,
+    street_number: coApplicant.streetNumber || null,
+    street_name: coApplicant.streetName || null,
+    city: coApplicant.city || null,
+    province: coApplicant.province || "Ontario",
+    postal_code: coApplicant.postalCode || null,
+    duration_years: parseInt(coApplicant.durationYears) || 0,
+    duration_months: parseInt(coApplicant.durationMonths) || 0
+  })
+
+  await supabase.from("applicant_housing").insert({
+    applicant_id: applicantId,
+    home_status: coApplicant.homeStatus || null,
+    monthly_payment: parseFloat(coApplicant.monthlyPayment) || null
+  })
+
+  await supabase.from("applicant_employment").insert({
+    applicant_id: applicantId,
+    employment_type: "current",
+    employment_category: coApplicant.employmentCategory || null,
+    employer_name: coApplicant.employerName || null,
+    occupation: coApplicant.occupation || null,
+    employer_phone: coApplicant.employerPhone || null,
+    duration_years: parseInt(coApplicant.employmentYears) || 0,
+    duration_months: parseInt(coApplicant.employmentMonths) || 0
+  })
+
+  await supabase.from("applicant_income").insert({
+    applicant_id: applicantId,
+    gross_income: parseFloat(coApplicant.grossIncome) || 0,
+    income_frequency: coApplicant.incomeFrequency || "annually",
+    annual_total: parseFloat(coApplicant.annualTotal) || null
+  })
+}
+
 // POST /api/v1/financing/applications - Create new finance application
 export async function POST(request: NextRequest) {
   try {
@@ -62,26 +246,13 @@ export async function POST(request: NextRequest) {
     const netTrade = tradeValue - lienAmount
     const adminFee = parseFloat(financingTerms.adminFee) || 895
     const taxRate = parseFloat(financingTerms.salesTaxRate) / 100 || PROVINCE_TAX_RATES.ON.total
-    
-    const subtotal = price + adminFee - downPayment - netTrade
-    const tax = subtotal * taxRate
-    const amountFinanced = subtotal + tax
-    
-    // Calculate payment
-    const rate = (parseFloat(financingTerms.interestRate) || 8.99) / 100
-    let paymentsPerYear = 12
-    if (financingTerms.paymentFrequency === "weekly") paymentsPerYear = 52
-    else if (financingTerms.paymentFrequency === "bi-weekly") paymentsPerYear = 26
-    else if (financingTerms.paymentFrequency === "semi-monthly") paymentsPerYear = 24
-    
-    const periodicRate = rate / paymentsPerYear
-    const totalPayments = (financingTerms.loanTermMonths / 12) * paymentsPerYear
-    
-    const payment = amountFinanced * (periodicRate * Math.pow(1 + periodicRate, totalPayments)) / 
-      (Math.pow(1 + periodicRate, totalPayments) - 1)
-    
-    const totalToRepay = payment * totalPayments
-    const totalInterest = totalToRepay - amountFinanced
+
+    const { amountFinanced, payment, totalToRepay, totalInterest } = computeFinancingCalc(
+      price, adminFee, downPayment, netTrade, taxRate,
+      parseFloat(financingTerms.interestRate) || 8.99,
+      financingTerms.loanTermMonths,
+      financingTerms.paymentFrequency
+    )
     
     // Create main application
     const { data: application, error: appError } = await supabase
@@ -149,155 +320,14 @@ export async function POST(request: NextRequest) {
     }
     
     if (primaryApp) {
-      // Create address for primary applicant
-      await supabase.from("applicant_addresses").insert({
-        applicant_id: primaryApp.id,
-        address_type: "current",
-        address_category: primaryApplicant.addressType || null,
-        suite_number: primaryApplicant.suiteNumber || null,
-        street_number: primaryApplicant.streetNumber || null,
-        street_name: primaryApplicant.streetName || null,
-        street_type: primaryApplicant.streetType || null,
-        street_direction: primaryApplicant.streetDirection || null,
-        city: primaryApplicant.city || null,
-        province: primaryApplicant.province || "Ontario",
-        postal_code: primaryApplicant.postalCode || null,
-        duration_years: parseInt(primaryApplicant.durationYears) || 0,
-        duration_months: parseInt(primaryApplicant.durationMonths) || 0
-      })
-      
-      // Create housing info
-      await supabase.from("applicant_housing").insert({
-        applicant_id: primaryApp.id,
-        home_status: primaryApplicant.homeStatus || null,
-        market_value: parseFloat(primaryApplicant.marketValue) || null,
-        mortgage_amount: parseFloat(primaryApplicant.mortgageAmount) || null,
-        mortgage_holder: primaryApplicant.mortgageHolder || null,
-        monthly_payment: parseFloat(primaryApplicant.monthlyPayment) || null,
-        outstanding_mortgage: parseFloat(primaryApplicant.outstandingMortgage) || null
-      })
-      
-      // Create employment info
-      await supabase.from("applicant_employment").insert({
-        applicant_id: primaryApp.id,
-        employment_type: "current",
-        employment_category: primaryApplicant.employmentCategory || null,
-        employment_status: primaryApplicant.employmentStatus || null,
-        employer_name: primaryApplicant.employerName || null,
-        occupation: primaryApplicant.occupation || null,
-        job_title: primaryApplicant.jobTitle || null,
-        employer_street_name: primaryApplicant.employerStreet || null,
-        employer_city: primaryApplicant.employerCity || null,
-        employer_province: primaryApplicant.employerProvince || null,
-        employer_postal_code: primaryApplicant.employerPostalCode || null,
-        employer_phone: primaryApplicant.employerPhone || null,
-        employer_phone_ext: primaryApplicant.employerPhoneExt || null,
-        duration_years: parseInt(primaryApplicant.employmentYears) || 0,
-        duration_months: parseInt(primaryApplicant.employmentMonths) || 0
-      })
-      
-      // Create income info
-      await supabase.from("applicant_income").insert({
-        applicant_id: primaryApp.id,
-        gross_income: parseFloat(primaryApplicant.grossIncome) || 0,
-        income_frequency: primaryApplicant.incomeFrequency || "annually",
-        other_income_type: primaryApplicant.otherIncomeType || null,
-        other_income_amount: parseFloat(primaryApplicant.otherIncomeAmount) || null,
-        other_income_frequency: primaryApplicant.otherIncomeFrequency || null,
-        other_income_description: primaryApplicant.otherIncomeDescription || null,
-        annual_total: parseFloat(primaryApplicant.annualTotal) || null
-      })
+      await insertApplicantRelatedData(supabase, primaryApp.id, primaryApplicant)
     }
     
     // Create co-applicant if provided
-    if (coApplicant && coApplicant.firstName) {
-      const { data: coApp, error: coError } = await supabase
-        .from("finance_applicants")
-        .insert({
-          application_id: application.id,
-          applicant_type: "co-applicant",
-          is_active: true,
-          relation_to_primary: coApplicantRelation || null,
-          salutation: coApplicant.salutation || null,
-          first_name: coApplicant.firstName,
-          middle_name: coApplicant.middleName || null,
-          last_name: coApplicant.lastName,
-          suffix: coApplicant.suffix || null,
-          date_of_birth: coApplicant.dateOfBirth?.year 
-            ? `${coApplicant.dateOfBirth.year}-${coApplicant.dateOfBirth.month.padStart(2, '0')}-${coApplicant.dateOfBirth.day.padStart(2, '0')}`
-            : null,
-          gender: coApplicant.gender || null,
-          marital_status: coApplicant.maritalStatus || null,
-          phone: coApplicant.phone,
-          mobile_phone: coApplicant.mobilePhone || null,
-          email: coApplicant.email,
-          no_email: coApplicant.noEmail,
-          language_preference: coApplicant.languagePreference,
-          credit_rating: coApplicant.creditRating || null
-        })
-        .select()
-        .single()
-      
-      if (coApp && !coError) {
-        // Create address, housing, employment, income for co-applicant (similar to primary)
-        await supabase.from("applicant_addresses").insert({
-          applicant_id: coApp.id,
-          address_type: "current",
-          address_category: coApplicant.addressType || null,
-          street_number: coApplicant.streetNumber || null,
-          street_name: coApplicant.streetName || null,
-          city: coApplicant.city || null,
-          province: coApplicant.province || "Ontario",
-          postal_code: coApplicant.postalCode || null,
-          duration_years: parseInt(coApplicant.durationYears) || 0,
-          duration_months: parseInt(coApplicant.durationMonths) || 0
-        })
-        
-        await supabase.from("applicant_housing").insert({
-          applicant_id: coApp.id,
-          home_status: coApplicant.homeStatus || null,
-          monthly_payment: parseFloat(coApplicant.monthlyPayment) || null
-        })
-        
-        await supabase.from("applicant_employment").insert({
-          applicant_id: coApp.id,
-          employment_type: "current",
-          employment_category: coApplicant.employmentCategory || null,
-          employer_name: coApplicant.employerName || null,
-          occupation: coApplicant.occupation || null,
-          employer_phone: coApplicant.employerPhone || null,
-          duration_years: parseInt(coApplicant.employmentYears) || 0,
-          duration_months: parseInt(coApplicant.employmentMonths) || 0
-        })
-        
-        await supabase.from("applicant_income").insert({
-          applicant_id: coApp.id,
-          gross_income: parseFloat(coApplicant.grossIncome) || 0,
-          income_frequency: coApplicant.incomeFrequency || "annually",
-          annual_total: parseFloat(coApplicant.annualTotal) || null
-        })
-      }
-    }
+    await insertCoApplicantIfPresent(supabase, application, coApplicant, coApplicantRelation || null)
     
     // Create trade-in if provided
-    if (tradeIn?.hasTradeIn) {
-      await supabase.from("finance_trade_ins").insert({
-        application_id: application.id,
-        vin: tradeIn.vin || null,
-        year: parseInt(tradeIn.year) || null,
-        make: tradeIn.make || null,
-        model: tradeIn.model || null,
-        trim: tradeIn.trim || null,
-        color: tradeIn.color || null,
-        mileage: parseInt(tradeIn.mileage) || null,
-        condition: tradeIn.condition || null,
-        estimated_value: parseFloat(tradeIn.estimatedValue) || null,
-        has_lien: tradeIn.hasLien || false,
-        lien_holder: tradeIn.lienHolder || null,
-        lien_amount: parseFloat(tradeIn.lienAmount) || null,
-        net_trade_value: netTrade
-      })
-    }
+    await insertTradeIn(supabase, application.id, tradeIn, netTrade)
     
     // Create status history entry
     await supabase.from("finance_application_history").insert({

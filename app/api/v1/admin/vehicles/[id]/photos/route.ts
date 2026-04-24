@@ -7,6 +7,53 @@ const BUCKET = "vehicle-photos"
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB per image
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"]
 
+type PhotoCollectionResult =
+  | { ok: true; photos: File[] }
+  | { ok: false; error: string; status: number }
+
+function collectAndValidatePhotos(formData: FormData): PhotoCollectionResult {
+  const photos: File[] = []
+  for (const [key, value] of formData.entries()) {
+    if (key !== "photos" || !(value instanceof File)) continue
+    if (value.size > MAX_FILE_SIZE) {
+      return { ok: false, error: `File "${value.name}" exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit`, status: 400 }
+    }
+    if (!ALLOWED_TYPES.includes(value.type)) {
+      return { ok: false, error: `File "${value.name}" has unsupported type "${value.type}". Allowed: JPEG, PNG, WebP, AVIF.`, status: 400 }
+    }
+    photos.push(value)
+  }
+  if (photos.length === 0) return { ok: false, error: "No photos provided", status: 400 }
+  return { ok: true, photos }
+}
+
+async function uploadPhotosToStorage(
+  adminClient: ReturnType<typeof createAdminClient>,
+  vehicleId: string,
+  photos: File[]
+): Promise<{ uploaded: string[]; errors: string[] }> {
+  const uploaded: string[] = []
+  const errors: string[] = []
+  for (const photo of photos) {
+    const ext = photo.name.split(".").pop()?.toLowerCase() || "jpg"
+    const timestamp = Date.now()
+    const randomSuffix = Math.random().toString(36).substring(2, 8)
+    const storagePath = `${vehicleId}/${timestamp}-${randomSuffix}.${ext}`
+    const arrayBuffer = await photo.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    const { error } = await adminClient.storage
+      .from(BUCKET)
+      .upload(storagePath, buffer, { contentType: photo.type, upsert: false })
+    if (error) {
+      errors.push(`${photo.name}: ${error.message}`)
+    } else {
+      const { data: urlData } = adminClient.storage.from(BUCKET).getPublicUrl(storagePath)
+      uploaded.push(urlData.publicUrl)
+    }
+  }
+  return { uploaded, errors }
+}
+
 /**
  * POST /api/v1/admin/vehicles/[id]/photos
  *
@@ -58,59 +105,14 @@ export async function POST(
 
   const setPrimary = formData.get("setPrimary") === "true"
 
-  // Collect photo files
-  const photos: File[] = []
-  for (const [key, value] of formData.entries()) {
-    if (key === "photos" && value instanceof File) {
-      if (value.size > MAX_FILE_SIZE) {
-        return NextResponse.json(
-          { error: `File "${value.name}" exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit` },
-          { status: 400 },
-        )
-      }
-      if (!ALLOWED_TYPES.includes(value.type)) {
-        return NextResponse.json(
-          { error: `File "${value.name}" has unsupported type "${value.type}". Allowed: JPEG, PNG, WebP, AVIF.` },
-          { status: 400 },
-        )
-      }
-      photos.push(value)
-    }
+  // Collect and validate photo files
+  const photoResult = collectAndValidatePhotos(formData)
+  if (!photoResult.ok) {
+    return NextResponse.json({ error: photoResult.error }, { status: photoResult.status })
   }
+  const photos = photoResult.photos
 
-  if (photos.length === 0) {
-    return NextResponse.json({ error: "No photos provided" }, { status: 400 })
-  }
-
-  const uploaded: string[] = []
-  const errors: string[] = []
-
-  for (const photo of photos) {
-    // Generate unique filename
-    const ext = photo.name.split(".").pop()?.toLowerCase() || "jpg"
-    const timestamp = Date.now()
-    const randomSuffix = Math.random().toString(36).substring(2, 8)
-    const storagePath = `${id}/${timestamp}-${randomSuffix}.${ext}`
-
-    const arrayBuffer = await photo.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-
-    const { error } = await adminClient.storage
-      .from(BUCKET)
-      .upload(storagePath, buffer, {
-        contentType: photo.type,
-        upsert: false,
-      })
-
-    if (error) {
-      errors.push(`${photo.name}: ${error.message}`)
-    } else {
-      const { data: urlData } = adminClient.storage
-        .from(BUCKET)
-        .getPublicUrl(storagePath)
-      uploaded.push(urlData.publicUrl)
-    }
-  }
+  const { uploaded, errors } = await uploadPhotosToStorage(adminClient, id, photos)
 
   // Update vehicle record with new image URLs
   if (uploaded.length > 0) {
