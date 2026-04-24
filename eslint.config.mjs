@@ -20,6 +20,10 @@ export default [
   // ESLint recommended rules (lenient overrides)
   {
     ...js.configs.recommended,
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+    },
     rules: {
       ...js.configs.recommended.rules,
       'no-unused-vars': ['warn', {
