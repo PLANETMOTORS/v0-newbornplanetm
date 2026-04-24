@@ -242,12 +242,12 @@ export interface InstantQuote { quoteId: string; vehicle: string; value: number 
 
 interface TradeInContextValue {
   step: number; goToStep: (n: number) => void; nextStep: () => void; prevStep: () => void
-  stepContentRef: React.RefObject<HTMLDivElement>
+  stepContentRef: React.RefObject<HTMLDivElement | null>
   lookupMethod: "plate" | "vin" | "manual"; setLookupMethod: (v: "plate" | "vin" | "manual") => void
   province: string; setProvince: (v: string) => void
   plateNumber: string; setPlateNumber: (v: string) => void
   vinNumber: string; setVinNumber: (v: string) => void
-  isLookingUp: boolean; vehicleFound: boolean; foundVehicle: FoundVehicle | null
+  isLookingUp: boolean; vehicleFound: boolean; setVehicleFound: (v: boolean) => void; foundVehicle: FoundVehicle | null
   handlePlateLookup: () => Promise<void>; handleVinLookup: () => Promise<void>
   selectedYear: string; setSelectedYear: (v: string) => void
   selectedMake: string; setSelectedMake: (v: string) => void
@@ -449,7 +449,7 @@ export function TradeInProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <TradeInContext.Provider value={{ step,goToStep,nextStep,prevStep,stepContentRef,lookupMethod,setLookupMethod,province,setProvince,plateNumber,setPlateNumber,vinNumber,setVinNumber,isLookingUp,vehicleFound,foundVehicle,handlePlateLookup,handleVinLookup,selectedYear,setSelectedYear,selectedMake,setSelectedMake,selectedModel,setSelectedModel,selectedTrim,setSelectedTrim,mileage,setMileage,condition,setCondition,hasAccident,setHasAccident,hasMechanicalIssues,setHasMechanicalIssues,hasLien,setHasLien,payoffAmount,setPayoffAmount,additionalNotes,setAdditionalNotes,photos,fileInputRefs,handlePhotoUpload,removePhoto,email,phone,postalCode,emailError,phoneError,postalCodeError,handleEmailChange,handlePhoneChange,handlePostalCodeChange,setEmail,setPhone,offer,setOffer,showOffer,setShowOffer,isCalculating,calculationProgress,calculateOffer,showAcceptModal,setShowAcceptModal,showApplyModal,setShowApplyModal,showAuthModal,setShowAuthModal,instantQuote }}>
+    <TradeInContext.Provider value={{ step,goToStep,nextStep,prevStep,stepContentRef,lookupMethod,setLookupMethod,province,setProvince,plateNumber,setPlateNumber,vinNumber,setVinNumber,isLookingUp,vehicleFound,setVehicleFound,foundVehicle,handlePlateLookup,handleVinLookup,selectedYear,setSelectedYear,selectedMake,setSelectedMake,selectedModel,setSelectedModel,selectedTrim,setSelectedTrim,mileage,setMileage,condition,setCondition,hasAccident,setHasAccident,hasMechanicalIssues,setHasMechanicalIssues,hasLien,setHasLien,payoffAmount,setPayoffAmount,additionalNotes,setAdditionalNotes,photos,fileInputRefs,handlePhotoUpload,removePhoto,email,phone,postalCode,emailError,phoneError,postalCodeError,handleEmailChange,handlePhoneChange,handlePostalCodeChange,setEmail,setPhone,offer,setOffer,showOffer,setShowOffer,isCalculating,calculationProgress,calculateOffer,showAcceptModal,setShowAcceptModal,showApplyModal,setShowApplyModal,showAuthModal,setShowAuthModal,instantQuote }}>
       {children}
     </TradeInContext.Provider>
   )

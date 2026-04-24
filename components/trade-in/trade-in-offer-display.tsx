@@ -1,7 +1,7 @@
 "use client"
 import { useTradeIn, TRADE_IN_DRAFT_KEY } from "./trade-in-context"
 import { useAuth } from "@/contexts/auth-context"
-import { PHONE_TOLL_FREE } from "@/lib/contact-info"
+import { PHONE_TOLL_FREE } from "@/lib/constants/dealership"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

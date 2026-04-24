@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import { Metadata } from "next"
-import { Navbar } from "@/components/navbar"
+import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { TradeInProvider } from "@/components/trade-in/trade-in-context"
 import { TradeInHero } from "@/components/trade-in/trade-in-hero"
@@ -9,7 +9,7 @@ import { TradeInOfferDisplay } from "@/components/trade-in/trade-in-offer-displa
 import { TradeInHowItWorks } from "@/components/trade-in/trade-in-how-it-works"
 import { TradeInComparison } from "@/components/trade-in/trade-in-comparison"
 import { TradeInFinalCta } from "@/components/trade-in/trade-in-final-cta"
-import { TradeInPageJsonLd, BreadcrumbJsonLd } from "@/components/json-ld"
+import { TradeInPageJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
 
 export const metadata: Metadata = {
   title: "Trade In Your Car | Instant Cash Offer | Planet Motors",
@@ -25,7 +25,7 @@ function TradeInContent() {
   return (
     <TradeInProvider>
       <div className="min-h-screen bg-background flex flex-col">
-        <Navbar />
+        <Header />
         <main className="flex-1">
           <TradeInHero />
           <TradeInWizard />
