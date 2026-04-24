@@ -181,7 +181,7 @@ async function main(): Promise<void> {
   process.stdout.write('  Discovering vehicle ID … ')
   const vehicleId = await discoverVehicleId()
   if (vehicleId) {
-    console.log(green(`found: ${vehicleId}`))
+    console.log(green('found vehicle'), { vehicleId })
   } else {
     console.log(red('not found — VDP endpoints will be skipped'))
   }
