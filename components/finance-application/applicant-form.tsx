@@ -186,7 +186,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
                   `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
                 updateField("phone", formatted)
               }} 
-              placeholder="(XXX) XXX-XXXX" 
+              placeholder="(416) 555-0100" 
               className={getInputErrorClass("Phone")}
             />
           </div>
@@ -202,7 +202,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
                   `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
                 updateField("mobilePhone", formatted)
               }} 
-              placeholder="(XXX) XXX-XXXX" 
+              placeholder="(416) 555-0100" 
             />
           </div>
           <div>
@@ -439,7 +439,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
         `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
       updateField("employerPhone", formatted)
     }} 
-    placeholder="(XXX) XXX-XXXX"
+    placeholder="(416) 555-0100"
     className="flex-1" 
   />
               <Input value={data.employerPhoneExt} onChange={(e) => updateField("employerPhoneExt", e.target.value)} placeholder="Ext." className="w-20" />

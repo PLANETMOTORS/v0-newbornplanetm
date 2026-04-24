@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { rateLimit } from "@/lib/redis"
 
 // Origin location: Planet Motors, Richmond Hill, Ontario (L4B postal code area)
 
