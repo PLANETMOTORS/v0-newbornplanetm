@@ -798,7 +798,7 @@ function TradeInContent() {
                         pattern="[0-9]*"
                         className="h-12 bg-white/5 border-white/20 text-white placeholder:text-white/30"
                         value={mileage}
-                        onChange={(e) => setMileage(e.target.value.replaceAll(/[^0-9]/g, ''))}
+                        onChange={(e) => setMileage(e.target.value.replaceAll(/\D/g, ''))}
                         autoComplete="off"
                       />
                       <Button
