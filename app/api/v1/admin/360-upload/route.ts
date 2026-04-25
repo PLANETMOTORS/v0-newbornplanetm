@@ -7,6 +7,19 @@ const BUCKET = "vehicle-360"
 const MAX_FRAME_SIZE = 5 * 1024 * 1024 // 5 MB per frame
 const ALLOWED_TYPES = new Set(["image/webp"])
 
+function getUploadMessage(params: {
+  allFailed: boolean
+  errorCount: number
+  uploadedCount: number
+  totalFrames: number
+  vehicleName: string
+}): string {
+  const { allFailed, errorCount, uploadedCount, totalFrames, vehicleName } = params
+  if (allFailed) return `All ${errorCount} frames failed to upload`
+  if (errorCount > 0) return `Uploaded ${uploadedCount}/${totalFrames} frames (${errorCount} failed)`
+  return `Successfully uploaded ${uploadedCount} frames for ${vehicleName}`
+}
+
 /**
  * POST /api/v1/admin/360-upload
  *
@@ -143,11 +156,7 @@ export async function POST(request: NextRequest) {
       frames: uploaded,
       errors: errors.length > 0 ? errors : undefined,
       error: allFailed ? `All ${errors.length} frames failed to upload` : undefined,
-      message: allFailed
-        ? `All ${errors.length} frames failed to upload`
-        : errors.length > 0
-          ? `Uploaded ${uploaded.length}/${frames.length} frames (${errors.length} failed)`
-          : `Successfully uploaded ${uploaded.length} frames for ${vehicleName}`,
+      message: getUploadMessage({ allFailed, errorCount: errors.length, uploadedCount: uploaded.length, totalFrames: frames.length, vehicleName }),
     },
     allFailed ? { status: 500 } : undefined,
   )

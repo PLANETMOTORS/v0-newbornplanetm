@@ -112,7 +112,10 @@ export async function GET(
     //  - UUID → primary key `id`
     //  - 17-char VIN → `vin`
     //  - anything else → `stock_number`
-    const lookupColumn = UUID_RE.test(id) ? "id" : VIN_RE.test(id) ? "vin" : "stock_number"
+    let lookupColumn: "id" | "vin" | "stock_number"
+    if (UUID_RE.test(id)) lookupColumn = "id"
+    else if (VIN_RE.test(id)) lookupColumn = "vin"
+    else lookupColumn = "stock_number"
 
     const { data: vehicle, error } = await supabase
       .from("vehicles")

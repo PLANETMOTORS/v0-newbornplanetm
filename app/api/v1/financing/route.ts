@@ -12,6 +12,12 @@ const lenders = [
   { id: 'lender_f', name: 'Partner Lender F', code: 'PLF', type: 'credit_union', minScore: 580, maxTerm: 96, baseRate: 7.49 },
 ]
 
+function getConfidenceLevel(creditScore: number): 'high' | 'medium' | 'low' {
+  if (creditScore >= 700) return 'high'
+  if (creditScore >= 650) return 'medium'
+  return 'low'
+}
+
 // POST /api/v1/financing/prequalify - Soft credit pull (no score impact)
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -93,7 +99,7 @@ export async function POST(request: NextRequest) {
         estimatedTerm: term,
         estimatedMonthlyPayment: Math.round(monthlyPayment * 100) / 100,
         prequalified: true,
-        confidence: creditScore >= 700 ? 'high' : creditScore >= 650 ? 'medium' : 'low',
+        confidence: getConfidenceLevel(creditScore),
       }
     })
     .sort((a, b) => a.estimatedRate - b.estimatedRate)

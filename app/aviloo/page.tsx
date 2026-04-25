@@ -97,6 +97,12 @@ const evVehicles = [
   }
 ]
 
+function getBatteryHealthDescription(health: number): string {
+  if (health >= 95) return "Excellent condition - minimal degradation"
+  if (health >= 85) return "Good condition - normal wear"
+  return "Fair condition - expected for age/mileage"
+}
+
 export default function EVBatteryHealthPage() {
   const [selectedVehicle, setSelectedVehicle] = useState(evVehicles[0])
 
@@ -492,11 +498,7 @@ export default function EVBatteryHealthPage() {
                       </div>
                       <Progress value={selectedVehicle.batteryHealth} className="h-4" />
                       <p className="text-sm text-muted-foreground mt-2">
-                        {selectedVehicle.batteryHealth >= 95 
-                          ? "Excellent condition - minimal degradation"
-                          : selectedVehicle.batteryHealth >= 85
-                          ? "Good condition - normal wear"
-                          : "Fair condition - expected for age/mileage"}
+                        {getBatteryHealthDescription(selectedVehicle.batteryHealth)}
                       </p>
                     </div>
 
