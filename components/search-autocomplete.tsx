@@ -28,7 +28,6 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
   CommandSeparator,
@@ -187,9 +186,7 @@ export function SearchAutocomplete() {
               }}
               onFocus={() => setOpen(true)}
               className="text-sm h-9"
-              aria-expanded={open}
               aria-controls="search-results-listbox"
-              aria-haspopup="listbox"
             />
             {isLoading && (
               <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e3a8a]/50 pointer-events-none" />

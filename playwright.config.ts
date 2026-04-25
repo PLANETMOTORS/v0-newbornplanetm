@@ -27,7 +27,7 @@ export default defineConfig({
       ? [
           {
             name: "setup",
-            testMatch: /.*\.setup\.ts/,
+            testMatch: "**/*.setup.ts",
             testDir: "./e2e/setup",
           },
         ]

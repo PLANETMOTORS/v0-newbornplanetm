@@ -34,7 +34,9 @@ export function validateCaptureLeadInput(
   if (!email || typeof email !== "string" || !email.trim()) {
     return { error: "email is required" }
   }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email))) {
+  // Bound length before regex to prevent ReDoS on pathological inputs (S2631).
+  const emailStr = String(email)
+  if (emailStr.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailStr)) {
     return { error: "Invalid email format" }
   }
   if (!phone || typeof phone !== "string" || !phone.trim()) {

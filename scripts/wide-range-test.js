@@ -36,7 +36,7 @@ async function runWideRangeTest() {
     byType[doc._type].push(doc)
   }
 
-  console.log(JSON.stringify({ documentTypes: Object.keys(byType).length, totalDocuments: allDocs.length })
+  console.log(JSON.stringify({ documentTypes: Object.keys(byType).length, totalDocuments: allDocs.length }))
   console.log('')
 
   // Define expected schemas based on what we created
@@ -123,16 +123,16 @@ async function runWideRangeTest() {
   console.log('='.repeat(80))
   console.log('TEST SUMMARY')
   console.log('='.repeat(80))
-  console.log(JSON.stringify({ totalDocumentTypes: Object.keys(byType).length, totalDocuments: allDocs.length, totalIssues })
+  console.log(JSON.stringify({ totalDocumentTypes: Object.keys(byType).length, totalDocuments: allDocs.length, totalIssues }))
   console.log('')
 
   if (issues.length > 0) {
     console.log('ISSUES TO FIX:')
     for (const issue of issues) {
       if (issue.issue === 'no_schema') {
-        console.log(JSON.stringify({ type: issue.type, problem: 'No schema defined', fields: issue.fields })
+        console.log(JSON.stringify({ type: issue.type, problem: 'No schema defined', fields: issue.fields }))
       } else {
-        console.log(JSON.stringify({ type: issue.type, problem: 'Missing fields in schema', fields: issue.fields })
+        console.log(JSON.stringify({ type: issue.type, problem: 'Missing fields in schema', fields: issue.fields }))
       }
     }
   } else {

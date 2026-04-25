@@ -142,7 +142,8 @@ export function FinanceApplicationForm() {
     if (!formData.lastName.trim()) errors.lastName = "Last Name is required"
     if (!formData.email.trim()) {
       errors.email = "Email Address is required"
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    // Bound length before regex to prevent ReDoS on pathological inputs (S2631).
+    } else if (formData.email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = "Please enter a valid email address"
     }
     if (!formData.phone.trim()) {

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+ 
 "use client"
 
 import { useState } from "react"
@@ -44,7 +44,8 @@ export function PriceNegotiator({
   const [isLoading, setIsLoading] = useState(false)
   const [currentOffer, setCurrentOffer] = useState<number | null>(null)
 
-  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  // Bound length before regex to prevent ReDoS on pathological inputs (S2631).
+  const isValidEmail = (email: string) => email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
   const isValidPhone = (phone: string) => phone.replaceAll(/\D/g, "").length >= 10
   const formatPhone = (value: string) => {
     const digits = value.replaceAll(/\D/g, "").slice(0, 10)

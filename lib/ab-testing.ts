@@ -105,6 +105,8 @@ function pickVariant<V extends string>(experiment: Experiment<V>): V {
 
   // Validate weights sum to ~100
   const total = w.reduce((a, b) => a + b, 0)
+  // Math.random is intentional: A/B variant selection is not a security-sensitive
+  // operation — it does not generate tokens, IDs, or secrets. (S2245 safe)
   const rand = Math.random() * total
 
   let cumulative = 0

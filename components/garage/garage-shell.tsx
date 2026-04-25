@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
+ 
 "use client"
 /**
  * components/garage/garage-shell.tsx — Week 6

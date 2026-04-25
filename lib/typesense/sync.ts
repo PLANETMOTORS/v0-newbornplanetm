@@ -16,7 +16,6 @@
  *  - Maps Sanity field names → VehicleDocument shape expected by Typesense.
  */
 
-import { Client } from "typesense"
 import { sanityClient } from "@/lib/sanity/client"
 import { getAdminClient, isTypesenseConfigured, VEHICLES_COLLECTION } from "./client"
 import { normalizeBodyStyle } from "./indexer"

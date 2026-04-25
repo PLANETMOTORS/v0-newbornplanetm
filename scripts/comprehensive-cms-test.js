@@ -280,7 +280,7 @@ async function runComprehensiveTest() {
 
   const validationData = await sanityQuery(validationQuery)
 
-  console.log(JSON.stringify({ documentsWithoutType: validationData.documentsWithoutType, documentsWithoutId: validationData.documentsWithoutId, draftDocuments: validationData.draftDocuments, publishedDocuments: validationData.publishedDocuments })
+  console.log(JSON.stringify({ documentsWithoutType: validationData.documentsWithoutType, documentsWithoutId: validationData.documentsWithoutId, draftDocuments: validationData.draftDocuments, publishedDocuments: validationData.publishedDocuments }))
 
   if (validationData.documentsWithoutType === 0 && validationData.documentsWithoutId === 0) {
     console.log('   ✅ All documents have valid _type and _id')

@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+ 
 /**
  * k6 Load Test: Race Condition Detection for Vehicle Reservation & Checkout
  *

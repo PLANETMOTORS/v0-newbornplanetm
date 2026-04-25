@@ -20,6 +20,7 @@
  */
 
 import { logger } from "@/lib/logger"
+import { maskEmail } from "@/lib/redact"
 
 // ── Config ─────────────────────────────────────────────────────────────────
 
@@ -78,24 +79,11 @@ export interface AutoRaptorResult {
 
 function escapeXml(s: string): string {
   return s
-    .replaceAll(/&/g, "&amp;")
-    .replaceAll(/</g, "&lt;")
-    .replaceAll(/>/g, "&gt;")
-    .replaceAll(/"/g, "&quot;")
-    .replaceAll(/'/g, "&apos;")
-}
-
-/** Build the required primary vehicle block (always present in ADF). */
-function buildVehiclePrimaryBlock(v: AutoRaptorLeadPayload["vehicle"], requestType: string, condition: string): string {
-  return `<vehicle interest="${escapeXml(requestType)}" status="${escapeXml(condition)}">
-      ${v?.year ? `<year>${v.year}</year>` : "<year></year>"}
-      ${v?.make ? `<make>${escapeXml(v.make)}</make>` : "<make></make>"}
-      ${v?.model ? `<model>${escapeXml(v.model)}</model>` : "<model></model>"}
-      ${v?.trim ? `<trim>${escapeXml(v.trim)}</trim>` : ""}
-      ${v?.vin ? `<vin>${escapeXml(v.vin)}</vin>` : ""}
-      ${v?.stockNumber ? `<stock>${escapeXml(v.stockNumber)}</stock>` : ""}
-      ${v?.price ? `<price type="quote" currency="CAD">${v.price}</price>` : ""}
-    </vehicle>`
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;")
 }
 
 /** Build the required primary vehicle block (always present in ADF). */
@@ -127,7 +115,7 @@ function buildAdfXml(lead: AutoRaptorLeadPayload): string {
     ? `<comments>${escapeXml(lead.comments)}</comments>`
     : ""
   const sourceLabel = lead.source
-    ? escapeXml(lead.source.replaceAll(/_/g, " ").replaceAll(/\b\w/g, c => c.toUpperCase()))
+    ? escapeXml(lead.source.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()))
     : "Website"
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -188,7 +176,7 @@ export async function pushToAutoRaptor(
     const xml = buildAdfXml(lead)
 
     logger.info("AutoRaptor: sending ADF lead", {
-      email: lead.email.replace(/(.{2}).+(@.+)/, "$1***$2"),
+      email: maskEmail(lead.email),
       vehicle: lead.vehicle
         ? `${lead.vehicle.year} ${lead.vehicle.make} ${lead.vehicle.model}`
         : "general",

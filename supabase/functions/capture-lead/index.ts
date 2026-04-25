@@ -173,7 +173,10 @@ Deno.serve(async (req: Request) => {
   const { data } = validation
   const customerName = `${data.firstName} ${data.lastName}`
 
-  log.info("Lead capture started", { emailHash: data.email.replace(/^(.)(.*)(@.*)$/, "$1***$3"), amount: data.requestedAmount })
+  // Use indexOf-based masking to avoid ReDoS on pathological email strings (S2631).
+  const atIdx = data.email.indexOf('@')
+  const emailHash = atIdx > 0 ? `${data.email[0]}***${data.email.slice(atIdx)}` : '***'
+  log.info("Lead capture started", { emailHash, amount: data.requestedAmount })
 
   try {
     // Initialize Supabase admin client using secrets
