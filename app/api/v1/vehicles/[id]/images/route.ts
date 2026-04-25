@@ -101,7 +101,7 @@ export async function GET(
   }
   
   // If we already have images cached, return them
-  if (vehicle.image_urls && vehicle.image_urls.length > 0) {
+  if (vehicle.image_urls?.length) {
     return NextResponse.json({
       vehicleId: vehicle.id,
       stockNumber: vehicle.stock_number,

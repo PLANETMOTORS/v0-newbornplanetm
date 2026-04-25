@@ -102,7 +102,7 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
   const _handleFormStart = useCallback(() => {
     if (formStartFired.current) return
     formStartFired.current = true
-    if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
+    if (globalThis.window?.gtag) {
       globalThis.window.gtag("event", "form_start", {
         event_category: "finance_application",
         vehicle_id: vehicleId || "general",
@@ -683,7 +683,7 @@ if (errors.length > 0) {
     
     setValidationErrors([])
     // GA4 step complete event
-    if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
+    if (globalThis.window?.gtag) {
       globalThis.window.gtag("event", "form_step_complete", {
         event_category: "finance_application",
         step_number: currentStep,

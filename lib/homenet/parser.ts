@@ -141,7 +141,7 @@ export function parseHomenetCSV(csvText: string): VehicleData[] {
     const row: Record<string, string> = {}
     headers.forEach((h, idx) => { row[h] = values[idx]?.trim() || "" })
     const vehicle = mapCSVToVehicle(row)
-    if (vehicle && vehicle.vin && vehicle.stock_number) {
+    if (vehicle?.vin && vehicle.stock_number) {
       vehicles.push(vehicle)
     }
   }
@@ -210,9 +210,8 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
     isCertified = true
   } else if (rawCondition === "new") {
     a2Condition = "new"
-  } else if (get(["is_certified", "certified", "cpo"])) {
-    // Certification flag explicitly set — preserve current value.
-  } else {
+  } else if (!get(["is_certified", "certified", "cpo"])) {
+    // No certification flag — mark as not certified
     isCertified = false
   }
 
@@ -483,7 +482,7 @@ export function parseHomenetXML(xmlText: string): VehicleData[] {
   for (const vehicleXml of vehicleMatches) {
     try {
       const vehicle = parseVehicleFromXML(vehicleXml)
-      if (vehicle && vehicle.vin && vehicle.stock_number) vehicles.push(vehicle)
+      if (vehicle?.vin && vehicle.stock_number) vehicles.push(vehicle)
     } catch (e) {
       console.error("[HomenetIOL] Error parsing vehicle XML:", e)
     }

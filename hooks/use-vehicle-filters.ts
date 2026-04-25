@@ -113,10 +113,10 @@ export function useVehicleFilters() {
 
   const activeFilterCount = useMemo(() => {
     let count = 0
-    const excludeFromCount = ["sort", "view", "page"]
+    const excludeFromCount = new Set(["sort", "view", "page"])
     
     Object.entries(filters).forEach(([key, value]) => {
-      if (value && !excludeFromCount.includes(key) && value !== defaultFilters[key as keyof VehicleFilters]) {
+      if (value && !excludeFromCount.has(key) && value !== defaultFilters[key as keyof VehicleFilters]) {
         count++
       }
     })

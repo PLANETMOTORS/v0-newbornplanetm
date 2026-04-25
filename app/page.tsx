@@ -134,7 +134,7 @@ export default async function HomePage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase row shape
   const firstVehicle = showcaseVehicles?.[0] as any
   const firstImage: string | undefined = firstVehicle?.primary_image_url
-    || (firstVehicle?.image_urls && firstVehicle.image_urls[0])
+    || (firstVehicle?.image_urls?.[0])
   if (firstImage) {
     const encodedUrl = encodeURIComponent(firstImage)
     // deviceSizes from next.config.mjs — must match exactly
