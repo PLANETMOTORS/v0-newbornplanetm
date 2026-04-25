@@ -61,13 +61,17 @@ export const VEHICLES_BY_STOCK_NUMBERS_QUERY = `
 // ==========================================
 
 // NOTE: Field names match studio/schemas/settings.ts siteSettings schema exactly.
-// address is an object {street,city,province,postalCode,country} — NOT flat fields.
+// address is an object {street,city,province,postalCode,country} in the schema.
+// We project flat fields (streetAddress, city, province, postalCode) for consumers.
 // socialLinks is a nested object — NOT flat facebookUrl/instagramUrl etc.
 // omvicLicense (not omvicNumber), googleMapsUrl (not googleMapsEmbedUrl).
 export const SITE_SETTINGS_QUERY = `
   *[_type == "siteSettings"] | order(_updatedAt desc)[0] {
     dealerName, tagline, phone, tollFree, email,
-    address { street, city, province, postalCode, country },
+    "streetAddress": address.street,
+    "city": address.city,
+    "province": address.province,
+    "postalCode": address.postalCode,
     googleMapsUrl, latitude, longitude,
     omvicLicense,
     businessHours,
