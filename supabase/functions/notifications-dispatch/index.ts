@@ -190,10 +190,11 @@ async function sendEmail(to: string, subject: string, html: string): Promise<str
 async function sendSms(to: string, body: string): Promise<string | null> {
   if (!TWILIO_SID || !TWILIO_TOKEN) return null
   const params = new URLSearchParams({ To: to, From: TWILIO_FROM, Body: body })
+  const credentials = btoa(`${TWILIO_SID}:${TWILIO_TOKEN}`)
   const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`, {
     method: "POST",
     headers: {
-      "Authorization": `Basic ${btoa(`${TWILIO_SID}:${TWILIO_TOKEN}`)}`,
+      "Authorization": `Basic ${credentials}`,
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: params.toString(),

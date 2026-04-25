@@ -57,6 +57,10 @@ const DEVICES: BrowserStackCapability[] = [
 
 const MIN_TAP_TARGET = 44 // px — WCAG 2.5.5 / Apple HIG
 
+function encodeBasicAuth(username: string, accessKey: string): string {
+  return Buffer.from(`${username}:${accessKey}`).toString('base64')
+}
+
 interface TestResult {
   device: string
   test: string
@@ -112,7 +116,7 @@ async function runBrowserStackTests(): Promise<void> {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Basic ${Buffer.from(`${username}:${accessKey}`).toString('base64')}`,
+        'Authorization': `Basic ${encodeBasicAuth(username, accessKey)}`,
       },
       body: JSON.stringify({ desiredCapabilities: capabilities }),
     })
@@ -137,7 +141,7 @@ async function runBrowserStackTests(): Promise<void> {
     }
 
     const baseUrl = `https://hub-cloud.browserstack.com/wd/hub/session/${sessionId}`
-    const authHeader = `Basic ${Buffer.from(`${username}:${accessKey}`).toString('base64')}`
+    const authHeader = `Basic ${encodeBasicAuth(username, accessKey)}`
 
     const webDriverRequest = async (path: string, method = 'GET', body?: Record<string, unknown>) => {
       const response = await fetch(`${baseUrl}${path}`, {

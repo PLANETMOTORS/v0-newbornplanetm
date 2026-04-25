@@ -242,7 +242,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                 <div>
                   <Label>Model/Trim</Label>
                   <Input 
-                    value={`${vehicleInfo.model}${vehicleInfo.trim ? ` ${vehicleInfo.trim}` : ''}`} 
+                    value={vehicleInfo.trim ? `${vehicleInfo.model} ${vehicleInfo.trim}` : vehicleInfo.model} 
                     readOnly
                     className="bg-muted"
                   />

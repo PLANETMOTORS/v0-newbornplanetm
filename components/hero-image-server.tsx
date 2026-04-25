@@ -23,8 +23,9 @@ export function HeroImageServer({ firstVehicle }: Readonly<HeroImageServerProps>
     (firstVehicle?.image_urls?.[0]) ||
     null
 
+  const trimSuffix = firstVehicle?.trim ? ` ${firstVehicle.trim}` : ""
   const alt = firstVehicle
-    ? `${firstVehicle.year} ${firstVehicle.make} ${firstVehicle.model}${firstVehicle.trim ? ` ${firstVehicle.trim}` : ""}`
+    ? `${firstVehicle.year} ${firstVehicle.make} ${firstVehicle.model}${trimSuffix}`
     : "Featured vehicle"
 
   return (

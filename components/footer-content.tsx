@@ -63,6 +63,9 @@ export function FooterContent({ siteSettings }: Readonly<FooterProps>) {
   const saturdayHours = siteSettings.businessHours?.find(h => h.day === "Saturday")
   const sundayHours = siteSettings.businessHours?.find(h => h.day === "Sunday")
 
+  const fullAddress = `${siteSettings.streetAddress} ${siteSettings.city} ${siteSettings.province}`
+  const mapsFallbackUrl = `https://maps.google.com/?q=${encodeURIComponent(fullAddress)}`
+
   const formatHoursDisplay = () => {
     const weekday = weekdayHours && !weekdayHours.isClosed
       ? `Mon-Fri: ${weekdayHours.open}-${weekdayHours.close}`
@@ -72,7 +75,8 @@ export function FooterContent({ siteSettings }: Readonly<FooterProps>) {
       : `Sat: ${SATURDAY_HOURS_FALLBACK}`
     const sunday = sundayHours?.isClosed ? "Sun: Closed" : ""
     
-    return `${weekday} | ${saturday}${sunday ? ` | ${sunday}` : ""}`
+    const sundaySuffix = sunday ? ` | ${sunday}` : ""
+    return `${weekday} | ${saturday}${sundaySuffix}`
   }
 
   const depositAmount = siteSettings.depositAmount || 250
@@ -137,7 +141,7 @@ export function FooterContent({ siteSettings }: Readonly<FooterProps>) {
                   <span>{siteSettings.email}</span>
                 </a>
                 <a
-                  href={siteSettings.googleMapsUrl || `https://maps.google.com/?q=${encodeURIComponent(`${siteSettings.streetAddress} ${siteSettings.city} ${siteSettings.province}`)}`}
+                  href={siteSettings.googleMapsUrl || mapsFallbackUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2.5 min-h-11 text-sm text-white/90 hover:text-white transition-colors"

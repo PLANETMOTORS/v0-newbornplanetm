@@ -145,11 +145,14 @@ export async function POST(request: Request) {
       }, { status: 500 })
     }
 
+    const errSuffix = errors.length > 0 ? ` (${errors.length} rows skipped)` : ""
+    const importMessage = `Successfully imported ${vehicles.length} vehicles${errSuffix}`
+
     return NextResponse.json({
       success: true,
       imported: vehicles.length,
       errors: errors.length > 0 ? errors : undefined,
-      message: `Successfully imported ${vehicles.length} vehicles${errors.length > 0 ? ` (${errors.length} rows skipped)` : ""}`
+      message: importMessage,
     })
 
   } catch (error) {
