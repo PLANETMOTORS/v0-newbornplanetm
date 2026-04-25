@@ -505,7 +505,7 @@ test.describe('Section B — Tab & Keyboard Navigation', () => {
     const reachedTestIds: string[] = [];
     for (let i = 0; i < 30; i++) {
       const focused = page.locator(':focus');
-      const testId  = await focused.getAttribute('data-testid').catch(() => null);
+      const testId  = await focused.evaluate((el) => (el as HTMLElement).dataset['testid'] ?? null).catch(() => null);
       if (testId) reachedTestIds.push(testId);
       await page.keyboard.press('Tab');
     }

@@ -16,7 +16,7 @@ DISTRIBUTION_ID=${1:-""}
 CACHE_POLICY_NAME="PlanetMotors-AVIF-CachePolicy"
 ORIGIN_REQUEST_POLICY_NAME="PlanetMotors-AVIF-OriginRequestPolicy"
 
-if [ -z "$DISTRIBUTION_ID" ]; then
+if [[ -z "$DISTRIBUTION_ID" ]]; then
   echo "Usage: $0 <cloudfront-distribution-id>"
   echo ""
   echo "This script will:"
@@ -66,7 +66,7 @@ CACHE_POLICY_ID=$(aws cloudfront create-cache-policy \
   --query 'CachePolicy.Id' \
   --output text 2>/dev/null || echo "")
 
-if [ -z "$CACHE_POLICY_ID" ]; then
+if [[ -z "$CACHE_POLICY_ID" ]]; then
   echo "  Cache policy may already exist. Fetching existing policy..."
   CACHE_POLICY_ID=$(aws cloudfront list-cache-policies \
     --query "CachePolicyList.Items[?CachePolicy.CachePolicyConfig.Name=='$CACHE_POLICY_NAME'].CachePolicy.Id" \
@@ -105,7 +105,7 @@ ORIGIN_REQUEST_POLICY_ID=$(aws cloudfront create-origin-request-policy \
   --query 'OriginRequestPolicy.Id' \
   --output text 2>/dev/null || echo "")
 
-if [ -z "$ORIGIN_REQUEST_POLICY_ID" ]; then
+if [[ -z "$ORIGIN_REQUEST_POLICY_ID" ]]; then
   echo "  Origin request policy may already exist. Fetching existing policy..."
   ORIGIN_REQUEST_POLICY_ID=$(aws cloudfront list-origin-request-policies \
     --query "OriginRequestPolicyList.Items[?OriginRequestPolicy.OriginRequestPolicyConfig.Name=='$ORIGIN_REQUEST_POLICY_NAME'].OriginRequestPolicy.Id" \
