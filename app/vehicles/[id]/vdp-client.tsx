@@ -38,8 +38,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { trackProductView, trackPhoneClick } from "@/components/analytics/google-tag-manager"
-import { safeNum } from "@/lib/pricing/format"
-import { FALLBACK_VEHICLE_DATA } from "@/lib/vdp/fallback-vehicle-data"
+import { calculateAllInPrice, safeNum } from "@/lib/pricing/format"
 import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
 import { trackMetaViewContent, trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
 import { PHONE_LOCAL, PHONE_LOCAL_TEL, DEALERSHIP_LOCATION, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
@@ -47,7 +46,7 @@ import { PHONE_LOCAL, PHONE_LOCAL_TEL, DEALERSHIP_LOCATION, DEALERSHIP_ADDRESS_F
 // ── Lazy-load heavy below-fold components ──
 const DriveeViewer = dynamic(
   () => import("@/components/drivee-viewer").then(m => ({ default: m.DriveeViewer })),
-  { ssr: false, loading: () => <div className="aspect-4/3 rounded-xl animate-pulse" style={{ background: "#e8e8e8" }} /> }
+  { ssr: false, loading: () => <div className="aspect-[4/3] rounded-xl animate-pulse" style={{ background: "#e8e8e8" }} /> }
 )
 const SimilarVehicles = dynamic(
   () => import("@/components/similar-vehicles").then(m => ({ default: m.SimilarVehicles })),
@@ -78,10 +77,8 @@ const AddToCompare = dynamic(
   { ssr: false }
 )
 
-// Fallback/mock vehicle data — extracted to lib/vdp/fallback-vehicle-data.ts
-const vehicleData = FALLBACK_VEHICLE_DATA
-// Legacy shape alias kept for compatibility with existing references below
-const _vehicleDataLegacy = {
+// Mock vehicle data
+const vehicleData = {
   id: "2024-tesla-model-3",
   year: 2024,
   make: "Tesla",
@@ -646,7 +643,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
 <main id="main-content" tabIndex={-1} className="pb-32 md:pb-20 overflow-x-hidden max-w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" role="main" aria-label="Vehicle details" data-vin={vehicle.vin} data-stock={vehicle.stockNumber}>
   {/* Trade-In Banner */}
   {tradeInValue && Number.parseInt(tradeInValue) > 0 && (
-    <div className="bg-linear-to-r from-green-600 to-emerald-600 text-white py-3">
+    <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3">
       <div className="container mx-auto px-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-3">
@@ -666,7 +663,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
 
   {/* Breadcrumb */}
         <nav className="bg-muted/30 py-3 border-b" aria-label="Breadcrumb">
-          <div className="max-w-360 mx-auto px-4 sm:px-6 lg:px-10 xl:px-21 overflow-x-auto scrollbar-hide">
+          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-[84px] overflow-x-auto scrollbar-hide">
             <ol className="flex items-center gap-2 text-sm whitespace-nowrap" role="list">
               <li>
                 <Link href="/inventory" className="text-muted-foreground hover:text-foreground">
@@ -686,7 +683,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
         </nav>
 
         {/* VDP H1 — SEO & accessibility: one H1 per page */}
-        <div className="max-w-360 mx-auto px-4 sm:px-6 lg:px-10 xl:px-21 pt-4 pb-2">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-[84px] pt-4 pb-2">
           <h1 className="text-[28px] md:text-[40px] font-bold tracking-[-0.01em] md:tracking-[-0.02em] leading-tight">
             {vehicle.year} {vehicle.make} {vehicle.model}{vehicle.trim ? ` ${vehicle.trim}` : ''}
           </h1>
@@ -705,13 +702,13 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col gap-0">
           {/* Main Tabs - Mobile Optimized with Scroll Indicator */}
           <div className="border-b sticky top-16 bg-background z-40 relative">
-            <div className="max-w-360 mx-auto overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth">
-              <TabsList className="h-12 bg-transparent p-0 gap-0 flex w-max px-4 sm:px-6 lg:px-10 xl:px-21 pr-10">
+            <div className="max-w-[1440px] mx-auto overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth">
+              <TabsList className="h-12 bg-transparent p-0 gap-0 flex w-max px-4 sm:px-6 lg:px-10 xl:px-[84px] pr-10">
                 {["Photos", "Overview", "Features", "Inspect", "Pricing", "Protection"].map((tab) => (
                   <TabsTrigger
                     key={tab}
                     value={tab === "Inspect" ? "inspection" : tab.toLowerCase()}
-                    className="h-12 px-3 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none whitespace-nowrap min-h-11 shrink-0"
+                    className="h-12 px-3 text-xs sm:text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none whitespace-nowrap min-h-[44px] flex-shrink-0"
                   >
                     {tab}
                   </TabsTrigger>
@@ -719,10 +716,10 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
               </TabsList>
             </div>
             {/* Scroll indicator gradient - shows there are more tabs on mobile */}
-            <div className="absolute right-0 top-0 bottom-0 w-8 bg-linear-to-l from-background to-transparent pointer-events-none md:hidden" />
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
           </div>
 
-          <div className="max-w-360 mx-auto px-4 sm:px-6 lg:px-10 xl:px-21 pb-8 overflow-x-hidden">
+          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-[84px] pb-8 overflow-x-hidden">
             <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 lg:gap-10 overflow-x-hidden items-start">
               {/* Left Column - Content */}
               <div className="min-w-0 overflow-hidden">
@@ -738,7 +735,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                   /* ── Auto-Spin 360° Fallback — cycles exterior photos ── */
                   <div
                     data-testid="vdp-auto-spin"
-                    className="relative aspect-4/3 rounded-xl overflow-hidden group"
+                    className="relative aspect-[4/3] rounded-xl overflow-hidden group"
                     style={{ backgroundColor: "#111" }}
                     onMouseEnter={() => setIsAutoSpinning(false)}
                     onMouseLeave={() => setIsAutoSpinning(true)}
@@ -801,7 +798,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       if (e.key === "ArrowRight") { nextImage(); e.preventDefault() }
                       if (e.key === "ArrowLeft") { prevImage(); e.preventDefault() }
                     }}
-                    className="relative aspect-4/3 rounded-xl overflow-hidden group focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="relative aspect-[4/3] rounded-xl overflow-hidden group focus:outline-none focus:ring-2 focus:ring-primary"
                     style={{ backgroundColor: "#e8e8e8" }}
                   >
                     {/* Hidden native img for vdp-active-image testid (Playwright getAttribute('src')) */}
@@ -912,13 +909,13 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           </div>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
-                          <Button variant="outline" size="sm" className="justify-start min-h-11">
+                          <Button variant="outline" size="sm" className="justify-start min-h-[44px]">
                             <Car className="w-4 h-4 mr-2" /> Exterior Tour
                           </Button>
-                          <Button variant="outline" size="sm" className="justify-start min-h-11">
+                          <Button variant="outline" size="sm" className="justify-start min-h-[44px]">
                             <Users className="w-4 h-4 mr-2" /> Interior Tour
                           </Button>
-                          <Button variant="outline" size="sm" className="justify-start min-h-11">
+                          <Button variant="outline" size="sm" className="justify-start min-h-[44px]">
                             <Zap className="w-4 h-4 mr-2" /> Engine Bay
                           </Button>
                         </div>
@@ -934,7 +931,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           key={i}
                           onClick={() => setCurrentImageIndex(i)}
                           aria-label={`View image ${i + 1} of ${currentImages.length}`}
-                          className={`relative w-16 sm:w-20 h-12 sm:h-14 rounded-lg overflow-hidden shrink-0 border-2 transition-all ${
+                          className={`relative w-16 sm:w-20 h-12 sm:h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
                             i === activeIndex ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"
                           }`}
                         >
@@ -1021,7 +1018,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-3">HIGHLIGHTS</h3>
                     <div className="flex flex-wrap gap-3">
-                      <Card className="flex-1 min-w-35">
+                      <Card className="flex-1 min-w-[140px]">
                         <CardContent className="p-3 flex items-center gap-2">
                           <CheckCircle className="w-5 h-5 text-pink-500" />
                           <div>
@@ -1030,13 +1027,13 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           </div>
                         </CardContent>
                       </Card>
-                      <Card className="flex-1 min-w-35">
+                      <Card className="flex-1 min-w-[140px]">
                         <CardContent className="p-3 flex items-center gap-2">
                           <Gauge className="w-5 h-5 text-muted-foreground" />
                           <p className="font-semibold text-sm tabular-nums">{vehicle.mileage.toLocaleString()} km</p>
                         </CardContent>
                       </Card>
-                      <Card className="flex-1 min-w-35">
+                      <Card className="flex-1 min-w-[140px]">
                         <CardContent className="p-3 flex items-center gap-2">
                           <Shield className="w-5 h-5 text-purple-500" />
                           <div>
@@ -1529,7 +1526,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                     <CardContent className="space-y-2">
                       {vehicleData.conditionItems.map((item, i) => (
                         <div key={i} className="flex items-start gap-2">
-                          <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                          <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                           <span className="text-sm">{item}</span>
                         </div>
                       ))}
@@ -2168,7 +2165,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
           {/* CTA buttons */}
           <div className="flex gap-2">
             <Button
-              className="flex-1 h-12 min-h-12 text-sm font-semibold bg-primary hover:bg-primary/90"
+              className="flex-1 h-12 min-h-[48px] text-sm font-semibold bg-primary hover:bg-primary/90"
               asChild
             >
               <Link href={getFinanceLink(vehicle.id)}>
@@ -2177,7 +2174,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
               </Link>
             </Button>
             <Button
-              className="h-12 min-h-12 px-4 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold shrink-0"
+              className="h-12 min-h-[48px] px-4 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold shrink-0"
               onClick={() => handleProtectedAction("reserve this vehicle")}
             >
               <LockKeyhole className="w-4 h-4 mr-1.5 shrink-0" />
