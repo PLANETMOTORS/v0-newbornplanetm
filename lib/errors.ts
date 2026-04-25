@@ -219,7 +219,7 @@ export class InternalError extends AppError {
 export function errorResponse(err: unknown): Response {
   if (err instanceof AppError) {
     return Response.json(
-      { error: err.message, type: err.name, ...(err.field ? { field: (err as ValidationError).field } : {}) },
+      { error: err.message, type: err.name, ...(err instanceof ValidationError ? { field: err.field } : {}) },
       { status: err.statusCode }
     )
   }
