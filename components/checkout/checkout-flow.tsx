@@ -342,7 +342,14 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
 
       {/* Mobile Order Summary Drawer */}
       {showOrderSummary && (
-        <div className="lg:hidden fixed inset-0 z-[60] bg-black/50" role="button" tabIndex={0} onClick={() => setShowOrderSummary(false)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowOrderSummary(false) }}>
+        <div
+          className="lg:hidden fixed inset-0 z-[60] bg-black/50"
+          role="button"
+          tabIndex={0}
+          aria-label="Close order summary"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowOrderSummary(false) }}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowOrderSummary(false) } }}
+        >
           <div
             ref={orderSummaryModalRef}
             id="mobile-order-summary"
@@ -351,7 +358,6 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
             aria-labelledby="mobile-order-summary-title"
             tabIndex={-1}
             className="absolute right-0 top-0 h-full w-full max-w-sm bg-background shadow-xl overflow-y-auto p-4"
-            onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
               <h2 id="mobile-order-summary-title" className="font-bold">Order Summary</h2>

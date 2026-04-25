@@ -14,6 +14,9 @@ export default [
       'dist/**',
       'coverage/**',
       'supabase/functions/**',
+      // Auto-generated Serwist/Workbox service worker — minified, not our source
+      'public/sw.js',
+      'public/workbox-*.js',
     ],
   },
 
