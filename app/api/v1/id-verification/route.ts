@@ -5,6 +5,20 @@ import { createClient } from "@/lib/supabase/server"
 const MAX_ID_IMAGE_SIZE_BYTES = 10 * 1024 * 1024 // 10MB
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
 
+async function uploadIdImage(
+  file: File,
+  userId: string,
+  verificationId: string,
+  type: string,
+  side: string,
+  uploadedBlobPaths: string[]
+): Promise<{ type: string; side: string; url: string; uploadedAt: string }> {
+  const ext = file.name.split('.').pop()
+  const blob = await put(`id-verification/${userId}/${verificationId}/${type}-${side}.${ext}`, file, { access: "private", addRandomSuffix: true })
+  uploadedBlobPaths.push(blob.pathname)
+  return { type, side, url: blob.pathname, uploadedAt: new Date().toISOString() }
+}
+
 export async function POST(request: NextRequest) {
   const uploadedBlobPaths: string[] = []
 
@@ -64,74 +78,15 @@ export async function POST(request: NextRequest) {
     const verificationId = `idv_${user.id}_${timestamp}`
     
     // Upload images to Vercel Blob (secure, private access)
-    const uploadedDocuments: {
-      type: string
-      side: string
-      url: string
-      uploadedAt: string
-    }[] = []
-
-    // Upload primary ID front
-    if (primaryFrontImage) {
-      const blob = await put(
-        `id-verification/${user.id}/${verificationId}/primary-front.${primaryFrontImage.name.split('.').pop()}`,
-        primaryFrontImage,
-        { access: "private", addRandomSuffix: true }
-      )
-      uploadedDocuments.push({
-        type: "primary",
-        side: "front",
-        url: blob.pathname,
-        uploadedAt: new Date().toISOString()
-      })
-      uploadedBlobPaths.push(blob.pathname)
-    }
-
-    // Upload primary ID back
-    if (primaryBackImage) {
-      const blob = await put(
-        `id-verification/${user.id}/${verificationId}/primary-back.${primaryBackImage.name.split('.').pop()}`,
-        primaryBackImage,
-        { access: "private", addRandomSuffix: true }
-      )
-      uploadedDocuments.push({
-        type: "primary",
-        side: "back",
-        url: blob.pathname,
-        uploadedAt: new Date().toISOString()
-      })
-      uploadedBlobPaths.push(blob.pathname)
-    }
-
-    // Upload secondary ID images if provided
-    if (secondaryFrontImage) {
-      const blob = await put(
-        `id-verification/${user.id}/${verificationId}/secondary-front.${secondaryFrontImage.name.split('.').pop()}`,
-        secondaryFrontImage,
-        { access: "private", addRandomSuffix: true }
-      )
-      uploadedDocuments.push({
-        type: "secondary",
-        side: "front",
-        url: blob.pathname,
-        uploadedAt: new Date().toISOString()
-      })
-      uploadedBlobPaths.push(blob.pathname)
-    }
-
-    if (secondaryBackImage) {
-      const blob = await put(
-        `id-verification/${user.id}/${verificationId}/secondary-back.${secondaryBackImage.name.split('.').pop()}`,
-        secondaryBackImage,
-        { access: "private", addRandomSuffix: true }
-      )
-      uploadedDocuments.push({
-        type: "secondary",
-        side: "back",
-        url: blob.pathname,
-        uploadedAt: new Date().toISOString()
-      })
-      uploadedBlobPaths.push(blob.pathname)
+    const uploadedDocuments: { type: string; side: string; url: string; uploadedAt: string }[] = []
+    const imagesToUpload: Array<{ file: File | null; type: string; side: string }> = [
+      { file: primaryFrontImage, type: "primary", side: "front" },
+      { file: primaryBackImage, type: "primary", side: "back" },
+      { file: secondaryFrontImage, type: "secondary", side: "front" },
+      { file: secondaryBackImage, type: "secondary", side: "back" },
+    ]
+    for (const { file, type, side } of imagesToUpload) {
+      if (file) uploadedDocuments.push(await uploadIdImage(file, user.id, verificationId, type, side, uploadedBlobPaths))
     }
 
     // Save verification record to Supabase
