@@ -38,6 +38,22 @@ const CATEGORIES: { value: Category; label: string; icon: typeof MessageSquare; 
 
 const CATEGORY_MAP = Object.fromEntries(CATEGORIES.map(c => [c.value, c]))
 
+const TRIGGER_PLACEHOLDERS: Record<Category, string> = {
+  qa: 'e.g., "Do you offer extended warranty?" or "What is your return policy?"',
+  instruction: 'e.g., "Always greet customers in both English and French"',
+  objection: 'e.g., "The price is too high" or "I can get a better deal elsewhere"',
+  policy: 'Enter the trigger phrase or condition...',
+  script: 'Enter the trigger phrase or condition...',
+}
+
+const RESPONSE_PLACEHOLDERS: Record<Category, string> = {
+  qa: 'e.g., "Yes! Every vehicle comes with our PM Certified 210-point inspection and a 30-day/1,500 km powertrain warranty included at no extra charge."',
+  objection: 'e.g., "I understand price is important. Our prices include certification, OMVIC fees, and a 10-day money-back guarantee — many dealers charge extra for these."',
+  instruction: 'Enter the response or instruction details...',
+  policy: 'Enter the response or instruction details...',
+  script: 'Enter the response or instruction details...',
+}
+
 interface AIKnowledgePanelProps {
   agentType: "anna" | "negotiator" | "valuator"
   agentName: string
@@ -306,15 +322,7 @@ export default function AIKnowledgePanel({ agentType, agentName }: Readonly<AIKn
                 className="w-full border rounded-md p-3 text-sm min-h-[80px] resize-y"
                 value={formData.trigger_phrase}
                 onChange={e => setFormData({ ...formData, trigger_phrase: e.target.value })}
-                placeholder={
-                  formData.category === "qa"
-                    ? 'e.g., "Do you offer extended warranty?" or "What is your return policy?"'
-                    : formData.category === "instruction"
-                    ? 'e.g., "Always greet customers in both English and French"'
-                    : formData.category === "objection"
-                    ? 'e.g., "The price is too high" or "I can get a better deal elsewhere"'
-                    : 'Enter the trigger phrase or condition...'
-                }
+                placeholder={TRIGGER_PLACEHOLDERS[formData.category]}
               />
             </div>
 
@@ -327,13 +335,7 @@ export default function AIKnowledgePanel({ agentType, agentName }: Readonly<AIKn
                 className="w-full border rounded-md p-3 text-sm min-h-[100px] resize-y"
                 value={formData.response}
                 onChange={e => setFormData({ ...formData, response: e.target.value })}
-                placeholder={
-                  formData.category === "qa"
-                    ? 'e.g., "Yes! Every vehicle comes with our PM Certified 210-point inspection and a 30-day/1,500 km powertrain warranty included at no extra charge."'
-                    : formData.category === "objection"
-                    ? 'e.g., "I understand price is important. Our prices include certification, OMVIC fees, and a 10-day money-back guarantee — many dealers charge extra for these."'
-                    : 'Enter the response or instruction details...'
-                }
+                placeholder={RESPONSE_PLACEHOLDERS[formData.category]}
               />
             </div>
 
@@ -371,7 +373,9 @@ export default function AIKnowledgePanel({ agentType, agentName }: Readonly<AIKn
               <Button variant="outline" onClick={resetForm}>Cancel</Button>
               <Button onClick={handleSave} disabled={saving} className="bg-indigo-600 hover:bg-indigo-700">
                 <Save className="w-4 h-4 mr-1" />
-                {saving ? "Saving..." : editingId ? "Update" : "Save"}
+                {saving && "Saving..."}
+                {!saving && editingId && "Update"}
+                {!saving && !editingId && "Save"}
               </Button>
             </div>
           </CardContent>
@@ -379,13 +383,14 @@ export default function AIKnowledgePanel({ agentType, agentName }: Readonly<AIKn
       )}
 
       {/* Entries list */}
-      {loading ? (
+      {loading && (
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
             <div key={i} className="h-20 bg-gray-100 rounded-lg animate-pulse" />
           ))}
         </div>
-      ) : filtered.length === 0 ? (
+      )}
+      {!loading && filtered.length === 0 && (
         <Card>
           <CardContent className="p-8 text-center">
             <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
@@ -397,7 +402,8 @@ export default function AIKnowledgePanel({ agentType, agentName }: Readonly<AIKn
             </p>
           </CardContent>
         </Card>
-      ) : (
+      )}
+      {!loading && filtered.length > 0 && (
         <div className="space-y-2">
           {filtered.map(entry => {
             const cat = CATEGORY_MAP[entry.category] || CATEGORY_MAP.qa
