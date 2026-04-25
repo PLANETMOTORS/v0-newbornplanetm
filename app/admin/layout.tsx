@@ -40,9 +40,7 @@ export default function AdminLayout({
 
   useEffect(() => {
     if (!isLoading) {
-      if (!user) {
-        router.push("/auth/login?redirectTo=/admin")
-      } else {
+      if (user) {
         // Check if user is admin
         const userIsAdmin = ADMIN_EMAILS.includes(user.email || "") || 
                            user.user_metadata?.is_admin === true
@@ -50,6 +48,8 @@ export default function AdminLayout({
         if (!userIsAdmin) {
           router.push("/")
         }
+      } else {
+        router.push("/auth/login?redirectTo=/admin")
       }
     }
   }, [user, isLoading, router])

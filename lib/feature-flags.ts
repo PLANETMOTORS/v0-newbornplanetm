@@ -35,9 +35,9 @@ const ALL_PHASES: readonly Phase[] = [
 
 function parseEnabledPhases(): Set<Phase> {
   const raw =
-    typeof process !== "undefined"
-      ? process.env.NEXT_PUBLIC_ENABLED_PHASES
-      : undefined
+    typeof process === "undefined"
+      ? undefined
+      : process.env.NEXT_PUBLIC_ENABLED_PHASES
 
   if (!raw || raw.trim() === "") {
     // Default: all phases enabled
@@ -56,9 +56,9 @@ function parseEnabledPhases(): Set<Phase> {
 
 function parseEnabledFeatures(): Set<string> {
   const raw =
-    typeof process !== "undefined"
-      ? process.env.NEXT_PUBLIC_FEATURES
-      : undefined
+    typeof process === "undefined"
+      ? undefined
+      : process.env.NEXT_PUBLIC_FEATURES
 
   if (!raw || raw.trim() === "") {
     return new Set()

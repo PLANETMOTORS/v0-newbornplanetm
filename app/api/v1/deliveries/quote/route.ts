@@ -280,12 +280,14 @@ export function GET(request: NextRequest) {
   const isDeliveryAvailable = distance <= 5000
 
   let message: string
-  if (!isDeliveryAvailable) {
-    message = `Delivery not available to ${province} (${distance}km)`
-  } else if (isFree) {
-    message = `Free delivery to ${cleanPostal} (estimated ${distance}km from Richmond Hill)`
+  if (isDeliveryAvailable) {
+    if (isFree) {
+      message = `Free delivery to ${cleanPostal} (estimated ${distance}km from Richmond Hill)`
+    } else {
+      message = `Estimated delivery fee: $${cost.toFixed(2)} (estimated ${distance}km from Richmond Hill)`
+    }
   } else {
-    message = `Estimated delivery fee: $${cost.toFixed(2)} (estimated ${distance}km from Richmond Hill)`
+    message = `Delivery not available to ${province} (${distance}km)`
   }
 
   let ratePerKm: number

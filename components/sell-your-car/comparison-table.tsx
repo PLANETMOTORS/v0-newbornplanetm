@@ -38,20 +38,20 @@ export function ComparisonTable({ title, rows, usLabel = 'Planet Motors', others
           
           {/* Rows */}
           {rows.map((row, index) => (
-            <div key={row.feature} className={`grid grid-cols-3 ${index !== rows.length - 1 ? 'border-b' : ''}`}>
+            <div key={row.feature} className={`grid grid-cols-3 ${index === rows.length - 1 ? '' : 'border-b'}`}>
               <div className="p-4 font-semibold">{row.feature}</div>
               <div className="p-4 text-center">
-                {row.usValue !== undefined ? (
-                  <BoolIcon value={row.usValue} />
-                ) : (
+                {row.usValue === undefined ? (
                   <span className="text-green-700 dark:text-green-500 font-semibold">{row.us}</span>
+                ) : (
+                  <BoolIcon value={row.usValue} />
                 )}
               </div>
               <div className="p-4 text-center">
-                {row.othersValue !== undefined ? (
-                  <BoolIcon value={row.othersValue} />
-                ) : (
+                {row.othersValue === undefined ? (
                   <span className="text-muted-foreground">{row.others}</span>
+                ) : (
+                  <BoolIcon value={row.othersValue} />
                 )}
               </div>
             </div>

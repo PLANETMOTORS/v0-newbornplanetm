@@ -105,9 +105,9 @@ export function DateSlotPicker({
         >
           <option value="" disabled>
             {(() => {
-              if (!selectedDate) return "Select date first"
-              if (slots.length === 0) return "No slots available"
-              return "Choose a time"
+              if (selectedDate && slots.length > 0) return "Choose a time"
+              if (selectedDate) return "No slots available"
+              return "Select date first"
             })()}
           </option>
           {slots.map(({ time, label }) => (
