@@ -64,7 +64,7 @@ const statusSteps = [
 export function DeliveryTracker({ 
   deliveryId, 
   vehicleInfo 
-}: { 
+}: Readonly<{ 
   deliveryId: string
   vehicleInfo?: {
     year: number
@@ -72,7 +72,7 @@ export function DeliveryTracker({
     model: string
     image: string
   }
-}) {
+}>) {
   const [mapUrl, setMapUrl] = useState<string | null>(null)
 
   const { data, error, isLoading, mutate } = useSWR<{ tracking: TrackingData; isDemo?: boolean }>(

@@ -413,7 +413,7 @@ export default function AIKnowledgePanel({ agentType, agentName }: Readonly<AIKn
             return (
               <Card
                 key={entry.id}
-                className={`transition-all ${!entry.is_active ? "opacity-60 bg-gray-50" : ""} ${
+                className={`transition-all ${entry.is_active ? "" : "opacity-60 bg-gray-50"} ${
                   isExpanded ? "ring-1 ring-indigo-200" : ""
                 }`}
               >

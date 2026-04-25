@@ -171,7 +171,7 @@ const defaultModelData = {
   hybrid: false
 }
 
-export default async function ModelLandingPage({ params }: { params: Promise<{ make: string; model: string }> }) {
+export default async function ModelLandingPage({ params }: Readonly<{ params: Promise<{ make: string; model: string }> }>) {
   const { make, model } = await params
   const makeFormatted = make.charAt(0).toUpperCase() + make.slice(1)
   const modelFormatted = model.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')

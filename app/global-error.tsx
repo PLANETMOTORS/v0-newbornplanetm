@@ -7,10 +7,10 @@ import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership
 export default function GlobalError({
   error,
   reset,
-}: {
+}: Readonly<{
   error: Error & { digest?: string }
   reset: () => void
-}) {
+}>) {
   useEffect(() => {
     reportError(error, { boundary: "global", critical: true })
   }, [error])
