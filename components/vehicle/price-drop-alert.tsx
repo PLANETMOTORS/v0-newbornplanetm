@@ -91,7 +91,7 @@ export function PriceDropAlert({
           </DialogTitle>
         </DialogHeader>
 
-        {!isSuccess ? (
+        {isSuccess ? null : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <Card className="bg-muted/50">
               <CardContent className="pt-4">

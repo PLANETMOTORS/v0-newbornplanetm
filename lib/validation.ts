@@ -220,7 +220,7 @@ export interface ValidationResult {
 
 /** Validate a single field value against its rule. Returns an error message or null. */
 function validateField(field: string, value: string, rule: ValidationRule): string | null {
-  if (rule.required && !value.trim()) {
+  if (rule.required && value.trim() === "") {
     return rule.message || `${field} is required`
   }
   if (value && rule.minLength && value.length < rule.minLength) {

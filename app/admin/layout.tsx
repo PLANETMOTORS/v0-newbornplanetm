@@ -39,18 +39,17 @@ export default function AdminLayout({
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    if (!isLoading) {
-      if (!user) {
-        router.push("/auth/login?redirectTo=/admin")
-      } else {
-        // Check if user is admin
-        const userIsAdmin = ADMIN_EMAILS.includes(user.email || "") || 
-                           user.user_metadata?.is_admin === true
-        setIsAdmin(userIsAdmin)
-        if (!userIsAdmin) {
-          router.push("/")
-        }
+    if (isLoading) return
+    if (user) {
+      // Check if user is admin
+      const userIsAdmin = ADMIN_EMAILS.includes(user.email || "") ||
+                         user.user_metadata?.is_admin === true
+      setIsAdmin(userIsAdmin)
+      if (!userIsAdmin) {
+        router.push("/")
       }
+    } else {
+      router.push("/auth/login?redirectTo=/admin")
     }
   }, [user, isLoading, router])
 
