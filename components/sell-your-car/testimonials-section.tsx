@@ -27,8 +27,8 @@ export function TestimonialsSection({ title, testimonials }: Readonly<Testimonia
               <CardContent className="p-6 flex flex-col h-full">
                 {/* Stars */}
                 <div className="flex gap-1 mb-4">
-                  {Array.from({ length: testimonial.rating || 5 }).map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                  {Array.from({ length: testimonial.rating || 5 }, (_, i) => `${testimonial.name}-star-${i}`).map((id) => (
+                    <Star key={id} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
                 

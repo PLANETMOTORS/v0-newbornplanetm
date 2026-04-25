@@ -392,8 +392,8 @@ export function LeadAnalyticsDashboard({
   if (loading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-pulse">
-        {[...new Array(4)].map((_, i) => (
-          <div key={i} className="h-28 bg-muted rounded-xl" />
+        {['stat-1', 'stat-2', 'stat-3', 'stat-4'].map((id) => (
+          <div key={id} className="h-28 bg-muted rounded-xl" />
         ))}
         <div className="col-span-full h-64 bg-muted rounded-xl" />
       </div>

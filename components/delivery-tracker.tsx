@@ -273,8 +273,8 @@ export function DeliveryTracker({
         {tracking.updates.length > 0 && (
           <div className="space-y-2">
             <p className="text-sm font-semibold">Recent Updates</p>
-            {tracking.updates.slice(0, 3).map((update, index) => (
-              <div key={index} className="flex gap-3 text-sm">
+            {tracking.updates.slice(0, 3).map((update) => (
+              <div key={update.timestamp} className="flex gap-3 text-sm">
                 <div className={`w-2 h-2 rounded-full mt-1.5 ${
                   update.type === "info" ? "bg-teal-500" :
                   update.type === "success" ? "bg-green-500" : "bg-muted-foreground"

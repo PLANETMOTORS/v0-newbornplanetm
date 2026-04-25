@@ -150,8 +150,8 @@ export default function CareersPage() {
                         <div className="space-y-1">
                           <p className="text-sm font-semibold">Requirements:</p>
                           <ul className="text-sm text-muted-foreground space-y-1">
-                            {position.requirements.map((req, j) => (
-                              <li key={j} className="flex items-center gap-2">
+                            {position.requirements.map((req) => (
+                              <li key={req} className="flex items-center gap-2">
                                 <CheckCircle className="w-3 h-3 text-green-500" />
                                 {req}
                               </li>

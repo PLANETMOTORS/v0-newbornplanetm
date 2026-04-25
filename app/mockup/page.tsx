@@ -221,9 +221,9 @@ export default function HomepageMockupV2() {
               { label: "Hybrids", icon: Battery },
               { label: "Luxury", icon: BadgeCheck },
               { label: "Family", icon: Car },
-            ].map((chip, i) => (
+            ].map((chip) => (
               <button
-                key={i}
+                key={chip.label}
                 className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-[#1e3a8a] hover:text-white rounded-full text-sm font-medium whitespace-nowrap transition-colors"
               >
                 <chip.icon className="w-4 h-4" />

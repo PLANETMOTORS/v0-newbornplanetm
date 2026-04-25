@@ -856,8 +856,8 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
           {/* Inline skeleton loading state */}
           {showSkeleton && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 py-8">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="rounded-xl border overflow-hidden animate-pulse">
+              {Array.from({ length: 8 }, (_, i) => `vehicle-skel-${i}`).map((id) => (
+                <div key={id} className="rounded-xl border overflow-hidden animate-pulse">
                   <div className="aspect-4/3 bg-muted" />
                   <div className="p-4 space-y-3">
                     <div className="h-5 bg-muted rounded w-3/4" />

@@ -117,9 +117,9 @@ export function PostalCodeInput({ value, onChange, label = "Postal Code *", id }
               Select your street to auto-fill address:
             </p>
           </div>
-          {suggestions.map((suggestion, idx) => (
+          {suggestions.map((suggestion) => (
             <button
-              key={idx}
+              key={`${suggestion.streetName}-${suggestion.streetType}-${suggestion.direction ?? ''}-${suggestion.city}`}
               type="button"
               className="w-full px-3 py-3 text-left text-sm hover:bg-primary/10 flex items-center gap-3 border-b last:border-b-0 transition-colors"
               onClick={() => handleSelectSuggestion(suggestion)}
