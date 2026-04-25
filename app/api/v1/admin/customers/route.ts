@@ -1,8 +1,10 @@
- 
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { createAdminClient } from "@/lib/supabase/admin"
-import { ADMIN_EMAILS } from "@/lib/admin"
+import {
+  authenticateAdmin,
+  getSearchParams,
+  parsePagination,
+  sanitizeSearch,
+} from "@/lib/admin-api"
 
 /**
  * Return a paginated, optionally search-filtered list of customer profiles for admin users.
@@ -19,26 +21,13 @@ import { ADMIN_EMAILS } from "@/lib/admin"
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
+    const auth = await authenticateAdmin()
+    if (!auth.ok) return auth.response
+    const { adminClient } = auth
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const { searchParams } = new URL(request.url)
+    const searchParams = getSearchParams(request)
     const search = searchParams.get("search") || ""
-    const rawLimit = Number.parseInt(searchParams.get("limit") || "50")
-    const limit = Math.min(Math.max(1, Number.isNaN(rawLimit) ? 50 : rawLimit), 200)
-    const rawOffset = Number.parseInt(searchParams.get("offset") || "0")
-    const offset = Math.max(0, Number.isNaN(rawOffset) ? 0 : rawOffset)
-
-    let adminClient: ReturnType<typeof createAdminClient>
-    try {
-      adminClient = createAdminClient()
-    } catch {
-      return NextResponse.json({ error: "Admin client not configured" }, { status: 500 })
-    }
+    const { limit, offset } = parsePagination(searchParams)
 
     // Fetch profiles with search
     let query = adminClient
@@ -48,9 +37,8 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1)
 
     if (search) {
-      // Sanitize to prevent PostgREST filter injection via commas/parentheses
       // Allow @ and . for email searches, - for phone numbers
-      const sanitizedSearch = search.trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s@.-]/gu, "").trim()
+      const sanitizedSearch = sanitizeSearch(search, { allowEmail: true })
       if (sanitizedSearch) {
         query = query.or(
           `email.ilike.%${sanitizedSearch}%,first_name.ilike.%${sanitizedSearch}%,last_name.ilike.%${sanitizedSearch}%,phone.ilike.%${sanitizedSearch}%`
