@@ -1,5 +1,5 @@
 // Check detailed fields for each document type
-const projectId = '4588vjsz'
+const projectId = 'wlxj8olw'
 const dataset = 'production'
 const token = process.env.SANITY_API_TOKEN
 

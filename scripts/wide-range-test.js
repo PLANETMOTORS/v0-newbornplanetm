@@ -1,7 +1,7 @@
 // Wide Range Test - Comprehensive Sanity CMS Schema Verification
 // Tests every document type and every field against deployed schemas
 
-const PROJECT_ID = '4588vjsz'
+const PROJECT_ID = 'wlxj8olw'
 const DATASET = 'production'
 const TOKEN = process.env.SANITY_API_TOKEN
 
