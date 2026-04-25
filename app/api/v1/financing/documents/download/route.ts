@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { get } from "@vercel/blob"
 import { createClient } from "@/lib/supabase/server"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 type DocumentWithFileAndApplication = {
   id: string
@@ -33,76 +34,45 @@ function isDocumentWithFileAndApplication(value: unknown): value is DocumentWith
   return typeof (application as Record<string, unknown>).user_id === "string"
 }
 
+async function authorizeDocumentAccess(
+  supabase: SupabaseClient,
+  user: { id: string } | null,
+  isAdmin: boolean,
+  documentId: string | null,
+  pathname: string
+): Promise<NextResponse | null> {
+  if (!user) return errorResponse(401, "UNAUTHORIZED", "Unauthorized")
+  if (isAdmin) {
+    const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
+    if (!profile || (profile.role !== "admin" && profile.role !== "staff")) return errorResponse(403, "FORBIDDEN", "Admin access required")
+    return null
+  }
+  if (!documentId) return errorResponse(400, "MISSING_DOCUMENT_ID", "Document ID required")
+  const { data: document } = await supabase.from("finance_documents").select(`id, file_url, finance_applications_v2!inner (user_id)`).eq("id", documentId).single()
+  if (!document) return errorResponse(404, "DOCUMENT_NOT_FOUND", "Document not found")
+  if (!isDocumentWithFileAndApplication(document)) return errorResponse(500, "MALFORMED_DOCUMENT_PAYLOAD", "Document payload is malformed")
+  const validatedDoc = document as unknown as DocumentWithFileAndApplication
+  if (validatedDoc.finance_applications_v2.user_id !== user.id) return errorResponse(403, "FORBIDDEN", "Unauthorized")
+  if (document.file_url !== pathname) return errorResponse(400, "INVALID_PATHNAME", "Invalid pathname")
+  return null
+}
+
 // GET /api/v1/financing/documents/download?pathname=xxx&documentId=xxx
 // Secure route to serve private blob files
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    
+
     const { searchParams } = new URL(request.url)
     const pathname = searchParams.get("pathname")
     const documentId = searchParams.get("documentId")
     const isAdmin = searchParams.get("admin") === "true"
-    
-    if (!pathname) {
-      return errorResponse(400, "MISSING_PATHNAME", "Missing pathname")
-    }
-    
-    // For admin access, check if user is admin
-    if (isAdmin) {
-      if (!user) {
-        return errorResponse(401, "UNAUTHORIZED", "Unauthorized")
-      }
-      
-      // Check if user has admin role
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single()
-      
-      if (!profile || (profile.role !== "admin" && profile.role !== "staff")) {
-        return errorResponse(403, "FORBIDDEN", "Admin access required")
-      }
-    } else {
-      // For regular users, verify they own the document
-      if (!user) {
-        return errorResponse(401, "UNAUTHORIZED", "Unauthorized")
-      }
-      
-      if (!documentId) {
-        return errorResponse(400, "MISSING_DOCUMENT_ID", "Document ID required")
-      }
-      
-      // Verify document belongs to user's application
-      const { data: document } = await supabase
-        .from("finance_documents")
-        .select(`
-          id,
-          file_url,
-          finance_applications_v2!inner (user_id)
-        `)
-        .eq("id", documentId)
-        .single()
-      
-      if (!document) {
-        return errorResponse(404, "DOCUMENT_NOT_FOUND", "Document not found")
-      }
 
-      if (!isDocumentWithFileAndApplication(document)) {
-        return errorResponse(500, "MALFORMED_DOCUMENT_PAYLOAD", "Document payload is malformed")
-      }
-      const validatedDoc = document as unknown as DocumentWithFileAndApplication
-      if (validatedDoc.finance_applications_v2.user_id !== user.id) {
-        return errorResponse(403, "FORBIDDEN", "Unauthorized")
-      }
-      
-      // Verify pathname matches stored file_url
-      if (document.file_url !== pathname) {
-        return errorResponse(400, "INVALID_PATHNAME", "Invalid pathname")
-      }
-    }
+    if (!pathname) return errorResponse(400, "MISSING_PATHNAME", "Missing pathname")
+
+    const authError = await authorizeDocumentAccess(supabase, user, isAdmin, documentId, pathname)
+    if (authError) return authError
     
     // Fetch the private blob
     const result = await get(pathname, {
