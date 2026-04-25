@@ -165,14 +165,15 @@ function calculateFallbackValue(year: string, make: string, model: string, milea
   let baseValue = baseValues[model] || makeTiers[make] || 28000
 
   // Depreciation
-  let value = baseValue
-  for (let y = 0; y < age; y++) {
-    if (y === 0) value *= 0.80
-    else if (y === 1) value *= 0.85
-    else if (y === 2) value *= 0.88
-    else if (y < 6) value *= 0.90
-    else value *= 0.92
+  const depreciationRate = (y: number) => {
+    if (y === 0) return 0.80
+    if (y === 1) return 0.85
+    if (y === 2) return 0.88
+    if (y < 6) return 0.90
+    return 0.92
   }
+  let value = baseValue
+  for (let y = 0; y < age; y++) value *= depreciationRate(y)
 
   // Mileage adjustment
   const expectedMileage = age * 20000

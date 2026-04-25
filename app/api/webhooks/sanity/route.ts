@@ -26,6 +26,21 @@ function verifySignature(rawBody: string, signature: string, secret: string): bo
   }
 }
 
+const TYPE_TO_PATHS: Record<string, string> = {
+  blogPost:         "/blog",
+  sellYourCarPage:  "/sell-your-car",
+  financingPage:    "/financing",
+  faqItem:          "/faq",
+  faqEntry:         "/faq",
+  protectionPlan:   "/protection-plans",
+  testimonial:      "/about",
+}
+
+function revalidateTypeSpecificPaths(documentType: string) {
+  const path = TYPE_TO_PATHS[documentType]
+  if (path) revalidatePath(path, "page")
+}
+
 const TYPE_TO_TAGS: Record<string, string[]> = {
   vehicle:           ["sanity-vehicles"],
   siteSettings:      ["sanity-settings", "sanity-homepage"],
@@ -74,25 +89,7 @@ export async function POST(request: NextRequest) {
     // ── Step 1: ISR cache revalidation (always runs, never blocked) ────────
     revalidatePath("/")
     revalidatePath("/inventory")
-    // Revalidate page-specific paths based on document type
-    if (documentType === "blogPost") {
-      revalidatePath("/blog", "page")
-    }
-    if (documentType === "sellYourCarPage") {
-      revalidatePath("/sell-your-car", "page")
-    }
-    if (documentType === "financingPage") {
-      revalidatePath("/financing", "page")
-    }
-    if (documentType === "faqItem" || documentType === "faqEntry") {
-      revalidatePath("/faq", "page")
-    }
-    if (documentType === "protectionPlan") {
-      revalidatePath("/protection-plans", "page")
-    }
-    if (documentType === "testimonial") {
-      revalidatePath("/about", "page")
-    }
+    revalidateTypeSpecificPaths(documentType)
     logger.info(`[Sanity Webhook] revalidatePath → / /inventory + type-specific paths`)
 
     // Revalidate specific cache tags for the document type
