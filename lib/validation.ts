@@ -184,7 +184,7 @@ export function isValidVIN(vin: string): boolean {
 // Mileage Validation
 // Must be a positive number, reasonable range (0 - 1,000,000 km)
 export function isValidMileage(mileage: string | number): boolean {
-  const num = typeof mileage === 'string' ? Number.parseInt(mileage.replaceAll(",", ""), 10) : mileage
+  const num = typeof mileage === 'string' ? Number.parseInt(mileage.replaceAll(/,/g, ''), 10) : mileage
   
   if (Number.isNaN(num)) return false
   if (num < 0 || num > 1000000) return false
@@ -194,7 +194,7 @@ export function isValidMileage(mileage: string | number): boolean {
 
 // Format mileage with commas
 export function formatMileage(mileage: string | number): string {
-  const num = typeof mileage === 'string' ? Number.parseInt(mileage.replaceAll(",", ""), 10) : mileage
+  const num = typeof mileage === 'string' ? Number.parseInt(mileage.replaceAll(/,/g, ''), 10) : mileage
   if (Number.isNaN(num)) return '0'
   return num.toLocaleString()
 }
@@ -305,15 +305,17 @@ export function validateTradeInForm(data: TradeInFormData): { valid: boolean; er
   const errors: Record<string, string> = {}
   
   // Name validation (either combined name or first/last)
-  if (data.name === undefined) {
+  if (data.name !== undefined) {
+    if (!isValidName(data.name)) {
+      errors.name = ValidationMessages.name
+    }
+  } else {
     if (data.firstName !== undefined && !isValidName(data.firstName)) {
       errors.firstName = ValidationMessages.name
     }
     if (data.lastName !== undefined && !isValidName(data.lastName)) {
       errors.lastName = ValidationMessages.name
     }
-  } else if (!isValidName(data.name)) {
-    errors.name = ValidationMessages.name
   }
   
   // Email validation

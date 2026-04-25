@@ -27,32 +27,6 @@ interface FacetsPayload {
   cachedAt: string
 }
 
-function computeFacets(rows: FacetRow[]): FacetsPayload {
-  const makesSet = new Set<string>()
-  const bodyStylesSet = new Set<string>()
-  const fuelTypesSet = new Set<string>()
-  const transmissionsSet = new Set<string>()
-  const drivetrainsSet = new Set<string>()
-  let minPrice = Infinity, maxPrice = -Infinity, minYear = Infinity, maxYear = -Infinity
-  for (const row of rows) {
-    if (row.make) makesSet.add(row.make)
-    if (row.body_style) bodyStylesSet.add(row.body_style)
-    if (row.fuel_type) fuelTypesSet.add(row.fuel_type)
-    if (row.transmission) transmissionsSet.add(row.transmission)
-    if (row.drivetrain) drivetrainsSet.add(row.drivetrain)
-    if (row.price != null) { if (row.price < minPrice) minPrice = row.price; if (row.price > maxPrice) maxPrice = row.price }
-    if (row.year != null) { if (row.year < minYear) minYear = row.year; if (row.year > maxYear) maxYear = row.year }
-  }
-  const sort = (s: Set<string>) => [...s].sort((a, b) => a.localeCompare(b))
-  return {
-    makes: sort(makesSet), bodyStyles: sort(bodyStylesSet), fuelTypes: sort(fuelTypesSet),
-    transmissions: sort(transmissionsSet), drivetrains: sort(drivetrainsSet),
-    priceRange: { min: minPrice === Infinity ? 0 : minPrice / 100, max: maxPrice === -Infinity ? 0 : maxPrice / 100 },
-    yearRange: { min: minYear === Infinity ? 0 : minYear, max: maxYear === -Infinity ? 0 : maxYear },
-    total: rows.length, cachedAt: new Date().toISOString(),
-  }
-}
-
 // GET /api/v1/vehicles/facets
 // Returns distilled filter options for the inventory sidebar.
 // Response is Redis-cached for 15 min and CDN-cached for the same window.
@@ -82,7 +56,50 @@ export async function GET() {
   }
 
   const rows = (data ?? []) as FacetRow[]
-  const payload = computeFacets(rows)
+
+  const makesSet = new Set<string>()
+  const bodyStylesSet = new Set<string>()
+  const fuelTypesSet = new Set<string>()
+  const transmissionsSet = new Set<string>()
+  const drivetrainsSet = new Set<string>()
+  let minPrice = Infinity
+  let maxPrice = -Infinity
+  let minYear = Infinity
+  let maxYear = -Infinity
+
+  for (const row of rows) {
+    if (row.make) makesSet.add(row.make)
+    if (row.body_style) bodyStylesSet.add(row.body_style)
+    if (row.fuel_type) fuelTypesSet.add(row.fuel_type)
+    if (row.transmission) transmissionsSet.add(row.transmission)
+    if (row.drivetrain) drivetrainsSet.add(row.drivetrain)
+    if (row.price != null) {
+      if (row.price < minPrice) minPrice = row.price
+      if (row.price > maxPrice) maxPrice = row.price
+    }
+    if (row.year != null) {
+      if (row.year < minYear) minYear = row.year
+      if (row.year > maxYear) maxYear = row.year
+    }
+  }
+
+  const payload: FacetsPayload = {
+    makes: [...makesSet].sort((a, b) => a.localeCompare(b)),
+    bodyStyles: [...bodyStylesSet].sort((a, b) => a.localeCompare(b)),
+    fuelTypes: [...fuelTypesSet].sort((a, b) => a.localeCompare(b)),
+    transmissions: [...transmissionsSet].sort((a, b) => a.localeCompare(b)),
+    drivetrains: [...drivetrainsSet].sort((a, b) => a.localeCompare(b)),
+    priceRange: {
+      min: minPrice === Infinity ? 0 : minPrice / 100,
+      max: maxPrice === -Infinity ? 0 : maxPrice / 100,
+    },
+    yearRange: {
+      min: minYear === Infinity ? 0 : minYear,
+      max: maxYear === -Infinity ? 0 : maxYear,
+    },
+    total: rows.length,
+    cachedAt: new Date().toISOString(),
+  }
 
   // --- Populate Redis cache ---
   await cacheSearchResults(FACETS_CACHE_KEY, payload, FACETS_TTL)

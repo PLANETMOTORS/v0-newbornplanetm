@@ -64,7 +64,7 @@ export function ReviewOrderStep({
   onEditStep,
   onFinalize,
   isSubmitting,
-}: Readonly<ReviewOrderStepProps>) {
+}: ReviewOrderStepProps) {
   const protection = PROTECTION_PRICES[protectionPlan] ?? PROTECTION_PRICES.none
   const deliveryFee = delivery.deliveryType === "delivery" ? delivery.deliveryCost : 0
   const financeDocsFee = paymentMethod.purchaseType === "finance" || paymentMethod.purchaseType === "pre-approved" ? 895 : 0
@@ -247,12 +247,12 @@ function ReviewSection({
   editLabel,
   onEdit,
   children,
-}: Readonly<{
+}: {
   title: string
   editLabel?: string
   onEdit: () => void
   children: React.ReactNode
-}>) {
+}) {
   return (
     <Card>
       <CardContent className="pt-6">

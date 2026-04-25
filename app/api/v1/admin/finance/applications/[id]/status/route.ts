@@ -2,12 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { ADMIN_EMAILS } from "@/lib/admin"
 
-const FINANCE_STATUS_TEXT: Record<string, string> = {
-  approved: "Approved",
-  declined: "Declined",
-  funded: "Funded",
-}
-
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -105,7 +99,9 @@ export async function PATCH(
               firstName: applicant.first_name,
               applicationNumber: currentApp.application_number,
               status,
-              statusText: FINANCE_STATUS_TEXT[status] ?? status
+              statusText: status === "approved" ? "Approved" : 
+                         status === "declined" ? "Declined" :
+                         status === "funded" ? "Funded" : status
             }
           })
         })

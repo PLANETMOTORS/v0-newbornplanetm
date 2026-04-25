@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
-import { logger } from "@/lib/logger"
 
 // GET /api/v1/customers/me - Get current customer profile
 export async function GET(_request: NextRequest) {
@@ -34,8 +33,7 @@ export async function GET(_request: NextRequest) {
     }
 
     return apiSuccess({ customer })
-  } catch (error) {
-    logger.error("[v1/customers/me GET]", error)
+  } catch (_error) {
     return apiError(ErrorCode.INTERNAL_ERROR, "Failed to fetch customer")
   }
 }
@@ -88,7 +86,7 @@ export async function PUT(request: NextRequest) {
     }
     if (firstName !== undefined) updates.first_name = String(firstName).normalize('NFC').trim()
     if (lastName !== undefined) updates.last_name = String(lastName).normalize('NFC').trim()
-    if (phone !== undefined) updates.phone = phone === null ? null : String(phone).trim()
+    if (phone !== undefined) updates.phone = phone !== null ? String(phone).trim() : null
     if (notificationPreferences !== undefined) updates.notification_preferences = notificationPreferences
 
     const { data: row, error: upsertError } = await supabase
@@ -114,8 +112,7 @@ export async function PUT(request: NextRequest) {
         updatedAt: row.updated_at,
       },
     })
-  } catch (error) {
-    logger.error("[v1/customers/me PUT]", error)
+  } catch (_error) {
     return apiError(ErrorCode.INTERNAL_ERROR, "Failed to update customer")
   }
 }

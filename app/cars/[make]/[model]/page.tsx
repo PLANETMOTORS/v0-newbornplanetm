@@ -156,7 +156,7 @@ const defaultModelData = {
   tagline: "Quality Pre-Owned Vehicles at Planet Motors",
   description: "Discover our selection of PM Certified vehicles with 210-point inspection, 10-day money-back guarantee, and comprehensive warranty options.",
   startingPrice: 29990,
-  mpg: { city: 9, highway: 7 },
+  mpg: { city: 9.0, highway: 7.0 },
   seating: 5,
   cargo: 500,
   safetyRating: 5,
@@ -171,7 +171,7 @@ const defaultModelData = {
   hybrid: false
 }
 
-export default async function ModelLandingPage({ params }: Readonly<{ params: Promise<{ make: string; model: string }> }>) {
+export default async function ModelLandingPage({ params }: { params: Promise<{ make: string; model: string }> }) {
   const { make, model } = await params
   const makeFormatted = make.charAt(0).toUpperCase() + make.slice(1)
   const modelFormatted = model.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')

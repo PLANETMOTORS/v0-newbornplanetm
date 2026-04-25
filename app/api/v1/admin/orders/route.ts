@@ -5,56 +5,6 @@ import {
   parsePagination,
   sanitizeSearch,
 } from "@/lib/admin-api"
-import type { SupabaseClient } from "@supabase/supabase-js"
-
-type AdminClient = SupabaseClient
-
-async function fetchOrderStats(adminClient: AdminClient) {
-  const [totalResult, createdResult, processingResult, deliveredResult, cancelledResult] = await Promise.all([
-    adminClient.from("orders").select("id", { count: "exact", head: true }),
-    adminClient.from("orders").select("id", { count: "exact", head: true }).eq("status", "created"),
-    adminClient.from("orders").select("id", { count: "exact", head: true }).in("status", ["confirmed", "processing", "ready_for_delivery", "in_transit"]),
-    adminClient.from("orders").select("id", { count: "exact", head: true }).eq("status", "delivered"),
-    adminClient.from("orders").select("id", { count: "exact", head: true }).eq("status", "cancelled"),
-  ])
-  let totalRevenue = 0
-  let revenueOffset = 0
-  const revenueBatchSize = 1000
-  while (true) {
-    const { data: batch } = await adminClient.from("orders").select("total_price_cents").order("id").range(revenueOffset, revenueOffset + revenueBatchSize - 1)
-    if (!batch || batch.length === 0) break
-    totalRevenue += batch.reduce((sum: number, o: { total_price_cents: number | null }) => sum + (o.total_price_cents ?? 0), 0)
-    if (batch.length < revenueBatchSize) break
-    revenueOffset += revenueBatchSize
-  }
-  return { total: totalResult.count ?? 0, created: createdResult.count ?? 0, processing: processingResult.count ?? 0, delivered: deliveredResult.count ?? 0, cancelled: cancelledResult.count ?? 0, totalRevenue }
-}
-
-async function enrichOrders(adminClient: AdminClient, orders: Record<string, unknown>[]) {
-  const customerIds = [...new Set(orders.map(o => o.customer_id as string).filter(Boolean))]
-  const vehicleIds = [...new Set(orders.map(o => o.vehicle_id as string).filter(Boolean))]
-  let customerMap: Record<string, { email: string; first_name: string | null; last_name: string | null }> = {}
-  if (customerIds.length > 0) {
-    const { data: profiles } = await adminClient.from("profiles").select("id, email, first_name, last_name").in("id", customerIds)
-    if (profiles) customerMap = Object.fromEntries(profiles.map((p: { id: string; email: string; first_name: string | null; last_name: string | null }) => [p.id, p]))
-  }
-  let vehicleMap: Record<string, { year: number; make: string; model: string; trim: string; price: number; stock_number: string }> = {}
-  if (vehicleIds.length > 0) {
-    const { data: vehicles } = await adminClient.from("vehicles").select("id, year, make, model, trim, price, stock_number").in("id", vehicleIds)
-    if (vehicles) vehicleMap = Object.fromEntries(vehicles.map((v: { id: string; year: number; make: string; model: string; trim: string; price: number; stock_number: string }) => [v.id, v]))
-  }
-  return orders.map(order => {
-    const customer = customerMap[order.customer_id as string] ?? null
-    const vehicle = vehicleMap[order.vehicle_id as string] ?? null
-    return {
-      id: order.id, orderNumber: order.order_number, status: order.status, paymentMethod: order.payment_method,
-      deliveryType: order.delivery_type, vehiclePriceCents: order.vehicle_price_cents, totalPriceCents: order.total_price_cents,
-      taxAmountCents: order.tax_amount_cents, downPaymentCents: order.down_payment_cents, createdAt: order.created_at, updatedAt: order.updated_at,
-      customer: customer ? { id: order.customer_id, email: customer.email, firstName: customer.first_name, lastName: customer.last_name } : null,
-      vehicle: vehicle ? { id: order.vehicle_id, year: vehicle.year, make: vehicle.make, model: vehicle.model, trim: vehicle.trim, price: vehicle.price, stockNumber: vehicle.stock_number } : null,
-    }
-  })
-}
 
 /**
  * Handle GET /api/v1/admin/orders: authenticate an admin and return a paginated, optionally filtered list of orders enriched with customer and vehicle data plus aggregate stats.
@@ -107,10 +57,102 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 })
     }
 
-    const [enrichedOrders, stats] = await Promise.all([
-      enrichOrders(adminClient, (orders ?? []) as Record<string, unknown>[]),
-      fetchOrderStats(adminClient),
+    // Enrich with customer and vehicle info
+    const customerIds = [...new Set((orders || []).map(o => o.customer_id).filter(Boolean))]
+    const vehicleIds = [...new Set((orders || []).map(o => o.vehicle_id).filter(Boolean))]
+
+    let customerMap: Record<string, { email: string; first_name: string | null; last_name: string | null }> = {}
+    if (customerIds.length > 0) {
+      const { data: profiles } = await adminClient
+        .from("profiles")
+        .select("id, email, first_name, last_name")
+        .in("id", customerIds)
+
+      if (profiles) {
+        customerMap = Object.fromEntries(profiles.map(p => [p.id, p]))
+      }
+    }
+
+    let vehicleMap: Record<string, { year: number; make: string; model: string; trim: string; price: number; stock_number: string }> = {}
+    if (vehicleIds.length > 0) {
+      const { data: vehicles } = await adminClient
+        .from("vehicles")
+        .select("id, year, make, model, trim, price, stock_number")
+        .in("id", vehicleIds)
+
+      if (vehicles) {
+        vehicleMap = Object.fromEntries(vehicles.map(v => [v.id, v]))
+      }
+    }
+
+    const enrichedOrders = (orders || []).map(order => {
+      const customer = customerMap[order.customer_id] || null
+      const vehicle = vehicleMap[order.vehicle_id] || null
+
+      return {
+        id: order.id,
+        orderNumber: order.order_number,
+        status: order.status,
+        paymentMethod: order.payment_method,
+        deliveryType: order.delivery_type,
+        vehiclePriceCents: order.vehicle_price_cents,
+        totalPriceCents: order.total_price_cents,
+        taxAmountCents: order.tax_amount_cents,
+        downPaymentCents: order.down_payment_cents,
+        createdAt: order.created_at,
+        updatedAt: order.updated_at,
+        customer: customer ? {
+          id: order.customer_id,
+          email: customer.email,
+          firstName: customer.first_name,
+          lastName: customer.last_name,
+        } : null,
+        vehicle: vehicle ? {
+          id: order.vehicle_id,
+          year: vehicle.year,
+          make: vehicle.make,
+          model: vehicle.model,
+          trim: vehicle.trim,
+          price: vehicle.price,
+          stockNumber: vehicle.stock_number,
+        } : null,
+      }
+    })
+
+    // Stats — use count queries to avoid Supabase's 1000-row default limit
+    // Order statuses per schema: created, confirmed, processing, ready_for_delivery, in_transit, delivered, cancelled, refunded
+    const [totalResult, createdResult, processingResult, deliveredResult, cancelledResult] = await Promise.all([
+      adminClient.from("orders").select("id", { count: "exact", head: true }),
+      adminClient.from("orders").select("id", { count: "exact", head: true }).eq("status", "created"),
+      adminClient.from("orders").select("id", { count: "exact", head: true }).in("status", ["confirmed", "processing", "ready_for_delivery", "in_transit"]),
+      adminClient.from("orders").select("id", { count: "exact", head: true }).eq("status", "delivered"),
+      adminClient.from("orders").select("id", { count: "exact", head: true }).eq("status", "cancelled"),
     ])
+
+    // For revenue, we still need row data but paginate to avoid truncation
+    let totalRevenue = 0
+    let revenueOffset = 0
+    const revenueBatchSize = 1000
+    while (true) {
+      const { data: batch } = await adminClient
+        .from("orders")
+        .select("total_price_cents")
+        .order("id")
+        .range(revenueOffset, revenueOffset + revenueBatchSize - 1)
+      if (!batch || batch.length === 0) break
+      totalRevenue += batch.reduce((sum, o) => sum + (o.total_price_cents || 0), 0)
+      if (batch.length < revenueBatchSize) break
+      revenueOffset += revenueBatchSize
+    }
+
+    const stats = {
+      total: totalResult.count ?? 0,
+      created: createdResult.count ?? 0,
+      processing: processingResult.count ?? 0,
+      delivered: deliveredResult.count ?? 0,
+      cancelled: cancelledResult.count ?? 0,
+      totalRevenue,
+    }
 
     return NextResponse.json({
       orders: enrichedOrders,

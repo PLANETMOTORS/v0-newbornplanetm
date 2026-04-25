@@ -32,7 +32,7 @@ export default function VehiclePhotoManager({
   vehicleTitle,
   onClose,
   onPhotosChanged,
-}: Readonly<VehiclePhotoManagerProps>) {
+}: VehiclePhotoManagerProps) {
   const [photos, setPhotos] = useState<PhotoData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -236,17 +236,19 @@ export default function VehiclePhotoManager({
 
         {/* Upload Area */}
         <div className="p-4 sm:p-6">
-          <button
-            type="button"
-            className={`w-full border-2 border-dashed rounded-xl p-4 sm:p-8 text-center transition-colors cursor-pointer ${
+          <div
+            className={`border-2 border-dashed rounded-xl p-4 sm:p-8 text-center transition-colors cursor-pointer ${
               dragOver
                 ? "border-blue-500 bg-blue-50"
                 : "border-gray-300 hover:border-gray-400"
             }`}
+            role="button"
+            tabIndex={0}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click() }}
           >
             {uploading ? (
               <div className="flex flex-col items-center gap-2">
@@ -276,28 +278,26 @@ export default function VehiclePhotoManager({
               }}
               disabled={uploading}
             />
-          </button>
+          </div>
         </div>
 
         {/* Photo Grid */}
         <div className="px-4 pb-4 sm:px-6 sm:pb-6">
-          {loading && (
+          {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
             </div>
-          )}
-          {!loading && imageUrls.length === 0 && (
+          ) : imageUrls.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-gray-400">
               <ImagePlus className="w-12 h-12 mb-3" />
               <p className="text-sm font-medium">No photos yet</p>
               <p className="text-xs">Upload photos to get started</p>
             </div>
-          )}
-          {!loading && imageUrls.length > 0 && (
+          ) : (
             <>
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm text-gray-600">
-                  {imageUrls.length} photo{imageUrls.length === 1 ? "" : "s"}
+                  {imageUrls.length} photo{imageUrls.length !== 1 ? "s" : ""}
                 </p>
                 <div className="flex items-center gap-2 text-xs text-gray-400">
                   <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />

@@ -11,8 +11,8 @@
  *
  * Usage: pnpm dlx tsx scripts/load-test-checkout-race.ts
  */
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { readFileSync } from 'fs'
+import { join } from 'path'
 import { createClient } from '@supabase/supabase-js'
 
 // ── Env loader ──────────────────────────────────────────────────────────────
@@ -72,7 +72,7 @@ async function casAttempt(vehicleId: string, i: number) {
   const t0 = performance.now()
   // Read
   const { data: v } = await admin.from('vehicles').select('status, price').eq('id', vehicleId).single()
-  if (v?.status !== 'available')
+  if (!v || v.status !== 'available')
     return { i, ok: false, reason: 'status_not_available', ms: performance.now() - t0 }
   // CAS update
   const { data: lock } = await admin.from('vehicles')

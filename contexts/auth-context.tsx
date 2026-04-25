@@ -1,7 +1,7 @@
  
 "use client"
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, ReactNode } from "react"
+import { createContext, useContext, useEffect, useState, ReactNode } from "react"
 import type { User } from "@supabase/supabase-js"
 
 // Lazy-load the Supabase client to defer its ~196KB bundle from the critical
@@ -17,7 +17,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -81,7 +81,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     }
   }, [])
 
-  const signOut = useCallback(async () => {
+  const signOut = async () => {
     try {
       const supabase = await getClient()
       await supabase.auth.signOut()
@@ -89,12 +89,10 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     } catch (error) {
       console.error("Sign out failed:", error)
     }
-  }, [])
-
-  const value = useMemo(() => ({ user, isLoading, signOut }), [user, isLoading, signOut])
+  }
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, isLoading, signOut }}>
       {children}
     </AuthContext.Provider>
   )

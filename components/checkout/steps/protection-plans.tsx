@@ -122,7 +122,7 @@ const COMPARISON_ROWS = [
   "Deductible",
 ] as const
 
-function ComparisonModal({ onClose }: Readonly<{ onClose: () => void }>) {
+function ComparisonModal({ onClose }: { onClose: () => void }) {
   const modalRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLElement | null>(null)
 
@@ -157,20 +157,21 @@ function ComparisonModal({ onClose }: Readonly<{ onClose: () => void }>) {
   }, [onClose])
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-      <button
-        type="button"
-        className="absolute inset-0 bg-black/50"
-        aria-label="Close comparison"
-        onClick={onClose}
-      />
+    <div
+      className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/50"
+      role="button"
+      tabIndex={0}
+      aria-label="Close comparison"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onClose() } }}
+    >
       <div
         ref={modalRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="comparison-modal-title"
         tabIndex={-1}
-        className="relative bg-background rounded-2xl shadow-xl max-w-3xl w-full max-h-[85vh] overflow-auto"
+        className="bg-background rounded-2xl shadow-xl max-w-3xl w-full max-h-[85vh] overflow-auto"
       >
         <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-background rounded-t-2xl z-10">
           <h2 id="comparison-modal-title" className="text-xl font-bold">Compare Coverage</h2>
@@ -199,19 +200,17 @@ function ComparisonModal({ onClose }: Readonly<{ onClose: () => void }>) {
                     const val = plan.comparisonFeatures[row]
                     return (
                       <td key={plan.id} className="p-4 text-center">
-                        {val === true && (
+                        {val === true ? (
                           <>
                             <Check className="w-5 h-5 text-green-600 mx-auto" aria-hidden="true" />
                             <span className="sr-only">Included</span>
                           </>
-                        )}
-                        {val === false && (
+                        ) : val === false ? (
                           <>
                             <span className="text-muted-foreground" aria-hidden="true">—</span>
                             <span className="sr-only">Not included</span>
                           </>
-                        )}
-                        {val !== true && val !== false && (
+                        ) : (
                           <span className="font-semibold">{val}</span>
                         )}
                       </td>
@@ -227,7 +226,7 @@ function ComparisonModal({ onClose }: Readonly<{ onClose: () => void }>) {
   )
 }
 
-export function ProtectionPlansStep({ data, onChange, onContinue }: Readonly<ProtectionPlansStepProps>) {
+export function ProtectionPlansStep({ data, onChange, onContinue }: ProtectionPlansStepProps) {
   const [showComparison, setShowComparison] = useState(false)
 
   const handleSelect = useCallback((id: ProtectionPlanId) => {
@@ -259,14 +258,6 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: Readonly<Pro
       <div className="grid gap-4" role="radiogroup" aria-label="Protection plan options">
         {PLANS.map((plan) => {
           const selected = data.selectedPlan === plan.id
-          let cardBorderClass: string
-          if (selected) {
-            cardBorderClass = "border-blue-600 bg-blue-50 ring-2 ring-blue-600/20"
-          } else if (plan.highlight) {
-            cardBorderClass = "border-blue-300 hover:border-blue-500"
-          } else {
-            cardBorderClass = "hover:border-blue-300"
-          }
           return (
             <Card
               key={plan.id}
@@ -274,7 +265,13 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: Readonly<Pro
               tabIndex={0}
               aria-checked={selected}
               aria-label={`${plan.name} — $${plan.price.toLocaleString()}`}
-              className={`cursor-pointer transition-all relative ${cardBorderClass}`}
+              className={`cursor-pointer transition-all relative ${
+                selected
+                  ? "border-blue-600 bg-blue-50 ring-2 ring-blue-600/20"
+                  : plan.highlight
+                    ? "border-blue-300 hover:border-blue-500"
+                    : "hover:border-blue-300"
+              }`}
               onClick={() => handleSelect(plan.id as ProtectionPlanId)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
@@ -345,15 +342,7 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: Readonly<Pro
           {data.selectedPlan === "none" ? "Continue without protection" : "Continue with protection"}
         </Button>
 
-        {data.selectedPlan === "none" ? (
-          <button
-            type="button"
-            className="text-sm text-blue-600 underline underline-offset-4 hover:text-blue-700 transition-colors"
-            onClick={() => setShowComparison(true)}
-          >
-            Compare all coverage options
-          </button>
-        ) : (
+        {data.selectedPlan !== "none" ? (
           <button
             type="button"
             className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
@@ -363,6 +352,14 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: Readonly<Pro
             }}
           >
             I choose to decline coverage and continue
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="text-sm text-blue-600 underline underline-offset-4 hover:text-blue-700 transition-colors"
+            onClick={() => setShowComparison(true)}
+          >
+            Compare all coverage options
           </button>
         )}
       </div>

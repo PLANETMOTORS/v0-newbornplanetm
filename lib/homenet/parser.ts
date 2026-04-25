@@ -141,7 +141,7 @@ export function parseHomenetCSV(csvText: string): VehicleData[] {
     const row: Record<string, string> = {}
     headers.forEach((h, idx) => { row[h] = values[idx]?.trim() || "" })
     const vehicle = mapCSVToVehicle(row)
-    if (vehicle?.vin && vehicle.stock_number) {
+    if (vehicle && vehicle.vin && vehicle.stock_number) {
       vehicles.push(vehicle)
     }
   }
@@ -165,7 +165,7 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
 
   const vin = get(["vin"])
   const stockNumber = get(["stock_number", "stocknumber", "dealerstocknum", "stock"])
-  if (vin?.length !== 17) return null
+  if (!vin || vin.length !== 17) return null
   if (!stockNumber) return null
 
   // Normalize HomeNet fuel values: "Gasoline Fuel" → "Gasoline", "Electric Fuel System" → "Electric"
@@ -194,7 +194,7 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
     const cyl = get(["enginecylinders"])
     const disp = get(["enginedisplacement"])
     // Skip "0.0", "0.0 L", etc. displacement for EVs
-    const validDisp = disp && !/^0+(\.0+)?(\s|$)/.test(disp) ? disp : ""
+    const validDisp = disp && !disp.match(/^0+(\.0+)?(\s|$)/) ? disp : ""
     if (validDisp) engineStr = validDisp + (cyl ? ` ${cyl}-Cylinder` : "")
     else if (cyl && cyl !== "0") engineStr = `${cyl}-Cylinder`
     // EVs: leave engine empty — it's electric
@@ -210,8 +210,10 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
     isCertified = true
   } else if (rawCondition === "new") {
     a2Condition = "new"
-  } else if (!get(["is_certified", "certified", "cpo"])) {
-    isCertified = false
+  } else if (!rawCondition) {
+    if (!get(["is_certified", "certified", "cpo"])) isCertified = false
+  } else {
+    if (!get(["is_certified", "certified", "cpo"])) isCertified = false
   }
 
   // === A2: Core vehicle fields ===
@@ -222,11 +224,11 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
   const normalizedVin = vin.toUpperCase()
 
   // === A2: Derived fields ===
-  const trimSuffix = trim ? ` ${trim}` : ""
-  const trimSlugSuffix = trim ? `-${trim}` : ""
-  const title = `${year} ${make} ${model}${trimSuffix}`
-  const slug = `${year}-${make}-${model}${trimSlugSuffix}-${stockNumber}`
+  const title = `${year} ${make} ${model}${trim ? ` ${trim}` : ""}`
+  const slug = `${year}-${make}-${model}${trim ? `-${trim}` : ""}-${stockNumber}`
     .toLowerCase().replaceAll(/[^a-z0-9]+/g, "-").replaceAll(/^-|-$/g, "")
+
+  // === A2: Pricing (integer CAD dollars) ===
   const priceDollars = getNum(["price", "sellingprice", "internetprice", "internet_price"])
   const msrpDollars = getNum(["msrp", "retailprice", "originalmsrp"])
 
@@ -319,7 +321,7 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
 
     // Backward compat aliases (for existing DB sync until migration)
     price: (priceDollars || 0) * 100,
-    msrp: msrpDollars == null ? undefined : msrpDollars * 100,
+    msrp: msrpDollars != null ? msrpDollars * 100 : undefined,
     mileage: mileageKm,
     featured: isFeatured,
   }
@@ -481,7 +483,7 @@ export function parseHomenetXML(xmlText: string): VehicleData[] {
   for (const vehicleXml of vehicleMatches) {
     try {
       const vehicle = parseVehicleFromXML(vehicleXml)
-      if (vehicle?.vin && vehicle.stock_number) vehicles.push(vehicle)
+      if (vehicle && vehicle.vin && vehicle.stock_number) vehicles.push(vehicle)
     } catch (e) {
       console.error("[HomenetIOL] Error parsing vehicle XML:", e)
     }
@@ -494,7 +496,7 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
     const variations = getTagVariations(tag)
     for (const variant of variations) {
       const match = xml.match(new RegExp(`<${variant}[^>]*>([^<]*)</${variant}>`, "i"))
-      if (match?.[1]) return match[1].trim()
+      if (match && match[1]) return match[1].trim()
     }
     return ""
   }
@@ -518,7 +520,7 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
     for (const pattern of imagePatterns) {
       let match
       while ((match = pattern.exec(xml)) !== null) {
-        if (match[1]?.startsWith("http")) images.push(match[1])
+        if (match[1] && match[1].startsWith("http")) images.push(match[1])
       }
     }
     return images
@@ -526,7 +528,7 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
 
   const vin = getValue("vin")
   const stockNumber = getValue("stocknumber") || getValue("stock_number") || getValue("dealerstocknum")
-  if (vin?.length !== 17) return null
+  if (!vin || vin.length !== 17) return null
   if (!stockNumber) return null
 
   const images = getImages()
@@ -593,7 +595,7 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
     title_status: undefined,
     // Legacy compat
     price: (priceDollars || 0) * 100,
-    msrp: msrpDollars == null ? undefined : msrpDollars * 100,
+    msrp: msrpDollars != null ? msrpDollars * 100 : undefined,
     mileage: mileageKm,
     featured: isFeatured,
   }
@@ -603,8 +605,8 @@ function getTagVariations(tag: string): string[] {
   const base = tag.toLowerCase()
   return [
     base,
-    base.replaceAll("_", ""),
-    base.replaceAll("_", "-"),
+    base.replaceAll(/_/g, ""),
+    base.replaceAll(/_/g, "-"),
     base.charAt(0).toUpperCase() + base.slice(1),
     base.toUpperCase(),
   ]

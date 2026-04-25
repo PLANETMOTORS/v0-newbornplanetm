@@ -37,7 +37,7 @@ export function useUTMParams() {
     const existingParams = sessionStorage.getItem(STORAGE_KEY)
     if (existingParams) return
 
-    const params = new URLSearchParams(globalThis.window.location.search)
+    const params = new URLSearchParams(window.location.search)
     const utmData: UTMParams = {}
     let hasUTM = false
 

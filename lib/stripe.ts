@@ -5,7 +5,7 @@ import Stripe from 'stripe'
 let stripeInstance: Stripe | null = null
 
 function getStripeInstance(): Stripe | null {
-  if (globalThis.window !== undefined) {
+  if (typeof window !== 'undefined') {
     // Never run on client
     return null
   }

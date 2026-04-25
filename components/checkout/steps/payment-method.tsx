@@ -20,7 +20,7 @@ interface PaymentMethodStepProps {
   onContinue: () => void
 }
 
-export function PaymentMethodStep({ data, onChange, onContinue }: Readonly<PaymentMethodStepProps>) {
+export function PaymentMethodStep({ data, onChange, onContinue }: PaymentMethodStepProps) {
   const [lenderName, setLenderName] = useState(data.preApprovedLender ?? "")
 
   return (

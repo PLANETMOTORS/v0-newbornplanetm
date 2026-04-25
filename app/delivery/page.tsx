@@ -854,11 +854,10 @@ export default function DeliveryPage() {
       }
 
       // Estimate delivery days
-      let deliveryDays: string
-      if (distance <= 300) deliveryDays = "1-2 business days"
-      else if (distance <= 1000) deliveryDays = "3-5 business days"
-      else if (distance <= 2500) deliveryDays = "5-7 business days"
-      else deliveryDays = "7-10 business days"
+      const deliveryDays = distance <= 300 ? "1-2 business days"
+        : distance <= 1000 ? "3-5 business days"
+        : distance <= 2500 ? "5-7 business days"
+        : "7-10 business days"
 
       setDeliveryEstimate({ distance, cost, city, province, deliveryDays })
       setIsCalculating(false)

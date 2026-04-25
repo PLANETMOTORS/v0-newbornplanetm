@@ -71,8 +71,6 @@ export const structure = (S: StructureBuilder) =>
             .title('Content')
             .items([
               S.documentTypeListItem('blogPost').title('Blog Posts'),
-              S.documentTypeListItem('author').title('Authors / Team'),
-              S.divider(),
               S.documentTypeListItem('testimonial').title('Testimonials'),
               S.documentTypeListItem('faqEntry').title('FAQ Entries'),
               S.documentTypeListItem('faqItem').title('FAQ Items (Legacy)'),

@@ -9,7 +9,7 @@ interface ProcessStepsProps {
   steps: Step[]
 }
 
-export function ProcessSteps({ title, steps }: Readonly<ProcessStepsProps>) {
+export function ProcessSteps({ title, steps }: ProcessStepsProps) {
   return (
     <section className="py-16 md:py-24">
       <div className="container mx-auto px-4">

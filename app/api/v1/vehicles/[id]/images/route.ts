@@ -58,7 +58,7 @@ async function scrapeImagesFromVDP(vdpUrl: string): Promise<{
     
     // Extract 360 spin URL if available
     let spin360Url: string | undefined
-    const spinMatch = /https:\/\/[^"'\s]*(?:spin|360)[^"'\s]*\.(?:xml|json|js)/i.exec(html)
+    const spinMatch = html.match(/https:\/\/[^"'\s]*(?:spin|360)[^"'\s]*\.(?:xml|json|js)/i)
     if (spinMatch) {
       spin360Url = spinMatch[0]
     }
@@ -115,7 +115,7 @@ export async function GET(
   // Otherwise, scrape from VDP URL
   const vdpUrl = vehicle.primary_image_url
   
-  if (!vdpUrl?.startsWith('http')) {
+  if (!vdpUrl || !vdpUrl.startsWith('http')) {
     return NextResponse.json({
       vehicleId: vehicle.id,
       stockNumber: vehicle.stock_number,
@@ -176,7 +176,7 @@ export async function POST(
   
   const vdpUrl = vehicle.primary_image_url
   
-  if (!vdpUrl?.startsWith('http')) {
+  if (!vdpUrl || !vdpUrl.startsWith('http')) {
     return NextResponse.json({ error: 'No VDP URL available' }, { status: 400 })
   }
   

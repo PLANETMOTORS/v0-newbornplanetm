@@ -72,7 +72,7 @@ interface FinanceApplicationFullFormProps {
   }
 }
 
-export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData }: Readonly<FinanceApplicationFullFormProps>) {
+export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData }: FinanceApplicationFullFormProps) {
   useRouter()
   const { user, isLoading: isAuthLoading } = useAuth()
   const draftLoadedRef = useRef(false)
@@ -81,7 +81,7 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
   // Capture UTM params from URL on mount (persisted to submission payload)
   const utmParams = useRef<Record<string, string>>({})
   useEffect(() => {
-    if (globalThis.window === undefined) return
+    if (typeof window === "undefined") return
     const sp = new URLSearchParams(globalThis.location.search)
     const utm: Record<string, string> = {}
     for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"]) {
@@ -102,7 +102,7 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
   const _handleFormStart = useCallback(() => {
     if (formStartFired.current) return
     formStartFired.current = true
-    if (globalThis.window?.gtag) {
+    if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
       globalThis.window.gtag("event", "form_start", {
         event_category: "finance_application",
         vehicle_id: vehicleId || "general",
@@ -683,7 +683,7 @@ if (errors.length > 0) {
     
     setValidationErrors([])
     // GA4 step complete event
-    if (globalThis.window?.gtag) {
+    if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
       globalThis.window.gtag("event", "form_step_complete", {
         event_category: "finance_application",
         step_number: currentStep,
@@ -698,7 +698,7 @@ if (errors.length > 0) {
     setSubmitError(null)
     try {
       // Fire GA4 form_submit event (respects consent mode — gtag handles consent internally)
-      if (globalThis.window?.gtag) {
+      if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
         globalThis.window.gtag("event", "form_submit", {
           event_category: "finance_application",
           vehicle_id: vehicleId || "general",
@@ -791,7 +791,7 @@ if (errors.length > 0) {
       const errMsg = error instanceof Error ? error.message : "Unable to submit application right now."
       setSubmitError(errMsg)
       // Fire GA4 form_error event
-      if (globalThis.window?.gtag) {
+      if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
         globalThis.window.gtag("event", "form_error", {
           event_category: "finance_application",
           error_message: errMsg,
@@ -817,11 +817,11 @@ if (errors.length > 0) {
           <h2 className="text-2xl font-bold mb-2">Application Received!</h2>
           <p className="text-muted-foreground">
             Your finance application has been submitted successfully.
-            {(() => {
-              if (!canCheckout) return " A team member will contact you shortly to finalize your purchase."
-              if (vehicleId) return " Complete your $250 refundable deposit below to secure this vehicle."
-              return " Complete your $250 refundable deposit below to fast-track your application."
-            })()}
+            {canCheckout
+              ? vehicleId
+                ? " Complete your $250 refundable deposit below to secure this vehicle."
+                : " Complete your $250 refundable deposit below to fast-track your application."
+              : " A team member will contact you shortly to finalize your purchase."}
           </p>
         </div>
 

@@ -55,7 +55,7 @@ export function DepositPaymentStep({
   customerPhone,
   protectionPlanId,
   licenseStoragePath,
-}: Readonly<DepositPaymentStepProps>) {
+}: DepositPaymentStepProps) {
   const [error, setError] = useState("")
   const depositAmount = 250
 
@@ -65,7 +65,7 @@ export function DepositPaymentStep({
       const secret = await startVehicleCheckout({
         vehicleId,
         vehicleName,
-        protectionPlanId: protectionPlanId === "none" ? undefined : protectionPlanId,
+        protectionPlanId: protectionPlanId !== "none" ? protectionPlanId : undefined,
         customerEmail: customerEmail || undefined,
         customerName: customerName || undefined,
         customerPhone: customerPhone || undefined,

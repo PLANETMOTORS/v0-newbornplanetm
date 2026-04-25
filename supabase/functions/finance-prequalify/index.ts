@@ -31,12 +31,6 @@ const lenders = [
   { id: "lender_f", name: "Partner Lender F", code: "PLF", type: "credit_union", minScore: 580, maxTerm: 96, baseRate: 7.49 },
 ]
 
-function getConfidenceLevel(creditScore: number): "high" | "medium" | "low" {
-  if (creditScore >= 700) return "high"
-  if (creditScore >= 650) return "medium"
-  return "low"
-}
-
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return handleCorsPreFlight(req)
 
@@ -95,10 +89,7 @@ Deno.serve(async (req: Request) => {
   log.info("Prequalify started", { userId: user.id, amount: data.requestedAmount })
 
   // Income-based credit score estimation (Equifax/TransUnion in production)
-  let creditScore: number
-  if (data.annualIncome >= 80000) creditScore = 750
-  else if (data.annualIncome >= 50000) creditScore = 700
-  else creditScore = 680
+  const creditScore = data.annualIncome >= 80000 ? 750 : data.annualIncome >= 50000 ? 700 : 680
   const creditBureau = "Equifax"
 
   const monthlyIncome = data.annualIncome / 12
@@ -131,7 +122,7 @@ Deno.serve(async (req: Request) => {
         estimatedTerm: lenderTerm,
         estimatedMonthlyPayment: Math.round(monthlyPayment * 100) / 100,
         prequalified: true,
-        confidence: getConfidenceLevel(creditScore),
+        confidence: creditScore >= 700 ? "high" : creditScore >= 650 ? "medium" : "low",
       }
     })
     .sort((a, b) => a.estimatedRate - b.estimatedRate)

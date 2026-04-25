@@ -60,9 +60,9 @@ export function CompareBar() {
               ))}
 
               {/* Empty Slots */}
-              {(['empty-slot-1', 'empty-slot-2', 'empty-slot-3'] as const).slice(0, 3 - compareList.length).map((slotId) => (
+              {Array.from({ length: 3 - compareList.length }).map((_, i) => (
                 <Link
-                  key={slotId}
+                  key={`empty-${i}`}
                   href="/inventory"
                   className="w-[200px] h-16 border-2 border-dashed border-muted-foreground/20 rounded-lg flex items-center justify-center hover:border-primary/40 hover:bg-muted/40 transition-colors"
                 >

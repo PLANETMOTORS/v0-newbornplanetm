@@ -41,7 +41,7 @@ export function ErrorBoundaryUI({
   body = "We encountered an unexpected error. Please try again.",
   secondaryAction,
   phonePrompt,
-}: Readonly<ErrorBoundaryUIProps>) {
+}: ErrorBoundaryUIProps) {
   useEffect(() => {
     reportError(error, context)
   }, [error, context])

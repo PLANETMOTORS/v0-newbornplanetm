@@ -14,12 +14,6 @@ import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
 // Broader positioning: "Canada's trusted used vehicle dealership specializing in EVs"
 // Brand colors: Navy Blue #1e3a8a, Red #dc2626
 
-const BADGE_BG_COLOR: Record<string, string> = {
-  "Popular": "bg-[#dc2626]",
-  "New Arrival": "bg-green-500",
-  "Luxury": "bg-purple-600",
-}
-
 export default function HomepageMockupV2() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("all")
@@ -33,12 +27,11 @@ export default function HomepageMockupV2() {
     { id: 6, name: "BMW X3", year: 2022, price: "$44,900", monthly: "$419/mo", mpg: "26 MPG", type: "suv", badge: "Luxury", isEV: false },
   ]
 
-  const getFilteredVehicles = () => {
-    if (activeTab === "all") return vehicles
-    if (activeTab === "electric") return vehicles.filter(v => v.type === "electric")
-    return vehicles.filter(v => v.type === "suv")
-  }
-  const filteredVehicles = getFilteredVehicles()
+  const filteredVehicles = activeTab === "all" 
+    ? vehicles 
+    : activeTab === "electric" 
+      ? vehicles.filter(v => v.type === "electric")
+      : vehicles.filter(v => v.type === "suv")
 
   return (
     <div className="min-h-screen bg-white font-sans">
@@ -172,7 +165,7 @@ export default function HomepageMockupV2() {
             {/* Hero Text */}
             <div className="text-center lg:text-left">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] leading-tight mb-6 text-gray-900">
-                {"Buy Your Next Vehicle"}
+                Buy Your Next Vehicle
                 <span className="block text-[#1e3a8a]">
                   With Confidence
                 </span>
@@ -228,9 +221,9 @@ export default function HomepageMockupV2() {
               { label: "Hybrids", icon: Battery },
               { label: "Luxury", icon: BadgeCheck },
               { label: "Family", icon: Car },
-            ].map((chip) => (
+            ].map((chip, i) => (
               <button
-                key={chip.label}
+                key={i}
                 className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-[#1e3a8a] hover:text-white rounded-full text-sm font-medium whitespace-nowrap transition-colors"
               >
                 <chip.icon className="w-4 h-4" />
@@ -286,7 +279,12 @@ export default function HomepageMockupV2() {
                     </div>
                   </div>
                   {car.badge && (
-                    <div className={`absolute top-3 left-3 text-white text-xs font-semibold px-3 py-1 rounded-full ${BADGE_BG_COLOR[car.badge] ?? "bg-[#1e3a8a]"}`}>
+                    <div className={`absolute top-3 left-3 text-white text-xs font-semibold px-3 py-1 rounded-full ${
+                      car.badge === "Popular" ? "bg-[#dc2626]" : 
+                      car.badge === "New Arrival" ? "bg-green-500" : 
+                      car.badge === "Luxury" ? "bg-purple-600" : 
+                      "bg-[#1e3a8a]"
+                    }`}>
                       {car.badge}
                     </div>
                   )}

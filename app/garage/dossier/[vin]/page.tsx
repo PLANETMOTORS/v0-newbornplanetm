@@ -27,7 +27,7 @@ const DOC_KIND_LABELS: Record<string, string> = {
   other: "Document",
 }
 
-export default async function DossierDetailPage({ params }: Readonly<PageProps>) {
+export default async function DossierDetailPage({ params }: PageProps) {
   const { vin } = await params
   const sb = await createClient()
 
@@ -71,15 +71,15 @@ export default async function DossierDetailPage({ params }: Readonly<PageProps>)
     const { error: ackError } = await sb.from("dossier_documents")
       .update({ customer_acknowledged_at: now })
       .in("id", unreadIds)
-    if (ackError) {
-      console.error("Failed to acknowledge documents:", ackError.message)
-    } else {
+    if (!ackError) {
       // Update local state so UI renders documents as acknowledged immediately
       docs.forEach(d => {
         if (unreadIds.includes(d.id)) {
           d.customer_acknowledged_at = now
         }
       })
+    } else {
+      console.error("Failed to acknowledge documents:", ackError.message)
     }
   }
 

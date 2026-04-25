@@ -72,7 +72,7 @@ type BelowFoldProps = {
   saturdayHours?: { open: string; close: string } | null
 }
 
-export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekdayHours, saturdayHours }: Readonly<BelowFoldProps>) {
+export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekdayHours, saturdayHours }: BelowFoldProps) {
   const displayReviews = defaultReviews
   return (
     <>

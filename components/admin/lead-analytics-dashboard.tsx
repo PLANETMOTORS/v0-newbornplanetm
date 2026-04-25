@@ -129,7 +129,7 @@ function statusColor(status: string): string {
 
 function KpiCard({
   title, value, sub, icon: Icon, trend, color = "blue", pulse = false,
-}: Readonly<{
+}: {
   title: string
   value: string | number
   sub?: string
@@ -137,7 +137,7 @@ function KpiCard({
   trend?: string
   color?: "blue" | "green" | "amber" | "violet"
   pulse?: boolean
-}>) {
+}) {
   const colors = {
     blue: "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400",
     green: "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400",
@@ -175,7 +175,7 @@ function KpiCard({
 
 // ── Source Bar Chart ───────────────────────────────────────────────────────
 
-function SourceBreakdown({ leads }: Readonly<{ leads: Lead[] }>) {
+function SourceBreakdown({ leads }: { leads: Lead[] }) {
   const counts: Record<string, number> = {}
   for (const lead of leads) {
     counts[lead.source] = (counts[lead.source] ?? 0) + 1
@@ -221,7 +221,7 @@ function SourceBreakdown({ leads }: Readonly<{ leads: Lead[] }>) {
 
 // ── Status Funnel ──────────────────────────────────────────────────────────
 
-function StatusFunnel({ stats }: Readonly<{ stats: LeadStats }>) {
+function StatusFunnel({ stats }: { stats: LeadStats }) {
   const stages = [
     { label: "New", value: stats.new, color: "bg-blue-500", pct: stats.total ? Math.round((stats.new / stats.total) * 100) : 0 },
     { label: "Contacted", value: stats.contacted, color: "bg-yellow-500", pct: stats.total ? Math.round((stats.contacted / stats.total) * 100) : 0 },
@@ -261,7 +261,7 @@ function StatusFunnel({ stats }: Readonly<{ stats: LeadStats }>) {
 
 // ── Recent Leads Feed ──────────────────────────────────────────────────────
 
-function RecentLeadsFeed({ leads }: Readonly<{ leads: Lead[] }>) {
+function RecentLeadsFeed({ leads }: { leads: Lead[] }) {
   return (
     <Card className="col-span-full">
       <CardHeader className="pb-3">
@@ -275,7 +275,7 @@ function RecentLeadsFeed({ leads }: Readonly<{ leads: Lead[] }>) {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
-            <span>Live</span>
+            Live
           </span>
         </div>
       </CardHeader>
@@ -336,7 +336,7 @@ function RecentLeadsFeed({ leads }: Readonly<{ leads: Lead[] }>) {
 export function LeadAnalyticsDashboard({
   refreshInterval = 30_000,
   feedLimit = 8,
-}: Readonly<DashboardProps>) {
+}: DashboardProps) {
   const [leads, setLeads] = useState<Lead[]>([])
   const [stats, setStats] = useState<LeadStats>({ total: 0, new: 0, contacted: 0, qualified: 0, converted: 0 })
   const [loading, setLoading] = useState(true)
@@ -392,8 +392,8 @@ export function LeadAnalyticsDashboard({
   if (loading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-pulse">
-        {['stat-1', 'stat-2', 'stat-3', 'stat-4'].map((id) => (
-          <div key={id} className="h-28 bg-muted rounded-xl" />
+        {[...new Array(4)].map((_, i) => (
+          <div key={i} className="h-28 bg-muted rounded-xl" />
         ))}
         <div className="col-span-full h-64 bg-muted rounded-xl" />
       </div>

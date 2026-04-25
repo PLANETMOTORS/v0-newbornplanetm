@@ -76,7 +76,7 @@ type TxEntry =
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export function TransactionHistory({ deposits, orders, financePayments }: Readonly<TransactionHistoryProps>) {
+export function TransactionHistory({ deposits, orders, financePayments }: TransactionHistoryProps) {
   const [filter, setFilter] = useState<"all" | "deposit" | "order" | "finance">("all")
   const [expanded, setExpanded] = useState<string | null>(null)
 
@@ -207,7 +207,7 @@ export function TransactionHistory({ deposits, orders, financePayments }: Readon
                   <div className="text-right shrink-0">
                     <p className="text-sm font-bold">{formatCAD(amount)}</p>
                     <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-xs font-medium ${stateColor(state)}`}>
-                      {state.replaceAll("_", " ")}
+                      {state.replaceAll(/_/g, " ")}
                     </span>
                   </div>
                   <div className="shrink-0 text-muted-foreground ml-1">
@@ -230,7 +230,7 @@ export function TransactionHistory({ deposits, orders, financePayments }: Readon
                         <dt className="text-muted-foreground text-xs">Status</dt>
                         <dd className="mt-0.5">
                           <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${stateColor(state)}`}>
-                            {state.replaceAll("_", " ")}
+                            {state.replaceAll(/_/g, " ")}
                           </span>
                         </dd>
                       </div>

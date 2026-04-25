@@ -5,12 +5,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { MapPin, Loader2 } from "lucide-react"
 
-function getBorderClass(error: string | undefined, validationError: string, isValidFormat: boolean): string {
-  if (error || validationError) return "border-destructive"
-  if (isValidFormat) return "border-green-500"
-  return ""
-}
-
 interface AddressResult {
   id: string
   text: string
@@ -40,7 +34,7 @@ async function searchCanadianAddresses(query: string): Promise<AddressResult[]> 
   try {
     // Use GeoNames or similar free API for Canadian postal codes
     // For demo, we'll simulate with common Canadian addresses
-    const postalCodeMatch = /^[A-Z]\d[A-Z][\s-]?\d[A-Z]\d$/i.exec(query)
+    const postalCodeMatch = query.match(/^[A-Za-z]\d[A-Za-z][\s-]?\d[A-Za-z]\d$/i)
     
     if (postalCodeMatch) {
       // Lookup by postal code
@@ -109,7 +103,7 @@ export function AddressAutocomplete({
   required = false,
   error,
   className = "",
-}: Readonly<AddressAutocompleteProps>) {
+}: AddressAutocompleteProps) {
   const [suggestions, setSuggestions] = useState<AddressResult[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
@@ -241,7 +235,7 @@ export function PostalCodeInput({
   error,
   required = false,
   className = "",
-}: Readonly<PostalCodeInputProps>) {
+}: PostalCodeInputProps) {
   const [isValidating, setIsValidating] = useState(false)
   const [validationError, setValidationError] = useState("")
 
@@ -293,7 +287,7 @@ export function PostalCodeInput({
           onChange={(e) => handleChange(e.target.value)}
           placeholder="M5V 3L9"
           maxLength={7}
-          className={`uppercase ${getBorderClass(error, validationError, isValidFormat)}`}
+          className={`uppercase ${error || validationError ? "border-destructive" : isValidFormat ? "border-green-500" : ""}`}
         />
         {isValidating && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />

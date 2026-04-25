@@ -131,10 +131,9 @@ Deno.serve(async (req: Request) => {
 
 // ── Template resolver (inline — swap for Sanity fetch in Week 6) ──────────
 function resolveTemplate(template: string, payload: Record<string, unknown>) {
-  const asStr = (v: unknown, fallback: string): string => (typeof v === "string" && v.length > 0 ? v : fallback)
-  const vin = asStr(payload.vin, "your vehicle")
-  const stage = asStr(payload.to_stage, template.split(".")[1] ?? "")
-  const staff = asStr(payload.staff_name, "our team")
+  const vin = payload.vin ?? "your vehicle"
+  const stage = payload.to_stage ?? template.split(".")[1] ?? ""
+  const staff = payload.staff_name ?? "our team"
 
   const stageLabels: Record<string, string> = {
     application: "Application Received",
@@ -191,11 +190,10 @@ async function sendEmail(to: string, subject: string, html: string): Promise<str
 async function sendSms(to: string, body: string): Promise<string | null> {
   if (!TWILIO_SID || !TWILIO_TOKEN) return null
   const params = new URLSearchParams({ To: to, From: TWILIO_FROM, Body: body })
-  const credentials = btoa(`${TWILIO_SID}:${TWILIO_TOKEN}`)
   const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`, {
     method: "POST",
     headers: {
-      "Authorization": `Basic ${credentials}`,
+      "Authorization": `Basic ${btoa(`${TWILIO_SID}:${TWILIO_TOKEN}`)}`,
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: params.toString(),

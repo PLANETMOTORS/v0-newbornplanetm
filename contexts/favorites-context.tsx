@@ -40,7 +40,7 @@
 
 import {
   createContext, useContext, useState, useEffect,
-  useCallback, useMemo, useRef, type ReactNode
+  useCallback, useRef, type ReactNode
 } from "react"
 import { createClient } from "@/lib/supabase/client"
 
@@ -90,7 +90,7 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(undefin
 
 // ── Provider ───────────────────────────────────────────────────────────────
 
-export function FavoritesProvider({ children }: Readonly<{ children: ReactNode }>) {
+export function FavoritesProvider({ children }: { children: ReactNode }) {
   const [favorites, setFavorites] = useState<FavoriteVehicle[]>([])
   const [isLoaded, setIsLoaded] = useState(false)
   const [syncing, setSyncing] = useState(false)
@@ -177,12 +177,11 @@ export function FavoritesProvider({ children }: Readonly<{ children: ReactNode }
         }))
 
         // Merge: server wins for vehicles that exist on both sides
-        const serverIds = new Set(serverFavs.map(f => f.id))
-        const mergeWithServer = (prev: FavoriteVehicle[]) => {
+        setFavorites(prev => {
+          const serverIds = new Set(serverFavs.map(f => f.id))
           const localOnly = prev.filter(f => !serverIds.has(f.id))
           return [...serverFavs, ...localOnly]
-        }
-        setFavorites(mergeWithServer)
+        })
       } catch {
         // Non-fatal
       } finally {
@@ -230,19 +229,21 @@ export function FavoritesProvider({ children }: Readonly<{ children: ReactNode }
   }, [triggerSync])
 
   const removeFavorite = useCallback((id: string) => {
-    const deleteFromServer = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      await supabase.from("user_favorites")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("vehicle_id", id)
-    }
     setFavorites(prev => {
-      const next = prev.filter(fav => fav.id !== id)
+      const next = prev.filter(f => f.id !== id)
       triggerSync(next)
-      // Fire-and-forget remote delete
-      void deleteFromServer()
+
+      // Also delete from Supabase (fire-and-forget)
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          supabase.from("user_favorites")
+            .delete()
+            .eq("user_id", user.id)
+            .eq("vehicle_id", id)
+            .then(() => {})
+        }
+      })
+
       return next
     })
   }, [triggerSync, supabase])
@@ -262,13 +263,11 @@ export function FavoritesProvider({ children }: Readonly<{ children: ReactNode }
 
   const priceDropCount = favorites.filter(f => f.priceDropped).length
 
-  const value = useMemo(
-    () => ({ favorites, addFavorite, removeFavorite, isFavorite, clearFavorites, syncing, priceDropCount }),
-    [favorites, addFavorite, removeFavorite, isFavorite, clearFavorites, syncing, priceDropCount],
-  )
-
   return (
-    <FavoritesContext.Provider value={value}>
+    <FavoritesContext.Provider value={{
+      favorites, addFavorite, removeFavorite, isFavorite, clearFavorites,
+      syncing, priceDropCount,
+    }}>
       {children}
     </FavoritesContext.Provider>
   )

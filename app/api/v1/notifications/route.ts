@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { logger } from "@/lib/logger"
 
 // GET /api/v1/notifications - Get user notifications
 export async function GET(_request: NextRequest) {
@@ -38,8 +37,7 @@ export async function GET(_request: NextRequest) {
       notifications,
       unreadCount: notifications.filter((n) => !n.read).length,
     })
-  } catch (error) {
-    logger.error("[v1/notifications GET]", error)
+  } catch (_error) {
     return NextResponse.json({ error: "Failed to fetch notifications" }, { status: 500 })
   }
 }
@@ -83,8 +81,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true })
-  } catch (error) {
-    logger.error("[v1/notifications PATCH]", error)
+  } catch (_error) {
     return NextResponse.json({ error: "Failed to update notifications" }, { status: 500 })
   }
 }
@@ -114,8 +111,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true })
-  } catch (error) {
-    logger.error("[v1/notifications subscription]", error)
+  } catch (_error) {
     return NextResponse.json({ error: "Failed to update subscription" }, { status: 500 })
   }
 }

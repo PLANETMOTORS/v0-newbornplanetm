@@ -60,18 +60,27 @@ export async function GET(request: NextRequest) {
     let reservationCounts: Record<string, number> = {}
 
     if (customerIds.length > 0) {
-      const fetchOrderCount = async (id: string) => {
-        const { count } = await adminClient.from("orders").select("id", { count: "exact", head: true }).eq("customer_id", id)
-        return { id, count: count ?? 0 }
-      }
-      const fetchReservationCount = async (id: string) => {
-        const { count } = await adminClient.from("reservations").select("id", { count: "exact", head: true }).eq("user_id", id)
-        return { id, count: count ?? 0 }
-      }
       const [orderResults, reservationResults] = await Promise.all([
-        Promise.all(customerIds.map(fetchOrderCount)),
-        Promise.all(customerIds.map(fetchReservationCount)),
+        Promise.all(
+          customerIds.map(async (id) => {
+            const { count } = await adminClient
+              .from("orders")
+              .select("id", { count: "exact", head: true })
+              .eq("customer_id", id)
+            return { id, count: count ?? 0 }
+          })
+        ),
+        Promise.all(
+          customerIds.map(async (id) => {
+            const { count } = await adminClient
+              .from("reservations")
+              .select("id", { count: "exact", head: true })
+              .eq("user_id", id)
+            return { id, count: count ?? 0 }
+          })
+        ),
       ])
+
       for (const r of orderResults) {
         if (r.count > 0) orderCounts[r.id] = r.count
       }

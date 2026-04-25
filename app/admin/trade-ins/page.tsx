@@ -233,22 +233,20 @@ export default function AdminTradeInsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading && (
+              {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8">
                     <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
                     Loading quotes...
                   </TableCell>
                 </TableRow>
-              )}
-              {!isLoading && filteredQuotes.length === 0 && (
+              ) : filteredQuotes.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     No trade-in quotes found
                   </TableCell>
                 </TableRow>
-              )}
-              {!isLoading && filteredQuotes.length > 0 && (
+              ) : (
                 filteredQuotes.map((quote) => (
                   <TableRow key={quote.id}>
                     <TableCell className="font-mono text-sm">

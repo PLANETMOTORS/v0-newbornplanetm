@@ -41,7 +41,7 @@ interface VehicleCheckoutProps {
   onClose?: () => void
 }
 
-export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose }: Readonly<VehicleCheckoutProps>) {
+export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose }: VehicleCheckoutProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [depositOnly, setDepositOnly] = useState(true)
   const [showCheckout, setShowCheckout] = useState(false)
@@ -178,7 +178,7 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
             </CardContent>
           </Card>
           <Card
-            className={`cursor-pointer transition-all ${depositOnly ? 'hover:border-primary/50' : 'ring-2 ring-primary bg-primary/5'}`}
+            className={`cursor-pointer transition-all ${!depositOnly ? 'ring-2 ring-primary bg-primary/5' : 'hover:border-primary/50'}`}
             onClick={() => setDepositOnly(false)}
           >
             <CardContent className="py-4 text-center space-y-1">

@@ -251,7 +251,7 @@ export function InstantQuote() {
   
   // Mileage handler - only allow numbers, prevent scroll glitches
   const handleMileageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replaceAll(/\D/g, '')
+    const value = e.target.value.replaceAll(/[^0-9]/g, '')
     setFormData(prev => ({ ...prev, mileage: value }))
   }, [])
   
@@ -262,10 +262,10 @@ export function InstantQuote() {
     
     // Only validate when user has entered enough characters (complete postal code is 7 chars with space)
     if (formatted.length === 7) {
-      if (isValidPostalCode(formatted)) {
-        setPostalCodeError("")
-      } else {
+      if (!isValidPostalCode(formatted)) {
         setPostalCodeError("Please enter a valid Canadian postal code (e.g., M5V 1J2)")
+      } else {
+        setPostalCodeError("")
       }
     } else if (formatted.length < 6) {
       // Clear error while user is still typing
@@ -415,9 +415,9 @@ export function InstantQuote() {
     
     // Condition adjustment
     const conditionMultipliers: Record<string, number> = {
-      "excellent": 1.10, "good": 1, "fair": 0.85, "poor": 0.65,
+      "excellent": 1.10, "good": 1.00, "fair": 0.85, "poor": 0.65,
     }
-    value *= conditionMultipliers[data.condition] || 1
+    value *= conditionMultipliers[data.condition] || 1.0
     
     // Minimum and rounding
     value = Math.max(500, value)
@@ -438,11 +438,12 @@ export function InstantQuote() {
     setCalculationProgress(0)
     
     // Call AI-powered valuation API
-    const tickProgress = () => setCalculationProgress(prev => Math.min(prev + 5, 90))
-    const fetchValuation = async () => {
+    const result = await (async () => {
       try {
         // Start progress animation
-        const progressInterval = setInterval(tickProgress, 300)
+        const progressInterval = setInterval(() => {
+          setCalculationProgress(prev => Math.min(prev + 5, 90))
+        }, 300)
 
         const response = await fetch("/api/vehicle-valuation", {
           method: "POST",
@@ -471,8 +472,7 @@ export function InstantQuote() {
         setCalculationProgress(100)
         return calculateLocalValue(formData)
       }
-    }
-    const result = await fetchValuation()
+    })()
 
     const quoteId = `PQ-${Date.now().toString(36).toUpperCase()}`
 

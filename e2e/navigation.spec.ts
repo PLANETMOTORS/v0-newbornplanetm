@@ -45,7 +45,7 @@ test.describe("Navigation", () => {
     await menuButton.click()
 
     // Mobile nav items should appear
-    await expect(page.locator(String.raw`button#mobile-nav-Shop\ Inventory`).or(page.getByText("Shop Inventory").nth(1))).toBeVisible()
+    await expect(page.locator('button#mobile-nav-Shop\\ Inventory').or(page.getByText("Shop Inventory").nth(1))).toBeVisible()
   })
 
   test("mobile menu navigation works", async ({ page }) => {
@@ -56,7 +56,7 @@ test.describe("Navigation", () => {
     await menuButton.click()
 
     // Expand Shop Inventory submenu — the mobile nav button id contains spaces
-    const shopButton = page.locator(String.raw`#mobile-nav-Shop\ Inventory`)
+    const shopButton = page.locator('#mobile-nav-Shop\\ Inventory')
     if (await shopButton.isVisible()) {
       await shopButton.click()
       // Submenu items should appear in the mobile nav region

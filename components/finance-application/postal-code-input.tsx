@@ -22,7 +22,7 @@ export interface PostalCodeInputProps {
   id?: string
 }
 
-export function PostalCodeInput({ value, onChange, label = "Postal Code *", id }: Readonly<PostalCodeInputProps>) {
+export function PostalCodeInput({ value, onChange, label = "Postal Code *", id }: PostalCodeInputProps) {
   const autoId = useId()
   const inputId = id ?? `postal-code-${autoId}`
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([])
@@ -117,9 +117,9 @@ export function PostalCodeInput({ value, onChange, label = "Postal Code *", id }
               Select your street to auto-fill address:
             </p>
           </div>
-          {suggestions.map((suggestion) => (
+          {suggestions.map((suggestion, idx) => (
             <button
-              key={`${suggestion.streetName}-${suggestion.streetType}-${suggestion.direction ?? ''}-${suggestion.city}`}
+              key={idx}
               type="button"
               className="w-full px-3 py-3 text-left text-sm hover:bg-primary/10 flex items-center gap-3 border-b last:border-b-0 transition-colors"
               onClick={() => handleSelectSuggestion(suggestion)}

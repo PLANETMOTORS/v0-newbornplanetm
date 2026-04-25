@@ -54,23 +54,18 @@ function getResend(): Resend | null {
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
-export type LeadSource =
-  | "lead_capture_form"
-  | "contact_form"
-  | "finance_app"
-  | "trade_in"
-  | "reservation"
-  | "test_drive"
-  | "vdp_inquiry"
-  | "chat"
-
 export interface LeadPayload {
-  /**
-   * Lead source identifier. Use one of the {@link LeadSource} string values
-   * for known sources; arbitrary strings are accepted for forward
-   * compatibility with new lead sources from external systems.
-   */
-  source: string
+  /** Lead source identifier */
+  source:
+    | "lead_capture_form"
+    | "contact_form"
+    | "finance_app"
+    | "trade_in"
+    | "reservation"
+    | "test_drive"
+    | "vdp_inquiry"
+    | "chat"
+    | string
 
   /** Customer details */
   firstName: string
@@ -201,68 +196,43 @@ function emailWrapper(content: string, accentColor: string = BRAND.blue): string
 
 // ── Internal alert email ───────────────────────────────────────────────────
 
-function renderInternalVehicleCard(
-  vehicle: NonNullable<LeadPayload["vehicle"]>,
-  vLabel: string,
-  vdpUrl: string | null,
-): string {
-  const imageRow = vehicle.imageUrl
-    ? `<tr>
-            <td style="padding:0;">
-              <img src="${escapeHtml(vehicle.imageUrl)}" alt="${vLabel}"
-                   width="600" style="width:100%;max-height:220px;object-fit:cover;display:block;" />
-            </td>
-          </tr>`
-    : ""
-  const priceRow = vehicle.price
-    ? `<tr><td style="padding:3px 12px 3px 0;color:${BRAND.slate};font-size:13px;">Price</td><td style="padding:3px 0;font-weight:600;color:${BRAND.green};font-size:15px;">${escapeHtml(formatPrice(vehicle.price))}</td></tr>`
-    : ""
-  const mileageRow = vehicle.mileage
-    ? `<tr><td style="padding:3px 12px 3px 0;color:${BRAND.slate};font-size:13px;">Mileage</td><td style="padding:3px 0;font-weight:600;color:${BRAND.navy};font-size:13px;">${escapeHtml(formatMileage(vehicle.mileage))}</td></tr>`
-    : ""
-  const vinRow = vehicle.vin
-    ? `<tr><td style="padding:3px 12px 3px 0;color:${BRAND.slate};font-size:13px;">VIN</td><td style="padding:3px 0;font-family:monospace;font-size:12px;color:${BRAND.slate};">${escapeHtml(vehicle.vin)}</td></tr>`
-    : ""
-  const stockRow = vehicle.stockNumber
-    ? `<tr><td style="padding:3px 12px 3px 0;color:${BRAND.slate};font-size:13px;">Stock #</td><td style="padding:3px 0;font-size:13px;color:${BRAND.slate};">${escapeHtml(vehicle.stockNumber)}</td></tr>`
-    : ""
-  const vdpButton = vdpUrl
-    ? `<div style="margin-top:16px;"><a href="${escapeHtml(vdpUrl)}" style="display:inline-block;background:${BRAND.navy};color:#fff;font-size:12px;font-weight:600;padding:8px 16px;border-radius:6px;text-decoration:none;">View VDP →</a></div>`
-    : ""
+function buildInternalAlert(lead: LeadPayload): { subject: string; html: string } {
+  const name = escapeHtml(`${lead.firstName} ${lead.lastName}`)
+  const vLabel = escapeHtml(vehicleLabel(lead.vehicle))
+  const sourceLabel = escapeHtml(lead.source.replaceAll(/_/g, " ").replaceAll(/\b\w/g, c => c.toUpperCase()))
+  const adminUrl = `${BASE_URL}/admin/leads${lead.leadId ? `?highlight=${lead.leadId}` : ""}`
+  const vdpUrl = lead.vehicle?.id ? `${BASE_URL}/vehicles/${lead.vehicle.id}` : null
 
-  return `
+  const vehicleBlock = lead.vehicle
+    ? `
     <!-- Vehicle card -->
     <tr>
       <td style="padding:0 32px 24px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
                style="background:${BRAND.slateLight};border-radius:10px;overflow:hidden;border:1px solid ${BRAND.border};">
-          ${imageRow}
+          ${lead.vehicle.imageUrl ? `
+          <tr>
+            <td style="padding:0;">
+              <img src="${escapeHtml(lead.vehicle.imageUrl)}" alt="${vLabel}"
+                   width="600" style="width:100%;max-height:220px;object-fit:cover;display:block;" />
+            </td>
+          </tr>` : ""}
           <tr>
             <td style="padding:20px 24px;">
               <p style="margin:0 0 4px;font-size:18px;font-weight:700;color:${BRAND.navy};">${vLabel}</p>
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:12px;">
-                ${priceRow}
-                ${mileageRow}
-                ${vinRow}
-                ${stockRow}
+                ${lead.vehicle.price ? `<tr><td style="padding:3px 12px 3px 0;color:${BRAND.slate};font-size:13px;">Price</td><td style="padding:3px 0;font-weight:600;color:${BRAND.green};font-size:15px;">${escapeHtml(formatPrice(lead.vehicle.price))}</td></tr>` : ""}
+                ${lead.vehicle.mileage ? `<tr><td style="padding:3px 12px 3px 0;color:${BRAND.slate};font-size:13px;">Mileage</td><td style="padding:3px 0;font-weight:600;color:${BRAND.navy};font-size:13px;">${escapeHtml(formatMileage(lead.vehicle.mileage))}</td></tr>` : ""}
+                ${lead.vehicle.vin ? `<tr><td style="padding:3px 12px 3px 0;color:${BRAND.slate};font-size:13px;">VIN</td><td style="padding:3px 0;font-family:monospace;font-size:12px;color:${BRAND.slate};">${escapeHtml(lead.vehicle.vin)}</td></tr>` : ""}
+                ${lead.vehicle.stockNumber ? `<tr><td style="padding:3px 12px 3px 0;color:${BRAND.slate};font-size:13px;">Stock #</td><td style="padding:3px 0;font-size:13px;color:${BRAND.slate};">${escapeHtml(lead.vehicle.stockNumber)}</td></tr>` : ""}
               </table>
-              ${vdpButton}
+              ${vdpUrl ? `<div style="margin-top:16px;"><a href="${escapeHtml(vdpUrl)}" style="display:inline-block;background:${BRAND.navy};color:#fff;font-size:12px;font-weight:600;padding:8px 16px;border-radius:6px;text-decoration:none;">View VDP →</a></div>` : ""}
             </td>
           </tr>
         </table>
       </td>
     </tr>`
-}
-
-function buildInternalAlert(lead: LeadPayload): { subject: string; html: string } {
-  const name = escapeHtml(`${lead.firstName} ${lead.lastName}`)
-  const vLabel = escapeHtml(vehicleLabel(lead.vehicle))
-  const sourceLabel = escapeHtml(lead.source.replaceAll("_", " ").replaceAll(/\b\w/g, c => c.toUpperCase()))
-  const highlightQuery = lead.leadId ? `?highlight=${lead.leadId}` : ""
-  const adminUrl = `${BASE_URL}/admin/leads${highlightQuery}`
-  const vdpUrl = lead.vehicle?.id ? `${BASE_URL}/vehicles/${lead.vehicle.id}` : null
-
-  const vehicleBlock = lead.vehicle ? renderInternalVehicleCard(lead.vehicle, vLabel, vdpUrl) : ""
+    : ""
 
   const content = `
     <!-- Alert badge -->
@@ -330,35 +300,31 @@ function buildInternalAlert(lead: LeadPayload): { subject: string; html: string 
 
 // ── Customer follow-up email ───────────────────────────────────────────────
 
-function renderCustomerVehicleHighlight(
-  vehicle: NonNullable<LeadPayload["vehicle"]>,
-  vLabel: string,
-  vdpUrl: string,
-): string {
-  const imageRow = vehicle.imageUrl
-    ? `<tr>
-            <td>
-              <img src="${escapeHtml(vehicle.imageUrl)}" alt="${vLabel}"
-                   width="600" style="width:100%;max-height:200px;object-fit:cover;display:block;" />
-            </td>
-          </tr>`
-    : ""
-  const priceLine = vehicle.price
-    ? `<p style="margin:0 0 16px;font-size:22px;font-weight:700;color:${BRAND.green};">${escapeHtml(formatPrice(vehicle.price))}</p>`
-    : ""
+function buildCustomerFollowUp(lead: LeadPayload): { subject: string; html: string } {
+  const firstName = escapeHtml(lead.firstName)
+  const vLabel = escapeHtml(vehicleLabel(lead.vehicle))
+  const hasVehicle = !!lead.vehicle
+  const vdpUrl = lead.vehicle?.id ? `${BASE_URL}/vehicles/${lead.vehicle.id}` : `${BASE_URL}/inventory`
 
-  return `
+  const vehicleSection = hasVehicle
+    ? `
     <!-- Vehicle highlight -->
     <tr>
       <td style="padding:0 32px 28px;">
         <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:${BRAND.slate};letter-spacing:1px;text-transform:uppercase;">Your Vehicle of Interest</p>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
                style="background:${BRAND.slateLight};border-radius:10px;overflow:hidden;border:1px solid ${BRAND.border};">
-          ${imageRow}
+          ${lead.vehicle?.imageUrl ? `
+          <tr>
+            <td>
+              <img src="${escapeHtml(lead.vehicle.imageUrl)}" alt="${vLabel}"
+                   width="600" style="width:100%;max-height:200px;object-fit:cover;display:block;" />
+            </td>
+          </tr>` : ""}
           <tr>
             <td style="padding:20px 24px;">
               <p style="margin:0 0 8px;font-size:20px;font-weight:800;color:${BRAND.navy};">${vLabel}</p>
-              ${priceLine}
+              ${lead.vehicle?.price ? `<p style="margin:0 0 16px;font-size:22px;font-weight:700;color:${BRAND.green};">${escapeHtml(formatPrice(lead.vehicle.price))}</p>` : ""}
               <a href="${escapeHtml(vdpUrl)}"
                  style="display:inline-block;background:${BRAND.navy};color:#fff;font-size:13px;font-weight:600;padding:10px 20px;border-radius:6px;text-decoration:none;">
                 View Full Details →
@@ -368,15 +334,7 @@ function renderCustomerVehicleHighlight(
         </table>
       </td>
     </tr>`
-}
-
-function buildCustomerFollowUp(lead: LeadPayload): { subject: string; html: string } {
-  const firstName = escapeHtml(lead.firstName)
-  const vLabel = escapeHtml(vehicleLabel(lead.vehicle))
-  const hasVehicle = !!lead.vehicle
-  const vdpUrl = lead.vehicle?.id ? `${BASE_URL}/vehicles/${lead.vehicle.id}` : `${BASE_URL}/inventory`
-
-  const vehicleSection = lead.vehicle ? renderCustomerVehicleHighlight(lead.vehicle, vLabel, vdpUrl) : ""
+    : ""
 
   const content = `
     <!-- Greeting -->

@@ -30,8 +30,7 @@ export function imgix(path: string, params: ImgixParams = {}): string {
     .map(([key, value]) => `${key}=${encodeURIComponent(String(value))}`)
     .join("&")
 
-  const querySuffix = queryString ? `?${queryString}` : ""
-  return `https://${IMGIX_DOMAIN}/${path}${querySuffix}`
+  return `https://${IMGIX_DOMAIN}/${path}${queryString ? `?${queryString}` : ""}`
 }
 
 // Quality presets optimized for 4K vehicle galleries

@@ -21,10 +21,10 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
-pass() { local msg="$1"; echo -e "  ${GREEN}✅ PASS${NC}  ${msg}"; PASS=$((PASS+1)); RESULTS+=("PASS: ${msg}"); return 0; }
-fail() { local msg="$1"; echo -e "  ${RED}❌ FAIL${NC}  ${msg}"; FAIL=$((FAIL+1)); RESULTS+=("FAIL: ${msg}"); return 0; }
-warn() { local msg="$1"; echo -e "  ${YELLOW}⚠️  WARN${NC}  ${msg}"; WARN=$((WARN+1)); RESULTS+=("WARN: ${msg}"); return 0; }
-section() { local title="$1"; echo -e "\n${BLUE}${BOLD}── ${title} ──${NC}"; return 0; }
+pass() { echo -e "  ${GREEN}✅ PASS${NC}  $1"; PASS=$((PASS+1)); RESULTS+=("PASS: $1"); }
+fail() { echo -e "  ${RED}❌ FAIL${NC}  $1"; FAIL=$((FAIL+1)); RESULTS+=("FAIL: $1"); }
+warn() { echo -e "  ${YELLOW}⚠️  WARN${NC}  $1"; WARN=$((WARN+1)); RESULTS+=("WARN: $1"); }
+section() { echo -e "\n${BLUE}${BOLD}── $1 ──${NC}"; }
 
 check_status() {
   local label="$1"

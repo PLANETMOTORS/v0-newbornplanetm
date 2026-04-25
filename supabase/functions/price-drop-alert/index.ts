@@ -64,8 +64,7 @@ function escapeHtml(str: string): string {
  * @returns The full HTML document as a string suitable for sending as an email body
  */
 function buildEmailHtml(vehicle: PriceDropPayload, siteUrl: string): string {
-  const trimSuffix = vehicle.trim ? ` ${vehicle.trim}` : ""
-  const vehicleTitle = `${vehicle.year} ${vehicle.make} ${vehicle.model}${trimSuffix}`
+  const vehicleTitle = `${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.trim ? ` ${vehicle.trim}` : ""}`
   const savings = vehicle.old_price - vehicle.new_price
   const vdpUrl = `${siteUrl}/vehicles/${vehicle.vehicle_id}`
   const imageUrl = vehicle.primary_image_url || `${siteUrl}/placeholder-vehicle.png`
@@ -254,8 +253,7 @@ Deno.serve(async (req: Request) => {
 
   const fromEmail = Deno.env.get("FROM_EMAIL") || "Planet Motors <notifications@planetmotors.ca>"
   const siteUrl = Deno.env.get("SITE_URL") || "https://planetmotors.ca"
-  const payloadTrimSuffix = payload.trim ? ` ${payload.trim}` : ""
-  const vehicleTitle = `${payload.year} ${payload.make} ${payload.model}${payloadTrimSuffix}`
+  const vehicleTitle = `${payload.year} ${payload.make} ${payload.model}${payload.trim ? ` ${payload.trim}` : ""}`
   const savings = payload.old_price - payload.new_price
   const subject = `Price Drop: ${vehicleTitle} — Save ${formatPrice(savings)}!`
   const html = buildEmailHtml(payload, siteUrl)

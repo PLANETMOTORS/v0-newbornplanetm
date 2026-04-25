@@ -1,44 +1,52 @@
-// Planet Motors - Sanity Schema Index
-// Last updated: 2025-04-25 — added author schema, lender from lender.ts (not pages.ts)
+// Planet Motors - Sanity Schema Index - COMPLETE
+// All 25+ schemas for full CMS coverage
 
+// Vehicle (lender is now in pageSchemas)
 import { vehicle } from './vehicle'
-import { lender } from './lender'
+
+// Pages - ALL page types including new ones:
+// Homepage, Financing, Sell Your Car, Trade-In, Contact, About, Blog Index,
+// Inventory, Services, Warranty, FAQ Page, Landing Page, VDP Settings, AI Settings
 import { pageSchemas } from './pages'
+
+// Homepage & Website Components
 import { homepageHero, banner, page, promotion } from './homepage'
-import { author, blogPost, testimonial, faqEntry, protectionPlan } from './content'
+
+// Content
+import { blogPost, testimonial, faqEntry, protectionPlan } from './content'
+
+// Settings
 import { siteSettings, seoSettings, navigation } from './settings'
 import { inventorySettings } from './inventorySettings'
+
+// Custom types
 import { supabaseVehicleReference } from './supabaseVehicleReference'
 
 export const schemaTypes = [
   // Vehicles
   vehicle,
-
-  // Lender (full schema from lender.ts — NOT the minimal duplicate from pages.ts)
-  lender,
-
-  // Page schemas (object types + page documents — lender removed from this array)
+  
+  // All Page Schemas (25+ types including object types)
   ...pageSchemas,
-
-  // Website components
+  
+  // Website Components
   homepageHero,
   banner,
   page,
   promotion,
-
+  
   // Content
-  author,
   blogPost,
   testimonial,
   faqEntry,
   protectionPlan,
-
+  
   // Settings
   siteSettings,
   seoSettings,
   inventorySettings,
   navigation,
 
-  // Custom input types
+  // Custom types
   supabaseVehicleReference,
 ]

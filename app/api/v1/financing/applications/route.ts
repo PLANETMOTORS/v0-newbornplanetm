@@ -210,7 +210,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Create co-applicant if provided
-    if (coApplicant?.firstName) {
+    if (coApplicant && coApplicant.firstName) {
       const { data: coApp, error: coError } = await supabase
         .from("finance_applicants")
         .insert({

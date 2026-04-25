@@ -24,8 +24,8 @@
  */
 
 import { test, expect, type Page } from "@playwright/test"
-import * as path from "node:path"
-import * as fs from "node:fs"
+import * as path from "path"
+import * as fs from "fs"
 
 // Fixture paths for test document images
 const FIXTURES_DIR = path.join(__dirname, "fixtures")
@@ -266,7 +266,7 @@ test.describe("Step 5 — IDV: Document Upload", () => {
 
     // The remove button (X) should appear on the preview
     const removeBtn = page
-      .locator(String.raw`.relative.aspect-\[1\.6\]`)
+      .locator(".relative.aspect-\\[1\\.6\\]")
       .locator("button")
       .first()
     await removeBtn.click()

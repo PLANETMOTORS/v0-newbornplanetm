@@ -165,15 +165,14 @@ function calculateFallbackValue(year: string, make: string, model: string, milea
   let baseValue = baseValues[model] || makeTiers[make] || 28000
 
   // Depreciation
-  const depreciationRate = (y: number) => {
-    if (y === 0) return 0.8
-    if (y === 1) return 0.85
-    if (y === 2) return 0.88
-    if (y < 6) return 0.9
-    return 0.92
-  }
   let value = baseValue
-  for (let y = 0; y < age; y++) value *= depreciationRate(y)
+  for (let y = 0; y < age; y++) {
+    if (y === 0) value *= 0.80
+    else if (y === 1) value *= 0.85
+    else if (y === 2) value *= 0.88
+    else if (y < 6) value *= 0.90
+    else value *= 0.92
+  }
 
   // Mileage adjustment
   const expectedMileage = age * 20000
@@ -186,9 +185,9 @@ function calculateFallbackValue(year: string, make: string, model: string, milea
 
   // Condition
   const conditionMultipliers: Record<string, number> = {
-    "excellent": 1.1, "good": 1, "fair": 0.85, "poor": 0.65,
+    "excellent": 1.10, "good": 1.00, "fair": 0.85, "poor": 0.65,
   }
-  value *= conditionMultipliers[condition?.toLowerCase()] || 1
+  value *= conditionMultipliers[condition?.toLowerCase()] || 1.0
 
   // Regional adjustment based on postal code
   const { multiplier, region, vehicleType } = getRegionalMultiplier(postalCode, make, model)

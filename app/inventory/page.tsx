@@ -725,7 +725,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Year */}
                   <div>
-                    <label htmlFor="filter-year" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Year</label>
+                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Year</label>
                     <select
                       id="filter-year"
                       value={selectedYear}
@@ -740,7 +740,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Fuel Type */}
                   <div>
-                    <label htmlFor="filter-fuel" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Fuel</label>
+                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Fuel</label>
                     <select
                       id="filter-fuel"
                       value={selectedFuelType}
@@ -755,7 +755,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Transmission */}
                   <div>
-                    <label htmlFor="filter-trans" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Trans</label>
+                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Trans</label>
                     <select
                       id="filter-trans"
                       value={selectedTransmission}
@@ -770,7 +770,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Drivetrain */}
                   <div>
-                    <label htmlFor="filter-drive" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Drive</label>
+                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Drive</label>
                     <select
                       id="filter-drive"
                       value={selectedDrivetrain}
@@ -785,7 +785,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Color */}
                   <div>
-                    <label htmlFor="filter-color" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Color</label>
+                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Color</label>
                     <select
                       id="filter-color"
                       value={selectedColor}
@@ -856,8 +856,8 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
           {/* Inline skeleton loading state */}
           {showSkeleton && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 py-8">
-              {Array.from({ length: 8 }, (_, i) => `vehicle-skel-${i}`).map((id) => (
-                <div key={id} className="rounded-xl border overflow-hidden animate-pulse">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="rounded-xl border overflow-hidden animate-pulse">
                   <div className="aspect-4/3 bg-muted" />
                   <div className="p-4 space-y-3">
                     <div className="h-5 bg-muted rounded w-3/4" />
@@ -1123,7 +1123,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
               >
                 OMVIC Registered Dealer
               </a>
-              {". All prices exclude applicable taxes and licensing fees."}
+              . All prices exclude applicable taxes and licensing fees.
             </p>
           </div>
         </div>

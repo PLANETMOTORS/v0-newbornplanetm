@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
@@ -37,6 +38,7 @@ import {
 } from "@/components/ui/dialog"
 import { trackProductView, trackPhoneClick } from "@/components/analytics/google-tag-manager"
 import { calculateAllInPrice, safeNum } from "@/lib/pricing/format"
+import { FALLBACK_VEHICLE_DATA } from "@/lib/vdp/fallback-vehicle-data"
 import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
 import { trackMetaViewContent, trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
 import { PHONE_LOCAL, PHONE_LOCAL_TEL, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
@@ -307,9 +309,9 @@ const vehicleData = {
     description: "The 2024 Tesla Model 3 combines cutting-edge technology with exceptional performance. Perfect for Canadian drivers looking for a premium EV experience.",
     categories: [
       { name: "Performance", score: 4.9 },
-      { name: "Efficiency", score: 5 },
+      { name: "Efficiency", score: 5.0 },
       { name: "Comfort", score: 4.5 },
-      { name: "Tech", score: 5 },
+      { name: "Tech", score: 5.0 },
       { name: "Space", score: 4.2 },
       { name: "Reliability", score: 4.7 },
       { name: "Safety", score: 4.9 }
@@ -388,27 +390,31 @@ export interface VDPClientProps {
   serverVehicle: VehicleDetail
 }
 
-function selectRawImages(serverVehicle: VehicleDetail): string[] {
-  if (serverVehicle.imageUrls.length > 0) return serverVehicle.imageUrls
-  if (serverVehicle.primaryImageUrl) return [serverVehicle.primaryImageUrl]
-  return vehicleData.images
-}
+export default function VDPClient({ serverVehicle }: VDPClientProps) {
+  const searchParams = useSearchParams()
+  const { user } = useAuth()
+  const { addFavorite, removeFavorite, isFavorite: isFavoriteInContext } = useFavorites()
 
-function cleanHomenetOverlay(rawImages: string[], primaryImageUrl: string | null): string[] {
-  const shouldStrip = rawImages.length > 1
-    && rawImages[0] === primaryImageUrl
+  // ── Build the merged vehicle shape from server data + mock inspection fallbacks ──
+  // HomenetIOL: first image often has dealer overlays. Skip when feed has > 1 image.
+  const rawImages: string[] = serverVehicle.imageUrls.length > 0
+    ? serverVehicle.imageUrls
+    : serverVehicle.primaryImageUrl
+      ? [serverVehicle.primaryImageUrl]
+      : vehicleData.images
+
+  const cleanImages = rawImages.length > 1
+    && rawImages[0] === serverVehicle.primaryImageUrl
     && rawImages[0]?.includes('homenetiol.com')
-  return shouldStrip ? rawImages.slice(1) : rawImages
-}
+    ? rawImages.slice(1)
+    : rawImages
 
-function buildMergedVehicle(serverVehicle: VehicleDetail) {
-  const rawImages = selectRawImages(serverVehicle)
-  const cleanImages = cleanHomenetOverlay(rawImages, serverVehicle.primaryImageUrl)
   const splitIndex = cleanImages.length > 10 ? Math.ceil(cleanImages.length * 0.6) : cleanImages.length
   const exteriorImgs = cleanImages.slice(0, splitIndex)
   const interiorImgs = cleanImages.length > 10 ? cleanImages.slice(splitIndex) : []
 
-  return {
+  // Merged vehicle object — SSR data + mock inspection fallback
+  const vehicle = {
     ...vehicleData,
     id: serverVehicle.id,
     year: serverVehicle.year,
@@ -438,285 +444,6 @@ function buildMergedVehicle(serverVehicle: VehicleDetail) {
       totalWithHst: serverVehicle.pricing.total,
     },
   }
-}
-
-function useTrackVehicleView(vehicle: { id: string; year: number; make: string; model: string; trim?: string | null; price: number; fuelType?: string | null }) {
-  const vehicleRef = useRef(vehicle)
-  useEffect(() => {
-    const vehicle = vehicleRef.current
-    const trimSuffix = vehicle.trim ? ` ${vehicle.trim}` : ""
-    const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}${trimSuffix}`
-    trackProductView({
-      id: vehicle.id,
-      name,
-      price: vehicle.price,
-      make: vehicle.make,
-      model: vehicle.model,
-      year: vehicle.year,
-      fuelType: vehicle.fuelType || "Unknown",
-    })
-    trackViewItem({
-      id: vehicle.id,
-      name,
-      price: vehicle.price,
-      make: vehicle.make,
-      model: vehicle.model,
-    })
-    trackMetaViewContent({
-      id: vehicle.id,
-      name,
-      price: vehicle.price,
-      make: vehicle.make,
-    })
-  }, [])
-}
-
-const AUTO_SPIN_INTERVAL_MS = 1500
-
-function useAutoSpin360(active: boolean, frameCount: number, setIndex: (updater: (prev: number) => number) => void) {
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const clear = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-      intervalRef.current = null
-    }
-  }, [])
-
-  useEffect(() => {
-    if (active && frameCount > 1) {
-      clear()
-      intervalRef.current = setInterval(() => {
-        setIndex((prev) => (prev + 1) % frameCount)
-      }, AUTO_SPIN_INTERVAL_MS)
-    } else {
-      clear()
-    }
-    return clear
-  }, [active, frameCount, setIndex, clear])
-}
-
-function buildFinanceLink(vId: string, tradeInValue: string | null, tradeInQuoteId: string | null, tradeInVehicle: string | null): string {
-  if (tradeInValue && Number.parseInt(tradeInValue) > 0) {
-    const params = new URLSearchParams({
-      tradeIn: tradeInValue,
-      quoteId: tradeInQuoteId || '',
-      tradeInVehicle: tradeInVehicle || ''
-    })
-    return `/finance/${vId}?${params.toString()}`
-  }
-  return `/finance/${vId}`
-}
-
-const POSTAL_CODE_REGEX = /^[A-Z]\d[A-Z]\d[A-Z]\d$/
-
-function normalizePostalCode(value: string): string {
-  return value.toUpperCase().replaceAll(/\s/g, "").slice(0, 6)
-}
-
-async function shareVehicle(url: string, title: string, text: string): Promise<void> {
-  try {
-    if (navigator.share) {
-      await navigator.share({ title, text, url })
-      return
-    }
-    await navigator.clipboard.writeText(url)
-    toast.success("Vehicle link copied to clipboard")
-  } catch (error) {
-    console.error("Share failed:", error)
-    toast.error("Unable to share right now. Please try again.")
-  }
-}
-
-interface AutoSpin360ViewerProps {
-  vehicle: { year: number; make: string; model: string; images: string[] }
-  currentImageIndex: number
-  setCurrentImageIndex: (updater: (prev: number) => number) => void
-  isAutoSpinning: boolean
-  setIsAutoSpinning: (value: boolean) => void
-}
-
-function AutoSpin360Viewer({
-  vehicle,
-  currentImageIndex,
-  setCurrentImageIndex,
-  isAutoSpinning,
-  setIsAutoSpinning,
-}: Readonly<AutoSpin360ViewerProps>) {
-  const hasImages = vehicle.images.length > 0 && vehicle.images[currentImageIndex]
-  return (
-    <div
-      data-testid="vdp-auto-spin"
-      className="relative aspect-[4/3] rounded-xl overflow-hidden group"
-      style={{ backgroundColor: "#111" }}
-      onMouseEnter={() => setIsAutoSpinning(false)}
-      onMouseLeave={() => setIsAutoSpinning(true)}
-    >
-      {hasImages ? (
-        <>
-          <Image
-            src={vehicle.images[currentImageIndex]}
-            alt={`${vehicle.year} ${vehicle.make} ${vehicle.model} — 360° view`}
-            fill
-            className="object-contain transition-opacity duration-500"
-            priority
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
-          />
-          <div className="absolute top-4 left-4 bg-black/60 backdrop-blur text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5">
-            <RotateCw className="h-3 w-3 animate-spin" style={{ animationDuration: "3s" }} />
-            Auto-Spin 360°
-          </div>
-          <button
-            onClick={() => setIsAutoSpinning(!isAutoSpinning)}
-            className="absolute bottom-4 right-4 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition shadow-lg"
-            aria-label={isAutoSpinning ? "Pause auto-spin" : "Play auto-spin"}
-            type="button"
-          >
-            {isAutoSpinning ? <Pause className="h-4 w-4 text-black" /> : <Play className="h-4 w-4 text-black ml-0.5" />}
-          </button>
-          <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur text-white px-2 py-1 rounded text-xs">
-            {currentImageIndex + 1} / {vehicle.images.length}
-          </div>
-          <button
-            onClick={() => { setIsAutoSpinning(false); setCurrentImageIndex((p: number) => (p - 1 + vehicle.images.length) % vehicle.images.length) }}
-            aria-label="Previous image"
-            type="button"
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition opacity-0 group-hover:opacity-100"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <button
-            onClick={() => { setIsAutoSpinning(false); setCurrentImageIndex((p: number) => (p + 1) % vehicle.images.length) }}
-            aria-label="Next image"
-            type="button"
-            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition opacity-0 group-hover:opacity-100"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
-        </>
-      ) : (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-          <RotateCw className="w-12 h-12 text-white/20" />
-          <p className="text-sm text-white/50">No exterior photos available</p>
-        </div>
-      )}
-    </div>
-  )
-}
-
-interface MainImageGalleryProps {
-  vehicle: { year: number; make: string; model: string }
-  currentImages: string[]
-  activeIndex: number
-  nextImage: () => void
-  prevImage: () => void
-}
-
-function MainImageGallery({
-  vehicle,
-  currentImages,
-  activeIndex,
-  nextImage,
-  prevImage,
-}: Readonly<MainImageGalleryProps>) {
-  const activeImage = currentImages[activeIndex]
-  const hasImage = currentImages.length > 0 && activeImage
-  return (
-    <section
-      data-testid="vdp-image-gallery"
-      tabIndex={0}
-      aria-label="Vehicle image gallery"
-      onKeyDown={(e) => {
-        if (e.key === "ArrowRight") { nextImage(); e.preventDefault() }
-        if (e.key === "ArrowLeft") { prevImage(); e.preventDefault() }
-      }}
-      className="relative aspect-[4/3] rounded-xl overflow-hidden group focus:outline-none focus:ring-2 focus:ring-primary"
-      style={{ backgroundColor: "#e8e8e8" }}
-    >
-      {hasImage ? (
-        <>
-          <Image
-            data-testid="vdp-hero-image"
-            data-active-src={activeImage}
-            src={activeImage}
-            alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-            fill
-            className="object-contain [clip-path:inset(0_0_8%_0)]"
-            priority
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none"
-            }}
-          />
-          <button
-            onClick={() => globalThis.open(activeImage, "_blank")}
-            className="absolute top-4 right-4 w-10 h-10 bg-background/80 backdrop-blur rounded-lg flex items-center justify-center hover:bg-background transition"
-            aria-label="View full-size image"
-            type="button"
-          >
-            <Expand className="w-5 h-5" />
-          </button>
-        </>
-      ) : (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-          <Car className="w-20 h-20 text-[#1e3a8a]/15" />
-          <p className="text-sm text-muted-foreground">Photos coming soon</p>
-        </div>
-      )}
-      <button
-        onClick={prevImage}
-        aria-label="Previous image"
-        type="button"
-        className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
-      >
-        <ChevronLeft className="h-5 w-5" />
-      </button>
-      <button
-        onClick={nextImage}
-        aria-label="Next image"
-        type="button"
-        className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
-      >
-        <ChevronRight className="h-5 w-5" />
-      </button>
-    </section>
-  )
-}
-
-interface TradeInBannerProps {
-  tradeInValue: string | null
-  tradeInVehicle: string | null
-  financeLink: string
-}
-
-function TradeInBanner({ tradeInValue, tradeInVehicle, financeLink }: Readonly<TradeInBannerProps>) {
-  if (!tradeInValue || Number.parseInt(tradeInValue) <= 0) return null
-  return (
-    <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div className="flex items-center gap-3">
-            <CheckCircle className="w-5 h-5" />
-            <span className="font-semibold">
-              Your Trade-In: <span className="font-bold tabular-nums">${Number.parseInt(tradeInValue).toLocaleString()}</span>
-              {tradeInVehicle && <span className="text-white/80 ml-2">({decodeURIComponent(tradeInVehicle)})</span>}
-            </span>
-          </div>
-          <Button size="sm" variant="secondary" asChild>
-            <Link href={financeLink}>Apply to This Vehicle</Link>
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
-  const searchParams = useSearchParams()
-  const { user } = useAuth()
-  const { addFavorite, removeFavorite, isFavorite: isFavoriteInContext } = useFavorites()
-
-  // Merged vehicle object — SSR data + mock inspection fallback
-  const vehicle = buildMergedVehicle(serverVehicle)
 
   const vehicleId = vehicle.id
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -745,43 +472,114 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
   const tradeInVehicle = searchParams.get("tradeInVehicle")
 
   // Helper to build finance link with trade-in info
-  const getFinanceLink = (vId: string) => buildFinanceLink(vId, tradeInValue, tradeInQuoteId, tradeInVehicle)
+  const getFinanceLink = (vId: string) => {
+    if (tradeInValue && Number.parseInt(tradeInValue) > 0) {
+      const params = new URLSearchParams({
+        tradeIn: tradeInValue,
+        quoteId: tradeInQuoteId || '',
+        tradeInVehicle: tradeInVehicle || ''
+      })
+      return `/finance/${vId}?${params.toString()}`
+    }
+    return `/finance/${vId}`
+  }
 
   // Track product view on mount (data is already available from SSR)
-  useTrackVehicleView(vehicle)
+  useEffect(() => {
+    const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.trim ? ` ${vehicle.trim}` : ""}`
+    trackProductView({
+      id: vehicle.id,
+      name,
+      price: vehicle.price,
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      fuelType: vehicle.fuelType || "Unknown",
+    })
+    trackViewItem({
+      id: vehicle.id,
+      name,
+      price: vehicle.price,
+      make: vehicle.make,
+      model: vehicle.model,
+    })
+    trackMetaViewContent({
+      id: vehicle.id,
+      name,
+      price: vehicle.price,
+      make: vehicle.make,
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Fire once on mount
+  }, [])
 
   // ── 360° via Drivee iframe ──
-  const has360 = !!vehicle.driveeMid
+  const has360 = !!vehicle?.driveeMid
 
   // ── Auto-spin for 360° fallback (no Drivee) ──
   const [isAutoSpinning, setIsAutoSpinning] = useState(true)
-  useAutoSpin360(
-    imageType === "360" && !has360 && isAutoSpinning,
-    vehicle?.images?.length ?? 0,
-    setCurrentImageIndex,
-  )
+  const autoSpinRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const AUTO_SPIN_INTERVAL = 1500 // ms between frames
+
+  const clearAutoSpin = useCallback(() => {
+    if (autoSpinRef.current) {
+      clearInterval(autoSpinRef.current)
+      autoSpinRef.current = null
+    }
+  }, [])
+
+  // Start / stop auto-spin when 360 tab is active without Drivee
+  useEffect(() => {
+    const shouldSpin = imageType === "360" && !has360 && isAutoSpinning && vehicle?.images?.length > 1
+    if (shouldSpin) {
+      clearAutoSpin()
+      autoSpinRef.current = setInterval(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % vehicle.images.length)
+      }, AUTO_SPIN_INTERVAL)
+    } else {
+      clearAutoSpin()
+    }
+    return clearAutoSpin
+  }, [imageType, has360, isAutoSpinning, vehicle?.images?.length, clearAutoSpin])
 
   const handleProtectedAction = (action: string, callback?: () => void) => {
-    if (user) {
-      if (callback) callback()
-    } else {
+    if (!user) {
       setAuthAction(action)
       setShowAuthModal(true)
+    } else if (callback) {
+      callback()
     }
   }
 
   const handleShare = async () => {
-    const shareUrl = globalThis.window === undefined ? "" : globalThis.window.location.href
+    const shareUrl = typeof window !== "undefined" ? window.location.href : ""
     const shareTitle = `${vehicle.year} ${vehicle.make} ${vehicle.model} at Planet Motors`
     const shareText = `Check out this ${vehicle.year} ${vehicle.make} ${vehicle.model} for $${safeNum(vehicle.price).toLocaleString()}.`
-    await shareVehicle(shareUrl, shareTitle, shareText)
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl,
+        })
+        return
+      }
+      await navigator.clipboard.writeText(shareUrl)
+      toast.success("Vehicle link copied to clipboard")
+    } catch (error) {
+      console.error("Share failed:", error)
+      toast.error("Unable to share right now. Please try again.")
+    }
   }
+
+  const normalizePostalCode = (value: string) =>
+    value.toUpperCase().replaceAll(/\s/g, "").slice(0, 6)
 
   const handleDeliveryCheck = async () => {
     const cleaned = normalizePostalCode(postalCode)
+    const postalRegex = /^[A-Z]\d[A-Z]\d[A-Z]\d$/
     setDeliveryError("")
     setDeliveryQuote(null)
-    if (!POSTAL_CODE_REGEX.test(cleaned)) {
+    if (!postalRegex.test(cleaned)) {
       setDeliveryError("Enter a valid Canadian postal code (example: L4C1G7).")
       return
     }
@@ -789,11 +587,11 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
     try {
       const response = await fetch(`/api/v1/deliveries/quote?postalCode=${encodeURIComponent(cleaned)}`)
       const data = await response.json()
-      if (response.ok) {
-        setDeliveryQuote(data)
-      } else {
+      if (!response.ok) {
         setDeliveryError(data?.error || "Unable to calculate delivery right now.")
+        return
       }
+      setDeliveryQuote(data)
     } catch (error) {
       console.error("Delivery quote failed:", error)
       setDeliveryError("Unable to calculate delivery right now.")
@@ -830,11 +628,24 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
       <main id="main-content" tabIndex={-1} className="pb-32 md:pb-20 overflow-x-hidden max-w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" role="main" aria-label="Vehicle details" data-vin={vehicle.vin} data-stock={vehicle.stockNumber}>
 
         {/* Trade-In Banner */}
-        <TradeInBanner
-          tradeInValue={tradeInValue}
-          tradeInVehicle={tradeInVehicle}
-          financeLink={getFinanceLink(vehicle.id)}
-        />
+        {tradeInValue && Number.parseInt(tradeInValue) > 0 && (
+          <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3">
+            <div className="container mx-auto px-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="font-semibold">
+                    Your Trade-In: <span className="font-bold tabular-nums">${Number.parseInt(tradeInValue).toLocaleString()}</span>
+                    {tradeInVehicle && <span className="text-white/80 ml-2">({decodeURIComponent(tradeInVehicle)})</span>}
+                  </span>
+                </div>
+                <Button size="sm" variant="secondary" asChild>
+                  <Link href={getFinanceLink(vehicle?.id || '')}>Apply to This Vehicle</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Breadcrumb */}
         <nav className="bg-muted/30 py-3 border-b" aria-label="Breadcrumb">
@@ -901,29 +712,138 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
                   {/* 360° Interactive Viewer — Drivee iframe (if available) */}
-                  {imageType === "360" && has360 && vehicle.driveeMid && (
+                  {imageType === "360" && has360 && vehicle.driveeMid ? (
                     <DriveeViewer
                       mid={vehicle.driveeMid}
                       vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                     />
-                  )}
-                  {imageType === "360" && !has360 && (
-                    <AutoSpin360Viewer
-                      vehicle={vehicle}
-                      currentImageIndex={currentImageIndex}
-                      setCurrentImageIndex={setCurrentImageIndex}
-                      isAutoSpinning={isAutoSpinning}
-                      setIsAutoSpinning={setIsAutoSpinning}
-                    />
-                  )}
-                  {(imageType !== "360" || (has360 && !vehicle.driveeMid)) && (
-                    <MainImageGallery
-                      vehicle={vehicle}
-                      currentImages={currentImages}
-                      activeIndex={activeIndex}
-                      nextImage={nextImage}
-                      prevImage={prevImage}
-                    />
+                  ) : imageType === "360" && !has360 ? (
+                  /* ── Auto-Spin 360° Fallback — cycles exterior photos ── */
+                  <div
+                    data-testid="vdp-auto-spin"
+                    className="relative aspect-[4/3] rounded-xl overflow-hidden group"
+                    style={{ backgroundColor: "#111" }}
+                    onMouseEnter={() => setIsAutoSpinning(false)}
+                    onMouseLeave={() => setIsAutoSpinning(true)}
+                  >
+                    {vehicle.images.length > 0 && vehicle.images[currentImageIndex] ? (
+                      <>
+                        <Image
+                          src={vehicle.images[currentImageIndex]}
+                          alt={`${vehicle.year} ${vehicle.make} ${vehicle.model} — 360° view`}
+                          fill
+                          className="object-contain transition-opacity duration-500"
+                          priority
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
+                        />
+                        {/* 360° overlay badge */}
+                        <div className="absolute top-4 left-4 bg-black/60 backdrop-blur text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5">
+                          <RotateCw className="h-3 w-3 animate-spin" style={{ animationDuration: "3s" }} />
+                          Auto-Spin 360°
+                        </div>
+                        {/* Play / Pause toggle */}
+                        <button
+                          onClick={() => setIsAutoSpinning(!isAutoSpinning)}
+                          className="absolute bottom-4 right-4 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition shadow-lg"
+                          aria-label={isAutoSpinning ? "Pause auto-spin" : "Play auto-spin"}
+                          type="button"
+                        >
+                          {isAutoSpinning ? <Pause className="h-4 w-4 text-black" /> : <Play className="h-4 w-4 text-black ml-0.5" />}
+                        </button>
+                        {/* Image counter */}
+                        <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur text-white px-2 py-1 rounded text-xs">
+                          {currentImageIndex + 1} / {vehicle.images.length}
+                        </div>
+                        {/* Manual prev/next arrows */}
+                        <button
+                          onClick={() => { setIsAutoSpinning(false); setCurrentImageIndex((p: number) => (p - 1 + vehicle.images.length) % vehicle.images.length) }}
+                          aria-label="Previous image"
+                          type="button"
+                          className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition opacity-0 group-hover:opacity-100"
+                        >
+                          <ChevronLeft className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => { setIsAutoSpinning(false); setCurrentImageIndex((p: number) => (p + 1) % vehicle.images.length) }}
+                          aria-label="Next image"
+                          type="button"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition opacity-0 group-hover:opacity-100"
+                        >
+                          <ChevronRight className="h-5 w-5" />
+                        </button>
+                      </>
+                    ) : (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                        <RotateCw className="w-12 h-12 text-white/20" />
+                        <p className="text-sm text-white/50">No exterior photos available</p>
+                      </div>
+                    )}
+                  </div>
+                  ) : (
+                  <section
+                    data-testid="vdp-image-gallery"
+                    tabIndex={0}
+                    aria-label="Vehicle image gallery"
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowRight") { nextImage(); e.preventDefault() }
+                      if (e.key === "ArrowLeft") { prevImage(); e.preventDefault() }
+                    }}
+                    className="relative aspect-[4/3] rounded-xl overflow-hidden group focus:outline-none focus:ring-2 focus:ring-primary"
+                    style={{ backgroundColor: "#e8e8e8" }}
+                  >
+                    {/* Hidden native img for vdp-active-image testid (Playwright getAttribute('src')) */}
+                    {currentImages.length > 0 && currentImages[activeIndex] && (
+                      // eslint-disable-next-line @next/next/no-img-element -- intentional: Playwright tests read src via getAttribute
+                      <img data-testid="vdp-active-image" src={currentImages[activeIndex]} alt="" className="hidden" />
+                    )}
+                    {currentImages.length > 0 && currentImages[activeIndex] ? (
+                      <>
+                        <Image
+                          data-testid="vdp-hero-image"
+                          src={currentImages[activeIndex]}
+                          alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                          fill
+                          className="object-contain [clip-path:inset(0_0_8%_0)]"
+                          priority
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = "none"
+                          }}
+                        />
+                        {/* Expand Button — opens image in new tab */}
+                        <button
+                          onClick={() => globalThis.open(currentImages[activeIndex], "_blank")}
+                          className="absolute top-4 right-4 w-10 h-10 bg-background/80 backdrop-blur rounded-lg flex items-center justify-center hover:bg-background transition"
+                          aria-label="View full-size image"
+                          type="button"
+                        >
+                          <Expand className="w-5 h-5" />
+                        </button>
+                      </>
+                    ) : (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                        <Car className="w-20 h-20 text-[#1e3a8a]/15" />
+                        <p className="text-sm text-muted-foreground">Photos coming soon</p>
+                      </div>
+                    )}
+                    {/* Navigation Arrows */}
+                    <button
+                      onClick={prevImage}
+                      aria-label="Previous image"
+                      type="button"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={nextImage}
+                      aria-label="Next image"
+                      type="button"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
+                  </section>
                   )}
 
                   {/* Image Type Toggle */}
@@ -2143,11 +2063,11 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     )}
                     {deliveryQuote && (
                       <p className="text-xs text-muted-foreground mt-2">
-                        {(() => {
-                          if (!deliveryQuote.isDeliveryAvailable) return `Delivery is not available for ${deliveryQuote.postalCode} right now.`
-                          if (deliveryQuote.isFreeDelivery) return `Free delivery to ${deliveryQuote.postalCode} (${deliveryQuote.distanceKm} km).`
-                          return `Delivery to ${deliveryQuote.postalCode}: $${deliveryQuote.deliveryCost.toFixed(2)} (${deliveryQuote.distanceKm} km).`
-                        })()}
+                        {deliveryQuote.isDeliveryAvailable
+                          ? deliveryQuote.isFreeDelivery
+                            ? `Free delivery to ${deliveryQuote.postalCode} (${deliveryQuote.distanceKm} km).`
+                            : `Delivery to ${deliveryQuote.postalCode}: $${deliveryQuote.deliveryCost.toFixed(2)} (${deliveryQuote.distanceKm} km).`
+                          : `Delivery is not available for ${deliveryQuote.postalCode} right now.`}
                       </p>
                     )}
                   </div>

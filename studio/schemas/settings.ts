@@ -113,7 +113,7 @@ export const siteSettings = defineType({
       group: 'delivery',
       fields: [
         { name: 'freeDeliveryRadius', title: 'Free Delivery Radius (km)', type: 'number', initialValue: 100 },
-        { name: 'perKmRate', title: 'Per KM Rate ($)', type: 'number', initialValue: 0.5 },
+        { name: 'perKmRate', title: 'Per KM Rate ($)', type: 'number', initialValue: 0.50 },
         { name: 'enabled', title: 'Delivery Enabled', type: 'boolean', initialValue: true },
       ],
     }),

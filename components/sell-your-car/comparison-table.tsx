@@ -15,15 +15,7 @@ interface ComparisonTableProps {
   othersLabel?: string
 }
 
-function BoolIcon({ value }: Readonly<{ value: boolean }>) {
-  return value ? (
-    <Check className="h-5 w-5 text-green-600 mx-auto" />
-  ) : (
-    <X className="h-5 w-5 text-red-500 mx-auto" />
-  )
-}
-
-export function ComparisonTable({ title, rows, usLabel = 'Planet Motors', othersLabel = 'Others' }: Readonly<ComparisonTableProps>) {
+export function ComparisonTable({ title, rows, usLabel = 'Planet Motors', othersLabel = 'Others' }: ComparisonTableProps) {
   return (
     <section className="py-16 md:py-24 bg-muted/30">
       <div className="container mx-auto px-4">
@@ -38,20 +30,28 @@ export function ComparisonTable({ title, rows, usLabel = 'Planet Motors', others
           
           {/* Rows */}
           {rows.map((row, index) => (
-            <div key={row.feature} className={`grid grid-cols-3 ${index === rows.length - 1 ? '' : 'border-b'}`}>
+            <div key={index} className={`grid grid-cols-3 ${index !== rows.length - 1 ? 'border-b' : ''}`}>
               <div className="p-4 font-semibold">{row.feature}</div>
               <div className="p-4 text-center">
-                {row.usValue === undefined ? (
-                  <span className="text-green-700 dark:text-green-500 font-semibold">{row.us}</span>
+                {row.usValue !== undefined ? (
+                  row.usValue ? (
+                    <Check className="h-5 w-5 text-green-600 mx-auto" />
+                  ) : (
+                    <X className="h-5 w-5 text-red-500 mx-auto" />
+                  )
                 ) : (
-                  <BoolIcon value={row.usValue} />
+                  <span className="text-green-700 dark:text-green-500 font-semibold">{row.us}</span>
                 )}
               </div>
               <div className="p-4 text-center">
-                {row.othersValue === undefined ? (
-                  <span className="text-muted-foreground">{row.others}</span>
+                {row.othersValue !== undefined ? (
+                  row.othersValue ? (
+                    <Check className="h-5 w-5 text-green-600 mx-auto" />
+                  ) : (
+                    <X className="h-5 w-5 text-red-500 mx-auto" />
+                  )
                 ) : (
-                  <BoolIcon value={row.othersValue} />
+                  <span className="text-muted-foreground">{row.others}</span>
                 )}
               </div>
             </div>

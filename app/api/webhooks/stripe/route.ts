@@ -131,16 +131,6 @@ async function resolveDealId(
   return null
 }
 
-async function handleDealDeposit(
-  supabase: SupabaseAdminClient,
-  params: { reservationId?: string; vehicleId?: string; userId: string; paymentIntentId: string; stripeCustomerId: string | null; amountCents: number; currency: string; state: "succeeded" | "failed"; paidAt?: string; stripeEventId: string; stripeOccurredAt: number; eventType: string; eventPayload: Record<string, unknown> }
-): Promise<void> {
-  const dealId = await resolveDealId(supabase, { reservationId: params.reservationId, vehicleId: params.vehicleId })
-  if (!dealId) return
-  await upsertDeposit(supabase, { dealId, userId: params.userId, paymentIntentId: params.paymentIntentId, stripeCustomerId: params.stripeCustomerId, amountCents: params.amountCents, currency: params.currency, state: params.state, paidAt: params.paidAt })
-  await appendDealEvent(supabase, { dealId, eventType: params.eventType, stripeEventId: params.stripeEventId, stripeOccurredAt: params.stripeOccurredAt, payload: params.eventPayload })
-}
-
 // ── Exported handlers (testable with injected supabase) ────────────────────
 
 export async function handlePaymentIntentCreated(
@@ -182,7 +172,25 @@ export async function handlePaymentIntentSucceeded(
   const paidAt = new Date().toISOString()
 
   if (userId) {
-    await handleDealDeposit(supabase, { reservationId, vehicleId, userId, paymentIntentId: paymentIntent.id, stripeCustomerId: typeof paymentIntent.customer === "string" ? paymentIntent.customer : null, amountCents: paymentIntent.amount, currency: paymentIntent.currency, state: "succeeded", paidAt, stripeEventId, stripeOccurredAt: paymentIntent.created, eventType: "deposit.succeeded", eventPayload: { payment_intent_id: paymentIntent.id, amount_cents: paymentIntent.amount, currency: paymentIntent.currency, is_reservation: isReservation } })
+    const dealId = await resolveDealId(supabase, { reservationId, vehicleId })
+    if (dealId) {
+      await upsertDeposit(supabase, {
+        dealId, userId,
+        paymentIntentId: paymentIntent.id,
+        stripeCustomerId: typeof paymentIntent.customer === "string" ? paymentIntent.customer : null,
+        amountCents: paymentIntent.amount,
+        currency: paymentIntent.currency,
+        state: "succeeded",
+        paidAt,
+      })
+      await appendDealEvent(supabase, {
+        dealId,
+        eventType: "deposit.succeeded",
+        stripeEventId,
+        stripeOccurredAt: paymentIntent.created,
+        payload: { payment_intent_id: paymentIntent.id, amount_cents: paymentIntent.amount, currency: paymentIntent.currency, is_reservation: isReservation },
+      })
+    }
   }
 
   if (isReservation && reservationId) {
@@ -205,7 +213,24 @@ export async function handlePaymentIntentFailed(
   logger.warn("[Stripe] payment_intent.payment_failed", { paymentIntentId: paymentIntent.id, lastError: paymentIntent.last_payment_error?.message })
 
   if (userId) {
-    await handleDealDeposit(supabase, { reservationId, vehicleId, userId, paymentIntentId: paymentIntent.id, stripeCustomerId: typeof paymentIntent.customer === "string" ? paymentIntent.customer : null, amountCents: paymentIntent.amount, currency: paymentIntent.currency, state: "failed", stripeEventId, stripeOccurredAt: paymentIntent.created, eventType: "deposit.failed", eventPayload: { payment_intent_id: paymentIntent.id, error: paymentIntent.last_payment_error?.message ?? "unknown" } })
+    const dealId = await resolveDealId(supabase, { reservationId, vehicleId })
+    if (dealId) {
+      await upsertDeposit(supabase, {
+        dealId, userId,
+        paymentIntentId: paymentIntent.id,
+        stripeCustomerId: typeof paymentIntent.customer === "string" ? paymentIntent.customer : null,
+        amountCents: paymentIntent.amount,
+        currency: paymentIntent.currency,
+        state: "failed",
+      })
+      await appendDealEvent(supabase, {
+        dealId,
+        eventType: "deposit.failed",
+        stripeEventId,
+        stripeOccurredAt: paymentIntent.created,
+        payload: { payment_intent_id: paymentIntent.id, error: paymentIntent.last_payment_error?.message ?? "unknown" },
+      })
+    }
   }
 
   if (reservationId) {

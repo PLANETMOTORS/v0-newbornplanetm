@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useMemo, useState, useCallback, ReactNode } from "react"
+import { createContext, useContext, useState, useCallback, ReactNode } from "react"
 
 // API-ready interface for comparison vehicles
 export interface CompareVehicle {
@@ -37,7 +37,7 @@ interface CompareContextType {
 
 const CompareContext = createContext<CompareContextType | undefined>(undefined)
 
-export function CompareProvider({ children }: Readonly<{ children: ReactNode }>) {
+export function CompareProvider({ children }: { children: ReactNode }) {
   const [compareList, setCompareList] = useState<string[]>([])
   const [vehicles, setVehicles] = useState<CompareVehicle[]>([])
   const maxItems = 3
@@ -74,21 +74,18 @@ export function CompareProvider({ children }: Readonly<{ children: ReactNode }>)
     return compareList.includes(vehicleId)
   }, [compareList])
 
-  const value = useMemo(
-    () => ({
-      compareList,
-      vehicles,
-      addToCompare,
-      removeFromCompare,
-      clearCompare,
-      isInCompare,
-      maxItems,
-    }),
-    [compareList, vehicles, addToCompare, removeFromCompare, clearCompare, isInCompare],
-  )
-
   return (
-    <CompareContext.Provider value={value}>
+    <CompareContext.Provider
+      value={{
+        compareList,
+        vehicles,
+        addToCompare,
+        removeFromCompare,
+        clearCompare,
+        isInCompare,
+        maxItems
+      }}
+    >
       {children}
     </CompareContext.Provider>
   )

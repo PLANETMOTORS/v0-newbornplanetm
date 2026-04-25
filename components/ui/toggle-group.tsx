@@ -22,7 +22,6 @@ function ToggleGroup({
   ...props
 }: React.ComponentProps<typeof ToggleGroupPrimitive.Root> &
   VariantProps<typeof toggleVariants>) {
-  const value = React.useMemo(() => ({ variant, size }), [variant, size])
   return (
     <ToggleGroupPrimitive.Root
       data-slot="toggle-group"
@@ -34,7 +33,7 @@ function ToggleGroup({
       )}
       {...props}
     >
-      <ToggleGroupContext.Provider value={value}>
+      <ToggleGroupContext.Provider value={{ variant, size }}>
         {children}
       </ToggleGroupContext.Provider>
     </ToggleGroupPrimitive.Root>

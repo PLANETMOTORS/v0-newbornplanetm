@@ -1,5 +1,5 @@
 import { createClient } from "@sanity/client"
-import { randomUUID } from "node:crypto"
+import { randomUUID } from "crypto"
 
 const client = createClient({
   projectId: 'wlxj8olw',
@@ -21,8 +21,8 @@ async function fixCmsContent() {
   try {
     await client.delete({ query: '*[_type == "homepage"]' })
     console.log('Deleted old homepage documents')
-  } catch (e) {
-    console.warn('No existing homepage to delete:', e?.message ?? e)
+  } catch (_e) {
+    console.log('No existing homepage to delete')
   }
 
   // Create homepage with the exact structure shown in the Studio
@@ -81,8 +81,8 @@ async function fixCmsContent() {
   try {
     await client.delete({ query: '*[_type == "financingPage"]' })
     console.log('Deleted old financing page')
-  } catch (e) {
-    console.warn('No existing financing page to delete:', e?.message ?? e)
+  } catch (_e) {
+    console.log('No existing financing page to delete')
   }
 
   const financingData = {
@@ -122,8 +122,8 @@ async function fixCmsContent() {
   try {
     await client.delete({ query: '*[_type == "sellYourCarPage"]' })
     console.log('Deleted old sell your car page')
-  } catch (e) {
-    console.warn('No existing sell your car page to delete:', e?.message ?? e)
+  } catch (_e) {
+    console.log('No existing sell your car page to delete')
   }
 
   const sellCarData = {

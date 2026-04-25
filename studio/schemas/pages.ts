@@ -110,11 +110,10 @@ export const homepage = defineType({
       const { heroSection, seo } = selection
       const hasHero = Boolean(heroSection?.headline)
       const hasSeo = Boolean(seo)
-      const seoBadge = hasSeo ? ' · SEO ✅' : ' · SEO ⚠️'
       return {
         title: `${hasHero ? '✅' : '📝'} Homepage`,
         subtitle: hasHero
-          ? `Hero: "${heroSection?.headline ?? ''}"${seoBadge}`
+          ? `Hero: "${heroSection!.headline}"${hasSeo ? ' · SEO ✅' : ' · SEO ⚠️'}`
           : '⏳ Hero section not configured',
       }
     },
@@ -198,10 +197,9 @@ export const financingPage = defineType({
     prepare(selection) {
       const { heroSection, seo } = selection
       const hasHero = Boolean(heroSection?.headline)
-      const seoBadge = seo ? ' · SEO ✅' : ' · SEO ⚠️'
       return {
         title: `${hasHero ? '✅' : '📝'} Financing Page`,
-        subtitle: hasHero ? `Hero: "${heroSection?.headline ?? ''}"${seoBadge}` : '⏳ Hero not configured',
+        subtitle: hasHero ? `Hero: "${heroSection!.headline}"${seo ? ' · SEO ✅' : ' · SEO ⚠️'}` : '⏳ Hero not configured',
       }
     },
   },
@@ -299,10 +297,9 @@ export const sellYourCarPage = defineType({
     prepare(selection) {
       const { heroSection, seo } = selection
       const hasHero = Boolean(heroSection?.headline)
-      const seoBadge = seo ? ' · SEO ✅' : ' · SEO ⚠️'
       return {
         title: `${hasHero ? '✅' : '📝'} Sell Your Car Page`,
-        subtitle: hasHero ? `Hero: "${heroSection?.headline ?? ''}"${seoBadge}` : '⏳ Hero not configured',
+        subtitle: hasHero ? `Hero: "${heroSection!.headline}"${seo ? ' · SEO ✅' : ' · SEO ⚠️'}` : '⏳ Hero not configured',
       }
     },
   },
@@ -422,9 +419,22 @@ export const faqItem = defineType({
   preview: { select: { title: 'question' } },
 })
 
-// NOTE: lender schema is defined in studio/schemas/lender.ts (full schema with rates,
-// credit scores, promo details, contact info). This duplicate minimal definition
-// has been removed to prevent schema conflicts.
+// ============================================
+// LENDER
+// ============================================
+export const lender = defineType({
+  name: 'lender',
+  title: 'Lender',
+  type: 'document',
+  fields: [
+    defineField({ name: 'name', title: 'Name', type: 'string' }),
+    defineField({ name: 'interestRate', title: 'Interest Rate', type: 'number' }),
+    defineField({ name: 'maxTerm', title: 'Max Term', type: 'number' }),
+    defineField({ name: 'featured', title: 'Featured', type: 'boolean' }),
+    defineField({ name: 'order', title: 'Order', type: 'number' }),
+  ],
+  preview: { select: { title: 'name' } },
+})
 
 // ============================================
 // VDP SETTINGS - 210 INSPECTION + AVILOO + REQUEST CALL
@@ -571,7 +581,6 @@ export const customerAuthSettings = defineType({
 })
 
 // Export all schemas
-// NOTE: lender is exported from studio/schemas/lender.ts — removed from here to avoid conflict.
 export const pageSchemas = [
   trustBadge,
   ctaButton,
@@ -581,6 +590,7 @@ export const pageSchemas = [
   sellPage,
   aiSettings,
   faqItem,
+  lender,
   vdpSettings,
   deliverySettings,
   calculatorSettings,

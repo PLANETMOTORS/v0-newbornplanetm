@@ -45,8 +45,8 @@ export function GoogleAnalytics() {
 
 // Event tracking helpers
 export function trackEvent(action: string, category: string, label?: string, value?: number) {
-  if (globalThis.window?.gtag) {
-    globalThis.window.gtag("event", action, {
+  if (typeof window !== "undefined" && window.gtag) {
+    window.gtag("event", action, {
       event_category: category,
       event_label: label,
       value: value,
@@ -62,8 +62,8 @@ export function trackViewItem(vehicle: {
   make: string
   model: string
 }) {
-  if (globalThis.window?.gtag) {
-    globalThis.window.gtag("event", "view_item", {
+  if (typeof window !== "undefined" && window.gtag) {
+    window.gtag("event", "view_item", {
       currency: "CAD",
       value: vehicle.price,
       items: [
@@ -84,8 +84,8 @@ export function trackAddToWishlist(vehicle: {
   name: string
   price: number
 }) {
-  if (globalThis.window?.gtag) {
-    globalThis.window.gtag("event", "add_to_wishlist", {
+  if (typeof window !== "undefined" && window.gtag) {
+    window.gtag("event", "add_to_wishlist", {
       currency: "CAD",
       value: vehicle.price,
       items: [{ item_id: vehicle.id, item_name: vehicle.name, price: vehicle.price }],
@@ -98,8 +98,8 @@ export function trackBeginCheckout(vehicle: {
   name: string
   price: number
 }) {
-  if (globalThis.window?.gtag) {
-    globalThis.window.gtag("event", "begin_checkout", {
+  if (typeof window !== "undefined" && window.gtag) {
+    window.gtag("event", "begin_checkout", {
       currency: "CAD",
       value: vehicle.price,
       items: [{ item_id: vehicle.id, item_name: vehicle.name, price: vehicle.price }],
@@ -112,8 +112,8 @@ export function trackPurchase(order: {
   value: number
   vehicle: { id: string; name: string; price: number }
 }) {
-  if (globalThis.window?.gtag) {
-    globalThis.window.gtag("event", "purchase", {
+  if (typeof window !== "undefined" && window.gtag) {
+    window.gtag("event", "purchase", {
       transaction_id: order.transaction_id,
       currency: "CAD",
       value: order.value,
@@ -129,8 +129,8 @@ export function trackPurchase(order: {
 }
 
 export function trackLead(form_type: string, vehicle_id?: string) {
-  if (globalThis.window?.gtag) {
-    globalThis.window.gtag("event", "generate_lead", {
+  if (typeof window !== "undefined" && window.gtag) {
+    window.gtag("event", "generate_lead", {
       currency: "CAD",
       value: 100, // Estimated lead value
       form_type: form_type,

@@ -24,14 +24,8 @@ interface VehicleFinancingFormProps {
   setAdditionalNotes: (notes: string) => void
 }
 
-const PAYMENT_FREQUENCY_LABEL: Record<string, string> = {
-  "bi-weekly": "Bi-Weekly",
-  "weekly": "Weekly",
-  "semi-monthly": "Semi-Monthly",
-}
-
 export
-function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn, financingTerms, setFinancingTerms, financing, additionalNotes, setAdditionalNotes }: Readonly<VehicleFinancingFormProps>) {
+function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn, financingTerms, setFinancingTerms, financing, additionalNotes, setAdditionalNotes }: VehicleFinancingFormProps) {
   // Check if vehicle data was pre-filled (has year and make)
   const isVehicleSelected = Boolean(vehicleInfo.year && vehicleInfo.make && vehicleInfo.totalPrice)
   const [showInventoryModal, setShowInventoryModal] = useState(false)
@@ -129,17 +123,15 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
               />
             </div>
             <div className="flex-1 overflow-y-auto p-4">
-              {isLoadingInventory && (
+              {isLoadingInventory ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
-              )}
-              {!isLoadingInventory && filteredVehicles.length === 0 && (
+              ) : filteredVehicles.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   No vehicles found in inventory
                 </div>
-              )}
-              {!isLoadingInventory && filteredVehicles.length > 0 && (
+              ) : (
                 <div className="grid gap-3">
                   {filteredVehicles.map((vehicle) => (
                     <button
@@ -250,7 +242,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                 <div>
                   <Label>Model/Trim</Label>
                   <Input 
-                    value={vehicleInfo.trim ? `${vehicleInfo.model} ${vehicleInfo.trim}` : vehicleInfo.model} 
+                    value={`${vehicleInfo.model}${vehicleInfo.trim ? ` ${vehicleInfo.trim}` : ''}`} 
                     readOnly
                     className="bg-muted"
                   />
@@ -587,7 +579,9 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
               {/* Payment Display */}
               <div className="mt-4 p-6 bg-primary/10 rounded-xl text-center">
                 <div className="text-sm text-muted-foreground mb-1">
-                  {PAYMENT_FREQUENCY_LABEL[financingTerms.paymentFrequency] ?? "Monthly"} Payment
+                  {financingTerms.paymentFrequency === "bi-weekly" ? "Bi-Weekly" : 
+                   financingTerms.paymentFrequency === "weekly" ? "Weekly" :
+                   financingTerms.paymentFrequency === "semi-monthly" ? "Semi-Monthly" : "Monthly"} Payment
                 </div>
                 <div className="text-4xl font-bold text-primary tabular-nums">
                   ${financing.payment.toFixed(2)}

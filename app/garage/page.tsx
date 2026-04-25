@@ -5,7 +5,8 @@
  * Client shell handles Realtime subscriptions for live deal state updates
  */
 import { redirect } from "next/navigation"
-import { getAuthUser, getCustomer, getActiveDeals, getOwnedVehicleDossiers, createClient } from "@/lib/supabase/server"
+import { getAuthUser, getCustomer, getActiveDeals, getOwnedVehicleDossiers } from "@/lib/supabase/server"
+import { createClient } from "@/lib/supabase/server"
 import { GarageShell } from "@/components/garage/garage-shell"
 
 export const dynamic = "force-dynamic"

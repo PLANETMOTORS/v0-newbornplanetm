@@ -14,8 +14,6 @@ import AIKnowledgePanel from "@/components/admin/ai-knowledge-panel"
 interface QuickAction {
   label: string
   prompt: string
-  /** Client-only stable key for React lists. Stripped before persistence. */
-  _uid?: string
 }
 
 interface AgentConfig {
@@ -63,8 +61,7 @@ export default function AIAgentsPage() {
 
   const startEditing = (agent: AgentConfig) => {
     setEditingAgent(agent.agent_type)
-    const quickActionsWithUids = (agent.quick_actions ?? []).map(qa => ({ ...qa, _uid: qa._uid ?? crypto.randomUUID() }))
-    setEditForm({ ...agent, quick_actions: quickActionsWithUids })
+    setEditForm({ ...agent })
   }
 
   const cancelEditing = () => {
@@ -76,14 +73,10 @@ export default function AIAgentsPage() {
     if (!editingAgent) return
     try {
       setSaving(editingAgent)
-      const payload = {
-        ...editForm,
-        quick_actions: editForm.quick_actions?.map(({ _uid: _drop, ...rest }) => rest) ?? null,
-      }
       const res = await fetch("/api/v1/admin/ai-config", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(editForm),
       })
       if (!res.ok) throw new Error("Failed to save")
       const data = await res.json()
@@ -117,7 +110,7 @@ export default function AIAgentsPage() {
 
   const addQuickAction = () => {
     const currentActions = (editForm.quick_actions || []) as QuickAction[]
-    setEditForm({ ...editForm, quick_actions: [...currentActions, { label: "", prompt: "", _uid: crypto.randomUUID() }] })
+    setEditForm({ ...editForm, quick_actions: [...currentActions, { label: "", prompt: "" }] })
   }
 
   const removeQuickAction = (index: number) => {
@@ -200,7 +193,7 @@ export default function AIAgentsPage() {
                     <button onClick={() => toggleAgent(agent.agent_type, agent.is_active)} className="p-2 hover:bg-gray-100 rounded-lg">
                       {agent.is_active ? <ToggleRight className="w-6 h-6 text-green-600" /> : <ToggleLeft className="w-6 h-6 text-gray-400" />}
                     </button>
-                    {!isEditing && knowledgeAgent !== agent.agent_type && (
+                    {!isEditing && knowledgeAgent !== agent.agent_type ? (
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={() => { setKnowledgeAgent(agent.agent_type); setEditingAgent(null) }}>
                           <BookOpen className="w-4 h-4 mr-1" />
@@ -211,8 +204,7 @@ export default function AIAgentsPage() {
                           Configure
                         </Button>
                       </div>
-                    )}
-                    {isEditing && (
+                    ) : isEditing ? (
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={cancelEditing}>Cancel</Button>
                         <Button size="sm" onClick={saveAgent} disabled={saving === agent.agent_type}>
@@ -220,10 +212,9 @@ export default function AIAgentsPage() {
                           {saving === agent.agent_type ? "Saving..." : "Save"}
                         </Button>
                       </div>
-                    )}
-                    {!isEditing && knowledgeAgent === agent.agent_type && (
+                    ) : knowledgeAgent === agent.agent_type ? (
                       <Button variant="outline" size="sm" onClick={() => setKnowledgeAgent(null)}>Close Knowledge</Button>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               </CardHeader>
@@ -273,7 +264,7 @@ export default function AIAgentsPage() {
                         </div>
                         <div className="space-y-2">
                           {((editForm.quick_actions || []) as QuickAction[]).map((qa, i) => (
-                            <div key={qa._uid} className="flex gap-2 items-center">
+                            <div key={qa.label} className="flex gap-2 items-center">
                               <Input
                                 value={qa.label}
                                 onChange={(e) => updateQuickAction(i, "label", e.target.value)}

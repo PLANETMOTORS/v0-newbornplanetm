@@ -109,7 +109,7 @@ interface VehicleCardProps {
   vehicle: (typeof vehicles)[0]
 }
 
-function VehicleCard({ vehicle }: Readonly<VehicleCardProps>) {
+function VehicleCard({ vehicle }: VehicleCardProps) {
   const [isFavorite, setIsFavorite] = useState(false)
 
   return (

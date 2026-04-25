@@ -23,7 +23,7 @@ interface ContactFormProps {
   onSuccess?: () => void
 }
 
-export function ContactForm({ onSuccess }: Readonly<ContactFormProps>) {
+export function ContactForm({ onSuccess }: ContactFormProps) {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -42,10 +42,10 @@ export function ContactForm({ onSuccess }: Readonly<ContactFormProps>) {
     const newErrors = { ...errors }
     switch (field) {
       case "firstName":
-        newErrors.firstName = value.trim() ? "" : "First name is required"
+        newErrors.firstName = !value.trim() ? "First name is required" : ""
         break
       case "lastName":
-        newErrors.lastName = value.trim() ? "" : "Last name is required"
+        newErrors.lastName = !value.trim() ? "Last name is required" : ""
         break
       case "email":
         if (!value) newErrors.email = "Email is required"
@@ -63,7 +63,7 @@ export function ContactForm({ onSuccess }: Readonly<ContactFormProps>) {
         else newErrors.postalCode = ""
         break
       case "message":
-        newErrors.message = value.trim() ? "" : "Message is required"
+        newErrors.message = !value.trim() ? "Message is required" : ""
         break
     }
     setErrors(newErrors)

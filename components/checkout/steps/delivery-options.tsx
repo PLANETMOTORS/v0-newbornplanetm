@@ -27,7 +27,7 @@ function getEstimatedDate(baseDate: Date, daysFromNow: number): string {
   return d.toLocaleDateString("en-CA", { weekday: "short", month: "short", day: "numeric" })
 }
 
-export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: Readonly<DeliveryOptionsStepProps>) {
+export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: DeliveryOptionsStepProps) {
   const [isCalculating, setIsCalculating] = useState(false)
   const [baseDate, setBaseDate] = useState<Date | null>(null)
   const dataRef = useRef(data)
@@ -42,11 +42,7 @@ export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: 
   }, [])
 
   const pickupDate = useMemo(() => baseDate ? getEstimatedDate(baseDate, 1) : "", [baseDate])
-  const deliveryDate = useMemo(() => {
-    if (!baseDate) return ""
-    const days = data.deliveryDistance > 200 ? 5 : 3
-    return getEstimatedDate(baseDate, days)
-  }, [baseDate, data.deliveryDistance])
+  const deliveryDate = useMemo(() => baseDate ? getEstimatedDate(baseDate, data.deliveryDistance > 200 ? 5 : 3) : "", [baseDate, data.deliveryDistance])
 
   useEffect(() => {
     if (!postalCode || postalCode.replaceAll(/\s/g, '').length < 6) return

@@ -123,12 +123,6 @@ function getBadgeClassName(badge: string) {
   return "bg-gray-700 text-white"
 }
 
-function getBadge(featured: boolean | null | undefined, isEV: boolean): string {
-  if (featured) return "Popular"
-  if (isEV) return "Electric"
-  return "Certified"
-}
-
 const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
   const supabase = createClient()
   const { data, error } = await supabase
@@ -166,7 +160,7 @@ const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
       priceCents,
       monthlyPayment,
       mileageLabel: `${Math.max(0, Math.round(Number(vehicle.mileage || 0))).toLocaleString()} km`,
-      badge: getBadge(vehicle.featured, isEV),
+      badge: vehicle.featured ? "Popular" : isEV ? "Electric" : "Certified",
       isEV,
       isSUV,
       isAvilooCertified: isEV && Number(vehicle.inspection_score || 0) >= 200,

@@ -9,11 +9,6 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Truck, MapPin, Clock, Phone, CheckCircle, Package, Navigation, RefreshCw, ExternalLink } from "lucide-react"
 
-const UPDATE_DOT_COLOR: Record<string, string> = {
-  info: "bg-teal-500",
-  success: "bg-green-500",
-}
-
 interface TrackingData {
   deliveryId: string
   status: string
@@ -64,7 +59,7 @@ const statusSteps = [
 export function DeliveryTracker({ 
   deliveryId, 
   vehicleInfo 
-}: Readonly<{ 
+}: { 
   deliveryId: string
   vehicleInfo?: {
     year: number
@@ -72,7 +67,7 @@ export function DeliveryTracker({
     model: string
     image: string
   }
-}>) {
+}) {
   const [mapUrl, setMapUrl] = useState<string | null>(null)
 
   const { data, error, isLoading, mutate } = useSWR<{ tracking: TrackingData; isDemo?: boolean }>(
@@ -278,9 +273,12 @@ export function DeliveryTracker({
         {tracking.updates.length > 0 && (
           <div className="space-y-2">
             <p className="text-sm font-semibold">Recent Updates</p>
-            {tracking.updates.slice(0, 3).map((update) => (
-              <div key={update.timestamp} className="flex gap-3 text-sm">
-                <div className={`w-2 h-2 rounded-full mt-1.5 ${UPDATE_DOT_COLOR[update.type] ?? "bg-muted-foreground"}`} />
+            {tracking.updates.slice(0, 3).map((update, index) => (
+              <div key={index} className="flex gap-3 text-sm">
+                <div className={`w-2 h-2 rounded-full mt-1.5 ${
+                  update.type === "info" ? "bg-teal-500" :
+                  update.type === "success" ? "bg-green-500" : "bg-muted-foreground"
+                }`} />
                 <div>
                   <p className="text-muted-foreground">{update.message}</p>
                   <p className="text-xs text-muted-foreground/70">

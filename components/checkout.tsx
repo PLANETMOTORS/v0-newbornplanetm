@@ -12,7 +12,7 @@ import { startCheckoutSession } from '../app/actions/stripe'
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null
 
-export default function Checkout({ productId }: Readonly<{ productId: string }>) {
+export default function Checkout({ productId }: { productId: string }) {
   const fetchClientSecret = useCallback(
     async () => {
       const clientSecret = await startCheckoutSession(productId)

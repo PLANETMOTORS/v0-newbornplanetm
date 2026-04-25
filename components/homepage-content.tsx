@@ -103,7 +103,7 @@ export type HomepageProps = {
 
 
 
-export function HomepageContent({ siteSettings, homepageData, showcaseVehicles }: Readonly<HomepageProps>) {
+export function HomepageContent({ siteSettings, homepageData, showcaseVehicles }: HomepageProps) {
   const ratingValue = siteSettings.aggregateRating?.ratingValue || 4.8
   const lowestRate = siteSettings.financingDefaults?.annualInterestRate || RATE_FLOOR
 
@@ -133,7 +133,7 @@ export function HomepageContent({ siteSettings, homepageData, showcaseVehicles }
                 </h1>
               ) : (
                 <h1 className="text-[2rem] sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-[-0.01em] sm:tracking-[-0.02em] text-gray-900">
-                  {"Canada’s Battery-Certified"}
+                  Canada&apos;s Battery-Certified
                   <span className="block text-[#1e3a8a]">
                     Used EV Dealership
                   </span>

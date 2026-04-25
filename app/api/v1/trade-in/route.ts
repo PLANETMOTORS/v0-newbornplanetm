@@ -43,11 +43,11 @@ const getVehicleValue = (year: number, make: string, model: string, mileage: num
   // Condition adjustment
   const conditionMultipliers: Record<string, number> = {
     excellent: 1.1,
-    good: 1,
+    good: 1.0,
     fair: 0.9,
     poor: 0.75,
   }
-  baseValue *= conditionMultipliers[condition] || 1
+  baseValue *= conditionMultipliers[condition] || 1.0
   
   // Calculate range
   const lowValue = baseValue * 0.92

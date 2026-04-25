@@ -9,7 +9,7 @@ export function ComparisonTableWrapper() {
   const [_selectedProtection, setSelectedProtection] = useState<string>("")
 
   useEffect(() => {
-    if (globalThis.window !== undefined) {
+    if (typeof window !== "undefined") {
       const stored = sessionStorage.getItem("selectedProtectionPackage")
       if (stored) {
         setSelectedProtection(stored)
@@ -18,7 +18,7 @@ export function ComparisonTableWrapper() {
   }, [])
 
   function handleSelectPackage(packageId: string) {
-    if (globalThis.window !== undefined) {
+    if (typeof window !== "undefined") {
       sessionStorage.setItem("selectedProtectionPackage", packageId)
     }
     router.push("/inventory")

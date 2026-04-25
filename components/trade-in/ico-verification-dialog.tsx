@@ -36,7 +36,7 @@ export function ICOVerificationDialog({
   formData,
   onFormDataChange,
   onProceed,
-}: Readonly<ICOVerificationDialogProps>) {
+}: ICOVerificationDialogProps) {
   const [step, setStep] = useState<"contact" | "verify" | "result">("contact")
   const [verificationCode, setVerificationCode] = useState("")
   const [verifyMethod, setVerifyMethod] = useState<"email" | "phone">("email")

@@ -48,7 +48,7 @@ interface ReserveVehicleModalProps {
   trigger?: React.ReactNode
 }
 
-export function ReserveVehicleModal({ vehicle, trigger }: Readonly<ReserveVehicleModalProps>) {
+export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalProps) {
   const [step, setStep] = useState(1)
   const [isProcessing, setIsProcessing] = useState(false)
   const [formData, setFormData] = useState({
@@ -332,46 +332,38 @@ export function ReserveVehicleModal({ vehicle, trigger }: Readonly<ReserveVehicl
       {showStripeCheckout && (
           <div className="py-4">
             <h3 className="font-semibold mb-4">Complete Your ${depositAmount} Deposit</h3>
-            {(() => {
-              if (checkoutError) {
-                return (
-                  <div className="text-center py-8">
-                    <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 mb-4">
-                      <p className="text-sm text-destructive">{checkoutError}</p>
-                    </div>
-                    <div className="flex gap-3 justify-center">
-                      <Button
-                        disabled={isProcessing}
-                        onClick={async () => {
-                          if (isProcessing) return
-                          setCheckoutError(null)
-                          setClientSecret(null)
-                          await handleSubmit()
-                        }}
-                      >
-                        {isProcessing ? "Retrying..." : "Try Again"}
-                      </Button>
-                      <Button variant="outline" asChild>
-                        <a href={`tel:${PHONE_LOCAL_TEL}`}>Call Support</a>
-                      </Button>
-                    </div>
-                  </div>
-                )
-              }
-              if (clientSecret) {
-                return (
-                  <EmbeddedCheckoutProvider stripe={getStripePromise()} options={{ clientSecret }}>
-                    <EmbeddedCheckout />
-                  </EmbeddedCheckoutProvider>
-                )
-              }
-              return (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary mr-2" />
-                  <span>Initializing payment...</span>
+            {checkoutError ? (
+              <div className="text-center py-8">
+                <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 mb-4">
+                  <p className="text-sm text-destructive">{checkoutError}</p>
                 </div>
-              )
-            })()}
+                <div className="flex gap-3 justify-center">
+                  <Button
+                    disabled={isProcessing}
+                    onClick={async () => {
+                      if (isProcessing) return
+                      setCheckoutError(null)
+                      setClientSecret(null)
+                      await handleSubmit()
+                    }}
+                  >
+                    {isProcessing ? "Retrying..." : "Try Again"}
+                  </Button>
+                  <Button variant="outline" asChild>
+                    <a href={`tel:${PHONE_LOCAL_TEL}`}>Call Support</a>
+                  </Button>
+                </div>
+              </div>
+            ) : !clientSecret ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-primary mr-2" />
+                <span>Initializing payment...</span>
+              </div>
+            ) : (
+              <EmbeddedCheckoutProvider stripe={getStripePromise()} options={{ clientSecret }}>
+                <EmbeddedCheckout />
+              </EmbeddedCheckoutProvider>
+            )}
             <Button variant="ghost" className="w-full mt-4" onClick={() => { setShowStripeCheckout(false); setClientSecret(null); }}>
               Cancel
             </Button>

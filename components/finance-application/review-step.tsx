@@ -11,7 +11,7 @@ interface ReviewStepProps {
   financing: FinancingResult
 }
 
-export function ReviewStep({ primaryApplicant, coApplicant, vehicleInfo, tradeIn, financingTerms, financing }: Readonly<ReviewStepProps>) {
+export function ReviewStep({ primaryApplicant, coApplicant, vehicleInfo, tradeIn, financingTerms, financing }: ReviewStepProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 p-4 bg-amber-50 border border-amber-200 rounded-lg">

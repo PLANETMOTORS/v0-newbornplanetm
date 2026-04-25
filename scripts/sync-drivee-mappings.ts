@@ -13,8 +13,8 @@
  *   npx tsx scripts/sync-drivee-mappings.ts --dry-run
  */
 
-import { readFileSync } from "node:fs"
-import { resolve } from "node:path"
+import { readFileSync } from "fs"
+import { resolve } from "path"
 
 interface ManifestEntry {
   mid: string
@@ -77,13 +77,13 @@ async function main() {
         body: JSON.stringify(body),
       })
 
-      if (res.ok) {
-        console.log(`  ✅ ${entry.vehicle} — MID: ${entry.mid}, ${entry.frameCount} frames`)
-        synced++
-      } else {
+      if (!res.ok) {
         const text = await res.text()
         console.error(`  ❌ ${entry.vehicle} (${entry.vin}): ${res.status} ${text}`)
         failed++
+      } else {
+        console.log(`  ✅ ${entry.vehicle} — MID: ${entry.mid}, ${entry.frameCount} frames`)
+        synced++
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)

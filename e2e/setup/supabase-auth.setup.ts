@@ -14,8 +14,8 @@
  */
 
 import { test as setup, expect } from "@playwright/test"
-import * as path from "node:path"
-import * as fs from "node:fs"
+import * as path from "path"
+import * as fs from "fs"
 
 const AUTH_FILE = path.join(__dirname, ".auth/user.json")
 

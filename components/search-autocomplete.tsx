@@ -74,7 +74,7 @@ function saveRecent(q: string) {
 
 // ── Field icon ─────────────────────────────────────────────────────────────
 
-function FieldIcon({ field }: Readonly<{ field: SmartSuggestion["field"] }>) {
+function FieldIcon({ field }: { field: SmartSuggestion["field"] }) {
   const cls = "h-3.5 w-3.5 text-[#1e3a8a]/60 shrink-0"
   switch (field) {
     case "make":       return <Car     className={cls} />

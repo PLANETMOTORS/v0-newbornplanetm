@@ -82,40 +82,6 @@ async function toPublicVehicleListItem(value: unknown): Promise<Record<string, u
 
 // 32 hex chars (128 bits) provides ample collision resistance for Redis cache keys
 // while keeping key lengths compact compared to the full 64-char digest.
-type VehicleFilters = { make: string|null; model: string|null; minYear: string|null; maxYear: string|null; minPrice: string|null; maxPrice: string|null; minMileage: string|null; maxMileage: string|null; exteriorColor: string|null; bodyStyle: string|null; fuelType: string|null; transmission: string|null; drivetrain: string|null; q: string|null; status: string; sort: string; order: string; page: number; limit: number; cursorId: string|null; cursorCreatedAt: string|null }
-
-function buildVehicleQuery(supabase: Awaited<ReturnType<typeof createClient>>, f: VehicleFilters) {
-  let query = supabase.from('vehicles').select(VEHICLE_LIST_FIELDS, { count: 'exact' })
-  if (f.status) query = query.eq('status', f.status)
-  if (f.make) query = query.ilike('make', f.make)
-  if (f.model) query = query.ilike('model', `%${f.model}%`)
-  if (f.q) { const s = f.q.trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s-]/g, '').trim(); if (s) query = query.textSearch('search_vector', s, { type: 'websearch', config: 'english' }) }
-  if (f.minYear) query = query.gte('year', Number.parseInt(f.minYear))
-  if (f.maxYear) query = query.lte('year', Number.parseInt(f.maxYear))
-  if (f.minPrice) query = query.gte('price', Number.parseInt(f.minPrice) * 100)
-  if (f.maxPrice) query = query.lte('price', Number.parseInt(f.maxPrice) * 100)
-  if (f.minMileage) query = query.gte('mileage', Number.parseInt(f.minMileage))
-  if (f.maxMileage) query = query.lte('mileage', Number.parseInt(f.maxMileage))
-  if (f.exteriorColor) query = query.ilike('exterior_color', f.exteriorColor)
-  if (f.bodyStyle) { const alias = BODY_STYLE_ALIASES[f.bodyStyle.toLowerCase()]; query = query.ilike('body_style', alias || f.bodyStyle) }
-  if (f.fuelType) query = query.ilike('fuel_type', f.fuelType)
-  if (f.transmission) query = query.ilike('transmission', `%${f.transmission}%`)
-  if (f.drivetrain) query = query.ilike('drivetrain', f.drivetrain)
-  const ascending = f.order === 'asc'
-  query = query.order(f.sort, { ascending }).order('id', { ascending })
-  const useCursor = f.cursorId && f.cursorCreatedAt && f.sort === 'created_at'
-  if (useCursor) {
-    query = ascending
-      ? query.or(`created_at.gt.${f.cursorCreatedAt},and(created_at.eq.${f.cursorCreatedAt},id.gt.${f.cursorId})`)
-      : query.or(`created_at.lt.${f.cursorCreatedAt},and(created_at.eq.${f.cursorCreatedAt},id.lt.${f.cursorId})`)
-    query = query.limit(f.limit)
-  } else {
-    const start = (f.page - 1) * f.limit
-    query = query.range(start, start + f.limit - 1)
-  }
-  return query
-}
-
 function hashKey(input: string): string {
   return createHash('sha256').update(input).digest('hex').slice(0, 32)
 }
@@ -208,8 +174,68 @@ export async function GET(request: NextRequest) {
     })
   }
 
-  const useCursor = !!(cursorId && cursorCreatedAt && sort === 'created_at')
-  const { data: vehicles, error, count } = await buildVehicleQuery(supabase, { make, model, minYear, maxYear, minPrice, maxPrice, minMileage, maxMileage, exteriorColor, bodyStyle, fuelType, transmission, drivetrain, q, status, sort, order, page, limit, cursorId, cursorCreatedAt })
+  // Build query
+  let query = supabase
+    .from('vehicles')
+    .select(VEHICLE_LIST_FIELDS, { count: 'exact' })
+
+  // Apply filters
+  if (status) query = query.eq('status', status)
+  if (make) query = query.ilike('make', make)
+  if (model) query = query.ilike('model', `%${model}%`)
+  if (q) {
+    // Use the pre-built tsvector GIN index for safe, efficient full-text search.
+    // .or() with user input can be manipulated via special chars (commas, parens).
+    const sanitizedQ = q.trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s-]/g, '').trim()
+    if (sanitizedQ) {
+      query = query.textSearch('search_vector', sanitizedQ, { type: 'websearch', config: 'english' })
+    }
+  }
+  if (minYear) query = query.gte('year', Number.parseInt(minYear))
+  if (maxYear) query = query.lte('year', Number.parseInt(maxYear))
+  if (minPrice) query = query.gte('price', Number.parseInt(minPrice) * 100)
+  if (maxPrice) query = query.lte('price', Number.parseInt(maxPrice) * 100)
+  if (minMileage) query = query.gte('mileage', Number.parseInt(minMileage))
+  if (maxMileage) query = query.lte('mileage', Number.parseInt(maxMileage))
+  if (exteriorColor) query = query.ilike('exterior_color', exteriorColor)
+  if (bodyStyle) {
+    // Map customer-friendly terms (SUV, Sedan) to actual DB values (Sport Utility, 4dr Car)
+    const aliasPattern = BODY_STYLE_ALIASES[bodyStyle.toLowerCase()]
+    query = query.ilike('body_style', aliasPattern || bodyStyle)
+  }
+  if (fuelType) query = query.ilike('fuel_type', fuelType)
+  if (transmission) query = query.ilike('transmission', `%${transmission}%`)
+  if (drivetrain) query = query.ilike('drivetrain', drivetrain)
+
+  // Apply sorting
+  const ascending = order === 'asc'
+  query = query.order(sort, { ascending })
+  // Secondary sort on id guarantees deterministic ordering for cursor pagination
+  query = query.order('id', { ascending })
+
+  // Cursor-based pagination: when a cursor is provided, use a composite
+  // (created_at, id) filter instead of OFFSET to avoid scanning skipped rows.
+  const useCursor = cursorId && cursorCreatedAt && sort === 'created_at'
+  if (useCursor) {
+    if (ascending) {
+      // Next page: created_at > cursor OR (created_at == cursor AND id > cursorId)
+      query = query.or(
+        `created_at.gt.${cursorCreatedAt},and(created_at.eq.${cursorCreatedAt},id.gt.${cursorId})`
+      )
+    } else {
+      // Next page (desc): created_at < cursor OR (created_at == cursor AND id < cursorId)
+      query = query.or(
+        `created_at.lt.${cursorCreatedAt},and(created_at.eq.${cursorCreatedAt},id.lt.${cursorId})`
+      )
+    }
+    query = query.limit(limit)
+  } else {
+    // Fallback: traditional offset pagination
+    const startIndex = (page - 1) * limit
+    query = query.range(startIndex, startIndex + limit - 1)
+  }
+
+  const { data: vehicles, error, count } = await query
 
   if (error) {
     // In production (Supabase configured), surface real errors so callers don't

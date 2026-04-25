@@ -219,26 +219,26 @@ export default function AdminLeadsPage() {
         <div className="lg:col-span-2">
           <Card>
             <CardContent className="p-0">
-              {loading && (
+              {loading ? (
                 <div className="p-8 text-center text-gray-500">Loading leads...</div>
-              )}
-              {!loading && leads.length === 0 && (
+              ) : leads.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
                   <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                   <p>No leads found</p>
                   <p className="text-xs mt-1">Leads will appear when customers submit inquiries, chat with Anna, or apply for financing</p>
                 </div>
-              )}
-              {!loading && leads.length > 0 && (
+              ) : (
                 <div className="divide-y">
                   {leads.map(lead => {
                     const Icon = sourceIcon(lead.source)
                     return (
-                      <button
-                        type="button"
+                      <div
                         key={lead.id}
-                        className={`w-full text-left p-4 hover:bg-gray-50 cursor-pointer transition-colors ${selectedLead?.id === lead.id ? "bg-blue-50" : ""}`}
+                        role="button"
+                        tabIndex={0}
+                        className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${selectedLead?.id === lead.id ? "bg-blue-50" : ""}`}
                         onClick={() => setSelectedLead(lead)}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSelectedLead(lead) }}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-3">
@@ -263,7 +263,7 @@ export default function AdminLeadsPage() {
                             <p className="text-xs text-gray-400 mt-1">{timeAgo(lead.created_at)}</p>
                           </div>
                         </div>
-                      </button>
+                      </div>
                     )
                   })}
                 </div>

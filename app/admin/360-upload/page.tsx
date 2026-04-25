@@ -139,12 +139,12 @@ export default function Admin360UploadPage() {
 
       const data = await res.json()
 
-      if (res.ok) {
+      if (!res.ok) {
+        setUploadError(data.error ?? "Upload failed")
+      } else {
         setUploadResult(data)
         // Refresh vehicle list
         loadVehicles()
-      } else {
-        setUploadError(data.error ?? "Upload failed")
       }
     } catch {
       setUploadError("Network error — please try again")
@@ -207,14 +207,16 @@ export default function Admin360UploadPage() {
               </div>
 
               {/* Drop Zone */}
-              <button
-                type="button"
+              <div
+                role="button"
+                tabIndex={0}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
                 className={`
-                  w-full border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
+                  border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
                   ${isDragOver
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
@@ -236,14 +238,14 @@ export default function Admin360UploadPage() {
                   onChange={handleFileSelect}
                   className="hidden"
                 />
-              </button>
+              </div>
 
               {/* Selected Files */}
               {selectedFiles.length > 0 && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium text-gray-700">
-                      {selectedFiles.length} frame{selectedFiles.length === 1 ? "" : "s"} selected
+                      {selectedFiles.length} frame{selectedFiles.length !== 1 ? "s" : ""} selected
                     </p>
                     <Button variant="ghost" size="sm" onClick={clearFiles}>
                       <Trash2 className="w-4 h-4 mr-1" />
@@ -295,7 +297,7 @@ export default function Admin360UploadPage() {
                 ) : (
                   <>
                     <Upload className="w-4 h-4 mr-2" />
-                    Upload {selectedFiles.length} Frame{selectedFiles.length === 1 ? "" : "s"}
+                    Upload {selectedFiles.length} Frame{selectedFiles.length !== 1 ? "s" : ""}
                   </>
                 )}
               </Button>
@@ -397,21 +399,19 @@ export default function Admin360UploadPage() {
                 </Button>
               </div>
               <CardDescription>
-                {vehicles.length} vehicle{vehicles.length === 1 ? "" : "s"} with 360° frames
+                {vehicles.length} vehicle{vehicles.length !== 1 ? "s" : ""} with 360° frames
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {loadingVehicles && (
+              {loadingVehicles ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
                 </div>
-              )}
-              {!loadingVehicles && vehicles.length === 0 && (
+              ) : vehicles.length === 0 ? (
                 <p className="text-sm text-gray-500 text-center py-8">
                   No 360° vehicles found
                 </p>
-              )}
-              {!loadingVehicles && vehicles.length > 0 && (
+              ) : (
                 <div className="space-y-3">
                   {vehicles.map(v => {
                     const manifestCount = FRAME_MANIFEST[v.mid]

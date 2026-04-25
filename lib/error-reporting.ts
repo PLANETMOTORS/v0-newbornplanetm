@@ -42,10 +42,12 @@ export function reportMessage(
   isSentryInitialized()
 
   // Always log to console for local development visibility
-  let logFn: (...args: unknown[]) => void
-  if (level === "error") logFn = console.error
-  else if (level === "warning") logFn = console.warn
-  else logFn = console.info
+  const logFn =
+    level === "error"
+      ? console.error
+      : level === "warning"
+        ? console.warn
+        : console.info
 
   if (context) {
     logFn(`[reportMessage:${level}]`, message, context)

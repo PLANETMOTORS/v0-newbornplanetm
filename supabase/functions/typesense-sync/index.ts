@@ -22,46 +22,6 @@ const MAX_ATTEMPTS = 5
 
 const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
-type OutboxRow = Record<string, unknown>
-
-async function markFailed(rows: OutboxRow[], error: string, now: string): Promise<number> {
-  let count = 0
-  for (const row of rows) {
-    await admin.from("search_outbox").update({ attempts: (row.attempts as number) + 1, last_error: error.slice(0, 200) }).eq("id", row.id)
-    count++
-  }
-  return count
-}
-
-async function processUpserts(upserts: OutboxRow[], now: string): Promise<{ upserted: number; failed: number }> {
-  if (upserts.length === 0) return { upserted: 0, failed: 0 }
-  const ndjson = upserts.map((r) => JSON.stringify(r.payload)).join("\n")
-  try {
-    const res = await fetch(`${TS_HOST}/collections/${TS_COLLECTION}/documents/import?action=upsert`, { method: "POST", headers: { "X-TYPESENSE-API-KEY": TS_KEY, "Content-Type": "text/plain" }, body: ndjson })
-    if (res.ok) {
-      await admin.from("search_outbox").update({ processed_at: now }).in("id", upserts.map((r) => r.id))
-      return { upserted: upserts.length, failed: 0 }
-    }
-    return { upserted: 0, failed: await markFailed(upserts, `HTTP ${res.status}`, now) }
-  } catch (err) {
-    return { upserted: 0, failed: await markFailed(upserts, String(err), now) }
-  }
-}
-
-async function processDeletes(deletes: OutboxRow[], now: string): Promise<{ deleted: number; failed: number }> {
-  let deleted = 0, failed = 0
-  for (const row of deletes) {
-    try {
-      const res = await fetch(`${TS_HOST}/collections/${TS_COLLECTION}/documents/${row.entity_id}`, { method: "DELETE", headers: { "X-TYPESENSE-API-KEY": TS_KEY } })
-      if (res.ok || res.status === 404) { await admin.from("search_outbox").update({ processed_at: now }).eq("id", row.id); deleted++ }
-      else { await admin.from("search_outbox").update({ attempts: (row.attempts as number) + 1, last_error: `HTTP ${res.status}` }).eq("id", row.id); failed++ }
-    } catch (err) {
-      await admin.from("search_outbox").update({ attempts: (row.attempts as number) + 1, last_error: String(err).slice(0, 200) }).eq("id", row.id); failed++
-    }
-  }
-  return { deleted, failed }
-}
-
 Deno.serve(async (_req: Request) => {
   const now = new Date().toISOString()
   let upserted = 0, deleted = 0, failed = 0
@@ -83,11 +43,66 @@ Deno.serve(async (_req: Request) => {
   const upserts = batch.filter((r: Record<string, unknown>) => r.operation === "upsert" && r.payload)
   const deletes = batch.filter((r: Record<string, unknown>) => r.operation === "delete")
 
-  const upsertResult = await processUpserts(upserts, now)
-  upserted = upsertResult.upserted; failed += upsertResult.failed
+  // Batch upsert to Typesense
+  if (upserts.length > 0) {
+    const docs = upserts.map((r: Record<string, unknown>) => r.payload)
+    const ndjson = docs.map((d: unknown) => JSON.stringify(d)).join("\n")
 
-  const deleteResult = await processDeletes(deletes, now)
-  deleted = deleteResult.deleted; failed += deleteResult.failed
+    try {
+      const res = await fetch(`${TS_HOST}/collections/${TS_COLLECTION}/documents/import?action=upsert`, {
+        method: "POST",
+        headers: { "X-TYPESENSE-API-KEY": TS_KEY, "Content-Type": "text/plain" },
+        body: ndjson,
+      })
+
+      if (res.ok) {
+        const ids = upserts.map((r: Record<string, unknown>) => r.id)
+        await admin.from("search_outbox")
+          .update({ processed_at: now })
+          .in("id", ids)
+        upserted = upserts.length
+      } else {
+        // Increment attempts on all
+        for (const row of upserts) {
+          await admin.from("search_outbox")
+            .update({ attempts: (row.attempts as number) + 1, last_error: `HTTP ${res.status}` })
+            .eq("id", row.id)
+          failed++
+        }
+      }
+    } catch (err) {
+      for (const row of upserts) {
+        await admin.from("search_outbox")
+          .update({ attempts: (row.attempts as number) + 1, last_error: String(err).slice(0, 200) })
+          .eq("id", row.id)
+        failed++
+      }
+    }
+  }
+
+  // Process deletes
+  for (const row of deletes) {
+    try {
+      const res = await fetch(`${TS_HOST}/collections/${TS_COLLECTION}/documents/${row.entity_id}`, {
+        method: "DELETE",
+        headers: { "X-TYPESENSE-API-KEY": TS_KEY },
+      })
+      if (res.ok || res.status === 404) {
+        await admin.from("search_outbox").update({ processed_at: now }).eq("id", row.id)
+        deleted++
+      } else {
+        await admin.from("search_outbox")
+          .update({ attempts: (row.attempts as number) + 1, last_error: `HTTP ${res.status}` })
+          .eq("id", row.id)
+        failed++
+      }
+    } catch (err) {
+      await admin.from("search_outbox")
+        .update({ attempts: (row.attempts as number) + 1, last_error: String(err).slice(0, 200) })
+        .eq("id", row.id)
+      failed++
+    }
+  }
 
   return json({ upserted, deleted, failed, batch_size: batch.length })
 })

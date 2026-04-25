@@ -89,7 +89,7 @@ function getDeliveryLabel(pkg: ProtectionPackage) {
   return "FREE delivery"
 }
 
-function CellValue({ pkg, rowKey }: Readonly<{ pkg: ProtectionPackage; rowKey: string }>) {
+function CellValue({ pkg, rowKey }: { pkg: ProtectionPackage; rowKey: string }) {
   switch (rowKey) {
     case "paymentMethod":
       return <span className="text-xs sm:text-sm font-semibold">{getPaymentMethodLabel(pkg.paymentMethod)}</span>
@@ -334,7 +334,7 @@ function DesktopTable({ onSelect }: { onSelect?: (id: string) => void }) {
 }
 
 /* ── Main export ── */
-export function ProtectionComparisonTable({ onSelectPackage }: Readonly<ProtectionComparisonTableProps>) {
+export function ProtectionComparisonTable({ onSelectPackage }: ProtectionComparisonTableProps) {
   return (
     <>
       {/* Desktop: full comparison grid — overflow-x-auto with visible y for badges */}

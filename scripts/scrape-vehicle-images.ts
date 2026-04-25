@@ -22,7 +22,7 @@ interface Vehicle {
 // Extract vehicle ID from VDP URL
 function extractVehicleId(vdpUrl: string): string | null {
   // URL format: https://www.planetmotors.ca//inventory/2023-tesla-model-y-13287864/13287864/
-  const match = /\/(\d+)\/?$/.exec(vdpUrl)
+  const match = vdpUrl.match(/\/(\d+)\/?$/)
   return match ? match[1] : null
 }
 

@@ -5,9 +5,9 @@ export const metadata = {
 
 export default function StudioLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
     <div style={{ margin: 0, padding: 0, height: '100vh' }}>{children}</div>
   )

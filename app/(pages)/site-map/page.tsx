@@ -119,8 +119,8 @@ export default function SitemapPage() {
                     <h2 className="font-semibold text-lg">{section.title}</h2>
                   </div>
                   <ul className="space-y-2">
-                    {section.links.map((link) => (
-                      <li key={link.href}>
+                    {section.links.map((link, j) => (
+                      <li key={j}>
                         <Link 
                           href={link.href}
                           className="text-muted-foreground hover:text-primary transition-colors text-sm"

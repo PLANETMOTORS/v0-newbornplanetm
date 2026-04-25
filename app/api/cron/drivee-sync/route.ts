@@ -7,24 +7,6 @@ import {
   type SyncResult,
 } from "@/lib/drivee-sync"
 import { invalidateDriveeCache } from "@/lib/drivee-db"
-import type { SupabaseClient } from "@supabase/supabase-js"
-
-async function syncOneVehicle(supabase: SupabaseClient, vehicle: { vin: string; stock_number: string | null; year: number; make: string; model: string }): Promise<SyncResult & { synced: boolean; noMid: boolean }> {
-  const { vin, stock_number, year, make, model } = vehicle
-  const vehicleName = `${year} ${make} ${model}`
-  try {
-    let mid = await resolveMidFromPirelly(vin)
-    if (!mid && stock_number) mid = await resolveMidFromPirellyByStock(stock_number)
-    if (!mid) return { vin, mid: null, frameCount: 0, framesInStorage: false, framesMigrated: 0, status: "no_mid", synced: false, noMid: true }
-    const storageCount = await countFramesInStorage(mid)
-    const framesInStorage = storageCount > 0
-    const { error: upsertError } = await supabase.from("drivee_mappings").upsert({ vin, mid, frame_count: storageCount, frames_in_storage: framesInStorage, vehicle_name: vehicleName, source: "pirelly", verified_at: new Date().toISOString(), updated_at: new Date().toISOString() }, { onConflict: "vin" })
-    if (upsertError) throw upsertError
-    return { vin, mid, frameCount: storageCount, framesInStorage, framesMigrated: 0, status: "synced", synced: true, noMid: false }
-  } catch (err) {
-    return { vin, mid: null, frameCount: 0, framesInStorage: false, framesMigrated: 0, status: "error", error: err instanceof Error ? err.message : "Unknown error", synced: false, noMid: false }
-  }
-}
 
 /**
  * Vercel Cron Job: Drivee 360° MID Resolution
@@ -98,11 +80,53 @@ export async function GET(request: Request) {
     let errors = 0
 
     for (const vehicle of unmappedVehicles) {
-      const result = await syncOneVehicle(supabase, vehicle)
-      results.push(result)
-      if (result.synced) synced++
-      else if (result.noMid) noMid++
-      else if (result.status === "error") errors++
+      const { vin, stock_number, year, make, model } = vehicle
+      const vehicleName = `${year} ${make} ${model}`
+
+      try {
+        // Resolve MID from Pirelly (try VIN first, then stock number)
+        let mid = await resolveMidFromPirelly(vin)
+        if (!mid && stock_number) {
+          mid = await resolveMidFromPirellyByStock(stock_number)
+        }
+
+        if (!mid) {
+          results.push({ vin, mid: null, frameCount: 0, framesInStorage: false, framesMigrated: 0, status: "no_mid" })
+          noMid++
+          continue
+        }
+
+        // Check frames in Supabase Storage
+        const storageCount = await countFramesInStorage(mid)
+        const framesInStorage = storageCount > 0
+
+        // Upsert to drivee_mappings
+        const { error: upsertError } = await supabase
+          .from("drivee_mappings")
+          .upsert(
+            {
+              vin,
+              mid,
+              frame_count: storageCount,
+              frames_in_storage: framesInStorage,
+              vehicle_name: vehicleName,
+              source: "pirelly",
+              verified_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "vin" },
+          )
+        if (upsertError) throw upsertError
+
+        results.push({ vin, mid, frameCount: storageCount, framesInStorage, framesMigrated: 0, status: "synced" })
+        synced++
+      } catch (err) {
+        results.push({
+          vin, mid: null, frameCount: 0, framesInStorage: false, framesMigrated: 0,
+          status: "error", error: err instanceof Error ? err.message : "Unknown error",
+        })
+        errors++
+      }
     }
 
     // Invalidate cache so subsequent requests see new data

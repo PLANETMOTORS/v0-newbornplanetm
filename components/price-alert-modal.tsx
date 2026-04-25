@@ -24,7 +24,7 @@ interface PriceAlertModalProps {
   trigger?: React.ReactNode
 }
 
-export function PriceAlertModal({ vehicle, searchCriteria, trigger }: Readonly<PriceAlertModalProps>) {
+export function PriceAlertModal({ vehicle, searchCriteria, trigger }: PriceAlertModalProps) {
   const [email, setEmail] = useState("")
   const [preferences, setPreferences] = useState({
     priceDrops: true,
@@ -65,14 +65,11 @@ export function PriceAlertModal({ vehicle, searchCriteria, trigger }: Readonly<P
     }
   }
 
-  let title: string
-  if (vehicle) {
-    title = `Get alerts for ${vehicle.year} ${vehicle.make} ${vehicle.model}`
-  } else if (searchCriteria?.make) {
-    title = `Get alerts for ${searchCriteria.make} ${searchCriteria.model || ""} vehicles`
-  } else {
-    title = "Set Up Price Alerts"
-  }
+  const title = vehicle 
+    ? `Get alerts for ${vehicle.year} ${vehicle.make} ${vehicle.model}`
+    : searchCriteria?.make 
+      ? `Get alerts for ${searchCriteria.make} ${searchCriteria.model || ""} vehicles`
+      : "Set Up Price Alerts"
 
   return (
     <Dialog>
@@ -85,20 +82,7 @@ export function PriceAlertModal({ vehicle, searchCriteria, trigger }: Readonly<P
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
-        {isSuccess ? (
-          <div className="text-center py-6">
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-8 h-8 text-green-600" />
-            </div>
-            <DialogTitle className="mb-2">Alert Created!</DialogTitle>
-            <DialogDescription className="mb-4">
-              We&apos;ll notify you at {email} when there are updates.
-            </DialogDescription>
-            <Button variant="outline" onClick={() => { setIsSuccess(false); setEmail(""); }}>
-              Set Up Another Alert
-            </Button>
-          </div>
-        ) : (
+        {!isSuccess ? (
           <>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
@@ -169,6 +153,19 @@ export function PriceAlertModal({ vehicle, searchCriteria, trigger }: Readonly<P
               </p>
             </form>
           </>
+        ) : (
+          <div className="text-center py-6">
+            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+            <DialogTitle className="mb-2">Alert Created!</DialogTitle>
+            <DialogDescription className="mb-4">
+              We&apos;ll notify you at {email} when there are updates.
+            </DialogDescription>
+            <Button variant="outline" onClick={() => { setIsSuccess(false); setEmail(""); }}>
+              Set Up Another Alert
+            </Button>
+          </div>
         )}
       </DialogContent>
     </Dialog>

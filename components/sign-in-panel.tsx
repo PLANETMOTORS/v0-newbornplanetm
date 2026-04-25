@@ -15,7 +15,7 @@ interface SignInPanelProps {
   onClose: () => void
 }
 
-export function SignInPanel({ isOpen, onClose }: Readonly<SignInPanelProps>) {
+export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)

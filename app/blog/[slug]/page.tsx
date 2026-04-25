@@ -29,7 +29,7 @@ function portableTextToHtml(blocks: any[]): string {
     const text = (block.children ?? []).map((child: any) => {
       const t = child.text ?? ""
       const marks: string[] = child.marks ?? []
-      let out = t.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+      let out = t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
       if (marks.includes("strong")) out = `<strong>${out}</strong>`
       if (marks.includes("em")) out = `<em>${out}</em>`
       return out
@@ -73,7 +73,7 @@ function getRelatedPosts(slugs: string[]): RelatedPost[] {
       return {
         slug,
         title: post.title,
-        image: post.image.replaceAll('1200', '400').replaceAll('600', '250'),
+        image: post.image.replace('1200', '400').replace('600', '250'),
         category: post.category,
         date: post.date,
       }
@@ -100,14 +100,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const sanityDate = sanityPost?.publishedAt
     ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA")
     : ""
-  let post: { title: string; excerpt: string; image: string; date: string } | null
-  if (sanityPost) {
-    post = { title: sanityPost.title, excerpt: sanityPost.excerpt ?? "", image: sanityPost.coverImage ?? "/images/blog/1.png", date: sanityDate }
-  } else if (staticPost) {
-    post = { title: staticPost.title, excerpt: staticPost.excerpt, image: staticPost.image, date: staticPost.date }
-  } else {
-    post = null
-  }
+  const post = sanityPost
+    ? { title: sanityPost.title, excerpt: sanityPost.excerpt, image: sanityPost.coverImage ?? "/images/blog/1.png", date: sanityDate }
+    : staticPost
+    ? { title: staticPost.title, excerpt: staticPost.excerpt, image: staticPost.image, date: staticPost.date }
+    : null
 
   if (!post) {
     return {
@@ -134,7 +131,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
-export default async function BlogPostPage({ params }: Readonly<{ params: Promise<{ slug: string }> }>) {
+export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
 
   // Try Sanity CMS first; fall back to static blog-data.ts

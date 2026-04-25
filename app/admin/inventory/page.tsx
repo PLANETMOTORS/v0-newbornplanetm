@@ -394,8 +394,7 @@ export default function AdminInventoryPage() {
       const res = await fetch("/api/v1/inventory/import", { method: "POST", body: fd })
       const data = await res.json()
       if (res.ok) {
-        const errSuffix = data.errors?.length ? ` (${data.errors.length} errors)` : ""
-        setCsvResult(`Imported ${data.imported} vehicles${errSuffix}`)
+        setCsvResult(`Imported ${data.imported} vehicles${data.errors?.length ? ` (${data.errors.length} errors)` : ""}`)
         fetchVehicles()
       } else {
         setCsvResult(`Import failed: ${data.error}`)
@@ -440,7 +439,7 @@ export default function AdminInventoryPage() {
       (safeNum(v.price) / 100).toFixed(2), v.mileage, v.status, v.exterior_color || "",
       v.drivetrain || "", v.fuel_type || ""
     ])
-    const csv = [headers.join(","), ...rows.map(r => r.map(c => `"${String(c).replaceAll('"', '""')}"`).join(","))].join("\n")
+    const csv = [headers.join(","), ...rows.map(r => r.map(c => `"${String(c).replaceAll(/"/g, '""')}"`).join(","))].join("\n")
     const blob = new Blob([csv], { type: "text/csv" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
@@ -454,14 +453,9 @@ export default function AdminInventoryPage() {
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
   const toggleSelectAll = () => {
-    const currentIds = vehicles.map(v => v.id)
-    const currentIdSet = new Set(currentIds)
-    const allCurrentSelected = vehicles.length > 0 && currentIds.every(id => selectedVehicles.includes(id))
-    if (allCurrentSelected) {
-      setSelectedVehicles(prev => prev.filter(id => !currentIdSet.has(id)))
-    } else {
-      setSelectedVehicles(prev => [...new Set([...prev, ...currentIds])])
-    }
+    const allCurrentSelected = vehicles.length > 0 && vehicles.every(v => selectedVehicles.includes(v.id))
+    if (allCurrentSelected) setSelectedVehicles(prev => prev.filter(id => !vehicles.some(v => v.id === id)))
+    else setSelectedVehicles(prev => [...new Set([...prev, ...vehicles.map(v => v.id)])])
   }
   const toggleSelect = (id: string) => {
     setSelectedVehicles(prev => prev.includes(id) ? prev.filter(v => v !== id) : [...prev, id])
@@ -632,12 +626,11 @@ export default function AdminInventoryPage() {
       {/* Vehicle Table */}
       <Card>
         <CardContent className="p-0">
-          {loading && (
+          {loading ? (
             <div className="flex items-center justify-center p-12">
               <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
             </div>
-          )}
-          {!loading && error && (
+          ) : error ? (
             <div className="text-center p-12 text-gray-500">
               <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
               <p className="font-medium">{error}</p>
@@ -646,8 +639,7 @@ export default function AdminInventoryPage() {
                 Retry
               </Button>
             </div>
-          )}
-          {!loading && !error && vehicles.length === 0 && (
+          ) : vehicles.length === 0 ? (
             <div className="text-center p-12 text-gray-500">
               <Car className="w-12 h-12 mx-auto mb-4 text-gray-300" />
               <p className="font-medium">No vehicles found</p>
@@ -657,8 +649,7 @@ export default function AdminInventoryPage() {
                   : "Click \"Add Vehicle\" or trigger a HomeNet sync to get started"}
               </p>
             </div>
-          )}
-          {!loading && !error && vehicles.length > 0 && (
+          ) : (
             <>
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -861,12 +852,12 @@ export default function AdminInventoryPage() {
               {/* Identity */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="inv-stock-number" className="text-sm font-medium text-gray-700">Stock Number *</label>
-                  <Input id="inv-stock-number" value={formData.stock_number} onChange={e => setFormData(prev => ({ ...prev, stock_number: e.target.value }))} placeholder="PM-2024-001" />
+                  <label className="text-sm font-medium text-gray-700">Stock Number *</label>
+                  <Input value={formData.stock_number} onChange={e => setFormData(prev => ({ ...prev, stock_number: e.target.value }))} placeholder="PM-2024-001" />
                 </div>
                 <div>
-                  <label htmlFor="inv-status" className="text-sm font-medium text-gray-700">Status</label>
-                  <select id="inv-status" value={formData.status} onChange={e => setFormData(prev => ({ ...prev, status: e.target.value }))} className="w-full px-3 py-2 border rounded-lg">
+                  <label className="text-sm font-medium text-gray-700">Status</label>
+                  <select value={formData.status} onChange={e => setFormData(prev => ({ ...prev, status: e.target.value }))} className="w-full px-3 py-2 border rounded-lg">
                     <option value="available">Available</option>
                     <option value="reserved">Reserved</option>
                     <option value="pending">Pending</option>
@@ -963,13 +954,13 @@ export default function AdminInventoryPage() {
                 </div>
                 {formData.is_ev && (
                   <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="inv-battery-kwh" className="text-sm font-medium text-gray-700">Battery (kWh)</label>
-                    <Input id="inv-battery-kwh" type="number" step="0.1" value={formData.battery_capacity_kwh} onChange={e => setFormData(prev => ({ ...prev, battery_capacity_kwh: e.target.value }))} placeholder="75" />
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Battery (kWh)</label>
+                      <Input type="number" step="0.1" value={formData.battery_capacity_kwh} onChange={e => setFormData(prev => ({ ...prev, battery_capacity_kwh: e.target.value }))} placeholder="75" />
                     </div>
                     <div>
-                      <label htmlFor="inv-range-miles" className="text-sm font-medium text-gray-700">Range (miles)</label>
-                      <Input id="inv-range-miles" type="number" value={formData.range_miles} onChange={e => setFormData(prev => ({ ...prev, range_miles: e.target.value }))} placeholder="358" />
+                      <label className="text-sm font-medium text-gray-700">Range (miles)</label>
+                      <Input type="number" value={formData.range_miles} onChange={e => setFormData(prev => ({ ...prev, range_miles: e.target.value }))} placeholder="358" />
                     </div>
                   </div>
                 )}
@@ -1003,16 +994,16 @@ export default function AdminInventoryPage() {
                 <h3 className="font-semibold text-gray-700 mb-3">Media</h3>
                 <div className="grid grid-cols-1 gap-4">
                   <div>
-                    <label htmlFor="inv-primary-image" className="text-sm font-medium text-gray-700">Primary Image URL</label>
-                    <Input id="inv-primary-image" value={formData.primary_image_url} onChange={e => setFormData(prev => ({ ...prev, primary_image_url: e.target.value }))} placeholder="https://..." />
+                    <label className="text-sm font-medium text-gray-700">Primary Image URL</label>
+                    <Input value={formData.primary_image_url} onChange={e => setFormData(prev => ({ ...prev, primary_image_url: e.target.value }))} placeholder="https://..." />
                   </div>
                   <div>
-                    <label htmlFor="inv-video-url" className="text-sm font-medium text-gray-700">Video URL</label>
-                    <Input id="inv-video-url" value={formData.video_url} onChange={e => setFormData(prev => ({ ...prev, video_url: e.target.value }))} placeholder="https://..." />
+                    <label className="text-sm font-medium text-gray-700">Video URL</label>
+                    <Input value={formData.video_url} onChange={e => setFormData(prev => ({ ...prev, video_url: e.target.value }))} placeholder="https://..." />
                   </div>
                   <div>
-                    <label htmlFor="inv-location" className="text-sm font-medium text-gray-700">Location</label>
-                    <Input id="inv-location" value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))} placeholder="Richmond Hill, ON" />
+                    <label className="text-sm font-medium text-gray-700">Location</label>
+                    <Input value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))} placeholder="Richmond Hill, ON" />
                   </div>
                 </div>
               </div>

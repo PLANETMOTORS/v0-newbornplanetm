@@ -13,7 +13,7 @@ export function GoogleReviewsBadge({
   variant = "default", 
   showStars = true,
   className = ""
-}: Readonly<GoogleReviewsBadgeProps>) {
+}: GoogleReviewsBadgeProps) {
   const { rating, reviewCount, isLoading } = useGoogleReviews()
 
   if (variant === "compact") {
@@ -68,12 +68,12 @@ export function GoogleReviewsStatic({
   reviewCount = 500,
   variant = "default",
   className = ""
-}: Readonly<{
+}: {
   rating?: number
   reviewCount?: number
   variant?: "default" | "compact" | "inline"
   className?: string
-}>) {
+}) {
   if (variant === "compact") {
     return (
       <div className={`flex items-center gap-1 ${className}`}>

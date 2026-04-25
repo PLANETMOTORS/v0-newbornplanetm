@@ -5,6 +5,6 @@ export const metadata: Metadata = {
   title: 'Mockup — Internal',
 }
 
-export default function MockupLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function MockupLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }

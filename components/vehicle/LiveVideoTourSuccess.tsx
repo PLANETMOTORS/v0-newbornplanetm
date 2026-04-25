@@ -22,7 +22,7 @@ export function LiveVideoTourSuccess({
   joinUrl,
   provider = "google_meet",
   onClose,
-}: Readonly<LiveVideoTourSuccessProps>) {
+}: LiveVideoTourSuccessProps) {
   const scheduledDate = new Date(scheduledTime)
 
   // Provider-specific display info

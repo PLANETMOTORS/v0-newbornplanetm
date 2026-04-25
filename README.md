@@ -57,21 +57,19 @@ supabase functions deploy price-drop-alert
 
 ### Sanity Studio (CMS)
 
-The Studio is **embedded in this repo** at `/studio` and served at `/studio` via Next.js.
-It is NOT a separate repo — ignore any references to `v0-cms-site-build`.
+The CMS lives in a separate repo: [`v0-cms-site-build`](https://github.com/PLANETMOTORS/v0-cms-site-build).
 
 ```bash
-# Access the Studio locally at:
-http://localhost:3000/studio
-
-# Project ID: wlxj8olw  |  Dataset: production
-# Manage access, CORS origins, and API tokens at:
-https://www.sanity.io/manage/personal/project/wlxj8olw
+cd v0-cms-site-build
+pnpm install
+pnpm dev          # Studio at http://localhost:3000/studio
 ```
 
-**CORS:** Before deploying to a new domain or Vercel preview URL, add the origin at
-`manage.sanity.io → API → CORS Origins`. Vercel preview URLs (`*.vercel.app`) must be
-whitelisted or the Studio will fail to load on preview deployments.
+Required env vars for Sanity Studio:
+- `NEXT_PUBLIC_SANITY_PROJECT_ID` — `wlxj8olw`
+- `NEXT_PUBLIC_SANITY_DATASET` — `production`
+- `SANITY_STUDIO_SUPABASE_URL` — your Supabase project URL
+- `SANITY_STUDIO_SUPABASE_ANON_KEY` — your Supabase anon key
 
 ## Tech Stack
 

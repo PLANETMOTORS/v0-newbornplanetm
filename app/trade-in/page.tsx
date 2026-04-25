@@ -235,7 +235,7 @@ const vehicleTrims: Record<string, string[]> = {
 
 const conditionOptions = [
   { value: "excellent", label: "Excellent", description: "Like new, no visible wear, all features work perfectly", multiplier: 1.1 },
-  { value: "good", label: "Good", description: "Minor wear, small scratches, everything functions properly", multiplier: 1 },
+  { value: "good", label: "Good", description: "Minor wear, small scratches, everything functions properly", multiplier: 1.0 },
   { value: "fair", label: "Fair", description: "Noticeable wear, some cosmetic issues, may need minor repairs", multiplier: 0.9 },
   { value: "poor", label: "Poor", description: "Significant wear, mechanical or body issues, needs work", multiplier: 0.75 },
 ]
@@ -356,7 +356,7 @@ function TradeInContent() {
         setSelectedModel(parts[1])
       }
       const mileageParam = searchParams.get("mileage")
-      if (mileageParam) setMileage(mileageParam.replaceAll(/\D/g, ""))
+      if (mileageParam) setMileage(mileageParam.replaceAll(/[^0-9]/g, ""))
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, user])
@@ -375,23 +375,23 @@ function TradeInContent() {
         globalThis.localStorage.removeItem(TRADE_IN_DRAFT_KEY)
         return
       }
-      if (typeof d.step === "number" && d.step >= 1 && d.step <= 3) setStep(d.step)
+      if (typeof d.step === "number" && d.step >= 1 && d.step <= 3) setStep(d.step as number)
       if (typeof d.lookupMethod === "string") setLookupMethod(d.lookupMethod as "plate" | "vin" | "manual")
-      if (typeof d.selectedYear === "string") setSelectedYear(d.selectedYear)
-      if (typeof d.selectedMake === "string") setSelectedMake(d.selectedMake)
-      if (typeof d.selectedModel === "string") setSelectedModel(d.selectedModel)
-      if (typeof d.selectedTrim === "string") setSelectedTrim(d.selectedTrim)
-      if (typeof d.mileage === "string") setMileage(d.mileage)
-      if (typeof d.condition === "string") setCondition(d.condition)
-      if (typeof d.hasAccident === "boolean") setHasAccident(d.hasAccident)
-      if (typeof d.hasMechanicalIssues === "boolean") setHasMechanicalIssues(d.hasMechanicalIssues)
-      if (typeof d.hasLien === "boolean") setHasLien(d.hasLien)
-      if (typeof d.payoffAmount === "string") setPayoffAmount(d.payoffAmount)
-      if (typeof d.additionalNotes === "string") setAdditionalNotes(d.additionalNotes)
-      if (typeof d.email === "string") setEmail(d.email)
-      if (typeof d.phone === "string") setPhone(d.phone)
-      if (typeof d.postalCode === "string") setPostalCode(d.postalCode)
-      if (typeof d.vinNumber === "string") setVinNumber(d.vinNumber)
+      if (typeof d.selectedYear === "string") setSelectedYear(d.selectedYear as string)
+      if (typeof d.selectedMake === "string") setSelectedMake(d.selectedMake as string)
+      if (typeof d.selectedModel === "string") setSelectedModel(d.selectedModel as string)
+      if (typeof d.selectedTrim === "string") setSelectedTrim(d.selectedTrim as string)
+      if (typeof d.mileage === "string") setMileage(d.mileage as string)
+      if (typeof d.condition === "string") setCondition(d.condition as string)
+      if (typeof d.hasAccident === "boolean") setHasAccident(d.hasAccident as boolean)
+      if (typeof d.hasMechanicalIssues === "boolean") setHasMechanicalIssues(d.hasMechanicalIssues as boolean)
+      if (typeof d.hasLien === "boolean") setHasLien(d.hasLien as boolean)
+      if (typeof d.payoffAmount === "string") setPayoffAmount(d.payoffAmount as string)
+      if (typeof d.additionalNotes === "string") setAdditionalNotes(d.additionalNotes as string)
+      if (typeof d.email === "string") setEmail(d.email as string)
+      if (typeof d.phone === "string") setPhone(d.phone as string)
+      if (typeof d.postalCode === "string") setPostalCode(d.postalCode as string)
+      if (typeof d.vinNumber === "string") setVinNumber(d.vinNumber as string)
     } catch (err) {
       console.error("Failed to restore trade-in draft:", err)
     }
@@ -554,7 +554,7 @@ function TradeInContent() {
     }
     const expectedKm = age * 20000
     if (mileageNum > expectedKm) value -= (mileageNum - expectedKm) * 0.05
-    const condMul = { excellent: 1.10, good: 1, fair: 0.85, poor: 0.65 }[condition] || 1
+    const condMul = { excellent: 1.10, good: 1.0, fair: 0.85, poor: 0.65 }[condition] || 1.0
     value = Math.max(500, value * condMul)
     value = Math.round(value / 50) * 50
     return { low: Math.round(value * 0.90 / 50) * 50, mid: value, high: Math.round(value * 1.10 / 50) * 50 }
@@ -798,7 +798,7 @@ function TradeInContent() {
                         pattern="[0-9]*"
                         className="h-12 bg-white/5 border-white/20 text-white placeholder:text-white/30"
                         value={mileage}
-                        onChange={(e) => setMileage(e.target.value.replaceAll(/\D/g, ''))}
+                        onChange={(e) => setMileage(e.target.value.replace(/[^0-9]/g, ''))}
                         autoComplete="off"
                       />
                       <Button
@@ -850,7 +850,7 @@ function TradeInContent() {
                             pattern="[0-9]*"
                             className="h-12"
                             value={mileage}
-                            onChange={(e) => setMileage(e.target.value.replaceAll(/\D/g, ''))}
+                            onChange={(e) => setMileage(e.target.value.replace(/[^0-9]/g, ''))}
                             autoComplete="off"
                           />
                           <Button className="w-full h-12 text-lg" size="lg" onClick={() => goToStep(2)} disabled={!mileage}>
@@ -911,18 +911,20 @@ function TradeInContent() {
                         <Label className="text-base font-semibold">Overall Condition</Label>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {conditionOptions.map((opt) => (
-                            <button
-                              type="button"
+                            <div
                               key={opt.value}
-                              className={`text-left p-4 border-2 rounded-lg cursor-pointer transition-all ${condition === opt.value ? "border-primary bg-primary/5" : "border-muted hover:border-primary/50"}`}
+                              role="button"
+                              tabIndex={0}
+                              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${condition === opt.value ? "border-primary bg-primary/5" : "border-muted hover:border-primary/50"}`}
                               onClick={() => setCondition(opt.value)}
+                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setCondition(opt.value) }}
                             >
                               <div className="flex items-center justify-between mb-1">
                                 <span className="font-semibold">{opt.label}</span>
                                 {condition === opt.value && <CheckCircle className="h-5 w-5 text-primary" />}
                               </div>
                               <p className="text-sm text-muted-foreground">{opt.description}</p>
-                            </button>
+                            </div>
                           ))}
                         </div>
                       </div>
@@ -1190,7 +1192,7 @@ function TradeInContent() {
                       <Button size="lg" className="h-14 text-lg bg-accent hover:bg-accent/90 text-accent-foreground" onClick={() => setShowAcceptModal(true)}>
                         <ThumbsUp className="mr-2 h-5 w-5" />Accept Offer
                       </Button>
-                      <Button size="lg" variant="outline" className="h-14 text-lg" onClick={() => { if (user) { setShowApplyModal(true) } else { setShowAuthModal(true) } }}>
+                      <Button size="lg" variant="outline" className="h-14 text-lg" onClick={() => { if (!user) { setShowAuthModal(true) } else { setShowApplyModal(true) } }}>
                         <Car className="mr-2 h-5 w-5" />Apply to a Purchase
                       </Button>
                     </div>

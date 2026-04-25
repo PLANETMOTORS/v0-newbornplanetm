@@ -36,7 +36,7 @@ export function DriversLicenseStep({
   customerEmail,
   onChange,
   onContinue,
-}: Readonly<DriversLicenseStepProps>) {
+}: DriversLicenseStepProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState("")
   const [isDragging, setIsDragging] = useState(false)
@@ -142,7 +142,38 @@ export function DriversLicenseStep({
         </div>
       )}
 
-      {data.licenseFile ? (
+      {!data.licenseFile ? (
+        <div
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
+          aria-label="Upload driver's license"
+          className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${
+            isDragging
+              ? "border-blue-600 bg-blue-50"
+              : "border-blue-300 hover:border-blue-500 hover:bg-blue-50/50"
+          }`}
+        >
+          <Upload className="w-10 h-10 text-blue-500 mx-auto mb-3" aria-hidden="true" />
+          <p className="font-semibold">Click or drag to upload</p>
+          <p className="text-sm text-muted-foreground mt-1">JPG, PNG, WebP, or PDF — max 5 MB</p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={ACCEPTED_TYPES.join(",")}
+            className="sr-only"
+            aria-label="Choose driver's license file"
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file) handleFile(file)
+            }}
+          />
+        </div>
+      ) : (
         <div className="border rounded-xl p-4">
           <div className="flex items-center gap-4">
             {data.licensePreviewUrl ? (
@@ -179,37 +210,6 @@ export function DriversLicenseStep({
             </button>
           </div>
         </div>
-      ) : (
-        <div
-          onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
-          aria-label="Upload driver's license"
-          className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${
-            isDragging
-              ? "border-blue-600 bg-blue-50"
-              : "border-blue-300 hover:border-blue-500 hover:bg-blue-50/50"
-          }`}
-        >
-          <Upload className="w-10 h-10 text-blue-500 mx-auto mb-3" aria-hidden="true" />
-          <p className="font-semibold">Click or drag to upload</p>
-          <p className="text-sm text-muted-foreground mt-1">JPG, PNG, WebP, or PDF — max 5 MB</p>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={ACCEPTED_TYPES.join(",")}
-            className="sr-only"
-            aria-label="Choose driver's license file"
-            onChange={(e) => {
-              const file = e.target.files?.[0]
-              if (file) handleFile(file)
-            }}
-          />
-        </div>
       )}
 
       <fieldset>
@@ -224,7 +224,7 @@ export function DriversLicenseStep({
               id="licenseFirstName"
               autoComplete="given-name"
               disabled={isPending}
-              value={data.licenseFirstName === "" ? prefillFirstName : data.licenseFirstName}
+              value={data.licenseFirstName !== "" ? data.licenseFirstName : prefillFirstName}
               onChange={(e) => onChange({ ...data, licenseFirstName: e.target.value })}
             />
           </div>
@@ -234,7 +234,7 @@ export function DriversLicenseStep({
               id="licenseLastName"
               autoComplete="family-name"
               disabled={isPending}
-              value={data.licenseLastName === "" ? prefillLastName : data.licenseLastName}
+              value={data.licenseLastName !== "" ? data.licenseLastName : prefillLastName}
               onChange={(e) => onChange({ ...data, licenseLastName: e.target.value })}
             />
           </div>

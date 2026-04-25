@@ -31,7 +31,7 @@ export function PriceNegotiator({
   vehicleName,
   daysListed = 30,
   viewsLastWeek = 25,
-}: Readonly<PriceNegotiatorProps>) {
+}: PriceNegotiatorProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [step, setStep] = useState<"contact" | "verify" | "negotiate">("contact")
   const [contactInfo, setContactInfo] = useState({ name: "", email: "", phone: "" })
@@ -181,11 +181,7 @@ export function PriceNegotiator({
           AI Price Negotiator
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          {(() => {
-            if (step === "contact") return "Verify your identity to start negotiating"
-            if (step === "verify") return "Enter verification code"
-            return "Negotiate directly with our AI"
-          })()}
+          {step === "contact" ? "Verify your identity to start negotiating" : step === "verify" ? "Enter verification code" : "Negotiate directly with our AI"}
         </p>
       </CardHeader>
       <CardContent className="space-y-4">

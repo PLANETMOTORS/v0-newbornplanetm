@@ -9,7 +9,7 @@ const client = createClient({
   useCdn: false,
 })
 
-const { randomBytes } = require('node:crypto')
+const { randomBytes } = require('crypto')
 
 function generateKey() {
   // Use crypto.randomBytes for a cryptographically random key (not Math.random)
@@ -117,16 +117,12 @@ async function publishDocuments() {
       try {
         await client.delete(publishedId)
         console.log(`  Deleted existing published: ${publishedId}`)
-      } catch (e) {
-        console.warn(`  No existing published ${publishedId}:`, e?.message ?? e)
-      }
-
+      } catch (_e) { /* Ignore if doesn't exist */ }
+      
       try {
         await client.delete(draftId)
         console.log(`  Deleted existing draft: ${draftId}`)
-      } catch (e) {
-        console.warn(`  No existing draft ${draftId}:`, e?.message ?? e)
-      }
+      } catch (_e) { /* Ignore if doesn't exist */ }
 
       // Step 2: Create draft document
       const draftDoc = {

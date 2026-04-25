@@ -14,7 +14,7 @@ interface Props {
   params: Promise<{ id: string }>
 }
 
-export async function generateMetadata({ params }: Readonly<Props>): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const { id } = await params
     const baseUrl = getPublicSiteUrl()
@@ -24,8 +24,7 @@ export async function generateMetadata({ params }: Readonly<Props>): Promise<Met
     if (!v) throw new Error("not found")
 
     // ── Trust-forward title ──
-    const trimSuffix = v.trim ? ` ${v.trim}` : ""
-    const title = `${v.year} ${v.make} ${v.model}${trimSuffix} — Used for Sale | Planet Motors`
+    const title = `${v.year} ${v.make} ${v.model}${v.trim ? ` ${v.trim}` : ""} — Used for Sale | Planet Motors`
 
     // ── Trust-forward description ──
     // Lead with trust signals: Aviloo battery health (EVs), clean Carfax, one owner
@@ -104,6 +103,6 @@ export async function generateMetadata({ params }: Readonly<Props>): Promise<Met
   }
 }
 
-export default function VehicleLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function VehicleLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }

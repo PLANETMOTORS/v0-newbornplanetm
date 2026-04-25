@@ -16,8 +16,8 @@
  */
 
 import { test, expect, Page } from '@playwright/test';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import * as fs from 'fs';
+import * as path from 'path';
 import { randomInt as cryptoRandomInt } from 'node:crypto';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -39,7 +39,7 @@ const CHECKOUT_URL = `${BASE_URL}/checkout`;
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     try {
-      globalThis.window.localStorage.setItem(
+      window.localStorage.setItem(
         'pm_cookie_consent',
         JSON.stringify({
           decided: true,
@@ -103,23 +103,20 @@ async function captureWebVitals(page: Page): Promise<Record<string, number>> {
   return page.evaluate(() => new Promise(resolve => {
     const vitals: Record<string, number> = {};
     const timeout = setTimeout(() => resolve(vitals), 5000);
-    const captureLcp = (list: PerformanceObserverEntryList) => {
+    new PerformanceObserver(list => {
       const entries = list.getEntries();
       if (entries.length) vitals.lcp = entries[entries.length - 1].startTime;
-    };
-    const capturePaint = (list: PerformanceObserverEntryList) => {
-      const fcp = list.getEntries().find(e => e.name === 'first-contentful-paint');
-      if (fcp) vitals.fcp = fcp.startTime;
-    };
+    }).observe({ type: 'largest-contentful-paint', buffered: true });
+    new PerformanceObserver(list => {
+      list.getEntries().forEach(e => {
+        if (e.name === 'first-contentful-paint') vitals.fcp = e.startTime;
+      });
+    }).observe({ type: 'paint', buffered: true });
     let clsValue = 0;
-    const captureCls = (list: PerformanceObserverEntryList) => {
-      const entries = list.getEntries() as Array<PerformanceEntry & { value?: number }>;
-      clsValue += entries.reduce((sum, e) => sum + (e.value ?? 0), 0);
+    new PerformanceObserver(list => {
+      list.getEntries().forEach((e: PerformanceEntry & { value?: number }) => { clsValue += (e.value ?? 0); });
       vitals.cls = clsValue;
-    };
-    new PerformanceObserver(captureLcp).observe({ type: 'largest-contentful-paint', buffered: true });
-    new PerformanceObserver(capturePaint).observe({ type: 'paint', buffered: true });
-    new PerformanceObserver(captureCls).observe({ type: 'layout-shift', buffered: true });
+    }).observe({ type: 'layout-shift', buffered: true });
     setTimeout(() => { clearTimeout(timeout); resolve(vitals); }, 4000);
   }));
 }

@@ -17,15 +17,14 @@ interface HeroImageServerProps {
   > | null
 }
 
-export function HeroImageServer({ firstVehicle }: Readonly<HeroImageServerProps>) {
+export function HeroImageServer({ firstVehicle }: HeroImageServerProps) {
   const imageUrl =
     firstVehicle?.primary_image_url ||
-    (firstVehicle?.image_urls?.[0]) ||
+    (firstVehicle?.image_urls && firstVehicle.image_urls[0]) ||
     null
 
-  const trimSuffix = firstVehicle?.trim ? ` ${firstVehicle.trim}` : ""
   const alt = firstVehicle
-    ? `${firstVehicle.year} ${firstVehicle.make} ${firstVehicle.model}${trimSuffix}`
+    ? `${firstVehicle.year} ${firstVehicle.make} ${firstVehicle.model}${firstVehicle.trim ? ` ${firstVehicle.trim}` : ""}`
     : "Featured vehicle"
 
   return (

@@ -45,7 +45,7 @@ const STEP_DEFS = [
   { id: "deposit",    label: "Secure with deposit",  timeEstimate: "3 min" },
 ] as const
 
-export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
+export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
   const router = useRouter()
   const { user, isLoading: authLoading } = useAuth()
 
@@ -95,8 +95,7 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
   // Redirect unauthenticated users
   useEffect(() => {
     if (!authLoading && !user) {
-      const redirectTo = encodeURIComponent(`/checkout/${vehicleId}`)
-      router.push(`/auth/login?redirectTo=${redirectTo}`)
+      router.push(`/auth/login?redirectTo=${encodeURIComponent(`/checkout/${vehicleId}`)}`)
     }
   }, [user, authLoading, router, vehicleId])
 
@@ -243,18 +242,12 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
     }
   }, [currentStep, isSubmitting])
 
-  const sidebarSteps: PurchaseStep[] = STEP_DEFS.map((def, idx) => {
-    let status: PurchaseStep["status"]
-    if (completedSteps.has(idx)) status = "complete"
-    else if (idx === currentStep) status = "current"
-    else status = "upcoming"
-    return {
-      id: def.id,
-      label: def.label,
-      timeEstimate: def.timeEstimate,
-      status,
-    }
-  })
+  const sidebarSteps: PurchaseStep[] = STEP_DEFS.map((def, idx) => ({
+    id: def.id,
+    label: def.label,
+    timeEstimate: def.timeEstimate,
+    status: completedSteps.has(idx) ? "complete" : idx === currentStep ? "current" : "upcoming",
+  }))
 
   // --- Loading / error states ---
 
@@ -349,13 +342,14 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
 
       {/* Mobile Order Summary Drawer */}
       {showOrderSummary && (
-        <div className="lg:hidden fixed inset-0 z-[60]">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/50"
-            aria-label="Close order summary"
-            onClick={() => setShowOrderSummary(false)}
-          />
+        <div
+          className="lg:hidden fixed inset-0 z-[60] bg-black/50"
+          role="button"
+          tabIndex={0}
+          aria-label="Close order summary"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowOrderSummary(false) }}
+          onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); setShowOrderSummary(false) } }}
+        >
           <div
             ref={orderSummaryModalRef}
             id="mobile-order-summary"

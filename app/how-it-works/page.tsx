@@ -144,8 +144,8 @@ export default function HowItWorksPage() {
                     </div>
                     <p className="text-muted-foreground mb-4">{step.description}</p>
                     <div className="grid grid-cols-2 gap-2">
-                      {step.details.map((detail) => (
-                        <div key={detail} className="flex items-center gap-2 text-sm">
+                      {step.details.map((detail, j) => (
+                        <div key={j} className="flex items-center gap-2 text-sm">
                           <CheckCircle className="h-4 w-4 text-green-500" />
                           <span>{detail}</span>
                         </div>

@@ -75,7 +75,7 @@ export function LeadCaptureForm({
   onSuccess,
   ctaLabel = "Get More Info",
   successMessage = "Thanks! A specialist will reach out within 2 hours.",
-}: Readonly<LeadCaptureFormProps>) {
+}: LeadCaptureFormProps) {
   const [form, setForm] = useState<FormState>({
     firstName: "",
     lastName: "",
@@ -359,7 +359,7 @@ export function LeadCaptureForm({
         <a href="/privacy" className="underline hover:text-foreground">
           privacy policy
         </a>
-        {". No spam — ever."}
+        . No spam — ever.
       </p>
     </form>
   )

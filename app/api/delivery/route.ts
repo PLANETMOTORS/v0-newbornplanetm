@@ -103,14 +103,11 @@ export async function GET(req: Request) {
   }
 
   const vehicle = Array.isArray(order.vehicles) ? order.vehicles[0] : order.vehicles
-  let estimatedArrival: string
-  if (delivery.estimated_delivery_date) {
-    estimatedArrival = new Date(`${delivery.estimated_delivery_date}T17:00:00.000Z`).toISOString()
-  } else if (delivery.scheduled_date) {
-    estimatedArrival = new Date(`${delivery.scheduled_date}T17:00:00.000Z`).toISOString()
-  } else {
-    estimatedArrival = new Date(order.created_at).toISOString()
-  }
+  const estimatedArrival = delivery.estimated_delivery_date
+    ? new Date(`${delivery.estimated_delivery_date}T17:00:00.000Z`).toISOString()
+    : delivery.scheduled_date
+      ? new Date(`${delivery.scheduled_date}T17:00:00.000Z`).toISOString()
+      : new Date(order.created_at).toISOString()
 
   const timeline = [
     {

@@ -124,9 +124,9 @@ export function SupabaseVehiclePicker(props: StringInputProps) {
 
       if (searchQuery.trim()) {
         const escapedQuery = searchQuery
-          .replaceAll('\\', String.raw`\\`)  // Escape backslashes first
-          .replaceAll('%', String.raw`\%`)    // Escape percent signs (LIKE wildcard)
-          .replaceAll('_', String.raw`\_`)    // Escape underscores (LIKE wildcard)
+          .replaceAll('\\', '\\\\')  // Escape backslashes first
+          .replaceAll('%', '\\%')    // Escape percent signs (LIKE wildcard)
+          .replaceAll('_', '\\_')    // Escape underscores (LIKE wildcard)
 
         if (escapedQuery) {
           builder = builder.or(
@@ -184,18 +184,12 @@ export function SupabaseVehiclePicker(props: StringInputProps) {
   }, [onChange])
 
   if (readOnly) {
-    let label: string
-    if (selectedVehicle) {
-      label = `${selectedVehicle.year} ${selectedVehicle.make} ${selectedVehicle.model} — ${formatPrice(selectedVehicle.price)}`
-    } else if (value) {
-      label = `Vehicle ID: ${value}`
-    } else {
-      label = 'No vehicle selected'
-    }
     return (
       <Card padding={3} radius={2} shadow={1}>
         <Text size={1} muted>
-          {label}
+          {selectedVehicle
+            ? `${selectedVehicle.year} ${selectedVehicle.make} ${selectedVehicle.model} — ${formatPrice(selectedVehicle.price)}`
+            : (value ? `Vehicle ID: ${value}` : 'No vehicle selected')}
         </Text>
       </Card>
     )

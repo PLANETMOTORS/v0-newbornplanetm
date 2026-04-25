@@ -109,8 +109,7 @@ export default function AdminFinancePage() {
   const fetchApplications = async () => {
     setLoading(true)
     try {
-      const queryString = statusFilter === "all" ? "" : `?status=${statusFilter}`
-      const url = `/api/v1/admin/finance/applications${queryString}`
+      const url = `/api/v1/admin/finance/applications${statusFilter !== "all" ? `?status=${statusFilter}` : ""}`
       const res = await fetch(url)
       if (res.ok) {
         const data = await res.json()
@@ -150,13 +149,13 @@ export default function AdminFinancePage() {
       const res = await fetch(`/api/v1/financing/documents/download?pathname=${encodeURIComponent(pathname)}&admin=true`)
       if (res.ok) {
         const blob = await res.blob()
-        const url = globalThis.window.URL.createObjectURL(blob)
+        const url = window.URL.createObjectURL(blob)
         const a = document.createElement("a")
         a.href = url
         a.download = fileName
         document.body.appendChild(a)
         a.click()
-        globalThis.window.URL.revokeObjectURL(url)
+        window.URL.revokeObjectURL(url)
         a.remove()
       }
     } catch (error) {
@@ -299,19 +298,17 @@ export default function AdminFinancePage() {
       {/* Applications Table */}
       <Card>
         <CardContent className="p-0">
-          {loading && (
+          {loading ? (
             <div className="flex items-center justify-center py-12">
               <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
               <span className="ml-2 text-gray-500">Loading applications...</span>
             </div>
-          )}
-          {!loading && filteredApplications.length === 0 && (
+          ) : filteredApplications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
               <FileText className="w-12 h-12 text-gray-300 mb-4" />
               <p className="text-gray-500">No applications found</p>
             </div>
-          )}
-          {!loading && filteredApplications.length > 0 && (
+          ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b">

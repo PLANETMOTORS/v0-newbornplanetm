@@ -125,7 +125,7 @@ export function useVehicleFilters() {
   }, [filters])
 
   const getShareableUrl = useCallback(() => {
-    return `${globalThis.window === undefined ? "" : globalThis.window.location.origin}${pathname}?${searchParams.toString()}`
+    return `${typeof window !== "undefined" ? window.location.origin : ""}${pathname}?${searchParams.toString()}`
   }, [pathname, searchParams])
 
   return {

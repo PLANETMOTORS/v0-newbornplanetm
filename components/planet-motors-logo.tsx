@@ -12,7 +12,7 @@ export function PlanetMotorsLogo({
   className = "", 
   showTagline: _showTagline = false,
   size = "md" 
-}: Readonly<PlanetMotorsLogoProps>) {
+}: PlanetMotorsLogoProps) {
   const sizes = {
     sm: { width: 120, height: 48 },
     md: { width: 160, height: 64 },

@@ -61,7 +61,7 @@ const STAGE_LABELS: Record<string, { label: string; color: string; description: 
 }
 
 // ── Main Component ─────────────────────────────────────────────────────────
-export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedVehicles }: Readonly<GarageShellProps>) {
+export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedVehicles }: GarageShellProps) {
   const router = useRouter()
   const sb = createClient()
   const deals = activeDeals
@@ -73,16 +73,20 @@ export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedV
   useEffect(() => {
     if (deals.length === 0) return
 
-    const handleDealEvent = () => {
-      setLiveIndicator(true)
-      setTimeout(() => setLiveIndicator(false), 3000)
-      router.refresh()
-    }
-    const subscribeToDeal = (dealId: string) =>
-      sb.channel(`deal-events:${dealId}`)
-        .on("postgres_changes", { event: "INSERT", schema: "public", table: "deal_events", filter: `deal_id=eq.${dealId}` }, handleDealEvent)
+    const channels = deals.map(deal =>
+      sb.channel(`deal-events:${deal.id}`)
+        .on("postgres_changes", {
+          event: "INSERT",
+          schema: "public",
+          table: "deal_events",
+          filter: `deal_id=eq.${deal.id}`,
+        }, () => {
+          setLiveIndicator(true)
+          setTimeout(() => setLiveIndicator(false), 3000)
+          router.refresh()
+        })
         .subscribe()
-    const channels = deals.map(deal => subscribeToDeal(deal.id))
+    )
 
     return () => { channels.forEach(ch => sb.removeChannel(ch)) }
   }, [deals, sb, router])
@@ -108,12 +112,12 @@ export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedV
                 </h1>
                 <p className="text-sm text-muted-foreground flex items-center gap-2">
                   Your Garage
-                  {liveIndicator ? (
+                  {liveIndicator && (
                     <span className="flex items-center gap-1 text-emerald-600 text-xs font-medium">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       Live update
                     </span>
-                  ) : null}
+                  )}
                 </p>
               </div>
             </div>
@@ -139,7 +143,7 @@ export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedV
           <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl px-4 py-3">
             <TrendingDown className="h-5 w-5 text-emerald-600 shrink-0" />
             <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
-              🎉 {priceDropCount} saved vehicle{priceDropCount === 1 ? "" : "s"} dropped in price!
+              🎉 {priceDropCount} saved vehicle{priceDropCount !== 1 ? "s" : ""} dropped in price!
             </p>
           </div>
         )}
@@ -169,7 +173,7 @@ export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedV
                         </div>
                         <div className="text-right text-xs text-muted-foreground space-y-1">
                           {deposit && <p>Deposit: {deposit.state === "succeeded" ? "✅ Paid" : deposit.state}</p>}
-                          {finance && <p>Finance: {finance.state.replaceAll("_", " ")}</p>}
+                          {finance && <p>Finance: {finance.state.replaceAll(/_/g, " ")}</p>}
                           {delivery?.scheduled_for && (
                             <p>Delivery: {new Date(delivery.scheduled_for).toLocaleDateString("en-CA")}</p>
                           )}
