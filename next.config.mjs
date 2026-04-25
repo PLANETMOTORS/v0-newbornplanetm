@@ -247,7 +247,7 @@ const nextConfig = {
 }
 
 // Sentry wrapper — only applied when @sentry/nextjs is installed
-const sentryConfig = analyzeBundles(nextConfig)
+let sentryConfig = analyzeBundles(nextConfig)
 try {
   const { withSentryConfig } = await import("@sentry/nextjs")
   sentryConfig = withSentryConfig(analyzeBundles(nextConfig), {

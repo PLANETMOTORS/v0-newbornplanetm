@@ -20,50 +20,42 @@ type NavItem = {
   submenu?: { name: string; href: string }[]
 }
 
+const SHOP_SUBMENU = [
+  { name: "All Vehicles", href: "/inventory" },
+  { name: "Electric Vehicles", href: "/inventory?fuelType=Electric" },
+  { name: "SUVs & Crossovers", href: "/inventory?bodyType=SUV" },
+  { name: "Sedans", href: "/inventory?bodyType=Sedan" },
+  { name: "Trucks", href: "/inventory?bodyType=Truck" },
+]
+
+const SELL_SUBMENU = [
+  { name: "Get Trade-In Value", href: "/trade-in" },
+  { name: "Sell Your Car", href: "/sell-your-car" },
+]
+
+const FINANCE_SUBMENU = [
+  { name: "Get Pre-Approved", href: "/financing" },
+  { name: "Financing Calculator", href: "/financing#calculator" },
+  { name: "How It Works", href: "/how-it-works" },
+  { name: "Delivery", href: "/delivery" },
+]
+
+const MORE_SUBMENU = [
+  { name: "About", href: "/about" },
+  { name: "EV Battery Health", href: "/aviloo" },
+  { name: "Car Value Calculator", href: "/trade-in" },
+  { name: "Protection Plans", href: "/protection-plans" },
+  { name: "FAQ", href: "/faq" },
+  { name: "Careers", href: "/careers" },
+  { name: "Contact Us", href: "/contact" },
+  { name: "Blog", href: "/blog" },
+]
+
 const navigation: NavItem[] = [
-  { 
-    name: "Shop Inventory",
-    href: "/inventory",
-    submenu: [
-      { name: "All Vehicles", href: "/inventory" },
-      { name: "Electric Vehicles", href: "/inventory?fuelType=Electric" },
-      { name: "SUVs & Crossovers", href: "/inventory?bodyType=SUV" },
-      { name: "Sedans", href: "/inventory?bodyType=Sedan" },
-      { name: "Trucks", href: "/inventory?bodyType=Truck" },
-    ]
-  },
-  { 
-    name: "Sell or Trade",
-    href: "/trade-in",
-    submenu: [
-      { name: "Get Trade-In Value", href: "/trade-in" },
-      { name: "Sell Your Car", href: "/sell-your-car" },
-    ]
-  },
-  { 
-    name: "Finance",
-    href: "/financing",
-    submenu: [
-      { name: "Get Pre-Approved", href: "/financing" },
-      { name: "Financing Calculator", href: "/financing#calculator" },
-      { name: "How It Works", href: "/how-it-works" },
-      { name: "Delivery", href: "/delivery" },
-    ]
-  },
-  { 
-    name: "More",
-    href: "/about",
-    submenu: [
-      { name: "About", href: "/about" },
-      { name: "EV Battery Health", href: "/aviloo" },
-      { name: "Car Value Calculator", href: "/trade-in" },
-      { name: "Protection Plans", href: "/protection-plans" },
-      { name: "FAQ", href: "/faq" },
-      { name: "Careers", href: "/careers" },
-      { name: "Contact Us", href: "/contact" },
-      { name: "Blog", href: "/blog" },
-    ]
-  },
+  { name: "Shop Inventory", href: "/inventory", submenu: SHOP_SUBMENU },
+  { name: "Sell or Trade", href: "/trade-in", submenu: SELL_SUBMENU },
+  { name: "Finance", href: "/financing", submenu: FINANCE_SUBMENU },
+  { name: "More", href: "/about", submenu: MORE_SUBMENU },
 ]
 
 function DesktopNav({ 

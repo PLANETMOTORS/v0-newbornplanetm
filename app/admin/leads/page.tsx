@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { timeAgo, sourceIcon, leadStatusVariant as statusVariant } from "@/lib/admin/lead-utils"
 
 interface Lead {
   id: string
@@ -51,39 +52,6 @@ const SOURCE_LABELS: Record<string, string> = {
 
 const STATUS_OPTIONS = ["all", "new", "contacted", "qualified", "negotiating", "converted", "lost", "archived"]
 const SOURCE_OPTIONS = ["all", "contact_form", "chat", "finance_app", "trade_in", "reservation", "test_drive"]
-
-function timeAgo(dateStr: string): string {
-  const now = new Date()
-  const date = new Date(dateStr)
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-  if (seconds < 60) return "just now"
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
-  return `${Math.floor(seconds / 86400)}d ago`
-}
-
-function sourceIcon(source: string) {
-  switch (source) {
-    case "contact_form": return MessageSquare
-    case "chat": return Bot
-    case "finance_app": return DollarSign
-    case "reservation": return CalendarCheck
-    case "trade_in": return Car
-    case "test_drive": return Clock
-    default: return MessageSquare
-  }
-}
-
-function statusVariant(status: string): "default" | "secondary" | "outline" | "destructive" {
-  switch (status) {
-    case "new": return "default"
-    case "contacted": return "secondary"
-    case "qualified": return "outline"
-    case "converted": return "default"
-    case "lost": return "destructive"
-    default: return "secondary"
-  }
-}
 
 function priorityColor(priority: string): string {
   switch (priority) {
