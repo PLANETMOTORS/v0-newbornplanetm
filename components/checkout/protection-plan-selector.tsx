@@ -26,12 +26,15 @@ export function ProtectionPlanSelector({ value, onChange }: ProtectionPlanSelect
           {CHECKOUT_PLANS.map((plan) => (
             <div
               key={plan.id}
+              role="button"
+              tabIndex={0}
               className={`relative flex items-start p-4 rounded-lg border-2 cursor-pointer transition-colors ${
                 value === plan.id
                   ? "border-primary bg-primary/5"
                   : "border-border hover:border-primary/50"
               }`}
               onClick={() => onChange(plan.id)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onChange(plan.id) }}
             >
               <RadioGroupItem value={plan.id} id={plan.id} className="mt-1" />
               <Label htmlFor={plan.id} className="flex-1 ml-3 cursor-pointer">
