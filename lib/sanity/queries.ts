@@ -101,7 +101,17 @@ export const SELL_YOUR_CAR_PAGE_QUERY = `
 
 export const FINANCING_PAGE_QUERY = `
   *[_type == "financingPage"][0] {
-    heroSection { headline, subheadline, highlight, featuredRateText, rateSubtext, primaryCta },
+    heroSection {
+      headline,
+      subheadline,
+      "highlight": highlightText,
+      featuredRateText,
+      rateSubtext,
+      primaryCta {
+        "buttonLabel": label,
+        url
+      }
+    },
     benefits, calculator, processSteps, ctaSection, seo
   }
 `

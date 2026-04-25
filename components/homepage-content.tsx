@@ -76,6 +76,14 @@ export type HomepageProps = {
       isClosed?: boolean
     }>
   }
+  homepageData?: {
+    heroSection?: {
+      headline?: string
+      subheadline?: string
+      primaryCta?: { buttonLabel?: string; label?: string; url?: string }
+      secondaryCta?: { buttonLabel?: string; label?: string; url?: string }
+    }
+  } | null
   showcaseVehicles?: Array<{
     id: string
     year: number
@@ -95,9 +103,17 @@ export type HomepageProps = {
 
 
 
-export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProps) {
+export function HomepageContent({ siteSettings, homepageData, showcaseVehicles }: HomepageProps) {
   const ratingValue = siteSettings.aggregateRating?.ratingValue || 4.8
   const lowestRate = siteSettings.financingDefaults?.annualInterestRate || RATE_FLOOR
+
+  // CMS-driven hero content with hardcoded fallbacks
+  const heroHeadline = homepageData?.heroSection?.headline ?? null
+  const heroSubheadline = homepageData?.heroSection?.subheadline ?? null
+  const primaryCtaLabel = homepageData?.heroSection?.primaryCta?.buttonLabel ?? homepageData?.heroSection?.primaryCta?.label ?? "Find Your Car"
+  const primaryCtaUrl = homepageData?.heroSection?.primaryCta?.url ?? "/inventory"
+  const secondaryCtaLabel = homepageData?.heroSection?.secondaryCta?.buttonLabel ?? homepageData?.heroSection?.secondaryCta?.label ?? "Get Trade-In Value"
+  const secondaryCtaUrl = homepageData?.heroSection?.secondaryCta?.url ?? "/trade-in"
 
   // Get business hours for display
   const weekdayHours = siteSettings.businessHours?.find(h => h.day === "Monday")
@@ -111,33 +127,43 @@ export function HomepageContent({ siteSettings, showcaseVehicles }: HomepageProp
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Hero Text */}
             <div className="text-center lg:text-left min-w-0">
-              <h1 className="text-[2rem] sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-[-0.01em] sm:tracking-[-0.02em] text-gray-900">
-                Canada&apos;s Battery-Certified
-                <span className="block text-[#1e3a8a]">
-                  Used EV Dealership
-                </span>
-              </h1>
+              {heroHeadline ? (
+                <h1 className="text-[2rem] sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-[-0.01em] sm:tracking-[-0.02em] text-gray-900">
+                  {heroHeadline}
+                </h1>
+              ) : (
+                <h1 className="text-[2rem] sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-[-0.01em] sm:tracking-[-0.02em] text-gray-900">
+                  Canada&apos;s Battery-Certified
+                  <span className="block text-[#1e3a8a]">
+                    Used EV Dealership
+                  </span>
+                </h1>
+              )}
 
               <p className="mt-6 text-base sm:text-lg text-gray-600 max-w-lg mx-auto lg:mx-0 min-h-[3rem] sm:min-h-[3.5rem]">
-                Aviloo-certified used EVs.
-                <br className="hidden sm:block" />
-                <span className="font-semibold text-gray-800">210-point inspected.</span> Canada-wide delivery.
+                {heroSubheadline ?? (
+                  <>
+                    Aviloo-certified used EVs.
+                    <br className="hidden sm:block" />
+                    <span className="font-semibold text-gray-800">210-point inspected.</span> Canada-wide delivery.
+                  </>
+                )}
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row items-center gap-6 justify-center lg:justify-start min-h-[3.5rem] sm:min-h-[3rem]">
                 <a
-                  href="/inventory"
+                  href={primaryCtaUrl}
                   data-testid="hero-cta-btn"
                   className="inline-flex items-center gap-2 sm:gap-3 bg-[#dc2626] hover:bg-[#b91c1c] text-white text-base sm:text-lg font-semibold px-6 sm:px-8 py-3.5 sm:py-4 rounded-full shadow-lg shadow-red-600/25 transition-all hover:shadow-xl hover:shadow-red-600/30"
                 >
-                  <span>Find Your Car</span>
+                  <span>{primaryCtaLabel}</span>
                   <ArrowRight className="w-5 h-5 shrink-0" />
                 </a>
                 <Link
-                  href="/trade-in"
+                  href={secondaryCtaUrl}
                   className="inline-flex items-center gap-2 sm:gap-3 border-2 border-[#1e3a8a] text-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white text-base sm:text-lg font-semibold px-6 sm:px-8 py-3 sm:py-[14px] rounded-full transition-all"
                 >
-                  <span>Get Trade-In Value</span>
+                  <span>{secondaryCtaLabel}</span>
                   <ArrowRight className="w-5 h-5 shrink-0" />
                 </Link>
               </div>

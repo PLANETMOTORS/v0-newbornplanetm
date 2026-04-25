@@ -43,6 +43,7 @@ export function GoogleTagManagerNoScript() {
   return (
     <noscript>
       <iframe
+        title="Google Tag Manager"
         src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
         height="0"
         width="0"

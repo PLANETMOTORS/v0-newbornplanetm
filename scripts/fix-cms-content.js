@@ -11,7 +11,7 @@ const client = createClient({
 
 // Generate a Sanity-style key
 function generateKey() {
-  return randomUUID().replace(/-/g, '').slice(0, 12)
+  return randomUUID().replaceAll('-', '').slice(0, 12)
 }
 
 async function fixCmsContent() {

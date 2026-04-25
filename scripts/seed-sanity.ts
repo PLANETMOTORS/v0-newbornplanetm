@@ -67,6 +67,28 @@ async function upsertMany(docs: Record<string, unknown>[]) {
   })
 }
 
+// ── Portable-text helpers ──────────────────────────────────────────────────
+
+/** Build a single portable-text block (paragraph or heading). */
+function block(key: string, text: string, style: "normal" | "h2" = "normal") {
+  return {
+    _type: "block",
+    _key: key,
+    style,
+    children: [{ _type: "span", _key: `${key}-s`, text }],
+  }
+}
+
+/**
+ * Build the `body` array for a blog post from a flat list of
+ * `[key, text, style?]` tuples.
+ */
+function body(
+  items: ReadonlyArray<readonly [string, string, ("normal" | "h2")?]>,
+) {
+  return items.map(([key, text, style]) => block(key, text, style ?? "normal"))
+}
+
 // ── Dataset creation ───────────────────────────────────────────────────────
 
 async function ensureDataset() {
@@ -164,68 +186,18 @@ async function seedBlogPosts() {
       excerpt: "Clutch replacement in Canada typically costs $800–$2,500 depending on your vehicle make, model, and province. Here's what you need to know before booking a repair.",
       categories: [{ _type: "reference", _ref: "category-maintenance" }],
       readingTime: 8,
-      body: [
-        {
-          _type: "block",
-          _key: "intro",
-          style: "normal",
-          children: [{ _type: "span", _key: "s1", text: "If your car is slipping gears, making grinding noises, or the clutch pedal feels spongy, you may be facing a clutch replacement. In Canada, this repair typically costs between $800 and $2,500 — but the final price depends on several factors." }],
-        },
-        {
-          _type: "block",
-          _key: "h1",
-          style: "h2",
-          children: [{ _type: "span", _key: "s2", text: "Average Clutch Replacement Cost by Province" }],
-        },
-        {
-          _type: "block",
-          _key: "p1",
-          style: "normal",
-          children: [{ _type: "span", _key: "s3", text: "Ontario: $900–$2,200 | Quebec: $800–$2,000 | BC: $1,000–$2,500 | Alberta: $850–$2,100. Labour rates vary significantly by region, with major cities like Toronto and Vancouver commanding premium rates." }],
-        },
-        {
-          _type: "block",
-          _key: "h2",
-          style: "h2",
-          children: [{ _type: "span", _key: "s4", text: "What's Included in a Clutch Replacement?" }],
-        },
-        {
-          _type: "block",
-          _key: "p2",
-          style: "normal",
-          children: [{ _type: "span", _key: "s5", text: "A complete clutch job typically includes: clutch disc, pressure plate, release bearing (throw-out bearing), pilot bearing, and flywheel resurfacing or replacement. Always ask your mechanic to inspect the flywheel — replacing it at the same time saves significant labour costs." }],
-        },
-        {
-          _type: "block",
-          _key: "h3",
-          style: "h2",
-          children: [{ _type: "span", _key: "s6", text: "Signs You Need a Clutch Replacement" }],
-        },
-        {
-          _type: "block",
-          _key: "p3",
-          style: "normal",
-          children: [{ _type: "span", _key: "s7", text: "Watch for: slipping clutch (engine revs but car doesn't accelerate), difficulty shifting gears, burning smell when engaging the clutch, clutch pedal vibration, or the clutch engaging very high or very low in the pedal travel." }],
-        },
-        {
-          _type: "block",
-          _key: "h4",
-          style: "h2",
-          children: [{ _type: "span", _key: "s8", text: "How to Extend Clutch Life" }],
-        },
-        {
-          _type: "block",
-          _key: "p4",
-          style: "normal",
-          children: [{ _type: "span", _key: "s9", text: "Avoid riding the clutch (keeping your foot partially on the pedal), don't use the clutch to hold on hills (use the handbrake instead), and shift smoothly. A well-maintained clutch can last 100,000–160,000 km." }],
-        },
-        {
-          _type: "block",
-          _key: "cta",
-          style: "normal",
-          children: [{ _type: "span", _key: "s10", text: "Considering trading in your manual transmission vehicle? Planet Motors offers instant trade-in quotes — get your offer in 60 seconds at planetmotors.ca/trade-in." }],
-        },
-      ],
+      body: body([
+        ["intro", "If your car is slipping gears, making grinding noises, or the clutch pedal feels spongy, you may be facing a clutch replacement. In Canada, this repair typically costs between $800 and $2,500 — but the final price depends on several factors."],
+        ["h1", "Average Clutch Replacement Cost by Province", "h2"],
+        ["p1", "Ontario: $900–$2,200 | Quebec: $800–$2,000 | BC: $1,000–$2,500 | Alberta: $850–$2,100. Labour rates vary significantly by region, with major cities like Toronto and Vancouver commanding premium rates."],
+        ["h2", "What's Included in a Clutch Replacement?", "h2"],
+        ["p2", "A complete clutch job typically includes: clutch disc, pressure plate, release bearing (throw-out bearing), pilot bearing, and flywheel resurfacing or replacement. Always ask your mechanic to inspect the flywheel — replacing it at the same time saves significant labour costs."],
+        ["h3", "Signs You Need a Clutch Replacement", "h2"],
+        ["p3", "Watch for: slipping clutch (engine revs but car doesn't accelerate), difficulty shifting gears, burning smell when engaging the clutch, clutch pedal vibration, or the clutch engaging very high or very low in the pedal travel."],
+        ["h4", "How to Extend Clutch Life", "h2"],
+        ["p4", "Avoid riding the clutch (keeping your foot partially on the pedal), don't use the clutch to hold on hills (use the handbrake instead), and shift smoothly. A well-maintained clutch can last 100,000–160,000 km."],
+        ["cta", "Considering trading in your manual transmission vehicle? Planet Motors offers instant trade-in quotes — get your offer in 60 seconds at planetmotors.ca/trade-in."],
+      ]),
     },
     {
       _id: "post-used-car-buying-guide-canada",
@@ -236,50 +208,15 @@ async function seedBlogPosts() {
       excerpt: "Everything you need to know about buying a used car in Canada — from CARFAX reports to OMVIC regulations, financing, and negotiation tips.",
       categories: [{ _type: "reference", _ref: "category-buying-guide" }],
       readingTime: 12,
-      body: [
-        {
-          _type: "block",
-          _key: "intro",
-          style: "normal",
-          children: [{ _type: "span", _key: "s1", text: "Buying a used car in Canada is one of the biggest financial decisions most people make. This guide covers everything from finding the right vehicle to closing the deal safely." }],
-        },
-        {
-          _type: "block",
-          _key: "h1",
-          style: "h2",
-          children: [{ _type: "span", _key: "s2", text: "Step 1: Set Your Budget" }],
-        },
-        {
-          _type: "block",
-          _key: "p1",
-          style: "normal",
-          children: [{ _type: "span", _key: "s3", text: "Include all costs: purchase price, HST/GST, licensing, insurance, and potential repairs. A good rule of thumb: your total vehicle costs (payment + insurance + fuel) should not exceed 20% of your take-home pay." }],
-        },
-        {
-          _type: "block",
-          _key: "h2",
-          style: "h2",
-          children: [{ _type: "span", _key: "s4", text: "Step 2: Check the Vehicle History" }],
-        },
-        {
-          _type: "block",
-          _key: "p2",
-          style: "normal",
-          children: [{ _type: "span", _key: "s5", text: "Always get a CARFAX Canada report. It shows accident history, odometer readings, lien information, and whether the vehicle was ever declared a total loss. Planet Motors provides CARFAX reports on every vehicle." }],
-        },
-        {
-          _type: "block",
-          _key: "h3",
-          style: "h2",
-          children: [{ _type: "span", _key: "s6", text: "Step 3: Understand OMVIC Protection" }],
-        },
-        {
-          _type: "block",
-          _key: "p3",
-          style: "normal",
-          children: [{ _type: "span", _key: "s7", text: "In Ontario, all registered dealers must be OMVIC-licensed. This gives you legal protections including the right to a written contract, disclosure of all fees, and access to the Motor Vehicle Dealers Compensation Fund if something goes wrong." }],
-        },
-      ],
+      body: body([
+        ["intro", "Buying a used car in Canada is one of the biggest financial decisions most people make. This guide covers everything from finding the right vehicle to closing the deal safely."],
+        ["h1", "Step 1: Set Your Budget", "h2"],
+        ["p1", "Include all costs: purchase price, HST/GST, licensing, insurance, and potential repairs. A good rule of thumb: your total vehicle costs (payment + insurance + fuel) should not exceed 20% of your take-home pay."],
+        ["h2", "Step 2: Check the Vehicle History", "h2"],
+        ["p2", "Always get a CARFAX Canada report. It shows accident history, odometer readings, lien information, and whether the vehicle was ever declared a total loss. Planet Motors provides CARFAX reports on every vehicle."],
+        ["h3", "Step 3: Understand OMVIC Protection", "h2"],
+        ["p3", "In Ontario, all registered dealers must be OMVIC-licensed. This gives you legal protections including the right to a written contract, disclosure of all fees, and access to the Motor Vehicle Dealers Compensation Fund if something goes wrong."],
+      ]),
     },
     {
       _id: "post-ev-buying-guide-canada",
@@ -290,38 +227,13 @@ async function seedBlogPosts() {
       excerpt: "Canada's EV market is booming. Here's how to navigate federal and provincial incentives, understand battery health, and find the right used EV.",
       categories: [{ _type: "reference", _ref: "category-ev" }],
       readingTime: 10,
-      body: [
-        {
-          _type: "block",
-          _key: "intro",
-          style: "normal",
-          children: [{ _type: "span", _key: "s1", text: "Used electric vehicles offer exceptional value in 2025 — but buying one requires different due diligence than a gas vehicle. Battery health is the most critical factor." }],
-        },
-        {
-          _type: "block",
-          _key: "h1",
-          style: "h2",
-          children: [{ _type: "span", _key: "s2", text: "Federal iZEV Incentive: Up to $5,000" }],
-        },
-        {
-          _type: "block",
-          _key: "p1",
-          style: "normal",
-          children: [{ _type: "span", _key: "s3", text: "Canada's iZEV program offers up to $5,000 off eligible new EVs. Used EVs don't qualify for the federal incentive, but Ontario's Electric Vehicle Incentive Program (EVIP) may apply. Check tc.canada.ca for current eligibility." }],
-        },
-        {
-          _type: "block",
-          _key: "h2",
-          style: "h2",
-          children: [{ _type: "span", _key: "s4", text: "Battery Health: The Most Important Check" }],
-        },
-        {
-          _type: "block",
-          _key: "p2",
-          style: "normal",
-          children: [{ _type: "span", _key: "s5", text: "Planet Motors uses Aviloo battery certification on all used EVs. This independent test measures actual battery capacity vs. original capacity, giving you a precise State of Health (SoH) percentage. Look for 80%+ SoH for good long-term value." }],
-        },
-      ],
+      body: body([
+        ["intro", "Used electric vehicles offer exceptional value in 2025 — but buying one requires different due diligence than a gas vehicle. Battery health is the most critical factor."],
+        ["h1", "Federal iZEV Incentive: Up to $5,000", "h2"],
+        ["p1", "Canada's iZEV program offers up to $5,000 off eligible new EVs. Used EVs don't qualify for the federal incentive, but Ontario's Electric Vehicle Incentive Program (EVIP) may apply. Check tc.canada.ca for current eligibility."],
+        ["h2", "Battery Health: The Most Important Check", "h2"],
+        ["p2", "Planet Motors uses Aviloo battery certification on all used EVs. This independent test measures actual battery capacity vs. original capacity, giving you a precise State of Health (SoH) percentage. Look for 80%+ SoH for good long-term value."],
+      ]),
     },
     {
       _id: "post-auto-financing-canada",
@@ -332,38 +244,13 @@ async function seedBlogPosts() {
       excerpt: "Interest rates, credit scores, loan terms — here's how to navigate auto financing in Canada and get the lowest possible rate on your next vehicle.",
       categories: [{ _type: "reference", _ref: "category-financing" }],
       readingTime: 9,
-      body: [
-        {
-          _type: "block",
-          _key: "intro",
-          style: "normal",
-          children: [{ _type: "span", _key: "s1", text: "Auto loan rates in Canada range from 6.29% to 29.99% APR depending on your credit score, loan term, and lender. Here's how to get the best deal." }],
-        },
-        {
-          _type: "block",
-          _key: "h1",
-          style: "h2",
-          children: [{ _type: "span", _key: "s2", text: "What Credit Score Do You Need?" }],
-        },
-        {
-          _type: "block",
-          _key: "p1",
-          style: "normal",
-          children: [{ _type: "span", _key: "s3", text: "760+: Best rates (6.29%–7.99%) | 700–759: Good rates (8%–12%) | 650–699: Fair rates (12%–18%) | Below 650: Subprime rates (18%–29.99%). Planet Motors works with 20+ lenders to find options for all credit situations." }],
-        },
-        {
-          _type: "block",
-          _key: "h2",
-          style: "h2",
-          children: [{ _type: "span", _key: "s4", text: "Soft vs Hard Credit Checks" }],
-        },
-        {
-          _type: "block",
-          _key: "p2",
-          style: "normal",
-          children: [{ _type: "span", _key: "s5", text: "Planet Motors uses a soft credit check for pre-approval — this does NOT affect your credit score. A hard check only happens when you formally apply for financing. You can get pre-approved and shop with confidence." }],
-        },
-      ],
+      body: body([
+        ["intro", "Auto loan rates in Canada range from 6.29% to 29.99% APR depending on your credit score, loan term, and lender. Here's how to get the best deal."],
+        ["h1", "What Credit Score Do You Need?", "h2"],
+        ["p1", "760+: Best rates (6.29%–7.99%) | 700–759: Good rates (8%–12%) | 650–699: Fair rates (12%–18%) | Below 650: Subprime rates (18%–29.99%). Planet Motors works with 20+ lenders to find options for all credit situations."],
+        ["h2", "Soft vs Hard Credit Checks", "h2"],
+        ["p2", "Planet Motors uses a soft credit check for pre-approval — this does NOT affect your credit score. A hard check only happens when you formally apply for financing. You can get pre-approved and shop with confidence."],
+      ]),
     },
   ]
 
