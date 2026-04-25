@@ -349,14 +349,13 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
 
       {/* Mobile Order Summary Drawer */}
       {showOrderSummary && (
-        <div
-          className="lg:hidden fixed inset-0 z-[60] bg-black/50"
-          role="button"
-          tabIndex={0}
-          aria-label="Close order summary"
-          onClick={(e) => { if (e.target === e.currentTarget) setShowOrderSummary(false) }}
-          onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); setShowOrderSummary(false) } }}
-        >
+        <div className="lg:hidden fixed inset-0 z-[60]">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/50"
+            aria-label="Close order summary"
+            onClick={() => setShowOrderSummary(false)}
+          />
           <div
             ref={orderSummaryModalRef}
             id="mobile-order-summary"

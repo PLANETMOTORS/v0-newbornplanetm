@@ -24,20 +24,17 @@ export function ProtectionPlanSelector({ value, onChange }: Readonly<ProtectionP
       <CardContent>
         <RadioGroup value={value} onValueChange={onChange} className="space-y-3">
           {CHECKOUT_PLANS.map((plan) => (
-            <div
+            <Label
               key={plan.id}
-              role="button"
-              tabIndex={0}
+              htmlFor={plan.id}
               className={`relative flex items-start p-4 rounded-lg border-2 cursor-pointer transition-colors ${
                 value === plan.id
                   ? "border-primary bg-primary/5"
                   : "border-border hover:border-primary/50"
               }`}
-              onClick={() => onChange(plan.id)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onChange(plan.id) }}
             >
               <RadioGroupItem value={plan.id} id={plan.id} className="mt-1" />
-              <Label htmlFor={plan.id} className="flex-1 ml-3 cursor-pointer">
+              <span className="flex-1 ml-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">{plan.name}</span>
@@ -61,8 +58,8 @@ export function ProtectionPlanSelector({ value, onChange }: Readonly<ProtectionP
                     ))}
                   </ul>
                 )}
-              </Label>
-            </div>
+              </span>
+            </Label>
           ))}
         </RadioGroup>
       </CardContent>

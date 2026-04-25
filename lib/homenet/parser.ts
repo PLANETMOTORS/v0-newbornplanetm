@@ -603,8 +603,8 @@ function getTagVariations(tag: string): string[] {
   const base = tag.toLowerCase()
   return [
     base,
-    base.replaceAll(/_/g, ""),
-    base.replaceAll(/_/g, "-"),
+    base.replaceAll("_", ""),
+    base.replaceAll("_", "-"),
     base.charAt(0).toUpperCase() + base.slice(1),
     base.toUpperCase(),
   ]

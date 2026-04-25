@@ -257,7 +257,7 @@ function renderInternalVehicleCard(
 function buildInternalAlert(lead: LeadPayload): { subject: string; html: string } {
   const name = escapeHtml(`${lead.firstName} ${lead.lastName}`)
   const vLabel = escapeHtml(vehicleLabel(lead.vehicle))
-  const sourceLabel = escapeHtml(lead.source.replaceAll(/_/g, " ").replaceAll(/\b\w/g, c => c.toUpperCase()))
+  const sourceLabel = escapeHtml(lead.source.replaceAll("_", " ").replaceAll(/\b\w/g, c => c.toUpperCase()))
   const highlightQuery = lead.leadId ? `?highlight=${lead.leadId}` : ""
   const adminUrl = `${BASE_URL}/admin/leads${highlightQuery}`
   const vdpUrl = lead.vehicle?.id ? `${BASE_URL}/vehicles/${lead.vehicle.id}` : null

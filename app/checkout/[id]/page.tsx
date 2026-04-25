@@ -5,7 +5,7 @@ interface CheckoutPageProps {
   params: Promise<{ id: string }>
 }
 
-export async function generateMetadata({ params }: CheckoutPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: Readonly<CheckoutPageProps>): Promise<Metadata> {
   const { id } = await params
 
   let title = "Checkout | Planet Motors"

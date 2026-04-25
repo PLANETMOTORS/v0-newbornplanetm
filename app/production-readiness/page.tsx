@@ -358,12 +358,10 @@ ${step.notes ? `  Notes: ${step.notes}` : ""}
         <div className="space-y-4 mb-8">
           {steps.map((step, index) => (
             <Card key={step.id} className="overflow-hidden">
-              <div 
-                role="button"
-                tabIndex={0}
-                className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
+              <button
+                type="button"
+                className="w-full text-left flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
                 onClick={() => toggleExpanded(step.id)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleExpanded(step.id) }}
               >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
@@ -389,7 +387,7 @@ ${step.notes ? `  Notes: ${step.notes}` : ""}
                     <ChevronDown className="w-5 h-5 text-gray-400" />
                   )}
                 </div>
-              </div>
+              </button>
 
               {step.isExpanded && (
                 <CardContent className="border-t bg-gray-50 pt-4">

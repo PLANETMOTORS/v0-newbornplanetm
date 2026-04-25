@@ -234,13 +234,11 @@ export default function AdminLeadsPage() {
                   {leads.map(lead => {
                     const Icon = sourceIcon(lead.source)
                     return (
-                      <div
+                      <button
+                        type="button"
                         key={lead.id}
-                        role="button"
-                        tabIndex={0}
-                        className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${selectedLead?.id === lead.id ? "bg-blue-50" : ""}`}
+                        className={`w-full text-left p-4 hover:bg-gray-50 cursor-pointer transition-colors ${selectedLead?.id === lead.id ? "bg-blue-50" : ""}`}
                         onClick={() => setSelectedLead(lead)}
-                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSelectedLead(lead) }}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-3">
@@ -265,7 +263,7 @@ export default function AdminLeadsPage() {
                             <p className="text-xs text-gray-400 mt-1">{timeAgo(lead.created_at)}</p>
                           </div>
                         </div>
-                      </div>
+                      </button>
                     )
                   })}
                 </div>

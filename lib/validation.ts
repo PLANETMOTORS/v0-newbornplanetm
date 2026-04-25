@@ -184,7 +184,7 @@ export function isValidVIN(vin: string): boolean {
 // Mileage Validation
 // Must be a positive number, reasonable range (0 - 1,000,000 km)
 export function isValidMileage(mileage: string | number): boolean {
-  const num = typeof mileage === 'string' ? Number.parseInt(mileage.replaceAll(/,/g, ''), 10) : mileage
+  const num = typeof mileage === 'string' ? Number.parseInt(mileage.replaceAll(",", ""), 10) : mileage
   
   if (Number.isNaN(num)) return false
   if (num < 0 || num > 1000000) return false
@@ -194,7 +194,7 @@ export function isValidMileage(mileage: string | number): boolean {
 
 // Format mileage with commas
 export function formatMileage(mileage: string | number): string {
-  const num = typeof mileage === 'string' ? Number.parseInt(mileage.replaceAll(/,/g, ''), 10) : mileage
+  const num = typeof mileage === 'string' ? Number.parseInt(mileage.replaceAll(",", ""), 10) : mileage
   if (Number.isNaN(num)) return '0'
   return num.toLocaleString()
 }

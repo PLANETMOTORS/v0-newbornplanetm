@@ -356,7 +356,7 @@ function TradeInContent() {
         setSelectedModel(parts[1])
       }
       const mileageParam = searchParams.get("mileage")
-      if (mileageParam) setMileage(mileageParam.replaceAll(/[^0-9]/g, ""))
+      if (mileageParam) setMileage(mileageParam.replaceAll(/\D/g, ""))
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, user])
@@ -798,7 +798,7 @@ function TradeInContent() {
                         pattern="[0-9]*"
                         className="h-12 bg-white/5 border-white/20 text-white placeholder:text-white/30"
                         value={mileage}
-                        onChange={(e) => setMileage(e.target.value.replace(/[^0-9]/g, ''))}
+                        onChange={(e) => setMileage(e.target.value.replaceAll(/[^0-9]/g, ''))}
                         autoComplete="off"
                       />
                       <Button
@@ -850,7 +850,7 @@ function TradeInContent() {
                             pattern="[0-9]*"
                             className="h-12"
                             value={mileage}
-                            onChange={(e) => setMileage(e.target.value.replace(/[^0-9]/g, ''))}
+                            onChange={(e) => setMileage(e.target.value.replaceAll(/\D/g, ''))}
                             autoComplete="off"
                           />
                           <Button className="w-full h-12 text-lg" size="lg" onClick={() => goToStep(2)} disabled={!mileage}>
@@ -911,20 +911,18 @@ function TradeInContent() {
                         <Label className="text-base font-semibold">Overall Condition</Label>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {conditionOptions.map((opt) => (
-                            <div
+                            <button
+                              type="button"
                               key={opt.value}
-                              role="button"
-                              tabIndex={0}
-                              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${condition === opt.value ? "border-primary bg-primary/5" : "border-muted hover:border-primary/50"}`}
+                              className={`text-left p-4 border-2 rounded-lg cursor-pointer transition-all ${condition === opt.value ? "border-primary bg-primary/5" : "border-muted hover:border-primary/50"}`}
                               onClick={() => setCondition(opt.value)}
-                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setCondition(opt.value) }}
                             >
                               <div className="flex items-center justify-between mb-1">
                                 <span className="font-semibold">{opt.label}</span>
                                 {condition === opt.value && <CheckCircle className="h-5 w-5 text-primary" />}
                               </div>
                               <p className="text-sm text-muted-foreground">{opt.description}</p>
-                            </div>
+                            </button>
                           ))}
                         </div>
                       </div>
