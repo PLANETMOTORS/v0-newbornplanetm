@@ -526,6 +526,192 @@ async function shareVehicle(url: string, title: string, text: string): Promise<v
   }
 }
 
+interface AutoSpin360ViewerProps {
+  vehicle: { year: number; make: string; model: string; images: string[] }
+  currentImageIndex: number
+  setCurrentImageIndex: (updater: (prev: number) => number) => void
+  isAutoSpinning: boolean
+  setIsAutoSpinning: (value: boolean) => void
+}
+
+function AutoSpin360Viewer({
+  vehicle,
+  currentImageIndex,
+  setCurrentImageIndex,
+  isAutoSpinning,
+  setIsAutoSpinning,
+}: Readonly<AutoSpin360ViewerProps>) {
+  const hasImages = vehicle.images.length > 0 && vehicle.images[currentImageIndex]
+  return (
+    <div
+      data-testid="vdp-auto-spin"
+      className="relative aspect-[4/3] rounded-xl overflow-hidden group"
+      style={{ backgroundColor: "#111" }}
+      onMouseEnter={() => setIsAutoSpinning(false)}
+      onMouseLeave={() => setIsAutoSpinning(true)}
+    >
+      {hasImages ? (
+        <>
+          <Image
+            src={vehicle.images[currentImageIndex]}
+            alt={`${vehicle.year} ${vehicle.make} ${vehicle.model} — 360° view`}
+            fill
+            className="object-contain transition-opacity duration-500"
+            priority
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
+          />
+          <div className="absolute top-4 left-4 bg-black/60 backdrop-blur text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5">
+            <RotateCw className="h-3 w-3 animate-spin" style={{ animationDuration: "3s" }} />
+            Auto-Spin 360°
+          </div>
+          <button
+            onClick={() => setIsAutoSpinning(!isAutoSpinning)}
+            className="absolute bottom-4 right-4 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition shadow-lg"
+            aria-label={isAutoSpinning ? "Pause auto-spin" : "Play auto-spin"}
+            type="button"
+          >
+            {isAutoSpinning ? <Pause className="h-4 w-4 text-black" /> : <Play className="h-4 w-4 text-black ml-0.5" />}
+          </button>
+          <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur text-white px-2 py-1 rounded text-xs">
+            {currentImageIndex + 1} / {vehicle.images.length}
+          </div>
+          <button
+            onClick={() => { setIsAutoSpinning(false); setCurrentImageIndex((p: number) => (p - 1 + vehicle.images.length) % vehicle.images.length) }}
+            aria-label="Previous image"
+            type="button"
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition opacity-0 group-hover:opacity-100"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => { setIsAutoSpinning(false); setCurrentImageIndex((p: number) => (p + 1) % vehicle.images.length) }}
+            aria-label="Next image"
+            type="button"
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition opacity-0 group-hover:opacity-100"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </>
+      ) : (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+          <RotateCw className="w-12 h-12 text-white/20" />
+          <p className="text-sm text-white/50">No exterior photos available</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+interface MainImageGalleryProps {
+  vehicle: { year: number; make: string; model: string }
+  currentImages: string[]
+  activeIndex: number
+  nextImage: () => void
+  prevImage: () => void
+}
+
+function MainImageGallery({
+  vehicle,
+  currentImages,
+  activeIndex,
+  nextImage,
+  prevImage,
+}: Readonly<MainImageGalleryProps>) {
+  const activeImage = currentImages[activeIndex]
+  const hasImage = currentImages.length > 0 && activeImage
+  return (
+    <section
+      data-testid="vdp-image-gallery"
+      tabIndex={0}
+      aria-label="Vehicle image gallery"
+      onKeyDown={(e) => {
+        if (e.key === "ArrowRight") { nextImage(); e.preventDefault() }
+        if (e.key === "ArrowLeft") { prevImage(); e.preventDefault() }
+      }}
+      className="relative aspect-[4/3] rounded-xl overflow-hidden group focus:outline-none focus:ring-2 focus:ring-primary"
+      style={{ backgroundColor: "#e8e8e8" }}
+    >
+      {hasImage && (
+        // eslint-disable-next-line @next/next/no-img-element -- intentional: Playwright tests read src via getAttribute
+        <img data-testid="vdp-active-image" src={activeImage} alt="" className="hidden" />
+      )}
+      {hasImage ? (
+        <>
+          <Image
+            data-testid="vdp-hero-image"
+            src={activeImage}
+            alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+            fill
+            className="object-contain [clip-path:inset(0_0_8%_0)]"
+            priority
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = "none"
+            }}
+          />
+          <button
+            onClick={() => globalThis.open(activeImage, "_blank")}
+            className="absolute top-4 right-4 w-10 h-10 bg-background/80 backdrop-blur rounded-lg flex items-center justify-center hover:bg-background transition"
+            aria-label="View full-size image"
+            type="button"
+          >
+            <Expand className="w-5 h-5" />
+          </button>
+        </>
+      ) : (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+          <Car className="w-20 h-20 text-[#1e3a8a]/15" />
+          <p className="text-sm text-muted-foreground">Photos coming soon</p>
+        </div>
+      )}
+      <button
+        onClick={prevImage}
+        aria-label="Previous image"
+        type="button"
+        className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
+      >
+        <ChevronLeft className="h-5 w-5" />
+      </button>
+      <button
+        onClick={nextImage}
+        aria-label="Next image"
+        type="button"
+        className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
+      >
+        <ChevronRight className="h-5 w-5" />
+      </button>
+    </section>
+  )
+}
+
+interface TradeInBannerProps {
+  tradeInValue: string | null
+  tradeInVehicle: string | null
+  financeLink: string
+}
+
+function TradeInBanner({ tradeInValue, tradeInVehicle, financeLink }: Readonly<TradeInBannerProps>) {
+  if (!tradeInValue || Number.parseInt(tradeInValue) <= 0) return null
+  return (
+    <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div className="flex items-center gap-3">
+            <CheckCircle className="w-5 h-5" />
+            <span className="font-semibold">
+              Your Trade-In: <span className="font-bold tabular-nums">${Number.parseInt(tradeInValue).toLocaleString()}</span>
+              {tradeInVehicle && <span className="text-white/80 ml-2">({decodeURIComponent(tradeInVehicle)})</span>}
+            </span>
+          </div>
+          <Button size="sm" variant="secondary" asChild>
+            <Link href={financeLink}>Apply to This Vehicle</Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
   const searchParams = useSearchParams()
   const { user } = useAuth()
@@ -646,24 +832,11 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
       <main id="main-content" tabIndex={-1} className="pb-32 md:pb-20 overflow-x-hidden max-w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" role="main" aria-label="Vehicle details" data-vin={vehicle.vin} data-stock={vehicle.stockNumber}>
 
         {/* Trade-In Banner */}
-        {tradeInValue && Number.parseInt(tradeInValue) > 0 && (
-          <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3">
-            <div className="container mx-auto px-4">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5" />
-                  <span className="font-semibold">
-                    Your Trade-In: <span className="font-bold tabular-nums">${Number.parseInt(tradeInValue).toLocaleString()}</span>
-                    {tradeInVehicle && <span className="text-white/80 ml-2">({decodeURIComponent(tradeInVehicle)})</span>}
-                  </span>
-                </div>
-                <Button size="sm" variant="secondary" asChild>
-                  <Link href={getFinanceLink(vehicle.id)}>Apply to This Vehicle</Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+        <TradeInBanner
+          tradeInValue={tradeInValue}
+          tradeInVehicle={tradeInVehicle}
+          financeLink={getFinanceLink(vehicle.id)}
+        />
 
         {/* Breadcrumb */}
         <nav className="bg-muted/30 py-3 border-b" aria-label="Breadcrumb">
@@ -737,133 +910,22 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     />
                   )}
                   {imageType === "360" && !has360 && (
-                  /* ── Auto-Spin 360° Fallback — cycles exterior photos ── */
-                  <div
-                    data-testid="vdp-auto-spin"
-                    className="relative aspect-[4/3] rounded-xl overflow-hidden group"
-                    style={{ backgroundColor: "#111" }}
-                    onMouseEnter={() => setIsAutoSpinning(false)}
-                    onMouseLeave={() => setIsAutoSpinning(true)}
-                  >
-                    {vehicle.images.length > 0 && vehicle.images[currentImageIndex] ? (
-                      <>
-                        <Image
-                          src={vehicle.images[currentImageIndex]}
-                          alt={`${vehicle.year} ${vehicle.make} ${vehicle.model} — 360° view`}
-                          fill
-                          className="object-contain transition-opacity duration-500"
-                          priority
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
-                        />
-                        {/* 360° overlay badge */}
-                        <div className="absolute top-4 left-4 bg-black/60 backdrop-blur text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5">
-                          <RotateCw className="h-3 w-3 animate-spin" style={{ animationDuration: "3s" }} />
-                          Auto-Spin 360°
-                        </div>
-                        {/* Play / Pause toggle */}
-                        <button
-                          onClick={() => setIsAutoSpinning(!isAutoSpinning)}
-                          className="absolute bottom-4 right-4 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition shadow-lg"
-                          aria-label={isAutoSpinning ? "Pause auto-spin" : "Play auto-spin"}
-                          type="button"
-                        >
-                          {isAutoSpinning ? <Pause className="h-4 w-4 text-black" /> : <Play className="h-4 w-4 text-black ml-0.5" />}
-                        </button>
-                        {/* Image counter */}
-                        <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur text-white px-2 py-1 rounded text-xs">
-                          {currentImageIndex + 1} / {vehicle.images.length}
-                        </div>
-                        {/* Manual prev/next arrows */}
-                        <button
-                          onClick={() => { setIsAutoSpinning(false); setCurrentImageIndex((p: number) => (p - 1 + vehicle.images.length) % vehicle.images.length) }}
-                          aria-label="Previous image"
-                          type="button"
-                          className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition opacity-0 group-hover:opacity-100"
-                        >
-                          <ChevronLeft className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={() => { setIsAutoSpinning(false); setCurrentImageIndex((p: number) => (p + 1) % vehicle.images.length) }}
-                          aria-label="Next image"
-                          type="button"
-                          className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition opacity-0 group-hover:opacity-100"
-                        >
-                          <ChevronRight className="h-5 w-5" />
-                        </button>
-                      </>
-                    ) : (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                        <RotateCw className="w-12 h-12 text-white/20" />
-                        <p className="text-sm text-white/50">No exterior photos available</p>
-                      </div>
-                    )}
-                  </div>
+                    <AutoSpin360Viewer
+                      vehicle={vehicle}
+                      currentImageIndex={currentImageIndex}
+                      setCurrentImageIndex={setCurrentImageIndex}
+                      isAutoSpinning={isAutoSpinning}
+                      setIsAutoSpinning={setIsAutoSpinning}
+                    />
                   )}
                   {(imageType !== "360" || (has360 && !vehicle.driveeMid)) && (
-                  <section
-                    data-testid="vdp-image-gallery"
-                    tabIndex={0}
-                    aria-label="Vehicle image gallery"
-                    onKeyDown={(e) => {
-                      if (e.key === "ArrowRight") { nextImage(); e.preventDefault() }
-                      if (e.key === "ArrowLeft") { prevImage(); e.preventDefault() }
-                    }}
-                    className="relative aspect-[4/3] rounded-xl overflow-hidden group focus:outline-none focus:ring-2 focus:ring-primary"
-                    style={{ backgroundColor: "#e8e8e8" }}
-                  >
-                    {/* Hidden native img for vdp-active-image testid (Playwright getAttribute('src')) */}
-                    {currentImages.length > 0 && currentImages[activeIndex] && (
-                      // eslint-disable-next-line @next/next/no-img-element -- intentional: Playwright tests read src via getAttribute
-                      <img data-testid="vdp-active-image" src={currentImages[activeIndex]} alt="" className="hidden" />
-                    )}
-                    {currentImages.length > 0 && currentImages[activeIndex] ? (
-                      <>
-                        <Image
-                          data-testid="vdp-hero-image"
-                          src={currentImages[activeIndex]}
-                          alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                          fill
-                          className="object-contain [clip-path:inset(0_0_8%_0)]"
-                          priority
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = "none"
-                          }}
-                        />
-                        {/* Expand Button — opens image in new tab */}
-                        <button
-                          onClick={() => globalThis.open(currentImages[activeIndex], "_blank")}
-                          className="absolute top-4 right-4 w-10 h-10 bg-background/80 backdrop-blur rounded-lg flex items-center justify-center hover:bg-background transition"
-                          aria-label="View full-size image"
-                          type="button"
-                        >
-                          <Expand className="w-5 h-5" />
-                        </button>
-                      </>
-                    ) : (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                        <Car className="w-20 h-20 text-[#1e3a8a]/15" />
-                        <p className="text-sm text-muted-foreground">Photos coming soon</p>
-                      </div>
-                    )}
-                    {/* Navigation Arrows */}
-                    <button
-                      onClick={prevImage}
-                      aria-label="Previous image"
-                      type="button"
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
-                    >
-                      <ChevronLeft className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={nextImage}
-                      aria-label="Next image"
-                      type="button"
-                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
-                    >
-                      <ChevronRight className="h-5 w-5" />
-                    </button>
-                  </section>
+                    <MainImageGallery
+                      vehicle={vehicle}
+                      currentImages={currentImages}
+                      activeIndex={activeIndex}
+                      nextImage={nextImage}
+                      prevImage={prevImage}
+                    />
                   )}
 
                   {/* Image Type Toggle */}
