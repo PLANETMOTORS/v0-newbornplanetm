@@ -9,6 +9,11 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Truck, MapPin, Clock, Phone, CheckCircle, Package, Navigation, RefreshCw, ExternalLink } from "lucide-react"
 
+const UPDATE_DOT_COLOR: Record<string, string> = {
+  info: "bg-teal-500",
+  success: "bg-green-500",
+}
+
 interface TrackingData {
   deliveryId: string
   status: string
@@ -275,10 +280,7 @@ export function DeliveryTracker({
             <p className="text-sm font-semibold">Recent Updates</p>
             {tracking.updates.slice(0, 3).map((update) => (
               <div key={update.timestamp} className="flex gap-3 text-sm">
-                <div className={`w-2 h-2 rounded-full mt-1.5 ${
-                  update.type === "info" ? "bg-teal-500" :
-                  update.type === "success" ? "bg-green-500" : "bg-muted-foreground"
-                }`} />
+                <div className={`w-2 h-2 rounded-full mt-1.5 ${UPDATE_DOT_COLOR[update.type] ?? "bg-muted-foreground"}`} />
                 <div>
                   <p className="text-muted-foreground">{update.message}</p>
                   <p className="text-xs text-muted-foreground/70">

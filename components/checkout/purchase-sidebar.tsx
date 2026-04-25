@@ -90,13 +90,15 @@ export function PurchaseSidebar({ vehicle, steps, onStepClick, onCancel }: Reado
                       )}
                     >
                       <span className="shrink-0" aria-hidden="true">
-                        {step.status === "complete" ? (
+                        {step.status === "complete" && (
                           <CheckCircle className="w-5 h-5 text-blue-600" />
-                        ) : step.status === "current" ? (
+                        )}
+                        {step.status === "current" && (
                           <div className="w-5 h-5 rounded-full border-2 border-blue-600 flex items-center justify-center">
                             <div className="w-2 h-2 rounded-full bg-blue-600" />
                           </div>
-                        ) : (
+                        )}
+                        {step.status === "upcoming" && (
                           <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/30" />
                         )}
                       </span>

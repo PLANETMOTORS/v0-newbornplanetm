@@ -817,11 +817,11 @@ if (errors.length > 0) {
           <h2 className="text-2xl font-bold mb-2">Application Received!</h2>
           <p className="text-muted-foreground">
             Your finance application has been submitted successfully.
-            {canCheckout
-              ? vehicleId
-                ? " Complete your $250 refundable deposit below to secure this vehicle."
-                : " Complete your $250 refundable deposit below to fast-track your application."
-              : " A team member will contact you shortly to finalize your purchase."}
+            {(() => {
+              if (!canCheckout) return " A team member will contact you shortly to finalize your purchase."
+              if (vehicleId) return " Complete your $250 refundable deposit below to secure this vehicle."
+              return " Complete your $250 refundable deposit below to fast-track your application."
+            })()}
           </p>
         </div>
 

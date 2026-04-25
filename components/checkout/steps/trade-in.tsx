@@ -102,12 +102,11 @@ export function TradeInStep({ data, onChange, onContinue }: Readonly<TradeInStep
 
       {data.hasTradeIn !== null && (
         <Button onClick={onContinue} className="w-full h-12 text-base font-semibold">
-          {data.hasTradeIn === false
-            ? "Continue without trade-in"
-            : data.tradeInValue > 0
-              ? "Continue with trade-in"
-              : "Continue"
-          }
+          {(() => {
+            if (data.hasTradeIn === false) return "Continue without trade-in"
+            if (data.tradeInValue > 0) return "Continue with trade-in"
+            return "Continue"
+          })()}
         </Button>
       )}
     </div>
