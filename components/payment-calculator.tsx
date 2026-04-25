@@ -40,7 +40,7 @@ export function PaymentCalculator({
   specialPrice, 
   finance, 
   specialFinance 
-}: PaymentCalculatorProps) {
+}: Readonly<PaymentCalculatorProps>) {
   // Use special price if available — guard against NaN
   const effectivePrice = safeNum(specialPrice || price)
   

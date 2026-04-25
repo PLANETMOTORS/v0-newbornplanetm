@@ -28,7 +28,7 @@ const PRODUCT_META: Record<string, { icon: typeof Shield; gradient: string; acce
 }
 
 /* ── Inline Detail Panel — Senior-Level Design ── */
-function ProductDetailPanel({ product, onClose }: { product: ProtectionProduct; onClose: () => void }) {
+function ProductDetailPanel({ product, onClose }: Readonly<{ product: ProtectionProduct; onClose: () => void }>) {
   const meta = PRODUCT_META[product.slug] || { icon: Shield, gradient: "from-primary to-primary/80", accent: "bg-primary/5 text-primary border-primary/20" }
   const Icon = meta.icon
 

@@ -69,10 +69,10 @@ const navigation: NavItem[] = [
 function DesktopNav({ 
   activeSubmenu, 
   setActiveSubmenu 
-}: { 
+}: Readonly<{ 
   activeSubmenu: string | null
   setActiveSubmenu: (name: string | null) => void
-}) {
+}>) {
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const isHoveringRef = useRef(false)
 

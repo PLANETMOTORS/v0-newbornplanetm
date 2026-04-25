@@ -76,7 +76,7 @@ type TxEntry =
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export function TransactionHistory({ deposits, orders, financePayments }: TransactionHistoryProps) {
+export function TransactionHistory({ deposits, orders, financePayments }: Readonly<TransactionHistoryProps>) {
   const [filter, setFilter] = useState<"all" | "deposit" | "order" | "finance">("all")
   const [expanded, setExpanded] = useState<string | null>(null)
 

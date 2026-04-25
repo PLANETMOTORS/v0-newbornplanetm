@@ -36,7 +36,7 @@ export function DriversLicenseStep({
   customerEmail,
   onChange,
   onContinue,
-}: DriversLicenseStepProps) {
+}: Readonly<DriversLicenseStepProps>) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState("")
   const [isDragging, setIsDragging] = useState(false)

@@ -12,7 +12,7 @@ interface FAQSectionProps {
   faqs: FAQ[]
 }
 
-export function FAQSection({ title, faqs }: FAQSectionProps) {
+export function FAQSection({ title, faqs }: Readonly<FAQSectionProps>) {
   if (!faqs || faqs.length === 0) return null
 
   return (

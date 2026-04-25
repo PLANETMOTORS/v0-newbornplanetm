@@ -45,7 +45,7 @@ const STEP_DEFS = [
   { id: "deposit",    label: "Secure with deposit",  timeEstimate: "3 min" },
 ] as const
 
-export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
+export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
   const router = useRouter()
   const { user, isLoading: authLoading } = useAuth()
 

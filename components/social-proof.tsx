@@ -32,7 +32,7 @@ interface SocialProofProps {
 
 const postedIds = new Set<string>()
 
-export function SocialProof({ vehicleId, className = "" }: SocialProofProps) {
+export function SocialProof({ vehicleId, className = "" }: Readonly<SocialProofProps>) {
   const { data } = useSWR<SocialProofData>(
     `/api/v1/vehicles/${vehicleId}/social-proof`,
     fetcher,

@@ -37,7 +37,7 @@ interface Props {
   params: Promise<{ id: string }>
 }
 
-export default async function VehicleDetailPage({ params }: Props) {
+export default async function VehicleDetailPage({ params }: Readonly<Props>) {
   const { id } = await params
   const vehicle = await fetchVehicleForSSR(id)
 

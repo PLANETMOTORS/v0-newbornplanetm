@@ -103,7 +103,7 @@ export type HomepageProps = {
 
 
 
-export function HomepageContent({ siteSettings, homepageData, showcaseVehicles }: HomepageProps) {
+export function HomepageContent({ siteSettings, homepageData, showcaseVehicles }: Readonly<HomepageProps>) {
   const ratingValue = siteSettings.aggregateRating?.ratingValue || 4.8
   const lowestRate = siteSettings.financingDefaults?.annualInterestRate || RATE_FLOOR
 

@@ -61,7 +61,7 @@ const STAGE_LABELS: Record<string, { label: string; color: string; description: 
 }
 
 // ── Main Component ─────────────────────────────────────────────────────────
-export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedVehicles }: GarageShellProps) {
+export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedVehicles }: Readonly<GarageShellProps>) {
   const router = useRouter()
   const sb = createClient()
   const deals = activeDeals

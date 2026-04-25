@@ -390,7 +390,7 @@ export interface VDPClientProps {
   serverVehicle: VehicleDetail
 }
 
-export default function VDPClient({ serverVehicle }: VDPClientProps) {
+export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
   const searchParams = useSearchParams()
   const { user } = useAuth()
   const { addFavorite, removeFavorite, isFavorite: isFavoriteInContext } = useFavorites()

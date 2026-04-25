@@ -90,7 +90,7 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(undefin
 
 // ── Provider ───────────────────────────────────────────────────────────────
 
-export function FavoritesProvider({ children }: { children: ReactNode }) {
+export function FavoritesProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [favorites, setFavorites] = useState<FavoriteVehicle[]>([])
   const [isLoaded, setIsLoaded] = useState(false)
   const [syncing, setSyncing] = useState(false)

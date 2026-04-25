@@ -7,7 +7,7 @@ interface FooterPhoneLinkProps {
   phone: string
 }
 
-export function FooterPhoneLink({ phone }: FooterPhoneLinkProps) {
+export function FooterPhoneLink({ phone }: Readonly<FooterPhoneLinkProps>) {
   return (
     <a
       href={`tel:${phone.replaceAll(/[^0-9]/g, '')}`}

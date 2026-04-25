@@ -30,9 +30,9 @@ const navigation = [
 
 export default function AdminLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode
-}) {
+}>) {
   const router = useRouter()
   const { user, isLoading, signOut } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)

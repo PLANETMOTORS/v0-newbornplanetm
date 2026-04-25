@@ -129,7 +129,7 @@ function statusColor(status: string): string {
 
 function KpiCard({
   title, value, sub, icon: Icon, trend, color = "blue", pulse = false,
-}: {
+}: Readonly<{
   title: string
   value: string | number
   sub?: string
@@ -137,7 +137,7 @@ function KpiCard({
   trend?: string
   color?: "blue" | "green" | "amber" | "violet"
   pulse?: boolean
-}) {
+}>) {
   const colors = {
     blue: "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400",
     green: "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400",
@@ -175,7 +175,7 @@ function KpiCard({
 
 // ── Source Bar Chart ───────────────────────────────────────────────────────
 
-function SourceBreakdown({ leads }: { leads: Lead[] }) {
+function SourceBreakdown({ leads }: Readonly<{ leads: Lead[] }>) {
   const counts: Record<string, number> = {}
   for (const lead of leads) {
     counts[lead.source] = (counts[lead.source] ?? 0) + 1
@@ -221,7 +221,7 @@ function SourceBreakdown({ leads }: { leads: Lead[] }) {
 
 // ── Status Funnel ──────────────────────────────────────────────────────────
 
-function StatusFunnel({ stats }: { stats: LeadStats }) {
+function StatusFunnel({ stats }: Readonly<{ stats: LeadStats }>) {
   const stages = [
     { label: "New", value: stats.new, color: "bg-blue-500", pct: stats.total ? Math.round((stats.new / stats.total) * 100) : 0 },
     { label: "Contacted", value: stats.contacted, color: "bg-yellow-500", pct: stats.total ? Math.round((stats.contacted / stats.total) * 100) : 0 },
@@ -261,7 +261,7 @@ function StatusFunnel({ stats }: { stats: LeadStats }) {
 
 // ── Recent Leads Feed ──────────────────────────────────────────────────────
 
-function RecentLeadsFeed({ leads }: { leads: Lead[] }) {
+function RecentLeadsFeed({ leads }: Readonly<{ leads: Lead[] }>) {
   return (
     <Card className="col-span-full">
       <CardHeader className="pb-3">
@@ -336,7 +336,7 @@ function RecentLeadsFeed({ leads }: { leads: Lead[] }) {
 export function LeadAnalyticsDashboard({
   refreshInterval = 30_000,
   feedLimit = 8,
-}: DashboardProps) {
+}: Readonly<DashboardProps>) {
   const [leads, setLeads] = useState<Lead[]>([])
   const [stats, setStats] = useState<LeadStats>({ total: 0, new: 0, contacted: 0, qualified: 0, converted: 0 })
   const [loading, setLoading] = useState(true)

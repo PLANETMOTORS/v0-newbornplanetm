@@ -89,7 +89,7 @@ function getDeliveryLabel(pkg: ProtectionPackage) {
   return "FREE delivery"
 }
 
-function CellValue({ pkg, rowKey }: { pkg: ProtectionPackage; rowKey: string }) {
+function CellValue({ pkg, rowKey }: Readonly<{ pkg: ProtectionPackage; rowKey: string }>) {
   switch (rowKey) {
     case "paymentMethod":
       return <span className="text-xs sm:text-sm font-semibold">{getPaymentMethodLabel(pkg.paymentMethod)}</span>
@@ -129,7 +129,7 @@ function CellValue({ pkg, rowKey }: { pkg: ProtectionPackage; rowKey: string }) 
 }
 
 /* ── Mobile card view for each package ── */
-function MobilePackageCard({ pkg, index, onSelect }: { pkg: ProtectionPackage; index: number; onSelect?: (id: string) => void }) {
+function MobilePackageCard({ pkg, index, onSelect }: { pkg: ProtectionPackage; index: number; onSelect?: (id: Readonly<string>) => void }) {
   const [expanded, setExpanded] = useState(pkg.highlighted)
   const style = TIER_STYLES[pkg.id] || TIER_STYLES.basic
 
@@ -208,7 +208,7 @@ function MobilePackageCard({ pkg, index, onSelect }: { pkg: ProtectionPackage; i
 
 
 /* ── Desktop comparison table — card-column layout ── */
-function DesktopTable({ onSelect }: { onSelect?: (id: string) => void }) {
+function DesktopTable({ onSelect }: { onSelect?: (id: Readonly<string>) => void }) {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Use CSS grid so badge overflow is never clipped */}
@@ -334,7 +334,7 @@ function DesktopTable({ onSelect }: { onSelect?: (id: string) => void }) {
 }
 
 /* ── Main export ── */
-export function ProtectionComparisonTable({ onSelectPackage }: ProtectionComparisonTableProps) {
+export function ProtectionComparisonTable({ onSelectPackage }: Readonly<ProtectionComparisonTableProps>) {
   return (
     <>
       {/* Desktop: full comparison grid — overflow-x-auto with visible y for badges */}

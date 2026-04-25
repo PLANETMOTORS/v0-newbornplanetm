@@ -15,7 +15,7 @@ interface LanguageSwitcherProps {
   currentLocale: Locale
 }
 
-export function LanguageSwitcher({ currentLocale }: LanguageSwitcherProps) {
+export function LanguageSwitcher({ currentLocale }: Readonly<LanguageSwitcherProps>) {
   const pathname = usePathname()
   const router = useRouter()
 

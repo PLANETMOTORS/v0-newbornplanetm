@@ -75,7 +75,7 @@ export function LeadCaptureForm({
   onSuccess,
   ctaLabel = "Get More Info",
   successMessage = "Thanks! A specialist will reach out within 2 hours.",
-}: LeadCaptureFormProps) {
+}: Readonly<LeadCaptureFormProps>) {
   const [form, setForm] = useState<FormState>({
     firstName: "",
     lastName: "",

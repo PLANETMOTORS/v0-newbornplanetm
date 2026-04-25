@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: CheckoutPageProps): Promise<M
   }
 }
 
-export default async function CheckoutPage({ params }: CheckoutPageProps) {
+export default async function CheckoutPage({ params }: Readonly<CheckoutPageProps>) {
   const { id } = await params
   return <CheckoutFlow vehicleId={id} />
 }

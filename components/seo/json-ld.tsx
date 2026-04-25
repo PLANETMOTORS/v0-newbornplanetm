@@ -154,7 +154,7 @@ function mapDriveWheelConfiguration(drivetrain?: string): string | undefined {
   return drivetrain
 }
 
-export function VehicleJsonLd({ vehicle }: VehicleJsonLdProps) {
+export function VehicleJsonLd({ vehicle }: Readonly<VehicleJsonLdProps>) {
   // Use OMVIC all-in price (subtotal before HST) for the advertised price
   const allInPrice = calculateAllInPrice(vehicle.price)
 
@@ -243,7 +243,7 @@ interface FAQJsonLdProps {
   faqs: Array<{ question: string; answer: string }>
 }
 
-export function FAQJsonLd({ faqs }: FAQJsonLdProps) {
+export function FAQJsonLd({ faqs }: Readonly<FAQJsonLdProps>) {
   const schema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -279,7 +279,7 @@ interface ArticleJsonLdProps {
   }
 }
 
-export function ArticleJsonLd({ article }: ArticleJsonLdProps) {
+export function ArticleJsonLd({ article }: Readonly<ArticleJsonLdProps>) {
   const schema = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -320,7 +320,7 @@ interface BreadcrumbJsonLdProps {
   items: Array<{ name: string; url: string }>
 }
 
-export function BreadcrumbJsonLd({ items }: BreadcrumbJsonLdProps) {
+export function BreadcrumbJsonLd({ items }: Readonly<BreadcrumbJsonLdProps>) {
   const schema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",

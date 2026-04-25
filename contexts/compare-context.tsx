@@ -37,7 +37,7 @@ interface CompareContextType {
 
 const CompareContext = createContext<CompareContextType | undefined>(undefined)
 
-export function CompareProvider({ children }: { children: ReactNode }) {
+export function CompareProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [compareList, setCompareList] = useState<string[]>([])
   const [vehicles, setVehicles] = useState<CompareVehicle[]>([])
   const maxItems = 3

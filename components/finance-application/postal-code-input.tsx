@@ -22,7 +22,7 @@ export interface PostalCodeInputProps {
   id?: string
 }
 
-export function PostalCodeInput({ value, onChange, label = "Postal Code *", id }: PostalCodeInputProps) {
+export function PostalCodeInput({ value, onChange, label = "Postal Code *", id }: Readonly<PostalCodeInputProps>) {
   const autoId = useId()
   const inputId = id ?? `postal-code-${autoId}`
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([])

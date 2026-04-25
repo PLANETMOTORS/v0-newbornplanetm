@@ -20,7 +20,7 @@ interface BenefitsSectionProps {
   benefits: Benefit[]
 }
 
-export function BenefitsSection({ title, benefits }: BenefitsSectionProps) {
+export function BenefitsSection({ title, benefits }: Readonly<BenefitsSectionProps>) {
   return (
     <section className="py-16 md:py-24 bg-muted/30">
       <div className="container mx-auto px-4">

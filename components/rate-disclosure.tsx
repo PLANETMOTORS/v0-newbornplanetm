@@ -36,7 +36,7 @@ export function RateDisclosure({
   termMonths = 84,
   className = "",
   compact = false,
-}: RateDisclosureProps) {
+}: Readonly<RateDisclosureProps>) {
   const payment = monthlyPayment(principal, RATE_FLOOR, termMonths)
   const totalPaid = payment * termMonths
   const costOfBorrowing = totalPaid - principal

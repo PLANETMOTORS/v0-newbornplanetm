@@ -72,7 +72,7 @@ interface FinanceApplicationFullFormProps {
   }
 }
 
-export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData }: FinanceApplicationFullFormProps) {
+export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData }: Readonly<FinanceApplicationFullFormProps>) {
   useRouter()
   const { user, isLoading: isAuthLoading } = useAuth()
   const draftLoadedRef = useRef(false)

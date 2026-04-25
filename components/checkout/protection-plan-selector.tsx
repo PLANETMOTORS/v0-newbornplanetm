@@ -12,7 +12,7 @@ interface ProtectionPlanSelectorProps {
   onChange: (value: string) => void
 }
 
-export function ProtectionPlanSelector({ value, onChange }: ProtectionPlanSelectorProps) {
+export function ProtectionPlanSelector({ value, onChange }: Readonly<ProtectionPlanSelectorProps>) {
   return (
     <Card>
       <CardHeader>

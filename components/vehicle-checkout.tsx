@@ -41,7 +41,7 @@ interface VehicleCheckoutProps {
   onClose?: () => void
 }
 
-export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose }: VehicleCheckoutProps) {
+export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose }: Readonly<VehicleCheckoutProps>) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [depositOnly, setDepositOnly] = useState(true)
   const [showCheckout, setShowCheckout] = useState(false)

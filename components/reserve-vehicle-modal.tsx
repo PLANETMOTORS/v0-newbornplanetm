@@ -48,7 +48,7 @@ interface ReserveVehicleModalProps {
   trigger?: React.ReactNode
 }
 
-export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalProps) {
+export function ReserveVehicleModal({ vehicle, trigger }: Readonly<ReserveVehicleModalProps>) {
   const [step, setStep] = useState(1)
   const [isProcessing, setIsProcessing] = useState(false)
   const [formData, setFormData] = useState({
