@@ -16,6 +16,9 @@ import { blogPosts } from "@/lib/blog-data"
 import { getBlogPost, getBlogSlugs } from "@/lib/sanity/fetch"
 import { BlogShareButtons } from "@/components/blog/blog-share-buttons"
 
+// Allow slugs not returned by generateStaticParams (new Sanity posts) to be served via ISR
+export const dynamicParams = true
+
 /** Convert Sanity Portable Text blocks to an HTML string for dangerouslySetInnerHTML. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function portableTextToHtml(blocks: any[]): string {
