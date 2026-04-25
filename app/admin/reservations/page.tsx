@@ -192,16 +192,18 @@ export default function AdminReservationsPage() {
       {/* Reservations Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          {loading ? (
+          {loading && (
             <Card><CardContent className="p-8 text-center text-gray-500">Loading reservations...</CardContent></Card>
-          ) : reservations.length === 0 ? (
+          )}
+          {!loading && reservations.length === 0 && (
             <Card>
               <CardContent className="p-8 text-center text-gray-500">
                 <CalendarCheck className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                 <p>No reservations found</p>
               </CardContent>
             </Card>
-          ) : (
+          )}
+          {!loading && reservations.length > 0 && (
             <div className="space-y-3">
               {reservations.map(res => {
                 const sb = statusBadge(res.status)
