@@ -3,7 +3,6 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import dynamic from "next/dynamic"
 import { useAuth } from "@/contexts/auth-context"
 import { startVehicleCheckout } from "@/app/actions/stripe"
 import { Button } from "@/components/ui/button"
@@ -17,24 +16,7 @@ import {
   ArrowRight, ArrowLeft, CheckCircle, Loader2, Shield, AlertCircle
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-const EmbeddedCheckoutProvider = dynamic(
-  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckoutProvider })),
-  { ssr: false }
-)
-const EmbeddedCheckout = dynamic(
-  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckout })),
-  { ssr: false }
-)
-
-const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-let stripePromise: ReturnType<typeof import('@stripe/stripe-js').loadStripe> | null = null
-function getStripePromise() {
-  if (!stripePromise && stripeKey) {
-    stripePromise = import('@stripe/stripe-js').then(m => m.loadStripe(stripeKey))
-  }
-  return stripePromise
-}
+import { EmbeddedCheckoutProvider, EmbeddedCheckout, getStripePromise } from "@/lib/stripe/embedded-checkout"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 import {
   type ApplicantData, type VehicleInfo, type TradeInInfo,
