@@ -7,8 +7,8 @@
  */
 import { createClient } from "@supabase/supabase-js"
 import { parseHomenetCSV } from "../lib/homenet/parser"
-import { readFileSync } from "fs"
-import { resolve } from "path"
+import { readFileSync } from "node:fs"
+import { resolve } from "node:path"
 
 async function main() {
   const csvPath = resolve(__dirname, "..", "PlanetMotorsDealer.csv")

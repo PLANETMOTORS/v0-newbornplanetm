@@ -29,7 +29,7 @@ function portableTextToHtml(blocks: any[]): string {
     const text = (block.children ?? []).map((child: any) => {
       const t = child.text ?? ""
       const marks: string[] = child.marks ?? []
-      let out = t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      let out = t.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
       if (marks.includes("strong")) out = `<strong>${out}</strong>`
       if (marks.includes("em")) out = `<em>${out}</em>`
       return out

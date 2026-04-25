@@ -156,7 +156,7 @@ const defaultModelData = {
   tagline: "Quality Pre-Owned Vehicles at Planet Motors",
   description: "Discover our selection of PM Certified vehicles with 210-point inspection, 10-day money-back guarantee, and comprehensive warranty options.",
   startingPrice: 29990,
-  mpg: { city: 9.0, highway: 7.0 },
+  mpg: { city: 9, highway: 7 },
   seating: 5,
   cargo: 500,
   safetyRating: 5,

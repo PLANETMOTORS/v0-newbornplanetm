@@ -16,8 +16,8 @@
  */
 
 import { test, expect, Page } from '@playwright/test';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { randomInt as cryptoRandomInt } from 'node:crypto';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -39,7 +39,7 @@ const CHECKOUT_URL = `${BASE_URL}/checkout`;
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     try {
-      window.localStorage.setItem(
+      globalThis.window.localStorage.setItem(
         'pm_cookie_consent',
         JSON.stringify({
           decided: true,

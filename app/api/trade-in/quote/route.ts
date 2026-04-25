@@ -65,7 +65,7 @@ function estimateTradeInValue(data: {
   // Condition adjustment
   const conditionMultipliers = {
     excellent: 1.10,
-    good: 1.00,
+    good: 1,
     fair: 0.85,
     poor: 0.65,
   }

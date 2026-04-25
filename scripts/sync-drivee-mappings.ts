@@ -13,8 +13,8 @@
  *   npx tsx scripts/sync-drivee-mappings.ts --dry-run
  */
 
-import { readFileSync } from "fs"
-import { resolve } from "path"
+import { readFileSync } from "node:fs"
+import { resolve } from "node:path"
 
 interface ManifestEntry {
   mid: string

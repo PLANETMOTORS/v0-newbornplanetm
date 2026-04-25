@@ -309,9 +309,9 @@ const vehicleData = {
     description: "The 2024 Tesla Model 3 combines cutting-edge technology with exceptional performance. Perfect for Canadian drivers looking for a premium EV experience.",
     categories: [
       { name: "Performance", score: 4.9 },
-      { name: "Efficiency", score: 5.0 },
+      { name: "Efficiency", score: 5 },
       { name: "Comfort", score: 4.5 },
-      { name: "Tech", score: 5.0 },
+      { name: "Tech", score: 5 },
       { name: "Space", score: 4.2 },
       { name: "Reliability", score: 4.7 },
       { name: "Safety", score: 4.9 }
@@ -551,7 +551,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   }
 
   const handleShare = async () => {
-    const shareUrl = typeof window !== "undefined" ? window.location.href : ""
+    const shareUrl = typeof globalThis.window !== "undefined" ? globalThis.window.location.href : ""
     const shareTitle = `${vehicle.year} ${vehicle.make} ${vehicle.model} at Planet Motors`
     const shareText = `Check out this ${vehicle.year} ${vehicle.make} ${vehicle.model} for $${safeNum(vehicle.price).toLocaleString()}.`
     try {

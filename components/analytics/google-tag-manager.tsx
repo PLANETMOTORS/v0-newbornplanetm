@@ -55,9 +55,9 @@ export function GoogleTagManagerNoScript() {
 
 // DataLayer push helper
 export function pushToDataLayer(data: Record<string, unknown>) {
-  if (typeof window !== "undefined") {
-    window.dataLayer = window.dataLayer || []
-    window.dataLayer.push(data)
+  if (typeof globalThis.window !== "undefined") {
+    globalThis.window.dataLayer = globalThis.window.dataLayer || []
+    globalThis.window.dataLayer.push(data)
   }
 }
 

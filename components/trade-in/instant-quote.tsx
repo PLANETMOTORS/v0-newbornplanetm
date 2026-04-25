@@ -415,9 +415,9 @@ export function InstantQuote() {
     
     // Condition adjustment
     const conditionMultipliers: Record<string, number> = {
-      "excellent": 1.10, "good": 1.00, "fair": 0.85, "poor": 0.65,
+      "excellent": 1.10, "good": 1, "fair": 0.85, "poor": 0.65,
     }
-    value *= conditionMultipliers[data.condition] || 1.0
+    value *= conditionMultipliers[data.condition] || 1
     
     // Minimum and rounding
     value = Math.max(500, value)

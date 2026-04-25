@@ -1,5 +1,5 @@
 import { createClient } from "@sanity/client"
-import { randomUUID } from "crypto"
+import { randomUUID } from "node:crypto"
 
 const client = createClient({
   projectId: 'wlxj8olw',

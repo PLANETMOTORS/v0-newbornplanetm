@@ -5,8 +5,8 @@
  * Incoming file IS the inventory. Old vehicles not in file are deleted.
  */
 import { parseHomenetCSV, syncVehiclesToDatabase, getSql } from "../lib/homenet/parser"
-import { readFileSync } from "fs"
-import { resolve } from "path"
+import { readFileSync } from "node:fs"
+import { resolve } from "node:path"
 
 async function main() {
   const csvPath = resolve(__dirname, "..", "PlanetMotorsDealer.csv")

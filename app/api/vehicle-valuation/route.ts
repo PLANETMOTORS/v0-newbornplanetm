@@ -185,9 +185,9 @@ function calculateFallbackValue(year: string, make: string, model: string, milea
 
   // Condition
   const conditionMultipliers: Record<string, number> = {
-    "excellent": 1.10, "good": 1.00, "fair": 0.85, "poor": 0.65,
+    "excellent": 1.10, "good": 1, "fair": 0.85, "poor": 0.65,
   }
-  value *= conditionMultipliers[condition?.toLowerCase()] || 1.0
+  value *= conditionMultipliers[condition?.toLowerCase()] || 1
 
   // Regional adjustment based on postal code
   const { multiplier, region, vehicleType } = getRegionalMultiplier(postalCode, make, model)
