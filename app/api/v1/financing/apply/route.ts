@@ -32,6 +32,16 @@ function generateApplicationNumber(): string {
   return `PM-FA-${ts}-${rand}`
 }
 
+function validateApplyBody(body: Record<string, unknown>, email: unknown, requestedAmount: unknown, annualIncome: unknown, customerId: unknown, userId: string): { code: string; message: string; status: number } | null {
+  const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'annualIncome', 'requestedAmount']
+  const missingFields = requiredFields.filter((field) => !body[field])
+  if (missingFields.length > 0) return { code: 'MISSING_FIELDS', message: `Missing required fields: ${missingFields.join(', ')}`, status: 400 }
+  if (!validateEmail(String(email))) return { code: 'INVALID_EMAIL', message: 'Invalid email format', status: 400 }
+  if (asNumber(requestedAmount) <= 0 || asNumber(annualIncome) <= 0) return { code: 'INVALID_FINANCIAL_INPUT', message: 'requestedAmount and annualIncome must be greater than 0', status: 400 }
+  if (customerId && customerId !== userId) return { code: 'FORBIDDEN', message: 'customerId must match authenticated user', status: 403 }
+  return null
+}
+
 // POST /api/v1/financing/apply - Full application submission (review pipeline)
 export async function POST(request: NextRequest) {
   try {
@@ -80,62 +90,15 @@ export async function POST(request: NextRequest) {
       tradeInId,
     } = body
 
-    const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'annualIncome', 'requestedAmount']
-    const missingFields = requiredFields.filter((field) => !body[field])
-
-    if (missingFields.length > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'MISSING_FIELDS',
-            message: `Missing required fields: ${missingFields.join(', ')}`,
-          },
-        },
-        { status: 400 }
-      )
-    }
-
-    if (!validateEmail(String(email))) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'INVALID_EMAIL',
-            message: 'Invalid email format',
-          },
-        },
-        { status: 400 }
-      )
+    const bodyValidationError = validateApplyBody(body, email, requestedAmount, annualIncome, customerId, user.id)
+    if (bodyValidationError) {
+      return NextResponse.json({ success: false, error: { code: bodyValidationError.code, message: bodyValidationError.message } }, { status: bodyValidationError.status })
     }
 
     const requestedAmountValue = asNumber(requestedAmount)
     const annualIncomeValue = asNumber(annualIncome)
     const downPaymentValue = Math.max(0, asNumber(downPayment))
     const requestedTermValue = Math.max(24, Math.min(96, Math.round(asNumber(requestedTerm, 72))))
-
-    if (requestedAmountValue <= 0 || annualIncomeValue <= 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'INVALID_FINANCIAL_INPUT',
-            message: 'requestedAmount and annualIncome must be greater than 0',
-          },
-        },
-        { status: 400 }
-      )
-    }
-
-    if (customerId) {
-      if (customerId !== user.id) {
-        return NextResponse.json(
-          { success: false, error: { code: 'FORBIDDEN', message: 'customerId must match authenticated user' } },
-          { status: 403 }
-        )
-      }
-    }
-
     const effectiveCustomerId = customerId || user.id
 
     if (vehicleId) {
