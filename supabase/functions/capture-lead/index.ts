@@ -3,7 +3,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2"
 import { corsHeaders, handleCorsPreFlight } from "../_shared/cors.ts"
 import { createLogger } from "../_shared/logger.ts"
-import { validateCaptureLeadInput } from "../_shared/validate.ts"
+import { validateCaptureLeadInput, maskEmail } from "../_shared/validate.ts"
 
 const log = createLogger("capture-lead")
 
@@ -173,7 +173,7 @@ Deno.serve(async (req: Request) => {
   const { data } = validation
   const customerName = `${data.firstName} ${data.lastName}`
 
-  log.info("Lead capture started", { emailHash: data.email.replace(/^(.)(.*)(@.*)$/, "$1***$3"), amount: data.requestedAmount })
+  log.info("Lead capture started", { emailHash: maskEmail(data.email), amount: data.requestedAmount })
 
   try {
     // Initialize Supabase admin client using secrets

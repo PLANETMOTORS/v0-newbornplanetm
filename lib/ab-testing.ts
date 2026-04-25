@@ -26,6 +26,7 @@
  */
 
 import { pushToDataLayer } from "@/components/analytics/google-tag-manager"
+import { randomFloat } from "@/lib/util/random"
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -105,9 +106,10 @@ function pickVariant<V extends string>(experiment: Experiment<V>): V {
 
   // Validate weights sum to ~100
   const total = w.reduce((a, b) => a + b, 0)
-  // Math.random is intentional: A/B variant selection is not a security-sensitive
-  // operation — it does not generate tokens, IDs, or secrets. (S2245 safe)
-  const rand = Math.random() * total
+  // Use crypto-backed RNG so SonarCloud does not flag this as S2245.
+  // (A/B selection is not security-sensitive, but crypto.getRandomValues is
+  // available everywhere we run and removes ambiguity.)
+  const rand = randomFloat() * total
 
   let cumulative = 0
   for (let i = 0; i < n; i++) {

@@ -21,6 +21,19 @@ function isEmailLike(value: string): boolean {
   return true
 }
 
+/**
+ * Structural email mask for log lines. Returns the first character of the
+ * local part, three asterisks, and the original domain (e.g.
+ * `j***@example.com`). Uses string indices instead of a backtracking regex
+ * to avoid Sonar S5852.
+ */
+export function maskEmail(value: string): string {
+  if (typeof value !== "string" || value.length === 0) return "***"
+  const at = value.lastIndexOf("@")
+  if (at <= 0) return "***"
+  return `${value[0]}***${value.slice(at)}`
+}
+
 export interface CaptureLeadInput {
   firstName: string
   lastName: string
