@@ -215,7 +215,7 @@ export const BLOG_LIST_QUERY = `
 export const BLOG_COUNT_QUERY = `count(*[_type == "blogPost" && defined(publishedAt)])`
 
 export const BLOG_POST_QUERY = `
-  *[_type == "blogPost" && slug.current == $slug][0] {
+  *[_type == "blogPost" && defined(publishedAt) && slug.current == $slug][0] {
     _id, title, slug, publishedAt, excerpt,
     "coverImage": coverImage.asset->url,
     "coverImageAlt": coverImage.alt,
@@ -237,7 +237,7 @@ export const BLOG_POST_QUERY = `
 `
 
 export const BLOG_SLUGS_QUERY = `
-  *[_type == "blogPost"] { "slug": slug.current }
+  *[_type == "blogPost" && defined(publishedAt)] { "slug": slug.current }
 `
 
 // ==========================================

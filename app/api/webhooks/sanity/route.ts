@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
         documentId,
         operation,
       },
-      { ex: 60 * 60 * 24 * 7 }, // 7-day TTL
+      60 * 60 * 24 * 7, // 7-day TTL in seconds
     ).catch((err) => logger.warn("[Sanity Webhook] Redis heartbeat write failed:", err))
 
     const elapsed = Date.now() - startedAt
