@@ -356,7 +356,7 @@ function TradeInContent() {
         setSelectedModel(parts[1])
       }
       const mileageParam = searchParams.get("mileage")
-      if (mileageParam) setMileage(mileageParam.replace(/[^0-9]/g, ""))
+      if (mileageParam) setMileage(mileageParam.replaceAll(/[^0-9]/g, ""))
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, user])
@@ -437,7 +437,7 @@ function TradeInContent() {
   const handlePhoneChange = (value: string) => {
     const formatted = formatCanadianPhoneNumber(value)
     setPhone(formatted)
-    const digitsOnly = value.replace(/\D/g, '')
+    const digitsOnly = value.replaceAll(/\D/g, '')
     if (digitsOnly.length > 0 && digitsOnly.length < 10) {
       setPhoneError("Please enter a complete 10-digit phone number")
     } else if (digitsOnly.length >= 10 && !isValidCanadianPhoneNumber(formatted)) {
@@ -450,7 +450,7 @@ function TradeInContent() {
   const handlePostalCodeChange = (value: string) => {
     const formatted = formatCanadianPostalCode(value)
     setPostalCode(formatted)
-    const cleanValue = value.replace(/\s/g, '')
+    const cleanValue = value.replaceAll(/\s/g, '')
     if (cleanValue.length > 0 && cleanValue.length < 6) {
       setPostalCodeError("Please enter a complete postal code (e.g., L4C 2G1)")
     } else if (cleanValue.length >= 6 && !isValidCanadianPostalCode(formatted)) {
@@ -538,7 +538,7 @@ function TradeInContent() {
   const calculateLocalFallback = () => {
     const currentYear = new Date().getFullYear()
     const age = currentYear - Number.parseInt(selectedYear)
-    const mileageNum = Number.parseInt(mileage.replace(/,/g, '')) || 50000
+    const mileageNum = Number.parseInt(mileage.replaceAll(',', '')) || 50000
     const baseTiers: Record<string, number> = {
       "BMW": 45000, "Mercedes-Benz": 48000, "Audi": 45000, "Lexus": 42000,
       "Tesla": 55000, "Porsche": 70000, "Toyota": 28000, "Honda": 28000,

@@ -159,11 +159,11 @@ async function fireAutoRaptorAdf(params: {
 
   const escapeXml = (str: string) =>
     str
-      .replaceAll(/&/g, '&amp;')
-      .replaceAll(/</g, '&lt;')
-      .replaceAll(/>/g, '&gt;')
-      .replaceAll(/"/g, '&quot;')
-      .replaceAll(/'/g, '&apos;')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&apos;')
 
   const adfXml = `<?xml version="1.0" encoding="UTF-8"?>
 <?adf version="1.0"?>
