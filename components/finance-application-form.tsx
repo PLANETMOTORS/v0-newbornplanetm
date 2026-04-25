@@ -142,8 +142,10 @@ export function FinanceApplicationForm() {
     if (!formData.lastName.trim()) errors.lastName = "Last Name is required"
     if (!formData.email.trim()) {
       errors.email = "Email Address is required"
-    // Safe regex: bounded quantifiers + dot-free domain labels eliminate backtracking (S2631).
-    } else if (formData.email.length > 254 || !/^[^\s@]{1,64}@[^\s@.]{1,63}(?:\.[^\s@.]{1,63})+$/.test(formData.email)) {
+    } else if (
+      // Safe regex: bounded quantifiers + dot-free domain labels eliminate backtracking (S2631).
+      formData.email.length > 254 || !/^[^\s@]{1,64}@[^\s@.]{1,63}(?:\.[^\s@.]{1,63})+$/.test(formData.email)
+    ) {
       errors.email = "Please enter a valid email address"
     }
     if (!formData.phone.trim()) {
