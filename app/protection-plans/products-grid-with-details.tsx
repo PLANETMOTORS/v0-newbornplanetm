@@ -51,6 +51,7 @@ function ProductDetailPanel({ product, onClose }: { product: ProtectionProduct; 
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-colors ring-1 ring-white/20 shrink-0"
             aria-label="Close details"
@@ -198,9 +199,10 @@ export function ProductsGridWithDetails() {
   // Scroll detail panel into view when opened
   useEffect(() => {
     if (openSlug && detailRef.current) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
       }, 100)
+      return () => clearTimeout(timer)
     }
   }, [openSlug])
 
@@ -231,6 +233,7 @@ export function ProductsGridWithDetails() {
             return (
               <button
                 key={product.slug}
+                type="button"
                 id={`product-${product.slug}`}
                 onClick={() => handleToggle(product.slug)}
                 role="listitem"
