@@ -107,7 +107,7 @@ export function useCookieConsent() {
   }, [])
 
   const resetConsent = useCallback(() => {
-    if (typeof globalThis.window !== "undefined") {
+    if (globalThis.window !== undefined) {
       localStorage.removeItem(STORAGE_KEY)
     }
     setConsent(DEFAULT_STATE)

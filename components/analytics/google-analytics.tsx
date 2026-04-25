@@ -45,7 +45,7 @@ export function GoogleAnalytics() {
 
 // Event tracking helpers
 export function trackEvent(action: string, category: string, label?: string, value?: number) {
-  if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
+  if (globalThis.window?.gtag) {
     globalThis.window.gtag("event", action, {
       event_category: category,
       event_label: label,
@@ -62,7 +62,7 @@ export function trackViewItem(vehicle: {
   make: string
   model: string
 }) {
-  if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
+  if (globalThis.window?.gtag) {
     globalThis.window.gtag("event", "view_item", {
       currency: "CAD",
       value: vehicle.price,
@@ -84,7 +84,7 @@ export function trackAddToWishlist(vehicle: {
   name: string
   price: number
 }) {
-  if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
+  if (globalThis.window?.gtag) {
     globalThis.window.gtag("event", "add_to_wishlist", {
       currency: "CAD",
       value: vehicle.price,
@@ -98,7 +98,7 @@ export function trackBeginCheckout(vehicle: {
   name: string
   price: number
 }) {
-  if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
+  if (globalThis.window?.gtag) {
     globalThis.window.gtag("event", "begin_checkout", {
       currency: "CAD",
       value: vehicle.price,
@@ -112,7 +112,7 @@ export function trackPurchase(order: {
   value: number
   vehicle: { id: string; name: string; price: number }
 }) {
-  if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
+  if (globalThis.window?.gtag) {
     globalThis.window.gtag("event", "purchase", {
       transaction_id: order.transaction_id,
       currency: "CAD",
@@ -129,7 +129,7 @@ export function trackPurchase(order: {
 }
 
 export function trackLead(form_type: string, vehicle_id?: string) {
-  if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
+  if (globalThis.window?.gtag) {
     globalThis.window.gtag("event", "generate_lead", {
       currency: "CAD",
       value: 100, // Estimated lead value

@@ -79,7 +79,7 @@ function validatePayload(raw: unknown): LeadPayload | null {
   const firstName = sanitize(r.firstName)
   const lastName = sanitize(r.lastName)
   const email = sanitize(r.email)
-  const source = (sanitize(r.source) || "lead_capture_form") as LeadPayload["source"]
+  const source = (sanitize(r.source) || "lead_capture_form")
 
   if (!firstName || !email?.includes("@")) return null
 

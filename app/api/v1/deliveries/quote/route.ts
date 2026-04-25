@@ -292,11 +292,11 @@ export function GET(request: NextRequest) {
 
   let ratePerKm: number
   if (distance <= 500) {
-    ratePerKm = 0.70
+    ratePerKm = 0.7
   } else if (distance <= 1000) {
     ratePerKm = 0.75
   } else {
-    ratePerKm = 0.80
+    ratePerKm = 0.8
   }
 
   return NextResponse.json({

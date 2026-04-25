@@ -131,9 +131,10 @@ Deno.serve(async (req: Request) => {
 
 // ── Template resolver (inline — swap for Sanity fetch in Week 6) ──────────
 function resolveTemplate(template: string, payload: Record<string, unknown>) {
-  const vin = String(payload.vin ?? "your vehicle")
-  const stage = String(payload.to_stage ?? template.split(".")[1] ?? "")
-  const staff = String(payload.staff_name ?? "our team")
+  const asStr = (v: unknown, fallback: string): string => (typeof v === "string" && v.length > 0 ? v : fallback)
+  const vin = asStr(payload.vin, "your vehicle")
+  const stage = asStr(payload.to_stage, template.split(".")[1] ?? "")
+  const staff = asStr(payload.staff_name, "our team")
 
   const stageLabels: Record<string, string> = {
     application: "Application Received",

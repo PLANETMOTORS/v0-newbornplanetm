@@ -110,87 +110,12 @@ type SupabaseAdminClient = ReturnType<typeof createServiceClient<any, any, any>>
 
 async function aggregateLeads(adminClient: SupabaseAdminClient, filters: { status: string | null; source: string | null; search: string | null; offset: number; limit: number }) {
   type AggregatedLead = { id: string; source: string; status: string; customer_name: string; customer_email: string; customer_phone: string | null; subject: string; vehicle_info: string | null; created_at: string; source_table: string }
-  const allLeads: AggregatedLead[] = []
 
-  // Finance applications as leads
-  const { data: finApps } = await adminClient
-    .from("finance_applications_v2")
-    .select("id, status, requested_amount, created_at, vehicle_id")
-    .order("created_at", { ascending: false })
-    .limit(50)
-
-  if (finApps) {
-    for (const app of finApps) {
-      // Get applicant name
-      const { data: applicant } = await adminClient
-        .from("finance_applicants")
-        .select("first_name, last_name, email, phone")
-        .eq("application_id", app.id)
-        .eq("applicant_type", "primary")
-        .maybeSingle()
-
-      allLeads.push({
-        id: app.id,
-        source: "finance_app",
-        status: FINANCE_STATUS_MAP[app.status] ?? "archived",
-        customer_name: applicant ? `${applicant.first_name} ${applicant.last_name}` : "Unknown",
-        customer_email: applicant?.email || "",
-        customer_phone: applicant?.phone || null,
-        subject: `Finance Application — $${(app.requested_amount || 0).toLocaleString()}`,
-        vehicle_info: null,
-        created_at: app.created_at,
-        source_table: "finance_applications_v2",
-      })
-    }
-  }
-
-  // Reservations as leads
-  const { data: reservations } = await adminClient
-    .from("reservations")
-    .select("id, customer_name, customer_email, customer_phone, status, deposit_amount, vehicle_id, created_at")
-    .order("created_at", { ascending: false })
-    .limit(50)
-
-  if (reservations) {
-    for (const res of reservations) {
-      allLeads.push({
-        id: res.id,
-        source: "reservation",
-        status: RESERVATION_STATUS_MAP[res.status] ?? "new",
-        customer_name: res.customer_name || "Unknown",
-        customer_email: res.customer_email,
-        customer_phone: res.customer_phone,
-        subject: `Reservation — $${Math.round((res.deposit_amount || 0) / 100).toLocaleString()} deposit`,
-        vehicle_info: null,
-        created_at: res.created_at,
-        source_table: "reservations",
-      })
-    }
-  }
-
-  // Trade-in quotes as leads
-  const { data: tradeIns } = await adminClient
-    .from("trade_in_quotes")
-    .select("id, customer_name, customer_email, customer_phone, vehicle_year, vehicle_make, vehicle_model, offer_amount, status, created_at")
-    .order("created_at", { ascending: false })
-    .limit(50)
-
-  if (tradeIns) {
-    for (const ti of tradeIns) {
-      allLeads.push({
-        id: ti.id,
-        source: "trade_in",
-        status: TRADE_IN_STATUS_MAP[ti.status] ?? "archived",
-        customer_name: ti.customer_name || "Unknown",
-        customer_email: ti.customer_email || "",
-        customer_phone: ti.customer_phone || null,
-        subject: `Trade-In: ${ti.vehicle_year} ${ti.vehicle_make} ${ti.vehicle_model}`,
-        vehicle_info: `Offered $${(ti.offer_amount || 0).toLocaleString()}`,
-        created_at: ti.created_at,
-        source_table: "trade_in_quotes",
-      })
-    }
-  }
+  const allLeads: AggregatedLead[] = [
+    ...await collectFinanceLeads(adminClient),
+    ...await collectReservationLeads(adminClient),
+    ...await collectTradeInLeads(adminClient),
+  ]
 
   // Sort all by created_at descending
   allLeads.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -223,6 +148,85 @@ async function aggregateLeads(adminClient: SupabaseAdminClient, filters: { statu
     limit: filters.limit,
     aggregated: true,
   }
+}
+
+type AggregatedLead = { id: string; source: string; status: string; customer_name: string; customer_email: string; customer_phone: string | null; subject: string; vehicle_info: string | null; created_at: string; source_table: string }
+
+async function collectFinanceLeads(adminClient: SupabaseAdminClient): Promise<AggregatedLead[]> {
+  const { data: finApps } = await adminClient
+    .from("finance_applications_v2")
+    .select("id, status, requested_amount, created_at, vehicle_id")
+    .order("created_at", { ascending: false })
+    .limit(50)
+  if (!finApps) return []
+
+  const results: AggregatedLead[] = []
+  for (const app of finApps) {
+    const { data: applicant } = await adminClient
+      .from("finance_applicants")
+      .select("first_name, last_name, email, phone")
+      .eq("application_id", app.id)
+      .eq("applicant_type", "primary")
+      .maybeSingle()
+
+    results.push({
+      id: app.id,
+      source: "finance_app",
+      status: FINANCE_STATUS_MAP[app.status] ?? "archived",
+      customer_name: applicant ? `${applicant.first_name} ${applicant.last_name}` : "Unknown",
+      customer_email: applicant?.email || "",
+      customer_phone: applicant?.phone || null,
+      subject: `Finance Application — $${(app.requested_amount || 0).toLocaleString()}`,
+      vehicle_info: null,
+      created_at: app.created_at,
+      source_table: "finance_applications_v2",
+    })
+  }
+  return results
+}
+
+async function collectReservationLeads(adminClient: SupabaseAdminClient): Promise<AggregatedLead[]> {
+  const { data: reservations } = await adminClient
+    .from("reservations")
+    .select("id, customer_name, customer_email, customer_phone, status, deposit_amount, vehicle_id, created_at")
+    .order("created_at", { ascending: false })
+    .limit(50)
+  if (!reservations) return []
+
+  return reservations.map(res => ({
+    id: res.id,
+    source: "reservation",
+    status: RESERVATION_STATUS_MAP[res.status] ?? "new",
+    customer_name: res.customer_name || "Unknown",
+    customer_email: res.customer_email,
+    customer_phone: res.customer_phone,
+    subject: `Reservation — $${Math.round((res.deposit_amount || 0) / 100).toLocaleString()} deposit`,
+    vehicle_info: null,
+    created_at: res.created_at,
+    source_table: "reservations",
+  }))
+}
+
+async function collectTradeInLeads(adminClient: SupabaseAdminClient): Promise<AggregatedLead[]> {
+  const { data: tradeIns } = await adminClient
+    .from("trade_in_quotes")
+    .select("id, customer_name, customer_email, customer_phone, vehicle_year, vehicle_make, vehicle_model, offer_amount, status, created_at")
+    .order("created_at", { ascending: false })
+    .limit(50)
+  if (!tradeIns) return []
+
+  return tradeIns.map(ti => ({
+    id: ti.id,
+    source: "trade_in",
+    status: TRADE_IN_STATUS_MAP[ti.status] ?? "archived",
+    customer_name: ti.customer_name || "Unknown",
+    customer_email: ti.customer_email || "",
+    customer_phone: ti.customer_phone || null,
+    subject: `Trade-In: ${ti.vehicle_year} ${ti.vehicle_make} ${ti.vehicle_model}`,
+    vehicle_info: `Offered $${(ti.offer_amount || 0).toLocaleString()}`,
+    created_at: ti.created_at,
+    source_table: "trade_in_quotes",
+  }))
 }
 
 // PATCH — update lead status/notes

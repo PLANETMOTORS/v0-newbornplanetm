@@ -14,6 +14,8 @@ import AIKnowledgePanel from "@/components/admin/ai-knowledge-panel"
 interface QuickAction {
   label: string
   prompt: string
+  /** Client-only stable key for React lists. Stripped before persistence. */
+  _uid?: string
 }
 
 interface AgentConfig {
@@ -61,7 +63,8 @@ export default function AIAgentsPage() {
 
   const startEditing = (agent: AgentConfig) => {
     setEditingAgent(agent.agent_type)
-    setEditForm({ ...agent })
+    const quickActionsWithUids = (agent.quick_actions ?? []).map(qa => ({ ...qa, _uid: qa._uid ?? crypto.randomUUID() }))
+    setEditForm({ ...agent, quick_actions: quickActionsWithUids })
   }
 
   const cancelEditing = () => {
@@ -73,10 +76,14 @@ export default function AIAgentsPage() {
     if (!editingAgent) return
     try {
       setSaving(editingAgent)
+      const payload = {
+        ...editForm,
+        quick_actions: editForm.quick_actions?.map(({ _uid: _drop, ...rest }) => rest) ?? null,
+      }
       const res = await fetch("/api/v1/admin/ai-config", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editForm),
+        body: JSON.stringify(payload),
       })
       if (!res.ok) throw new Error("Failed to save")
       const data = await res.json()
@@ -110,7 +117,7 @@ export default function AIAgentsPage() {
 
   const addQuickAction = () => {
     const currentActions = (editForm.quick_actions || []) as QuickAction[]
-    setEditForm({ ...editForm, quick_actions: [...currentActions, { label: "", prompt: "" }] })
+    setEditForm({ ...editForm, quick_actions: [...currentActions, { label: "", prompt: "", _uid: crypto.randomUUID() }] })
   }
 
   const removeQuickAction = (index: number) => {
@@ -266,7 +273,7 @@ export default function AIAgentsPage() {
                         </div>
                         <div className="space-y-2">
                           {((editForm.quick_actions || []) as QuickAction[]).map((qa, i) => (
-                            <div key={`qa-${i}`} className="flex gap-2 items-center">
+                            <div key={qa._uid} className="flex gap-2 items-center">
                               <Input
                                 value={qa.label}
                                 onChange={(e) => updateQuickAction(i, "label", e.target.value)}
