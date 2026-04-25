@@ -99,7 +99,7 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
 
   // GA4 form_start — fires once on first user interaction (called on first field focus)
   const formStartFired = useRef(false)
-  const handleFormStart = useCallback(() => {
+  const _handleFormStart = useCallback(() => {
     if (formStartFired.current) return
     formStartFired.current = true
     if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {

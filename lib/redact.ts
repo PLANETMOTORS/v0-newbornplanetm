@@ -13,9 +13,15 @@
  */
 export function maskEmail(email: string | null | undefined): string {
   if (typeof email !== "string") return "<missing>"
-  // Strip ASCII control characters (including \r \n \t) before any processing
-  // to prevent log injection when the masked value is written to console logs.
-  const sanitized = email.replaceAll(/[\u0000-\u001F\u007F]/g, '')
+  // Strip ASCII control characters (including \r \n \t and DEL) before any
+  // processing to prevent log injection when the masked value is written
+  // to console logs. Implemented without a control-class regex (eslint
+  // no-control-regex) by scanning code points.
+  let sanitized = ""
+  for (let i = 0; i < email.length; i++) {
+    const code = email.charCodeAt(i)
+    if (code > 0x1f && code !== 0x7f) sanitized += email[i]
+  }
   const trimmed = sanitized.trim()
   if (!trimmed) return "<missing>"
   const atIdx = trimmed.lastIndexOf("@")
