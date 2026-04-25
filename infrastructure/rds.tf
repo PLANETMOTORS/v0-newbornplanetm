@@ -114,13 +114,23 @@ resource "aws_db_instance" "replica" {
   
   publicly_accessible    = false
   vpc_security_group_ids = [aws_security_group.rds.id]
-  
+
+  # Encryption — replicas must explicitly enable storage encryption (S4423)
+  storage_encrypted = true
+  kms_key_id        = aws_kms_key.rds.arn
+
+  # Backup — retain replica snapshots for 7 days (S4423)
+  backup_retention_period = 7
+
+  # Logging — export PostgreSQL logs to CloudWatch (S4423)
+  enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"]
+
   # Monitoring
   performance_insights_enabled          = true
   performance_insights_retention_period = 7
   monitoring_interval                   = 60
   monitoring_role_arn                  = aws_iam_role.rds_monitoring.arn
-  
+
   tags = {
     Name = "${var.app_name}-db-replica"
   }
