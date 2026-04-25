@@ -15,6 +15,7 @@ import {
   BLOG_LIST_QUERY,
   BLOG_COUNT_QUERY,
   BLOG_POST_QUERY,
+  BLOG_SLUGS_QUERY,
   FAQ_QUERY,
   ACTIVE_PROMOS_QUERY,
   TESTIMONIALS_QUERY,
@@ -129,6 +130,19 @@ export async function getBlogPosts(page = 1, perPage = 12): Promise<{ posts: Blo
   } catch (error) {
     console.error("Failed to fetch blog posts:", error)
     return { posts: [], total: 0 }
+  }
+}
+
+/** Fetch all blog post slugs — used for generateStaticParams in /blog/[slug] */
+export async function getBlogSlugs(): Promise<{ slug: string }[]> {
+  try {
+    const results: { slug: string | null }[] = await sanityClient.fetch(BLOG_SLUGS_QUERY, {}, {
+      next: { tags: [CACHE_TAGS.blog], revalidate: 3600 }
+    }) || []
+    return results.filter((r): r is { slug: string } => typeof r.slug === "string")
+  } catch (error) {
+    console.error("Failed to fetch blog slugs:", error)
+    return []
   }
 }
 
