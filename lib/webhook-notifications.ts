@@ -13,6 +13,7 @@ import type Stripe from 'stripe'
 import { createAutoRaptorLead } from '@/lib/autoraptor'
 import { escapeHtml } from '@/lib/email'
 import { Resend } from 'resend'
+import { maskEmail } from '@/lib/redact'
 
 const FROM_EMAIL = process.env.FROM_EMAIL || 'Planet Motors <notifications@planetmotors.ca>'
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'toni@planetmotors.ca'
@@ -170,7 +171,7 @@ async function sendOrderConfirmationEmail(data: PaymentNotificationData): Promis
   if (error) {
     console.warn(`[webhook-notify] Customer email failed: ${JSON.stringify(error)}`)
   } else {
-    console.info(`[webhook-notify] Order confirmation sent to ${data.customerEmail.replace(/(.{2}).*(@.*)/, '$1***$2')}`)
+    console.info(`[webhook-notify] Order confirmation sent to ${maskEmail(data.customerEmail)}`)
   }
 }
 

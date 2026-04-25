@@ -237,15 +237,14 @@ export default function AdminDashboard() {
               <div className="space-y-4">
                 {recentActivity.slice(0, 8).map((activity, index) => (
                   <div key={`${activity.id}-${index}`} className="flex gap-3">
-                    <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                      activity.type === "order"
-                        ? "bg-green-600"
-                        : activity.type === "finance"
-                          ? "bg-purple-600"
-                          : activity.type === "reservation"
-                            ? "bg-orange-600"
-                            : "bg-blue-600"
-                    }`} />
+                    {(() => {
+                      const dotColor =
+                        activity.type === "order" ? "bg-green-600" :
+                        activity.type === "finance" ? "bg-purple-600" :
+                        activity.type === "reservation" ? "bg-orange-600" :
+                        "bg-blue-600"
+                      return <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${dotColor}`} />
+                    })()}
                     <div>
                       <p className="text-sm font-medium">{activity.title}</p>
                       <p className="text-xs text-gray-500">{activity.detail}</p>

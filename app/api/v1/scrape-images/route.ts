@@ -58,7 +58,7 @@ async function scrapeVehicleImages(vdpUrl: string): Promise<{
       for (const match of matches) {
         const url = match[1] || match[0]
         if (url && !images.includes(url) && !url.includes('logo') && !url.includes('icon')) {
-          images.push(url.replaceAll(/&amp;/g, '&'))
+          images.push(url.replaceAll('&amp;', '&'))
         }
       }
     }

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 /**
  * components/garage/transaction-history.tsx
@@ -91,11 +90,9 @@ export function TransactionHistory({ deposits, orders, financePayments }: Transa
 
   const PAID_STATES = new Set(["succeeded", "paid", "completed"])
   const totalPaid = entries
-    .filter(e => ["succeeded", "paid", "completed"].includes(
-      e.data.state.toLowerCase()
-    ))
+    .filter(e => PAID_STATES.has(e.data.state.toLowerCase()))
     .reduce((sum, e) => {
-      const cents = e.kind === "order" ? (e.data as Order).total_cents : (e.data as Deposit | FinancePayment).amount_cents
+      const cents = e.kind === "order" ? e.data.total_cents : e.data.amount_cents
       return sum + cents
     }, 0)
 

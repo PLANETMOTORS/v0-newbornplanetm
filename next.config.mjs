@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+ 
 import withBundleAnalyzer from '@next/bundle-analyzer'
 
 const analyzeBundles = withBundleAnalyzer({

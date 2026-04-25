@@ -284,7 +284,10 @@ Deno.serve(async (req: Request) => {
           log.warn("Dedup insert failed", { vehicleId: payload.vehicle_id, error: dedupError.message })
         }
         sentCount++
-        log.info("Email sent", { recipientHash: email.replace(/^(.)(.*)(@.*)$/, "$1***$3") })
+        // Use indexOf-based masking to avoid ReDoS on pathological email strings (S2631).
+        const atI = email.indexOf('@')
+        const recipientHash = atI > 0 ? `${email[0]}***${email.slice(atI)}` : '***'
+        log.info("Email sent", { recipientHash })
       } else {
         const text = await res.text().catch(() => "")
         errors.push(`${res.status}: ${text.slice(0, 100)}`)

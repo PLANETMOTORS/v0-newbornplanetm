@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getCachedSearchResults, cacheSearchResults } from '@/lib/redis'
-import { createHash } from "node:crypto"
+import { createHash } from 'node:crypto'
 import { getDriveeMidFromDb } from '@/lib/drivee-db'
 
 const ALLOWED_SORT_COLUMNS = new Set(['created_at', 'price', 'year', 'mileage', 'make', 'model'])
@@ -304,9 +304,9 @@ export async function GET(request: NextRequest) {
       const years = allVehicles?.map(v => v.year) || []
 
       filters = {
-        makes: makes.sort((a, b) => a.localeCompare(b)),
-        bodyStyles: bodyStyles.sort((a, b) => a.localeCompare(b)),
-        fuelTypes: fuelTypes.sort((a, b) => a.localeCompare(b)),
+        makes: makes.toSorted((a, b) => a.localeCompare(b)),
+        bodyStyles: bodyStyles.toSorted((a, b) => a.localeCompare(b)),
+        fuelTypes: fuelTypes.toSorted((a, b) => a.localeCompare(b)),
         priceRange: {
           min: prices.length > 0 ? Math.min(...prices) : 0,
           max: prices.length > 0 ? Math.max(...prices) : 100000,

@@ -62,8 +62,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // Try Sanity first, fall back to static data
   const sanityPost = await getBlogPost(slug)
   const staticPost = blogPosts[slug]
+  const sanityDate = sanityPost?.publishedAt
+    ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA")
+    : ""
   const post = sanityPost
-    ? { title: sanityPost.title, excerpt: sanityPost.excerpt, image: sanityPost.coverImage ?? "/images/blog/1.png", date: sanityPost.publishedAt ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA") : "" }
+    ? { title: sanityPost.title, excerpt: sanityPost.excerpt, image: sanityPost.coverImage ?? "/images/blog/1.png", date: sanityDate }
     : staticPost
     ? { title: staticPost.title, excerpt: staticPost.excerpt, image: staticPost.image, date: staticPost.date }
     : null

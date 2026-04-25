@@ -155,6 +155,8 @@ function transformVehicle(v: Vehicle) {
     inspectionScore: v.inspection_score || 210,
     badge,
     badgeColor,
+    // Math.random is intentional here: these are display-only engagement estimates,
+    // not used for security, authentication, or unique identifiers. (S2245 safe)
     views: Math.floor(Math.random() * 200) + 50,
     favorites: Math.floor(Math.random() * 50) + 5,
     monthlyPayment: priceInDollars > 0 ? Math.round(priceInDollars / 84) : 0,

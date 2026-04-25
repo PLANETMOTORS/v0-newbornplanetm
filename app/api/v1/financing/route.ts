@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
         estimatedTerm: term,
         estimatedMonthlyPayment: Math.round(monthlyPayment * 100) / 100,
         prequalified: true,
-        confidence: creditScore >= 700 ? 'high' : (creditScore >= 650 ? 'medium' : 'low'),
+        confidence: creditScore >= 700 ? 'high' : creditScore >= 650 ? 'medium' : 'low',
       }
     })
     .sort((a, b) => a.estimatedRate - b.estimatedRate)

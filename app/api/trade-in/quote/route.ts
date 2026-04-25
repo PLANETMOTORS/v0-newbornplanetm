@@ -1,4 +1,4 @@
-import { randomBytes } from "crypto"
+import { randomBytes } from "node:crypto"
 import { sendNotificationEmail } from "@/lib/email"
 import { validateOrigin } from "@/lib/csrf"
 import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"

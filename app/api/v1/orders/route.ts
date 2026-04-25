@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { randomBytes } from "crypto"
+import { randomBytes } from "node:crypto"
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { PROVINCE_TAX_RATES } from '@/lib/tax/canada'

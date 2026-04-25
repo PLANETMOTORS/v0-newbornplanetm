@@ -253,31 +253,27 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null
 
-async function searchSupabase(params: VehicleSearchParams): Promise<SearchResponse> {
-  if (!supabase) {
-    return { hits: [], found: 0, page: params.page || 1, facet_counts: [] }
+// Supabase query builder. Typed broadly so helper functions can accept and
+// return the PostgrestFilterBuilder chain without importing internal Supabase
+// generics that change across patch versions.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseQuery = Record<string, any>
+
+/** Apply text search to a Supabase query if a search term is provided. */
+function applySupabaseTextSearch(query: SupabaseQuery, searchQuery?: string): SupabaseQuery {
+  if (!searchQuery) return query
+  // Sanitize user input to prevent PostgREST filter injection via commas/parens.
+  // Strip hyphens too — websearch_to_tsquery treats "-word" as NOT operator,
+  // breaking searches for "CR-V", "RAV-4", "PM-2024-001", etc.
+  const sanitizedQ = searchQuery.trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s]/g, ' ').replaceAll(/\s+/g, ' ').trim()
+  if (sanitizedQ) {
+    return query.textSearch('search_vector', sanitizedQ, { type: 'websearch', config: 'english' })
   }
+  return query
+}
 
-  const page = Math.max(1, params.page || 1)
-  const perPage = Math.min(Math.max(1, params.per_page || 20), 100)
-  const start = (page - 1) * perPage
-  const end = start + perPage - 1
-
-  let query = supabase
-    .from('vehicles')
-    .select('id, stock_number, year, make, model, trim, body_style, exterior_color, price, mileage, drivetrain, fuel_type, is_ev, is_certified, status, primary_image_url', { count: 'exact' })
-    .eq('status', 'available')
-
-  if (params.query) {
-    // Sanitize user input to prevent PostgREST filter injection via commas/parens.
-    // Strip hyphens too — websearch_to_tsquery treats "-word" as NOT operator,
-    // breaking searches for "CR-V", "RAV-4", "PM-2024-001", etc.
-    const sanitizedQ = params.query.trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s]/g, ' ').replaceAll(/\s+/g, ' ').trim()
-    if (sanitizedQ) {
-      query = query.textSearch('search_vector', sanitizedQ, { type: 'websearch', config: 'english' })
-    }
-  }
-
+/** Apply all array/scalar filters to a Supabase query. */
+function applySupabaseFilters(query: SupabaseQuery, params: VehicleSearchParams): SupabaseQuery {
   const makes = asArray(params.make)
   if (makes.length > 0) query = query.in('make', makes)
 
@@ -288,7 +284,6 @@ async function searchSupabase(params: VehicleSearchParams): Promise<SearchRespon
   if (bodyStyles.length > 0) {
     // Use .or() with .ilike() instead of .in() because DB values have prefixes
     // (e.g. "4dr Sport Utility Vehicle", "4dr Car") — exact match would return 0 results.
-    // Sanitize values to prevent PostgREST filter injection via commas/parens.
     const bodyFilter = bodyStyles.map(bs => `body_style.ilike.%${sanitizeBodyStyleValue(bs)}%`).join(',')
     query = query.or(bodyFilter)
   }
@@ -306,6 +301,27 @@ async function searchSupabase(params: VehicleSearchParams): Promise<SearchRespon
   if (typeof params.price_min === 'number') query = query.gte('price', params.price_min * 100)
   if (typeof params.price_max === 'number') query = query.lte('price', params.price_max * 100)
   if (typeof params.mileage_max === 'number') query = query.lte('mileage', params.mileage_max)
+
+  return query
+}
+
+async function searchSupabase(params: VehicleSearchParams): Promise<SearchResponse> {
+  if (!supabase) {
+    return { hits: [], found: 0, page: params.page || 1, facet_counts: [] }
+  }
+
+  const page = Math.max(1, params.page || 1)
+  const perPage = Math.min(Math.max(1, params.per_page || 20), 100)
+  const start = (page - 1) * perPage
+  const end = start + perPage - 1
+
+  let query: SupabaseQuery = supabase
+    .from('vehicles')
+    .select('id, stock_number, year, make, model, trim, body_style, exterior_color, price, mileage, drivetrain, fuel_type, is_ev, is_certified, status, primary_image_url', { count: 'exact' })
+    .eq('status', 'available')
+
+  query = applySupabaseTextSearch(query, params.query)
+  query = applySupabaseFilters(query, params)
 
   const [sortField, sortDirection] = (params.sort_by || 'created_at:desc').split(':') as [string, 'asc' | 'desc']
   query = query.order(sortField, { ascending: sortDirection === 'asc' })

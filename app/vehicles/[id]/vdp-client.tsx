@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-
 import { Input } from "@/components/ui/input"
 import {
   ChevronLeft, ChevronRight, Heart, Share2, Fuel, Gauge,
@@ -24,7 +23,6 @@ import {
   Download, ExternalLink, Check, Expand,
   Key, RotateCw, Pause
 } from "lucide-react"
-
 import { useAuth } from "@/contexts/auth-context"
 import { SocialProof } from "@/components/social-proof"
 import { useFavorites } from "@/contexts/favorites-context"
@@ -245,7 +243,7 @@ const vehicleData = {
       "All seats — power, heat, fold function",
       "Seatbelts, airbag system & SRS light",
       "HVAC, defroster & cabin air filter",
-      "USB ports, horn, key fob &amp; owner&apos;s manual",
+      "USB ports, horn, key fob & owner's manual",
       "Power windows all positions",
       "Power door locks",
       "Interior lighting — dome, map, ambient",
@@ -452,7 +450,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   const isFavorite = isFavoriteInContext(vehicleId)
   const [activeTab, setActiveTab] = useState("photos")
   const [imageType, setImageType] = useState<"exterior" | "interior" | "360">("exterior")
-
   const [postalCode, setPostalCode] = useState("")
   const [isCheckingDelivery, setIsCheckingDelivery] = useState(false)
   const [deliveryError, setDeliveryError] = useState("")
@@ -465,11 +462,9 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
     isDeliveryAvailable: boolean
     isDistanceEstimate?: boolean
   } | null>(null)
-
   const [showInspectionModal, setShowInspectionModal] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [authAction, setAuthAction] = useState("")
-
 
   // Trade-in from AI Quote
   const tradeInValue = searchParams.get("tradeIn")
@@ -517,7 +512,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps -- Fire once on mount
   }, [])
 
-
   // ── 360° via Drivee iframe ──
   const has360 = !!vehicle?.driveeMid
 
@@ -560,7 +554,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
     const shareUrl = typeof window !== "undefined" ? window.location.href : ""
     const shareTitle = `${vehicle.year} ${vehicle.make} ${vehicle.model} at Planet Motors`
     const shareText = `Check out this ${vehicle.year} ${vehicle.make} ${vehicle.model} for $${safeNum(vehicle.price).toLocaleString()}.`
-
     try {
       if (navigator.share) {
         await navigator.share({
@@ -570,7 +563,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
         })
         return
       }
-
       await navigator.clipboard.writeText(shareUrl)
       toast.success("Vehicle link copied to clipboard")
     } catch (error) {
@@ -585,25 +577,20 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   const handleDeliveryCheck = async () => {
     const cleaned = normalizePostalCode(postalCode)
     const postalRegex = /^[A-Z]\d[A-Z]\d[A-Z]\d$/
-
     setDeliveryError("")
     setDeliveryQuote(null)
-
     if (!postalRegex.test(cleaned)) {
       setDeliveryError("Enter a valid Canadian postal code (example: L4C1G7).")
       return
     }
-
     setIsCheckingDelivery(true)
     try {
       const response = await fetch(`/api/v1/deliveries/quote?postalCode=${encodeURIComponent(cleaned)}`)
       const data = await response.json()
-
       if (!response.ok) {
         setDeliveryError(data?.error || "Unable to calculate delivery right now.")
         return
       }
-
       setDeliveryQuote(data)
     } catch (error) {
       console.error("Delivery quote failed:", error)
@@ -612,8 +599,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
       setIsCheckingDelivery(false)
     }
   }
-
-
 
   const nextImage = () => {
     const images = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
@@ -629,7 +614,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   const currentImages: string[] = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
   const activeIndex = currentImageIndex
 
-
   // Finance calculation — delegates to lib/rates.ts (CI-guarded)
   const safePrice = safeNum(vehicle.price)
   const financeSubtotal = safePrice + FINANCE_ADMIN_FEE
@@ -641,29 +625,29 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
     <div className="min-h-screen bg-background">
       {/* JSON-LD is server-rendered in page.tsx — no client Script needed */}
       <Header />
+      <main id="main-content" tabIndex={-1} className="pb-32 md:pb-20 overflow-x-hidden max-w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" role="main" aria-label="Vehicle details" data-vin={vehicle.vin} data-stock={vehicle.stockNumber}>
 
-<main id="main-content" tabIndex={-1} className="pb-32 md:pb-20 overflow-x-hidden max-w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" role="main" aria-label="Vehicle details" data-vin={vehicle.vin} data-stock={vehicle.stockNumber}>
-  {/* Trade-In Banner */}
-  {tradeInValue && Number.parseInt(tradeInValue) > 0 && (
-    <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div className="flex items-center gap-3">
-            <CheckCircle className="w-5 h-5" />
-            <span className="font-semibold">
-              Your Trade-In: <span className="font-bold tabular-nums">${Number.parseInt(tradeInValue).toLocaleString()}</span>
-              {tradeInVehicle && <span className="text-white/80 ml-2">({decodeURIComponent(tradeInVehicle)})</span>}
-            </span>
+        {/* Trade-In Banner */}
+        {tradeInValue && Number.parseInt(tradeInValue) > 0 && (
+          <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3">
+            <div className="container mx-auto px-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="font-semibold">
+                    Your Trade-In: <span className="font-bold tabular-nums">${Number.parseInt(tradeInValue).toLocaleString()}</span>
+                    {tradeInVehicle && <span className="text-white/80 ml-2">({decodeURIComponent(tradeInVehicle)})</span>}
+                  </span>
+                </div>
+                <Button size="sm" variant="secondary" asChild>
+                  <Link href={getFinanceLink(vehicle?.id || '')}>Apply to This Vehicle</Link>
+                </Button>
+              </div>
+            </div>
           </div>
-          <Button size="sm" variant="secondary" asChild>
-            <Link href={getFinanceLink(vehicle?.id || '')}>Apply to This Vehicle</Link>
-          </Button>
-        </div>
-      </div>
-    </div>
-  )}
+        )}
 
-  {/* Breadcrumb */}
+        {/* Breadcrumb */}
         <nav className="bg-muted/30 py-3 border-b" aria-label="Breadcrumb">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-[84px] overflow-x-auto scrollbar-hide">
             <ol className="flex items-center gap-2 text-sm whitespace-nowrap" role="list">
@@ -762,6 +746,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           onClick={() => setIsAutoSpinning(!isAutoSpinning)}
                           className="absolute bottom-4 right-4 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition shadow-lg"
                           aria-label={isAutoSpinning ? "Pause auto-spin" : "Play auto-spin"}
+                          type="button"
                         >
                           {isAutoSpinning ? <Pause className="h-4 w-4 text-black" /> : <Play className="h-4 w-4 text-black ml-0.5" />}
                         </button>
@@ -773,6 +758,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <button
                           onClick={() => { setIsAutoSpinning(false); setCurrentImageIndex((p: number) => (p - 1 + vehicle.images.length) % vehicle.images.length) }}
                           aria-label="Previous image"
+                          type="button"
                           className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition opacity-0 group-hover:opacity-100"
                         >
                           <ChevronLeft className="h-5 w-5" />
@@ -780,6 +766,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <button
                           onClick={() => { setIsAutoSpinning(false); setCurrentImageIndex((p: number) => (p + 1) % vehicle.images.length) }}
                           aria-label="Next image"
+                          type="button"
                           className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition opacity-0 group-hover:opacity-100"
                         >
                           <ChevronRight className="h-5 w-5" />
@@ -793,9 +780,10 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                     )}
                   </div>
                   ) : (
-                  <div
+                  <section
                     data-testid="vdp-image-gallery"
                     tabIndex={0}
+                    aria-label="Vehicle image gallery"
                     onKeyDown={(e) => {
                       if (e.key === "ArrowRight") { nextImage(); e.preventDefault() }
                       if (e.key === "ArrowLeft") { prevImage(); e.preventDefault() }
@@ -827,6 +815,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           onClick={() => globalThis.open(currentImages[activeIndex], "_blank")}
                           className="absolute top-4 right-4 w-10 h-10 bg-background/80 backdrop-blur rounded-lg flex items-center justify-center hover:bg-background transition"
                           aria-label="View full-size image"
+                          type="button"
                         >
                           <Expand className="w-5 h-5" />
                         </button>
@@ -837,11 +826,11 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <p className="text-sm text-muted-foreground">Photos coming soon</p>
                       </div>
                     )}
-
                     {/* Navigation Arrows */}
                     <button
                       onClick={prevImage}
                       aria-label="Previous image"
+                      type="button"
                       className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
                     >
                       <ChevronLeft className="h-5 w-5" />
@@ -849,11 +838,12 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                     <button
                       onClick={nextImage}
                       aria-label="Next image"
+                      type="button"
                       className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
                     >
                       <ChevronRight className="h-5 w-5" />
                     </button>
-                  </div>
+                  </section>
                   )}
 
                   {/* Image Type Toggle */}
@@ -933,6 +923,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           key={img}
                           onClick={() => setCurrentImageIndex(i)}
                           aria-label={`View image ${i + 1} of ${currentImages.length}`}
+                          type="button"
                           className={`relative w-16 sm:w-20 h-12 sm:h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
                             i === activeIndex ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"
                           }`}
@@ -942,7 +933,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       ))}
                     </div>
                   )}
-
 
                   {/* Trade and Upgrade CTA */}
                   <Card className="bg-primary text-primary-foreground">
@@ -967,8 +957,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       <span>Stock # <span className="font-semibold text-foreground">{vehicle.stockNumber}</span></span>
                     </div>
                   </div>
-
-                  {/* Old-site cross-reference removed — users are already on the listing */}
 
                   {/* Vehicle Details Icons */}
                   <div className="flex flex-wrap gap-6">
@@ -1144,7 +1132,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                 {/* Features Tab */}
                 <TabsContent value="features" className="mt-0 space-y-6">
                   <h2 className="text-xl font-bold">Features and specs</h2>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Features */}
                     <Card>
@@ -1293,7 +1280,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       {/* VIN & History — Items 1-10 */}
                       <div className="space-y-1">
                         <div className="bg-teal-600 text-white p-2 rounded-t-lg flex items-center gap-2">
-                          <span className="text-sm font-semibold">VIN & History ��� Items 1-10</span>
+                          <span className="text-sm font-semibold">VIN & History — Items 1-10</span>
                         </div>
                         <div className="border rounded-b-lg">
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
@@ -1539,7 +1526,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                 {/* Pricing Tab */}
                 <TabsContent value="pricing" className="mt-0 space-y-6">
                   <h2 className="text-2xl font-bold text-center">Price Details</h2>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Pay Over Time - Includes $895 Finance Docs Fee */}
                     <Card>
@@ -1700,42 +1686,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                   </Card>
                 </TabsContent>
 
-                {/* ARCHIVED: Ratings Tab - Commented out per request
-                <TabsContent value="ratings" className="mt-0 space-y-6">
-                  <h2 className="text-xl font-bold">Our rating</h2>
-
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-6">
-                        <div className="text-center">
-                          <p className="text-5xl font-bold">{vehicleData.ratings.overall}</p>
-                          <p className="text-lg text-muted-foreground">/5</p>
-                          <div className="w-16 h-1 bg-primary rounded-full mt-2 mx-auto" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-muted-foreground">{vehicleData.ratings.description}</p>
-                        </div>
-                      </div>
-
-                      <div className="mt-6 space-y-3">
-                        {vehicleData.ratings.categories.map((cat) => (
-                          <div key={cat.name} className="flex items-center gap-4">
-                            <span className="w-24 text-sm text-muted-foreground">{cat.name}</span>
-                            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-primary rounded-full"
-                                style={{ width: `${(cat.score / 5) * 100}%` }}
-                              />
-                            </div>
-                            <span className="w-8 text-sm font-semibold">{cat.score}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-                */}
-
                 {/* Protection Tab */}
                 <TabsContent value="protection" className="mt-0 space-y-6">
                   <div>
@@ -1744,7 +1694,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       This vehicle&apos;s manufacturer warranty has expired. But don&apos;t worry, we have options for you to stay covered!
                     </p>
                   </div>
-
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
@@ -1762,7 +1711,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">Payment method</td>
                           {vehicleData.protectionPackages.map((pkg) => (
-                            <td key={pkg.name} className={`text-center py-3 px-4 `}>
+                            <td key={pkg.name} className="text-center py-3 px-4">
                               {pkg.paymentMethod}
                             </td>
                           ))}
@@ -1770,7 +1719,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">Money back guarantee</td>
                           {vehicleData.protectionPackages.map((pkg) => (
-                            <td key={pkg.name} className={`text-center py-3 px-4 `}>
+                            <td key={pkg.name} className="text-center py-3 px-4">
                               {pkg.moneyBack ? <Check className="w-5 h-5 text-primary mx-auto" /> : "—"}
                             </td>
                           ))}
@@ -1778,7 +1727,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">Due at checkout</td>
                           {vehicleData.protectionPackages.map((pkg) => (
-                            <td key={pkg.name} className={`text-center py-3 px-4 `}>
+                            <td key={pkg.name} className="text-center py-3 px-4">
                               {pkg.dueAtCheckout}
                             </td>
                           ))}
@@ -1786,7 +1735,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">Warranty</td>
                           {vehicleData.protectionPackages.map((pkg) => (
-                            <td key={pkg.name} className={`text-center py-3 px-4 `}>
+                            <td key={pkg.name} className="text-center py-3 px-4">
                               {pkg.warranty !== "—" && pkg.warranty !== "Standard" ? (
                                 <span className="flex items-center justify-center gap-1 text-primary">
                                   <Check className="w-4 h-4" /><Check className="w-4 h-4" />
@@ -1799,7 +1748,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">Tire & rim protection</td>
                           {vehicleData.protectionPackages.map((pkg) => (
-                            <td key={pkg.name} className={`text-center py-3 px-4 `}>
+                            <td key={pkg.name} className="text-center py-3 px-4">
                               {pkg.tireRim === true ? <Check className="w-5 h-5 text-primary mx-auto" /> : pkg.tireRim}
                             </td>
                           ))}
@@ -1807,7 +1756,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">GAP coverage</td>
                           {vehicleData.protectionPackages.map((pkg) => (
-                            <td key={pkg.name} className={`text-center py-3 px-4 `}>
+                            <td key={pkg.name} className="text-center py-3 px-4">
                               {pkg.gapCoverage}
                             </td>
                           ))}
@@ -1815,7 +1764,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">Life & disability</td>
                           {vehicleData.protectionPackages.map((pkg) => (
-                            <td key={pkg.name} className={`text-center py-3 px-4 `}>
+                            <td key={pkg.name} className="text-center py-3 px-4">
                               {pkg.lifeDisability}
                             </td>
                           ))}
@@ -1823,7 +1772,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <tr>
                           <td className="py-3 px-4 font-semibold">Price</td>
                           {vehicleData.protectionPackages.map((pkg) => (
-                            <td key={pkg.name} className={`text-center py-3 px-4 font-semibold tabular-nums `}>
+                            <td key={pkg.name} className="text-center py-3 px-4 font-semibold tabular-nums">
                               {pkg.price}
                             </td>
                           ))}
@@ -1832,6 +1781,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                     </table>
                   </div>
                 </TabsContent>
+
               {/* Next Steps */}
               <div className="mt-12 pt-8 border-t">
                 <h2 className="text-xl font-bold mb-6">Next steps</h2>
@@ -1862,8 +1812,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                 <CardContent className="p-6">
                   <div className="flex flex-col md:flex-row gap-6">
                     <div className="md:w-1/3">
-<p className="text-4xl font-bold">500+</p>
-                            <p className="text-muted-foreground">happy customers</p>
+                      <p className="text-4xl font-bold">500+</p>
+                      <p className="text-muted-foreground">happy customers</p>
                       <div className="mt-4">
                         <p className="text-xs text-muted-foreground mb-2">AS SEEN ON</p>
                         <div className="flex gap-2">
@@ -1988,7 +1938,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       <span className="text-sm font-semibold">$250 Refundable Deposit</span>
                     </div>
                   </div>
-
                   <p className="text-xs text-center text-muted-foreground mt-2">
                     Excl. HST & Licensing · Incl. OMVIC Fee
                   </p>
@@ -1996,27 +1945,23 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                   {/* AI Features Section */}
                   <div className="mt-4 pt-4 border-t space-y-3">
                     <h4 className="text-sm font-medium text-muted-foreground">AI-POWERED FEATURES</h4>
-
                     {/* AI Price Negotiator */}
                     <PriceNegotiator
                       vehicleId={vehicle.id}
                       vehiclePrice={vehicle.price}
                       vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                     />
-
                     {/* Live Video Call */}
                     <LiveVideoCall
                       vehicleId={vehicle.id}
                       vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                     />
-
                     {/* Price Drop Alert */}
                     <PriceDropAlert
                       vehicleId={vehicle.id}
                       vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                       currentPrice={vehicle.price}
                     />
-
                     {/* Add to Compare */}
                     <AddToCompare
                       vehicle={{
@@ -2137,6 +2082,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                 </CardContent>
               </Card>
             </div>
+
             </div>
           </div>
         </Tabs>
@@ -2150,7 +2096,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
             priceRange={vehicle.price}
           />
         </div>
-</main>
+      </main>
 
       {/* Sticky Mobile CTA — finance-first */}
       <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] md:hidden z-50">

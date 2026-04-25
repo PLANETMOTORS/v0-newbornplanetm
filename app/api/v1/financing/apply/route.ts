@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { randomBytes } from "crypto"
+import { randomBytes } from "node:crypto"
 import { createClient } from '@/lib/supabase/server'
 import { sendNotificationEmail } from '@/lib/email'
 import { validateOrigin } from '@/lib/csrf'

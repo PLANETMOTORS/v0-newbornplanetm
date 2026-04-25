@@ -16,7 +16,6 @@
  *  - Maps Sanity field names → VehicleDocument shape expected by Typesense.
  */
 
-import { Client } from "typesense"
 import { sanityClient } from "@/lib/sanity/client"
 import { getAdminClient, isTypesenseConfigured, VEHICLES_COLLECTION } from "./client"
 import { normalizeBodyStyle } from "./indexer"
@@ -135,11 +134,11 @@ export async function syncVehicleToTypesense(
 type SyncResult = { success: boolean; action: string; error?: string }
 
 async function deleteFromTypesense(
-  client: Client,
+  client: ReturnType<typeof getAdminClient>,
   sanityId: string,
 ): Promise<SyncResult> {
   try {
-    await client
+    await client!
       .collections(VEHICLES_COLLECTION)
       .documents(sanityId)
       .delete()
@@ -158,10 +157,10 @@ async function deleteFromTypesense(
 }
 
 async function upsertToTypesense(
-  client: Client,
+  client: ReturnType<typeof getAdminClient>,
   sanityId: string,
 ): Promise<SyncResult> {
-  let vehicle: SanityVehicle | null
+  let vehicle: SanityVehicle | null = null
   try {
     vehicle = await sanityClient.fetch<SanityVehicle>(VEHICLE_BY_ID_QUERY, { id: sanityId })
   } catch (err) {
@@ -177,7 +176,7 @@ async function upsertToTypesense(
 
   try {
     const doc = mapSanityVehicleToTypesense(vehicle)
-    await client
+    await client!
       .collections(VEHICLES_COLLECTION)
       .documents()
       .upsert(doc)

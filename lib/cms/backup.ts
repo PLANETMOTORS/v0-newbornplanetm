@@ -24,8 +24,8 @@
  *   NEXT_PUBLIC_SANITY_PROJECT_ID — project ID (falls back to hardcoded value)
  */
 
-import { mkdirSync, statSync, existsSync, readFileSync, writeFileSync } from "fs"
-import { join } from "path"
+import { mkdirSync, statSync, existsSync, readFileSync, writeFileSync } from "node:fs"
+import { join } from "node:path"
 import { logger } from "@/lib/logger"
 
 // ── Config ─────────────────────────────────────────────────────────────────

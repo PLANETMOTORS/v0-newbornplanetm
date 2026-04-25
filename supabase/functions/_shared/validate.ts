@@ -2,6 +2,25 @@
  * Input validation helpers for Edge Functions.
  */
 
+/**
+ * ReDoS-free structural email check (S5852/S2631).
+ * Mirrors the helper at lib/validation/email.ts; duplicated here because
+ * Deno Edge Functions resolve modules independently from the Next.js app.
+ */
+function isEmailLike(value: string): boolean {
+  if (typeof value !== "string") return false
+  const v = value.trim()
+  if (v.length === 0 || v.length > 254) return false
+  const at = v.indexOf("@")
+  if (at <= 0 || at !== v.lastIndexOf("@")) return false
+  const domain = v.slice(at + 1)
+  if (domain.length === 0) return false
+  const dot = domain.lastIndexOf(".")
+  if (dot <= 0 || dot === domain.length - 1) return false
+  if (/\s/.test(v)) return false
+  return true
+}
+
 export interface CaptureLeadInput {
   firstName: string
   lastName: string
@@ -34,9 +53,9 @@ export function validateCaptureLeadInput(
   if (!email || typeof email !== "string" || !email.trim()) {
     return { error: "email is required" }
   }
-  // Safe regex: bounded quantifiers + dot-free domain labels eliminate backtracking (S2631).
-  const emailStr = String(email)
-  if (emailStr.length > 254 || !/^[^\s@]{1,64}@[^\s@.]{1,63}(?:\.[^\s@.]{1,63})+$/.test(emailStr)) {
+  // Structural, ReDoS-free email check (S5852/S2631).
+  const emailStr = String(email).trim()
+  if (!isEmailLike(emailStr)) {
     return { error: "Invalid email format" }
   }
   if (!phone || typeof phone !== "string" || !phone.trim()) {

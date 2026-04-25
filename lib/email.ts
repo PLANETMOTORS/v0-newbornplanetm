@@ -4,11 +4,11 @@ import { PHONE_LOCAL } from "@/lib/constants/dealership"
 /** Escape user-supplied strings before interpolating into HTML templates. */
 export function escapeHtml(str: string): string {
   return str
-    .replaceAll(/&/g, '&amp;')
-    .replaceAll(/</g, '&lt;')
-    .replaceAll(/>/g, '&gt;')
-    .replaceAll(/"/g, '&quot;')
-    .replaceAll(/'/g, '&#39;')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
 }
 
 function getResendClient(): Resend | null {
