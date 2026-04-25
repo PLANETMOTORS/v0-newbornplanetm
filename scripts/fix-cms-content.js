@@ -21,8 +21,8 @@ async function fixCmsContent() {
   try {
     await client.delete({ query: '*[_type == "homepage"]' })
     console.log('Deleted old homepage documents')
-  } catch (_e) {
-    console.log('No existing homepage to delete')
+  } catch (e) {
+    console.log('No existing homepage to delete:', e?.message ?? e)
   }
 
   // Create homepage with the exact structure shown in the Studio
@@ -81,8 +81,8 @@ async function fixCmsContent() {
   try {
     await client.delete({ query: '*[_type == "financingPage"]' })
     console.log('Deleted old financing page')
-  } catch (_e) {
-    console.log('No existing financing page to delete')
+  } catch (e) {
+    console.log('No existing financing page to delete:', e?.message ?? e)
   }
 
   const financingData = {
@@ -122,8 +122,8 @@ async function fixCmsContent() {
   try {
     await client.delete({ query: '*[_type == "sellYourCarPage"]' })
     console.log('Deleted old sell your car page')
-  } catch (_e) {
-    console.log('No existing sell your car page to delete')
+  } catch (e) {
+    console.log('No existing sell your car page to delete:', e?.message ?? e)
   }
 
   const sellCarData = {

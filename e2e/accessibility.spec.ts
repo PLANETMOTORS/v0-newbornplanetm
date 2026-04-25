@@ -127,7 +127,7 @@ test.describe("Section A11Y — Accessibility (WCAG 2.2 AA)", () => {
         console.log(`  Step: ${step}`)
         violations.forEach((v) => {
           console.log(
-            `    [${v.impact}] ${v.id}: ${v.description} (${(v.nodes as unknown[]).length} nodes)`
+            `    [${v.impact}] ${v.id}: ${v.description} (${v.nodes.length} nodes)`
           )
         })
       })

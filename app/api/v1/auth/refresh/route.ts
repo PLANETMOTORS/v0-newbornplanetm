@@ -32,7 +32,8 @@ export async function POST(request: NextRequest) {
         expiresIn: data.session.expires_in,
       },
     })
-  } catch (_error) {
+  } catch (error) {
+    console.error("[v1/auth/refresh]", error)
     return apiError(ErrorCode.INTERNAL_ERROR, "Token refresh failed")
   }
 }

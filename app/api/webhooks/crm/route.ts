@@ -85,7 +85,7 @@ function validatePayload(raw: unknown): LeadPayload | null {
     : null
 
   return {
-    source: source as LeadPayload["source"],
+    source,
     firstName,
     lastName,
     email,

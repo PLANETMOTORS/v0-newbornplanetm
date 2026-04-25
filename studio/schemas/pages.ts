@@ -419,22 +419,9 @@ export const faqItem = defineType({
   preview: { select: { title: 'question' } },
 })
 
-// ============================================
-// LENDER
-// ============================================
-export const lender = defineType({
-  name: 'lender',
-  title: 'Lender',
-  type: 'document',
-  fields: [
-    defineField({ name: 'name', title: 'Name', type: 'string' }),
-    defineField({ name: 'interestRate', title: 'Interest Rate', type: 'number' }),
-    defineField({ name: 'maxTerm', title: 'Max Term', type: 'number' }),
-    defineField({ name: 'featured', title: 'Featured', type: 'boolean' }),
-    defineField({ name: 'order', title: 'Order', type: 'number' }),
-  ],
-  preview: { select: { title: 'name' } },
-})
+// NOTE: lender schema is defined in studio/schemas/lender.ts (full schema with rates,
+// credit scores, promo details, contact info). This duplicate minimal definition
+// has been removed to prevent schema conflicts.
 
 // ============================================
 // VDP SETTINGS - 210 INSPECTION + AVILOO + REQUEST CALL
@@ -581,6 +568,7 @@ export const customerAuthSettings = defineType({
 })
 
 // Export all schemas
+// NOTE: lender is exported from studio/schemas/lender.ts — removed from here to avoid conflict.
 export const pageSchemas = [
   trustBadge,
   ctaButton,
@@ -590,7 +578,6 @@ export const pageSchemas = [
   sellPage,
   aiSettings,
   faqItem,
-  lender,
   vdpSettings,
   deliverySettings,
   calculatorSettings,

@@ -54,18 +54,19 @@ function getResend(): Resend | null {
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
+export type LeadSource =
+  | "lead_capture_form"
+  | "contact_form"
+  | "finance_app"
+  | "trade_in"
+  | "reservation"
+  | "test_drive"
+  | "vdp_inquiry"
+  | "chat"
+
 export interface LeadPayload {
-  /** Lead source identifier */
-  source:
-    | "lead_capture_form"
-    | "contact_form"
-    | "finance_app"
-    | "trade_in"
-    | "reservation"
-    | "test_drive"
-    | "vdp_inquiry"
-    | "chat"
-    | string
+  /** Lead source identifier — known values: lead_capture_form, contact_form, finance_app, trade_in, reservation, test_drive, vdp_inquiry, chat. */
+  source: LeadSource | (string & {})
 
   /** Customer details */
   firstName: string

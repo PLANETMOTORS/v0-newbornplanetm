@@ -37,7 +37,8 @@ export async function GET(_request: NextRequest) {
       notifications,
       unreadCount: notifications.filter((n) => !n.read).length,
     })
-  } catch (_error) {
+  } catch (error) {
+    console.error("[v1/notifications GET]", error)
     return NextResponse.json({ error: "Failed to fetch notifications" }, { status: 500 })
   }
 }
@@ -81,7 +82,8 @@ export async function PATCH(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true })
-  } catch (_error) {
+  } catch (error) {
+    console.error("[v1/notifications PATCH]", error)
     return NextResponse.json({ error: "Failed to update notifications" }, { status: 500 })
   }
 }
@@ -111,7 +113,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true })
-  } catch (_error) {
+  } catch (error) {
+    console.error("[v1/notifications subscription]", error)
     return NextResponse.json({ error: "Failed to update subscription" }, { status: 500 })
   }
 }

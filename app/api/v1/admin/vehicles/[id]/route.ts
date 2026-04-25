@@ -98,15 +98,16 @@ export async function PUT(
 
     // Uppercase VIN if provided and validate
     if (typeof update.vin === "string") {
-      update.vin = (update.vin as string).toUpperCase()
-      if ((update.vin as string).length !== 17) {
+      const vin = update.vin.toUpperCase()
+      update.vin = vin
+      if (vin.length !== 17) {
         return NextResponse.json({ error: "VIN must be exactly 17 characters" }, { status: 400 })
       }
       // Check for duplicate VIN (excluding current vehicle)
       const { data: existingVin } = await adminClient
         .from("vehicles")
         .select("id")
-        .eq("vin", update.vin as string)
+        .eq("vin", vin)
         .neq("id", id)
         .maybeSingle()
       if (existingVin) {

@@ -142,7 +142,8 @@ export async function POST(request: NextRequest) {
         createdAt: insertedRows.created_at,
       },
     })
-  } catch (_error) {
+  } catch (error) {
+    console.error("[v1/deliveries POST]", error)
     return apiError(ErrorCode.INTERNAL_ERROR, "Failed to schedule delivery")
   }
 }

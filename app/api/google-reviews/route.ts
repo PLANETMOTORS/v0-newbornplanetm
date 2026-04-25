@@ -113,7 +113,8 @@ export async function POST(request: Request) {
       success: true, 
       message: "Cache cleared, next request will fetch fresh data" 
     })
-  } catch (_error) {
+  } catch (error) {
+    console.error("[google-reviews] clear cache failed:", error)
     return NextResponse.json(
       { success: false, error: "Failed to clear cache" },
       { status: 500 }
