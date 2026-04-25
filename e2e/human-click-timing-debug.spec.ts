@@ -18,6 +18,7 @@
 import { test, expect, Page } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import { randomInt as cryptoRandomInt } from 'node:crypto';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -167,7 +168,9 @@ async function humanClick(page: Page, selector: string | ReturnType<Page['getByT
   await dismissOverlays(page);
   await element.scrollIntoViewIfNeeded({ timeout: 5_000 });
   await element.hover();
-  await page.waitForTimeout(80 + Math.floor(Math.random() * 120));
+  // Crypto-backed jitter (80–199 ms) — avoids Sonar S2245 (Math.random)
+  // and keeps the timing deterministic-ish under CI.
+  await page.waitForTimeout(80 + cryptoRandomInt(0, 120));
   await element.click();
 }
 
