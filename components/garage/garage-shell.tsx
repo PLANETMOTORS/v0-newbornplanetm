@@ -78,16 +78,11 @@ export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedV
       setTimeout(() => setLiveIndicator(false), 3000)
       router.refresh()
     }
-    const channels = deals.map(deal =>
-      sb.channel(`deal-events:${deal.id}`)
-        .on("postgres_changes", {
-          event: "INSERT",
-          schema: "public",
-          table: "deal_events",
-          filter: `deal_id=eq.${deal.id}`,
-        }, handleDealEvent)
+    const subscribeToDeal = (dealId: string) =>
+      sb.channel(`deal-events:${dealId}`)
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "deal_events", filter: `deal_id=eq.${dealId}` }, handleDealEvent)
         .subscribe()
-    )
+    const channels = deals.map(deal => subscribeToDeal(deal.id))
 
     return () => { channels.forEach(ch => sb.removeChannel(ch)) }
   }, [deals, sb, router])

@@ -457,8 +457,11 @@ export default function AdminInventoryPage() {
     const currentIds = vehicles.map(v => v.id)
     const currentIdSet = new Set(currentIds)
     const allCurrentSelected = vehicles.length > 0 && currentIds.every(id => selectedVehicles.includes(id))
-    if (allCurrentSelected) setSelectedVehicles(prev => prev.filter(id => !currentIdSet.has(id)))
-    else setSelectedVehicles(prev => [...new Set([...prev, ...currentIds])])
+    if (allCurrentSelected) {
+      setSelectedVehicles(prev => prev.filter(id => !currentIdSet.has(id)))
+    } else {
+      setSelectedVehicles(prev => [...new Set([...prev, ...currentIds])])
+    }
   }
   const toggleSelect = (id: string) => {
     setSelectedVehicles(prev => prev.includes(id) ? prev.filter(v => v !== id) : [...prev, id])

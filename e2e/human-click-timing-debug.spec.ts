@@ -108,15 +108,13 @@ async function captureWebVitals(page: Page): Promise<Record<string, number>> {
       if (entries.length) vitals.lcp = entries[entries.length - 1].startTime;
     };
     const capturePaint = (list: PerformanceObserverEntryList) => {
-      for (const e of list.getEntries()) {
-        if (e.name === 'first-contentful-paint') vitals.fcp = e.startTime;
-      }
+      const fcp = list.getEntries().find(e => e.name === 'first-contentful-paint');
+      if (fcp) vitals.fcp = fcp.startTime;
     };
     let clsValue = 0;
     const captureCls = (list: PerformanceObserverEntryList) => {
-      for (const e of list.getEntries() as Array<PerformanceEntry & { value?: number }>) {
-        clsValue += (e.value ?? 0);
-      }
+      const entries = list.getEntries() as Array<PerformanceEntry & { value?: number }>;
+      clsValue += entries.reduce((sum, e) => sum + (e.value ?? 0), 0);
       vitals.cls = clsValue;
     };
     new PerformanceObserver(captureLcp).observe({ type: 'largest-contentful-paint', buffered: true });

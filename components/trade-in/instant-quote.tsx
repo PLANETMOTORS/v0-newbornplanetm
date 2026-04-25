@@ -439,7 +439,7 @@ export function InstantQuote() {
     
     // Call AI-powered valuation API
     const tickProgress = () => setCalculationProgress(prev => Math.min(prev + 5, 90))
-    const result = await (async () => {
+    const fetchValuation = async () => {
       try {
         // Start progress animation
         const progressInterval = setInterval(tickProgress, 300)
@@ -471,7 +471,8 @@ export function InstantQuote() {
         setCalculationProgress(100)
         return calculateLocalValue(formData)
       }
-    })()
+    }
+    const result = await fetchValuation()
 
     const quoteId = `PQ-${Date.now().toString(36).toUpperCase()}`
 
