@@ -34,13 +34,17 @@ const TYPE_TO_TAGS: Record<string, string[]> = {
   testimonial:       ["sanity-testimonials", "sanity-homepage"],
   promotion:         ["sanity-promos", "sanity-homepage"],
   faqItem:           ["sanity-faq"],
+  faqEntry:          ["sanity-faq"],           // alias — schema uses both names
   blogPost:          ["sanity-blog"],
   protectionPlan:    ["sanity-protection"],
   lender:            ["sanity-lenders"],
   inventorySettings: ["sanity-inventory-settings"],
   aiSettings:        ["sanity-ai-settings"],
-  sellYourCar:       ["sanity-sell-your-car"],
-  financing:         ["sanity-financing"],
+  sellYourCarPage:   ["sanity-sell-your-car"], // correct type name
+  financingPage:     ["sanity-financing"],     // correct type name
+  vdpSettings:       ["sanity-vdp-settings"],
+  deliverySettings:  ["sanity-delivery-settings"],
+  calculatorSettings:["sanity-calculator-settings"],
 }
 
 export async function POST(request: NextRequest) {
@@ -70,12 +74,31 @@ export async function POST(request: NextRequest) {
     // ── Step 1: ISR cache revalidation (always runs, never blocked) ────────
     revalidatePath("/")
     revalidatePath("/inventory")
-    logger.info("[Sanity Webhook] revalidatePath → / and /inventory")
+    // Revalidate page-specific paths based on document type
+    if (documentType === "blogPost") {
+      revalidatePath("/blog", "page")
+    }
+    if (documentType === "sellYourCarPage") {
+      revalidatePath("/sell-your-car", "page")
+    }
+    if (documentType === "financingPage") {
+      revalidatePath("/financing", "page")
+    }
+    if (documentType === "faqItem" || documentType === "faqEntry") {
+      revalidatePath("/faq", "page")
+    }
+    if (documentType === "protectionPlan") {
+      revalidatePath("/protection-plans", "page")
+    }
+    if (documentType === "testimonial") {
+      revalidatePath("/about", "page")
+    }
+    logger.info(`[Sanity Webhook] revalidatePath → / /inventory + type-specific paths`)
 
     // Revalidate specific cache tags for the document type
     const tagsToRevalidate = TYPE_TO_TAGS[documentType] ?? []
     for (const tag of tagsToRevalidate) {
-      revalidateTag(tag, "max")
+      revalidateTag(tag, "page")
     }
     if (tagsToRevalidate.length > 0) {
       logger.info(`[Sanity Webhook] revalidateTag → [${tagsToRevalidate.join(", ")}]`)

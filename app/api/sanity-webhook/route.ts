@@ -14,15 +14,23 @@ function verifySignature(body: string, signature: string, secret: string): boole
   return signature === expectedSignature
 }
 
-// Map Sanity document types to cache tags
+// Map Sanity document types to cache tags (kept in sync with /api/webhooks/sanity)
 const TYPE_TO_TAGS: Record<string, string[]> = {
-  siteSettings: ["sanity-settings", "sanity-homepage"],
-  homepageHero: ["sanity-homepage"],
-  testimonial: ["sanity-testimonials", "sanity-homepage"],
-  promotion: ["sanity-promos", "sanity-homepage"],
-  faqEntry: ["sanity-faq", "sanity-homepage"],
-  blogPost: ["sanity-blog"],
-  protectionPlan: ["sanity-protection"],
+  siteSettings:      ["sanity-settings", "sanity-homepage"],
+  homepage:          ["sanity-homepage"],
+  navigation:        ["sanity-settings"],
+  testimonial:       ["sanity-testimonials", "sanity-homepage"],
+  promotion:         ["sanity-promos", "sanity-homepage"],
+  faqItem:           ["sanity-faq"],
+  faqEntry:          ["sanity-faq"],           // legacy alias
+  blogPost:          ["sanity-blog"],
+  protectionPlan:    ["sanity-protection"],
+  lender:            ["sanity-lenders"],
+  inventorySettings: ["sanity-inventory-settings"],
+  aiSettings:        ["sanity-ai-settings"],
+  sellYourCarPage:   ["sanity-sell-your-car"],
+  financingPage:     ["sanity-financing"],
+  vehicle:           ["sanity-vehicles"],
 }
 
 /** Redis key used by the system-health endpoint to read last trigger info */
@@ -56,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     // Revalidate all relevant tags
     for (const tag of tagsToRevalidate) {
-      revalidateTag(tag, "max")
+      revalidateTag(tag, "page")
     }
 
     logger.info(`[Sanity Webhook] Revalidated tags for ${documentType}:`, tagsToRevalidate)
