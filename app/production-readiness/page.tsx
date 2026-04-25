@@ -160,13 +160,15 @@ export default function ProductionReadinessPage() {
   }, [])
 
   const toggleCheckItem = useCallback((stepId: string, itemId: string) => {
-    const toggleItem = (item: CheckItem): CheckItem =>
-      item.id === itemId ? { ...item, checked: !item.checked } : item
-    setSteps(prev => prev.map(step =>
-      step.id === stepId
-        ? { ...step, checkItems: step.checkItems.map(toggleItem) }
-        : step
-    ))
+    setSteps(prev => prev.map(step => {
+      if (step.id !== stepId) return step
+      return {
+        ...step,
+        checkItems: step.checkItems.map(item =>
+          item.id === itemId ? { ...item, checked: !item.checked } : item
+        ),
+      }
+    }))
   }, [])
 
   const updateStepNotes = useCallback((stepId: string, notes: string) => {

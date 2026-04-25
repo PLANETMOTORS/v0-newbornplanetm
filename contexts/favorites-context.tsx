@@ -178,10 +178,11 @@ export function FavoritesProvider({ children }: Readonly<{ children: ReactNode }
 
         // Merge: server wins for vehicles that exist on both sides
         const serverIds = new Set(serverFavs.map(f => f.id))
-        setFavorites(prev => {
+        const mergeWithServer = (prev: FavoriteVehicle[]) => {
           const localOnly = prev.filter(f => !serverIds.has(f.id))
           return [...serverFavs, ...localOnly]
-        })
+        }
+        setFavorites(mergeWithServer)
       } catch {
         // Non-fatal
       } finally {
@@ -238,7 +239,7 @@ export function FavoritesProvider({ children }: Readonly<{ children: ReactNode }
         .eq("vehicle_id", id)
     }
     setFavorites(prev => {
-      const next = prev.filter(f => f.id !== id)
+      const next = prev.filter(fav => fav.id !== id)
       triggerSync(next)
       // Fire-and-forget remote delete
       void deleteFromServer()

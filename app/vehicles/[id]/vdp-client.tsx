@@ -395,11 +395,14 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
 
   // ── Build the merged vehicle shape from server data + mock inspection fallbacks ──
   // HomenetIOL: first image often has dealer overlays. Skip when feed has > 1 image.
-  const rawImages: string[] = serverVehicle.imageUrls.length > 0
-    ? serverVehicle.imageUrls
-    : serverVehicle.primaryImageUrl
-      ? [serverVehicle.primaryImageUrl]
-      : vehicleData.images
+  let rawImages: string[]
+  if (serverVehicle.imageUrls.length > 0) {
+    rawImages = serverVehicle.imageUrls
+  } else if (serverVehicle.primaryImageUrl) {
+    rawImages = [serverVehicle.primaryImageUrl]
+  } else {
+    rawImages = vehicleData.images
+  }
 
   const cleanImages = rawImages.length > 1
     && rawImages[0] === serverVehicle.primaryImageUrl
@@ -711,12 +714,13 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
                   {/* 360° Interactive Viewer — Drivee iframe (if available) */}
-                  {imageType === "360" && has360 && vehicle.driveeMid ? (
+                  {imageType === "360" && has360 && vehicle.driveeMid && (
                     <DriveeViewer
                       mid={vehicle.driveeMid}
                       vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                     />
-                  ) : imageType === "360" && !has360 ? (
+                  )}
+                  {imageType === "360" && !has360 && (
                   /* ── Auto-Spin 360° Fallback — cycles exterior photos ── */
                   <div
                     data-testid="vdp-auto-spin"
@@ -778,7 +782,8 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                       </div>
                     )}
                   </div>
-                  ) : (
+                  )}
+                  {(imageType !== "360" || (has360 && !vehicle.driveeMid)) && (
                   <section
                     data-testid="vdp-image-gallery"
                     tabIndex={0}
@@ -2062,11 +2067,11 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     )}
                     {deliveryQuote && (
                       <p className="text-xs text-muted-foreground mt-2">
-                        {deliveryQuote.isDeliveryAvailable
-                          ? deliveryQuote.isFreeDelivery
-                            ? `Free delivery to ${deliveryQuote.postalCode} (${deliveryQuote.distanceKm} km).`
-                            : `Delivery to ${deliveryQuote.postalCode}: $${deliveryQuote.deliveryCost.toFixed(2)} (${deliveryQuote.distanceKm} km).`
-                          : `Delivery is not available for ${deliveryQuote.postalCode} right now.`}
+                        {(() => {
+                          if (!deliveryQuote.isDeliveryAvailable) return `Delivery is not available for ${deliveryQuote.postalCode} right now.`
+                          if (deliveryQuote.isFreeDelivery) return `Free delivery to ${deliveryQuote.postalCode} (${deliveryQuote.distanceKm} km).`
+                          return `Delivery to ${deliveryQuote.postalCode}: $${deliveryQuote.deliveryCost.toFixed(2)} (${deliveryQuote.distanceKm} km).`
+                        })()}
                       </p>
                     )}
                   </div>
