@@ -171,15 +171,15 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
   // Normalize HomeNet fuel values: "Gasoline Fuel" → "Gasoline", "Electric Fuel System" → "Electric"
   let fuelType = get(["fuel_type", "fueltype", "fuel"])
   if (fuelType) {
-    // String-based normalization (not regex) to avoid Sonar S5852 (regex
+    // String-based normalization (no regex) to avoid Sonar S5852 (regex
     // backtracking risk on untrusted CSV input). Strip a trailing
-    // "fuel system" or "fuel" suffix, case-insensitive, with optional spaces.
-    const trimmed = fuelType.replace(/\s+$/, "")
+    // "fuel system" or "fuel" suffix, case-insensitive.
+    const trimmed = fuelType.trimEnd()
     const lower = trimmed.toLowerCase()
     let stripped = trimmed
     for (const suffix of ["fuel system", "fuel"]) {
       if (lower.endsWith(suffix)) {
-        stripped = trimmed.slice(0, trimmed.length - suffix.length).replace(/\s+$/, "")
+        stripped = trimmed.slice(0, trimmed.length - suffix.length).trimEnd()
         break
       }
     }
