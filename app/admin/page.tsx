@@ -78,6 +78,12 @@ function statusColor(status: string): "default" | "secondary" | "outline" | "des
   }
 }
 
+const ACTIVITY_DOT_COLOR: Record<string, string> = {
+  order: "bg-green-600",
+  finance: "bg-purple-600",
+  reservation: "bg-orange-600",
+}
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [recentLeads, setRecentLeads] = useState<RecentLead[]>([])
@@ -235,23 +241,19 @@ export default function AdminDashboard() {
               <p className="text-sm text-gray-500 text-center py-8">No recent activity</p>
             ) : (
               <div className="space-y-4">
-                {recentActivity.slice(0, 8).map((activity, index) => (
-                  <div key={`${activity.id}-${index}`} className="flex gap-3">
-                    {(() => {
-                      const dotColor =
-                        activity.type === "order" ? "bg-green-600" :
-                        activity.type === "finance" ? "bg-purple-600" :
-                        activity.type === "reservation" ? "bg-orange-600" :
-                        "bg-blue-600"
-                      return <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${dotColor}`} />
-                    })()}
-                    <div>
-                      <p className="text-sm font-medium">{activity.title}</p>
-                      <p className="text-xs text-gray-500">{activity.detail}</p>
-                      <p className="text-xs text-gray-400 mt-1">{timeAgo(activity.time)}</p>
+                {recentActivity.slice(0, 8).map((activity, index) => {
+                  const dotColor = ACTIVITY_DOT_COLOR[activity.type] ?? "bg-blue-600"
+                  return (
+                    <div key={`${activity.id}-${index}`} className="flex gap-3">
+                      <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${dotColor}`} />
+                      <div>
+                        <p className="text-sm font-medium">{activity.title}</p>
+                        <p className="text-xs text-gray-500">{activity.detail}</p>
+                        <p className="text-xs text-gray-400 mt-1">{timeAgo(activity.time)}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </CardContent>

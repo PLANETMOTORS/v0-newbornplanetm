@@ -629,11 +629,12 @@ export default function AdminInventoryPage() {
       {/* Vehicle Table */}
       <Card>
         <CardContent className="p-0">
-          {loading ? (
+          {loading && (
             <div className="flex items-center justify-center p-12">
               <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
             </div>
-          ) : error ? (
+          )}
+          {!loading && error && (
             <div className="text-center p-12 text-gray-500">
               <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
               <p className="font-medium">{error}</p>
@@ -642,7 +643,8 @@ export default function AdminInventoryPage() {
                 Retry
               </Button>
             </div>
-          ) : vehicles.length === 0 ? (
+          )}
+          {!loading && !error && vehicles.length === 0 && (
             <div className="text-center p-12 text-gray-500">
               <Car className="w-12 h-12 mx-auto mb-4 text-gray-300" />
               <p className="font-medium">No vehicles found</p>
@@ -652,7 +654,8 @@ export default function AdminInventoryPage() {
                   : "Click \"Add Vehicle\" or trigger a HomeNet sync to get started"}
               </p>
             </div>
-          ) : (
+          )}
+          {!loading && !error && vehicles.length > 0 && (
             <>
               <div className="overflow-x-auto">
                 <table className="w-full">
