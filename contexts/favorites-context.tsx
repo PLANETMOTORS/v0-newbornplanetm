@@ -40,7 +40,7 @@
 
 import {
   createContext, useContext, useState, useEffect,
-  useCallback, useRef, type ReactNode
+  useCallback, useMemo, useRef, type ReactNode
 } from "react"
 import { createClient } from "@/lib/supabase/client"
 
@@ -263,11 +263,13 @@ export function FavoritesProvider({ children }: Readonly<{ children: ReactNode }
 
   const priceDropCount = favorites.filter(f => f.priceDropped).length
 
+  const value = useMemo(
+    () => ({ favorites, addFavorite, removeFavorite, isFavorite, clearFavorites, syncing, priceDropCount }),
+    [favorites, addFavorite, removeFavorite, isFavorite, clearFavorites, syncing, priceDropCount],
+  )
+
   return (
-    <FavoritesContext.Provider value={{
-      favorites, addFavorite, removeFavorite, isFavorite, clearFavorites,
-      syncing, priceDropCount,
-    }}>
+    <FavoritesContext.Provider value={value}>
       {children}
     </FavoritesContext.Provider>
   )
