@@ -19,8 +19,7 @@ function collectPhotos(formData: FormData): { photos: File[]; error: NextRespons
   return { photos, error: null }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function uploadPhoto(adminClient: any, vehicleId: string, photo: File): Promise<{ url: string | null; error: string | null }> {
+async function uploadPhoto(adminClient: ReturnType<typeof createAdminClient>, vehicleId: string, photo: File): Promise<{ url: string | null; error: string | null }> {
   const ext = photo.name.split(".").pop()?.toLowerCase() || "jpg"
   const storagePath = `${vehicleId}/${Date.now()}-${randomBytes(3).toString("hex")}.${ext}`
   const buffer = Buffer.from(await photo.arrayBuffer())

@@ -84,8 +84,7 @@ async function toPublicVehicleListItem(value: unknown): Promise<Record<string, u
 // while keeping key lengths compact compared to the full 64-char digest.
 type VehicleFilters = { make: string|null; model: string|null; minYear: string|null; maxYear: string|null; minPrice: string|null; maxPrice: string|null; minMileage: string|null; maxMileage: string|null; exteriorColor: string|null; bodyStyle: string|null; fuelType: string|null; transmission: string|null; drivetrain: string|null; q: string|null; status: string; sort: string; order: string; page: number; limit: number; cursorId: string|null; cursorCreatedAt: string|null }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function buildVehicleQuery(supabase: any, f: VehicleFilters) {
+function buildVehicleQuery(supabase: Awaited<ReturnType<typeof createClient>>, f: VehicleFilters) {
   let query = supabase.from('vehicles').select(VEHICLE_LIST_FIELDS, { count: 'exact' })
   if (f.status) query = query.eq('status', f.status)
   if (f.make) query = query.ilike('make', f.make)
