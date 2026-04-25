@@ -83,8 +83,7 @@ export default function AdminCustomersPage() {
       setCustomers(data.customers || [])
       setTotalCount(data.total ?? 0)
       setTotalCustomers(data.totalCustomers ?? 0)
-    } catch (err) {
-      console.error("Error fetching customers:", err)
+    } catch {
       setError("Network error — please try again")
     } finally {
       setLoading(false)
@@ -171,12 +170,13 @@ export default function AdminCustomersPage() {
       {/* Table */}
       <Card>
         <CardContent className="p-0">
-          {loading ? (
+          {loading && (
             <div className="flex items-center justify-center py-12">
               <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
               <span className="ml-2 text-gray-500">Loading customers...</span>
             </div>
-          ) : error ? (
+          )}
+          {!loading && error && (
             <div className="flex flex-col items-center justify-center py-12 text-gray-500">
               <Users className="w-12 h-12 mb-4 text-gray-300" />
               <p className="text-lg font-medium">{error}</p>
@@ -185,7 +185,8 @@ export default function AdminCustomersPage() {
                 Retry
               </Button>
             </div>
-          ) : customers.length === 0 ? (
+          )}
+          {!loading && !error && customers.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 text-gray-500">
               <Users className="w-12 h-12 mb-4 text-gray-300" />
               <p className="text-lg font-medium">No customers found</p>
@@ -193,7 +194,8 @@ export default function AdminCustomersPage() {
                 {debouncedSearch ? "Try adjusting your search" : "Customers will appear here when they sign up"}
               </p>
             </div>
-          ) : (
+          )}
+          {!loading && !error && customers.length > 0 && (
             <Table>
               <TableHeader>
                 <TableRow>
