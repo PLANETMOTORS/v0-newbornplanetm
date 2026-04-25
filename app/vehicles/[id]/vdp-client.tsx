@@ -440,6 +440,72 @@ function buildMergedVehicle(serverVehicle: VehicleDetail) {
   }
 }
 
+function useTrackVehicleView(vehicle: { id: string; year: number; make: string; model: string; trim?: string | null; price: number; fuelType?: string | null }) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Fire once on mount
+  useEffect(() => {
+    const trimSuffix = vehicle.trim ? ` ${vehicle.trim}` : ""
+    const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}${trimSuffix}`
+    trackProductView({
+      id: vehicle.id,
+      name,
+      price: vehicle.price,
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      fuelType: vehicle.fuelType || "Unknown",
+    })
+    trackViewItem({
+      id: vehicle.id,
+      name,
+      price: vehicle.price,
+      make: vehicle.make,
+      model: vehicle.model,
+    })
+    trackMetaViewContent({
+      id: vehicle.id,
+      name,
+      price: vehicle.price,
+      make: vehicle.make,
+    })
+  }, [])
+}
+
+const AUTO_SPIN_INTERVAL_MS = 1500
+
+function useAutoSpin360(active: boolean, frameCount: number, setIndex: (updater: (prev: number) => number) => void) {
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const clear = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    if (active && frameCount > 1) {
+      clear()
+      intervalRef.current = setInterval(() => {
+        setIndex((prev) => (prev + 1) % frameCount)
+      }, AUTO_SPIN_INTERVAL_MS)
+    } else {
+      clear()
+    }
+    return clear
+  }, [active, frameCount, setIndex, clear])
+}
+
+function buildFinanceLink(vId: string, tradeInValue: string | null, tradeInQuoteId: string | null, tradeInVehicle: string | null): string {
+  if (tradeInValue && Number.parseInt(tradeInValue) > 0) {
+    const params = new URLSearchParams({
+      tradeIn: tradeInValue,
+      quoteId: tradeInQuoteId || '',
+      tradeInVehicle: tradeInVehicle || ''
+    })
+    return `/finance/${vId}?${params.toString()}`
+  }
+  return `/finance/${vId}`
+}
+
 export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
   const searchParams = useSearchParams()
   const { user } = useAuth()
@@ -475,75 +541,21 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
   const tradeInVehicle = searchParams.get("tradeInVehicle")
 
   // Helper to build finance link with trade-in info
-  const getFinanceLink = (vId: string) => {
-    if (tradeInValue && Number.parseInt(tradeInValue) > 0) {
-      const params = new URLSearchParams({
-        tradeIn: tradeInValue,
-        quoteId: tradeInQuoteId || '',
-        tradeInVehicle: tradeInVehicle || ''
-      })
-      return `/finance/${vId}?${params.toString()}`
-    }
-    return `/finance/${vId}`
-  }
+  const getFinanceLink = (vId: string) => buildFinanceLink(vId, tradeInValue, tradeInQuoteId, tradeInVehicle)
 
   // Track product view on mount (data is already available from SSR)
-  useEffect(() => {
-    const trimSuffix = vehicle.trim ? ` ${vehicle.trim}` : ""
-    const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}${trimSuffix}`
-    trackProductView({
-      id: vehicle.id,
-      name,
-      price: vehicle.price,
-      make: vehicle.make,
-      model: vehicle.model,
-      year: vehicle.year,
-      fuelType: vehicle.fuelType || "Unknown",
-    })
-    trackViewItem({
-      id: vehicle.id,
-      name,
-      price: vehicle.price,
-      make: vehicle.make,
-      model: vehicle.model,
-    })
-    trackMetaViewContent({
-      id: vehicle.id,
-      name,
-      price: vehicle.price,
-      make: vehicle.make,
-    })
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- Fire once on mount
-  }, [])
+  useTrackVehicleView(vehicle)
 
   // ── 360° via Drivee iframe ──
   const has360 = !!vehicle.driveeMid
 
   // ── Auto-spin for 360° fallback (no Drivee) ──
   const [isAutoSpinning, setIsAutoSpinning] = useState(true)
-  const autoSpinRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const AUTO_SPIN_INTERVAL = 1500 // ms between frames
-
-  const clearAutoSpin = useCallback(() => {
-    if (autoSpinRef.current) {
-      clearInterval(autoSpinRef.current)
-      autoSpinRef.current = null
-    }
-  }, [])
-
-  // Start / stop auto-spin when 360 tab is active without Drivee
-  useEffect(() => {
-    const shouldSpin = imageType === "360" && !has360 && isAutoSpinning && vehicle?.images?.length > 1
-    if (shouldSpin) {
-      clearAutoSpin()
-      autoSpinRef.current = setInterval(() => {
-        setCurrentImageIndex((prev) => (prev + 1) % vehicle.images.length)
-      }, AUTO_SPIN_INTERVAL)
-    } else {
-      clearAutoSpin()
-    }
-    return clearAutoSpin
-  }, [imageType, has360, isAutoSpinning, vehicle?.images?.length, clearAutoSpin])
+  useAutoSpin360(
+    imageType === "360" && !has360 && isAutoSpinning,
+    vehicle?.images?.length ?? 0,
+    setCurrentImageIndex,
+  )
 
   const handleProtectedAction = (action: string, callback?: () => void) => {
     if (user) {
