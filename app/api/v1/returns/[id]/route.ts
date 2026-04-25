@@ -17,8 +17,7 @@ export async function GET(
   // value is not used until the returns table is implemented (see TODO below).
   await params
 
-  // TODO: Connect to real returns database table once available.
-  // Until then, return a placeholder indicating no return record was found.
+  // NOTE: Returns database table not yet implemented — placeholder response.
   return NextResponse.json(
     {
       error: "Return not found",
@@ -40,7 +39,7 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  // TODO: Connect to real pickup scheduling system once available.
+  // NOTE: Pickup scheduling system not yet implemented — placeholder response.
   return NextResponse.json(
     {
       error: "Pickup scheduling unavailable",
