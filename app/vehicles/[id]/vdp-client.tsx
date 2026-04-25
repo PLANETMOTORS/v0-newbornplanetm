@@ -506,6 +506,26 @@ function buildFinanceLink(vId: string, tradeInValue: string | null, tradeInQuote
   return `/finance/${vId}`
 }
 
+const POSTAL_CODE_REGEX = /^[A-Z]\d[A-Z]\d[A-Z]\d$/
+
+function normalizePostalCode(value: string): string {
+  return value.toUpperCase().replaceAll(/\s/g, "").slice(0, 6)
+}
+
+async function shareVehicle(url: string, title: string, text: string): Promise<void> {
+  try {
+    if (navigator.share) {
+      await navigator.share({ title, text, url })
+      return
+    }
+    await navigator.clipboard.writeText(url)
+    toast.success("Vehicle link copied to clipboard")
+  } catch (error) {
+    console.error("Share failed:", error)
+    toast.error("Unable to share right now. Please try again.")
+  }
+}
+
 export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
   const searchParams = useSearchParams()
   const { user } = useAuth()
@@ -570,32 +590,14 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
     const shareUrl = globalThis.window === undefined ? "" : globalThis.window.location.href
     const shareTitle = `${vehicle.year} ${vehicle.make} ${vehicle.model} at Planet Motors`
     const shareText = `Check out this ${vehicle.year} ${vehicle.make} ${vehicle.model} for $${safeNum(vehicle.price).toLocaleString()}.`
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: shareTitle,
-          text: shareText,
-          url: shareUrl,
-        })
-        return
-      }
-      await navigator.clipboard.writeText(shareUrl)
-      toast.success("Vehicle link copied to clipboard")
-    } catch (error) {
-      console.error("Share failed:", error)
-      toast.error("Unable to share right now. Please try again.")
-    }
+    await shareVehicle(shareUrl, shareTitle, shareText)
   }
-
-  const normalizePostalCode = (value: string) =>
-    value.toUpperCase().replaceAll(/\s/g, "").slice(0, 6)
 
   const handleDeliveryCheck = async () => {
     const cleaned = normalizePostalCode(postalCode)
-    const postalRegex = /^[A-Z]\d[A-Z]\d[A-Z]\d$/
     setDeliveryError("")
     setDeliveryQuote(null)
-    if (!postalRegex.test(cleaned)) {
+    if (!POSTAL_CODE_REGEX.test(cleaned)) {
       setDeliveryError("Enter a valid Canadian postal code (example: L4C1G7).")
       return
     }
@@ -603,11 +605,11 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
     try {
       const response = await fetch(`/api/v1/deliveries/quote?postalCode=${encodeURIComponent(cleaned)}`)
       const data = await response.json()
-      if (!response.ok) {
+      if (response.ok) {
+        setDeliveryQuote(data)
+      } else {
         setDeliveryError(data?.error || "Unable to calculate delivery right now.")
-        return
       }
-      setDeliveryQuote(data)
     } catch (error) {
       console.error("Delivery quote failed:", error)
       setDeliveryError("Unable to calculate delivery right now.")
