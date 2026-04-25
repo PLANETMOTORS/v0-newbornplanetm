@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 // Make this file a module so TypeScript doesn't merge its scope with other scripts.
 export {}
 

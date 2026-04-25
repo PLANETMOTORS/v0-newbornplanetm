@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { NextRequest, NextResponse } from "next/server"
 
 // Canada Post AddressComplete API or fallback to comprehensive postal code database

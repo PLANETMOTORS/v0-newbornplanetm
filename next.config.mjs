@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import withBundleAnalyzer from '@next/bundle-analyzer'
 import { partytownSnippet } from '@builder.io/partytown/integration'
 
