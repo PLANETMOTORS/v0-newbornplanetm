@@ -104,6 +104,20 @@ export const homepage = defineType({
       { name: 'metaDescription', title: 'Meta Description', type: 'text' },
     ]}),
   ],
+  preview: {
+    select: { heroSection: 'heroSection', seo: 'seo' },
+    prepare(selection) {
+      const { heroSection, seo } = selection
+      const hasHero = Boolean(heroSection?.headline)
+      const hasSeo = Boolean(seo)
+      return {
+        title: `${hasHero ? '✅' : '📝'} Homepage`,
+        subtitle: hasHero
+          ? `Hero: "${heroSection!.headline}"${hasSeo ? ' · SEO ✅' : ' · SEO ⚠️'}`
+          : '⏳ Hero section not configured',
+      }
+    },
+  },
 })
 
 // ============================================
