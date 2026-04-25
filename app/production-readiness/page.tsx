@@ -249,7 +249,7 @@ ${step.notes ? `  Notes: ${step.notes}` : ""}
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `production-readiness-report-${date.replace(/\//g, "-")}.txt`
+    a.download = `production-readiness-report-${date.replaceAll("/", "-")}.txt`
     a.click()
     URL.revokeObjectURL(url)
   }
