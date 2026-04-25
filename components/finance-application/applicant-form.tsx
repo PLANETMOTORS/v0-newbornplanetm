@@ -17,6 +17,13 @@ interface ApplicantFormProps {
   validationErrors?: string[]
 }
 
+function formatPhoneDigits(raw: string): string {
+  const digits = raw.replaceAll(/\D/g, '').slice(0, 10)
+  if (digits.length <= 3) return digits
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
+}
+
 export
 function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrimary, validationErrors = [] }: Readonly<ApplicantFormProps>) {
   const updateField = (field: keyof ApplicantData, value: string | boolean | { day: string; month: string; year: string }) => {
@@ -180,11 +187,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
               type="tel" 
               value={data.phone} 
               onChange={(e) => {
-                const digits = e.target.value.replaceAll(/\D/g, '').slice(0, 10)
-                const formatted = digits.length <= 3 ? digits :
-                  digits.length <= 6 ? `(${digits.slice(0, 3)}) ${digits.slice(3)}` :
-                  `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
-                updateField("phone", formatted)
+                updateField("phone", formatPhoneDigits(e.target.value))
               }} 
               placeholder="(416) 555-0100" 
               className={getInputErrorClass("Phone")}
@@ -196,11 +199,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
               type="tel" 
               value={data.mobilePhone} 
               onChange={(e) => {
-                const digits = e.target.value.replaceAll(/\D/g, '').slice(0, 10)
-                const formatted = digits.length <= 3 ? digits :
-                  digits.length <= 6 ? `(${digits.slice(0, 3)}) ${digits.slice(3)}` :
-                  `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
-                updateField("mobilePhone", formatted)
+                updateField("mobilePhone", formatPhoneDigits(e.target.value))
               }} 
               placeholder="(416) 555-0100" 
             />
@@ -433,11 +432,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
     type="tel" 
     value={data.employerPhone} 
     onChange={(e) => {
-      const digits = e.target.value.replaceAll(/\D/g, '').slice(0, 10)
-      const formatted = digits.length <= 3 ? digits :
-        digits.length <= 6 ? `(${digits.slice(0, 3)}) ${digits.slice(3)}` :
-        `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
-      updateField("employerPhone", formatted)
+      updateField("employerPhone", formatPhoneDigits(e.target.value))
     }} 
     placeholder="(416) 555-0100"
     className="flex-1" 
