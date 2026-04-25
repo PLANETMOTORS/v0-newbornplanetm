@@ -329,8 +329,9 @@ export function PersonalDetailsStep({ data, onChange, onContinue }: PersonalDeta
               </Select>
             </div>
             <div>
-              <Label>Postal Code</Label>
+              <Label htmlFor="postalCodeDisplay">Postal Code</Label>
               <Input
+                id="postalCodeDisplay"
                 value={data.postalCode}
                 readOnly
                 tabIndex={-1}

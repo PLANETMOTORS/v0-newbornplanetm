@@ -721,7 +721,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Year */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Year</label>
+                    <label htmlFor="filter-year" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Year</label>
                     <select
                       id="filter-year"
                       value={selectedYear}
@@ -736,7 +736,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Fuel Type */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Fuel</label>
+                    <label htmlFor="filter-fuel" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Fuel</label>
                     <select
                       id="filter-fuel"
                       value={selectedFuelType}
@@ -751,7 +751,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Transmission */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Trans</label>
+                    <label htmlFor="filter-trans" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Trans</label>
                     <select
                       id="filter-trans"
                       value={selectedTransmission}
@@ -766,7 +766,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Drivetrain */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Drive</label>
+                    <label htmlFor="filter-drive" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Drive</label>
                     <select
                       id="filter-drive"
                       value={selectedDrivetrain}
@@ -781,7 +781,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Color */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Color</label>
+                    <label htmlFor="filter-color" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Color</label>
                     <select
                       id="filter-color"
                       value={selectedColor}
@@ -796,10 +796,11 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Price Range */}
                   <div className="col-span-2 lg:col-span-1">
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 tabular-nums">
+                    <label htmlFor="filter-price" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 tabular-nums">
                       Price: ${(priceRange[0]/1000).toFixed(0)}k - ${(priceRange[1]/1000).toFixed(0)}k
                     </label>
                     <Slider
+                      id="filter-price"
                       value={priceRange}
                       onValueChange={setPriceRange}
                       min={0}
@@ -811,10 +812,11 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Mileage Range */}
                   <div className="col-span-2 lg:col-span-1">
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 tabular-nums">
+                    <label htmlFor="filter-mileage" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 tabular-nums">
                       Mileage: {(mileageRange[0]/1000).toFixed(0)}k - {(mileageRange[1]/1000).toFixed(0)}k km
                     </label>
                     <Slider
+                      id="filter-mileage"
                       value={mileageRange}
                       onValueChange={setMileageRange}
                       min={0}
