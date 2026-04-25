@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars, no-useless-assignment */
 "use client"
 /**
  * components/garage/transaction-history.tsx
