@@ -73,6 +73,11 @@ export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedV
   useEffect(() => {
     if (deals.length === 0) return
 
+    const handleDealEvent = () => {
+      setLiveIndicator(true)
+      setTimeout(() => setLiveIndicator(false), 3000)
+      router.refresh()
+    }
     const channels = deals.map(deal =>
       sb.channel(`deal-events:${deal.id}`)
         .on("postgres_changes", {
@@ -80,11 +85,7 @@ export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedV
           schema: "public",
           table: "deal_events",
           filter: `deal_id=eq.${deal.id}`,
-        }, () => {
-          setLiveIndicator(true)
-          setTimeout(() => setLiveIndicator(false), 3000)
-          router.refresh()
-        })
+        }, handleDealEvent)
         .subscribe()
     )
 

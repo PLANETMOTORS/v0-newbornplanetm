@@ -103,20 +103,25 @@ async function captureWebVitals(page: Page): Promise<Record<string, number>> {
   return page.evaluate(() => new Promise(resolve => {
     const vitals: Record<string, number> = {};
     const timeout = setTimeout(() => resolve(vitals), 5000);
-    new PerformanceObserver(list => {
+    const captureLcp = (list: PerformanceObserverEntryList) => {
       const entries = list.getEntries();
       if (entries.length) vitals.lcp = entries[entries.length - 1].startTime;
-    }).observe({ type: 'largest-contentful-paint', buffered: true });
-    new PerformanceObserver(list => {
-      list.getEntries().forEach(e => {
+    };
+    const capturePaint = (list: PerformanceObserverEntryList) => {
+      for (const e of list.getEntries()) {
         if (e.name === 'first-contentful-paint') vitals.fcp = e.startTime;
-      });
-    }).observe({ type: 'paint', buffered: true });
+      }
+    };
     let clsValue = 0;
-    new PerformanceObserver(list => {
-      list.getEntries().forEach((e: PerformanceEntry & { value?: number }) => { clsValue += (e.value ?? 0); });
+    const captureCls = (list: PerformanceObserverEntryList) => {
+      for (const e of list.getEntries() as Array<PerformanceEntry & { value?: number }>) {
+        clsValue += (e.value ?? 0);
+      }
       vitals.cls = clsValue;
-    }).observe({ type: 'layout-shift', buffered: true });
+    };
+    new PerformanceObserver(captureLcp).observe({ type: 'largest-contentful-paint', buffered: true });
+    new PerformanceObserver(capturePaint).observe({ type: 'paint', buffered: true });
+    new PerformanceObserver(captureCls).observe({ type: 'layout-shift', buffered: true });
     setTimeout(() => { clearTimeout(timeout); resolve(vitals); }, 4000);
   }));
 }

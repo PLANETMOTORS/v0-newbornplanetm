@@ -454,9 +454,11 @@ export default function AdminInventoryPage() {
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
   const toggleSelectAll = () => {
-    const allCurrentSelected = vehicles.length > 0 && vehicles.every(v => selectedVehicles.includes(v.id))
-    if (allCurrentSelected) setSelectedVehicles(prev => prev.filter(id => !vehicles.some(v => v.id === id)))
-    else setSelectedVehicles(prev => [...new Set([...prev, ...vehicles.map(v => v.id)])])
+    const currentIds = vehicles.map(v => v.id)
+    const currentIdSet = new Set(currentIds)
+    const allCurrentSelected = vehicles.length > 0 && currentIds.every(id => selectedVehicles.includes(id))
+    if (allCurrentSelected) setSelectedVehicles(prev => prev.filter(id => !currentIdSet.has(id)))
+    else setSelectedVehicles(prev => [...new Set([...prev, ...currentIds])])
   }
   const toggleSelect = (id: string) => {
     setSelectedVehicles(prev => prev.includes(id) ? prev.filter(v => v !== id) : [...prev, id])

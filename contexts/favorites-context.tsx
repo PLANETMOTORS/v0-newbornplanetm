@@ -177,8 +177,8 @@ export function FavoritesProvider({ children }: Readonly<{ children: ReactNode }
         }))
 
         // Merge: server wins for vehicles that exist on both sides
+        const serverIds = new Set(serverFavs.map(f => f.id))
         setFavorites(prev => {
-          const serverIds = new Set(serverFavs.map(f => f.id))
           const localOnly = prev.filter(f => !serverIds.has(f.id))
           return [...serverFavs, ...localOnly]
         })
@@ -229,21 +229,19 @@ export function FavoritesProvider({ children }: Readonly<{ children: ReactNode }
   }, [triggerSync])
 
   const removeFavorite = useCallback((id: string) => {
+    const deleteFromServer = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      await supabase.from("user_favorites")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("vehicle_id", id)
+    }
     setFavorites(prev => {
       const next = prev.filter(f => f.id !== id)
       triggerSync(next)
-
-      // Also delete from Supabase (fire-and-forget)
-      supabase.auth.getUser().then(({ data: { user } }) => {
-        if (user) {
-          supabase.from("user_favorites")
-            .delete()
-            .eq("user_id", user.id)
-            .eq("vehicle_id", id)
-            .then(() => {})
-        }
-      })
-
+      // Fire-and-forget remote delete
+      void deleteFromServer()
       return next
     })
   }, [triggerSync, supabase])
