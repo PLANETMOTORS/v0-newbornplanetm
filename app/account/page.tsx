@@ -69,6 +69,22 @@ interface RegistrationInput {
   password: string
 }
 
+const AGREEMENT_TYPE_LABEL: Record<string, string> = {
+  finance: "Finance",
+  lease: "Lease",
+  cash: "Cash",
+}
+
+// Status badge colours — defined at module level to avoid recreation on every render
+const STATUS_BADGE_COLOURS: Record<string, string> = {
+  submitted: "bg-blue-100 text-blue-800",
+  under_review: "bg-yellow-100 text-yellow-800",
+  approved: "bg-green-100 text-green-800",
+  declined: "bg-red-100 text-red-800",
+  funded: "bg-emerald-100 text-emerald-800",
+  cancelled: "bg-gray-100 text-gray-800",
+}
+
 export default function AccountPage() {
   const { user, isLoading: isAuthLoading, signOut } = useAuth()
   const { favorites, removeFavorite } = useFavorites()
@@ -733,13 +749,15 @@ export default function AccountPage() {
                         <CardDescription>Resume incomplete finance applications</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        {draftsLoading ? (
+                        {draftsLoading && (
                           <div className="flex items-center justify-center py-6">
                             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                           </div>
-                        ) : financeDrafts.length === 0 ? (
+                        )}
+                        {!draftsLoading && financeDrafts.length === 0 && (
                           <p className="text-sm text-muted-foreground py-4">No saved drafts</p>
-                        ) : (
+                        )}
+                        {!draftsLoading && financeDrafts.length > 0 && (
                           <div className="space-y-3">
                             {financeDrafts.map((draft) => {
                               const formData = draft.form_data as Record<string, unknown>
@@ -779,11 +797,12 @@ export default function AccountPage() {
                         <CardDescription>Your financing applications and their status</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        {appsLoading ? (
+                        {appsLoading && (
                           <div className="flex items-center justify-center py-6">
                             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                           </div>
-                        ) : financeApps.length === 0 ? (
+                        )}
+                        {!appsLoading && financeApps.length === 0 && (
                           <div className="text-center py-6">
                             <CreditCard className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
                             <p className="text-muted-foreground text-sm mb-4">No submitted applications</p>
@@ -791,7 +810,8 @@ export default function AccountPage() {
                               <Link href="/financing">Apply for Pre-Approval</Link>
                             </Button>
                           </div>
-                        ) : (
+                        )}
+                        {!appsLoading && financeApps.length > 0 && (
                           <div className="space-y-3">
                             {financeApps.map((app) => {
                               const statusColors: Record<string, string> = {
@@ -802,11 +822,12 @@ export default function AccountPage() {
                                 funded: "bg-emerald-100 text-emerald-800",
                                 cancelled: "bg-gray-100 text-gray-800",
                               }
+                              const agreementLabel = AGREEMENT_TYPE_LABEL[app.agreement_type] ?? "Cash"
                               return (
                                 <div key={app.id} className="flex items-center justify-between p-3 rounded-lg border">
                                   <div>
                                     <p className="font-semibold text-sm">
-                                      {app.agreement_type === "finance" ? "Finance" : app.agreement_type === "lease" ? "Lease" : "Cash"} Application
+                                      {agreementLabel} Application
                                     </p>
                                     <p className="text-xs text-muted-foreground">
                                       {app.requested_amount ? `$${Math.round(app.requested_amount).toLocaleString()}` : ""} &middot; {new Date(app.created_at).toLocaleDateString()}
@@ -863,13 +884,13 @@ export default function AccountPage() {
                             disabled={notifLoading === 'priceDrops'}
                             onClick={() => toggleNotification('priceDrops')}
                           >
-                            {notifLoading === 'priceDrops' ? (
+                            {notifLoading === 'priceDrops' && (
                               <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : priceDropEnabled ? (
-                              <><Bell className="w-4 h-4 mr-1" /> Enabled</>
-                            ) : (
-                              'Enable'
                             )}
+                            {notifLoading !== 'priceDrops' && priceDropEnabled && (
+                              <><Bell className="w-4 h-4 mr-1" /> Enabled</>
+                            )}
+                            {notifLoading !== 'priceDrops' && !priceDropEnabled && 'Enable'}
                           </Button>
                         </div>
                         <Separator />
@@ -884,13 +905,13 @@ export default function AccountPage() {
                             disabled={notifLoading === 'newListings'}
                             onClick={() => toggleNotification('newListings')}
                           >
-                            {notifLoading === 'newListings' ? (
+                            {notifLoading === 'newListings' && (
                               <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : newInventoryEnabled ? (
-                              <><Bell className="w-4 h-4 mr-1" /> Enabled</>
-                            ) : (
-                              'Enable'
                             )}
+                            {notifLoading !== 'newListings' && newInventoryEnabled && (
+                              <><Bell className="w-4 h-4 mr-1" /> Enabled</>
+                            )}
+                            {notifLoading !== 'newListings' && !newInventoryEnabled && 'Enable'}
                           </Button>
                         </div>
                       </CardContent>
