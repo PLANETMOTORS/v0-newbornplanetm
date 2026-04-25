@@ -185,7 +185,7 @@ export function SearchAutocomplete() {
                 setOpen(true)
               }}
               onFocus={() => setOpen(true)}
-              className="text-sm h-9"
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400 h-9"
               aria-controls="search-results-listbox"
             />
             {isLoading && (
