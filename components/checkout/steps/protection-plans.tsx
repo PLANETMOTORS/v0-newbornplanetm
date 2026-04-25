@@ -163,7 +163,7 @@ function ComparisonModal({ onClose }: { onClose: () => void }) {
       tabIndex={0}
       aria-label="Close comparison"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClose() } }}
+      onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onClose() } }}
     >
       <div
         ref={modalRef}

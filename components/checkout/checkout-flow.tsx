@@ -348,7 +348,7 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
           tabIndex={0}
           aria-label="Close order summary"
           onClick={(e) => { if (e.target === e.currentTarget) setShowOrderSummary(false) }}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowOrderSummary(false) } }}
+          onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); setShowOrderSummary(false) } }}
         >
           <div
             ref={orderSummaryModalRef}
