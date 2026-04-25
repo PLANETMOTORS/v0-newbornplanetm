@@ -72,7 +72,7 @@ async function casAttempt(vehicleId: string, i: number) {
   const t0 = performance.now()
   // Read
   const { data: v } = await admin.from('vehicles').select('status, price').eq('id', vehicleId).single()
-  if (!v || v.status !== 'available')
+  if (v?.status !== 'available')
     return { i, ok: false, reason: 'status_not_available', ms: performance.now() - t0 }
   // CAS update
   const { data: lock } = await admin.from('vehicles')

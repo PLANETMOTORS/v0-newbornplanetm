@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const vin = searchParams.get("vin")?.trim().toUpperCase()
 
-    if (!vin || vin.length !== 17) {
+    if (vin?.length !== 17) {
       return NextResponse.json({ error: "VIN must be exactly 17 characters" }, { status: 400 })
     }
 

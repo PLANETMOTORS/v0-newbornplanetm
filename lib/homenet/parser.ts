@@ -141,7 +141,7 @@ export function parseHomenetCSV(csvText: string): VehicleData[] {
     const row: Record<string, string> = {}
     headers.forEach((h, idx) => { row[h] = values[idx]?.trim() || "" })
     const vehicle = mapCSVToVehicle(row)
-    if (vehicle && vehicle.vin && vehicle.stock_number) {
+    if (vehicle?.vin && vehicle.stock_number) {
       vehicles.push(vehicle)
     }
   }
@@ -165,7 +165,7 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
 
   const vin = get(["vin"])
   const stockNumber = get(["stock_number", "stocknumber", "dealerstocknum", "stock"])
-  if (!vin || vin.length !== 17) return null
+  if (vin?.length !== 17) return null
   if (!stockNumber) return null
 
   // Normalize HomeNet fuel values: "Gasoline Fuel" → "Gasoline", "Electric Fuel System" → "Electric"
@@ -483,7 +483,7 @@ export function parseHomenetXML(xmlText: string): VehicleData[] {
   for (const vehicleXml of vehicleMatches) {
     try {
       const vehicle = parseVehicleFromXML(vehicleXml)
-      if (vehicle && vehicle.vin && vehicle.stock_number) vehicles.push(vehicle)
+      if (vehicle?.vin && vehicle.stock_number) vehicles.push(vehicle)
     } catch (e) {
       console.error("[HomenetIOL] Error parsing vehicle XML:", e)
     }
@@ -496,7 +496,7 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
     const variations = getTagVariations(tag)
     for (const variant of variations) {
       const match = xml.match(new RegExp(`<${variant}[^>]*>([^<]*)</${variant}>`, "i"))
-      if (match && match[1]) return match[1].trim()
+      if (match?.[1]) return match[1].trim()
     }
     return ""
   }
@@ -520,7 +520,7 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
     for (const pattern of imagePatterns) {
       let match
       while ((match = pattern.exec(xml)) !== null) {
-        if (match[1] && match[1].startsWith("http")) images.push(match[1])
+        if (match[1]?.startsWith("http")) images.push(match[1])
       }
     }
     return images
@@ -528,7 +528,7 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
 
   const vin = getValue("vin")
   const stockNumber = getValue("stocknumber") || getValue("stock_number") || getValue("dealerstocknum")
-  if (!vin || vin.length !== 17) return null
+  if (vin?.length !== 17) return null
   if (!stockNumber) return null
 
   const images = getImages()

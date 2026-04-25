@@ -115,7 +115,7 @@ export async function GET(
   // Otherwise, scrape from VDP URL
   const vdpUrl = vehicle.primary_image_url
   
-  if (!vdpUrl || !vdpUrl.startsWith('http')) {
+  if (!vdpUrl?.startsWith('http')) {
     return NextResponse.json({
       vehicleId: vehicle.id,
       stockNumber: vehicle.stock_number,
@@ -176,7 +176,7 @@ export async function POST(
   
   const vdpUrl = vehicle.primary_image_url
   
-  if (!vdpUrl || !vdpUrl.startsWith('http')) {
+  if (!vdpUrl?.startsWith('http')) {
     return NextResponse.json({ error: 'No VDP URL available' }, { status: 400 })
   }
   
