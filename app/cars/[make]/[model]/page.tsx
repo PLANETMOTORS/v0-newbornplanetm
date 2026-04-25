@@ -262,7 +262,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
         </nav>
 
         {/* 1. Hero Section with H1 */}
-        <section className="relative py-12 lg:py-20 bg-gradient-to-br from-primary/5 via-background to-accent/5">
+        <section className="relative py-12 lg:py-20 bg-linear-to-br from-primary/5 via-background to-accent/5">
           <div className="container mx-auto px-4">
             <div className="grid lg:grid-cols-2 gap-8 items-center">
               <div>
@@ -318,7 +318,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
               </div>
 
               <div className="relative">
-                <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted">
+                <div className="aspect-4/3 rounded-xl overflow-hidden bg-muted">
                   <Image
                     src={`https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=600&fit=crop`}
                     alt={`${currentYear} ${makeFormatted} ${modelFormatted} for sale at Planet Motors Richmond Hill`}
@@ -406,7 +406,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2, 3].map((i) => (
                 <Card key={i} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="aspect-[4/3] relative bg-muted">
+                  <div className="aspect-4/3 relative bg-muted">
                     <Image
                       src={`https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=300&fit=crop`}
                       alt={`${makeFormatted} ${modelFormatted} for sale`}
@@ -499,7 +499,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {data.features.map((feature, i) => (
                 <div key={i} className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
-                  <Check className="h-5 w-5 text-green-600 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-green-600 shrink-0" />
                   <span>{feature}</span>
                 </div>
               ))}
@@ -547,28 +547,28 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                 <h2 className="text-2xl font-bold mb-4">Why Buy Your {makeFormatted} {modelFormatted} from Planet Motors?</h2>
                 <ul className="space-y-4">
                   <li className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
+                    <Check className="h-5 w-5 text-green-600 mt-1 shrink-0" />
                     <div>
                       <p className="font-semibold">210-Point PM Certification</p>
                       <p className="text-muted-foreground">More comprehensive than any competitor&apos;s inspection</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
+                    <Check className="h-5 w-5 text-green-600 mt-1 shrink-0" />
                     <div>
                       <p className="font-semibold">10-Day Money-Back Guarantee</p>
                       <p className="text-muted-foreground">Drive it for 10 days - return it if you&apos;re not 100% satisfied</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
+                    <Check className="h-5 w-5 text-green-600 mt-1 shrink-0" />
                     <div>
                       <p className="font-semibold">Serving Richmond Hill Since 2015</p>
                       <p className="text-muted-foreground">10+ years of trusted service in Richmond Hill</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
+                    <Check className="h-5 w-5 text-green-600 mt-1 shrink-0" />
                     <div>
                       <p className="font-semibold">Financing for All Credit Types</p>
                       <p className="text-muted-foreground">Bad credit, newcomers, and first-time buyers welcome</p>

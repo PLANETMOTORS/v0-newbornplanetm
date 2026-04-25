@@ -205,7 +205,7 @@ export default async function ProtectionProductPage({ params }: { params: Promis
                   <ul className="space-y-3">
                     {product.covered.map((item) => (
                       <li key={item} className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                        <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
                         <span className="text-sm leading-relaxed">{item}</span>
                       </li>
                     ))}
@@ -225,7 +225,7 @@ export default async function ProtectionProductPage({ params }: { params: Promis
                   <ul className="space-y-3">
                     {product.notCovered.map((item) => (
                       <li key={item} className="flex items-start gap-3">
-                        <X className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
+                        <X className="w-5 h-5 text-red-400 mt-0.5 shrink-0" />
                         <span className="text-sm text-muted-foreground leading-relaxed">{item}</span>
                       </li>
                     ))}
@@ -266,7 +266,7 @@ export default async function ProtectionProductPage({ params }: { params: Promis
                       <ul className="space-y-2">
                         {cat.components.map((part) => (
                           <li key={part} className="flex items-start gap-2.5">
-                            <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                            <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
                             <span className="text-sm leading-relaxed">{part}</span>
                           </li>
                         ))}

@@ -91,7 +91,7 @@ export function HomepageMidFold() {
                 )}
                 {/* Icon — 32px mobile, 40px desktop; same navy, stroke-width 2 */}
                 <cat.icon
-                  className="w-8 h-8 md:w-10 md:h-10 md:group-hover:scale-105 transition-transform duration-200 ease-out flex-shrink-0"
+                  className="w-8 h-8 md:w-10 md:h-10 md:group-hover:scale-105 transition-transform duration-200 ease-out shrink-0"
                   style={{ color: NAVY, strokeWidth: 2 }}
                   aria-hidden="true"
                 />
@@ -156,7 +156,7 @@ export function HomepageMidFold() {
                   <ul className="space-y-2">
                     {step.features.map((feature) => (
                       <li key={feature} className="flex items-center gap-2 text-sm text-gray-600">
-                        <CheckCircle className="w-4 h-4 text-green-700 flex-shrink-0" />
+                        <CheckCircle className="w-4 h-4 text-green-700 shrink-0" />
                         {feature}
                       </li>
                     ))}

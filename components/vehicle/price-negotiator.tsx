@@ -237,7 +237,7 @@ export function PriceNegotiator({
               {messages.map((msg, i) => (
                 <div key={i} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   {msg.role === "assistant" && (
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                       <Bot className="w-4 h-4 text-primary" />
                     </div>
                   )}
@@ -247,7 +247,7 @@ export function PriceNegotiator({
                     {msg.status === "accepted" && <p className="mt-2 text-green-600 font-semibold">Offer Accepted!</p>}
                   </div>
                   {msg.role === "user" && (
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
                       <User className="w-4 h-4 text-white" />
                     </div>
                   )}

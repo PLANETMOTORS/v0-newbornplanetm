@@ -98,7 +98,7 @@ export default function ClutchGuideCanadaPage() {
       
       <main id="main-content" tabIndex={-1}>
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-teal-800 via-teal-700 to-slate-800 text-white py-16 md:py-24">
+        <section className="bg-linear-to-br from-teal-800 via-teal-700 to-slate-800 text-white py-16 md:py-24">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
               <Badge className="bg-teal-500 text-white mb-4">Complete Guide</Badge>
@@ -326,7 +326,7 @@ export default function ClutchGuideCanadaPage() {
                   <Card key={index}>
                     <CardContent className="p-6">
                       <h3 className="font-semibold text-lg mb-2 flex items-start gap-3">
-                        <HelpCircle className="w-5 h-5 text-teal-600 mt-1 flex-shrink-0" />
+                        <HelpCircle className="w-5 h-5 text-teal-600 mt-1 shrink-0" />
                         {faq.question}
                       </h3>
                       <p className="text-muted-foreground ml-8">{faq.answer}</p>

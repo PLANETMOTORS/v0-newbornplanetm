@@ -100,7 +100,7 @@ export function LiveChatWidget() {
       <button
         onClick={() => setIsOpen(true)}
         aria-label="Chat with Anna AI assistant"
-        className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-[10000] flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-shadow min-h-[48px]"
+        className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-[10000] flex items-center gap-2 bg-linear-to-r from-blue-600 to-purple-600 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-shadow min-h-12"
       >
         <Bot className="w-5 h-5" />
         <span className="font-semibold hidden sm:inline">Chat with Anna</span>
@@ -118,7 +118,7 @@ export function LiveChatWidget() {
       style={{ contain: 'layout style paint', transform: 'translateZ(0)', transition: 'width 0.15s ease-out, height 0.15s ease-out' }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-xl">
+      <div className="flex items-center justify-between px-4 py-3 bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-t-xl">
         <div className="flex items-center gap-2">
           <div className="relative">
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">

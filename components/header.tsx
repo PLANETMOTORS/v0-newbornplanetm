@@ -190,7 +190,7 @@ export function Header() {
             <div className="flex items-center gap-4 sm:gap-6">
               <a
                 href={`tel:${PHONE_TOLL_FREE_TEL}`}
-                className="flex items-center gap-1.5 min-h-[44px] py-1 hover:text-primary-foreground/80 transition-colors"
+                className="flex items-center gap-1.5 min-h-11 py-1 hover:text-primary-foreground/80 transition-colors"
                 onClick={() => trackPhoneClick(PHONE_TOLL_FREE)}
               >
                 <Phone className="w-3.5 h-3.5" />
@@ -225,7 +225,7 @@ export function Header() {
       <header className={`bg-background/95 backdrop-blur-md border-b border-border ${scrolled ? "shadow-sm" : ""}`} role="banner">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-2 lg:px-8" aria-label="Main navigation">
           <div className="flex items-center gap-6">
-            <Link href="/" className="flex-shrink-0 min-w-[100px]">
+            <Link href="/" className="shrink-0 min-w-[100px]">
               <div className="transition-transform duration-300 origin-left" style={{ transform: scrolled ? 'scale(0.75)' : 'scale(0.9)' }}>
                 <PlanetMotorsLogo size="sm" showTagline={false} />
               </div>
@@ -331,7 +331,7 @@ export function Header() {
                       <button
                         id={`mobile-nav-${item.name}`}
                         aria-expanded={activeSubmenu === item.name}
-                        className="w-full text-left flex items-center justify-between px-3 py-3 min-h-[44px] text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded"
+                        className="w-full text-left flex items-center justify-between px-3 py-3 min-h-11 text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded"
                         onClick={() => setActiveSubmenu(activeSubmenu === item.name ? null : item.name)}
                       >
                         {item.name}
@@ -343,7 +343,7 @@ export function Header() {
                             <Link
                               key={subitem.name}
                               href={subitem.href}
-                              className="block px-3 py-3 min-h-[44px] text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded"
+                              className="block px-3 py-3 min-h-11 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded"
                               onClick={() => setMobileMenuOpen(false)}
                             >
                               {subitem.name}
@@ -355,7 +355,7 @@ export function Header() {
                   ) : (
                     <Link
                       href={item.href}
-                      className="block px-3 py-3 min-h-[44px] text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded"
+                      className="block px-3 py-3 min-h-11 text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       {item.name}

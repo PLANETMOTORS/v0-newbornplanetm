@@ -103,7 +103,7 @@ export function NavButton({
       {isLoggedIn && dropdownOpen && (
         <div
           role="menu"
-          className="absolute right-0 top-[52px] z-50 min-w-[180px] rounded-xl border border-border bg-background py-1 shadow-lg"
+          className="absolute right-0 top-[52px] z-50 min-w-45 rounded-xl border border-border bg-background py-1 shadow-lg"
         >
           <div className="px-4 py-2 border-b border-border">
             <p className="text-sm font-semibold truncate">{safeName}</p>
