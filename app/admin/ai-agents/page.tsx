@@ -193,7 +193,7 @@ export default function AIAgentsPage() {
                     <button onClick={() => toggleAgent(agent.agent_type, agent.is_active)} className="p-2 hover:bg-gray-100 rounded-lg">
                       {agent.is_active ? <ToggleRight className="w-6 h-6 text-green-600" /> : <ToggleLeft className="w-6 h-6 text-gray-400" />}
                     </button>
-                    {!isEditing && knowledgeAgent !== agent.agent_type ? (
+                    {!isEditing && knowledgeAgent !== agent.agent_type && (
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={() => { setKnowledgeAgent(agent.agent_type); setEditingAgent(null) }}>
                           <BookOpen className="w-4 h-4 mr-1" />
@@ -204,7 +204,8 @@ export default function AIAgentsPage() {
                           Configure
                         </Button>
                       </div>
-                    ) : isEditing ? (
+                    )}
+                    {isEditing && (
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={cancelEditing}>Cancel</Button>
                         <Button size="sm" onClick={saveAgent} disabled={saving === agent.agent_type}>
@@ -212,9 +213,10 @@ export default function AIAgentsPage() {
                           {saving === agent.agent_type ? "Saving..." : "Save"}
                         </Button>
                       </div>
-                    ) : knowledgeAgent === agent.agent_type ? (
+                    )}
+                    {!isEditing && knowledgeAgent === agent.agent_type && (
                       <Button variant="outline" size="sm" onClick={() => setKnowledgeAgent(null)}>Close Knowledge</Button>
-                    ) : null}
+                    )}
                   </div>
                 </div>
               </CardHeader>
@@ -264,7 +266,8 @@ export default function AIAgentsPage() {
                         </div>
                         <div className="space-y-2">
                           {((editForm.quick_actions || []) as QuickAction[]).map((qa, i) => (
-                            <div key={qa.label} className="flex gap-2 items-center">
+                            // eslint-disable-next-line react/no-array-index-key -- quick actions have no stable ID; index is correct here since items are only appended/removed, never reordered
+                            <div key={i} className="flex gap-2 items-center">
                               <Input
                                 value={qa.label}
                                 onChange={(e) => updateQuickAction(i, "label", e.target.value)}
