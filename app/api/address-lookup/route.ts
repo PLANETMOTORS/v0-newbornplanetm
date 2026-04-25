@@ -262,7 +262,7 @@ async function applyOnlineFallback(
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
-  const postalCode = searchParams.get("postalCode")?.replaceAll(' ', '').toUpperCase() ?? ""
+  const postalCode = searchParams.get("postalCode")?.replaceAll(/\s/g, '').toUpperCase() ?? ""
 
   if (postalCode.length < 3) {
     return NextResponse.json({ suggestions: [], city: '', province: '' })
