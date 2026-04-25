@@ -305,17 +305,15 @@ export function validateTradeInForm(data: TradeInFormData): { valid: boolean; er
   const errors: Record<string, string> = {}
   
   // Name validation (either combined name or first/last)
-  if (data.name !== undefined) {
-    if (!isValidName(data.name)) {
-      errors.name = ValidationMessages.name
-    }
-  } else {
+  if (data.name === undefined) {
     if (data.firstName !== undefined && !isValidName(data.firstName)) {
       errors.firstName = ValidationMessages.name
     }
     if (data.lastName !== undefined && !isValidName(data.lastName)) {
       errors.lastName = ValidationMessages.name
     }
+  } else if (!isValidName(data.name)) {
+    errors.name = ValidationMessages.name
   }
   
   // Email validation
