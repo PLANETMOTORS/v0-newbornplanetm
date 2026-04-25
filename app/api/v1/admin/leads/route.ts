@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (error) {
-      console.error("Leads query error:", error)
+      logger.error("Leads query error", { message: error.message, code: error.code })
       return NextResponse.json({ error: "Failed to fetch leads" }, { status: 500 })
     }
 
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
       limit,
     })
   } catch (error) {
-    console.error("Leads API error:", error)
+    logger.error("Leads API error", { error: String(error) })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -103,8 +103,12 @@ const TRADE_IN_STATUS_MAP: Record<string, string> = {
   pending: "new",
 }
 
+// The Supabase service client has no generated types in this context — SupabaseClient<any,any,any>
+// is the correct escape hatch here; the eslint suppression is intentional.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function aggregateLeads(adminClient: any, filters: { status: string | null; source: string | null; search: string | null; offset: number; limit: number }) {
+type SupabaseAdminClient = ReturnType<typeof createServiceClient<any, any, any>>
+
+async function aggregateLeads(adminClient: SupabaseAdminClient, filters: { status: string | null; source: string | null; search: string | null; offset: number; limit: number }) {
   type AggregatedLead = { id: string; source: string; status: string; customer_name: string; customer_email: string; customer_phone: string | null; subject: string; vehicle_info: string | null; created_at: string; source_table: string }
   const allLeads: AggregatedLead[] = []
 
@@ -235,8 +239,20 @@ export async function PATCH(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
     )
 
-    const { id, ...updates } = await request.json()
+    const body = await request.json()
+    const { id } = body
     if (!id) return NextResponse.json({ error: "Lead ID required" }, { status: 400 })
+
+    // Allowlist updatable fields — prevents mass-assignment of arbitrary columns
+    const ALLOWED_FIELDS = ["status", "notes", "assigned_to", "contacted_at", "follow_up_at"] as const
+    type AllowedField = typeof ALLOWED_FIELDS[number]
+    const updates: Partial<Record<AllowedField, unknown>> = {}
+    for (const field of ALLOWED_FIELDS) {
+      if (field in body) updates[field] = body[field]
+    }
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ error: "No valid fields to update" }, { status: 400 })
+    }
 
     const { data, error } = await adminClient
       .from("leads")
@@ -246,12 +262,13 @@ export async function PATCH(request: NextRequest) {
       .single()
 
     if (error) {
+      logger.error("Lead update error", { id, message: error.message })
       return NextResponse.json({ error: "Failed to update lead" }, { status: 500 })
     }
 
     return NextResponse.json({ lead: data })
   } catch (error) {
-    console.error("Lead update error:", error)
+    logger.error("Lead PATCH error", { error: String(error) })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

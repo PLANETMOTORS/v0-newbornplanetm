@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
@@ -38,7 +37,6 @@ import {
 } from "@/components/ui/dialog"
 import { trackProductView, trackPhoneClick } from "@/components/analytics/google-tag-manager"
 import { calculateAllInPrice, safeNum } from "@/lib/pricing/format"
-import { FALLBACK_VEHICLE_DATA } from "@/lib/vdp/fallback-vehicle-data"
 import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
 import { trackMetaViewContent, trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
 import { PHONE_LOCAL, PHONE_LOCAL_TEL, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
@@ -514,7 +512,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
   }, [])
 
   // ── 360° via Drivee iframe ──
-  const has360 = !!vehicle?.driveeMid
+  const has360 = !!vehicle.driveeMid
 
   // ── Auto-spin for 360° fallback (no Drivee) ──
   const [isAutoSpinning, setIsAutoSpinning] = useState(true)
@@ -641,7 +639,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                   </span>
                 </div>
                 <Button size="sm" variant="secondary" asChild>
-                  <Link href={getFinanceLink(vehicle?.id || '')}>Apply to This Vehicle</Link>
+                  <Link href={getFinanceLink(vehicle.id)}>Apply to This Vehicle</Link>
                 </Button>
               </div>
             </div>

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion, no-useless-assignment */
 /**
  * lib/typesense/sync.ts
  *
@@ -116,29 +115,29 @@ export async function syncVehicleToTypesense(
     return { success: true, action: "skipped_not_configured" }
   }
 
-  const client = getAdminClient()
-  if (!client) {
+  const adminClient = getAdminClient()
+  if (!adminClient) {
     logger.warn("[Typesense Sync] Admin client unavailable — skipping sync")
     return { success: false, action: "skipped_no_client", error: "Admin client unavailable" }
   }
 
   // ── Handle delete ────────────────────────────────────────────────────────
   if (operation === "delete") {
-    return deleteFromTypesense(client, sanityId)
+    return deleteFromTypesense(adminClient, sanityId)
   }
 
   // ── Handle create / update — fetch from Sanity first ────────────────────
-  return upsertToTypesense(client, sanityId)
+  return upsertToTypesense(adminClient, sanityId)
 }
 
 type SyncResult = { success: boolean; action: string; error?: string }
 
 async function deleteFromTypesense(
-  client: ReturnType<typeof getAdminClient>,
+  client: NonNullable<ReturnType<typeof getAdminClient>>,
   sanityId: string,
 ): Promise<SyncResult> {
   try {
-    await client!
+    await client
       .collections(VEHICLES_COLLECTION)
       .documents(sanityId)
       .delete()
@@ -157,10 +156,10 @@ async function deleteFromTypesense(
 }
 
 async function upsertToTypesense(
-  client: ReturnType<typeof getAdminClient>,
+  client: NonNullable<ReturnType<typeof getAdminClient>>,
   sanityId: string,
 ): Promise<SyncResult> {
-  let vehicle: SanityVehicle | null = null
+  let vehicle: SanityVehicle | null
   try {
     vehicle = await sanityClient.fetch<SanityVehicle>(VEHICLE_BY_ID_QUERY, { id: sanityId })
   } catch (err) {
@@ -176,7 +175,7 @@ async function upsertToTypesense(
 
   try {
     const doc = mapSanityVehicleToTypesense(vehicle)
-    await client!
+    await client
       .collections(VEHICLES_COLLECTION)
       .documents()
       .upsert(doc)
