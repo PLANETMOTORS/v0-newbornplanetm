@@ -14,6 +14,7 @@ import { Separator } from "@/components/ui/separator"
 import sanitizeHtml from "sanitize-html"
 import { blogPosts } from "@/lib/blog-data"
 import { getBlogPost } from "@/lib/sanity/fetch"
+import { BlogShareButtons } from "@/components/blog/blog-share-buttons"
 
 const SITE_URL = getPublicSiteUrl()
 
