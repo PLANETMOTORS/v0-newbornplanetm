@@ -210,10 +210,8 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
     isCertified = true
   } else if (rawCondition === "new") {
     a2Condition = "new"
-  } else if (!rawCondition) {
-    if (!get(["is_certified", "certified", "cpo"])) isCertified = false
-  } else {
-    if (!get(["is_certified", "certified", "cpo"])) isCertified = false
+  } else if (!get(["is_certified", "certified", "cpo"])) {
+    isCertified = false
   }
 
   // === A2: Core vehicle fields ===
@@ -321,7 +319,7 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
 
     // Backward compat aliases (for existing DB sync until migration)
     price: (priceDollars || 0) * 100,
-    msrp: msrpDollars != null ? msrpDollars * 100 : undefined,
+    msrp: msrpDollars == null ? undefined : msrpDollars * 100,
     mileage: mileageKm,
     featured: isFeatured,
   }
@@ -595,7 +593,7 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
     title_status: undefined,
     // Legacy compat
     price: (priceDollars || 0) * 100,
-    msrp: msrpDollars != null ? msrpDollars * 100 : undefined,
+    msrp: msrpDollars == null ? undefined : msrpDollars * 100,
     mileage: mileageKm,
     featured: isFeatured,
   }

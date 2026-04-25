@@ -149,7 +149,7 @@ export function formatVehiclesForAnna(vehicles: VehicleSummary[], totalCount: nu
     return "No matching vehicles found in current inventory."
   }
 
-  const lines = [`Found ${totalCount} matching vehicle${totalCount !== 1 ? "s" : ""}:`]
+  const lines = [`Found ${totalCount} matching vehicle${totalCount === 1 ? "" : "s"}:`]
   for (const v of vehicles) {
     const price = `$${v.price.toLocaleString()}`
     const km = `${v.mileage.toLocaleString()} km`

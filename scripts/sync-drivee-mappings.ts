@@ -77,13 +77,13 @@ async function main() {
         body: JSON.stringify(body),
       })
 
-      if (!res.ok) {
+      if (res.ok) {
+        console.log(`  ✅ ${entry.vehicle} — MID: ${entry.mid}, ${entry.frameCount} frames`)
+        synced++
+      } else {
         const text = await res.text()
         console.error(`  ❌ ${entry.vehicle} (${entry.vin}): ${res.status} ${text}`)
         failed++
-      } else {
-        console.log(`  ✅ ${entry.vehicle} — MID: ${entry.mid}, ${entry.frameCount} frames`)
-        synced++
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
