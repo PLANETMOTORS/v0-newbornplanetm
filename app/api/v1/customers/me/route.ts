@@ -115,7 +115,7 @@ export async function PUT(request: NextRequest) {
       },
     })
   } catch (error) {
-    logger.error("[v1/customers/me PATCH]", error)
+    logger.error("[v1/customers/me PUT]", error)
     return apiError(ErrorCode.INTERNAL_ERROR, "Failed to update customer")
   }
 }

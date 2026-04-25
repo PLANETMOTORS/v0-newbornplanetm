@@ -129,7 +129,7 @@ function CellValue({ pkg, rowKey }: Readonly<{ pkg: ProtectionPackage; rowKey: s
 }
 
 /* ── Mobile card view for each package ── */
-function MobilePackageCard({ pkg, index, onSelect }: { pkg: ProtectionPackage; index: number; onSelect?: (id: Readonly<string>) => void }) {
+function MobilePackageCard({ pkg, index, onSelect }: { pkg: ProtectionPackage; index: number; onSelect?: (id: string) => void }) {
   const [expanded, setExpanded] = useState(pkg.highlighted)
   const style = TIER_STYLES[pkg.id] || TIER_STYLES.basic
 
@@ -208,7 +208,7 @@ function MobilePackageCard({ pkg, index, onSelect }: { pkg: ProtectionPackage; i
 
 
 /* ── Desktop comparison table — card-column layout ── */
-function DesktopTable({ onSelect }: { onSelect?: (id: Readonly<string>) => void }) {
+function DesktopTable({ onSelect }: { onSelect?: (id: string) => void }) {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Use CSS grid so badge overflow is never clipped */}

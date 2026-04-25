@@ -280,7 +280,7 @@ export const FEATURED_TESTIMONIALS_QUERY = `
 // NOTE: protectionPlan primary field is "title" (not "name" — name is a hidden legacy field).
 // Filter by active == true to exclude inactive plans.
 export const PROTECTION_PLANS_QUERY = `
-  *[_type == "protectionPlan" && active == true] | order(order asc) {
+  *[_type == "protectionPlan" && active != false] | order(order asc) {
     _id, title, tagline, description, price, priceNote,
     features, coverage, highlights, ctaLabel, ctaUrl, featured,
     "icon": icon.asset->url

@@ -38,6 +38,7 @@ export const author = defineType({
       type: 'image',
       options: { hotspot: true },
       description: 'Headshot photo. Required for Google E-E-A-T author signals.',
+      validation: (Rule) => Rule.required().error('Profile photo is required for E-E-A-T signals'),
       fields: [
         defineField({
           name: 'alt',
@@ -152,7 +153,7 @@ export const blogPost = defineType({
       type: 'datetime',
       group: 'content',
       description: 'When this post goes live. Leave blank to keep as draft.',
-      validation: (Rule) => Rule.required().error('Published date is required'),
+      // Not required — absence means the post is a draft (filtered out by defined(publishedAt) in GROQ)
     }),
     defineField({
       name: 'excerpt',
@@ -385,7 +386,7 @@ export const testimonial = defineType({
   fields: [
     defineField({ name: 'name', title: 'Customer Name', type: 'string', validation: (Rule) => Rule.required() }),
     defineField({ name: 'location', title: 'Location', type: 'string', description: 'e.g., Richmond Hill, ON' }),
-    defineField({ name: 'rating', title: 'Rating (1–5)', type: 'number', validation: (Rule) => Rule.required().min(1).max(5) }),
+    defineField({ name: 'rating', title: 'Rating (1–5)', type: 'number', validation: (Rule) => Rule.required().integer().min(1).max(5) }),
     defineField({ name: 'text', title: 'Review Text', type: 'text', rows: 4, validation: (Rule) => Rule.required() }),
     defineField({ name: 'body', title: 'Review Body (Legacy)', type: 'text', rows: 4, hidden: true }),
     defineField({ name: 'vehiclePurchased', title: 'Vehicle Purchased', type: 'string', description: 'e.g., 2022 Tesla Model 3' }),
