@@ -244,7 +244,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   }
 
   const handleShare = async () => {
-    const shareUrl = typeof window !== "undefined" ? window.location.href : ""
+    const shareUrl = typeof globalThis.window !== "undefined" ? globalThis.window.location.href : ""
     const shareTitle = `${vehicle.year} ${vehicle.make} ${vehicle.model} at Planet Motors`
     const shareText = `Check out this ${vehicle.year} ${vehicle.make} ${vehicle.model} for $${safeNum(vehicle.price).toLocaleString()}.`
     try {
@@ -265,7 +265,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   }
 
   const normalizePostalCode = (value: string) =>
-    value.toUpperCase().replaceAll(/\s/g, "").slice(0, 6)
+    value.toUpperCase().replace(/\s/g, "").slice(0, 6)
 
   const handleDeliveryCheck = async () => {
     const cleaned = normalizePostalCode(postalCode)

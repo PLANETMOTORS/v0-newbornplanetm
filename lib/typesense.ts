@@ -136,7 +136,7 @@ function resolveBodyStyleAlias(value: string): string {
 
 /** Sanitize a body style value for safe interpolation into PostgREST filters. */
 function sanitizeBodyStyleValue(value: string): string {
-  return value.replaceAll(/[^a-zA-Z0-9 -]/g, '').trim().slice(0, 100)
+  return value.replace(/[^a-zA-Z0-9 -]/g, '').trim().slice(0, 100)
 }
 
 // ── Typesense search ───────────────────────────────────────────────────────
@@ -265,7 +265,7 @@ function applySupabaseTextSearch(query: SupabaseQuery, searchQuery?: string): Su
   // Sanitize user input to prevent PostgREST filter injection via commas/parens.
   // Strip hyphens too — websearch_to_tsquery treats "-word" as NOT operator,
   // breaking searches for "CR-V", "RAV-4", "PM-2024-001", etc.
-  const sanitizedQ = searchQuery.trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s]/g, ' ').replaceAll(/\s+/g, ' ').trim()
+  const sanitizedQ = searchQuery.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
   if (sanitizedQ) {
     return query.textSearch('search_vector', sanitizedQ, { type: 'websearch', config: 'english' })
   }

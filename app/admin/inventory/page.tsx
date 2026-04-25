@@ -439,7 +439,7 @@ export default function AdminInventoryPage() {
       (safeNum(v.price) / 100).toFixed(2), v.mileage, v.status, v.exterior_color || "",
       v.drivetrain || "", v.fuel_type || ""
     ])
-    const csv = [headers.join(","), ...rows.map(r => r.map(c => `"${String(c).replaceAll(/"/g, '""')}"`).join(","))].join("\n")
+    const csv = [headers.join(","), ...rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(","))].join("\n")
     const blob = new Blob([csv], { type: "text/csv" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
