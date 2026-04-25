@@ -15,6 +15,14 @@ interface ComparisonTableProps {
   othersLabel?: string
 }
 
+function BoolIcon({ value }: Readonly<{ value: boolean }>) {
+  return value ? (
+    <Check className="h-5 w-5 text-green-600 mx-auto" />
+  ) : (
+    <X className="h-5 w-5 text-red-500 mx-auto" />
+  )
+}
+
 export function ComparisonTable({ title, rows, usLabel = 'Planet Motors', othersLabel = 'Others' }: Readonly<ComparisonTableProps>) {
   return (
     <section className="py-16 md:py-24 bg-muted/30">
@@ -34,22 +42,14 @@ export function ComparisonTable({ title, rows, usLabel = 'Planet Motors', others
               <div className="p-4 font-semibold">{row.feature}</div>
               <div className="p-4 text-center">
                 {row.usValue !== undefined ? (
-                  row.usValue ? (
-                    <Check className="h-5 w-5 text-green-600 mx-auto" />
-                  ) : (
-                    <X className="h-5 w-5 text-red-500 mx-auto" />
-                  )
+                  <BoolIcon value={row.usValue} />
                 ) : (
                   <span className="text-green-700 dark:text-green-500 font-semibold">{row.us}</span>
                 )}
               </div>
               <div className="p-4 text-center">
                 {row.othersValue !== undefined ? (
-                  row.othersValue ? (
-                    <Check className="h-5 w-5 text-green-600 mx-auto" />
-                  ) : (
-                    <X className="h-5 w-5 text-red-500 mx-auto" />
-                  )
+                  <BoolIcon value={row.othersValue} />
                 ) : (
                   <span className="text-muted-foreground">{row.others}</span>
                 )}

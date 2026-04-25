@@ -235,11 +235,11 @@ export function mapLeadToAutoRaptor(lead: {
   }
 }): AutoRaptorLeadPayload {
   const source = lead.source ?? "website"
-  const requestType: AutoRaptorLeadPayload["requestType"] =
-    source.includes("finance") ? "finance"
-    : source.includes("test_drive") ? "test-drive"
-    : source.includes("trade") ? "sell"
-    : "buy"
+  let requestType: AutoRaptorLeadPayload["requestType"]
+  if (source.includes("finance")) requestType = "finance"
+  else if (source.includes("test_drive")) requestType = "test-drive"
+  else if (source.includes("trade")) requestType = "sell"
+  else requestType = "buy"
 
   return {
     firstName: lead.firstName,

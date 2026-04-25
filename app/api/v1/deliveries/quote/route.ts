@@ -279,6 +279,24 @@ export function GET(request: NextRequest) {
   // Check if delivery is available (max 5000km)
   const isDeliveryAvailable = distance <= 5000
 
+  let message: string
+  if (!isDeliveryAvailable) {
+    message = `Delivery not available to ${province} (${distance}km)`
+  } else if (isFree) {
+    message = `Free delivery to ${cleanPostal} (estimated ${distance}km from Richmond Hill)`
+  } else {
+    message = `Estimated delivery fee: $${cost.toFixed(2)} (estimated ${distance}km from Richmond Hill)`
+  }
+
+  let ratePerKm: number
+  if (distance <= 500) {
+    ratePerKm = 0.70
+  } else if (distance <= 1000) {
+    ratePerKm = 0.75
+  } else {
+    ratePerKm = 0.80
+  }
+
   return NextResponse.json({
     postalCode: cleanPostal,
     province,
@@ -289,15 +307,11 @@ export function GET(request: NextRequest) {
     isDeliveryAvailable,
     freeDeliveryThreshold: 300,
     _disclaimer: "Delivery distance and cost are estimates only. Final delivery fees will be confirmed at time of purchase. Contact Planet Motors for an exact quote.",
-    message: !isDeliveryAvailable
-      ? `Delivery not available to ${province} (${distance}km)`
-      : isFree 
-        ? `Free delivery to ${cleanPostal} (estimated ${distance}km from Richmond Hill)`
-        : `Estimated delivery fee: $${cost.toFixed(2)} (estimated ${distance}km from Richmond Hill)`,
+    message,
     breakdown: isFree ? null : {
       baseDistance: 300,
       chargeableDistance: distance - 300,
-      ratePerKm: distance <= 500 ? 0.70 : distance <= 1000 ? 0.75 : 0.80,
+      ratePerKm,
     }
   })
 }

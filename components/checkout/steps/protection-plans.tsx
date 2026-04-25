@@ -200,17 +200,19 @@ function ComparisonModal({ onClose }: Readonly<{ onClose: () => void }>) {
                     const val = plan.comparisonFeatures[row]
                     return (
                       <td key={plan.id} className="p-4 text-center">
-                        {val === true ? (
+                        {val === true && (
                           <>
                             <Check className="w-5 h-5 text-green-600 mx-auto" aria-hidden="true" />
                             <span className="sr-only">Included</span>
                           </>
-                        ) : val === false ? (
+                        )}
+                        {val === false && (
                           <>
                             <span className="text-muted-foreground" aria-hidden="true">—</span>
                             <span className="sr-only">Not included</span>
                           </>
-                        ) : (
+                        )}
+                        {val !== true && val !== false && (
                           <span className="font-semibold">{val}</span>
                         )}
                       </td>
@@ -258,6 +260,14 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: Readonly<Pro
       <div className="grid gap-4" role="radiogroup" aria-label="Protection plan options">
         {PLANS.map((plan) => {
           const selected = data.selectedPlan === plan.id
+          let cardBorderClass: string
+          if (selected) {
+            cardBorderClass = "border-blue-600 bg-blue-50 ring-2 ring-blue-600/20"
+          } else if (plan.highlight) {
+            cardBorderClass = "border-blue-300 hover:border-blue-500"
+          } else {
+            cardBorderClass = "hover:border-blue-300"
+          }
           return (
             <Card
               key={plan.id}
@@ -265,13 +275,7 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: Readonly<Pro
               tabIndex={0}
               aria-checked={selected}
               aria-label={`${plan.name} — $${plan.price.toLocaleString()}`}
-              className={`cursor-pointer transition-all relative ${
-                selected
-                  ? "border-blue-600 bg-blue-50 ring-2 ring-blue-600/20"
-                  : plan.highlight
-                    ? "border-blue-300 hover:border-blue-500"
-                    : "hover:border-blue-300"
-              }`}
+              className={`cursor-pointer transition-all relative ${cardBorderClass}`}
               onClick={() => handleSelect(plan.id as ProtectionPlanId)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
