@@ -45,12 +45,13 @@ resource "aws_s3_bucket_public_access_block" "alb_logs" {
   restrict_public_buckets = true
 }
 
-# Enable server-side access logging on the ALB logs bucket itself
-# (logs-of-logs stored in a separate prefix for auditability)
+# Server-access logging for the alb_logs bucket itself → centralised logs
+# bucket (defined in cdn.tf). This avoids the self-referencing pattern that
+# Sonar S6258 flags as incomplete.
 resource "aws_s3_bucket_logging" "alb_logs" {
   bucket        = aws_s3_bucket.alb_logs.id
-  target_bucket = aws_s3_bucket.alb_logs.id
-  target_prefix = "s3-access-logs/"
+  target_bucket = aws_s3_bucket.logs.id
+  target_prefix = "s3/alb-logs/"
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "alb_logs" {
@@ -73,12 +74,26 @@ resource "aws_s3_bucket_policy" "alb_logs" {
     Version = "2012-10-17"
     Statement = [
       {
+        Sid    = "AllowELBLogDelivery"
         Effect = "Allow"
         Principal = {
           AWS = "arn:aws:iam::${data.aws_elb_service_account.main.id}:root"
         }
         Action   = "s3:PutObject"
         Resource = "${aws_s3_bucket.alb_logs.arn}/alb/*"
+      },
+      {
+        Sid       = "DenyInsecureTransport"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "s3:*"
+        Resource = [
+          aws_s3_bucket.alb_logs.arn,
+          "${aws_s3_bucket.alb_logs.arn}/*",
+        ]
+        Condition = {
+          Bool = { "aws:SecureTransport" = "false" }
+        }
       }
     ]
   })
