@@ -544,16 +544,16 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
   }, [imageType, has360, isAutoSpinning, vehicle?.images?.length, clearAutoSpin])
 
   const handleProtectedAction = (action: string, callback?: () => void) => {
-    if (!user) {
+    if (user) {
+      if (callback) callback()
+    } else {
       setAuthAction(action)
       setShowAuthModal(true)
-    } else if (callback) {
-      callback()
     }
   }
 
   const handleShare = async () => {
-    const shareUrl = typeof globalThis.window !== "undefined" ? globalThis.window.location.href : ""
+    const shareUrl = typeof globalThis.window === "undefined" ? "" : globalThis.window.location.href
     const shareTitle = `${vehicle.year} ${vehicle.make} ${vehicle.model} at Planet Motors`
     const shareText = `Check out this ${vehicle.year} ${vehicle.make} ${vehicle.model} for $${safeNum(vehicle.price).toLocaleString()}.`
     try {
