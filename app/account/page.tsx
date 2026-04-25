@@ -294,10 +294,13 @@ export default function AccountPage() {
     try {
       const supabase = createClient()
       const redirectPath = "/account"
-      const callbackUrl =
+      const siteOrigin =
         globalThis.window?.location?.origin
-          ? `${globalThis.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`
-          : (process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://www.planetmotors.ca'}/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`)
+        ?? process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL
+        ?? process.env.NEXT_PUBLIC_SITE_URL
+        ?? process.env.NEXT_PUBLIC_BASE_URL
+        ?? "https://www.planetmotors.ca"
+      const callbackUrl = `${siteOrigin}/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`
       const { data: signUpData, error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -592,7 +595,7 @@ export default function AccountPage() {
                 <Button 
                   variant="ghost" 
                   className="shrink-0 md:w-full justify-start text-destructive min-h-[44px]"
-                  onClick={() => { signOut().catch(console.error) }}
+                  onClick={() => { signOut().catch(() => { /* sign-out errors are non-actionable for the user */ }) }}
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
@@ -814,14 +817,6 @@ export default function AccountPage() {
                         {!appsLoading && financeApps.length > 0 && (
                           <div className="space-y-3">
                             {financeApps.map((app) => {
-                              const statusColors: Record<string, string> = {
-                                submitted: "bg-blue-100 text-blue-800",
-                                under_review: "bg-yellow-100 text-yellow-800",
-                                approved: "bg-green-100 text-green-800",
-                                declined: "bg-red-100 text-red-800",
-                                funded: "bg-emerald-100 text-emerald-800",
-                                cancelled: "bg-gray-100 text-gray-800",
-                              }
                               const agreementLabel = AGREEMENT_TYPE_LABEL[app.agreement_type] ?? "Cash"
                               return (
                                 <div key={app.id} className="flex items-center justify-between p-3 rounded-lg border">
@@ -833,7 +828,7 @@ export default function AccountPage() {
                                       {app.requested_amount ? `$${Math.round(app.requested_amount).toLocaleString()}` : ""} &middot; {new Date(app.created_at).toLocaleDateString()}
                                     </p>
                                   </div>
-                                  <Badge className={statusColors[app.status] || "bg-gray-100 text-gray-800"}>
+                                  <Badge className={STATUS_BADGE_COLOURS[app.status] ?? "bg-gray-100 text-gray-800"}>
                                     {app.status.replaceAll("_", " ")}
                                   </Badge>
                                 </div>
