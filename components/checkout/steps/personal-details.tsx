@@ -142,7 +142,8 @@ export function PersonalDetailsStep({ data, onChange, onContinue }: PersonalDeta
     const errs: string[] = []
     if (!data.firstName.trim()) errs.push("First name is required")
     if (!data.lastName.trim()) errs.push("Last name is required")
-    if (!data.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))
+    // Safe regex: bounded quantifiers + dot-free domain labels eliminate backtracking (S2631).
+    if (!data.email.trim() || data.email.length > 254 || !/^[^\s@]{1,64}@[^\s@.]{1,63}(?:\.[^\s@.]{1,63})+$/.test(data.email))
       errs.push("Valid email is required")
     if (data.phone.replaceAll(/\D/g, '').length !== 10)
       errs.push("Phone must be 10 digits")
