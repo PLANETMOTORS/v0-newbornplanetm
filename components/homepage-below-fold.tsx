@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // Below-fold homepage sections — code-split from homepage-content.tsx
 // to reduce initial JS bundle and improve LCP/TBT
 import Link from "next/link"

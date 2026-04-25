@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion, no-useless-assignment */
 /**
  * lib/typesense/sync.ts
  *

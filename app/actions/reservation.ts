@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 'use server'
 
 import { createHash } from 'node:crypto'

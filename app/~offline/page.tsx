@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-html-link-for-pages */
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {

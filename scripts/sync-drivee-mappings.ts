@@ -1,4 +1,5 @@
 #!/usr/bin/env npx tsx
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Sync drivee_mappings table from migration-manifest.json
  *

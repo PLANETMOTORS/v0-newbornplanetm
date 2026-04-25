@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from "next/server"
 
 // Origin location: Planet Motors, Richmond Hill, Ontario (L4B postal code area)

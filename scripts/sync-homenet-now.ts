@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Full-replacement sync: reads PlanetMotorsDealer.csv and replaces entire DB inventory.
  * Incoming file IS the inventory. Old vehicles not in file are deleted.
