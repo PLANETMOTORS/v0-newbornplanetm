@@ -150,7 +150,7 @@ export default function HomepageMockupV2() {
       </header>
 
       {/* Hero Section - Light Background (Clutch/Carvana Style) */}
-      <section className="relative bg-gradient-to-b from-gray-50 to-white overflow-hidden">
+      <section className="relative bg-linear-to-b from-gray-50 to-white overflow-hidden">
         {/* Subtle Background Pattern */}
         <div className="absolute inset-0 opacity-40">
           <div className="absolute inset-0" style={{
@@ -189,7 +189,7 @@ export default function HomepageMockupV2() {
 
             {/* Hero Image */}
             <div className="relative hidden lg:block">
-              <div className="aspect-[4/3] bg-white rounded-3xl border border-gray-200 shadow-xl flex items-center justify-center overflow-hidden">
+              <div className="aspect-4/3 bg-white rounded-3xl border border-gray-200 shadow-xl flex items-center justify-center overflow-hidden">
                 <div className="text-center p-8">
                   <div className="w-32 h-32 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
                     <Car className="w-16 h-16 text-[#1e3a8a]/30" />
@@ -370,7 +370,7 @@ export default function HomepageMockupV2() {
       </section>
 
       {/* Sell / Trade Section - Light Background */}
-      <section className="py-16 bg-gradient-to-br from-green-50 to-emerald-50 border-y border-green-100">
+      <section className="py-16 bg-linear-to-br from-green-50 to-emerald-50 border-y border-green-100">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>

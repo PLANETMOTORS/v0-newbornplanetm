@@ -47,7 +47,7 @@ const steps = [
 
 export function HowItWorks() {
   return (
-    <section className="py-20 lg:py-28 bg-gradient-to-b from-muted/30 to-background overflow-hidden">
+    <section className="py-20 lg:py-28 bg-linear-to-b from-muted/30 to-background overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <Badge variant="outline" className="mb-4 px-4 py-1">
@@ -66,13 +66,13 @@ export function HowItWorks() {
         {/* Desktop Timeline */}
         <div className="hidden lg:block relative max-w-6xl mx-auto mb-16">
           {/* Connector Line */}
-          <div className="absolute top-24 left-[10%] right-[10%] h-1 bg-gradient-to-r from-blue-500 via-green-500 via-purple-500 to-orange-500 rounded-full" />
+          <div className="absolute top-24 left-[10%] right-[10%] h-1 bg-linear-to-r from-blue-500 via-green-500 via-purple-500 to-orange-500 rounded-full" />
           
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             {steps.map((item) => (
               <div key={item.step} className="relative">
                 {/* Step Circle with gradient */}
-                <div className={`relative mx-auto w-20 h-20 rounded-full bg-gradient-to-br ${item.color} text-white shadow-lg flex items-center justify-center mb-6`}>
+                <div className={`relative mx-auto w-20 h-20 rounded-full bg-linear-to-br ${item.color} text-white shadow-lg flex items-center justify-center mb-6`}>
                   <item.icon className="w-8 h-8" />
                   <span className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-background border-2 border-primary text-primary text-sm font-bold flex items-center justify-center shadow">
                     {item.step}
@@ -94,7 +94,7 @@ export function HowItWorks() {
                 <ul className="space-y-2">
                   {item.features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-sm">
-                      <CheckCircle className="w-4 h-4 text-green-700 flex-shrink-0" />
+                      <CheckCircle className="w-4 h-4 text-green-700 shrink-0" />
                       <span className="text-muted-foreground">{feature}</span>
                     </li>
                   ))}
@@ -110,11 +110,11 @@ export function HowItWorks() {
             <div key={item.step} className="relative">
               {/* Connector Line */}
               {index < steps.length - 1 && (
-                <div className="absolute top-20 left-6 w-0.5 h-full bg-gradient-to-b from-primary to-primary/20" />
+                <div className="absolute top-20 left-6 w-0.5 h-full bg-linear-to-b from-primary to-primary/20" />
               )}
               
               <div className="flex gap-4">
-                <div className={`relative flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br ${item.color} text-white shadow-lg flex items-center justify-center`}>
+                <div className={`relative shrink-0 w-12 h-12 rounded-full bg-linear-to-br ${item.color} text-white shadow-lg flex items-center justify-center`}>
                   <item.icon className="w-5 h-5" />
                 </div>
                 
@@ -129,7 +129,7 @@ export function HowItWorks() {
                   <ul className="space-y-1">
                     {item.features.map((feature) => (
                       <li key={feature} className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <CheckCircle className="w-3 h-3 text-green-700 flex-shrink-0" />
+                        <CheckCircle className="w-3 h-3 text-green-700 shrink-0" />
                         {feature}
                       </li>
                     ))}

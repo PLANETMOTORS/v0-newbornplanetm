@@ -200,7 +200,7 @@ export default function SchedulePage() {
                             type="button"
                             variant={selectedTime === time ? "default" : "outline"}
                             size="sm"
-                            className="min-h-[44px] cursor-pointer"
+                            className="min-h-11 cursor-pointer"
                             onClick={(e) => {
                               e.preventDefault()
                               e.stopPropagation()

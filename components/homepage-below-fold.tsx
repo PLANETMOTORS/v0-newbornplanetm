@@ -209,7 +209,7 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
                 <ul className="mt-8 space-y-3">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-3 text-sm">
-                      <CheckCircle className={`w-5 h-5 flex-shrink-0 ${plan.highlighted ? "text-[#1e3a8a]" : "text-green-400"}`} />
+                      <CheckCircle className={`w-5 h-5 shrink-0 ${plan.highlighted ? "text-[#1e3a8a]" : "text-green-400"}`} />
                       <span>{feature}</span>
                     </li>
                   ))}

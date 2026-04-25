@@ -38,7 +38,7 @@ function ProductDetailPanel({ product, onClose }: { product: ProtectionProduct; 
       aria-label={`${product.name} — full details`}
     >
       {/* ▸ Gradient hero header */}
-      <div className={`relative bg-gradient-to-r ${meta.gradient} px-6 py-8 sm:px-8 sm:py-10`}>
+      <div className={`relative bg-linear-to-r ${meta.gradient} px-6 py-8 sm:px-8 sm:py-10`}>
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iMzAiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wOCkiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjYSkiLz48L3N2Zz4=')] opacity-50" />
         <div className="relative flex items-start justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -52,7 +52,7 @@ function ProductDetailPanel({ product, onClose }: { product: ProtectionProduct; 
           </div>
           <button
             onClick={onClose}
-            className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-colors ring-1 ring-white/20 flex-shrink-0"
+            className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-colors ring-1 ring-white/20 shrink-0"
             aria-label="Close details"
           >
             <X className="w-5 h-5 text-white" />
@@ -74,7 +74,7 @@ function ProductDetailPanel({ product, onClose }: { product: ProtectionProduct; 
           <div className="grid sm:grid-cols-3 gap-5">
             {product.howItWorks.map((step) => (
               <div key={step.step} className="relative bg-muted/40 rounded-xl p-5 border border-border/40 hover:shadow-md transition-shadow">
-                <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${meta.gradient} text-white text-sm font-bold flex items-center justify-center mb-4 shadow-sm`}>
+                <div className={`w-9 h-9 rounded-full bg-linear-to-br ${meta.gradient} text-white text-sm font-bold flex items-center justify-center mb-4 shadow-sm`}>
                   {step.step}
                 </div>
                 <h5 className="font-semibold text-sm mb-1.5">{step.title}</h5>
@@ -95,7 +95,7 @@ function ProductDetailPanel({ product, onClose }: { product: ProtectionProduct; 
             <ul className="space-y-2.5">
               {product.covered.map((item) => (
                 <li key={item} className="flex items-start gap-2.5 text-sm leading-relaxed">
-                  <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
                   <span>{item}</span>
                 </li>
               ))}
@@ -108,7 +108,7 @@ function ProductDetailPanel({ product, onClose }: { product: ProtectionProduct; 
             <ul className="space-y-2.5">
               {product.notCovered.map((item) => (
                 <li key={item} className="flex items-start gap-2.5 text-sm leading-relaxed text-muted-foreground">
-                  <XCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                  <XCircle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
                   <span>{item}</span>
                 </li>
               ))}
@@ -243,9 +243,9 @@ export function ProductsGridWithDetails() {
                 }`}
               >
                 <div className="flex items-start gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 shadow-sm ${
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 shadow-sm ${
                     isActive
-                      ? `bg-gradient-to-br ${meta?.gradient || "from-primary to-primary/80"} text-white shadow-md`
+                      ? `bg-linear-to-br ${meta?.gradient || "from-primary to-primary/80"} text-white shadow-md`
                       : "bg-muted group-hover:bg-primary/10"
                   }`}>
                     <Icon className={`w-5 h-5 ${isActive ? "" : "text-primary"}`} />

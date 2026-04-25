@@ -175,7 +175,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             sizes="100vw"
             className="object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10 lg:p-16">
             <div className="mx-auto max-w-4xl">
               <Badge className="mb-4">{post.category}</Badge>

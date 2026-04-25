@@ -133,7 +133,7 @@ export default function ProtectionPlansPage() {
         </div>
 
         {/* ═══════════ HERO ═══════════ */}
-        <section className="relative py-20 lg:py-28 bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground overflow-hidden">
+        <section className="relative py-20 lg:py-28 bg-linear-to-br from-primary via-primary to-primary/90 text-primary-foreground overflow-hidden">
           {/* Decorative background elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
             <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
@@ -172,7 +172,7 @@ export default function ProtectionPlansPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
               {trustBadges.map((badge) => (
                 <div key={badge.label} className="flex items-center justify-center gap-3 py-5 md:py-6">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <badge.icon className="w-5 h-5 text-primary" />
                   </div>
                   <div className="text-left">

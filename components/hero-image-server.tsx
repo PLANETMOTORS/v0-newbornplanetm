@@ -28,7 +28,7 @@ export function HeroImageServer({ firstVehicle }: HeroImageServerProps) {
     : "Featured vehicle"
 
   return (
-    <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] shadow-2xl">
+    <div className="relative aspect-4/3 rounded-2xl overflow-hidden bg-linear-to-br from-[#f0f4ff] to-[#e8eef5] shadow-2xl">
       {imageUrl ? (
         <Image
           src={imageUrl}
@@ -60,7 +60,7 @@ export function HeroImageServer({ firstVehicle }: HeroImageServerProps) {
         </div>
       )}
       {/* Gradient overlay — matches VehicleShowcase */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
     </div>
   )
 }

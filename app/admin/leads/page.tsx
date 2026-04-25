@@ -184,7 +184,7 @@ export default function AdminLeadsPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="relative flex-1 min-w-50">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             placeholder="Search by name, email, phone..."
@@ -242,7 +242,7 @@ export default function AdminLeadsPage() {
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
                               <Icon className="w-4 h-4 text-blue-600" />
                             </div>
                             <div className="min-w-0">
@@ -253,7 +253,7 @@ export default function AdminLeadsPage() {
                               )}
                             </div>
                           </div>
-                          <div className="text-right flex-shrink-0 ml-2">
+                          <div className="text-right shrink-0 ml-2">
                             <Badge variant={statusVariant(lead.status)} className="text-xs">{lead.status}</Badge>
                             {lead.priority && lead.priority !== "medium" && (
                               <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded mt-1 ${priorityColor(lead.priority)}`}>

@@ -930,7 +930,7 @@ export default function DeliveryPage() {
 
                   {/* Result */}
                   {deliveryEstimate && (
-                    <div className="border rounded-lg p-6 bg-gradient-to-br from-primary/5 to-accent/5">
+                    <div className="border rounded-lg p-6 bg-linear-to-br from-primary/5 to-accent/5">
                       <div className="flex items-center justify-between mb-4">
                         <div>
                           <p className="text-sm text-muted-foreground">Delivering to</p>

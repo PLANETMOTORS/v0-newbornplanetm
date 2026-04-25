@@ -120,7 +120,7 @@ export default function EVBatteryHealthPage() {
       
       <main id="main-content" tabIndex={-1}>
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-primary via-primary to-green-700 py-20">
+        <section className="bg-linear-to-br from-primary via-primary to-green-700 py-20">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
               <Badge className="mb-4 bg-green-500/20 text-green-100 border-green-400/30">
@@ -304,7 +304,7 @@ export default function EVBatteryHealthPage() {
         </section>
 
         {/* Aviloo Certificate Showcase */}
-        <section className="py-16 bg-gradient-to-b from-green-50 to-white dark:from-green-950/20 dark:to-background">
+        <section className="py-16 bg-linear-to-b from-green-50 to-white dark:from-green-950/20 dark:to-background">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <Badge className="mb-4 bg-green-100 text-green-800 border-green-300">
@@ -400,19 +400,19 @@ export default function EVBatteryHealthPage() {
                     </p>
                     <ul className="space-y-3 text-sm">
                       <li className="flex items-start gap-2">
-                        <Shield className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                        <Shield className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
                         <span><strong>Independent:</strong> Not affiliated with any manufacturer — unbiased results</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <Gauge className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <Gauge className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
                         <span><strong>Scientific:</strong> Tests 100+ battery parameters in under 20 minutes</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <FileCheck className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                        <FileCheck className="h-4 w-4 text-purple-600 mt-0.5 shrink-0" />
                         <span><strong>Certified:</strong> ISO-compliant testing methodology used across 30+ countries</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <TrendingUp className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                        <TrendingUp className="h-4 w-4 text-orange-600 mt-0.5 shrink-0" />
                         <span><strong>Trusted:</strong> Over 100,000 batteries tested worldwide</span>
                       </li>
                     </ul>
@@ -458,7 +458,7 @@ export default function EVBatteryHealthPage() {
               <Card className="overflow-hidden">
                 <div className="grid lg:grid-cols-2">
                   {/* Vehicle Image */}
-                  <div className="relative aspect-[4/3] lg:aspect-auto bg-muted">
+                  <div className="relative aspect-4/3 lg:aspect-auto bg-muted">
                     <Image
                       src={selectedVehicle.image}
                       alt={selectedVehicle.name}

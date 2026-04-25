@@ -179,7 +179,7 @@ export default function CityLandingPage() {
 
       <main id="main-content" tabIndex={-1}>
         {/* Hero Section */}
-        <section className="relative bg-gradient-to-br from-primary/10 via-background to-background py-16 lg:py-24">
+        <section className="relative bg-linear-to-br from-primary/10 via-background to-background py-16 lg:py-24">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl">
               <Badge className="mb-4 bg-green-100 text-green-800">
@@ -244,7 +244,7 @@ export default function CityLandingPage() {
               {featuredVehicles.map(vehicle => (
                 <Link key={vehicle.id} href={`/vehicles/${vehicle.id}`}>
                   <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-                    <div className="relative aspect-[4/3]">
+                    <div className="relative aspect-4/3">
                       <Image
                         src={vehicle.image}
                         alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
@@ -384,7 +384,7 @@ export default function CityLandingPage() {
               
               <div className="mt-8 p-6 bg-primary/5 rounded-lg">
                 <div className="flex items-center gap-4">
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
                       <Phone className="w-6 h-6 text-white" />
                     </div>

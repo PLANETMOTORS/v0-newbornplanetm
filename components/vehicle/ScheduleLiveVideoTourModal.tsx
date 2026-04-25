@@ -46,7 +46,7 @@ export function ScheduleLiveVideoTourModal({
   const triggerButton = (
     <Button
       variant={variant === "prominent" ? "default" : "outline"}
-      className={`w-full gap-2 min-h-[44px] ${
+      className={`w-full gap-2 min-h-11 ${
         variant === "prominent" ? "bg-primary hover:bg-primary/90" : ""
       }`}
     >

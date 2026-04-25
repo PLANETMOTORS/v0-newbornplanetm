@@ -173,7 +173,7 @@ export default async function SellYourCarPage() {
       <Header />
       <main id="main-content" tabIndex={-1}>
         {/* Hero Section with Form */}
-        <section className="relative bg-gradient-to-br from-primary/10 via-background to-background">
+        <section className="relative bg-linear-to-br from-primary/10 via-background to-background">
           <div className="container mx-auto px-4 py-12 md:py-20">
             <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
               <SellYourCarHero

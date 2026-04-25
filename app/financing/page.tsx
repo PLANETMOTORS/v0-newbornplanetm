@@ -107,7 +107,7 @@ export default async function FinancingPage() {
               <div className="mt-8 space-y-3">
                 {benefits.slice(0, 4).map((benefit) => (
                   <div key={benefit} className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-primary shrink-0" />
                     <span>{benefit}</span>
                   </div>
                 ))}

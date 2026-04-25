@@ -126,7 +126,7 @@ export default async function DossierDetailPage({ params }: PageProps) {
                 <span className="text-2xl font-bold text-emerald-600">{dossier.current_aviloo_soh_pct}%</span>
               </div>
               <div className="w-full bg-muted rounded-full h-3">
-                <div className="h-3 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600" style={{ width: `${dossier.current_aviloo_soh_pct}%` }} />
+                <div className="h-3 rounded-full bg-linear-to-r from-emerald-400 to-emerald-600" style={{ width: `${dossier.current_aviloo_soh_pct}%` }} />
               </div>
               {nextDue && (
                 <div className="flex items-center justify-between text-sm">
