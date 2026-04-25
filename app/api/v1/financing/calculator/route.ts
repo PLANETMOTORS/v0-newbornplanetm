@@ -2,6 +2,29 @@ import { NextRequest, NextResponse } from 'next/server'
 import { PROVINCE_TAX_RATES as taxRates } from '@/lib/tax/canada'
 import { rateLimit } from '@/lib/redis'
 
+interface CalcInputs {
+  numericVehiclePrice: number
+  numericTradeInValue: number
+  numericDownPayment: number
+  numericInterestRate: number
+  numericTermMonths: number
+  numericWarrantyPrice: number
+  numericProtectionPrice: number
+}
+
+function validateCalcInputs(inputs: CalcInputs): { code: string; message: string } | null {
+  const { numericVehiclePrice, numericTermMonths, numericInterestRate, numericTradeInValue, numericDownPayment, numericWarrantyPrice, numericProtectionPrice } = inputs
+  if (!Number.isFinite(numericVehiclePrice) || numericVehiclePrice <= 0)
+    return { code: 'INVALID_PRICE', message: 'Valid vehicle price is required' }
+  if (!Number.isFinite(numericTermMonths) || numericTermMonths < 12 || numericTermMonths > 96)
+    return { code: 'INVALID_TERM', message: 'termMonths must be between 12 and 96' }
+  if (!Number.isFinite(numericInterestRate) || numericInterestRate < 0 || numericInterestRate > 29.99)
+    return { code: 'INVALID_RATE', message: 'interestRate must be between 0 and 29.99' }
+  if (numericTradeInValue < 0 || numericDownPayment < 0 || numericWarrantyPrice < 0 || numericProtectionPrice < 0)
+    return { code: 'INVALID_INPUT', message: 'Price and credit inputs cannot be negative' }
+  return null
+}
+
 // POST /api/v1/financing/calculator - Calculate payments
 export async function POST(request: NextRequest) {
   // Rate limit: 30 calculations per hour per IP
@@ -38,33 +61,9 @@ export async function POST(request: NextRequest) {
   const numericWarrantyPrice = Number(warrantyPrice)
   const numericProtectionPrice = Number(protectionPrice)
 
-  // Validate
-  if (!Number.isFinite(numericVehiclePrice) || numericVehiclePrice <= 0) {
-    return NextResponse.json(
-      { success: false, error: { code: 'INVALID_PRICE', message: 'Valid vehicle price is required' } },
-      { status: 400 }
-    )
-  }
-
-  if (!Number.isFinite(numericTermMonths) || numericTermMonths < 12 || numericTermMonths > 96) {
-    return NextResponse.json(
-      { success: false, error: { code: 'INVALID_TERM', message: 'termMonths must be between 12 and 96' } },
-      { status: 400 }
-    )
-  }
-
-  if (!Number.isFinite(numericInterestRate) || numericInterestRate < 0 || numericInterestRate > 29.99) {
-    return NextResponse.json(
-      { success: false, error: { code: 'INVALID_RATE', message: 'interestRate must be between 0 and 29.99' } },
-      { status: 400 }
-    )
-  }
-
-  if (numericTradeInValue < 0 || numericDownPayment < 0 || numericWarrantyPrice < 0 || numericProtectionPrice < 0) {
-    return NextResponse.json(
-      { success: false, error: { code: 'INVALID_INPUT', message: 'Price and credit inputs cannot be negative' } },
-      { status: 400 }
-    )
+  const validationError = validateCalcInputs({ numericVehiclePrice, numericTradeInValue, numericDownPayment, numericInterestRate, numericTermMonths, numericWarrantyPrice, numericProtectionPrice })
+  if (validationError) {
+    return NextResponse.json({ success: false, error: validationError }, { status: 400 })
   }
 
   const tax = taxRates[province] || taxRates.ON
