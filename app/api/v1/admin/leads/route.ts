@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 import { ADMIN_EMAILS } from "@/lib/admin"
+import { logger } from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
   try {
@@ -83,6 +84,25 @@ export async function GET(request: NextRequest) {
 }
 
 // Fallback: aggregate leads from existing tables if leads table doesn't exist yet
+
+const FINANCE_STATUS_MAP: Record<string, string> = {
+  submitted: "new",
+  under_review: "new",
+  approved: "qualified",
+  funded: "converted",
+}
+
+const RESERVATION_STATUS_MAP: Record<string, string> = {
+  completed: "converted",
+  confirmed: "qualified",
+  cancelled: "lost",
+}
+
+const TRADE_IN_STATUS_MAP: Record<string, string> = {
+  accepted: "converted",
+  pending: "new",
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function aggregateLeads(adminClient: any, filters: { status: string | null; source: string | null; search: string | null; offset: number; limit: number }) {
   type AggregatedLead = { id: string; source: string; status: string; customer_name: string; customer_email: string; customer_phone: string | null; subject: string; vehicle_info: string | null; created_at: string; source_table: string }
@@ -108,7 +128,7 @@ async function aggregateLeads(adminClient: any, filters: { status: string | null
       allLeads.push({
         id: app.id,
         source: "finance_app",
-        status: ["submitted", "under_review"].includes(app.status) ? "new" : app.status === "approved" ? "qualified" : app.status === "funded" ? "converted" : "archived",
+        status: FINANCE_STATUS_MAP[app.status] ?? "archived",
         customer_name: applicant ? `${applicant.first_name} ${applicant.last_name}` : "Unknown",
         customer_email: applicant?.email || "",
         customer_phone: applicant?.phone || null,
@@ -132,7 +152,7 @@ async function aggregateLeads(adminClient: any, filters: { status: string | null
       allLeads.push({
         id: res.id,
         source: "reservation",
-        status: res.status === "completed" ? "converted" : res.status === "confirmed" ? "qualified" : res.status === "cancelled" ? "lost" : "new",
+        status: RESERVATION_STATUS_MAP[res.status] ?? "new",
         customer_name: res.customer_name || "Unknown",
         customer_email: res.customer_email,
         customer_phone: res.customer_phone,
@@ -156,7 +176,7 @@ async function aggregateLeads(adminClient: any, filters: { status: string | null
       allLeads.push({
         id: ti.id,
         source: "trade_in",
-        status: ti.status === "accepted" ? "converted" : ti.status === "pending" ? "new" : "archived",
+        status: TRADE_IN_STATUS_MAP[ti.status] ?? "archived",
         customer_name: ti.customer_name || "Unknown",
         customer_email: ti.customer_email || "",
         customer_phone: ti.customer_phone || null,
