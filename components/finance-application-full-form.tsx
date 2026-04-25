@@ -693,12 +693,41 @@ if (errors.length > 0) {
     setCurrentStep(prev => prev + 1)
   }
   
+
+  const buildSubmitError = (status: number, result: Record<string, unknown>): string => {
+    const rawMsg =
+      (result?.error as Record<string, unknown>)?.message as string ||
+      result?.error as string ||
+      result?.message as string ||
+      JSON.stringify(result) ||
+      "Failed to submit application"
+    if (status === 403) return "You don't have permission to submit this application. Please log in and try again."
+    if (status === 401) return "Your session has expired. Please log in again and resubmit."
+    return rawMsg
+  }
+
+  const uploadDocuments = async (applicationId: string, docs: typeof documents) => {
+    for (const doc of docs) {
+      if (!doc.file) continue
+      const formData = new FormData()
+      formData.append("file", doc.file)
+      formData.append("applicationId", applicationId)
+      formData.append("documentType", doc.type)
+      try {
+        const uploadRes = await fetch("/api/v1/financing/documents", { method: "POST", body: formData })
+        if (!uploadRes.ok) console.error("Document upload failed:", doc.type)
+      } catch (uploadErr) {
+        console.error("Document upload error:", uploadErr)
+      }
+    }
+  }
+
   const handleSubmit = async () => {
     setIsSubmitting(true)
     setSubmitError(null)
     try {
       // Fire GA4 form_submit event (respects consent mode — gtag handles consent internally)
-      if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
+      if (globalThis.window?.gtag) {
         globalThis.window.gtag("event", "form_submit", {
           event_category: "finance_application",
           vehicle_id: vehicleId || "general",
@@ -728,21 +757,7 @@ if (errors.length > 0) {
       const result = await response.json()
 
       if (!response.ok) {
-        const rawMsg =
-          result?.error?.message ||
-          result?.error ||
-          result?.message ||
-          JSON.stringify(result) ||
-          "Failed to submit application"
-        let friendly: string
-        if (response.status === 403) {
-          friendly = "You don't have permission to submit this application. Please log in and try again."
-        } else if (response.status === 401) {
-          friendly = "Your session has expired. Please log in again and resubmit."
-        } else {
-          friendly = rawMsg
-        }
-        throw new Error(friendly)
+        throw new Error(buildSubmitError(response.status, result))
       }
 
       const applicationId =
@@ -752,26 +767,7 @@ if (errors.length > 0) {
   
   // Upload documents to private Blob storage
   if (applicationId && documents.length > 0) {
-    for (const doc of documents) {
-      if (doc.file) {
-        const formData = new FormData()
-        formData.append("file", doc.file)
-        formData.append("applicationId", applicationId)
-        formData.append("documentType", doc.type)
-        
-        try {
-          const uploadRes = await fetch("/api/v1/financing/documents", {
-            method: "POST",
-            body: formData
-          })
-          if (!uploadRes.ok) {
-            console.error("Document upload failed:", doc.type)
-          }
-        } catch (uploadErr) {
-          console.error("Document upload error:", uploadErr)
-        }
-      }
-    }
+    await uploadDocuments(applicationId, documents)
   }
   
       // Clean up drafts after successful submission
