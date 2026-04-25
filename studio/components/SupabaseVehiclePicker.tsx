@@ -124,9 +124,9 @@ export function SupabaseVehiclePicker(props: StringInputProps) {
 
       if (searchQuery.trim()) {
         const escapedQuery = searchQuery
-          .replaceAll('\\', '\\\\')  // Escape backslashes first
-          .replaceAll('%', '\\%')    // Escape percent signs (LIKE wildcard)
-          .replaceAll('_', '\\_')    // Escape underscores (LIKE wildcard)
+          .replaceAll('\\', String.raw`\\`)  // Escape backslashes first
+          .replaceAll('%', String.raw`\%`)    // Escape percent signs (LIKE wildcard)
+          .replaceAll('_', String.raw`\_`)    // Escape underscores (LIKE wildcard)
 
         if (escapedQuery) {
           builder = builder.or(

@@ -81,7 +81,7 @@ class FinanceFormPage {
   }
 
   get errorBanner() {
-    return this.page.locator(".bg-destructive\\/10")
+    return this.page.locator(String.raw`.bg-destructive\/10`)
   }
 }
 

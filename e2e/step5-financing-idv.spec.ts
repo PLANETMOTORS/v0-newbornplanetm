@@ -266,7 +266,7 @@ test.describe("Step 5 — IDV: Document Upload", () => {
 
     // The remove button (X) should appear on the preview
     const removeBtn = page
-      .locator(".relative.aspect-\\[1\\.6\\]")
+      .locator(String.raw`.relative.aspect-\[1\.6\]`)
       .locator("button")
       .first()
     await removeBtn.click()
