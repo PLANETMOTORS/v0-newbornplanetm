@@ -1,0 +1,38 @@
+name: Sanity Data Integrity Audit
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Runs daily at 06:00 UTC (2:00 AM ET)
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  sanity-audit:
+    name: Sanity Data Integrity Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install @sanity/client
+        run: npm install --no-save @sanity/client
+
+      - name: Run Sanity Data Integrity Check
+        env:
+          SANITY_PROJECT_ID: wlxj8olw
+          SANITY_DATASET: production
+          SANITY_API_TOKEN: ${{ secrets.SANITY_API_TOKEN }}
+        run: node scripts/sanity-check.js
+
+      - name: Annotate failure
+        if: failure()
+        run: |
+          echo "::error::Sanity data integrity check failed. Review the output above for broken references, missing required fields, or sync issues."

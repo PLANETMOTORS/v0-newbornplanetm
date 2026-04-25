@@ -17,8 +17,14 @@ export const blogPost = defineType({
   ],
   preview: {
     select: { title: 'title', date: 'publishedAt', media: 'coverImage' },
-    prepare({ title, date, media }) {
-      return { title, subtitle: date ? new Date(date).toLocaleDateString() : 'Draft', media }
+    prepare(selection) {
+      const { title, date, media } = selection
+      const isPublished = Boolean(date)
+      return {
+        title: `${isPublished ? '✅' : '📝'} ${title || 'Untitled'}`,
+        subtitle: isPublished ? `Published ${new Date(date).toLocaleDateString()}` : '⏳ Draft — no publishedAt',
+        media,
+      }
     },
   },
 })
@@ -50,10 +56,12 @@ export const testimonial = defineType({
   ],
   preview: {
     select: { title: 'name', rating: 'rating', featured: 'featured' },
-    prepare({ title, rating, featured }) {
+    prepare(selection) {
+      const { title, rating, featured } = selection
+      const stars = rating ? `${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}` : '☆☆☆☆☆'
       return {
-        title: `${title}${featured ? ' (Featured)' : ''}`,
-        subtitle: rating ? `${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}` : '',
+        title: `${featured ? '✅' : '📝'} ${title || 'Unnamed'}`,
+        subtitle: stars,
       }
     },
   },
@@ -77,7 +85,16 @@ export const faqEntry = defineType({
     }}),
     defineField({ name: 'order', title: 'Display Order', type: 'number', initialValue: 0 }),
   ],
-  preview: { select: { title: 'question', category: 'category' } },
+  preview: {
+    select: { title: 'question', category: 'category' },
+    prepare(selection) {
+      const { title, category } = selection
+      return {
+        title: `✅ ${title || 'Untitled'}`,
+        subtitle: category || 'General',
+      }
+    },
+  },
 })
 
 // Protection Plan - EXACT match to database structure
@@ -115,9 +132,13 @@ export const protectionPlan = defineType({
     defineField({ name: 'featured', title: 'Featured', type: 'boolean', initialValue: false }),
   ],
   preview: {
-    select: { title: 'title', tagline: 'tagline' },
-    prepare({ title, tagline }) {
-      return { title: title || 'Untitled', subtitle: tagline }
+    select: { title: 'title', tagline: 'tagline', active: 'active' },
+    prepare(selection) {
+      const { title, tagline, active } = selection
+      return {
+        title: `${active ? '✅' : '📝'} ${title || 'Untitled'}`,
+        subtitle: tagline || '⏳ No tagline set',
+      }
     },
   },
 })
