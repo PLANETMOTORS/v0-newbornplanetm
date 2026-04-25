@@ -229,14 +229,13 @@ export const blogPost = defineType({
           type: 'image',
           options: { hotspot: true },
           fields: [
-            {
+            defineField({
               name: 'alt',
               type: 'string',
               title: 'Alt Text',
-              validation: (Rule: { required: () => { (): unknown; error: (msg: string) => unknown } }) =>
-                Rule.required().error('Alt text is required on all images'),
-            },
-            { name: 'caption', type: 'string', title: 'Caption' },
+              validation: (Rule) => Rule.required().error('Alt text is required on all images'),
+            }),
+            defineField({ name: 'caption', type: 'string', title: 'Caption' }),
           ],
         },
       ],
