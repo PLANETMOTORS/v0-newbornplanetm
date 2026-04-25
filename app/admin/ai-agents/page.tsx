@@ -266,8 +266,7 @@ export default function AIAgentsPage() {
                         </div>
                         <div className="space-y-2">
                           {((editForm.quick_actions || []) as QuickAction[]).map((qa, i) => (
-                            // eslint-disable-next-line react/no-array-index-key -- quick actions have no stable ID; index is correct here since items are only appended/removed, never reordered
-                            <div key={i} className="flex gap-2 items-center">
+                            <div key={`qa-${i}`} className="flex gap-2 items-center">
                               <Input
                                 value={qa.label}
                                 onChange={(e) => updateQuickAction(i, "label", e.target.value)}
