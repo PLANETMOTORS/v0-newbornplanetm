@@ -11,7 +11,7 @@ export interface VehicleImageData {
 // Extract listing ID from VDP URL
 // URL format: https://www.planetmotors.ca/inventory/2024-tesla-model-y-13287755/13287755/
 export function extractListingId(vdpUrl: string): string | null {
-  const match = vdpUrl.match(/(\d{8})(?:\/)?$/)
+  const match = /(\d{8})(?:\/)?$/.exec(vdpUrl)
   return match ? match[1] : null
 }
 

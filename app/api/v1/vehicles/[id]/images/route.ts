@@ -58,7 +58,7 @@ async function scrapeImagesFromVDP(vdpUrl: string): Promise<{
     
     // Extract 360 spin URL if available
     let spin360Url: string | undefined
-    const spinMatch = html.match(/https:\/\/[^"'\s]*(?:spin|360)[^"'\s]*\.(?:xml|json|js)/i)
+    const spinMatch = /https:\/\/[^"'\s]*(?:spin|360)[^"'\s]*\.(?:xml|json|js)/i.exec(html)
     if (spinMatch) {
       spin360Url = spinMatch[0]
     }

@@ -96,19 +96,17 @@ function DesktopNav({
   }
 
   return (
-    <ul className="hidden lg:flex lg:items-center lg:gap-1" role="menubar">
+    <ul className="hidden lg:flex lg:items-center lg:gap-1">
       {navigation.map((item) => (
         <li
           key={item.name}
           className="relative"
-          role="none"
           onMouseEnter={() => handleMouseEnter(item.name, !!item.submenu)}
           onMouseLeave={handleMouseLeave}
         >
           {item.submenu ? (
             <button
               type="button"
-              role="menuitem"
               aria-haspopup="true"
               aria-expanded={activeSubmenu === item.name}
               className="flex items-center gap-1 px-4 py-2 text-[15px] font-semibold text-gray-800 hover:text-[#1e3a8a] transition-colors"
@@ -120,7 +118,6 @@ function DesktopNav({
           ) : (
             <Link
               href={item.href}
-              role="menuitem"
               className="flex items-center gap-1 px-4 py-2 text-[15px] font-semibold text-gray-800 hover:text-[#1e3a8a] transition-colors"
             >
               {item.name}
@@ -130,7 +127,6 @@ function DesktopNav({
           {item.submenu && activeSubmenu === item.name && (
             <div 
               className="absolute top-full left-0 pt-1 min-w-[220px] z-[99999]"
-              role="menu"
               onMouseEnter={() => handleMouseEnter(item.name, true)}
               onMouseLeave={handleMouseLeave}
             >
@@ -139,7 +135,6 @@ function DesktopNav({
                   <Link
                     key={subitem.name}
                     href={subitem.href}
-                    role="menuitem"
                     className="block px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
                     onClick={() => setActiveSubmenu(null)}
                   >

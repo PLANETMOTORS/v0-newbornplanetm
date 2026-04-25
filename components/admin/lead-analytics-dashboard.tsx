@@ -336,7 +336,7 @@ function RecentLeadsFeed({ leads }: { leads: Lead[] }) {
 export function LeadAnalyticsDashboard({
   refreshInterval = 30_000,
   feedLimit = 8,
-}: DashboardProps) {
+}: Readonly<DashboardProps>) {
   const [leads, setLeads] = useState<Lead[]>([])
   const [stats, setStats] = useState<LeadStats>({ total: 0, new: 0, contacted: 0, qualified: 0, converted: 0 })
   const [loading, setLoading] = useState(true)

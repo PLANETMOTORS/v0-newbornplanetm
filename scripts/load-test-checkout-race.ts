@@ -11,8 +11,8 @@
  *
  * Usage: pnpm dlx tsx scripts/load-test-checkout-race.ts
  */
-import { readFileSync } from 'fs'
-import { join } from 'path'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { createClient } from '@supabase/supabase-js'
 
 // ── Env loader ──────────────────────────────────────────────────────────────

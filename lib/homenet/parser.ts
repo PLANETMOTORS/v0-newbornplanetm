@@ -194,7 +194,7 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
     const cyl = get(["enginecylinders"])
     const disp = get(["enginedisplacement"])
     // Skip "0.0", "0.0 L", etc. displacement for EVs
-    const validDisp = disp && !disp.match(/^0+(\.0+)?(\s|$)/) ? disp : ""
+    const validDisp = disp && !/^0+(\.0+)?(\s|$)/.exec(disp) ? disp : ""
     if (validDisp) engineStr = validDisp + (cyl ? ` ${cyl}-Cylinder` : "")
     else if (cyl && cyl !== "0") engineStr = `${cyl}-Cylinder`
     // EVs: leave engine empty — it's electric
@@ -210,10 +210,10 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
     isCertified = true
   } else if (rawCondition === "new") {
     a2Condition = "new"
-  } else if (!rawCondition) {
-    if (!get(["is_certified", "certified", "cpo"])) isCertified = false
+  } else if (get(["is_certified", "certified", "cpo"])) {
+    // Certification flag explicitly set — preserve current value.
   } else {
-    if (!get(["is_certified", "certified", "cpo"])) isCertified = false
+    isCertified = false
   }
 
   // === A2: Core vehicle fields ===
@@ -495,7 +495,7 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
   const getValue = (tag: string): string => {
     const variations = getTagVariations(tag)
     for (const variant of variations) {
-      const match = xml.match(new RegExp(`<${variant}[^>]*>([^<]*)</${variant}>`, "i"))
+      const match = new RegExp(`<${variant}[^>]*>([^<]*)</${variant}>`, "i").exec(xml)
       if (match && match[1]) return match[1].trim()
     }
     return ""
@@ -605,8 +605,8 @@ function getTagVariations(tag: string): string[] {
   const base = tag.toLowerCase()
   return [
     base,
-    base.replaceAll(/_/g, ""),
-    base.replaceAll(/_/g, "-"),
+    base.replaceAll("_", ""),
+    base.replaceAll("_", "-"),
     base.charAt(0).toUpperCase() + base.slice(1),
     base.toUpperCase(),
   ]

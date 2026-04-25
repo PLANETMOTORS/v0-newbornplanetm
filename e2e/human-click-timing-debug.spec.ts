@@ -39,7 +39,7 @@ const CHECKOUT_URL = `${BASE_URL}/checkout`;
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     try {
-      window.localStorage.setItem(
+      globalThis.window.localStorage.setItem(
         'pm_cookie_consent',
         JSON.stringify({
           decided: true,

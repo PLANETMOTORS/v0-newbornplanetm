@@ -356,7 +356,7 @@ function TradeInContent() {
         setSelectedModel(parts[1])
       }
       const mileageParam = searchParams.get("mileage")
-      if (mileageParam) setMileage(mileageParam.replaceAll(/[^0-9]/g, ""))
+      if (mileageParam) setMileage(mileageParam.replaceAll(/\D/g, ""))
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, user])
@@ -798,7 +798,7 @@ function TradeInContent() {
                         pattern="[0-9]*"
                         className="h-12 bg-white/5 border-white/20 text-white placeholder:text-white/30"
                         value={mileage}
-                        onChange={(e) => setMileage(e.target.value.replace(/[^0-9]/g, ''))}
+                        onChange={(e) => setMileage(e.target.value.replaceAll(/\D/g, ''))}
                         autoComplete="off"
                       />
                       <Button
@@ -850,7 +850,7 @@ function TradeInContent() {
                             pattern="[0-9]*"
                             className="h-12"
                             value={mileage}
-                            onChange={(e) => setMileage(e.target.value.replace(/[^0-9]/g, ''))}
+                            onChange={(e) => setMileage(e.target.value.replaceAll(/\D/g, ''))}
                             autoComplete="off"
                           />
                           <Button className="w-full h-12 text-lg" size="lg" onClick={() => goToStep(2)} disabled={!mileage}>
