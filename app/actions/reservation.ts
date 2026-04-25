@@ -46,6 +46,20 @@ function getStructuredErrorType(error: unknown): string {
   return typeof candidate === 'string' ? candidate.toLowerCase() : ''
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function createStripeSessionWithAcssRetry(stripe: any, createSessionParams: (includeAcssDebit: boolean) => object, enableAcssDebit: boolean, idempotencyKey: string, reservationId: string, stockNumber: string) {
+  try {
+    return await stripe.checkout.sessions.create(createSessionParams(enableAcssDebit), { idempotencyKey })
+  } catch (sessionError) {
+    const stripeErrorCode = getStructuredErrorCode(sessionError)
+    const sessionErrorMessage = sessionError instanceof Error ? sessionError.message.toLowerCase() : ''
+    const canRetryCardOnly = enableAcssDebit && (stripeErrorCode === 'payment_method_not_available' || stripeErrorCode === 'payment_method_invalid_parameter' || sessionErrorMessage.includes('acss') || sessionErrorMessage.includes('payment_method_options'))
+    if (!canRetryCardOnly) throw sessionError
+    console.warn('ACSS checkout session failed, retrying with card only', { reservationId, stockNumber, errorCode: stripeErrorCode || undefined, error: sessionErrorMessage })
+    return stripe.checkout.sessions.create(createSessionParams(false), { idempotencyKey: `${idempotencyKey}:card-only` })
+  }
+}
+
 export async function createReservation(input: ReservationInput): Promise<ReservationResult> {
   const headersList = await headers()
   const forwardedFor = headersList.get('x-forwarded-for')
@@ -207,38 +221,7 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       expires_at: Math.floor(Date.now() / 1000) + 900, // 15 minutes
     })
 
-    let session
-    try {
-      session = await stripe.checkout.sessions.create(createSessionParams(enableAcssDebit), {
-        idempotencyKey,
-      })
-    } catch (sessionError) {
-      const stripeErrorCode = getStructuredErrorCode(sessionError)
-      const sessionErrorMessage = sessionError instanceof Error ? sessionError.message.toLowerCase() : ''
-      const canRetryCardOnly =
-        enableAcssDebit &&
-        (
-          stripeErrorCode === 'payment_method_not_available' ||
-          stripeErrorCode === 'payment_method_invalid_parameter' ||
-          sessionErrorMessage.includes('acss') ||
-          sessionErrorMessage.includes('payment_method_options')
-        )
-
-      if (!canRetryCardOnly) {
-        throw sessionError
-      }
-
-      console.warn('ACSS checkout session failed, retrying with card only', {
-        reservationId,
-        stockNumber: input.stockNumber,
-        errorCode: stripeErrorCode || undefined,
-        error: sessionErrorMessage,
-      })
-
-      session = await stripe.checkout.sessions.create(createSessionParams(false), {
-        idempotencyKey: `${idempotencyKey}:card-only`,
-      })
-    }
+    const session = await createStripeSessionWithAcssRetry(stripe, createSessionParams, enableAcssDebit, idempotencyKey, reservationId, input.stockNumber)
 
     const { error: updateError } = await supabase
       .from('reservations')
