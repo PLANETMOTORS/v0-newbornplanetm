@@ -91,4 +91,9 @@ async function seed() {
   if (fail > 0) process.exit(1)
 }
 
-seed().catch(e => { console.error(e); process.exit(1) })
+try {
+  await seed()
+} catch (e) {
+  console.error(e)
+  process.exit(1)
+}

@@ -63,7 +63,7 @@ const STAGE_LABELS: Record<string, { label: string; color: string; description: 
 export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedVehicles }: GarageShellProps) {
   const router = useRouter()
   const sb = createClient()
-  const [deals, setDeals] = useState<Deal[]>(activeDeals)
+  const deals = activeDeals
   const [liveIndicator, setLiveIndicator] = useState(false)
 
   const name = customer?.preferred_name ?? customer?.first_name ?? user.email?.split("@")[0] ?? "there"

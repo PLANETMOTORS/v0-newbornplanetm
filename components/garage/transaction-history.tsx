@@ -89,12 +89,11 @@ export function TransactionHistory({ deposits, orders, financePayments }: Transa
 
   const filtered = filter === "all" ? entries : entries.filter(e => e.kind === filter)
 
+  const PAID_STATES = new Set(["succeeded", "paid", "completed"])
   const totalPaid = entries
-    .filter(e => ["succeeded", "paid", "completed"].includes(
-      e.data.state.toLowerCase()
-    ))
+    .filter(e => PAID_STATES.has(e.data.state.toLowerCase()))
     .reduce((sum, e) => {
-      const cents = e.kind === "order" ? e.data.total_cents : e.data.amount_cents
+      const cents = e.kind === "order" ? (e.data as Order).total_cents : (e.data as Deposit | FinancePayment).amount_cents
       return sum + cents
     }, 0)
 
@@ -152,7 +151,10 @@ export function TransactionHistory({ deposits, orders, financePayments }: Transa
                 : "bg-muted text-muted-foreground hover:bg-muted/80"
             }`}
           >
-            {f === "all" ? "All" : f === "deposit" ? "Deposits" : f === "order" ? "Orders" : "Financing"}
+            {f === "all" && "All"}
+            {f === "deposit" && "Deposits"}
+            {f === "order" && "Orders"}
+            {f === "finance" && "Financing"}
           </button>
         ))}
       </div>
@@ -163,11 +165,11 @@ export function TransactionHistory({ deposits, orders, financePayments }: Transa
           const id = entry.data.id
           const isOpen = expanded === id
 
-          let icon = <CreditCard className="h-4 w-4" />
-          let title = ""
-          let subtitle = ""
-          let amount = 0
-          let state = ""
+          let icon: React.ReactNode
+          let title: string
+          let subtitle: string
+          let amount: number
+          let state: string
 
           if (entry.kind === "deposit") {
             icon = <Banknote className="h-4 w-4 text-emerald-600" />
@@ -183,8 +185,9 @@ export function TransactionHistory({ deposits, orders, financePayments }: Transa
             amount = entry.data.total_cents
             state = entry.data.state
           } else {
+            const lender = entry.data.financing_applications?.lender
             icon = <CreditCard className="h-4 w-4 text-purple-600" />
-            title = `Finance Payment${entry.data.financing_applications?.lender ? ` — ${entry.data.financing_applications.lender}` : ""}`
+            title = lender ? `Finance Payment — ${lender}` : "Finance Payment"
             subtitle = `Application #${entry.data.financing_application_id?.slice(0, 8) ?? "—"}`
             amount = entry.data.amount_cents
             state = entry.data.state

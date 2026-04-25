@@ -32,7 +32,7 @@ export function BlogShareButtons({ title, url }: BlogShareButtonsProps) {
       document.body.appendChild(el)
       el.select()
       document.execCommand("copy")
-      document.body.removeChild(el)
+      el.remove()
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }
