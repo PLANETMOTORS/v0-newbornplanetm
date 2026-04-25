@@ -1,4 +1,5 @@
 #!/usr/bin/env npx tsx
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Sync drivee_mappings table from migration-manifest.json
  *
@@ -84,8 +85,9 @@ async function main() {
         console.log(`  ✅ ${entry.vehicle} — MID: ${entry.mid}, ${entry.frameCount} frames`)
         synced++
       }
-    } catch (err: any) {
-      console.error(`  ❌ ${entry.vehicle}: ${err.message}`)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error(`  ❌ ${entry.vehicle}: ${msg}`)
       failed++
     }
   }

@@ -1,3 +1,4 @@
+import { randomBytes } from "crypto"
 import { sendNotificationEmail } from "@/lib/email"
 import { validateOrigin } from "@/lib/csrf"
 import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
@@ -106,7 +107,7 @@ export async function POST(req: Request) {
     })
 
     // Generate quote ID
-    const quoteId = `TQ-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`
+    const quoteId = `TQ-${Date.now()}-${randomBytes(3).toString("hex").toUpperCase()}`
 
     // Send notification email to admin
     if (customerEmail) {

@@ -33,13 +33,15 @@ async function scrapeImagesFromVDP(vdpUrl: string): Promise<{
     
     // Extract image URLs from the HTML
     // Look for common patterns in dealer websites
+    // Patterns use negated character classes ([^"'\s]) with a bounded suffix
+    // so there are no nested quantifiers and no catastrophic backtracking risk.
     const imagePatterns = [
-      // HomeNet IOL pattern
-      /https:\/\/photos\.homenetiol\.com\/[^"'\s]+\.(?:jpg|jpeg|png|webp)/gi,
-      // CDN patterns
-      /https:\/\/cdn[^"'\s]*\/[^"'\s]+\.(?:jpg|jpeg|png|webp)/gi,
-      // General image patterns
-      /https:\/\/[^"'\s]*inventory[^"'\s]*\.(?:jpg|jpeg|png|webp)/gi,
+      // HomeNet IOL pattern — fixed host, path chars are [^"'\s]
+      /https:\/\/photos\.homenetiol\.com\/[^"'\s]{1,500}\.(?:jpg|jpeg|png|webp)/gi,
+      // CDN patterns — cdn prefix, then path chars
+      /https:\/\/cdn[^"'\s]{0,200}\/[^"'\s]{1,300}\.(?:jpg|jpeg|png|webp)/gi,
+      // General image patterns — "inventory" keyword in URL
+      /https:\/\/[^"'\s]{0,100}inventory[^"'\s]{0,400}\.(?:jpg|jpeg|png|webp)/gi,
     ]
     
     const allImages: Set<string> = new Set()
@@ -64,7 +66,7 @@ async function scrapeImagesFromVDP(vdpUrl: string): Promise<{
     // Filter and sort images
     const images = Array.from(allImages)
       .filter(url => !url.includes('thumb') && !url.includes('icon'))
-      .sort()
+      .sort((a, b) => a.localeCompare(b))
     
     return {
       images,

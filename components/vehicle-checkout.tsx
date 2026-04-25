@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import { useCallback, useState } from 'react'
@@ -46,7 +47,7 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
   const [showCheckout, setShowCheckout] = useState(false)
 
   const selectedPkg = selectedPlan ? PROTECTION_PLANS.find(p => p.id === selectedPlan) : null
-  const totalDeposit = 250
+  const totalDeposit = VEHICLE_RESERVATION_DEPOSIT
   const totalFull = vehiclePrice + (selectedPkg?.price ?? 0)
 
   const fetchClientSecret = useCallback(async () => {

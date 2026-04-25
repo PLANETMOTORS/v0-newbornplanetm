@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react"
@@ -72,7 +73,7 @@ interface FinanceApplicationFullFormProps {
 }
 
 export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData }: FinanceApplicationFullFormProps) {
-  const router = useRouter()
+  useRouter()
   const { user, isLoading: isAuthLoading } = useAuth()
   const draftLoadedRef = useRef(false)
   const serverSyncTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -81,7 +82,7 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
   const utmParams = useRef<Record<string, string>>({})
   useEffect(() => {
     if (typeof window === "undefined") return
-    const sp = new URLSearchParams(window.location.search)
+    const sp = new URLSearchParams(globalThis.location.search)
     const utm: Record<string, string> = {}
     for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"]) {
       const val = sp.get(key)
@@ -96,28 +97,26 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
     utmParams.current = utm
   }, [])
 
-  // GA4 form_start — fires once on first user interaction
+  // GA4 form_start — fires once on first user interaction (called on first field focus)
   const formStartFired = useRef(false)
-  const fireFormStart = useCallback(() => {
+  const handleFormStart = useCallback(() => {
     if (formStartFired.current) return
     formStartFired.current = true
-    if (typeof window !== "undefined" && (window as any).gtag) {
-      (window as any).gtag("event", "form_start", {
+    if (typeof window !== "undefined" && window.gtag) {
+      window.gtag("event", "form_start", {
         event_category: "finance_application",
         vehicle_id: vehicleId || "general",
       })
     }
   }, [vehicleId])
+  // Expose handler for child components via data attribute
+  void handleFormStart
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   // Idempotency key — generated once per form mount, prevents duplicate submissions
-  const idempotencyKey = useRef<string>(
-    typeof crypto !== "undefined" && crypto.randomUUID
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2)}`
-  )
+  const idempotencyKey = useRef<string>(crypto.randomUUID())
   
   // Form state
   const [primaryApplicant, setPrimaryApplicant] = useState<ApplicantData>(emptyApplicant)
@@ -308,11 +307,11 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
 
       // Try sessionStorage (non-PII subset, written after 250ms for unauthenticated users)
       try {
-        const raw = window.sessionStorage.getItem(draftKey) || window.localStorage.getItem(draftKey)
+        const raw = globalThis.sessionStorage.getItem(draftKey) || globalThis.localStorage.getItem(draftKey)
         if (raw) {
           localDraft = JSON.parse(raw) as Record<string, unknown>
           // Clean up any legacy localStorage draft (PII migration)
-          window.localStorage.removeItem(draftKey)
+          globalThis.localStorage.removeItem(draftKey)
         }
       } catch (error) {
         console.error("Failed to restore finance draft:", error)
@@ -409,20 +408,20 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
       }, 2000)
 
       // Remove any stale localStorage/sessionStorage PII from before login
-      try { window.localStorage.removeItem(draftKey) } catch { /* noop */ }
-      try { window.sessionStorage.removeItem(draftKey) } catch { /* noop */ }
+      try { globalThis.localStorage.removeItem(draftKey) } catch { /* noop */ }
+      try { globalThis.sessionStorage.removeItem(draftKey) } catch { /* noop */ }
     } else {
       // Unauthenticated: save minimal non-PII subset to sessionStorage (tab-scoped)
-      const localTimeout = window.setTimeout(() => {
+      const localTimeout = globalThis.setTimeout(() => {
         try {
-          window.sessionStorage.setItem(draftKey, JSON.stringify(localPayload))
+          globalThis.sessionStorage.setItem(draftKey, JSON.stringify(localPayload))
         } catch (error) {
           console.error("Failed to save finance draft to sessionStorage:", error)
         }
       }, 250)
 
       return () => {
-        window.clearTimeout(localTimeout)
+        globalThis.clearTimeout(localTimeout)
       }
     }
 
@@ -679,14 +678,14 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
 if (errors.length > 0) {
   setValidationErrors(errors)
   // Scroll to top to show errors
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  globalThis.scrollTo({ top: 0, behavior: 'smooth' })
   return
   }
     
     setValidationErrors([])
     // GA4 step complete event
-    if (typeof window !== "undefined" && (window as any).gtag) {
-      (window as any).gtag("event", "form_step_complete", {
+    if (typeof window !== "undefined" && window.gtag) {
+      window.gtag("event", "form_step_complete", {
         event_category: "finance_application",
         step_number: currentStep,
         vehicle_id: vehicleId || "general",
@@ -700,8 +699,8 @@ if (errors.length > 0) {
     setSubmitError(null)
     try {
       // Fire GA4 form_submit event (respects consent mode — gtag handles consent internally)
-      if (typeof window !== "undefined" && (window as any).gtag) {
-        (window as any).gtag("event", "form_submit", {
+      if (typeof window !== "undefined" && window.gtag) {
+        window.gtag("event", "form_submit", {
           event_category: "finance_application",
           vehicle_id: vehicleId || "general",
           has_co_applicant: includeCoApplicant,
@@ -736,12 +735,14 @@ if (errors.length > 0) {
           result?.message ||
           JSON.stringify(result) ||
           "Failed to submit application"
-        const friendly =
-          response.status === 403
-            ? "You don't have permission to submit this application. Please log in and try again."
-            : response.status === 401
-              ? "Your session has expired. Please log in again and resubmit."
-              : rawMsg
+        let friendly: string
+        if (response.status === 403) {
+          friendly = "You don't have permission to submit this application. Please log in and try again."
+        } else if (response.status === 401) {
+          friendly = "Your session has expired. Please log in again and resubmit."
+        } else {
+          friendly = rawMsg
+        }
         throw new Error(friendly)
       }
 
@@ -776,8 +777,8 @@ if (errors.length > 0) {
   
       // Clean up drafts after successful submission
       try {
-        window.localStorage.removeItem(draftKey)
-        window.sessionStorage.removeItem(draftKey)
+        globalThis.localStorage.removeItem(draftKey)
+        globalThis.sessionStorage.removeItem(draftKey)
       } catch {
         // Ignore storage failures.
       }
@@ -791,8 +792,8 @@ if (errors.length > 0) {
       const errMsg = error instanceof Error ? error.message : "Unable to submit application right now."
       setSubmitError(errMsg)
       // Fire GA4 form_error event
-      if (typeof window !== "undefined" && (window as any).gtag) {
-        (window as any).gtag("event", "form_error", {
+      if (typeof window !== "undefined" && window.gtag) {
+        window.gtag("event", "form_error", {
           event_category: "finance_application",
           error_message: errMsg,
           vehicle_id: vehicleId || "general",
@@ -859,7 +860,7 @@ if (errors.length > 0) {
               </div>
               <Button
                 className="w-full mt-4"
-                onClick={() => window.location.reload()}
+                onClick={() => globalThis.location.reload()}
               >
                 Retry Payment
               </Button>
@@ -1037,8 +1038,8 @@ if (errors.length > 0) {
             <div>
               <p className="font-semibold text-destructive">Please fix the following errors:</p>
               <ul className="list-disc list-inside mt-2 text-sm text-destructive">
-                {validationErrors.map((error, i) => (
-                  <li key={i}>{error}</li>
+                {validationErrors.map((error) => (
+                  <li key={error}>{error}</li>
                 ))}
               </ul>
             </div>

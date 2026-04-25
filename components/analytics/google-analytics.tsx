@@ -21,7 +21,7 @@ export function GoogleAnalytics() {
       />
       <Script id="google-analytics" strategy="afterInteractive">
         {`
-          window.dataLayer = window.dataLayer || [];
+          globalThis.dataLayer = globalThis.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
 
           gtag('consent', 'default', {

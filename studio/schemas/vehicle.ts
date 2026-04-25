@@ -347,9 +347,12 @@ export const vehicle = defineType({
       media: 'mainImage',
     },
     prepare({ year, make, model, trim, price, status, media }) {
-      const statusEmoji = status === 'available' ? '' : status === 'pending' ? ' [PENDING]' : ' [SOLD]'
+      let statusEmoji = ' [SOLD]'
+      if (status === 'available') statusEmoji = ''
+      else if (status === 'pending') statusEmoji = ' [PENDING]'
+      const trimPart = trim ? ` ${trim}` : ''
       return {
-        title: `${year} ${make} ${model}${trim ? ` ${trim}` : ''}${statusEmoji}`,
+        title: `${year} ${make} ${model}${trimPart}${statusEmoji}`,
         subtitle: price ? `$${price.toLocaleString()}` : 'No price',
         media,
       }

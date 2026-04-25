@@ -38,11 +38,11 @@ const defaultFilters: VehicleFilters = {
 /** Replicates the activeFilterCount useMemo from useVehicleFilters */
 function calcActiveFilterCount(filters: VehicleFilters): number {
   let count = 0
-  const excludeFromCount = ['sort', 'view', 'page']
+  const excludeFromCount = new Set(['sort', 'view', 'page'])
   Object.entries(filters).forEach(([key, value]) => {
     if (
       value &&
-      !excludeFromCount.includes(key) &&
+      !excludeFromCount.has(key) &&
       value !== defaultFilters[key as keyof VehicleFilters]
     ) {
       count++
@@ -83,7 +83,7 @@ function applySetFilters(
   const params = new URLSearchParams(existing)
   Object.entries(newFilters).forEach(([key, value]) => {
     if (value && value !== defaultFilters[key as keyof VehicleFilters]) {
-      params.set(key, value as string)
+      params.set(key, String(value))
     } else {
       params.delete(key)
     }

@@ -339,7 +339,7 @@ export default async function ProtectionProductPage({ params }: { params: Promis
             <Accordion type="single" collapsible className="space-y-4">
               {product.faqs.map((faq, index) => (
                 <AccordionItem
-                  key={index}
+                  key={faq.question}
                   value={`faq-${index}`}
                   className="bg-background rounded-xl border px-6 data-[state=open]:shadow-sm"
                 >

@@ -215,7 +215,7 @@ export default function DeliveryTrackingPage({ params }: { params: Promise<{ id:
                     const isCompleted = index < delivery.timeline.length
                     const isLast = index === delivery.timeline.length - 1
                     return (
-                      <div key={index} className="flex gap-4">
+                      <div key={`${event.status}-${index}`} className="flex gap-4">
                         <div className="flex flex-col items-center">
                           {isCompleted ? (
                             <CheckCircle className="w-5 h-5 text-green-500" />

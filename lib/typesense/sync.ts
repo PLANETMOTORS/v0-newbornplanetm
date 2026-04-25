@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion, no-useless-assignment */
 /**
  * lib/typesense/sync.ts
  *
@@ -15,6 +16,7 @@
  *  - Maps Sanity field names → VehicleDocument shape expected by Typesense.
  */
 
+import { Client } from "typesense"
 import { sanityClient } from "@/lib/sanity/client"
 import { getAdminClient, isTypesenseConfigured, VEHICLES_COLLECTION } from "./client"
 import { normalizeBodyStyle } from "./indexer"
@@ -123,31 +125,43 @@ export async function syncVehicleToTypesense(
 
   // ── Handle delete ────────────────────────────────────────────────────────
   if (operation === "delete") {
-    try {
-      await client
-        .collections(VEHICLES_COLLECTION)
-        .documents(sanityId)
-        .delete()
-      logger.info(`[Typesense Sync] Deleted document: ${sanityId}`)
-      return { success: true, action: "deleted" }
-    } catch (err: unknown) {
-      // 404 = already gone — treat as success
-      if (
-        err &&
-        typeof err === "object" &&
-        "httpStatus" in err &&
-        (err as { httpStatus: number }).httpStatus === 404
-      ) {
-        return { success: true, action: "deleted_not_found" }
-      }
-      const message = err instanceof Error ? err.message : String(err)
-      logger.error(`[Typesense Sync] Delete failed for ${sanityId}:`, message)
-      return { success: false, action: "delete_failed", error: message }
-    }
+    return deleteFromTypesense(client, sanityId)
   }
 
   // ── Handle create / update — fetch from Sanity first ────────────────────
-  let vehicle: SanityVehicle | null = null
+  return upsertToTypesense(client, sanityId)
+}
+
+type SyncResult = { success: boolean; action: string; error?: string }
+
+async function deleteFromTypesense(
+  client: Client,
+  sanityId: string,
+): Promise<SyncResult> {
+  try {
+    await client
+      .collections(VEHICLES_COLLECTION)
+      .documents(sanityId)
+      .delete()
+    logger.info(`[Typesense Sync] Deleted document: ${sanityId}`)
+    return { success: true, action: "deleted" }
+  } catch (err: unknown) {
+    // 404 = already gone — treat as success
+    if (err && typeof err === "object" && "httpStatus" in err &&
+        (err as { httpStatus: number }).httpStatus === 404) {
+      return { success: true, action: "deleted_not_found" }
+    }
+    const message = err instanceof Error ? err.message : String(err)
+    logger.error(`[Typesense Sync] Delete failed for ${sanityId}:`, message)
+    return { success: false, action: "delete_failed", error: message }
+  }
+}
+
+async function upsertToTypesense(
+  client: Client,
+  sanityId: string,
+): Promise<SyncResult> {
+  let vehicle: SanityVehicle | null
   try {
     vehicle = await sanityClient.fetch<SanityVehicle>(VEHICLE_BY_ID_QUERY, { id: sanityId })
   } catch (err) {
@@ -157,12 +171,10 @@ export async function syncVehicleToTypesense(
   }
 
   if (!vehicle) {
-    // Document may be a draft or not yet published — skip silently
     logger.info(`[Typesense Sync] No published vehicle found for id=${sanityId} — skipping`)
     return { success: true, action: "skipped_not_published" }
   }
 
-  // ── Upsert into Typesense ────────────────────────────────────────────────
   try {
     const doc = mapSanityVehicleToTypesense(vehicle)
     await client

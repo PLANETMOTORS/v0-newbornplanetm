@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Full-replacement sync: reads PlanetMotorsDealer.csv and replaces entire DB inventory.
  * Incoming file IS the inventory. Old vehicles not in file are deleted.
@@ -21,7 +22,7 @@ async function main() {
 
   // Count before
   const before = await sql`SELECT COUNT(*) as total FROM vehicles`
-  console.log("Before sync: " + (before as any)[0]?.total + " vehicles in DB")
+  console.log("Before sync: " + (before as { total: string }[])[0]?.total + " vehicles in DB")
 
   console.log("Running full-replacement sync...")
   const result = await syncVehiclesToDatabase(sql, vehicles)
@@ -38,12 +39,13 @@ async function main() {
 
   // Count after
   const after = await sql`SELECT COUNT(*) as total FROM vehicles`
-  console.log("\nAfter sync: " + (after as any)[0]?.total + " vehicles in DB")
+  console.log("\nAfter sync: " + (after as { total: string }[])[0]?.total + " vehicles in DB")
 
   // List all
+  type VehicleRow = { vin: string; year: number; make: string; model: string }
   const live = await sql`SELECT vin, year, make, model FROM vehicles ORDER BY make, model`
-  console.log("\nLive inventory (" + (live as any[]).length + " vehicles):")
-  for (const v of live as any[]) {
+  console.log("\nLive inventory (" + (live as VehicleRow[]).length + " vehicles):")
+  for (const v of live as VehicleRow[]) {
     console.log("  " + v.vin + " | " + v.year + " " + v.make + " " + v.model)
   }
 

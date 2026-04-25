@@ -16,7 +16,7 @@ export function GoogleTagManager() {
   return (
     <Script id="gtm" strategy="worker">
       {`
-        window.dataLayer = window.dataLayer || [];
+        globalThis.dataLayer = globalThis.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
 
         gtag('consent', 'default', {

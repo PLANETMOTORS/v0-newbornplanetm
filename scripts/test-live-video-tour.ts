@@ -23,7 +23,10 @@ const testBooking = async () => {
   })
 
   const result = await response.json()
-  console.log("Result:", result)
+  console.log(JSON.stringify({ status: response.status, ok: response.ok }))
+  if (result && typeof result === 'object') {
+    console.log(JSON.stringify({ sessionId: typeof result.sessionId === 'string' ? result.sessionId.slice(0, 8) + '…' : undefined, success: result.success }))
+  }
 }
 
 testBooking()

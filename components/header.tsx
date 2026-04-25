@@ -169,8 +169,8 @@ export function Header() {
         ticking = true
       }
     }
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
+    globalThis.addEventListener("scroll", handleScroll, { passive: true })
+    return () => globalThis.removeEventListener("scroll", handleScroll)
   }, [])
 
   return (
@@ -310,7 +310,7 @@ export function Header() {
                 const { createClient } = await import("@/lib/supabase/client")
                 const supabase = createClient()
                 await supabase.auth.signOut()
-                window.location.href = "/"
+                globalThis.location.href = "/"
               }}
               isLoggedIn={!!user}
               userName={userName}

@@ -28,7 +28,7 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
     setError(null)
     try {
       const supabase = createClient()
-      const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent("/account")}`
+      const callbackUrl = `${globalThis.location.origin}/auth/callback?redirectTo=${encodeURIComponent("/account")}`
       const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
         provider,
         options: { redirectTo: callbackUrl },
@@ -41,7 +41,7 @@ export function SignInPanel({ isOpen, onClose }: SignInPanelProps) {
       }
 
       if (data?.url) {
-        window.location.assign(data.url)
+        globalThis.location.assign(data.url)
         return
       }
 

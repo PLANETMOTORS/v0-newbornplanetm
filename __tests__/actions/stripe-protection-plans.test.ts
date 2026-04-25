@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /**
  * Tests for app/actions/stripe.ts — protection plan changes in this PR.
  *
@@ -12,6 +13,7 @@
  *
  * Also tests validateCentsAmount (indirectly via checkout calls).
  */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 

@@ -267,11 +267,75 @@ export async function sendNotificationEmail(data: EmailData): Promise<{ success:
   }
 }
 
+// ── Customer confirmation email templates ──────────────────────────────────
+
+type ConfirmationType = 'finance_submitted' | 'trade_in_submitted' | 'ico_confirmed'
+type ConfirmationData = { customerName: string; referenceId?: string; vehicleInfo?: string; offerAmount?: number }
+
+const confirmationTemplates: Record<ConfirmationType, (data: ConfirmationData) => { subject: string; html: string }> = {
+  finance_submitted: (data) => ({
+    subject: 'Your Finance Application - Planet Motors',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #1e40af; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0;">Planet Motors</h1>
+        </div>
+        <div style="padding: 20px;">
+          <h2>Thank you, ${escapeHtml(data.customerName)}!</h2>
+          <p>Your finance application has been received. Our team will review it within 24 hours.</p>
+          ${data.referenceId ? `<p><strong>Reference:</strong> ${escapeHtml(data.referenceId)}</p>` : ''}
+          ${data.vehicleInfo ? `<p><strong>Vehicle:</strong> ${escapeHtml(data.vehicleInfo)}</p>` : ''}
+          <p>We'll contact you soon with next steps.</p>
+          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+          <p style="color: #64748b; font-size: 14px;">Questions? Call us at ${PHONE_LOCAL}</p>
+        </div>
+      </div>
+    `,
+  }),
+  trade_in_submitted: (data) => ({
+    subject: 'Your Trade-In Quote Request - Planet Motors',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #059669; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0;">Planet Motors</h1>
+        </div>
+        <div style="padding: 20px;">
+          <h2>Thank you, ${escapeHtml(data.customerName)}!</h2>
+          <p>We've received your trade-in quote request and will get back to you shortly.</p>
+          ${data.vehicleInfo ? `<p><strong>Your Vehicle:</strong> ${escapeHtml(data.vehicleInfo)}</p>` : ''}
+          <p>Our team will evaluate your vehicle and provide a competitive offer.</p>
+        </div>
+      </div>
+    `,
+  }),
+  ico_confirmed: (data) => ({
+    subject: 'Your Instant Cash Offer is Confirmed! - Planet Motors',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #7c3aed; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0;">Planet Motors</h1>
+        </div>
+        <div style="padding: 20px;">
+          <h2>Congratulations, ${escapeHtml(data.customerName)}!</h2>
+          <div style="background: #dcfce7; border: 2px solid #22c55e; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
+            <p style="margin: 0; font-size: 24px; color: #166534;"><strong>${data.offerAmount != null ? `$${data.offerAmount.toLocaleString()}` : 'N/A'}</strong></p>
+            <p style="margin: 5px 0 0; color: #166534;">Accepted Offer</p>
+          </div>
+          ${data.vehicleInfo ? `<p><strong>Vehicle:</strong> ${escapeHtml(data.vehicleInfo)}</p>` : ''}
+          <p>Our team will contact you within 24 hours to schedule vehicle inspection and payment.</p>
+          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+          <p style="color: #64748b; font-size: 14px;">Questions? Call us at ${PHONE_LOCAL}</p>
+        </div>
+      </div>
+    `,
+  }),
+}
+
 // Customer confirmation emails
 export async function sendCustomerConfirmationEmail(
   customerEmail: string,
-  type: 'finance_submitted' | 'trade_in_submitted' | 'ico_confirmed',
-  data: { customerName: string; referenceId?: string; vehicleInfo?: string; offerAmount?: number }
+  type: ConfirmationType,
+  data: ConfirmationData
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const resendClient = getResendClient()
@@ -279,63 +343,7 @@ export async function sendCustomerConfirmationEmail(
       return { success: false, error: 'Email not configured' }
     }
 
-    let subject = ''
-    let html = ''
-
-    if (type === 'finance_submitted') {
-      subject = 'Your Finance Application - Planet Motors'
-      html = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: #1e40af; color: white; padding: 20px; text-align: center;">
-            <h1 style="margin: 0;">Planet Motors</h1>
-          </div>
-          <div style="padding: 20px;">
-            <h2>Thank you, ${escapeHtml(data.customerName)}!</h2>
-            <p>Your finance application has been received. Our team will review it within 24 hours.</p>
-            ${data.referenceId ? `<p><strong>Reference:</strong> ${escapeHtml(data.referenceId)}</p>` : ''}
-            ${data.vehicleInfo ? `<p><strong>Vehicle:</strong> ${escapeHtml(data.vehicleInfo)}</p>` : ''}
-            <p>We'll contact you soon with next steps.</p>
-            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-            <p style="color: #64748b; font-size: 14px;">Questions? Call us at ${PHONE_LOCAL}</p>
-          </div>
-        </div>
-      `
-    } else if (type === 'trade_in_submitted') {
-      subject = 'Your Trade-In Quote Request - Planet Motors'
-      html = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: #059669; color: white; padding: 20px; text-align: center;">
-            <h1 style="margin: 0;">Planet Motors</h1>
-          </div>
-          <div style="padding: 20px;">
-            <h2>Thank you, ${escapeHtml(data.customerName)}!</h2>
-            <p>We've received your trade-in quote request and will get back to you shortly.</p>
-            ${data.vehicleInfo ? `<p><strong>Your Vehicle:</strong> ${escapeHtml(data.vehicleInfo)}</p>` : ''}
-            <p>Our team will evaluate your vehicle and provide a competitive offer.</p>
-          </div>
-        </div>
-      `
-    } else if (type === 'ico_confirmed') {
-      subject = 'Your Instant Cash Offer is Confirmed! - Planet Motors'
-      html = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: #7c3aed; color: white; padding: 20px; text-align: center;">
-            <h1 style="margin: 0;">Planet Motors</h1>
-          </div>
-          <div style="padding: 20px;">
-            <h2>Congratulations, ${escapeHtml(data.customerName)}!</h2>
-            <div style="background: #dcfce7; border: 2px solid #22c55e; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
-              <p style="margin: 0; font-size: 24px; color: #166534;"><strong>$${data.offerAmount?.toLocaleString()}</strong></p>
-              <p style="margin: 5px 0 0; color: #166534;">Accepted Offer</p>
-            </div>
-            ${data.vehicleInfo ? `<p><strong>Vehicle:</strong> ${escapeHtml(data.vehicleInfo)}</p>` : ''}
-            <p>Our team will contact you within 24 hours to schedule vehicle inspection and payment.</p>
-            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-            <p style="color: #64748b; font-size: 14px;">Questions? Call us at ${PHONE_LOCAL}</p>
-          </div>
-        </div>
-      `
-    }
+    const { subject, html } = confirmationTemplates[type](data)
 
     const { error } = await resendClient.emails.send({
       from: FROM_EMAIL,

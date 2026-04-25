@@ -156,7 +156,7 @@ export function FinanceApplicationForm() {
   const sendMagicLink = async (email: string) => {
     try {
       const supabase = createClient()
-      const redirectTo = `${window.location.origin}/financing?verified=true`
+      const redirectTo = `${globalThis.location.origin}/financing?verified=true`
 
       const { error } = await supabase.auth.signInWithOtp({
         email,
@@ -326,7 +326,7 @@ export function FinanceApplicationForm() {
           ))}
         </div>
 
-        <Button className="w-full" size="lg" onClick={() => window.location.href = "/financing/application"}>
+        <Button className="w-full" size="lg" onClick={() => globalThis.location.href = "/financing/application"}>
           Continue Application
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
@@ -594,8 +594,8 @@ export function FinanceApplicationForm() {
         <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3">
           <p className="font-semibold text-sm text-destructive mb-1">Please fix the following:</p>
           <ul className="list-disc pl-5 space-y-1">
-            {Object.values(validationErrors).filter(Boolean).map((error, i) => (
-              <li key={i} className="text-xs text-destructive">{error}</li>
+            {Object.values(validationErrors).filter(Boolean).map((error) => (
+              <li key={error} className="text-xs text-destructive">{error}</li>
             ))}
           </ul>
         </div>

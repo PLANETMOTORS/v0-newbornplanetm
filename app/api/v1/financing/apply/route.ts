@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { randomBytes } from "crypto"
 import { createClient } from '@/lib/supabase/server'
 import { sendNotificationEmail } from '@/lib/email'
 import { validateOrigin } from '@/lib/csrf'
@@ -12,12 +13,22 @@ function asNumber(value: unknown, fallback = 0): number {
 }
 
 function validateEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  // Linear-time email check: anchored, no nested quantifiers, no backtracking risk.
+  // Accepts the vast majority of valid RFC 5321 addresses without catastrophic backtracking.
+  if (!/^[^\s@]{1,64}@[^\s@]{1,253}$/.test(email)) {
+    return false
+  }
+
+  const atIndex = email.lastIndexOf('@')
+  const domain = email.slice(atIndex + 1)
+  // Domain must contain a dot AND the dot must not be the first or last character
+  const dotIndex = domain.indexOf(".")
+  return dotIndex > 0 && dotIndex < domain.length - 1
 }
 
 function generateApplicationNumber(): string {
   const ts = Date.now().toString(36).toUpperCase()
-  const rand = Math.floor(Math.random() * 36 ** 4).toString(36).toUpperCase().padStart(4, '0')
+  const rand = randomBytes(3).toString("hex").toUpperCase()
   return `PM-FA-${ts}-${rand}`
 }
 

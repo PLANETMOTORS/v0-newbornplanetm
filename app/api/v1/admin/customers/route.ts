@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
     if (search) {
       // Sanitize to prevent PostgREST filter injection via commas/parentheses
       // Allow @ and . for email searches, - for phone numbers
-      const sanitizedSearch = search.trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s@.\-]/g, "").trim()
+      const sanitizedSearch = search.trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s@.-]/g, "").trim()
       if (sanitizedSearch) {
         query = query.or(
           `email.ilike.%${sanitizedSearch}%,first_name.ilike.%${sanitizedSearch}%,last_name.ilike.%${sanitizedSearch}%,phone.ilike.%${sanitizedSearch}%`

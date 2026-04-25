@@ -42,12 +42,10 @@ export async function POST(req: Request) {
     } else {
       maxDiscountPercent = rules?.lowPriceMaxDiscount_47plus || 1.5
     }
+  } else if (daysListed <= 46) {
+    maxDiscountPercent = rules?.highPriceMaxDiscount_0_46days || 0.75
   } else {
-    if (daysListed <= 46) {
-      maxDiscountPercent = rules?.highPriceMaxDiscount_0_46days || 0.75
-    } else {
-      maxDiscountPercent = rules?.highPriceMaxDiscount_47plus || 1
-    }
+    maxDiscountPercent = rules?.highPriceMaxDiscount_47plus || 1
   }
   
   const minAcceptablePrice = vehiclePrice * (1 - maxDiscountPercent / 100)

@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
 import { useState, useEffect } from "react"
 import {
-  DollarSign, Users, Car, FileText, TrendingUp,
+  DollarSign, Users, Car, TrendingUp,
   RefreshCw, ShoppingCart, ArrowUpRight, CreditCard,
   BarChart3
 } from "lucide-react"

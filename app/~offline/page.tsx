@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-html-link-for-pages */
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
@@ -57,7 +58,9 @@ export default function OfflinePage() {
           </p>
         </div>
 
-        {/* Retry button — simple anchor back to homepage */}
+        {/* Retry button — plain <a> is intentional: <Link> requires Next.js runtime
+            which may be unavailable when the service worker serves this offline page. */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a
           href="/"
           className="inline-flex items-center gap-2 bg-[#1e3a8a] hover:bg-[#1e40af] text-white font-semibold px-8 py-3 rounded-full transition-colors"

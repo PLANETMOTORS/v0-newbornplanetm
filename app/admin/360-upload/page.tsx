@@ -210,6 +210,9 @@ export default function Admin360UploadPage() {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
+                role="button"
+                tabIndex={0}
                 className={`
                   border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
                   ${isDragOver
@@ -310,8 +313,8 @@ export default function Admin360UploadPage() {
                       {uploadResult.errors && uploadResult.errors.length > 0 && (
                         <div className="mt-2 text-sm text-red-600">
                           <p className="font-medium">Errors:</p>
-                          {uploadResult.errors.map((err, i) => (
-                            <p key={i}>• {err}</p>
+                          {uploadResult.errors.map((err) => (
+                            <p key={err}>• {err}</p>
                           ))}
                         </div>
                       )}

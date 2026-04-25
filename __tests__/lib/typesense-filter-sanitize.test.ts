@@ -97,11 +97,12 @@ describe('sanitizeTypesenseFilterValue', () => {
   })
 
   it('escapes multiple backslashes', () => {
-    // Input: a\\b → becomes a\\\\b when wrapped
-    expect(sanitizeTypesenseFilterValue('a\\\\b')).toBe('`a\\\\\\\\b`')
+    // Input: a\\b (two backslashes) → becomes a\\\\b (four backslashes) when wrapped
+    expect(sanitizeTypesenseFilterValue(String.raw`a\\b`)).toBe('`a\\\\\\\\b`')
   })
 
   it('handles backslash in the middle of a multi-word value', () => {
-    expect(sanitizeTypesenseFilterValue('Land\\Rover')).toBe('`Land\\\\Rover`')
+    // Input: Land\Rover (one backslash) → becomes Land\\Rover (two backslashes) when wrapped
+    expect(sanitizeTypesenseFilterValue(String.raw`Land\Rover`)).toBe('`Land\\\\Rover`')
   })
 })

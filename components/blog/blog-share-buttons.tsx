@@ -32,14 +32,14 @@ export function BlogShareButtons({ title, url }: BlogShareButtonsProps) {
       document.body.appendChild(el)
       el.select()
       document.execCommand("copy")
-      document.body.removeChild(el)
+      el.remove()
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }
   }
 
   const openShare = (shareUrl: string) => {
-    window.open(shareUrl, "_blank", "width=600,height=400,noopener,noreferrer")
+    globalThis.open(shareUrl, "_blank", "width=600,height=400,noopener,noreferrer")
   }
 
   return (

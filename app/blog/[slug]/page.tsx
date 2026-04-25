@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
@@ -61,11 +62,17 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // Try Sanity first, fall back to static data
   const sanityPost = await getBlogPost(slug)
   const staticPost = blogPosts[slug]
-  const post = sanityPost
-    ? { title: sanityPost.title, excerpt: sanityPost.excerpt, image: sanityPost.coverImage ?? "/images/blog/1.png", date: sanityPost.publishedAt ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA") : "" }
-    : staticPost
-    ? { title: staticPost.title, excerpt: staticPost.excerpt, image: staticPost.image, date: staticPost.date }
-    : null
+  let post: { title: string; excerpt: string; image: string; date: string } | null = null
+  if (sanityPost) {
+    post = {
+      title: sanityPost.title ?? "",
+      excerpt: sanityPost.excerpt ?? "",
+      image: sanityPost.coverImage ?? "/images/blog/1.png",
+      date: sanityPost.publishedAt ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA") : "",
+    }
+  } else if (staticPost) {
+    post = { title: staticPost.title, excerpt: staticPost.excerpt, image: staticPost.image, date: staticPost.date }
+  }
 
   if (!post) {
     return {
@@ -118,11 +125,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         category: staticPost.category,
       }
     : {
-        title: sanityPost!.title ?? "",
-        excerpt: sanityPost!.excerpt ?? "",
-        image: sanityPost!.coverImage ?? "/images/blog/1.png",
-        date: sanityPost!.publishedAt ? new Date(sanityPost!.publishedAt).toLocaleDateString("en-CA") : "",
-        content: `<p>${sanityPost!.excerpt ?? ""}</p>`,
+        title: sanityPost?.title ?? "",
+        excerpt: sanityPost?.excerpt ?? "",
+        image: sanityPost?.coverImage ?? "/images/blog/1.png",
+        date: sanityPost?.publishedAt ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA") : "",
+        content: `<p>${sanityPost?.excerpt ?? ""}</p>`,
         relatedPosts: [],
         readTime: "5 min read",
         author: "Planet Motors Team",

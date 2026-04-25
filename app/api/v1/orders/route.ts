@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { randomBytes } from "crypto"
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { PROVINCE_TAX_RATES } from '@/lib/tax/canada'
@@ -31,7 +32,7 @@ function fromCents(value: number | null | undefined): number {
 
 function generateOrderNumber() {
   const ts = Date.now().toString(36).toUpperCase()
-  const rand = Math.floor(Math.random() * 36 ** 3).toString(36).toUpperCase().padStart(3, '0')
+  const rand = randomBytes(2).toString("hex").toUpperCase()
   return `PM-${ts}-${rand}`
 }
 
@@ -195,7 +196,8 @@ export async function POST(request: NextRequest) {
 
   const documentationFeeCents = 49900
   const omvicFeeCents = 1000
-  const deliveryFeeCents = normalizedDeliveryType === 'delivery' ? 0 : 0
+  // Delivery fee is currently waived for all delivery types.
+  const deliveryFeeCents = 0
   const protectionPlanFeeCents = protectionPlanId ? (PROTECTION_PLAN_PRICES_CENTS[String(protectionPlanId)] || 0) : 0
   // taxInfo.total is the full decimal rate (e.g. 0.14975 for QC).
   // taxAmountCents and the stored/returned taxRate both derive from it directly

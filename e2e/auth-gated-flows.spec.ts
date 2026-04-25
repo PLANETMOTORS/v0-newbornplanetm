@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-assignment */
 /**
  * Planet Motors — Auth-Gated E2E Flows
  *
@@ -140,12 +141,7 @@ test.describe("Auth-Gated Flows — Finance Submission & ID Upload", () => {
         url.includes("/api/v1/financing/apply") ||
         url.includes("/api/v1/id-verification")
       ) {
-        let body = ""
-        try {
-          body = await response.text()
-        } catch {
-          body = "(could not read body)"
-        }
+        const body = await response.text().catch(() => "(could not read body)")
         apiResponses.push({ url, status: response.status(), body })
         console.log(
           `API Response: ${response.status()} ${url}\n  Body: ${body.slice(0, 500)}`

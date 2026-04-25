@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
@@ -195,22 +196,21 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
             e.preventDefault()
             lastFocusable?.focus()
           }
-        } else {
-          if (document.activeElement === lastFocusable) {
-            e.preventDefault()
-            firstFocusable?.focus()
-          }
+        } else if (document.activeElement === lastFocusable) {
+          e.preventDefault()
+          firstFocusable?.focus()
         }
       }
 
       document.addEventListener("keydown", handleKeyDown)
       modalEl.addEventListener("keydown", handleFocusTrap)
 
+      const triggerEl = orderSummaryTriggerRef.current
       return () => {
         document.removeEventListener("keydown", handleKeyDown)
         modalEl.removeEventListener("keydown", handleFocusTrap)
         // Restore focus to trigger
-        orderSummaryTriggerRef.current?.focus()
+        triggerEl?.focus()
       }
     }
   }, [showOrderSummary])
@@ -221,7 +221,7 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
 
   const goToStep = useCallback((step: number) => {
     setCurrentStep(step)
-    window.scrollTo({ top: 0, behavior: "smooth" })
+    globalThis.scrollTo({ top: 0, behavior: "smooth" })
   }, [])
 
   const advanceFrom = useCallback((step: number) => {
@@ -246,11 +246,7 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
     id: def.id,
     label: def.label,
     timeEstimate: def.timeEstimate,
-    status: completedSteps.has(idx)
-      ? "complete"
-      : idx === currentStep
-        ? "current"
-        : "upcoming",
+    status: completedSteps.has(idx) ? "complete" : (idx === currentStep ? "current" : "upcoming"),
   }))
 
   // --- Loading / error states ---

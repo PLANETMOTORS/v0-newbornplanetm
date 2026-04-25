@@ -1,45 +1,5 @@
 "use client"
-
-import { useEffect } from "react"
-import { reportError } from "@/lib/error-reporting"
-import { Button } from "@/components/ui/button"
-import { AlertTriangle, RefreshCw, Home } from "lucide-react"
-
-export default function MyGarageError({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string }
-  reset: () => void
-}) {
-  useEffect(() => {
-    reportError(error)
-  }, [error])
-
-  return (
-    <div className="min-h-[60vh] flex items-center justify-center p-4">
-      <div className="max-w-md w-full text-center">
-        <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-6">
-          <AlertTriangle className="w-8 h-8 text-destructive" />
-        </div>
-        <h2 className="text-2xl font-bold mb-2">Something went wrong</h2>
-        <p className="text-muted-foreground mb-6">
-          We encountered an unexpected error. Please try again.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button onClick={reset}>
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Try Again
-          </Button>
-          <Button variant="outline" onClick={() => window.location.href = "/"}>
-            <Home className="w-4 h-4 mr-2" />
-            Go Home
-          </Button>
-        </div>
-        {error.digest && (
-          <p className="text-xs text-muted-foreground mt-4">Error ID: {error.digest}</p>
-        )}
-      </div>
-    </div>
-  )
+import { ErrorBoundaryUI } from "@/components/error-boundary-ui"
+export default function GarageError({ error, reset }: Readonly<{ error: Error & { digest?: string }; reset: () => void }>) {
+  return <ErrorBoundaryUI error={error} reset={reset} />
 }

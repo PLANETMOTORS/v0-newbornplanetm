@@ -64,7 +64,7 @@ function SignUpForm() {
         password: formData.password,
         options: {
           emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-            `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`,
+            `${globalThis.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`,
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
@@ -89,7 +89,7 @@ function SignUpForm() {
     
     try {
       const supabase = createClient()
-      const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`
+      const callbackUrl = `${globalThis.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -100,7 +100,7 @@ function SignUpForm() {
       
       if (error) throw error
       if (data?.url) {
-        window.location.assign(data.url)
+        globalThis.location.assign(data.url)
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "OAuth signup failed")
@@ -134,8 +134,8 @@ function SignUpForm() {
               </p>
               
               <div className="space-y-4">
-                {benefits.map((benefit, i) => (
-                  <div key={i} className="flex items-center gap-3">
+                {benefits.map((benefit) => (
+                  <div key={benefit} className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
                       <CheckCircle className="h-5 w-5 text-green-600" />
                     </div>

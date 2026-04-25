@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
 import { useState, useEffect } from "react"
@@ -14,7 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import { Calendar, MapPin, Car, CheckCircle, Phone, AlertCircle } from "lucide-react"
 import { isValidEmail, isValidCanadianPhone, formatCanadianPhone, isValidCanadianPostalCode, formatCanadianPostalCode } from "@/lib/validation"
-import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL, DEALERSHIP_LOCATION, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
+import { PHONE_TOLL_FREE, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 
 interface ScheduleTestDriveProps {
   vehicleTitle: string

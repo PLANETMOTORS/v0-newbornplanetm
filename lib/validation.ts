@@ -55,11 +55,11 @@ export function isValidCanadianPhoneNumber(phone: string): boolean {
   
   // Area code (first 3 digits) cannot start with 0 or 1
   const areaCode = digits.substring(0, 3)
-  if (areaCode[0] === '0' || areaCode[0] === '1') return false
-  
+  if (areaCode.startsWith('0') || areaCode.startsWith('1')) return false
+
   // Exchange code (digits 4-6) cannot start with 0 or 1
   const exchangeCode = digits.substring(3, 6)
-  if (exchangeCode[0] === '0' || exchangeCode[0] === '1') return false
+  if (exchangeCode.startsWith('0') || exchangeCode.startsWith('1')) return false
   
   // Common fake number patterns to reject
   const fakePatterns = [
@@ -216,6 +216,26 @@ export interface ValidationResult {
   errors: Record<string, string>
 }
 
+/** Validate a single field value against its rule. Returns an error message or null. */
+function validateField(field: string, value: string, rule: ValidationRule): string | null {
+  if (rule.required && !value.trim()) {
+    return rule.message || `${field} is required`
+  }
+  if (value && rule.minLength && value.length < rule.minLength) {
+    return rule.message || `${field} must be at least ${rule.minLength} characters`
+  }
+  if (value && rule.maxLength && value.length > rule.maxLength) {
+    return rule.message || `${field} must be at most ${rule.maxLength} characters`
+  }
+  if (value && rule.pattern && !rule.pattern.test(value)) {
+    return rule.message || `${field} is invalid`
+  }
+  if (value && rule.custom && !rule.custom(value)) {
+    return rule.message || `${field} is invalid`
+  }
+  return null
+}
+
 export function validateForm(
   data: Record<string, string>,
   rules: Record<string, ValidationRule>
@@ -224,31 +244,8 @@ export function validateForm(
 
   for (const [field, rule] of Object.entries(rules)) {
     const value = data[field] || ''
-
-    if (rule.required && !value.trim()) {
-      errors[field] = rule.message || `${field} is required`
-      continue
-    }
-
-    if (value && rule.minLength && value.length < rule.minLength) {
-      errors[field] = rule.message || `${field} must be at least ${rule.minLength} characters`
-      continue
-    }
-
-    if (value && rule.maxLength && value.length > rule.maxLength) {
-      errors[field] = rule.message || `${field} must be at most ${rule.maxLength} characters`
-      continue
-    }
-
-    if (value && rule.pattern && !rule.pattern.test(value)) {
-      errors[field] = rule.message || `${field} is invalid`
-      continue
-    }
-
-    if (value && rule.custom && !rule.custom(value)) {
-      errors[field] = rule.message || `${field} is invalid`
-      continue
-    }
+    const error = validateField(field, value, rule)
+    if (error) errors[field] = error
   }
 
   return {

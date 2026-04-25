@@ -1,36 +1,54 @@
 import { MetadataRoute } from 'next'
 import { getPublicSiteUrl } from '@/lib/site-url'
 
+/** Paths blocked for all standard crawlers */
+const STANDARD_DISALLOW = [
+  '/api/',
+  '/account/',
+  '/checkout/',
+  '/favorites/',
+  '/admin/',
+  '/_next/',
+  '/auth/callback',
+  '/auth/error',
+  '/auth/verify-email',
+  '/private/',
+]
+
+/** Paths blocked for search-engine crawlers (subset of STANDARD_DISALLOW) */
+const SEARCH_ENGINE_DISALLOW = ['/api/', '/account/', '/checkout/', '/admin/']
+
+/** AI training crawlers — block all by default to protect content */
+const AI_CRAWLERS = [
+  'GPTBot',
+  'ChatGPT-User',
+  'Google-Extended',
+  'CCBot',
+  'anthropic-ai',
+  'Claude-Web',
+  'Bytespider',
+  'PerplexityBot',
+  'Applebot-Extended',
+  'cohere-ai',
+]
+
+/** Aggressive SEO crawlers — block all */
+const SEO_CRAWLERS = ['AhrefsBot', 'SemrushBot', 'MJ12bot', 'DotBot']
+
 export default function robots(): MetadataRoute.Robots {
   const baseUrl = getPublicSiteUrl()
-  
+
   return {
     rules: [
       {
         userAgent: '*',
         allow: '/',
-        disallow: [
-          '/api/',
-          '/account/',
-          '/checkout/',
-          '/favorites/',
-          '/admin/',
-          '/_next/',
-          '/auth/callback',
-          '/auth/error',
-          '/auth/verify-email',
-          '/private/',
-        ],
+        disallow: STANDARD_DISALLOW,
       },
       {
         userAgent: 'Googlebot',
         allow: '/',
-        disallow: [
-          '/api/',
-          '/account/',
-          '/checkout/',
-          '/admin/',
-        ],
+        disallow: SEARCH_ENGINE_DISALLOW,
       },
       {
         userAgent: 'Googlebot-Image',
@@ -39,71 +57,12 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: 'Bingbot',
         allow: '/',
-        disallow: [
-          '/api/',
-          '/account/',
-          '/checkout/',
-          '/admin/',
-        ],
+        disallow: SEARCH_ENGINE_DISALLOW,
       },
       // Block aggressive SEO crawlers
-      {
-        userAgent: 'AhrefsBot',
-        disallow: '/',
-      },
-      {
-        userAgent: 'SemrushBot',
-        disallow: '/',
-      },
-      {
-        userAgent: 'MJ12bot',
-        disallow: '/',
-      },
-      {
-        userAgent: 'DotBot',
-        disallow: '/',
-      },
-      // AI training crawlers — block by default to protect content
-      {
-        userAgent: 'GPTBot',
-        disallow: '/',
-      },
-      {
-        userAgent: 'ChatGPT-User',
-        disallow: '/',
-      },
-      {
-        userAgent: 'Google-Extended',
-        disallow: '/',
-      },
-      {
-        userAgent: 'CCBot',
-        disallow: '/',
-      },
-      {
-        userAgent: 'anthropic-ai',
-        disallow: '/',
-      },
-      {
-        userAgent: 'Claude-Web',
-        disallow: '/',
-      },
-      {
-        userAgent: 'Bytespider',
-        disallow: '/',
-      },
-      {
-        userAgent: 'PerplexityBot',
-        disallow: '/',
-      },
-      {
-        userAgent: 'Applebot-Extended',
-        disallow: '/',
-      },
-      {
-        userAgent: 'cohere-ai',
-        disallow: '/',
-      },
+      ...SEO_CRAWLERS.map(userAgent => ({ userAgent, disallow: '/' })),
+      // Block AI training crawlers
+      ...AI_CRAWLERS.map(userAgent => ({ userAgent, disallow: '/' })),
       {
         userAgent: 'facebookexternalhit',
         allow: '/',

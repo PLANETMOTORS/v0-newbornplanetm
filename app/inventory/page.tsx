@@ -104,7 +104,7 @@ function transformVehicle(v: Vehicle) {
     badgeColor = "bg-teal-700"
   } else if (v.is_certified) {
     badge = "PM Certified"
-    badgeColor = "bg-primary"
+    // badgeColor stays "bg-primary" (the default)
   } else if (priceInDollars > 100000) {
     badge = "Premium"
     badgeColor = "bg-purple-700"
@@ -839,7 +839,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
           {showError && (
             <div className="flex flex-col items-center justify-center py-20">
               <p className="text-red-500 mb-4">Error loading inventory</p>
-              <Button onClick={() => window.location.reload()}>Try Again</Button>
+              <Button onClick={() => globalThis.location.reload()}>Try Again</Button>
             </div>
           )}
 
@@ -993,8 +993,8 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     {/* Features Preview */}
                     {viewMode === "list" && (
                       <div className="flex flex-wrap gap-2 mt-3">
-                        {vehicle.features.map((feature, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">
+                        {vehicle.features.map((feature) => (
+                          <Badge key={feature} variant="secondary" className="text-xs">
                             {feature}
                           </Badge>
                         ))}

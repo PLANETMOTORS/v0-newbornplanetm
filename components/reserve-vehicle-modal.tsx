@@ -323,7 +323,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
                 Confirmation sent to {formData.email}
               </p>
 
-              <Button className="w-full" onClick={() => window.location.href = "/account"}>
+              <Button className="w-full" onClick={() => globalThis.location.href = "/account"}>
                 View My Reservation
               </Button>
             </div>

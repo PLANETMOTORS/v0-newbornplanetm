@@ -319,8 +319,8 @@ export default function ElectricVehiclesPage() {
                   q: "Can you deliver an EV to my location?",
                   a: "Absolutely! We offer nationwide delivery across Canada. Your EV will arrive fully charged and ready to drive."
                 },
-              ].map((faq, i) => (
-                <Card key={i} className="p-6">
+              ].map((faq) => (
+                <Card key={faq.q} className="p-6">
                   <h3 className="font-semibold text-lg mb-2">{faq.q}</h3>
                   <p className="text-muted-foreground">{faq.a}</p>
                 </Card>

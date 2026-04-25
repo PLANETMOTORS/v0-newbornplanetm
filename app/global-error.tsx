@@ -37,7 +37,7 @@ export default function GlobalError({
               Try Again
             </button>
             <button
-              onClick={() => window.location.href = "/inventory"}
+              onClick={() => globalThis.location.href = "/inventory"}
               style={{
                 padding: "0.5rem 1rem",
                 cursor: "pointer",

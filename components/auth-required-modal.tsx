@@ -18,7 +18,7 @@ export function AuthRequiredModal({
   action = "continue",
   redirectTo = ""
 }: AuthRequiredModalProps) {
-  const encodedRedirect = encodeURIComponent(redirectTo || window.location.pathname)
+  const encodedRedirect = encodeURIComponent(redirectTo || globalThis.location.pathname)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

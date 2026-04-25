@@ -9,8 +9,11 @@ const client = createClient({
   useCdn: false,
 })
 
+const { randomBytes } = require('crypto')
+
 function generateKey() {
-  return Math.random().toString(36).substring(2, 14)
+  // Use crypto.randomBytes for a cryptographically random key (not Math.random)
+  return randomBytes(6).toString('hex') // 12 hex chars, same length as before
 }
 
 // Document definitions

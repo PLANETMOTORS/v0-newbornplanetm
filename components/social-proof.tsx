@@ -92,11 +92,11 @@ export function SocialProof({ vehicleId, className = "" }: SocialProofProps) {
 
   return (
     <div className={`space-y-1.5 ${className}`}>
-      {signals.map((signal, i) => {
+      {signals.map((signal) => {
         const Icon = signal.icon
         return (
           <div
-            key={i}
+            key={signal.text}
             className={`flex items-center gap-2 text-xs ${
               signal.emphasis
                 ? "text-amber-600 dark:text-amber-400 font-medium"

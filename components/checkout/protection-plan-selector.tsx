@@ -50,9 +50,9 @@ export function ProtectionPlanSelector({ value, onChange }: ProtectionPlanSelect
                 </div>
                 {plan.features.length > 0 && (
                   <ul className="mt-2 space-y-1">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Check className="w-3 h-3 text-green-700 shrink-0" />
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Check className="w-3 h-3 text-green-700 flex-shrink-0" />
                         {feature}
                       </li>
                     ))}

@@ -871,20 +871,20 @@ export default function AdminInventoryPage() {
                 <h3 className="font-semibold text-gray-700 mb-3">Vehicle Information</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Year *</label>
-                    <Input type="number" value={formData.year} onChange={e => setFormData(prev => ({ ...prev, year: e.target.value }))} placeholder="2024" />
+                    <label htmlFor="inv-year" className="text-sm font-medium text-gray-700">Year *</label>
+                    <Input id="inv-year" type="number" value={formData.year} onChange={e => setFormData(prev => ({ ...prev, year: e.target.value }))} placeholder="2024" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Make *</label>
-                    <Input value={formData.make} onChange={e => setFormData(prev => ({ ...prev, make: e.target.value }))} placeholder="Tesla" />
+                    <label htmlFor="inv-make" className="text-sm font-medium text-gray-700">Make *</label>
+                    <Input id="inv-make" value={formData.make} onChange={e => setFormData(prev => ({ ...prev, make: e.target.value }))} placeholder="Tesla" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Model *</label>
-                    <Input value={formData.model} onChange={e => setFormData(prev => ({ ...prev, model: e.target.value }))} placeholder="Model 3" />
+                    <label htmlFor="inv-model" className="text-sm font-medium text-gray-700">Model *</label>
+                    <Input id="inv-model" value={formData.model} onChange={e => setFormData(prev => ({ ...prev, model: e.target.value }))} placeholder="Model 3" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Trim</label>
-                    <Input value={formData.trim} onChange={e => setFormData(prev => ({ ...prev, trim: e.target.value }))} placeholder="Long Range" />
+                    <label htmlFor="inv-trim" className="text-sm font-medium text-gray-700">Trim</label>
+                    <Input id="inv-trim" value={formData.trim} onChange={e => setFormData(prev => ({ ...prev, trim: e.target.value }))} placeholder="Long Range" />
                   </div>
                 </div>
               </div>
@@ -894,32 +894,32 @@ export default function AdminInventoryPage() {
                 <h3 className="font-semibold text-gray-700 mb-3">Specifications</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Body Style</label>
-                    <Input value={formData.body_style} onChange={e => setFormData(prev => ({ ...prev, body_style: e.target.value }))} placeholder="Sedan" />
+                    <label htmlFor="inv-body-style" className="text-sm font-medium text-gray-700">Body Style</label>
+                    <Input id="inv-body-style" value={formData.body_style} onChange={e => setFormData(prev => ({ ...prev, body_style: e.target.value }))} placeholder="Sedan" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Drivetrain</label>
-                    <Input value={formData.drivetrain} onChange={e => setFormData(prev => ({ ...prev, drivetrain: e.target.value }))} placeholder="AWD" />
+                    <label htmlFor="inv-drivetrain" className="text-sm font-medium text-gray-700">Drivetrain</label>
+                    <Input id="inv-drivetrain" value={formData.drivetrain} onChange={e => setFormData(prev => ({ ...prev, drivetrain: e.target.value }))} placeholder="AWD" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Transmission</label>
-                    <Input value={formData.transmission} onChange={e => setFormData(prev => ({ ...prev, transmission: e.target.value }))} placeholder="Automatic" />
+                    <label htmlFor="inv-transmission" className="text-sm font-medium text-gray-700">Transmission</label>
+                    <Input id="inv-transmission" value={formData.transmission} onChange={e => setFormData(prev => ({ ...prev, transmission: e.target.value }))} placeholder="Automatic" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Engine</label>
-                    <Input value={formData.engine} onChange={e => setFormData(prev => ({ ...prev, engine: e.target.value }))} placeholder="Electric Motor" />
+                    <label htmlFor="inv-engine" className="text-sm font-medium text-gray-700">Engine</label>
+                    <Input id="inv-engine" value={formData.engine} onChange={e => setFormData(prev => ({ ...prev, engine: e.target.value }))} placeholder="Electric Motor" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Fuel Type</label>
-                    <Input value={formData.fuel_type} onChange={e => setFormData(prev => ({ ...prev, fuel_type: e.target.value }))} placeholder="Electric" />
+                    <label htmlFor="inv-fuel-type" className="text-sm font-medium text-gray-700">Fuel Type</label>
+                    <Input id="inv-fuel-type" value={formData.fuel_type} onChange={e => setFormData(prev => ({ ...prev, fuel_type: e.target.value }))} placeholder="Electric" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Ext. Color</label>
-                    <Input value={formData.exterior_color} onChange={e => setFormData(prev => ({ ...prev, exterior_color: e.target.value }))} placeholder="White" />
+                    <label htmlFor="inv-ext-color" className="text-sm font-medium text-gray-700">Ext. Color</label>
+                    <Input id="inv-ext-color" value={formData.exterior_color} onChange={e => setFormData(prev => ({ ...prev, exterior_color: e.target.value }))} placeholder="White" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Int. Color</label>
-                    <Input value={formData.interior_color} onChange={e => setFormData(prev => ({ ...prev, interior_color: e.target.value }))} placeholder="Black" />
+                    <label htmlFor="inv-int-color" className="text-sm font-medium text-gray-700">Int. Color</label>
+                    <Input id="inv-int-color" value={formData.interior_color} onChange={e => setFormData(prev => ({ ...prev, interior_color: e.target.value }))} placeholder="Black" />
                   </div>
                 </div>
               </div>
@@ -929,16 +929,16 @@ export default function AdminInventoryPage() {
                 <h3 className="font-semibold text-gray-700 mb-3">Pricing & Mileage</h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Price (CAD) *</label>
-                    <Input type="number" step="0.01" value={formData.price} onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))} placeholder="39990.50" />
+                    <label htmlFor="inv-price" className="text-sm font-medium text-gray-700">Price (CAD) *</label>
+                    <Input id="inv-price" type="number" step="0.01" value={formData.price} onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))} placeholder="39990.50" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">MSRP (CAD)</label>
-                    <Input type="number" step="0.01" value={formData.msrp} onChange={e => setFormData(prev => ({ ...prev, msrp: e.target.value }))} placeholder="45990.00" />
+                    <label htmlFor="inv-msrp" className="text-sm font-medium text-gray-700">MSRP (CAD)</label>
+                    <Input id="inv-msrp" type="number" step="0.01" value={formData.msrp} onChange={e => setFormData(prev => ({ ...prev, msrp: e.target.value }))} placeholder="45990.00" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Mileage (km) *</label>
-                    <Input type="number" value={formData.mileage} onChange={e => setFormData(prev => ({ ...prev, mileage: e.target.value }))} placeholder="15000" />
+                    <label htmlFor="inv-mileage" className="text-sm font-medium text-gray-700">Mileage (km) *</label>
+                    <Input id="inv-mileage" type="number" value={formData.mileage} onChange={e => setFormData(prev => ({ ...prev, mileage: e.target.value }))} placeholder="15000" />
                   </div>
                 </div>
               </div>

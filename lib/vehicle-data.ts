@@ -2329,13 +2329,13 @@ export const vehicleMakes: VehicleMake[] = [
 
 // Helper function to get all makes
 export function getAllMakes(): string[] {
-  return vehicleMakes.map(make => make.name).sort()
+  return vehicleMakes.map(make => make.name).sort((a, b) => a.localeCompare(b))
 }
 
 // Helper function to get models for a specific make
 export function getModelsForMake(makeName: string): string[] {
   const make = vehicleMakes.find(m => m.name === makeName)
-  return make ? make.models.map(model => model.name).sort() : []
+  return make ? make.models.map(model => model.name).sort((a, b) => a.localeCompare(b)) : []
 }
 
 // Helper function to get trims for a specific make and model

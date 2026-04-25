@@ -160,7 +160,7 @@ const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
       priceCents,
       monthlyPayment,
       mileageLabel: `${Math.max(0, Math.round(Number(vehicle.mileage || 0))).toLocaleString()} km`,
-      badge: vehicle.featured ? "Popular" : (isEV ? "Electric" : "Certified"),
+      badge: vehicle.featured ? "Popular" : isEV ? "Electric" : "Certified",
       isEV,
       isSUV,
       isAvilooCertified: isEV && Number(vehicle.inspection_score || 0) >= 200,

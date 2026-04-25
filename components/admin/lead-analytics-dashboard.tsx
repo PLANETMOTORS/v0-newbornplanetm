@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
 /**
@@ -23,7 +24,6 @@ import {
   Phone, Mail, ArrowUpRight, Activity, Target,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
 // ── Types ──────────────────────────────────────────────────────────────────

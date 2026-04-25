@@ -5,7 +5,7 @@
  *
  * Analytics coverage (all fire on successful submission):
  *
- *  1. Meta Pixel (browser)  — window.fbq('track', 'Lead')
+ *  1. Meta Pixel (browser)  — globalThis.fbq('track', 'Lead')
  *     via trackMetaLead() from @/components/analytics/meta-pixel
  *
  *  2. GTM dataLayer (browser) — event: 'generate_lead' + form_name
@@ -191,7 +191,7 @@ export function LeadCaptureForm({
       // 2. GA4 — gtag generate_lead event
       trackLead(formName, vehicleId)
 
-      // 3. Meta Pixel — window.fbq('track', 'Lead')
+      // 3. Meta Pixel — globalThis.fbq('track', 'Lead')
       //    Fires even if CAPI is blocked; CAPI already fired server-side above.
       trackMetaLead(formName)
 

@@ -57,7 +57,7 @@ function LoginForm() {
     
     try {
       const supabase = createClient()
-      const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`
+      const callbackUrl = `${globalThis.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -70,7 +70,7 @@ function LoginForm() {
         throw error
       }
       if (data?.url) {
-        window.location.assign(data.url)
+        globalThis.location.assign(data.url)
       }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Sign in failed. Please try email login."

@@ -43,9 +43,9 @@ async function verifySanity() {
     })
 
     if (!response.ok) {
-      console.log(`ERROR: ${response.status} ${response.statusText}`)
+      console.log(JSON.stringify({ error: response.status, statusText: response.statusText }))
       const text = await response.text()
-      console.log(text)
+      console.log(JSON.stringify({ body: text.slice(0, 500) }))
       return
     }
 
@@ -53,58 +53,32 @@ async function verifySanity() {
     const result = data.result
 
     console.log('=== DOCUMENT TYPES IN DATABASE ===')
-    console.log(result.documentTypes.join(', '))
+    console.log(JSON.stringify({ documentTypes: result.documentTypes }))
 
     console.log('\n=== DOCUMENT COUNTS ===')
-    console.log(`Vehicles: ${result.vehicles}`)
-    console.log(`Lenders: ${result.lenders}`)
-    console.log(`Testimonials: ${result.testimonials}`)
-    console.log(`Blog Posts: ${result.blogPosts}`)
-    console.log(`Protection Plans: ${result.protectionPlans}`)
-    console.log(`Pages: ${result.pages}`)
+    console.log(JSON.stringify({ vehicles: result.vehicles, lenders: result.lenders, testimonials: result.testimonials, blogPosts: result.blogPosts, protectionPlans: result.protectionPlans, pages: result.pages }))
 
     console.log('\n=== SINGLETON DOCUMENTS ===')
-    console.log(`Homepage: ${result.homepage ? 'EXISTS' : 'MISSING'}`)
-    if (result.homepage) {
-      const fields = Object.keys(result.homepage).filter(k => !k.startsWith('_'))
-      console.log(`  Fields: ${fields.join(', ')}`)
-    }
-    
-    console.log(`Financing Page: ${result.financingPage ? 'EXISTS' : 'MISSING'}`)
-    if (result.financingPage) {
-      const fields = Object.keys(result.financingPage).filter(k => !k.startsWith('_'))
-      console.log(`  Fields: ${fields.join(', ')}`)
-    }
-
-    console.log(`Sell Your Car Page: ${result.sellYourCarPage ? 'EXISTS' : 'MISSING'}`)
-    if (result.sellYourCarPage) {
-      const fields = Object.keys(result.sellYourCarPage).filter(k => !k.startsWith('_'))
-      console.log(`  Fields: ${fields.join(', ')}`)
-    }
-
-    console.log(`Site Settings: ${result.siteSettings ? 'EXISTS' : 'MISSING'}`)
-    if (result.siteSettings) {
-      const fields = Object.keys(result.siteSettings).filter(k => !k.startsWith('_'))
-      console.log(`  Fields: ${fields.join(', ')}`)
-    }
-
-    console.log(`Inventory Settings: ${result.inventorySettings ? 'EXISTS' : 'MISSING'}`)
-    if (result.inventorySettings) {
-      const fields = Object.keys(result.inventorySettings).filter(k => !k.startsWith('_'))
-      console.log(`  Fields: ${fields.join(', ')}`)
+    for (const [key, label] of [['homepage', 'Homepage'], ['financingPage', 'Financing Page'], ['sellYourCarPage', 'Sell Your Car Page'], ['siteSettings', 'Site Settings'], ['inventorySettings', 'Inventory Settings']]) {
+      const doc = result[key]
+      if (doc) {
+        const fields = Object.keys(doc).filter(k => !k.startsWith('_'))
+        console.log(JSON.stringify({ [label]: 'EXISTS', fields }))
+      } else {
+        console.log(JSON.stringify({ [label]: 'MISSING' }))
+      }
     }
 
     console.log('\n=== SAMPLE DOCUMENTS ===')
     result.allDocs.forEach(doc => {
       const fields = Object.keys(doc).filter(k => !k.startsWith('_'))
-      console.log(`\n[${doc._type}] ${doc._id}`)
-      console.log(`  Fields: ${fields.slice(0, 10).join(', ')}${fields.length > 10 ? '...' : ''}`)
+      console.log(JSON.stringify({ type: doc._type, id: doc._id, fields: fields.slice(0, 10), truncated: fields.length > 10 }))
     })
 
     console.log('\n=== VERIFICATION COMPLETE ===')
 
   } catch (err) {
-    console.log('ERROR:', err.message)
+    console.log(JSON.stringify({ error: err.message }))
   }
 }
 

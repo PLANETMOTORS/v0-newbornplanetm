@@ -35,6 +35,24 @@ resource "aws_s3_bucket" "alb_logs" {
   }
 }
 
+# Block all public access to the ALB logs bucket — logs are internal only
+resource "aws_s3_bucket_public_access_block" "alb_logs" {
+  bucket = aws_s3_bucket.alb_logs.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+# Enable server-side access logging on the ALB logs bucket itself
+# (logs-of-logs stored in a separate prefix for auditability)
+resource "aws_s3_bucket_logging" "alb_logs" {
+  bucket        = aws_s3_bucket.alb_logs.id
+  target_bucket = aws_s3_bucket.alb_logs.id
+  target_prefix = "s3-access-logs/"
+}
+
 resource "aws_s3_bucket_lifecycle_configuration" "alb_logs" {
   bucket = aws_s3_bucket.alb_logs.id
   

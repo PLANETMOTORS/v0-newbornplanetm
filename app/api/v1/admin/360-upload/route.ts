@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server"
 
 const BUCKET = "vehicle-360"
 const MAX_FRAME_SIZE = 5 * 1024 * 1024 // 5 MB per frame
-const ALLOWED_TYPES = ["image/webp"]
+const ALLOWED_TYPES = new Set(["image/webp"])
 
 /**
  * POST /api/v1/admin/360-upload
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
           { status: 400 },
         )
       }
-      if (!ALLOWED_TYPES.includes(value.type)) {
+      if (!ALLOWED_TYPES.has(value.type)) {
         return NextResponse.json(
           { error: `Frame "${value.name}" has unsupported type "${value.type}". Only WebP files are allowed.` },
           { status: 400 },

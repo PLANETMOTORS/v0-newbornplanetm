@@ -153,6 +153,49 @@ async function uploadThumbnailMarker(
 
 // ==================== BATCH PROCESSOR ====================
 
+interface ImageProcessState {
+  blobUrls: string[]
+  primaryBlobUrl: string | null
+}
+
+/** Process a single image URL for a vehicle — download, upload, or skip if existing. */
+async function processSingleImage(
+  sourceUrl: string,
+  stockNumber: string,
+  idx: number,
+  isSpin: boolean,
+  existingBlobs: Set<string>,
+  result: ImagePipelineResult,
+  state: ImageProcessState,
+): Promise<void> {
+  const dest = blobPath(stockNumber, idx, isSpin)
+  result.totalImages++
+
+  if (existingBlobs.has(dest)) {
+    result.skipped++
+    state.blobUrls.push(dest)
+    if (!state.primaryBlobUrl && !isSpin) state.primaryBlobUrl = dest
+    return
+  }
+
+  try {
+    const blob = await downloadAndUpload(sourceUrl, dest)
+    if (blob) {
+      result.downloaded++
+      state.blobUrls.push(blob.url)
+      if (!state.primaryBlobUrl && !isSpin) state.primaryBlobUrl = blob.url
+      uploadThumbnailMarker(stockNumber, idx, isSpin, blob.url).catch((err) => console.warn("[silent-catch]", err))
+    }
+  } catch (error) {
+    result.failed++
+    result.errors.push({
+      stockNumber,
+      url: sourceUrl,
+      error: error instanceof Error ? error.message : "Unknown error",
+    })
+  }
+}
+
 /**
  * Process images for a single vehicle.
  * Downloads from CDN, uploads to Blob, skips existing.
@@ -166,10 +209,8 @@ async function processVehicleImages(
     return { blobUrls: [], primaryBlobUrl: null }
   }
 
-  // Check which blobs already exist for this vehicle
   const existingBlobs = await getExistingBlobs(stock_number)
-  const blobUrls: string[] = []
-  let primaryBlobUrl: string | null = null
+  const state: ImageProcessState = { blobUrls: [], primaryBlobUrl: null }
 
   let photoIndex = 0
   let spinIndex = 0
@@ -177,44 +218,10 @@ async function processVehicleImages(
   for (const sourceUrl of image_urls) {
     const isSpin = isSpinImage(sourceUrl)
     const idx = isSpin ? spinIndex++ : photoIndex++
-    const dest = blobPath(stock_number, idx, isSpin)
-
-    result.totalImages++
-
-    // Skip if already in Blob
-    if (existingBlobs.has(dest)) {
-      result.skipped++
-      // Still collect the URL for the vehicle record
-      // Find existing blob URL from list
-      blobUrls.push(dest)
-      if (!primaryBlobUrl && !isSpin) {
-        primaryBlobUrl = dest
-      }
-      continue
-    }
-
-    try {
-      const blob = await downloadAndUpload(sourceUrl, dest)
-      if (blob) {
-        result.downloaded++
-        blobUrls.push(blob.url)
-        if (!primaryBlobUrl && !isSpin) {
-          primaryBlobUrl = blob.url
-        }
-        // Create thumbnail marker (non-blocking)
-        uploadThumbnailMarker(stock_number, idx, isSpin, blob.url).catch((err) => console.warn("[silent-catch]", err))
-      }
-    } catch (error) {
-      result.failed++
-      result.errors.push({
-        stockNumber: stock_number,
-        url: sourceUrl,
-        error: error instanceof Error ? error.message : "Unknown error",
-      })
-    }
+    await processSingleImage(sourceUrl, stock_number, idx, isSpin, existingBlobs, result, state)
   }
 
-  return { blobUrls, primaryBlobUrl }
+  return { blobUrls: state.blobUrls, primaryBlobUrl: state.primaryBlobUrl }
 }
 
 // ==================== BATCH WITH CONCURRENCY CONTROL ====================

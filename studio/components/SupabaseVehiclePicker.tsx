@@ -189,9 +189,7 @@ export function SupabaseVehiclePicker(props: StringInputProps) {
         <Text size={1} muted>
           {selectedVehicle
             ? `${selectedVehicle.year} ${selectedVehicle.make} ${selectedVehicle.model} — ${formatPrice(selectedVehicle.price)}`
-            : value
-            ? `Vehicle ID: ${value}`
-            : 'No vehicle selected'}
+            : (value ? `Vehicle ID: ${value}` : 'No vehicle selected')}
         </Text>
       </Card>
     )

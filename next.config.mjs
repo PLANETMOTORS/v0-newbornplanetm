@@ -1,5 +1,5 @@
+/* eslint-disable no-unused-vars */
 import withBundleAnalyzer from '@next/bundle-analyzer'
-import { partytownSnippet } from '@builder.io/partytown/integration'
 
 const analyzeBundles = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
@@ -40,6 +40,7 @@ const nextConfig = {
       'framer-motion', 'swr',
       '@supabase/supabase-js', '@vercel/analytics', '@vercel/speed-insights',
       'sonner', '@stripe/stripe-js', '@stripe/react-stripe-js',
+      'zod', '@sentry/nextjs',
     ],
   },
   

@@ -129,8 +129,8 @@ export default function ClutchReplacementCostCanadaPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {costBreakdown.map((item, index) => (
-                        <tr key={index} className="border-t">
+                      {costBreakdown.map((item) => (
+                        <tr key={item.item} className="border-t">
                           <td className="p-4">{item.item}</td>
                           <td className="p-4 text-right font-semibold text-green-600">{item.cost}</td>
                         </tr>
@@ -156,8 +156,8 @@ export default function ClutchReplacementCostCanadaPage() {
             </p>
 
             <div className="not-prose my-6 grid md:grid-cols-2 gap-4">
-              {costByProvince.map((item, index) => (
-                <Card key={index}>
+              {costByProvince.map((item) => (
+                <Card key={item.province}>
                   <CardContent className="p-4 flex justify-between items-center">
                     <span className="font-semibold">{item.province}</span>
                     <span className="font-bold text-green-600">{item.range}</span>
@@ -187,8 +187,8 @@ export default function ClutchReplacementCostCanadaPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {costByVehicle.map((item, index) => (
-                        <tr key={index} className="border-t">
+                      {costByVehicle.map((item) => (
+                        <tr key={item.vehicle} className="border-t">
                           <td className="p-4">{item.vehicle}</td>
                           <td className="p-4 text-right font-semibold text-green-600">{item.cost}</td>
                         </tr>

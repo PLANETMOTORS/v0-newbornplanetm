@@ -141,7 +141,7 @@ function ProductDetailPanel({ product, onClose }: { product: ProtectionProduct; 
           <Accordion type="single" collapsible className="space-y-3">
             {product.faqs.map((faq, index) => (
               <AccordionItem
-                key={index}
+                key={faq.question}
                 value={`faq-${index}`}
                 className="bg-muted/30 rounded-xl border border-border/40 px-5 data-[state=open]:shadow-sm data-[state=open]:border-primary/20"
               >
@@ -185,14 +185,14 @@ export function ProductsGridWithDetails() {
   // Listen for hash changes
   useEffect(() => {
     function handleHash() {
-      const hash = window.location.hash.replace("#product-", "")
+      const hash = globalThis.location.hash.replace("#product-", "")
       if (hash && PROTECTION_PRODUCTS.some((p) => p.slug === hash)) {
         setOpenSlug(hash)
       }
     }
     handleHash()
-    window.addEventListener("hashchange", handleHash)
-    return () => window.removeEventListener("hashchange", handleHash)
+    globalThis.addEventListener("hashchange", handleHash)
+    return () => globalThis.removeEventListener("hashchange", handleHash)
   }, [])
 
   // Scroll detail panel into view when opened

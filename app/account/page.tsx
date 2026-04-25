@@ -280,7 +280,7 @@ export default function AccountPage() {
       const redirectPath = "/account"
       const callbackUrl =
         typeof window !== "undefined" && window.location?.origin
-          ? `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`
+          ? `${globalThis.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`
           : (process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://www.planetmotors.ca'}/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`)
       const { data: signUpData, error } = await supabase.auth.signUp({
         email: data.email,
@@ -314,7 +314,7 @@ export default function AccountPage() {
 
     try {
       const supabase = createClient()
-      const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent("/account")}`
+      const callbackUrl = `${globalThis.location.origin}/auth/callback?redirectTo=${encodeURIComponent("/account")}`
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: { redirectTo: callbackUrl },
@@ -327,7 +327,7 @@ export default function AccountPage() {
       }
 
       if (data?.url) {
-        window.location.assign(data.url)
+        globalThis.location.assign(data.url)
         return
       }
 
@@ -382,8 +382,8 @@ export default function AccountPage() {
                   className="w-full"
                 >
                   <TabsList className="grid w-full grid-cols-2 h-auto">
-                    <TabsTrigger value="signin" className="px-4 py-2.5 min-h-11">Sign In</TabsTrigger>
-                    <TabsTrigger value="register" className="px-4 py-2.5 min-h-11">Register</TabsTrigger>
+                    <TabsTrigger value="signin" className="px-4 py-2.5 min-h-[44px]">Sign In</TabsTrigger>
+                    <TabsTrigger value="register" className="px-4 py-2.5 min-h-[44px]">Register</TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="signin" className="space-y-4 mt-6">
@@ -533,7 +533,7 @@ export default function AccountPage() {
               <div className="flex md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0 md:space-y-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 <Button 
                   variant={activeTab === "profile" ? "secondary" : "ghost"} 
-                  className="shrink-0 md:w-full justify-start min-h-11"
+                  className="shrink-0 md:w-full justify-start min-h-[44px]"
                   onClick={() => setActiveTab("profile")}
                 >
                   <User className="w-4 h-4 mr-2" />
@@ -541,7 +541,7 @@ export default function AccountPage() {
                 </Button>
                 <Button 
                   variant={activeTab === "saved" ? "secondary" : "ghost"} 
-                  className="shrink-0 md:w-full justify-start min-h-11"
+                  className="shrink-0 md:w-full justify-start min-h-[44px]"
                   onClick={() => setActiveTab("saved")}
                 >
                   <Heart className="w-4 h-4 mr-2" />
@@ -550,7 +550,7 @@ export default function AccountPage() {
                 </Button>
                 <Button 
                   variant={activeTab === "preapproval" ? "secondary" : "ghost"} 
-                  className="shrink-0 md:w-full justify-start min-h-11"
+                  className="shrink-0 md:w-full justify-start min-h-[44px]"
                   onClick={() => setActiveTab("preapproval")}
                 >
                   <CreditCard className="w-4 h-4 mr-2" />
@@ -558,7 +558,7 @@ export default function AccountPage() {
                 </Button>
                 <Button 
                   variant={activeTab === "orders" ? "secondary" : "ghost"} 
-                  className="shrink-0 md:w-full justify-start min-h-11"
+                  className="shrink-0 md:w-full justify-start min-h-[44px]"
                   onClick={() => setActiveTab("orders")}
                 >
                   <Car className="w-4 h-4 mr-2" />
@@ -566,7 +566,7 @@ export default function AccountPage() {
                 </Button>
                 <Button 
                   variant={activeTab === "settings" ? "secondary" : "ghost"} 
-                  className="shrink-0 md:w-full justify-start min-h-11"
+                  className="shrink-0 md:w-full justify-start min-h-[44px]"
                   onClick={() => setActiveTab("settings")}
                 >
                   <Settings className="w-4 h-4 mr-2" />
@@ -575,8 +575,8 @@ export default function AccountPage() {
                 <Separator className="hidden md:block my-4" />
                 <Button 
                   variant="ghost" 
-                  className="shrink-0 md:w-full justify-start text-destructive min-h-11"
-                  onClick={() => void signOut()}
+                  className="shrink-0 md:w-full justify-start text-destructive min-h-[44px]"
+                  onClick={() => { signOut().catch(console.error) }}
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
@@ -956,7 +956,7 @@ export default function AccountPage() {
                           variant="outline"
                           className="w-full justify-start"
                           onClick={() => {
-                            window.location.href = "/auth/forgot-password"
+                            globalThis.location.href = "/auth/forgot-password"
                           }}
                         >
                           <Shield className="w-4 h-4 mr-2" />

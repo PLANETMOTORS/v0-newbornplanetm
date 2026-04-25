@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
 import { useState, useEffect, useRef, Suspense } from "react"
@@ -32,7 +33,7 @@ import {
 } from "@/lib/validation"
 import { useAuth } from "@/contexts/auth-context"
 import { AuthRequiredModal } from "@/components/auth-required-modal"
-import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
+import { PHONE_TOLL_FREE } from "@/lib/constants/dealership"
 
 // Vehicle makes with models
 const vehicleMakes = {
@@ -369,7 +370,7 @@ function TradeInContent() {
       }
       const mileageParam = searchParams.get("mileage")
       if (mileageParam) {
-        setMileage(mileageParam.replaceAll(/[^0-9]/g, ""))
+        setMileage(mileageParam.replace(/[^0-9]/g, ""))
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -423,13 +424,13 @@ function TradeInContent() {
     if (hasUrlPrefill) return
 
     try {
-      const raw = window.localStorage.getItem(TRADE_IN_DRAFT_KEY)
+      const raw = globalThis.localStorage.getItem(TRADE_IN_DRAFT_KEY)
       if (!raw) return
       const d = JSON.parse(raw) as Record<string, unknown>
 
       // Only restore if saved within the last 7 days
       if (d.savedAt && Date.now() - new Date(d.savedAt as string).getTime() > 7 * 24 * 60 * 60 * 1000) {
-        window.localStorage.removeItem(TRADE_IN_DRAFT_KEY)
+        globalThis.localStorage.removeItem(TRADE_IN_DRAFT_KEY)
         return
       }
 
@@ -460,7 +461,7 @@ function TradeInContent() {
   useEffect(() => {
     if (!draftLoadedRef.current) return
 
-    const timeout = window.setTimeout(() => {
+    const timeout = globalThis.setTimeout(() => {
       try {
         // Don't save if user hasn't entered anything meaningful
         const hasData = selectedYear || selectedMake || mileage || email || vinNumber
@@ -486,13 +487,13 @@ function TradeInContent() {
           vinNumber,
           savedAt: new Date().toISOString(),
         }
-        window.localStorage.setItem(TRADE_IN_DRAFT_KEY, JSON.stringify(payload))
+        globalThis.localStorage.setItem(TRADE_IN_DRAFT_KEY, JSON.stringify(payload))
       } catch (err) {
         console.error("Failed to save trade-in draft:", err)
       }
     }, 500)
 
-    return () => window.clearTimeout(timeout)
+    return () => globalThis.clearTimeout(timeout)
   }, [
     step, lookupMethod,
     selectedYear, selectedMake, selectedModel, selectedTrim,
@@ -518,7 +519,7 @@ function TradeInContent() {
     const formatted = formatCanadianPhoneNumber(value)
     setPhone(formatted)
     // Show error if user has entered some digits but format is incomplete/invalid
-    const digitsOnly = value.replaceAll(/\D/g, '')
+    const digitsOnly = value.replace(/\D/g, '')
     if (digitsOnly.length > 0 && digitsOnly.length < 10) {
       setPhoneError("Please enter a complete 10-digit phone number")
     } else if (digitsOnly.length >= 10 && !isValidCanadianPhoneNumber(formatted)) {
@@ -532,7 +533,7 @@ function TradeInContent() {
     const formatted = formatCanadianPostalCode(value)
     setPostalCode(formatted)
     // Show error if user has started entering but it's incomplete
-    const cleanValue = value.replaceAll(/\s/g, '')
+    const cleanValue = value.replace(/\s/g, '')
     if (cleanValue.length > 0 && cleanValue.length < 6) {
       setPostalCodeError("Please enter a complete postal code (e.g., L4C 2G1)")
     } else if (cleanValue.length >= 6 && !isValidCanadianPostalCode(formatted)) {
@@ -744,7 +745,7 @@ function TradeInContent() {
   const calculateLocalFallback = () => {
     const currentYear = new Date().getFullYear()
     const age = currentYear - Number.parseInt(selectedYear)
-    const mileageNum = Number.parseInt(mileage.replaceAll(/,/g, '')) || 50000
+    const mileageNum = Number.parseInt(mileage.replace(/,/g, '')) || 50000
     const baseTiers: Record<string, number> = {
       "BMW": 45000, "Mercedes-Benz": 48000, "Audi": 45000, "Lexus": 42000,
       "Tesla": 55000, "Porsche": 70000, "Toyota": 28000, "Honda": 28000,
@@ -786,7 +787,7 @@ function TradeInContent() {
       <main id="main-content" tabIndex={-1} className="overflow-x-hidden max-w-full">
         {/* Instant Quote Banner - Shows when coming from AI Quote */}
         {instantQuote && (
-          <div className="bg-linear-to-r from-green-600 to-emerald-600 text-white py-4">
+          <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4">
             <div className="container mx-auto px-4">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -808,7 +809,7 @@ function TradeInContent() {
         )}
         
         {/* Hero Section — Clean, Clutch-Inspired */}
-        <section className="relative bg-linear-to-b from-slate-950 via-slate-900 to-slate-950 py-16 sm:py-24 overflow-hidden">
+        <section className="relative bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 py-16 sm:py-24 overflow-hidden">
           {/* Subtle background grid */}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.08),transparent_50%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(16,185,129,0.06),transparent_50%)]" />
@@ -827,7 +828,7 @@ function TradeInContent() {
 
             {/* VIN Lookup Card — Front and Center */}
             <div className="max-w-xl mx-auto">
-              <Card className="shadow-2xl border-0 bg-white/3 backdrop-blur-xl border border-white/10">
+              <Card className="shadow-2xl border-0 bg-white/[0.03] backdrop-blur-xl border border-white/10">
                 <CardContent className="p-6 sm:p-8">
                   <Tabs
                     value={lookupMethod}
@@ -857,7 +858,7 @@ function TradeInContent() {
                         )}
                       </div>
                       <p className="text-xs text-white/40 flex items-center gap-1.5">
-                        <AlertCircle className="h-3 w-3 shrink-0" />
+                        <AlertCircle className="h-3 w-3 flex-shrink-0" />
                         Found on your registration, insurance card, or driver-side door jamb
                       </p>
                       <Button
@@ -963,7 +964,7 @@ function TradeInContent() {
                         pattern="[0-9]*"
                         className="h-12 bg-white/5 border-white/20 text-white placeholder:text-white/30"
                         value={mileage}
-                        onChange={(e) => setMileage(e.target.value.replaceAll(/[^0-9]/g, ''))}
+                        onChange={(e) => setMileage(e.target.value.replace(/[^0-9]/g, ''))}
                         autoComplete="off"
                       />
                       <Button
@@ -1002,7 +1003,7 @@ function TradeInContent() {
                 <Card className="shadow-lg border-emerald-200 dark:border-emerald-800">
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900 rounded-full flex items-center justify-center shrink-0">
+                      <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900 rounded-full flex items-center justify-center flex-shrink-0">
                         <CheckCircle className="h-6 w-6 text-emerald-600" />
                       </div>
                       <div className="flex-1">
@@ -1022,7 +1023,7 @@ function TradeInContent() {
                             pattern="[0-9]*"
                             className="h-12"
                             value={mileage}
-                            onChange={(e) => setMileage(e.target.value.replaceAll(/[^0-9]/g, ''))}
+                            onChange={(e) => setMileage(e.target.value.replace(/[^0-9]/g, ''))}
                             autoComplete="off"
                           />
                           <Button
@@ -1493,7 +1494,7 @@ function TradeInContent() {
                       </div>
                       <div className="h-2 bg-muted rounded-full overflow-hidden">
                         <div 
-                          className="h-full bg-linear-to-r from-primary/50 via-primary to-primary/50 rounded-full"
+                          className="h-full bg-gradient-to-r from-primary/50 via-primary to-primary/50 rounded-full"
                           style={{ width: '100%' }}
                         />
                       </div>
@@ -1599,21 +1600,21 @@ function TradeInContent() {
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="flex gap-4">
-                        <div className="shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center font-bold text-primary">1</div>
+                        <div className="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center font-bold text-primary">1</div>
                         <div>
                           <h4 className="font-semibold">Accept Your Offer</h4>
                           <p className="text-sm text-muted-foreground">Click accept and confirm your details</p>
                         </div>
                       </div>
                       <div className="flex gap-4">
-                        <div className="shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center font-bold text-primary">2</div>
+                        <div className="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center font-bold text-primary">2</div>
                         <div>
                           <h4 className="font-semibold">Schedule Pickup</h4>
                           <p className="text-sm text-muted-foreground">We come to you, anywhere in Canada</p>
                         </div>
                       </div>
                       <div className="flex gap-4">
-                        <div className="shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center font-bold text-primary">3</div>
+                        <div className="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center font-bold text-primary">3</div>
                         <div>
                           <h4 className="font-semibold">Get Paid</h4>
                           <p className="text-sm text-muted-foreground">Payment within 24 hours via e-Transfer</p>
@@ -1667,8 +1668,8 @@ function TradeInContent() {
                     desc: "Get paid within 24 hours via e-Transfer or certified cheque.",
                     highlight: "Fast Cash"
                   },
-                ].map((item, i) => (
-                  <Card key={i} className="relative overflow-hidden border-2 hover:border-primary transition-all group">
+                ].map((item) => (
+                  <Card key={item.title} className="relative overflow-hidden border-2 hover:border-primary transition-all group">
                     <CardContent className="p-6">
                       <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                         <item.icon className="h-7 w-7 text-primary" />
@@ -1718,8 +1719,8 @@ function TradeInContent() {
                       ["Valuation Source", "Canadian Black Book", "Trade-in guides"],
                       ["Phone Calls Required", "None", "Many"],
                       ["Haggling", "No games", "Expected"],
-                    ].map(([feature, pm, dealer], i) => (
-                      <tr key={i} className="border-b">
+                    ].map(([feature, pm, dealer]) => (
+                      <tr key={feature} className="border-b">
                         <td className="p-4 font-semibold">{feature}</td>
                         <td className="p-4 bg-primary/5 text-center font-semibold text-primary">{pm}</td>
                         <td className="p-4 text-center text-muted-foreground">{dealer}</td>
@@ -1764,10 +1765,10 @@ function TradeInContent() {
                     text: "They paid off my loan directly and e-Transferred my equity the next day. So easy compared to trading in at a dealership.",
                     rating: 5,
                   },
-                ].map((review, i) => (
-                  <Card key={i} className="p-6">
+                ].map((review) => (
+                  <Card key={review.name} className="p-6">
                     <div className="flex items-center gap-1 mb-3 text-amber-500">
-                      {Array(review.rating).fill(0).map((_, j) => (
+                      {new Array(review.rating).fill(0).map((_, j) => (
                         <Star key={j} className="h-4 w-4 fill-current" />
                       ))}
                     </div>
@@ -1802,7 +1803,7 @@ function TradeInContent() {
                 size="lg" 
                 variant="secondary" 
                 className="h-14 px-8 text-lg"
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                onClick={() => globalThis.scrollTo({ top: 0, behavior: 'smooth' })}
               >
                 Get My Instant Offer
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -1833,15 +1834,15 @@ function TradeInContent() {
               <h4 className="font-semibold text-green-800 mb-2">What happens next:</h4>
               <ol className="text-sm text-green-700 space-y-2">
                 <li className="flex items-start gap-2">
-                  <span className="bg-green-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shrink-0 mt-0.5">1</span>
+                  <span className="bg-green-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">1</span>
                   <span>We&apos;ll contact you within 2 hours to schedule a pickup</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="bg-green-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shrink-0 mt-0.5">2</span>
+                  <span className="bg-green-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">2</span>
                   <span>Free pickup anywhere in Canada at your convenience</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="bg-green-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shrink-0 mt-0.5">3</span>
+                  <span className="bg-green-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">3</span>
                   <span>Get paid within 24 hours via e-Transfer or cheque</span>
                 </li>
               </ol>
@@ -1907,7 +1908,7 @@ function TradeInContent() {
                   const data = await response.json()
                   
                   if (data.success) {
-                    try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
+                    try { globalThis.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
                     setShowAcceptModal(false)
                     alert(`Offer Accepted!\n\nYou will receive a confirmation email and SMS shortly.\n\nOur team will contact you within 2 hours to schedule your free pickup.\n\nQuote ID: ${offer?.quoteId}`)
                   } else {
@@ -1916,7 +1917,7 @@ function TradeInContent() {
                 } catch (error) {
                   console.error('Error accepting offer:', error)
                   // Still show success to user - fallback for API errors
-                  try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
+                  try { globalThis.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
                   setShowAcceptModal(false)
                   alert(`Offer Accepted!\n\nOur team will contact you within 2 hours to schedule your free pickup.\n\nQuote ID: ${offer?.quoteId}`)
                 }
@@ -1993,7 +1994,7 @@ function TradeInContent() {
                           })
                         }
                       } catch (err) { console.error("[trade-in] Save trade-in failed:", err) }
-                      try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
+                      try { globalThis.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
                       setShowApplyModal(false)
                       // Build inventory URL with trade-in info + category filter
                       const params = new URLSearchParams({
@@ -2005,7 +2006,7 @@ function TradeInContent() {
                       else if (type === 'Under $30k') params.set('maxPrice', '30000')
                       else if (type === 'Luxury') params.set('category', 'Luxury')
                       else params.set('bodyType', type)
-                      window.location.href = `/inventory?${params.toString()}`
+                      globalThis.location.href = `/inventory?${params.toString()}`
                     }}
                   >
                     {type}
@@ -2050,7 +2051,7 @@ function TradeInContent() {
                   console.error('Error saving trade-in:', error)
                 }
                 
-                try { window.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
+                try { globalThis.localStorage.removeItem(TRADE_IN_DRAFT_KEY) } catch { /* localStorage unavailable */ }
                 setShowApplyModal(false)
                 // Redirect to inventory with full trade-in info
                 const params = new URLSearchParams({
@@ -2058,7 +2059,7 @@ function TradeInContent() {
                   quoteId: offer?.quoteId || '',
                   tradeInVehicle: encodeURIComponent(offer?.vehicle || '')
                 })
-                window.location.href = `/inventory?${params.toString()}`
+                globalThis.location.href = `/inventory?${params.toString()}`
               }}
             >
               <ArrowRight className="mr-2 h-4 w-4" />
