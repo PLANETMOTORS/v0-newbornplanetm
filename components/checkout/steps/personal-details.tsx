@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AlertCircle } from "lucide-react"
+import { isEmailLike } from "@/lib/validation/email"
 
 const PROVINCES = [
   "Ontario", "British Columbia", "Alberta", "Quebec", "Nova Scotia",
@@ -142,9 +143,8 @@ export function PersonalDetailsStep({ data, onChange, onContinue }: PersonalDeta
     const errs: string[] = []
     if (!data.firstName.trim()) errs.push("First name is required")
     if (!data.lastName.trim()) errs.push("Last name is required")
-    // Bound length before regex to prevent ReDoS on pathological inputs (S2631).
-    if (!data.email.trim() || data.email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))
-      errs.push("Valid email is required")
+    // Structural, ReDoS-free check (S5852/S2631).
+    if (!isEmailLike(data.email)) errs.push("Valid email is required")
     if (data.phone.replaceAll(/\D/g, '').length !== 10)
       errs.push("Phone must be 10 digits")
     if (!data.address.trim()) errs.push("Street address is required")

@@ -17,15 +17,18 @@ resource "aws_s3_bucket" "vehicles" {
   }
 }
 
-# Block direct public access — images are served exclusively via CloudFront OAC.
-# The bucket policy below restricts GetObject to the CloudFront distribution ARN.
+# Block ALL forms of public access — images are served exclusively via CloudFront
+# Origin Access Control (OAC). The bucket policy below grants `s3:GetObject` to
+# the CloudFront service principal scoped by `aws:SourceArn`, which AWS does not
+# treat as a public statement, so `block_public_policy = true` and
+# `restrict_public_buckets = true` are compatible with OAC and recommended (S6281).
 resource "aws_s3_bucket_public_access_block" "vehicles" {
   bucket = aws_s3_bucket.vehicles.id
 
   block_public_acls       = true
-  block_public_policy     = false # bucket policy allows CloudFront OAC access
+  block_public_policy     = true
   ignore_public_acls      = true
-  restrict_public_buckets = false # CloudFront OAC requires this to be false
+  restrict_public_buckets = true
 }
 
 resource "aws_s3_bucket_versioning" "vehicles" {

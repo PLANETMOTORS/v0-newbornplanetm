@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Send, Bot, User, Sparkles, Mail, Phone, CheckCircle, Loader2 } from "lucide-react"
 import { PHONE_LOCAL } from "@/lib/constants/dealership"
+import { isEmailLike } from "@/lib/validation/email"
 
 interface Message {
   role: "user" | "assistant"
@@ -44,8 +45,8 @@ export function PriceNegotiator({
   const [isLoading, setIsLoading] = useState(false)
   const [currentOffer, setCurrentOffer] = useState<number | null>(null)
 
-  // Bound length before regex to prevent ReDoS on pathological inputs (S2631).
-  const isValidEmail = (email: string) => email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  // Structural, ReDoS-free check (S5852/S2631).
+  const isValidEmail = (email: string) => isEmailLike(email)
   const isValidPhone = (phone: string) => phone.replaceAll(/\D/g, "").length >= 10
   const formatPhone = (value: string) => {
     const digits = value.replaceAll(/\D/g, "").slice(0, 10)
