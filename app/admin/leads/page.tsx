@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import {
   MessageSquare, Search, RefreshCw, Phone, Mail,
-  Clock, Bot, DollarSign, Car, CalendarCheck, ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight,
   User
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"

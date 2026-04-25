@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { 
   Car, DollarSign, TrendingUp, ArrowUpRight,
-  MessageSquare, Clock,
+  MessageSquare,
   ChevronRight, CalendarCheck, Users, Bot, RefreshCw, FileText
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
