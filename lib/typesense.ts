@@ -314,7 +314,7 @@ async function searchSupabase(params: VehicleSearchParams): Promise<SearchRespon
   const start = (page - 1) * perPage
   const end = start + perPage - 1
 
-  let query = supabase
+  let query: SupabaseQuery = supabase
     .from('vehicles')
     .select('id, stock_number, year, make, model, trim, body_style, exterior_color, price, mileage, drivetrain, fuel_type, is_ev, is_certified, status, primary_image_url', { count: 'exact' })
     .eq('status', 'available')
