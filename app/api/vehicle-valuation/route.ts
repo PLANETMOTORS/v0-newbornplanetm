@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       return apiError(ErrorCode.VALIDATION_ERROR, "Missing required fields", 400)
     }
 
-    const mileageNum = Number.parseInt(String(mileage).replace(/,/g, ""))
+    const mileageNum = Number.parseInt(String(mileage).replaceAll(",", ""))
     const currentYear = new Date().getFullYear()
     const vehicleAge = currentYear - Number.parseInt(year)
 
@@ -127,7 +127,7 @@ Respond ONLY with a JSON object (no markdown, no explanation):
     // Return fallback calculation on any error
     try {
       const { year, make, model, mileage, condition, postalCode } = await request.json()
-      const fallback = calculateFallbackValue(year, make, model, Number.parseInt(String(mileage).replace(/,/g, "")), condition, postalCode)
+      const fallback = calculateFallbackValue(year, make, model, Number.parseInt(String(mileage).replaceAll(",", "")), condition, postalCode)
       return NextResponse.json({ ...fallback, source: "fallback-algorithm" })
     } catch {
       return apiError(ErrorCode.INTERNAL_ERROR, "Valuation failed")

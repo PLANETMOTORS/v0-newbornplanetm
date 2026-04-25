@@ -20,7 +20,7 @@ export function maskEmail(email: string | null | undefined): string {
   const local = trimmed.slice(0, atIdx)
   const domain = trimmed.slice(atIdx + 1)
   if (local.length <= 2) return `${local[0]}***@${domain}`
-  return `${local[0]}***${local[local.length - 1]}@${domain}`
+  return `${local[0]}***${local.at(-1)}@${domain}`
 }
 
 /**
@@ -29,7 +29,7 @@ export function maskEmail(email: string | null | undefined): string {
  */
 export function maskPhone(phone: string | null | undefined): string {
   if (typeof phone !== "string") return "<missing>"
-  const digits = phone.replace(/\D/g, "")
+  const digits = phone.replaceAll(/\D/g, "")
   if (digits.length < 4) return "<redacted>"
   return `***${digits.slice(-4)}`
 }

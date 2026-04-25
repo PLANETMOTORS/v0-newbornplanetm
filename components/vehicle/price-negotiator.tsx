@@ -100,7 +100,7 @@ export function PriceNegotiator({
   }
 
   const handleSubmitOffer = async () => {
-    const offerAmount = Number.parseFloat(offer.replace(/[^0-9.]/g, ""))
+    const offerAmount = Number.parseFloat(offer.replaceAll(/[^0-9.]/g, ""))
     if (Number.isNaN(offerAmount) || offerAmount <= 0) return
 
     setCurrentOffer(offerAmount)
@@ -237,7 +237,7 @@ export function PriceNegotiator({
           <>
             <div className="max-h-64 overflow-y-auto space-y-3">
               {messages.map((msg, i) => (
-                <div key={`msg-${i}`} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div key={`msg-${msg.role}-${i}-${msg.content.slice(0, 8)}`} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   {msg.role === "assistant" && (
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                       <Bot className="w-4 h-4 text-primary" />

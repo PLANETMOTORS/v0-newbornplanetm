@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       // Sanitize to prevent PostgREST filter injection via commas/parentheses
-      const sanitizedSearch = search.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s-]/gu, "").trim()
+      const sanitizedSearch = search.trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s-]/gu, "").trim()
       if (sanitizedSearch) {
         query = query.or(
           `order_number.ilike.%${sanitizedSearch}%`

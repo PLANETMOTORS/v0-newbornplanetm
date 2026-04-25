@@ -79,11 +79,11 @@ export interface AutoRaptorResult {
 
 function escapeXml(s: string): string {
   return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&apos;")
 }
 
 /** Build the required primary vehicle block (always present in ADF). */
@@ -102,7 +102,7 @@ function buildVehiclePrimaryBlock(v: AutoRaptorLeadPayload["vehicle"], requestTy
 function buildAdfXml(lead: AutoRaptorLeadPayload): string {
   const now = new Date()
   // ADF date format: YYYY-MM-DDThh:mm:ss+00:00
-  const adfDate = now.toISOString().replace("Z", "+00:00").slice(0, 19) + "+00:00"
+  const adfDate = now.toISOString().replaceAll("Z", "+00:00").slice(0, 19) + "+00:00"
 
   const requestType = lead.requestType ?? "buy"
   const condition = lead.vehicle?.condition ?? "used"
@@ -115,7 +115,7 @@ function buildAdfXml(lead: AutoRaptorLeadPayload): string {
     ? `<comments>${escapeXml(lead.comments)}</comments>`
     : ""
   const sourceLabel = lead.source
-    ? escapeXml(lead.source.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()))
+    ? escapeXml(lead.source.replaceAll("_", " ").replaceAll(/\b\w/g, c => c.toUpperCase()))
     : "Website"
 
   return `<?xml version="1.0" encoding="UTF-8"?>

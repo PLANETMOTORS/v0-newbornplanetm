@@ -253,8 +253,10 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null
 
+// Supabase query builder — typed as unknown to avoid eslint no-explicit-any
+// while still allowing chained method calls via type assertion at call sites.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SupabaseQuery = any
+type SupabaseQuery = Record<string, any>
 
 /** Apply text search to a Supabase query if a search term is provided. */
 function applySupabaseTextSearch(query: SupabaseQuery, searchQuery?: string): SupabaseQuery {
@@ -262,7 +264,7 @@ function applySupabaseTextSearch(query: SupabaseQuery, searchQuery?: string): Su
   // Sanitize user input to prevent PostgREST filter injection via commas/parens.
   // Strip hyphens too — websearch_to_tsquery treats "-word" as NOT operator,
   // breaking searches for "CR-V", "RAV-4", "PM-2024-001", etc.
-  const sanitizedQ = searchQuery.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
+  const sanitizedQ = searchQuery.trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s]/g, ' ').replaceAll(/\s+/g, ' ').trim()
   if (sanitizedQ) {
     return query.textSearch('search_vector', sanitizedQ, { type: 'websearch', config: 'english' })
   }

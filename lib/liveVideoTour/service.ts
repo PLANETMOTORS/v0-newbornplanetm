@@ -16,7 +16,7 @@ import { sendLiveVideoTourNotifications, sendCancellationNotification } from "./
 function generateBookingId(): string {
   const timestamp = Date.now().toString(36).toUpperCase()
   // crypto.randomBytes(3) gives 3 bytes → 6 hex chars; take first 4 for brevity
-  const { randomBytes } = require("node:crypto") as typeof import("node:crypto")
+  const { randomBytes } = require("node:crypto")
   const random = randomBytes(3).toString("hex").toUpperCase().slice(0, 4)
   return `VT-${timestamp}-${random}`
 }

@@ -9,7 +9,7 @@ function generateMeetCode(): string {
   // Use crypto.randomInt for cryptographically secure meeting code generation.
   // Meeting codes are used as identifiers shared with participants — Math.random
   // would be predictable and guessable. (S2245 fixed)
-  const { randomInt } = require("node:crypto") as typeof import("node:crypto")
+  const { randomInt } = require("node:crypto")
   const chars = "abcdefghijklmnopqrstuvwxyz"
   const segment = (len: number) =>
     Array.from({ length: len }, () => chars[randomInt(chars.length)]).join("")
