@@ -30,6 +30,16 @@ function fromCents(value: number | null | undefined): number {
   return Math.round((Number(value || 0) / 100) * 100) / 100
 }
 
+function validateOrderBody(body: Record<string, unknown>, userId: string): { code: string; message: string; status: number } | null {
+  const { vehicleId, paymentMethod, customerId, province } = body
+  if (!vehicleId || !paymentMethod) return { code: 'MISSING_FIELDS', message: 'vehicleId and paymentMethod are required', status: 400 }
+  const hasProvince = typeof province === 'string' && (province as string).trim() !== ''
+  if (hasProvince && !((province as string).toUpperCase() in PROVINCE_TAX_RATES)) return { code: 'INVALID_PROVINCE', message: `Unknown province code "${province}". Use a valid 2-letter Canadian province code (e.g. ON, BC, AB).`, status: 400 }
+  const effectiveCustomerId = customerId || userId
+  if (effectiveCustomerId !== userId) return { code: 'FORBIDDEN', message: 'customerId must match authenticated user', status: 403 }
+  return null
+}
+
 function generateOrderNumber() {
   const ts = Date.now().toString(36).toUpperCase()
   const rand = randomBytes(2).toString("hex").toUpperCase()
@@ -72,69 +82,18 @@ export async function POST(request: NextRequest) {
     province,
   } = body
 
-  // Validate province and resolve tax rate.
-  // If province is explicitly provided but unrecognised, reject immediately.
-  // If province is absent, default to ON for backward-compat and log a warning.
-  const hasProvince = typeof province === 'string' && province.trim() !== ''
-  if (hasProvince && !(province.toUpperCase() in PROVINCE_TAX_RATES)) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'INVALID_PROVINCE',
-          message: `Unknown province code "${province}". Use a valid 2-letter Canadian province code (e.g. ON, BC, AB).`,
-        },
-      },
-      { status: 400 }
-    )
-  }
-  if (!hasProvince) {
-    console.warn(
-      `[orders] Province not provided for order by user ${user.id}. Defaulting to ON.`
-    )
-  }
-  const resolvedProvince = hasProvince ? province.toUpperCase() : 'ON'
-  const taxInfo = PROVINCE_TAX_RATES[resolvedProvince]
-
-  if (!vehicleId || !paymentMethod) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'MISSING_FIELDS',
-          message: 'vehicleId and paymentMethod are required',
-        },
-      },
-      { status: 400 }
-    )
-  }
-
-  const effectiveCustomerId = customerId || user.id
-  if (effectiveCustomerId !== user.id) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'FORBIDDEN',
-          message: 'customerId must match authenticated user',
-        },
-      },
-      { status: 403 }
-    )
-  }
+  const bodyError = validateOrderBody(body, user.id)
+  if (bodyError) return NextResponse.json({ success: false, error: { code: bodyError.code, message: bodyError.message } }, { status: bodyError.status })
 
   if (!['financing', 'cash', 'bank_draft'].includes(String(paymentMethod))) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'INVALID_PAYMENT_METHOD',
-          message: 'paymentMethod must be one of financing, cash, bank_draft',
-        },
-      },
-      { status: 400 }
-    )
+    return NextResponse.json({ success: false, error: { code: 'INVALID_PAYMENT_METHOD', message: 'paymentMethod must be one of financing, cash, bank_draft' } }, { status: 400 })
   }
+
+  const hasProvince = typeof province === 'string' && province.trim() !== ''
+  if (!hasProvince) console.warn(`[orders] Province not provided for order by user ${user.id}. Defaulting to ON.`)
+  const resolvedProvince = hasProvince ? province.toUpperCase() : 'ON'
+  const taxInfo = PROVINCE_TAX_RATES[resolvedProvince]
+  const effectiveCustomerId = customerId || user.id
 
   const normalizedDeliveryType = deliveryType === 'delivery' ? 'delivery' : 'pickup'
 
