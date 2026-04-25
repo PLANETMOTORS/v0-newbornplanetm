@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
+import { logger } from "@/lib/logger"
 
 // POST /api/v1/auth/login - Customer login
 export async function POST(request: NextRequest) {
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("[v1/auth/login]", error)
+    logger.error("[v1/auth/login]", error)
     return apiError(ErrorCode.INTERNAL_ERROR, "Authentication failed")
   }
 }

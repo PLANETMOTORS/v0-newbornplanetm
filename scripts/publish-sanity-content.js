@@ -117,12 +117,16 @@ async function publishDocuments() {
       try {
         await client.delete(publishedId)
         console.log(`  Deleted existing published: ${publishedId}`)
-} catch (e) { void e /* Ignore if doesn't exist */ }
+      } catch (e) {
+        console.warn(`  No existing published ${publishedId}:`, e?.message ?? e)
+      }
 
       try {
         await client.delete(draftId)
         console.log(`  Deleted existing draft: ${draftId}`)
-      } catch (e) { void e /* Ignore if doesn't exist */ }
+      } catch (e) {
+        console.warn(`  No existing draft ${draftId}:`, e?.message ?? e)
+      }
 
       // Step 2: Create draft document
       const draftDoc = {

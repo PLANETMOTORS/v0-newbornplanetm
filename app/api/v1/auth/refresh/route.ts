@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
+import { logger } from "@/lib/logger"
 
 // POST /api/v1/auth/refresh - Refresh JWT token
 export async function POST(request: NextRequest) {
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("[v1/auth/refresh]", error)
+    logger.error("[v1/auth/refresh]", error)
     return apiError(ErrorCode.INTERNAL_ERROR, "Token refresh failed")
   }
 }

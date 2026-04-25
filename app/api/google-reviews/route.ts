@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { Redis } from "@upstash/redis"
+import { logger } from "@/lib/logger"
 
 function getRedis(): Redis | null {
   const url = process.env.UPSTASH_REDIS_REST_URL
@@ -114,7 +115,7 @@ export async function POST(request: Request) {
       message: "Cache cleared, next request will fetch fresh data" 
     })
   } catch (error) {
-    console.error("[google-reviews] clear cache failed:", error)
+    logger.error("[google-reviews] clear cache failed:", error)
     return NextResponse.json(
       { success: false, error: "Failed to clear cache" },
       { status: 500 }

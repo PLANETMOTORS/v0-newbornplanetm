@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
+import { logger } from "@/lib/logger"
 
 // POST /api/v1/deliveries - Schedule delivery
 export async function POST(request: NextRequest) {
@@ -143,7 +144,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("[v1/deliveries POST]", error)
+    logger.error("[v1/deliveries POST]", error)
     return apiError(ErrorCode.INTERNAL_ERROR, "Failed to schedule delivery")
   }
 }
