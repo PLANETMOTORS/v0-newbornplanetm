@@ -194,7 +194,7 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
     const cyl = get(["enginecylinders"])
     const disp = get(["enginedisplacement"])
     // Skip "0.0", "0.0 L", etc. displacement for EVs
-    const validDisp = disp && !disp.match(/^0+(\.0+)?(\s|$)/) ? disp : ""
+    const validDisp = disp && !/^0+(\.0+)?(\s|$)/.test(disp) ? disp : ""
     if (validDisp) engineStr = validDisp + (cyl ? ` ${cyl}-Cylinder` : "")
     else if (cyl && cyl !== "0") engineStr = `${cyl}-Cylinder`
     // EVs: leave engine empty — it's electric
