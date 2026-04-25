@@ -57,13 +57,6 @@ Resources:
               - 'https://*.planetmotors.com'
               - 'https://*.vercel.app'
             MaxAge: 3600
-      # Enable versioning for object recovery and audit trail (S4423)
-      VersioningConfiguration:
-        Status: Enabled
-      # Enable S3 server access logging — logs written to a dedicated prefix (S4423)
-      LoggingConfiguration:
-        DestinationBucketName: !Ref VehicleImagesBucket
-        LogFilePrefix: access-logs/
       Tags:
         - Key: Project
           Value: PlanetMotors

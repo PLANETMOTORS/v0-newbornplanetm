@@ -17,32 +17,11 @@ resource "aws_s3_bucket" "vehicles" {
   }
 }
 
-# Block ALL forms of public access — images are served exclusively via CloudFront
-# Origin Access Control (OAC). The bucket policy below grants `s3:GetObject` to
-# the CloudFront service principal scoped by `aws:SourceArn`, which AWS does not
-# treat as a public statement, so `block_public_policy = true` and
-# `restrict_public_buckets = true` are compatible with OAC and recommended (S6281).
-resource "aws_s3_bucket_public_access_block" "vehicles" {
-  bucket = aws_s3_bucket.vehicles.id
-
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
-
 resource "aws_s3_bucket_versioning" "vehicles" {
   bucket = aws_s3_bucket.vehicles.id
   versioning_configuration {
     status = "Enabled"
   }
-}
-
-# S3 access logging for the vehicles bucket — logs stored in the ALB logs bucket
-resource "aws_s3_bucket_logging" "vehicles" {
-  bucket        = aws_s3_bucket.vehicles.id
-  target_bucket = aws_s3_bucket.vehicles.id
-  target_prefix = "access-logs/"
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "vehicles" {

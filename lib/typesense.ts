@@ -253,10 +253,9 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null
 
-// Supabase query builder — typed as unknown to avoid eslint no-explicit-any
-// while still allowing chained method calls via type assertion at call sites.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SupabaseQuery = Record<string, any>
+// Supabase query builder — typed as unknown so callers can chain methods via
+// type assertion without introducing `any` or suppression directives.
+type SupabaseQuery = Record<string, unknown>
 
 /** Apply text search to a Supabase query if a search term is provided. */
 function applySupabaseTextSearch(query: SupabaseQuery, searchQuery?: string): SupabaseQuery {

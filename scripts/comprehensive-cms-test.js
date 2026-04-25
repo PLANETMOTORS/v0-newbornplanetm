@@ -2,10 +2,16 @@
 // Tests: API Performance, Schema Validation, Field Matching, Content Delivery
 
 // ── Security: all credentials from environment — never hardcoded ──────────
-const PROJECT_ID = process.env.SANITY_PROJECT_ID || 'wlxj8olw'
+const PROJECT_ID = process.env.SANITY_PROJECT_ID
 const DATASET = process.env.SANITY_DATASET || 'production'
 const API_VERSION = process.env.SANITY_API_VERSION || '2024-01-01'
 const TOKEN = process.env.SANITY_API_TOKEN
+
+if (!PROJECT_ID) {
+  console.error('❌ SANITY_PROJECT_ID environment variable is not set.')
+  console.error('   Run: export SANITY_PROJECT_ID=your_project_id_here')
+  process.exit(1)
+}
 
 if (!TOKEN) {
   console.error('❌ SANITY_API_TOKEN environment variable is not set.')

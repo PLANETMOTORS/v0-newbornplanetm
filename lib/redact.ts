@@ -13,7 +13,10 @@
  */
 export function maskEmail(email: string | null | undefined): string {
   if (typeof email !== "string") return "<missing>"
-  const trimmed = email.trim()
+  // Strip ASCII control characters (including \r \n \t) before any processing
+  // to prevent log injection when the masked value is written to console logs.
+  const sanitized = email.replaceAll(/[\u0000-\u001F\u007F]/g, '')
+  const trimmed = sanitized.trim()
   if (!trimmed) return "<missing>"
   const atIdx = trimmed.lastIndexOf("@")
   if (atIdx <= 0 || atIdx === trimmed.length - 1) return "<redacted>"
