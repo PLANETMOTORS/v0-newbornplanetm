@@ -184,12 +184,18 @@ export function SupabaseVehiclePicker(props: StringInputProps) {
   }, [onChange])
 
   if (readOnly) {
+    let label: string
+    if (selectedVehicle) {
+      label = `${selectedVehicle.year} ${selectedVehicle.make} ${selectedVehicle.model} — ${formatPrice(selectedVehicle.price)}`
+    } else if (value) {
+      label = `Vehicle ID: ${value}`
+    } else {
+      label = 'No vehicle selected'
+    }
     return (
       <Card padding={3} radius={2} shadow={1}>
         <Text size={1} muted>
-          {selectedVehicle
-            ? `${selectedVehicle.year} ${selectedVehicle.make} ${selectedVehicle.model} — ${formatPrice(selectedVehicle.price)}`
-            : (value ? `Vehicle ID: ${value}` : 'No vehicle selected')}
+          {label}
         </Text>
       </Card>
     )

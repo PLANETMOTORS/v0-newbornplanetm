@@ -104,11 +104,11 @@ export function DateSlotPicker({
           className="w-full h-12 rounded-md border border-input bg-background px-3 text-base"
         >
           <option value="" disabled>
-            {!selectedDate
-              ? "Select date first"
-              : slots.length === 0
-                ? "No slots available"
-                : "Choose a time"}
+            {(() => {
+              if (!selectedDate) return "Select date first"
+              if (slots.length === 0) return "No slots available"
+              return "Choose a time"
+            })()}
           </option>
           {slots.map(({ time, label }) => (
             <option key={time} value={time}>
