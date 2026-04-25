@@ -441,8 +441,9 @@ function buildMergedVehicle(serverVehicle: VehicleDetail) {
 }
 
 function useTrackVehicleView(vehicle: { id: string; year: number; make: string; model: string; trim?: string | null; price: number; fuelType?: string | null }) {
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- Fire once on mount
+  const vehicleRef = useRef(vehicle)
   useEffect(() => {
+    const vehicle = vehicleRef.current
     const trimSuffix = vehicle.trim ? ` ${vehicle.trim}` : ""
     const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}${trimSuffix}`
     trackProductView({
@@ -631,14 +632,11 @@ function MainImageGallery({
       className="relative aspect-[4/3] rounded-xl overflow-hidden group focus:outline-none focus:ring-2 focus:ring-primary"
       style={{ backgroundColor: "#e8e8e8" }}
     >
-      {hasImage && (
-        // eslint-disable-next-line @next/next/no-img-element -- intentional: Playwright tests read src via getAttribute
-        <img data-testid="vdp-active-image" src={activeImage} alt="" className="hidden" />
-      )}
       {hasImage ? (
         <>
           <Image
             data-testid="vdp-hero-image"
+            data-active-src={activeImage}
             src={activeImage}
             alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
             fill

@@ -3,6 +3,7 @@
 
 import { createHash } from 'node:crypto'
 import { lockVehicle, unlockVehicle, rateLimit } from '@/lib/redis'
+import Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
 import { getProductById } from '@/lib/products'
 import { getPublicSiteUrl } from '@/lib/site-url'
@@ -46,8 +47,7 @@ function getStructuredErrorType(error: unknown): string {
   return typeof candidate === 'string' ? candidate.toLowerCase() : ''
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function createStripeSessionWithAcssRetry(stripe: any, createSessionParams: (includeAcssDebit: boolean) => object, enableAcssDebit: boolean, idempotencyKey: string, reservationId: string, stockNumber: string) {
+async function createStripeSessionWithAcssRetry(stripe: Stripe, createSessionParams: (includeAcssDebit: boolean) => object, enableAcssDebit: boolean, idempotencyKey: string, reservationId: string, stockNumber: string) {
   try {
     return await stripe.checkout.sessions.create(createSessionParams(enableAcssDebit), { idempotencyKey })
   } catch (sessionError) {

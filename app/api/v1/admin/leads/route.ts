@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { createClient as createServiceClient } from "@supabase/supabase-js"
+import { createClient as createServiceClient, type SupabaseClient } from "@supabase/supabase-js"
 import { ADMIN_EMAILS } from "@/lib/admin"
 import { logger } from "@/lib/logger"
 
@@ -103,10 +103,7 @@ const TRADE_IN_STATUS_MAP: Record<string, string> = {
   pending: "new",
 }
 
-// The Supabase service client has no generated types in this context — SupabaseClient<any,any,any>
-// is the correct escape hatch here; the eslint suppression is intentional.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SupabaseAdminClient = ReturnType<typeof createServiceClient<any, any, any>>
+type SupabaseAdminClient = SupabaseClient
 
 async function aggregateLeads(adminClient: SupabaseAdminClient, filters: { status: string | null; source: string | null; search: string | null; offset: number; limit: number }) {
   type AggregatedLead = { id: string; source: string; status: string; customer_name: string; customer_email: string; customer_phone: string | null; subject: string; vehicle_info: string | null; created_at: string; source_table: string }
