@@ -1317,7 +1317,7 @@ function TradeInContent() {
                 ].map((review) => (
                   <Card key={review.name} className="p-6">
                     <div className="flex items-center gap-1 mb-3 text-amber-500">
-                      {new Array(review.rating).fill(0).map((_, j) => <Star key={j} className="h-4 w-4 fill-current" />)}
+                      {Array.from({ length: review.rating }, (_, j) => <Star key={`star-${review.name}-${j}`} className="h-4 w-4 fill-current" />)}
                     </div>
                     <p className="text-muted-foreground mb-4">&quot;{review.text}&quot;</p>
                     <div className="flex items-center gap-3">

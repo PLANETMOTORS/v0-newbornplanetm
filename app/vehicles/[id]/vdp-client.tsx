@@ -780,10 +780,9 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                     )}
                   </div>
                   ) : (
-                  <div
+                  <section
                     data-testid="vdp-image-gallery"
                     tabIndex={0}
-                    role="region"
                     aria-label="Vehicle image gallery"
                     onKeyDown={(e) => {
                       if (e.key === "ArrowRight") { nextImage(); e.preventDefault() }
@@ -844,7 +843,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                     >
                       <ChevronRight className="h-5 w-5" />
                     </button>
-                  </div>
+                  </section>
                   )}
 
                   {/* Image Type Toggle */}
