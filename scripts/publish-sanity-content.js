@@ -2,7 +2,7 @@ const { createClient } = require('@sanity/client')
 
 // Planet Motors CMS - Publish all draft content using Sanity Actions API
 const client = createClient({
-  projectId: '4588vjsz',
+  projectId: 'wlxj8olw',
   dataset: 'planetmotors_cms',
   apiVersion: '2025-02-19', // Required for Actions API
   token: process.env.SANITY_API_WRITE_TOKEN,

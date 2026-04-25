@@ -5,7 +5,7 @@ const RATE_FLOOR = 6.29;
 const RATE_FLOOR_DISPLAY = `${RATE_FLOOR}%`;
 
 const client = createClient({
-  projectId: '4588vjsz',
+  projectId: 'wlxj8olw',
   dataset: 'planetmotors_cms',
   apiVersion: '2024-01-01',
   useCdn: false,

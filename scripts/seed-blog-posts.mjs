@@ -7,7 +7,7 @@
  */
 import { createClient } from "@sanity/client"
 
-const PROJECT_ID = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "4588vjsz"
+const PROJECT_ID = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "wlxj8olw"
 const TOKEN = process.env.SANITY_API_TOKEN
 
 if (!TOKEN) {

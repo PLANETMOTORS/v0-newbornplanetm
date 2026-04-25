@@ -1,6 +1,6 @@
 const https = require('https');
 
-const PROJECT_ID = '4588vjsz';
+const PROJECT_ID = 'wlxj8olw';
 const DATASET = 'production';
 const TOKEN = process.env.SANITY_API_TOKEN;
 

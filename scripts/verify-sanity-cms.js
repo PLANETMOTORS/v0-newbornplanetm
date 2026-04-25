@@ -1,5 +1,5 @@
 // Sanity CMS Verification Script
-const projectId = '4588vjsz'
+const projectId = 'wlxj8olw'
 const dataset = 'production'
 const apiVersion = '2024-01-01'
 const token = process.env.SANITY_API_TOKEN
