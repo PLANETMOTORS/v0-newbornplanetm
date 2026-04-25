@@ -855,12 +855,12 @@ export default function AdminInventoryPage() {
               {/* Identity */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Stock Number *</label>
-                  <Input value={formData.stock_number} onChange={e => setFormData(prev => ({ ...prev, stock_number: e.target.value }))} placeholder="PM-2024-001" />
+                  <label htmlFor="inv-stock-number" className="text-sm font-medium text-gray-700">Stock Number *</label>
+                  <Input id="inv-stock-number" value={formData.stock_number} onChange={e => setFormData(prev => ({ ...prev, stock_number: e.target.value }))} placeholder="PM-2024-001" />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Status</label>
-                  <select value={formData.status} onChange={e => setFormData(prev => ({ ...prev, status: e.target.value }))} className="w-full px-3 py-2 border rounded-lg">
+                  <label htmlFor="inv-status" className="text-sm font-medium text-gray-700">Status</label>
+                  <select id="inv-status" value={formData.status} onChange={e => setFormData(prev => ({ ...prev, status: e.target.value }))} className="w-full px-3 py-2 border rounded-lg">
                     <option value="available">Available</option>
                     <option value="reserved">Reserved</option>
                     <option value="pending">Pending</option>
@@ -957,13 +957,13 @@ export default function AdminInventoryPage() {
                 </div>
                 {formData.is_ev && (
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Battery (kWh)</label>
-                      <Input type="number" step="0.1" value={formData.battery_capacity_kwh} onChange={e => setFormData(prev => ({ ...prev, battery_capacity_kwh: e.target.value }))} placeholder="75" />
+                  <div>
+                    <label htmlFor="inv-battery-kwh" className="text-sm font-medium text-gray-700">Battery (kWh)</label>
+                    <Input id="inv-battery-kwh" type="number" step="0.1" value={formData.battery_capacity_kwh} onChange={e => setFormData(prev => ({ ...prev, battery_capacity_kwh: e.target.value }))} placeholder="75" />
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Range (miles)</label>
-                      <Input type="number" value={formData.range_miles} onChange={e => setFormData(prev => ({ ...prev, range_miles: e.target.value }))} placeholder="358" />
+                      <label htmlFor="inv-range-miles" className="text-sm font-medium text-gray-700">Range (miles)</label>
+                      <Input id="inv-range-miles" type="number" value={formData.range_miles} onChange={e => setFormData(prev => ({ ...prev, range_miles: e.target.value }))} placeholder="358" />
                     </div>
                   </div>
                 )}
@@ -997,16 +997,16 @@ export default function AdminInventoryPage() {
                 <h3 className="font-semibold text-gray-700 mb-3">Media</h3>
                 <div className="grid grid-cols-1 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Primary Image URL</label>
-                    <Input value={formData.primary_image_url} onChange={e => setFormData(prev => ({ ...prev, primary_image_url: e.target.value }))} placeholder="https://..." />
+                    <label htmlFor="inv-primary-image" className="text-sm font-medium text-gray-700">Primary Image URL</label>
+                    <Input id="inv-primary-image" value={formData.primary_image_url} onChange={e => setFormData(prev => ({ ...prev, primary_image_url: e.target.value }))} placeholder="https://..." />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Video URL</label>
-                    <Input value={formData.video_url} onChange={e => setFormData(prev => ({ ...prev, video_url: e.target.value }))} placeholder="https://..." />
+                    <label htmlFor="inv-video-url" className="text-sm font-medium text-gray-700">Video URL</label>
+                    <Input id="inv-video-url" value={formData.video_url} onChange={e => setFormData(prev => ({ ...prev, video_url: e.target.value }))} placeholder="https://..." />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Location</label>
-                    <Input value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))} placeholder="Richmond Hill, ON" />
+                    <label htmlFor="inv-location" className="text-sm font-medium text-gray-700">Location</label>
+                    <Input id="inv-location" value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))} placeholder="Richmond Hill, ON" />
                   </div>
                 </div>
               </div>

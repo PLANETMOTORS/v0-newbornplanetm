@@ -274,8 +274,8 @@ export default function AIKnowledgePanel({ agentType, agentName }: Readonly<AIKn
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Category selector */}
-            <div>
-              <label className="text-sm font-medium text-gray-700 block mb-2">Category</label>
+            <fieldset>
+              <legend className="text-sm font-medium text-gray-700 block mb-2">Category</legend>
               <div className="flex gap-2 flex-wrap">
                 {CATEGORIES.map(cat => (
                   <button
@@ -294,14 +294,15 @@ export default function AIKnowledgePanel({ agentType, agentName }: Readonly<AIKn
               <p className="text-xs text-gray-400 mt-1">
                 {CATEGORIES.find(c => c.value === formData.category)?.description}
               </p>
-            </div>
+            </fieldset>
 
             {/* Trigger phrase */}
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">
+              <label htmlFor="ai-kb-trigger" className="text-sm font-medium text-gray-700 block mb-1">
                 {formData.category === "instruction" ? "Instruction / Rule" : "IF customer asks..."}
               </label>
               <textarea
+                id="ai-kb-trigger"
                 className="w-full border rounded-md p-3 text-sm min-h-[80px] resize-y"
                 value={formData.trigger_phrase}
                 onChange={e => setFormData({ ...formData, trigger_phrase: e.target.value })}
@@ -339,8 +340,9 @@ export default function AIKnowledgePanel({ agentType, agentName }: Readonly<AIKn
             {/* Priority + Tags row */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Priority</label>
+                <label htmlFor="ai-kb-priority" className="text-sm font-medium text-gray-700 block mb-1">Priority</label>
                 <Input
+                  id="ai-kb-priority"
                   type="number"
                   value={formData.priority}
                   onChange={e => setFormData({ ...formData, priority: Number.parseInt(e.target.value) || 0 })}
@@ -350,8 +352,9 @@ export default function AIKnowledgePanel({ agentType, agentName }: Readonly<AIKn
                 <p className="text-xs text-gray-400 mt-1">Higher number = matched first (0-100)</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Tags (comma-separated)</label>
+                <label htmlFor="ai-kb-tags" className="text-sm font-medium text-gray-700 block mb-1">Tags (comma-separated)</label>
                 <Input
+                  id="ai-kb-tags"
                   value={formData.tags}
                   onChange={e => setFormData({ ...formData, tags: e.target.value })}
                   placeholder="e.g., warranty, returns, common"
@@ -463,13 +466,13 @@ export default function AIKnowledgePanel({ agentType, agentName }: Readonly<AIKn
                   <div className="px-4 pb-4 border-t pt-3 space-y-3">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs font-medium text-gray-500 uppercase">Trigger / Question</label>
+                        <p className="text-xs font-medium text-gray-500 uppercase">Trigger / Question</p>
                         <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap bg-gray-50 p-3 rounded">
                           {entry.trigger_phrase}
                         </p>
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-gray-500 uppercase">Trained Response</label>
+                        <p className="text-xs font-medium text-gray-500 uppercase">Trained Response</p>
                         <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap bg-gray-50 p-3 rounded">
                           {entry.response}
                         </p>
