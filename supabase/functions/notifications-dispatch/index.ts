@@ -168,8 +168,8 @@ function checkQuietHours(prefs: Record<string, unknown> | null): boolean {
   if (!prefs) return false
   const now = new Date()
   const hour = now.getHours()
-  const start = parseInt((prefs.quiet_hours_start as string ?? "21:00").split(":")[0])
-  const end = parseInt((prefs.quiet_hours_end as string ?? "08:00").split(":")[0])
+  const start = Number.parseInt((prefs.quiet_hours_start as string ?? "21:00").split(":")[0])
+  const end = Number.parseInt((prefs.quiet_hours_end as string ?? "08:00").split(":")[0])
   if (start > end) return hour >= start || hour < end
   return hour >= start && hour < end
 }

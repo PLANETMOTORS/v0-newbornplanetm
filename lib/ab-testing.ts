@@ -102,7 +102,7 @@ function pickVariant<V extends string>(experiment: Experiment<V>): V {
   const n = variants.length
 
   // Default: equal weights
-  const w = weights ?? Array(n).fill(100 / n)
+  const w = weights ?? new Array(n).fill(100 / n)
 
   // Validate weights sum to ~100
   const total = w.reduce((a, b) => a + b, 0)

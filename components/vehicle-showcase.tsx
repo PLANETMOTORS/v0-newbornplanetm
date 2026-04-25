@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import useSWR from "swr"
@@ -141,6 +141,7 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
   const [isAnimating, setIsAnimating] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
   const [imageError, setImageError] = useState(false)
+  const carouselRef = useRef<HTMLDivElement>(null)
 
   // Fetch vehicles from Supabase — use server-fetched data as fallbackData
   // so the first render already has real vehicle data + images (enables LCP preload).
@@ -178,6 +179,20 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
     return () => clearInterval(rotationTimer)
   }, [isHovering, showcaseVehicles.length])
 
+  // Pause auto-rotation while hovering carousel; bound via ref to keep wrapper element non-interactive
+  useEffect(() => {
+    const el = carouselRef.current
+    if (!el) return
+    const enter = () => setIsHovering(true)
+    const leave = () => setIsHovering(false)
+    el.addEventListener("mouseenter", enter)
+    el.addEventListener("mouseleave", leave)
+    return () => {
+      el.removeEventListener("mouseenter", enter)
+      el.removeEventListener("mouseleave", leave)
+    }
+  }, [])
+
   const goToPrevious = () => {
     if (isAnimating || showcaseVehicles.length === 0) return
     setIsAnimating(true)
@@ -196,10 +211,9 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
   // No loading spinner needed as fallbackVehicles are always available
 
   return (
-    <div 
+    <div
+      ref={carouselRef}
       className="relative group w-full"
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
     >
       {/* Main carousel container - prevent cutoff */}
       <div className="w-full max-w-6xl mx-auto px-2 sm:px-4">

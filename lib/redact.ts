@@ -19,7 +19,7 @@ export function maskEmail(email: string | null | undefined): string {
   // no-control-regex) by scanning code points.
   let sanitized = ""
   for (let i = 0; i < email.length; i++) {
-    const code = email.charCodeAt(i)
+    const code = email.codePointAt(i) ?? 0
     if (code > 0x1f && code !== 0x7f) sanitized += email[i]
   }
   const trimmed = sanitized.trim()

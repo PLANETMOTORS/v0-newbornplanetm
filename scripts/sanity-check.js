@@ -21,7 +21,7 @@ const client = createClient({
   dataset:   DATASET,
   useCdn:    false,
   token:     TOKEN,
-  apiVersion: '2024-01-01',
+  apiVersion: '2025-04-01',
 })
 
 let passed = 0

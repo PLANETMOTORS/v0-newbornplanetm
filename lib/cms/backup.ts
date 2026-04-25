@@ -43,7 +43,7 @@ const BACKUPS_DIR = join(process.cwd(), "backups")
 
 /** Returns a filesystem-safe ISO timestamp: 2025-04-23T08-30-00 */
 function safeTimestamp(): string {
-  return new Date().toISOString().replace(/:/g, "-").replace(/\.\d{3}Z$/, "")
+  return new Date().toISOString().replaceAll(":", "-").replace(/\.\d{3}Z$/, "")
 }
 
 /** Ensures the backups/ directory exists */
