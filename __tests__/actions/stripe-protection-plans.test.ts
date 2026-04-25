@@ -12,6 +12,7 @@
  *
  * Also tests validateCentsAmount (indirectly via checkout calls).
  */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 

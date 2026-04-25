@@ -16,7 +16,7 @@ import {
 import { trackFormSubmission } from "@/components/analytics/google-tag-manager"
 import { trackLead } from "@/components/analytics/google-analytics"
 import { trackMetaLead } from "@/components/analytics/meta-pixel"
-import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
+import { PHONE_LOCAL } from "@/lib/constants/dealership"
 
 interface ContactFormProps {
   onSuccess?: () => void

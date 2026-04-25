@@ -13,7 +13,7 @@ import type { DeliveryData } from "./delivery-options"
 import type { ProtectionPlanId } from "./protection-plans"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 import { OMVIC_FEE, CERTIFICATION_FEE, LICENSING_FEE } from "@/lib/pricing/format"
-import { DEALERSHIP_LOCATION, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
+import { DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 
 const PROVINCE_NAME_TO_CODE: Record<string, string> = {
   'Ontario': 'ON', 'British Columbia': 'BC', 'Alberta': 'AB', 'Quebec': 'QC',

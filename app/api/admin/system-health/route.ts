@@ -32,7 +32,7 @@ async function requireAdmin(): Promise<{ user: { email: string } } | null> {
       data: { user },
     } = await supabase.auth.getUser()
     if (!user || !ADMIN_EMAILS.includes(user.email || "")) return null
-    return { user: { email: user.email! } }
+    return { user: { email: user.email ?? "" } }
   } catch {
     return null
   }

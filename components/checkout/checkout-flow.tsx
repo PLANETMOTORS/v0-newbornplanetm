@@ -204,11 +204,12 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
       document.addEventListener("keydown", handleKeyDown)
       modalEl.addEventListener("keydown", handleFocusTrap)
 
+      const triggerEl = orderSummaryTriggerRef.current
       return () => {
         document.removeEventListener("keydown", handleKeyDown)
         modalEl.removeEventListener("keydown", handleFocusTrap)
         // Restore focus to trigger
-        orderSummaryTriggerRef.current?.focus()
+        triggerEl?.focus()
       }
     }
   }, [showOrderSummary])

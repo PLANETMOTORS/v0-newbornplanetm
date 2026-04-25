@@ -64,7 +64,7 @@ export function BlogPageContent({ featuredSlug, initialPosts }: BlogPageContentP
       )
     }
     return result
-  }, [selectedCategory, searchQuery, featuredSlug])
+  }, [selectedCategory, searchQuery, featuredSlug, allPosts])
 
   // Reset visible count when filters change
   const visiblePosts = filteredPosts.slice(0, visibleCount)

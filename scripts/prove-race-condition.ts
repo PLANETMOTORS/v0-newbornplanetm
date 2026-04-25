@@ -130,6 +130,7 @@ async function newCreateReservation(email: string): Promise<{ success: boolean; 
 
     return { success: true }
   } finally {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     releaseLock!() // Release the lock
   }
 }
@@ -154,6 +155,7 @@ async function newCreateOrder(userId: string): Promise<{ success: boolean; error
 
     return { success: true }
   } finally {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     releaseLock!()
   }
 }

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { PROTECTION_PRODUCTS, type ProtectionProduct } from "@/lib/protection-products"
-import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
+import { PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
 
 export function ProductDetailsSection() {
   const [openSlug, setOpenSlug] = useState<string | null>(null)

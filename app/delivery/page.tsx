@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Truck, MapPin, Clock, CheckCircle, Calculator } from "lucide-react"
 import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
-import { DEALERSHIP_LOCATION, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
+import { DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 
 // Planet Motors shipping location: L4C 1G7, Richmond Hill, Ontario
 

@@ -6,7 +6,7 @@
  * Handles Realtime subscriptions for live deal state updates.
  * Renders: DealTracker, DossierVault, SavedVehicles, EmptyState
  */
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Star, Car, FileText, Heart, TrendingDown, ChevronRight, Shield, Battery, Clock } from "lucide-react"
@@ -88,7 +88,7 @@ export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedV
     )
 
     return () => { channels.forEach(ch => sb.removeChannel(ch)) }
-  }, [deals.length, sb, router])
+  }, [deals, sb, router])
 
   const priceDropCount = savedVehicles.filter(sv =>
     sv.last_known_price_cents && sv.vehicle?.price_cents &&
@@ -280,7 +280,7 @@ export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedV
                 const v = sv.vehicle
                 if (!v) return null
                 const priceDrop = sv.last_known_price_cents && v.price_cents && v.price_cents < sv.last_known_price_cents
-                const dropAmount = priceDrop ? sv.last_known_price_cents! - v.price_cents! : 0
+                const dropAmount = priceDrop ? (sv.last_known_price_cents ?? 0) - (v.price_cents ?? 0) : 0
                 const isSold = v.status === "sold"
                 return (
                   <Card key={sv.id} className={`overflow-hidden border-border/60 ${isSold ? "opacity-60" : ""}`}>

@@ -124,7 +124,7 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       return { error: claim?.error || 'Vehicle is not available for reservation.' }
     }
 
-    const reservationId = claim.reservation_id!
+    const reservationId = claim.reservation_id ?? ""
 
     // Look up vehicle details for notification metadata
     const { data: vehicle } = await adminClient

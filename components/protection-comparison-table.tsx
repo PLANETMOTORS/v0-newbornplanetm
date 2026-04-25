@@ -2,7 +2,6 @@
 
 import { Fragment, useState } from "react"
 import { CheckCircle, X, Shield, ChevronDown, Sparkles, Star } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   PROTECTION_PACKAGES,

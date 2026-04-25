@@ -10,7 +10,7 @@
  *    Rates and terms subject to credit approval."
  */
 
-import { RATE_FLOOR, RATE_FLOOR_DISPLAY, DEFAULT_TERM_MONTHS } from "@/lib/rates"
+import { RATE_FLOOR, RATE_FLOOR_DISPLAY } from "@/lib/rates"
 
 /** Calculate monthly payment using standard amortization formula. */
 function monthlyPayment(principal: number, annualRate: number, termMonths: number): number {

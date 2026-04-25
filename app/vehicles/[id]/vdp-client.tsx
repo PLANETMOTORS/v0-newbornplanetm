@@ -41,7 +41,7 @@ import { trackProductView, trackPhoneClick } from "@/components/analytics/google
 import { calculateAllInPrice, safeNum } from "@/lib/pricing/format"
 import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
 import { trackMetaViewContent, trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
-import { PHONE_LOCAL, PHONE_LOCAL_TEL, DEALERSHIP_LOCATION, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
+import { PHONE_LOCAL, PHONE_LOCAL_TEL, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 
 // ── Lazy-load heavy below-fold components ──
 const DriveeViewer = dynamic(

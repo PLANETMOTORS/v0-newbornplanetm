@@ -1,7 +1,7 @@
 // Below-fold homepage sections — code-split from homepage-content.tsx
 // to reduce initial JS bundle and improve LCP/TBT
 import Link from "next/link"
-import { ArrowRight, Shield, RotateCw, CheckCircle, Star, BadgeCheck, Clock, Battery, Phone, MapPin, DollarSign, Truck } from "lucide-react"
+import { ArrowRight, RotateCw, CheckCircle, Star, BadgeCheck, Clock, Battery, Phone, MapPin, DollarSign, Truck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { WEEKDAY_HOURS_FALLBACK, SATURDAY_HOURS_FALLBACK } from "@/lib/constants/dealership"
 
@@ -125,7 +125,7 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Have a Vehicle to Sell or Trade?</h2>
               <p className="text-gray-600 text-lg mb-6">Get a competitive offer in minutes. We buy all makes and models - you don&apos;t need to purchase from us to sell to us.</p>
               <ul className="space-y-3 mb-8">
-                {["Instant online offer", "Free vehicle pickup", "Same-day payment available", "No obligation to buy from us"].map((item, i) => (
+                {["Instant online offer", "Free vehicle pickup", "Same-day payment available", "No obligation to buy from us"].map((item) => (
                   <li key={item} className="flex items-center gap-3">
                     <CheckCircle className="w-5 h-5 text-green-700" />
                     <span className="text-gray-700">{item}</span>

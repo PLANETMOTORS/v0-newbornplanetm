@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react"
 import type { User } from "@supabase/supabase-js"
-import type { SupabaseClient } from "@supabase/supabase-js"
 
 // Lazy-load the Supabase client to defer its ~196KB bundle from the critical
 // hydration path.  The client is only needed after mount (useEffect), so the

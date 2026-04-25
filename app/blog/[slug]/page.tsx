@@ -124,11 +124,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         category: staticPost.category,
       }
     : {
-        title: sanityPost!.title ?? "",
-        excerpt: sanityPost!.excerpt ?? "",
-        image: sanityPost!.coverImage ?? "/images/blog/1.png",
-        date: sanityPost!.publishedAt ? new Date(sanityPost!.publishedAt).toLocaleDateString("en-CA") : "",
-        content: `<p>${sanityPost!.excerpt ?? ""}</p>`,
+        title: sanityPost?.title ?? "",
+        excerpt: sanityPost?.excerpt ?? "",
+        image: sanityPost?.coverImage ?? "/images/blog/1.png",
+        date: sanityPost?.publishedAt ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA") : "",
+        content: `<p>${sanityPost?.excerpt ?? ""}</p>`,
         relatedPosts: [],
         readTime: "5 min read",
         author: "Planet Motors Team",
