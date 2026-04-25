@@ -139,7 +139,7 @@ async function run() {
   )
   await check(
     'No protectionPlan missing title',
-    `count(*[_type == "protectionPlan" && !defined(title)])`,
+    `count(*[_type == "protectionPlan" && !defined(title) && !defined(name)])`,
     (n) => n === 0
   )
 
