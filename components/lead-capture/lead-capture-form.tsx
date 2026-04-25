@@ -359,7 +359,7 @@ export function LeadCaptureForm({
         <a href="/privacy" className="underline hover:text-foreground">
           privacy policy
         </a>
-        . No spam — ever.
+        {". No spam — ever."}
       </p>
     </form>
   )

@@ -1123,7 +1123,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
               >
                 OMVIC Registered Dealer
               </a>
-              . All prices exclude applicable taxes and licensing fees.
+              {". All prices exclude applicable taxes and licensing fees."}
             </p>
           </div>
         </div>

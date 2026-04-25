@@ -226,7 +226,7 @@ export function LiveChatWidget() {
           {/* Footer */}
           <div className="px-4 py-2 border-t bg-muted/30 text-center">
             <p className="text-xs text-muted-foreground">
-              AI-powered • Available 24/7 • 
+              {"AI-powered • Available 24/7 • "}
               <a href={`tel:${PHONE_TOLL_FREE_TEL}`} className="text-primary hover:underline ml-1">
                 Or call us
               </a>
