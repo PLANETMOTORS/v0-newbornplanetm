@@ -65,8 +65,12 @@ export type LeadSource =
   | "chat"
 
 export interface LeadPayload {
-  /** Lead source identifier — known values: lead_capture_form, contact_form, finance_app, trade_in, reservation, test_drive, vdp_inquiry, chat. */
-  source: LeadSource | (string & {})
+  /**
+   * Lead source identifier. Use one of the {@link LeadSource} string values
+   * for known sources; arbitrary strings are accepted for forward
+   * compatibility with new lead sources from external systems.
+   */
+  source: string
 
   /** Customer details */
   firstName: string
