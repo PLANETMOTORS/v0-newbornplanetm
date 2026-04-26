@@ -89,7 +89,14 @@ BEGIN
 END;
 $$;
 
--- ── Steps 5 & 6: trigger + RLS already defined in 004_create_orders_schema.sql ──
--- update_orders_updated_at() trigger and all RLS policies (view/create/service-role)
--- are created by 004, which must run before this script (enforced by the DO block
--- in Step 2 above). Re-defining them here would duplicate that migration.
+-- ── Step 5: trigger already defined in 004_create_orders_schema.sql ──────────
+-- update_orders_updated_at() trigger is created by 004, which must run before
+-- this script (enforced by the DO block in Step 2 above).
+
+-- ── Step 6: RLS policies ────────────────────────────────────────────────────
+-- User-scoped policies (view/create/update) are created by 004.
+-- The service-role policy below is unique to this migration.
+DROP POLICY IF EXISTS "Service role full access to orders" ON public.orders;
+CREATE POLICY "Service role full access to orders"
+  ON public.orders FOR ALL
+  USING (current_setting('role') = 'service_role');
