@@ -89,35 +89,7 @@ BEGIN
 END;
 $$;
 
--- ── Step 5: Updated_at trigger for orders ──────────────────────────────────
-CREATE OR REPLACE FUNCTION public.update_orders_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS trg_update_orders_updated_at ON public.orders;
-CREATE TRIGGER trg_update_orders_updated_at
-  BEFORE UPDATE ON public.orders
-  FOR EACH ROW
-  EXECUTE FUNCTION public.update_orders_updated_at();
-
--- ── Step 6: RLS policies for orders ────────────────────────────────────────
-ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Users can view own orders" ON public.orders;
-CREATE POLICY "Users can view own orders"
-  ON public.orders FOR SELECT
-  USING (auth.uid() = customer_id);
-
-DROP POLICY IF EXISTS "Users can create own orders" ON public.orders;
-CREATE POLICY "Users can create own orders"
-  ON public.orders FOR INSERT
-  WITH CHECK (auth.uid() = customer_id);
-
-DROP POLICY IF EXISTS "Service role full access to orders" ON public.orders;
-CREATE POLICY "Service role full access to orders"
-  ON public.orders FOR ALL
-  USING (current_setting('role') = 'service_role');
+-- ── Steps 5 & 6: trigger + RLS already defined in 004_create_orders_schema.sql ──
+-- update_orders_updated_at() trigger and all RLS policies (view/create/service-role)
+-- are created by 004, which must run before this script (enforced by the DO block
+-- in Step 2 above). Re-defining them here would duplicate that migration.
