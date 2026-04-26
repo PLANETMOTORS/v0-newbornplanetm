@@ -39,3 +39,4 @@ jobs:
         if: failure()
         run: |
           echo "::error::Sanity data integrity check failed. Review the output above for broken references, missing required fields, or sync issues."
+          echo "::notice::If all errors say 'project user not found', the SANITY_API_TOKEN secret is invalid or not a member of project wlxj8olw. Regenerate it at https://www.sanity.io/manage and update the secret in GitHub → Settings → Secrets → Actions."
