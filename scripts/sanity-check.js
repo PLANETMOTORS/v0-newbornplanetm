@@ -38,8 +38,8 @@ async function verifyAuth() {
     process.exit(1)
   }
   try {
-    // A universal GROQ query that returns an empty array in any schema — used
-    // only to verify that the token is accepted by the API.
+    // A universal minimal GROQ read query that returns at most one document
+    // in any schema — used only to verify that the token is accepted by the API.
     await client.fetch('*[0..0]{_id}')
   } catch (err) {
     const isAuthError =
