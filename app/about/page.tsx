@@ -258,8 +258,8 @@ export default function AboutPage() {
               {customerReviews.map((review) => (
                 <Card key={review.name} className="p-6">
                   <div className="flex items-center gap-2 mb-3">
-                    {new Array(review.rating).fill(0).map((_, j) => (
-                      <Star key={j} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    {Array.from({ length: review.rating }, (_, j) => (
+                      <Star key={`${review.name}-star-${j}`} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                     ))}
                   </div>
                   <p className="text-muted-foreground mb-4 italic">&quot;{review.review}&quot;</p>
