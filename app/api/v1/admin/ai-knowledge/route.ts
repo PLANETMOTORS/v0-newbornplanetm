@@ -3,12 +3,18 @@ import { createClient } from "@/lib/supabase/server"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { ADMIN_EMAILS } from "@/lib/admin"
 
-/** Create a Supabase service-role client using env vars. */
+/** Create a Supabase service-role client using validated env vars. */
 function createServiceClient() {
-  return createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-    process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
-  )
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error(
+      "Missing Supabase service configuration: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set."
+    )
+  }
+
+  return createSupabaseClient(supabaseUrl, serviceRoleKey)
 }
 
 interface KnowledgeEntry {
