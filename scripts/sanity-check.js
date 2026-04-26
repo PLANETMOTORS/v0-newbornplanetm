@@ -63,6 +63,7 @@ async function run() {
   }
 
   try {
+    // Minimal no-op query — returns nothing but validates credentials
     await client.fetch('*[false][0]')
   } catch (err) {
     const isAuthError =
