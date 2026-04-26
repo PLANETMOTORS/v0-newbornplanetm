@@ -84,12 +84,13 @@ async function run() {
   // ─── 0. TOKEN PRE-FLIGHT ─────────────────────────────────────────────────────
   if (TOKEN) {
     try {
-      // A lightweight GROQ query is the cheapest way to verify the token.
+      // A lightweight GROQ query that always returns 0 on any project — used
+      // solely to verify the token has read access before running full checks.
       await authedClient.fetch(`count(*[_id == "_.config.v2"][0..0])`)
       console.log('✅ Sanity token authorised\n')
     } catch (err) {
       if (isProjectUserNotFoundError(err)) {
-        console.warn(`⚠️  SANITY_API_TOKEN (user "g-GFcM8YRAT305") is NOT a member of project "${PROJECT_ID}".`)
+        console.warn(`⚠️  SANITY_API_TOKEN is NOT a member of project "${PROJECT_ID}".`)
         console.warn('   Falling back to unauthenticated access for all checks.')
         console.warn('   Fix: create a new token from a project member at https://www.sanity.io/manage\n')
         client = anonClient
