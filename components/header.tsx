@@ -157,7 +157,7 @@ export function Header() {
     const handleScroll = () => {
       if (!ticking) {
         globalThis.window?.requestAnimationFrame(() => {
-          setScrolled(globalThis.window?.scrollY ?? 0 > 40)
+          setScrolled((globalThis.window?.scrollY ?? 0) > 40)
           ticking = false
         })
         ticking = true
