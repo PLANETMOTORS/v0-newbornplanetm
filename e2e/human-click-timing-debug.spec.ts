@@ -623,7 +623,7 @@ test.describe('Section C — Page Load Timing', () => {
     console.log(`\n✓ Timing report saved → ${TIMING_LOG}`);
   });
 
-  test('C01 — Homepage: TTFB, FCP, LCP within budget', async ({ page, browserName }) => {
+  test('C01 — Homepage: TTFB, FCP, LCP within budget', async ({ page, browserName, isMobile }) => {
     await page.goto(BASE_URL, { waitUntil: 'networkidle' });
     const nav    = await captureNavTiming(page);
     const vitals = await captureWebVitals(page);
@@ -635,8 +635,8 @@ test.describe('Section C — Page Load Timing', () => {
     console.log(`  LCP:  ${vitals.lcp?.toFixed(0)}ms (budget: ${BUDGET.LCP}ms)`);
     console.log(`  CLS:  ${vitals.cls?.toFixed(3)} (budget: ${BUDGET.CLS})`);
 
-    // Mobile Safari on CI often exceeds TTFB budget due to network overhead
-    const ttfbBudget = browserName === 'Mobile Safari' ? BUDGET.TTFB * 2 : BUDGET.TTFB;
+    // Mobile Safari (webkit on mobile) on CI often exceeds TTFB budget due to network overhead
+    const ttfbBudget = (isMobile && browserName === 'webkit') ? BUDGET.TTFB * 2 : BUDGET.TTFB;
 
     if (nav.ttfb)    expect(nav.ttfb).toBeLessThan(ttfbBudget);
     if (vitals.fcp)  expect(vitals.fcp).toBeLessThan(BUDGET.FCP);
