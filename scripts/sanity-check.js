@@ -84,8 +84,8 @@ async function run() {
   // ─── 0. TOKEN PRE-FLIGHT ─────────────────────────────────────────────────────
   if (TOKEN) {
     try {
-      // A lightweight GROQ query that always returns 0 on any project — used
-      // solely to verify the token has read access before running full checks.
+      // A lightweight GROQ query (returns 0 or 1) used solely to verify the
+      // token has read access before running full checks.
       await authedClient.fetch(`count(*[_id == "_.config.v2"][0..0])`)
       console.log('✅ Sanity token authorised\n')
     } catch (err) {
