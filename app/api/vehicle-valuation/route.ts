@@ -167,10 +167,10 @@ function calculateFallbackValue(year: string, make: string, model: string, milea
   // Depreciation
   let value = baseValue
   for (let y = 0; y < age; y++) {
-    if (y === 0) value *= 0.80
+    if (y === 0) value *= 0.8
     else if (y === 1) value *= 0.85
     else if (y === 2) value *= 0.88
-    else if (y < 6) value *= 0.90
+    else if (y < 6) value *= 0.9
     else value *= 0.92
   }
 
@@ -211,9 +211,9 @@ function calculateFallbackValue(year: string, make: string, model: string, milea
   value = Math.round(value / 50) * 50
 
   return {
-    lowValue: Math.round(value * 0.90 / 50) * 50,
+    lowValue: Math.round(value * 0.9 / 50) * 50,
     midValue: value,
-    highValue: Math.round(value * 1.10 / 50) * 50,
+    highValue: Math.round(value * 1.1 / 50) * 50,
     confidence: "medium",
     factors,
     region: region.regionName,
