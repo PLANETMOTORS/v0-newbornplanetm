@@ -27,9 +27,24 @@ function street(
   postalCode: string,
   direction?: string
 ): AddressSuggestion {
+  // Map full province name to 2-letter abbreviation
+  const provinceAbbrev = province === 'Ontario' ? 'ON' 
+    : province === 'Quebec' ? 'QC'
+    : province === 'British Columbia' ? 'BC'
+    : province === 'Alberta' ? 'AB'
+    : province === 'Manitoba' ? 'MB'
+    : province === 'Saskatchewan' ? 'SK'
+    : province === 'Nova Scotia' ? 'NS'
+    : province === 'New Brunswick' ? 'NB'
+    : province === 'Newfoundland and Labrador' ? 'NL'
+    : province === 'Prince Edward Island' ? 'PE'
+    : province === 'Northwest Territories' ? 'NT'
+    : province === 'Yukon' ? 'YT'
+    : province === 'Nunavut' ? 'NU'
+    : province // Already abbreviated or fallback to input
+  
   const streetPart = [streetName, streetType, direction].filter(Boolean).join(' ')
-  const provincePart = province === "Ontario" ? "ON" : province
-  const fullAddress = `${streetPart}, ${city}, ${provincePart}`
+  const fullAddress = `${streetPart}, ${city}, ${provinceAbbrev}`
   return { streetName, streetType, direction, city, province, postalCode, fullAddress }
 }
 
