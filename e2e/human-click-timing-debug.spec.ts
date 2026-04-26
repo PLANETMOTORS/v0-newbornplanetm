@@ -229,6 +229,8 @@ test.describe('Section A — Human Click Simulation', () => {
   test('A01 — homepage hero CTA click navigates to inventory', async ({ page }) => {
     await page.goto(BASE_URL);
     await humanClick(page, page.getByTestId('hero-cta-btn').first());
+    // Wait for navigation to complete - WebKit needs more time
+    await page.waitForURL(/inventory/, { timeout: 15_000 });
     await expect(page).toHaveURL(/inventory/);
   });
 
