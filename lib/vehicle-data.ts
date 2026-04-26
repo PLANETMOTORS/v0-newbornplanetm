@@ -18,12 +18,12 @@ export interface VehicleMake {
 }
 
 /** Trim factory — eliminates repeated inline `{ name, transmission, engine }` type annotations. */
-function t(name: string, transmission?: string, engine?: string): VehicleTrim {
+function makeTrim(name: string, transmission?: string, engine?: string): VehicleTrim {
   return transmission || engine ? { name, transmission, engine } : { name }
 }
 
 /** Model factory — eliminates repeated inline `{ name, trims }` type annotations. */
-function m(name: string, trims: VehicleTrim[]): VehicleModel {
+function makeModel(name: string, trims: VehicleTrim[]): VehicleModel {
   return { name, trims }
 }
 
