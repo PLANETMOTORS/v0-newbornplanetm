@@ -2,8 +2,8 @@
 // Each blog post article content is tree-shaken at build time so only the
 // requested slug is included in the server-rendered HTML.
 
-// Blog post data with full content
-export const blogPosts: Record<string, {
+/** Shape of a single blog post entry. Defined once here to avoid structural duplication. */
+export interface BlogPostEntry {
   title: string
   excerpt: string
   date: string
@@ -13,7 +13,15 @@ export const blogPosts: Record<string, {
   author: string
   content: string
   relatedPosts: string[]
-}> = {
+}
+
+/** Factory that returns a typed blog post entry — eliminates repeated inline type annotations. */
+function post(entry: BlogPostEntry): BlogPostEntry {
+  return entry
+}
+
+// Blog post data with full content
+export const blogPosts: Record<string, BlogPostEntry> = {
   "check-battery-health-used-tesla-canada": {
     title: "How to Check Battery Health Before Buying a Used Tesla in Canada",
     excerpt: "Learn how to assess battery degradation, check range estimates, and use diagnostic tools before purchasing a pre-owned Tesla in Canada.",

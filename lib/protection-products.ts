@@ -31,8 +31,14 @@ export interface ProtectionProduct {
   }
 }
 
+/** Factory that returns a typed ProtectionProduct — eliminates repeated inline type annotations
+ *  across the 9 product entries and reduces structural duplication flagged by static analysis. */
+function defineProduct(p: ProtectionProduct): ProtectionProduct {
+  return p
+}
+
 export const PROTECTION_PRODUCTS: ProtectionProduct[] = [
-  {
+  defineProduct({
     slug: "gap-coverage",
     name: "Companion GAP Coverage",
     shortName: "GAP Coverage",
@@ -79,8 +85,8 @@ export const PROTECTION_PRODUCTS: ProtectionProduct[] = [
       description: "GAP insurance covers the difference between your car's value and what you owe. Protect yourself from financial loss after a total loss or theft. Available at Planet Motors Richmond Hill.",
       keywords: ["GAP insurance Canada", "GAP coverage Ontario", "auto loan protection", "negative equity protection", "Planet Motors GAP"],
     },
-  },
-  {
+  }),
+  defineProduct({
     slug: "extended-warranty",
     name: "Extended Vehicle Warranty",
     shortName: "Extended Warranty",
@@ -131,8 +137,8 @@ export const PROTECTION_PRODUCTS: ProtectionProduct[] = [
       description: "Protect your used car with an extended warranty from Planet Motors. Covers engine, transmission, electrical, A/C, and more. Zero deductible options available in Richmond Hill, Ontario.",
       keywords: ["extended car warranty Canada", "used car warranty Ontario", "mechanical breakdown protection", "vehicle service contract", "Planet Motors warranty"],
     },
-  },
-  {
+  }),
+  defineProduct({
     slug: "incident-pro",
     name: "IncidentPro Protection",
     shortName: "IncidentPro",
@@ -180,8 +186,8 @@ export const PROTECTION_PRODUCTS: ProtectionProduct[] = [
       description: "IncidentPro provides new-for-old vehicle replacement, job loss protection, and critical illness loan clearance. Superior to traditional insurance. Planet Motors Richmond Hill.",
       keywords: ["vehicle replacement coverage", "total loss protection Canada", "job loss car payment protection", "IncidentPro", "Planet Motors protection"],
     },
-  },
-  {
+  }),
+  defineProduct({
     slug: "anti-theft",
     name: "InvisiTrak Anti-Theft System",
     shortName: "Anti-Theft",
@@ -228,8 +234,8 @@ export const PROTECTION_PRODUCTS: ProtectionProduct[] = [
       description: "Protect your vehicle with InvisiTrak GPS tracking and 24/7 monitoring. Concealed installation, rapid police coordination, and mobile alerts. Planet Motors Richmond Hill.",
       keywords: ["car anti-theft system Canada", "GPS vehicle tracking Ontario", "InvisiTrak", "stolen car recovery", "vehicle security system"],
     },
-  },
-  {
+  }),
+  defineProduct({
     slug: "paint-protection",
     name: "Paint Protection Film",
     shortName: "Paint Protection",
@@ -276,8 +282,8 @@ export const PROTECTION_PRODUCTS: ProtectionProduct[] = [
       description: "Protect your car's paint with premium paint protection film. Self-healing technology, UV protection, and invisible armor against chips and scratches. Planet Motors Richmond Hill.",
       keywords: ["paint protection film Canada", "PPF Ontario", "clear bra car", "self-healing film", "car paint protection Richmond Hill"],
     },
-  },
-  {
+  }),
+  defineProduct({
     slug: "replacement-warranty",
     name: "Replacement Warranty Plan",
     shortName: "Replacement Warranty",
@@ -322,8 +328,8 @@ export const PROTECTION_PRODUCTS: ProtectionProduct[] = [
       description: "Get new-for-old vehicle replacement if your car is written off. Zero deductible, transferable coverage. Better than insurance depreciation payouts. Planet Motors Richmond Hill.",
       keywords: ["vehicle replacement warranty", "new for old car replacement", "total loss protection Ontario", "car replacement coverage Canada"],
     },
-  },
-  {
+  }),
+  defineProduct({
     slug: "rust-protection",
     name: "Rust Protection Coating",
     shortName: "Rust Protection",
@@ -369,8 +375,8 @@ export const PROTECTION_PRODUCTS: ProtectionProduct[] = [
       description: "Professional rust protection coating and undercoating for Canadian winters. Prevent road salt corrosion and preserve your vehicle's structural integrity. Planet Motors Richmond Hill.",
       keywords: ["rust protection Canada", "car undercoating Ontario", "rust proofing", "winter car protection", "road salt protection"],
     },
-  },
-  {
+  }),
+  defineProduct({
     slug: "tire-rim-protection",
     name: "Tire and Rim Protection",
     shortName: "Tire & Rim",
@@ -417,8 +423,8 @@ export const PROTECTION_PRODUCTS: ProtectionProduct[] = [
       description: "Protect your tires and rims from potholes, nails, and curb damage. No deductible, unlimited claims, any tire shop. Planet Motors Richmond Hill, Ontario.",
       keywords: ["tire and rim protection Canada", "pothole damage coverage", "wheel protection plan", "road hazard tire coverage Ontario"],
     },
-  },
-  {
+  }),
+  defineProduct({
     slug: "window-tint",
     name: "Window Tint Film",
     shortName: "Window Tint",
@@ -464,7 +470,7 @@ export const PROTECTION_PRODUCTS: ProtectionProduct[] = [
       description: "Premium ceramic window tint installation. Blocks 99% UV rays, reduces heat by 60%, and adds privacy. Legal Ontario compliance. Planet Motors Richmond Hill.",
       keywords: ["window tint Ontario", "ceramic window film", "car window tinting Richmond Hill", "UV protection window tint Canada"],
     },
-  },
+  }),
 ]
 
 export function getProductBySlug(slug: string): ProtectionProduct | undefined {
