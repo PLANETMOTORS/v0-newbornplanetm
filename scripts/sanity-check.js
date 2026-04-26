@@ -51,6 +51,38 @@ async function run() {
   console.log(`\n🔍 Sanity Data Integrity Check`)
   console.log(`   Project: ${PROJECT_ID}  Dataset: ${DATASET}\n`)
 
+  // ─── 0. PRE-FLIGHT: VALIDATE TOKEN AND AUTHENTICATION ───────────────────────
+  if (!TOKEN) {
+    console.error('❌ SANITY_API_TOKEN is not set.')
+    console.error('\n   To fix:')
+    console.error(`   1. Go to https://www.sanity.io/manage/project/${PROJECT_ID}/settings/api`)
+    console.error('   2. Create a new API token with "Viewer" or "Editor" permissions')
+    console.error('   3. Add it as the SANITY_API_TOKEN secret in the GitHub repo:')
+    console.error('      https://github.com/PLANETMOTORS/v0-newbornplanetm/settings/secrets/actions')
+    process.exit(1)
+  }
+
+  try {
+    await client.fetch('*[false][0]')
+  } catch (err) {
+    const isAuthError =
+      err.message.includes('project user not found') ||
+      err.statusCode === 401 ||
+      err.statusCode === 403
+    if (isAuthError) {
+      console.error('❌ Authentication failed: ' + err.message)
+      console.error('\n   The SANITY_API_TOKEN secret is invalid or the associated user no longer has')
+      console.error(`   access to Sanity project "${PROJECT_ID}".`)
+      console.error('\n   To fix:')
+      console.error(`   1. Go to https://www.sanity.io/manage/project/${PROJECT_ID}/settings/api`)
+      console.error('   2. Create a new API token with "Viewer" or "Editor" permissions')
+      console.error('   3. Update the SANITY_API_TOKEN secret in the GitHub repo:')
+      console.error('      https://github.com/PLANETMOTORS/v0-newbornplanetm/settings/secrets/actions')
+      process.exit(1)
+    }
+    throw err
+  }
+
   // ─── 1. CORE SINGLETON DOCUMENTS ────────────────────────────────────────────
   console.log('── Core Singleton Documents ──')
   await check(
