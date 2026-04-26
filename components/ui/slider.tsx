@@ -52,7 +52,7 @@ function Slider({
       {Array.from({ length: _values.length }, (_, index) => (
         <SliderPrimitive.Thumb
           data-slot="slider-thumb"
-          key={_values[index]}
+          key={index}
           className="relative border-primary ring-ring/50 block size-5 shrink-0 rounded-full border bg-white shadow-sm transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50 before:absolute before:-inset-3 before:content-['']"
         />
       ))}
