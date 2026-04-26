@@ -28,7 +28,8 @@ function street(
   direction?: string
 ): AddressSuggestion {
   const streetPart = [streetName, streetType, direction].filter(Boolean).join(' ')
-  const fullAddress = `${streetPart}, ${city}, ON`
+  const provincePart = province === "Ontario" ? "ON" : province
+  const fullAddress = `${streetPart}, ${city}, ${provincePart}`
   return { streetName, streetType, direction, city, province, postalCode, fullAddress }
 }
 
