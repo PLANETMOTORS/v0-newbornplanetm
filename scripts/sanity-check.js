@@ -24,6 +24,47 @@ const client = createClient({
   apiVersion: '2025-04-01',
 })
 
+/**
+ * Pre-flight: verify the token is valid and authorized for this project.
+ * Exits 1 immediately with a clear configuration-error message if it is not,
+ * so that operators see one actionable line instead of 22 identical auth errors.
+ */
+async function verifyAuth() {
+  if (!TOKEN) {
+    console.error('\n❌ Configuration error: SANITY_API_TOKEN is not set.')
+    console.error('   To fix: add a Viewer (or higher) API token for project')
+    console.error(`   "${PROJECT_ID}" as the SANITY_API_TOKEN GitHub secret.`)
+    console.error('   Generate one at https://www.sanity.io/manage → API → Tokens\n')
+    process.exit(1)
+  }
+  try {
+    // A universal minimal GROQ read query that returns at most one document
+    // in any schema — used only to verify that the token is accepted by the API.
+    await client.fetch('*[0..0]{_id}')
+  } catch (err) {
+    const isAuthError =
+      err.statusCode === 401 ||
+      err.statusCode === 403 ||
+      /project user not found/i.test(err.message) ||
+      /unauthorized/i.test(err.message) ||
+      /forbidden/i.test(err.message)
+
+    if (isAuthError) {
+      console.error('\n❌ Configuration error: SANITY_API_TOKEN is not authorized for this project.')
+      console.error(`   Project : ${PROJECT_ID}`)
+      console.error(`   Dataset : ${DATASET}`)
+      console.error(`   Detail  : ${err.message}`)
+      console.error('\n   To fix:')
+      console.error('   1. Open https://www.sanity.io/manage and select project "' + PROJECT_ID + '"')
+      console.error('   2. Go to API → Tokens and create a new Viewer token.')
+      console.error('   3. Update the SANITY_API_TOKEN secret in GitHub → Settings → Secrets.\n')
+      process.exit(1)
+    }
+    // Re-throw unexpected errors so they surface normally.
+    throw err
+  }
+}
+
 let passed = 0
 let failed = 0
 const errors = []
@@ -50,6 +91,8 @@ async function check(label, query, validator) {
 async function run() {
   console.log(`\n🔍 Sanity Data Integrity Check`)
   console.log(`   Project: ${PROJECT_ID}  Dataset: ${DATASET}\n`)
+
+  await verifyAuth()
 
   // ─── 1. CORE SINGLETON DOCUMENTS ────────────────────────────────────────────
   console.log('── Core Singleton Documents ──')
