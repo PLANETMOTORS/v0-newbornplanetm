@@ -21,7 +21,7 @@ interface AddToCompareProps {
   className?: string
 }
 
-export function AddToCompare({ vehicle, variant = "outline", size = "sm", className }: AddToCompareProps) {
+export function AddToCompare({ vehicle, variant = "outline", size = "sm", className }: Readonly<AddToCompareProps>) {
   const { addToCompare, removeFromCompare, isInCompare, vehicles, maxItems } = useCompare()
 
   const inComparison = isInCompare(vehicle.id)

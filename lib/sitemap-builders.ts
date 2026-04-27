@@ -21,7 +21,7 @@ function createSitemapClient() {
 
 export function buildPagesSitemap(baseUrl: string, currentDate: string): SitemapEntry[] {
   const corePages = [
-    { path: '', priority: 1.0, changeFrequency: 'daily' },
+    { path: '', priority: 1, changeFrequency: 'daily' },
     { path: '/inventory', priority: 0.95, changeFrequency: 'hourly' },
     { path: '/financing', priority: 0.9, changeFrequency: 'weekly' },
     { path: '/trade-in', priority: 0.9, changeFrequency: 'weekly' },

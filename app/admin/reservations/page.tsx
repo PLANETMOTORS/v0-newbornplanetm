@@ -9,6 +9,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { timeAgo } from "@/lib/admin/lead-utils"
 
 interface Vehicle {
   year: number
@@ -69,16 +70,6 @@ function depositBadge(status: string): { color: string; label: string } {
 // deposit_amount and vehicle.price are stored in cents; render as dollars
 function formatCents(cents: number | null | undefined): string {
   return "$" + Math.round((cents || 0) / 100).toLocaleString()
-}
-
-function timeAgo(dateStr: string): string {
-  const now = new Date()
-  const date = new Date(dateStr)
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-  if (seconds < 60) return "just now"
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
-  return `${Math.floor(seconds / 86400)}d ago`
 }
 
 export default function AdminReservationsPage() {

@@ -157,21 +157,20 @@ function ComparisonModal({ onClose }: { onClose: () => void }) {
   }, [onClose])
 
   return (
-    <div
-      className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/50"
-      role="button"
-      tabIndex={0}
-      aria-label="Close comparison"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-      onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onClose() } }}
-    >
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/50"
+        aria-label="Close comparison"
+        onClick={onClose}
+      />
       <div
         ref={modalRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="comparison-modal-title"
         tabIndex={-1}
-        className="bg-background rounded-2xl shadow-xl max-w-3xl w-full max-h-[85vh] overflow-auto"
+        className="relative bg-background rounded-2xl shadow-xl max-w-3xl w-full max-h-[85vh] overflow-auto"
       >
         <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-background rounded-t-2xl z-10">
           <h2 id="comparison-modal-title" className="text-xl font-bold">Compare Coverage</h2>

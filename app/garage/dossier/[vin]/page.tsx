@@ -27,7 +27,7 @@ const DOC_KIND_LABELS: Record<string, string> = {
   other: "Document",
 }
 
-export default async function DossierDetailPage({ params }: PageProps) {
+export default async function DossierDetailPage({ params }: Readonly<PageProps>) {
   const { vin } = await params
   const sb = await createClient()
 

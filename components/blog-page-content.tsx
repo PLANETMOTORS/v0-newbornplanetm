@@ -31,7 +31,7 @@ interface BlogPageContentProps {
   initialPosts?: NormalisedPost[]
 }
 
-export function BlogPageContent({ featuredSlug, initialPosts }: BlogPageContentProps) {
+export function BlogPageContent({ featuredSlug, initialPosts }: Readonly<BlogPageContentProps>) {
   // Use Sanity posts when available, otherwise fall back to static data
   const allPosts = (initialPosts && initialPosts.length > 0 ? initialPosts : blogPostsMeta)
     .slice()

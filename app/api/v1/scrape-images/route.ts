@@ -71,8 +71,8 @@ async function scrapeVehicleImages(vdpUrl: string): Promise<{
     
     // Try to extract spin URL if available
     let spinUrl: string | undefined
-    const spinMatch = html.match(/https?:\/\/[^"'\s]+spin[^"'\s]+/i) ||
-                      html.match(/https?:\/\/[^"'\s]+360[^"'\s]+/i)
+    const spinMatch = /https?:\/\/[^"'\s]+spin[^"'\s]+/i.exec(html) ||
+                      /https?:\/\/[^"'\s]+360[^"'\s]+/i.exec(html)
     if (spinMatch) {
       spinUrl = spinMatch[0]
     }

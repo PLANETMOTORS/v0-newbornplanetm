@@ -10,29 +10,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { LockKeyhole, Shield, Clock, CheckCircle, CreditCard, ArrowRight, Sparkles, Loader2 } from "lucide-react"
-import dynamic from 'next/dynamic'
 import { createReservation } from "@/app/actions/reservation"
 import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
-
-// Lazy-load Stripe — only fetched when user reaches the payment step
-const EmbeddedCheckoutProvider = dynamic(
-  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckoutProvider })),
-  { ssr: false }
-)
-const EmbeddedCheckout = dynamic(
-  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckout })),
-  { ssr: false }
-)
-
-const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-// Defer loadStripe until first use — avoids loading the 40 KB Stripe.js on every VDP
-let stripePromise: ReturnType<typeof import('@stripe/stripe-js').loadStripe> | null = null
-function getStripePromise() {
-  if (!stripePromise && stripeKey) {
-    stripePromise = import('@stripe/stripe-js').then(m => m.loadStripe(stripeKey))
-  }
-  return stripePromise
-}
+import { EmbeddedCheckoutProvider, EmbeddedCheckout, getStripePromise } from "@/lib/stripe/embedded-checkout"
 
 interface ReserveVehicleModalProps {
   vehicle: {

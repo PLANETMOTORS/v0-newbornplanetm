@@ -47,7 +47,7 @@ test.describe("Navigation", () => {
     await menuButton.click()
 
     // Mobile nav items should appear
-    await expect(page.locator('button#mobile-nav-Shop\\ Inventory').or(page.getByText("Shop Inventory").nth(1))).toBeVisible()
+    await expect(page.locator(String.raw`button#mobile-nav-Shop\ Inventory`).or(page.getByText("Shop Inventory").nth(1))).toBeVisible()
   })
 
   test("mobile menu navigation works", async ({ page }) => {

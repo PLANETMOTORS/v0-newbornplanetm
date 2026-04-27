@@ -41,7 +41,7 @@ interface VehicleCheckoutProps {
   onClose?: () => void
 }
 
-export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose }: VehicleCheckoutProps) {
+export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose }: Readonly<VehicleCheckoutProps>) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [depositOnly, setDepositOnly] = useState(true)
   const [showCheckout, setShowCheckout] = useState(false)
@@ -178,11 +178,11 @@ export function VehicleCheckout({ vehicleId, vehicleName, vehiclePrice, onClose 
             </CardContent>
           </Card>
           <Card
-            className={`cursor-pointer transition-all ${!depositOnly ? 'ring-2 ring-primary bg-primary/5' : 'hover:border-primary/50'}`}
+            className={`cursor-pointer transition-all ${depositOnly ? 'hover:border-primary/50' : 'ring-2 ring-primary bg-primary/5'}`}
             onClick={() => setDepositOnly(false)}
           >
             <CardContent className="py-4 text-center space-y-1">
-              {!depositOnly && <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">Selected</span>}
+              {depositOnly ? null : <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">Selected</span>}
               <p className="text-[10px] font-semibold text-primary uppercase tracking-wide">Option 2</p>
               <p className="font-bold text-lg">${totalFull.toLocaleString()}</p>
               <p className="text-xs font-semibold">Pay in Full Now</p>
