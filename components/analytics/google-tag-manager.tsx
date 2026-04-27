@@ -55,10 +55,12 @@ export function GoogleTagManagerNoScript() {
 
 // DataLayer push helper
 export function pushToDataLayer(data: Record<string, unknown>) {
-  if (typeof globalThis.window !== "undefined") {
-    globalThis.window!.dataLayer = globalThis.window!.dataLayer || []
-    globalThis.window!.dataLayer!.push(data)
+  if (typeof globalThis.window === "undefined") return
+  const w = globalThis.window as typeof globalThis.window & {
+    dataLayer?: Array<Record<string, unknown>>
   }
+  w.dataLayer = w.dataLayer ?? []
+  w.dataLayer.push(data)
 }
 
 // Enhanced e-commerce events
