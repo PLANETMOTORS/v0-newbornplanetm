@@ -1269,9 +1269,11 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                           </p>
                           <p className="text-xs text-muted-foreground">Get personalized financing terms in 2 minutes — no impact to your credit score.</p>
                         </div>
+                        {isAvailable && (
                         <Button className="w-full mt-4" variant="outline" asChild>
                           <Link href={getFinanceLink(vehicle.id)}>Get pre-qualified</Link>
                         </Button>
+                        )}
                       </CardContent>
                     </Card>
 
@@ -1510,7 +1512,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                       <p className="text-xl sm:text-2xl font-bold mb-1">{item.step}</p>
                       <p className="font-semibold text-xs sm:text-sm">{item.title}</p>
                       {item.subtitle && <p className="text-xs text-muted-foreground">{item.subtitle}</p>}
-                      {item.active && (
+                      {item.active && isAvailable && (
                         <Button size="sm" className="mt-3" asChild>
                           <Link href={getFinanceLink(vehicle.id)}>Start purchase</Link>
                         </Button>
