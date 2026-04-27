@@ -44,3 +44,4 @@ lighthouse-blog.json
 
 # Sanity CMS local backups (committed to orphan 'backups' branch via GitHub Actions)
 backups/
+coverage/
