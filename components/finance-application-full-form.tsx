@@ -28,6 +28,7 @@ import { ApplicantForm } from "@/components/finance-application/applicant-form"
 import { VehicleFinancingForm } from "@/components/finance-application/vehicle-financing-form"
 import { ReviewStep } from "@/components/finance-application/review-step"
 import { DocumentsStep } from "@/components/finance-application/documents-step"
+import { buildSubmitError } from "@/lib/finance/build-submit-error"
 
 // Types, sub-components, and emptyApplicant imported from @/components/finance-application/
 
@@ -676,17 +677,7 @@ if (errors.length > 0) {
   }
   
 
-  const buildSubmitError = (status: number, result: Record<string, unknown>): string => {
-    const rawMsg =
-      (result?.error as Record<string, unknown>)?.message as string ||
-      result?.error as string ||
-      result?.message as string ||
-      JSON.stringify(result) ||
-      "Failed to submit application"
-    if (status === 403) return "You don't have permission to submit this application. Please log in and try again."
-    if (status === 401) return "Your session has expired. Please log in again and resubmit."
-    return rawMsg
-  }
+  // buildSubmitError is imported from @/lib/finance/build-submit-error
 
   const uploadDocuments = async (applicationId: string, docs: typeof documents) => {
     for (const doc of docs) {
