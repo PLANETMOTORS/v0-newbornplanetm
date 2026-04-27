@@ -17,8 +17,7 @@
 
 import { test, expect, type Page } from "@playwright/test"
 import * as path from "path"
-import * as fs from "fs"
-import { MINIMAL_JPEG } from "./fixtures/minimal-jpeg"
+import { ensureMinimalJpegFixture } from "./helpers/fixtures"
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -29,12 +28,7 @@ const TEST_IMAGE_PATH = path.join(FIXTURES_DIR, "test-id-front.jpg")
 
 /** Create a minimal valid JPEG for upload tests */
 function ensureTestFixtures() {
-  if (!fs.existsSync(FIXTURES_DIR)) {
-    fs.mkdirSync(FIXTURES_DIR, { recursive: true })
-  }
-  if (!fs.existsSync(TEST_IMAGE_PATH)) {
-    fs.writeFileSync(TEST_IMAGE_PATH, MINIMAL_JPEG)
-  }
+  ensureMinimalJpegFixture(TEST_IMAGE_PATH)
 }
 
 /** Dismiss cookie consent banner if present */

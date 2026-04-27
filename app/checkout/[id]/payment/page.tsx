@@ -2,30 +2,12 @@
 
 import { useCallback, useState } from "react"
 import { useParams } from "next/navigation"
-import dynamic from 'next/dynamic'
 import { startVehicleCheckout } from "@/app/actions/stripe"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Shield, Loader2 } from "lucide-react"
 import Link from "next/link"
-
-const EmbeddedCheckoutProvider = dynamic(
-  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckoutProvider })),
-  { ssr: false }
-)
-const EmbeddedCheckout = dynamic(
-  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckout })),
-  { ssr: false }
-)
-
-const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-let stripePromise: ReturnType<typeof import('@stripe/stripe-js').loadStripe> | null = null
-function getStripePromise() {
-  if (!stripePromise && stripeKey) {
-    stripePromise = import('@stripe/stripe-js').then(m => m.loadStripe(stripeKey))
-  }
-  return stripePromise
-}
+import { EmbeddedCheckoutProvider, EmbeddedCheckout, getStripePromise } from "@/lib/stripe/embedded-checkout"
 
 export default function PaymentPage() {
   const params = useParams()

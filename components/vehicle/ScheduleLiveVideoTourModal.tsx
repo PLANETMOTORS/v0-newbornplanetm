@@ -19,7 +19,7 @@ export function ScheduleLiveVideoTourModal({
   vehicleId,
   vehicleName,
   variant = "default",
-}: ScheduleLiveVideoTourModalProps) {
+}: Readonly<ScheduleLiveVideoTourModalProps>) {
   const [isOpen, setIsOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [successData, setSuccessData] = useState<LiveVideoTourResponse | null>(null)

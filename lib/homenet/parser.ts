@@ -141,7 +141,7 @@ export function parseHomenetCSV(csvText: string): VehicleData[] {
     const row: Record<string, string> = {}
     headers.forEach((h, idx) => { row[h] = values[idx]?.trim() || "" })
     const vehicle = mapCSVToVehicle(row)
-    if (vehicle && vehicle.vin && vehicle.stock_number) {
+    if (vehicle?.vin && vehicle.stock_number) {
       vehicles.push(vehicle)
     }
   }
@@ -194,7 +194,7 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
     const cyl = get(["enginecylinders"])
     const disp = get(["enginedisplacement"])
     // Skip "0.0", "0.0 L", etc. displacement for EVs
-    const validDisp = disp && !disp.match(/^0+(\.0+)?(\s|$)/) ? disp : ""
+    const validDisp = disp && !/^0+(\.0+)?(\s|$)/.exec(disp) ? disp : ""
     if (validDisp) engineStr = validDisp + (cyl ? ` ${cyl}-Cylinder` : "")
     else if (cyl && cyl !== "0") engineStr = `${cyl}-Cylinder`
     // EVs: leave engine empty — it's electric
@@ -210,10 +210,9 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
     isCertified = true
   } else if (rawCondition === "new") {
     a2Condition = "new"
-  } else if (!rawCondition) {
-    if (!get(["is_certified", "certified", "cpo"])) isCertified = false
-  } else {
-    if (!get(["is_certified", "certified", "cpo"])) isCertified = false
+  } else if (!get(["is_certified", "certified", "cpo"])) {
+    // No certification flag — mark as not certified
+    isCertified = false
   }
 
   // === A2: Core vehicle fields ===
@@ -483,7 +482,7 @@ export function parseHomenetXML(xmlText: string): VehicleData[] {
   for (const vehicleXml of vehicleMatches) {
     try {
       const vehicle = parseVehicleFromXML(vehicleXml)
-      if (vehicle && vehicle.vin && vehicle.stock_number) vehicles.push(vehicle)
+      if (vehicle?.vin && vehicle.stock_number) vehicles.push(vehicle)
     } catch (e) {
       console.error("[HomenetIOL] Error parsing vehicle XML:", e)
     }
@@ -495,7 +494,7 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
   const getValue = (tag: string): string => {
     const variations = getTagVariations(tag)
     for (const variant of variations) {
-      const match = xml.match(new RegExp(`<${variant}[^>]*>([^<]*)</${variant}>`, "i"))
+      const match = new RegExp(`<${variant}[^>]*>([^<]*)</${variant}>`, "i").exec(xml)
       if (match && match[1]) return match[1].trim()
     }
     return ""
@@ -605,8 +604,8 @@ function getTagVariations(tag: string): string[] {
   const base = tag.toLowerCase()
   return [
     base,
-    base.replaceAll(/_/g, ""),
-    base.replaceAll(/_/g, "-"),
+    base.replaceAll("_", ""),
+    base.replaceAll("_", "-"),
     base.charAt(0).toUpperCase() + base.slice(1),
     base.toUpperCase(),
   ]
