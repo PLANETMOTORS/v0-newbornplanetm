@@ -47,27 +47,6 @@ const TYPE_TO_TAGS: Record<string, string[]> = {
   calculatorSettings:["sanity-calculator-settings"],
 }
 
-/** Map document types to their page-specific revalidation paths. */
-const TYPE_TO_PATH: Record<string, string> = {
-  blogPost:       "/blog",
-  sellYourCarPage:"/sell-your-car",
-  financingPage:  "/financing",
-  protectionPlan: "/protection-plans",
-  testimonial:    "/about",
-}
-
-/** Revalidate the page path(s) that correspond to a given Sanity document type. */
-function revalidateTypeSpecificPaths(documentType: string): void {
-  const path = TYPE_TO_PATH[documentType]
-  if (path) {
-    revalidatePath(path, "page")
-  }
-  // faqItem and faqEntry both map to the same page
-  if (documentType === "faqItem" || documentType === "faqEntry") {
-    revalidatePath("/faq", "page")
-  }
-}
-
 export async function POST(request: NextRequest) {
   const startedAt = Date.now()
   try {
@@ -95,7 +74,13 @@ export async function POST(request: NextRequest) {
     // ── Step 1: ISR cache revalidation (always runs, never blocked) ────────
     revalidatePath("/")
     revalidatePath("/inventory")
-    revalidateTypeSpecificPaths(documentType)
+    // Revalidate the page-specific path for this document type (inline map — no behavior change)
+    const TYPE_TO_PAGE: Record<string, string> = {
+      blogPost: "/blog", sellYourCarPage: "/sell-your-car", financingPage: "/financing",
+      faqItem: "/faq",   faqEntry: "/faq",   protectionPlan: "/protection-plans", testimonial: "/about",
+    }
+    const typePage = TYPE_TO_PAGE[documentType]
+    if (typePage) revalidatePath(typePage, "page")
     logger.info(`[Sanity Webhook] revalidatePath → / /inventory + type-specific paths`)
 
     // Revalidate specific cache tags for the document type
