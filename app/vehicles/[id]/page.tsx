@@ -82,7 +82,9 @@ export default async function VehicleDetailPage({ params }: Props) {
         priceCurrency: "CAD",
         valueAddedTaxIncluded: false,
       },
-      availability: "https://schema.org/InStock",
+      availability: vehicle.status === "sold" ? "https://schema.org/SoldOut"
+        : vehicle.status === "reserved" || vehicle.status === "pending" ? "https://schema.org/LimitedAvailability"
+        : "https://schema.org/InStock",
       seller: {
         "@type": "AutoDealer",
         name: "Planet Motors",
