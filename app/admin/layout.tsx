@@ -44,15 +44,15 @@ export default function AdminLayout({
 
   useEffect(() => {
     if (isLoginPage || isLoading) return
-    if (!user) {
-      router.push("/admin/login")
-    } else {
-      const userIsAdmin = ADMIN_EMAILS.includes(user.email || "") || 
+    if (user) {
+      const userIsAdmin = ADMIN_EMAILS.includes(user.email || "") ||
                          user.user_metadata?.is_admin === true
       setIsAdmin(userIsAdmin)
       if (!userIsAdmin) {
         router.push("/")
       }
+    } else {
+      router.push("/admin/login")
     }
   }, [user, isLoading, router, isLoginPage])
 
@@ -76,12 +76,10 @@ export default function AdminLayout({
     <div className="min-h-screen bg-gray-100">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div
+        <button
+          type="button"
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
-          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSidebarOpen(false) }}
-          role="button"
-          tabIndex={0}
           aria-label="Close sidebar"
         />
       )}

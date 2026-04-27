@@ -3,13 +3,14 @@
 import { useState, useEffect, useCallback } from "react"
 import {
   MessageSquare, Search, RefreshCw, Phone, Mail,
-  Clock, Bot, DollarSign, Car, CalendarCheck, ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight,
   User
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { timeAgo, sourceIcon, leadStatusVariant as statusVariant } from "@/lib/admin/lead-utils"
 
 interface Lead {
   id: string
@@ -51,39 +52,6 @@ const SOURCE_LABELS: Record<string, string> = {
 
 const STATUS_OPTIONS = ["all", "new", "contacted", "qualified", "negotiating", "converted", "lost", "archived"]
 const SOURCE_OPTIONS = ["all", "contact_form", "chat", "finance_app", "trade_in", "reservation", "test_drive"]
-
-function timeAgo(dateStr: string): string {
-  const now = new Date()
-  const date = new Date(dateStr)
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-  if (seconds < 60) return "just now"
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
-  return `${Math.floor(seconds / 86400)}d ago`
-}
-
-function sourceIcon(source: string) {
-  switch (source) {
-    case "contact_form": return MessageSquare
-    case "chat": return Bot
-    case "finance_app": return DollarSign
-    case "reservation": return CalendarCheck
-    case "trade_in": return Car
-    case "test_drive": return Clock
-    default: return MessageSquare
-  }
-}
-
-function statusVariant(status: string): "default" | "secondary" | "outline" | "destructive" {
-  switch (status) {
-    case "new": return "default"
-    case "contacted": return "secondary"
-    case "qualified": return "outline"
-    case "converted": return "default"
-    case "lost": return "destructive"
-    default: return "secondary"
-  }
-}
 
 function priorityColor(priority: string): string {
   switch (priority) {
@@ -232,13 +200,11 @@ export default function AdminLeadsPage() {
                   {leads.map(lead => {
                     const Icon = sourceIcon(lead.source)
                     return (
-                      <div
+                      <button
+                        type="button"
                         key={lead.id}
-                        role="button"
-                        tabIndex={0}
-                        className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${selectedLead?.id === lead.id ? "bg-blue-50" : ""}`}
+                        className={`w-full text-left p-4 hover:bg-gray-50 cursor-pointer transition-colors ${selectedLead?.id === lead.id ? "bg-blue-50" : ""}`}
                         onClick={() => setSelectedLead(lead)}
-                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSelectedLead(lead) }}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-3">
@@ -263,7 +229,7 @@ export default function AdminLeadsPage() {
                             <p className="text-xs text-gray-400 mt-1">{timeAgo(lead.created_at)}</p>
                           </div>
                         </div>
-                      </div>
+                      </button>
                     )
                   })}
                 </div>

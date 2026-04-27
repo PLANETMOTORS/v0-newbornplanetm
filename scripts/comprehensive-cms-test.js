@@ -239,8 +239,8 @@ async function runComprehensiveTest() {
     }
 
     // Check for unknown fields (fields in DB not in schema)
-    const allExpectedFields = [...schema.required, ...schema.expected]
-    const unknownFields = docFields.filter(f => !allExpectedFields.includes(f) && !f.startsWith('_'))
+    const allExpectedFields = new Set([...schema.required, ...schema.expected])
+    const unknownFields = docFields.filter(f => !allExpectedFields.has(f) && !f.startsWith('_'))
     if (unknownFields.length > 0) {
       console.log(`      ℹ️ Extra fields in DB: ${unknownFields.join(', ')}`)
     }

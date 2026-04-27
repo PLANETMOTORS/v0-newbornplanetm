@@ -25,8 +25,7 @@
 
 import { test, expect, type Page } from "@playwright/test"
 import * as path from "path"
-import * as fs from "fs"
-import { MINIMAL_JPEG } from "./fixtures/minimal-jpeg"
+import { ensureMinimalJpegFixture } from "./helpers/fixtures"
 
 // Fixture paths for test document images
 const FIXTURES_DIR = path.join(__dirname, "fixtures")
@@ -120,14 +119,7 @@ class IDVerificationPage {
 // ─── Fixture Setup ───────────────────────────────────────────────────────────
 
 test.beforeAll(() => {
-  // Create fixtures directory and a small test JPEG if not present
-  if (!fs.existsSync(FIXTURES_DIR)) {
-    fs.mkdirSync(FIXTURES_DIR, { recursive: true })
-  }
-  if (!fs.existsSync(DL_FRONT_PATH)) {
-    fs.writeFileSync(DL_FRONT_PATH, MINIMAL_JPEG)
-    console.log(`✓ Created minimal JPEG fixture at ${DL_FRONT_PATH}`)
-  }
+  ensureMinimalJpegFixture(DL_FRONT_PATH)
 })
 
 
@@ -250,7 +242,7 @@ test.describe("Step 5 — IDV: Document Upload", () => {
 
     // The remove button (X) should appear on the preview
     const removeBtn = page
-      .locator(".relative.aspect-\\[1\\.6\\]")
+      .locator(String.raw`.relative.aspect-\[1\.6\]`)
       .locator("button")
       .first()
     await removeBtn.click()

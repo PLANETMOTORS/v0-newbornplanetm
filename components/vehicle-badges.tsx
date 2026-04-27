@@ -36,7 +36,7 @@ export function VehicleBadges({
   isEVCertified,
   batteryHealth,
   isHotDeal
-}: VehicleBadgesProps) {
+}: Readonly<VehicleBadgesProps>) {
   return (
     <div className="flex flex-wrap gap-1.5">
       {/* Sale Pending - Most Important */}

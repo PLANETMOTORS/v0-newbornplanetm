@@ -15,6 +15,28 @@ interface AddressSuggestion {
   fullAddress: string
 }
 
+/** Map full Canadian province names to 2-letter abbreviations. */
+const PROVINCE_NAME_TO_ABBR: Record<string, string> = {
+  'Ontario': 'ON',
+  'Quebec': 'QC',
+  'British Columbia': 'BC',
+  'Alberta': 'AB',
+  'Manitoba': 'MB',
+  'Saskatchewan': 'SK',
+  'Nova Scotia': 'NS',
+  'New Brunswick': 'NB',
+  'Newfoundland and Labrador': 'NL',
+  'Prince Edward Island': 'PE',
+  'Northwest Territories': 'NT',
+  'Yukon': 'YT',
+  'Nunavut': 'NU',
+}
+
+/** Convert a full province name to its 2-letter abbreviation (or return input if already abbreviated). */
+function abbreviateProvince(province: string): string {
+  return PROVINCE_NAME_TO_ABBR[province] ?? province
+}
+
 /**
  * Shorthand factory for an AddressSuggestion entry.
  * direction is optional — omit or pass undefined to leave it out.
@@ -27,22 +49,7 @@ function street(
   postalCode: string,
   direction?: string
 ): AddressSuggestion {
-  // Map full province name to 2-letter abbreviation
-  const provinceAbbrev = province === 'Ontario' ? 'ON' 
-    : province === 'Quebec' ? 'QC'
-    : province === 'British Columbia' ? 'BC'
-    : province === 'Alberta' ? 'AB'
-    : province === 'Manitoba' ? 'MB'
-    : province === 'Saskatchewan' ? 'SK'
-    : province === 'Nova Scotia' ? 'NS'
-    : province === 'New Brunswick' ? 'NB'
-    : province === 'Newfoundland and Labrador' ? 'NL'
-    : province === 'Prince Edward Island' ? 'PE'
-    : province === 'Northwest Territories' ? 'NT'
-    : province === 'Yukon' ? 'YT'
-    : province === 'Nunavut' ? 'NU'
-    : province // Already abbreviated or fallback to input
-  
+  const provinceAbbrev = abbreviateProvince(province)
   const streetPart = [streetName, streetType, direction].filter(Boolean).join(' ')
   const fullAddress = `${streetPart}, ${city}, ${provinceAbbrev}`
   return { streetName, streetType, direction, city, province, postalCode, fullAddress }

@@ -70,7 +70,7 @@ const modelData: Record<string, Record<string, {
       seating: 5,
       cargo: 1059,
       safetyRating: 5,
-      features: ["All-Wheel Drive", "Toyota Safety Sense 3.0", "Apple CarPlay & Android Auto", "Heated Seats", "Adaptive Cruise Control"],
+      features: ["All-Wheel Drive", "Toyota Safety Sense 3", "Apple CarPlay & Android Auto", "Heated Seats", "Adaptive Cruise Control"],
       competitors: [
         { name: "Honda CR-V", price: 34990, mpg: 7.8, safety: 5 },
         { name: "Mazda CX-5", price: 33490, mpg: 8.1, safety: 5 }
@@ -91,14 +91,14 @@ const modelData: Record<string, Record<string, {
       seating: 5,
       cargo: 428,
       safetyRating: 5,
-      features: ["Toyota Safety Sense 3.0", "10.5-inch Display", "Wireless Charging", "JBL Premium Audio", "Dynamic Radar Cruise"],
+      features: ["Toyota Safety Sense 3", "10.5-inch Display", "Wireless Charging", "JBL Premium Audio", "Dynamic Radar Cruise"],
       competitors: [
         { name: "Honda Accord", price: 31990, mpg: 7.5, safety: 5 },
         { name: "Hyundai Sonata", price: 28990, mpg: 7.8, safety: 5 }
       ],
       faqs: [
         { question: "Is the Toyota Camry available in hybrid?", answer: "Yes! The Camry Hybrid offers exceptional fuel economy of just 4.8 L/100km combined, making it one of the most fuel-efficient sedans available in Canada." },
-        { question: "What safety features come standard on the Camry?", answer: "Every Camry includes Toyota Safety Sense 3.0 with Pre-Collision System, Lane Departure Alert, Dynamic Radar Cruise Control, and Automatic High Beams as standard equipment." },
+        { question: "What safety features come standard on the Camry?", answer: "Every Camry includes Toyota Safety Sense 3 with Pre-Collision System, Lane Departure Alert, Dynamic Radar Cruise Control, and Automatic High Beams as standard equipment." },
         { question: "How reliable is the Toyota Camry?", answer: "The Camry consistently ranks as one of the most reliable vehicles in its class, with many examples exceeding 300,000 km with proper maintenance. Toyota&apos;s reputation for longevity makes the Camry an excellent value." }
       ],
       winterReady: true,
@@ -156,7 +156,7 @@ const defaultModelData = {
   tagline: "Quality Pre-Owned Vehicles at Planet Motors",
   description: "Discover our selection of PM Certified vehicles with 210-point inspection, 10-day money-back guarantee, and comprehensive warranty options.",
   startingPrice: 29990,
-  mpg: { city: 9.0, highway: 7.0 },
+  mpg: { city: 9, highway: 7 },
   seating: 5,
   cargo: 500,
   safetyRating: 5,
