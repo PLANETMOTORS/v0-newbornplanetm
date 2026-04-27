@@ -397,10 +397,10 @@ export function InstantQuote() {
     // Depreciation curve
     let value = baseValue
     for (let y = 0; y < age; y++) {
-      if (y === 0) value *= 0.80
+      if (y === 0) value *= 0.8
       else if (y === 1) value *= 0.85
       else if (y === 2) value *= 0.88
-      else if (y < 6) value *= 0.90
+      else if (y < 6) value *= 0.9
       else value *= 0.92
     }
     
@@ -415,18 +415,18 @@ export function InstantQuote() {
     
     // Condition adjustment
     const conditionMultipliers: Record<string, number> = {
-      "excellent": 1.10, "good": 1.00, "fair": 0.85, "poor": 0.65,
+      "excellent": 1.1, "good": 1, "fair": 0.85, "poor": 0.65,
     }
-    value *= conditionMultipliers[data.condition] || 1.0
+    value *= conditionMultipliers[data.condition] || 1
     
     // Minimum and rounding
     value = Math.max(500, value)
     value = Math.round(value / 50) * 50
     
     return {
-      lowValue: Math.round(value * 0.90 / 50) * 50,
+      lowValue: Math.round(value * 0.9 / 50) * 50,
       midValue: value,
-      highValue: Math.round(value * 1.10 / 50) * 50,
+      highValue: Math.round(value * 1.1 / 50) * 50,
     }
   }
   
