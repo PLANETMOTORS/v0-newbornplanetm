@@ -95,7 +95,13 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const supabase = createClient()
+  // Guard: createClient() throws when NEXT_PUBLIC_SUPABASE_* are absent (e.g. CI builds).
+  // This component is "use client" but Next.js still executes client components
+  // server-side for the initial HTML shell, so we must not throw at render time.
+  const supabase = useRef<ReturnType<typeof createClient> | null>(null)
+  if (typeof window !== 'undefined' && supabase.current === null) {
+    try { supabase.current = createClient() } catch { /* credentials absent */ }
+  }
 
   // ── Load from localStorage on mount ──────────────────────────────────────
   useEffect(() => {
@@ -129,14 +135,15 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
 
   // ── Supabase sync (debounced, auth-gated) ────────────────────────────────
   const syncToSupabase = useCallback(async (favs: FavoriteVehicle[]) => {
-    const { data: { user } } = await supabase.auth.getUser()
+    if (!supabase.current) return // No credentials – localStorage only
+    const { data: { user } } = await supabase.current.auth.getUser()
     if (!user) return // Not authenticated — localStorage only
 
     setSyncing(true)
     try {
       // Upsert all current favorites
       if (favs.length > 0) {
-        await supabase.from("user_favorites").upsert(
+        await supabase.current.from("user_favorites").upsert(
           favs.map(f => ({
             user_id: user.id,
             vehicle_id: f.id,
@@ -156,14 +163,16 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   // ── Load from Supabase on auth (merge with localStorage) ─────────────────
   useEffect(() => {
     if (!isLoaded) return
+    if (!supabase.current) return // No credentials – localStorage only
 
+    const sb = supabase.current
     const loadFromSupabase = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user } } = await sb.auth.getUser()
       if (!user) return
 
       setSyncing(true)
       try {
-        const { data, error } = await supabase
+        const { data, error } = await sb
           .from("user_favorites")
           .select("vehicle_data, saved_at")
           .eq("user_id", user.id)
@@ -192,7 +201,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     loadFromSupabase()
 
     // Re-sync when auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = sb.auth.onAuthStateChange(
       (event) => {
         if (event === "SIGNED_IN") loadFromSupabase()
         if (event === "SIGNED_OUT") {
@@ -234,19 +243,22 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       triggerSync(next)
 
       // Also delete from Supabase (fire-and-forget)
-      supabase.auth.getUser().then(({ data: { user } }) => {
-        if (user) {
-          supabase.from("user_favorites")
-            .delete()
-            .eq("user_id", user.id)
-            .eq("vehicle_id", id)
-            .then(() => {})
-        }
-      })
+      const sb = supabase.current
+      if (sb) {
+        sb.auth.getUser().then(({ data: { user } }) => {
+          if (user) {
+            sb.from("user_favorites")
+              .delete()
+              .eq("user_id", user.id)
+              .eq("vehicle_id", id)
+              .then(() => {})
+          }
+        })
+      }
 
       return next
     })
-  }, [triggerSync, supabase])
+  }, [triggerSync])
 
   const isFavorite = useCallback((id: string) => {
     return favorites.some(f => f.id === id)
@@ -254,12 +266,15 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
 
   const clearFavorites = useCallback(() => {
     setFavorites([])
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        supabase.from("user_favorites").delete().eq("user_id", user.id).then(() => {})
-      }
-    })
-  }, [supabase])
+    const sb = supabase.current
+    if (sb) {
+      sb.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          sb.from("user_favorites").delete().eq("user_id", user.id).then(() => {})
+        }
+      })
+    }
+  }, [])
 
   const priceDropCount = favorites.filter(f => f.priceDropped).length
 

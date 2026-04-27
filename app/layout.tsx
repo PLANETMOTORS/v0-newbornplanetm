@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { partytownSnippet } from '@builder.io/partytown/integration'
-import { Inter } from 'next/font/google'
+import localFont from 'next/font/local'
 import { CompareProvider } from '@/contexts/compare-context'
 import { FavoritesProvider } from '@/contexts/favorites-context'
 import { AuthProvider } from '@/contexts/auth-context'
@@ -14,11 +14,12 @@ import './stability-fixes.css'
 
 // Planet Motors - OMVIC Licensed Dealer - Production Ready
 
-const inter = Inter({
-  subsets: ["latin"],
+const inter = localFont({
+  src: '../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2',
   variable: '--font-inter',
   display: 'swap',
   preload: true,
+  weight: '100 900',
 });
 
 

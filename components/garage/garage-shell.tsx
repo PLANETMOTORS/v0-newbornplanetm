@@ -63,7 +63,12 @@ const STAGE_LABELS: Record<string, { label: string; color: string; description: 
 // ── Main Component ─────────────────────────────────────────────────────────
 export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedVehicles }: GarageShellProps) {
   const router = useRouter()
-  const sb = createClient()
+  // Guard: createClient() throws during SSR when credentials absent.
+  // GarageShell is "use client" but Next.js still renders its shell server-side.
+  const [sb] = useState<ReturnType<typeof createClient> | null>(() => {
+    if (typeof window === 'undefined') return null
+    try { return createClient() } catch { return null }
+  })
   const deals = activeDeals
   const [liveIndicator, setLiveIndicator] = useState(false)
 
@@ -72,6 +77,7 @@ export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedV
   // Realtime: subscribe to deal_events for all active deals
   useEffect(() => {
     if (deals.length === 0) return
+    if (!sb) return // No credentials – skip realtime subscription
 
     const channels = deals.map(deal =>
       sb.channel(`deal-events:${deal.id}`)
