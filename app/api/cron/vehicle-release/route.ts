@@ -85,12 +85,17 @@ export async function GET(request: Request) {
     } else if (staleReserved && staleReserved.length > 0) {
       for (const v of staleReserved) {
         // Check if there's an active confirmed reservation before releasing
-        const { data: activeRes } = await adminClient
+        const { data: activeRes, error: resErr } = await adminClient
           .from("reservations")
           .select("id")
           .eq("vehicle_id", v.id)
           .in("status", ["confirmed", "pending"])
           .limit(1)
+
+        if (resErr) {
+          errors.push(`reservation check ${v.vin}: ${resErr.message}`)
+          continue
+        }
 
         if (activeRes && activeRes.length > 0) {
           // Vehicle has an active reservation — skip it
