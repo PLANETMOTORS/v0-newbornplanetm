@@ -78,12 +78,15 @@ const serwist = new Serwist({
     //    the precache manifest from 23 MB down to ~2 MB app-shell only.
     {
       matcher({ url }) {
+        // Must stay in sync with remotePatterns in next.config.mjs
         return (
-          url.hostname === "images.planetmotors.com" ||
           url.hostname === "cdn.planetmotors.ca" ||
           url.hostname === "planetmotors.imgix.net" ||
           url.hostname === "media.cpsimg.com" ||
           url.hostname === "photos.homenetiol.com" ||
+          url.hostname === "content.homenetiol.com" ||
+          url.hostname === "www.carpages.ca" ||
+          url.hostname === "images.unsplash.com" ||
           url.hostname === "hebbkx1anhila5yf.public.blob.vercel-storage.com"
         );
       },
