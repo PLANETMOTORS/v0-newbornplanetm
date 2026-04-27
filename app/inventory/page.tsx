@@ -725,7 +725,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Year */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Year</label>
+                    <label htmlFor="filter-year" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Year</label>
                     <select
                       id="filter-year"
                       value={selectedYear}
@@ -740,7 +740,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Fuel Type */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Fuel</label>
+                    <label htmlFor="filter-fuel" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Fuel</label>
                     <select
                       id="filter-fuel"
                       value={selectedFuelType}
@@ -755,7 +755,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Transmission */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Trans</label>
+                    <label htmlFor="filter-trans" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Trans</label>
                     <select
                       id="filter-trans"
                       value={selectedTransmission}
@@ -770,7 +770,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Drivetrain */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Drive</label>
+                    <label htmlFor="filter-drive" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Drive</label>
                     <select
                       id="filter-drive"
                       value={selectedDrivetrain}
@@ -785,7 +785,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Color */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Color</label>
+                    <label htmlFor="filter-color" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Color</label>
                     <select
                       id="filter-color"
                       value={selectedColor}
