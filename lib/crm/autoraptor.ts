@@ -213,6 +213,18 @@ export async function pushToAutoRaptor(
 }
 
 /**
+ * Derive the AutoRaptor `requestType` from the lead source string.
+ * Extracted from a 4-way nested ternary to satisfy SonarCloud rule
+ * typescript:S3358.
+ */
+function deriveRequestType(source: string): AutoRaptorLeadPayload["requestType"] {
+  if (source.includes("finance")) return "finance"
+  if (source.includes("test_drive")) return "test-drive"
+  if (source.includes("trade")) return "sell"
+  return "buy"
+}
+
+/**
  * Converts a LeadPayload (from lib/email/lead-notifier.ts) to AutoRaptorLeadPayload.
  * Use this in the CRM webhook route to avoid duplicating mapping logic.
  */
@@ -235,11 +247,7 @@ export function mapLeadToAutoRaptor(lead: {
   }
 }): AutoRaptorLeadPayload {
   const source = lead.source ?? "website"
-  const requestType: AutoRaptorLeadPayload["requestType"] =
-    source.includes("finance") ? "finance"
-    : source.includes("test_drive") ? "test-drive"
-    : source.includes("trade") ? "sell"
-    : "buy"
+  const requestType: AutoRaptorLeadPayload["requestType"] = deriveRequestType(source)
 
   return {
     firstName: lead.firstName,

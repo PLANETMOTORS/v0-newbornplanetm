@@ -44,15 +44,19 @@ function buildAdfXml(payload: AutoRaptorLeadPayload, dealerName: string): string
   const now = new Date().toISOString()
   const depositFormatted = `$${(payload.depositAmount / 100).toFixed(2)} CAD`
 
-  const vehicleBlock = payload.vehicleYear
-    ? `
+  let vehicleBlock = ''
+  if (payload.vehicleYear) {
+    const vehicleIdLine = payload.vehicleId
+      ? `<id source="planetmotors.ca">${escapeXml(payload.vehicleId)}</id>`
+      : ''
+    vehicleBlock = `
       <vehicle interest="buy" status="used">
         <year>${escapeXml(String(payload.vehicleYear))}</year>
         <make>${escapeXml(payload.vehicleMake ?? '')}</make>
         <model>${escapeXml(payload.vehicleModel ?? '')}</model>
-        ${payload.vehicleId ? `<id source="planetmotors.ca">${escapeXml(payload.vehicleId)}</id>` : ''}
+        ${vehicleIdLine}
       </vehicle>`
-    : ''
+  }
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <?adf version="1.0"?>

@@ -23,9 +23,13 @@ export function HeroImageServer({ firstVehicle }: HeroImageServerProps) {
     (firstVehicle?.image_urls && firstVehicle.image_urls[0]) ||
     null
 
-  const alt = firstVehicle
-    ? `${firstVehicle.year} ${firstVehicle.make} ${firstVehicle.model}${firstVehicle.trim ? ` ${firstVehicle.trim}` : ""}`
-    : "Featured vehicle"
+  let alt: string
+  if (firstVehicle) {
+    const trimSuffix = firstVehicle.trim ? ` ${firstVehicle.trim}` : ""
+    alt = `${firstVehicle.year} ${firstVehicle.make} ${firstVehicle.model}${trimSuffix}`
+  } else {
+    alt = "Featured vehicle"
+  }
 
   return (
     <div className="relative aspect-4/3 rounded-2xl overflow-hidden bg-linear-to-br from-[#f0f4ff] to-[#e8eef5] shadow-2xl">

@@ -492,11 +492,11 @@ export default function EVBatteryHealthPage() {
                       </div>
                       <Progress value={selectedVehicle.batteryHealth} className="h-4" />
                       <p className="text-sm text-muted-foreground mt-2">
-                        {selectedVehicle.batteryHealth >= 95 
-                          ? "Excellent condition - minimal degradation"
-                          : selectedVehicle.batteryHealth >= 85
-                          ? "Good condition - normal wear"
-                          : "Fair condition - expected for age/mileage"}
+                        {(() => {
+                          if (selectedVehicle.batteryHealth >= 95) return "Excellent condition - minimal degradation"
+                          if (selectedVehicle.batteryHealth >= 85) return "Good condition - normal wear"
+                          return "Fair condition - expected for age/mileage"
+                        })()}
                       </p>
                     </div>
 

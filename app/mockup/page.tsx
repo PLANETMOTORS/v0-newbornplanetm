@@ -43,6 +43,20 @@ function getBadgeBgClass(badge: string | null): string {
   }
 }
 
+// Maps a vehicle badge label to the corresponding Tailwind background class.
+function getBadgeBgClass(badge: string): string {
+  switch (badge) {
+    case "Popular":
+      return "bg-[#dc2626]"
+    case "New Arrival":
+      return "bg-green-500"
+    case "Luxury":
+      return "bg-purple-600"
+    default:
+      return "bg-[#1e3a8a]"
+  }
+}
+
 export default function HomepageMockupV2() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("all")
@@ -56,11 +70,11 @@ export default function HomepageMockupV2() {
     { id: 6, name: "BMW X3", year: 2022, price: "$44,900", monthly: "$419/mo", mpg: "26 MPG", type: "suv", badge: "Luxury", isEV: false },
   ]
 
-  const filteredVehicles = activeTab === "all" 
-    ? vehicles 
-    : activeTab === "electric" 
-      ? vehicles.filter(v => v.type === "electric")
-      : vehicles.filter(v => v.type === "suv")
+  const filteredVehicles = (() => {
+    if (activeTab === "all") return vehicles
+    if (activeTab === "electric") return vehicles.filter(v => v.type === "electric")
+    return vehicles.filter(v => v.type === "suv")
+  })()
 
   return (
     <div className="min-h-screen bg-white font-sans">

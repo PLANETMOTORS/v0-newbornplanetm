@@ -27,6 +27,16 @@ interface AddressAutocompleteProps {
   className?: string
 }
 
+/**
+ * Choose a border-colour class for the postal-code input. Extracted from
+ * a nested ternary to satisfy SonarCloud rule typescript:S3358.
+ */
+function pickPostalBorderClass(error: string | undefined, validationError: string | null, isValidFormat: boolean): string {
+  if (error || validationError) return "border-destructive"
+  if (isValidFormat) return "border-green-500"
+  return ""
+}
+
 // Canada Post address lookup (using free postal code API)
 async function searchCanadianAddresses(query: string): Promise<AddressResult[]> {
   if (query.length < 3) return []
@@ -287,7 +297,7 @@ export function PostalCodeInput({
           onChange={(e) => handleChange(e.target.value)}
           placeholder="M5V 3L9"
           maxLength={7}
-          className={`uppercase ${error || validationError ? "border-destructive" : isValidFormat ? "border-green-500" : ""}`}
+          className={`uppercase ${pickPostalBorderClass(error, validationError, isValidFormat)}`}
         />
         {isValidating && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />

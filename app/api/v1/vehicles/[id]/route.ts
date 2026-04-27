@@ -11,6 +11,16 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 /** Standard 17-character VIN pattern (digits + uppercase letters, excluding I/O/Q). */
 const VIN_RE = /^[A-HJ-NPR-Z0-9]{17}$/i
 
+/**
+ * Pick the column to query based on the id format. Extracted from a nested
+ * ternary to satisfy SonarCloud rule typescript:S3358.
+ */
+function pickLookupColumn(id: string): "id" | "vin" | "stock_number" {
+  if (UUID_RE.test(id)) return "id"
+  if (VIN_RE.test(id)) return "vin"
+  return "stock_number"
+}
+
 const ALLOWED_STATUSES = new Set([
   "available",
   "reserved",
@@ -112,7 +122,7 @@ export async function GET(
     //  - UUID → primary key `id`
     //  - 17-char VIN → `vin`
     //  - anything else → `stock_number`
-    const lookupColumn = UUID_RE.test(id) ? "id" : VIN_RE.test(id) ? "vin" : "stock_number"
+    const lookupColumn = pickLookupColumn(id)
 
     const { data: vehicle, error } = await supabase
       .from("vehicles")

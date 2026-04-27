@@ -401,15 +401,22 @@ export default function Admin360UploadPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {loadingVehicles ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-                </div>
-              ) : vehicles.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-8">
-                  No 360° vehicles found
-                </p>
-              ) : (
+              {(() => {
+                if (loadingVehicles) {
+                  return (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                    </div>
+                  )
+                }
+                if (vehicles.length === 0) {
+                  return (
+                    <p className="text-sm text-gray-500 text-center py-8">
+                      No 360° vehicles found
+                    </p>
+                  )
+                }
+                return (
                 <div className="space-y-3">
                   {vehicles.map(v => {
                     const manifestCount = FRAME_MANIFEST[v.mid]
@@ -499,7 +506,8 @@ export default function Admin360UploadPage() {
                     )
                   })}
                 </div>
-              )}
+                )
+              })()}
             </CardContent>
           </Card>
         </div>
