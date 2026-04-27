@@ -108,6 +108,52 @@ describe('handleCheckoutSessionCompleted', () => {
     }))
   })
 
+  it('releases vehicle when validation fails on paid session', async () => {
+    // Mock returns reservation with missing Stripe refs → validation fails
+    supabase = createMockSupabase({
+      data: {
+        deposit_status: 'paid',
+        stripe_payment_intent_id: null,
+        stripe_checkout_session_id: null,
+        status: 'pending',
+        expires_at: new Date(Date.now() + 86400000).toISOString(),
+      },
+      error: null,
+    })
+    const session = makeSession({ payment_status: 'paid' })
+    await handleCheckoutSessionCompleted(supabase, session)
+    expect(supabase.rpc).toHaveBeenCalledWith('transition_vehicle_status', expect.objectContaining({
+      p_vehicle_id: 'veh-1',
+      p_to_status: 'available',
+    }))
+  })
+
+  it('releases vehicle when reservation fetch returns null', async () => {
+    // Default mock returns data: null → reservation is null
+    const session = makeSession({ payment_status: 'paid' })
+    await handleCheckoutSessionCompleted(supabase, session)
+    expect(supabase.rpc).toHaveBeenCalledWith('transition_vehicle_status', expect.objectContaining({
+      p_vehicle_id: 'veh-1',
+      p_to_status: 'available',
+    }))
+  })
+
+  it('persists stripe_checkout_session_id on paid session', async () => {
+    supabase = createMockSupabase({
+      data: {
+        deposit_status: 'paid',
+        stripe_payment_intent_id: 'pi_test_123',
+        stripe_checkout_session_id: 'cs_test_123',
+        status: 'pending',
+        expires_at: new Date(Date.now() + 86400000).toISOString(),
+      },
+      error: null,
+    })
+    const session = makeSession({ payment_status: 'paid', payment_intent: 'pi_from_session' } as Partial<Stripe.Checkout.Session>)
+    await handleCheckoutSessionCompleted(supabase, session)
+    expect(supabase.from).toHaveBeenCalledWith('reservations')
+  })
+
   it('confirms order for non-reservation checkout', async () => {
     const session = makeSession({
       payment_status: 'paid',
