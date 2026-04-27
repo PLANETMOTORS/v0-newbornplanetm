@@ -708,7 +708,7 @@ export default function AccountPage() {
                                 <Link href={`/vehicles/${vehicle.id}`} className="font-semibold hover:underline">
                                   {vehicle.year} {vehicle.make} {vehicle.model}
                                 </Link>
-                                {vehicle.price && (
+                                {!!vehicle.price && (
                                   <p className="text-sm text-muted-foreground">
                                     ${vehicle.price.toLocaleString()}
                                   </p>
