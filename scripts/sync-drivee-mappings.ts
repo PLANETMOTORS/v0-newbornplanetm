@@ -80,9 +80,6 @@ async function main() {
         console.log(`  ✅ ${entry.vehicle} — MID: ${entry.mid}, ${entry.frameCount} frames`)
         synced++
       } else {
-      });
-
-      if (!res.ok) {
         const text = await res.text()
         console.error(`  ❌ ${entry.vehicle} (${entry.vin}): ${res.status} ${text}`)
         failed++
