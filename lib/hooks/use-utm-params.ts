@@ -74,5 +74,6 @@ export function getUTMParams(): UTMParams | null {
  * Clears captured UTM parameters (useful for testing or manual reset).
  */
 export function clearUTMParams(): void {
-  if (globalThis.window === undefined) return  sessionStorage.removeItem(STORAGE_KEY)
+  if (globalThis.window === undefined) return
+  sessionStorage.removeItem(STORAGE_KEY)
 }
