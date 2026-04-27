@@ -6,23 +6,33 @@
  *
  * Pattern matches __tests__/lib/coverage-followup-506.test.ts.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-// ── Module-level mocks for transitive deps ──────────────────────────────────
 vi.mock('@sanity/client', () => ({
   createClient: () => ({ fetch: vi.fn().mockResolvedValue([]) }),
 }))
 vi.mock('stripe', () => {
   class StripeMock {
-    constructor(_: string) {}
     checkout = { sessions: { create: vi.fn() } }
   }
   return { default: StripeMock }
 })
 
+const realFetch = globalThis.fetch
+
 beforeEach(() => {
   vi.unstubAllEnvs()
 })
+
+afterEach(() => {
+  globalThis.fetch = realFetch
+})
+
+function mockFetchOnce(body: string, init: ResponseInit = { status: 200 }) {
+  const fn = vi.fn().mockResolvedValue(new Response(body, init))
+  globalThis.fetch = fn as unknown as typeof fetch
+  return fn
+}
 
 // ── lib/vehicle-slug.ts ─────────────────────────────────────────────────────
 describe('vehicle-slug generateVehicleSlug', () => {
@@ -44,9 +54,9 @@ describe('vehicle-slug generateVehicleSlug', () => {
 // ── lib/validation.ts ───────────────────────────────────────────────────────
 describe('validation regex helpers', () => {
   it('formats Canadian postal codes', async () => {
-    const v = await import('@/lib/validation')
-    expect(v.formatCanadianPostalCode('m5v 3a1')).toMatch(/M5V/)
-    expect(v.formatCanadianPostalCode('m5v3a1')).toMatch(/M5V/)
+    const { formatCanadianPostalCode } = await import('@/lib/validation')
+    expect(formatCanadianPostalCode('m5v 3a1')).toMatch(/M5V/)
+    expect(formatCanadianPostalCode('m5v3a1')).toMatch(/M5V/)
   })
   it('validates Canadian postal codes', async () => {
     const { isValidCanadianPostalCode } = await import('@/lib/validation')
@@ -97,8 +107,7 @@ describe('typesense sanitizeTypesenseFilterValue', () => {
 describe('redact maskPhone', () => {
   it('masks middle digits', async () => {
     const { maskPhone } = await import('@/lib/redact')
-    const out = maskPhone('416-555-1234')
-    expect(out).toMatch(/\*+/)
+    expect(maskPhone('416-555-1234')).toMatch(/\*+/)
   })
   it('handles null / empty input', async () => {
     const { maskPhone } = await import('@/lib/redact')
@@ -152,12 +161,12 @@ describe('meta-capi sendMetaEvent', () => {
   it('returns success=false when access token missing', async () => {
     vi.stubEnv('META_PIXEL_ACCESS_TOKEN', '')
     vi.stubEnv('NEXT_PUBLIC_META_PIXEL_ID', '')
-    const { sendMetaEvent } = await import('@/lib/meta-capi')
-    const res = await sendMetaEvent({
+    const mod = await import('@/lib/meta-capi')
+    const res = await mod.sendMetaEvent({
       eventName: 'Lead',
       eventTime: Math.floor(Date.now() / 1000),
       userData: { phone: '4165551234', postalCode: 'M5V 3A1' },
-    } as never)
+    })
     expect(res.success).toBe(false)
   })
 })
@@ -176,12 +185,10 @@ describe('autoraptor', () => {
     expect(out.firstName).toBe('John')
     expect(out.requestType).toBe('sell')
   })
-  it('pushToAutoRaptor builds ADF XML containing the title-cased source', async () => {
-    const fetchMock = vi
-      .spyOn(globalThis, 'fetch' as never)
-      .mockResolvedValue(new Response('ok', { status: 200 }) as never)
-    const { pushToAutoRaptor } = await import('@/lib/crm/autoraptor')
+  it('pushToAutoRaptor builds ADF XML with the title-cased source', async () => {
+    const fetchMock = mockFetchOnce('ok')
     vi.stubEnv('AUTORAPTOR_ADF_ENDPOINT', 'https://example.com/adf')
+    const { pushToAutoRaptor } = await import('@/lib/crm/autoraptor')
     await pushToAutoRaptor({
       firstName: 'John',
       lastName: 'Doe',
@@ -190,59 +197,38 @@ describe('autoraptor', () => {
       source: 'trade_in',
       requestType: 'sell',
     })
-    const call = fetchMock.mock.calls[0]
-    if (call) {
-      const init = call[1] as RequestInit | undefined
-      const body = (init?.body as string) ?? ''
-      expect(body).toContain('Trade In')
-    }
-    fetchMock.mockRestore()
+    const lastCall = fetchMock.mock.calls[0]
+    const init = lastCall ? (lastCall[1] as RequestInit | undefined) : undefined
+    const body = typeof init?.body === 'string' ? init.body : ''
+    expect(body).toContain('Trade In')
   })
 })
 
 // ── lib/drivee-sync.ts ──────────────────────────────────────────────────────
 describe('drivee-sync resolveMidFromPirelly', () => {
   it('returns null when iframe src has no mid', async () => {
-    const fetchMock = vi
-      .spyOn(globalThis, 'fetch' as never)
-      .mockResolvedValue(
-        new Response(JSON.stringify({ iframeAttrs: { src: 'https://x.com/no-mid' } }), {
-          status: 200,
-          headers: { 'content-type': 'application/json' },
-        }) as never,
-      )
+    mockFetchOnce(JSON.stringify({ iframeAttrs: { src: 'https://x.com/no-mid' } }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    })
     const { resolveMidFromPirelly } = await import('@/lib/drivee-sync')
-    const r = await resolveMidFromPirelly('1HGCM82633A004352')
-    expect(r).toBeNull()
-    fetchMock.mockRestore()
+    expect(await resolveMidFromPirelly('1HGCM82633A004352')).toBeNull()
   })
   it('returns mid when iframe src contains it', async () => {
-    const fetchMock = vi
-      .spyOn(globalThis, 'fetch' as never)
-      .mockResolvedValue(
-        new Response(JSON.stringify({ iframeAttrs: { src: 'https://x.com/?mid=12345&foo=bar' } }), {
-          status: 200,
-          headers: { 'content-type': 'application/json' },
-        }) as never,
-      )
+    mockFetchOnce(JSON.stringify({ iframeAttrs: { src: 'https://x.com/?mid=12345&foo=bar' } }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    })
     const { resolveMidFromPirelly } = await import('@/lib/drivee-sync')
-    const r = await resolveMidFromPirelly('1HGCM82633A004352')
-    expect(r).toBe('12345')
-    fetchMock.mockRestore()
+    expect(await resolveMidFromPirelly('1HGCM82633A004352')).toBe('12345')
   })
   it('resolveMidFromPirellyByStock also extracts mid', async () => {
-    const fetchMock = vi
-      .spyOn(globalThis, 'fetch' as never)
-      .mockResolvedValue(
-        new Response(JSON.stringify({ iframeAttrs: { src: 'https://x.com/?mid=99999' } }), {
-          status: 200,
-          headers: { 'content-type': 'application/json' },
-        }) as never,
-      )
+    mockFetchOnce(JSON.stringify({ iframeAttrs: { src: 'https://x.com/?mid=99999' } }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    })
     const { resolveMidFromPirellyByStock } = await import('@/lib/drivee-sync')
-    const r = await resolveMidFromPirellyByStock('STK001')
-    expect(r).toBe('99999')
-    fetchMock.mockRestore()
+    expect(await resolveMidFromPirellyByStock('STK001')).toBe('99999')
   })
 })
 
@@ -250,10 +236,9 @@ describe('drivee-sync resolveMidFromPirelly', () => {
 describe('ab-testing getVariant SSR safety', () => {
   it('returns first variant under SSR (no window)', async () => {
     const { getVariant } = await import('@/lib/ab-testing')
-    const v = getVariant<'control' | 'variant_a'>('exp-id', {
-      variants: ['control', 'variant_a'],
-    } as never)
-    expect(['control', 'variant_a']).toContain(v)
+    const variants: ['control', 'variant_a'] = ['control', 'variant_a']
+    const v = getVariant<'control' | 'variant_a'>('exp-id', { variants })
+    expect(variants).toContain(v)
   })
 })
 
@@ -285,7 +270,6 @@ describe('homenet parseHomenetXML matchAll path', () => {
       '<vehicle><vin>1HGCM82633A004352</vin><stocknumber>A1</stocknumber><year>2023</year><make>Honda</make><model>Accord</model><price>29900</price><mileage>10000</mileage></vehicle>' +
       '<vehicle><vin>5YJ3E1EA7KF328931</vin><stocknumber>B1</stocknumber><year>2022</year><make>Tesla</make><model>Model3</model><price>49900</price><mileage>20000</mileage></vehicle>' +
       '</root>'
-    const r = parseHomenetXML(xml)
-    expect(r).toHaveLength(2)
+    expect(parseHomenetXML(xml)).toHaveLength(2)
   })
 })
