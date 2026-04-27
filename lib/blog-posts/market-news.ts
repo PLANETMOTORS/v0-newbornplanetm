@@ -1,15 +1,15 @@
-import type { BlogPostEntry } from "../blog-data"
+import { createBlogPost, type BlogPostEntry } from "../blog-data"
 
 export const blogPostsChunk4: Record<string, BlogPostEntry> = {
-  "car-deliveries-canada": {
-    title: "Car Deliveries in Canada: What You Need to Know",
-    excerpt: "Buying a car has become more convenient than ever, especially when it comes to car deliveries across Canada.",
-    date: "Oct 11, 2024",
-    readTime: "5 min read",
-    category: "Buying Guide",
-    image: "/images/blog/blog-6.png",
-    author: "Planet Motors Team",
-    content: `
+  "car-deliveries-canada": createBlogPost(
+    "Car Deliveries in Canada: What You Need to Know",
+    "Buying a car has become more convenient than ever, especially when it comes to car deliveries across Canada.",
+    "Oct 11, 2024",
+    "5 min read",
+    "Buying Guide",
+    "/images/blog/blog-6.png",
+    "Planet Motors Team",
+    `
       <p>Gone are the days when buying a car meant visiting multiple dealerships. Today, you can purchase a vehicle and have it delivered right to your door.</p>
 
       <h2>How Car Delivery Works</h2>
@@ -48,17 +48,17 @@ export const blogPostsChunk4: Record<string, BlogPostEntry> = {
       <h2>Getting Started</h2>
       <p>Browse our inventory online, or call us to discuss your needs. We'll help you find the perfect vehicle and arrange convenient delivery to your location.</p>
     `,
-    relatedPosts: ["why-choose-planet-motors", "top-preowned-vehicles-2024", "awd-vs-rwd-ontario"]
-  },
-  "understanding-apr-car-loans": {
-    title: "Understanding APR in Car Loans: What You Need to Know",
-    excerpt: "When considering financing for your next vehicle purchase at Planet Motors, understanding the Annual Percentage Rate (APR) is essential.",
-    date: "Oct 02, 2024",
-    readTime: "6 min read",
-    category: "Financing",
-    image: "/images/blog/blog6-1.png",
-    author: "Planet Motors Team",
-    content: `
+    ["why-choose-planet-motors", "top-preowned-vehicles-2024", "awd-vs-rwd-ontario"]
+  ),
+  "understanding-apr-car-loans": createBlogPost(
+    "Understanding APR in Car Loans: What You Need to Know",
+    "When considering financing for your next vehicle purchase at Planet Motors, understanding the Annual Percentage Rate (APR) is essential.",
+    "Oct 02, 2024",
+    "6 min read",
+    "Financing",
+    "/images/blog/blog6-1.png",
+    "Planet Motors Team",
+    `
       <p>APR is one of the most important numbers to understand when financing a vehicle. Let's break down what it means and how it affects your car loan.</p>
 
       <h2>What Is APR?</h2>
@@ -103,17 +103,17 @@ export const blogPostsChunk4: Record<string, BlogPostEntry> = {
       <h2>Financing at Planet Motors</h2>
       <p>We work with multiple lenders to find you competitive rates. Get pre-approved today and see what APR you qualify for!</p>
     `,
-    relatedPosts: ["biweekly-vs-monthly-payments-canada", "first-time-car-buyer-financing", "tax-benefits-trade-in-vs-selling"]
-  },
-  "top-cars-fall-winter-2024": {
-    title: "Top Cars for Fall & Winter Driving in 2024",
-    excerpt: "Discover the best vehicles for tackling Ontario's challenging fall and winter driving conditions.",
-    date: "Oct 01, 2024",
-    readTime: "9 min read",
-    category: "Buying Guide",
-    image: "/images/blog/blog7-1.jpg",
-    author: "Planet Motors Team",
-    content: `
+    ["biweekly-vs-monthly-payments-canada", "first-time-car-buyer-financing", "tax-benefits-trade-in-vs-selling"]
+  ),
+  "top-cars-fall-winter-2024": createBlogPost(
+    "Top Cars for Fall & Winter Driving in 2024",
+    "Discover the best vehicles for tackling Ontario's challenging fall and winter driving conditions.",
+    "Oct 01, 2024",
+    "9 min read",
+    "Buying Guide",
+    "/images/blog/blog7-1.jpg",
+    "Planet Motors Team",
+    `
       <p>Ontario's fall and winter weather demands vehicles that can handle rain, snow, ice, and everything in between. Here are our top picks for confident cold-weather driving.</p>
 
       <h2>Best SUVs for Winter</h2>
@@ -172,17 +172,17 @@ export const blogPostsChunk4: Record<string, BlogPostEntry> = {
       <h2>Find Your Winter-Ready Vehicle</h2>
       <p>Visit Planet Motors to explore our selection of AWD and winter-capable vehicles. We'll help you find the perfect ride for Ontario's toughest conditions.</p>
     `,
-    relatedPosts: ["awd-vs-rwd-ontario", "top-preowned-vehicles-2024", "tesla-model-y-vs-model-3"]
-  },
-  "top-preowned-vehicles-2024": {
-    title: "Top Pre-Owned Vehicles to Consider in 2024",
-    excerpt: "Choosing the right pre-owned vehicle can be a challenge, but it's well worth the effort. At Planet Motors, we've curated a selection of the best.",
-    date: "Sep 13, 2024",
-    readTime: "10 min read",
-    category: "Buying Guide",
-    image: "/images/blog/blog-8.png",
-    author: "Planet Motors Team",
-    content: `
+    ["awd-vs-rwd-ontario", "top-preowned-vehicles-2024", "tesla-model-y-vs-model-3"]
+  ),
+  "top-preowned-vehicles-2024": createBlogPost(
+    "Top Pre-Owned Vehicles to Consider in 2024",
+    "Choosing the right pre-owned vehicle can be a challenge, but it's well worth the effort. At Planet Motors, we've curated a selection of the best.",
+    "Sep 13, 2024",
+    "10 min read",
+    "Buying Guide",
+    "/images/blog/blog-8.png",
+    "Planet Motors Team",
+    `
       <p>The pre-owned vehicle market offers incredible value. Here are our top recommendations across different categories for 2024.</p>
 
       <h2>Best Pre-Owned Sedans</h2>
@@ -253,17 +253,17 @@ export const blogPostsChunk4: Record<string, BlogPostEntry> = {
       <h2>Shop Pre-Owned at Planet Motors</h2>
       <p>Every vehicle in our inventory undergoes a 210-point inspection. Visit us to find your perfect pre-owned vehicle with confidence.</p>
     `,
-    relatedPosts: ["why-choose-planet-motors", "top-cars-fall-winter-2024", "tesla-model-y-vs-model-3"]
-  },
-  "tesla-model-y-future-ev": {
-    title: "Tesla Model Y: The Future of EVs at Your Fingertips",
-    excerpt: "This electric crossover combines innovation, performance, and futuristic design, making it a top choice for those looking to experience the EV revolution.",
-    date: "Sep 12, 2024",
-    readTime: "8 min read",
-    category: "Electric Vehicles",
-    image: "/images/blog/blog9-1.jpg",
-    author: "Planet Motors Team",
-    content: `
+    ["why-choose-planet-motors", "top-cars-fall-winter-2024", "tesla-model-y-vs-model-3"]
+  ),
+  "tesla-model-y-future-ev": createBlogPost(
+    "Tesla Model Y: The Future of EVs at Your Fingertips",
+    "This electric crossover combines innovation, performance, and futuristic design, making it a top choice for those looking to experience the EV revolution.",
+    "Sep 12, 2024",
+    "8 min read",
+    "Electric Vehicles",
+    "/images/blog/blog9-1.jpg",
+    "Planet Motors Team",
+    `
       <p>The Tesla Model Y has become one of the world's best-selling vehicles for good reason. Here's why this electric crossover represents the future of transportation.</p>
 
       <h2>Why the Model Y Stands Out</h2>
@@ -305,17 +305,17 @@ export const blogPostsChunk4: Record<string, BlogPostEntry> = {
       <h2>Experience the Model Y</h2>
       <p>Planet Motors carries a selection of new and pre-owned Model Y vehicles. Schedule a test drive today and discover why this is the future of driving!</p>
     `,
-    relatedPosts: ["tesla-model-y-vs-model-3", "tesla-full-self-driving-guide", "ev-trends-planet-motors"]
-  },
-  "first-time-car-buyer-financing": {
-    title: "A Beginner's Guide to First-Time Car Buyer Financing in Canada",
-    excerpt: "Buying your first car is an exciting milestone, but navigating the car financing process can be overwhelming.",
-    date: "Aug 29, 2024",
-    readTime: "11 min read",
-    category: "Financing",
-    image: "/images/blog/blog-10.png",
-    author: "Planet Motors Team",
-    content: `
+    ["tesla-model-y-vs-model-3", "tesla-full-self-driving-guide", "ev-trends-planet-motors"]
+  ),
+  "first-time-car-buyer-financing": createBlogPost(
+    "A Beginner's Guide to First-Time Car Buyer Financing in Canada",
+    "Buying your first car is an exciting milestone, but navigating the car financing process can be overwhelming.",
+    "Aug 29, 2024",
+    "11 min read",
+    "Financing",
+    "/images/blog/blog-10.png",
+    "Planet Motors Team",
+    `
       <p>Congratulations on taking the exciting step toward purchasing your first car! Understanding financing is key to making a smart purchase.</p>
 
       <h2>Understanding Your Credit</h2>
@@ -373,17 +373,17 @@ export const blogPostsChunk4: Record<string, BlogPostEntry> = {
       <h2>First-Time Buyer Support at Planet Motors</h2>
       <p>We specialize in helping first-time buyers get approved. Our financing team works with multiple lenders to find the right solution for your situation. Contact us today!</p>
     `,
-    relatedPosts: ["understanding-apr-car-loans", "biweekly-vs-monthly-payments-canada", "why-choose-planet-motors"]
-  },
-  "best-selling-electric-cars-canada-2023": {
-    title: "Learn about the best-selling electric cars in Canada (2023)",
-    excerpt: "The high cost of gas has generated a lot of interest in electric cars (EV), with many more possibilities now than a year ago.",
-    date: "Nov 08, 2023",
-    readTime: "7 min read",
-    category: "Electric Vehicles",
-    image: "/images/blog/blog-11.png",
-    author: "Planet Motors Team",
-    content: `
+    ["understanding-apr-car-loans", "biweekly-vs-monthly-payments-canada", "why-choose-planet-motors"]
+  ),
+  "best-selling-electric-cars-canada-2023": createBlogPost(
+    "Learn about the best-selling electric cars in Canada (2023)",
+    "The high cost of gas has generated a lot of interest in electric cars (EV), with many more possibilities now than a year ago.",
+    "Nov 08, 2023",
+    "7 min read",
+    "Electric Vehicles",
+    "/images/blog/blog-11.png",
+    "Planet Motors Team",
+    `
       <p>Electric vehicles have gone from niche to mainstream, with more Canadians than ever making the switch. Here are the best-selling EVs making waves in Canada.</p>
 
       <h2>1. Tesla Model Y</h2>
@@ -442,17 +442,17 @@ export const blogPostsChunk4: Record<string, BlogPostEntry> = {
       <h2>Find Your EV at Planet Motors</h2>
       <p>We carry a selection of electric vehicles, including Tesla models. Visit us to explore your options!</p>
     `,
-    relatedPosts: ["ev-trends-planet-motors", "tesla-model-y-vs-model-3", "tesla-model-y-future-ev"]
-  },
-  "honda-civic-hybrid-2024": {
-    title: "Honda Says It Will Bring Back the Civic Hybrid in 2024",
-    excerpt: "Canada is seeing Honda create a Civic Hybrid for the first time since 2015. The fuel-efficient Civic will go into production in the spring.",
-    date: "Oct 26, 2023",
-    readTime: "5 min read",
-    category: "Industry News",
-    image: "/images/blog/blog12-1.jpg",
-    author: "Planet Motors Team",
-    content: `
+    ["ev-trends-planet-motors", "tesla-model-y-vs-model-3", "tesla-model-y-future-ev"]
+  ),
+  "honda-civic-hybrid-2024": createBlogPost(
+    "Honda Says It Will Bring Back the Civic Hybrid in 2024",
+    "Canada is seeing Honda create a Civic Hybrid for the first time since 2015. The fuel-efficient Civic will go into production in the spring.",
+    "Oct 26, 2023",
+    "5 min read",
+    "Industry News",
+    "/images/blog/blog12-1.jpg",
+    "Planet Motors Team",
+    `
       <p>Great news for Honda fans and eco-conscious drivers! The Civic Hybrid is making a comeback, and it's better than ever.</p>
 
       <h2>What to Expect</h2>
@@ -490,6 +490,6 @@ export const blogPostsChunk4: Record<string, BlogPostEntry> = {
       <h2>Pre-Owned Hybrid Options</h2>
       <p>Can't wait for the new Civic Hybrid? Planet Motors carries a selection of pre-owned hybrid vehicles. Visit us to explore your options today!</p>
     `,
-    relatedPosts: ["best-selling-electric-cars-canada-2023", "ev-trends-planet-motors", "top-preowned-vehicles-2024"]
-  },
+    ["best-selling-electric-cars-canada-2023", "ev-trends-planet-motors", "top-preowned-vehicles-2024"]
+  ),
 }

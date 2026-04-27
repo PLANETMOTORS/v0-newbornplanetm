@@ -9,7 +9,49 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { blogPosts } from '@/lib/blog-data'
+import { blogPosts, createBlogPost } from '@/lib/blog-data'
+
+// ---------------------------------------------------------------------------
+// createBlogPost factory — covers the new helper added in this PR
+// ---------------------------------------------------------------------------
+describe('createBlogPost', () => {
+  const post = createBlogPost(
+    'Test Title',
+    'Test excerpt',
+    'Jan 01, 2026',
+    '5 min read',
+    'Testing',
+    '/images/blog/test.jpg',
+    'Test Author',
+    '<p>Content</p>',
+    ['related-slug-1', 'related-slug-2']
+  )
+
+  it('returns an object with all required BlogPostEntry fields', () => {
+    expect(post.title).toBe('Test Title')
+    expect(post.excerpt).toBe('Test excerpt')
+    expect(post.date).toBe('Jan 01, 2026')
+    expect(post.readTime).toBe('5 min read')
+    expect(post.category).toBe('Testing')
+    expect(post.image).toBe('/images/blog/test.jpg')
+    expect(post.author).toBe('Test Author')
+    expect(post.content).toBe('<p>Content</p>')
+    expect(post.relatedPosts).toEqual(['related-slug-1', 'related-slug-2'])
+  })
+
+  it('returns a plain object (not a class instance)', () => {
+    expect(Object.getPrototypeOf(post)).toBe(Object.prototype)
+  })
+
+  it('relatedPosts is always an array', () => {
+    expect(Array.isArray(post.relatedPosts)).toBe(true)
+  })
+
+  it('accepts an empty relatedPosts array', () => {
+    const p = createBlogPost('T', 'E', 'D', 'R', 'C', '/images/blog/x.jpg', 'A', 'content', [])
+    expect(p.relatedPosts).toEqual([])
+  })
+})
 
 describe('blogPosts', () => {
   it('is an object (record of posts)', () => {

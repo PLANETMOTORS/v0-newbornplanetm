@@ -1,15 +1,16 @@
-import type { BlogPostEntry } from "../blog-data"
+// Static content data file — excluded from Sonar CPD (sonar.cpd.exclusions in sonar-project.properties)
+import { createBlogPost, type BlogPostEntry } from "../blog-data"
 
 export const blogPostsChunk1: Record<string, BlogPostEntry> = {
-  "check-battery-health-used-tesla-canada": {
-    title: "How to Check Battery Health Before Buying a Used Tesla in Canada",
-    excerpt: "Learn how to assess battery degradation, check range estimates, and use diagnostic tools before purchasing a pre-owned Tesla in Canada.",
-    date: "Apr 09, 2026",
-    readTime: "8 min read",
-    category: "Electric Vehicles",
-    image: "/images/blog/8.png",
-    author: "Planet Motors Team",
-    content: `
+  "check-battery-health-used-tesla-canada": createBlogPost(
+    "How to Check Battery Health Before Buying a Used Tesla in Canada",
+    "Learn how to assess battery degradation, check range estimates, and use diagnostic tools before purchasing a pre-owned Tesla in Canada.",
+    "Apr 09, 2026",
+    "8 min read",
+    "Electric Vehicles",
+    "/images/blog/8.png",
+    "Planet Motors Team",
+    `
       <p>Buying a used Tesla is one of the smartest moves for Canadian drivers looking to go electric without the new-car price tag. But the battery is the most expensive component — and checking its health before you buy is essential.</p>
 
       <h2>Why Battery Health Matters</h2>
@@ -45,17 +46,17 @@ export const blogPostsChunk1: Record<string, BlogPostEntry> = {
       <h2>Get It Inspected at Planet Motors</h2>
       <p>At Planet Motors, every pre-owned Tesla undergoes a comprehensive battery health assessment before listing. We provide transparent degradation data so you know exactly what you're buying. Visit us in Richmond Hill or request a remote battery report for any Tesla in our inventory.</p>
     `,
-    relatedPosts: ["buying-used-tesla-canada-2026-guide", "tesla-warranty-used-cars", "tesla-model-y-vs-model-3"]
-  },
-  "trading-in-car-with-loan-canada": {
-    title: "Trading In a Car With a Loan in Canada: What Happens Next?",
-    excerpt: "Find out what happens when you trade in a vehicle that still has a loan or lien. We break down the process, payoff calculations, and what dealers handle.",
-    date: "Apr 02, 2026",
-    readTime: "7 min read",
-    category: "Trade-In",
-    image: "/images/blog/IMG_3792-scaled.jpg",
-    author: "Planet Motors Team",
-    content: `
+    ["buying-used-tesla-canada-2026-guide", "tesla-warranty-used-cars", "tesla-model-y-vs-model-3"]
+  ),
+  "trading-in-car-with-loan-canada": createBlogPost(
+    "Trading In a Car With a Loan in Canada: What Happens Next?",
+    "Find out what happens when you trade in a vehicle that still has a loan or lien. We break down the process, payoff calculations, and what dealers handle.",
+    "Apr 02, 2026",
+    "7 min read",
+    "Trade-In",
+    "/images/blog/IMG_3792-scaled.jpg",
+    "Planet Motors Team",
+    `
       <p>Many Canadians still owe money on their vehicle when they're ready to upgrade. The good news? You can absolutely trade in a car with an outstanding loan. Here's exactly how it works.</p>
 
       <h2>How the Trade-In Process Works With a Loan</h2>
@@ -85,17 +86,17 @@ export const blogPostsChunk1: Record<string, BlogPostEntry> = {
       <h2>Planet Motors Makes It Easy</h2>
       <p>We handle the entire lien payoff process. Bring your car to our Richmond Hill location — we'll contact your lender directly, pay off your balance, and apply any equity to your next vehicle. The entire process takes less than an hour.</p>
     `,
-    relatedPosts: ["trade-in-vs-selling-car-ontario", "sell-financed-car-canada", "tax-benefits-trade-in-vs-selling"]
-  },
-  "buying-used-tesla-canada-2026-guide": {
-    title: "Buying a Used Tesla in Canada: Is It Worth It? (2026 Guide)",
-    excerpt: "A comprehensive guide to buying a pre-owned Tesla in Canada — pricing trends, what to inspect, warranty transfer, and whether it's a smart investment in 2026.",
-    date: "Mar 26, 2026",
-    readTime: "12 min read",
-    category: "Electric Vehicles",
-    image: "/images/blog/IMG_4474-scaled.jpg",
-    author: "Planet Motors Team",
-    content: `
+    ["trade-in-vs-selling-car-ontario", "sell-financed-car-canada", "tax-benefits-trade-in-vs-selling"]
+  ),
+  "buying-used-tesla-canada-2026-guide": createBlogPost(
+    "Buying a Used Tesla in Canada: Is It Worth It? (2026 Guide)",
+    "A comprehensive guide to buying a pre-owned Tesla in Canada — pricing trends, what to inspect, warranty transfer, and whether it's a smart investment in 2026.",
+    "Mar 26, 2026",
+    "12 min read",
+    "Electric Vehicles",
+    "/images/blog/IMG_4474-scaled.jpg",
+    "Planet Motors Team",
+    `
       <p>Tesla's popularity in Canada continues to surge, and the used market is booming. With new Model 3 and Model Y prices still above $50,000 CAD, buying pre-owned can save you $10,000–$20,000 while still getting a fantastic vehicle. Here's everything you need to know.</p>
 
       <h2>Used Tesla Pricing in Canada (2026)</h2>
@@ -126,17 +127,17 @@ export const blogPostsChunk1: Record<string, BlogPostEntry> = {
       <h2>Is It Worth It in 2026?</h2>
       <p>Absolutely. Used Teslas offer the best value in the EV market — you get premium technology, free Supercharging access (on some models), and dramatically lower operating costs compared to gas vehicles. With average fuel savings of $2,000–$3,000/year in Canada, a used Tesla pays for itself.</p>
     `,
-    relatedPosts: ["check-battery-health-used-tesla-canada", "tesla-warranty-used-cars", "tesla-model-y-vs-model-3"]
-  },
-  "increase-car-value-before-selling-ontario": {
-    title: "How to Increase Your Car's Value Before Selling in Ontario",
-    excerpt: "Simple tips to boost your vehicle's resale value — from detailing and minor repairs to documentation and timing your sale right.",
-    date: "Mar 18, 2026",
-    readTime: "7 min read",
-    category: "Selling",
-    image: "/images/blog/Untitled-design-20.png",
-    author: "Planet Motors Team",
-    content: `
+    ["check-battery-health-used-tesla-canada", "tesla-warranty-used-cars", "tesla-model-y-vs-model-3"]
+  ),
+  "increase-car-value-before-selling-ontario": createBlogPost(
+    "How to Increase Your Car's Value Before Selling in Ontario",
+    "Simple tips to boost your vehicle's resale value — from detailing and minor repairs to documentation and timing your sale right.",
+    "Mar 18, 2026",
+    "7 min read",
+    "Selling",
+    "/images/blog/Untitled-design-20.png",
+    "Planet Motors Team",
+    `
       <p>Whether you're trading in or selling privately, a few smart investments can significantly boost your car's value. Here are the most effective ways to maximize your return in Ontario's competitive market.</p>
 
       <h2>1. Professional Detailing</h2>
@@ -167,17 +168,17 @@ export const blogPostsChunk1: Record<string, BlogPostEntry> = {
       <h2>Get Your Best Price at Planet Motors</h2>
       <p>Even without doing any of the above, Planet Motors offers competitive, fair-market trade-in values. Get an instant offer online at our trade-in page — no obligation, no pressure.</p>
     `,
-    relatedPosts: ["car-resale-value-toronto", "trade-in-vs-selling-car-ontario", "sell-car-toronto-guide"]
-  },
-  "tesla-warranty-used-cars": {
-    title: "Tesla Warranty for Used Cars: What You Need to Know",
-    excerpt: "Understand what Tesla's warranty covers on pre-owned vehicles, how to check remaining coverage, and what's included when buying from a third-party dealer.",
-    date: "Mar 10, 2026",
-    readTime: "6 min read",
-    category: "Electric Vehicles",
-    image: "/images/blog/IMG_1903-2-scaled.jpg",
-    author: "Planet Motors Team",
-    content: `
+    ["car-resale-value-toronto", "trade-in-vs-selling-car-ontario", "sell-car-toronto-guide"]
+  ),
+  "tesla-warranty-used-cars": createBlogPost(
+    "Tesla Warranty for Used Cars: What You Need to Know",
+    "Understand what Tesla's warranty covers on pre-owned vehicles, how to check remaining coverage, and what's included when buying from a third-party dealer.",
+    "Mar 10, 2026",
+    "6 min read",
+    "Electric Vehicles",
+    "/images/blog/IMG_1903-2-scaled.jpg",
+    "Planet Motors Team",
+    `
       <p>One of the biggest advantages of buying a used Tesla is that the manufacturer's warranty transfers automatically to the new owner. Here's a complete breakdown of what's covered.</p>
 
       <h2>Tesla's Warranty Coverage</h2>
@@ -208,17 +209,17 @@ export const blogPostsChunk1: Record<string, BlogPostEntry> = {
       <h2>Extended Protection at Planet Motors</h2>
       <p>For additional peace of mind, Planet Motors offers Planet Care Protection packages that extend mechanical coverage beyond Tesla's factory warranty. Ask about our EV-specific protection plans when purchasing any pre-owned Tesla.</p>
     `,
-    relatedPosts: ["check-battery-health-used-tesla-canada", "buying-used-tesla-canada-2026-guide", "tesla-full-self-driving-guide"]
-  },
-  "trade-in-vs-selling-car-ontario": {
-    title: "Trade-In vs Selling Your Car to a Dealer in Ontario",
-    excerpt: "Discover the pros and cons of trading in versus selling your car privately. Learn which option gives you the best value and convenience when upgrading your vehicle.",
-    date: "Feb 20, 2026",
-    readTime: "8 min read",
-    category: "Selling",
-    image: "/images/blog/Mode-2-2.png",
-    author: "Planet Motors Team",
-    content: `
+    ["check-battery-health-used-tesla-canada", "buying-used-tesla-canada-2026-guide", "tesla-full-self-driving-guide"]
+  ),
+  "trade-in-vs-selling-car-ontario": createBlogPost(
+    "Trade-In vs Selling Your Car to a Dealer in Ontario",
+    "Discover the pros and cons of trading in versus selling your car privately. Learn which option gives you the best value and convenience when upgrading your vehicle.",
+    "Feb 20, 2026",
+    "8 min read",
+    "Selling",
+    "/images/blog/Mode-2-2.png",
+    "Planet Motors Team",
+    `
       <p>When it's time to upgrade your vehicle, you have two main options: trading in your car at a dealership or selling it privately. Both have their advantages and disadvantages, and the best choice depends on your priorities—whether it's convenience, maximizing value, or minimizing hassle.</p>
 
       <h2>Trading In Your Car: The Pros</h2>
@@ -271,17 +272,17 @@ export const blogPostsChunk1: Record<string, BlogPostEntry> = {
 
       <p>Whatever you decide, Planet Motors is here to help. Visit us for a free, no-obligation trade-in appraisal and see how we can help you upgrade to your next vehicle.</p>
     `,
-    relatedPosts: ["how-to-trade-in-used-car", "tax-benefits-trade-in-vs-selling", "sell-car-toronto-guide"]
-  },
-  "tesla-full-self-driving-guide": {
-    title: "What Is Tesla Full Self-Driving (FSD)? Complete Buyer Guide",
-    excerpt: "Everything you need to know about Tesla's Full Self-Driving capability, including features, pricing, and what to expect when purchasing a Tesla with FSD.",
-    date: "Feb 10, 2026",
-    readTime: "10 min read",
-    category: "Electric Vehicles",
-    image: "/images/blog/Mode-2-1.png",
-    author: "Planet Motors Team",
-    content: `
+    ["how-to-trade-in-used-car", "tax-benefits-trade-in-vs-selling", "sell-car-toronto-guide"]
+  ),
+  "tesla-full-self-driving-guide": createBlogPost(
+    "What Is Tesla Full Self-Driving (FSD)? Complete Buyer Guide",
+    "Everything you need to know about Tesla's Full Self-Driving capability, including features, pricing, and what to expect when purchasing a Tesla with FSD.",
+    "Feb 10, 2026",
+    "10 min read",
+    "Electric Vehicles",
+    "/images/blog/Mode-2-1.png",
+    "Planet Motors Team",
+    `
       <p>Tesla's Full Self-Driving (FSD) capability represents the cutting edge of autonomous driving technology. Whether you're considering a new or used Tesla, understanding FSD is crucial to making an informed purchase decision.</p>
 
       <h2>What Is Full Self-Driving?</h2>
@@ -314,17 +315,17 @@ export const blogPostsChunk1: Record<string, BlogPostEntry> = {
 
       <p>Visit Planet Motors to explore our Tesla inventory and experience FSD for yourself with a test drive.</p>
     `,
-    relatedPosts: ["tesla-model-y-vs-model-3", "tesla-model-y-future-ev", "tesla-cybertruck-2024"]
-  },
-  "biweekly-vs-monthly-payments-canada": {
-    title: "Bi-Weekly vs Monthly Car Payments in Canada: Which is Better?",
-    excerpt: "Compare bi-weekly and monthly payment schedules to determine which option saves you more money and fits your budget best.",
-    date: "Feb 02, 2026",
-    readTime: "6 min read",
-    category: "Financing",
-    image: "/images/blog/Mode-2.png",
-    author: "Planet Motors Team",
-    content: `
+    ["tesla-model-y-vs-model-3", "tesla-model-y-future-ev", "tesla-cybertruck-2024"]
+  ),
+  "biweekly-vs-monthly-payments-canada": createBlogPost(
+    "Bi-Weekly vs Monthly Car Payments in Canada: Which is Better?",
+    "Compare bi-weekly and monthly payment schedules to determine which option saves you more money and fits your budget best.",
+    "Feb 02, 2026",
+    "6 min read",
+    "Financing",
+    "/images/blog/Mode-2.png",
+    "Planet Motors Team",
+    `
       <p>When financing a vehicle, one of the decisions you'll need to make is whether to pay bi-weekly or monthly. While this might seem like a minor detail, it can have a significant impact on how much you pay over the life of your loan.</p>
 
       <h2>Understanding the Difference</h2>
@@ -363,6 +364,6 @@ export const blogPostsChunk1: Record<string, BlogPostEntry> = {
 
       <p>Ready to explore your financing options? Contact Planet Motors today for a personalized quote.</p>
     `,
-    relatedPosts: ["understanding-apr-car-loans", "first-time-car-buyer-financing", "tax-benefits-trade-in-vs-selling"]
-  },
+    ["understanding-apr-car-loans", "first-time-car-buyer-financing", "tax-benefits-trade-in-vs-selling"]
+  ),
 }
