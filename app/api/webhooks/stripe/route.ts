@@ -290,7 +290,7 @@ export async function handleCheckoutSessionCompleted(
         if (["confirmed", "completed", "cancelled", "expired"].includes(reservation.status ?? "")) {
           reservationConfirmed = reservation.status === "confirmed" || reservation.status === "completed"
         } else {
-          const validation = validateReservationForConfirmation(reservation)
+          const validation = validateReservationForConfirmation(reservation, { skipExpiryCheck: true })
           if (validation.valid) {
             const { error: confirmError } = await supabase.from("reservations").update({ status: "confirmed", updated_at: now }).eq("id", reservationId)
             if (!confirmError) {
@@ -312,7 +312,8 @@ export async function handleCheckoutSessionCompleted(
   }
 
   if (vehicleId) {
-    const targetStatus = isReservation ? (reservationConfirmed ? "reserved" : "available") : "pending"
+    const isAsyncPaymentPending = isReservation && session.payment_status === "unpaid"
+    const targetStatus = isReservation ? (reservationConfirmed || isAsyncPaymentPending ? "reserved" : "available") : "pending"
     await supabase.rpc("transition_vehicle_status", { p_vehicle_id: vehicleId, p_to_status: targetStatus })
   }
 }

@@ -83,6 +83,14 @@ describe('validateReservationForConfirmation', () => {
     const result = validateReservationForConfirmation(makeReservation({ expires_at: null }))
     expect(result).toEqual({ valid: true, reason: 'Payment verified' })
   })
+
+  it('accepts expired reservation when skipExpiryCheck is true (webhook path)', () => {
+    const result = validateReservationForConfirmation(
+      makeReservation({ expires_at: new Date(Date.now() - 60000).toISOString() }),
+      { skipExpiryCheck: true }
+    )
+    expect(result).toEqual({ valid: true, reason: 'Payment verified' })
+  })
 })
 
 describe('verifyStripePaymentIntent', () => {

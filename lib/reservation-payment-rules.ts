@@ -25,12 +25,20 @@ export interface ReservationPaymentFields {
   expires_at: string | null
 }
 
+export interface ValidationOptions {
+  skipExpiryCheck?: boolean
+}
+
 /**
  * Validate that a reservation meets all payment requirements before
  * it can be confirmed. Call this before any status transition to "confirmed".
+ *
+ * Pass { skipExpiryCheck: true } from webhook handlers where Stripe has
+ * already confirmed payment — expiry should not block a paid session.
  */
 export function validateReservationForConfirmation(
-  reservation: ReservationPaymentFields
+  reservation: ReservationPaymentFields,
+  options: ValidationOptions = {}
 ): PaymentValidationResult {
   if (reservation.deposit_status !== "paid") {
     return {
@@ -49,7 +57,7 @@ export function validateReservationForConfirmation(
     }
   }
 
-  if (reservation.expires_at && new Date(reservation.expires_at) < new Date()) {
+  if (!options.skipExpiryCheck && reservation.expires_at && new Date(reservation.expires_at) < new Date()) {
     return {
       valid: false,
       reason: "Reservation has expired",
