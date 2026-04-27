@@ -12,5 +12,18 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['__tests__/**/*.test.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['lcov', 'text-summary'],
+      reportsDirectory: './coverage',
+      include: ['lib/**/*.ts', 'app/**/*.ts', 'components/**/*.ts'],
+      exclude: [
+        'lib/blog-posts/**',
+        'lib/vehicle-data.ts',
+        'lib/blog-data.ts',
+        '**/*.d.ts',
+        '**/node_modules/**',
+      ],
+    },
   },
 })
