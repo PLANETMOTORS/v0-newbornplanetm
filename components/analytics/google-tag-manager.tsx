@@ -56,7 +56,7 @@ export function GoogleTagManagerNoScript() {
 // DataLayer push helper
 export function pushToDataLayer(data: Record<string, unknown>) {
   if (typeof window !== "undefined") {
-    window.dataLayer = window.dataLayer || []
+    if (!window.dataLayer) window.dataLayer = []
     window.dataLayer.push(data)
   }
 }
