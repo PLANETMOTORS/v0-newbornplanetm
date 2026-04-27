@@ -99,7 +99,7 @@ export const fetchVehicleForSSR = cache(async (
 
     // Only show publicly visible statuses
     const status = (row as Record<string, unknown>).status as string
-    if (!["available", "reserved", "pending"].includes(status)) return null
+    if (!["available", "reserved", "pending", "sold"].includes(status)) return null
 
     const v = row as Record<string, unknown>
     const priceInDollars = safeNum(v.price) / 100

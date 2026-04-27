@@ -65,7 +65,7 @@ export async function getSmartSuggestions(query: string): Promise<SmartSuggestio
         // Search across the fields most useful for suggestions
         query_by: "make,model,trim",
         // Only available vehicles
-        filter_by: "status:=available",
+        filter_by: "status:=[available,reserved,sold]",
         // We only need a small sample to build suggestions from
         per_page: 20,
         // Allow up to 2 typos — catches "tesle", "bmw x5i", etc.

@@ -125,6 +125,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
     vin: serverVehicle.vin,
     stockNumber: serverVehicle.stockNumber,
     driveeMid: serverVehicle.driveeMid,
+    status: serverVehicle.status,
     images: exteriorImgs,
     interiorImages: interiorImgs,
     pricing: {
@@ -139,6 +140,9 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   }
 
   const vehicleId = vehicle.id
+  const isAvailable = vehicle.status === "available"
+  const isReserved = vehicle.status === "reserved"
+  const isSold = vehicle.status === "sold"
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const isFavorite = isFavoriteInContext(vehicleId)
   const [activeTab, setActiveTab] = useState("photos")
@@ -1299,9 +1303,15 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                             <span>${vehicle.pricing.totalWithHst.toLocaleString()}</span>
                           </div>
                         </div>
+                        {isAvailable ? (
                         <Button className="w-full mt-4" onClick={() => handleProtectedAction("start your purchase", () => {
                           globalThis.location.href = `/checkout/${vehicle.id}`
                         })}>Start your purchase</Button>
+                        ) : (
+                        <div className={`w-full mt-4 p-3 rounded-lg text-center text-sm font-bold uppercase tracking-wide ${isReserved ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/30 dark:text-yellow-400" : "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400"}`}>
+                          {isReserved ? "Vehicle Reserved" : "Vehicle Sold"}
+                        </div>
+                        )}
                       </CardContent>
                     </Card>
                   </div>
@@ -1563,7 +1573,28 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                   {/* Social proof — desktop placement (above CTA) */}
                   <SocialProof vehicleId={vehicle.id} className="mt-3 hidden md:block" />
 
-                  {/* Primary CTA — Get Pre-Approved */}
+                  {/* Status banner for reserved/sold vehicles */}
+                  {isReserved && (
+                    <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg border border-yellow-300 dark:border-yellow-800 text-center">
+                      <div className="flex items-center justify-center gap-2 mb-1">
+                        <LockKeyhole className="w-5 h-5 text-yellow-600" />
+                        <span className="text-lg font-bold text-yellow-700 dark:text-yellow-400 uppercase tracking-wide">Reserved</span>
+                      </div>
+                      <p className="text-sm text-yellow-700/80 dark:text-yellow-400/70">This vehicle has been reserved by another customer.</p>
+                    </div>
+                  )}
+                  {isSold && (
+                    <div className="mt-4 p-4 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-300 dark:border-red-800 text-center">
+                      <div className="flex items-center justify-center gap-2 mb-1">
+                        <CheckCircle className="w-5 h-5 text-red-600" />
+                        <span className="text-lg font-bold text-red-700 dark:text-red-400 uppercase tracking-wide">Sold</span>
+                      </div>
+                      <p className="text-sm text-red-700/80 dark:text-red-400/70">This vehicle has been sold. Browse similar vehicles below.</p>
+                    </div>
+                  )}
+
+                  {/* Primary CTA — Get Pre-Approved (available vehicles only) */}
+                  {isAvailable && (
                   <div className="mt-4 space-y-2">
                     <Button
                       className="w-full h-12 text-base font-semibold bg-primary hover:bg-primary/90"
@@ -1576,8 +1607,10 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                     </Button>
                     <p className="text-xs text-center text-muted-foreground">No credit impact · Decision in 2 min</p>
                   </div>
+                  )}
 
-                  {/* Secondary CTAs — Reserve & Buy */}
+                  {/* Secondary CTAs — Reserve & Buy (available vehicles only) */}
+                  {isAvailable && (
                   <div className="mt-3 pt-3 border-t space-y-2">
                     {user ? (
                       <ReserveVehicleModal
@@ -1619,6 +1652,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                     </Button>
                     <p className="text-xs text-center text-muted-foreground">48-hr hold · fully refundable</p>
                   </div>
+                  )}
 
                   {/* Trust Badges */}
                   <div className="mt-3 pt-3 border-t space-y-2">
@@ -1791,7 +1825,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
         </div>
       </main>
 
-      {/* Sticky Mobile CTA — finance-first */}
+      {/* Sticky Mobile CTA — finance-first (available vehicles only) */}
+      {isAvailable ? (
       <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] md:hidden z-50">
         <div className="px-4 pt-2 pb-safe">
           {/* Price + payment row */}
@@ -1824,6 +1859,15 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
           </div>
         </div>
       </div>
+      ) : (
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] md:hidden z-50">
+        <div className="px-4 py-3 text-center">
+          <span className={`text-sm font-bold uppercase tracking-wide ${isReserved ? "text-yellow-600" : "text-red-600"}`}>
+            {isReserved ? "This vehicle is reserved" : "This vehicle has been sold"}
+          </span>
+        </div>
+      </div>
+      )}
 
       <Footer />
 

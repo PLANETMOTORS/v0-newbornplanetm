@@ -62,5 +62,5 @@ export function isVehicleSold(status: string): boolean {
 }
 
 export function isVehicleUnavailable(status: string): boolean {
-  return status === 'sold' || status === 'pending'
+  return status === 'sold' || status === 'pending' || status === 'reserved'
 }
