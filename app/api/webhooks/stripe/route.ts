@@ -269,6 +269,8 @@ export async function handleCheckoutSessionCompleted(
     }
   }
 
+  let reservationConfirmed = false
+
   if (isReservation && reservationId) {
     const now = new Date().toISOString()
 
@@ -288,6 +290,7 @@ export async function handleCheckoutSessionCompleted(
         const validation = validateReservationForConfirmation(reservation)
         if (validation.valid) {
           await supabase.from("reservations").update({ status: "confirmed", updated_at: now }).eq("id", reservationId)
+          reservationConfirmed = true
         } else {
           logger.warn("[Stripe] Reservation payment validation failed, not confirming:", { reservationId, reason: validation.reason })
           await supabase.from("reservations").update({ status: "pending", updated_at: now }).eq("id", reservationId)
@@ -301,7 +304,8 @@ export async function handleCheckoutSessionCompleted(
   }
 
   if (vehicleId) {
-    await supabase.rpc("transition_vehicle_status", { p_vehicle_id: vehicleId, p_to_status: isReservation ? "reserved" : "pending" })
+    const targetStatus = isReservation ? (reservationConfirmed ? "reserved" : "available") : "pending"
+    await supabase.rpc("transition_vehicle_status", { p_vehicle_id: vehicleId, p_to_status: targetStatus })
   }
 }
 
