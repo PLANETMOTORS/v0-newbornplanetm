@@ -1,7 +1,10 @@
 import Stripe from 'stripe'
 
-// Stripe client - only initialize on the server when secret key is available
-// This file should only be imported in server-side code (API routes, Server Components, Server Actions)
+// Stripe client — only initialize on the server when secret key is available.
+// This file must only be imported in server-side code (API routes, Server
+// Components, Server Actions).  Always call getStripe() to obtain a validated
+// instance; it throws with a clear message when STRIPE_SECRET_KEY is absent.
+
 let stripeInstance: Stripe | null = null
 
 function getStripeInstance(): Stripe | null {
@@ -14,8 +17,6 @@ function getStripeInstance(): Stripe | null {
   }
   return stripeInstance
 }
-
-export const stripe = getStripeInstance()
 
 export function getStripe(): Stripe {
   const instance = getStripeInstance()
