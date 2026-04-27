@@ -28,6 +28,8 @@ import { ApplicantForm } from "@/components/finance-application/applicant-form"
 import { VehicleFinancingForm } from "@/components/finance-application/vehicle-financing-form"
 import { ReviewStep } from "@/components/finance-application/review-step"
 import { DocumentsStep } from "@/components/finance-application/documents-step"
+import { buildSubmitError } from "@/lib/finance/build-submit-error"
+import { uploadDocuments } from "@/lib/finance/upload-documents"
 
 // Types, sub-components, and emptyApplicant imported from @/components/finance-application/
 
@@ -63,8 +65,7 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
   // Capture UTM params from URL on mount (persisted to submission payload)
   const utmParams = useRef<Record<string, string>>({})
   useEffect(() => {
-    if (typeof globalThis.window === "undefined") return
-    const sp = new URLSearchParams(globalThis.location.search)
+    if (globalThis.window === undefined) return    const sp = new URLSearchParams(globalThis.location.search)
     const utm: Record<string, string> = {}
     for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"]) {
       const val = sp.get(key)
@@ -676,34 +677,7 @@ if (errors.length > 0) {
   }
   
 
-  const buildSubmitError = (status: number, result: Record<string, unknown>): string => {
-    const rawMsg =
-      (result?.error as Record<string, unknown>)?.message as string ||
-      result?.error as string ||
-      result?.message as string ||
-      JSON.stringify(result) ||
-      "Failed to submit application"
-    if (status === 403) return "You don't have permission to submit this application. Please log in and try again."
-    if (status === 401) return "Your session has expired. Please log in again and resubmit."
-    return rawMsg
-  }
-
-  const uploadDocuments = async (applicationId: string, docs: typeof documents) => {
-    for (const doc of docs) {
-      if (!doc.file) continue
-      const formData = new FormData()
-      formData.append("file", doc.file)
-      formData.append("applicationId", applicationId)
-      formData.append("documentType", doc.type)
-      try {
-        const uploadRes = await fetch("/api/v1/financing/documents", { method: "POST", body: formData })
-        if (!uploadRes.ok) console.error("Document upload failed:", doc.type)
-      } catch (uploadErr) {
-        console.error("Document upload error:", uploadErr)
-      }
-    }
-  }
-
+  // buildSubmitError and uploadDocuments are imported from @/lib/finance/
   const handleSubmit = async () => {
     setIsSubmitting(true)
     setSubmitError(null)
@@ -769,7 +743,7 @@ if (errors.length > 0) {
       const errMsg = error instanceof Error ? error.message : "Unable to submit application right now."
       setSubmitError(errMsg)
       // Fire GA4 form_error event
-      if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
+      if (globalThis.window !== undefined && globalThis.window.gtag) {
         globalThis.window.gtag("event", "form_error", {
           event_category: "finance_application",
           error_message: errMsg,

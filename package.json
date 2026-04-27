@@ -2,6 +2,7 @@
   "name": "planet-motors",
   "version": "0.3.0",
   "private": true,
+  "type": "module",
   "packageManager": "pnpm@9.15.0",
   "scripts": {
     "dev": "NODE_OPTIONS='--max-old-space-size=8192' next dev --turbopack",

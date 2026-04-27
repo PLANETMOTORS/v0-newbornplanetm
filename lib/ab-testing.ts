@@ -57,8 +57,7 @@ const VISITOR_ID_KEY = "pm_visitor_id"
  * Stored in localStorage so it persists across sessions.
  */
 export function getVisitorId(): string {
-  if (typeof globalThis.window === "undefined") return "ssr"
-  try {
+  if (globalThis.window === undefined) return "ssr"  try {
     const existing = localStorage.getItem(VISITOR_ID_KEY)
     if (existing) return existing
     const id = crypto.randomUUID()
@@ -72,8 +71,7 @@ export function getVisitorId(): string {
 // ── Assignment store ───────────────────────────────────────────────────────
 
 function loadAssignments(): AssignmentStore {
-  if (typeof globalThis.window === "undefined") return {}
-  try {
+  if (globalThis.window === undefined) return {}  try {
     return JSON.parse(localStorage.getItem(AB_STORAGE_KEY) ?? "{}")
   } catch {
     return {}
@@ -81,8 +79,7 @@ function loadAssignments(): AssignmentStore {
 }
 
 function saveAssignment(experimentId: string, variant: string): void {
-  if (typeof globalThis.window === "undefined") return
-  try {
+  if (globalThis.window === undefined) return  try {
     const store = loadAssignments()
     store[experimentId] = variant
     localStorage.setItem(AB_STORAGE_KEY, JSON.stringify(store))
@@ -134,8 +131,7 @@ export function getVariant<V extends string>(
   experimentId: string,
   experiment: Experiment<V>
 ): V {
-  if (typeof globalThis.window === "undefined") {
-    // SSR: always return control
+  if (globalThis.window === undefined) {    // SSR: always return control
     return experiment.variants[0]
   }
 
@@ -199,8 +195,7 @@ export function getAllAssignments(): AssignmentStore {
  * Clears all experiment assignments (useful for testing).
  */
 export function clearAssignments(): void {
-  if (typeof globalThis.window === "undefined") return
-  try {
+  if (globalThis.window === undefined) return  try {
     localStorage.removeItem(AB_STORAGE_KEY)
   } catch {
     // ignore
