@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Eye, EyeOff, Mail, LockKeyhole, Shield, Loader2 } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
-import { ADMIN_EMAILS } from "@/lib/admin"
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -25,10 +24,6 @@ export default function AdminLoginPage() {
     setIsLoading(true)
 
     try {
-      if (!ADMIN_EMAILS.includes(email)) {
-        throw new Error("This account does not have admin access")
-      }
-
       const supabase = createClient()
       const { error: authError } = await supabase.auth.signInWithPassword({
         email,
