@@ -73,6 +73,12 @@ async function main() {
           apikey: serviceRoleKey,
           "Content-Type": "application/json",
           Prefer: "resolution=merge-duplicates",
+        },
+        body: JSON.stringify(body),
+      })
+      if (res.ok) {
+        console.log(`  ✅ ${entry.vehicle} — MID: ${entry.mid}, ${entry.frameCount} frames`)
+        synced++
       } else {
         const text = await res.text()
         console.error(`  ❌ ${entry.vehicle} (${entry.vin}): ${res.status} ${text}`)

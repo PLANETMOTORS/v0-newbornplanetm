@@ -44,3 +44,7 @@ lighthouse-blog.json
 
 # Sanity CMS local backups (committed to orphan 'backups' branch via GitHub Actions)
 backups/
+
+# Sanity generated report artifacts — written to CI artifacts, not tracked in git
+sanity-readiness-results.json
+sanity-schema-test-results.json
