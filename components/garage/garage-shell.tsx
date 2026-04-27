@@ -61,7 +61,7 @@ const STAGE_LABELS: Record<string, { label: string; color: string; description: 
 }
 
 // ── Main Component ─────────────────────────────────────────────────────────
-export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedVehicles }: GarageShellProps) {
+export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedVehicles }: Readonly<GarageShellProps>) {
   const router = useRouter()
   const sb = createClient()
   const deals = activeDeals
@@ -173,7 +173,7 @@ export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedV
                         </div>
                         <div className="text-right text-xs text-muted-foreground space-y-1">
                           {deposit && <p>Deposit: {deposit.state === "succeeded" ? "✅ Paid" : deposit.state}</p>}
-                          {finance && <p>Finance: {finance.state.replaceAll(/_/g, " ")}</p>}
+                          {finance && <p>Finance: {finance.state.replaceAll("_", " ")}</p>}
                           {delivery?.scheduled_for && (
                             <p>Delivery: {new Date(delivery.scheduled_for).toLocaleDateString("en-CA")}</p>
                           )}

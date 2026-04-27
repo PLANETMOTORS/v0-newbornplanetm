@@ -20,7 +20,7 @@ interface FilterSectionProps {
   onToggle: (option: string) => void
 }
 
-function FilterSection({ title, options, selected, onToggle }: FilterSectionProps) {
+function FilterSection({ title, options, selected, onToggle }: Readonly<FilterSectionProps>) {
   const [isOpen, setIsOpen] = useState(true)
 
   return (

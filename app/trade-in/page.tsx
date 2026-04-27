@@ -356,7 +356,7 @@ function TradeInContent() {
         setSelectedModel(parts[1])
       }
       const mileageParam = searchParams.get("mileage")
-      if (mileageParam) setMileage(mileageParam.replaceAll(/[^0-9]/g, ""))
+      if (mileageParam) setMileage(mileageParam.replaceAll(/\D/g, ""))
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, user])
@@ -560,41 +560,47 @@ function TradeInContent() {
     return { low: Math.round(value * 0.90 / 50) * 50, mid: value, high: Math.round(value * 1.10 / 50) * 50 }
   }
 
-  const calculateOffer = async () => {
-    setIsCalculating(true)
-    setCalculationProgress(0)
-    const progressInterval = setInterval(() => {
-      setCalculationProgress(prev => Math.min(prev + 5, 90))
-    }, 300)
-    let lowValue: number, midValue: number, highValue: number
+  const fetchValuation = async (): Promise<{ low: number; mid: number; high: number }> => {
     try {
       const response = await fetch("/api/vehicle-valuation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ year: selectedYear, make: selectedMake, model: selectedModel, trim: selectedTrim, mileage, condition, postalCode }),
       })
-      clearInterval(progressInterval)
-      setCalculationProgress(100)
       if (response.ok) {
         const valuation = await response.json()
-        lowValue = valuation.lowValue
-        midValue = valuation.midValue
-        highValue = valuation.highValue
-      } else {
-        const fallback = calculateLocalFallback()
-        lowValue = fallback.low; midValue = fallback.mid; highValue = fallback.high
+        return { low: valuation.lowValue, mid: valuation.midValue, high: valuation.highValue }
       }
     } catch {
-      clearInterval(progressInterval)
-      setCalculationProgress(100)
-      const fallback = calculateLocalFallback()
-      lowValue = fallback.low; midValue = fallback.mid; highValue = fallback.high
+      // fall through to local fallback
     }
-    if (hasAccident) { lowValue = Math.round(lowValue * 0.85); midValue = Math.round(midValue * 0.85); highValue = Math.round(highValue * 0.85) }
-    if (hasMechanicalIssues) { lowValue = Math.round(lowValue * 0.92); midValue = Math.round(midValue * 0.92); highValue = Math.round(highValue * 0.92) }
-    lowValue = Math.round(lowValue / 50) * 50
-    midValue = Math.round(midValue / 50) * 50
-    highValue = Math.round(highValue / 50) * 50
+    const fallback = calculateLocalFallback()
+    return { low: fallback.low, mid: fallback.mid, high: fallback.high }
+  }
+
+  const applyConditionAdjustments = (values: { low: number; mid: number; high: number }) => {
+    let { low, mid, high } = values
+    if (hasAccident) { low = Math.round(low * 0.85); mid = Math.round(mid * 0.85); high = Math.round(high * 0.85) }
+    if (hasMechanicalIssues) { low = Math.round(low * 0.92); mid = Math.round(mid * 0.92); high = Math.round(high * 0.92) }
+    return {
+      low: Math.round(low / 50) * 50,
+      mid: Math.round(mid / 50) * 50,
+      high: Math.round(high / 50) * 50,
+    }
+  }
+
+  const calculateOffer = async () => {
+    setIsCalculating(true)
+    setCalculationProgress(0)
+    const progressInterval = setInterval(() => {
+      setCalculationProgress(prev => Math.min(prev + 5, 90))
+    }, 300)
+
+    const raw = await fetchValuation()
+    clearInterval(progressInterval)
+    setCalculationProgress(100)
+
+    const { low: lowValue, mid: midValue, high: highValue } = applyConditionAdjustments(raw)
     const equity = hasLien && payoffAmount ? midValue - Number.parseFloat(payoffAmount) : midValue
     const generatedQuoteId = `PQ-${Date.now().toString(36).toUpperCase()}`
     setOffer({
@@ -798,7 +804,7 @@ function TradeInContent() {
                         pattern="[0-9]*"
                         className="h-12 bg-white/5 border-white/20 text-white placeholder:text-white/30"
                         value={mileage}
-                        onChange={(e) => setMileage(e.target.value.replace(/[^0-9]/g, ''))}
+                        onChange={(e) => setMileage(e.target.value.replaceAll(/\D/g, ''))}
                         autoComplete="off"
                       />
                       <Button
@@ -850,7 +856,7 @@ function TradeInContent() {
                             pattern="[0-9]*"
                             className="h-12"
                             value={mileage}
-                            onChange={(e) => setMileage(e.target.value.replace(/[^0-9]/g, ''))}
+                            onChange={(e) => setMileage(e.target.value.replaceAll(/\D/g, ''))}
                             autoComplete="off"
                           />
                           <Button className="w-full h-12 text-lg" size="lg" onClick={() => goToStep(2)} disabled={!mileage}>
@@ -911,20 +917,18 @@ function TradeInContent() {
                         <Label className="text-base font-semibold">Overall Condition</Label>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {conditionOptions.map((opt) => (
-                            <div
+                            <button
+                              type="button"
                               key={opt.value}
-                              role="button"
-                              tabIndex={0}
-                              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${condition === opt.value ? "border-primary bg-primary/5" : "border-muted hover:border-primary/50"}`}
+                              className={`text-left p-4 border-2 rounded-lg cursor-pointer transition-all ${condition === opt.value ? "border-primary bg-primary/5" : "border-muted hover:border-primary/50"}`}
                               onClick={() => setCondition(opt.value)}
-                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setCondition(opt.value) }}
                             >
                               <div className="flex items-center justify-between mb-1">
                                 <span className="font-semibold">{opt.label}</span>
                                 {condition === opt.value && <CheckCircle className="h-5 w-5 text-primary" />}
                               </div>
                               <p className="text-sm text-muted-foreground">{opt.description}</p>
-                            </div>
+                            </button>
                           ))}
                         </div>
                       </div>

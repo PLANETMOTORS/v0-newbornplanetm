@@ -1,5 +1,42 @@
 import { defineType, defineField } from 'sanity'
 
+// Author schema — E-E-A-T signals for blog posts and team bios
+// Team: Hamza Patel (Finance), Toni Sultzberg (Dev), Tony Bekheet (Owner)
+export const author = defineType({
+  name: 'author',
+  title: 'Author / Team Member',
+  type: 'document',
+  fields: [
+    defineField({ name: 'name', title: 'Full Name', type: 'string', validation: (Rule) => Rule.required() }),
+    defineField({ name: 'slug', title: 'Slug', type: 'slug', options: { source: 'name' } }),
+    defineField({ name: 'role', title: 'Role / Title', type: 'string', description: 'e.g., Finance Manager, Lead Developer, Owner' }),
+    defineField({ name: 'bio', title: 'Bio', type: 'text', rows: 4, description: 'Short biography for E-E-A-T signals' }),
+    defineField({ name: 'photo', title: 'Photo', type: 'image', options: { hotspot: true } }),
+    defineField({ name: 'email', title: 'Email', type: 'string' }),
+    defineField({
+      name: 'socialLinks',
+      title: 'Social Links',
+      type: 'object',
+      fields: [
+        { name: 'linkedin', title: 'LinkedIn URL', type: 'url' },
+        { name: 'twitter', title: 'Twitter/X URL', type: 'url' },
+      ],
+    }),
+    defineField({ name: 'featured', title: 'Featured on About Page', type: 'boolean', initialValue: false }),
+    defineField({ name: 'order', title: 'Display Order', type: 'number', initialValue: 0 }),
+  ],
+  preview: {
+    select: { title: 'name', role: 'role', media: 'photo' },
+    prepare({ title, role, media }) {
+      return {
+        title: `✅ ${title || 'Unnamed'}`,
+        subtitle: role || 'No role set',
+        media,
+      }
+    },
+  },
+})
+
 export const blogPost = defineType({
   name: 'blogPost',
   title: 'Blog Post',

@@ -27,7 +27,7 @@ export function PriceDropAlert({
   triggerLabel = "Price Alert",
   triggerVariant = "ghost",
   triggerClassName,
-}: PriceDropAlertProps) {
+}: Readonly<PriceDropAlertProps>) {
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)

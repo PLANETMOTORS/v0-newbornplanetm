@@ -31,7 +31,7 @@ export function PriceNegotiator({
   vehicleName,
   daysListed = 30,
   viewsLastWeek = 25,
-}: PriceNegotiatorProps) {
+}: Readonly<PriceNegotiatorProps>) {
   const [isOpen, setIsOpen] = useState(false)
   const [step, setStep] = useState<"contact" | "verify" | "negotiate">("contact")
   const [contactInfo, setContactInfo] = useState({ name: "", email: "", phone: "" })

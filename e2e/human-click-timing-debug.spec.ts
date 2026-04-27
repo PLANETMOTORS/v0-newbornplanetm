@@ -39,7 +39,7 @@ const CHECKOUT_URL = `${BASE_URL}/checkout`;
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     try {
-      window.localStorage.setItem(
+      globalThis.window.localStorage.setItem(
         'pm_cookie_consent',
         JSON.stringify({
           decided: true,
@@ -105,7 +105,7 @@ async function captureWebVitals(page: Page): Promise<Record<string, number>> {
     const timeout = setTimeout(() => resolve(vitals), 5000);
     new PerformanceObserver(list => {
       const entries = list.getEntries();
-      if (entries.length) vitals.lcp = entries[entries.length - 1].startTime;
+      if (entries.length) vitals.lcp = entries.at(-1)?.startTime ?? 0;
     }).observe({ type: 'largest-contentful-paint', buffered: true });
     new PerformanceObserver(list => {
       list.getEntries().forEach(e => {

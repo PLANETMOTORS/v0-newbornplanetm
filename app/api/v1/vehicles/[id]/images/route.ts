@@ -58,7 +58,7 @@ async function scrapeImagesFromVDP(vdpUrl: string): Promise<{
     
     // Extract 360 spin URL if available
     let spin360Url: string | undefined
-    const spinMatch = html.match(/https:\/\/[^"'\s]*(?:spin|360)[^"'\s]*\.(?:xml|json|js)/i)
+    const spinMatch = /https:\/\/[^"'\s]*(?:spin|360)[^"'\s]*\.(?:xml|json|js)/i.exec(html)
     if (spinMatch) {
       spin360Url = spinMatch[0]
     }
@@ -77,6 +77,27 @@ async function scrapeImagesFromVDP(vdpUrl: string): Promise<{
     console.error('Error scraping VDP:', error)
     return { images: [], has360: false }
   }
+}
+
+type ScrapedImages = Awaited<ReturnType<typeof scrapeImagesFromVDP>>
+
+async function scrapeAndPersist(
+  supabase: Awaited<ReturnType<typeof requireAdmin>>['supabase'],
+  vehicleId: string,
+  vdpUrl: string,
+): Promise<ScrapedImages> {
+  const result = await scrapeImagesFromVDP(vdpUrl)
+  if (result.images.length > 0 && supabase) {
+    await supabase
+      .from('vehicles')
+      .update({
+        primary_image_url: result.images[0],
+        image_urls: result.images,
+        has_360_spin: result.has360,
+      })
+      .eq('id', vehicleId)
+  }
+  return result
 }
 
 export async function GET(
@@ -101,7 +122,7 @@ export async function GET(
   }
   
   // If we already have images cached, return them
-  if (vehicle.image_urls && vehicle.image_urls.length > 0) {
+  if (vehicle.image_urls?.length) {
     return NextResponse.json({
       vehicleId: vehicle.id,
       stockNumber: vehicle.stock_number,
@@ -127,20 +148,8 @@ export async function GET(
   }
   
   // Scrape images
-  const { images, has360, spin360Url } = await scrapeImagesFromVDP(vdpUrl)
-  
-  // Update vehicle with scraped images
-  if (images.length > 0) {
-    await supabase
-      .from('vehicles')
-      .update({
-        primary_image_url: images[0],
-        image_urls: images,
-        has_360_spin: has360
-      })
-      .eq('id', id)
-  }
-  
+  const { images, has360, spin360Url } = await scrapeAndPersist(supabase, id, vdpUrl)
+
   return NextResponse.json({
     vehicleId: vehicle.id,
     stockNumber: vehicle.stock_number,
@@ -181,20 +190,8 @@ export async function POST(
   }
   
   // Force scrape images
-  const { images, has360, spin360Url } = await scrapeImagesFromVDP(vdpUrl)
-  
-  // Update vehicle
-  if (images.length > 0) {
-    await supabase
-      .from('vehicles')
-      .update({
-        primary_image_url: images[0],
-        image_urls: images,
-        has_360_spin: has360
-      })
-      .eq('id', id)
-  }
-  
+  const { images, has360, spin360Url } = await scrapeAndPersist(supabase, id, vdpUrl)
+
   return NextResponse.json({
     vehicleId: vehicle.id,
     stockNumber: vehicle.stock_number,

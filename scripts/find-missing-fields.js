@@ -1,4 +1,4 @@
-const https = require('https');
+const https = require('node:https');
 
 const PROJECT_ID = 'wlxj8olw';
 const DATASET = 'production';
