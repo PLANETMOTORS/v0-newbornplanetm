@@ -68,7 +68,7 @@ BEGIN
   END IF;
 
   -- Check deposit status
-  IF v_reservation.deposit_status <> 'paid' THEN
+  IF v_reservation.deposit_status IS NULL OR v_reservation.deposit_status <> 'paid' THEN
     RETURN jsonb_build_object('valid', false, 'reason',
       format('Deposit not paid (current status: %s)', v_reservation.deposit_status));
   END IF;
