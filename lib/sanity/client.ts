@@ -1,24 +1,13 @@
 // Planet Motors CMS - Sanity Client
 import { createClient } from "@sanity/client"
 
-// Sanity project ID is wlxj8olw — see docs/AI_SYSTEM_PROMPT.md
-const requiredProjectId = 'wlxj8olw'
-
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET
 
-if (!projectId) {
-  throw new Error('NEXT_PUBLIC_SANITY_PROJECT_ID must be set')
-}
-
-if (projectId !== requiredProjectId) {
+if (!projectId || !dataset) {
   throw new Error(
-    `NEXT_PUBLIC_SANITY_PROJECT_ID must be "${requiredProjectId}" (received "${projectId}")`
+    "Missing required env vars: NEXT_PUBLIC_SANITY_PROJECT_ID and NEXT_PUBLIC_SANITY_DATASET must be set."
   )
-}
-
-if (!dataset) {
-  throw new Error('NEXT_PUBLIC_SANITY_DATASET must be set')
 }
 
 export const sanityClient = createClient({
