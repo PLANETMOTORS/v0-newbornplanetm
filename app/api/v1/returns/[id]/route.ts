@@ -40,13 +40,12 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  // TODO: Connect to real pickup scheduling system once available.
+  // Not yet implemented — returns 501 so clients know it's unbuilt, not broken.
   return NextResponse.json(
     {
-      error: "Pickup scheduling unavailable",
+      error: "Not implemented",
       message: `Online pickup scheduling is not yet available. Please call us at ${PHONE_TOLL_FREE} to arrange a vehicle pickup.`,
-      _disclaimer: "This feature is coming soon.",
     },
-    { status: 503 }
+    { status: 501 }
   )
 }

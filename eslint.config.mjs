@@ -59,9 +59,9 @@ export default [
         varsIgnorePattern: '^_',
         caughtErrorsIgnorePattern: '^_',
       }],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-empty-interface': 'warn',
-      '@typescript-eslint/no-non-null-assertion': 'warn',
+      '@typescript-eslint/no-non-null-assertion': 'error',
       '@typescript-eslint/ban-ts-comment': 'warn',
       // Disable base rule in favor of TS version
       'no-unused-vars': 'off',
@@ -75,7 +75,7 @@ export default [
       'react-hooks': reactHooksPlugin,
     },
     rules: {
-      'react-hooks/rules-of-hooks': 'warn', // TODO: upgrade to 'error' after fixing violations
+      'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
     },
   },
@@ -88,7 +88,7 @@ export default [
     },
     rules: {
       '@next/next/no-html-link-for-pages': 'warn',
-      '@next/next/no-img-element': 'warn',
+      '@next/next/no-img-element': 'error',
       '@next/next/no-head-element': 'warn',
       '@next/next/no-sync-scripts': 'warn',
       '@next/next/no-css-tags': 'warn',

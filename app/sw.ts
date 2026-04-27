@@ -73,13 +73,29 @@ const serwist = new Serwist({
       }),
     },
 
-    // 4. Planet Motors image CDN → CacheFirst
+    // 4. Vehicle / blog image CDNs → CacheFirst (immutable content)
+    //    Keeping these out of precache and into runtime cache is what brings
+    //    the precache manifest from 23 MB down to ~2 MB app-shell only.
+    //
+    //    Note: this is a subset of remotePatterns in next.config.mjs.
+    //    - cdn.sanity.io is handled above by rule 3 (dedicated "sanity-images" cache).
+    //    - ldervbcvkoawwknsemuz.supabase.co is handled by rule 1 (NetworkOnly —
+    //      Supabase storage URLs carry auth tokens and must never be served stale).
     {
       matcher({ url }) {
-        return url.hostname === "images.planetmotors.com";
+        return (
+          url.hostname === "cdn.planetmotors.ca" ||
+          url.hostname === "planetmotors.imgix.net" ||
+          url.hostname === "media.cpsimg.com" ||
+          url.hostname === "photos.homenetiol.com" ||
+          url.hostname === "content.homenetiol.com" ||
+          url.hostname === "www.carpages.ca" ||
+          url.hostname === "images.unsplash.com" ||
+          url.hostname === "hebbkx1anhila5yf.public.blob.vercel-storage.com"
+        );
       },
       handler: new CacheFirst({
-        cacheName: "pm-images",
+        cacheName: "vehicle-images",
         plugins: [],
       }),
     },
