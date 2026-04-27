@@ -242,12 +242,22 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
     }
   }, [currentStep, isSubmitting])
 
-  const sidebarSteps: PurchaseStep[] = STEP_DEFS.map((def, idx) => ({
-    id: def.id,
-    label: def.label,
-    timeEstimate: def.timeEstimate,
-    status: completedSteps.has(idx) ? "complete" : idx === currentStep ? "current" : "upcoming",
-  }))
+  const sidebarSteps: PurchaseStep[] = STEP_DEFS.map((def, idx) => {
+    let status: "complete" | "current" | "upcoming"
+    if (completedSteps.has(idx)) {
+      status = "complete"
+    } else if (idx === currentStep) {
+      status = "current"
+    } else {
+      status = "upcoming"
+    }
+    return {
+      id: def.id,
+      label: def.label,
+      timeEstimate: def.timeEstimate,
+      status,
+    }
+  })
 
   // --- Loading / error states ---
 

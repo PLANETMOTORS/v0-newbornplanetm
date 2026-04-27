@@ -273,12 +273,18 @@ export function DeliveryTracker({
         {tracking.updates.length > 0 && (
           <div className="space-y-2">
             <p className="text-sm font-semibold">Recent Updates</p>
-            {tracking.updates.slice(0, 3).map((update, index) => (
+            {tracking.updates.slice(0, 3).map((update) => {
+              let dotColorClass: string
+              if (update.type === "info") {
+                dotColorClass = "bg-teal-500"
+              } else if (update.type === "success") {
+                dotColorClass = "bg-green-500"
+              } else {
+                dotColorClass = "bg-muted-foreground"
+              }
+              return (
               <div key={`${update.timestamp}-${update.message}`} className="flex gap-3 text-sm">
-                <div className={`w-2 h-2 rounded-full mt-1.5 ${
-                  update.type === "info" ? "bg-teal-500" :
-                  update.type === "success" ? "bg-green-500" : "bg-muted-foreground"
-                }`} />
+                <div className={`w-2 h-2 rounded-full mt-1.5 ${dotColorClass}`} />
                 <div>
                   <p className="text-muted-foreground">{update.message}</p>
                   <p className="text-xs text-muted-foreground/70">
@@ -291,7 +297,8 @@ export function DeliveryTracker({
                   </p>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         )}
 
