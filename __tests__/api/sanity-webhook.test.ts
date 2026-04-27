@@ -46,9 +46,11 @@ function makeReq(payload: object, sig = 'aabbccdd') {
 
 // ── Tests ──────────────────────────────────────────────────────────────────
 describe('POST /api/webhooks/sanity', () => {
-  beforeEach(() => {
-    revalidatePath.mockReset()
-    revalidateTag.mockReset()
+  beforeEach(async () => {
+    vi.clearAllMocks()
+    // Re-apply the default mock implementation (cleared by clearAllMocks)
+    const { syncVehicleToTypesense } = await import('@/lib/typesense/sync')
+    vi.mocked(syncVehicleToTypesense).mockResolvedValue({ success: true, action: 'upsert' })
     process.env.SANITY_WEBHOOK_SECRET = 'test-secret'
   })
 
