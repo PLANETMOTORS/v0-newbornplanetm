@@ -1,7 +1,7 @@
  
 "use client"
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react"
+import { createContext, useContext, useEffect, useState, useMemo, ReactNode } from "react"
 import type { User } from "@supabase/supabase-js"
 
 // Lazy-load the Supabase client to defer its ~196KB bundle from the critical
@@ -91,8 +91,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const ctxValue = useMemo(() => ({ user, isLoading, signOut }), [user, isLoading, signOut])
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, signOut }}>
+    <AuthContext.Provider value={ctxValue}>
       {children}
     </AuthContext.Provider>
   )

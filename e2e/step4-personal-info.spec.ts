@@ -81,7 +81,7 @@ class FinanceFormPage {
   }
 
   get errorBanner() {
-    return this.page.locator(".bg-destructive\\/10")
+    return this.page.locator(String.raw`.bg-destructive\/10`)
   }
 }
 
@@ -232,33 +232,24 @@ test.describe("Step 4 — Finance Form: Draft Persistence", () => {
     const form = new FinanceFormPage(page)
     await form.goto()
 
-    // Seed draft data using the full state structure the component expects
-    await page.evaluate(() => {
-      const draft = {
-        primaryApplicant: {
-          salutation: "", firstName: "TestRestore", middleName: "", lastName: "User", suffix: "",
-          dateOfBirth: { day: "", month: "", year: "" },
-          gender: "", maritalStatus: "", phone: "(416) 555-0192", mobilePhone: "", email: "test@example.com",
-          noEmail: false, languagePreference: "en", creditRating: "",
-          postalCode: "", addressType: "", suiteNumber: "", streetNumber: "",
-          streetName: "", streetType: "", streetDirection: "", city: "", province: "Ontario",
-          durationYears: "", durationMonths: "",
-          homeStatus: "", marketValue: "", mortgageAmount: "", mortgageHolder: "",
-          monthlyPayment: "", outstandingMortgage: "",
-          employmentCategory: "", employmentStatus: "", employerName: "", occupation: "",
-          jobTitle: "", employerStreet: "", employerCity: "", employerProvince: "",
-          employerPostalCode: "", employerPhone: "", employerPhoneExt: "",
-          employmentYears: "", employmentMonths: "",
-          grossIncome: "", incomeFrequency: "", otherIncomeType: "",
-          otherIncomeAmount: "", otherIncomeFrequency: "",
-        },
-        currentStep: 1,
-      }
-      localStorage.setItem(
-        "pm:finance-draft:general",
-        JSON.stringify(draft)
-      )
-    })
+    // Seed draft data using the full state structure the component expects.
+    // Reuse the production-shape `emptyApplicant` to avoid drift between
+    // the form's required fields and the test fixture.
+    const { emptyApplicant } = await import("@/components/finance-application/types")
+    const draft = {
+      primaryApplicant: {
+        ...emptyApplicant,
+        firstName: "TestRestore",
+        lastName: "User",
+        phone: "(416) 555-0192",
+        email: "test@example.com",
+        province: "Ontario",
+      },
+      currentStep: 1,
+    }
+    await page.evaluate((seed) => {
+      localStorage.setItem("pm:finance-draft:general", JSON.stringify(seed))
+    }, draft)
 
     // Reload to trigger draft recovery
     await page.reload()

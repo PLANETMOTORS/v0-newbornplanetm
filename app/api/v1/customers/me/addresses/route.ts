@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       unit: unit || null,
       city,
       province,
-      postal_code: postalCode.toUpperCase().replaceAll(/\s/g, " "),
+      postal_code: postalCode.toUpperCase().replace(/\s/g, " "),
       phone: phone || null,
       is_default: isDefault || false,
       delivery_instructions: deliveryInstructions || null,

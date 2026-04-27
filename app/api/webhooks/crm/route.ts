@@ -80,7 +80,7 @@ function validatePayload(raw: unknown): LeadPayload | null {
 
   if (!firstName || !email || !email.includes("@")) return null
 
-  const vehicle = r.vehicle && typeof r.vehicle === "object"
+  const vehicle = typeof r.vehicle === "object"
     ? (r.vehicle as Record<string, unknown>)
     : null
 

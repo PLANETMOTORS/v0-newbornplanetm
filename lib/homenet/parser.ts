@@ -127,7 +127,7 @@ export function parseHomenetCSV(csvText: string): VehicleData[] {
 
   const rawHeaders = parseCSVLine(lines[0])
   const headers = rawHeaders.map(h =>
-    h.trim().toLowerCase().replaceAll(/[^a-z0-9]/g, "_").replaceAll(/_+/g, "_").replaceAll(/^_|_$/g, "")
+    h.trim().toLowerCase().replace(/[^a-z0-9]/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "")
   )
 
   const unmappedColumns = headers.filter(h => h && !KNOWN_CSV_COLUMNS.has(h))
@@ -141,7 +141,7 @@ export function parseHomenetCSV(csvText: string): VehicleData[] {
     const row: Record<string, string> = {}
     headers.forEach((h, idx) => { row[h] = values[idx]?.trim() || "" })
     const vehicle = mapCSVToVehicle(row)
-    if (vehicle && vehicle.vin && vehicle.stock_number) {
+    if (vehicle?.vin && vehicle.stock_number) {
       vehicles.push(vehicle)
     }
   }
@@ -155,7 +155,7 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
   }
   const getNum = (keys: string[]): number | undefined => {
     const val = get(keys)
-    const num = Number.parseInt(val.replaceAll(/[^0-9.-]/g, ""), 10)
+    const num = Number.parseInt(val.replace(/[^0-9.-]/g, ""), 10)
     return Number.isNaN(num) ? undefined : num
   }
   const getBool = (keys: string[]): boolean => {
@@ -194,7 +194,7 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
     const cyl = get(["enginecylinders"])
     const disp = get(["enginedisplacement"])
     // Skip "0.0", "0.0 L", etc. displacement for EVs
-    const validDisp = disp && !disp.match(/^0+(\.0+)?(\s|$)/) ? disp : ""
+    const validDisp = disp && !/^0+(\.0+)?(\s|$)/.exec(disp) ? disp : ""
     if (validDisp) engineStr = validDisp + (cyl ? ` ${cyl}-Cylinder` : "")
     else if (cyl && cyl !== "0") engineStr = `${cyl}-Cylinder`
     // EVs: leave engine empty — it's electric
@@ -210,10 +210,9 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
     isCertified = true
   } else if (rawCondition === "new") {
     a2Condition = "new"
-  } else if (!rawCondition) {
-    if (!get(["is_certified", "certified", "cpo"])) isCertified = false
-  } else {
-    if (!get(["is_certified", "certified", "cpo"])) isCertified = false
+  } else if (!get(["is_certified", "certified", "cpo"])) {
+    // No certification flag — mark as not certified
+    isCertified = false
   }
 
   // === A2: Core vehicle fields ===
@@ -226,7 +225,7 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
   // === A2: Derived fields ===
   const title = `${year} ${make} ${model}${trim ? ` ${trim}` : ""}`
   const slug = `${year}-${make}-${model}${trim ? `-${trim}` : ""}-${stockNumber}`
-    .toLowerCase().replaceAll(/[^a-z0-9]+/g, "-").replaceAll(/^-|-$/g, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
 
   // === A2: Pricing (integer CAD dollars) ===
   const priceDollars = getNum(["price", "sellingprice", "internetprice", "internet_price"])
@@ -479,11 +478,11 @@ export async function syncVehiclesToDatabase(sql: SqlClient, vehicles: VehicleDa
 
 export function parseHomenetXML(xmlText: string): VehicleData[] {
   const vehicles: VehicleData[] = []
-  const vehicleMatches = xmlText.match(/<(vehicle|item|listing)[^>]*>[\s\S]*?<\/\1>/gi) || []
+  const vehicleMatches = Array.from(xmlText.matchAll(/<(vehicle|item|listing)[^>]*>[\s\S]*?<\/\1>/gi), m => m[0])
   for (const vehicleXml of vehicleMatches) {
     try {
       const vehicle = parseVehicleFromXML(vehicleXml)
-      if (vehicle && vehicle.vin && vehicle.stock_number) vehicles.push(vehicle)
+      if (vehicle?.vin && vehicle.stock_number) vehicles.push(vehicle)
     } catch (e) {
       console.error("[HomenetIOL] Error parsing vehicle XML:", e)
     }
@@ -495,14 +494,14 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
   const getValue = (tag: string): string => {
     const variations = getTagVariations(tag)
     for (const variant of variations) {
-      const match = xml.match(new RegExp(`<${variant}[^>]*>([^<]*)</${variant}>`, "i"))
+      const match = new RegExp(`<${variant}[^>]*>([^<]*)</${variant}>`, "i").exec(xml)
       if (match && match[1]) return match[1].trim()
     }
     return ""
   }
   const getNumber = (tag: string): number | undefined => {
     const val = getValue(tag)
-    const num = Number.parseInt(val.replaceAll(/[^0-9.-]/g, ""), 10)
+    const num = Number.parseInt(val.replace(/[^0-9.-]/g, ""), 10)
     return Number.isNaN(num) ? undefined : num
   }
   const getBoolean = (tag: string): boolean => {
@@ -547,7 +546,7 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
 
   const title = `${year} ${make} ${model}${trim ? ` ${trim}` : ""}`
   const slug = `${year}-${make}-${model}${trim ? `-${trim}` : ""}-${stockNumber}`
-    .toLowerCase().replaceAll(/[^a-z0-9]+/g, "-").replaceAll(/^-|-$/g, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
 
   return {
     stock_number: stockNumber,
@@ -605,8 +604,8 @@ function getTagVariations(tag: string): string[] {
   const base = tag.toLowerCase()
   return [
     base,
-    base.replaceAll(/_/g, ""),
-    base.replaceAll(/_/g, "-"),
+    base.replaceAll("_", ""),
+    base.replaceAll("_", "-"),
     base.charAt(0).toUpperCase() + base.slice(1),
     base.toUpperCase(),
   ]

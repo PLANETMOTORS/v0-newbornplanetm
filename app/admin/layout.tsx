@@ -39,18 +39,17 @@ export default function AdminLayout({
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    if (!isLoading) {
-      if (!user) {
-        router.push("/auth/login?redirectTo=/admin")
-      } else {
-        // Check if user is admin
-        const userIsAdmin = ADMIN_EMAILS.includes(user.email || "") || 
-                           user.user_metadata?.is_admin === true
-        setIsAdmin(userIsAdmin)
-        if (!userIsAdmin) {
-          router.push("/")
-        }
+    if (isLoading) return
+    if (user) {
+      // Check if user is admin
+      const userIsAdmin = ADMIN_EMAILS.includes(user.email || "") ||
+                         user.user_metadata?.is_admin === true
+      setIsAdmin(userIsAdmin)
+      if (!userIsAdmin) {
+        router.push("/")
       }
+    } else {
+      router.push("/auth/login?redirectTo=/admin")
     }
   }, [user, isLoading, router])
 
@@ -69,12 +68,10 @@ export default function AdminLayout({
     <div className="min-h-screen bg-gray-100">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div
+        <button
+          type="button"
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
-          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSidebarOpen(false) }}
-          role="button"
-          tabIndex={0}
           aria-label="Close sidebar"
         />
       )}

@@ -52,7 +52,7 @@ export function CompareProvider({ children }: { children: ReactNode }) {
     
     if (vehicle) {
       setVehicles(prev => {
-        if (prev.find(v => v.id === vehicleId)) {
+        if (prev.some(v => v.id === vehicleId)) {
           return prev
         }
         return [...prev, vehicle]

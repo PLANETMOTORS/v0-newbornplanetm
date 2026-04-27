@@ -149,7 +149,7 @@ const DELIVERY_TIERS = [
 ]
 
 function normalizePostalCode(postalCode: string): string {
-  return postalCode.toUpperCase().replaceAll(/\s/g, "").slice(0, 3)
+  return postalCode.toUpperCase().replace(/\s/g, "").slice(0, 3)
 }
 
 // Out-of-province approximate distances from Richmond Hill
@@ -251,7 +251,7 @@ export function GET(request: NextRequest) {
   }
 
   // Validate Canadian postal code format
-  const cleanPostal = postalCode.toUpperCase().replaceAll(/\s/g, "")
+  const cleanPostal = postalCode.toUpperCase().replace(/\s/g, "")
   
   // Must be at least 3 characters and start with valid Canadian province letter
   const validFirstChars = "ABCEGHJKLMNPRSTVXY"

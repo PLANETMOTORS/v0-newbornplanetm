@@ -54,7 +54,7 @@ const MAX_RECENT = 5
 // ── localStorage helpers ───────────────────────────────────────────────────
 
 function loadRecent(): string[] {
-  if (typeof window === "undefined") return []
+  if (typeof globalThis.window === "undefined") return []
   try {
     return JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]")
   } catch {
@@ -63,7 +63,7 @@ function loadRecent(): string[] {
 }
 
 function saveRecent(q: string) {
-  if (typeof window === "undefined") return
+  if (typeof globalThis.window === "undefined") return
   try {
     const next = [q, ...loadRecent().filter((s) => s !== q)].slice(0, MAX_RECENT)
     localStorage.setItem(RECENT_KEY, JSON.stringify(next))

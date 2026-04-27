@@ -9,7 +9,7 @@ interface BlogShareButtonsProps {
   url: string
 }
 
-export function BlogShareButtons({ title, url }: BlogShareButtonsProps) {
+export function BlogShareButtons({ title, url }: Readonly<BlogShareButtonsProps>) {
   const [copied, setCopied] = useState(false)
 
   const encodedUrl = encodeURIComponent(url)

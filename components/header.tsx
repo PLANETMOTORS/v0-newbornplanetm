@@ -20,50 +20,42 @@ type NavItem = {
   submenu?: { name: string; href: string }[]
 }
 
+const SHOP_SUBMENU = [
+  { name: "All Vehicles", href: "/inventory" },
+  { name: "Electric Vehicles", href: "/inventory?fuelType=Electric" },
+  { name: "SUVs & Crossovers", href: "/inventory?bodyType=SUV" },
+  { name: "Sedans", href: "/inventory?bodyType=Sedan" },
+  { name: "Trucks", href: "/inventory?bodyType=Truck" },
+]
+
+const SELL_SUBMENU = [
+  { name: "Get Trade-In Value", href: "/trade-in" },
+  { name: "Sell Your Car", href: "/sell-your-car" },
+]
+
+const FINANCE_SUBMENU = [
+  { name: "Get Pre-Approved", href: "/financing" },
+  { name: "Financing Calculator", href: "/financing#calculator" },
+  { name: "How It Works", href: "/how-it-works" },
+  { name: "Delivery", href: "/delivery" },
+]
+
+const MORE_SUBMENU = [
+  { name: "About", href: "/about" },
+  { name: "EV Battery Health", href: "/aviloo" },
+  { name: "Car Value Calculator", href: "/trade-in" },
+  { name: "Protection Plans", href: "/protection-plans" },
+  { name: "FAQ", href: "/faq" },
+  { name: "Careers", href: "/careers" },
+  { name: "Contact Us", href: "/contact" },
+  { name: "Blog", href: "/blog" },
+]
+
 const navigation: NavItem[] = [
-  { 
-    name: "Shop Inventory",
-    href: "/inventory",
-    submenu: [
-      { name: "All Vehicles", href: "/inventory" },
-      { name: "Electric Vehicles", href: "/inventory?fuelType=Electric" },
-      { name: "SUVs & Crossovers", href: "/inventory?bodyType=SUV" },
-      { name: "Sedans", href: "/inventory?bodyType=Sedan" },
-      { name: "Trucks", href: "/inventory?bodyType=Truck" },
-    ]
-  },
-  { 
-    name: "Sell or Trade",
-    href: "/trade-in",
-    submenu: [
-      { name: "Get Trade-In Value", href: "/trade-in" },
-      { name: "Sell Your Car", href: "/sell-your-car" },
-    ]
-  },
-  { 
-    name: "Finance",
-    href: "/financing",
-    submenu: [
-      { name: "Get Pre-Approved", href: "/financing" },
-      { name: "Financing Calculator", href: "/financing#calculator" },
-      { name: "How It Works", href: "/how-it-works" },
-      { name: "Delivery", href: "/delivery" },
-    ]
-  },
-  { 
-    name: "More",
-    href: "/about",
-    submenu: [
-      { name: "About", href: "/about" },
-      { name: "EV Battery Health", href: "/aviloo" },
-      { name: "Car Value Calculator", href: "/trade-in" },
-      { name: "Protection Plans", href: "/protection-plans" },
-      { name: "FAQ", href: "/faq" },
-      { name: "Careers", href: "/careers" },
-      { name: "Contact Us", href: "/contact" },
-      { name: "Blog", href: "/blog" },
-    ]
-  },
+  { name: "Shop Inventory", href: "/inventory", submenu: SHOP_SUBMENU },
+  { name: "Sell or Trade", href: "/trade-in", submenu: SELL_SUBMENU },
+  { name: "Finance", href: "/financing", submenu: FINANCE_SUBMENU },
+  { name: "More", href: "/about", submenu: MORE_SUBMENU },
 ]
 
 function DesktopNav({ 
@@ -96,19 +88,17 @@ function DesktopNav({
   }
 
   return (
-    <ul className="hidden lg:flex lg:items-center lg:gap-1" role="menubar">
+    <ul className="hidden lg:flex lg:items-center lg:gap-1">
       {navigation.map((item) => (
         <li
           key={item.name}
           className="relative"
-          role="none"
           onMouseEnter={() => handleMouseEnter(item.name, !!item.submenu)}
           onMouseLeave={handleMouseLeave}
         >
           {item.submenu ? (
             <button
               type="button"
-              role="menuitem"
               aria-haspopup="true"
               aria-expanded={activeSubmenu === item.name}
               className="flex items-center gap-1 px-4 py-2 text-[15px] font-semibold text-gray-800 hover:text-[#1e3a8a] transition-colors"
@@ -120,7 +110,6 @@ function DesktopNav({
           ) : (
             <Link
               href={item.href}
-              role="menuitem"
               className="flex items-center gap-1 px-4 py-2 text-[15px] font-semibold text-gray-800 hover:text-[#1e3a8a] transition-colors"
             >
               {item.name}
@@ -130,7 +119,6 @@ function DesktopNav({
           {item.submenu && activeSubmenu === item.name && (
             <div 
               className="absolute top-full left-0 pt-1 min-w-[220px] z-[99999]"
-              role="menu"
               onMouseEnter={() => handleMouseEnter(item.name, true)}
               onMouseLeave={handleMouseLeave}
             >
@@ -139,7 +127,6 @@ function DesktopNav({
                   <Link
                     key={subitem.name}
                     href={subitem.href}
-                    role="menuitem"
                     className="block px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
                     onClick={() => setActiveSubmenu(null)}
                   >
@@ -169,8 +156,8 @@ export function Header() {
     let ticking = false
     const handleScroll = () => {
       if (!ticking) {
-        window.requestAnimationFrame(() => {
-          setScrolled(window.scrollY > 40)
+        globalThis.window?.requestAnimationFrame(() => {
+          setScrolled((globalThis.window?.scrollY ?? 0) > 40)
           ticking = false
         })
         ticking = true

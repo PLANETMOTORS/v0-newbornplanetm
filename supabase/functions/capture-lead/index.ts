@@ -232,11 +232,11 @@ Deno.serve(async (req: Request) => {
         signal: AbortSignal.timeout(10_000),
       })
         .then(async (res) => {
-          if (!res.ok) {
+          if (res.ok) {
+            log.info("AutoRaptor ADF sent successfully")
+          } else {
             const text = await res.text().catch(() => "")
             log.error("AutoRaptor ADF failed", { status: res.status, body: text.slice(0, 200) })
-          } else {
-            log.info("AutoRaptor ADF sent successfully")
           }
         })
         .catch((err) => log.error("AutoRaptor ADF error", { error: String(err) }))

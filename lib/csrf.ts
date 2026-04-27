@@ -105,7 +105,7 @@ export function validateOrigin(request: Request): boolean {
 
   // Check Origin header first (most reliable)
   if (origin) {
-    return allowed.some((o) => origin === o)
+    return allowed.includes(origin)
   }
 
   // Fall back to Referer header

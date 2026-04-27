@@ -27,7 +27,7 @@ export function PriceDropAlert({
   triggerLabel = "Price Alert",
   triggerVariant = "ghost",
   triggerClassName,
-}: PriceDropAlertProps) {
+}: Readonly<PriceDropAlertProps>) {
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
@@ -69,7 +69,7 @@ export function PriceDropAlert({
   }
 
   const formatPhoneNumber = (value: string) => {
-    const digits = value.replaceAll(/\D/g, "")
+    const digits = value.replace(/\D/g, "")
     if (digits.length <= 3) return digits
     if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
     return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`

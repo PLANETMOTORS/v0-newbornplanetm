@@ -9,7 +9,7 @@ const client = createClient({
   useCdn: false,
 })
 
-const { randomBytes } = require('crypto')
+const { randomBytes } = require('node:crypto')
 
 function generateKey() {
   // Use crypto.randomBytes for a cryptographically random key (not Math.random)

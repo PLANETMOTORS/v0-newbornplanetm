@@ -41,6 +41,9 @@ export function PaymentMethodStep({ data, onChange, onContinue }: PaymentMethodS
         className="grid gap-4"
       >
         <Card
+          data-testid="toggle-finance"
+          role="option"
+          aria-selected={data.purchaseType === "finance"}
           className={`cursor-pointer transition-colors relative ${
             data.purchaseType === "finance" ? "border-blue-600 bg-blue-50" : "hover:border-blue-300"
           }`}
@@ -77,6 +80,9 @@ export function PaymentMethodStep({ data, onChange, onContinue }: PaymentMethodS
         </Card>
 
         <Card
+          data-testid="toggle-cash"
+          role="option"
+          aria-selected={data.purchaseType === "cash"}
           className={`cursor-pointer transition-colors ${
             data.purchaseType === "cash" ? "border-blue-600 bg-blue-50" : "hover:border-blue-300"
           }`}
@@ -136,7 +142,7 @@ export function PaymentMethodStep({ data, onChange, onContinue }: PaymentMethodS
         </Card>
       </RadioGroup>
 
-      <Button onClick={onContinue} className="w-full h-12 text-base font-semibold">
+      <Button data-testid="btn-continue-step1" onClick={onContinue} className="w-full h-12 text-base font-semibold">
         Continue
       </Button>
     </div>

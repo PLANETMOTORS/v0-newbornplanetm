@@ -88,7 +88,7 @@ export async function uploadDriversLicense(formData: FormData): Promise<UploadLi
   }
   const ext = extensions[file.type] ?? 'bin'
   const timestamp = Date.now()
-  const sanitizedVehicleId = vehicleId.replaceAll(/[^a-zA-Z0-9_-]/g, '_')
+  const sanitizedVehicleId = vehicleId.replace(/[^a-zA-Z0-9_-]/g, '_')
   const storagePath = `${sanitizedVehicleId}/${timestamp}_license.${ext}`
 
   let supabase: ReturnType<typeof createAdminClient>

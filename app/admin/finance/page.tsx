@@ -109,7 +109,7 @@ export default function AdminFinancePage() {
   const fetchApplications = async () => {
     setLoading(true)
     try {
-      const url = `/api/v1/admin/finance/applications${statusFilter !== "all" ? `?status=${statusFilter}` : ""}`
+      const url = `/api/v1/admin/finance/applications${statusFilter === "all" ? "" : `?status=${statusFilter}`}`
       const res = await fetch(url)
       if (res.ok) {
         const data = await res.json()
@@ -149,13 +149,13 @@ export default function AdminFinancePage() {
       const res = await fetch(`/api/v1/financing/documents/download?pathname=${encodeURIComponent(pathname)}&admin=true`)
       if (res.ok) {
         const blob = await res.blob()
-        const url = window.URL.createObjectURL(blob)
+        const url = globalThis.URL.createObjectURL(blob)
         const a = document.createElement("a")
         a.href = url
         a.download = fileName
         document.body.appendChild(a)
         a.click()
-        window.URL.revokeObjectURL(url)
+        globalThis.URL.revokeObjectURL(url)
         a.remove()
       }
     } catch (error) {

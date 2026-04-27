@@ -23,7 +23,7 @@ interface VehicleStatusBadgeProps {
   className?: string
 }
 
-export function VehicleStatusBadge({ status, estimatedArrival, className }: VehicleStatusBadgeProps) {
+export function VehicleStatusBadge({ status, estimatedArrival, className }: Readonly<VehicleStatusBadgeProps>) {
   if (status === 'available') return null
 
   return (
@@ -46,7 +46,7 @@ interface SoldOverlayProps {
   className?: string
 }
 
-export function SoldOverlay({ className }: SoldOverlayProps) {
+export function SoldOverlay({ className }: Readonly<SoldOverlayProps>) {
   return (
     <div className={cn("absolute inset-0 bg-black/20 flex items-center justify-center", className)}>
       <span className="bg-red-600 text-white px-6 py-2 text-lg font-bold uppercase tracking-widest -rotate-12 shadow-xl">

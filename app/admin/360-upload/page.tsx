@@ -186,7 +186,7 @@ export default function Admin360UploadPage() {
                     id="upload-mid"
                     placeholder="e.g. 190171976531"
                     value={mid}
-                    onChange={e => setMid(e.target.value.replaceAll(/\D/g, ""))}
+                    onChange={e => setMid(e.target.value.replace(/\D/g, ""))}
                     maxLength={15}
                   />
                   <p className="text-xs text-gray-400 mt-1">
@@ -207,16 +207,14 @@ export default function Admin360UploadPage() {
               </div>
 
               {/* Drop Zone */}
-              <div
-                role="button"
-                tabIndex={0}
+              <button
+                type="button"
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
                 className={`
-                  border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
+                  w-full border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
                   ${isDragOver
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
@@ -238,7 +236,7 @@ export default function Admin360UploadPage() {
                   onChange={handleFileSelect}
                   className="hidden"
                 />
-              </div>
+              </button>
 
               {/* Selected Files */}
               {selectedFiles.length > 0 && (
