@@ -49,7 +49,7 @@ jobs:
       - name: Install coverage provider
         # @vitest/coverage-v8 is an optional peer dep — pnpm frozen-lockfile
         # won't install it. Use --no-frozen-lockfile just for this package.
-        run: pnpm add --save-dev @vitest/coverage-v8@4.1.4 --no-frozen-lockfile
+        run: pnpm add --save-dev @vitest/coverage-v8@4.1.4 --no-lockfile
         continue-on-error: true
 
       - name: Run tests with coverage
