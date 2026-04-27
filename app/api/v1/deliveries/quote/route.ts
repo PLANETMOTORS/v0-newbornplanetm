@@ -142,9 +142,9 @@ const POSTAL_DISTANCES: Record<string, number> = {
 // Delivery pricing tiers (per km after free zone)
 const DELIVERY_TIERS = [
   { maxKm: 300, pricePerKm: 0 }, // FREE within 300km
-  { maxKm: 499, pricePerKm: 0.70 },
+  { maxKm: 499, pricePerKm: 0.7 },
   { maxKm: 999, pricePerKm: 0.75 },
-  { maxKm: 2000, pricePerKm: 0.80 },
+  { maxKm: 2000, pricePerKm: 0.8 },
   { maxKm: 5000, pricePerKm: 0.65 },
 ]
 
@@ -297,7 +297,7 @@ export function GET(request: NextRequest) {
     breakdown: isFree ? null : {
       baseDistance: 300,
       chargeableDistance: distance - 300,
-      ratePerKm: distance <= 500 ? 0.70 : distance <= 1000 ? 0.75 : 0.80,
+      ratePerKm: distance <= 500 ? 0.7 : distance <= 1000 ? 0.75 : 0.8,
     }
   })
 }

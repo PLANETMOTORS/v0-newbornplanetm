@@ -235,7 +235,7 @@ const vehicleTrims: Record<string, string[]> = {
 
 const conditionOptions = [
   { value: "excellent", label: "Excellent", description: "Like new, no visible wear, all features work perfectly", multiplier: 1.1 },
-  { value: "good", label: "Good", description: "Minor wear, small scratches, everything functions properly", multiplier: 1.0 },
+  { value: "good", label: "Good", description: "Minor wear, small scratches, everything functions properly", multiplier: 1 },
   { value: "fair", label: "Fair", description: "Noticeable wear, some cosmetic issues, may need minor repairs", multiplier: 0.9 },
   { value: "poor", label: "Poor", description: "Significant wear, mechanical or body issues, needs work", multiplier: 0.75 },
 ]
@@ -547,17 +547,17 @@ function TradeInContent() {
     }
     let value = baseTiers[selectedMake] || 28000
     for (let y = 0; y < age; y++) {
-      if (y === 0) value *= 0.80
+      if (y === 0) value *= 0.8
       else if (y < 3) value *= 0.88
-      else if (y < 6) value *= 0.90
+      else if (y < 6) value *= 0.9
       else value *= 0.92
     }
     const expectedKm = age * 20000
     if (mileageNum > expectedKm) value -= (mileageNum - expectedKm) * 0.05
-    const condMul = { excellent: 1.10, good: 1.0, fair: 0.85, poor: 0.65 }[condition] || 1.0
+    const condMul = { excellent: 1.1, good: 1, fair: 0.85, poor: 0.65 }[condition] || 1
     value = Math.max(500, value * condMul)
     value = Math.round(value / 50) * 50
-    return { low: Math.round(value * 0.90 / 50) * 50, mid: value, high: Math.round(value * 1.10 / 50) * 50 }
+    return { low: Math.round(value * 0.9 / 50) * 50, mid: value, high: Math.round(value * 1.1 / 50) * 50 }
   }
 
   const fetchValuation = async (): Promise<{ low: number; mid: number; high: number }> => {
