@@ -25,7 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const pages = buildPagesSitemap(baseUrl, currentDate)
   const [vehicles, blog] = await Promise.all([
     buildVehiclesSitemap(baseUrl, currentDate),
-    buildBlogSitemap(baseUrl, currentDate),
+    Promise.resolve(buildBlogSitemap(baseUrl, currentDate)),
   ])
 
   return [...pages, ...vehicles, ...blog].map(toMetadataEntry)

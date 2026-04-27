@@ -30,7 +30,7 @@ const DEFAULT_STATE: ConsentState = {
 }
 
 function readStoredConsent(): ConsentState {
-  if (typeof globalThis.window === "undefined") return DEFAULT_STATE
+  if (globalThis.window === undefined) return DEFAULT_STATE
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return DEFAULT_STATE
@@ -44,13 +44,13 @@ function readStoredConsent(): ConsentState {
 }
 
 function writeStoredConsent(state: ConsentState) {
-  if (typeof globalThis.window === "undefined") return
+  if (globalThis.window === undefined) return
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
 }
 
 /** Push a Google Consent Mode v2 update so gtag respects the user's choice. */
 function updateGoogleConsent(categories: ConsentCategories) {
-  if (typeof globalThis.window === "undefined" || typeof globalThis.window.gtag !== "function") return
+  if (globalThis.window === undefined || typeof globalThis.window.gtag !== "function") return
   globalThis.window.gtag("consent", "update", {
     analytics_storage: categories.analytics ? "granted" : "denied",
     ad_storage: categories.marketing ? "granted" : "denied",
@@ -107,7 +107,7 @@ export function useCookieConsent() {
   }, [])
 
   const resetConsent = useCallback(() => {
-    if (typeof globalThis.window !== "undefined") {
+    if (globalThis.window !== undefined) {
       localStorage.removeItem(STORAGE_KEY)
     }
     setConsent(DEFAULT_STATE)

@@ -39,7 +39,7 @@ async function assertNoA11yViolations(
 test.describe("Section A11Y — Accessibility (WCAG 2.2 AA)", () => {
   test("A11Y-001 — Homepage: zero critical/serious axe violations", async ({
     page,
-    isMobile,
+    isMobile: _isMobile,
   }) => {
     await page.goto(`${BASE_URL}/`, { waitUntil: "networkidle" })
     // TODO: Fix known mobile accessibility issues:

@@ -33,7 +33,7 @@ jobs:
           SANITY_PROJECT_ID: wlxj8olw
           SANITY_DATASET: production
           SANITY_API_TOKEN: ${{ secrets.SANITY_API_TOKEN }}
-        run: node scripts/sanity-check.js
+        run: node scripts/sanity-check.cjs
 
       - name: Annotate failure
         if: failure()

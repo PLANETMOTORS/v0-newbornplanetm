@@ -31,7 +31,7 @@ const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "ut
  */
 export function useUTMParams() {
   useEffect(() => {
-    if (typeof globalThis.window === "undefined") return
+    if (globalThis.window === undefined) return
 
     // Only capture on first page load (before any navigation)
     const existingParams = sessionStorage.getItem(STORAGE_KEY)
@@ -61,7 +61,7 @@ export function useUTMParams() {
  * Returns null if no UTM params have been captured.
  */
 export function getUTMParams(): UTMParams | null {
-  if (typeof globalThis.window === "undefined") return null
+  if (globalThis.window === undefined) return null
 
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY)
@@ -76,6 +76,6 @@ export function getUTMParams(): UTMParams | null {
  * Clears captured UTM parameters (useful for testing or manual reset).
  */
 export function clearUTMParams(): void {
-  if (typeof globalThis.window === "undefined") return
+  if (globalThis.window === undefined) return
   sessionStorage.removeItem(STORAGE_KEY)
 }

@@ -117,11 +117,7 @@ function DesktopNav({
           )}
 
           {item.submenu && activeSubmenu === item.name && (
-            <div 
-              className="absolute top-full left-0 pt-1 min-w-[220px] z-[99999]"
-              onMouseEnter={() => handleMouseEnter(item.name, true)}
-              onMouseLeave={handleMouseLeave}
-            >
+            <div className="absolute top-full left-0 pt-1 min-w-[220px] z-[99999]">
               <div className="bg-white rounded-xl shadow-2xl border border-gray-200 py-2">
                 {item.submenu.map((subitem) => (
                   <Link
