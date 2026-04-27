@@ -9,7 +9,7 @@ ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS sold_at TIMESTAMPTZ;
 CREATE OR REPLACE FUNCTION set_sold_at_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
-  IF NEW.status = 'sold' AND (OLD.status IS NULL OR OLD.status <> 'sold') THEN
+  IF NEW.status = 'sold' AND (OLD IS NULL OR OLD.status IS NULL OR OLD.status <> 'sold') THEN
     NEW.sold_at = NOW();
   ELSIF NEW.status <> 'sold' THEN
     NEW.sold_at = NULL;
@@ -20,7 +20,7 @@ $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trg_set_sold_at ON vehicles;
 CREATE TRIGGER trg_set_sold_at
-  BEFORE UPDATE ON vehicles
+  BEFORE INSERT OR UPDATE ON vehicles
   FOR EACH ROW
   EXECUTE FUNCTION set_sold_at_timestamp();
 

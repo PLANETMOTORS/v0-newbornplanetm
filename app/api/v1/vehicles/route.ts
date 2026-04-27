@@ -300,7 +300,8 @@ export async function GET(request: NextRequest) {
         .from('vehicles')
         .select('make, body_style, fuel_type, price, year')
       if (status === 'public') {
-        facetQuery = facetQuery.in('status', ['available', 'reserved', 'sold'])
+        const sevenDaysAgoFacets = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+        facetQuery = facetQuery.or(`status.eq.available,status.eq.reserved,and(status.eq.sold,sold_at.gte.${sevenDaysAgoFacets})`)
       } else {
         facetQuery = facetQuery.eq('status', status)
       }
@@ -399,11 +400,12 @@ export async function POST(request: NextRequest) {
     })
   }
 
-  // Build base query
+  // Build base query — include available + reserved + recently-sold (matches GET handler)
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
   let query = supabase
     .from('vehicles')
     .select(VEHICLE_LIST_FIELDS, { count: 'exact' })
-    .eq('status', 'available')
+    .or(`status.eq.available,status.eq.reserved,and(status.eq.sold,sold_at.gte.${sevenDaysAgo})`)
 
   // Text search across multiple fields
   if (searchQuery) {
@@ -442,7 +444,7 @@ export async function POST(request: NextRequest) {
 
   // Run vehicle fetch and aggregation in parallel, with the aggregation served
   // from Redis when available to avoid the repeated full-table scan.
-  const aggCacheKey = 'vehicles:aggregations:available'
+  const aggCacheKey = 'vehicles:aggregations:public'
   const [vehicleResult, cachedAgg] = await Promise.all([
     query,
     getCachedSearchResults(aggCacheKey),
@@ -468,7 +470,7 @@ export async function POST(request: NextRequest) {
     const { data: allVehicles } = await supabase
       .from('vehicles')
       .select('make, body_style, price')
-      .eq('status', 'available')
+      .or(`status.eq.available,status.eq.reserved,and(status.eq.sold,sold_at.gte.${sevenDaysAgo})`)
       .limit(1000)
 
     // Price thresholds in cents
