@@ -157,6 +157,44 @@ describe('handleCheckoutSessionCompleted', () => {
     }))
   })
 
+  it('does not overwrite cancelled reservation on late webhook replay', async () => {
+    supabase = createMockSupabase({
+      data: {
+        deposit_status: 'paid',
+        stripe_payment_intent_id: 'pi_test_123',
+        stripe_checkout_session_id: 'cs_test_123',
+        status: 'cancelled',
+        expires_at: new Date(Date.now() - 86400000).toISOString(),
+      },
+      error: null,
+    })
+    const session = makeSession({ payment_status: 'paid' })
+    await handleCheckoutSessionCompleted(supabase, session)
+    expect(supabase.rpc).toHaveBeenCalledWith('transition_vehicle_status', expect.objectContaining({
+      p_vehicle_id: 'veh-1',
+      p_to_status: 'available',
+    }))
+  })
+
+  it('does not overwrite completed reservation on late webhook replay', async () => {
+    supabase = createMockSupabase({
+      data: {
+        deposit_status: 'paid',
+        stripe_payment_intent_id: 'pi_test_123',
+        stripe_checkout_session_id: 'cs_test_123',
+        status: 'completed',
+        expires_at: new Date(Date.now() - 86400000).toISOString(),
+      },
+      error: null,
+    })
+    const session = makeSession({ payment_status: 'paid' })
+    await handleCheckoutSessionCompleted(supabase, session)
+    expect(supabase.rpc).toHaveBeenCalledWith('transition_vehicle_status', expect.objectContaining({
+      p_vehicle_id: 'veh-1',
+      p_to_status: 'reserved',
+    }))
+  })
+
   it('persists stripe_checkout_session_id on paid session', async () => {
     supabase = createMockSupabase({
       data: {

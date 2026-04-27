@@ -277,7 +277,7 @@ export async function handleCheckoutSessionCompleted(
     if (session.payment_status === "paid") {
       // Ensure deposit_status is marked as paid before confirming.
       // checkout.session.completed can fire before payment_intent.succeeded in edge cases.
-      await supabase.from("reservations").update({ deposit_status: "paid", stripe_checkout_session_id: session.id, stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null, updated_at: now }).eq("id", reservationId)
+      await supabase.from("reservations").update({ deposit_status: "paid", stripe_checkout_session_id: session.id, ...(typeof session.payment_intent === "string" ? { stripe_payment_intent_id: session.payment_intent } : {}), updated_at: now }).eq("id", reservationId)
 
       // Fetch the updated reservation to validate before confirming
       const { data: reservation } = await supabase
@@ -287,8 +287,8 @@ export async function handleCheckoutSessionCompleted(
         .single()
 
       if (reservation) {
-        if (reservation.status === "confirmed") {
-          reservationConfirmed = true
+        if (["confirmed", "completed", "cancelled", "expired"].includes(reservation.status ?? "")) {
+          reservationConfirmed = reservation.status === "confirmed" || reservation.status === "completed"
         } else {
           const validation = validateReservationForConfirmation(reservation)
           if (validation.valid) {
