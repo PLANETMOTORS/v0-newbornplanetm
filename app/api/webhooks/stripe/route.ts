@@ -202,7 +202,7 @@ export async function handlePaymentIntentSucceeded(
       updated_at: paidAt,
     }).eq("id", reservationId)
   } else if (vehicleId) {
-    await supabase.from("orders").update({ status: "payment_received", updated_at: paidAt }).eq("vehicle_id", vehicleId)
+    await supabase.from("orders").update({ status: "confirmed", updated_at: paidAt }).eq("vehicle_id", vehicleId)
   }
 
   if (vehicleId) {
@@ -356,7 +356,7 @@ export async function handleCheckoutSessionAsyncPaymentFailed(
   }
 
   if (reservationId) {
-    await supabase.from("reservations").update({ status: "payment_failed", updated_at: new Date().toISOString() }).eq("id", reservationId)
+    await supabase.from("reservations").update({ status: "cancelled", deposit_status: "failed", updated_at: new Date().toISOString() }).eq("id", reservationId)
   }
   if (vehicleId) {
     await supabase.rpc("transition_vehicle_status", { p_vehicle_id: vehicleId, p_to_status: "available" })
