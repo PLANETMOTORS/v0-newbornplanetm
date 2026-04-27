@@ -648,30 +648,39 @@ export default function AdminInventoryPage() {
       {/* Vehicle Table */}
       <Card>
         <CardContent className="p-0">
-          {loading ? (
-            <div className="flex items-center justify-center p-12">
-              <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-            </div>
-          ) : error ? (
-            <div className="text-center p-12 text-gray-500">
-              <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p className="font-medium">{error}</p>
-              <Button variant="outline" onClick={fetchVehicles} className="mt-4">
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Retry
-              </Button>
-            </div>
-          ) : vehicles.length === 0 ? (
-            <div className="text-center p-12 text-gray-500">
-              <Car className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p className="font-medium">No vehicles found</p>
-              <p className="text-sm">
-                {searchQuery || statusFilter !== "all"
-                  ? "Try adjusting your search or filters"
-                  : "Click \"Add Vehicle\" or trigger a HomeNet sync to get started"}
-              </p>
-            </div>
-          ) : (
+          {(() => {
+            if (loading) {
+              return (
+                <div className="flex items-center justify-center p-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                </div>
+              )
+            }
+            if (error) {
+              return (
+                <div className="text-center p-12 text-gray-500">
+                  <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p className="font-medium">{error}</p>
+                  <Button variant="outline" onClick={fetchVehicles} className="mt-4">
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Retry
+                  </Button>
+                </div>
+              )
+            }
+            if (vehicles.length === 0) {
+              const emptyHint = searchQuery || statusFilter !== "all"
+                ? "Try adjusting your search or filters"
+                : "Click \"Add Vehicle\" or trigger a HomeNet sync to get started"
+              return (
+                <div className="text-center p-12 text-gray-500">
+                  <Car className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p className="font-medium">No vehicles found</p>
+                  <p className="text-sm">{emptyHint}</p>
+                </div>
+              )
+            }
+            return (
             <>
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -831,7 +840,8 @@ export default function AdminInventoryPage() {
                 </div>
               </div>
             </>
-          )}
+            )
+          })()}
         </CardContent>
       </Card>
 

@@ -1,6 +1,34 @@
  
 import { NextRequest, NextResponse } from "next/server"
 
+// ── Helpers (extracted from nested ternaries to satisfy SonarCloud S3358) ──
+
+interface DeliveryMessageInput {
+  isDeliveryAvailable: boolean
+  isFree: boolean
+  province: string
+  distance: number
+  cleanPostal: string
+  cost: number
+}
+
+function buildDeliveryMessage(input: DeliveryMessageInput): string {
+  const { isDeliveryAvailable, isFree, province, distance, cleanPostal, cost } = input
+  if (!isDeliveryAvailable) {
+    return `Delivery not available to ${province} (${distance}km)`
+  }
+  if (isFree) {
+    return `Free delivery to ${cleanPostal} (estimated ${distance}km from Richmond Hill)`
+  }
+  return `Estimated delivery fee: $${cost.toFixed(2)} (estimated ${distance}km from Richmond Hill)`
+}
+
+function getRatePerKm(distance: number): number {
+  if (distance <= 500) return 0.7
+  if (distance <= 1000) return 0.75
+  return 0.8
+}
+
 // Origin location: Planet Motors, Richmond Hill, Ontario (L4B postal code area)
 
 
@@ -289,15 +317,11 @@ export function GET(request: NextRequest) {
     isDeliveryAvailable,
     freeDeliveryThreshold: 300,
     _disclaimer: "Delivery distance and cost are estimates only. Final delivery fees will be confirmed at time of purchase. Contact Planet Motors for an exact quote.",
-    message: !isDeliveryAvailable
-      ? `Delivery not available to ${province} (${distance}km)`
-      : isFree 
-        ? `Free delivery to ${cleanPostal} (estimated ${distance}km from Richmond Hill)`
-        : `Estimated delivery fee: $${cost.toFixed(2)} (estimated ${distance}km from Richmond Hill)`,
+    message: buildDeliveryMessage({ isDeliveryAvailable, isFree, province, distance, cleanPostal, cost }),
     breakdown: isFree ? null : {
       baseDistance: 300,
       chargeableDistance: distance - 300,
-      ratePerKm: distance <= 500 ? 0.7 : distance <= 1000 ? 0.75 : 0.8,
+      ratePerKm: getRatePerKm(distance),
     }
   })
 }
