@@ -585,7 +585,7 @@ export default function AccountPage() {
                 <Separator className="hidden md:block my-4" />
                 <Button 
                   variant="ghost" 
-                  className="shrink-0 md:w-full justify-start text-destructive min-h-[44px]"
+                  className="shrink-0 md:w-full justify-start text-destructive min-h-11"
                   onClick={() => { signOut().catch(console.error) }}
                 >
                   <LogOut className="w-4 h-4 mr-2" />
