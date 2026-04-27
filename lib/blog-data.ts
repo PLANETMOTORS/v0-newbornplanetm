@@ -23,6 +23,21 @@ export interface BlogPostEntry {
   relatedPosts: string[]
 }
 
+/** Helper factory to create blog post entries — eliminates structural duplication across all posts */
+export function createBlogPost(
+  title: string,
+  excerpt: string,
+  date: string,
+  readTime: string,
+  category: string,
+  image: string,
+  author: string,
+  content: string,
+  relatedPosts: string[]
+): BlogPostEntry {
+  return { title, excerpt, date, readTime, category, image, author, content, relatedPosts }
+}
+
 import { blogPostsChunk1 } from "./blog-posts/ev-tesla"
 import { blogPostsChunk2 } from "./blog-posts/trade-sell"
 import { blogPostsChunk3 } from "./blog-posts/finance-tips"
