@@ -755,7 +755,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Transmission */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Trans</label>
+                    <label htmlFor="filter-trans" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Trans</label>
                     <select
                       id="filter-trans"
                       value={selectedTransmission}
