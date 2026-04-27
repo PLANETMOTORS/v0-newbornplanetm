@@ -9,8 +9,9 @@ export default defineConfig({
   name: 'planet-motors-cms',
   title: 'Planet Motors CMS',
   
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'wlxj8olw',
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
+  // Always use hardcoded values - ignore NEXT_PUBLIC_SANITY_PROJECT_ID env var
+  projectId: 'wlxj8olw',
+  dataset: 'production',
   
   basePath: '/studio',
   

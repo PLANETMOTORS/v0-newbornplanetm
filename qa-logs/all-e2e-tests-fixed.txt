@@ -1,0 +1,1363 @@
+
+Running 665 tests using 1 worker
+
+  ✓    1 [chromium] › e2e/accessibility.spec.ts:36:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-001 — Homepage: zero critical/serious axe violations (1.7s)
+  ✓    2 [chromium] › e2e/accessibility.spec.ts:43:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-002 — Inventory: zero critical/serious axe violations (1.8s)
+  ✓    3 [chromium] › e2e/accessibility.spec.ts:50:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-003 — VDP: zero critical/serious axe violations (1.7s)
+  -    4 [chromium] › e2e/accessibility.spec.ts:74:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-004 — Checkout: zero critical/serious axe violations across all steps
+  ✓    5 [chromium] › e2e/accessibility.spec.ts:120:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-005 — HTML lang attribute is set (559ms)
+  ✓    6 [chromium] › e2e/accessibility.spec.ts:126:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-006 — All images have alt text (1.2s)
+  -    7 [chromium] › e2e/auth-gated-flows.spec.ts:117:7 › Auth-Gated Flows — Finance Submission & ID Upload › Full finance application → confirmation number → ID upload
+  ✓    8 [chromium] › e2e/auth.spec.ts:8:7 › Auth — Login Page › renders login page with correct heading (373ms)
+  ✓    9 [chromium] › e2e/auth.spec.ts:14:7 › Auth — Login Page › renders email and password fields (355ms)
+  ✓   10 [chromium] › e2e/auth.spec.ts:20:7 › Auth — Login Page › renders OAuth buttons (Google and Facebook) (344ms)
+  ✓   11 [chromium] › e2e/auth.spec.ts:25:7 › Auth — Login Page › renders forgot password link (345ms)
+  ✓   12 [chromium] › e2e/auth.spec.ts:31:7 › Auth — Login Page › renders create account link (355ms)
+  ✓   13 [chromium] › e2e/auth.spec.ts:37:7 › Auth — Login Page › shows OMVIC trust indicator (342ms)
+  ✓   14 [chromium] › e2e/auth.spec.ts:41:7 › Auth — Login Page › password visibility toggle works (453ms)
+  ✓   15 [chromium] › e2e/auth.spec.ts:55:7 › Auth — Login Page › submit button is present and labelled (348ms)
+  ✓   16 [chromium] › e2e/auth.spec.ts:62:7 › Auth — Login Page › remember-me checkbox is present (340ms)
+  ✓   17 [chromium] › e2e/auth.spec.ts:68:7 › Auth — Signup Page › signup page renders (393ms)
+  ✓   18 [chromium] › e2e/auth.spec.ts:76:7 › Auth — Forgot Password Page › forgot password page renders (341ms)
+  ✓   19 [chromium] › e2e/auth.spec.ts:84:7 › Auth — Open-Redirect Guard › redirectTo with absolute URL falls back to /account (1.3s)
+  ✓   20 [chromium] › e2e/auth.spec.ts:91:7 › Auth — Open-Redirect Guard › redirectTo with protocol-relative URL falls back to /account (357ms)
+  ✓   21 [chromium] › e2e/auth.spec.ts:96:7 › Auth — Open-Redirect Guard › redirectTo with valid relative path is accepted (355ms)
+  ✓   22 [chromium] › e2e/contact.spec.ts:8:7 › Contact Page › loads contact page with heading (475ms)
+  ✓   23 [chromium] › e2e/contact.spec.ts:12:7 › Contact Page › displays contact methods (425ms)
+  ✓   24 [chromium] › e2e/contact.spec.ts:17:7 › Contact Page › displays business hours (422ms)
+  ✓   25 [chromium] › e2e/contact.spec.ts:22:7 › Contact Page › contact form is visible (443ms)
+  ✓   26 [chromium] › e2e/contact.spec.ts:26:7 › Contact Page › shows validation errors for empty required fields (456ms)
+  ✓   27 [chromium] › e2e/contact.spec.ts:39:7 › Contact Page › fills form with invalid email and shows error (503ms)
+  ✓   28 [chromium] › e2e/contact.spec.ts:49:7 › Contact Page › fills form fields with test data without submitting (496ms)
+  ✓   29 [chromium] › e2e/homepage.spec.ts:8:7 › Homepage › loads successfully with correct title (621ms)
+  ✓   30 [chromium] › e2e/homepage.spec.ts:12:7 › Homepage › renders header with logo (607ms)
+  ✓   31 [chromium] › e2e/homepage.spec.ts:20:7 › Homepage › renders main navigation links (576ms)
+  ✓   32 [chromium] › e2e/homepage.spec.ts:27:7 › Homepage › renders hero section (601ms)
+  ✓   33 [chromium] › e2e/homepage.spec.ts:35:7 › Homepage › renders footer with contact info (572ms)
+  ✓   34 [chromium] › e2e/homepage.spec.ts:42:7 › Homepage › footer contains important links (597ms)
+  ✓   35 [chromium] › e2e/human-click-timing-debug.spec.ts:229:7 › Section A — Human Click Simulation › A01 — homepage hero CTA click navigates to inventory (821ms)
+  ✓   36 [chromium] › e2e/human-click-timing-debug.spec.ts:235:7 › Section A — Human Click Simulation › A02 — Typesense search bar click opens search and accepts keyboard input (2.6s)
+  ✓   37 [chromium] › e2e/human-click-timing-debug.spec.ts:243:7 › Section A — Human Click Simulation › A03 — inventory card click navigates to correct VDP (2.1s)
+  ✓   38 [chromium] › e2e/human-click-timing-debug.spec.ts:254:7 › Section A — Human Click Simulation › A04 — VDP "Start Purchase" button click initiates checkout (2.0s)
+  -   39 [chromium] › e2e/human-click-timing-debug.spec.ts:264:7 › Section A — Human Click Simulation › A05 — Step 1 payment type toggle — Cash click
+  -   40 [chromium] › e2e/human-click-timing-debug.spec.ts:272:7 › Section A — Human Click Simulation › A06 — Step 1 payment type toggle — Finance click after Cash
+  -   41 [chromium] › e2e/human-click-timing-debug.spec.ts:281:7 › Section A — Human Click Simulation › A07 — Step 2 "No Trade-In" bypass click proceeds directly
+  -   42 [chromium] › e2e/human-click-timing-debug.spec.ts:288:7 › Section A — Human Click Simulation › A08 — Step 3 down payment slider — click and drag
+  -   43 [chromium] › e2e/human-click-timing-debug.spec.ts:303:7 › Section A — Human Click Simulation › A09 — Step 3 bi-weekly/monthly toggle — alternating clicks
+  -   44 [chromium] › e2e/human-click-timing-debug.spec.ts:313:7 › Section A — Human Click Simulation › A10 — double-click on Continue button does not submit twice
+  -   45 [chromium] › e2e/human-click-timing-debug.spec.ts:328:7 › Section A — Human Click Simulation › A11 — click on disabled Continue button does not navigate
+  ✓   46 [chromium] › e2e/human-click-timing-debug.spec.ts:342:7 › Section A — Human Click Simulation › A12 — click outside IDV upload modal does not dismiss it (834ms)
+  ✓   47 [chromium] › e2e/human-click-timing-debug.spec.ts:350:7 › Section A — Human Click Simulation › A13 — right-click on vehicle image does not expose raw origin URL (1.5s)
+  -   48 [chromium] › e2e/human-click-timing-debug.spec.ts:365:7 › Section A — Human Click Simulation › A14 — mobile fat-finger: tap targets minimum 44x44px on checkout buttons
+  -   49 [chromium] › e2e/human-click-timing-debug.spec.ts:380:7 › Section A — Human Click Simulation › A15 — full human click walkthrough: Steps 1–3 (cash, no trade-in, review)
+  ✓   50 [chromium] › e2e/human-click-timing-debug.spec.ts:417:7 › Section B — Tab & Keyboard Navigation › B01 — skip navigation link is first focusable element on homepage (599ms)
+  ✓   51 [chromium] › e2e/human-click-timing-debug.spec.ts:424:7 › Section B — Tab & Keyboard Navigation › B02 — skip nav link reaches main content on Enter (620ms)
+  -   52 [chromium] › e2e/human-click-timing-debug.spec.ts:454:7 › Section B — Tab & Keyboard Navigation › B03 — Step 4 form tab order is correct
+  -   53 [chromium] › e2e/human-click-timing-debug.spec.ts:470:7 › Section B — Tab & Keyboard Navigation › B04 — Shift+Tab reverses focus order on Step 4
+  -   54 [chromium] › e2e/human-click-timing-debug.spec.ts:478:7 › Section B — Tab & Keyboard Navigation › B05 — Enter key on Continue button submits form
+  -   55 [chromium] › e2e/human-click-timing-debug.spec.ts:488:7 › Section B — Tab & Keyboard Navigation › B06 — Space key activates toggle buttons
+  ✓   56 [chromium] › e2e/human-click-timing-debug.spec.ts:496:7 › Section B — Tab & Keyboard Navigation › B07 — Escape key dismisses modal if open (does not crash) (375ms)
+  -   57 [chromium] › e2e/human-click-timing-debug.spec.ts:504:7 › Section B — Tab & Keyboard Navigation › B08 — Arrow keys navigate province dropdown
+  -   58 [chromium] › e2e/human-click-timing-debug.spec.ts:513:7 › Section B — Tab & Keyboard Navigation › B09 — Arrow keys adjust down payment slider
+  -   59 [chromium] › e2e/human-click-timing-debug.spec.ts:524:7 › Section B — Tab & Keyboard Navigation › B10 — all Step 4 form inputs reachable by keyboard only
+  -   60 [chromium] › e2e/human-click-timing-debug.spec.ts:541:7 › Section B — Tab & Keyboard Navigation › B11 — focus states are visually distinct on all interactive elements
+  ✓   61 [chromium] › e2e/human-click-timing-debug.spec.ts:560:7 › Section B — Tab & Keyboard Navigation › B12 — VDP image gallery navigable via arrow keys (2.5s)
+  ✓   62 [chromium] › e2e/human-click-timing-debug.spec.ts:584:7 › Section B — Tab & Keyboard Navigation › B13 — IDV form tab order covers all required fields (13.4s)
+
+── Homepage Timing ──
+  TTFB: 240ms (budget: 600ms)
+  FCP:  304ms (budget: 1500ms)
+  LCP:  304ms (budget: 2500ms)
+  CLS:  undefined (budget: 0.1)
+  ✓   63 [chromium] › e2e/human-click-timing-debug.spec.ts:615:7 › Section C — Page Load Timing › C01 — Homepage: TTFB, FCP, LCP within budget (5.3s)
+
+── Inventory Timing ──
+  TTFB: 52ms
+  LCP:  588ms
+  ✓   64 [chromium] › e2e/human-click-timing-debug.spec.ts:633:7 › Section C — Page Load Timing › C02 — Inventory page: LCP and load time within budget (5.2s)
+
+── VDP Image Load Times ──
+  15ms — http://localhost:3000/_next/image?url=%2Fimages%2Fplanet-motors-logo.png&w=128&q
+  17ms — http://localhost:3000/_next/image?url=%2Fimages%2Fplanet-motors-logo.png&w=256&q
+  9ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  9ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  9ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  10ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  11ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  14ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  40ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  40ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  40ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  40ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  40ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  45ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  ✓   65 [chromium] › e2e/human-click-timing-debug.spec.ts:647:7 › Section C — Page Load Timing › C03 — VDP: hero image loads within 2000ms (745ms)
+
+── Typesense Search: 78ms (budget: 200ms)
+  ✓   66 [chromium] › e2e/human-click-timing-debug.spec.ts:677:7 › Section C — Page Load Timing › C04 — Typesense search response under 200ms (2.5s)
+  -   67 [chromium] › e2e/human-click-timing-debug.spec.ts:695:7 › Section C — Page Load Timing › C05 — Checkout Step 1 load time within budget
+  -   68 [chromium] › e2e/human-click-timing-debug.spec.ts:704:7 › Section C — Page Load Timing › C06 — Step 3 deal recalculation API under 1000ms
+  -   69 [chromium] › e2e/human-click-timing-debug.spec.ts:723:7 › Section C — Page Load Timing › C07 — Step transition time (Step 1 → Step 2) under 500ms
+  -   70 [chromium] › e2e/human-click-timing-debug.spec.ts:736:7 › Section C — Page Load Timing › C08 — Step 4 Supabase write round-trip under 800ms
+
+── Vercel Blob Upload: -1ms (budget: 3000ms)
+  ✓   71 [chromium] › e2e/human-click-timing-debug.spec.ts:767:7 › Section C — Page Load Timing › C09 — Step 5 Vercel Blob upload response under 3000ms (4.4s)
+
+── Upstash Redis Cache ──
+  Miss: 170ms (budget: 300ms)
+  Hit:  87ms (budget: 50ms)
+  ✓   72 [chromium] › e2e/human-click-timing-debug.spec.ts:791:7 › Section C — Page Load Timing › C10 — Upstash Redis cache hit vs miss timing comparison (312ms)
+
+── IDV Page Init: 305ms (budget: 10000ms)
+  ✓   73 [chromium] › e2e/human-click-timing-debug.spec.ts:809:7 › Section C — Page Load Timing › C11 — IDV page init time under 10 seconds (370ms)
+
+✓ Timing report saved → test-results/timing-report.json
+  -   74 [chromium] › e2e/human-click-timing-debug.spec.ts:819:7 › Section C — Page Load Timing › C12 — Full checkout Steps 1–4 total time under 60 seconds (human pace)
+  ✓   75 [chromium] › e2e/inventory.spec.ts:26:7 › Inventory Page › loads inventory page with heading (393ms)
+  ✓   76 [chromium] › e2e/inventory.spec.ts:36:7 › Inventory Page › displays vehicle count (403ms)
+  ✓   77 [chromium] › e2e/inventory.spec.ts:46:7 › Inventory Page › renders search input (397ms)
+  ✓   78 [chromium] › e2e/inventory.spec.ts:53:7 › Inventory Page › search input accepts text (429ms)
+  ✓   79 [chromium] › e2e/inventory.spec.ts:62:7 › Inventory Page › filter button is visible (396ms)
+  ✓   80 [chromium] › e2e/inventory.spec.ts:69:7 › Inventory Page › sort dropdown is present (397ms)
+  ✓   81 [chromium] › e2e/inventory.spec.ts:82:7 › Inventory Page › renders vehicle cards or no-results message (394ms)
+  ✓   82 [chromium] › e2e/navigation.spec.ts:4:7 › Navigation › main nav links are visible on desktop (624ms)
+  ✓   83 [chromium] › e2e/navigation.spec.ts:13:7 › Navigation › clicking inventory link navigates to inventory page (1.5s)
+  ✓   84 [chromium] › e2e/navigation.spec.ts:26:7 › Navigation › clicking contact link navigates to contact page (754ms)
+  ✓   85 [chromium] › e2e/navigation.spec.ts:35:7 › Navigation › mobile menu toggle works (608ms)
+  ✓   86 [chromium] › e2e/navigation.spec.ts:51:7 › Navigation › mobile menu navigation works (612ms)
+  ✓   87 [chromium] › e2e/navigation.spec.ts:68:7 › Navigation › logo links to homepage (743ms)
+[[95mpercy[39m] Percy is not running, disabling snapshots
+  ✓   88 [chromium] › e2e/percy-visual.spec.ts:5:7 › Percy Visual Regression Tests › Homepage - Desktop (1.2s)
+  ✓   89 [chromium] › e2e/percy-visual.spec.ts:11:7 › Percy Visual Regression Tests › Homepage - Mobile (1.1s)
+  ✓   90 [chromium] › e2e/percy-visual.spec.ts:18:7 › Percy Visual Regression Tests › Inventory Page (1.1s)
+  ✓   91 [chromium] › e2e/percy-visual.spec.ts:24:7 › Percy Visual Regression Tests › Login Page (886ms)
+  ✓   92 [chromium] › e2e/percy-visual.spec.ts:30:7 › Percy Visual Regression Tests › Signup Page (863ms)
+  -   93 [chromium] › e2e/step4-personal-info.spec.ts:95:7 › Step 4 — Finance Form: Page Load › financing application page loads with Step 1 visible
+  ✓   94 [chromium] › e2e/step4-personal-info.spec.ts:110:7 › Step 4 — Finance Form: Page Load › page has correct title and navigation (646ms)
+  -   95 [chromium] › e2e/step4-personal-info.spec.ts:117:7 › Step 4 — Finance Form: Required Field Validation › shows validation errors when submitting Step 1 with empty fields
+  -   96 [chromium] › e2e/step4-personal-info.spec.ts:136:7 › Step 4 — Finance Form: Required Field Validation › validation errors clear after fixing fields
+  -   97 [chromium] › e2e/step4-personal-info.spec.ts:152:7 › Step 4 — Finance Form: Phone Validation › phone field formats input as Canadian number
+  -   98 [chromium] › e2e/step4-personal-info.spec.ts:167:7 › Step 4 — Finance Form: Phone Validation Edge Cases › rejects phone numbers that start with 0 or 1 area code
+  -   99 [chromium] › e2e/step4-personal-info.spec.ts:184:7 › Step 4 — Finance Form: Phone Validation Edge Cases › rejects phone numbers shorter than 10 digits
+  -  100 [chromium] › e2e/step4-personal-info.spec.ts:200:7 › Step 4 — Finance Form: Step Navigation › Back button is disabled on Step 1
+  -  101 [chromium] › e2e/step4-personal-info.spec.ts:207:7 › Step 4 — Finance Form: Step Navigation › progress indicator shows current step
+  -  102 [chromium] › e2e/step4-personal-info.spec.ts:218:7 › Step 4 — Finance Form: Draft Persistence › form data persists in localStorage as draft
+  -  103 [chromium] › e2e/step4-personal-info.spec.ts:242:7 › Step 4 — Finance Form: Draft Persistence › form data restores from localStorage on page reload
+  -  104 [chromium] › e2e/step4-personal-info.spec.ts:290:7 › Step 4 — Finance Form: Address Section › address section renders with postal code input
+  -  105 [chromium] › e2e/step4-personal-info.spec.ts:303:7 › Step 4 — Finance Form: Employment Section › employment section renders with required fields
+  -  106 [chromium] › e2e/step4-personal-info.spec.ts:318:7 › Step 4 — Finance Form: Sensitive Data › no sensitive data leaks in network requests during form fill
+  ✓  107 [chromium] › e2e/step5-financing-idv.spec.ts:141:7 › Step 5 — IDV: Page Load & Trust Indicators › verification page loads with correct heading (360ms)
+  ✓  108 [chromium] › e2e/step5-financing-idv.spec.ts:148:7 › Step 5 — IDV: Page Load & Trust Indicators › trust badges are visible (encryption, PIPEDA) (461ms)
+  ✓  109 [chromium] › e2e/step5-financing-idv.spec.ts:157:7 › Step 5 — IDV: Page Load & Trust Indicators › page title contains Planet Motors (373ms)
+  ✓  110 [chromium] › e2e/step5-financing-idv.spec.ts:164:7 › Step 5 — IDV: Primary ID Form Fields › ID type dropdown renders with all 5 document types (438ms)
+  ✓  111 [chromium] › e2e/step5-financing-idv.spec.ts:182:7 › Step 5 — IDV: Primary ID Form Fields › ID number input accepts text (410ms)
+  ✓  112 [chromium] › e2e/step5-financing-idv.spec.ts:190:7 › Step 5 — IDV: Primary ID Form Fields › expiry date input renders as date picker (369ms)
+  ✓  113 [chromium] › e2e/step5-financing-idv.spec.ts:200:7 › Step 5 — IDV: Primary ID Form Fields › issuing province dropdown lists Canadian provinces (454ms)
+  ✓  114 [chromium] › e2e/step5-financing-idv.spec.ts:216:7 › Step 5 — IDV: Document Upload › front and back upload areas are visible (1.4s)
+  -  115 [chromium] › e2e/step5-financing-idv.spec.ts:224:7 › Step 5 — IDV: Document Upload › front image upload shows preview after selecting file
+  -  116 [chromium] › e2e/step5-financing-idv.spec.ts:242:7 › Step 5 — IDV: Document Upload › uploaded image can be removed via X button
+  ✓  117 [chromium] › e2e/step5-financing-idv.spec.ts:270:7 › Step 5 — IDV: Form Validation › submit button is disabled when required fields are empty (383ms)
+  -  118 [chromium] › e2e/step5-financing-idv.spec.ts:280:7 › Step 5 — IDV: Form Validation › submit button enables after filling required fields
+  ✓  119 [chromium] › e2e/step5-financing-idv.spec.ts:302:7 › Step 5 — IDV: Secondary ID Flow › secondary ID section can be toggled on (447ms)
+  ✓  120 [chromium] › e2e/step5-financing-idv.spec.ts:317:7 › Step 5 — IDV: Secondary ID Flow › secondary ID type excludes already-selected primary type (724ms)
+  -  121 [chromium] › e2e/step5-financing-idv.spec.ts:341:7 › Step 5 — IDV: API Submission › submitting form sends POST to /api/v1/id-verification
+  -  122 [chromium] › e2e/step5-financing-idv.spec.ts:375:7 › Step 5 — IDV: API Submission › loading state shows during submission
+  ✓  123 [chromium] › e2e/step5-financing-idv.spec.ts:417:7 › Step 5 — IDV: Network Security Audit › no raw ID numbers sent as plaintext in request body (2.7s)
+  -  124 [chromium] › e2e/step5-financing-idv.spec.ts:446:7 › Step 5 — IDV: Network Security Audit › API response does not echo back raw ID number
+  -  125 [chromium] › e2e/vdp-visual.spec.ts:105:7 › VDP Desktop — Visual Regression › full page layout
+  -  126 [chromium] › e2e/vdp-visual.spec.ts:116:7 › VDP Desktop — Visual Regression › sidebar finance callout + CTA group
+  -  127 [chromium] › e2e/vdp-visual.spec.ts:150:7 › VDP Mobile — Visual Regression › full page layout
+  -  128 [chromium] › e2e/vdp-visual.spec.ts:161:7 › VDP Mobile — Visual Regression › sticky CTA bar
+  ✓  129 [chromium] › e2e/vdp-visual.spec.ts:185:7 › Finance Application Form — Visual Regression › desktop form layout with trust badges (2.2s)
+  ✓  130 [chromium] › e2e/vdp-visual.spec.ts:205:7 › Finance Application Form Mobile — Visual Regression › mobile form layout (2.2s)
+  -  131 [chromium] › e2e/vehicle-detail.spec.ts:42:7 › Vehicle Detail Page › navigates to a vehicle from inventory
+  -  132 [chromium] › e2e/vehicle-detail.spec.ts:49:7 › Vehicle Detail Page › vehicle detail page has header and footer
+  -  133 [chromium] › e2e/vehicle-detail.spec.ts:56:7 › Vehicle Detail Page › vehicle detail page shows CTA buttons
+  ✓  134 [firefox] › e2e/accessibility.spec.ts:36:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-001 — Homepage: zero critical/serious axe violations (2.2s)
+  ✓  135 [firefox] › e2e/accessibility.spec.ts:43:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-002 — Inventory: zero critical/serious axe violations (2.1s)
+  ✓  136 [firefox] › e2e/accessibility.spec.ts:50:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-003 — VDP: zero critical/serious axe violations (1.9s)
+  -  137 [firefox] › e2e/accessibility.spec.ts:74:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-004 — Checkout: zero critical/serious axe violations across all steps
+  ✓  138 [firefox] › e2e/accessibility.spec.ts:120:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-005 — HTML lang attribute is set (786ms)
+  ✓  139 [firefox] › e2e/accessibility.spec.ts:126:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-006 — All images have alt text (1.3s)
+  -  140 [firefox] › e2e/auth-gated-flows.spec.ts:117:7 › Auth-Gated Flows — Finance Submission & ID Upload › Full finance application → confirmation number → ID upload
+  ✓  141 [firefox] › e2e/auth.spec.ts:8:7 › Auth — Login Page › renders login page with correct heading (428ms)
+  ✓  142 [firefox] › e2e/auth.spec.ts:14:7 › Auth — Login Page › renders email and password fields (443ms)
+  ✓  143 [firefox] › e2e/auth.spec.ts:20:7 › Auth — Login Page › renders OAuth buttons (Google and Facebook) (436ms)
+  ✓  144 [firefox] › e2e/auth.spec.ts:25:7 › Auth — Login Page › renders forgot password link (450ms)
+  ✓  145 [firefox] › e2e/auth.spec.ts:31:7 › Auth — Login Page › renders create account link (469ms)
+  ✓  146 [firefox] › e2e/auth.spec.ts:37:7 › Auth — Login Page › shows OMVIC trust indicator (456ms)
+  ✓  147 [firefox] › e2e/auth.spec.ts:41:7 › Auth — Login Page › password visibility toggle works (540ms)
+  ✓  148 [firefox] › e2e/auth.spec.ts:55:7 › Auth — Login Page › submit button is present and labelled (427ms)
+  ✓  149 [firefox] › e2e/auth.spec.ts:62:7 › Auth — Login Page › remember-me checkbox is present (420ms)
+  ✓  150 [firefox] › e2e/auth.spec.ts:68:7 › Auth — Signup Page › signup page renders (452ms)
+  ✓  151 [firefox] › e2e/auth.spec.ts:76:7 › Auth — Forgot Password Page › forgot password page renders (425ms)
+  ✓  152 [firefox] › e2e/auth.spec.ts:84:7 › Auth — Open-Redirect Guard › redirectTo with absolute URL falls back to /account (448ms)
+  ✓  153 [firefox] › e2e/auth.spec.ts:91:7 › Auth — Open-Redirect Guard › redirectTo with protocol-relative URL falls back to /account (441ms)
+  ✓  154 [firefox] › e2e/auth.spec.ts:96:7 › Auth — Open-Redirect Guard › redirectTo with valid relative path is accepted (440ms)
+  ✓  155 [firefox] › e2e/contact.spec.ts:8:7 › Contact Page › loads contact page with heading (595ms)
+  ✓  156 [firefox] › e2e/contact.spec.ts:12:7 › Contact Page › displays contact methods (554ms)
+  ✓  157 [firefox] › e2e/contact.spec.ts:17:7 › Contact Page › displays business hours (580ms)
+  ✓  158 [firefox] › e2e/contact.spec.ts:22:7 › Contact Page › contact form is visible (1.6s)
+  ✓  159 [firefox] › e2e/contact.spec.ts:26:7 › Contact Page › shows validation errors for empty required fields (593ms)
+  ✓  160 [firefox] › e2e/contact.spec.ts:39:7 › Contact Page › fills form with invalid email and shows error (574ms)
+  ✓  161 [firefox] › e2e/contact.spec.ts:49:7 › Contact Page › fills form fields with test data without submitting (595ms)
+  ✓  162 [firefox] › e2e/homepage.spec.ts:8:7 › Homepage › loads successfully with correct title (797ms)
+  ✓  163 [firefox] › e2e/homepage.spec.ts:12:7 › Homepage › renders header with logo (754ms)
+  ✓  164 [firefox] › e2e/homepage.spec.ts:20:7 › Homepage › renders main navigation links (753ms)
+  ✓  165 [firefox] › e2e/homepage.spec.ts:27:7 › Homepage › renders hero section (885ms)
+  ✓  166 [firefox] › e2e/homepage.spec.ts:35:7 › Homepage › renders footer with contact info (772ms)
+  ✓  167 [firefox] › e2e/homepage.spec.ts:42:7 › Homepage › footer contains important links (795ms)
+  ✓  168 [firefox] › e2e/human-click-timing-debug.spec.ts:229:7 › Section A — Human Click Simulation › A01 — homepage hero CTA click navigates to inventory (1.2s)
+  ✓  169 [firefox] › e2e/human-click-timing-debug.spec.ts:235:7 › Section A — Human Click Simulation › A02 — Typesense search bar click opens search and accepts keyboard input (2.1s)
+  ✓  170 [firefox] › e2e/human-click-timing-debug.spec.ts:243:7 › Section A — Human Click Simulation › A03 — inventory card click navigates to correct VDP (1.6s)
+  ✓  171 [firefox] › e2e/human-click-timing-debug.spec.ts:254:7 › Section A — Human Click Simulation › A04 — VDP "Start Purchase" button click initiates checkout (1.7s)
+  -  172 [firefox] › e2e/human-click-timing-debug.spec.ts:264:7 › Section A — Human Click Simulation › A05 — Step 1 payment type toggle — Cash click
+  -  173 [firefox] › e2e/human-click-timing-debug.spec.ts:272:7 › Section A — Human Click Simulation › A06 — Step 1 payment type toggle — Finance click after Cash
+  -  174 [firefox] › e2e/human-click-timing-debug.spec.ts:281:7 › Section A — Human Click Simulation › A07 — Step 2 "No Trade-In" bypass click proceeds directly
+  -  175 [firefox] › e2e/human-click-timing-debug.spec.ts:288:7 › Section A — Human Click Simulation › A08 — Step 3 down payment slider — click and drag
+  -  176 [firefox] › e2e/human-click-timing-debug.spec.ts:303:7 › Section A — Human Click Simulation › A09 — Step 3 bi-weekly/monthly toggle — alternating clicks
+  -  177 [firefox] › e2e/human-click-timing-debug.spec.ts:313:7 › Section A — Human Click Simulation › A10 — double-click on Continue button does not submit twice
+  -  178 [firefox] › e2e/human-click-timing-debug.spec.ts:328:7 › Section A — Human Click Simulation › A11 — click on disabled Continue button does not navigate
+  ✓  179 [firefox] › e2e/human-click-timing-debug.spec.ts:342:7 › Section A — Human Click Simulation › A12 — click outside IDV upload modal does not dismiss it (1.0s)
+  ✓  180 [firefox] › e2e/human-click-timing-debug.spec.ts:350:7 › Section A — Human Click Simulation › A13 — right-click on vehicle image does not expose raw origin URL (1.7s)
+  -  181 [firefox] › e2e/human-click-timing-debug.spec.ts:365:7 › Section A — Human Click Simulation › A14 — mobile fat-finger: tap targets minimum 44x44px on checkout buttons
+  -  182 [firefox] › e2e/human-click-timing-debug.spec.ts:380:7 › Section A — Human Click Simulation › A15 — full human click walkthrough: Steps 1–3 (cash, no trade-in, review)
+  ✓  183 [firefox] › e2e/human-click-timing-debug.spec.ts:417:7 › Section B — Tab & Keyboard Navigation › B01 — skip navigation link is first focusable element on homepage (702ms)
+  ✓  184 [firefox] › e2e/human-click-timing-debug.spec.ts:424:7 › Section B — Tab & Keyboard Navigation › B02 — skip nav link reaches main content on Enter (708ms)
+  -  185 [firefox] › e2e/human-click-timing-debug.spec.ts:454:7 › Section B — Tab & Keyboard Navigation › B03 — Step 4 form tab order is correct
+  -  186 [firefox] › e2e/human-click-timing-debug.spec.ts:470:7 › Section B — Tab & Keyboard Navigation › B04 — Shift+Tab reverses focus order on Step 4
+  -  187 [firefox] › e2e/human-click-timing-debug.spec.ts:478:7 › Section B — Tab & Keyboard Navigation › B05 — Enter key on Continue button submits form
+  -  188 [firefox] › e2e/human-click-timing-debug.spec.ts:488:7 › Section B — Tab & Keyboard Navigation › B06 — Space key activates toggle buttons
+  ✓  189 [firefox] › e2e/human-click-timing-debug.spec.ts:496:7 › Section B — Tab & Keyboard Navigation › B07 — Escape key dismisses modal if open (does not crash) (542ms)
+  -  190 [firefox] › e2e/human-click-timing-debug.spec.ts:504:7 › Section B — Tab & Keyboard Navigation › B08 — Arrow keys navigate province dropdown
+  -  191 [firefox] › e2e/human-click-timing-debug.spec.ts:513:7 › Section B — Tab & Keyboard Navigation › B09 — Arrow keys adjust down payment slider
+  -  192 [firefox] › e2e/human-click-timing-debug.spec.ts:524:7 › Section B — Tab & Keyboard Navigation › B10 — all Step 4 form inputs reachable by keyboard only
+  -  193 [firefox] › e2e/human-click-timing-debug.spec.ts:541:7 › Section B — Tab & Keyboard Navigation › B11 — focus states are visually distinct on all interactive elements
+  ✓  194 [firefox] › e2e/human-click-timing-debug.spec.ts:560:7 › Section B — Tab & Keyboard Navigation › B12 — VDP image gallery navigable via arrow keys (2.6s)
+  ✓  195 [firefox] › e2e/human-click-timing-debug.spec.ts:584:7 › Section B — Tab & Keyboard Navigation › B13 — IDV form tab order covers all required fields (630ms)
+
+── Homepage Timing ──
+  TTFB: 188ms (budget: 600ms)
+  FCP:  266ms (budget: 1500ms)
+  LCP:  418ms (budget: 2500ms)
+  CLS:  undefined (budget: 0.1)
+  ✓  196 [firefox] › e2e/human-click-timing-debug.spec.ts:615:7 › Section C — Page Load Timing › C01 — Homepage: TTFB, FCP, LCP within budget (5.3s)
+
+── Inventory Timing ──
+  TTFB: 63ms
+  LCP:  602ms
+  ✓  197 [firefox] › e2e/human-click-timing-debug.spec.ts:633:7 › Section C — Page Load Timing › C02 — Inventory page: LCP and load time within budget (5.4s)
+
+── VDP Image Load Times ──
+  155ms — http://localhost:3000/_next/image?url=%2Fimages%2Fplanet-motors-logo.png&w=128&q
+  157ms — http://localhost:3000/_next/image?url=%2Fimages%2Fplanet-motors-logo.png&w=256&q
+  8ms — http://localhost:3000/apple-icon.png
+  10ms — http://localhost:3000/icon.svg
+  11ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  12ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  11ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  14ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  14ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  14ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  19ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  20ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  ✓  198 [firefox] › e2e/human-click-timing-debug.spec.ts:647:7 › Section C — Page Load Timing › C03 — VDP: hero image loads within 2000ms (920ms)
+
+── Typesense Search: 14ms (budget: 200ms)
+  ✓  199 [firefox] › e2e/human-click-timing-debug.spec.ts:677:7 › Section C — Page Load Timing › C04 — Typesense search response under 200ms (2.1s)
+  -  200 [firefox] › e2e/human-click-timing-debug.spec.ts:695:7 › Section C — Page Load Timing › C05 — Checkout Step 1 load time within budget
+  -  201 [firefox] › e2e/human-click-timing-debug.spec.ts:704:7 › Section C — Page Load Timing › C06 — Step 3 deal recalculation API under 1000ms
+  -  202 [firefox] › e2e/human-click-timing-debug.spec.ts:723:7 › Section C — Page Load Timing › C07 — Step transition time (Step 1 → Step 2) under 500ms
+  -  203 [firefox] › e2e/human-click-timing-debug.spec.ts:736:7 › Section C — Page Load Timing › C08 — Step 4 Supabase write round-trip under 800ms
+
+── Vercel Blob Upload: -1ms (budget: 3000ms)
+  ✓  204 [firefox] › e2e/human-click-timing-debug.spec.ts:767:7 › Section C — Page Load Timing › C09 — Step 5 Vercel Blob upload response under 3000ms (4.6s)
+
+── Upstash Redis Cache ──
+  Miss: 429ms (budget: 300ms)
+  Hit:  100ms (budget: 50ms)
+  ✓  205 [firefox] › e2e/human-click-timing-debug.spec.ts:791:7 › Section C — Page Load Timing › C10 — Upstash Redis cache hit vs miss timing comparison (698ms)
+
+── IDV Page Init: 378ms (budget: 10000ms)
+  ✓  206 [firefox] › e2e/human-click-timing-debug.spec.ts:809:7 › Section C — Page Load Timing › C11 — IDV page init time under 10 seconds (518ms)
+
+✓ Timing report saved → test-results/timing-report.json
+  -  207 [firefox] › e2e/human-click-timing-debug.spec.ts:819:7 › Section C — Page Load Timing › C12 — Full checkout Steps 1–4 total time under 60 seconds (human pace)
+  ✓  208 [firefox] › e2e/inventory.spec.ts:26:7 › Inventory Page › loads inventory page with heading (527ms)
+  ✓  209 [firefox] › e2e/inventory.spec.ts:36:7 › Inventory Page › displays vehicle count (565ms)
+  ✓  210 [firefox] › e2e/inventory.spec.ts:46:7 › Inventory Page › renders search input (1.9s)
+  ✓  211 [firefox] › e2e/inventory.spec.ts:53:7 › Inventory Page › search input accepts text (672ms)
+  ✓  212 [firefox] › e2e/inventory.spec.ts:62:7 › Inventory Page › filter button is visible (529ms)
+  ✓  213 [firefox] › e2e/inventory.spec.ts:69:7 › Inventory Page › sort dropdown is present (505ms)
+  ✓  214 [firefox] › e2e/inventory.spec.ts:82:7 › Inventory Page › renders vehicle cards or no-results message (532ms)
+  ✓  215 [firefox] › e2e/navigation.spec.ts:4:7 › Navigation › main nav links are visible on desktop (930ms)
+  ✓  216 [firefox] › e2e/navigation.spec.ts:13:7 › Navigation › clicking inventory link navigates to inventory page (1.8s)
+  ✓  217 [firefox] › e2e/navigation.spec.ts:26:7 › Navigation › clicking contact link navigates to contact page (1.9s)
+  ✓  218 [firefox] › e2e/navigation.spec.ts:35:7 › Navigation › mobile menu toggle works (847ms)
+  ✓  219 [firefox] › e2e/navigation.spec.ts:51:7 › Navigation › mobile menu navigation works (772ms)
+  ✓  220 [firefox] › e2e/navigation.spec.ts:68:7 › Navigation › logo links to homepage (927ms)
+[[95mpercy[39m] Percy is not running, disabling snapshots
+  ✓  221 [firefox] › e2e/percy-visual.spec.ts:5:7 › Percy Visual Regression Tests › Homepage - Desktop (1.4s)
+  ✓  222 [firefox] › e2e/percy-visual.spec.ts:11:7 › Percy Visual Regression Tests › Homepage - Mobile (1.4s)
+  ✓  223 [firefox] › e2e/percy-visual.spec.ts:18:7 › Percy Visual Regression Tests › Inventory Page (1.3s)
+  ✓  224 [firefox] › e2e/percy-visual.spec.ts:24:7 › Percy Visual Regression Tests › Login Page (963ms)
+  ✓  225 [firefox] › e2e/percy-visual.spec.ts:30:7 › Percy Visual Regression Tests › Signup Page (978ms)
+  -  226 [firefox] › e2e/step4-personal-info.spec.ts:95:7 › Step 4 — Finance Form: Page Load › financing application page loads with Step 1 visible
+  ✓  227 [firefox] › e2e/step4-personal-info.spec.ts:110:7 › Step 4 — Finance Form: Page Load › page has correct title and navigation (691ms)
+  -  228 [firefox] › e2e/step4-personal-info.spec.ts:117:7 › Step 4 — Finance Form: Required Field Validation › shows validation errors when submitting Step 1 with empty fields
+  -  229 [firefox] › e2e/step4-personal-info.spec.ts:136:7 › Step 4 — Finance Form: Required Field Validation › validation errors clear after fixing fields
+  -  230 [firefox] › e2e/step4-personal-info.spec.ts:152:7 › Step 4 — Finance Form: Phone Validation › phone field formats input as Canadian number
+  -  231 [firefox] › e2e/step4-personal-info.spec.ts:167:7 › Step 4 — Finance Form: Phone Validation Edge Cases › rejects phone numbers that start with 0 or 1 area code
+  -  232 [firefox] › e2e/step4-personal-info.spec.ts:184:7 › Step 4 — Finance Form: Phone Validation Edge Cases › rejects phone numbers shorter than 10 digits
+  -  233 [firefox] › e2e/step4-personal-info.spec.ts:200:7 › Step 4 — Finance Form: Step Navigation › Back button is disabled on Step 1
+  -  234 [firefox] › e2e/step4-personal-info.spec.ts:207:7 › Step 4 — Finance Form: Step Navigation › progress indicator shows current step
+  -  235 [firefox] › e2e/step4-personal-info.spec.ts:218:7 › Step 4 — Finance Form: Draft Persistence › form data persists in localStorage as draft
+  -  236 [firefox] › e2e/step4-personal-info.spec.ts:242:7 › Step 4 — Finance Form: Draft Persistence › form data restores from localStorage on page reload
+  -  237 [firefox] › e2e/step4-personal-info.spec.ts:290:7 › Step 4 — Finance Form: Address Section › address section renders with postal code input
+  -  238 [firefox] › e2e/step4-personal-info.spec.ts:303:7 › Step 4 — Finance Form: Employment Section › employment section renders with required fields
+  -  239 [firefox] › e2e/step4-personal-info.spec.ts:318:7 › Step 4 — Finance Form: Sensitive Data › no sensitive data leaks in network requests during form fill
+  ✓  240 [firefox] › e2e/step5-financing-idv.spec.ts:141:7 › Step 5 — IDV: Page Load & Trust Indicators › verification page loads with correct heading (517ms)
+  ✓  241 [firefox] › e2e/step5-financing-idv.spec.ts:148:7 › Step 5 — IDV: Page Load & Trust Indicators › trust badges are visible (encryption, PIPEDA) (495ms)
+  ✓  242 [firefox] › e2e/step5-financing-idv.spec.ts:157:7 › Step 5 — IDV: Page Load & Trust Indicators › page title contains Planet Motors (486ms)
+  ✓  243 [firefox] › e2e/step5-financing-idv.spec.ts:164:7 › Step 5 — IDV: Primary ID Form Fields › ID type dropdown renders with all 5 document types (572ms)
+  ✓  244 [firefox] › e2e/step5-financing-idv.spec.ts:182:7 › Step 5 — IDV: Primary ID Form Fields › ID number input accepts text (512ms)
+  ✓  245 [firefox] › e2e/step5-financing-idv.spec.ts:190:7 › Step 5 — IDV: Primary ID Form Fields › expiry date input renders as date picker (454ms)
+  ✓  246 [firefox] › e2e/step5-financing-idv.spec.ts:200:7 › Step 5 — IDV: Primary ID Form Fields › issuing province dropdown lists Canadian provinces (560ms)
+  ✓  247 [firefox] › e2e/step5-financing-idv.spec.ts:216:7 › Step 5 — IDV: Document Upload › front and back upload areas are visible (523ms)
+  -  248 [firefox] › e2e/step5-financing-idv.spec.ts:224:7 › Step 5 — IDV: Document Upload › front image upload shows preview after selecting file
+  -  249 [firefox] › e2e/step5-financing-idv.spec.ts:242:7 › Step 5 — IDV: Document Upload › uploaded image can be removed via X button
+  ✓  250 [firefox] › e2e/step5-financing-idv.spec.ts:270:7 › Step 5 — IDV: Form Validation › submit button is disabled when required fields are empty (524ms)
+  -  251 [firefox] › e2e/step5-financing-idv.spec.ts:280:7 › Step 5 — IDV: Form Validation › submit button enables after filling required fields
+  ✓  252 [firefox] › e2e/step5-financing-idv.spec.ts:302:7 › Step 5 — IDV: Secondary ID Flow › secondary ID section can be toggled on (545ms)
+  ✓  253 [firefox] › e2e/step5-financing-idv.spec.ts:317:7 › Step 5 — IDV: Secondary ID Flow › secondary ID type excludes already-selected primary type (848ms)
+  -  254 [firefox] › e2e/step5-financing-idv.spec.ts:341:7 › Step 5 — IDV: API Submission › submitting form sends POST to /api/v1/id-verification
+  -  255 [firefox] › e2e/step5-financing-idv.spec.ts:375:7 › Step 5 — IDV: API Submission › loading state shows during submission
+  ✓  256 [firefox] › e2e/step5-financing-idv.spec.ts:417:7 › Step 5 — IDV: Network Security Audit › no raw ID numbers sent as plaintext in request body (2.9s)
+  -  257 [firefox] › e2e/step5-financing-idv.spec.ts:446:7 › Step 5 — IDV: Network Security Audit › API response does not echo back raw ID number
+  -  258 [firefox] › e2e/vdp-visual.spec.ts:105:7 › VDP Desktop — Visual Regression › full page layout
+  -  259 [firefox] › e2e/vdp-visual.spec.ts:116:7 › VDP Desktop — Visual Regression › sidebar finance callout + CTA group
+  -  260 [firefox] › e2e/vdp-visual.spec.ts:150:7 › VDP Mobile — Visual Regression › full page layout
+  -  261 [firefox] › e2e/vdp-visual.spec.ts:161:7 › VDP Mobile — Visual Regression › sticky CTA bar
+  ✓  262 [firefox] › e2e/vdp-visual.spec.ts:185:7 › Finance Application Form — Visual Regression › desktop form layout with trust badges (2.4s)
+  ✓  263 [firefox] › e2e/vdp-visual.spec.ts:205:7 › Finance Application Form Mobile — Visual Regression › mobile form layout (2.4s)
+  -  264 [firefox] › e2e/vehicle-detail.spec.ts:42:7 › Vehicle Detail Page › navigates to a vehicle from inventory
+  -  265 [firefox] › e2e/vehicle-detail.spec.ts:49:7 › Vehicle Detail Page › vehicle detail page has header and footer
+  -  266 [firefox] › e2e/vehicle-detail.spec.ts:56:7 › Vehicle Detail Page › vehicle detail page shows CTA buttons
+  ✓  267 [webkit] › e2e/accessibility.spec.ts:36:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-001 — Homepage: zero critical/serious axe violations (3.3s)
+  ✓  268 [webkit] › e2e/accessibility.spec.ts:43:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-002 — Inventory: zero critical/serious axe violations (2.1s)
+  ✓  269 [webkit] › e2e/accessibility.spec.ts:50:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-003 — VDP: zero critical/serious axe violations (2.0s)
+  -  270 [webkit] › e2e/accessibility.spec.ts:74:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-004 — Checkout: zero critical/serious axe violations across all steps
+  ✓  271 [webkit] › e2e/accessibility.spec.ts:120:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-005 — HTML lang attribute is set (768ms)
+  ✓  272 [webkit] › e2e/accessibility.spec.ts:126:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-006 — All images have alt text (1.3s)
+  -  273 [webkit] › e2e/auth-gated-flows.spec.ts:117:7 › Auth-Gated Flows — Finance Submission & ID Upload › Full finance application → confirmation number → ID upload
+  ✓  274 [webkit] › e2e/auth.spec.ts:8:7 › Auth — Login Page › renders login page with correct heading (544ms)
+  ✓  275 [webkit] › e2e/auth.spec.ts:14:7 › Auth — Login Page › renders email and password fields (516ms)
+  ✓  276 [webkit] › e2e/auth.spec.ts:20:7 › Auth — Login Page › renders OAuth buttons (Google and Facebook) (500ms)
+  ✓  277 [webkit] › e2e/auth.spec.ts:25:7 › Auth — Login Page › renders forgot password link (483ms)
+  ✓  278 [webkit] › e2e/auth.spec.ts:31:7 › Auth — Login Page › renders create account link (513ms)
+  ✓  279 [webkit] › e2e/auth.spec.ts:37:7 › Auth — Login Page › shows OMVIC trust indicator (476ms)
+  ✓  280 [webkit] › e2e/auth.spec.ts:41:7 › Auth — Login Page › password visibility toggle works (612ms)
+  ✓  281 [webkit] › e2e/auth.spec.ts:55:7 › Auth — Login Page › submit button is present and labelled (516ms)
+  ✓  282 [webkit] › e2e/auth.spec.ts:62:7 › Auth — Login Page › remember-me checkbox is present (509ms)
+  ✓  283 [webkit] › e2e/auth.spec.ts:68:7 › Auth — Signup Page › signup page renders (495ms)
+  ✓  284 [webkit] › e2e/auth.spec.ts:76:7 › Auth — Forgot Password Page › forgot password page renders (399ms)
+  ✓  285 [webkit] › e2e/auth.spec.ts:84:7 › Auth — Open-Redirect Guard › redirectTo with absolute URL falls back to /account (520ms)
+  ✓  286 [webkit] › e2e/auth.spec.ts:91:7 › Auth — Open-Redirect Guard › redirectTo with protocol-relative URL falls back to /account (516ms)
+  ✓  287 [webkit] › e2e/auth.spec.ts:96:7 › Auth — Open-Redirect Guard › redirectTo with valid relative path is accepted (519ms)
+  ✓  288 [webkit] › e2e/contact.spec.ts:8:7 › Contact Page › loads contact page with heading (503ms)
+  ✓  289 [webkit] › e2e/contact.spec.ts:12:7 › Contact Page › displays contact methods (507ms)
+  ✓  290 [webkit] › e2e/contact.spec.ts:17:7 › Contact Page › displays business hours (511ms)
+  ✓  291 [webkit] › e2e/contact.spec.ts:22:7 › Contact Page › contact form is visible (497ms)
+  ✓  292 [webkit] › e2e/contact.spec.ts:26:7 › Contact Page › shows validation errors for empty required fields (603ms)
+  ✓  293 [webkit] › e2e/contact.spec.ts:39:7 › Contact Page › fills form with invalid email and shows error (579ms)
+  ✓  294 [webkit] › e2e/contact.spec.ts:49:7 › Contact Page › fills form fields with test data without submitting (605ms)
+  ✓  295 [webkit] › e2e/homepage.spec.ts:8:7 › Homepage › loads successfully with correct title (769ms)
+  ✓  296 [webkit] › e2e/homepage.spec.ts:12:7 › Homepage › renders header with logo (782ms)
+  ✓  297 [webkit] › e2e/homepage.spec.ts:20:7 › Homepage › renders main navigation links (835ms)
+  ✓  298 [webkit] › e2e/homepage.spec.ts:27:7 › Homepage › renders hero section (763ms)
+  ✓  299 [webkit] › e2e/homepage.spec.ts:35:7 › Homepage › renders footer with contact info (1.8s)
+  ✓  300 [webkit] › e2e/homepage.spec.ts:42:7 › Homepage › footer contains important links (766ms)
+  ✓  301 [webkit] › e2e/human-click-timing-debug.spec.ts:229:7 › Section A — Human Click Simulation › A01 — homepage hero CTA click navigates to inventory (1.1s)
+  ✓  302 [webkit] › e2e/human-click-timing-debug.spec.ts:235:7 › Section A — Human Click Simulation › A02 — Typesense search bar click opens search and accepts keyboard input (2.8s)
+  ✓  303 [webkit] › e2e/human-click-timing-debug.spec.ts:243:7 › Section A — Human Click Simulation › A03 — inventory card click navigates to correct VDP (1.7s)
+  ✓  304 [webkit] › e2e/human-click-timing-debug.spec.ts:254:7 › Section A — Human Click Simulation › A04 — VDP "Start Purchase" button click initiates checkout (2.1s)
+  -  305 [webkit] › e2e/human-click-timing-debug.spec.ts:264:7 › Section A — Human Click Simulation › A05 — Step 1 payment type toggle — Cash click
+  -  306 [webkit] › e2e/human-click-timing-debug.spec.ts:272:7 › Section A — Human Click Simulation › A06 — Step 1 payment type toggle — Finance click after Cash
+  -  307 [webkit] › e2e/human-click-timing-debug.spec.ts:281:7 › Section A — Human Click Simulation › A07 — Step 2 "No Trade-In" bypass click proceeds directly
+  -  308 [webkit] › e2e/human-click-timing-debug.spec.ts:288:7 › Section A — Human Click Simulation › A08 — Step 3 down payment slider — click and drag
+  -  309 [webkit] › e2e/human-click-timing-debug.spec.ts:303:7 › Section A — Human Click Simulation › A09 — Step 3 bi-weekly/monthly toggle — alternating clicks
+  -  310 [webkit] › e2e/human-click-timing-debug.spec.ts:313:7 › Section A — Human Click Simulation › A10 — double-click on Continue button does not submit twice
+  -  311 [webkit] › e2e/human-click-timing-debug.spec.ts:328:7 › Section A — Human Click Simulation › A11 — click on disabled Continue button does not navigate
+  ✓  312 [webkit] › e2e/human-click-timing-debug.spec.ts:342:7 › Section A — Human Click Simulation › A12 — click outside IDV upload modal does not dismiss it (897ms)
+  ✓  313 [webkit] › e2e/human-click-timing-debug.spec.ts:350:7 › Section A — Human Click Simulation › A13 — right-click on vehicle image does not expose raw origin URL (1.6s)
+  -  314 [webkit] › e2e/human-click-timing-debug.spec.ts:365:7 › Section A — Human Click Simulation › A14 — mobile fat-finger: tap targets minimum 44x44px on checkout buttons
+  -  315 [webkit] › e2e/human-click-timing-debug.spec.ts:380:7 › Section A — Human Click Simulation › A15 — full human click walkthrough: Steps 1–3 (cash, no trade-in, review)
+  ✘  316 [webkit] › e2e/human-click-timing-debug.spec.ts:417:7 › Section B — Tab & Keyboard Navigation › B01 — skip navigation link is first focusable element on homepage (5.7s)
+  -  317 [webkit] › e2e/human-click-timing-debug.spec.ts:424:7 › Section B — Tab & Keyboard Navigation › B02 — skip nav link reaches main content on Enter
+  -  318 [webkit] › e2e/human-click-timing-debug.spec.ts:454:7 › Section B — Tab & Keyboard Navigation › B03 — Step 4 form tab order is correct
+  -  319 [webkit] › e2e/human-click-timing-debug.spec.ts:470:7 › Section B — Tab & Keyboard Navigation › B04 — Shift+Tab reverses focus order on Step 4
+  -  320 [webkit] › e2e/human-click-timing-debug.spec.ts:478:7 › Section B — Tab & Keyboard Navigation › B05 — Enter key on Continue button submits form
+  -  321 [webkit] › e2e/human-click-timing-debug.spec.ts:488:7 › Section B — Tab & Keyboard Navigation › B06 — Space key activates toggle buttons
+  ✓  322 [webkit] › e2e/human-click-timing-debug.spec.ts:496:7 › Section B — Tab & Keyboard Navigation › B07 — Escape key dismisses modal if open (does not crash) (489ms)
+  -  323 [webkit] › e2e/human-click-timing-debug.spec.ts:504:7 › Section B — Tab & Keyboard Navigation › B08 — Arrow keys navigate province dropdown
+  -  324 [webkit] › e2e/human-click-timing-debug.spec.ts:513:7 › Section B — Tab & Keyboard Navigation › B09 — Arrow keys adjust down payment slider
+  -  325 [webkit] › e2e/human-click-timing-debug.spec.ts:524:7 › Section B — Tab & Keyboard Navigation › B10 — all Step 4 form inputs reachable by keyboard only
+  -  326 [webkit] › e2e/human-click-timing-debug.spec.ts:541:7 › Section B — Tab & Keyboard Navigation › B11 — focus states are visually distinct on all interactive elements
+  ✓  327 [webkit] › e2e/human-click-timing-debug.spec.ts:560:7 › Section B — Tab & Keyboard Navigation › B12 — VDP image gallery navigable via arrow keys (2.6s)
+  ✓  328 [webkit] › e2e/human-click-timing-debug.spec.ts:584:7 › Section B — Tab & Keyboard Navigation › B13 — IDV form tab order covers all required fields (16.6s)
+
+── Homepage Timing ──
+  TTFB: 258ms (budget: 600ms)
+  FCP:  328ms (budget: 1500ms)
+  LCP:  340ms (budget: 2500ms)
+  CLS:  undefined (budget: 0.1)
+  ✓  329 [webkit] › e2e/human-click-timing-debug.spec.ts:615:7 › Section C — Page Load Timing › C01 — Homepage: TTFB, FCP, LCP within budget (5.5s)
+
+── Inventory Timing ──
+  TTFB: 49ms
+  LCP:  590ms
+  ✓  330 [webkit] › e2e/human-click-timing-debug.spec.ts:633:7 › Section C — Page Load Timing › C02 — Inventory page: LCP and load time within budget (5.3s)
+
+── VDP Image Load Times ──
+  187ms — http://localhost:3000/_next/image?url=%2Fimages%2Fplanet-motors-logo.png&w=256&q
+  197ms — http://localhost:3000/_next/image?url=%2Fimages%2Fplanet-motors-logo.png&w=640&q
+  11ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  12ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  13ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  16ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  22ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  23ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  23ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  26ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  ✓  331 [webkit] › e2e/human-click-timing-debug.spec.ts:647:7 › Section C — Page Load Timing › C03 — VDP: hero image loads within 2000ms (881ms)
+
+── Typesense Search: 21ms (budget: 200ms)
+  ✓  332 [webkit] › e2e/human-click-timing-debug.spec.ts:677:7 › Section C — Page Load Timing › C04 — Typesense search response under 200ms (2.7s)
+  -  333 [webkit] › e2e/human-click-timing-debug.spec.ts:695:7 › Section C — Page Load Timing › C05 — Checkout Step 1 load time within budget
+  -  334 [webkit] › e2e/human-click-timing-debug.spec.ts:704:7 › Section C — Page Load Timing › C06 — Step 3 deal recalculation API under 1000ms
+  -  335 [webkit] › e2e/human-click-timing-debug.spec.ts:723:7 › Section C — Page Load Timing › C07 — Step transition time (Step 1 → Step 2) under 500ms
+  -  336 [webkit] › e2e/human-click-timing-debug.spec.ts:736:7 › Section C — Page Load Timing › C08 — Step 4 Supabase write round-trip under 800ms
+
+── Vercel Blob Upload: -1ms (budget: 3000ms)
+  ✓  337 [webkit] › e2e/human-click-timing-debug.spec.ts:767:7 › Section C — Page Load Timing › C09 — Step 5 Vercel Blob upload response under 3000ms (4.6s)
+
+── Upstash Redis Cache ──
+  Miss: 123ms (budget: 300ms)
+  Hit:  95ms (budget: 50ms)
+  ✓  338 [webkit] › e2e/human-click-timing-debug.spec.ts:791:7 › Section C — Page Load Timing › C10 — Upstash Redis cache hit vs miss timing comparison (322ms)
+
+── IDV Page Init: 333ms (budget: 10000ms)
+  ✓  339 [webkit] › e2e/human-click-timing-debug.spec.ts:809:7 › Section C — Page Load Timing › C11 — IDV page init time under 10 seconds (466ms)
+
+✓ Timing report saved → test-results/timing-report.json
+  -  340 [webkit] › e2e/human-click-timing-debug.spec.ts:819:7 › Section C — Page Load Timing › C12 — Full checkout Steps 1–4 total time under 60 seconds (human pace)
+  ✓  341 [webkit] › e2e/inventory.spec.ts:26:7 › Inventory Page › loads inventory page with heading (483ms)
+  ✓  342 [webkit] › e2e/inventory.spec.ts:36:7 › Inventory Page › displays vehicle count (504ms)
+  ✓  343 [webkit] › e2e/inventory.spec.ts:46:7 › Inventory Page › renders search input (871ms)
+  ✓  344 [webkit] › e2e/inventory.spec.ts:53:7 › Inventory Page › search input accepts text (895ms)
+  ✓  345 [webkit] › e2e/inventory.spec.ts:62:7 › Inventory Page › filter button is visible (500ms)
+  ✓  346 [webkit] › e2e/inventory.spec.ts:69:7 › Inventory Page › sort dropdown is present (492ms)
+  ✓  347 [webkit] › e2e/inventory.spec.ts:82:7 › Inventory Page › renders vehicle cards or no-results message (496ms)
+  ✓  348 [webkit] › e2e/navigation.spec.ts:4:7 › Navigation › main nav links are visible on desktop (803ms)
+  ✘  349 [webkit] › e2e/navigation.spec.ts:13:7 › Navigation › clicking inventory link navigates to inventory page (15.8s)
+  ✘  350 [webkit] › e2e/navigation.spec.ts:26:7 › Navigation › clicking contact link navigates to contact page (17.4s)
+  ✓  351 [webkit] › e2e/navigation.spec.ts:35:7 › Navigation › mobile menu toggle works (1.4s)
+  ✓  352 [webkit] › e2e/navigation.spec.ts:51:7 › Navigation › mobile menu navigation works (869ms)
+  ✓  353 [webkit] › e2e/navigation.spec.ts:68:7 › Navigation › logo links to homepage (933ms)
+[[95mpercy[39m] Percy is not running, disabling snapshots
+  ✓  354 [webkit] › e2e/percy-visual.spec.ts:5:7 › Percy Visual Regression Tests › Homepage - Desktop (1.4s)
+  ✓  355 [webkit] › e2e/percy-visual.spec.ts:11:7 › Percy Visual Regression Tests › Homepage - Mobile (1.4s)
+  ✓  356 [webkit] › e2e/percy-visual.spec.ts:18:7 › Percy Visual Regression Tests › Inventory Page (1.4s)
+  ✓  357 [webkit] › e2e/percy-visual.spec.ts:24:7 › Percy Visual Regression Tests › Login Page (958ms)
+  ✓  358 [webkit] › e2e/percy-visual.spec.ts:30:7 › Percy Visual Regression Tests › Signup Page (976ms)
+  -  359 [webkit] › e2e/step4-personal-info.spec.ts:95:7 › Step 4 — Finance Form: Page Load › financing application page loads with Step 1 visible
+  ✓  360 [webkit] › e2e/step4-personal-info.spec.ts:110:7 › Step 4 — Finance Form: Page Load › page has correct title and navigation (597ms)
+  -  361 [webkit] › e2e/step4-personal-info.spec.ts:117:7 › Step 4 — Finance Form: Required Field Validation › shows validation errors when submitting Step 1 with empty fields
+  -  362 [webkit] › e2e/step4-personal-info.spec.ts:136:7 › Step 4 — Finance Form: Required Field Validation › validation errors clear after fixing fields
+  -  363 [webkit] › e2e/step4-personal-info.spec.ts:152:7 › Step 4 — Finance Form: Phone Validation › phone field formats input as Canadian number
+  -  364 [webkit] › e2e/step4-personal-info.spec.ts:167:7 › Step 4 — Finance Form: Phone Validation Edge Cases › rejects phone numbers that start with 0 or 1 area code
+  -  365 [webkit] › e2e/step4-personal-info.spec.ts:184:7 › Step 4 — Finance Form: Phone Validation Edge Cases › rejects phone numbers shorter than 10 digits
+  -  366 [webkit] › e2e/step4-personal-info.spec.ts:200:7 › Step 4 — Finance Form: Step Navigation › Back button is disabled on Step 1
+  -  367 [webkit] › e2e/step4-personal-info.spec.ts:207:7 › Step 4 — Finance Form: Step Navigation › progress indicator shows current step
+  -  368 [webkit] › e2e/step4-personal-info.spec.ts:218:7 › Step 4 — Finance Form: Draft Persistence › form data persists in localStorage as draft
+  -  369 [webkit] › e2e/step4-personal-info.spec.ts:242:7 › Step 4 — Finance Form: Draft Persistence › form data restores from localStorage on page reload
+  -  370 [webkit] › e2e/step4-personal-info.spec.ts:290:7 › Step 4 — Finance Form: Address Section › address section renders with postal code input
+  -  371 [webkit] › e2e/step4-personal-info.spec.ts:303:7 › Step 4 — Finance Form: Employment Section › employment section renders with required fields
+  -  372 [webkit] › e2e/step4-personal-info.spec.ts:318:7 › Step 4 — Finance Form: Sensitive Data › no sensitive data leaks in network requests during form fill
+  ✓  373 [webkit] › e2e/step5-financing-idv.spec.ts:141:7 › Step 5 — IDV: Page Load & Trust Indicators › verification page loads with correct heading (495ms)
+  ✓  374 [webkit] › e2e/step5-financing-idv.spec.ts:148:7 › Step 5 — IDV: Page Load & Trust Indicators › trust badges are visible (encryption, PIPEDA) (471ms)
+  ✓  375 [webkit] › e2e/step5-financing-idv.spec.ts:157:7 › Step 5 — IDV: Page Load & Trust Indicators › page title contains Planet Motors (467ms)
+  ✓  376 [webkit] › e2e/step5-financing-idv.spec.ts:164:7 › Step 5 — IDV: Primary ID Form Fields › ID type dropdown renders with all 5 document types (560ms)
+  ✓  377 [webkit] › e2e/step5-financing-idv.spec.ts:182:7 › Step 5 — IDV: Primary ID Form Fields › ID number input accepts text (505ms)
+  ✓  378 [webkit] › e2e/step5-financing-idv.spec.ts:190:7 › Step 5 — IDV: Primary ID Form Fields › expiry date input renders as date picker (472ms)
+  ✓  379 [webkit] › e2e/step5-financing-idv.spec.ts:200:7 › Step 5 — IDV: Primary ID Form Fields › issuing province dropdown lists Canadian provinces (555ms)
+  ✓  380 [webkit] › e2e/step5-financing-idv.spec.ts:216:7 › Step 5 — IDV: Document Upload › front and back upload areas are visible (489ms)
+  -  381 [webkit] › e2e/step5-financing-idv.spec.ts:224:7 › Step 5 — IDV: Document Upload › front image upload shows preview after selecting file
+  -  382 [webkit] › e2e/step5-financing-idv.spec.ts:242:7 › Step 5 — IDV: Document Upload › uploaded image can be removed via X button
+  ✓  383 [webkit] › e2e/step5-financing-idv.spec.ts:270:7 › Step 5 — IDV: Form Validation › submit button is disabled when required fields are empty (428ms)
+  -  384 [webkit] › e2e/step5-financing-idv.spec.ts:280:7 › Step 5 — IDV: Form Validation › submit button enables after filling required fields
+  ✓  385 [webkit] › e2e/step5-financing-idv.spec.ts:302:7 › Step 5 — IDV: Secondary ID Flow › secondary ID section can be toggled on (519ms)
+  ✓  386 [webkit] › e2e/step5-financing-idv.spec.ts:317:7 › Step 5 — IDV: Secondary ID Flow › secondary ID type excludes already-selected primary type (850ms)
+  -  387 [webkit] › e2e/step5-financing-idv.spec.ts:341:7 › Step 5 — IDV: API Submission › submitting form sends POST to /api/v1/id-verification
+  -  388 [webkit] › e2e/step5-financing-idv.spec.ts:375:7 › Step 5 — IDV: API Submission › loading state shows during submission
+  ✓  389 [webkit] › e2e/step5-financing-idv.spec.ts:417:7 › Step 5 — IDV: Network Security Audit › no raw ID numbers sent as plaintext in request body (2.8s)
+  -  390 [webkit] › e2e/step5-financing-idv.spec.ts:446:7 › Step 5 — IDV: Network Security Audit › API response does not echo back raw ID number
+  -  391 [webkit] › e2e/vdp-visual.spec.ts:105:7 › VDP Desktop — Visual Regression › full page layout
+  -  392 [webkit] › e2e/vdp-visual.spec.ts:116:7 › VDP Desktop — Visual Regression › sidebar finance callout + CTA group
+  -  393 [webkit] › e2e/vdp-visual.spec.ts:150:7 › VDP Mobile — Visual Regression › full page layout
+  -  394 [webkit] › e2e/vdp-visual.spec.ts:161:7 › VDP Mobile — Visual Regression › sticky CTA bar
+  ✓  395 [webkit] › e2e/vdp-visual.spec.ts:185:7 › Finance Application Form — Visual Regression › desktop form layout with trust badges (2.4s)
+  ✓  396 [webkit] › e2e/vdp-visual.spec.ts:205:7 › Finance Application Form Mobile — Visual Regression › mobile form layout (2.3s)
+  -  397 [webkit] › e2e/vehicle-detail.spec.ts:42:7 › Vehicle Detail Page › navigates to a vehicle from inventory
+  -  398 [webkit] › e2e/vehicle-detail.spec.ts:49:7 › Vehicle Detail Page › vehicle detail page has header and footer
+  -  399 [webkit] › e2e/vehicle-detail.spec.ts:56:7 › Vehicle Detail Page › vehicle detail page shows CTA buttons
+
+── Homepage A11Y Violations ──
+  [serious] color-contrast: Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds (1 nodes)
+    → <span class="font-bold">$166/mo</span>
+  [serious] scrollable-region-focusable: Ensure elements that have scrollable content are accessible by keyboard in Safari (1 nodes)
+    → <div class="flex items-center justify-center gap-3 sm:gap-6 md:gap-10 overflow-x-auto scrollbar-hide">
+  ✘  400 [mobile-chrome] › e2e/accessibility.spec.ts:36:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-001 — Homepage: zero critical/serious axe violations (1.9s)
+
+── Inventory A11Y Violations ──
+  [serious] scrollable-region-focusable: Ensure elements that have scrollable content are accessible by keyboard in Safari (1 nodes)
+    → <div class="flex items-center justify-center gap-3 sm:gap-6 md:gap-10 overflow-x-auto scrollbar-hide">
+  ✘  401 [mobile-chrome] › e2e/accessibility.spec.ts:43:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-002 — Inventory: zero critical/serious axe violations (1.9s)
+  ✓  402 [mobile-chrome] › e2e/accessibility.spec.ts:50:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-003 — VDP: zero critical/serious axe violations (1.5s)
+  -  403 [mobile-chrome] › e2e/accessibility.spec.ts:74:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-004 — Checkout: zero critical/serious axe violations across all steps
+  ✓  404 [mobile-chrome] › e2e/accessibility.spec.ts:120:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-005 — HTML lang attribute is set (658ms)
+  ✓  405 [mobile-chrome] › e2e/accessibility.spec.ts:126:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-006 — All images have alt text (1.2s)
+  -  406 [mobile-chrome] › e2e/auth-gated-flows.spec.ts:117:7 › Auth-Gated Flows — Finance Submission & ID Upload › Full finance application → confirmation number → ID upload
+  ✓  407 [mobile-chrome] › e2e/auth.spec.ts:8:7 › Auth — Login Page › renders login page with correct heading (384ms)
+  ✓  408 [mobile-chrome] › e2e/auth.spec.ts:14:7 › Auth — Login Page › renders email and password fields (390ms)
+  ✓  409 [mobile-chrome] › e2e/auth.spec.ts:20:7 › Auth — Login Page › renders OAuth buttons (Google and Facebook) (381ms)
+  ✓  410 [mobile-chrome] › e2e/auth.spec.ts:25:7 › Auth — Login Page › renders forgot password link (384ms)
+  ✓  411 [mobile-chrome] › e2e/auth.spec.ts:31:7 › Auth — Login Page › renders create account link (388ms)
+  ✓  412 [mobile-chrome] › e2e/auth.spec.ts:37:7 › Auth — Login Page › shows OMVIC trust indicator (390ms)
+  ✓  413 [mobile-chrome] › e2e/auth.spec.ts:41:7 › Auth — Login Page › password visibility toggle works (475ms)
+  ✓  414 [mobile-chrome] › e2e/auth.spec.ts:55:7 › Auth — Login Page › submit button is present and labelled (389ms)
+  ✓  415 [mobile-chrome] › e2e/auth.spec.ts:62:7 › Auth — Login Page › remember-me checkbox is present (380ms)
+  ✓  416 [mobile-chrome] › e2e/auth.spec.ts:68:7 › Auth — Signup Page › signup page renders (386ms)
+  ✓  417 [mobile-chrome] › e2e/auth.spec.ts:76:7 › Auth — Forgot Password Page › forgot password page renders (313ms)
+  ✓  418 [mobile-chrome] › e2e/auth.spec.ts:84:7 › Auth — Open-Redirect Guard › redirectTo with absolute URL falls back to /account (374ms)
+  ✓  419 [mobile-chrome] › e2e/auth.spec.ts:91:7 › Auth — Open-Redirect Guard › redirectTo with protocol-relative URL falls back to /account (380ms)
+  ✓  420 [mobile-chrome] › e2e/auth.spec.ts:96:7 › Auth — Open-Redirect Guard › redirectTo with valid relative path is accepted (389ms)
+  ✓  421 [mobile-chrome] › e2e/contact.spec.ts:8:7 › Contact Page › loads contact page with heading (437ms)
+  ✓  422 [mobile-chrome] › e2e/contact.spec.ts:12:7 › Contact Page › displays contact methods (446ms)
+  ✓  423 [mobile-chrome] › e2e/contact.spec.ts:17:7 › Contact Page › displays business hours (441ms)
+  ✓  424 [mobile-chrome] › e2e/contact.spec.ts:22:7 › Contact Page › contact form is visible (415ms)
+  ✓  425 [mobile-chrome] › e2e/contact.spec.ts:26:7 › Contact Page › shows validation errors for empty required fields (475ms)
+  ✓  426 [mobile-chrome] › e2e/contact.spec.ts:39:7 › Contact Page › fills form with invalid email and shows error (471ms)
+  ✓  427 [mobile-chrome] › e2e/contact.spec.ts:49:7 › Contact Page › fills form fields with test data without submitting (498ms)
+  ✓  428 [mobile-chrome] › e2e/homepage.spec.ts:8:7 › Homepage › loads successfully with correct title (694ms)
+  ✓  429 [mobile-chrome] › e2e/homepage.spec.ts:12:7 › Homepage › renders header with logo (759ms)
+  ✘  430 [mobile-chrome] › e2e/homepage.spec.ts:20:7 › Homepage › renders main navigation links (5.6s)
+  ✓  431 [mobile-chrome] › e2e/homepage.spec.ts:27:7 › Homepage › renders hero section (1.7s)
+  ✓  432 [mobile-chrome] › e2e/homepage.spec.ts:35:7 › Homepage › renders footer with contact info (660ms)
+  ✓  433 [mobile-chrome] › e2e/homepage.spec.ts:42:7 › Homepage › footer contains important links (663ms)
+  ✓  434 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:229:7 › Section A — Human Click Simulation › A01 — homepage hero CTA click navigates to inventory (887ms)
+  ✘  435 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:235:7 › Section A — Human Click Simulation › A02 — Typesense search bar click opens search and accepts keyboard input (10.6s)
+  ✓  436 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:243:7 › Section A — Human Click Simulation › A03 — inventory card click navigates to correct VDP (1.5s)
+  ✓  437 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:254:7 › Section A — Human Click Simulation › A04 — VDP "Start Purchase" button click initiates checkout (1.3s)
+  -  438 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:264:7 › Section A — Human Click Simulation › A05 — Step 1 payment type toggle — Cash click
+  -  439 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:272:7 › Section A — Human Click Simulation › A06 — Step 1 payment type toggle — Finance click after Cash
+  -  440 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:281:7 › Section A — Human Click Simulation › A07 — Step 2 "No Trade-In" bypass click proceeds directly
+  -  441 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:288:7 › Section A — Human Click Simulation › A08 — Step 3 down payment slider — click and drag
+  -  442 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:303:7 › Section A — Human Click Simulation › A09 — Step 3 bi-weekly/monthly toggle — alternating clicks
+  -  443 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:313:7 › Section A — Human Click Simulation › A10 — double-click on Continue button does not submit twice
+  -  444 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:328:7 › Section A — Human Click Simulation › A11 — click on disabled Continue button does not navigate
+  ✓  445 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:342:7 › Section A — Human Click Simulation › A12 — click outside IDV upload modal does not dismiss it (808ms)
+  ✓  446 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:350:7 › Section A — Human Click Simulation › A13 — right-click on vehicle image does not expose raw origin URL (1.6s)
+  -  447 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:365:7 › Section A — Human Click Simulation › A14 — mobile fat-finger: tap targets minimum 44x44px on checkout buttons
+  -  448 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:380:7 › Section A — Human Click Simulation › A15 — full human click walkthrough: Steps 1–3 (cash, no trade-in, review)
+  ✓  449 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:417:7 › Section B — Tab & Keyboard Navigation › B01 — skip navigation link is first focusable element on homepage (626ms)
+  ✓  450 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:424:7 › Section B — Tab & Keyboard Navigation › B02 — skip nav link reaches main content on Enter (627ms)
+  -  451 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:454:7 › Section B — Tab & Keyboard Navigation › B03 — Step 4 form tab order is correct
+  -  452 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:470:7 › Section B — Tab & Keyboard Navigation › B04 — Shift+Tab reverses focus order on Step 4
+  -  453 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:478:7 › Section B — Tab & Keyboard Navigation › B05 — Enter key on Continue button submits form
+  -  454 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:488:7 › Section B — Tab & Keyboard Navigation › B06 — Space key activates toggle buttons
+  ✓  455 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:496:7 › Section B — Tab & Keyboard Navigation › B07 — Escape key dismisses modal if open (does not crash) (389ms)
+  -  456 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:504:7 › Section B — Tab & Keyboard Navigation › B08 — Arrow keys navigate province dropdown
+  -  457 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:513:7 › Section B — Tab & Keyboard Navigation › B09 — Arrow keys adjust down payment slider
+  -  458 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:524:7 › Section B — Tab & Keyboard Navigation › B10 — all Step 4 form inputs reachable by keyboard only
+  -  459 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:541:7 › Section B — Tab & Keyboard Navigation › B11 — focus states are visually distinct on all interactive elements
+  ✓  460 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:560:7 › Section B — Tab & Keyboard Navigation › B12 — VDP image gallery navigable via arrow keys (2.5s)
+  ✓  461 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:584:7 › Section B — Tab & Keyboard Navigation › B13 — IDV form tab order covers all required fields (12.5s)
+
+── Homepage Timing ──
+  TTFB: 243ms (budget: 600ms)
+  FCP:  300ms (budget: 1500ms)
+  LCP:  300ms (budget: 2500ms)
+  CLS:  undefined (budget: 0.1)
+  ✓  462 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:615:7 › Section C — Page Load Timing › C01 — Homepage: TTFB, FCP, LCP within budget (5.3s)
+
+── Inventory Timing ──
+  TTFB: 48ms
+  LCP:  96ms
+  ✓  463 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:633:7 › Section C — Page Load Timing › C02 — Inventory page: LCP and load time within budget (5.2s)
+
+── VDP Image Load Times ──
+  14ms — http://localhost:3000/_next/image?url=%2Fimages%2Fplanet-motors-logo.png&w=384&q
+  17ms — http://localhost:3000/_next/image?url=%2Fimages%2Fplanet-motors-logo.png&w=640&q
+  9ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  9ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  12ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  ✓  464 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:647:7 › Section C — Page Load Timing › C03 — VDP: hero image loads within 2000ms (724ms)
+
+── Typesense Search: -1ms (budget: 200ms)
+  ✓  465 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:677:7 › Section C — Page Load Timing › C04 — Typesense search response under 200ms (2.5s)
+  -  466 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:695:7 › Section C — Page Load Timing › C05 — Checkout Step 1 load time within budget
+  -  467 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:704:7 › Section C — Page Load Timing › C06 — Step 3 deal recalculation API under 1000ms
+  -  468 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:723:7 › Section C — Page Load Timing › C07 — Step transition time (Step 1 → Step 2) under 500ms
+  -  469 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:736:7 › Section C — Page Load Timing › C08 — Step 4 Supabase write round-trip under 800ms
+
+── Vercel Blob Upload: -1ms (budget: 3000ms)
+  ✓  470 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:767:7 › Section C — Page Load Timing › C09 — Step 5 Vercel Blob upload response under 3000ms (4.5s)
+
+── Upstash Redis Cache ──
+  Miss: 121ms (budget: 300ms)
+  Hit:  74ms (budget: 50ms)
+  ✓  471 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:791:7 › Section C — Page Load Timing › C10 — Upstash Redis cache hit vs miss timing comparison (251ms)
+
+── IDV Page Init: 297ms (budget: 10000ms)
+  ✓  472 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:809:7 › Section C — Page Load Timing › C11 — IDV page init time under 10 seconds (378ms)
+
+✓ Timing report saved → test-results/timing-report.json
+  -  473 [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:819:7 › Section C — Page Load Timing › C12 — Full checkout Steps 1–4 total time under 60 seconds (human pace)
+  ✓  474 [mobile-chrome] › e2e/inventory.spec.ts:26:7 › Inventory Page › loads inventory page with heading (414ms)
+  ✓  475 [mobile-chrome] › e2e/inventory.spec.ts:36:7 › Inventory Page › displays vehicle count (413ms)
+  ✘  476 [mobile-chrome] › e2e/inventory.spec.ts:46:7 › Inventory Page › renders search input (5.5s)
+  ✘  477 [mobile-chrome] › e2e/inventory.spec.ts:53:7 › Inventory Page › search input accepts text (5.5s)
+  ✓  478 [mobile-chrome] › e2e/inventory.spec.ts:62:7 › Inventory Page › filter button is visible (443ms)
+  ✓  479 [mobile-chrome] › e2e/inventory.spec.ts:69:7 › Inventory Page › sort dropdown is present (444ms)
+  ✓  480 [mobile-chrome] › e2e/inventory.spec.ts:82:7 › Inventory Page › renders vehicle cards or no-results message (427ms)
+  ✘  481 [mobile-chrome] › e2e/navigation.spec.ts:4:7 › Navigation › main nav links are visible on desktop (5.7s)
+  ✓  482 [mobile-chrome] › e2e/navigation.spec.ts:13:7 › Navigation › clicking inventory link navigates to inventory page (1.9s)
+  ✓  483 [mobile-chrome] › e2e/navigation.spec.ts:26:7 › Navigation › clicking contact link navigates to contact page (815ms)
+  ✓  484 [mobile-chrome] › e2e/navigation.spec.ts:35:7 › Navigation › mobile menu toggle works (720ms)
+  ✓  485 [mobile-chrome] › e2e/navigation.spec.ts:51:7 › Navigation › mobile menu navigation works (711ms)
+  ✓  486 [mobile-chrome] › e2e/navigation.spec.ts:68:7 › Navigation › logo links to homepage (884ms)
+[[95mpercy[39m] Percy is not running, disabling snapshots
+  ✓  487 [mobile-chrome] › e2e/percy-visual.spec.ts:5:7 › Percy Visual Regression Tests › Homepage - Desktop (1.3s)
+  ✓  488 [mobile-chrome] › e2e/percy-visual.spec.ts:11:7 › Percy Visual Regression Tests › Homepage - Mobile (1.3s)
+  ✓  489 [mobile-chrome] › e2e/percy-visual.spec.ts:18:7 › Percy Visual Regression Tests › Inventory Page (1.2s)
+  ✓  490 [mobile-chrome] › e2e/percy-visual.spec.ts:24:7 › Percy Visual Regression Tests › Login Page (921ms)
+  ✓  491 [mobile-chrome] › e2e/percy-visual.spec.ts:30:7 › Percy Visual Regression Tests › Signup Page (916ms)
+  -  492 [mobile-chrome] › e2e/step4-personal-info.spec.ts:95:7 › Step 4 — Finance Form: Page Load › financing application page loads with Step 1 visible
+  ✓  493 [mobile-chrome] › e2e/step4-personal-info.spec.ts:110:7 › Step 4 — Finance Form: Page Load › page has correct title and navigation (599ms)
+  -  494 [mobile-chrome] › e2e/step4-personal-info.spec.ts:117:7 › Step 4 — Finance Form: Required Field Validation › shows validation errors when submitting Step 1 with empty fields
+  -  495 [mobile-chrome] › e2e/step4-personal-info.spec.ts:136:7 › Step 4 — Finance Form: Required Field Validation › validation errors clear after fixing fields
+  -  496 [mobile-chrome] › e2e/step4-personal-info.spec.ts:152:7 › Step 4 — Finance Form: Phone Validation › phone field formats input as Canadian number
+  -  497 [mobile-chrome] › e2e/step4-personal-info.spec.ts:167:7 › Step 4 — Finance Form: Phone Validation Edge Cases › rejects phone numbers that start with 0 or 1 area code
+  -  498 [mobile-chrome] › e2e/step4-personal-info.spec.ts:184:7 › Step 4 — Finance Form: Phone Validation Edge Cases › rejects phone numbers shorter than 10 digits
+  -  499 [mobile-chrome] › e2e/step4-personal-info.spec.ts:200:7 › Step 4 — Finance Form: Step Navigation › Back button is disabled on Step 1
+  -  500 [mobile-chrome] › e2e/step4-personal-info.spec.ts:207:7 › Step 4 — Finance Form: Step Navigation › progress indicator shows current step
+  -  501 [mobile-chrome] › e2e/step4-personal-info.spec.ts:218:7 › Step 4 — Finance Form: Draft Persistence › form data persists in localStorage as draft
+  -  502 [mobile-chrome] › e2e/step4-personal-info.spec.ts:242:7 › Step 4 — Finance Form: Draft Persistence › form data restores from localStorage on page reload
+  -  503 [mobile-chrome] › e2e/step4-personal-info.spec.ts:290:7 › Step 4 — Finance Form: Address Section › address section renders with postal code input
+  -  504 [mobile-chrome] › e2e/step4-personal-info.spec.ts:303:7 › Step 4 — Finance Form: Employment Section › employment section renders with required fields
+  -  505 [mobile-chrome] › e2e/step4-personal-info.spec.ts:318:7 › Step 4 — Finance Form: Sensitive Data › no sensitive data leaks in network requests during form fill
+  ✓  506 [mobile-chrome] › e2e/step5-financing-idv.spec.ts:141:7 › Step 5 — IDV: Page Load & Trust Indicators › verification page loads with correct heading (388ms)
+  ✓  507 [mobile-chrome] › e2e/step5-financing-idv.spec.ts:148:7 › Step 5 — IDV: Page Load & Trust Indicators › trust badges are visible (encryption, PIPEDA) (385ms)
+  ✓  508 [mobile-chrome] › e2e/step5-financing-idv.spec.ts:157:7 › Step 5 — IDV: Page Load & Trust Indicators › page title contains Planet Motors (396ms)
+  ✓  509 [mobile-chrome] › e2e/step5-financing-idv.spec.ts:164:7 › Step 5 — IDV: Primary ID Form Fields › ID type dropdown renders with all 5 document types (474ms)
+  ✓  510 [mobile-chrome] › e2e/step5-financing-idv.spec.ts:182:7 › Step 5 — IDV: Primary ID Form Fields › ID number input accepts text (424ms)
+  ✓  511 [mobile-chrome] › e2e/step5-financing-idv.spec.ts:190:7 › Step 5 — IDV: Primary ID Form Fields › expiry date input renders as date picker (381ms)
+  ✓  512 [mobile-chrome] › e2e/step5-financing-idv.spec.ts:200:7 › Step 5 — IDV: Primary ID Form Fields › issuing province dropdown lists Canadian provinces (508ms)
+  ✓  513 [mobile-chrome] › e2e/step5-financing-idv.spec.ts:216:7 › Step 5 — IDV: Document Upload › front and back upload areas are visible (395ms)
+  -  514 [mobile-chrome] › e2e/step5-financing-idv.spec.ts:224:7 › Step 5 — IDV: Document Upload › front image upload shows preview after selecting file
+  -  515 [mobile-chrome] › e2e/step5-financing-idv.spec.ts:242:7 › Step 5 — IDV: Document Upload › uploaded image can be removed via X button
+  ✓  516 [mobile-chrome] › e2e/step5-financing-idv.spec.ts:270:7 › Step 5 — IDV: Form Validation › submit button is disabled when required fields are empty (386ms)
+  -  517 [mobile-chrome] › e2e/step5-financing-idv.spec.ts:280:7 › Step 5 — IDV: Form Validation › submit button enables after filling required fields
+  ✓  518 [mobile-chrome] › e2e/step5-financing-idv.spec.ts:302:7 › Step 5 — IDV: Secondary ID Flow › secondary ID section can be toggled on (451ms)
+  ✓  519 [mobile-chrome] › e2e/step5-financing-idv.spec.ts:317:7 › Step 5 — IDV: Secondary ID Flow › secondary ID type excludes already-selected primary type (717ms)
+  -  520 [mobile-chrome] › e2e/step5-financing-idv.spec.ts:341:7 › Step 5 — IDV: API Submission › submitting form sends POST to /api/v1/id-verification
+  -  521 [mobile-chrome] › e2e/step5-financing-idv.spec.ts:375:7 › Step 5 — IDV: API Submission › loading state shows during submission
+  ✓  522 [mobile-chrome] › e2e/step5-financing-idv.spec.ts:417:7 › Step 5 — IDV: Network Security Audit › no raw ID numbers sent as plaintext in request body (2.7s)
+  -  523 [mobile-chrome] › e2e/step5-financing-idv.spec.ts:446:7 › Step 5 — IDV: Network Security Audit › API response does not echo back raw ID number
+  -  524 [mobile-chrome] › e2e/vdp-visual.spec.ts:105:7 › VDP Desktop — Visual Regression › full page layout
+  -  525 [mobile-chrome] › e2e/vdp-visual.spec.ts:116:7 › VDP Desktop — Visual Regression › sidebar finance callout + CTA group
+  -  526 [mobile-chrome] › e2e/vdp-visual.spec.ts:150:7 › VDP Mobile — Visual Regression › full page layout
+  -  527 [mobile-chrome] › e2e/vdp-visual.spec.ts:161:7 › VDP Mobile — Visual Regression › sticky CTA bar
+  ✓  528 [mobile-chrome] › e2e/vdp-visual.spec.ts:185:7 › Finance Application Form — Visual Regression › desktop form layout with trust badges (2.3s)
+  ✓  529 [mobile-chrome] › e2e/vdp-visual.spec.ts:205:7 › Finance Application Form Mobile — Visual Regression › mobile form layout (2.2s)
+  -  530 [mobile-chrome] › e2e/vehicle-detail.spec.ts:42:7 › Vehicle Detail Page › navigates to a vehicle from inventory
+  -  531 [mobile-chrome] › e2e/vehicle-detail.spec.ts:49:7 › Vehicle Detail Page › vehicle detail page has header and footer
+  -  532 [mobile-chrome] › e2e/vehicle-detail.spec.ts:56:7 › Vehicle Detail Page › vehicle detail page shows CTA buttons
+
+── Homepage A11Y Violations ──
+  [serious] scrollable-region-focusable: Ensure elements that have scrollable content are accessible by keyboard in Safari (1 nodes)
+    → <div class="flex items-center justify-center gap-3 sm:gap-6 md:gap-10 overflow-x-auto scrollbar-hide">
+  ✘  533 [mobile-safari] › e2e/accessibility.spec.ts:36:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-001 — Homepage: zero critical/serious axe violations (3.0s)
+
+── Inventory A11Y Violations ──
+  [serious] scrollable-region-focusable: Ensure elements that have scrollable content are accessible by keyboard in Safari (1 nodes)
+    → <div class="flex items-center justify-center gap-3 sm:gap-6 md:gap-10 overflow-x-auto scrollbar-hide">
+  ✘  534 [mobile-safari] › e2e/accessibility.spec.ts:43:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-002 — Inventory: zero critical/serious axe violations (1.9s)
+
+── VDP A11Y Violations ──
+  [serious] scrollable-region-focusable: Ensure elements that have scrollable content are accessible by keyboard in Safari (1 nodes)
+    → <div class="flex items-center justify-center gap-3 sm:gap-6 md:gap-10 overflow-x-auto scrollbar-hide">
+  ✘  535 [mobile-safari] › e2e/accessibility.spec.ts:50:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-003 — VDP: zero critical/serious axe violations (2.1s)
+  -  536 [mobile-safari] › e2e/accessibility.spec.ts:74:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-004 — Checkout: zero critical/serious axe violations across all steps
+  ✓  537 [mobile-safari] › e2e/accessibility.spec.ts:120:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-005 — HTML lang attribute is set (707ms)
+  ✓  538 [mobile-safari] › e2e/accessibility.spec.ts:126:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-006 — All images have alt text (1.3s)
+  -  539 [mobile-safari] › e2e/auth-gated-flows.spec.ts:117:7 › Auth-Gated Flows — Finance Submission & ID Upload › Full finance application → confirmation number → ID upload
+  ✓  540 [mobile-safari] › e2e/auth.spec.ts:8:7 › Auth — Login Page › renders login page with correct heading (487ms)
+  ✓  541 [mobile-safari] › e2e/auth.spec.ts:14:7 › Auth — Login Page › renders email and password fields (495ms)
+  ✓  542 [mobile-safari] › e2e/auth.spec.ts:20:7 › Auth — Login Page › renders OAuth buttons (Google and Facebook) (473ms)
+  ✓  543 [mobile-safari] › e2e/auth.spec.ts:25:7 › Auth — Login Page › renders forgot password link (460ms)
+  ✓  544 [mobile-safari] › e2e/auth.spec.ts:31:7 › Auth — Login Page › renders create account link (481ms)
+  ✓  545 [mobile-safari] › e2e/auth.spec.ts:37:7 › Auth — Login Page › shows OMVIC trust indicator (451ms)
+  ✓  546 [mobile-safari] › e2e/auth.spec.ts:41:7 › Auth — Login Page › password visibility toggle works (547ms)
+  ✓  547 [mobile-safari] › e2e/auth.spec.ts:55:7 › Auth — Login Page › submit button is present and labelled (450ms)
+  ✓  548 [mobile-safari] › e2e/auth.spec.ts:62:7 › Auth — Login Page › remember-me checkbox is present (485ms)
+  ✓  549 [mobile-safari] › e2e/auth.spec.ts:68:7 › Auth — Signup Page › signup page renders (473ms)
+  ✓  550 [mobile-safari] › e2e/auth.spec.ts:76:7 › Auth — Forgot Password Page › forgot password page renders (366ms)
+  ✓  551 [mobile-safari] › e2e/auth.spec.ts:84:7 › Auth — Open-Redirect Guard › redirectTo with absolute URL falls back to /account (454ms)
+  ✓  552 [mobile-safari] › e2e/auth.spec.ts:91:7 › Auth — Open-Redirect Guard › redirectTo with protocol-relative URL falls back to /account (445ms)
+  ✓  553 [mobile-safari] › e2e/auth.spec.ts:96:7 › Auth — Open-Redirect Guard › redirectTo with valid relative path is accepted (454ms)
+  ✓  554 [mobile-safari] › e2e/contact.spec.ts:8:7 › Contact Page › loads contact page with heading (460ms)
+  ✓  555 [mobile-safari] › e2e/contact.spec.ts:12:7 › Contact Page › displays contact methods (459ms)
+  ✓  556 [mobile-safari] › e2e/contact.spec.ts:17:7 › Contact Page › displays business hours (483ms)
+  ✓  557 [mobile-safari] › e2e/contact.spec.ts:22:7 › Contact Page › contact form is visible (455ms)
+  ✓  558 [mobile-safari] › e2e/contact.spec.ts:26:7 › Contact Page › shows validation errors for empty required fields (534ms)
+  ✓  559 [mobile-safari] › e2e/contact.spec.ts:39:7 › Contact Page › fills form with invalid email and shows error (539ms)
+  ✓  560 [mobile-safari] › e2e/contact.spec.ts:49:7 › Contact Page › fills form fields with test data without submitting (563ms)
+  ✓  561 [mobile-safari] › e2e/homepage.spec.ts:8:7 › Homepage › loads successfully with correct title (773ms)
+  ✓  562 [mobile-safari] › e2e/homepage.spec.ts:12:7 › Homepage › renders header with logo (722ms)
+  ✘  563 [mobile-safari] › e2e/homepage.spec.ts:20:7 › Homepage › renders main navigation links (5.7s)
+  ✓  564 [mobile-safari] › e2e/homepage.spec.ts:27:7 › Homepage › renders hero section (883ms)
+  ✓  565 [mobile-safari] › e2e/homepage.spec.ts:35:7 › Homepage › renders footer with contact info (716ms)
+  ✓  566 [mobile-safari] › e2e/homepage.spec.ts:42:7 › Homepage › footer contains important links (1.7s)
+  ✓  567 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:229:7 › Section A — Human Click Simulation › A01 — homepage hero CTA click navigates to inventory (1.3s)
+  ✘  568 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:235:7 › Section A — Human Click Simulation › A02 — Typesense search bar click opens search and accepts keyboard input (10.7s)
+  ✓  569 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:243:7 › Section A — Human Click Simulation › A03 — inventory card click navigates to correct VDP (1.9s)
+  ✓  570 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:254:7 › Section A — Human Click Simulation › A04 — VDP "Start Purchase" button click initiates checkout (2.0s)
+  -  571 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:264:7 › Section A — Human Click Simulation › A05 — Step 1 payment type toggle — Cash click
+  -  572 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:272:7 › Section A — Human Click Simulation › A06 — Step 1 payment type toggle — Finance click after Cash
+  -  573 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:281:7 › Section A — Human Click Simulation › A07 — Step 2 "No Trade-In" bypass click proceeds directly
+  -  574 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:288:7 › Section A — Human Click Simulation › A08 — Step 3 down payment slider — click and drag
+  -  575 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:303:7 › Section A — Human Click Simulation › A09 — Step 3 bi-weekly/monthly toggle — alternating clicks
+  -  576 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:313:7 › Section A — Human Click Simulation › A10 — double-click on Continue button does not submit twice
+  -  577 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:328:7 › Section A — Human Click Simulation › A11 — click on disabled Continue button does not navigate
+  ✓  578 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:342:7 › Section A — Human Click Simulation › A12 — click outside IDV upload modal does not dismiss it (879ms)
+  ✓  579 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:350:7 › Section A — Human Click Simulation › A13 — right-click on vehicle image does not expose raw origin URL (2.5s)
+  -  580 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:365:7 › Section A — Human Click Simulation › A14 — mobile fat-finger: tap targets minimum 44x44px on checkout buttons
+  -  581 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:380:7 › Section A — Human Click Simulation › A15 — full human click walkthrough: Steps 1–3 (cash, no trade-in, review)
+  ✘  582 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:417:7 › Section B — Tab & Keyboard Navigation › B01 — skip navigation link is first focusable element on homepage (5.7s)
+  -  583 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:424:7 › Section B — Tab & Keyboard Navigation › B02 — skip nav link reaches main content on Enter
+  -  584 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:454:7 › Section B — Tab & Keyboard Navigation › B03 — Step 4 form tab order is correct
+  -  585 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:470:7 › Section B — Tab & Keyboard Navigation › B04 — Shift+Tab reverses focus order on Step 4
+  -  586 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:478:7 › Section B — Tab & Keyboard Navigation › B05 — Enter key on Continue button submits form
+  -  587 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:488:7 › Section B — Tab & Keyboard Navigation › B06 — Space key activates toggle buttons
+  ✓  588 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:496:7 › Section B — Tab & Keyboard Navigation › B07 — Escape key dismisses modal if open (does not crash) (436ms)
+  -  589 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:504:7 › Section B — Tab & Keyboard Navigation › B08 — Arrow keys navigate province dropdown
+  -  590 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:513:7 › Section B — Tab & Keyboard Navigation › B09 — Arrow keys adjust down payment slider
+  -  591 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:524:7 › Section B — Tab & Keyboard Navigation › B10 — all Step 4 form inputs reachable by keyboard only
+  -  592 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:541:7 › Section B — Tab & Keyboard Navigation › B11 — focus states are visually distinct on all interactive elements
+  ✓  593 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:560:7 › Section B — Tab & Keyboard Navigation › B12 — VDP image gallery navigable via arrow keys (2.8s)
+  ✓  594 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:584:7 › Section B — Tab & Keyboard Navigation › B13 — IDV form tab order covers all required fields (16.7s)
+
+── Homepage Timing ──
+  TTFB: 1053ms (budget: 600ms)
+  FCP:  1133ms (budget: 1500ms)
+  LCP:  1151ms (budget: 2500ms)
+  CLS:  undefined (budget: 0.1)
+
+✓ Timing report saved → test-results/timing-report.json
+  ✘  595 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:615:7 › Section C — Page Load Timing › C01 — Homepage: TTFB, FCP, LCP within budget (6.3s)
+
+── Inventory Timing ──
+  TTFB: 59ms
+  LCP:  234ms
+  ✓  596 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:633:7 › Section C — Page Load Timing › C02 — Inventory page: LCP and load time within budget (5.4s)
+
+── VDP Image Load Times ──
+  194ms — http://localhost:3000/_next/image?url=%2Fimages%2Fplanet-motors-logo.png&w=384&q
+  232ms — http://localhost:3000/_next/image?url=%2Fimages%2Fplanet-motors-logo.png&w=640&q
+  28ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+  ✓  597 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:647:7 › Section C — Page Load Timing › C03 — VDP: hero image loads within 2000ms (1.8s)
+
+── Typesense Search: -1ms (budget: 200ms)
+  ✓  598 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:677:7 › Section C — Page Load Timing › C04 — Typesense search response under 200ms (1.9s)
+  -  599 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:695:7 › Section C — Page Load Timing › C05 — Checkout Step 1 load time within budget
+  -  600 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:704:7 › Section C — Page Load Timing › C06 — Step 3 deal recalculation API under 1000ms
+  -  601 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:723:7 › Section C — Page Load Timing › C07 — Step transition time (Step 1 → Step 2) under 500ms
+  -  602 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:736:7 › Section C — Page Load Timing › C08 — Step 4 Supabase write round-trip under 800ms
+
+── Vercel Blob Upload: -1ms (budget: 3000ms)
+  ✓  603 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:767:7 › Section C — Page Load Timing › C09 — Step 5 Vercel Blob upload response under 3000ms (4.6s)
+
+── Upstash Redis Cache ──
+  Miss: 150ms (budget: 300ms)
+  Hit:  111ms (budget: 50ms)
+  ✓  604 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:791:7 › Section C — Page Load Timing › C10 — Upstash Redis cache hit vs miss timing comparison (373ms)
+
+── IDV Page Init: 342ms (budget: 10000ms)
+  ✓  605 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:809:7 › Section C — Page Load Timing › C11 — IDV page init time under 10 seconds (504ms)
+
+✓ Timing report saved → test-results/timing-report.json
+  -  606 [mobile-safari] › e2e/human-click-timing-debug.spec.ts:819:7 › Section C — Page Load Timing › C12 — Full checkout Steps 1–4 total time under 60 seconds (human pace)
+  ✓  607 [mobile-safari] › e2e/inventory.spec.ts:26:7 › Inventory Page › loads inventory page with heading (489ms)
+  ✓  608 [mobile-safari] › e2e/inventory.spec.ts:36:7 › Inventory Page › displays vehicle count (473ms)
+  ✓  609 [mobile-safari] › e2e/inventory.spec.ts:46:7 › Inventory Page › renders search input (481ms)
+  ✓  610 [mobile-safari] › e2e/inventory.spec.ts:53:7 › Inventory Page › search input accepts text (525ms)
+  ✓  611 [mobile-safari] › e2e/inventory.spec.ts:62:7 › Inventory Page › filter button is visible (504ms)
+  ✓  612 [mobile-safari] › e2e/inventory.spec.ts:69:7 › Inventory Page › sort dropdown is present (499ms)
+  ✓  613 [mobile-safari] › e2e/inventory.spec.ts:82:7 › Inventory Page › renders vehicle cards or no-results message (466ms)
+  ✘  614 [mobile-safari] › e2e/navigation.spec.ts:4:7 › Navigation › main nav links are visible on desktop (5.8s)
+  ✓  615 [mobile-safari] › e2e/navigation.spec.ts:13:7 › Navigation › clicking inventory link navigates to inventory page (1.0s)
+  ✓  616 [mobile-safari] › e2e/navigation.spec.ts:26:7 › Navigation › clicking contact link navigates to contact page (878ms)
+  ✓  617 [mobile-safari] › e2e/navigation.spec.ts:35:7 › Navigation › mobile menu toggle works (792ms)
+  ✓  618 [mobile-safari] › e2e/navigation.spec.ts:51:7 › Navigation › mobile menu navigation works (798ms)
+  ✓  619 [mobile-safari] › e2e/navigation.spec.ts:68:7 › Navigation › logo links to homepage (2.0s)
+[[95mpercy[39m] Percy is not running, disabling snapshots
+  ✓  620 [mobile-safari] › e2e/percy-visual.spec.ts:5:7 › Percy Visual Regression Tests › Homepage - Desktop (1.4s)
+  ✓  621 [mobile-safari] › e2e/percy-visual.spec.ts:11:7 › Percy Visual Regression Tests › Homepage - Mobile (1.4s)
+  ✓  622 [mobile-safari] › e2e/percy-visual.spec.ts:18:7 › Percy Visual Regression Tests › Inventory Page (1.2s)
+  ✓  623 [mobile-safari] › e2e/percy-visual.spec.ts:24:7 › Percy Visual Regression Tests › Login Page (996ms)
+  ✓  624 [mobile-safari] › e2e/percy-visual.spec.ts:30:7 › Percy Visual Regression Tests › Signup Page (997ms)
+  -  625 [mobile-safari] › e2e/step4-personal-info.spec.ts:95:7 › Step 4 — Finance Form: Page Load › financing application page loads with Step 1 visible
+  ✓  626 [mobile-safari] › e2e/step4-personal-info.spec.ts:110:7 › Step 4 — Finance Form: Page Load › page has correct title and navigation (604ms)
+  -  627 [mobile-safari] › e2e/step4-personal-info.spec.ts:117:7 › Step 4 — Finance Form: Required Field Validation › shows validation errors when submitting Step 1 with empty fields
+  -  628 [mobile-safari] › e2e/step4-personal-info.spec.ts:136:7 › Step 4 — Finance Form: Required Field Validation › validation errors clear after fixing fields
+  -  629 [mobile-safari] › e2e/step4-personal-info.spec.ts:152:7 › Step 4 — Finance Form: Phone Validation › phone field formats input as Canadian number
+  -  630 [mobile-safari] › e2e/step4-personal-info.spec.ts:167:7 › Step 4 — Finance Form: Phone Validation Edge Cases › rejects phone numbers that start with 0 or 1 area code
+  -  631 [mobile-safari] › e2e/step4-personal-info.spec.ts:184:7 › Step 4 — Finance Form: Phone Validation Edge Cases › rejects phone numbers shorter than 10 digits
+  -  632 [mobile-safari] › e2e/step4-personal-info.spec.ts:200:7 › Step 4 — Finance Form: Step Navigation › Back button is disabled on Step 1
+  -  633 [mobile-safari] › e2e/step4-personal-info.spec.ts:207:7 › Step 4 — Finance Form: Step Navigation › progress indicator shows current step
+  -  634 [mobile-safari] › e2e/step4-personal-info.spec.ts:218:7 › Step 4 — Finance Form: Draft Persistence › form data persists in localStorage as draft
+  -  635 [mobile-safari] › e2e/step4-personal-info.spec.ts:242:7 › Step 4 — Finance Form: Draft Persistence › form data restores from localStorage on page reload
+  -  636 [mobile-safari] › e2e/step4-personal-info.spec.ts:290:7 › Step 4 — Finance Form: Address Section › address section renders with postal code input
+  -  637 [mobile-safari] › e2e/step4-personal-info.spec.ts:303:7 › Step 4 — Finance Form: Employment Section › employment section renders with required fields
+  -  638 [mobile-safari] › e2e/step4-personal-info.spec.ts:318:7 › Step 4 — Finance Form: Sensitive Data › no sensitive data leaks in network requests during form fill
+  ✓  639 [mobile-safari] › e2e/step5-financing-idv.spec.ts:141:7 › Step 5 — IDV: Page Load & Trust Indicators › verification page loads with correct heading (456ms)
+  ✓  640 [mobile-safari] › e2e/step5-financing-idv.spec.ts:148:7 › Step 5 — IDV: Page Load & Trust Indicators › trust badges are visible (encryption, PIPEDA) (456ms)
+  ✓  641 [mobile-safari] › e2e/step5-financing-idv.spec.ts:157:7 › Step 5 — IDV: Page Load & Trust Indicators › page title contains Planet Motors (438ms)
+  ✓  642 [mobile-safari] › e2e/step5-financing-idv.spec.ts:164:7 › Step 5 — IDV: Primary ID Form Fields › ID type dropdown renders with all 5 document types (564ms)
+  ✓  643 [mobile-safari] › e2e/step5-financing-idv.spec.ts:182:7 › Step 5 — IDV: Primary ID Form Fields › ID number input accepts text (494ms)
+  ✓  644 [mobile-safari] › e2e/step5-financing-idv.spec.ts:190:7 › Step 5 — IDV: Primary ID Form Fields › expiry date input renders as date picker (449ms)
+  ✓  645 [mobile-safari] › e2e/step5-financing-idv.spec.ts:200:7 › Step 5 — IDV: Primary ID Form Fields › issuing province dropdown lists Canadian provinces (580ms)
+  ✓  646 [mobile-safari] › e2e/step5-financing-idv.spec.ts:216:7 › Step 5 — IDV: Document Upload › front and back upload areas are visible (445ms)
+  -  647 [mobile-safari] › e2e/step5-financing-idv.spec.ts:224:7 › Step 5 — IDV: Document Upload › front image upload shows preview after selecting file
+  -  648 [mobile-safari] › e2e/step5-financing-idv.spec.ts:242:7 › Step 5 — IDV: Document Upload › uploaded image can be removed via X button
+  ✓  649 [mobile-safari] › e2e/step5-financing-idv.spec.ts:270:7 › Step 5 — IDV: Form Validation › submit button is disabled when required fields are empty (439ms)
+  -  650 [mobile-safari] › e2e/step5-financing-idv.spec.ts:280:7 › Step 5 — IDV: Form Validation › submit button enables after filling required fields
+  ✓  651 [mobile-safari] › e2e/step5-financing-idv.spec.ts:302:7 › Step 5 — IDV: Secondary ID Flow › secondary ID section can be toggled on (501ms)
+  ✓  652 [mobile-safari] › e2e/step5-financing-idv.spec.ts:317:7 › Step 5 — IDV: Secondary ID Flow › secondary ID type excludes already-selected primary type (768ms)
+  -  653 [mobile-safari] › e2e/step5-financing-idv.spec.ts:341:7 › Step 5 — IDV: API Submission › submitting form sends POST to /api/v1/id-verification
+  -  654 [mobile-safari] › e2e/step5-financing-idv.spec.ts:375:7 › Step 5 — IDV: API Submission › loading state shows during submission
+  ✓  655 [mobile-safari] › e2e/step5-financing-idv.spec.ts:417:7 › Step 5 — IDV: Network Security Audit › no raw ID numbers sent as plaintext in request body (2.8s)
+  -  656 [mobile-safari] › e2e/step5-financing-idv.spec.ts:446:7 › Step 5 — IDV: Network Security Audit › API response does not echo back raw ID number
+  -  657 [mobile-safari] › e2e/vdp-visual.spec.ts:105:7 › VDP Desktop — Visual Regression › full page layout
+  -  658 [mobile-safari] › e2e/vdp-visual.spec.ts:116:7 › VDP Desktop — Visual Regression › sidebar finance callout + CTA group
+  -  659 [mobile-safari] › e2e/vdp-visual.spec.ts:150:7 › VDP Mobile — Visual Regression › full page layout
+  -  660 [mobile-safari] › e2e/vdp-visual.spec.ts:161:7 › VDP Mobile — Visual Regression › sticky CTA bar
+  ✓  661 [mobile-safari] › e2e/vdp-visual.spec.ts:185:7 › Finance Application Form — Visual Regression › desktop form layout with trust badges (2.4s)
+  ✓  662 [mobile-safari] › e2e/vdp-visual.spec.ts:205:7 › Finance Application Form Mobile — Visual Regression › mobile form layout (2.3s)
+  -  663 [mobile-safari] › e2e/vehicle-detail.spec.ts:42:7 › Vehicle Detail Page › navigates to a vehicle from inventory
+  -  664 [mobile-safari] › e2e/vehicle-detail.spec.ts:49:7 › Vehicle Detail Page › vehicle detail page has header and footer
+  -  665 [mobile-safari] › e2e/vehicle-detail.spec.ts:56:7 › Vehicle Detail Page › vehicle detail page shows CTA buttons
+
+
+  1) [webkit] › e2e/human-click-timing-debug.spec.ts:417:7 › Section B — Tab & Keyboard Navigation › B01 — skip navigation link is first focusable element on homepage 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  locator(':focus')
+    Expected: [32m"skip-nav-link"[39m
+    Received: [31m""[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toHaveAttribute" with timeout 5000ms[22m
+    [2m  - waiting for locator(':focus')[22m
+    [2m    9 × locator resolved to <input type="email" placeholder="your@email.com" class="flex-1 px-3.5 py-2.5 bg-white/5 border border-white/10 border-r-0 rounded-l-lg text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-[#1e3a8a] transition-colors"/>[22m
+    [2m      - unexpected value "null"[22m
+
+
+      419 |     await page.keyboard.press('Tab');
+      420 |     const focused = page.locator(':focus');
+    > 421 |     await expect(focused).toHaveAttribute('data-testid', 'skip-nav-link');
+          |                           ^
+      422 |   });
+      423 |
+      424 |   test('B02 — skip nav link reaches main content on Enter', async ({ page, browserName }) => {
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:421:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-8fbe7-cusable-element-on-homepage-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-8fbe7-cusable-element-on-homepage-webkit/error-context.md
+
+  2) [webkit] › e2e/navigation.spec.ts:13:7 › Navigation › clicking inventory link navigates to inventory page 
+
+    TimeoutError: page.waitForURL: Timeout 15000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation until "load"
+    ============================================================
+
+      17 |     await expect(inventoryLink).toBeVisible()
+      18 |     await inventoryLink.click()
+    > 19 |     await page.waitForURL(/\/inventory/)
+         |                ^
+      20 |     // Inventory page may show heading (success) or error state (API down)
+      21 |     const heading = page.getByRole("heading", { name: /Vehicle Inventory/i })
+      22 |     const error = page.getByText(/Error loading inventory/i)
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/navigation.spec.ts:19:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/navigation-Navigation-clic-de956-navigates-to-inventory-page-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/navigation-Navigation-clic-de956-navigates-to-inventory-page-webkit/error-context.md
+
+  3) [webkit] › e2e/navigation.spec.ts:26:7 › Navigation › clicking contact link navigates to contact page 
+
+    TimeoutError: page.waitForURL: Timeout 15000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation until "load"
+    ============================================================
+
+      29 |     await expect(contactLink).toBeVisible()
+      30 |     await contactLink.click()
+    > 31 |     await page.waitForURL(/\/contact/)
+         |                ^
+      32 |     await expect(page.getByRole("heading", { name: /Contact Us/i })).toBeVisible()
+      33 |   })
+      34 |
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/navigation.spec.ts:31:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/navigation-Navigation-clic-a5403-k-navigates-to-contact-page-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/navigation-Navigation-clic-a5403-k-navigates-to-contact-page-webkit/error-context.md
+
+  4) [mobile-chrome] › e2e/accessibility.spec.ts:36:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-001 — Homepage: zero critical/serious axe violations 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m0[39m
+    Received: [31m2[39m
+
+      30 |     })
+      31 |   }
+    > 32 |   expect(critical.length).toBe(0)
+         |                           ^
+      33 | }
+      34 |
+      35 | test.describe("Section A11Y — Accessibility (WCAG 2.2 AA)", () => {
+        at assertNoA11yViolations (/Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/accessibility.spec.ts:32:27)
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/accessibility.spec.ts:40:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/accessibility-Section-A11Y-122f7-ical-serious-axe-violations-mobile-chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/accessibility-Section-A11Y-122f7-ical-serious-axe-violations-mobile-chrome/error-context.md
+
+  5) [mobile-chrome] › e2e/accessibility.spec.ts:43:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-002 — Inventory: zero critical/serious axe violations 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m0[39m
+    Received: [31m1[39m
+
+      30 |     })
+      31 |   }
+    > 32 |   expect(critical.length).toBe(0)
+         |                           ^
+      33 | }
+      34 |
+      35 | test.describe("Section A11Y — Accessibility (WCAG 2.2 AA)", () => {
+        at assertNoA11yViolations (/Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/accessibility.spec.ts:32:27)
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/accessibility.spec.ts:47:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/accessibility-Section-A11Y-e4de0-ical-serious-axe-violations-mobile-chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/accessibility-Section-A11Y-e4de0-ical-serious-axe-violations-mobile-chrome/error-context.md
+
+  6) [mobile-chrome] › e2e/homepage.spec.ts:20:7 › Homepage › renders main navigation links ────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  locator('header').first().getByText('Shop Inventory').first()
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('header').first().getByText('Shop Inventory').first()[22m
+    [2m    9 × locator resolved to <button type="button" role="menuitem" aria-haspopup="true" aria-expanded="false" class="flex items-center gap-1 px-4 py-2 text-[15px] font-semibold text-gray-800 hover:text-[#1e3a8a] transition-colors">…</button>[22m
+    [2m      - unexpected value "hidden"[22m
+
+
+      20 |   test("renders main navigation links", async ({ page }) => {
+      21 |     const header = page.locator("header").first()
+    > 22 |     await expect(header.getByText("Shop Inventory").first()).toBeVisible()
+         |                                                              ^
+      23 |     await expect(header.getByText("Sell or Trade").first()).toBeVisible()
+      24 |     await expect(header.getByText("Finance").first()).toBeVisible()
+      25 |   })
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/homepage.spec.ts:22:62
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/homepage-Homepage-renders-main-navigation-links-mobile-chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/homepage-Homepage-renders-main-navigation-links-mobile-chrome/error-context.md
+
+  7) [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:235:7 › Section A — Human Click Simulation › A02 — Typesense search bar click opens search and accepts keyboard input 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('typesense-search-input') to be visible[22m
+    [2m    19 × locator resolved to hidden <input value="" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-autocomplete="list" data-testid="typesense-search-input" aria-controls="search-results-listbox" placeholder="Search make, model, keyword…" aria-label="Search vehicles by make, model, or keyword" class="flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400 h-9"/>[22m
+
+
+      169 | async function humanClick(page: Page, selector: string | ReturnType<Page['getByTestId']>) {
+      170 |   const element = typeof selector === 'string' ? page.locator(selector) : selector;
+    > 171 |   await element.waitFor({ state: 'visible', timeout: 10_000 });
+          |                 ^
+      172 |   await dismissOverlays(page);
+      173 |   await element.scrollIntoViewIfNeeded({ timeout: 5_000 });
+      174 |   await element.hover();
+        at humanClick (/Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:171:17)
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:237:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-15077--and-accepts-keyboard-input-mobile-chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-15077--and-accepts-keyboard-input-mobile-chrome/error-context.md
+
+  8) [mobile-chrome] › e2e/inventory.spec.ts:46:7 › Inventory Page › renders search input ──────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  getByPlaceholder(/search/i).first()
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByPlaceholder(/search/i).first()[22m
+    [2m    9 × locator resolved to <input value="" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-autocomplete="list" data-testid="typesense-search-input" aria-controls="search-results-listbox" placeholder="Search make, model, keyword…" aria-label="Search vehicles by make, model, or keyword" class="flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400 h-9"/>[22m
+    [2m      - unexpected value "hidden"[22m
+
+
+      48 |     if (!loaded) { return }
+      49 |     const searchInput = page.getByPlaceholder(/search/i).first()
+    > 50 |     await expect(searchInput).toBeVisible()
+         |                               ^
+      51 |   })
+      52 |
+      53 |   test("search input accepts text", async ({ page }) => {
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/inventory.spec.ts:50:31
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/inventory-Inventory-Page-renders-search-input-mobile-chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/inventory-Inventory-Page-renders-search-input-mobile-chrome/error-context.md
+
+  9) [mobile-chrome] › e2e/inventory.spec.ts:53:7 › Inventory Page › search input accepts text ─────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveValue[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByPlaceholder(/search/i).first()
+    Expected: [32m"Toyota"[39m
+    Received: [31m""[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toHaveValue" with timeout 5000ms[22m
+    [2m  - waiting for getByPlaceholder(/search/i).first()[22m
+    [2m    9 × locator resolved to <input value="" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-autocomplete="list" data-testid="typesense-search-input" aria-controls="search-results-listbox" placeholder="Search make, model, keyword…" aria-label="Search vehicles by make, model, or keyword" class="flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400 h-9"/>[22m
+    [2m      - unexpected value ""[22m
+
+
+      57 |     await expect(searchInput).toBeVisible()
+      58 |     await searchInput.fill("Toyota")
+    > 59 |     await expect(searchInput).toHaveValue("Toyota")
+         |                               ^
+      60 |   })
+      61 |
+      62 |   test("filter button is visible", async ({ page }) => {
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/inventory.spec.ts:59:31
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/inventory-Inventory-Page-search-input-accepts-text-mobile-chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/inventory-Inventory-Page-search-input-accepts-text-mobile-chrome/error-context.md
+
+  10) [mobile-chrome] › e2e/navigation.spec.ts:4:7 › Navigation › main nav links are visible on desktop 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  locator('header').getByText('Shop Inventory')
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('header').getByText('Shop Inventory')[22m
+    [2m    9 × locator resolved to <button type="button" role="menuitem" aria-haspopup="true" aria-expanded="false" class="flex items-center gap-1 px-4 py-2 text-[15px] font-semibold text-gray-800 hover:text-[#1e3a8a] transition-colors">…</button>[22m
+    [2m      - unexpected value "hidden"[22m
+
+
+       5 |     await page.goto("/")
+       6 |     const header = page.locator("header")
+    >  7 |     await expect(header.getByText("Shop Inventory")).toBeVisible()
+         |                                                      ^
+       8 |     await expect(header.getByText("Sell or Trade")).toBeVisible()
+       9 |     await expect(header.getByText("Finance")).toBeVisible()
+      10 |     await expect(header.getByText("More")).toBeVisible()
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/navigation.spec.ts:7:54
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/navigation-Navigation-main-nav-links-are-visible-on-desktop-mobile-chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/navigation-Navigation-main-nav-links-are-visible-on-desktop-mobile-chrome/error-context.md
+
+  11) [mobile-safari] › e2e/accessibility.spec.ts:36:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-001 — Homepage: zero critical/serious axe violations 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m0[39m
+    Received: [31m1[39m
+
+      30 |     })
+      31 |   }
+    > 32 |   expect(critical.length).toBe(0)
+         |                           ^
+      33 | }
+      34 |
+      35 | test.describe("Section A11Y — Accessibility (WCAG 2.2 AA)", () => {
+        at assertNoA11yViolations (/Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/accessibility.spec.ts:32:27)
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/accessibility.spec.ts:40:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/accessibility-Section-A11Y-122f7-ical-serious-axe-violations-mobile-safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/accessibility-Section-A11Y-122f7-ical-serious-axe-violations-mobile-safari/error-context.md
+
+  12) [mobile-safari] › e2e/accessibility.spec.ts:43:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-002 — Inventory: zero critical/serious axe violations 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m0[39m
+    Received: [31m1[39m
+
+      30 |     })
+      31 |   }
+    > 32 |   expect(critical.length).toBe(0)
+         |                           ^
+      33 | }
+      34 |
+      35 | test.describe("Section A11Y — Accessibility (WCAG 2.2 AA)", () => {
+        at assertNoA11yViolations (/Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/accessibility.spec.ts:32:27)
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/accessibility.spec.ts:47:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/accessibility-Section-A11Y-e4de0-ical-serious-axe-violations-mobile-safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/accessibility-Section-A11Y-e4de0-ical-serious-axe-violations-mobile-safari/error-context.md
+
+  13) [mobile-safari] › e2e/accessibility.spec.ts:50:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-003 — VDP: zero critical/serious axe violations 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m0[39m
+    Received: [31m1[39m
+
+      30 |     })
+      31 |   }
+    > 32 |   expect(critical.length).toBe(0)
+         |                           ^
+      33 | }
+      34 |
+      35 | test.describe("Section A11Y — Accessibility (WCAG 2.2 AA)", () => {
+        at assertNoA11yViolations (/Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/accessibility.spec.ts:32:27)
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/accessibility.spec.ts:67:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/accessibility-Section-A11Y-769a9-ical-serious-axe-violations-mobile-safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/accessibility-Section-A11Y-769a9-ical-serious-axe-violations-mobile-safari/error-context.md
+
+  14) [mobile-safari] › e2e/homepage.spec.ts:20:7 › Homepage › renders main navigation links ───────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  locator('header').first().getByText('Shop Inventory').first()
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('header').first().getByText('Shop Inventory').first()[22m
+    [2m    9 × locator resolved to <button type="button" role="menuitem" aria-haspopup="true" aria-expanded="false" class="flex items-center gap-1 px-4 py-2 text-[15px] font-semibold text-gray-800 hover:text-[#1e3a8a] transition-colors">…</button>[22m
+    [2m      - unexpected value "hidden"[22m
+
+
+      20 |   test("renders main navigation links", async ({ page }) => {
+      21 |     const header = page.locator("header").first()
+    > 22 |     await expect(header.getByText("Shop Inventory").first()).toBeVisible()
+         |                                                              ^
+      23 |     await expect(header.getByText("Sell or Trade").first()).toBeVisible()
+      24 |     await expect(header.getByText("Finance").first()).toBeVisible()
+      25 |   })
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/homepage.spec.ts:22:62
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/homepage-Homepage-renders-main-navigation-links-mobile-safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/homepage-Homepage-renders-main-navigation-links-mobile-safari/error-context.md
+
+  15) [mobile-safari] › e2e/human-click-timing-debug.spec.ts:235:7 › Section A — Human Click Simulation › A02 — Typesense search bar click opens search and accepts keyboard input 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('typesense-search-input') to be visible[22m
+    [2m    19 × locator resolved to hidden <input value="" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-autocomplete="list" data-testid="typesense-search-input" aria-controls="search-results-listbox" placeholder="Search make, model, keyword…" aria-label="Search vehicles by make, model, or keyword" class="flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400 h-9"/>[22m
+
+
+      169 | async function humanClick(page: Page, selector: string | ReturnType<Page['getByTestId']>) {
+      170 |   const element = typeof selector === 'string' ? page.locator(selector) : selector;
+    > 171 |   await element.waitFor({ state: 'visible', timeout: 10_000 });
+          |                 ^
+      172 |   await dismissOverlays(page);
+      173 |   await element.scrollIntoViewIfNeeded({ timeout: 5_000 });
+      174 |   await element.hover();
+        at humanClick (/Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:171:17)
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:237:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-15077--and-accepts-keyboard-input-mobile-safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-15077--and-accepts-keyboard-input-mobile-safari/error-context.md
+
+  16) [mobile-safari] › e2e/human-click-timing-debug.spec.ts:417:7 › Section B — Tab & Keyboard Navigation › B01 — skip navigation link is first focusable element on homepage 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  locator(':focus')
+    Expected: [32m"skip-nav-link"[39m
+    Received: [31m""[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toHaveAttribute" with timeout 5000ms[22m
+    [2m  - waiting for locator(':focus')[22m
+    [2m    9 × locator resolved to <input type="email" placeholder="your@email.com" class="flex-1 px-3.5 py-2.5 bg-white/5 border border-white/10 border-r-0 rounded-l-lg text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-[#1e3a8a] transition-colors"/>[22m
+    [2m      - unexpected value "null"[22m
+
+
+      419 |     await page.keyboard.press('Tab');
+      420 |     const focused = page.locator(':focus');
+    > 421 |     await expect(focused).toHaveAttribute('data-testid', 'skip-nav-link');
+          |                           ^
+      422 |   });
+      423 |
+      424 |   test('B02 — skip nav link reaches main content on Enter', async ({ page, browserName }) => {
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:421:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-8fbe7-cusable-element-on-homepage-mobile-safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-8fbe7-cusable-element-on-homepage-mobile-safari/error-context.md
+
+  17) [mobile-safari] › e2e/human-click-timing-debug.spec.ts:615:7 › Section C — Page Load Timing › C01 — Homepage: TTFB, FCP, LCP within budget 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThan[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: < [32m600[39m
+    Received:   [31m1053[39m
+
+      625 |     console.log(`  CLS:  ${vitals.cls?.toFixed(3)} (budget: ${BUDGET.CLS})`);
+      626 |
+    > 627 |     if (nav.ttfb)    expect(nav.ttfb).toBeLessThan(BUDGET.TTFB);
+          |                                       ^
+      628 |     if (vitals.fcp)  expect(vitals.fcp).toBeLessThan(BUDGET.FCP);
+      629 |     if (vitals.lcp)  expect(vitals.lcp).toBeLessThan(BUDGET.LCP);
+      630 |     if (vitals.cls !== undefined) expect(vitals.cls).toBeLessThan(BUDGET.CLS);
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:627:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-dcaab--TTFB-FCP-LCP-within-budget-mobile-safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-dcaab--TTFB-FCP-LCP-within-budget-mobile-safari/error-context.md
+
+    Error Context: test-results/human-click-timing-debug-S-dcaab--TTFB-FCP-LCP-within-budget-mobile-safari/error-context.md
+
+  18) [mobile-safari] › e2e/navigation.spec.ts:4:7 › Navigation › main nav links are visible on desktop 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  locator('header').getByText('Shop Inventory')
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('header').getByText('Shop Inventory')[22m
+    [2m    9 × locator resolved to <button type="button" role="menuitem" aria-haspopup="true" aria-expanded="false" class="flex items-center gap-1 px-4 py-2 text-[15px] font-semibold text-gray-800 hover:text-[#1e3a8a] transition-colors">…</button>[22m
+    [2m      - unexpected value "hidden"[22m
+
+
+       5 |     await page.goto("/")
+       6 |     const header = page.locator("header")
+    >  7 |     await expect(header.getByText("Shop Inventory")).toBeVisible()
+         |                                                      ^
+       8 |     await expect(header.getByText("Sell or Trade")).toBeVisible()
+       9 |     await expect(header.getByText("Finance")).toBeVisible()
+      10 |     await expect(header.getByText("More")).toBeVisible()
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/navigation.spec.ts:7:54
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/navigation-Navigation-main-nav-links-are-visible-on-desktop-mobile-safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/navigation-Navigation-main-nav-links-are-visible-on-desktop-mobile-safari/error-context.md
+
+  18 failed
+    [webkit] › e2e/human-click-timing-debug.spec.ts:417:7 › Section B — Tab & Keyboard Navigation › B01 — skip navigation link is first focusable element on homepage 
+    [webkit] › e2e/navigation.spec.ts:13:7 › Navigation › clicking inventory link navigates to inventory page 
+    [webkit] › e2e/navigation.spec.ts:26:7 › Navigation › clicking contact link navigates to contact page 
+    [mobile-chrome] › e2e/accessibility.spec.ts:36:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-001 — Homepage: zero critical/serious axe violations 
+    [mobile-chrome] › e2e/accessibility.spec.ts:43:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-002 — Inventory: zero critical/serious axe violations 
+    [mobile-chrome] › e2e/homepage.spec.ts:20:7 › Homepage › renders main navigation links ─────────
+    [mobile-chrome] › e2e/human-click-timing-debug.spec.ts:235:7 › Section A — Human Click Simulation › A02 — Typesense search bar click opens search and accepts keyboard input 
+    [mobile-chrome] › e2e/inventory.spec.ts:46:7 › Inventory Page › renders search input ───────────
+    [mobile-chrome] › e2e/inventory.spec.ts:53:7 › Inventory Page › search input accepts text ──────
+    [mobile-chrome] › e2e/navigation.spec.ts:4:7 › Navigation › main nav links are visible on desktop 
+    [mobile-safari] › e2e/accessibility.spec.ts:36:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-001 — Homepage: zero critical/serious axe violations 
+    [mobile-safari] › e2e/accessibility.spec.ts:43:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-002 — Inventory: zero critical/serious axe violations 
+    [mobile-safari] › e2e/accessibility.spec.ts:50:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-003 — VDP: zero critical/serious axe violations 
+    [mobile-safari] › e2e/homepage.spec.ts:20:7 › Homepage › renders main navigation links ─────────
+    [mobile-safari] › e2e/human-click-timing-debug.spec.ts:235:7 › Section A — Human Click Simulation › A02 — Typesense search bar click opens search and accepts keyboard input 
+    [mobile-safari] › e2e/human-click-timing-debug.spec.ts:417:7 › Section B — Tab & Keyboard Navigation › B01 — skip navigation link is first focusable element on homepage 
+    [mobile-safari] › e2e/human-click-timing-debug.spec.ts:615:7 › Section C — Page Load Timing › C01 — Homepage: TTFB, FCP, LCP within budget 
+    [mobile-safari] › e2e/navigation.spec.ts:4:7 › Navigation › main nav links are visible on desktop 
+  252 skipped
+  395 passed (10.4m)
