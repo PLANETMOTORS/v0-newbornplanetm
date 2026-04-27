@@ -296,11 +296,15 @@ export async function GET(request: NextRequest) {
     if (cachedFacets) {
       filters = cachedFacets
     } else {
-      const { data: allVehicles } = await supabase
+      let facetQuery = supabase
         .from('vehicles')
         .select('make, body_style, fuel_type, price, year')
-        .eq('status', status)
-        .limit(1000)
+      if (status === 'public') {
+        facetQuery = facetQuery.in('status', ['available', 'reserved', 'sold'])
+      } else {
+        facetQuery = facetQuery.eq('status', status)
+      }
+      const { data: allVehicles } = await facetQuery.limit(1000)
 
       const makes = [...new Set(allVehicles?.map(v => v.make).filter(Boolean) || [])]
       const bodyStyles = [...new Set(allVehicles?.map(v => v.body_style).filter(Boolean) || [])]
