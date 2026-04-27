@@ -45,7 +45,13 @@ jobs:
       
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      
+
+      - name: Install coverage provider
+        # @vitest/coverage-v8 is an optional peer dep of vitest.
+        # Install it without touching the frozen lockfile.
+        run: node_modules/.bin/vitest --version && node -e "require('@vitest/coverage-v8')" 2>/dev/null || npm install --no-save @vitest/coverage-v8@4.1.4
+        continue-on-error: true
+
       - name: Run tests with coverage
         run: pnpm vitest run --coverage
         continue-on-error: true
