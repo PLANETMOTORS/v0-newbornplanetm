@@ -108,17 +108,17 @@ describe('handleCheckoutSessionCompleted', () => {
     }))
   })
 
-  it('releases vehicle when validation fails on paid session', async () => {
-    // Mock returns reservation with missing Stripe refs → validation fails
+  it('releases vehicle when confirm update fails on paid session', async () => {
+    // Reservation is valid but the confirm update returns an error (e.g., DB trigger rejection)
     supabase = createMockSupabase({
       data: {
         deposit_status: 'paid',
-        stripe_payment_intent_id: null,
-        stripe_checkout_session_id: null,
+        stripe_payment_intent_id: 'pi_test_123',
+        stripe_checkout_session_id: 'cs_test_123',
         status: 'pending',
         expires_at: new Date(Date.now() + 86400000).toISOString(),
       },
-      error: null,
+      error: { message: 'DB trigger rejected confirmation' },
     })
     const session = makeSession({ payment_status: 'paid' })
     await handleCheckoutSessionCompleted(supabase, session)

@@ -120,7 +120,7 @@ export async function PATCH(request: NextRequest) {
         stripe_payment_intent_id: existing.stripe_payment_intent_id,
         stripe_checkout_session_id: existing.stripe_checkout_session_id,
         status: existing.status,
-        expires_at: existing.expires_at,
+        expires_at: updates.expires_at ?? existing.expires_at,
       }
 
       const validation = await fullPaymentVerification(reservationForValidation)

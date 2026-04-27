@@ -275,11 +275,6 @@ export async function handleCheckoutSessionCompleted(
     const now = new Date().toISOString()
 
     if (session.payment_status === "paid") {
-      // Ensure deposit_status is marked as paid before confirming.
-      // checkout.session.completed can fire before payment_intent.succeeded in edge cases.
-      await supabase.from("reservations").update({ deposit_status: "paid", stripe_checkout_session_id: session.id, ...(typeof session.payment_intent === "string" ? { stripe_payment_intent_id: session.payment_intent } : {}), updated_at: now }).eq("id", reservationId)
-
-      // Fetch the updated reservation to validate before confirming
       const { data: reservation } = await supabase
         .from("reservations")
         .select("deposit_status, stripe_payment_intent_id, stripe_checkout_session_id, status, expires_at")
@@ -290,7 +285,10 @@ export async function handleCheckoutSessionCompleted(
         if (["confirmed", "completed", "cancelled", "expired"].includes(reservation.status ?? "")) {
           reservationConfirmed = reservation.status === "confirmed" || reservation.status === "completed"
         } else {
-          const validation = validateReservationForConfirmation(reservation, { skipExpiryCheck: true })
+          await supabase.from("reservations").update({ deposit_status: "paid", stripe_checkout_session_id: session.id, ...(typeof session.payment_intent === "string" ? { stripe_payment_intent_id: session.payment_intent } : {}), updated_at: now }).eq("id", reservationId)
+
+          const updatedReservation = { ...reservation, deposit_status: "paid", stripe_checkout_session_id: session.id, ...(typeof session.payment_intent === "string" ? { stripe_payment_intent_id: session.payment_intent } : {}) }
+          const validation = validateReservationForConfirmation(updatedReservation, { skipExpiryCheck: true })
           if (validation.valid) {
             const { error: confirmError } = await supabase.from("reservations").update({ status: "confirmed", updated_at: now }).eq("id", reservationId)
             if (!confirmError) {
