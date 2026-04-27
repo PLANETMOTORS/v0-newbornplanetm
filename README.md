@@ -17,6 +17,16 @@
 | 360° Vehicle Views | **Interactive AVIF** |
 | EV Battery Health | **Full report** |
 
+## Team
+
+| Name | Role | Access |
+|------|------|--------|
+| **Tony Bekheet** | Owner / CEO | Sanity Admin |
+| **Hamza Patel** | Finance Manager | Sanity Editor |
+| **Toni Sultzberg** | Lead Developer | Sanity Admin |
+
+> Studio access: `studio.planetmotors.ca` — 2FA required for all accounts.
+
 ## Quick Start
 
 ```bash

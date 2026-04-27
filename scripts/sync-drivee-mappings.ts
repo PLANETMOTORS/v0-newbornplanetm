@@ -75,8 +75,7 @@ async function main() {
           Prefer: "resolution=merge-duplicates",
         },
         body: JSON.stringify(body),
-      });
-
+      })
       if (res.ok) {
         console.log(`  ✅ ${entry.vehicle} — MID: ${entry.mid}, ${entry.frameCount} frames`)
         synced++

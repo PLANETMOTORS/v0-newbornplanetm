@@ -20,8 +20,9 @@ const HOMENET_STALE_THRESHOLD_MS = 30 * 60 * 1000 // 30 minutes
 interface SanityWebhookRecord {
   timestamp: string
   documentType: string
+  documentId: string
+  operation: string
   tagsRevalidated: string[]
-  status: string
 }
 
 // ── Auth guard ─────────────────────────────────────────────────────────────

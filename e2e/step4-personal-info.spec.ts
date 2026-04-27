@@ -235,7 +235,7 @@ test.describe("Step 4 — Finance Form: Draft Persistence", () => {
     // Seed draft data using the full state structure the component expects.
     // Reuse the production-shape `emptyApplicant` to avoid drift between
     // the form's required fields and the test fixture.
-    const { emptyApplicant } = await import("@/components/finance-application/types")
+    const { emptyApplicant } = await import("../components/finance-application/types")
     const draft = {
       primaryApplicant: {
         ...emptyApplicant,

@@ -13,7 +13,7 @@ import { pageSchemas } from './pages'
 import { homepageHero, banner, page, promotion } from './homepage'
 
 // Content
-import { blogPost, testimonial, faqEntry, protectionPlan } from './content'
+import { author, blogPost, testimonial, faqEntry, protectionPlan } from './content'
 
 // Settings
 import { siteSettings, seoSettings, navigation } from './settings'
@@ -36,6 +36,7 @@ export const schemaTypes = [
   promotion,
   
   // Content
+  author,
   blogPost,
   testimonial,
   faqEntry,

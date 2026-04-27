@@ -235,7 +235,7 @@ const vehicleTrims: Record<string, string[]> = {
 
 const conditionOptions = [
   { value: "excellent", label: "Excellent", description: "Like new, no visible wear, all features work perfectly", multiplier: 1.1 },
-  { value: "good", label: "Good", description: "Minor wear, small scratches, everything functions properly", multiplier: 1 },
+  { value: "good", label: "Good", description: "Minor wear, small scratches, everything functions properly", multiplier: 1.0 },
   { value: "fair", label: "Fair", description: "Noticeable wear, some cosmetic issues, may need minor repairs", multiplier: 0.9 },
   { value: "poor", label: "Poor", description: "Significant wear, mechanical or body issues, needs work", multiplier: 0.75 },
 ]
@@ -356,7 +356,7 @@ function TradeInContent() {
         setSelectedModel(parts[1])
       }
       const mileageParam = searchParams.get("mileage")
-      if (mileageParam) setMileage(mileageParam.replace(/\D/g, ""))
+      if (mileageParam) setMileage(mileageParam.replaceAll(/\D/g, ""))
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, user])
@@ -437,7 +437,7 @@ function TradeInContent() {
   const handlePhoneChange = (value: string) => {
     const formatted = formatCanadianPhoneNumber(value)
     setPhone(formatted)
-    const digitsOnly = value.replace(/\D/g, '')
+    const digitsOnly = value.replaceAll(/\D/g, '')
     if (digitsOnly.length > 0 && digitsOnly.length < 10) {
       setPhoneError("Please enter a complete 10-digit phone number")
     } else if (digitsOnly.length >= 10 && !isValidCanadianPhoneNumber(formatted)) {
@@ -450,7 +450,7 @@ function TradeInContent() {
   const handlePostalCodeChange = (value: string) => {
     const formatted = formatCanadianPostalCode(value)
     setPostalCode(formatted)
-    const cleanValue = value.replace(/\s/g, '')
+    const cleanValue = value.replaceAll(/\s/g, '')
     if (cleanValue.length > 0 && cleanValue.length < 6) {
       setPostalCodeError("Please enter a complete postal code (e.g., L4C 2G1)")
     } else if (cleanValue.length >= 6 && !isValidCanadianPostalCode(formatted)) {
@@ -547,17 +547,17 @@ function TradeInContent() {
     }
     let value = baseTiers[selectedMake] || 28000
     for (let y = 0; y < age; y++) {
-      if (y === 0) value *= 0.8
+      if (y === 0) value *= 0.80
       else if (y < 3) value *= 0.88
-      else if (y < 6) value *= 0.9
+      else if (y < 6) value *= 0.90
       else value *= 0.92
     }
     const expectedKm = age * 20000
     if (mileageNum > expectedKm) value -= (mileageNum - expectedKm) * 0.05
-    const condMul = { excellent: 1.1, good: 1, fair: 0.85, poor: 0.65 }[condition] || 1
+    const condMul = { excellent: 1.10, good: 1.0, fair: 0.85, poor: 0.65 }[condition] || 1.0
     value = Math.max(500, value * condMul)
     value = Math.round(value / 50) * 50
-    return { low: Math.round(value * 0.9 / 50) * 50, mid: value, high: Math.round(value * 1.1 / 50) * 50 }
+    return { low: Math.round(value * 0.90 / 50) * 50, mid: value, high: Math.round(value * 1.10 / 50) * 50 }
   }
 
   const fetchValuation = async (): Promise<{ low: number; mid: number; high: number }> => {
@@ -804,7 +804,7 @@ function TradeInContent() {
                         pattern="[0-9]*"
                         className="h-12 bg-white/5 border-white/20 text-white placeholder:text-white/30"
                         value={mileage}
-                        onChange={(e) => setMileage(e.target.value.replace(/\D/g, ''))}
+                        onChange={(e) => setMileage(e.target.value.replaceAll(/\D/g, ''))}
                         autoComplete="off"
                       />
                       <Button
@@ -856,7 +856,7 @@ function TradeInContent() {
                             pattern="[0-9]*"
                             className="h-12"
                             value={mileage}
-                            onChange={(e) => setMileage(e.target.value.replace(/\D/g, ''))}
+                            onChange={(e) => setMileage(e.target.value.replaceAll(/\D/g, ''))}
                             autoComplete="off"
                           />
                           <Button className="w-full h-12 text-lg" size="lg" onClick={() => goToStep(2)} disabled={!mileage}>

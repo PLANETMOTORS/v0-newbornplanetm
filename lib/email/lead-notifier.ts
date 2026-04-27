@@ -199,7 +199,7 @@ function emailWrapper(content: string, accentColor: string = BRAND.blue): string
 function buildInternalAlert(lead: LeadPayload): { subject: string; html: string } {
   const name = escapeHtml(`${lead.firstName} ${lead.lastName}`)
   const vLabel = escapeHtml(vehicleLabel(lead.vehicle))
-  const sourceLabel = escapeHtml(lead.source.replaceAll("_", " ").replace(/\b\w/g, c => c.toUpperCase()))
+  const sourceLabel = escapeHtml(lead.source.replaceAll("_", " ").replaceAll(/\b\w/g, c => c.toUpperCase()))
   const adminUrl = `${BASE_URL}/admin/leads${lead.leadId ? `?highlight=${lead.leadId}` : ""}`
   const vdpUrl = lead.vehicle?.id ? `${BASE_URL}/vehicles/${lead.vehicle.id}` : null
 

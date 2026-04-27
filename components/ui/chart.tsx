@@ -47,11 +47,10 @@ function ChartContainer({
   >['children']
 }) {
   const uniqueId = React.useId()
-  const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`
-  const ctxValue = React.useMemo(() => ({ config }), [config])
+  const chartId = `chart-${id || uniqueId.replaceAll(":", "")}`
 
   return (
-    <ChartContext.Provider value={ctxValue}>
+    <ChartContext.Provider value={{ config }}>
       <div
         data-slot="chart"
         data-chart={chartId}
