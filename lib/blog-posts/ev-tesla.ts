@@ -1,3 +1,4 @@
+// Static content data file — excluded from Sonar CPD (sonar.cpd.exclusions in sonar-project.properties)
 import { createBlogPost, type BlogPostEntry } from "../blog-data"
 
 export const blogPostsChunk1: Record<string, BlogPostEntry> = {
