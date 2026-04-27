@@ -30,7 +30,8 @@ const DEFAULT_STATE: ConsentState = {
 }
 
 function readStoredConsent(): ConsentState {
-  if (globalThis.window === undefined) return DEFAULT_STATE  try {
+  if (globalThis.window === undefined) return DEFAULT_STATE
+  try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return DEFAULT_STATE
     const parsed = JSON.parse(raw) as ConsentState
@@ -43,7 +44,8 @@ function readStoredConsent(): ConsentState {
 }
 
 function writeStoredConsent(state: ConsentState) {
-  if (globalThis.window === undefined) return  localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+  if (globalThis.window === undefined) return
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
 }
 
 /** Push a Google Consent Mode v2 update so gtag respects the user's choice. */

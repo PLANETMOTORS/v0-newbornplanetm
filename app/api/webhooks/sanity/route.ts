@@ -120,7 +120,8 @@ export async function POST(request: NextRequest) {
     // ── Step 1: ISR cache revalidation (always runs, never blocked) ────────
     revalidatePath("/")
     revalidatePath("/inventory")
-    revalidateTypeSpecificPaths(documentType)    logger.info(`[Sanity Webhook] revalidatePath → / /inventory + type-specific paths`)
+    revalidateTypeSpecificPaths(documentType)
+    logger.info(`[Sanity Webhook] revalidatePath → / /inventory + type-specific paths`)
 
     // Revalidate specific cache tags for the document type
     const tagsToRevalidate = TYPE_TO_TAGS[documentType] ?? []

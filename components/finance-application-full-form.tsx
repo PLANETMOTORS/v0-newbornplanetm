@@ -65,7 +65,8 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
   // Capture UTM params from URL on mount (persisted to submission payload)
   const utmParams = useRef<Record<string, string>>({})
   useEffect(() => {
-    if (globalThis.window === undefined) return    const sp = new URLSearchParams(globalThis.location.search)
+    if (globalThis.window === undefined) return
+    const sp = new URLSearchParams(globalThis.location.search)
     const utm: Record<string, string> = {}
     for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"]) {
       const val = sp.get(key)

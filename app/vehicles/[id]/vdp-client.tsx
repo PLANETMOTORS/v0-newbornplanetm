@@ -37,7 +37,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { trackProductView, trackPhoneClick } from "@/components/analytics/google-tag-manager"
-import { safeNum } from "@/lib/pricing/format"import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
+import { safeNum } from "@/lib/pricing/format"
+import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
 import { trackMetaViewContent, trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
 import { PHONE_LOCAL, PHONE_LOCAL_TEL, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 import { FALLBACK_VEHICLE_DATA as vehicleData } from "@/lib/vdp/fallback-vehicle-data"
