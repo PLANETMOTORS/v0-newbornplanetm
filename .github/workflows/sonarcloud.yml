@@ -45,7 +45,7 @@ jobs:
       
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
+      
       - name: Run tests with coverage
         run: pnpm vitest run --coverage
         continue-on-error: true
