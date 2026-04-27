@@ -144,6 +144,7 @@ export async function POST(request: NextRequest) {
         documentType,
         documentId,
         operation,
+        tagsRevalidated: tagsToRevalidate,
       },
       60 * 60 * 24 * 7, // 7-day TTL in seconds
     ).catch((err) => logger.warn("[Sanity Webhook] Redis heartbeat write failed:", err))
