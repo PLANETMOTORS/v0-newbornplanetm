@@ -124,6 +124,59 @@ function formatPrice(cents: number): string {
   return "$" + Math.round(safe / 100).toLocaleString()
 }
 
+// ─── Sub-components (extracted to satisfy SonarCloud rule typescript:S2004) ──
+
+const VEHICLE_STATUSES = ["available", "reserved", "pending", "sold"] as const
+type VehicleStatus = (typeof VEHICLE_STATUSES)[number]
+
+interface VehicleStatusMenuProps {
+  vehicleId: string
+  currentStatus: string
+  onChange: (vehicleId: string, newStatus: string) => void
+}
+
+/**
+ * Status sub-menu rendered inside each row of the inventory table.
+ * Hoisted to module scope so the inline arrow handler that fires
+ * `onChange` no longer pushes the per-row nesting depth above the
+ * SonarCloud S2004 threshold (4 levels).
+ */
+function VehicleStatusMenu({ vehicleId, currentStatus, onChange }: VehicleStatusMenuProps) {
+  return (
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger>
+        <RotateCcw className="w-4 h-4 mr-2" />
+        Change Status
+      </DropdownMenuSubTrigger>
+      <DropdownMenuSubContent>
+        {VEHICLE_STATUSES.map((s: VehicleStatus) => (
+          <VehicleStatusMenuItem
+            key={s}
+            status={s}
+            currentStatus={currentStatus}
+            onSelect={() => onChange(vehicleId, s)}
+          />
+        ))}
+      </DropdownMenuSubContent>
+    </DropdownMenuSub>
+  )
+}
+
+interface VehicleStatusMenuItemProps {
+  status: VehicleStatus
+  currentStatus: string
+  onSelect: () => void
+}
+
+function VehicleStatusMenuItem({ status, currentStatus, onSelect }: VehicleStatusMenuItemProps) {
+  return (
+    <DropdownMenuItem disabled={currentStatus === status} onClick={onSelect}>
+      <Badge variant={statusBadgeVariant(status)} className="mr-2">{status}</Badge>
+      {currentStatus === status && <span className="ml-auto text-xs text-gray-400">current</span>}
+    </DropdownMenuItem>
+  )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────
 
 export default function AdminInventoryPage() {
@@ -787,27 +840,11 @@ export default function AdminInventoryPage() {
                                 ) : null}
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuSub>
-                                <DropdownMenuSubTrigger>
-                                  <RotateCcw className="w-4 h-4 mr-2" />
-                                  Change Status
-                                </DropdownMenuSubTrigger>
-                                <DropdownMenuSubContent>
-                                  {["available", "reserved", "pending", "sold"].map((s) => {
-                                    const handleStatusClick = () => handleStatusChange(vehicle.id, s)
-                                    return (
-                                      <DropdownMenuItem
-                                        key={s}
-                                        disabled={vehicle.status === s}
-                                        onClick={handleStatusClick}
-                                      >
-                                        <Badge variant={statusBadgeVariant(s)} className="mr-2">{s}</Badge>
-                                        {vehicle.status === s && <span className="ml-auto text-xs text-gray-400">current</span>}
-                                      </DropdownMenuItem>
-                                    )
-                                  })}
-                                </DropdownMenuSubContent>
-                              </DropdownMenuSub>
+                              <VehicleStatusMenu
+                                vehicleId={vehicle.id}
+                                currentStatus={vehicle.status}
+                                onChange={handleStatusChange}
+                              />
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 className="text-red-600"
