@@ -144,7 +144,7 @@ function sanitizeBodyStyleValue(value: string): string {
 const FACET_FIELDS = 'make,model,body_style,fuel_type,drivetrain,year,is_ev,is_certified'
 
 function buildFilterBy(params: VehicleSearchParams): string {
-  const filters: string[] = ['status:=available']
+  const filters: string[] = ['status:=[available,reserved,sold]']
 
   const makes = asArray(params.make)
   if (makes.length) filters.push(`make:=[${sanitizeFilterValues(makes)}]`)
@@ -318,7 +318,7 @@ async function searchSupabase(params: VehicleSearchParams): Promise<SearchRespon
   let query: SupabaseQuery = supabase
     .from('vehicles')
     .select('id, stock_number, year, make, model, trim, body_style, exterior_color, price, mileage, drivetrain, fuel_type, is_ev, is_certified, status, primary_image_url', { count: 'exact' })
-    .eq('status', 'available')
+    .in('status', ['available', 'reserved', 'sold'])
 
   query = applySupabaseTextSearch(query, params.query)
   query = applySupabaseFilters(query, params)
@@ -368,7 +368,7 @@ export async function getVehicleFacets() {
           .search({
             q: '*',
             query_by: 'make',
-            filter_by: 'status:=available',
+            filter_by: 'status:=[available,reserved,sold]',
             facet_by: FACET_FIELDS,
             max_facet_values: 100,
             per_page: 0, // we only want facets, not documents
@@ -393,7 +393,7 @@ export async function getVehicleFacets() {
   const { data } = await supabase
     .from('vehicles')
     .select('make, fuel_type')
-    .eq('status', 'available')
+    .in('status', ['available', 'reserved', 'sold'])
     .limit(5000)
 
   const rows = data || []

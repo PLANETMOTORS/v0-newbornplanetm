@@ -152,7 +152,7 @@ export async function buildVehiclesSitemap(baseUrl: string, currentDate: string)
     const { data, error } = await supabase
       .from('vehicles')
       .select('id, updated_at')
-      .eq('status', 'available')
+      .in('status', ['available', 'reserved', 'sold'])
       .order('updated_at', { ascending: false })
       .limit(VEHICLE_SITEMAP_LIMIT)
 

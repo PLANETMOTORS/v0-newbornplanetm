@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey)
-  let query = supabase.from("vehicles").select("*").eq("status", "available")
+  let query = supabase.from("vehicles").select("*").in("status", ["available", "reserved", "sold"])
   if (make) query = query.ilike("make", `%${make}%`)
   if (model) query = query.ilike("model", `%${model}%`)
 

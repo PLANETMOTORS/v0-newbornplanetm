@@ -164,7 +164,8 @@ function transformVehicle(v: Vehicle) {
     monthlyPayment: priceInDollars > 0 ? Math.round(priceInDollars / 84) : 0,
     carfaxUrl: `https://www.carfax.ca/vehicle/${v.vin}`,
     features: ["PM Certified", "Full Inspection", "Warranty Included"],
-    hasDrivee: !!v.drivee_mid
+    hasDrivee: !!v.drivee_mid,
+    status: v.status,
   }
 }
 
@@ -979,6 +980,21 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   </div>
                   )}
 
+                  {/* Reserved / Sold overlay */}
+                  {vehicle.status === "reserved" && (
+                    <div className="absolute inset-0 bg-black/10 flex items-center justify-center pointer-events-none z-3">
+                      <span className="bg-yellow-600 text-white px-5 py-2 text-sm font-bold uppercase tracking-widest -rotate-6 shadow-xl rounded-sm">
+                        Reserved
+                      </span>
+                    </div>
+                  )}
+                  {vehicle.status === "sold" && (
+                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center pointer-events-none z-3">
+                      <span className="bg-red-600 text-white px-6 py-2 text-lg font-bold uppercase tracking-widest -rotate-12 shadow-xl rounded-sm">
+                        Sold
+                      </span>
+                    </div>
+                  )}
 
                 </div>
 

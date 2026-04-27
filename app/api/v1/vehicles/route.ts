@@ -39,7 +39,7 @@ const VEHICLE_LIST_FIELDS = [
   'id', 'year', 'make', 'model', 'trim', 'price', 'msrp',
   'mileage', 'fuel_type', 'body_style', 'transmission', 'drivetrain',
   'exterior_color', 'primary_image_url', 'status', 'stock_number',
-  'created_at', 'vin', 'is_new_arrival', 'is_certified',
+  'created_at', 'vin', 'is_new_arrival', 'is_certified', 'sold_at',
 ].join(', ')
 
 // TTLs (seconds)
@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
   const transmission = searchParams.get('transmission')
   const drivetrain = searchParams.get('drivetrain')
   const q = searchParams.get('q')
-  const status = searchParams.get('status') || 'available'
+  const status = searchParams.get('status') || 'public'
   const rawSort = searchParams.get('sort') || 'created_at'
   const sort = ALLOWED_SORT_COLUMNS.has(rawSort) ? rawSort : 'created_at'
   const order = searchParams.get('order') || 'desc'
@@ -179,8 +179,13 @@ export async function GET(request: NextRequest) {
     .from('vehicles')
     .select(VEHICLE_LIST_FIELDS, { count: 'exact' })
 
-  // Apply filters
-  if (status) query = query.eq('status', status)
+  // Apply status filter — "public" shows available + reserved + recently-sold (7 days)
+  if (status === 'public') {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    query = query.or(`status.eq.available,status.eq.reserved,and(status.eq.sold,sold_at.gte.${sevenDaysAgo})`)
+  } else if (status) {
+    query = query.eq('status', status)
+  }
   if (make) query = query.ilike('make', make)
   if (model) query = query.ilike('model', `%${model}%`)
   if (q) {
