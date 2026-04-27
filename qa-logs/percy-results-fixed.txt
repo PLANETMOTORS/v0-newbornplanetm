@@ -1,0 +1,50 @@
+[percy] Notice: Percy collects CI logs to improve service and enhance your experience. These logs help us debug issues and provide insights on your dashboards, making it easier to optimize the product experience. Logs are stored securely for 30 days. You can opt out anytime with export PERCY_CLIENT_ERROR_LOGS=false, but keeping this enabled helps us offer the best support and features.
+[percy] Unable to analyze error logs
+[percy] Skipping visual tests
+[percy] Error: Missing Percy token
+[percy] Running "npx playwright test e2e/percy-visual.spec.ts"
+
+Running 25 tests using 1 worker
+
+[1A[2K[1/25] [chromium] › e2e/percy-visual.spec.ts:5:7 › Percy Visual Regression Tests › Homepage - Desktop
+[1A[2K[chromium] › e2e/percy-visual.spec.ts:5:7 › Percy Visual Regression Tests › Homepage - Desktop
+[[95mpercy[39m] Percy is not running, disabling snapshots
+
+[1A[2K[2/25] [chromium] › e2e/percy-visual.spec.ts:11:7 › Percy Visual Regression Tests › Homepage - Mobile
+[1A[2K[3/25] [chromium] › e2e/percy-visual.spec.ts:18:7 › Percy Visual Regression Tests › Inventory Page
+[1A[2K[4/25] [chromium] › e2e/percy-visual.spec.ts:24:7 › Percy Visual Regression Tests › Login Page
+[1A[2K[5/25] [chromium] › e2e/percy-visual.spec.ts:30:7 › Percy Visual Regression Tests › Signup Page
+[1A[2K[6/25] [firefox] › e2e/percy-visual.spec.ts:5:7 › Percy Visual Regression Tests › Homepage - Desktop
+[1A[2K[firefox] › e2e/percy-visual.spec.ts:5:7 › Percy Visual Regression Tests › Homepage - Desktop
+[[95mpercy[39m] Percy is not running, disabling snapshots
+
+[1A[2K[7/25] [firefox] › e2e/percy-visual.spec.ts:11:7 › Percy Visual Regression Tests › Homepage - Mobile
+[1A[2K[8/25] [firefox] › e2e/percy-visual.spec.ts:18:7 › Percy Visual Regression Tests › Inventory Page
+[1A[2K[9/25] [firefox] › e2e/percy-visual.spec.ts:24:7 › Percy Visual Regression Tests › Login Page
+[1A[2K[10/25] [firefox] › e2e/percy-visual.spec.ts:30:7 › Percy Visual Regression Tests › Signup Page
+[1A[2K[11/25] [webkit] › e2e/percy-visual.spec.ts:5:7 › Percy Visual Regression Tests › Homepage - Desktop
+[1A[2K[webkit] › e2e/percy-visual.spec.ts:5:7 › Percy Visual Regression Tests › Homepage - Desktop
+[[95mpercy[39m] Percy is not running, disabling snapshots
+
+[1A[2K[12/25] [webkit] › e2e/percy-visual.spec.ts:11:7 › Percy Visual Regression Tests › Homepage - Mobile
+[1A[2K[13/25] [webkit] › e2e/percy-visual.spec.ts:18:7 › Percy Visual Regression Tests › Inventory Page
+[1A[2K[14/25] [webkit] › e2e/percy-visual.spec.ts:24:7 › Percy Visual Regression Tests › Login Page
+[1A[2K[15/25] [webkit] › e2e/percy-visual.spec.ts:30:7 › Percy Visual Regression Tests › Signup Page
+[1A[2K[16/25] [mobile-chrome] › e2e/percy-visual.spec.ts:5:7 › Percy Visual Regression Tests › Homepage - Desktop
+[1A[2K[mobile-chrome] › e2e/percy-visual.spec.ts:5:7 › Percy Visual Regression Tests › Homepage - Desktop
+[[95mpercy[39m] Percy is not running, disabling snapshots
+
+[1A[2K[17/25] [mobile-chrome] › e2e/percy-visual.spec.ts:11:7 › Percy Visual Regression Tests › Homepage - Mobile
+[1A[2K[18/25] [mobile-chrome] › e2e/percy-visual.spec.ts:18:7 › Percy Visual Regression Tests › Inventory Page
+[1A[2K[19/25] [mobile-chrome] › e2e/percy-visual.spec.ts:24:7 › Percy Visual Regression Tests › Login Page
+[1A[2K[20/25] [mobile-chrome] › e2e/percy-visual.spec.ts:30:7 › Percy Visual Regression Tests › Signup Page
+[1A[2K[21/25] [mobile-safari] › e2e/percy-visual.spec.ts:5:7 › Percy Visual Regression Tests › Homepage - Desktop
+[1A[2K[mobile-safari] › e2e/percy-visual.spec.ts:5:7 › Percy Visual Regression Tests › Homepage - Desktop
+[[95mpercy[39m] Percy is not running, disabling snapshots
+
+[1A[2K[22/25] [mobile-safari] › e2e/percy-visual.spec.ts:11:7 › Percy Visual Regression Tests › Homepage - Mobile
+[1A[2K[23/25] [mobile-safari] › e2e/percy-visual.spec.ts:18:7 › Percy Visual Regression Tests › Inventory Page
+[1A[2K[24/25] [mobile-safari] › e2e/percy-visual.spec.ts:24:7 › Percy Visual Regression Tests › Login Page
+[1A[2K[25/25] [mobile-safari] › e2e/percy-visual.spec.ts:30:7 › Percy Visual Regression Tests › Signup Page
+[1A[2K  25 passed (33.1s)
+[percy] Command "npx playwright test e2e/percy-visual.spec.ts" exited with status: 0

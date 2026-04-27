@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { createClient as createServiceClient } from "@supabase/supabase-js"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { ADMIN_EMAILS } from "@/lib/admin"
 
 interface KnowledgeEntry {
@@ -27,10 +27,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const adminClient = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-      process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
-    )
+    const adminClient = createAdminClient()
 
     const agentType = request.nextUrl.searchParams.get("agent_type")
     const category = request.nextUrl.searchParams.get("category")
@@ -74,10 +71,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const adminClient = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-      process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
-    )
+    const adminClient = createAdminClient()
 
     const body = await request.json()
     const { agent_type, category, trigger_phrase, response, priority, tags } = body
@@ -126,10 +120,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const adminClient = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-      process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
-    )
+    const adminClient = createAdminClient()
 
     const body = await request.json()
     const { id, ...updates } = body
@@ -175,10 +166,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const adminClient = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-      process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
-    )
+    const adminClient = createAdminClient()
 
     const id = request.nextUrl.searchParams.get("id")
     if (!id) {

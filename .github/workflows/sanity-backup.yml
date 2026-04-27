@@ -70,7 +70,7 @@ jobs:
           echo "BACKUP_FILE=${FILENAME}" >> $GITHUB_ENV
           echo "BACKUP_TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
 
-          SANITY_TOKEN="${SANITY_API_TOKEN}" \
+          SANITY_AUTH_TOKEN="${SANITY_API_TOKEN}" \
           npx --yes @sanity/cli@latest \
             dataset export "${SANITY_DATASET}" "${FILENAME}" \
             --project-id "${SANITY_PROJECT_ID}" \
