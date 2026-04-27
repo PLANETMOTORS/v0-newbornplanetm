@@ -14,6 +14,20 @@ import { RATE_FLOOR_DISPLAY } from "@/lib/rates"
 // Broader positioning: "Canada's trusted used vehicle dealership specializing in EVs"
 // Brand colors: Navy Blue #1e3a8a, Red #dc2626
 
+// Maps a vehicle badge label to the corresponding Tailwind background class.
+function getBadgeBgClass(badge: string): string {
+  switch (badge) {
+    case "Popular":
+      return "bg-[#dc2626]"
+    case "New Arrival":
+      return "bg-green-500"
+    case "Luxury":
+      return "bg-purple-600"
+    default:
+      return "bg-[#1e3a8a]"
+  }
+}
+
 export default function HomepageMockupV2() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("all")
@@ -27,11 +41,11 @@ export default function HomepageMockupV2() {
     { id: 6, name: "BMW X3", year: 2022, price: "$44,900", monthly: "$419/mo", mpg: "26 MPG", type: "suv", badge: "Luxury", isEV: false },
   ]
 
-  const filteredVehicles = activeTab === "all" 
-    ? vehicles 
-    : activeTab === "electric" 
-      ? vehicles.filter(v => v.type === "electric")
-      : vehicles.filter(v => v.type === "suv")
+  const filteredVehicles = (() => {
+    if (activeTab === "all") return vehicles
+    if (activeTab === "electric") return vehicles.filter(v => v.type === "electric")
+    return vehicles.filter(v => v.type === "suv")
+  })()
 
   return (
     <div className="min-h-screen bg-white font-sans">
@@ -279,12 +293,7 @@ export default function HomepageMockupV2() {
                     </div>
                   </div>
                   {car.badge && (
-                    <div className={`absolute top-3 left-3 text-white text-xs font-semibold px-3 py-1 rounded-full ${
-                      car.badge === "Popular" ? "bg-[#dc2626]" : 
-                      car.badge === "New Arrival" ? "bg-green-500" : 
-                      car.badge === "Luxury" ? "bg-purple-600" : 
-                      "bg-[#1e3a8a]"
-                    }`}>
+                    <div className={`absolute top-3 left-3 text-white text-xs font-semibold px-3 py-1 rounded-full ${getBadgeBgClass(car.badge)}`}>
                       {car.badge}
                     </div>
                   )}

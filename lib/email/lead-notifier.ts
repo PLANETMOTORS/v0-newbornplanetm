@@ -196,6 +196,74 @@ function emailWrapper(content: string, accentColor: string = BRAND.blue): string
 
 // ── Internal alert email ───────────────────────────────────────────────────
 
+/**
+ * Build the inner "vehicle card" HTML used in the internal alert email.
+ * Early-returns "" when there is no vehicle, so the inner conditional
+ * fragments (price, mileage, VIN, stock #, VDP CTA) live at the top level
+ * of a template literal — no nested ternaries.
+ */
+function buildInternalVehicleCard(
+  lead: LeadPayload,
+  vLabel: string,
+  vdpUrl: string | null,
+): string {
+  const v = lead.vehicle
+  if (!v) return ""
+
+  const imageRow = v.imageUrl
+    ? `
+          <tr>
+            <td style="padding:0;">
+              <img src="${escapeHtml(v.imageUrl)}" alt="${vLabel}"
+                   width="600" style="width:100%;max-height:220px;object-fit:cover;display:block;" />
+            </td>
+          </tr>`
+    : ""
+
+  const priceRow = v.price
+    ? `<tr><td style="padding:3px 12px 3px 0;color:${BRAND.slate};font-size:13px;">Price</td><td style="padding:3px 0;font-weight:600;color:${BRAND.green};font-size:15px;">${escapeHtml(formatPrice(v.price))}</td></tr>`
+    : ""
+
+  const mileageRow = v.mileage
+    ? `<tr><td style="padding:3px 12px 3px 0;color:${BRAND.slate};font-size:13px;">Mileage</td><td style="padding:3px 0;font-weight:600;color:${BRAND.navy};font-size:13px;">${escapeHtml(formatMileage(v.mileage))}</td></tr>`
+    : ""
+
+  const vinRow = v.vin
+    ? `<tr><td style="padding:3px 12px 3px 0;color:${BRAND.slate};font-size:13px;">VIN</td><td style="padding:3px 0;font-family:monospace;font-size:12px;color:${BRAND.slate};">${escapeHtml(v.vin)}</td></tr>`
+    : ""
+
+  const stockRow = v.stockNumber
+    ? `<tr><td style="padding:3px 12px 3px 0;color:${BRAND.slate};font-size:13px;">Stock #</td><td style="padding:3px 0;font-size:13px;color:${BRAND.slate};">${escapeHtml(v.stockNumber)}</td></tr>`
+    : ""
+
+  const vdpCta = vdpUrl
+    ? `<div style="margin-top:16px;"><a href="${escapeHtml(vdpUrl)}" style="display:inline-block;background:${BRAND.navy};color:#fff;font-size:12px;font-weight:600;padding:8px 16px;border-radius:6px;text-decoration:none;">View VDP →</a></div>`
+    : ""
+
+  return `
+    <!-- Vehicle card -->
+    <tr>
+      <td style="padding:0 32px 24px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+               style="background:${BRAND.slateLight};border-radius:10px;overflow:hidden;border:1px solid ${BRAND.border};">
+          ${imageRow}
+          <tr>
+            <td style="padding:20px 24px;">
+              <p style="margin:0 0 4px;font-size:18px;font-weight:700;color:${BRAND.navy};">${vLabel}</p>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:12px;">
+                ${priceRow}
+                ${mileageRow}
+                ${vinRow}
+                ${stockRow}
+              </table>
+              ${vdpCta}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`
+}
+
 function buildInternalAlert(lead: LeadPayload): { subject: string; html: string } {
   const name = escapeHtml(`${lead.firstName} ${lead.lastName}`)
   const vLabel = escapeHtml(vehicleLabel(lead.vehicle))
@@ -203,36 +271,7 @@ function buildInternalAlert(lead: LeadPayload): { subject: string; html: string 
   const adminUrl = `${BASE_URL}/admin/leads${lead.leadId ? `?highlight=${lead.leadId}` : ""}`
   const vdpUrl = lead.vehicle?.id ? `${BASE_URL}/vehicles/${lead.vehicle.id}` : null
 
-  const vehicleBlock = lead.vehicle
-    ? `
-    <!-- Vehicle card -->
-    <tr>
-      <td style="padding:0 32px 24px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
-               style="background:${BRAND.slateLight};border-radius:10px;overflow:hidden;border:1px solid ${BRAND.border};">
-          ${lead.vehicle.imageUrl ? `
-          <tr>
-            <td style="padding:0;">
-              <img src="${escapeHtml(lead.vehicle.imageUrl)}" alt="${vLabel}"
-                   width="600" style="width:100%;max-height:220px;object-fit:cover;display:block;" />
-            </td>
-          </tr>` : ""}
-          <tr>
-            <td style="padding:20px 24px;">
-              <p style="margin:0 0 4px;font-size:18px;font-weight:700;color:${BRAND.navy};">${vLabel}</p>
-              <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:12px;">
-                ${lead.vehicle.price ? `<tr><td style="padding:3px 12px 3px 0;color:${BRAND.slate};font-size:13px;">Price</td><td style="padding:3px 0;font-weight:600;color:${BRAND.green};font-size:15px;">${escapeHtml(formatPrice(lead.vehicle.price))}</td></tr>` : ""}
-                ${lead.vehicle.mileage ? `<tr><td style="padding:3px 12px 3px 0;color:${BRAND.slate};font-size:13px;">Mileage</td><td style="padding:3px 0;font-weight:600;color:${BRAND.navy};font-size:13px;">${escapeHtml(formatMileage(lead.vehicle.mileage))}</td></tr>` : ""}
-                ${lead.vehicle.vin ? `<tr><td style="padding:3px 12px 3px 0;color:${BRAND.slate};font-size:13px;">VIN</td><td style="padding:3px 0;font-family:monospace;font-size:12px;color:${BRAND.slate};">${escapeHtml(lead.vehicle.vin)}</td></tr>` : ""}
-                ${lead.vehicle.stockNumber ? `<tr><td style="padding:3px 12px 3px 0;color:${BRAND.slate};font-size:13px;">Stock #</td><td style="padding:3px 0;font-size:13px;color:${BRAND.slate};">${escapeHtml(lead.vehicle.stockNumber)}</td></tr>` : ""}
-              </table>
-              ${vdpUrl ? `<div style="margin-top:16px;"><a href="${escapeHtml(vdpUrl)}" style="display:inline-block;background:${BRAND.navy};color:#fff;font-size:12px;font-weight:600;padding:8px 16px;border-radius:6px;text-decoration:none;">View VDP →</a></div>` : ""}
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>`
-    : ""
+  const vehicleBlock = buildInternalVehicleCard(lead, vLabel, vdpUrl)
 
   const content = `
     <!-- Alert badge -->
@@ -300,31 +339,45 @@ function buildInternalAlert(lead: LeadPayload): { subject: string; html: string 
 
 // ── Customer follow-up email ───────────────────────────────────────────────
 
-function buildCustomerFollowUp(lead: LeadPayload): { subject: string; html: string } {
-  const firstName = escapeHtml(lead.firstName)
-  const vLabel = escapeHtml(vehicleLabel(lead.vehicle))
-  const hasVehicle = !!lead.vehicle
-  const vdpUrl = lead.vehicle?.id ? `${BASE_URL}/vehicles/${lead.vehicle.id}` : `${BASE_URL}/inventory`
+/**
+ * Build the inner "vehicle highlight" HTML used in the customer follow-up
+ * email. Early-returns "" when there is no vehicle, so the inner
+ * conditional fragments live at the top level — no nested ternaries.
+ */
+function buildCustomerVehicleHighlight(
+  lead: LeadPayload,
+  vLabel: string,
+  vdpUrl: string,
+): string {
+  const v = lead.vehicle
+  if (!v) return ""
 
-  const vehicleSection = hasVehicle
+  const imageRow = v.imageUrl
     ? `
+          <tr>
+            <td>
+              <img src="${escapeHtml(v.imageUrl)}" alt="${vLabel}"
+                   width="600" style="width:100%;max-height:200px;object-fit:cover;display:block;" />
+            </td>
+          </tr>`
+    : ""
+
+  const priceLine = v.price
+    ? `<p style="margin:0 0 16px;font-size:22px;font-weight:700;color:${BRAND.green};">${escapeHtml(formatPrice(v.price))}</p>`
+    : ""
+
+  return `
     <!-- Vehicle highlight -->
     <tr>
       <td style="padding:0 32px 28px;">
         <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:${BRAND.slate};letter-spacing:1px;text-transform:uppercase;">Your Vehicle of Interest</p>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
                style="background:${BRAND.slateLight};border-radius:10px;overflow:hidden;border:1px solid ${BRAND.border};">
-          ${lead.vehicle?.imageUrl ? `
-          <tr>
-            <td>
-              <img src="${escapeHtml(lead.vehicle.imageUrl)}" alt="${vLabel}"
-                   width="600" style="width:100%;max-height:200px;object-fit:cover;display:block;" />
-            </td>
-          </tr>` : ""}
+          ${imageRow}
           <tr>
             <td style="padding:20px 24px;">
               <p style="margin:0 0 8px;font-size:20px;font-weight:800;color:${BRAND.navy};">${vLabel}</p>
-              ${lead.vehicle?.price ? `<p style="margin:0 0 16px;font-size:22px;font-weight:700;color:${BRAND.green};">${escapeHtml(formatPrice(lead.vehicle.price))}</p>` : ""}
+              ${priceLine}
               <a href="${escapeHtml(vdpUrl)}"
                  style="display:inline-block;background:${BRAND.navy};color:#fff;font-size:13px;font-weight:600;padding:10px 20px;border-radius:6px;text-decoration:none;">
                 View Full Details →
@@ -334,7 +387,15 @@ function buildCustomerFollowUp(lead: LeadPayload): { subject: string; html: stri
         </table>
       </td>
     </tr>`
-    : ""
+}
+
+function buildCustomerFollowUp(lead: LeadPayload): { subject: string; html: string } {
+  const firstName = escapeHtml(lead.firstName)
+  const vLabel = escapeHtml(vehicleLabel(lead.vehicle))
+  const hasVehicle = !!lead.vehicle
+  const vdpUrl = lead.vehicle?.id ? `${BASE_URL}/vehicles/${lead.vehicle.id}` : `${BASE_URL}/inventory`
+
+  const vehicleSection = buildCustomerVehicleHighlight(lead, vLabel, vdpUrl)
 
   const content = `
     <!-- Greeting -->

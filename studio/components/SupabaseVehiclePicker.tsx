@@ -187,9 +187,12 @@ export function SupabaseVehiclePicker(props: StringInputProps) {
     return (
       <Card padding={3} radius={2} shadow={1}>
         <Text size={1} muted>
-          {selectedVehicle
-            ? `${selectedVehicle.year} ${selectedVehicle.make} ${selectedVehicle.model} — ${formatPrice(selectedVehicle.price)}`
-            : (value ? `Vehicle ID: ${value}` : 'No vehicle selected')}
+          {(() => {
+            if (selectedVehicle) {
+              return `${selectedVehicle.year} ${selectedVehicle.make} ${selectedVehicle.model} — ${formatPrice(selectedVehicle.price)}`
+            }
+            return value ? `Vehicle ID: ${value}` : 'No vehicle selected'
+          })()}
         </Text>
       </Card>
     )

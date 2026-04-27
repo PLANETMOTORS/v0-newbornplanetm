@@ -2,6 +2,23 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { ADMIN_EMAILS } from "@/lib/admin"
 
+/**
+ * Map a finance application status to its display label. Extracted from a
+ * nested ternary to satisfy SonarCloud rule typescript:S3358.
+ */
+function getFinanceStatusLabel(status: string): string {
+  switch (status) {
+    case "approved":
+      return "Approved"
+    case "declined":
+      return "Declined"
+    case "funded":
+      return "Funded"
+    default:
+      return status
+  }
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -99,9 +116,7 @@ export async function PATCH(
               firstName: applicant.first_name,
               applicationNumber: currentApp.application_number,
               status,
-              statusText: status === "approved" ? "Approved" : 
-                         status === "declined" ? "Declined" :
-                         status === "funded" ? "Funded" : status
+              statusText: getFinanceStatusLabel(status)
             }
           })
         })

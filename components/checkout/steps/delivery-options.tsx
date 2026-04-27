@@ -42,7 +42,11 @@ export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: 
   }, [])
 
   const pickupDate = useMemo(() => baseDate ? getEstimatedDate(baseDate, 1) : "", [baseDate])
-  const deliveryDate = useMemo(() => baseDate ? getEstimatedDate(baseDate, data.deliveryDistance > 200 ? 5 : 3) : "", [baseDate, data.deliveryDistance])
+  const deliveryDate = useMemo(() => {
+    if (!baseDate) return ""
+    const days = data.deliveryDistance > 200 ? 5 : 3
+    return getEstimatedDate(baseDate, days)
+  }, [baseDate, data.deliveryDistance])
 
   useEffect(() => {
     if (!postalCode || postalCode.replace(/\s/g, '').length < 6) return

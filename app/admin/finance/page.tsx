@@ -298,17 +298,24 @@ export default function AdminFinancePage() {
       {/* Applications Table */}
       <Card>
         <CardContent className="p-0">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
-              <span className="ml-2 text-gray-500">Loading applications...</span>
-            </div>
-          ) : filteredApplications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <FileText className="w-12 h-12 text-gray-300 mb-4" />
-              <p className="text-gray-500">No applications found</p>
-            </div>
-          ) : (
+          {(() => {
+            if (loading) {
+              return (
+                <div className="flex items-center justify-center py-12">
+                  <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
+                  <span className="ml-2 text-gray-500">Loading applications...</span>
+                </div>
+              )
+            }
+            if (filteredApplications.length === 0) {
+              return (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <FileText className="w-12 h-12 text-gray-300 mb-4" />
+                  <p className="text-gray-500">No applications found</p>
+                </div>
+              )
+            }
+            return (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b">
@@ -392,7 +399,8 @@ export default function AdminFinancePage() {
                 </tbody>
               </table>
             </div>
-          )}
+            )
+          })()}
         </CardContent>
       </Card>
 

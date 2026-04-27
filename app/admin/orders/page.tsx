@@ -276,29 +276,40 @@ export default function AdminOrdersPage() {
       {/* Table */}
       <Card>
         <CardContent className="p-0">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
-              <span className="ml-2 text-gray-500">Loading orders...</span>
-            </div>
-          ) : error ? (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-              <XCircle className="w-12 h-12 mb-4 text-red-300" />
-              <p className="text-lg font-medium text-red-600">{error}</p>
-              <Button variant="outline" onClick={fetchOrders} className="mt-4">
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Retry
-              </Button>
-            </div>
-          ) : orders.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-              <FileText className="w-12 h-12 mb-4 text-gray-300" />
-              <p className="text-lg font-medium">No orders found</p>
-              <p className="text-sm">
-                {debouncedSearch || statusFilter !== "all" ? "Try adjusting your filters" : "Orders will appear here when customers purchase vehicles"}
-              </p>
-            </div>
-          ) : (
+          {(() => {
+            if (loading) {
+              return (
+                <div className="flex items-center justify-center py-12">
+                  <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
+                  <span className="ml-2 text-gray-500">Loading orders...</span>
+                </div>
+              )
+            }
+            if (error) {
+              return (
+                <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+                  <XCircle className="w-12 h-12 mb-4 text-red-300" />
+                  <p className="text-lg font-medium text-red-600">{error}</p>
+                  <Button variant="outline" onClick={fetchOrders} className="mt-4">
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Retry
+                  </Button>
+                </div>
+              )
+            }
+            if (orders.length === 0) {
+              const emptyHint = debouncedSearch || statusFilter !== "all"
+                ? "Try adjusting your filters"
+                : "Orders will appear here when customers purchase vehicles"
+              return (
+                <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+                  <FileText className="w-12 h-12 mb-4 text-gray-300" />
+                  <p className="text-lg font-medium">No orders found</p>
+                  <p className="text-sm">{emptyHint}</p>
+                </div>
+              )
+            }
+            return (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -363,7 +374,8 @@ export default function AdminOrdersPage() {
                 ))}
               </TableBody>
             </Table>
-          )}
+            )
+          })()}
 
           {/* Pagination */}
           {totalPages > 1 && (

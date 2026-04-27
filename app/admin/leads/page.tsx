@@ -187,15 +187,20 @@ export default function AdminLeadsPage() {
         <div className="lg:col-span-2">
           <Card>
             <CardContent className="p-0">
-              {loading ? (
-                <div className="p-8 text-center text-gray-500">Loading leads...</div>
-              ) : leads.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">
-                  <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                  <p>No leads found</p>
-                  <p className="text-xs mt-1">Leads will appear when customers submit inquiries, chat with Anna, or apply for financing</p>
-                </div>
-              ) : (
+              {(() => {
+                if (loading) {
+                  return <div className="p-8 text-center text-gray-500">Loading leads...</div>
+                }
+                if (leads.length === 0) {
+                  return (
+                    <div className="p-8 text-center text-gray-500">
+                      <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p>No leads found</p>
+                      <p className="text-xs mt-1">Leads will appear when customers submit inquiries, chat with Anna, or apply for financing</p>
+                    </div>
+                  )
+                }
+                return (
                 <div className="divide-y">
                   {leads.map(lead => {
                     const Icon = sourceIcon(lead.source)
@@ -233,7 +238,8 @@ export default function AdminLeadsPage() {
                     )
                   })}
                 </div>
-              )}
+                )
+              })()}
             </CardContent>
           </Card>
 

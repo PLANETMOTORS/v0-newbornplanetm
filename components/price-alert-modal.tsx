@@ -65,11 +65,14 @@ export function PriceAlertModal({ vehicle, searchCriteria, trigger }: PriceAlert
     }
   }
 
-  const title = vehicle 
-    ? `Get alerts for ${vehicle.year} ${vehicle.make} ${vehicle.model}`
-    : searchCriteria?.make 
-      ? `Get alerts for ${searchCriteria.make} ${searchCriteria.model || ""} vehicles`
-      : "Set Up Price Alerts"
+  let title: string
+  if (vehicle) {
+    title = `Get alerts for ${vehicle.year} ${vehicle.make} ${vehicle.model}`
+  } else if (searchCriteria?.make) {
+    title = `Get alerts for ${searchCriteria.make} ${searchCriteria.model || ""} vehicles`
+  } else {
+    title = "Set Up Price Alerts"
+  }
 
   return (
     <Dialog>
