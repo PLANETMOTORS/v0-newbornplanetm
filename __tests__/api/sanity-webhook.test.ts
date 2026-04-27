@@ -4,50 +4,44 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const revalidatePath = vi.fn()
 const revalidateTag  = vi.fn()
 
+class MockNextRequest {
+  private _body: string
+  private _headers: Map<string, string>
+  constructor(body: string, headers: Record<string, string> = {}) {
+    this._body = body
+    this._headers = new Map(Object.entries(headers))
+  }
+  async text() { return this._body }
+  get headers() {
+    return { get: (k: string) => this._headers.get(k) ?? null }
+  }
+}
+
 vi.mock('next/cache', () => ({ revalidatePath, revalidateTag }))
 vi.mock('next/server', () => ({
-  NextRequest: class {
-    private _body: string
-    private _headers: Map<string, string>
-    constructor(body: string, headers: Record<string, string> = {}) {
-      this._body = body
-      this._headers = new Map(Object.entries(headers))
-    }
-    async text() { return this._body }
-    get headers() {
-      return { get: (k: string) => this._headers.get(k) ?? null }
-    }
-  },
+  NextRequest: MockNextRequest,
   NextResponse: {
     json: (body: unknown, init?: ResponseInit) => ({ status: init?.status ?? 200, body }),
   },
 }))
-
 vi.mock('node:crypto', () => ({
   default: {
     createHmac: () => ({ update: () => ({ digest: () => 'aabbccdd' }) }),
     timingSafeEqual: (a: Buffer, b: Buffer) => a.toString() === b.toString(),
   },
 }))
-
 vi.mock('@/lib/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }))
-
 vi.mock('@/lib/typesense/sync', () => ({
   syncVehicleToTypesense: vi.fn().mockResolvedValue({ success: true, action: 'upsert' }),
 }))
 
 const { POST } = await import('@/app/api/webhooks/sanity/route')
 
-// ── Helper ─────────────────────────────────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function makeReq(payload: object, sig = 'aabbccdd'): any {
-  const { NextRequest } = vi.mocked(
-    // @ts-expect-error — reading from mock
-    (await import('next/server')) as { NextRequest: new (b: string, h: Record<string,string>) => unknown }
-  )
-  return new NextRequest(JSON.stringify(payload), { 'sanity-webhook-signature': sig })
+// ── Helper ──────────────────────────────────────────────────────────────────
+function makeReq(payload: object, sig = 'aabbccdd') {
+  return new MockNextRequest(JSON.stringify(payload), { 'sanity-webhook-signature': sig })
 }
 
 // ── Tests ──────────────────────────────────────────────────────────────────
@@ -60,18 +54,14 @@ describe('POST /api/webhooks/sanity', () => {
 
   it('returns 500 when SANITY_WEBHOOK_SECRET is not set', async () => {
     delete process.env.SANITY_WEBHOOK_SECRET
-    const NextRequest = (await import('next/server')).NextRequest
-    // @ts-expect-error minimal mock
-    const req = new NextRequest(JSON.stringify({ _type: 'vehicle' }), { 'sanity-webhook-signature': 'x' })
+    const req = new MockNextRequest(JSON.stringify({ _type: 'vehicle' }), { 'sanity-webhook-signature': 'x' })
     // @ts-expect-error minimal mock
     const res = await POST(req)
     expect(res.status).toBe(500)
   })
 
   it('returns 401 when signature header is missing', async () => {
-    const NextRequest = (await import('next/server')).NextRequest
-    // @ts-expect-error minimal mock
-    const req = new NextRequest(JSON.stringify({ _type: 'blogPost' }), {})
+    const req = new MockNextRequest(JSON.stringify({ _type: 'blogPost' }), {})
     // @ts-expect-error minimal mock
     const res = await POST(req)
     expect(res.status).toBe(401)
@@ -136,4 +126,3 @@ describe('POST /api/webhooks/sanity', () => {
     expect(res.body).toMatchObject({ success: true, documentType: 'homepage', documentId: 'hp1' })
   })
 })
-
