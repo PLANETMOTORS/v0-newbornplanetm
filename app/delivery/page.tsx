@@ -810,7 +810,7 @@ export default function DeliveryPage() {
     
     setTimeout(() => {
       // Extract FSA (first 3 characters) for lookup
-      const fsa = postalCode.replace(/\s/g, "").substring(0, 3).toUpperCase()
+      const fsa = postalCode.replaceAll(/\s/g, "").substring(0, 3).toUpperCase()
       
       // Find matching city or estimate distance
       const city = CITY_DISTANCES[fsa]?.city ?? "Your Area"
@@ -873,7 +873,7 @@ export default function DeliveryPage() {
   }
 
   const formatPostalCode = (value: string) => {
-    const cleaned = value.replace(/\s/g, "").toUpperCase()
+    const cleaned = value.replaceAll(/\s/g, "").toUpperCase()
     if (cleaned.length <= 3) return cleaned
     return cleaned.substring(0, 3) + " " + cleaned.substring(3, 6)
   }
@@ -924,7 +924,7 @@ export default function DeliveryPage() {
                     </div>
                     <Button 
                       onClick={calculateDelivery}
-                      disabled={postalCode.replace(/\s/g, "").length < 3 || isCalculating}
+                      disabled={postalCode.replaceAll(/\s/g, "").length < 3 || isCalculating}
                       size="lg"
                     >
                       {isCalculating ? "Calculating..." : "Calculate"}

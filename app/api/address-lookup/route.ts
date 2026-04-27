@@ -149,7 +149,7 @@ function getProvinceFromPostalCode(postalCode: string): string {
 
 // Get city from postal code prefix (first 3 characters)
 function getCityFromPostalCode(postalCode: string): string {
-  const prefix = postalCode.replace(/\s/g, '').slice(0, 3).toUpperCase()
+  const prefix = postalCode.replaceAll(/\s/g, '').slice(0, 3).toUpperCase()
   const cityMap: Record<string, string> = {
     // Ontario - GTA
     'L4B': 'Richmond Hill', 'L4C': 'Richmond Hill', 'L4E': 'Richmond Hill', 'L4S': 'Richmond Hill',
@@ -241,7 +241,7 @@ const PROV_ABBR_TO_NAME: Record<string, string> = {
 // Fallback: look up city/province via geocoder.ca when local map has no match
 async function lookupPostalCodeOnline(postalCode: string): Promise<{ city: string; province: string; street?: string } | null> {
   try {
-    const clean = postalCode.replace(/\s/g, '').toUpperCase()
+    const clean = postalCode.replaceAll(/\s/g, '').toUpperCase()
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 3000) // 3s timeout
     const response = await fetch(
@@ -302,7 +302,7 @@ async function applyOnlineFallback(
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
-  const postalCode = searchParams.get("postalCode")?.replace(/\s/g, '').toUpperCase() ?? ""
+  const postalCode = searchParams.get("postalCode")?.replaceAll(/\s/g, '').toUpperCase() ?? ""
 
   if (postalCode.length < 3) {
     return NextResponse.json({ suggestions: [], city: '', province: '' })

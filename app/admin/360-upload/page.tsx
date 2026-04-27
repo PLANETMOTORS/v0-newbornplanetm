@@ -186,7 +186,7 @@ export default function Admin360UploadPage() {
                     id="upload-mid"
                     placeholder="e.g. 190171976531"
                     value={mid}
-                    onChange={e => setMid(e.target.value.replace(/\D/g, ""))}
+                    onChange={e => setMid(e.target.value.replaceAll(/\D/g, ""))}
                     maxLength={15}
                   />
                   <p className="text-xs text-gray-400 mt-1">

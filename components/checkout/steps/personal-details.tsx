@@ -59,7 +59,7 @@ interface PersonalDetailsProps {
 }
 
 function formatPhone(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 10)
+  const digits = value.replaceAll(/\D/g, '').slice(0, 10)
   if (digits.length <= 3) return digits
   if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
@@ -95,10 +95,10 @@ export function PersonalDetailsStep({ data, onChange, onContinue }: PersonalDeta
   }, [showStreetDropdown])
 
   const handlePostalCode = (raw: string) => {
-    let value = raw.toUpperCase().replace(/[^A-Z0-9]/g, '')
+    let value = raw.toUpperCase().replaceAll(/[^A-Z0-9]/g, '')
     if (value.length > 3) value = value.slice(0, 3) + ' ' + value.slice(3, 6)
     const formatted = value.slice(0, 7)
-    const prefix = value.replace(/\s/g, '').slice(0, 3).toUpperCase()
+    const prefix = value.replaceAll(/\s/g, '').slice(0, 3).toUpperCase()
 
     update({ postalCode: formatted })
 
@@ -145,11 +145,11 @@ export function PersonalDetailsStep({ data, onChange, onContinue }: PersonalDeta
     if (!data.lastName.trim()) errs.push("Last name is required")
     // Structural, ReDoS-free check (S5852/S2631).
     if (!isEmailLike(data.email)) errs.push("Valid email is required")
-    if (data.phone.replace(/\D/g, '').length !== 10)
+    if (data.phone.replaceAll(/\D/g, '').length !== 10)
       errs.push("Phone must be 10 digits")
     if (!data.address.trim()) errs.push("Street address is required")
     if (!data.city.trim()) errs.push("City is required")
-    const cleanPostal = data.postalCode.replace(/\s/g, '').toUpperCase()
+    const cleanPostal = data.postalCode.replaceAll(/\s/g, '').toUpperCase()
     if (!cleanPostal || !CANADIAN_POSTAL_REGEX.test(cleanPostal.slice(0, 3) + ' ' + cleanPostal.slice(3)))
       errs.push("Valid Canadian postal code is required (e.g. M5V 1A1)")
 

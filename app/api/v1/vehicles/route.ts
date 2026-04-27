@@ -186,7 +186,7 @@ export async function GET(request: NextRequest) {
   if (q) {
     // Use the pre-built tsvector GIN index for safe, efficient full-text search.
     // .or() with user input can be manipulated via special chars (commas, parens).
-    const sanitizedQ = q.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s-]/g, '').trim()
+    const sanitizedQ = q.trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s-]/g, '').trim()
     if (sanitizedQ) {
       query = query.textSearch('search_vector', sanitizedQ, { type: 'websearch', config: 'english' })
     }
@@ -398,7 +398,7 @@ export async function POST(request: NextRequest) {
 
   // Text search across multiple fields
   if (searchQuery) {
-    const sanitizedQuery = String(searchQuery).trim().slice(0, 200).replace(/[^a-zA-Z0-9\s-]/g, '').trim()
+    const sanitizedQuery = String(searchQuery).trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s-]/g, '').trim()
     if (sanitizedQuery) {
       query = query.textSearch('search_vector', sanitizedQuery, { type: 'websearch', config: 'english' })
     }

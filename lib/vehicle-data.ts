@@ -2004,7 +2004,7 @@ export function isValidPostalCode(postalCode: string): boolean {
 
 // Format postal code (uppercase with space)
 export function formatPostalCode(postalCode: string): string {
-  const cleaned = postalCode.replace(/[^A-Za-z0-9]/g, '').toUpperCase()
+  const cleaned = postalCode.replaceAll(/[^A-Za-z0-9]/g, '').toUpperCase()
   if (cleaned.length === 6) {
     return `${cleaned.slice(0, 3)} ${cleaned.slice(3)}`
   }

@@ -266,7 +266,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   }
 
   const normalizePostalCode = (value: string) =>
-    value.toUpperCase().replace(/\s/g, "").slice(0, 6)
+    value.toUpperCase().replaceAll(/\s/g, "").slice(0, 6)
 
   const handleDeliveryCheck = async () => {
     const cleaned = normalizePostalCode(postalCode)
