@@ -73,12 +73,16 @@ const serwist = new Serwist({
       }),
     },
 
-    // 4. All vehicle / blog image CDNs → CacheFirst (immutable content)
+    // 4. Vehicle / blog image CDNs → CacheFirst (immutable content)
     //    Keeping these out of precache and into runtime cache is what brings
     //    the precache manifest from 23 MB down to ~2 MB app-shell only.
+    //
+    //    Note: this is a subset of remotePatterns in next.config.mjs.
+    //    - cdn.sanity.io is handled above by rule 3 (dedicated "sanity-images" cache).
+    //    - ldervbcvkoawwknsemuz.supabase.co is handled by rule 1 (NetworkOnly —
+    //      Supabase storage URLs carry auth tokens and must never be served stale).
     {
       matcher({ url }) {
-        // Must stay in sync with remotePatterns in next.config.mjs
         return (
           url.hostname === "cdn.planetmotors.ca" ||
           url.hostname === "planetmotors.imgix.net" ||
