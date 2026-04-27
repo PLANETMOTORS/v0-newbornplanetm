@@ -42,10 +42,11 @@ test.describe("Section A11Y — Accessibility (WCAG 2.2 AA)", () => {
     isMobile,
   }) => {
     await page.goto(`${BASE_URL}/`, { waitUntil: "networkidle" })
-    // Mobile may have additional UI elements that affect accessibility
-    const disabledRules = isMobile 
-      ? ["target-size", "color-contrast", "region"]
-      : ["target-size"]
+    // TODO: Fix known mobile accessibility issues:
+    // - color-contrast: $166/mo pricing display (WCAG 2.2 AA violation)
+    // - scrollable-region-focusable: horizontal scrolling containers need keyboard focus
+    // Temporarily disabling target-size only (WCAG 2.2 Level AAA - aspirational)
+    const disabledRules = ["target-size"]
     await assertNoA11yViolations(page, "Homepage", disabledRules)
   })
 
