@@ -62,4 +62,41 @@ describe("calculateBiweeklyPayment", () => {
     const defaulted = calculateBiweeklyPayment(50_000)
     expect(defaulted).toBe(explicit)
   })
+
+  it("payment increases monotonically with vehicle price", () => {
+    const p1 = calculateBiweeklyPayment(20_000, RATE_FLOOR, DEFAULT_TERM_MONTHS, ON_HST)
+    const p2 = calculateBiweeklyPayment(30_000, RATE_FLOOR, DEFAULT_TERM_MONTHS, ON_HST)
+    const p3 = calculateBiweeklyPayment(50_000, RATE_FLOOR, DEFAULT_TERM_MONTHS, ON_HST)
+    expect(p1).toBeLessThan(p2)
+    expect(p2).toBeLessThan(p3)
+  })
+
+  it("higher APR yields higher payment for the same price", () => {
+    const low = calculateBiweeklyPayment(30_000, 3.99, DEFAULT_TERM_MONTHS, ON_HST)
+    const high = calculateBiweeklyPayment(30_000, 12.99, DEFAULT_TERM_MONTHS, ON_HST)
+    expect(low).toBeLessThan(high)
+  })
+
+  it("longer term yields lower payment for the same price and APR", () => {
+    const short = calculateBiweeklyPayment(30_000, RATE_FLOOR, 48, ON_HST)
+    const long = calculateBiweeklyPayment(30_000, RATE_FLOOR, 84, ON_HST)
+    expect(long).toBeLessThan(short)
+  })
+
+  it("always returns a whole-dollar integer", () => {
+    for (const price of [15_000, 22_500, 37_999, 55_000, 89_000]) {
+      expect(Number.isInteger(calculateBiweeklyPayment(price))).toBe(true)
+    }
+  })
+
+  it("never returns NaN or Infinity for boundary inputs", () => {
+    const cases: [number, number, number, number][] = [
+      [1, 0, 1, 0],
+      [100_000, 29.99, 12, 0.15],
+      [500, RATE_FLOOR, DEFAULT_TERM_MONTHS, ON_HST],
+    ]
+    for (const [price, apr, term, tax] of cases) {
+      expect(Number.isFinite(calculateBiweeklyPayment(price, apr, term, tax))).toBe(true)
+    }
+  })
 })

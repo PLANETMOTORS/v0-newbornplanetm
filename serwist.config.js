@@ -9,8 +9,7 @@ import { serwist } from "@serwist/next/config";
 export default serwist({
   swSrc: "app/sw.ts",
   swDest: "public/sw.js",
-  // Allow precaching of large JS chunks (Next.js app shell can exceed 4MB)
-  maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
-  // No additionalPrecacheEntries needed — Serwist auto-discovers all
-  // prerendered pages from the Next.js build output, including /~offline.
+  // Cap individual precache entries at 1 MB (app shell JS/CSS only).
+  // Vehicle images and CDN assets are served via runtimeCaching (see app/sw.ts).
+  maximumFileSizeToCacheInBytes: 1 * 1024 * 1024, // 1 MB
 });

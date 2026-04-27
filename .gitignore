@@ -44,4 +44,9 @@ lighthouse-blog.json
 
 # Sanity CMS local backups (committed to orphan 'backups' branch via GitHub Actions)
 backups/
+
+# npm lockfile — project uses pnpm exclusively (pnpm-lock.yaml)
+package-lock.json
+
+# vitest coverage output
 coverage/

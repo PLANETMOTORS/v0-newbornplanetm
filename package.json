@@ -20,6 +20,7 @@
     "test:e2e:ui": "playwright test --ui",
     "db:types": "pnpm supabase gen types typescript --project-id $(grep NEXT_PUBLIC_SUPABASE_URL .env.local | sed 's|.*//||;s|\\..*||') > types/supabase.ts",
     "typecheck": "tsc --noEmit",
+    "typecheck:test": "tsc --noEmit --project tsconfig.test.json",
     "backup:sanity": "npx tsx lib/cms/backup.ts",
     "seed:sanity": "npx tsx scripts/seed-sanity.ts"
   },
