@@ -31,7 +31,7 @@ interface ComparisonTableProps {
   othersLabel?: string
 }
 
-export function ComparisonTable({ title, rows, usLabel = 'Planet Motors', othersLabel = 'Others' }: ComparisonTableProps) {
+export function ComparisonTable({ title, rows, usLabel = 'Planet Motors', othersLabel = 'Others' }: Readonly<ComparisonTableProps>) {
   return (
     <section className="py-16 md:py-24 bg-muted/30">
       <div className="container mx-auto px-4">

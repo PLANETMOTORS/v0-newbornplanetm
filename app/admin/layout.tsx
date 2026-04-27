@@ -30,9 +30,9 @@ const navigation = [
 
 export default function AdminLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode
-}) {
+}>) {
   const router = useRouter()
   const pathname = usePathname()
   const { user, isLoading, signOut } = useAuth()

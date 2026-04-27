@@ -42,7 +42,7 @@ function formatMileage(km: number | null): string {
   return `${new Intl.NumberFormat('en-CA').format(km)} km`
 }
 
-export function SupabaseVehiclePicker(props: StringInputProps) {
+export function SupabaseVehiclePicker(props: Readonly<StringInputProps>) {
   const { value, onChange, readOnly } = props
 
   const [query, setQuery] = useState('')

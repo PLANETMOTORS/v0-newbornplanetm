@@ -43,7 +43,7 @@ interface DeliveryData {
   etaMinutes?: number
 }
 
-export default function DeliveryTrackingPage({ params }: { params: Promise<{ id: string }> }) {
+export default function DeliveryTrackingPage({ params }: Readonly<{ params: Promise<{ id: string }> }>) {
   const { id } = use(params)
   const [delivery, setDelivery] = useState<DeliveryData | null>(null)
   const [isLoading, setIsLoading] = useState(true)

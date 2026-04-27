@@ -122,7 +122,7 @@ const COMPARISON_ROWS = [
   "Deductible",
 ] as const
 
-function ComparisonModal({ onClose }: { onClose: () => void }) {
+function ComparisonModal({ onClose }: Readonly<{ onClose: () => void }>) {
   const modalRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLElement | null>(null)
 
@@ -231,7 +231,7 @@ function ComparisonModal({ onClose }: { onClose: () => void }) {
   )
 }
 
-export function ProtectionPlansStep({ data, onChange, onContinue }: ProtectionPlansStepProps) {
+export function ProtectionPlansStep({ data, onChange, onContinue }: Readonly<ProtectionPlansStepProps>) {
   const [showComparison, setShowComparison] = useState(false)
 
   const handleSelect = useCallback((id: ProtectionPlanId) => {

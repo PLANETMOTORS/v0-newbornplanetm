@@ -24,7 +24,7 @@ interface PurchaseSidebarProps {
   onCancel?: () => void
 }
 
-export function PurchaseSidebar({ vehicle, steps, onStepClick, onCancel }: PurchaseSidebarProps) {
+export function PurchaseSidebar({ vehicle, steps, onStepClick, onCancel }: Readonly<PurchaseSidebarProps>) {
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
   const completedCount = steps.filter(s => s.status === "complete").length
   const totalSteps = steps.length

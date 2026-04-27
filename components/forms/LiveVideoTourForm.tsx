@@ -20,7 +20,7 @@ interface LiveVideoTourFormProps {
   onSuccess: (data: LiveVideoTourResponse) => void
 }
 
-export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVideoTourFormProps) {
+export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: Readonly<LiveVideoTourFormProps>) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const nameInputRef = useRef<HTMLInputElement | null>(null)

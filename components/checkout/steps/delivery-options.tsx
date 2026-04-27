@@ -27,7 +27,7 @@ function getEstimatedDate(baseDate: Date, daysFromNow: number): string {
   return d.toLocaleDateString("en-CA", { weekday: "short", month: "short", day: "numeric" })
 }
 
-export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: DeliveryOptionsStepProps) {
+export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: Readonly<DeliveryOptionsStepProps>) {
   const [isCalculating, setIsCalculating] = useState(false)
   const [baseDate, setBaseDate] = useState<Date | null>(null)
   const dataRef = useRef(data)

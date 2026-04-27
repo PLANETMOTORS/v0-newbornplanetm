@@ -141,7 +141,7 @@ interface VehicleStatusMenuProps {
  * `onChange` no longer pushes the per-row nesting depth above the
  * SonarCloud S2004 threshold (4 levels).
  */
-function VehicleStatusMenu({ vehicleId, currentStatus, onChange }: VehicleStatusMenuProps) {
+function VehicleStatusMenu({ vehicleId, currentStatus, onChange }: Readonly<VehicleStatusMenuProps>) {
   return (
     <DropdownMenuSub>
       <DropdownMenuSubTrigger>
@@ -168,7 +168,7 @@ interface VehicleStatusMenuItemProps {
   onSelect: () => void
 }
 
-function VehicleStatusMenuItem({ status, currentStatus, onSelect }: VehicleStatusMenuItemProps) {
+function VehicleStatusMenuItem({ status, currentStatus, onSelect }: Readonly<VehicleStatusMenuItemProps>) {
   return (
     <DropdownMenuItem disabled={currentStatus === status} onClick={onSelect}>
       <Badge variant={statusBadgeVariant(status)} className="mr-2">{status}</Badge>

@@ -55,7 +55,7 @@ export function DepositPaymentStep({
   customerPhone,
   protectionPlanId,
   licenseStoragePath,
-}: DepositPaymentStepProps) {
+}: Readonly<DepositPaymentStepProps>) {
   const [error, setError] = useState("")
   const depositAmount = 250
 

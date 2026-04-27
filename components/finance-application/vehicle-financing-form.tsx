@@ -48,7 +48,7 @@ function getPaymentFrequencyLabel(frequency: FinancingTerms["paymentFrequency"])
 }
 
 export
-function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn, financingTerms, setFinancingTerms, financing, additionalNotes, setAdditionalNotes }: VehicleFinancingFormProps) {
+function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn, financingTerms, setFinancingTerms, financing, additionalNotes, setAdditionalNotes }: Readonly<VehicleFinancingFormProps>) {
   // Check if vehicle data was pre-filled (has year and make)
   const isVehicleSelected = Boolean(vehicleInfo.year && vehicleInfo.make && vehicleInfo.totalPrice)
   const [showInventoryModal, setShowInventoryModal] = useState(false)

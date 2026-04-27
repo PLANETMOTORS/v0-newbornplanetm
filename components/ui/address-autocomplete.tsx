@@ -113,7 +113,7 @@ export function AddressAutocomplete({
   required = false,
   error,
   className = "",
-}: AddressAutocompleteProps) {
+}: Readonly<AddressAutocompleteProps>) {
   const [suggestions, setSuggestions] = useState<AddressResult[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
@@ -245,7 +245,7 @@ export function PostalCodeInput({
   error,
   required = false,
   className = "",
-}: PostalCodeInputProps) {
+}: Readonly<PostalCodeInputProps>) {
   const [isValidating, setIsValidating] = useState(false)
   const [validationError, setValidationError] = useState("")
 

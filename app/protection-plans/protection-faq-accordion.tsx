@@ -7,7 +7,7 @@ interface FAQ {
   answer: string
 }
 
-export function ProtectionFaqAccordion({ faqs }: { faqs: FAQ[] }) {
+export function ProtectionFaqAccordion({ faqs }: Readonly<{ faqs: FAQ[] }>) {
   return (
     <Accordion type="single" collapsible className="space-y-3">
       {faqs.map((faq, index) => (
