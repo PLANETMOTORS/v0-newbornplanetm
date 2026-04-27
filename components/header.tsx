@@ -92,6 +92,7 @@ function DesktopNav({
       {navigation.map((item) => (
         <li
           key={item.name}
+          role="none"
           className="relative"
           onMouseEnter={() => handleMouseEnter(item.name, !!item.submenu)}
           onMouseLeave={handleMouseLeave}
