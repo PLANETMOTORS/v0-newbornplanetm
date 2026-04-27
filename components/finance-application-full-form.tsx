@@ -29,6 +29,7 @@ import { VehicleFinancingForm } from "@/components/finance-application/vehicle-f
 import { ReviewStep } from "@/components/finance-application/review-step"
 import { DocumentsStep } from "@/components/finance-application/documents-step"
 import { buildSubmitError } from "@/lib/finance/build-submit-error"
+import { uploadDocuments } from "@/lib/finance/upload-documents"
 
 // Types, sub-components, and emptyApplicant imported from @/components/finance-application/
 
@@ -677,23 +678,7 @@ if (errors.length > 0) {
   }
   
 
-  // buildSubmitError is imported from @/lib/finance/build-submit-error
-
-  const uploadDocuments = async (applicationId: string, docs: typeof documents) => {
-    for (const doc of docs) {
-      if (!doc.file) continue
-      const formData = new FormData()
-      formData.append("file", doc.file)
-      formData.append("applicationId", applicationId)
-      formData.append("documentType", doc.type)
-      try {
-        const uploadRes = await fetch("/api/v1/financing/documents", { method: "POST", body: formData })
-        if (!uploadRes.ok) console.error("Document upload failed:", doc.type)
-      } catch (uploadErr) {
-        console.error("Document upload error:", uploadErr)
-      }
-    }
-  }
+  // buildSubmitError and uploadDocuments are imported from @/lib/finance/
 
   const handleSubmit = async () => {
     setIsSubmitting(true)
