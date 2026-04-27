@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getCachedSearchResults, cacheSearchResults } from '@/lib/redis'
 import { createHash } from 'node:crypto'
 import { getDriveeMidFromDb } from '@/lib/drivee-db'
+import { buildPublicStatusFilter, applyStatusFilter } from '@/lib/vehicles/status-filter'
 
 const ALLOWED_SORT_COLUMNS = new Set(['created_at', 'price', 'year', 'mileage', 'make', 'model'])
 
@@ -180,11 +181,8 @@ export async function GET(request: NextRequest) {
     .select(VEHICLE_LIST_FIELDS, { count: 'exact' })
 
   // Apply status filter — "public" shows available + reserved + recently-sold (7 days)
-  if (status === 'public') {
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-    query = query.or(`status.eq.available,status.eq.reserved,and(status.eq.sold,sold_at.gte.${sevenDaysAgo})`)
-  } else if (status) {
-    query = query.eq('status', status)
+  if (status) {
+    query = applyStatusFilter(query, status)
   }
   if (make) query = query.ilike('make', make)
   if (model) query = query.ilike('model', `%${model}%`)
@@ -299,12 +297,7 @@ export async function GET(request: NextRequest) {
       let facetQuery = supabase
         .from('vehicles')
         .select('make, body_style, fuel_type, price, year')
-      if (status === 'public') {
-        const sevenDaysAgoFacets = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-        facetQuery = facetQuery.or(`status.eq.available,status.eq.reserved,and(status.eq.sold,sold_at.gte.${sevenDaysAgoFacets})`)
-      } else {
-        facetQuery = facetQuery.eq('status', status)
-      }
+      facetQuery = applyStatusFilter(facetQuery, status)
       const { data: allVehicles } = await facetQuery.limit(1000)
 
       const makes = [...new Set(allVehicles?.map(v => v.make).filter(Boolean) || [])]
@@ -401,11 +394,10 @@ export async function POST(request: NextRequest) {
   }
 
   // Build base query — include available + reserved + recently-sold (matches GET handler)
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
   let query = supabase
     .from('vehicles')
     .select(VEHICLE_LIST_FIELDS, { count: 'exact' })
-    .or(`status.eq.available,status.eq.reserved,and(status.eq.sold,sold_at.gte.${sevenDaysAgo})`)
+  query = applyStatusFilter(query, 'public')
 
   // Text search across multiple fields
   if (searchQuery) {
@@ -467,11 +459,11 @@ export async function POST(request: NextRequest) {
   if (cachedAgg) {
     aggregations = cachedAgg as Aggregations
   } else {
-    const { data: allVehicles } = await supabase
+    let aggQuery = supabase
       .from('vehicles')
       .select('make, body_style, price')
-      .or(`status.eq.available,status.eq.reserved,and(status.eq.sold,sold_at.gte.${sevenDaysAgo})`)
-      .limit(1000)
+    aggQuery = applyStatusFilter(aggQuery, 'public')
+    const { data: allVehicles } = await aggQuery.limit(1000)
 
     // Price thresholds in cents
     const PRICE_30K_CENTS  = 3_000_000
