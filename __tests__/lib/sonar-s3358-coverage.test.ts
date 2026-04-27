@@ -176,13 +176,19 @@ describe('lead-notifier vehicle-card branch coverage', () => {
     vi.stubEnv('RESEND_API_KEY', 'test_key')
   })
 
-  it('renders all optional rows (image, price, mileage, VIN, stock #, VDP CTA) when present', async () => {
+  it('renders every optional row (image / price / mileage / VIN / stock # / VDP CTA / phone / message / campaign / leadId highlight) when present', async () => {
     const { notifyLead } = await import('@/lib/email/lead-notifier')
     const res = await notifyLead({
       source: 'vdp_inquiry',
       firstName: 'Full',
       lastName: 'Vehicle',
       email: 'full@v.test',
+      // Drives the TRUE branch of every contact / vehicle / UTM / leadId
+      // ternary in both buildInternalAlert + buildCustomerFollowUp.
+      phone: '416-555-0100',
+      message: 'Please call me ASAP.',
+      leadId: 'lead-99',
+      utm: { source: 'google', medium: 'cpc', campaign: 'spring-sale' },
       vehicle: {
         id: 'veh-001',
         year: 2024,
@@ -201,15 +207,27 @@ describe('lead-notifier vehicle-card branch coverage', () => {
     expect(sentEmails.length).toBe(2)
 
     const [internal, customer] = sentEmails
-    // Internal alert covers the TRUE branch of every ternary in buildInternalVehicleCard
+    // Internal alert covers the TRUE branch of every ternary in
+    // buildInternalVehicleCard *and* buildInternalAlert (phone, message,
+    // utm.campaign, leadId-highlight, phone CTA).
     expect(internal.html).toContain('img src="https://cdn.example/img.jpg"')
     expect(internal.html).toContain('Mileage')
     expect(internal.html).toContain('VIN')
     expect(internal.html).toContain('Stock #')
     expect(internal.html).toContain('View VDP')
-    // Customer follow-up covers the TRUE branch of buildCustomerVehicleHighlight
+    expect(internal.html).toContain('416-555-0100')
+    expect(internal.html).toContain('Please call me ASAP.')
+    expect(internal.html).toContain('Campaign')
+    expect(internal.html).toContain('spring-sale')
+    expect(internal.html).toContain('?highlight=lead-99')
+    expect(internal.html).toContain('Call 416-555-0100 now')
+    // Customer follow-up covers the TRUE branch of
+    // buildCustomerVehicleHighlight + the hasVehicle greeting branch +
+    // hasVehicle subject branch.
     expect(customer.html).toContain('img src="https://cdn.example/img.jpg"')
     expect(customer.html).toContain('View Full Details')
+    expect(customer.html).toContain('about the')
+    expect(customer.subject).toContain('Your inquiry about the')
   })
 
   it('omits optional rows when fields are missing (FALSE branch of each ternary)', async () => {
@@ -267,5 +285,124 @@ describe('lead-notifier vehicle-card branch coverage', () => {
     expect(internal.html).toContain('Price')
     // No vehicle.id → vdpUrl is null → no "View VDP" link in the internal alert.
     expect(internal.html).not.toContain('View VDP')
+  })
+})
+
+// ── lib/email/lead-notifier.ts → notifyLead / notifyAgentOnly error branches ──
+
+describe('lead-notifier error / send-result branch coverage', () => {
+  beforeEach(() => {
+    sentEmails.length = 0
+    vi.resetModules()
+    vi.unstubAllEnvs()
+  })
+
+  afterEach(() => {
+    vi.doUnmock('resend')
+  })
+
+  it('maps a fulfilled-with-error Resend response to { success: false, error } for both emails', async () => {
+    vi.doMock('resend', () => {
+      class ResendErrMock {
+        emails = {
+          send: vi.fn().mockResolvedValue({
+            data: null,
+            error: { name: 'ApiError', message: 'invalid recipient' },
+          }),
+        }
+        constructor(_key: string) {}
+      }
+      return { Resend: ResendErrMock }
+    })
+    vi.stubEnv('RESEND_API_KEY', 'test_key')
+
+    const { notifyLead } = await import('@/lib/email/lead-notifier')
+    const res = await notifyLead({
+      source: 'contact_form',
+      firstName: 'Err',
+      lastName: 'Branch',
+      email: 'err@v.test',
+    })
+
+    expect(res.internalEmail.success).toBe(false)
+    expect(res.internalEmail.error).toContain('invalid recipient')
+    expect(res.customerEmail.success).toBe(false)
+    expect(res.customerEmail.error).toContain('invalid recipient')
+  })
+
+  it('maps a rejected Resend send to { success: false, error: String(reason) }', async () => {
+    vi.doMock('resend', () => {
+      class ResendRejectMock {
+        emails = { send: vi.fn().mockRejectedValue(new Error('network down')) }
+        constructor(_key: string) {}
+      }
+      return { Resend: ResendRejectMock }
+    })
+    vi.stubEnv('RESEND_API_KEY', 'test_key')
+
+    const { notifyLead } = await import('@/lib/email/lead-notifier')
+    const res = await notifyLead({
+      source: 'contact_form',
+      firstName: 'Reject',
+      lastName: 'Branch',
+      email: 'rej@v.test',
+    })
+
+    expect(res.internalEmail.success).toBe(false)
+    expect(res.internalEmail.error).toMatch(/network down/)
+    expect(res.customerEmail.success).toBe(false)
+    expect(res.customerEmail.error).toMatch(/network down/)
+  })
+
+  it('notifyAgentOnly maps an error response to { success: false, error: JSON.stringify(...) }', async () => {
+    vi.doMock('resend', () => {
+      class ResendErrMock {
+        emails = {
+          send: vi.fn().mockResolvedValue({
+            data: null,
+            error: { name: 'ApiError', message: 'rate limited' },
+          }),
+        }
+        constructor(_key: string) {}
+      }
+      return { Resend: ResendErrMock }
+    })
+    vi.stubEnv('RESEND_API_KEY', 'test_key')
+
+    const { notifyAgentOnly } = await import('@/lib/email/lead-notifier')
+    const res = await notifyAgentOnly({
+      source: 'trade_in',
+      firstName: 'Agent',
+      lastName: 'Err',
+      email: 'agent@e.test',
+    })
+
+    expect(res.success).toBe(false)
+    expect(res.error).toContain('rate limited')
+  })
+
+  it('notifyAgentOnly returns { success: true, id } on a clean send', async () => {
+    vi.doMock('resend', () => {
+      class ResendOkMock {
+        emails = {
+          send: vi.fn().mockResolvedValue({ data: { id: 'res_ok_123' }, error: null }),
+        }
+        constructor(_key: string) {}
+      }
+      return { Resend: ResendOkMock }
+    })
+    vi.stubEnv('RESEND_API_KEY', 'test_key')
+
+    const { notifyAgentOnly } = await import('@/lib/email/lead-notifier')
+    const res = await notifyAgentOnly({
+      source: 'reservation',
+      firstName: 'Agent',
+      lastName: 'Ok',
+      email: 'agent@ok.test',
+      vehicle: { id: 'v1', year: 2024, make: 'Tesla', model: 'Model 3' },
+    })
+
+    expect(res.success).toBe(true)
+    expect(res.id).toBe('res_ok_123')
   })
 })
