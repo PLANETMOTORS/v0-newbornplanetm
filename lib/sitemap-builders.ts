@@ -150,12 +150,24 @@ export async function buildVehiclesSitemap(baseUrl: string, currentDate: string)
       console.warn('Sitemap: Supabase not configured, skipping vehicles')
       return []
     }
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('vehicles')
       .select('id, updated_at')
       .or(buildPublicStatusFilter())
       .order('updated_at', { ascending: false })
       .limit(VEHICLE_SITEMAP_LIMIT)
+
+    if (error?.code === '42703') {
+      // sold_at column not yet migrated — fall back to simple status filter
+      const fallback = await supabase
+        .from('vehicles')
+        .select('id, updated_at')
+        .in('status', ['available', 'reserved', 'sold'])
+        .order('updated_at', { ascending: false })
+        .limit(VEHICLE_SITEMAP_LIMIT)
+      data = fallback.data
+      error = fallback.error
+    }
 
     if (error) {
       console.error('Supabase error in buildVehiclesSitemap:', error)
