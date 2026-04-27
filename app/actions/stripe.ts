@@ -258,7 +258,7 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
   return session.client_secret
 }
 
-export async function startCheckoutSession(productId: string) {
+export async function startCheckoutSession(productId: string, idempotencyKey?: string) {
   const PRODUCTS = [
     { id: 'deposit', name: 'Vehicle Deposit', description: 'Refundable deposit', priceInCents: 25000 },
   ]
@@ -270,6 +270,15 @@ export async function startCheckoutSession(productId: string) {
   const paymentMethodTypes: Array<'card' | 'acss_debit'> = enableAcssDebit
     ? ['card', 'acss_debit']
     : ['card']
+
+  // Derive a fallback key from productId + 5-minute time bucket when the caller
+  // does not supply an explicit key.  This prevents duplicate sessions from rapid
+  // re-renders or double-submits within the same server process.  For full
+  // per-user idempotency, callers should pass a UUID scoped to their UI session.
+  const resolvedKey = idempotencyKey ?? createHash('sha256')
+    .update(`generic-checkout:${productId}:${Math.floor(Date.now() / 300_000)}`)
+    .digest('hex')
+
   const session = await stripe.checkout.sessions.create({
     ui_mode: 'embedded',
     redirect_on_completion: 'never',
@@ -302,6 +311,8 @@ export async function startCheckoutSession(productId: string) {
           },
         }
       : {}),
+  }, {
+    idempotencyKey: resolvedKey,
   })
 
   return session.client_secret

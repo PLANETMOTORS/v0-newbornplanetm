@@ -219,6 +219,12 @@ async function verifyStripeSignature(body: string, sig: string, secret: string):
     const v1 = parts["v1"]
     if (!timestamp || !v1) return false
 
+    // Reject webhooks whose timestamp is more than 5 minutes old (or in the future).
+    // This closes the indefinite replay window that existed when only the HMAC was checked.
+    // Stripe's own SDK enforces the same 300-second default tolerance.
+    const timestampAge = Math.abs(Date.now() / 1000 - parseInt(timestamp, 10))
+    if (Number.isNaN(timestampAge) || timestampAge > 300) return false
+
     const payload = `${timestamp}.${body}`
     const key = await crypto.subtle.importKey(
       "raw", new TextEncoder().encode(secret),
