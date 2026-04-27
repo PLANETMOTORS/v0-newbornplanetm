@@ -3,7 +3,6 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import dynamic from "next/dynamic"
 import { useAuth } from "@/contexts/auth-context"
 import { startVehicleCheckout } from "@/app/actions/stripe"
 import { Button } from "@/components/ui/button"
@@ -17,24 +16,7 @@ import {
   ArrowRight, ArrowLeft, CheckCircle, Loader2, Shield, AlertCircle
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-const EmbeddedCheckoutProvider = dynamic(
-  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckoutProvider })),
-  { ssr: false }
-)
-const EmbeddedCheckout = dynamic(
-  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckout })),
-  { ssr: false }
-)
-
-const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-let stripePromise: ReturnType<typeof import('@stripe/stripe-js').loadStripe> | null = null
-function getStripePromise() {
-  if (!stripePromise && stripeKey) {
-    stripePromise = import('@stripe/stripe-js').then(m => m.loadStripe(stripeKey))
-  }
-  return stripePromise
-}
+import { EmbeddedCheckoutProvider, EmbeddedCheckout, getStripePromise } from "@/lib/stripe/embedded-checkout"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 import {
   type ApplicantData, type VehicleInfo, type TradeInInfo,
@@ -81,7 +63,7 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
   // Capture UTM params from URL on mount (persisted to submission payload)
   const utmParams = useRef<Record<string, string>>({})
   useEffect(() => {
-    if (typeof window === "undefined") return
+    if (globalThis.window === undefined) return
     const sp = new URLSearchParams(globalThis.location.search)
     const utm: Record<string, string> = {}
     for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"]) {
@@ -102,7 +84,7 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
   const _handleFormStart = useCallback(() => {
     if (formStartFired.current) return
     formStartFired.current = true
-    if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
+    if (globalThis.window?.gtag) {
       globalThis.window.gtag("event", "form_start", {
         event_category: "finance_application",
         vehicle_id: vehicleId || "general",
@@ -683,7 +665,7 @@ if (errors.length > 0) {
     
     setValidationErrors([])
     // GA4 step complete event
-    if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
+    if (globalThis.window?.gtag) {
       globalThis.window.gtag("event", "form_step_complete", {
         event_category: "finance_application",
         step_number: currentStep,
@@ -693,12 +675,41 @@ if (errors.length > 0) {
     setCurrentStep(prev => prev + 1)
   }
   
+
+  const buildSubmitError = (status: number, result: Record<string, unknown>): string => {
+    const rawMsg =
+      (result?.error as Record<string, unknown>)?.message as string ||
+      result?.error as string ||
+      result?.message as string ||
+      JSON.stringify(result) ||
+      "Failed to submit application"
+    if (status === 403) return "You don't have permission to submit this application. Please log in and try again."
+    if (status === 401) return "Your session has expired. Please log in again and resubmit."
+    return rawMsg
+  }
+
+  const uploadDocuments = async (applicationId: string, docs: typeof documents) => {
+    for (const doc of docs) {
+      if (!doc.file) continue
+      const formData = new FormData()
+      formData.append("file", doc.file)
+      formData.append("applicationId", applicationId)
+      formData.append("documentType", doc.type)
+      try {
+        const uploadRes = await fetch("/api/v1/financing/documents", { method: "POST", body: formData })
+        if (!uploadRes.ok) console.error("Document upload failed:", doc.type)
+      } catch (uploadErr) {
+        console.error("Document upload error:", uploadErr)
+      }
+    }
+  }
+
   const handleSubmit = async () => {
     setIsSubmitting(true)
     setSubmitError(null)
     try {
       // Fire GA4 form_submit event (respects consent mode — gtag handles consent internally)
-      if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
+      if (globalThis.window?.gtag) {
         globalThis.window.gtag("event", "form_submit", {
           event_category: "finance_application",
           vehicle_id: vehicleId || "general",
@@ -728,21 +739,7 @@ if (errors.length > 0) {
       const result = await response.json()
 
       if (!response.ok) {
-        const rawMsg =
-          result?.error?.message ||
-          result?.error ||
-          result?.message ||
-          JSON.stringify(result) ||
-          "Failed to submit application"
-        let friendly: string
-        if (response.status === 403) {
-          friendly = "You don't have permission to submit this application. Please log in and try again."
-        } else if (response.status === 401) {
-          friendly = "Your session has expired. Please log in again and resubmit."
-        } else {
-          friendly = rawMsg
-        }
-        throw new Error(friendly)
+        throw new Error(buildSubmitError(response.status, result))
       }
 
       const applicationId =
@@ -752,26 +749,7 @@ if (errors.length > 0) {
   
   // Upload documents to private Blob storage
   if (applicationId && documents.length > 0) {
-    for (const doc of documents) {
-      if (doc.file) {
-        const formData = new FormData()
-        formData.append("file", doc.file)
-        formData.append("applicationId", applicationId)
-        formData.append("documentType", doc.type)
-        
-        try {
-          const uploadRes = await fetch("/api/v1/financing/documents", {
-            method: "POST",
-            body: formData
-          })
-          if (!uploadRes.ok) {
-            console.error("Document upload failed:", doc.type)
-          }
-        } catch (uploadErr) {
-          console.error("Document upload error:", uploadErr)
-        }
-      }
-    }
+    await uploadDocuments(applicationId, documents)
   }
   
       // Clean up drafts after successful submission
@@ -791,7 +769,7 @@ if (errors.length > 0) {
       const errMsg = error instanceof Error ? error.message : "Unable to submit application right now."
       setSubmitError(errMsg)
       // Fire GA4 form_error event
-      if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
+      if (globalThis.window !== undefined && globalThis.window.gtag) {
         globalThis.window.gtag("event", "form_error", {
           event_category: "finance_application",
           error_message: errMsg,
