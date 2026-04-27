@@ -725,7 +725,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Year */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Year</label>
+                    <label htmlFor="filter-year" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Year</label>
                     <select
                       id="filter-year"
                       value={selectedYear}
