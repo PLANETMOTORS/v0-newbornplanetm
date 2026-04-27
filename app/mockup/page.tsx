@@ -43,20 +43,6 @@ function getBadgeBgClass(badge: string | null): string {
   }
 }
 
-// Maps a vehicle badge label to the corresponding Tailwind background class.
-function getBadgeBgClass(badge: string): string {
-  switch (badge) {
-    case "Popular":
-      return "bg-[#dc2626]"
-    case "New Arrival":
-      return "bg-green-500"
-    case "Luxury":
-      return "bg-purple-600"
-    default:
-      return "bg-[#1e3a8a]"
-  }
-}
-
 export default function HomepageMockupV2() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("all")
