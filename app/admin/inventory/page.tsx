@@ -6,7 +6,7 @@ import {
   Plus, Search, MoreVertical, Edit, Trash2, Eye,
   Download, Upload, ChevronLeft, ChevronRight, CheckCircle,
   Clock, AlertCircle, Car, RefreshCw, Loader2, X,
-  Scan, ImagePlus, ExternalLink, Camera
+  Scan, ImagePlus, ExternalLink, Camera, RotateCcw
 } from "lucide-react"
 import VehiclePhotoManager from "@/components/admin/vehicle-photo-manager"
 import { Button } from "@/components/ui/button"
@@ -18,6 +18,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu"
 import type { VehicleRow } from "@/types/supabase"
 import { safeNum } from "@/lib/pricing/format"
@@ -357,6 +361,24 @@ export default function AdminInventoryPage() {
       console.error("[inventory] Delete vehicle failed:", err)
     } finally {
       setDeleting(false)
+    }
+  }
+
+  const handleStatusChange = async (vehicleId: string, newStatus: string) => {
+    try {
+      const res = await fetch(`/api/v1/admin/vehicles/${vehicleId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      if (res.ok) {
+        fetchVehicles()
+      } else {
+        const data = await res.json()
+        console.error("[inventory] Status change failed:", data.error)
+      }
+    } catch (err) {
+      console.error("[inventory] Status change failed:", err)
     }
   }
 
@@ -755,6 +777,26 @@ export default function AdminInventoryPage() {
                                   <span className="ml-auto text-xs text-gray-400">{vehicle.image_urls.length}</span>
                                 ) : null}
                               </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuSub>
+                                <DropdownMenuSubTrigger>
+                                  <RotateCcw className="w-4 h-4 mr-2" />
+                                  Change Status
+                                </DropdownMenuSubTrigger>
+                                <DropdownMenuSubContent>
+                                  {["available", "reserved", "pending", "sold"].map((s) => (
+                                    <DropdownMenuItem
+                                      key={s}
+                                      disabled={vehicle.status === s}
+                                      onClick={() => handleStatusChange(vehicle.id, s)}
+                                    >
+                                      <Badge variant={statusBadgeVariant(s)} className="mr-2">{s}</Badge>
+                                      {vehicle.status === s && <span className="ml-auto text-xs text-gray-400">current</span>}
+                                    </DropdownMenuItem>
+                                  ))}
+                                </DropdownMenuSubContent>
+                              </DropdownMenuSub>
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 className="text-red-600"
                                 onClick={() => setDeleteConfirm(vehicle)}

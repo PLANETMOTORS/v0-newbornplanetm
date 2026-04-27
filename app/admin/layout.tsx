@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import { 
@@ -34,25 +34,32 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
+  const pathname = usePathname()
   const { user, isLoading, signOut } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
 
+  // Allow the admin login page to render without auth
+  const isLoginPage = pathname === "/admin/login"
+
   useEffect(() => {
-    if (!isLoading) {
-      if (!user) {
-        router.push("/auth/login?redirectTo=/admin")
-      } else {
-        // Check if user is admin
-        const userIsAdmin = ADMIN_EMAILS.includes(user.email || "") || 
-                           user.user_metadata?.is_admin === true
-        setIsAdmin(userIsAdmin)
-        if (!userIsAdmin) {
-          router.push("/")
-        }
+    if (isLoginPage || isLoading) return
+    if (!user) {
+      router.push("/admin/login")
+    } else {
+      const userIsAdmin = ADMIN_EMAILS.includes(user.email || "") || 
+                         user.user_metadata?.is_admin === true
+      setIsAdmin(userIsAdmin)
+      if (!userIsAdmin) {
+        router.push("/")
       }
     }
-  }, [user, isLoading, router])
+  }, [user, isLoading, router, isLoginPage])
+
+  // Render login page without the admin shell
+  if (isLoginPage) {
+    return <>{children}</>
+  }
 
   if (isLoading || !user || !isAdmin) {
     return (
