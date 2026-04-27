@@ -22,11 +22,6 @@ function makeTrim(name: string, transmission?: string, engine?: string): Vehicle
   return transmission || engine ? { name, transmission, engine } : { name }
 }
 
-/** Model factory — eliminates repeated inline `{ name, trims }` type annotations. */
-function makeModel(name: string, trims: VehicleTrim[]): VehicleModel {
-  return { name, trims }
-}
-
 // All makes available in Canada (from Canadian Black Book)
 export const vehicleMakes: VehicleMake[] = [
   {

@@ -113,7 +113,7 @@ export const homepage = defineType({
       return {
         title: `${hasHero ? '✅' : '📝'} Homepage`,
         subtitle: hasHero
-          ? `Hero: "${heroSection!.headline}"${hasSeo ? ' · SEO ✅' : ' · SEO ⚠️'}`
+          ? `Hero: "${heroSection?.headline}"${hasSeo ? ' · SEO ✅' : ' · SEO ⚠️'}`
           : '⏳ Hero section not configured',
       }
     },
@@ -199,7 +199,7 @@ export const financingPage = defineType({
       const hasHero = Boolean(heroSection?.headline)
       return {
         title: `${hasHero ? '✅' : '📝'} Financing Page`,
-        subtitle: hasHero ? `Hero: "${heroSection!.headline}"${seo ? ' · SEO ✅' : ' · SEO ⚠️'}` : '⏳ Hero not configured',
+        subtitle: hasHero ? `Hero: "${heroSection?.headline}"${seo ? ' · SEO ✅' : ' · SEO ⚠️'}` : '⏳ Hero not configured',
       }
     },
   },
@@ -299,7 +299,7 @@ export const sellYourCarPage = defineType({
       const hasHero = Boolean(heroSection?.headline)
       return {
         title: `${hasHero ? '✅' : '📝'} Sell Your Car Page`,
-        subtitle: hasHero ? `Hero: "${heroSection!.headline}"${seo ? ' · SEO ✅' : ' · SEO ⚠️'}` : '⏳ Hero not configured',
+        subtitle: hasHero ? `Hero: "${heroSection?.headline}"${seo ? ' · SEO ✅' : ' · SEO ⚠️'}` : '⏳ Hero not configured',
       }
     },
   },
