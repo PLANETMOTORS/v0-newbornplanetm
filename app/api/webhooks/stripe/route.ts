@@ -30,6 +30,7 @@ import Stripe from "stripe"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getStripe } from "@/lib/stripe"
 import { logger } from "@/lib/logger"
+import { validateReservationForConfirmation } from "@/lib/reservation-payment-rules"
 
 // ── Type alias ─────────────────────────────────────────────────────────────
 
@@ -194,7 +195,12 @@ export async function handlePaymentIntentSucceeded(
   }
 
   if (isReservation && reservationId) {
-    await supabase.from("reservations").update({ deposit_status: "paid", deposit_amount: paymentIntent.amount, updated_at: paidAt }).eq("id", reservationId)
+    await supabase.from("reservations").update({
+      deposit_status: "paid",
+      deposit_amount: paymentIntent.amount,
+      stripe_payment_intent_id: paymentIntent.id,
+      updated_at: paidAt,
+    }).eq("id", reservationId)
   } else if (vehicleId) {
     await supabase.from("orders").update({ status: "payment_received", updated_at: paidAt }).eq("vehicle_id", vehicleId)
   }
@@ -264,7 +270,32 @@ export async function handleCheckoutSessionCompleted(
   }
 
   if (isReservation && reservationId) {
-    await supabase.from("reservations").update({ status: session.payment_status === "paid" ? "confirmed" : "pending_payment", updated_at: new Date().toISOString() }).eq("id", reservationId)
+    const now = new Date().toISOString()
+
+    if (session.payment_status === "paid") {
+      // Ensure deposit_status is marked as paid before confirming.
+      // checkout.session.completed can fire before payment_intent.succeeded in edge cases.
+      await supabase.from("reservations").update({ deposit_status: "paid", updated_at: now }).eq("id", reservationId)
+
+      // Fetch the updated reservation to validate before confirming
+      const { data: reservation } = await supabase
+        .from("reservations")
+        .select("deposit_status, stripe_payment_intent_id, stripe_checkout_session_id, status, expires_at")
+        .eq("id", reservationId)
+        .single()
+
+      if (reservation) {
+        const validation = validateReservationForConfirmation(reservation)
+        if (validation.valid) {
+          await supabase.from("reservations").update({ status: "confirmed", updated_at: now }).eq("id", reservationId)
+        } else {
+          logger.warn("[Stripe] Reservation payment validation failed, not confirming:", { reservationId, reason: validation.reason })
+          await supabase.from("reservations").update({ status: "pending_payment", updated_at: now }).eq("id", reservationId)
+        }
+      }
+    } else {
+      await supabase.from("reservations").update({ status: "pending_payment", updated_at: now }).eq("id", reservationId)
+    }
   } else if (vehicleId) {
     await supabase.from("orders").update({ status: "confirmed", updated_at: new Date().toISOString() }).eq("vehicle_id", vehicleId)
   }

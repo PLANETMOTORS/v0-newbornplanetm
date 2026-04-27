@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createClient as createServiceClient, SupabaseClient } from "@supabase/supabase-js"
 import { ADMIN_EMAILS } from "@/lib/admin"
+import { fullPaymentVerification } from "@/lib/reservation-payment-rules"
+import type { ReservationPaymentFields } from "@/lib/reservation-payment-rules"
 
 /** Authenticate the request and return a service-role admin client.
  *  Returns null (with a 401 response already sent) if the user is not an admin. */
@@ -100,6 +102,36 @@ export async function PATCH(request: NextRequest) {
     const { id, ...updates } = await request.json()
     if (!id) return NextResponse.json({ error: "Reservation ID required" }, { status: 400 })
 
+    // Payment validation: if attempting to confirm a reservation, verify payment first
+    if (updates.status === "confirmed") {
+      const { data: existing, error: fetchError } = await adminClient
+        .from("reservations")
+        .select("deposit_status, stripe_payment_intent_id, stripe_checkout_session_id, status, expires_at")
+        .eq("id", id)
+        .single()
+
+      if (fetchError || !existing) {
+        return NextResponse.json({ error: "Reservation not found" }, { status: 404 })
+      }
+
+      // Merge incoming updates with existing data for validation
+      const reservationForValidation: ReservationPaymentFields = {
+        deposit_status: updates.deposit_status ?? existing.deposit_status,
+        stripe_payment_intent_id: existing.stripe_payment_intent_id,
+        stripe_checkout_session_id: existing.stripe_checkout_session_id,
+        status: existing.status,
+        expires_at: existing.expires_at,
+      }
+
+      const validation = await fullPaymentVerification(reservationForValidation)
+      if (!validation.valid) {
+        return NextResponse.json(
+          { error: `Cannot confirm reservation: ${validation.reason}` },
+          { status: 422 }
+        )
+      }
+    }
+
     const { data, error } = await adminClient
       .from("reservations")
       .update(updates)
@@ -108,6 +140,10 @@ export async function PATCH(request: NextRequest) {
       .single()
 
     if (error) {
+      // Surface database trigger errors (from enforce_payment_before_confirm)
+      if (error.message?.includes("Cannot confirm reservation")) {
+        return NextResponse.json({ error: error.message }, { status: 422 })
+      }
       return NextResponse.json({ error: "Failed to update reservation" }, { status: 500 })
     }
 
