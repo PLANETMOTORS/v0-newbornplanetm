@@ -1,0 +1,8 @@
+
+Running 640 tests using 3 workers
+
+[1A[2K[1/640] [bs-chrome-win11] › e2e/auth.spec.ts:8:7 › Auth — Login Page › renders login page with correct heading
+[1A[2K[2/640] [bs-chrome-win11] › e2e/auth-gated-flows.spec.ts:117:7 › Auth-Gated Flows — Finance Submission & ID Upload › Full finance application → confirmation number → ID upload
+[1A[2K[3/640] [bs-chrome-win11] › e2e/accessibility.spec.ts:36:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-001 — Homepage: zero critical/serious axe violations
+[1A[2K[4/640] (retries) [bs-chrome-win11] › e2e/auth-gated-flows.spec.ts:117:7 › Auth-Gated Flows — Finance Submission & ID Upload › Full finance application → confirmation number → ID upload (retry #1)
+[1A[2K[5/640] (retries) [bs-chrome-win11] › e2e/accessibility.spec.ts:36:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-001 — Homepage: zero critical/serious axe violations (retry #1)

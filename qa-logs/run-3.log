@@ -1,0 +1,1483 @@
+=== LOCAL QA RUN 3/12 — Sun 26 Apr 2026 00:15:33 EDT ===
+--- Vitest ---
+
+> planet-motors@0.3.0 test /Users/tonisultzberg@icloud.com/v0-newbornplanetm
+> vitest run
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.4 [39m[90m/Users/tonisultzberg@icloud.com/v0-newbornplanetm[39m
+
+ [32m✓[39m __tests__/components/checkout-stripe-patterns.test.ts [2m([22m[2m21 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m __tests__/hooks/use-vehicle-filters.test.ts [2m([22m[2m28 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m __tests__/lib/rates.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m __tests__/lib/validation.test.ts [2m([22m[2m30 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m __tests__/actions/stripe-protection-plans.test.ts [2m([22m[2m20 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m __tests__/lib/feature-flags.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+[90mstdout[2m | __tests__/api/webhooks/stripe.test.ts[2m > [22m[2mhandleCheckoutSessionCompleted[2m > [22m[2mconfirms reservation and reserves vehicle when payment is settled
+[22m[39m[2026-04-26T04:15:34.226Z] INFO  [Stripe] checkout.session.completed { sessionId: [32m'cs_test_123'[39m, paymentStatus: [32m'paid'[39m }
+
+ [32m✓[39m __tests__/lib/blog-data.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+[90mstdout[2m | __tests__/api/webhooks/stripe.test.ts[2m > [22m[2mhandleCheckoutSessionCompleted[2m > [22m[2monly holds vehicle when payment is unsettled
+[22m[39m[2026-04-26T04:15:34.229Z] INFO  [Stripe] checkout.session.completed { sessionId: [32m'cs_test_123'[39m, paymentStatus: [32m'unpaid'[39m }
+
+[90mstdout[2m | __tests__/api/webhooks/stripe.test.ts[2m > [22m[2mhandleCheckoutSessionCompleted[2m > [22m[2mconfirms order for non-reservation checkout
+[22m[39m[2026-04-26T04:15:34.229Z] INFO  [Stripe] checkout.session.completed { sessionId: [32m'cs_test_123'[39m, paymentStatus: [32m'paid'[39m }
+
+[90mstdout[2m | __tests__/api/webhooks/stripe.test.ts[2m > [22m[2mhandleCheckoutSessionExpired[2m > [22m[2mexpires reservation and releases vehicle
+[22m[39m[2026-04-26T04:15:34.229Z] INFO  [Stripe] checkout.session.expired { sessionId: [32m'cs_test_123'[39m }
+
+[90mstderr[2m | __tests__/api/webhooks/stripe.test.ts[2m > [22m[2mhandleCheckoutSessionAsyncPaymentFailed[2m > [22m[2mfails reservation and releases vehicle
+[22m[39m[2026-04-26T04:15:34.229Z] WARN  [Stripe] checkout.session.async_payment_failed { sessionId: [32m'cs_test_123'[39m }
+
+[90mstderr[2m | __tests__/api/webhooks/stripe.test.ts[2m > [22m[2mhandlePaymentIntentFailed[2m > [22m[2mmarks deposit as failed and releases vehicle
+[22m[39m[2026-04-26T04:15:34.230Z] WARN  [Stripe] payment_intent.payment_failed { paymentIntentId: [32m'pi_test_123'[39m, lastError: [90mundefined[39m }
+
+ [32m✓[39m __tests__/lib/email.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+[90mstdout[2m | __tests__/api/webhooks/stripe.test.ts[2m > [22m[2mhandlePaymentIntentSucceeded[2m > [22m[2mconfirms reservation deposit and holds vehicle
+[22m[39m[2026-04-26T04:15:34.230Z] INFO  [Stripe] payment_intent.succeeded { paymentIntentId: [32m'pi_test_123'[39m, amount: [90mundefined[39m }
+
+[90mstdout[2m | __tests__/api/webhooks/stripe.test.ts[2m > [22m[2mhandlePaymentIntentSucceeded[2m > [22m[2mconfirms order for non-reservation payment
+[22m[39m[2026-04-26T04:15:34.230Z] INFO  [Stripe] payment_intent.succeeded { paymentIntentId: [32m'pi_test_123'[39m, amount: [90mundefined[39m }
+
+ [32m✓[39m __tests__/api/webhooks/stripe.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m __tests__/lib/typesense-client-nodes.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 54[2mms[22m[39m
+ [32m✓[39m __tests__/lib/typesense.test.ts [2m([22m[2m41 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m __tests__/lib/typesense-filter-sanitize.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+[2m      Tests [22m [1m[32m218 passed[39m[22m[90m (218)[39m
+[2m   Start at [22m 00:15:34
+[2m   Duration [22m 236ms[2m (transform 686ms, setup 0ms, import 955ms, tests 97ms, environment 1ms)[22m
+
+--- E2E chromium ---
+
+> planet-motors@0.3.0 test:e2e /Users/tonisultzberg@icloud.com/v0-newbornplanetm
+> playwright test "--project=chromium"
+
+
+Running 128 tests using 1 worker
+
+[1A[2K[1/128] [chromium] › e2e/accessibility.spec.ts:36:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-001 — Homepage: zero critical/serious axe violations
+[1A[2K[2/128] [chromium] › e2e/accessibility.spec.ts:43:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-002 — Inventory: zero critical/serious axe violations
+[1A[2K[3/128] [chromium] › e2e/accessibility.spec.ts:50:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-003 — VDP: zero critical/serious axe violations
+[1A[2K[4/128] [chromium] › e2e/accessibility.spec.ts:74:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-004 — Checkout: zero critical/serious axe violations across all steps
+[1A[2K[5/128] [chromium] › e2e/accessibility.spec.ts:120:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-005 — HTML lang attribute is set
+[1A[2K[6/128] [chromium] › e2e/accessibility.spec.ts:126:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-006 — All images have alt text
+[1A[2K[7/128] [chromium] › e2e/auth-gated-flows.spec.ts:117:7 › Auth-Gated Flows — Finance Submission & ID Upload › Full finance application → confirmation number → ID upload
+[1A[2K  1) [chromium] › e2e/auth-gated-flows.spec.ts:117:7 › Auth-Gated Flows — Finance Submission & ID Upload › Full finance application → confirmation number → ID upload 
+
+    Error: TEST_USER_EMAIL and TEST_USER_PASSWORD must be set.
+    Export them or pass inline:
+      TEST_USER_EMAIL=user@example.com TEST_USER_PASSWORD=secret npx playwright test
+
+      54 |
+      55 |   if (!email || !password) {
+    > 56 |     throw new Error(
+         |           ^
+      57 |       "TEST_USER_EMAIL and TEST_USER_PASSWORD must be set.\n" +
+      58 |         "Export them or pass inline:\n" +
+      59 |         "  TEST_USER_EMAIL=user@example.com TEST_USER_PASSWORD=secret npx playwright test"
+        at loginViaUI (/Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/auth-gated-flows.spec.ts:56:11)
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/auth-gated-flows.spec.ts:138:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-gated-flows-Auth-Gate-85895-irmation-number-→-ID-upload-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-gated-flows-Auth-Gate-85895-irmation-number-→-ID-upload-chromium/error-context.md
+
+
+[1A[2K[8/128] [chromium] › e2e/auth.spec.ts:8:7 › Auth — Login Page › renders login page with correct heading
+[1A[2K  2) [chromium] › e2e/auth.spec.ts:8:7 › Auth — Login Page › renders login page with correct heading 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('heading', { name: /Sign In/i })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('heading', { name: /Sign In/i })[22m
+
+
+       7 |
+       8 |   test("renders login page with correct heading", async ({ page }) => {
+    >  9 |     await expect(page.getByRole("heading", { name: /Sign In/i })).toBeVisible()
+         |                                                                   ^
+      10 |     await expect(page.getByText("Welcome Back")).toBeVisible()
+      11 |   })
+      12 |
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/auth.spec.ts:9:67
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Auth-—-Login-Page-ren-66f20-n-page-with-correct-heading-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Auth-—-Login-Page-ren-66f20-n-page-with-correct-heading-chromium/error-context.md
+
+
+[1A[2K[9/128] [chromium] › e2e/auth.spec.ts:13:7 › Auth — Login Page › renders email and password fields
+[1A[2K  3) [chromium] › e2e/auth.spec.ts:13:7 › Auth — Login Page › renders email and password fields ────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('input[type="email"]')
+    Expected: visible
+    Error: strict mode violation: locator('input[type="email"]') resolved to 2 elements:
+        1) <input value="" id="email" required="" type="email" data-slot="input" placeholder="name@example.com" class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-n…/> aka getByRole('textbox', { name: 'Email', exact: true })
+        2) <input type="email" placeholder="your@email.com" class="flex-1 px-3.5 py-2.5 bg-white/5 border border-white/10 border-r-0 rounded-l-lg text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-[#1e3a8a] transition-colors"/> aka getByRole('textbox', { name: 'your@email.com' })
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('input[type="email"]')[22m
+
+
+      12 |
+      13 |   test("renders email and password fields", async ({ page }) => {
+    > 14 |     await expect(page.locator('input[type="email"]')).toBeVisible()
+         |                                                       ^
+      15 |     await expect(page.locator('input[type="password"]')).toBeVisible()
+      16 |   })
+      17 |
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/auth.spec.ts:14:55
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Auth-—-Login-Page-renders-email-and-password-fields-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Auth-—-Login-Page-renders-email-and-password-fields-chromium/error-context.md
+
+
+[1A[2K[10/128] [chromium] › e2e/auth.spec.ts:18:7 › Auth — Login Page › renders OAuth buttons (Google and Facebook)
+[1A[2K[11/128] [chromium] › e2e/auth.spec.ts:23:7 › Auth — Login Page › renders forgot password link
+[1A[2K[12/128] [chromium] › e2e/auth.spec.ts:29:7 › Auth — Login Page › renders create account link
+[1A[2K[13/128] [chromium] › e2e/auth.spec.ts:35:7 › Auth — Login Page › shows OMVIC trust indicator
+[1A[2K[14/128] [chromium] › e2e/auth.spec.ts:39:7 › Auth — Login Page › password visibility toggle works
+[1A[2K[15/128] [chromium] › e2e/auth.spec.ts:53:7 › Auth — Login Page › submit button is present and labelled
+[1A[2K  4) [chromium] › e2e/auth.spec.ts:53:7 › Auth — Login Page › submit button is present and labelled 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('button', { name: /Sign In/i })
+    Expected: visible
+    Error: strict mode violation: getByRole('button', { name: /Sign In/i }) resolved to 2 elements:
+        1) <button type="button" class="inline-flex h-[44px] items-center gap-[8px] rounded-full pl-4 pr-[2px] text-white focus:outline-none">…</button> aka getByLabel('Main navigation').getByRole('button', { name: 'Sign In' })
+        2) <button type="submit" data-slot="button" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-semibold transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-prim…>Sign In</button> aka locator('#main-content').getByRole('button', { name: 'Sign In' })
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('button', { name: /Sign In/i })[22m
+
+
+      52 |
+      53 |   test("submit button is present and labelled", async ({ page }) => {
+    > 54 |     await expect(page.getByRole("button", { name: /Sign In/i })).toBeVisible()
+         |                                                                  ^
+      55 |   })
+      56 |
+      57 |   test("remember-me checkbox is present", async ({ page }) => {
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/auth.spec.ts:54:66
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Auth-—-Login-Page-submit-button-is-present-and-labelled-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Auth-—-Login-Page-submit-button-is-present-and-labelled-chromium/error-context.md
+
+
+[1A[2K[16/128] [chromium] › e2e/auth.spec.ts:57:7 › Auth — Login Page › remember-me checkbox is present
+[1A[2K[17/128] [chromium] › e2e/auth.spec.ts:63:7 › Auth — Signup Page › signup page renders
+[1A[2K[18/128] [chromium] › e2e/auth.spec.ts:71:7 › Auth — Forgot Password Page › forgot password page renders
+[1A[2K  5) [chromium] › e2e/auth.spec.ts:71:7 › Auth — Forgot Password Page › forgot password page renders 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('main')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('main')[22m
+
+
+      71 |   test("forgot password page renders", async ({ page }) => {
+      72 |     await page.goto("/auth/forgot-password")
+    > 73 |     await expect(page.locator("main")).toBeVisible()
+         |                                        ^
+      74 |   })
+      75 | })
+      76 |
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/auth.spec.ts:73:40
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Auth-—-Forgot-Passwor-cde81-orgot-password-page-renders-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Auth-—-Forgot-Passwor-cde81-orgot-password-page-renders-chromium/error-context.md
+
+
+[1A[2K[19/128] [chromium] › e2e/auth.spec.ts:78:7 › Auth — Open-Redirect Guard › redirectTo with absolute URL falls back to /account
+[1A[2K  6) [chromium] › e2e/auth.spec.ts:78:7 › Auth — Open-Redirect Guard › redirectTo with absolute URL falls back to /account 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('heading', { name: /Sign In/i })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('heading', { name: /Sign In/i })[22m
+
+
+      80 |     await page.goto("/auth/login?redirectTo=https://evil.com")
+      81 |     // The page should still render the login form (not redirect)
+    > 82 |     await expect(page.getByRole("heading", { name: /Sign In/i })).toBeVisible()
+         |                                                                   ^
+      83 |   })
+      84 |
+      85 |   test("redirectTo with protocol-relative URL falls back to /account", async ({ page }) => {
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/auth.spec.ts:82:67
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Auth-—-Open-Redirect--a1b62-e-URL-falls-back-to-account-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Auth-—-Open-Redirect--a1b62-e-URL-falls-back-to-account-chromium/error-context.md
+
+
+[1A[2K[20/128] [chromium] › e2e/auth.spec.ts:85:7 › Auth — Open-Redirect Guard › redirectTo with protocol-relative URL falls back to /account
+[1A[2K  7) [chromium] › e2e/auth.spec.ts:85:7 › Auth — Open-Redirect Guard › redirectTo with protocol-relative URL falls back to /account 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('heading', { name: /Sign In/i })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('heading', { name: /Sign In/i })[22m
+
+
+      85 |   test("redirectTo with protocol-relative URL falls back to /account", async ({ page }) => {
+      86 |     await page.goto("/auth/login?redirectTo=//evil.com")
+    > 87 |     await expect(page.getByRole("heading", { name: /Sign In/i })).toBeVisible()
+         |                                                                   ^
+      88 |   })
+      89 |
+      90 |   test("redirectTo with valid relative path is accepted", async ({ page }) => {
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/auth.spec.ts:87:67
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Auth-—-Open-Redirect--8eb85-e-URL-falls-back-to-account-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Auth-—-Open-Redirect--8eb85-e-URL-falls-back-to-account-chromium/error-context.md
+
+
+[1A[2K[21/128] [chromium] › e2e/auth.spec.ts:90:7 › Auth — Open-Redirect Guard › redirectTo with valid relative path is accepted
+[1A[2K  8) [chromium] › e2e/auth.spec.ts:90:7 › Auth — Open-Redirect Guard › redirectTo with valid relative path is accepted 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('heading', { name: /Sign In/i })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('heading', { name: /Sign In/i })[22m
+
+
+      90 |   test("redirectTo with valid relative path is accepted", async ({ page }) => {
+      91 |     await page.goto("/auth/login?redirectTo=/inventory")
+    > 92 |     await expect(page.getByRole("heading", { name: /Sign In/i })).toBeVisible()
+         |                                                                   ^
+      93 |   })
+      94 | })
+      95 |
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/auth.spec.ts:92:67
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-Auth-—-Open-Redirect--7621d-d-relative-path-is-accepted-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-Auth-—-Open-Redirect--7621d-d-relative-path-is-accepted-chromium/error-context.md
+
+
+[1A[2K[22/128] [chromium] › e2e/contact.spec.ts:8:7 › Contact Page › loads contact page with heading
+[1A[2K[23/128] [chromium] › e2e/contact.spec.ts:12:7 › Contact Page › displays contact methods
+[1A[2K[24/128] [chromium] › e2e/contact.spec.ts:17:7 › Contact Page › displays business hours
+[1A[2K[25/128] [chromium] › e2e/contact.spec.ts:22:7 › Contact Page › contact form is visible
+[1A[2K[26/128] [chromium] › e2e/contact.spec.ts:26:7 › Contact Page › shows validation errors for empty required fields
+[1A[2K[27/128] [chromium] › e2e/contact.spec.ts:39:7 › Contact Page › fills form with invalid email and shows error
+[1A[2K[28/128] [chromium] › e2e/contact.spec.ts:49:7 › Contact Page › fills form fields with test data without submitting
+[1A[2K[29/128] [chromium] › e2e/homepage.spec.ts:8:7 › Homepage › loads successfully with correct title
+[1A[2K[30/128] [chromium] › e2e/homepage.spec.ts:12:7 › Homepage › renders header with logo
+[1A[2K[31/128] [chromium] › e2e/homepage.spec.ts:20:7 › Homepage › renders main navigation links
+[1A[2K[32/128] [chromium] › e2e/homepage.spec.ts:27:7 › Homepage › renders hero section
+[1A[2K[33/128] [chromium] › e2e/homepage.spec.ts:35:7 › Homepage › renders footer with contact info
+[1A[2K[34/128] [chromium] › e2e/homepage.spec.ts:42:7 › Homepage › footer contains important links
+[1A[2K[35/128] [chromium] › e2e/human-click-timing-debug.spec.ts:225:7 › Section A — Human Click Simulation › A01 — homepage hero CTA click navigates to inventory
+[1A[2K[36/128] [chromium] › e2e/human-click-timing-debug.spec.ts:231:7 › Section A — Human Click Simulation › A02 — Typesense search bar click opens search and accepts keyboard input
+[1A[2K[37/128] [chromium] › e2e/human-click-timing-debug.spec.ts:239:7 › Section A — Human Click Simulation › A03 — inventory card click navigates to correct VDP
+[1A[2K[38/128] [chromium] › e2e/human-click-timing-debug.spec.ts:250:7 › Section A — Human Click Simulation › A04 — VDP "Start Purchase" button click initiates checkout
+[1A[2K[39/128] [chromium] › e2e/human-click-timing-debug.spec.ts:260:7 › Section A — Human Click Simulation › A05 — Step 1 payment type toggle — Cash click
+[1A[2K  9) [chromium] › e2e/human-click-timing-debug.spec.ts:260:7 › Section A — Human Click Simulation › A05 — Step 1 payment type toggle — Cash click 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('toggle-cash') to be visible[22m
+
+
+      165 | async function humanClick(page: Page, selector: string | ReturnType<Page['getByTestId']>) {
+      166 |   const element = typeof selector === 'string' ? page.locator(selector) : selector;
+    > 167 |   await element.waitFor({ state: 'visible', timeout: 10_000 });
+          |                 ^
+      168 |   await dismissOverlays(page);
+      169 |   await element.scrollIntoViewIfNeeded({ timeout: 5_000 });
+      170 |   await element.hover();
+        at humanClick (/Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:167:17)
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:262:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-c0db5-nt-type-toggle-—-Cash-click-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-c0db5-nt-type-toggle-—-Cash-click-chromium/error-context.md
+
+
+[1A[2K[40/128] [chromium] › e2e/human-click-timing-debug.spec.ts:267:7 › Section A — Human Click Simulation › A06 — Step 1 payment type toggle — Finance click after Cash
+[1A[2K  10) [chromium] › e2e/human-click-timing-debug.spec.ts:267:7 › Section A — Human Click Simulation › A06 — Step 1 payment type toggle — Finance click after Cash 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('toggle-cash') to be visible[22m
+
+
+      165 | async function humanClick(page: Page, selector: string | ReturnType<Page['getByTestId']>) {
+      166 |   const element = typeof selector === 'string' ? page.locator(selector) : selector;
+    > 167 |   await element.waitFor({ state: 'visible', timeout: 10_000 });
+          |                 ^
+      168 |   await dismissOverlays(page);
+      169 |   await element.scrollIntoViewIfNeeded({ timeout: 5_000 });
+      170 |   await element.hover();
+        at humanClick (/Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:167:17)
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:269:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-7a29e--—-Finance-click-after-Cash-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-7a29e--—-Finance-click-after-Cash-chromium/error-context.md
+
+
+[1A[2K[41/128] [chromium] › e2e/human-click-timing-debug.spec.ts:275:7 › Section A — Human Click Simulation › A07 — Step 2 "No Trade-In" bypass click proceeds directly
+[1A[2K  11) [chromium] › e2e/human-click-timing-debug.spec.ts:275:7 › Section A — Human Click Simulation › A07 — Step 2 "No Trade-In" bypass click proceeds directly 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('btn-no-trade-in') to be visible[22m
+
+
+      165 | async function humanClick(page: Page, selector: string | ReturnType<Page['getByTestId']>) {
+      166 |   const element = typeof selector === 'string' ? page.locator(selector) : selector;
+    > 167 |   await element.waitFor({ state: 'visible', timeout: 10_000 });
+          |                 ^
+      168 |   await dismissOverlays(page);
+      169 |   await element.scrollIntoViewIfNeeded({ timeout: 5_000 });
+      170 |   await element.hover();
+        at humanClick (/Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:167:17)
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:277:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-3edd4-ass-click-proceeds-directly-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-3edd4-ass-click-proceeds-directly-chromium/error-context.md
+
+
+[1A[2K[42/128] [chromium] › e2e/human-click-timing-debug.spec.ts:281:7 › Section A — Human Click Simulation › A08 — Step 3 down payment slider — click and drag
+[1A[2K  12) [chromium] › e2e/human-click-timing-debug.spec.ts:281:7 › Section A — Human Click Simulation › A08 — Step 3 down payment slider — click and drag 
+
+    TimeoutError: locator.boundingBox: Timeout 2000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('slider-down-payment')[22m
+
+
+      282 |     await page.goto(`${CHECKOUT_URL}/deal-customization`);
+      283 |     const slider = page.getByTestId('slider-down-payment');
+    > 284 |     const box    = await slider.boundingBox();
+          |                                 ^
+      285 |     if (!box) throw new Error('Slider bounding box not found');
+      286 |     const targetX = box.x + box.width * 0.3;
+      287 |     const targetY = box.y + box.height / 2;
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:284:33
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-4a687-ent-slider-—-click-and-drag-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-4a687-ent-slider-—-click-and-drag-chromium/error-context.md
+
+
+[1A[2K[43/128] [chromium] › e2e/human-click-timing-debug.spec.ts:295:7 › Section A — Human Click Simulation › A09 — Step 3 bi-weekly/monthly toggle — alternating clicks
+[1A[2K  13) [chromium] › e2e/human-click-timing-debug.spec.ts:295:7 › Section A — Human Click Simulation › A09 — Step 3 bi-weekly/monthly toggle — alternating clicks 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('toggle-biweekly') to be visible[22m
+
+
+      165 | async function humanClick(page: Page, selector: string | ReturnType<Page['getByTestId']>) {
+      166 |   const element = typeof selector === 'string' ? page.locator(selector) : selector;
+    > 167 |   await element.waitFor({ state: 'visible', timeout: 10_000 });
+          |                 ^
+      168 |   await dismissOverlays(page);
+      169 |   await element.scrollIntoViewIfNeeded({ timeout: 5_000 });
+      170 |   await element.hover();
+        at humanClick (/Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:167:17)
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:297:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-ab7e1-toggle-—-alternating-clicks-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-ab7e1-toggle-—-alternating-clicks-chromium/error-context.md
+
+
+[1A[2K[44/128] [chromium] › e2e/human-click-timing-debug.spec.ts:304:7 › Section A — Human Click Simulation › A10 — double-click on Continue button does not submit twice
+[1A[2K  14) [chromium] › e2e/human-click-timing-debug.spec.ts:304:7 › Section A — Human Click Simulation › A10 — double-click on Continue button does not submit twice 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('toggle-finance') to be visible[22m
+
+
+      165 | async function humanClick(page: Page, selector: string | ReturnType<Page['getByTestId']>) {
+      166 |   const element = typeof selector === 'string' ? page.locator(selector) : selector;
+    > 167 |   await element.waitFor({ state: 'visible', timeout: 10_000 });
+          |                 ^
+      168 |   await dismissOverlays(page);
+      169 |   await element.scrollIntoViewIfNeeded({ timeout: 5_000 });
+      170 |   await element.hover();
+        at humanClick (/Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:167:17)
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:306:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-12dd8-utton-does-not-submit-twice-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-12dd8-utton-does-not-submit-twice-chromium/error-context.md
+
+
+[1A[2K[45/128] [chromium] › e2e/human-click-timing-debug.spec.ts:318:7 › Section A — Human Click Simulation › A11 — click on disabled Continue button does not navigate
+[1A[2K  15) [chromium] › e2e/human-click-timing-debug.spec.ts:318:7 › Section A — Human Click Simulation › A11 — click on disabled Continue button does not navigate 
+
+    TimeoutError: locator.click: Timeout 2000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('btn-continue-step4')[22m
+
+
+      324 |       await expect(page).toHaveURL(/personal-info|step-4/);
+      325 |     } else {
+    > 326 |       await btn.click();
+          |                 ^
+      327 |       await expect(page.getByTestId('error-first-name')).toBeVisible();
+      328 |     }
+      329 |   });
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:326:17
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-8b52d-ue-button-does-not-navigate-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-8b52d-ue-button-does-not-navigate-chromium/error-context.md
+
+
+[1A[2K[46/128] [chromium] › e2e/human-click-timing-debug.spec.ts:331:7 › Section A — Human Click Simulation › A12 — click outside IDV upload modal does not dismiss it
+[1A[2K[47/128] [chromium] › e2e/human-click-timing-debug.spec.ts:339:7 › Section A — Human Click Simulation › A13 — right-click on vehicle image does not expose raw origin URL
+[1A[2K[48/128] [chromium] › e2e/human-click-timing-debug.spec.ts:354:7 › Section A — Human Click Simulation › A14 — mobile fat-finger: tap targets minimum 44x44px on checkout buttons
+[1A[2K  16) [chromium] › e2e/human-click-timing-debug.spec.ts:354:7 › Section A — Human Click Simulation › A14 — mobile fat-finger: tap targets minimum 44x44px on checkout buttons 
+
+    TimeoutError: locator.boundingBox: Timeout 2000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('btn-continue-step1')[22m
+
+
+      358 |     for (const testId of tapTargets) {
+      359 |       const el  = page.getByTestId(testId);
+    > 360 |       const box = await el.boundingBox();
+          |                            ^
+      361 |       if (box) {
+      362 |         expect(box.width).toBeGreaterThanOrEqual(44);
+      363 |         expect(box.height).toBeGreaterThanOrEqual(44);
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:360:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-c9ebf-44x44px-on-checkout-buttons-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-c9ebf-44x44px-on-checkout-buttons-chromium/error-context.md
+
+
+[1A[2K[49/128] [chromium] › e2e/human-click-timing-debug.spec.ts:368:7 › Section A — Human Click Simulation › A15 — full human click walkthrough: Steps 1–3 (cash, no trade-in, review)
+[1A[2K  17) [chromium] › e2e/human-click-timing-debug.spec.ts:368:7 › Section A — Human Click Simulation › A15 — full human click walkthrough: Steps 1–3 (cash, no trade-in, review) 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('toggle-cash') to be visible[22m
+
+
+      165 | async function humanClick(page: Page, selector: string | ReturnType<Page['getByTestId']>) {
+      166 |   const element = typeof selector === 'string' ? page.locator(selector) : selector;
+    > 167 |   await element.waitFor({ state: 'visible', timeout: 10_000 });
+          |                 ^
+      168 |   await dismissOverlays(page);
+      169 |   await element.scrollIntoViewIfNeeded({ timeout: 5_000 });
+      170 |   await element.hover();
+        at humanClick (/Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:167:17)
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:377:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-52072-–3-cash-no-trade-in-review--chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-52072-–3-cash-no-trade-in-review--chromium/error-context.md
+
+
+[1A[2K[50/128] [chromium] › e2e/human-click-timing-debug.spec.ts:404:7 › Section B — Tab & Keyboard Navigation › B01 — skip navigation link is first focusable element on homepage
+[1A[2K[51/128] [chromium] › e2e/human-click-timing-debug.spec.ts:411:7 › Section B — Tab & Keyboard Navigation › B02 — skip nav link reaches main content on Enter
+[1A[2K[52/128] [chromium] › e2e/human-click-timing-debug.spec.ts:441:7 › Section B — Tab & Keyboard Navigation › B03 — Step 4 form tab order is correct
+[1A[2K  18) [chromium] › e2e/human-click-timing-debug.spec.ts:441:7 › Section B — Tab & Keyboard Navigation › B03 — Step 4 form tab order is correct 
+
+    TimeoutError: locator.focus: Timeout 2000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('field-first-name')[22m
+
+
+      446 |       'field-address', 'field-city', 'field-postal', 'select-province',
+      447 |     ];
+    > 448 |     await page.getByTestId('field-first-name').focus();
+          |                                                ^
+      449 |     for (let i = 0; i < expectedOrder.length; i++) {
+      450 |       const focused = page.locator(':focus');
+      451 |       await expect(focused).toHaveAttribute('data-testid', expectedOrder[i]);
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:448:48
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-3f825-4-form-tab-order-is-correct-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-3f825-4-form-tab-order-is-correct-chromium/error-context.md
+
+
+[1A[2K[53/128] [chromium] › e2e/human-click-timing-debug.spec.ts:456:7 › Section B — Tab & Keyboard Navigation › B04 — Shift+Tab reverses focus order on Step 4
+[1A[2K  19) [chromium] › e2e/human-click-timing-debug.spec.ts:456:7 › Section B — Tab & Keyboard Navigation › B04 — Shift+Tab reverses focus order on Step 4 
+
+    TimeoutError: locator.focus: Timeout 2000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('field-email')[22m
+
+
+      456 |   test('B04 — Shift+Tab reverses focus order on Step 4', async ({ page }) => {
+      457 |     await page.goto(`${CHECKOUT_URL}/personal-info`);
+    > 458 |     await page.getByTestId('field-email').focus();
+          |                                           ^
+      459 |     await page.keyboard.press('Shift+Tab');
+      460 |     await expect(page.locator(':focus')).toHaveAttribute('data-testid', 'field-last-name');
+      461 |   });
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:458:43
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-80fc1-erses-focus-order-on-Step-4-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-80fc1-erses-focus-order-on-Step-4-chromium/error-context.md
+
+
+[1A[2K[54/128] [chromium] › e2e/human-click-timing-debug.spec.ts:463:7 › Section B — Tab & Keyboard Navigation › B05 — Enter key on Continue button submits form
+[1A[2K  20) [chromium] › e2e/human-click-timing-debug.spec.ts:463:7 › Section B — Tab & Keyboard Navigation › B05 — Enter key on Continue button submits form 
+
+    TimeoutError: locator.focus: Timeout 2000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('toggle-finance')[22m
+
+
+      463 |   test('B05 — Enter key on Continue button submits form', async ({ page }) => {
+      464 |     await page.goto(`${CHECKOUT_URL}/payment-type`);
+    > 465 |     await page.getByTestId('toggle-finance').focus();
+          |                                              ^
+      466 |     await page.keyboard.press('Space');
+      467 |     await page.getByTestId('btn-continue-step1').focus();
+      468 |     await page.keyboard.press('Enter');
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:465:46
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-0c791-ontinue-button-submits-form-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-0c791-ontinue-button-submits-form-chromium/error-context.md
+
+
+[1A[2K[55/128] [chromium] › e2e/human-click-timing-debug.spec.ts:472:7 › Section B — Tab & Keyboard Navigation › B06 — Space key activates toggle buttons
+[1A[2K  21) [chromium] › e2e/human-click-timing-debug.spec.ts:472:7 › Section B — Tab & Keyboard Navigation › B06 — Space key activates toggle buttons 
+
+    TimeoutError: locator.focus: Timeout 2000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('toggle-cash')[22m
+
+
+      472 |   test('B06 — Space key activates toggle buttons', async ({ page }) => {
+      473 |     await page.goto(`${CHECKOUT_URL}/payment-type`);
+    > 474 |     await page.getByTestId('toggle-cash').focus();
+          |                                           ^
+      475 |     await page.keyboard.press('Space');
+      476 |     await expect(page.getByTestId('toggle-cash')).toHaveAttribute('aria-selected', 'true');
+      477 |   });
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:474:43
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-a3677-ey-activates-toggle-buttons-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-a3677-ey-activates-toggle-buttons-chromium/error-context.md
+
+
+[1A[2K[56/128] [chromium] › e2e/human-click-timing-debug.spec.ts:479:7 › Section B — Tab & Keyboard Navigation › B07 — Escape key dismisses modal if open (does not crash)
+[1A[2K[57/128] [chromium] › e2e/human-click-timing-debug.spec.ts:487:7 › Section B — Tab & Keyboard Navigation › B08 — Arrow keys navigate province dropdown
+[1A[2K  22) [chromium] › e2e/human-click-timing-debug.spec.ts:487:7 › Section B — Tab & Keyboard Navigation › B08 — Arrow keys navigate province dropdown 
+
+    TimeoutError: locator.focus: Timeout 2000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('select-province')[22m
+
+
+      487 |   test('B08 — Arrow keys navigate province dropdown', async ({ page }) => {
+      488 |     await page.goto(`${CHECKOUT_URL}/personal-info`);
+    > 489 |     await page.getByTestId('select-province').focus();
+          |                                               ^
+      490 |     await page.keyboard.press('ArrowDown');
+      491 |     const value = await page.getByTestId('select-province').inputValue();
+      492 |     expect(value).toBeTruthy();
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:489:47
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-75fcd--navigate-province-dropdown-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-75fcd--navigate-province-dropdown-chromium/error-context.md
+
+
+[1A[2K[58/128] [chromium] › e2e/human-click-timing-debug.spec.ts:495:7 › Section B — Tab & Keyboard Navigation › B09 — Arrow keys adjust down payment slider
+[1A[2K  23) [chromium] › e2e/human-click-timing-debug.spec.ts:495:7 › Section B — Tab & Keyboard Navigation › B09 — Arrow keys adjust down payment slider 
+
+    TimeoutError: locator.focus: Timeout 2000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('slider-down-payment')[22m
+
+
+      496 |     await page.goto(`${CHECKOUT_URL}/deal-customization`);
+      497 |     const slider = page.getByTestId('slider-down-payment');
+    > 498 |     await slider.focus();
+          |                  ^
+      499 |     const valueBefore = await slider.inputValue();
+      500 |     await page.keyboard.press('ArrowRight');
+      501 |     const valueAfter = await slider.inputValue();
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:498:18
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-18577--adjust-down-payment-slider-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-18577--adjust-down-payment-slider-chromium/error-context.md
+
+
+[1A[2K[59/128] [chromium] › e2e/human-click-timing-debug.spec.ts:505:7 › Section B — Tab & Keyboard Navigation › B10 — all Step 4 form inputs reachable by keyboard only
+[1A[2K  24) [chromium] › e2e/human-click-timing-debug.spec.ts:505:7 › Section B — Tab & Keyboard Navigation › B10 — all Step 4 form inputs reachable by keyboard only 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoContain[2m([22m[32mexpected[39m[2m) // indexOf[22m
+
+    Expected value: [32m"field-first-name"[39m
+    Received array: [31m["skip-nav-link", "typesense-search-input"][39m
+
+      515 |     const required = ['field-first-name', 'field-last-name', 'field-email', 'field-phone', 'field-sin'];
+      516 |     for (const id of required) {
+    > 517 |       expect(reachedTestIds).toContain(id);
+          |                              ^
+      518 |     }
+      519 |   });
+      520 |
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:517:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-80acb--reachable-by-keyboard-only-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-80acb--reachable-by-keyboard-only-chromium/error-context.md
+
+
+[1A[2K[60/128] [chromium] › e2e/human-click-timing-debug.spec.ts:521:7 › Section B — Tab & Keyboard Navigation › B11 — focus states are visually distinct on all interactive elements
+[1A[2K  25) [chromium] › e2e/human-click-timing-debug.spec.ts:521:7 › Section B — Tab & Keyboard Navigation › B11 — focus states are visually distinct on all interactive elements 
+
+    TimeoutError: locator.focus: Timeout 2000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('toggle-cash')[22m
+
+
+      523 |     const targets = ['toggle-cash', 'toggle-finance', 'btn-continue-step1'];
+      524 |     for (const id of targets) {
+    > 525 |       await page.getByTestId(id).focus();
+          |                                  ^
+      526 |       const focusVisible = await page.evaluate((testId) => {
+      527 |         const el = document.querySelector(`[data-testid="${testId}"]`);
+      528 |         if (!el) return false;
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:525:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-8dd9d-on-all-interactive-elements-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-8dd9d-on-all-interactive-elements-chromium/error-context.md
+
+
+[1A[2K[61/128] [chromium] › e2e/human-click-timing-debug.spec.ts:539:7 › Section B — Tab & Keyboard Navigation › B12 — VDP image gallery navigable via arrow keys
+[1A[2K[62/128] [chromium] › e2e/human-click-timing-debug.spec.ts:563:7 › Section B — Tab & Keyboard Navigation › B13 — IDV form tab order covers all required fields
+[1A[2K[63/128] [chromium] › e2e/human-click-timing-debug.spec.ts:594:7 › Section C — Page Load Timing › C01 — Homepage: TTFB, FCP, LCP within budget
+[1A[2K[chromium] › e2e/human-click-timing-debug.spec.ts:594:7 › Section C — Page Load Timing › C01 — Homepage: TTFB, FCP, LCP within budget
+
+── Homepage Timing ──
+
+[1A[2K  TTFB: 213ms (budget: 600ms)
+
+[1A[2K  FCP:  272ms (budget: 1500ms)
+
+[1A[2K  LCP:  272ms (budget: 2500ms)
+
+[1A[2K  CLS:  undefined (budget: 0.1)
+
+[1A[2K[64/128] [chromium] › e2e/human-click-timing-debug.spec.ts:612:7 › Section C — Page Load Timing › C02 — Inventory page: LCP and load time within budget
+[1A[2K[chromium] › e2e/human-click-timing-debug.spec.ts:612:7 › Section C — Page Load Timing › C02 — Inventory page: LCP and load time within budget
+
+── Inventory Timing ──
+
+[1A[2K  TTFB: 44ms
+
+[1A[2K  LCP:  544ms
+
+[1A[2K[65/128] [chromium] › e2e/human-click-timing-debug.spec.ts:626:7 › Section C — Page Load Timing › C03 — VDP: hero image loads within 2000ms
+[1A[2K[chromium] › e2e/human-click-timing-debug.spec.ts:626:7 › Section C — Page Load Timing › C03 — VDP: hero image loads within 2000ms
+
+── VDP Image Load Times ──
+
+[1A[2K  9ms — http://localhost:3000/_next/image?url=%2Fimages%2Fplanet-motors-logo.png&w=128&q
+
+[1A[2K  11ms — http://localhost:3000/_next/image?url=%2Fimages%2Fplanet-motors-logo.png&w=256&q
+
+[1A[2K  6ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+
+[1A[2K  7ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+
+[1A[2K  7ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+
+[1A[2K  7ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+
+[1A[2K  7ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+
+[1A[2K  9ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+
+[1A[2K  16ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+
+[1A[2K  16ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+
+[1A[2K  17ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+
+[1A[2K  16ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+
+[1A[2K  16ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+
+[1A[2K  18ms — http://localhost:3000/_next/image?url=https%3A%2F%2Fcontent.homenetiol.com%2F200
+
+[1A[2K[66/128] [chromium] › e2e/human-click-timing-debug.spec.ts:656:7 › Section C — Page Load Timing › C04 — Typesense search response under 200ms
+[1A[2K[chromium] › e2e/human-click-timing-debug.spec.ts:656:7 › Section C — Page Load Timing › C04 — Typesense search response under 200ms
+
+── Typesense Search: 6ms (budget: 200ms)
+
+[1A[2K[67/128] [chromium] › e2e/human-click-timing-debug.spec.ts:674:7 › Section C — Page Load Timing › C05 — Checkout Step 1 load time within budget
+[1A[2K[chromium] › e2e/human-click-timing-debug.spec.ts:674:7 › Section C — Page Load Timing › C05 — Checkout Step 1 load time within budget
+
+── Step 1 Load: TTFB 40ms · DOM 200ms
+
+[1A[2K[68/128] [chromium] › e2e/human-click-timing-debug.spec.ts:682:7 › Section C — Page Load Timing › C06 — Step 3 deal recalculation API under 1000ms
+[1A[2K[chromium] › e2e/human-click-timing-debug.spec.ts:682:7 › Section C — Page Load Timing › C06 — Step 3 deal recalculation API under 1000ms
+
+✓ Timing report saved → test-results/timing-report.json
+
+[1A[2K  26) [chromium] › e2e/human-click-timing-debug.spec.ts:682:7 › Section C — Page Load Timing › C06 — Step 3 deal recalculation API under 1000ms 
+
+    TimeoutError: locator.focus: Timeout 2000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('slider-down-payment')[22m
+
+
+      687 |       async () => {
+      688 |         const slider = page.getByTestId('slider-down-payment');
+    > 689 |         await slider.focus();
+          |                      ^
+      690 |         await page.keyboard.press('ArrowRight');
+      691 |         await page.waitForTimeout(600);
+      692 |       }
+        at action (/Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:689:22)
+        at timeRequest (/Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:144:9)
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:684:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-2001b-alculation-API-under-1000ms-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-2001b-alculation-API-under-1000ms-chromium/error-context.md
+
+    Error Context: test-results/human-click-timing-debug-S-2001b-alculation-API-under-1000ms-chromium/error-context.md
+
+
+[1A[2K[69/128] [chromium] › e2e/human-click-timing-debug.spec.ts:700:7 › Section C — Page Load Timing › C07 — Step transition time (Step 1 → Step 2) under 500ms
+[1A[2K[chromium] › e2e/human-click-timing-debug.spec.ts:700:7 › Section C — Page Load Timing › C07 — Step transition time (Step 1 → Step 2) under 500ms
+
+✓ Timing report saved → test-results/timing-report.json
+
+[1A[2K  27) [chromium] › e2e/human-click-timing-debug.spec.ts:700:7 › Section C — Page Load Timing › C07 — Step transition time (Step 1 → Step 2) under 500ms 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('toggle-finance') to be visible[22m
+
+
+      165 | async function humanClick(page: Page, selector: string | ReturnType<Page['getByTestId']>) {
+      166 |   const element = typeof selector === 'string' ? page.locator(selector) : selector;
+    > 167 |   await element.waitFor({ state: 'visible', timeout: 10_000 });
+          |                 ^
+      168 |   await dismissOverlays(page);
+      169 |   await element.scrollIntoViewIfNeeded({ timeout: 5_000 });
+      170 |   await element.hover();
+        at humanClick (/Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:167:17)
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:702:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-6b40f-Step-1-→-Step-2-under-500ms-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-6b40f-Step-1-→-Step-2-under-500ms-chromium/error-context.md
+
+    Error Context: test-results/human-click-timing-debug-S-6b40f-Step-1-→-Step-2-under-500ms-chromium/error-context.md
+
+
+[1A[2K[70/128] [chromium] › e2e/human-click-timing-debug.spec.ts:712:7 › Section C — Page Load Timing › C08 — Step 4 Supabase write round-trip under 800ms
+[1A[2K[chromium] › e2e/human-click-timing-debug.spec.ts:712:7 › Section C — Page Load Timing › C08 — Step 4 Supabase write round-trip under 800ms
+
+✓ Timing report saved → test-results/timing-report.json
+
+[1A[2K  28) [chromium] › e2e/human-click-timing-debug.spec.ts:712:7 › Section C — Page Load Timing › C08 — Step 4 Supabase write round-trip under 800ms 
+
+    TimeoutError: locator.fill: Timeout 2000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('field-first-name')[22m
+
+
+      712 |   test('C08 — Step 4 Supabase write round-trip under 800ms', async ({ page }) => {
+      713 |     await page.goto(`${CHECKOUT_URL}/personal-info`);
+    > 714 |     await page.getByTestId('field-first-name').fill('James');
+          |                                                ^
+      715 |     await page.getByTestId('field-last-name').fill('Okafor');
+      716 |     await page.getByTestId('field-email').fill('james.okafor+test@gmail.com');
+      717 |     await page.getByTestId('field-phone').fill('4165550192');
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:714:48
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-761f8-rite-round-trip-under-800ms-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-761f8-rite-round-trip-under-800ms-chromium/error-context.md
+
+    Error Context: test-results/human-click-timing-debug-S-761f8-rite-round-trip-under-800ms-chromium/error-context.md
+
+
+[1A[2K[71/128] [chromium] › e2e/human-click-timing-debug.spec.ts:742:7 › Section C — Page Load Timing › C09 — Step 5 Vercel Blob upload response under 3000ms
+[1A[2K[chromium] › e2e/human-click-timing-debug.spec.ts:742:7 › Section C — Page Load Timing › C09 — Step 5 Vercel Blob upload response under 3000ms
+
+── Vercel Blob Upload: -1ms (budget: 3000ms)
+
+[1A[2K[72/128] [chromium] › e2e/human-click-timing-debug.spec.ts:766:7 › Section C — Page Load Timing › C10 — Upstash Redis cache hit vs miss timing comparison
+[1A[2K[chromium] › e2e/human-click-timing-debug.spec.ts:766:7 › Section C — Page Load Timing › C10 — Upstash Redis cache hit vs miss timing comparison
+
+── Upstash Redis Cache ──
+
+[1A[2K  Miss: 131ms (budget: 300ms)
+
+[1A[2K  Hit:  73ms (budget: 50ms)
+
+[1A[2K[73/128] [chromium] › e2e/human-click-timing-debug.spec.ts:784:7 › Section C — Page Load Timing › C11 — IDV page init time under 10 seconds
+[1A[2K[chromium] › e2e/human-click-timing-debug.spec.ts:784:7 › Section C — Page Load Timing › C11 — IDV page init time under 10 seconds
+
+── IDV Page Init: 225ms (budget: 10000ms)
+
+[1A[2K[74/128] [chromium] › e2e/human-click-timing-debug.spec.ts:794:7 › Section C — Page Load Timing › C12 — Full checkout Steps 1–4 total time under 60 seconds (human pace)
+[1A[2K[chromium] › e2e/human-click-timing-debug.spec.ts:794:7 › Section C — Page Load Timing › C12 — Full checkout Steps 1–4 total time under 60 seconds (human pace)
+
+✓ Timing report saved → test-results/timing-report.json
+
+[1A[2K  29) [chromium] › e2e/human-click-timing-debug.spec.ts:794:7 › Section C — Page Load Timing › C12 — Full checkout Steps 1–4 total time under 60 seconds (human pace) 
+
+    TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+    Call log:
+    [2m  - waiting for getByTestId('toggle-finance') to be visible[22m
+
+
+      165 | async function humanClick(page: Page, selector: string | ReturnType<Page['getByTestId']>) {
+      166 |   const element = typeof selector === 'string' ? page.locator(selector) : selector;
+    > 167 |   await element.waitFor({ state: 'visible', timeout: 10_000 });
+          |                 ^
+      168 |   await dismissOverlays(page);
+      169 |   await element.scrollIntoViewIfNeeded({ timeout: 5_000 });
+      170 |   await element.hover();
+        at humanClick (/Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:167:17)
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/human-click-timing-debug.spec.ts:800:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/human-click-timing-debug-S-ceb19-nder-60-seconds-human-pace--chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/human-click-timing-debug-S-ceb19-nder-60-seconds-human-pace--chromium/error-context.md
+
+    Error Context: test-results/human-click-timing-debug-S-ceb19-nder-60-seconds-human-pace--chromium/error-context.md
+
+
+[1A[2K[75/128] [chromium] › e2e/inventory.spec.ts:26:7 › Inventory Page › loads inventory page with heading
+[1A[2K[76/128] [chromium] › e2e/inventory.spec.ts:36:7 › Inventory Page › displays vehicle count
+[1A[2K[77/128] [chromium] › e2e/inventory.spec.ts:46:7 › Inventory Page › renders search input
+[1A[2K[78/128] [chromium] › e2e/inventory.spec.ts:53:7 › Inventory Page › search input accepts text
+[1A[2K[79/128] [chromium] › e2e/inventory.spec.ts:62:7 › Inventory Page › filter button is visible
+[1A[2K[80/128] [chromium] › e2e/inventory.spec.ts:69:7 › Inventory Page › sort dropdown is present
+[1A[2K[81/128] [chromium] › e2e/inventory.spec.ts:82:7 › Inventory Page › renders vehicle cards or no-results message
+[1A[2K[82/128] [chromium] › e2e/navigation.spec.ts:4:7 › Navigation › main nav links are visible on desktop
+[1A[2K[83/128] [chromium] › e2e/navigation.spec.ts:13:7 › Navigation › clicking inventory link navigates to inventory page
+[1A[2K[84/128] [chromium] › e2e/navigation.spec.ts:26:7 › Navigation › clicking contact link navigates to contact page
+[1A[2K[85/128] [chromium] › e2e/navigation.spec.ts:35:7 › Navigation › mobile menu toggle works
+[1A[2K[86/128] [chromium] › e2e/navigation.spec.ts:51:7 › Navigation › mobile menu navigation works
+[1A[2K[87/128] [chromium] › e2e/navigation.spec.ts:68:7 › Navigation › logo links to homepage
+[1A[2K[88/128] [chromium] › e2e/step4-personal-info.spec.ts:91:7 › Step 4 — Finance Form: Page Load › financing application page loads with Step 1 visible
+[1A[2K[89/128] [chromium] › e2e/step4-personal-info.spec.ts:105:7 › Step 4 — Finance Form: Page Load › page has correct title and navigation
+[1A[2K[90/128] [chromium] › e2e/step4-personal-info.spec.ts:112:7 › Step 4 — Finance Form: Required Field Validation › shows validation errors when submitting Step 1 with empty fields
+[1A[2K  30) [chromium] › e2e/step4-personal-info.spec.ts:112:7 › Step 4 — Finance Form: Required Field Validation › shows validation errors when submitting Step 1 with empty fields 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('First Name is required')
+    Expected: visible
+    Error: strict mode violation: getByText('First Name is required') resolved to 2 elements:
+        1) <p role="alert" id="error-first-name" class="text-xs text-destructive mt-1">First Name is required</p> aka locator('#error-first-name')
+        2) <li>First Name is required</li> aka getByRole('list').getByText('First Name is required')
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('First Name is required')[22m
+
+
+      123 |
+      124 |     // Specific error messages should appear
+    > 125 |     await expect(page.getByText("First Name is required")).toBeVisible()
+          |                                                            ^
+      126 |     await expect(page.getByText("Last Name is required")).toBeVisible()
+      127 |     await expect(page.getByText("Date of Birth is required")).toBeVisible()
+      128 |   })
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/step4-personal-info.spec.ts:125:60
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/step4-personal-info-Step-4-eef24-ng-Step-1-with-empty-fields-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/step4-personal-info-Step-4-eef24-ng-Step-1-with-empty-fields-chromium/error-context.md
+
+
+[1A[2K[91/128] [chromium] › e2e/step4-personal-info.spec.ts:130:7 › Step 4 — Finance Form: Required Field Validation › validation errors clear after fixing fields
+[1A[2K  31) [chromium] › e2e/step4-personal-info.spec.ts:130:7 › Step 4 — Finance Form: Required Field Validation › validation errors clear after fixing fields 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('First Name is required')
+    Expected: visible
+    Error: strict mode violation: getByText('First Name is required') resolved to 2 elements:
+        1) <p role="alert" id="error-first-name" class="text-xs text-destructive mt-1">First Name is required</p> aka locator('#error-first-name')
+        2) <li>First Name is required</li> aka getByRole('list').getByText('First Name is required')
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('First Name is required')[22m
+
+
+      134 |     // Trigger validation
+      135 |     await form.continueBtn.click()
+    > 136 |     await expect(page.getByText("First Name is required")).toBeVisible()
+          |                                                            ^
+      137 |
+      138 |     // The error text should be in the banner
+      139 |     const banner = form.errorBanner
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/step4-personal-info.spec.ts:136:60
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/step4-personal-info-Step-4-825ea-s-clear-after-fixing-fields-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/step4-personal-info-Step-4-825ea-s-clear-after-fixing-fields-chromium/error-context.md
+
+
+[1A[2K[92/128] [chromium] › e2e/step4-personal-info.spec.ts:145:7 › Step 4 — Finance Form: Phone Validation › phone field formats input as Canadian number
+[1A[2K  32) [chromium] › e2e/step4-personal-info.spec.ts:145:7 › Step 4 — Finance Form: Phone Validation › phone field formats input as Canadian number 
+
+    TimeoutError: locator.fill: Timeout 2000ms exceeded.
+    Call log:
+    [2m  - waiting for getByPlaceholder('(XXX) XXX-XXXX').first()[22m
+
+
+      149 |     // Find phone input by its placeholder
+      150 |     const phoneInput = page.getByPlaceholder("(XXX) XXX-XXXX").first()
+    > 151 |     await phoneInput.fill("4165550192")
+          |                      ^
+      152 |
+      153 |     // Should be formatted
+      154 |     await expect(phoneInput).toHaveValue("(416) 555-0192")
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/step4-personal-info.spec.ts:151:22
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/step4-personal-info-Step-4-0b2ae-ts-input-as-Canadian-number-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/step4-personal-info-Step-4-0b2ae-ts-input-as-Canadian-number-chromium/error-context.md
+
+
+[1A[2K[93/128] [chromium] › e2e/step4-personal-info.spec.ts:159:7 › Step 4 — Finance Form: Phone Validation Edge Cases › rejects phone numbers that start with 0 or 1 area code
+[1A[2K  33) [chromium] › e2e/step4-personal-info.spec.ts:159:7 › Step 4 — Finance Form: Phone Validation Edge Cases › rejects phone numbers that start with 0 or 1 area code 
+
+    TimeoutError: locator.fill: Timeout 2000ms exceeded.
+    Call log:
+    [2m  - waiting for getByPlaceholder('(XXX) XXX-XXXX').first()[22m
+
+
+      164 |
+      165 |     const phoneInput = page.getByPlaceholder("(XXX) XXX-XXXX").first()
+    > 166 |     await phoneInput.fill("0165550192")
+          |                      ^
+      167 |
+      168 |     // Try to continue — should get phone validation error
+      169 |     await form.continueBtn.click()
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/step4-personal-info.spec.ts:166:22
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/step4-personal-info-Step-4-20716-start-with-0-or-1-area-code-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/step4-personal-info-Step-4-20716-start-with-0-or-1-area-code-chromium/error-context.md
+
+
+[1A[2K[94/128] [chromium] › e2e/step4-personal-info.spec.ts:175:7 › Step 4 — Finance Form: Phone Validation Edge Cases › rejects phone numbers shorter than 10 digits
+[1A[2K  34) [chromium] › e2e/step4-personal-info.spec.ts:175:7 › Step 4 — Finance Form: Phone Validation Edge Cases › rejects phone numbers shorter than 10 digits 
+
+    TimeoutError: locator.fill: Timeout 2000ms exceeded.
+    Call log:
+    [2m  - waiting for getByPlaceholder('(XXX) XXX-XXXX').first()[22m
+
+
+      178 |
+      179 |     const phoneInput = page.getByPlaceholder("(XXX) XXX-XXXX").first()
+    > 180 |     await phoneInput.fill("416555")
+          |                      ^
+      181 |
+      182 |     await form.continueBtn.click()
+      183 |     // The error banner should contain a phone-related error about 10 digits
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/step4-personal-info.spec.ts:180:22
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/step4-personal-info-Step-4-984ba-bers-shorter-than-10-digits-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/step4-personal-info-Step-4-984ba-bers-shorter-than-10-digits-chromium/error-context.md
+
+
+[1A[2K[95/128] [chromium] › e2e/step4-personal-info.spec.ts:190:7 › Step 4 — Finance Form: Step Navigation › Back button is disabled on Step 1
+[1A[2K[96/128] [chromium] › e2e/step4-personal-info.spec.ts:196:7 › Step 4 — Finance Form: Step Navigation › progress indicator shows current step
+[1A[2K[97/128] [chromium] › e2e/step4-personal-info.spec.ts:206:7 › Step 4 — Finance Form: Draft Persistence › form data persists in localStorage as draft
+[1A[2K  35) [chromium] › e2e/step4-personal-info.spec.ts:206:7 › Step 4 — Finance Form: Draft Persistence › form data persists in localStorage as draft 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      224 |       return keys.some((k) => k.includes("pm:finance-draft"))
+      225 |     })
+    > 226 |     expect(draftExists).toBeTruthy()
+          |                         ^
+      227 |   })
+      228 |
+      229 |   test("form data restores from localStorage on page reload", async ({
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/step4-personal-info.spec.ts:226:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/step4-personal-info-Step-4-8ce1a-ts-in-localStorage-as-draft-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/step4-personal-info-Step-4-8ce1a-ts-in-localStorage-as-draft-chromium/error-context.md
+
+
+[1A[2K[98/128] [chromium] › e2e/step4-personal-info.spec.ts:229:7 › Step 4 — Finance Form: Draft Persistence › form data restores from localStorage on page reload
+[1A[2K  36) [chromium] › e2e/step4-personal-info.spec.ts:229:7 › Step 4 — Finance Form: Draft Persistence › form data restores from localStorage on page reload 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveValue[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: getByPlaceholder('(XXX) XXX-XXXX').first()
+    Expected: [32m"(416) 555-0192"[39m
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toHaveValue" with timeout 5000ms[22m
+    [2m  - waiting for getByPlaceholder('(XXX) XXX-XXXX').first()[22m
+
+
+      269 |     // Check that data was restored by verifying the phone field
+      270 |     const phoneInput = page.getByPlaceholder("(XXX) XXX-XXXX").first()
+    > 271 |     await expect(phoneInput).toHaveValue("(416) 555-0192")
+          |                              ^
+      272 |   })
+      273 | })
+      274 |
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/step4-personal-info.spec.ts:271:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/step4-personal-info-Step-4-e9410-localStorage-on-page-reload-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/step4-personal-info-Step-4-e9410-localStorage-on-page-reload-chromium/error-context.md
+
+
+[1A[2K[99/128] [chromium] › e2e/step4-personal-info.spec.ts:276:7 › Step 4 — Finance Form: Address Section › address section renders with postal code input
+[1A[2K[100/128] [chromium] › e2e/step4-personal-info.spec.ts:288:7 › Step 4 — Finance Form: Employment Section › employment section renders with required fields
+[1A[2K[101/128] [chromium] › e2e/step4-personal-info.spec.ts:302:7 › Step 4 — Finance Form: Sensitive Data › no sensitive data leaks in network requests during form fill
+[1A[2K[102/128] [chromium] › e2e/step5-financing-idv.spec.ts:137:7 › Step 5 — IDV: Page Load & Trust Indicators › verification page loads with correct heading
+[1A[2K[103/128] [chromium] › e2e/step5-financing-idv.spec.ts:144:7 › Step 5 — IDV: Page Load & Trust Indicators › trust badges are visible (encryption, PIPEDA)
+[1A[2K[104/128] [chromium] › e2e/step5-financing-idv.spec.ts:153:7 › Step 5 — IDV: Page Load & Trust Indicators › page title contains Planet Motors
+[1A[2K[105/128] [chromium] › e2e/step5-financing-idv.spec.ts:160:7 › Step 5 — IDV: Primary ID Form Fields › ID type dropdown renders with all 5 document types
+[1A[2K[106/128] [chromium] › e2e/step5-financing-idv.spec.ts:178:7 › Step 5 — IDV: Primary ID Form Fields › ID number input accepts text
+[1A[2K[107/128] [chromium] › e2e/step5-financing-idv.spec.ts:186:7 › Step 5 — IDV: Primary ID Form Fields › expiry date input renders as date picker
+[1A[2K[108/128] [chromium] › e2e/step5-financing-idv.spec.ts:196:7 › Step 5 — IDV: Primary ID Form Fields › issuing province dropdown lists Canadian provinces
+[1A[2K[109/128] [chromium] › e2e/step5-financing-idv.spec.ts:212:7 › Step 5 — IDV: Document Upload › front and back upload areas are visible
+[1A[2K[110/128] [chromium] › e2e/step5-financing-idv.spec.ts:220:7 › Step 5 — IDV: Document Upload › front image upload shows preview after selecting file
+[1A[2K  37) [chromium] › e2e/step5-financing-idv.spec.ts:220:7 › Step 5 — IDV: Document Upload › front image upload shows preview after selecting file 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByAltText('ID Front')
+    Expected: visible
+    Timeout: 8000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 8000ms[22m
+    [2m  - waiting for getByAltText('ID Front')[22m
+
+
+      232 |
+      233 |     // After upload, the preview image should appear with alt "ID Front"
+    > 234 |     await expect(page.getByAltText("ID Front")).toBeVisible({ timeout: 8000 })
+          |                                                 ^
+      235 |   })
+      236 |
+      237 |   test("uploaded image can be removed via X button", async ({ page }) => {
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/step5-financing-idv.spec.ts:234:49
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/step5-financing-idv-Step-5-a6224-review-after-selecting-file-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/step5-financing-idv-Step-5-a6224-review-after-selecting-file-chromium/error-context.md
+
+
+[1A[2K[111/128] [chromium] › e2e/step5-financing-idv.spec.ts:237:7 › Step 5 — IDV: Document Upload › uploaded image can be removed via X button
+[1A[2K  38) [chromium] › e2e/step5-financing-idv.spec.ts:237:7 › Step 5 — IDV: Document Upload › uploaded image can be removed via X button 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByAltText('ID Front')
+    Expected: visible
+    Timeout: 8000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 8000ms[22m
+    [2m  - waiting for getByAltText('ID Front')[22m
+
+
+      247 |
+      248 |     // Wait for the preview to appear
+    > 249 |     await expect(page.getByAltText("ID Front")).toBeVisible({ timeout: 8000 })
+          |                                                 ^
+      250 |
+      251 |     // The remove button (X) should appear on the preview
+      252 |     const removeBtn = page
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/step5-financing-idv.spec.ts:249:49
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/step5-financing-idv-Step-5-4ad50-can-be-removed-via-X-button-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/step5-financing-idv-Step-5-4ad50-can-be-removed-via-X-button-chromium/error-context.md
+
+
+[1A[2K[112/128] [chromium] › e2e/step5-financing-idv.spec.ts:264:7 › Step 5 — IDV: Form Validation › submit button is disabled when required fields are empty
+[1A[2K[113/128] [chromium] › e2e/step5-financing-idv.spec.ts:274:7 › Step 5 — IDV: Form Validation › submit button enables after filling required fields
+[1A[2K  39) [chromium] › e2e/step5-financing-idv.spec.ts:274:7 › Step 5 — IDV: Form Validation › submit button enables after filling required fields 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeEnabled[2m([22m[2m)[22m failed
+
+    Locator:  getByRole('button', { name: /submit for verification/i })
+    Expected: enabled
+    Received: disabled
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeEnabled" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('button', { name: /submit for verification/i })[22m
+    [2m    9 × locator resolved to <button disabled aria-busy="false" data-slot="button" aria-label="Submit for verification" data-testid="verification-btn-submit" class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-inv…>…</button>[22m
+    [2m      - unexpected value "disabled"[22m
+
+
+      288 |
+      289 |     // Submit button should now be enabled
+    > 290 |     await expect(idv.submitBtn).toBeEnabled()
+          |                                 ^
+      291 |   })
+      292 | })
+      293 |
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/step5-financing-idv.spec.ts:290:33
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/step5-financing-idv-Step-5-b06ce-ter-filling-required-fields-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/step5-financing-idv-Step-5-b06ce-ter-filling-required-fields-chromium/error-context.md
+
+
+[1A[2K[114/128] [chromium] › e2e/step5-financing-idv.spec.ts:295:7 › Step 5 — IDV: Secondary ID Flow › secondary ID section can be toggled on
+[1A[2K[115/128] [chromium] › e2e/step5-financing-idv.spec.ts:310:7 › Step 5 — IDV: Secondary ID Flow › secondary ID type excludes already-selected primary type
+[1A[2K[116/128] [chromium] › e2e/step5-financing-idv.spec.ts:334:7 › Step 5 — IDV: API Submission › submitting form sends POST to /api/v1/id-verification
+[1A[2K  40) [chromium] › e2e/step5-financing-idv.spec.ts:334:7 › Step 5 — IDV: API Submission › submitting form sends POST to /api/v1/id-verification 
+
+    TimeoutError: page.waitForRequest: Timeout 2000ms exceeded while waiting for event "request"
+
+      347 |
+      348 |     // Intercept the API call
+    > 349 |     const apiPromise = page.waitForRequest(
+          |                             ^
+      350 |       (req) =>
+      351 |         req.url().includes("/api/v1/id-verification") &&
+      352 |         req.method() === "POST"
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/step5-financing-idv.spec.ts:349:29
+
+    TimeoutError: locator.click: Timeout 2000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: /submit for verification/i })[22m
+    [2m    - locator resolved to <button disabled aria-busy="false" data-slot="button" aria-label="Submit for verification" data-testid="verification-btn-submit" class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-inv…>…</button>[22m
+    [2m  - attempting click action[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not enabled[22m
+    [2m    - retrying click action[22m
+    [2m    - waiting 20ms[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not enabled[22m
+    [2m    - retrying click action[22m
+    [2m      - waiting 100ms[22m
+    [2m    4 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not enabled[22m
+    [2m    - retrying click action[22m
+    [2m      - waiting 500ms[22m
+
+
+      353 |     )
+      354 |
+    > 355 |     await idv.submitBtn.click()
+          |                         ^
+      356 |
+      357 |     // Verify the request was made
+      358 |     const apiRequest = await apiPromise.catch(() => null)
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/step5-financing-idv.spec.ts:355:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/step5-financing-idv-Step-5-c6f4c-T-to-api-v1-id-verification-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/step5-financing-idv-Step-5-c6f4c-T-to-api-v1-id-verification-chromium/error-context.md
+
+
+[1A[2K[117/128] [chromium] › e2e/step5-financing-idv.spec.ts:367:7 › Step 5 — IDV: API Submission › loading state shows during submission
+[1A[2K  41) [chromium] › e2e/step5-financing-idv.spec.ts:367:7 › Step 5 — IDV: API Submission › loading state shows during submission 
+
+    TimeoutError: locator.click: Timeout 2000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: /submit for verification/i })[22m
+    [2m    - locator resolved to <button disabled aria-busy="false" data-slot="button" aria-label="Submit for verification" data-testid="verification-btn-submit" class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-inv…>…</button>[22m
+    [2m  - attempting click action[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not enabled[22m
+    [2m    - retrying click action[22m
+    [2m    - waiting 20ms[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not enabled[22m
+    [2m    - retrying click action[22m
+    [2m      - waiting 100ms[22m
+    [2m    4 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not enabled[22m
+    [2m    - retrying click action[22m
+    [2m      - waiting 500ms[22m
+
+
+      395 |     })
+      396 |
+    > 397 |     await idv.submitBtn.click()
+          |                         ^
+      398 |
+      399 |     // Loading text should appear while the request is pending
+      400 |     await expect(idv.loadingSpinner).toBeVisible({ timeout: 3000 })
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/step5-financing-idv.spec.ts:397:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/step5-financing-idv-Step-5-cb5f5-ate-shows-during-submission-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/step5-financing-idv-Step-5-cb5f5-ate-shows-during-submission-chromium/error-context.md
+
+
+[1A[2K[118/128] [chromium] › e2e/step5-financing-idv.spec.ts:408:7 › Step 5 — IDV: Network Security Audit › no raw ID numbers sent as plaintext in request body
+[1A[2K[119/128] [chromium] › e2e/step5-financing-idv.spec.ts:437:7 › Step 5 — IDV: Network Security Audit › API response does not echo back raw ID number
+[1A[2K  42) [chromium] › e2e/step5-financing-idv.spec.ts:437:7 › Step 5 — IDV: Network Security Audit › API response does not echo back raw ID number 
+
+    TimeoutError: page.waitForResponse: Timeout 2000ms exceeded while waiting for event "response"
+    =========================== logs ===========================
+    waiting for response "**/api/v1/id-verification"
+    ============================================================
+
+      459 |     const [fc] = await Promise.all([page.waitForEvent('filechooser'), page.getByText('Click to upload').first().click()]); await fc.setFiles(DL_FRONT_PATH)
+      460 |
+    > 461 |     const responsePromise = page.waitForResponse("**/api/v1/id-verification")
+          |                                  ^
+      462 |     await idv.submitBtn.click()
+      463 |     const response = await responsePromise.catch(() => null)
+      464 |
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/step5-financing-idv.spec.ts:461:34
+
+    TimeoutError: locator.click: Timeout 2000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: /submit for verification/i })[22m
+    [2m    - locator resolved to <button disabled aria-busy="false" data-slot="button" aria-label="Submit for verification" data-testid="verification-btn-submit" class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-inv…>…</button>[22m
+    [2m  - attempting click action[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not enabled[22m
+    [2m    - retrying click action[22m
+    [2m    - waiting 20ms[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not enabled[22m
+    [2m    - retrying click action[22m
+    [2m      - waiting 100ms[22m
+    [2m    4 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not enabled[22m
+    [2m    - retrying click action[22m
+    [2m      - waiting 500ms[22m
+
+
+      460 |
+      461 |     const responsePromise = page.waitForResponse("**/api/v1/id-verification")
+    > 462 |     await idv.submitBtn.click()
+          |                         ^
+      463 |     const response = await responsePromise.catch(() => null)
+      464 |
+      465 |     if (response) {
+        at /Users/tonisultzberg@icloud.com/v0-newbornplanetm/e2e/step5-financing-idv.spec.ts:462:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/step5-financing-idv-Step-5-f3ed0-not-echo-back-raw-ID-number-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/step5-financing-idv-Step-5-f3ed0-not-echo-back-raw-ID-number-chromium/error-context.md
+
+
+[1A[2K[120/128] [chromium] › e2e/vdp-visual.spec.ts:105:7 › VDP Desktop — Visual Regression › full page layout
+[1A[2K[121/128] [chromium] › e2e/vdp-visual.spec.ts:116:7 › VDP Desktop — Visual Regression › sidebar finance callout + CTA group
+[1A[2K[122/128] [chromium] › e2e/vdp-visual.spec.ts:150:7 › VDP Mobile — Visual Regression › full page layout
+[1A[2K[123/128] [chromium] › e2e/vdp-visual.spec.ts:161:7 › VDP Mobile — Visual Regression › sticky CTA bar
+[1A[2K[124/128] [chromium] › e2e/vdp-visual.spec.ts:185:7 › Finance Application Form — Visual Regression › desktop form layout with trust badges
+[1A[2K[125/128] [chromium] › e2e/vdp-visual.spec.ts:205:7 › Finance Application Form Mobile — Visual Regression › mobile form layout
+[1A[2K[126/128] [chromium] › e2e/vehicle-detail.spec.ts:42:7 › Vehicle Detail Page › navigates to a vehicle from inventory
+[1A[2K[127/128] [chromium] › e2e/vehicle-detail.spec.ts:49:7 › Vehicle Detail Page › vehicle detail page has header and footer
+[1A[2K[128/128] [chromium] › e2e/vehicle-detail.spec.ts:56:7 › Vehicle Detail Page › vehicle detail page shows CTA buttons
+[1A[2K  42 failed
+    [chromium] › e2e/auth-gated-flows.spec.ts:117:7 › Auth-Gated Flows — Finance Submission & ID Upload › Full finance application → confirmation number → ID upload 
+    [chromium] › e2e/auth.spec.ts:8:7 › Auth — Login Page › renders login page with correct heading 
+    [chromium] › e2e/auth.spec.ts:13:7 › Auth — Login Page › renders email and password fields ─────
+    [chromium] › e2e/auth.spec.ts:53:7 › Auth — Login Page › submit button is present and labelled ─
+    [chromium] › e2e/auth.spec.ts:71:7 › Auth — Forgot Password Page › forgot password page renders 
+    [chromium] › e2e/auth.spec.ts:78:7 › Auth — Open-Redirect Guard › redirectTo with absolute URL falls back to /account 
+    [chromium] › e2e/auth.spec.ts:85:7 › Auth — Open-Redirect Guard › redirectTo with protocol-relative URL falls back to /account 
+    [chromium] › e2e/auth.spec.ts:90:7 › Auth — Open-Redirect Guard › redirectTo with valid relative path is accepted 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:260:7 › Section A — Human Click Simulation › A05 — Step 1 payment type toggle — Cash click 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:267:7 › Section A — Human Click Simulation › A06 — Step 1 payment type toggle — Finance click after Cash 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:275:7 › Section A — Human Click Simulation › A07 — Step 2 "No Trade-In" bypass click proceeds directly 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:281:7 › Section A — Human Click Simulation › A08 — Step 3 down payment slider — click and drag 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:295:7 › Section A — Human Click Simulation › A09 — Step 3 bi-weekly/monthly toggle — alternating clicks 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:304:7 › Section A — Human Click Simulation › A10 — double-click on Continue button does not submit twice 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:318:7 › Section A — Human Click Simulation › A11 — click on disabled Continue button does not navigate 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:354:7 › Section A — Human Click Simulation › A14 — mobile fat-finger: tap targets minimum 44x44px on checkout buttons 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:368:7 › Section A — Human Click Simulation › A15 — full human click walkthrough: Steps 1–3 (cash, no trade-in, review) 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:441:7 › Section B — Tab & Keyboard Navigation › B03 — Step 4 form tab order is correct 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:456:7 › Section B — Tab & Keyboard Navigation › B04 — Shift+Tab reverses focus order on Step 4 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:463:7 › Section B — Tab & Keyboard Navigation › B05 — Enter key on Continue button submits form 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:472:7 › Section B — Tab & Keyboard Navigation › B06 — Space key activates toggle buttons 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:487:7 › Section B — Tab & Keyboard Navigation › B08 — Arrow keys navigate province dropdown 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:495:7 › Section B — Tab & Keyboard Navigation › B09 — Arrow keys adjust down payment slider 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:505:7 › Section B — Tab & Keyboard Navigation › B10 — all Step 4 form inputs reachable by keyboard only 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:521:7 › Section B — Tab & Keyboard Navigation › B11 — focus states are visually distinct on all interactive elements 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:682:7 › Section C — Page Load Timing › C06 — Step 3 deal recalculation API under 1000ms 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:700:7 › Section C — Page Load Timing › C07 — Step transition time (Step 1 → Step 2) under 500ms 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:712:7 › Section C — Page Load Timing › C08 — Step 4 Supabase write round-trip under 800ms 
+    [chromium] › e2e/human-click-timing-debug.spec.ts:794:7 › Section C — Page Load Timing › C12 — Full checkout Steps 1–4 total time under 60 seconds (human pace) 
+    [chromium] › e2e/step4-personal-info.spec.ts:112:7 › Step 4 — Finance Form: Required Field Validation › shows validation errors when submitting Step 1 with empty fields 
+    [chromium] › e2e/step4-personal-info.spec.ts:130:7 › Step 4 — Finance Form: Required Field Validation › validation errors clear after fixing fields 
+    [chromium] › e2e/step4-personal-info.spec.ts:145:7 › Step 4 — Finance Form: Phone Validation › phone field formats input as Canadian number 
+    [chromium] › e2e/step4-personal-info.spec.ts:159:7 › Step 4 — Finance Form: Phone Validation Edge Cases › rejects phone numbers that start with 0 or 1 area code 
+    [chromium] › e2e/step4-personal-info.spec.ts:175:7 › Step 4 — Finance Form: Phone Validation Edge Cases › rejects phone numbers shorter than 10 digits 
+    [chromium] › e2e/step4-personal-info.spec.ts:206:7 › Step 4 — Finance Form: Draft Persistence › form data persists in localStorage as draft 
+    [chromium] › e2e/step4-personal-info.spec.ts:229:7 › Step 4 — Finance Form: Draft Persistence › form data restores from localStorage on page reload 
+    [chromium] › e2e/step5-financing-idv.spec.ts:220:7 › Step 5 — IDV: Document Upload › front image upload shows preview after selecting file 
+    [chromium] › e2e/step5-financing-idv.spec.ts:237:7 › Step 5 — IDV: Document Upload › uploaded image can be removed via X button 
+    [chromium] › e2e/step5-financing-idv.spec.ts:274:7 › Step 5 — IDV: Form Validation › submit button enables after filling required fields 
+    [chromium] › e2e/step5-financing-idv.spec.ts:334:7 › Step 5 — IDV: API Submission › submitting form sends POST to /api/v1/id-verification 
+    [chromium] › e2e/step5-financing-idv.spec.ts:367:7 › Step 5 — IDV: API Submission › loading state shows during submission 
+    [chromium] › e2e/step5-financing-idv.spec.ts:437:7 › Step 5 — IDV: Network Security Audit › API response does not echo back raw ID number 
+  8 skipped
+  78 passed (4.8m)
+ ELIFECYCLE  Command failed with exit code 1.
+--- TypeScript ---
+
+> planet-motors@0.3.0 typecheck /Users/tonisultzberg@icloud.com/v0-newbornplanetm
+> tsc --noEmit
+
+--- Lint ---
+
+> planet-motors@0.3.0 lint /Users/tonisultzberg@icloud.com/v0-newbornplanetm
+> eslint .
+
+=== RUN 3 COMPLETE ===

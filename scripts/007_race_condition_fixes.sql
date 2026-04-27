@@ -202,7 +202,10 @@ END;
 $$;
 
 -- 4. Atomic checkout status check for startVehicleCheckout.
---    Locks vehicle, verifies it's available, returns vehicle data.
+--    NOTE: This initial version transitions to 'pending'. It is superseded by
+--    012_checkout_race_condition_fix.sql which transitions to 'checkout_in_progress'
+--    instead, providing a more precise status for session-level locking.
+--    Run 012 after this script to replace this function with the updated version.
 CREATE OR REPLACE FUNCTION public.lock_vehicle_for_checkout(
   p_vehicle_id UUID
 )
@@ -227,9 +230,6 @@ BEGIN
       format('Vehicle is %s, not available for checkout', v_vehicle.status));
   END IF;
 
-  -- Transition to 'pending' immediately so the lock persists beyond this transaction.
-  -- Without this, the FOR UPDATE lock releases on COMMIT and concurrent requests can
-  -- slip through before the Stripe session completes.
   UPDATE public.vehicles
      SET status = 'pending', updated_at = NOW()
    WHERE id = p_vehicle_id;

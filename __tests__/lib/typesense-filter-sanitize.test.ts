@@ -4,23 +4,27 @@ import { sanitizeTypesenseFilterValue } from '@/lib/typesense'
 // ---------------------------------------------------------------------------
 // sanitizeTypesenseFilterValue — quoting & escaping
 // ---------------------------------------------------------------------------
+
+/** Helper: assert that a value is wrapped in backticks unchanged. */
+function expectWrapped(input: string, expected: string = `\`${input}\``) {
+  expect(sanitizeTypesenseFilterValue(input)).toBe(expected)
+}
+
 describe('sanitizeTypesenseFilterValue', () => {
   it('wraps a simple single-word value in backticks', () => {
-    expect(sanitizeTypesenseFilterValue('Toyota')).toBe('`Toyota`')
+    expectWrapped('Toyota')
   })
 
   it('wraps multi-word values like "Land Rover" in backticks', () => {
-    expect(sanitizeTypesenseFilterValue('Land Rover')).toBe('`Land Rover`')
+    expectWrapped('Land Rover')
   })
 
   it('wraps "Alfa Romeo" (multi-word make) in backticks', () => {
-    expect(sanitizeTypesenseFilterValue('Alfa Romeo')).toBe('`Alfa Romeo`')
+    expectWrapped('Alfa Romeo')
   })
 
   it('wraps multi-word model names in backticks', () => {
-    expect(sanitizeTypesenseFilterValue('Model Y Long Range')).toBe(
-      '`Model Y Long Range`'
-    )
+    expectWrapped('Model Y Long Range')
   })
 
   it('escapes embedded backticks in values', () => {
@@ -64,21 +68,21 @@ describe('sanitizeTypesenseFilterValue', () => {
   })
 
   it('handles values with only spaces', () => {
-    expect(sanitizeTypesenseFilterValue('   ')).toBe('`   `')
+    expectWrapped('   ')
   })
 
   it('handles hyphens (e.g. body style "Mid-Size")', () => {
-    expect(sanitizeTypesenseFilterValue('Mid-Size SUV')).toBe('`Mid-Size SUV`')
+    expectWrapped('Mid-Size SUV')
   })
 
   it('handles ampersand that is NOT part of "&&"', () => {
     // Single & is fine — only && is dangerous
-    expect(sanitizeTypesenseFilterValue('AT&T')).toBe('`AT&T`')
+    expectWrapped('AT&T')
   })
 
   it('handles pipe that is NOT part of "||"', () => {
     // Single | is fine — only || is dangerous
-    expect(sanitizeTypesenseFilterValue('A|B')).toBe('`A|B`')
+    expectWrapped('A|B')
   })
 
   // ── Backslash escaping (Devin Review fix) ──────────────────────────────
