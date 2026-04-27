@@ -5,8 +5,7 @@ import Stripe from 'stripe'
 let stripeInstance: Stripe | null = null
 
 function getStripeInstance(): Stripe | null {
-  if (globalThis.window !== undefined) {
-    // Never run on client
+  if (globalThis.window !== undefined) {    // Never run on client
     return null
   }
   if (!stripeInstance && process.env.STRIPE_SECRET_KEY) {

@@ -8,7 +8,7 @@ import { validateOrigin } from "@/lib/csrf"
  * SIN must be 9 digits and pass the Luhn check.
  */
 function isValidSin(raw: string): boolean {
-  const digits = raw.replaceAll(/\D/g, "")
+  const digits = raw.replace(/\D/g, "")
   if (digits.length !== 9) return false
 
   let sum = 0
@@ -32,7 +32,7 @@ function isValidSin(raw: string): boolean {
  * acceptable.
  */
 function protectSin(rawSin: string): string {
-  const digits = rawSin.replaceAll(/\D/g, "")
+  const digits = rawSin.replace(/\D/g, "")
   const encryptionKeyHex = process.env.APPLICATION_SIN_ENCRYPTION_KEY
 
   if (encryptionKeyHex && /^[0-9a-f]{64}$/i.test(encryptionKeyHex)) {

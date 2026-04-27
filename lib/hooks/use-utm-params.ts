@@ -32,7 +32,6 @@ const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "ut
 export function useUTMParams() {
   useEffect(() => {
     if (globalThis.window === undefined) return
-
     // Only capture on first page load (before any navigation)
     const existingParams = sessionStorage.getItem(STORAGE_KEY)
     if (existingParams) return
@@ -62,7 +61,6 @@ export function useUTMParams() {
  */
 export function getUTMParams(): UTMParams | null {
   if (globalThis.window === undefined) return null
-
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY)
     if (!raw) return null

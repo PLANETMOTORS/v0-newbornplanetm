@@ -115,7 +115,7 @@ function buildAdfXml(lead: AutoRaptorLeadPayload): string {
     ? `<comments>${escapeXml(lead.comments)}</comments>`
     : ""
   const sourceLabel = lead.source
-    ? escapeXml(lead.source.replaceAll("_", " ").replaceAll(/\b\w/g, c => c.toUpperCase()))
+    ? escapeXml(lead.source.replaceAll("_", " ").replace(/\b\w/g, c => c.toUpperCase()))
     : "Website"
 
   return `<?xml version="1.0" encoding="UTF-8"?>

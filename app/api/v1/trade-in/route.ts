@@ -34,7 +34,7 @@ const getVehicleValue = (year: number, make: string, model: string, mileage: num
   const mileageDiff = mileage - expectedMileage
   if (mileageDiff > 0) {
     // Over mileage: deduct $0.10 per km
-    baseValue -= mileageDiff * 0.10
+    baseValue -= mileageDiff * 0.1
   } else {
     // Under mileage: add $0.05 per km
     baseValue += Math.abs(mileageDiff) * 0.05

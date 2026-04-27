@@ -134,8 +134,7 @@ export function getVariant<V extends string>(
   experimentId: string,
   experiment: Experiment<V>
 ): V {
-  if (globalThis.window === undefined) {
-    // SSR: always return control
+  if (globalThis.window === undefined) {    // SSR: always return control
     return experiment.variants[0]
   }
 

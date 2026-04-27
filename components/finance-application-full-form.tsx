@@ -507,7 +507,7 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   
   // Phone number validation - strict rules for real Canadian phone numbers
   const validatePhone = (phone: string): { valid: boolean; error?: string } => {
-    const digitsOnly = phone.replaceAll(/\D/g, '')
+    const digitsOnly = phone.replace(/\D/g, '')
     
     // Must be exactly 10 digits
     if (digitsOnly.length !== 10) {
@@ -584,7 +584,7 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     }
     if (!primaryApplicant.email.trim() && !primaryApplicant.noEmail) errors.push("Email is required")
     if (!primaryApplicant.creditRating) errors.push("Credit Rating is required")
-    if (!primaryApplicant.postalCode.trim() || primaryApplicant.postalCode.replaceAll(/\s/g, '').length < 6) {
+    if (!primaryApplicant.postalCode.trim() || primaryApplicant.postalCode.replace(/\s/g, '').length < 6) {
       errors.push("Valid Postal Code is required (format: A1A 1A1)")
     }
     if (!primaryApplicant.addressType) errors.push("Address Type is required")
@@ -598,7 +598,7 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     if (!primaryApplicant.employmentStatus) errors.push("Employment Status is required")
     if (!primaryApplicant.employerName.trim()) errors.push("Employer Name is required")
     if (!primaryApplicant.occupation.trim()) errors.push("Occupation is required")
-    if (!primaryApplicant.employerPostalCode.trim() || primaryApplicant.employerPostalCode.replaceAll(/\s/g, '').length < 6) {
+    if (!primaryApplicant.employerPostalCode.trim() || primaryApplicant.employerPostalCode.replace(/\s/g, '').length < 6) {
       errors.push("Employer Postal Code is required (format: A1A 1A1)")
     }
     const employerPhoneValidation = validatePhone(primaryApplicant.employerPhone)
@@ -679,7 +679,6 @@ if (errors.length > 0) {
   
 
   // buildSubmitError and uploadDocuments are imported from @/lib/finance/
-
   const handleSubmit = async () => {
     setIsSubmitting(true)
     setSubmitError(null)
