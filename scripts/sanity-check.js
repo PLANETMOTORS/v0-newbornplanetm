@@ -66,12 +66,13 @@ async function run() {
     // Minimal no-op query — returns nothing but validates credentials
     await client.fetch('*[false][0]')
   } catch (err) {
+    const message = typeof err?.message === 'string' ? err.message : ''
     const isAuthError =
-      err.message.includes('project user not found') ||
+      message.includes('project user not found') ||
       err.statusCode === 401 ||
       err.statusCode === 403
     if (isAuthError) {
-      console.error('❌ Authentication failed: ' + err.message)
+      console.error('❌ Authentication failed: ' + message)
       console.error('\n   The SANITY_API_TOKEN secret is invalid or the associated user no longer has')
       console.error(`   access to Sanity project "${PROJECT_ID}".`)
       console.error('\n   To fix:')
