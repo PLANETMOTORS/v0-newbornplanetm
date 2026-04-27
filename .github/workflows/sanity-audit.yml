@@ -38,4 +38,5 @@ jobs:
       - name: Annotate failure
         if: failure()
         run: |
-          echo "::error title=Sanity audit failed::Sanity data integrity check failed. If every check shows 'project user not found', the SANITY_API_TOKEN secret is either missing or belongs to a user who is not a member of project wlxj8olw. Regenerate a Viewer token at https://www.sanity.io/manage and update the GitHub secret."
+          echo "::error::Sanity data integrity check failed. Review the output above for broken references, missing required fields, or sync issues."
+          echo "::notice::If all errors say 'project user not found', the SANITY_API_TOKEN secret is invalid or not a member of the configured Sanity project. Regenerate it at https://www.sanity.io/manage and update the secret in GitHub → Settings → Secrets → Actions."

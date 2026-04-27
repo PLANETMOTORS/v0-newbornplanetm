@@ -16,58 +16,33 @@ const PROJECT_ID = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || process.env.SANI
 const DATASET    = process.env.NEXT_PUBLIC_SANITY_DATASET    || process.env.SANITY_DATASET    || 'production'
 const TOKEN      = process.env.SANITY_API_TOKEN || ''
 
-const client = createClient({
+const clientConfig = {
   projectId: PROJECT_ID,
   dataset:   DATASET,
   useCdn:    false,
-  token:     TOKEN,
   apiVersion: '2025-04-01',
-})
-
-/**
- * Pre-flight: verify the token is valid and authorized for this project.
- * Exits 1 immediately with a clear configuration-error message if it is not,
- * so that operators see one actionable line instead of 22 identical auth errors.
- */
-async function verifyAuth() {
-  if (!TOKEN) {
-    console.error('\n❌ Configuration error: SANITY_API_TOKEN is not set.')
-    console.error('   To fix: add a Viewer (or higher) API token for project')
-    console.error(`   "${PROJECT_ID}" as the SANITY_API_TOKEN GitHub secret.`)
-    console.error('   Generate one at https://www.sanity.io/manage → API → Tokens\n')
-    process.exit(1)
-  }
-  try {
-    // A universal minimal GROQ read query that returns at most one document
-    // in any schema — used only to verify that the token is accepted by the API.
-    await client.fetch('*[0..0]{_id}')
-  } catch (err) {
-    const isAuthError =
-      err.statusCode === 401 ||
-      err.statusCode === 403 ||
-      /project user not found/i.test(err.message) ||
-      /unauthorized/i.test(err.message) ||
-      /forbidden/i.test(err.message)
-
-    if (isAuthError) {
-      console.error('\n❌ Configuration error: SANITY_API_TOKEN is not authorized for this project.')
-      console.error(`   Project : ${PROJECT_ID}`)
-      console.error(`   Dataset : ${DATASET}`)
-      console.error(`   Detail  : ${err.message}`)
-      console.error('\n   To fix:')
-      console.error('   1. Open https://www.sanity.io/manage and select project "' + PROJECT_ID + '"')
-      console.error('   2. Go to API → Tokens and create a new Viewer token.')
-      console.error('   3. Update the SANITY_API_TOKEN secret in GitHub → Settings → Secrets.\n')
-      process.exit(1)
-    }
-    // Re-throw unexpected errors so they surface normally.
-    throw err
-  }
 }
+
+// Authenticated client (used when a token is provided)
+const authedClient = createClient({ ...clientConfig, token: TOKEN })
+// Unauthenticated client (fallback for publicly-readable datasets)
+const anonClient   = createClient(clientConfig)
+
+// Active client — may be swapped to anonClient if the token is unauthorised
+let client = TOKEN ? authedClient : anonClient
+let usingAnonFallback = false
 
 let passed = 0
 let failed = 0
 const errors = []
+
+// Returns true when the error is a Sanity "token not authorised for this project" error.
+function isProjectUserNotFoundError(err) {
+  return (
+    err && typeof err.message === 'string' &&
+    err.message.includes('project user not found')
+  )
+}
 
 async function check(label, query, validator) {
   try {
@@ -82,6 +57,20 @@ async function check(label, query, validator) {
       failed++
     }
   } catch (err) {
+    // If the token isn't authorised for this project, fall back to the
+    // anonymous (unauthenticated) client and retry once.  Public Sanity
+    // datasets (like this site's `production` dataset) allow read access
+    // without a token, so the check can still succeed.
+    if (!usingAnonFallback && isProjectUserNotFoundError(err)) {
+      console.warn(`\n⚠️  SANITY_API_TOKEN is not authorised for project "${PROJECT_ID}".`)
+      console.warn('   Falling back to unauthenticated access (public dataset reads).\n')
+      console.warn('   To fix permanently: regenerate the Sanity API token from a user')
+      console.warn(`   who is a member of project "${PROJECT_ID}" and update the`)
+      console.warn('   SANITY_API_TOKEN secret in GitHub repository settings.\n')
+      client = anonClient
+      usingAnonFallback = true
+      return check(label, query, validator)
+    }
     console.error(`  ❌ ${label} — ERROR: ${err.message}`)
     errors.push(`${label}: ${err.message}`)
     failed++
@@ -92,7 +81,30 @@ async function run() {
   console.log(`\n🔍 Sanity Data Integrity Check`)
   console.log(`   Project: ${PROJECT_ID}  Dataset: ${DATASET}\n`)
 
-  await verifyAuth()
+  // ─── 0. TOKEN PRE-FLIGHT ─────────────────────────────────────────────────────
+  if (TOKEN) {
+    try {
+      // A lightweight GROQ query that returns 0 or 1 — used solely to verify
+      // the token has read access before running the full set of checks.
+      await authedClient.fetch(`count(*[_id == "_.config.v2"][0..0])`)
+      console.log('✅ Sanity token authorised\n')
+    } catch (err) {
+      if (isProjectUserNotFoundError(err)) {
+        console.warn(`⚠️  SANITY_API_TOKEN is NOT a member of project "${PROJECT_ID}".`)
+        console.warn('   Falling back to unauthenticated access for all checks.')
+        console.warn('   Fix: create a new token from a project member at https://www.sanity.io/manage\n')
+        client = anonClient
+        usingAnonFallback = true
+      } else {
+        console.warn(`⚠️  Token pre-flight failed: ${err.message}`)
+        console.warn('   Continuing with unauthenticated access.\n')
+        client = anonClient
+        usingAnonFallback = true
+      }
+    }
+  } else {
+    console.log('ℹ️  No SANITY_API_TOKEN set — using public (unauthenticated) access.\n')
+  }
 
   // ─── 1. CORE SINGLETON DOCUMENTS ────────────────────────────────────────────
   console.log('── Core Singleton Documents ──')

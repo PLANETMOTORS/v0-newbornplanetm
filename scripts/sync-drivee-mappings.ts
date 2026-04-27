@@ -75,7 +75,7 @@ async function main() {
           Prefer: "resolution=merge-duplicates",
         },
         body: JSON.stringify(body),
-      })
+      });
 
       if (!res.ok) {
         const text = await res.text()
