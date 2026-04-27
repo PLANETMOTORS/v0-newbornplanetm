@@ -47,7 +47,7 @@ jobs:
         run: pnpm install --frozen-lockfile
       
       - name: Run tests with coverage
-        run: pnpm test --coverage --reporter=default --reporter=json-summary
+        run: pnpm exec vitest run --coverage --reporter=default
         continue-on-error: true
       
       - name: SonarCloud Scan
