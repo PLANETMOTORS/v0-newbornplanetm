@@ -79,9 +79,19 @@ describe('handleCheckoutSessionCompleted', () => {
   })
 
   it('confirms reservation and reserves vehicle when payment is settled', async () => {
+    // Provide a valid reservation so validateReservationForConfirmation passes
+    supabase = createMockSupabase({
+      data: {
+        deposit_status: 'paid',
+        stripe_payment_intent_id: 'pi_test_123',
+        stripe_checkout_session_id: 'cs_test_123',
+        status: 'pending',
+        expires_at: new Date(Date.now() + 86400000).toISOString(),
+      },
+      error: null,
+    })
     const session = makeSession({ payment_status: 'paid' })
     await handleCheckoutSessionCompleted(supabase, session)
-    // from() should be called for reservations; vehicle status now via rpc
     expect(supabase.from).toHaveBeenCalledWith('reservations')
     expect(supabase.rpc).toHaveBeenCalledWith('transition_vehicle_status', expect.objectContaining({
       p_vehicle_id: 'veh-1',
@@ -89,12 +99,12 @@ describe('handleCheckoutSessionCompleted', () => {
     }))
   })
 
-  it('only holds vehicle when payment is unsettled', async () => {
+  it('releases vehicle when payment is unsettled', async () => {
     const session = makeSession({ payment_status: 'unpaid' })
     await handleCheckoutSessionCompleted(supabase, session)
     expect(supabase.rpc).toHaveBeenCalledWith('transition_vehicle_status', expect.objectContaining({
       p_vehicle_id: 'veh-1',
-      p_to_status: 'reserved',
+      p_to_status: 'available',
     }))
   })
 
