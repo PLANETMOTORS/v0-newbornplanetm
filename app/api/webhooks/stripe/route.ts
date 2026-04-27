@@ -30,6 +30,7 @@ import Stripe from "stripe"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getStripe } from "@/lib/stripe"
 import { logger } from "@/lib/logger"
+import { validateReservationForConfirmation } from "@/lib/reservation-payment-rules"
 
 // ── Type alias ─────────────────────────────────────────────────────────────
 
@@ -194,9 +195,14 @@ export async function handlePaymentIntentSucceeded(
   }
 
   if (isReservation && reservationId) {
-    await supabase.from("reservations").update({ deposit_status: "paid", deposit_amount: paymentIntent.amount, updated_at: paidAt }).eq("id", reservationId)
+    await supabase.from("reservations").update({
+      deposit_status: "paid",
+      deposit_amount: paymentIntent.amount,
+      stripe_payment_intent_id: paymentIntent.id,
+      updated_at: paidAt,
+    }).eq("id", reservationId)
   } else if (vehicleId) {
-    await supabase.from("orders").update({ status: "payment_received", updated_at: paidAt }).eq("vehicle_id", vehicleId)
+    await supabase.from("orders").update({ status: "confirmed", updated_at: paidAt }).eq("vehicle_id", vehicleId)
   }
 
   if (vehicleId) {
@@ -263,14 +269,50 @@ export async function handleCheckoutSessionCompleted(
     }
   }
 
+  let reservationConfirmed = false
+
   if (isReservation && reservationId) {
-    await supabase.from("reservations").update({ status: session.payment_status === "paid" ? "confirmed" : "pending_payment", updated_at: new Date().toISOString() }).eq("id", reservationId)
+    const now = new Date().toISOString()
+
+    if (session.payment_status === "paid") {
+      const { data: reservation } = await supabase
+        .from("reservations")
+        .select("deposit_status, stripe_payment_intent_id, stripe_checkout_session_id, status, expires_at")
+        .eq("id", reservationId)
+        .single()
+
+      if (reservation) {
+        if (["confirmed", "completed", "cancelled", "expired"].includes(reservation.status ?? "")) {
+          reservationConfirmed = reservation.status === "confirmed" || reservation.status === "completed"
+        } else {
+          await supabase.from("reservations").update({ deposit_status: "paid", stripe_checkout_session_id: session.id, ...(typeof session.payment_intent === "string" ? { stripe_payment_intent_id: session.payment_intent } : {}), updated_at: now }).eq("id", reservationId)
+
+          const updatedReservation = { ...reservation, deposit_status: "paid", stripe_checkout_session_id: session.id, ...(typeof session.payment_intent === "string" ? { stripe_payment_intent_id: session.payment_intent } : {}) }
+          const validation = validateReservationForConfirmation(updatedReservation, { skipExpiryCheck: true })
+          if (validation.valid) {
+            const { error: confirmError } = await supabase.from("reservations").update({ status: "confirmed", updated_at: now }).eq("id", reservationId)
+            if (!confirmError) {
+              reservationConfirmed = true
+            } else {
+              logger.warn("[Stripe] Failed to confirm reservation:", { reservationId, error: confirmError.message })
+            }
+          } else {
+            logger.warn("[Stripe] Reservation payment validation failed, not confirming:", { reservationId, reason: validation.reason })
+            await supabase.from("reservations").update({ status: "pending", updated_at: now }).eq("id", reservationId)
+          }
+        }
+      }
+    } else {
+      await supabase.from("reservations").update({ status: "pending", updated_at: now }).eq("id", reservationId)
+    }
   } else if (vehicleId) {
     await supabase.from("orders").update({ status: "confirmed", updated_at: new Date().toISOString() }).eq("vehicle_id", vehicleId)
   }
 
   if (vehicleId) {
-    await supabase.rpc("transition_vehicle_status", { p_vehicle_id: vehicleId, p_to_status: isReservation ? "reserved" : "pending" })
+    const isAsyncPaymentPending = isReservation && session.payment_status === "unpaid"
+    const targetStatus = isReservation ? (reservationConfirmed || isAsyncPaymentPending ? "reserved" : "available") : "pending"
+    await supabase.rpc("transition_vehicle_status", { p_vehicle_id: vehicleId, p_to_status: targetStatus })
   }
 }
 
@@ -313,7 +355,7 @@ export async function handleCheckoutSessionAsyncPaymentFailed(
   }
 
   if (reservationId) {
-    await supabase.from("reservations").update({ status: "payment_failed", updated_at: new Date().toISOString() }).eq("id", reservationId)
+    await supabase.from("reservations").update({ status: "cancelled", deposit_status: "failed", updated_at: new Date().toISOString() }).eq("id", reservationId)
   }
   if (vehicleId) {
     await supabase.rpc("transition_vehicle_status", { p_vehicle_id: vehicleId, p_to_status: "available" })

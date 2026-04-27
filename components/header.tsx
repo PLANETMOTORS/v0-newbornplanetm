@@ -92,7 +92,6 @@ function DesktopNav({
       {navigation.map((item) => (
         <li
           key={item.name}
-          role="none"
           className="relative"
           onMouseEnter={() => handleMouseEnter(item.name, !!item.submenu)}
           onMouseLeave={handleMouseLeave}
@@ -119,7 +118,6 @@ function DesktopNav({
 
           {item.submenu && activeSubmenu === item.name && (
             <div
-              role="none"
               className="absolute top-full left-0 pt-1 min-w-[220px] z-[99999]"
               onMouseEnter={() => handleMouseEnter(item.name, true)}
               onMouseLeave={handleMouseLeave}
