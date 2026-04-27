@@ -118,7 +118,8 @@ function DesktopNav({
           )}
 
           {item.submenu && activeSubmenu === item.name && (
-            <div 
+            <div
+              role="presentation"
               className="absolute top-full left-0 pt-1 min-w-[220px] z-[99999]"
               onMouseEnter={() => handleMouseEnter(item.name, true)}
               onMouseLeave={handleMouseLeave}
