@@ -20,7 +20,6 @@ export default defineConfig({
       exclude: [
         'lib/blog-posts/**',
         'lib/vehicle-data.ts',
-        'lib/blog-data.ts',
         '**/*.d.ts',
         '**/node_modules/**',
       ],
