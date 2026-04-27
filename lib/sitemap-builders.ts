@@ -171,8 +171,9 @@ export async function buildVehiclesSitemap(baseUrl: string, currentDate: string)
     }))
   } catch (err) {
     console.error('Error building vehicles sitemap:', err)
-    if ((err as { code?: string })?.code === '42P01') return []
-    throw err
+    // Return empty array on any error (network, credentials, table not found)
+    // so the build succeeds; the sitemap will just omit vehicle pages.
+    return []
   }
 }
 

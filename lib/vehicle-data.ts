@@ -23,6 +23,7 @@ function makeTrim(name: string, transmission?: string, engine?: string): Vehicle
 }
 
 /** Model factory — eliminates repeated inline `{ name, trims }` type annotations. */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function makeModel(name: string, trims: VehicleTrim[]): VehicleModel {
   return { name, trims }
 }

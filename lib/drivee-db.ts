@@ -34,6 +34,7 @@ async function loadMappings(): Promise<Map<string, DriveeMapping>> {
 
   try {
     const supabase = createStaticClient()
+    if (!supabase) throw new Error('Supabase not configured')
     const { data, error } = await supabase
       .from("drivee_mappings")
       .select("vin, mid, frame_count, frames_in_storage, vehicle_name")

@@ -74,6 +74,7 @@ async function getFeaturedVehiclesById(ids: string[]): Promise<ShowcaseVehicle[]
   if (!ids.length) return null
   try {
     const supabase = createStaticClient()
+    if (!supabase) return null
     const { data, error } = await supabase
       .from('vehicles')
       .select(VEHICLE_COLUMNS)
@@ -95,6 +96,7 @@ async function getFeaturedVehiclesById(ids: string[]): Promise<ShowcaseVehicle[]
 async function getShowcaseVehicles() {
   try {
     const supabase = createStaticClient()
+    if (!supabase) return null
     const { data, error } = await supabase
       .from('vehicles')
       .select(VEHICLE_COLUMNS)

@@ -79,6 +79,7 @@ export const fetchVehicleForSSR = cache(async (
 ): Promise<VehicleDetail | null> => {
   try {
     const supabase = createStaticClient()
+    if (!supabase) return null
 
     let lookupColumn: string
     if (UUID_RE.test(idOrVinOrStock)) {

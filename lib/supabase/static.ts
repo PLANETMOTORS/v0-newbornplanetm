@@ -7,16 +7,26 @@ import { getSupabaseAnonKey, getSupabasePooledUrl, getSupabaseUrl } from '@/lib/
 
 let _client: ReturnType<typeof createSupabaseClient> | null = null
 
-export function createStaticClient() {
+/**
+ * Returns a stateless Supabase client for public reads, or null if credentials
+ * are not configured (e.g. CI builds, local dev without .env.local).
+ * Callers must guard against null before issuing queries.
+ */
+export function createStaticClient(): ReturnType<typeof createSupabaseClient> | null {
   if (_client) return _client
 
   const supabaseUrl = getSupabasePooledUrl() || getSupabaseUrl()
   const supabaseAnonKey = getSupabaseAnonKey()
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error(
-      'Missing Supabase credentials. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.'
+    // Credentials not configured — return null instead of throwing so that
+    // SSG pages degrade gracefully (show empty/fallback state) rather than
+    // failing the entire build.
+    console.warn(
+      '[Supabase] createStaticClient: NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY not set. ' +
+      'Returning null — callers will use fallback data.'
     )
+    return null
   }
 
   _client = createSupabaseClient(supabaseUrl, supabaseAnonKey)
