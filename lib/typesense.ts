@@ -145,7 +145,9 @@ function sanitizeBodyStyleValue(value: string): string {
 const FACET_FIELDS = 'make,model,body_style,fuel_type,drivetrain,year,is_ev,is_certified'
 
 function buildFilterBy(params: VehicleSearchParams): string {
-  const filters: string[] = ['status:=[available,reserved,sold]']
+  // Exclude sold from Typesense — schema lacks sold_at so we can't enforce the 7-day window.
+  // Sold vehicles appear via the Supabase V1 API which correctly filters by sold_at.
+  const filters: string[] = ['status:=[available,reserved]']
 
   const makes = asArray(params.make)
   if (makes.length) filters.push(`make:=[${sanitizeFilterValues(makes)}]`)
@@ -369,7 +371,7 @@ export async function getVehicleFacets() {
           .search({
             q: '*',
             query_by: 'make',
-            filter_by: 'status:=[available,reserved,sold]',
+            filter_by: 'status:=[available,reserved]',
             facet_by: FACET_FIELDS,
             max_facet_values: 100,
             per_page: 0, // we only want facets, not documents
