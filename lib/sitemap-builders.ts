@@ -1,5 +1,6 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabase/config'
+import { buildPublicStatusFilter } from '@/lib/vehicles/status-filter'
 
 export interface SitemapEntry {
   url: string
@@ -152,7 +153,7 @@ export async function buildVehiclesSitemap(baseUrl: string, currentDate: string)
     const { data, error } = await supabase
       .from('vehicles')
       .select('id, updated_at')
-      .in('status', ['available', 'reserved', 'sold'])
+      .or(buildPublicStatusFilter())
       .order('updated_at', { ascending: false })
       .limit(VEHICLE_SITEMAP_LIMIT)
 
