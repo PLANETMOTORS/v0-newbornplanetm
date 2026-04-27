@@ -57,7 +57,8 @@ const VISITOR_ID_KEY = "pm_visitor_id"
  * Stored in localStorage so it persists across sessions.
  */
 export function getVisitorId(): string {
-  if (globalThis.window === undefined) return "ssr"  try {
+  if (globalThis.window === undefined) return "ssr"
+  try {
     const existing = localStorage.getItem(VISITOR_ID_KEY)
     if (existing) return existing
     const id = crypto.randomUUID()
@@ -71,7 +72,8 @@ export function getVisitorId(): string {
 // ── Assignment store ───────────────────────────────────────────────────────
 
 function loadAssignments(): AssignmentStore {
-  if (globalThis.window === undefined) return {}  try {
+  if (globalThis.window === undefined) return {}
+  try {
     return JSON.parse(localStorage.getItem(AB_STORAGE_KEY) ?? "{}")
   } catch {
     return {}
@@ -79,7 +81,8 @@ function loadAssignments(): AssignmentStore {
 }
 
 function saveAssignment(experimentId: string, variant: string): void {
-  if (globalThis.window === undefined) return  try {
+  if (globalThis.window === undefined) return
+  try {
     const store = loadAssignments()
     store[experimentId] = variant
     localStorage.setItem(AB_STORAGE_KEY, JSON.stringify(store))
@@ -195,7 +198,8 @@ export function getAllAssignments(): AssignmentStore {
  * Clears all experiment assignments (useful for testing).
  */
 export function clearAssignments(): void {
-  if (globalThis.window === undefined) return  try {
+  if (globalThis.window === undefined) return
+  try {
     localStorage.removeItem(AB_STORAGE_KEY)
   } catch {
     // ignore
