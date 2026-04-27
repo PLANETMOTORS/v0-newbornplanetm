@@ -8,7 +8,7 @@
  *  - Deterministic: same visitor always gets the same variant (sticky assignment)
  *  - Integrates with existing GTM dataLayer for experiment tracking
  *  - Works with the existing FeatureGate / isFeatureEnabled system
- *  - Server-safe: all browser APIs are guarded with typeof window checks
+ *  - Server-safe: all browser APIs are guarded with typeof globalThis.window checks
  *
  * Usage:
  *   // Define experiments in one place:
@@ -57,7 +57,7 @@ const VISITOR_ID_KEY = "pm_visitor_id"
  * Stored in localStorage so it persists across sessions.
  */
 export function getVisitorId(): string {
-  if (typeof window === "undefined") return "ssr"
+  if (globalThis.window === undefined) return "ssr"
   try {
     const existing = localStorage.getItem(VISITOR_ID_KEY)
     if (existing) return existing
@@ -72,7 +72,7 @@ export function getVisitorId(): string {
 // ── Assignment store ───────────────────────────────────────────────────────
 
 function loadAssignments(): AssignmentStore {
-  if (typeof window === "undefined") return {}
+  if (globalThis.window === undefined) return {}
   try {
     return JSON.parse(localStorage.getItem(AB_STORAGE_KEY) ?? "{}")
   } catch {
@@ -81,7 +81,7 @@ function loadAssignments(): AssignmentStore {
 }
 
 function saveAssignment(experimentId: string, variant: string): void {
-  if (typeof window === "undefined") return
+  if (globalThis.window === undefined) return
   try {
     const store = loadAssignments()
     store[experimentId] = variant
@@ -134,7 +134,7 @@ export function getVariant<V extends string>(
   experimentId: string,
   experiment: Experiment<V>
 ): V {
-  if (typeof window === "undefined") {
+  if (globalThis.window === undefined) {
     // SSR: always return control
     return experiment.variants[0]
   }
@@ -199,7 +199,7 @@ export function getAllAssignments(): AssignmentStore {
  * Clears all experiment assignments (useful for testing).
  */
 export function clearAssignments(): void {
-  if (typeof window === "undefined") return
+  if (globalThis.window === undefined) return
   try {
     localStorage.removeItem(AB_STORAGE_KEY)
   } catch {
