@@ -29,7 +29,7 @@ export function BenefitsSection({ title, benefits }: BenefitsSectionProps) {
           {benefits.map((benefit, index) => {
             const IconComponent = iconMap[benefit.icon || 'ThumbsUp'] || ThumbsUp
             return (
-              <div key={index} className="flex flex-col items-center text-center p-6 rounded-xl bg-background shadow-sm border">
+              <div key={benefit.title} className="flex flex-col items-center text-center p-6 rounded-xl bg-background shadow-sm border">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-4">
                   <IconComponent className="h-7 w-7 text-primary" />
                 </div>

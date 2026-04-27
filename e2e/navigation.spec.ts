@@ -60,7 +60,7 @@ test.describe("Navigation", () => {
     await page.waitForTimeout(500) // Let mobile menu animation complete
 
     // Expand Shop Inventory submenu — the mobile nav button id contains spaces
-    const shopButton = page.locator('#mobile-nav-Shop\\ Inventory')
+    const shopButton = page.locator(String.raw`#mobile-nav-Shop\ Inventory`)
     if (await shopButton.isVisible({ timeout: 5_000 }).catch(() => false)) {
       await shopButton.click()
       await page.waitForTimeout(300) // Submenu animation

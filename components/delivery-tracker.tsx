@@ -261,7 +261,7 @@ export function DeliveryTracker({
             </div>
             {tracking.driver.phone && (
               <Button variant="outline" size="sm" asChild>
-                <a href={`tel:${tracking.driver.phone.replaceAll(/[^0-9+]/g, '')}`}>
+                <a href={`tel:${tracking.driver.phone.replace(/[^0-9+]/g, '')}`}>
                   <Phone className="w-4 h-4 mr-2" />
                   Call Driver
                 </a>
@@ -274,7 +274,7 @@ export function DeliveryTracker({
           <div className="space-y-2">
             <p className="text-sm font-semibold">Recent Updates</p>
             {tracking.updates.slice(0, 3).map((update, index) => (
-              <div key={index} className="flex gap-3 text-sm">
+              <div key={`${update.timestamp}-${update.message}`} className="flex gap-3 text-sm">
                 <div className={`w-2 h-2 rounded-full mt-1.5 ${
                   update.type === "info" ? "bg-teal-500" :
                   update.type === "success" ? "bg-green-500" : "bg-muted-foreground"

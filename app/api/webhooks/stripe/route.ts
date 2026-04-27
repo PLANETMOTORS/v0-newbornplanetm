@@ -287,17 +287,21 @@ export async function handleCheckoutSessionCompleted(
         .single()
 
       if (reservation) {
-        const validation = validateReservationForConfirmation(reservation)
-        if (validation.valid) {
-          const { error: confirmError } = await supabase.from("reservations").update({ status: "confirmed", updated_at: now }).eq("id", reservationId)
-          if (!confirmError) {
-            reservationConfirmed = true
-          } else {
-            logger.warn("[Stripe] Failed to confirm reservation:", { reservationId, error: confirmError.message })
-          }
+        if (reservation.status === "confirmed") {
+          reservationConfirmed = true
         } else {
-          logger.warn("[Stripe] Reservation payment validation failed, not confirming:", { reservationId, reason: validation.reason })
-          await supabase.from("reservations").update({ status: "pending", updated_at: now }).eq("id", reservationId)
+          const validation = validateReservationForConfirmation(reservation)
+          if (validation.valid) {
+            const { error: confirmError } = await supabase.from("reservations").update({ status: "confirmed", updated_at: now }).eq("id", reservationId)
+            if (!confirmError) {
+              reservationConfirmed = true
+            } else {
+              logger.warn("[Stripe] Failed to confirm reservation:", { reservationId, error: confirmError.message })
+            }
+          } else {
+            logger.warn("[Stripe] Reservation payment validation failed, not confirming:", { reservationId, reason: validation.reason })
+            await supabase.from("reservations").update({ status: "pending", updated_at: now }).eq("id", reservationId)
+          }
         }
       }
     } else {

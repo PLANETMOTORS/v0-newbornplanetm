@@ -142,14 +142,14 @@ const POSTAL_DISTANCES: Record<string, number> = {
 // Delivery pricing tiers (per km after free zone)
 const DELIVERY_TIERS = [
   { maxKm: 300, pricePerKm: 0 }, // FREE within 300km
-  { maxKm: 499, pricePerKm: 0.70 },
+  { maxKm: 499, pricePerKm: 0.7 },
   { maxKm: 999, pricePerKm: 0.75 },
-  { maxKm: 2000, pricePerKm: 0.80 },
+  { maxKm: 2000, pricePerKm: 0.8 },
   { maxKm: 5000, pricePerKm: 0.65 },
 ]
 
 function normalizePostalCode(postalCode: string): string {
-  return postalCode.toUpperCase().replaceAll(/\s/g, "").slice(0, 3)
+  return postalCode.toUpperCase().replace(/\s/g, "").slice(0, 3)
 }
 
 // Out-of-province approximate distances from Richmond Hill
@@ -251,7 +251,7 @@ export function GET(request: NextRequest) {
   }
 
   // Validate Canadian postal code format
-  const cleanPostal = postalCode.toUpperCase().replaceAll(/\s/g, "")
+  const cleanPostal = postalCode.toUpperCase().replace(/\s/g, "")
   
   // Must be at least 3 characters and start with valid Canadian province letter
   const validFirstChars = "ABCEGHJKLMNPRSTVXY"
@@ -297,7 +297,7 @@ export function GET(request: NextRequest) {
     breakdown: isFree ? null : {
       baseDistance: 300,
       chargeableDistance: distance - 300,
-      ratePerKm: distance <= 500 ? 0.70 : distance <= 1000 ? 0.75 : 0.80,
+      ratePerKm: distance <= 500 ? 0.7 : distance <= 1000 ? 0.75 : 0.8,
     }
   })
 }

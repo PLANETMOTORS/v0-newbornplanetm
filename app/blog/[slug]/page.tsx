@@ -73,7 +73,7 @@ function getRelatedPosts(slugs: string[]): RelatedPost[] {
       return {
         slug,
         title: post.title,
-        image: post.image.replaceAll('1200', '400').replaceAll('600', '250'),
+        image: post.image.replace('1200', '400').replace('600', '250'),
         category: post.category,
         date: post.date,
       }

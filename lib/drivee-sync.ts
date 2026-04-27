@@ -43,7 +43,7 @@ export async function resolveMidFromPirelly(vin: string): Promise<string | null>
 
     const data = await res.json()
     const src = data?.iframeAttrs?.src ?? ""
-    const match = src.match(/mid=(\d+)/)
+    const match = /mid=(\d+)/.exec(src)
     return match ? match[1] : null
   } catch {
     return null
@@ -61,7 +61,7 @@ export async function resolveMidFromPirellyByStock(
 
     const data = await res.json()
     const src = data?.iframeAttrs?.src ?? ""
-    const match = src.match(/mid=(\d+)/)
+    const match = /mid=(\d+)/.exec(src)
     return match ? match[1] : null
   } catch {
     return null

@@ -47,7 +47,7 @@ function estimateTradeInValue(data: {
     if (i < 3) {
       baseValue *= 0.85
     } else {
-      baseValue *= 0.90
+      baseValue *= 0.9
     }
   }
 
@@ -64,16 +64,16 @@ function estimateTradeInValue(data: {
 
   // Condition adjustment
   const conditionMultipliers = {
-    excellent: 1.10,
-    good: 1.00,
+    excellent: 1.1,
+    good: 1,
     fair: 0.85,
     poor: 0.65,
   }
   baseValue *= conditionMultipliers[data.condition]
 
   // Calculate range
-  const lowEstimate = Math.round(baseValue * 0.90)
-  const highEstimate = Math.round(baseValue * 1.10)
+  const lowEstimate = Math.round(baseValue * 0.9)
+  const highEstimate = Math.round(baseValue * 1.1)
   const averageEstimate = Math.round(baseValue)
 
   return {

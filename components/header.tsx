@@ -92,6 +92,7 @@ function DesktopNav({
       {navigation.map((item) => (
         <li
           key={item.name}
+          role="none"
           className="relative"
           onMouseEnter={() => handleMouseEnter(item.name, !!item.submenu)}
           onMouseLeave={handleMouseLeave}
@@ -117,7 +118,12 @@ function DesktopNav({
           )}
 
           {item.submenu && activeSubmenu === item.name && (
-            <div className="absolute top-full left-0 pt-1 min-w-[220px] z-[99999]">
+            <div
+              role="none"
+              className="absolute top-full left-0 pt-1 min-w-[220px] z-[99999]"
+              onMouseEnter={() => handleMouseEnter(item.name, true)}
+              onMouseLeave={handleMouseLeave}
+            >
               <div className="bg-white rounded-xl shadow-2xl border border-gray-200 py-2">
                 {item.submenu.map((subitem) => (
                   <Link
@@ -152,8 +158,8 @@ export function Header() {
     let ticking = false
     const handleScroll = () => {
       if (!ticking) {
-        window.requestAnimationFrame(() => {
-          setScrolled(window.scrollY > 40)
+        globalThis.window?.requestAnimationFrame(() => {
+          setScrolled((globalThis.window?.scrollY ?? 0) > 40)
           ticking = false
         })
         ticking = true

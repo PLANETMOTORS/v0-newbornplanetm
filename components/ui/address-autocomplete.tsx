@@ -34,11 +34,11 @@ async function searchCanadianAddresses(query: string): Promise<AddressResult[]> 
   try {
     // Use GeoNames or similar free API for Canadian postal codes
     // For demo, we'll simulate with common Canadian addresses
-    const postalCodeMatch = query.match(/^[A-Za-z]\d[A-Za-z][\s-]?\d[A-Za-z]\d$/i)
+    const postalCodeMatch = /^[A-Za-z]\d[A-Za-z][\s-]?\d[A-Za-z]\d$/i.exec(query)
     
     if (postalCodeMatch) {
       // Lookup by postal code
-      const response = await fetch(`https://geocoder.ca/?postal=${query.replaceAll(/\s/g, '')}&json=1`)
+      const response = await fetch(`https://geocoder.ca/?postal=${query.replace(/\s/g, '')}&json=1`)
       if (response.ok) {
         const data = await response.json()
         if (data.standard) {
@@ -49,7 +49,7 @@ async function searchCanadianAddresses(query: string): Promise<AddressResult[]> 
             streetLine: data.standard.staddress || '',
             city: data.standard.city || '',
             province: data.standard.prov || '',
-            postalCode: query.toUpperCase().replaceAll(/\s/g, '').replace(/(.{3})(.{3})/, '$1 $2'),
+            postalCode: query.toUpperCase().replace(/\s/g, '').replace(/(.{3})(.{3})/, '$1 $2'),
             country: 'Canada'
           }]
         }
@@ -241,7 +241,7 @@ export function PostalCodeInput({
 
   // Format postal code as user types
   const formatPostalCode = (input: string) => {
-    const cleaned = input.toUpperCase().replaceAll(/[^A-Z0-9]/g, '')
+    const cleaned = input.toUpperCase().replace(/[^A-Z0-9]/g, '')
     if (cleaned.length <= 3) return cleaned
     return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)}`
   }
@@ -252,10 +252,10 @@ export function PostalCodeInput({
     setValidationError("")
     
     // Validate when we have full postal code
-    if (formatted.replaceAll(/\s/g, '').length === 6) {
+    if (formatted.replace(/\s/g, '').length === 6) {
       setIsValidating(true)
       try {
-        const response = await fetch(`https://geocoder.ca/?postal=${formatted.replaceAll(/\s/g, '')}&json=1`)
+        const response = await fetch(`https://geocoder.ca/?postal=${formatted.replace(/\s/g, '')}&json=1`)
         if (response.ok) {
           const data = await response.json()
           if (data.standard?.city) {
