@@ -341,11 +341,11 @@ describe('searchVehicles — filters', () => {
     expect(dtIn?.[1]).toEqual(['AWD', '4WD'])
   })
 
-  it('always filters by public statuses (available, reserved, sold)', async () => {
+  it('always filters by public statuses with 7-day sold window', async () => {
     await searchVehicles({})
-    const inArgs = mockChain.getCallArgs('in')
-    const statusIn = inArgs.find(a => a[0] === 'status')
-    expect(statusIn?.[1]).toEqual(['available', 'reserved', 'sold'])
+    const orArgs = mockChain.getCallArgs('or')
+    const statusOr = orArgs.find(a => typeof a[0] === 'string' && a[0].includes('status.eq.available'))
+    expect(statusOr?.[0]).toMatch(/status\.eq\.available,status\.eq\.reserved,and\(status\.eq\.sold,sold_at\.gte\./)
   })
 })
 

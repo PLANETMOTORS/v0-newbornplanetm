@@ -1046,16 +1046,20 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                           </p>
                         )}
 <p className="text-2xl font-bold tabular-nums">${vehicle.price.toLocaleString()}</p>
+                      {vehicle.status === "available" && (
                       <Link href={`/finance/${vehicle.id}`} className="text-sm text-primary hover:underline tabular-nums">
                         Est. ${vehicle.monthlyPayment}/mo
                       </Link>
+                      )}
                       </div>
                       <div className="flex gap-2">
+                        {vehicle.status === "available" && (
                         <Button size="sm" variant="outline" asChild>
                           <Link href={tradeInInfo ? `/financing/application?vehicleId=${vehicle.id}&tradeIn=${tradeInInfo.value}&quoteId=${tradeInInfo.quoteId}&tradeInVehicle=${encodeURIComponent(tradeInInfo.vehicle)}` : `/financing/application?vehicleId=${vehicle.id}`}>
                             Finance
                           </Link>
                         </Button>
+                        )}
 <Button size="sm" asChild>
   <Link href={tradeInInfo ? `/vehicles/${vehicle.id}?tradeIn=${tradeInInfo.value}&quoteId=${tradeInInfo.quoteId}&tradeInVehicle=${encodeURIComponent(tradeInInfo.vehicle)}` : `/vehicles/${vehicle.id}`}>
   View

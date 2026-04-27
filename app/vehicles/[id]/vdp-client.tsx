@@ -143,6 +143,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   const isAvailable = vehicle.status === "available"
   const isReserved = vehicle.status === "reserved"
   const isSold = vehicle.status === "sold"
+  const isPending = vehicle.status === "pending"
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const isFavorite = isFavoriteInContext(vehicleId)
   const [activeTab, setActiveTab] = useState("photos")
@@ -1308,8 +1309,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           globalThis.location.href = `/checkout/${vehicle.id}`
                         })}>Start your purchase</Button>
                         ) : (
-                        <div className={`w-full mt-4 p-3 rounded-lg text-center text-sm font-bold uppercase tracking-wide ${isReserved ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/30 dark:text-yellow-400" : "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400"}`}>
-                          {isReserved ? "Vehicle Reserved" : "Vehicle Sold"}
+                        <div className={`w-full mt-4 p-3 rounded-lg text-center text-sm font-bold uppercase tracking-wide ${isReserved ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/30 dark:text-yellow-400" : isPending ? "bg-orange-100 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400" : "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400"}`}>
+                          {isReserved ? "Vehicle Reserved" : isPending ? "Sale Pending" : "Vehicle Sold"}
                         </div>
                         )}
                       </CardContent>
@@ -1573,7 +1574,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                   {/* Social proof — desktop placement (above CTA) */}
                   <SocialProof vehicleId={vehicle.id} className="mt-3 hidden md:block" />
 
-                  {/* Status banner for reserved/sold vehicles */}
+                  {/* Status banner for reserved/sold/pending vehicles */}
                   {isReserved && (
                     <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg border border-yellow-300 dark:border-yellow-800 text-center">
                       <div className="flex items-center justify-center gap-2 mb-1">
@@ -1581,6 +1582,15 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <span className="text-lg font-bold text-yellow-700 dark:text-yellow-400 uppercase tracking-wide">Reserved</span>
                       </div>
                       <p className="text-sm text-yellow-700/80 dark:text-yellow-400/70">This vehicle has been reserved by another customer.</p>
+                    </div>
+                  )}
+                  {isPending && (
+                    <div className="mt-4 p-4 bg-orange-50 dark:bg-orange-950/30 rounded-lg border border-orange-300 dark:border-orange-800 text-center">
+                      <div className="flex items-center justify-center gap-2 mb-1">
+                        <LockKeyhole className="w-5 h-5 text-orange-600" />
+                        <span className="text-lg font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wide">Sale Pending</span>
+                      </div>
+                      <p className="text-sm text-orange-700/80 dark:text-orange-400/70">This vehicle has a pending sale in progress.</p>
                     </div>
                   )}
                   {isSold && (
@@ -1862,8 +1872,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
       ) : (
       <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] md:hidden z-50">
         <div className="px-4 py-3 text-center">
-          <span className={`text-sm font-bold uppercase tracking-wide ${isReserved ? "text-yellow-600" : "text-red-600"}`}>
-            {isReserved ? "This vehicle is reserved" : "This vehicle has been sold"}
+          <span className={`text-sm font-bold uppercase tracking-wide ${isReserved ? "text-yellow-600" : isPending ? "text-orange-600" : "text-red-600"}`}>
+            {isReserved ? "This vehicle is reserved" : isPending ? "Sale pending" : "This vehicle has been sold"}
           </span>
         </div>
       </div>

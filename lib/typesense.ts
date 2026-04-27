@@ -3,6 +3,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { getSearchClient, isTypesenseConfigured, VEHICLES_COLLECTION } from './typesense/client'
+import { buildPublicStatusFilter } from '@/lib/vehicles/status-filter'
 
 // ── Public interfaces (unchanged) ──────────────────────────────────────────
 
@@ -318,7 +319,7 @@ async function searchSupabase(params: VehicleSearchParams): Promise<SearchRespon
   let query: SupabaseQuery = supabase
     .from('vehicles')
     .select('id, stock_number, year, make, model, trim, body_style, exterior_color, price, mileage, drivetrain, fuel_type, is_ev, is_certified, status, primary_image_url', { count: 'exact' })
-    .in('status', ['available', 'reserved', 'sold'])
+    .or(buildPublicStatusFilter())
 
   query = applySupabaseTextSearch(query, params.query)
   query = applySupabaseFilters(query, params)
@@ -393,7 +394,7 @@ export async function getVehicleFacets() {
   const { data } = await supabase
     .from('vehicles')
     .select('make, fuel_type')
-    .in('status', ['available', 'reserved', 'sold'])
+    .or(buildPublicStatusFilter())
     .limit(5000)
 
   const rows = data || []
