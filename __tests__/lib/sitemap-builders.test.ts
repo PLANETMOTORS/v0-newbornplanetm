@@ -55,6 +55,22 @@ describe('buildVehiclesSitemap', () => {
     expect(result).toHaveLength(0)
   })
 
+  it('falls back to .in() when sold_at column is missing (error 42703)', async () => {
+    // First call (with .or()) returns column-not-found error
+    mockLimit
+      .mockResolvedValueOnce({ data: null, error: { message: 'column vehicles.sold_at does not exist', code: '42703' } })
+      // Second call (fallback with .in()) succeeds
+      .mockResolvedValueOnce({
+        data: [{ id: 'fallback-1', updated_at: '2025-06-01T00:00:00Z' }],
+        error: null,
+      })
+    const result = await buildVehiclesSitemap('https://example.com', '2025-01-01')
+    expect(result).toHaveLength(1)
+    expect(result[0].url).toBe('https://example.com/vehicles/fallback-1')
+    // .in() fallback was called
+    expect(mockIn).toHaveBeenCalledWith('status', ['available', 'reserved', 'sold'])
+  })
+
   it('throws on Supabase error', async () => {
     mockLimit.mockResolvedValueOnce({ data: null, error: { message: 'DB error', code: '500' } })
     await expect(buildVehiclesSitemap('https://example.com', '2025-01-01')).rejects.toThrow('Failed to fetch vehicles: DB error')
