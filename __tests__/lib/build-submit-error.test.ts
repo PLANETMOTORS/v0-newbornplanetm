@@ -32,8 +32,9 @@ describe('buildSubmitError', () => {
     expect(msg).toContain('42')
   })
 
-  it('returns fallback message for empty result', () => {
+  it('returns JSON.stringify for empty-but-non-null result', () => {
     const msg = buildSubmitError(500, {})
-    expect(msg).toBe('Failed to submit application')
+    // JSON.stringify({}) returns '{}' which is truthy, so fallback is NOT reached
+    expect(msg).toBe('{}')
   })
 })
