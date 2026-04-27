@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitest/config'
-import path from 'path'
+import path from 'node:path'
 
 export default defineConfig({
   resolve: {
@@ -16,12 +16,24 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['lcov', 'text-summary'],
       reportsDirectory: './coverage',
-      include: ['lib/**/*.ts', 'app/**/*.ts', 'components/**/*.ts'],
+      include: [
+        'app/**/*.{ts,tsx}',
+        'lib/**/*.{ts,tsx}',
+        'components/**/*.{ts,tsx}',
+        'hooks/**/*.{ts,tsx}',
+      ],
       exclude: [
-        'lib/blog-posts/**',
-        'lib/vehicle-data.ts',
-        '**/*.d.ts',
+        '**/*.test.ts',
+        '**/*.test.tsx',
+        '**/*.spec.ts',
+        '**/*.spec.tsx',
+        '**/*.config.ts',
+        '**/*.config.js',
         '**/node_modules/**',
+        '**/.next/**',
+        '**/types/**',
+        'e2e/**',
+        'studio/**',
       ],
     },
   },

@@ -74,25 +74,13 @@ export async function POST(request: NextRequest) {
     // ── Step 1: ISR cache revalidation (always runs, never blocked) ────────
     revalidatePath("/")
     revalidatePath("/inventory")
-    // Revalidate page-specific paths based on document type
-    if (documentType === "blogPost") {
-      revalidatePath("/blog", "page")
+    // Revalidate the page-specific path for this document type (inline map — no behavior change)
+    const TYPE_TO_PAGE: Record<string, string> = {
+      blogPost: "/blog", sellYourCarPage: "/sell-your-car", financingPage: "/financing",
+      faqItem: "/faq",   faqEntry: "/faq",   protectionPlan: "/protection-plans", testimonial: "/about",
     }
-    if (documentType === "sellYourCarPage") {
-      revalidatePath("/sell-your-car", "page")
-    }
-    if (documentType === "financingPage") {
-      revalidatePath("/financing", "page")
-    }
-    if (documentType === "faqItem" || documentType === "faqEntry") {
-      revalidatePath("/faq", "page")
-    }
-    if (documentType === "protectionPlan") {
-      revalidatePath("/protection-plans", "page")
-    }
-    if (documentType === "testimonial") {
-      revalidatePath("/about", "page")
-    }
+    const typePage = TYPE_TO_PAGE[documentType]
+    if (typePage) revalidatePath(typePage, "page")
     logger.info(`[Sanity Webhook] revalidatePath → / /inventory + type-specific paths`)
 
     // Revalidate specific cache tags for the document type
