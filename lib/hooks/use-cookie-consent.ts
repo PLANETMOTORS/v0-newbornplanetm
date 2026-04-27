@@ -51,7 +51,8 @@ function writeStoredConsent(state: ConsentState) {
 /** Push a Google Consent Mode v2 update so gtag respects the user's choice. */
 function updateGoogleConsent(categories: ConsentCategories) {
   if (globalThis.window === undefined || typeof globalThis.window.gtag !== "function") return
-  globalThis.window.gtag("consent", "update", {    analytics_storage: categories.analytics ? "granted" : "denied",
+  globalThis.window.gtag("consent", "update", {
+    analytics_storage: categories.analytics ? "granted" : "denied",
     ad_storage: categories.marketing ? "granted" : "denied",
     ad_user_data: categories.marketing ? "granted" : "denied",
     ad_personalization: categories.marketing ? "granted" : "denied",
@@ -106,7 +107,8 @@ export function useCookieConsent() {
   }, [])
 
   const resetConsent = useCallback(() => {
-    if (globalThis.window !== undefined) {      localStorage.removeItem(STORAGE_KEY)
+    if (globalThis.window !== undefined) {
+      localStorage.removeItem(STORAGE_KEY)
     }
     setConsent(DEFAULT_STATE)
   }, [])
