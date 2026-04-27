@@ -793,16 +793,19 @@ export default function AdminInventoryPage() {
                                   Change Status
                                 </DropdownMenuSubTrigger>
                                 <DropdownMenuSubContent>
-                                  {["available", "reserved", "pending", "sold"].map((s) => (
-                                    <DropdownMenuItem
-                                      key={s}
-                                      disabled={vehicle.status === s}
-                                      onClick={() => handleStatusChange(vehicle.id, s)}
-                                    >
-                                      <Badge variant={statusBadgeVariant(s)} className="mr-2">{s}</Badge>
-                                      {vehicle.status === s && <span className="ml-auto text-xs text-gray-400">current</span>}
-                                    </DropdownMenuItem>
-                                  ))}
+                                  {["available", "reserved", "pending", "sold"].map((s) => {
+                                    const handleStatusClick = () => handleStatusChange(vehicle.id, s)
+                                    return (
+                                      <DropdownMenuItem
+                                        key={s}
+                                        disabled={vehicle.status === s}
+                                        onClick={handleStatusClick}
+                                      >
+                                        <Badge variant={statusBadgeVariant(s)} className="mr-2">{s}</Badge>
+                                        {vehicle.status === s && <span className="ml-auto text-xs text-gray-400">current</span>}
+                                      </DropdownMenuItem>
+                                    )
+                                  })}
                                 </DropdownMenuSubContent>
                               </DropdownMenuSub>
                               <DropdownMenuSeparator />
