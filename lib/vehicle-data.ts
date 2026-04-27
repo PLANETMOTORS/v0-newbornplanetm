@@ -23,7 +23,7 @@ function makeTrim(name: string, transmission?: string, engine?: string): Vehicle
 }
 
 /** Model factory — eliminates repeated inline `{ name, trims }` type annotations. */
-function makeModel(name: string, trims: VehicleTrim[]): VehicleModel {
+function _makeModel(name: string, trims: VehicleTrim[]): VehicleModel {
   return { name, trims }
 }
 
