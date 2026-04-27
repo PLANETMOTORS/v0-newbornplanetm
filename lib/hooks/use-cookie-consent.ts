@@ -50,8 +50,8 @@ function writeStoredConsent(state: ConsentState) {
 
 /** Push a Google Consent Mode v2 update so gtag respects the user's choice. */
 function updateGoogleConsent(categories: ConsentCategories) {
-  if (typeof globalThis.window === "undefined" || typeof window.gtag !== "function") return
-  window.gtag("consent", "update", {
+  if (typeof globalThis.window === "undefined" || typeof globalThis.window.gtag !== "function") return
+  globalThis.window.gtag("consent", "update", {
     analytics_storage: categories.analytics ? "granted" : "denied",
     ad_storage: categories.marketing ? "granted" : "denied",
     ad_user_data: categories.marketing ? "granted" : "denied",
