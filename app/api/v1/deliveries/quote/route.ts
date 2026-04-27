@@ -1,5 +1,4 @@
- 
-import { NextRequest, NextResponse } from "next/server"
+ import { NextRequest, NextResponse } from "next/server"
 
 // ── Helpers (extracted from nested ternaries to satisfy SonarCloud S3358) ──
 

@@ -27,8 +27,10 @@ interface VehicleFinancingFormProps {
 /**
  * Map a payment-frequency code to its display label. Extracted from a
  * 4-way nested ternary to satisfy SonarCloud rule typescript:S3358.
+ * Parameter is typed against the strict union from FinancingTerms so
+ * invalid values are caught at compile time.
  */
-function getPaymentFrequencyLabel(frequency: string): string {
+function getPaymentFrequencyLabel(frequency: FinancingTerms["paymentFrequency"]): string {
   switch (frequency) {
     case "bi-weekly":
       return "Bi-Weekly"
@@ -36,8 +38,12 @@ function getPaymentFrequencyLabel(frequency: string): string {
       return "Weekly"
     case "semi-monthly":
       return "Semi-Monthly"
-    default:
+    case "monthly":
       return "Monthly"
+    default: {
+      const _exhaustive: never = frequency
+      return _exhaustive ?? "Monthly"
+    }
   }
 }
 

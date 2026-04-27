@@ -11,6 +11,27 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+// Capture every email body sent through the mocked Resend client so the
+// vehicle-card branch tests can assert on the rendered HTML.
+const sentEmails: Array<{ to: string; html: string; subject: string }> = []
+
+vi.mock('resend', () => {
+  class ResendMock {
+    emails = {
+      send: vi.fn().mockImplementation(async (args: Record<string, unknown>) => {
+        sentEmails.push({
+          to: String(args.to ?? ''),
+          html: String(args.html ?? ''),
+          subject: String(args.subject ?? ''),
+        })
+        return { data: { id: 'mock-id' }, error: null }
+      }),
+    }
+    constructor(_key: string) {}
+  }
+  return { Resend: ResendMock }
+})
+
 const realFetch = globalThis.fetch
 
 beforeEach(() => {
@@ -144,5 +165,107 @@ describe('autoraptor buildAdfXml coverage', () => {
 
     expect(result.success).toBe(false)
     expect(result.error).toMatch(/AutoRaptor not configured/)
+  })
+})
+
+// ── lib/email/lead-notifier.ts → buildInternal/CustomerVehicle{Card,Highlight} ──
+
+describe('lead-notifier vehicle-card branch coverage', () => {
+  beforeEach(() => {
+    sentEmails.length = 0
+    vi.stubEnv('RESEND_API_KEY', 'test_key')
+  })
+
+  it('renders all optional rows (image, price, mileage, VIN, stock #, VDP CTA) when present', async () => {
+    const { notifyLead } = await import('@/lib/email/lead-notifier')
+    const res = await notifyLead({
+      source: 'vdp_inquiry',
+      firstName: 'Full',
+      lastName: 'Vehicle',
+      email: 'full@v.test',
+      vehicle: {
+        id: 'veh-001',
+        year: 2024,
+        make: 'Tesla',
+        model: 'Model Y',
+        price: 64900,
+        mileage: 12345,
+        vin: '5YJYGDEE3MF000001',
+        stockNumber: 'PM-001',
+        imageUrl: 'https://cdn.example/img.jpg',
+      },
+    })
+
+    expect(res.internalEmail.success).toBe(true)
+    expect(res.customerEmail.success).toBe(true)
+    expect(sentEmails.length).toBe(2)
+
+    const [internal, customer] = sentEmails
+    // Internal alert covers the TRUE branch of every ternary in buildInternalVehicleCard
+    expect(internal.html).toContain('img src="https://cdn.example/img.jpg"')
+    expect(internal.html).toContain('Mileage')
+    expect(internal.html).toContain('VIN')
+    expect(internal.html).toContain('Stock #')
+    expect(internal.html).toContain('View VDP')
+    // Customer follow-up covers the TRUE branch of buildCustomerVehicleHighlight
+    expect(customer.html).toContain('img src="https://cdn.example/img.jpg"')
+    expect(customer.html).toContain('View Full Details')
+  })
+
+  it('omits optional rows when fields are missing (FALSE branch of each ternary)', async () => {
+    const { notifyLead } = await import('@/lib/email/lead-notifier')
+    sentEmails.length = 0
+    await notifyLead({
+      source: 'contact_form',
+      firstName: 'Sparse',
+      lastName: 'Vehicle',
+      email: 'sparse@v.test',
+      // Vehicle present but no id / image / price / mileage / vin / stockNumber
+      vehicle: { year: 2020, make: 'Honda', model: 'Civic' },
+    })
+
+    const [internal] = sentEmails
+    // No image row, no price row, no mileage row, no VIN row, no stock row, no VDP CTA
+    expect(internal.html).not.toContain('img src=')
+    expect(internal.html).not.toContain('Mileage')
+    expect(internal.html).not.toContain('VIN')
+    expect(internal.html).not.toContain('Stock #')
+    expect(internal.html).not.toContain('View VDP')
+  })
+
+  it('omits the entire vehicle card when there is no vehicle on the lead (early-return branch)', async () => {
+    const { notifyLead } = await import('@/lib/email/lead-notifier')
+    sentEmails.length = 0
+    await notifyLead({
+      source: 'newsletter',
+      firstName: 'No',
+      lastName: 'Vehicle',
+      email: 'nv@v.test',
+    })
+
+    const [internal, customer] = sentEmails
+    // The vehicle card markers must NOT appear when the lead has no vehicle.
+    expect(internal.html).not.toContain('img src=')
+    expect(internal.html).not.toContain('Mileage')
+    expect(internal.html).not.toContain('Stock #')
+    expect(customer.html).not.toContain('Your Vehicle of Interest')
+    expect(customer.html).not.toContain('View Full Details')
+  })
+
+  it('omits VDP CTA when vehicle has fields but no id (vdpUrl FALSE branch)', async () => {
+    const { notifyLead } = await import('@/lib/email/lead-notifier')
+    sentEmails.length = 0
+    await notifyLead({
+      source: 'phone',
+      firstName: 'No',
+      lastName: 'Id',
+      email: 'noid@v.test',
+      vehicle: { year: 2022, make: 'Ford', model: 'F-150', price: 45000 },
+    })
+
+    const [internal] = sentEmails
+    expect(internal.html).toContain('Price')
+    // No vehicle.id → vdpUrl is null → no "View VDP" link in the internal alert.
+    expect(internal.html).not.toContain('View VDP')
   })
 })
