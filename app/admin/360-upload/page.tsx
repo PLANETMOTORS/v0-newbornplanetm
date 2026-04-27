@@ -179,10 +179,11 @@ export default function Admin360UploadPage() {
               {/* Vehicle Info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="upload-mid" className="block text-sm font-medium text-gray-700 mb-1">
                     Media ID (MID)
                   </label>
                   <Input
+                    id="upload-mid"
                     placeholder="e.g. 190171976531"
                     value={mid}
                     onChange={e => setMid(e.target.value.replaceAll(/\D/g, ""))}
@@ -193,10 +194,11 @@ export default function Admin360UploadPage() {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="upload-vehicle-name" className="block text-sm font-medium text-gray-700 mb-1">
                     Vehicle Name
                   </label>
                   <Input
+                    id="upload-vehicle-name"
                     placeholder="e.g. 2024 Tesla Model 3"
                     value={vehicleName}
                     onChange={e => setVehicleName(e.target.value)}
@@ -206,13 +208,13 @@ export default function Admin360UploadPage() {
 
               {/* Drop Zone */}
               <div
+                role="button"
+                tabIndex={0}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
-                role="button"
-                tabIndex={0}
                 className={`
                   border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
                   ${isDragOver

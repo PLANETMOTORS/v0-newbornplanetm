@@ -3,6 +3,8 @@
  * Enforces strict Canadian format validation for all forms
  */
 
+import { isEmailLike } from "@/lib/validation/email"
+
 // Canadian Postal Code Validation (A1A 1A1 format)
 // Valid format: Letter-Number-Letter Space Number-Letter-Number
 // First letter cannot be D, F, I, O, Q, U, W, Z
@@ -99,11 +101,11 @@ export function formatCanadianPhoneNumber(phone: string): string {
 // Stricter validation that rejects common fake patterns
 export function isValidEmail(email: string): boolean {
   if (!email) return false
-  
-  // Basic email format check
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-  if (!emailRegex.test(email)) return false
-  
+
+  // Structural, ReDoS-free check (S5852/S2631) — delegates to isEmailLike
+  // which uses indexOf/lastIndexOf instead of backtracking regex.
+  if (!isEmailLike(email)) return false
+
   // Reject common fake email patterns
   const localPart = email.split('@')[0].toLowerCase()
   const domain = email.split('@')[1]?.toLowerCase()

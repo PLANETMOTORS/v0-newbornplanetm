@@ -41,9 +41,13 @@ const SPIN_URL_PATTERN = /spin|360|pano/i
 
 // ==================== HELPERS ====================
 
-/** Generate a short hash of a source URL for dedup */
+/**
+ * Generate a short, stable hash of a source URL for dedup. Uses SHA-256
+ * truncated to 12 hex chars; this is non-cryptographic — purely a content
+ * key — but avoids Sonar S4790 (weak hash MD5).
+ */
 export function urlHash(url: string): string {
-  return crypto.createHash("md5").update(url).digest("hex").slice(0, 12)
+  return crypto.createHash("sha256").update(url).digest("hex").slice(0, 12)
 }
 
 /** Check if a URL looks like a 360° spin frame */

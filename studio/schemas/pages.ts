@@ -104,7 +104,20 @@ export const homepage = defineType({
       { name: 'metaDescription', title: 'Meta Description', type: 'text' },
     ]}),
   ],
-  preview: { prepare() { return { title: 'Homepage' } } },
+  preview: {
+    select: { heroSection: 'heroSection', seo: 'seo' },
+    prepare(selection) {
+      const { heroSection, seo } = selection
+      const hasHero = Boolean(heroSection?.headline)
+      const hasSeo = Boolean(seo)
+      return {
+        title: `${hasHero ? '✅' : '📝'} Homepage`,
+        subtitle: hasHero
+          ? `Hero: "${heroSection!.headline}"${hasSeo ? ' · SEO ✅' : ' · SEO ⚠️'}`
+          : '⏳ Hero section not configured',
+      }
+    },
+  },
 })
 
 // ============================================
@@ -179,7 +192,17 @@ export const financingPage = defineType({
       { name: 'metaDescription', title: 'Meta Description', type: 'text' },
     ]}),
   ],
-  preview: { prepare() { return { title: 'Financing Page' } } },
+  preview: {
+    select: { heroSection: 'heroSection', seo: 'seo' },
+    prepare(selection) {
+      const { heroSection, seo } = selection
+      const hasHero = Boolean(heroSection?.headline)
+      return {
+        title: `${hasHero ? '✅' : '📝'} Financing Page`,
+        subtitle: hasHero ? `Hero: "${heroSection!.headline}"${seo ? ' · SEO ✅' : ' · SEO ⚠️'}` : '⏳ Hero not configured',
+      }
+    },
+  },
 })
 
 // ============================================
@@ -269,7 +292,17 @@ export const sellYourCarPage = defineType({
       { name: 'metaDescription', title: 'Meta Description', type: 'text' },
     ]}),
   ],
-  preview: { prepare() { return { title: 'Sell Your Car Page' } } },
+  preview: {
+    select: { heroSection: 'heroSection', seo: 'seo' },
+    prepare(selection) {
+      const { heroSection, seo } = selection
+      const hasHero = Boolean(heroSection?.headline)
+      return {
+        title: `${hasHero ? '✅' : '📝'} Sell Your Car Page`,
+        subtitle: hasHero ? `Hero: "${heroSection!.headline}"${seo ? ' · SEO ✅' : ' · SEO ⚠️'}` : '⏳ Hero not configured',
+      }
+    },
+  },
 })
 
 // ============================================
@@ -356,7 +389,18 @@ export const aiSettings = defineType({
       { name: 'terms', title: 'Terms', type: 'array', of: [{ type: 'number' }] },
     ]}),
   ],
-  preview: { prepare() { return { title: 'AI Settings' } } },
+  preview: {
+    select: { annaAssistant: 'annaAssistant', priceNegotiator: 'priceNegotiator' },
+    prepare(selection) {
+      const { annaAssistant, priceNegotiator } = selection
+      const annaOn = annaAssistant?.enabled
+      const negOn = priceNegotiator?.enabled
+      return {
+        title: `${annaOn && negOn ? '✅' : '📝'} AI Settings`,
+        subtitle: `Anna: ${annaOn ? '✅ ON' : '⏳ OFF'} · Negotiator: ${negOn ? '✅ ON' : '⏳ OFF'}`,
+      }
+    },
+  },
 })
 
 // ============================================

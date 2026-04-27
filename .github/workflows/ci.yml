@@ -48,7 +48,7 @@ jobs:
         env:
           # Public env vars required for Next.js static generation in CI
           # Non-secret values safe to hardcode; secrets pulled from repo secrets
-          NEXT_PUBLIC_SANITY_PROJECT_ID: "4588vjsz"
+          NEXT_PUBLIC_SANITY_PROJECT_ID: "wlxj8olw"
           NEXT_PUBLIC_SANITY_DATASET: "production"
           NEXT_PUBLIC_SITE_URL: "https://www.planetmotors.ca"
           NEXT_PUBLIC_BASE_URL: "https://www.planetmotors.ca"
@@ -86,7 +86,7 @@ jobs:
       - name: Build with bundle stats
         run: pnpm build
         env:
-          NEXT_PUBLIC_SANITY_PROJECT_ID: "4588vjsz"
+          NEXT_PUBLIC_SANITY_PROJECT_ID: "wlxj8olw"
           NEXT_PUBLIC_SANITY_DATASET: "production"
           NEXT_PUBLIC_SITE_URL: "https://www.planetmotors.ca"
           NEXT_PUBLIC_BASE_URL: "https://www.planetmotors.ca"
@@ -130,7 +130,7 @@ jobs:
       - name: Build
         run: pnpm build
         env:
-          NEXT_PUBLIC_SANITY_PROJECT_ID: "4588vjsz"
+          NEXT_PUBLIC_SANITY_PROJECT_ID: "wlxj8olw"
           NEXT_PUBLIC_SANITY_DATASET: "production"
           NEXT_PUBLIC_SITE_URL: "https://www.planetmotors.ca"
           NEXT_PUBLIC_BASE_URL: "https://www.planetmotors.ca"
@@ -213,7 +213,7 @@ jobs:
       - name: Build
         run: pnpm build
         env:
-          NEXT_PUBLIC_SANITY_PROJECT_ID: "4588vjsz"
+          NEXT_PUBLIC_SANITY_PROJECT_ID: "wlxj8olw"
           NEXT_PUBLIC_SANITY_DATASET: "production"
           NEXT_PUBLIC_SITE_URL: "https://www.planetmotors.ca"
           NEXT_PUBLIC_BASE_URL: "https://www.planetmotors.ca"
@@ -266,7 +266,7 @@ jobs:
       - name: Build
         run: pnpm build
         env:
-          NEXT_PUBLIC_SANITY_PROJECT_ID: "4588vjsz"
+          NEXT_PUBLIC_SANITY_PROJECT_ID: "wlxj8olw"
           NEXT_PUBLIC_SANITY_DATASET: "production"
           NEXT_PUBLIC_SITE_URL: "https://www.planetmotors.ca"
           NEXT_PUBLIC_BASE_URL: "https://www.planetmotors.ca"
@@ -322,7 +322,7 @@ jobs:
       - name: Build
         run: pnpm build
         env:
-          NEXT_PUBLIC_SANITY_PROJECT_ID: "4588vjsz"
+          NEXT_PUBLIC_SANITY_PROJECT_ID: "wlxj8olw"
           NEXT_PUBLIC_SANITY_DATASET: "production"
           NEXT_PUBLIC_SITE_URL: "https://www.planetmotors.ca"
           NEXT_PUBLIC_BASE_URL: "https://www.planetmotors.ca"

@@ -43,7 +43,7 @@ jobs:
     timeout-minutes: 15
 
     env:
-      SANITY_PROJECT_ID: 4588vjsz
+      SANITY_PROJECT_ID: wlxj8olw
       SANITY_DATASET: production
       BACKUPS_BRANCH: backups
       KEEP_LAST_N: 30
@@ -70,10 +70,10 @@ jobs:
           echo "BACKUP_FILE=${FILENAME}" >> $GITHUB_ENV
           echo "BACKUP_TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
 
+          SANITY_TOKEN="${SANITY_API_TOKEN}" \
           npx --yes @sanity/cli@latest \
             dataset export "${SANITY_DATASET}" "${FILENAME}" \
-            --project "${SANITY_PROJECT_ID}" \
-            --token "${SANITY_API_TOKEN}" \
+            --project-id "${SANITY_PROJECT_ID}" \
             --no-compress \
             --overwrite
 

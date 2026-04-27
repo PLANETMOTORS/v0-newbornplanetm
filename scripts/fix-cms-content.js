@@ -2,7 +2,7 @@ import { createClient } from "@sanity/client"
 import { randomUUID } from "crypto"
 
 const client = createClient({
-  projectId: '4588vjsz',
+  projectId: 'wlxj8olw',
   dataset: 'planetmotors_cms',
   apiVersion: '2024-01-01',
   token: process.env.SANITY_API_WRITE_TOKEN,
@@ -11,7 +11,7 @@ const client = createClient({
 
 // Generate a Sanity-style key
 function generateKey() {
-  return randomUUID().replace(/-/g, '').slice(0, 12)
+  return randomUUID().replaceAll('-', '').slice(0, 12)
 }
 
 async function fixCmsContent() {

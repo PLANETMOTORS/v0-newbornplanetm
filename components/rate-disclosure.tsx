@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+ 
 /**
  * RateDisclosure — OMVIC-compliant financing rate disclosure.
  *

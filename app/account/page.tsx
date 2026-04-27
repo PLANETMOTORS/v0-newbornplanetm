@@ -279,7 +279,7 @@ export default function AccountPage() {
       const supabase = createClient()
       const redirectPath = "/account"
       const callbackUrl =
-        typeof window !== "undefined" && window.location?.origin
+        globalThis.window?.location?.origin
           ? `${globalThis.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`
           : (process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://www.planetmotors.ca'}/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`)
       const { data: signUpData, error } = await supabase.auth.signUp({
@@ -813,7 +813,7 @@ export default function AccountPage() {
                                     </p>
                                   </div>
                                   <Badge className={statusColors[app.status] || "bg-gray-100 text-gray-800"}>
-                                    {app.status.replaceAll(/_/g, " ")}
+                                    {app.status.replaceAll("_", " ")}
                                   </Badge>
                                 </div>
                               )

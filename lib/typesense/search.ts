@@ -125,7 +125,7 @@ function buildSuggestions(
     const trim = String(hit.document.trim || "").trim()
 
     // Pass 1: makes that match the query
-    if (make && make.toLowerCase().includes(lowerQuery)) {
+    if (make?.toLowerCase().includes(lowerQuery)) {
       addUnique(seen, suggestions, make, "make")
     }
 

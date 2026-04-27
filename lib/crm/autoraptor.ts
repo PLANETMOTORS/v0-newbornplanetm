@@ -20,6 +20,7 @@
  */
 
 import { logger } from "@/lib/logger"
+import { maskEmail } from "@/lib/redact"
 
 // ── Config ─────────────────────────────────────────────────────────────────
 
@@ -78,11 +79,11 @@ export interface AutoRaptorResult {
 
 function escapeXml(s: string): string {
   return s
-    .replaceAll(/&/g, "&amp;")
-    .replaceAll(/</g, "&lt;")
-    .replaceAll(/>/g, "&gt;")
-    .replaceAll(/"/g, "&quot;")
-    .replaceAll(/'/g, "&apos;")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&apos;")
 }
 
 /** Build the required primary vehicle block (always present in ADF). */
@@ -101,7 +102,7 @@ function buildVehiclePrimaryBlock(v: AutoRaptorLeadPayload["vehicle"], requestTy
 function buildAdfXml(lead: AutoRaptorLeadPayload): string {
   const now = new Date()
   // ADF date format: YYYY-MM-DDThh:mm:ss+00:00
-  const adfDate = now.toISOString().replace("Z", "+00:00").slice(0, 19) + "+00:00"
+  const adfDate = now.toISOString().replaceAll("Z", "+00:00").slice(0, 19) + "+00:00"
 
   const requestType = lead.requestType ?? "buy"
   const condition = lead.vehicle?.condition ?? "used"
@@ -114,7 +115,7 @@ function buildAdfXml(lead: AutoRaptorLeadPayload): string {
     ? `<comments>${escapeXml(lead.comments)}</comments>`
     : ""
   const sourceLabel = lead.source
-    ? escapeXml(lead.source.replaceAll(/_/g, " ").replaceAll(/\b\w/g, c => c.toUpperCase()))
+    ? escapeXml(lead.source.replaceAll("_", " ").replaceAll(/\b\w/g, c => c.toUpperCase()))
     : "Website"
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -175,7 +176,7 @@ export async function pushToAutoRaptor(
     const xml = buildAdfXml(lead)
 
     logger.info("AutoRaptor: sending ADF lead", {
-      email: lead.email.replace(/(.{2}).+(@.+)/, "$1***$2"),
+      email: maskEmail(lead.email),
       vehicle: lead.vehicle
         ? `${lead.vehicle.year} ${lead.vehicle.make} ${lead.vehicle.model}`
         : "general",

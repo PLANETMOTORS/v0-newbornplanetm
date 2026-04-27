@@ -46,6 +46,24 @@ resource "aws_s3_bucket_cors_configuration" "vehicles" {
   }
 }
 
+# Block public access at the bucket level. CloudFront uses OAC + the bucket
+# policy below to read objects; no direct public access is required.
+resource "aws_s3_bucket_public_access_block" "vehicles" {
+  bucket = aws_s3_bucket.vehicles.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+# Server-access logging → dedicated logs bucket (defined below)
+resource "aws_s3_bucket_logging" "vehicles" {
+  bucket        = aws_s3_bucket.vehicles.id
+  target_bucket = aws_s3_bucket.logs.id
+  target_prefix = "s3/vehicles/"
+}
+
 # Documents Bucket (private)
 resource "aws_s3_bucket" "documents" {
   bucket = "${var.app_name}-documents"
@@ -80,6 +98,132 @@ resource "aws_s3_bucket_public_access_block" "documents" {
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_logging" "documents" {
+  bucket        = aws_s3_bucket.documents.id
+  target_bucket = aws_s3_bucket.logs.id
+  target_prefix = "s3/documents/"
+}
+
+# Deny non-TLS access to the documents bucket. The bucket is private (read via
+# IAM only), but the explicit Deny satisfies SecureTransport audit (S6249).
+resource "aws_s3_bucket_policy" "documents" {
+  bucket = aws_s3_bucket.documents.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "DenyInsecureTransport"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "s3:*"
+        Resource = [
+          aws_s3_bucket.documents.arn,
+          "${aws_s3_bucket.documents.arn}/*",
+        ]
+        Condition = {
+          Bool = { "aws:SecureTransport" = "false" }
+        }
+      }
+    ]
+  })
+}
+
+# -----------------------------------------------------------------------------
+# Centralised access-log bucket (S3 server-access + CloudFront logs)
+# -----------------------------------------------------------------------------
+resource "aws_s3_bucket" "logs" {
+  bucket = "${var.app_name}-access-logs"
+
+  tags = {
+    Name = "${var.app_name}-access-logs"
+  }
+}
+
+resource "aws_s3_bucket_versioning" "logs" {
+  bucket = aws_s3_bucket.logs.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "logs" {
+  bucket = aws_s3_bucket.logs.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "logs" {
+  bucket = aws_s3_bucket.logs.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+# Log-of-logs: route the logs bucket's own access logs to itself under a
+# dedicated prefix so we never lose the audit trail.
+resource "aws_s3_bucket_logging" "logs" {
+  bucket        = aws_s3_bucket.logs.id
+  target_bucket = aws_s3_bucket.logs.id
+  target_prefix = "s3/logs-self/"
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "logs" {
+  bucket = aws_s3_bucket.logs.id
+
+  rule {
+    id     = "expire-access-logs"
+    status = "Enabled"
+
+    filter {}
+
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+
+    expiration {
+      days = 365
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "logs" {
+  bucket = aws_s3_bucket.logs.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "DenyInsecureTransport"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "s3:*"
+        Resource = [
+          aws_s3_bucket.logs.arn,
+          "${aws_s3_bucket.logs.arn}/*",
+        ]
+        Condition = {
+          Bool = { "aws:SecureTransport" = "false" }
+        }
+      },
+      {
+        Sid       = "AllowCloudFrontLogDelivery"
+        Effect    = "Allow"
+        Principal = { Service = "delivery.logs.amazonaws.com" }
+        Action    = ["s3:PutObject"]
+        Resource  = "${aws_s3_bucket.logs.arn}/cloudfront/*"
+      }
+    ]
+  })
 }
 
 # KMS Key for S3
@@ -201,16 +345,23 @@ resource "aws_cloudfront_distribution" "main" {
   
   # WAF
   web_acl_id = aws_wafv2_web_acl.main.arn
-  
+
+  # Standard CloudFront access logs → centralised logs bucket
+  logging_config {
+    bucket          = aws_s3_bucket.logs.bucket_domain_name
+    prefix          = "cloudfront/"
+    include_cookies = false
+  }
+
   tags = {
     Name = "${var.app_name}-cdn"
   }
 }
 
-# S3 Bucket Policy for CloudFront
+# S3 Bucket Policy for CloudFront (read) + HTTPS-only deny (S6249)
 resource "aws_s3_bucket_policy" "vehicles" {
   bucket = aws_s3_bucket.vehicles.id
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -226,6 +377,19 @@ resource "aws_s3_bucket_policy" "vehicles" {
           StringEquals = {
             "AWS:SourceArn" = aws_cloudfront_distribution.main.arn
           }
+        }
+      },
+      {
+        Sid       = "DenyInsecureTransport"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "s3:*"
+        Resource = [
+          aws_s3_bucket.vehicles.arn,
+          "${aws_s3_bucket.vehicles.arn}/*",
+        ]
+        Condition = {
+          Bool = { "aws:SecureTransport" = "false" }
         }
       }
     ]

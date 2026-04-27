@@ -409,8 +409,11 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
                 }`}
               >
                 <div
+                  role="button"
+                  tabIndex={0}
                   className="p-4 cursor-pointer"
                   onClick={() => setExpandedId(isExpanded ? null : entry.id)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setExpandedId(isExpanded ? null : entry.id) }}
                 >
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5">

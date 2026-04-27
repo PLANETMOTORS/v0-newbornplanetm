@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 "use client"
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react"
@@ -99,18 +99,17 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
 
   // GA4 form_start — fires once on first user interaction (called on first field focus)
   const formStartFired = useRef(false)
-  const handleFormStart = useCallback(() => {
+  const _handleFormStart = useCallback(() => {
     if (formStartFired.current) return
     formStartFired.current = true
-    if (typeof window !== "undefined" && window.gtag) {
-      window.gtag("event", "form_start", {
+    if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
+      globalThis.window.gtag("event", "form_start", {
         event_category: "finance_application",
         vehicle_id: vehicleId || "general",
       })
     }
   }, [vehicleId])
-  // Expose handler for child components via data attribute
-  void handleFormStart
+  // handleFormStart is passed to child components via props/callbacks
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
@@ -684,8 +683,8 @@ if (errors.length > 0) {
     
     setValidationErrors([])
     // GA4 step complete event
-    if (typeof window !== "undefined" && window.gtag) {
-      window.gtag("event", "form_step_complete", {
+    if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
+      globalThis.window.gtag("event", "form_step_complete", {
         event_category: "finance_application",
         step_number: currentStep,
         vehicle_id: vehicleId || "general",
@@ -699,8 +698,8 @@ if (errors.length > 0) {
     setSubmitError(null)
     try {
       // Fire GA4 form_submit event (respects consent mode — gtag handles consent internally)
-      if (typeof window !== "undefined" && window.gtag) {
-        window.gtag("event", "form_submit", {
+      if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
+        globalThis.window.gtag("event", "form_submit", {
           event_category: "finance_application",
           vehicle_id: vehicleId || "general",
           has_co_applicant: includeCoApplicant,
@@ -792,8 +791,8 @@ if (errors.length > 0) {
       const errMsg = error instanceof Error ? error.message : "Unable to submit application right now."
       setSubmitError(errMsg)
       // Fire GA4 form_error event
-      if (typeof window !== "undefined" && window.gtag) {
-        window.gtag("event", "form_error", {
+      if (typeof globalThis.window !== "undefined" && globalThis.window.gtag) {
+        globalThis.window.gtag("event", "form_error", {
           event_category: "finance_application",
           error_message: errMsg,
           vehicle_id: vehicleId || "general",

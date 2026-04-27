@@ -13,8 +13,37 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import sanitizeHtml from "sanitize-html"
 import { blogPosts } from "@/lib/blog-data"
+import { getBlogPost, getBlogSlugs } from "@/lib/sanity/fetch"
 import { BlogShareButtons } from "@/components/blog/blog-share-buttons"
-import { getBlogPost } from "@/lib/sanity/fetch"
+
+// Allow slugs not returned by generateStaticParams (new Sanity posts) to be served via ISR
+export const dynamicParams = true
+
+/** Convert Sanity Portable Text blocks to an HTML string for dangerouslySetInnerHTML. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function portableTextToHtml(blocks: any[]): string {
+  if (!Array.isArray(blocks) || blocks.length === 0) return ""
+  return blocks.map((block) => {
+    if (block._type !== "block") return ""
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const text = (block.children ?? []).map((child: any) => {
+      const t = child.text ?? ""
+      const marks: string[] = child.marks ?? []
+      let out = t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      if (marks.includes("strong")) out = `<strong>${out}</strong>`
+      if (marks.includes("em")) out = `<em>${out}</em>`
+      return out
+    }).join("")
+    switch (block.style) {
+      case "h1": return `<h1>${text}</h1>`
+      case "h2": return `<h2>${text}</h2>`
+      case "h3": return `<h3>${text}</h3>`
+      case "h4": return `<h4>${text}</h4>`
+      case "blockquote": return `<blockquote>${text}</blockquote>`
+      default: return text ? `<p>${text}</p>` : ""
+    }
+  }).join("\n")
+}
 
 const SITE_URL = getPublicSiteUrl()
 
@@ -52,9 +81,15 @@ function getRelatedPosts(slugs: string[]): RelatedPost[] {
     .filter((post): post is RelatedPost => post !== null)
 }
 
-export function generateStaticParams() {
-  // Static slugs always included — Sanity slugs added at runtime via fallback: "blocking"
-  return Object.keys(blogPosts).map((slug) => ({ slug }))
+export async function generateStaticParams() {
+  // Include both static slugs and Sanity CMS slugs
+  const sanitySlugs = await getBlogSlugs().catch(() => [])
+  const staticSlugs = Object.keys(blogPosts).map((slug) => ({ slug }))
+  // Merge: static first, then any Sanity slugs not already in static
+  return [
+    ...staticSlugs,
+    ...sanitySlugs.filter((s) => !staticSlugs.some((st) => st.slug === s.slug)),
+  ]
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -62,17 +97,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // Try Sanity first, fall back to static data
   const sanityPost = await getBlogPost(slug)
   const staticPost = blogPosts[slug]
-  let post: { title: string; excerpt: string; image: string; date: string } | null = null
-  if (sanityPost) {
-    post = {
-      title: sanityPost.title ?? "",
-      excerpt: sanityPost.excerpt ?? "",
-      image: sanityPost.coverImage ?? "/images/blog/1.png",
-      date: sanityPost.publishedAt ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA") : "",
-    }
-  } else if (staticPost) {
-    post = { title: staticPost.title, excerpt: staticPost.excerpt, image: staticPost.image, date: staticPost.date }
-  }
+  const sanityDate = sanityPost?.publishedAt
+    ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA")
+    : ""
+  const post = sanityPost
+    ? { title: sanityPost.title, excerpt: sanityPost.excerpt, image: sanityPost.coverImage ?? "/images/blog/1.png", date: sanityDate }
+    : staticPost
+    ? { title: staticPost.title, excerpt: staticPost.excerpt, image: staticPost.image, date: staticPost.date }
+    : null
 
   if (!post) {
     return {
@@ -125,11 +157,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         category: staticPost.category,
       }
     : {
-        title: sanityPost?.title ?? "",
-        excerpt: sanityPost?.excerpt ?? "",
-        image: sanityPost?.coverImage ?? "/images/blog/1.png",
-        date: sanityPost?.publishedAt ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA") : "",
-        content: `<p>${sanityPost?.excerpt ?? ""}</p>`,
+        title: sanityPost!.title ?? "",
+        excerpt: sanityPost!.excerpt ?? "",
+        image: sanityPost!.coverImage ?? "/images/blog/1.png",
+        date: sanityPost!.publishedAt ? new Date(sanityPost!.publishedAt).toLocaleDateString("en-CA") : "",
+        content: sanityPost!.body ? portableTextToHtml(sanityPost!.body) : `<p>${sanityPost!.excerpt ?? ""}</p>`,
         relatedPosts: [],
         readTime: "5 min read",
         author: "Planet Motors Team",

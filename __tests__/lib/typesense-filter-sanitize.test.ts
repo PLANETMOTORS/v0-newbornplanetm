@@ -97,12 +97,12 @@ describe('sanitizeTypesenseFilterValue', () => {
   })
 
   it('escapes multiple backslashes', () => {
-    // Input: a\\b (two backslashes) → becomes a\\\\b (four backslashes) when wrapped
-    expect(sanitizeTypesenseFilterValue(String.raw`a\\b`)).toBe('`a\\\\\\\\b`')
+    // Input: a\\b (2 backslashes) → each escaped → a\\\\b (4 backslashes), wrapped in backticks
+    expect(sanitizeTypesenseFilterValue(String.raw`a\\b`)).toBe('`' + String.raw`a\\\\b` + '`')
   })
 
   it('handles backslash in the middle of a multi-word value', () => {
-    // Input: Land\Rover (one backslash) → becomes Land\\Rover (two backslashes) when wrapped
-    expect(sanitizeTypesenseFilterValue(String.raw`Land\Rover`)).toBe('`Land\\\\Rover`')
+    // Input: Land\Rover (1 backslash) → escaped → Land\\Rover (2 backslashes), wrapped in backticks
+    expect(sanitizeTypesenseFilterValue(String.raw`Land\Rover`)).toBe('`' + String.raw`Land\\Rover` + '`')
   })
 })

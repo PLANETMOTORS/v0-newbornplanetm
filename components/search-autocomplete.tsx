@@ -28,7 +28,6 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
   CommandSeparator,
@@ -154,33 +153,45 @@ export function SearchAutocomplete() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      {/* Anchor — the input sits here so the popover aligns to it */}
+      {/* Anchor — plain input so cmdk never sets aria-controls to a non-existent list.
+           cmdk's CommandInput internally wires aria-controls={listId} which fails axe
+           when the CommandList lives in a separate Popover Command context. */}
       <PopoverAnchor asChild>
         <div className="relative w-full">
-          <Command
-            shouldFilter={false}
-            className="rounded-lg border border-gray-200 bg-white shadow-none overflow-visible"
-          >
-            <CommandInput
+          <div className="flex items-center rounded-lg border border-gray-200 bg-white px-3 h-10">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4 shrink-0 text-gray-400 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+            </svg>
+            <input
               ref={inputRef}
+              role="combobox"
+              aria-expanded={open}
+              aria-haspopup="listbox"
+              aria-autocomplete="list"
+              aria-label="Search vehicles by make, model, or keyword"
               data-testid="typesense-search-input"
               placeholder="Search make, model, keyword…"
               value={query}
-              onValueChange={(v) => {
-                setQuery(v)
+              onChange={(e) => {
+                setQuery(e.target.value)
                 setOpen(true)
               }}
               onFocus={() => setOpen(true)}
-              className="text-sm h-9"
-              aria-expanded={open}
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400 h-9"
               aria-controls="search-results-listbox"
-              aria-haspopup="listbox"
             />
-            {/* Inline loading spinner inside the input row */}
             {isLoading && (
-              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-[#1e3a8a]/50 pointer-events-none" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1e3a8a]/50 pointer-events-none" />
             )}
-          </Command>
+          </div>
         </div>
       </PopoverAnchor>
 

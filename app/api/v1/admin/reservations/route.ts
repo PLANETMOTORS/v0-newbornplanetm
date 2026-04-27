@@ -26,7 +26,7 @@ async function requireAdminClient(): Promise<
 export async function GET(request: NextRequest) {
   try {
     const { adminClient, unauthorized } = await requireAdminClient()
-    if (!adminClient) return unauthorized as NextResponse
+    if (!adminClient) return unauthorized!
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get("status")
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const { adminClient, unauthorized } = await requireAdminClient()
-    if (!adminClient) return unauthorized as NextResponse
+    if (!adminClient) return unauthorized!
 
     const { id, ...updates } = await request.json()
     if (!id) return NextResponse.json({ error: "Reservation ID required" }, { status: 400 })

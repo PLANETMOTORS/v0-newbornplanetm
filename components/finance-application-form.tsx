@@ -9,6 +9,7 @@ import { ArrowRight, Calculator, Loader2, CheckCircle, Mail, RefreshCw, Shield }
 import { useAuth } from "@/contexts/auth-context"
 import { createClient } from "@/lib/supabase/client"
 import { invokeEdgeFunction } from "@/lib/supabase/edge-functions"
+import { isEmailLike } from "@/lib/validation/email"
 
 interface LenderOffer {
   lenderId: string
@@ -142,7 +143,8 @@ export function FinanceApplicationForm() {
     if (!formData.lastName.trim()) errors.lastName = "Last Name is required"
     if (!formData.email.trim()) {
       errors.email = "Email Address is required"
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      // Structural, ReDoS-free check (S5852/S2631).
+    } else if (!isEmailLike(formData.email)) {
       errors.email = "Please enter a valid email address"
     }
     if (!formData.phone.trim()) {

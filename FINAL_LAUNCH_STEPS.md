@@ -36,7 +36,7 @@ UPSTASH_REDIS_REST_TOKEN
 
 ## Step 2 — Create Sanity Production Dataset & Seed Documents
 
-1. Go to: https://manage.sanity.io → select project `4588vjsz`
+1. Go to: https://manage.sanity.io → select project `wlxj8olw`
 2. Click **Datasets** → **Add dataset** → name it `production` → **Create**
 3. Go to: https://v0-newbornplanetm.vercel.app/studio (or run `pnpm dev` locally)
 4. Create the **Site Settings** document:

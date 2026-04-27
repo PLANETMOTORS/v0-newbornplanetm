@@ -33,6 +33,7 @@ import { trackLead } from "@/lib/meta-capi-helpers"
 import { notifyLead, type LeadPayload } from "@/lib/email/lead-notifier"
 import { logger } from "@/lib/logger"
 import { pushToAutoRaptor, mapLeadToAutoRaptor } from "@/lib/crm/autoraptor"
+import { maskEmail } from "@/lib/redact"
 
 // ── HMAC verification ──────────────────────────────────────────────────────
 
@@ -156,7 +157,7 @@ export async function POST(request: NextRequest) {
 
   logger.info("CRM webhook: lead received", {
     source: lead.source,
-    email: lead.email.replace(/(.{2}).+(@.+)/, "$1***$2"),
+    email: maskEmail(lead.email),
     vehicle: lead.vehicle ? `${lead.vehicle.year} ${lead.vehicle.make} ${lead.vehicle.model}` : null,
   })
 

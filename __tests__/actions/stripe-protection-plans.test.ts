@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+ 
 /**
  * Tests for app/actions/stripe.ts — protection plan changes in this PR.
  *

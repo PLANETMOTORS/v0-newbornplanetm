@@ -156,7 +156,7 @@ export default function AdminFinancePage() {
         document.body.appendChild(a)
         a.click()
         window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
+        a.remove()
       }
     } catch (error) {
       console.error("Error downloading document:", error)
@@ -518,7 +518,7 @@ export default function AdminFinancePage() {
                               <div>
                                 <p className="font-medium">{doc.document_name}</p>
                                 <p className="text-sm text-gray-500 capitalize">
-                                  {doc.document_type.replaceAll(/_/g, " ")}
+                                  {doc.document_type.replaceAll("_", " ")}
                                 </p>
                               </div>
                             </div>

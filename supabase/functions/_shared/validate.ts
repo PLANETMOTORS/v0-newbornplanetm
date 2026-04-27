@@ -2,6 +2,38 @@
  * Input validation helpers for Edge Functions.
  */
 
+/**
+ * ReDoS-free structural email check (S5852/S2631).
+ * Mirrors the helper at lib/validation/email.ts; duplicated here because
+ * Deno Edge Functions resolve modules independently from the Next.js app.
+ */
+function isEmailLike(value: string): boolean {
+  if (typeof value !== "string") return false
+  const v = value.trim()
+  if (v.length === 0 || v.length > 254) return false
+  const at = v.indexOf("@")
+  if (at <= 0 || at !== v.lastIndexOf("@")) return false
+  const domain = v.slice(at + 1)
+  if (domain.length === 0) return false
+  const dot = domain.lastIndexOf(".")
+  if (dot <= 0 || dot === domain.length - 1) return false
+  if (/\s/.test(v)) return false
+  return true
+}
+
+/**
+ * Structural email mask for log lines. Returns the first character of the
+ * local part, three asterisks, and the original domain (e.g.
+ * `j***@example.com`). Uses string indices instead of a backtracking regex
+ * to avoid Sonar S5852.
+ */
+export function maskEmail(value: string): string {
+  if (typeof value !== "string" || value.length === 0) return "***"
+  const at = value.lastIndexOf("@")
+  if (at <= 0) return "***"
+  return `${value[0]}***${value.slice(at)}`
+}
+
 export interface CaptureLeadInput {
   firstName: string
   lastName: string
@@ -34,7 +66,9 @@ export function validateCaptureLeadInput(
   if (!email || typeof email !== "string" || !email.trim()) {
     return { error: "email is required" }
   }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email))) {
+  // Structural, ReDoS-free email check (S5852/S2631).
+  const emailStr = String(email).trim()
+  if (!isEmailLike(emailStr)) {
     return { error: "Invalid email format" }
   }
   if (!phone || typeof phone !== "string" || !phone.trim()) {

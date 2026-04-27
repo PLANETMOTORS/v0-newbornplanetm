@@ -8,7 +8,9 @@ vi.mock('next/headers', () => ({ headers: vi.fn() }))
 // itself (the same proxy), and the proxy is also a thenable that resolves
 // to the supplied result.  This handles arbitrary `.update().eq().in().eq()`
 // chains as well as `await supabase.from(...).select(...).eq(...).maybeSingle()`.
-function createMockSupabase(queryResult: { data?: unknown; error?: unknown } = { data: null, error: null }) {
+const DEFAULT_QUERY_RESULT: { data?: unknown; error?: unknown } = { data: null, error: null }
+
+function createMockSupabase(queryResult: { data?: unknown; error?: unknown } = DEFAULT_QUERY_RESULT) {
   const handler: ProxyHandler<Record<string, unknown>> = {
     get(_target, prop: string) {
       if (prop === 'then') {

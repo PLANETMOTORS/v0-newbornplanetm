@@ -1,5 +1,5 @@
 // Sanity CMS Verification Script
-const projectId = '4588vjsz'
+const projectId = 'wlxj8olw'
 const dataset = 'production'
 const apiVersion = '2024-01-01'
 const token = process.env.SANITY_API_TOKEN
@@ -43,9 +43,9 @@ async function verifySanity() {
     })
 
     if (!response.ok) {
-      console.log(JSON.stringify({ error: response.status, statusText: response.statusText }))
+      console.log({ error: response.status, statusText: response.statusText })
       const text = await response.text()
-      console.log(JSON.stringify({ body: text.slice(0, 500) }))
+      console.log({ body: text.slice(0, 500).replaceAll(/[\n\r]/g, ' ') })
       return
     }
 
@@ -53,32 +53,32 @@ async function verifySanity() {
     const result = data.result
 
     console.log('=== DOCUMENT TYPES IN DATABASE ===')
-    console.log(JSON.stringify({ documentTypes: result.documentTypes }))
+    console.log({ documentTypes: result.documentTypes })
 
     console.log('\n=== DOCUMENT COUNTS ===')
-    console.log(JSON.stringify({ vehicles: result.vehicles, lenders: result.lenders, testimonials: result.testimonials, blogPosts: result.blogPosts, protectionPlans: result.protectionPlans, pages: result.pages }))
+    console.log({ vehicles: result.vehicles, lenders: result.lenders, testimonials: result.testimonials, blogPosts: result.blogPosts, protectionPlans: result.protectionPlans, pages: result.pages })
 
     console.log('\n=== SINGLETON DOCUMENTS ===')
     for (const [key, label] of [['homepage', 'Homepage'], ['financingPage', 'Financing Page'], ['sellYourCarPage', 'Sell Your Car Page'], ['siteSettings', 'Site Settings'], ['inventorySettings', 'Inventory Settings']]) {
       const doc = result[key]
       if (doc) {
         const fields = Object.keys(doc).filter(k => !k.startsWith('_'))
-        console.log(JSON.stringify({ [label]: 'EXISTS', fields }))
+        console.log({ [label]: 'EXISTS', fields })
       } else {
-        console.log(JSON.stringify({ [label]: 'MISSING' }))
+        console.log({ [label]: 'MISSING' })
       }
     }
 
     console.log('\n=== SAMPLE DOCUMENTS ===')
     result.allDocs.forEach(doc => {
       const fields = Object.keys(doc).filter(k => !k.startsWith('_'))
-      console.log(JSON.stringify({ type: doc._type, id: doc._id, fields: fields.slice(0, 10), truncated: fields.length > 10 }))
+      console.log({ type: doc._type, id: doc._id, fields: fields.slice(0, 10), truncated: fields.length > 10 })
     })
 
     console.log('\n=== VERIFICATION COMPLETE ===')
 
   } catch (err) {
-    console.log(JSON.stringify({ error: err.message }))
+    console.log({ error: String(err.message).replaceAll(/[\n\r]/g, '_') })
   }
 }
 

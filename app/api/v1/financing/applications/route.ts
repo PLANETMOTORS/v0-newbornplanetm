@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    
+
     const rawBody = await request.json()
     const parseResult = financeApplicationSchema.safeParse(rawBody)
     if (!parseResult.success) {

@@ -242,10 +242,13 @@ export default function VehiclePhotoManager({
                 ? "border-blue-500 bg-blue-50"
                 : "border-gray-300 hover:border-gray-400"
             }`}
+            role="button"
+            tabIndex={0}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click() }}
           >
             {uploading ? (
               <div className="flex flex-col items-center gap-2">

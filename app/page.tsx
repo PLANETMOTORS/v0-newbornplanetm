@@ -154,6 +154,7 @@ export default async function HomePage() {
       <main id="main-content" tabIndex={-1} className="flex-1 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
         <HomepageContent
           siteSettings={siteSettings ?? DEFAULT_SITE_SETTINGS}
+          homepageData={homepageData}
           showcaseVehicles={showcaseVehicles}
         />
       </main>

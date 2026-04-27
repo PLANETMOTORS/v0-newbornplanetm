@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+ 
 "use client"
 
 import { useState } from "react"
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Send, Bot, User, Sparkles, Mail, Phone, CheckCircle, Loader2 } from "lucide-react"
 import { PHONE_LOCAL } from "@/lib/constants/dealership"
+import { isEmailLike } from "@/lib/validation/email"
 
 interface Message {
   role: "user" | "assistant"
@@ -44,7 +45,8 @@ export function PriceNegotiator({
   const [isLoading, setIsLoading] = useState(false)
   const [currentOffer, setCurrentOffer] = useState<number | null>(null)
 
-  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  // Structural, ReDoS-free check (S5852/S2631).
+  const isValidEmail = (email: string) => isEmailLike(email)
   const isValidPhone = (phone: string) => phone.replaceAll(/\D/g, "").length >= 10
   const formatPhone = (value: string) => {
     const digits = value.replaceAll(/\D/g, "").slice(0, 10)
@@ -236,7 +238,7 @@ export function PriceNegotiator({
           <>
             <div className="max-h-64 overflow-y-auto space-y-3">
               {messages.map((msg, i) => (
-                <div key={i} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div key={`msg-${msg.role}-${i}-${msg.content.slice(0, 8)}`} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   {msg.role === "assistant" && (
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                       <Bot className="w-4 h-4 text-primary" />

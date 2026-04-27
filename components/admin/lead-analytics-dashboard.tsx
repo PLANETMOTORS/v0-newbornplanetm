@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+ 
 "use client"
 
 /**
@@ -392,7 +392,7 @@ export function LeadAnalyticsDashboard({
   if (loading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-pulse">
-        {[...Array(4)].map((_, i) => (
+        {[...new Array(4)].map((_, i) => (
           <div key={i} className="h-28 bg-muted rounded-xl" />
         ))}
         <div className="col-span-full h-64 bg-muted rounded-xl" />
