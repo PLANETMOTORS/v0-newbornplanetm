@@ -48,14 +48,23 @@ jobs:
 
       - name: Install coverage provider
         # @vitest/coverage-v8 is an optional peer dep — pnpm frozen-lockfile
-        # won't install it. Use --no-frozen-lockfile just for this package.
+        # won't install it. Use --no-lockfile just for this package.
         run: pnpm add --save-dev @vitest/coverage-v8@4.1.4 --no-lockfile
         continue-on-error: true
 
       - name: Run tests with coverage
         run: pnpm vitest run --coverage
         continue-on-error: true
-      
+
+      - name: Verify coverage report
+        run: |
+          if [ -f coverage/lcov.info ]; then
+            echo "✅ coverage/lcov.info found ($(wc -l < coverage/lcov.info) lines)"
+          else
+            echo "❌ coverage/lcov.info NOT found — coverage will be 0%"
+            ls -la coverage/ 2>/dev/null || echo "coverage/ directory does not exist"
+          fi
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v7.1.0
         env:
