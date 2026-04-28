@@ -224,19 +224,18 @@ export function ProductsGridWithDetails() {
           </p>
         </div>
 
-        {/* Product Cards Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" role="list" aria-label="Protection products">
+        {/* Product Cards Grid (S6819: <ul> + <li> instead of role="list" / "listitem"). */}
+        <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 list-none p-0 m-0" aria-label="Protection products">
           {PROTECTION_PRODUCTS.map((product) => {
             const meta = PRODUCT_META[product.slug]
             const Icon = meta?.icon || product.icon
             const isActive = openSlug === product.slug
             return (
+              <li key={product.slug}>
               <button
-                key={product.slug}
                 type="button"
                 id={`product-${product.slug}`}
                 onClick={() => handleToggle(product.slug)}
-                role="listitem"
                 aria-expanded={isActive}
                 aria-controls={isActive ? `detail-${product.slug}` : undefined}
                 className={`text-left w-full rounded-2xl border-2 transition-all duration-300 p-5 group focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
@@ -263,20 +262,21 @@ export function ProductsGridWithDetails() {
                   </div>
                 </div>
               </button>
+              </li>
             )
           })}
-        </div>
+        </ul>
 
-        {/* Inline Detail Panels — all 9 rendered for SEO, only active one visible */}
+        {/* Inline Detail Panels — all 9 rendered for SEO, only active one visible.
+            S6819: <section aria-label> instead of <div role="region">. */}
         {PROTECTION_PRODUCTS.map((product) => {
           const isActive = openSlug === product.slug
           return (
-            <div
+            <section
               key={product.slug}
               id={`detail-${product.slug}`}
               ref={isActive ? detailRef : undefined}
               className={`mt-10 scroll-mt-24 ${isActive ? "animate-in slide-in-from-top-4 fade-in duration-300" : "hidden"}`}
-              role="region"
               aria-label={`${product.name} details`}
               aria-hidden={!isActive}
             >
@@ -284,7 +284,7 @@ export function ProductsGridWithDetails() {
                 product={product}
                 onClose={() => setOpenSlug(null)}
               />
-            </div>
+            </section>
           )
         })}
       </div>

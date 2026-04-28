@@ -123,7 +123,7 @@ const COMPARISON_ROWS = [
 ] as const
 
 function ComparisonModal({ onClose }: Readonly<{ onClose: () => void }>) {
-  const modalRef = useRef<HTMLDivElement>(null)
+  const modalRef = useRef<HTMLDialogElement>(null)
   const triggerRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
@@ -164,13 +164,14 @@ function ComparisonModal({ onClose }: Readonly<{ onClose: () => void }>) {
         aria-label="Close comparison"
         onClick={onClose}
       />
-      <div
+      {/* S6819: native <dialog> instead of div role="dialog". */}
+      <dialog
         ref={modalRef}
-        role="dialog"
+        open
         aria-modal="true"
         aria-labelledby="comparison-modal-title"
         tabIndex={-1}
-        className="relative bg-background rounded-2xl shadow-xl max-w-3xl w-full max-h-[85vh] overflow-auto"
+        className="relative bg-background rounded-2xl shadow-xl max-w-3xl w-full max-h-[85vh] overflow-auto m-0"
       >
         <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-background rounded-t-2xl z-10">
           <h2 id="comparison-modal-title" className="text-xl font-bold">Compare Coverage</h2>
@@ -226,7 +227,7 @@ function ComparisonModal({ onClose }: Readonly<{ onClose: () => void }>) {
             </tbody>
           </table>
         </div>
-      </div>
+      </dialog>
     </div>
   )
 }

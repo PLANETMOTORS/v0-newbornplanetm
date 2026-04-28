@@ -43,12 +43,13 @@ export function CookieConsentBanner() {
 
   if (!showBanner || !ready) return null
 
+  // S6819: native <dialog open> instead of div role="dialog". Non-modal
+  // (aria-modal omitted) so the rest of the page stays interactive.
   return (
-    <div
-      role="dialog"
+    <dialog
+      open
       aria-label="Cookie consent"
-      aria-modal="false"
-      className="fixed bottom-0 inset-x-0 z-[9999] p-4 md:p-6"
+      className="fixed bottom-0 inset-x-0 top-auto left-0 z-[9999] p-4 md:p-6 m-0 bg-transparent w-full max-w-none"
       style={{ contentVisibility: "auto" } as React.CSSProperties}
     >
       <div className="mx-auto max-w-3xl rounded-xl border bg-background shadow-2xl">
@@ -80,7 +81,8 @@ export function CookieConsentBanner() {
           </button>
 
           {showDetails && (
-            <div className="space-y-3 mb-5 rounded-lg bg-muted/50 p-4" role="group" aria-label="Cookie categories">
+            // S6819: native <fieldset> carries group semantics implicitly.
+            <fieldset className="space-y-3 mb-5 rounded-lg bg-muted/50 p-4 border-0" aria-label="Cookie categories">
               {/* Essential — always on */}
               <div className="flex items-center justify-between">
                 <div>
@@ -115,7 +117,7 @@ export function CookieConsentBanner() {
                   aria-label="Marketing cookies"
                 />
               </div>
-            </div>
+            </fieldset>
           )}
 
           {/* Action buttons */}
@@ -148,6 +150,6 @@ export function CookieConsentBanner() {
           </div>
         </div>
       </div>
-    </div>
+    </dialog>
   )
 }

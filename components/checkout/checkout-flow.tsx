@@ -81,7 +81,7 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
   const [timeLeft, setTimeLeft] = useState(40 * 60) // 40 minute countdown
   const [showOrderSummary, setShowOrderSummary] = useState(false)
   const orderSummaryTriggerRef = useRef<HTMLButtonElement>(null)
-  const orderSummaryModalRef = useRef<HTMLDivElement>(null)
+  const orderSummaryModalRef = useRef<HTMLDialogElement>(null)
 
   // Countdown timer — decrements every second
   useEffect(() => {
@@ -262,24 +262,26 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
   // --- Loading / error states ---
 
   if (authLoading || !user) {
+    // S6819: <output> implicitly carries role="status".
     return (
-      <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Loading">
+      <output className="min-h-screen flex items-center justify-center w-full" aria-label="Loading">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Loading…</p>
         </div>
-      </div>
+      </output>
     )
   }
 
   if (vehicleLoading) {
+    // S6819: <output> implicitly carries role="status".
     return (
-      <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Loading vehicle">
+      <output className="min-h-screen flex items-center justify-center w-full" aria-label="Loading vehicle">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Loading vehicle details…</p>
         </div>
-      </div>
+      </output>
     )
   }
 
@@ -359,14 +361,18 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
             aria-label="Close order summary"
             onClick={() => setShowOrderSummary(false)}
           />
-          <div
+          {/* S6819: native <dialog> instead of div role="dialog". We don't
+              call showModal()/show() here because the visibility is already
+              controlled by `showOrderSummary`; aria-modal + the dimmed
+              overlay above provide the modal semantics. */}
+          <dialog
             ref={orderSummaryModalRef}
             id="mobile-order-summary"
-            role="dialog"
+            open
             aria-modal="true"
             aria-labelledby="mobile-order-summary-title"
             tabIndex={-1}
-            className="absolute right-0 top-0 h-full w-full max-w-sm bg-background shadow-xl overflow-y-auto p-4"
+            className="absolute right-0 top-0 h-full w-full max-w-sm bg-background shadow-xl overflow-y-auto p-4 m-0"
           >
             <div className="flex items-center justify-between mb-4">
               <h2 id="mobile-order-summary-title" className="font-bold">Order Summary</h2>
@@ -394,7 +400,7 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
                 router.push(`/vehicles/${vehicleId}`)
               }}
             />
-          </div>
+          </dialog>
         </div>
       )}
 

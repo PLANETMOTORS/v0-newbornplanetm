@@ -50,11 +50,12 @@ function BreadcrumbLink({
 }
 
 function BreadcrumbPage({ className, ...props }: React.ComponentProps<'span'>) {
+  // S6819: drop redundant role="link" — aria-current="page" already
+  // signals the current-page status to assistive tech, and a non-anchor
+  // <span> doesn't need (or want) a role="link".
   return (
     <span
       data-slot="breadcrumb-page"
-      role="link"
-      aria-disabled="true"
       aria-current="page"
       className={cn('text-foreground font-normal', className)}
       {...props}
@@ -67,10 +68,11 @@ function BreadcrumbSeparator({
   className,
   ...props
 }: React.ComponentProps<'li'>) {
+  // S6819: aria-hidden="true" already hides from the a11y tree —
+  // role="presentation" is redundant.
   return (
     <li
       data-slot="breadcrumb-separator"
-      role="presentation"
       aria-hidden="true"
       className={cn('[&>svg]:size-3.5', className)}
       {...props}
@@ -84,10 +86,10 @@ function BreadcrumbEllipsis({
   className,
   ...props
 }: React.ComponentProps<'span'>) {
+  // S6819: same as BreadcrumbSeparator — aria-hidden suffices.
   return (
     <span
       data-slot="breadcrumb-ellipsis"
-      role="presentation"
       aria-hidden="true"
       className={cn('flex size-9 items-center justify-center', className)}
       {...props}

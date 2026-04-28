@@ -5,12 +5,16 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
 
-function ItemGroup({ className, ...props }: React.ComponentProps<'div'>) {
+function ItemGroup({ className, ...props }: React.ComponentProps<'ul'>) {
+  // S6819: render a real <ul> instead of a <div role="list"> so the
+  // semantic mapping is correct without an explicit role.
   return (
-    <div
-      role="list"
+    <ul
       data-slot="item-group"
-      className={cn('group/item-group flex flex-col', className)}
+      className={cn(
+        'group/item-group flex flex-col list-none p-0 m-0',
+        className,
+      )}
       {...props}
     />
   )

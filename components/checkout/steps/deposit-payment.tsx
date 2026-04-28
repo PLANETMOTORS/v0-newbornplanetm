@@ -18,13 +18,14 @@ const EmbeddedCheckout = dynamic(
 )
 
 function StripeLoadingFallback() {
+  // S6819: <output> implicitly carries role="status".
   return (
-    <div className="flex items-center justify-center py-16" role="status" aria-label="Loading payment form">
+    <output className="flex items-center justify-center py-16 w-full" aria-label="Loading payment form">
       <div className="text-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
         <p className="text-sm text-muted-foreground">Loading secure payment form…</p>
       </div>
-    </div>
+    </output>
   )
 }
 

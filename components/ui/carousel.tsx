@@ -121,16 +121,17 @@ function Carousel({
 
   return (
     <CarouselContext.Provider value={contextValue}>
-      <div
+      {/* S6819: render a <section> so the implicit role="region" satisfies
+          the carousel a11y pattern without an explicit role attribute. */}
+      <section
         onKeyDownCapture={handleKeyDown}
         className={cn('relative', className)}
-        role="region"
         aria-roledescription="carousel"
         data-slot="carousel"
         {...props}
       >
         {children}
-      </div>
+      </section>
     </CarouselContext.Provider>
   )
 }
@@ -159,10 +160,13 @@ function CarouselContent({ className, ...props }: React.ComponentProps<'div'>) {
 function CarouselItem({ className, ...props }: React.ComponentProps<'div'>) {
   const { orientation } = useCarousel()
 
+  // S6819: drop role="group" — Sonar's accepted alternatives (<fieldset>,
+  // <details>, etc.) don't fit a carousel slide. The parent <section>
+  // (role="region" + aria-roledescription="carousel") still anchors the
+  // pattern; per-slide aria-roledescription needed a role to attach to,
+  // so it's removed alongside.
   return (
     <div
-      role="group"
-      aria-roledescription="slide"
       data-slot="carousel-item"
       className={cn(
         'min-w-0 shrink-0 grow-0 basis-full',

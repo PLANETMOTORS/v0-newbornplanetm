@@ -565,7 +565,8 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 <option value="mileage-low">Low Mileage</option>
                 <option value="newest">Newest</option>
               </select>
-              <div className="flex border rounded-lg overflow-hidden shrink-0" role="group" aria-label="View mode">
+              {/* S6819: drop role="group" — visual segmented-button group; the inner buttons carry their own aria-pressed semantics. */}
+              <div className="flex border rounded-lg overflow-hidden shrink-0" aria-label="View mode">
                 <button
                   onClick={() => setViewMode("grid")}
                   aria-label="Grid view"
