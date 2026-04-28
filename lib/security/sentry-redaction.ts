@@ -34,8 +34,15 @@ const VALUE_PATTERNS: Array<{ name: string; re: RegExp }> = [
   { name: "stripe-webhook", re: /\bwhsec_[A-Za-z0-9]{16,}\b/g },
   // Resend API keys
   { name: "resend", re: /\bre_[A-Za-z0-9_-]{16,}\b/g },
-  // Supabase JWT (anon + service role both look like JWTs)
-  { name: "jwt", re: /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g },
+  // Supabase JWT (anon + service role both look like JWTs).
+  // Quantifiers are upper-bounded so the regex is provably linear and
+  // cannot drift into backtracking-sensitive territory (Sonar S5852).
+  // Bounds chosen to fit the largest realistic JWT we see in practice
+  // (RS256 with rich claims): header ≤ 512, payload ≤ 8192, signature ≤ 1024.
+  {
+    name: "jwt",
+    re: /\beyJ[A-Za-z0-9_-]{10,512}\.[A-Za-z0-9_-]{10,8192}\.[A-Za-z0-9_-]{10,1024}\b/g,
+  },
   // Bearer tokens in Authorization headers
   { name: "bearer", re: /\bBearer\s+[A-Za-z0-9._\-+/=]{20,}/g },
   // Credit-card-shaped digit runs (13–19 digits, optional spaces/dashes)
