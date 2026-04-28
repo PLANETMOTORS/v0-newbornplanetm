@@ -132,10 +132,17 @@ export function HomepageContent({ siteSettings, homepageData, showcaseVehicles }
                   {heroHeadline}
                 </h1>
               ) : (
+                /*
+                 * Canonical fallback headline — kept in lock-step with the
+                 * Sanity `homepage.heroSection.headline` field. If you edit
+                 * this string, also patch Sanity (and vice-versa) so the
+                 * page renders the same words whether or not the CMS is
+                 * reachable. Style rules in BRAND_GUIDELINES.md → "Hero".
+                 */
                 <h1 className="text-[2rem] sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-[-0.01em] sm:tracking-[-0.02em] text-gray-900">
-                  Canada&apos;s Battery-Certified
+                  Canada&apos;s Battery-Health Certified
                   <span className="block text-[#1e3a8a]">
-                    Used EV Dealership
+                    Used EVs
                   </span>
                 </h1>
               )}
@@ -143,9 +150,9 @@ export function HomepageContent({ siteSettings, homepageData, showcaseVehicles }
               <p className="mt-6 text-base sm:text-lg text-gray-600 max-w-lg mx-auto lg:mx-0 min-h-[3rem] sm:min-h-[3.5rem]">
                 {heroSubheadline ?? (
                   <>
-                    Aviloo-certified used EVs.
+                    Inspected on <span className="font-semibold text-gray-800">210 points</span>, Aviloo battery-health certified, delivered nationwide
                     <br className="hidden sm:block" />
-                    <span className="font-semibold text-gray-800">210-point inspected.</span> Canada-wide delivery.
+                    {" "}— backed by a <span className="font-semibold text-gray-800">10-day money-back guarantee</span>.
                   </>
                 )}
               </p>
