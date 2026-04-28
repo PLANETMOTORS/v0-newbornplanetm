@@ -312,7 +312,15 @@ export async function handleCheckoutSessionCompleted(
 
   if (vehicleId) {
     const isAsyncPaymentPending = isReservation && session.payment_status === "unpaid"
-    const targetStatus = isReservation ? (reservationConfirmed || isAsyncPaymentPending ? "reserved" : "available") : "pending"
+    // S3358: extract the nested ternary into a labelled statement.
+    let targetStatus: "reserved" | "available" | "pending"
+    if (!isReservation) {
+      targetStatus = "pending"
+    } else if (reservationConfirmed || isAsyncPaymentPending) {
+      targetStatus = "reserved"
+    } else {
+      targetStatus = "available"
+    }
     await supabase.rpc("transition_vehicle_status", { p_vehicle_id: vehicleId, p_to_status: targetStatus })
   }
 }

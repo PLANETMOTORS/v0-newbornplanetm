@@ -87,37 +87,49 @@ export default function AdminResetPasswordPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {success ? (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 p-3 bg-green-950/50 border border-green-900 rounded-lg">
-                  <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0" />
-                  <p className="text-sm text-green-300">
-                    Password updated successfully. Redirecting to login...
-                  </p>
-                </div>
-                <Button asChild className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white">
-                  <Link href="/admin/login">
-                    Go to Admin Login
-                  </Link>
-                </Button>
-              </div>
-            ) : hasSession === null ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
-                <span className="ml-2 text-sm text-gray-400">Verifying session...</span>
-              </div>
-            ) : hasSession === false ? (
-              <div className="space-y-4">
-                <div className="p-3 text-sm text-yellow-400 bg-yellow-950/50 border border-yellow-900 rounded-lg">
-                  No active session. Please use the reset link from your email, or request a new one.
-                </div>
-                <Button asChild className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white">
-                  <Link href="/admin/forgot-password">
-                    Request Reset Link
-                  </Link>
-                </Button>
-              </div>
-            ) : (
+            {/* S3358: extract the nested ternary chain into an IIFE so each
+                branch is its own statement instead of a chain of ?: ?:. */}
+            {(() => {
+              if (success) {
+                return (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 p-3 bg-green-950/50 border border-green-900 rounded-lg">
+                      <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0" />
+                      <p className="text-sm text-green-300">
+                        Password updated successfully. Redirecting to login...
+                      </p>
+                    </div>
+                    <Button asChild className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white">
+                      <Link href="/admin/login">
+                        Go to Admin Login
+                      </Link>
+                    </Button>
+                  </div>
+                )
+              }
+              if (hasSession === null) {
+                return (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
+                    <span className="ml-2 text-sm text-gray-400">Verifying session...</span>
+                  </div>
+                )
+              }
+              if (hasSession === false) {
+                return (
+                  <div className="space-y-4">
+                    <div className="p-3 text-sm text-yellow-400 bg-yellow-950/50 border border-yellow-900 rounded-lg">
+                      No active session. Please use the reset link from your email, or request a new one.
+                    </div>
+                    <Button asChild className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white">
+                      <Link href="/admin/forgot-password">
+                        Request Reset Link
+                      </Link>
+                    </Button>
+                  </div>
+                )
+              }
+              return (
               <form onSubmit={handleReset} className="space-y-4">
                 {error && (
                   <div className="p-3 text-sm text-red-400 bg-red-950/50 border border-red-900 rounded-lg">
@@ -187,7 +199,8 @@ export default function AdminResetPasswordPage() {
                   )}
                 </Button>
               </form>
-            )}
+              )
+            })()}
           </CardContent>
         </Card>
 

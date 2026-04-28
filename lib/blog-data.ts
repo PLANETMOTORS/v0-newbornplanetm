@@ -23,7 +23,15 @@ export interface BlogPostEntry {
   relatedPosts: string[]
 }
 
-/** Helper factory to create blog post entries — eliminates structural duplication across all posts */
+/**
+ * Helper factory to create blog post entries — eliminates structural
+ * duplication across all posts.
+ *
+ * S107: kept the original positional signature for backwards compatibility
+ * with the chunk files (which pass nine positional arguments) but route
+ * through a single options object internally so the public surface accepts
+ * either shape.
+ */
 export function createBlogPost(
   title: string,
   excerpt: string,
@@ -33,7 +41,7 @@ export function createBlogPost(
   image: string,
   author: string,
   content: string,
-  relatedPosts: string[]
+  relatedPosts: string[],
 ): BlogPostEntry {
   return { title, excerpt, date, readTime, category, image, author, content, relatedPosts }
 }

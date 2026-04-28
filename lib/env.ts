@@ -151,9 +151,8 @@ let _env: Env | undefined
 /** Typed, validated environment variables. Throws on first access if required vars are missing. */
 export const env: Env = new Proxy({} as Env, {
   get(_target, prop: string) {
-    if (!_env) {
-      _env = validateEnv()
-    }
+    // S6606: prefer the nullish-coalescing-assignment (??=) over an explicit if-set.
+    _env ??= validateEnv()
     return _env[prop as keyof Env]
   },
 })

@@ -242,6 +242,9 @@ const conditionOptions = [
 
 const TRADE_IN_DRAFT_KEY = "pm:trade-in-draft"
 
+// S4323: union extracted to a named type alias and reused.
+type LookupMethod = "plate" | "vin" | "manual"
+
 function TradeInContent() {
   const searchParams = useSearchParams()
   const { user } = useAuth()
@@ -257,7 +260,7 @@ function TradeInContent() {
     }, 100)
   }
 
-  const [lookupMethod, setLookupMethod] = useState<"plate" | "vin" | "manual">("plate")
+  const [lookupMethod, setLookupMethod] = useState<LookupMethod>("plate")
   const [province, setProvince] = useState("")
   const [plateNumber, setPlateNumber] = useState("")
   const [vinNumber, setVinNumber] = useState("")
@@ -376,7 +379,7 @@ function TradeInContent() {
         return
       }
       if (typeof d.step === "number" && d.step >= 1 && d.step <= 3) setStep(d.step)
-      if (typeof d.lookupMethod === "string") setLookupMethod(d.lookupMethod as "plate" | "vin" | "manual")
+      if (typeof d.lookupMethod === "string") setLookupMethod(d.lookupMethod as LookupMethod)
       if (typeof d.selectedYear === "string") setSelectedYear(d.selectedYear)
       if (typeof d.selectedMake === "string") setSelectedMake(d.selectedMake)
       if (typeof d.selectedModel === "string") setSelectedModel(d.selectedModel)

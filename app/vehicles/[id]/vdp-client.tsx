@@ -360,7 +360,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
         {/* Breadcrumb */}
         <nav className="bg-muted/30 py-3 border-b" aria-label="Breadcrumb">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-[84px] overflow-x-auto scrollbar-hide">
-            <ol className="flex items-center gap-2 text-sm whitespace-nowrap" role="list">
+            <ol className="flex items-center gap-2 text-sm whitespace-nowrap">
               <li>
                 <Link href="/inventory" className="text-muted-foreground hover:text-foreground">
                   All cars
