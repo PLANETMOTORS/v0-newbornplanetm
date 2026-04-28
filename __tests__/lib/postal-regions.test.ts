@@ -105,12 +105,12 @@ describe("lib/postal-regions getRegionalMultiplier", () => {
   })
 
   it("compounds truck bonus + EV bonus when applicable (Lightning is a truck-named EV)", () => {
-    // Ford "Lightning" matches both EV_KEYWORDS and the model is electric.
-    // Code marks isTruck=false (no truck keyword in 'Lightning'), isEV=true.
+    // "F-150" matches TRUCK_KEYWORDS (so the truck branch runs and applies BC's
+    // truckBonus of 1) and "Lightning" then matches EV_KEYWORDS (applies the EV
+    // bonus and overwrites vehicleType to "ev"). Final reported type: "ev".
     const out = getRegionalMultiplier("V6B 1A1", "Ford", "F-150 Lightning")
-    // F-150 keyword wins truck classification, plus Lightning triggers EV bonus
     expect(out.vehicleType).toBe("ev")
-    expect(out.multiplier).toBeCloseTo(1.03 * 1 * 1.12, 5)
+    expect(out.multiplier).toBeCloseTo(1.03 * 1.12, 5)
   })
 
   it("treats blank make/model as standard", () => {

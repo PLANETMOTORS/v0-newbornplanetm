@@ -6,6 +6,25 @@
  */
 
 /**
+ * Thrown by `invokeEdgeFunction` when the Edge Function returns a non-2xx
+ * status. Carries the function name, HTTP status, and (when the body parsed
+ * as JSON) the parsed error body so callers can branch on the failure mode.
+ */
+export class EdgeFunctionError extends Error {
+  readonly fnName: string
+  readonly status: number
+  readonly body: unknown
+
+  constructor(fnName: string, status: number, body: unknown, message?: string) {
+    super(message ?? `Edge Function ${fnName} returned ${status}`)
+    this.name = "EdgeFunctionError"
+    this.fnName = fnName
+    this.status = status
+    this.body = body
+  }
+}
+
+/**
  * Returns the base URL for Supabase Edge Functions.
  * e.g. "https://ldervbcvkoawwknsemuz.supabase.co/functions/v1"
  */
@@ -59,13 +78,18 @@ export async function invokeEdgeFunction<T = unknown>(
 
   if (!response.ok) {
     const text = await response.text()
-    let errorBody: unknown
+    let parsedBody: unknown
     try {
-      errorBody = JSON.parse(text)
+      parsedBody = JSON.parse(text)
     } catch {
-      throw new Error(`Edge Function ${fnName} returned ${response.status}: ${text.slice(0, 200)}`)
+      throw new EdgeFunctionError(
+        fnName,
+        response.status,
+        text,
+        `Edge Function ${fnName} returned ${response.status}: ${text.slice(0, 200)}`,
+      )
     }
-    return { data: errorBody as T, status: response.status }
+    throw new EdgeFunctionError(fnName, response.status, parsedBody)
   }
 
   const data = await response.json() as T

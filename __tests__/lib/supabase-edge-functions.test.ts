@@ -93,7 +93,7 @@ describe("lib/supabase/edge-functions invokeEdgeFunction", () => {
     expect(headers.apikey).toBe("anon-123")
   })
 
-  it("returns parsed JSON error body with status when response is not ok and body is JSON", async () => {
+  it("throws EdgeFunctionError with the parsed JSON body when response is !ok and body is JSON", async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://abc.supabase.co"
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon-123"
     mockFetch(async () =>
@@ -102,35 +102,61 @@ describe("lib/supabase/edge-functions invokeEdgeFunction", () => {
         headers: { "Content-Type": "application/json" },
       }),
     )
-    const { invokeEdgeFunction } = await import("@/lib/supabase/edge-functions")
-    const out = await invokeEdgeFunction<{ error: string }>("capture-lead", {})
-    expect(out).toEqual({ data: { error: "validation_failed" }, status: 400 })
+    const { invokeEdgeFunction, EdgeFunctionError } = await import("@/lib/supabase/edge-functions")
+
+    let thrown: unknown
+    try {
+      await invokeEdgeFunction("capture-lead", {})
+    } catch (err) {
+      thrown = err
+    }
+
+    expect(thrown).toBeInstanceOf(EdgeFunctionError)
+    const err = thrown as InstanceType<typeof EdgeFunctionError>
+    expect(err.fnName).toBe("capture-lead")
+    expect(err.status).toBe(400)
+    expect(err.body).toEqual({ error: "validation_failed" })
   })
 
-  it("throws a descriptive error when response is not ok and body is non-JSON", async () => {
+  it("throws EdgeFunctionError with the raw text body when response is !ok and body is non-JSON", async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://abc.supabase.co"
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon-123"
     mockFetch(async () => new Response("Internal Server Error", { status: 500 }))
-    const { invokeEdgeFunction } = await import("@/lib/supabase/edge-functions")
-    await expect(invokeEdgeFunction("hello", {})).rejects.toThrow(
-      /Edge Function hello returned 500/,
-    )
+    const { invokeEdgeFunction, EdgeFunctionError } = await import("@/lib/supabase/edge-functions")
+
+    let thrown: unknown
+    try {
+      await invokeEdgeFunction("hello", {})
+    } catch (err) {
+      thrown = err
+    }
+
+    expect(thrown).toBeInstanceOf(EdgeFunctionError)
+    const err = thrown as InstanceType<typeof EdgeFunctionError>
+    expect(err.status).toBe(500)
+    expect(err.body).toBe("Internal Server Error")
+    expect(err.message).toMatch(/Edge Function hello returned 500/)
   })
 
-  it("truncates very long non-JSON error bodies in the thrown message", async () => {
+  it("truncates very long non-JSON error bodies in the thrown message (raw body still preserved)", async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://abc.supabase.co"
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon-123"
     const long = "x".repeat(500)
     mockFetch(async () => new Response(long, { status: 502 }))
-    const { invokeEdgeFunction } = await import("@/lib/supabase/edge-functions")
-    let caught = ""
+    const { invokeEdgeFunction, EdgeFunctionError } = await import("@/lib/supabase/edge-functions")
+
+    let thrown: unknown
     try {
       await invokeEdgeFunction("hello", {})
     } catch (err) {
-      caught = (err as Error).message
+      thrown = err
     }
-    expect(caught).toMatch(/^Edge Function hello returned 502: /)
-    // 200-char slice + prefix
-    expect(caught.length).toBeLessThan(300)
+
+    expect(thrown).toBeInstanceOf(EdgeFunctionError)
+    const err = thrown as InstanceType<typeof EdgeFunctionError>
+    expect(err.message).toMatch(/^Edge Function hello returned 502: /)
+    // message slices to 200 chars but the raw body is preserved verbatim on `.body`
+    expect(err.message.length).toBeLessThan(300)
+    expect(err.body).toBe(long)
   })
 })
