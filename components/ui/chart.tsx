@@ -48,12 +48,11 @@ function ChartContainer({
 }) {
   const uniqueId = React.useId()
   const chartId = `chart-${id || uniqueId.replaceAll(":", "")}`
-
-  // S6481: memoise the context value so consumers don't re-render on every parent render.
-  const contextValue = React.useMemo(() => ({ config }), [config])
+  // S6481: memoise so the provider's value is stable across re-renders.
+  const ctxValue = React.useMemo(() => ({ config }), [config])
 
   return (
-    <ChartContext.Provider value={contextValue}>
+    <ChartContext.Provider value={ctxValue}>
       <div
         data-slot="chart"
         data-chart={chartId}
@@ -141,7 +140,6 @@ function ChartTooltipContent({
     const itemConfig = getPayloadConfigFromPayload(config, item, key)
     const value =
       !labelKey && typeof label === 'string'
-        // S4325: ChartConfig is keyed by `string`; the cast was a no-op.
         ? config[label]?.label || label
         : itemConfig?.label
 
@@ -342,10 +340,7 @@ function getPayloadConfigFromPayload(
     ] as string
   }
 
-  // S4325: ChartConfig is keyed by `string`; the cast was a no-op.
-  return configLabelKey in config
-    ? config[configLabelKey]
-    : config[key]
+  return configLabelKey in config ? config[configLabelKey] : config[key]
 }
 
 export {

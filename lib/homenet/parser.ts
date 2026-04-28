@@ -529,7 +529,7 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
 
   const vin = getValue("vin")
   const stockNumber = getValue("stocknumber") || getValue("stock_number") || getValue("dealerstocknum")
-  if (!vin || vin.length !== 17) return null
+  if (vin?.length !== 17) return null
   if (!stockNumber) return null
 
   const images = getImages()

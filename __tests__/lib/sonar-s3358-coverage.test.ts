@@ -406,3 +406,29 @@ describe('lead-notifier error / send-result branch coverage', () => {
     expect(res.id).toBe('res_ok_123')
   })
 })
+
+// ── lib/email.ts → ico_confirmed template L321 offerAmount branches ─────────
+
+describe('sendCustomerConfirmationEmail ico_confirmed (L321 coverage)', () => {
+  it('exercises offerAmount truthy branch', async () => {
+    vi.stubEnv('API_KEY_RESEND', 'test_key')
+    const { sendCustomerConfirmationEmail } = await import('@/lib/email')
+    const result = await sendCustomerConfirmationEmail(
+      'buyer@test.com', 'ico_confirmed',
+      { customerName: 'Alice', offerAmount: 32000 },
+    )
+    expect(result).toBeDefined()
+    expect(result.success).toBe(true)
+  })
+
+  it('exercises offerAmount null/undefined branch', async () => {
+    vi.stubEnv('API_KEY_RESEND', 'test_key')
+    const { sendCustomerConfirmationEmail } = await import('@/lib/email')
+    const result = await sendCustomerConfirmationEmail(
+      'seller@test.com', 'ico_confirmed',
+      { customerName: 'Bob' },
+    )
+    expect(result).toBeDefined()
+    expect(result.success).toBe(true)
+  })
+})

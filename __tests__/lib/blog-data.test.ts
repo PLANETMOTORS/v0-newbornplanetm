@@ -16,13 +16,15 @@ import { blogPosts, createBlogPost } from '@/lib/blog-data'
 // ---------------------------------------------------------------------------
 describe('createBlogPost', () => {
   const post = createBlogPost(
-    'Test Title',
-    'Test excerpt',
-    'Jan 01, 2026',
-    '5 min read',
-    'Testing',
-    '/images/blog/test.jpg',
-    'Test Author',
+    {
+      title: 'Test Title',
+      excerpt: 'Test excerpt',
+      date: 'Jan 01, 2026',
+      readTime: '5 min read',
+      category: 'Testing',
+      image: '/images/blog/test.jpg',
+      author: 'Test Author',
+    },
     '<p>Content</p>',
     ['related-slug-1', 'related-slug-2']
   )
@@ -48,7 +50,19 @@ describe('createBlogPost', () => {
   })
 
   it('accepts an empty relatedPosts array', () => {
-    const p = createBlogPost('T', 'E', 'D', 'R', 'C', '/images/blog/x.jpg', 'A', 'content', [])
+    const p = createBlogPost(
+    {
+      title: 'T',
+      excerpt: 'E',
+      date: 'D',
+      readTime: 'R',
+      category: 'C',
+      image: '/images/blog/x.jpg',
+      author: 'A',
+    },
+    'content',
+    []
+  )
     expect(p.relatedPosts).toEqual([])
   })
 })

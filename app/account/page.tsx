@@ -754,10 +754,9 @@ export default function AccountPage() {
                         {!draftsLoading && financeDrafts.length > 0 && (
                           <div className="space-y-3">
                             {financeDrafts.map((draft) => {
-                              // S4325: form_data is already typed Record<string, unknown> on FinanceDraft.
-                              const formData = draft.form_data
-                              const applicant = formData.primaryApplicant as Record<string, string> | undefined
-                              const vehicle = formData.vehicleInfo as Record<string, string> | undefined
+                              const formData = draft.form_data as Record<string, unknown>
+                              const applicant = formData.primaryApplicant as Record<string, string>
+                              const vehicle = formData.vehicleInfo as Record<string, string>
                               const vehicleLabel = vehicle?.year && vehicle?.make && vehicle?.model
                                 ? `${vehicle.year} ${vehicle.make} ${vehicle.model}`
                                 : "General Application"

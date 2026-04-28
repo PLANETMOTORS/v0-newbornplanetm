@@ -1,66 +1,96 @@
 /**
- * Brand-mark SVG icons (Google, Facebook, X / Twitter, LinkedIn).
+ * Brand icons.
  *
- * Lucide deprecated `Chrome`, `Chromium`, `Facebook`, `Twitter`, and `Linkedin`
- * because they no longer ship the official brand glyphs. These local
- * components replace those imports without changing render-output meaningfully:
- *  - `GoogleIcon`     — replacement for the previous `Chrome` button glyph.
- *  - `FacebookIcon`   — replacement for `Facebook`.
- *  - `XIcon`          — replacement for `Twitter` (current X branding).
- *  - `LinkedInIcon`   — replacement for `Linkedin`.
+ * lucide-react has deprecated all of its brand icons (Facebook, Twitter,
+ * LinkedIn, Chrome, etc.) per
+ * https://github.com/lucide-icons/lucide/issues/670 and recommends using
+ * Simple Icons instead. To stop tripping S1874 (deprecated API) and to keep
+ * the brand glyphs available, we ship a tiny inline-SVG component per brand,
+ * sized via the `size` prop and themed via `currentColor`.
  *
- * Each accepts the same `className` / size / a11y props as a Lucide icon and
- * defaults to `currentColor` so existing button styling continues to apply.
+ * Path data is from https://simpleicons.org/ (CC0 license — paths are not
+ * copyrightable; trademark belongs to the respective brand owners). When
+ * adding a new brand, follow the same `size` + `className` contract so the
+ * icon drops in wherever a lucide icon used to live.
  */
-import * as React from "react"
+import * as React from 'react'
 
-type IconProps = React.SVGProps<SVGSVGElement> & {
+import { cn } from '@/lib/utils'
+
+type Props = Readonly<{
+  className?: string
   size?: number | string
-  title?: string
-}
+  'aria-label'?: string
+}>
 
-function withDefaults({ size = 24, ...rest }: IconProps): React.SVGProps<SVGSVGElement> {
+function svgProps(p: Props) {
   return {
-    width: size,
-    height: size,
-    fill: "currentColor",
-    "aria-hidden": "true",
-    focusable: "false",
-    ...rest,
-  } as React.SVGProps<SVGSVGElement>
+    width: p.size ?? 24,
+    height: p.size ?? 24,
+    viewBox: '0 0 24 24',
+    fill: 'currentColor',
+    xmlns: 'http://www.w3.org/2000/svg',
+    'aria-hidden': p['aria-label'] ? undefined : true,
+    role: p['aria-label'] ? ('img' as const) : undefined,
+    'aria-label': p['aria-label'],
+    className: cn('shrink-0', p.className),
+  }
 }
 
-export function GoogleIcon(props: IconProps) {
+export function FacebookIcon(props: Props) {
   return (
-    <svg viewBox="0 0 48 48" {...withDefaults(props)}>
-      <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.4-.4-3.5z"/>
-      <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
-      <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35 26.7 36 24 36c-5.2 0-9.7-3.4-11.3-8l-6.6 5.1C9.6 39.6 16.3 44 24 44z"/>
-      <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.6l6.2 5.2C41 35.5 44 30.2 44 24c0-1.3-.1-2.4-.4-3.5z"/>
+    <svg {...svgProps(props)}>
+      <path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z" />
     </svg>
   )
 }
 
-export function FacebookIcon(props: IconProps) {
+export function TwitterIcon(props: Props) {
+  // Modern X (formerly Twitter) wordmark.
   return (
-    <svg viewBox="0 0 24 24" {...withDefaults(props)}>
-      <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.99 3.66 9.13 8.44 9.88v-6.99H7.9V12h2.54V9.8c0-2.51 1.49-3.89 3.78-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99C18.34 21.13 22 16.99 22 12z"/>
+    <svg {...svgProps(props)}>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
     </svg>
   )
 }
 
-export function XIcon(props: IconProps) {
+export function LinkedinIcon(props: Props) {
   return (
-    <svg viewBox="0 0 24 24" {...withDefaults(props)}>
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    <svg {...svgProps(props)}>
+      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.063 2.063 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
     </svg>
   )
 }
 
-export function LinkedInIcon(props: IconProps) {
+export function GoogleIcon(props: Props) {
+  // Multi-color "G" — uses fixed brand colors and ignores currentColor.
+  const dim = props.size ?? 24
   return (
-    <svg viewBox="0 0 24 24" {...withDefaults(props)}>
-      <path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"/>
+    <svg
+      width={dim}
+      height={dim}
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden={props['aria-label'] ? undefined : true}
+      aria-label={props['aria-label']}
+      className={cn('shrink-0', props.className)}
+    >
+      <path
+        fill="#4285F4"
+        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.76h3.56c2.08-1.92 3.28-4.74 3.28-8.09z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.56-2.76c-.98.66-2.24 1.06-3.72 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.84 14.11A6.6 6.6 0 0 1 5.5 12c0-.73.13-1.44.34-2.11V7.05H2.18A11 11 0 0 0 1 12c0 1.78.43 3.46 1.18 4.95l3.66-2.84z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.05l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"
+      />
     </svg>
   )
 }

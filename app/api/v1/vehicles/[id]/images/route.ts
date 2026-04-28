@@ -47,8 +47,6 @@ async function scrapeImagesFromVDP(vdpUrl: string): Promise<{
     const allImages: Set<string> = new Set()
     
     for (const pattern of imagePatterns) {
-      // S6594: prefer matchAll (which returns RegExpExecArray-like
-      // iterables) over String.match for global regexes.
       for (const match of html.matchAll(pattern)) {
         allImages.add(match[0])
       }

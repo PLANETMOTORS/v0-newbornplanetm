@@ -2,13 +2,15 @@ import { createBlogPost, type BlogPostEntry } from "../blog-data"
 
 export const blogPostsChunk2: Record<string, BlogPostEntry> = {
   "tesla-model-y-vs-model-3": createBlogPost(
-    "Tesla Model Y vs Tesla Model 3: Which One Should You Buy?",
-    "A comprehensive comparison of Tesla's two most popular models. Discover the key differences in size, range, features, and value.",
-    "Jan 26, 2026",
-    "12 min read",
-    "Electric Vehicles",
-    "/images/blog/Mode.png",
-    "Planet Motors Team",
+    {
+      title: "Tesla Model Y vs Tesla Model 3: Which One Should You Buy?",
+      excerpt: "A comprehensive comparison of Tesla's two most popular models. Discover the key differences in size, range, features, and value.",
+      date: "Jan 26, 2026",
+      readTime: "12 min read",
+      category: "Electric Vehicles",
+      image: "/images/blog/Mode.png",
+      author: "Planet Motors Team",
+    },
     `
       <p>Tesla's Model 3 and Model Y are the brand's best-selling vehicles, and for good reason. Both offer exceptional range, performance, and technology. But which one is right for you? Let's break down the key differences.</p>
 
@@ -64,13 +66,15 @@ export const blogPostsChunk2: Record<string, BlogPostEntry> = {
     ["tesla-full-self-driving-guide", "tesla-model-y-future-ev", "best-selling-electric-cars-canada-2023"]
   ),
   "awd-vs-rwd-ontario": createBlogPost(
-    "AWD vs RWD: Which Is Better to Drive in Ontario?",
-    "Understand the differences between all-wheel drive and rear-wheel drive, and which drivetrain is best for Ontario's varying weather conditions.",
-    "Jan 09, 2026",
-    "7 min read",
-    "Buying Guide",
-    "/images/blog/Banner-2-1.png",
-    "Planet Motors Team",
+    {
+      title: "AWD vs RWD: Which Is Better to Drive in Ontario?",
+      excerpt: "Understand the differences between all-wheel drive and rear-wheel drive, and which drivetrain is best for Ontario's varying weather conditions.",
+      date: "Jan 09, 2026",
+      readTime: "7 min read",
+      category: "Buying Guide",
+      image: "/images/blog/Banner-2-1.png",
+      author: "Planet Motors Team",
+    },
     `
       <p>Ontario's diverse weather conditions—from hot summers to snowy winters—make choosing the right drivetrain an important consideration. Let's explore the pros and cons of AWD and RWD for Ontario drivers.</p>
 
@@ -118,13 +122,15 @@ export const blogPostsChunk2: Record<string, BlogPostEntry> = {
     ["top-cars-fall-winter-2024", "top-preowned-vehicles-2024", "car-deliveries-canada"]
   ),
   "we-buy-your-car-canada": createBlogPost(
-    "We Buy Your Car Across Canada",
-    "At Planet Motors, we buy your car anywhere in Canada, fast and hassle-free with no hidden fees. Get instant cash and turn your car into cash today!",
-    "Oct 24, 2025",
-    "5 min read",
-    "Selling",
-    "/images/blog/image-1-1024x579-1.jpg",
-    "Planet Motors Team",
+    {
+      title: "We Buy Your Car Across Canada",
+      excerpt: "At Planet Motors, we buy your car anywhere in Canada, fast and hassle-free with no hidden fees. Get instant cash and turn your car into cash today!",
+      date: "Oct 24, 2025",
+      readTime: "5 min read",
+      category: "Selling",
+      image: "/images/blog/image-1-1024x579-1.jpg",
+      author: "Planet Motors Team",
+    },
     `
       <p>Looking to sell your car quickly and hassle-free? Planet Motors buys vehicles from anywhere in Canada, offering fair prices and a streamlined process that puts cash in your hands fast.</p>
 
@@ -161,13 +167,15 @@ export const blogPostsChunk2: Record<string, BlogPostEntry> = {
     ["sell-car-for-cash-canada", "sell-car-toronto-guide", "how-to-trade-in-used-car"]
   ),
   "sell-car-for-cash-canada": createBlogPost(
-    "Quick Guide: Sell Your Car for Cash In Canada",
-    "Sell your car for cash in Canada with confidence. Planet Motors offers fair prices, fast deals, and hassle-free paperwork.",
-    "Sep 30, 2025",
-    "6 min read",
-    "Selling",
-    "/images/blog/image-4-1024x579-1.png",
-    "Planet Motors Team",
+    {
+      title: "Quick Guide: Sell Your Car for Cash In Canada",
+      excerpt: "Sell your car for cash in Canada with confidence. Planet Motors offers fair prices, fast deals, and hassle-free paperwork.",
+      date: "Sep 30, 2025",
+      readTime: "6 min read",
+      category: "Selling",
+      image: "/images/blog/image-4-1024x579-1.png",
+      author: "Planet Motors Team",
+    },
     `
       <p>Selling your car for cash doesn't have to be complicated. Whether you're upgrading, downsizing, or simply need the money, here's your complete guide to getting the best cash offer for your vehicle in Canada.</p>
 
@@ -215,13 +223,15 @@ export const blogPostsChunk2: Record<string, BlogPostEntry> = {
     ["we-buy-your-car-canada", "trade-in-vs-selling-car-ontario", "car-resale-value-toronto"]
   ),
   "why-choose-planet-motors": createBlogPost(
-    "Why Choose Planet Motors?",
-    "Planet Motors offers used luxury cars and Teslas in Richmond Hill. Enjoy trusted service, transparent pricing, and flexible financing tailored to you.",
-    "Sep 24, 2025",
-    "5 min read",
-    "Company",
-    "/images/blog/image-2-1024x572-1.png",
-    "Planet Motors Team",
+    {
+      title: "Why Choose Planet Motors?",
+      excerpt: "Planet Motors offers used luxury cars and Teslas in Richmond Hill. Enjoy trusted service, transparent pricing, and flexible financing tailored to you.",
+      date: "Sep 24, 2025",
+      readTime: "5 min read",
+      category: "Company",
+      image: "/images/blog/image-2-1024x572-1.png",
+      author: "Planet Motors Team",
+    },
     `
       <p>When you're searching for your next vehicle, you want a dealership you can trust. At Planet Motors in Richmond Hill, we've built our reputation on transparency, quality, and exceptional customer service.</p>
 
@@ -257,13 +267,15 @@ export const blogPostsChunk2: Record<string, BlogPostEntry> = {
     ["get-quote-5-minutes", "how-to-trade-in-used-car", "first-time-car-buyer-financing"]
   ),
   "how-to-trade-in-used-car": createBlogPost(
-    "How to Trade in Your Used Car",
-    "Nearly 50% of Canadians choose to trade in their used cars when buying their next vehicle. It's a quick and hassle-free way to upgrade.",
-    "Sep 03, 2025",
-    "8 min read",
-    "Trade-In",
-    "/images/blog/image-1-1024x572-1.png",
-    "Planet Motors Team",
+    {
+      title: "How to Trade in Your Used Car",
+      excerpt: "Nearly 50% of Canadians choose to trade in their used cars when buying their next vehicle. It's a quick and hassle-free way to upgrade.",
+      date: "Sep 03, 2025",
+      readTime: "8 min read",
+      category: "Trade-In",
+      image: "/images/blog/image-1-1024x572-1.png",
+      author: "Planet Motors Team",
+    },
     `
       <p>Trading in your used car is one of the most convenient ways to upgrade to a new vehicle. Here's everything you need to know to maximize your trade-in value and streamline the process.</p>
 
@@ -304,13 +316,15 @@ export const blogPostsChunk2: Record<string, BlogPostEntry> = {
     ["trade-in-vs-selling-car-ontario", "tax-benefits-trade-in-vs-selling", "car-resale-value-toronto"]
   ),
   "car-resale-value-toronto": createBlogPost(
-    "Car Resale Value: How to Maximize it in Toronto",
-    "Discover proven tips to maximize your car's resale value. From regular maintenance and detailing to timing your sale.",
-    "Aug 19, 2025",
-    "9 min read",
-    "Selling",
-    "/images/blog/unnamed-2.jpg",
-    "Planet Motors Team",
+    {
+      title: "Car Resale Value: How to Maximize it in Toronto",
+      excerpt: "Discover proven tips to maximize your car's resale value. From regular maintenance and detailing to timing your sale.",
+      date: "Aug 19, 2025",
+      readTime: "9 min read",
+      category: "Selling",
+      image: "/images/blog/unnamed-2.jpg",
+      author: "Planet Motors Team",
+    },
     `
       <p>Whether you plan to sell in six months or six years, the actions you take today directly impact your car's future resale value. Here's how Toronto drivers can maximize their return.</p>
 
@@ -366,13 +380,15 @@ export const blogPostsChunk2: Record<string, BlogPostEntry> = {
     ["sell-car-for-cash-canada", "trade-in-vs-selling-car-ontario", "how-to-trade-in-used-car"]
   ),
   "tax-benefits-trade-in-vs-selling": createBlogPost(
-    "Tax Benefits of Trading In Your Car vs Selling Privately",
-    "Planet Motors explains the tax benefits of trading in your car vs selling it privately. Learn which option helps you save more.",
-    "Aug 06, 2025",
-    "7 min read",
-    "Financing",
-    "/images/blog/unnamed-5.jpg",
-    "Planet Motors Team",
+    {
+      title: "Tax Benefits of Trading In Your Car vs Selling Privately",
+      excerpt: "Planet Motors explains the tax benefits of trading in your car vs selling it privately. Learn which option helps you save more.",
+      date: "Aug 06, 2025",
+      readTime: "7 min read",
+      category: "Financing",
+      image: "/images/blog/unnamed-5.jpg",
+      author: "Planet Motors Team",
+    },
     `
       <p>When it comes to selling your car in Ontario, many people focus solely on the sale price. But the tax implications can make a significant difference in your bottom line.</p>
 

@@ -13,7 +13,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff, Mail, LockKeyhole, User, Phone, CheckCircle } from "lucide-react"
-// S1874: lucide deprecated `Chrome`/`Facebook` brand glyphs — use local replacements.
 import { GoogleIcon, FacebookIcon } from "@/components/ui/brand-icons"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 

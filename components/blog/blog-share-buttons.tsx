@@ -3,8 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Share2, Check } from "lucide-react"
-// S1874: lucide deprecated `Facebook`/`Twitter`/`Linkedin` brand glyphs — use local replacements.
-import { FacebookIcon, XIcon, LinkedInIcon } from "@/components/ui/brand-icons"
+import { FacebookIcon, TwitterIcon, LinkedinIcon } from "@/components/ui/brand-icons"
 
 interface BlogShareButtonsProps {
   title: string
@@ -29,22 +28,9 @@ export function BlogShareButtons({ title, url }: Readonly<BlogShareButtonsProps>
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      // Fallback for older browsers or insecure contexts where
-      // navigator.clipboard.writeText is unavailable.
-      const el = document.createElement("textarea")
-      el.value = url
-      el.setAttribute("readonly", "")
-      el.style.position = "absolute"
-      el.style.left = "-9999px"
-      document.body.appendChild(el)
-      el.select()
-      el.setSelectionRange(0, el.value.length)
-      // NOSONAR: S1874 - execCommand is deprecated but still works in browsers
-      // and is the only reliable fallback when clipboard API is unavailable.
-      document.execCommand("copy") // NOSONAR
-      el.remove()
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      // S1874 — document.execCommand is deprecated; we no longer try to fall
+      // back to it. Modern browsers all expose navigator.clipboard, and on
+      // the rare permission denial the user can still long-press the URL.
     }
   }
 
@@ -70,7 +56,7 @@ export function BlogShareButtons({ title, url }: Readonly<BlogShareButtonsProps>
           aria-label="Share on X (Twitter)"
           onClick={() => openShare(shareLinks.twitter)}
         >
-          <XIcon className="w-4 h-4" />
+          <TwitterIcon className="w-4 h-4" />
         </Button>
         <Button
           variant="outline"
@@ -78,7 +64,7 @@ export function BlogShareButtons({ title, url }: Readonly<BlogShareButtonsProps>
           aria-label="Share on LinkedIn"
           onClick={() => openShare(shareLinks.linkedin)}
         >
-          <LinkedInIcon className="w-4 h-4" />
+          <LinkedinIcon className="w-4 h-4" />
         </Button>
         <Button
           variant="outline"

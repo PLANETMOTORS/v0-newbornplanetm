@@ -75,7 +75,6 @@ export default function VehiclePhotoManager({
 
     // Validate
     const maxSize = 10 * 1024 * 1024
-    // S7776: prefer Set + Set#has for membership checks.
     const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"])
     for (const f of fileArray) {
       if (f.size > maxSize) {

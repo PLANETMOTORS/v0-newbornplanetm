@@ -51,13 +51,8 @@ export function NavButton({
     return () => document.removeEventListener("mousedown", handler);
   }, [dropdownOpen]);
 
-  const handleAvatarClick = () => {
-    if (isLoggedIn) {
-      setDropdownOpen((v) => !v);
-    } else {
-      onSignInClick();
-    }
-  };
+  const toggleDropdown = () => setDropdownOpen((v) => !v);
+  const handleAvatarClick = isLoggedIn ? toggleDropdown : onSignInClick;
 
   return (
     <div className="relative inline-flex h-[44px] items-center" ref={dropdownRef}>

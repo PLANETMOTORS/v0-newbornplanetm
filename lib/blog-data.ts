@@ -27,23 +27,27 @@ export interface BlogPostEntry {
  * Helper factory to create blog post entries — eliminates structural
  * duplication across all posts.
  *
- * S107: kept the original positional signature for backwards compatibility
- * with the chunk files (which pass nine positional arguments) but route
- * through a single options object internally so the public surface accepts
- * either shape.
+ * The arg list was wide enough (9 fields) to trip Sonar S107 ("too many
+ * parameters"), so meta-fields are bundled into a single `meta` object and
+ * `content` / `relatedPosts` stay as the trailing positional args because
+ * those are the only ones a typical post needs to override per-call.
  */
+export interface BlogPostFields {
+  title: string
+  excerpt: string
+  date: string
+  readTime: string
+  category: string
+  image: string
+  author: string
+}
+
 export function createBlogPost(
-  title: string,
-  excerpt: string,
-  date: string,
-  readTime: string,
-  category: string,
-  image: string,
-  author: string,
+  meta: BlogPostFields,
   content: string,
   relatedPosts: string[],
 ): BlogPostEntry {
-  return { title, excerpt, date, readTime, category, image, author, content, relatedPosts }
+  return { ...meta, content, relatedPosts }
 }
 
 import { blogPostsChunk1 } from "./blog-posts/ev-tesla"

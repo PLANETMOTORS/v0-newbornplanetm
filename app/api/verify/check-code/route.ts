@@ -38,7 +38,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ verified: false, error: "Invalid code" }, { status: 401 })
     }
 
-    // S7772: prefer the explicit `node:` prefix for Node built-ins.
     const { timingSafeEqual } = await import("node:crypto")
     const isValid = timingSafeEqual(codeBuffer, storedBuffer)
 

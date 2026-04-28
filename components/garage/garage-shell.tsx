@@ -73,6 +73,11 @@ export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedV
   useEffect(() => {
     if (deals.length === 0) return
 
+    const onDealEvent = () => {
+      setLiveIndicator(true)
+      setTimeout(() => setLiveIndicator(false), 3000)
+      router.refresh()
+    }
     const channels = deals.map(deal =>
       sb.channel(`deal-events:${deal.id}`)
         .on("postgres_changes", {
@@ -80,11 +85,7 @@ export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedV
           schema: "public",
           table: "deal_events",
           filter: `deal_id=eq.${deal.id}`,
-        }, () => {
-          setLiveIndicator(true)
-          setTimeout(() => setLiveIndicator(false), 3000)
-          router.refresh()
-        })
+        }, onDealEvent)
         .subscribe()
     )
 
@@ -114,9 +115,8 @@ export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedV
                   Your Garage{" "}
                   {liveIndicator && (
                     <span className="flex items-center gap-1 text-emerald-600 text-xs font-medium">
-                      {/* S6772: explicit space between the dot indicator and the label. */}
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />{" "}
-                      Live update
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      {' '}Live update
                     </span>
                   )}
                 </p>

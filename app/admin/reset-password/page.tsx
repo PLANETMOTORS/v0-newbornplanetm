@@ -87,8 +87,6 @@ export default function AdminResetPasswordPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {/* S3358: extract the nested ternary chain into an IIFE so each
-                branch is its own statement instead of a chain of ?: ?:. */}
             {(() => {
               if (success) {
                 return (
@@ -130,7 +128,7 @@ export default function AdminResetPasswordPage() {
                 )
               }
               return (
-              <form onSubmit={handleReset} className="space-y-4">
+                <form onSubmit={handleReset} className="space-y-4">
                 {error && (
                   <div className="p-3 text-sm text-red-400 bg-red-950/50 border border-red-900 rounded-lg">
                     {error}

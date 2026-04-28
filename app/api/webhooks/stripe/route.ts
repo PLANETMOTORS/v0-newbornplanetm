@@ -291,7 +291,6 @@ export async function handleCheckoutSessionCompleted(
           const validation = validateReservationForConfirmation(updatedReservation, { skipExpiryCheck: true })
           if (validation.valid) {
             const { error: confirmError } = await supabase.from("reservations").update({ status: "confirmed", updated_at: now }).eq("id", reservationId)
-            // S7735: positive condition first.
             if (confirmError) {
               logger.warn("[Stripe] Failed to confirm reservation:", { reservationId, error: confirmError.message })
             } else {
@@ -312,7 +311,6 @@ export async function handleCheckoutSessionCompleted(
 
   if (vehicleId) {
     const isAsyncPaymentPending = isReservation && session.payment_status === "unpaid"
-    // S3358: extract the nested ternary into a labelled statement.
     let targetStatus: "reserved" | "available" | "pending"
     if (!isReservation) {
       targetStatus = "pending"

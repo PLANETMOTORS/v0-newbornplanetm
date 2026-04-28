@@ -28,29 +28,6 @@ function formatPhoneDigits(digits: string): string {
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
 }
 
-/**
- * S6478: extracted from inside ApplicantForm — defining the component
- * inside the parent created a fresh component identity on every render
- * and caused unnecessary remounts. This module-scope version is stable.
- */
-function FieldError({
-  fieldName,
-  validationErrors,
-}: Readonly<{ fieldName: string; validationErrors: string[] }>) {
-  const lower = fieldName.toLowerCase()
-  const errorMsg = validationErrors.find(err => err.toLowerCase().includes(lower))
-  if (!errorMsg) return null
-  return (
-    <p
-      id={`error-${lower.replaceAll(/\s+/g, "-")}`}
-      role="alert"
-      className="text-xs text-destructive mt-1"
-    >
-      {errorMsg}
-    </p>
-  )
-}
-
 export
 function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrimary, validationErrors = [] }: Readonly<ApplicantFormProps>) {
   const updateField = (field: keyof ApplicantData, value: string | boolean | { day: string; month: string; year: string }) => {
@@ -84,6 +61,22 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
     return hasFieldError(fieldName) ? `error-${fieldName.toLowerCase().replaceAll(/\s+/g, "-")}` : undefined
   }
 
+  // S6478 — render inline (no nested component) so React doesn't see a new
+  // component identity on every parent render. Returns the same JSX shape
+  // as the previous <FieldError /> JSX.
+  const renderFieldError = (fieldName: string) => {
+    if (!hasFieldError(fieldName)) return null
+    const errorMsg = validationErrors.find(err => err.toLowerCase().includes(fieldName.toLowerCase()))
+    return (
+      <p
+        id={`error-${fieldName.toLowerCase().replaceAll(/\s+/g, "-")}`}
+        role="alert"
+        className="text-xs text-destructive mt-1"
+      >
+        {errorMsg}
+      </p>
+    )
+  }
   
   return (
     <div className="space-y-8">
@@ -115,7 +108,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
           <div>
             <Label htmlFor="firstName" className={getLabelClass("First Name")}>First Name *</Label>
             <Input id="firstName" data-testid="finance-step-1-first-name" value={data.firstName} onChange={(e) => updateField("firstName", e.target.value)} required aria-invalid={getAriaInvalid("First Name")} aria-describedby={getAriaDescribedBy("First Name")} className={getInputErrorClass("First Name")} />
-            <FieldError fieldName="First Name" validationErrors={validationErrors} />
+            {renderFieldError("First Name" )}
           </div>
           <div>
             <Label htmlFor="middleName">Middle Name</Label>
@@ -124,7 +117,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
           <div>
             <Label htmlFor="lastName" className={getLabelClass("Last Name")}>Last Name *</Label>
             <Input id="lastName" data-testid="finance-step-1-last-name" value={data.lastName} onChange={(e) => updateField("lastName", e.target.value)} required aria-invalid={getAriaInvalid("Last Name")} aria-describedby={getAriaDescribedBy("Last Name")} className={getInputErrorClass("Last Name")} />
-            <FieldError fieldName="Last Name" validationErrors={validationErrors} />
+            {renderFieldError("Last Name" )}
           </div>
           <div>
             <Label>Suffix</Label>
