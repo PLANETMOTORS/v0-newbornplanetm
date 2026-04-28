@@ -265,3 +265,70 @@ describe("validateTradeInForm — name vs firstName/lastName branches", () => {
     expect(result.errors.firstName).toBeDefined()
   })
 })
+
+/* ── Branch coverage: lib/homenet/parser.ts XML trim + MSRP branches ──────── */
+
+describe("parseHomenetXML — trim and MSRP branch coverage", () => {
+  it("parses XML with trim suffix", async () => {
+    const { parseHomenetXML } = await import("@/lib/homenet/parser")
+    const xml = `<vehicle>
+      <vin>12345678901234567</vin>
+      <stocknumber>XML001</stocknumber>
+      <year>2024</year>
+      <make>Tesla</make>
+      <model>Model Y</model>
+      <trim>Performance</trim>
+      <price>55000</price>
+      <msrp>60000</msrp>
+      <mileage>5000</mileage>
+    </vehicle>`
+    const vehicles = parseHomenetXML(xml)
+    expect(vehicles).toHaveLength(1)
+    expect(vehicles[0].title).toBe("2024 Tesla Model Y Performance")
+    expect(vehicles[0].slug).toContain("performance")
+    expect(vehicles[0].msrp).toBe(6000000)
+  })
+
+  it("parses XML without trim (empty branch)", async () => {
+    const { parseHomenetXML } = await import("@/lib/homenet/parser")
+    const xml = `<vehicle>
+      <vin>12345678901234567</vin>
+      <stocknumber>XML002</stocknumber>
+      <year>2023</year>
+      <make>BMW</make>
+      <model>X5</model>
+      <price>65000</price>
+      <mileage>30000</mileage>
+    </vehicle>`
+    const vehicles = parseHomenetXML(xml)
+    expect(vehicles).toHaveLength(1)
+    expect(vehicles[0].title).toBe("2023 BMW X5")
+    expect(vehicles[0].msrp).toBeUndefined()
+  })
+})
+
+/* ── Branch coverage: lib/email.ts:321 (ico_confirmed offerAmount) ────────── */
+
+describe("email ico_confirmed template — offerAmount branch", () => {
+  it("covers the offerAmount null-coerce line", async () => {
+    const { vi } = await import("vitest")
+    const mockSend = vi.fn().mockResolvedValue({ data: { id: "1" }, error: null })
+    vi.doMock("resend", () => ({
+      Resend: class { emails = { send: mockSend } },
+    }))
+    process.env.RESEND_API_KEY = "re_test_fake_key"
+    vi.resetModules()
+    const mod = await import("@/lib/email")
+    await mod.sendCustomerConfirmationEmail("buyer@test.com", "ico_confirmed", {
+      customerName: "Jane",
+      offerAmount: 18500,
+    })
+    expect(mockSend).toHaveBeenCalledTimes(1)
+    const html = mockSend.mock.calls[0][0].html as string
+    expect(html).toContain("$18,500")
+    expect(html).toContain("Congratulations")
+    delete process.env.RESEND_API_KEY
+    vi.doUnmock("resend")
+    vi.resetModules()
+  })
+})
