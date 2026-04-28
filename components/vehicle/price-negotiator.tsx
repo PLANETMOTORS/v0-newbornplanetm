@@ -100,38 +100,34 @@ export function PriceNegotiator({
     }
   }
 
+  const extractDeltaFromSseLine = (line: string): string => {
+    if (!line.startsWith("data:")) return ""
+    const data = line.slice(5).trim()
+    if (!data || data === "[DONE]") return ""
+    try {
+      const parsed = JSON.parse(data)
+      if (parsed.type === "text-delta" && parsed.delta) return parsed.delta as string
+    } catch { /* ignore parse errors for non-JSON lines */ }
+    return ""
+  }
+
   const consumeNegotiateStream = async (response: Response): Promise<string> => {
     const reader = response.body?.getReader()
+    if (!reader) return ""
     const decoder = new TextDecoder()
     let fullContent = ""
     let buffer = ""
-    while (reader) {
-      const { done, value } = await reader.read()
+    let done = false
+    while (!done) {
+      const result = await reader.read()
+      done = result.done
       if (done) break
-      buffer += decoder.decode(value, { stream: true })
+      buffer += decoder.decode(result.value, { stream: true })
       const lines = buffer.split(/\r?\n/)
-      // Keep the last (potentially incomplete) line in the buffer
       buffer = lines.pop() ?? ""
-      for (const line of lines) {
-        if (!line.startsWith("data:")) continue
-        const data = line.slice(5).trim()
-        if (data === "[DONE]") continue
-        try {
-          const parsed = JSON.parse(data)
-          if (parsed.type === "text-delta" && parsed.delta) fullContent += parsed.delta
-        } catch { /* ignore parse errors for non-JSON lines */ }
-      }
+      for (const line of lines) fullContent += extractDeltaFromSseLine(line)
     }
-    // Process any remaining complete line left in buffer
-    if (buffer.startsWith("data:")) {
-      const data = buffer.slice(5).trim()
-      if (data && data !== "[DONE]") {
-        try {
-          const parsed = JSON.parse(data)
-          if (parsed.type === "text-delta" && parsed.delta) fullContent += parsed.delta
-        } catch { /* ignore parse errors for non-JSON lines */ }
-      }
-    }
+    fullContent += extractDeltaFromSseLine(buffer)
     return fullContent
   }
 

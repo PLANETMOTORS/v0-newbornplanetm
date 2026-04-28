@@ -88,8 +88,8 @@ const fetcher = async (url: string): Promise<VehiclesApiResponse> => {
 }
 
 // Transform API vehicle to display format
-function mapDisplayFuelType(fuelType: string | null | undefined): string {
-  const raw = fuelType || "Gasoline"
+function mapDisplayFuelType(fuelType: string | null | undefined = "Gasoline"): string {
+  const raw = fuelType ?? "Gasoline"
   if (raw === "Electric") return "Electric"
   if (raw === "Hybrid") return "Hybrid"
   return "Gasoline"

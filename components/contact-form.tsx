@@ -50,6 +50,47 @@ function FieldError({ message }: Readonly<{ message?: string }>) {
   )
 }
 
+interface TextFieldProps {
+  id: string
+  label: string
+  type?: string
+  placeholder: string
+  value: string
+  error?: string
+  required?: boolean
+  maxLength?: number
+  onChange: (value: string) => void
+}
+function TextField({ id, label, type = "text", placeholder, value, error, required, maxLength, onChange }: Readonly<TextFieldProps>) {
+  return (
+    <div>
+      <Label htmlFor={id}>
+        {label} {required ? <span className="text-destructive">*</span> : null}
+      </Label>
+      <Input
+        id={id}
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={error ? "border-destructive" : ""}
+        maxLength={maxLength}
+      />
+      <FieldError message={error} />
+    </div>
+  )
+}
+
+function SubmittedConfirmation() {
+  return (
+    <div className="text-center py-8">
+      <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
+      <h3 className="font-semibold text-xl mb-2">Message Sent!</h3>
+      <p className="text-muted-foreground">We&apos;ll get back to you within 2 hours during business hours.</p>
+    </div>
+  )
+}
+
 export function ContactForm({ onSuccess }: Readonly<ContactFormProps>) {
   const [formData, setFormData] = useState({
     firstName: "",
@@ -122,81 +163,31 @@ export function ContactForm({ onSuccess }: Readonly<ContactFormProps>) {
   }
 
   if (isSubmitted) {
-    return (
-      <div className="text-center py-8">
-        <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-        <h3 className="font-semibold text-xl mb-2">Message Sent!</h3>
-        <p className="text-muted-foreground">We&apos;ll get back to you within 2 hours during business hours.</p>
-      </div>
-    )
+    return <SubmittedConfirmation />
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="firstName">First Name <span className="text-destructive">*</span></Label>
-          <Input
-            id="firstName"
-            placeholder="John"
-            value={formData.firstName}
-            onChange={(e) => handleInputChange("firstName", e.target.value)}
-            className={errors.firstName ? "border-destructive" : ""}
-          />
-          <FieldError message={errors.firstName} />
-        </div>
-        <div>
-          <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
-          <Input
-            id="lastName"
-            placeholder="Smith"
-            value={formData.lastName}
-            onChange={(e) => handleInputChange("lastName", e.target.value)}
-            className={errors.lastName ? "border-destructive" : ""}
-          />
-          <FieldError message={errors.lastName} />
-        </div>
+        <TextField id="firstName" label="First Name" placeholder="John" required
+          value={formData.firstName} error={errors.firstName}
+          onChange={(v) => handleInputChange("firstName", v)} />
+        <TextField id="lastName" label="Last Name" placeholder="Smith" required
+          value={formData.lastName} error={errors.lastName}
+          onChange={(v) => handleInputChange("lastName", v)} />
       </div>
 
-      <div>
-        <Label htmlFor="email">Email Address <span className="text-destructive">*</span></Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="john@example.com"
-          value={formData.email}
-          onChange={(e) => handleInputChange("email", e.target.value)}
-          className={errors.email ? "border-destructive" : ""}
-        />
-        <FieldError message={errors.email} />
-      </div>
+      <TextField id="email" label="Email Address" type="email" placeholder="john@example.com" required
+        value={formData.email} error={errors.email}
+        onChange={(v) => handleInputChange("email", v)} />
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="phone">Phone Number <span className="text-destructive">*</span></Label>
-          <Input
-            id="phone"
-            type="tel"
-            placeholder="(416) 555-0123"
-            value={formData.phone}
-            onChange={(e) => handleInputChange("phone", e.target.value)}
-            className={errors.phone ? "border-destructive" : ""}
-          />
-          <FieldError message={errors.phone} />
-        </div>
-        <div>
-          <Label htmlFor="postalCode">Postal Code <span className="text-destructive">*</span></Label>
-          <Input
-            id="postalCode"
-            type="text"
-            placeholder="M5V 3L9"
-            value={formData.postalCode}
-            onChange={(e) => handleInputChange("postalCode", e.target.value)}
-            className={errors.postalCode ? "border-destructive" : ""}
-            maxLength={7}
-          />
-          <FieldError message={errors.postalCode} />
-        </div>
+        <TextField id="phone" label="Phone Number" type="tel" placeholder="(416) 555-0123" required
+          value={formData.phone} error={errors.phone}
+          onChange={(v) => handleInputChange("phone", v)} />
+        <TextField id="postalCode" label="Postal Code" placeholder="M5V 3L9" required maxLength={7}
+          value={formData.postalCode} error={errors.postalCode}
+          onChange={(v) => handleInputChange("postalCode", v)} />
       </div>
 
       <div>
