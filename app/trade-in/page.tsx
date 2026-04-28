@@ -297,6 +297,7 @@ function TradeInContent() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [step, setStep] = useState(1)
   const draftLoadedRef = useRef(false)
+  const quotePrefillProcessedRef = useRef(false)
   const stepContentRef = useRef<HTMLDivElement>(null)
 
   const goToStep = (newStep: number) => {
@@ -389,12 +390,16 @@ function TradeInContent() {
 
   // Check for quote parameters from Instant Quote
   useEffect(() => {
+    // Prevent re-triggering when mileage changes (buildApplyOffer depends on mileage)
+    if (quotePrefillProcessedRef.current) return
+    
     const quoteId = searchParams.get("quote")
     const vehicle = searchParams.get("vehicle")
     const value = searchParams.get("value")
     const action = searchParams.get("action")
 
     if (quoteId && vehicle && value) {
+      quotePrefillProcessedRef.current = true
       const parsedValue = Number.parseInt(value) || 0
       setInstantQuote({ quoteId, vehicle: decodeURIComponent(vehicle), value: parsedValue })
       applyVehicleParts(decodeURIComponent(vehicle))
@@ -405,6 +410,7 @@ function TradeInContent() {
         setTimeout(() => setShowApplyModal(true), 100)
       }
     } else if (vehicle && !quoteId) {
+      quotePrefillProcessedRef.current = true
       applyVehicleParts(decodeURIComponent(vehicle))
       const mileageParam = searchParams.get("mileage")
       if (mileageParam) setMileage(mileageParam.replaceAll(/\D/g, ""))
