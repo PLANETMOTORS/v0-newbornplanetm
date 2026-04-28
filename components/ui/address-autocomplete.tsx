@@ -44,7 +44,8 @@ async function searchCanadianAddresses(query: string): Promise<AddressResult[]> 
   try {
     // Use GeoNames or similar free API for Canadian postal codes
     // For demo, we'll simulate with common Canadian addresses
-    const postalCodeMatch = /^[A-Za-z]\d[A-Za-z][\s-]?\d[A-Za-z]\d$/i.exec(query)
+    // S5869: with the `i` flag, `[A-Za-z]` duplicates each letter; use `[A-Z]`.
+    const postalCodeMatch = /^[A-Z]\d[A-Z][\s-]?\d[A-Z]\d$/i.exec(query)
     
     if (postalCodeMatch) {
       // Lookup by postal code

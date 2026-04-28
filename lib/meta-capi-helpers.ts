@@ -23,7 +23,8 @@ export function extractRequestContext(request: Request | NextRequest) {
 }
 
 function extractCookie(cookieHeader: string, name: string): string | undefined {
-  const match = new RegExp(`(?:^|;\\s*)${name}=([^;]+)`).exec(cookieHeader)
+  // S7780: use String.raw to avoid escaping `\` in the regex source.
+  const match = new RegExp(String.raw`(?:^|;\s*)${name}=([^;]+)`).exec(cookieHeader)
   return match?.[1] || undefined
 }
 

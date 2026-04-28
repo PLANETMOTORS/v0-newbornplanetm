@@ -123,10 +123,11 @@ export function SupabaseVehiclePicker(props: Readonly<StringInputProps>) {
         .limit(20)
 
       if (searchQuery.trim()) {
+        // S7780: prefer String.raw to avoid escaping `\`.
         const escapedQuery = searchQuery
-          .replaceAll('\\', '\\\\')  // Escape backslashes first
-          .replaceAll('%', '\\%')    // Escape percent signs (LIKE wildcard)
-          .replaceAll('_', '\\_')    // Escape underscores (LIKE wildcard)
+          .replaceAll('\\', '\\\\')          // Escape backslashes first
+          .replaceAll('%', String.raw`\%`)   // Escape percent signs (LIKE wildcard)
+          .replaceAll('_', String.raw`\_`)   // Escape underscores (LIKE wildcard)
 
         if (escapedQuery) {
           builder = builder.or(

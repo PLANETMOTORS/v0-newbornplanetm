@@ -55,7 +55,8 @@ export function GoogleTagManagerNoScript() {
 
 // DataLayer push helper
 export function pushToDataLayer(data: Record<string, unknown>) {
-  if (typeof globalThis.window === "undefined") return
+  // S7741: compare with `undefined` directly instead of using `typeof`.
+  if (globalThis.window === undefined) return
   const w = globalThis.window as typeof globalThis.window & {
     dataLayer?: Array<Record<string, unknown>>
   }

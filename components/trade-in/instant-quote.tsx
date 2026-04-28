@@ -251,7 +251,7 @@ export function InstantQuote() {
   
   // Mileage handler - only allow numbers, prevent scroll glitches
   const handleMileageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replaceAll(/[^0-9]/g, '')
+    const value = e.target.value.replaceAll(/\D/g, '')
     setFormData(prev => ({ ...prev, mileage: value }))
   }, [])
   

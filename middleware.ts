@@ -33,7 +33,8 @@ export const config = {
      * - favicon.ico
      * - public assets (svg, png, jpg, jpeg, gif, webp, ico, woff, woff2)
      */
-    '/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)',
+    // S7780: use String.raw to avoid escaping `\` in the matcher pattern.
+    String.raw`/((?!_next/static|_next/image|favicon\.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)`,
   ],
 }
 
