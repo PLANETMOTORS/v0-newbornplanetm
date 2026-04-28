@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Share2, Facebook, Twitter, Linkedin, Check } from "lucide-react"
+import { Share2, Check } from "lucide-react"
+import { FacebookIcon, TwitterIcon, LinkedinIcon } from "@/components/ui/brand-icons"
 
 interface BlogShareButtonsProps {
   title: string
@@ -52,7 +53,7 @@ export function BlogShareButtons({ title, url }: Readonly<BlogShareButtonsProps>
           aria-label="Share on Facebook"
           onClick={() => openShare(shareLinks.facebook)}
         >
-          <Facebook className="w-4 h-4" />
+          <FacebookIcon className="w-4 h-4" />
         </Button>
         <Button
           variant="outline"
@@ -60,7 +61,7 @@ export function BlogShareButtons({ title, url }: Readonly<BlogShareButtonsProps>
           aria-label="Share on X (Twitter)"
           onClick={() => openShare(shareLinks.twitter)}
         >
-          <Twitter className="w-4 h-4" />
+          <TwitterIcon className="w-4 h-4" />
         </Button>
         <Button
           variant="outline"
@@ -68,7 +69,7 @@ export function BlogShareButtons({ title, url }: Readonly<BlogShareButtonsProps>
           aria-label="Share on LinkedIn"
           onClick={() => openShare(shareLinks.linkedin)}
         >
-          <Linkedin className="w-4 h-4" />
+          <LinkedinIcon className="w-4 h-4" />
         </Button>
         <Button
           variant="outline"
