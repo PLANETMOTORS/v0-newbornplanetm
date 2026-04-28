@@ -3,7 +3,6 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { getSearchClient, isTypesenseConfigured, VEHICLES_COLLECTION } from './typesense/client'
-import { buildPublicStatusFilter } from '@/lib/vehicles/status-filter'
 
 // ── Public interfaces (unchanged) ──────────────────────────────────────────
 

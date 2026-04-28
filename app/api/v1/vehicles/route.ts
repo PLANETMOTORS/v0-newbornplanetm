@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getCachedSearchResults, cacheSearchResults } from '@/lib/redis'
 import { createHash } from 'node:crypto'
 import { getDriveeMidFromDb } from '@/lib/drivee-db'
-import { buildPublicStatusFilter, applyStatusFilter } from '@/lib/vehicles/status-filter'
+import { applyStatusFilter } from '@/lib/vehicles/status-filter'
 
 const ALLOWED_SORT_COLUMNS = new Set(['created_at', 'price', 'year', 'mileage', 'make', 'model'])
 

@@ -517,6 +517,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by make, model, VIN, stock #..."
+                  aria-label="Search inventory"
                   value={searchInput}
                   onChange={(e) => handleSearchInput(e.target.value)}
                   className="pl-10 h-11 text-base"
@@ -589,6 +590,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   placeholder="Search by make, model, VIN, stock #..."
+                  aria-label="Search inventory"
                   value={searchInput}
                   onChange={(e) => handleSearchInput(e.target.value)}
                   className="pl-12 h-12 text-lg"
@@ -596,6 +598,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 {searchInput && (
                   <button
                     onClick={() => { setSearchQuery(""); setSearchInput("") }}
+                    aria-label="Clear search"
                     className="absolute right-4 top-1/2 -translate-y-1/2"
                   >
                     <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />

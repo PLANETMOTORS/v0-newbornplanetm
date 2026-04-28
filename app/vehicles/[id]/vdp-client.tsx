@@ -42,6 +42,7 @@ import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google
 import { trackMetaViewContent, trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
 import { PHONE_LOCAL, PHONE_LOCAL_TEL, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 import { FALLBACK_VEHICLE_DATA as vehicleData } from "@/lib/vdp/fallback-vehicle-data"
+import { getVehicleStatusDisplay } from "@/lib/vehicles/status-display"
 
 // ── Lazy-load heavy below-fold components ──
 const DriveeViewer = dynamic(
@@ -144,6 +145,12 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   const isReserved = vehicle.status === "reserved"
   const isSold = vehicle.status === "sold"
   const isPending = vehicle.status === "pending"
+  // Status-display tokens (banner classes + customer-facing labels +
+  // schema.org availability) come from one shared lookup so the colours,
+  // copy and JSON-LD signal cannot drift apart. The fallback for any
+  // unknown status is the "sold" bucket — safe and CTA-disabled. Sonar
+  // S3358: replaces nested ternaries below.
+  const statusDisplay = getVehicleStatusDisplay(vehicle.status)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const isFavorite = isFavoriteInContext(vehicleId)
   const [activeTab, setActiveTab] = useState("photos")
@@ -1311,8 +1318,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           globalThis.location.href = `/checkout/${vehicle.id}`
                         })}>Start your purchase</Button>
                         ) : (
-                        <div className={`w-full mt-4 p-3 rounded-lg text-center text-sm font-bold uppercase tracking-wide ${isReserved ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/30 dark:text-yellow-400" : isPending ? "bg-orange-100 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400" : "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400"}`}>
-                          {isReserved ? "Vehicle Reserved" : isPending ? "Sale Pending" : "Vehicle Sold"}
+                        <div className={`w-full mt-4 p-3 rounded-lg text-center text-sm font-bold uppercase tracking-wide ${statusDisplay.bannerClassName}`}>
+                          {statusDisplay.longLabel}
                         </div>
                         )}
                       </CardContent>
@@ -1874,8 +1881,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
       ) : (
       <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] md:hidden z-50">
         <div className="px-4 py-3 text-center">
-          <span className={`text-sm font-bold uppercase tracking-wide ${isReserved ? "text-yellow-600" : isPending ? "text-orange-600" : "text-red-600"}`}>
-            {isReserved ? "This vehicle is reserved" : isPending ? "Sale pending" : "This vehicle has been sold"}
+          <span className={`text-sm font-bold uppercase tracking-wide ${statusDisplay.inlineClassName}`}>
+            {statusDisplay.shortLabel}
           </span>
         </div>
       </div>

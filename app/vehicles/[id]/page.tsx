@@ -18,6 +18,7 @@ import { fetchVehicleForSSR } from "@/lib/vehicles/fetch-vehicle"
 import { calculateAllInPrice } from "@/lib/pricing/format"
 import { getPublicSiteUrl } from "@/lib/site-url"
 import { DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
+import { getVehicleStatusDisplay } from "@/lib/vehicles/status-display"
 import VDPClient from "./vdp-client"
 
 const SITE_URL = getPublicSiteUrl()
@@ -82,9 +83,11 @@ export default async function VehicleDetailPage({ params }: Props) {
         priceCurrency: "CAD",
         valueAddedTaxIncluded: false,
       },
-      availability: vehicle.status === "sold" ? "https://schema.org/SoldOut"
-        : vehicle.status === "reserved" || vehicle.status === "pending" ? "https://schema.org/LimitedAvailability"
-        : "https://schema.org/InStock",
+      // Map vehicle status → schema.org/ItemAvailability via the shared
+      // status-display helper so JSON-LD, the VDP banner, and the disabled
+      // CTA all stay in lockstep (single source of truth, no nested
+      // ternary — Sonar S3358).
+      availability: getVehicleStatusDisplay(vehicle.status).schemaAvailability,
       seller: {
         "@type": "AutoDealer",
         name: "Planet Motors",
