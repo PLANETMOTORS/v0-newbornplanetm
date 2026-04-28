@@ -305,7 +305,7 @@ export default function AIKnowledgePanel({ agentType, agentName }: Readonly<AIKn
           <CardContent className="space-y-4">
             {/* Category selector */}
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-2">Category</label>
+              <span className="text-sm font-medium text-gray-700 block mb-2">Category</span>
               <div className="flex gap-2 flex-wrap">
                 {CATEGORIES.map(cat => (
                   <button
@@ -328,10 +328,11 @@ export default function AIKnowledgePanel({ agentType, agentName }: Readonly<AIKn
 
             {/* Trigger phrase */}
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">
+              <label htmlFor="kb-trigger" className="text-sm font-medium text-gray-700 block mb-1">
                 {formData.category === "instruction" ? "Instruction / Rule" : "IF customer asks..."}
               </label>
               <textarea
+                id="kb-trigger"
                 className="w-full border rounded-md p-3 text-sm min-h-[80px] resize-y"
                 value={formData.trigger_phrase}
                 onChange={e => setFormData({ ...formData, trigger_phrase: e.target.value })}
@@ -341,10 +342,11 @@ export default function AIKnowledgePanel({ agentType, agentName }: Readonly<AIKn
 
             {/* Response */}
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">
+              <label htmlFor="kb-response" className="text-sm font-medium text-gray-700 block mb-1">
                 {formData.category === "instruction" ? "Details / Context" : "THEN respond with..."}
               </label>
               <textarea
+                id="kb-response"
                 className="w-full border rounded-md p-3 text-sm min-h-[100px] resize-y"
                 value={formData.response}
                 onChange={e => setFormData({ ...formData, response: e.target.value })}
@@ -355,8 +357,9 @@ export default function AIKnowledgePanel({ agentType, agentName }: Readonly<AIKn
             {/* Priority + Tags row */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Priority</label>
+                <label htmlFor="kb-priority" className="text-sm font-medium text-gray-700 block mb-1">Priority</label>
                 <Input
+                  id="kb-priority"
                   type="number"
                   value={formData.priority}
                   onChange={e => setFormData({ ...formData, priority: Number.parseInt(e.target.value) || 0 })}
@@ -366,8 +369,9 @@ export default function AIKnowledgePanel({ agentType, agentName }: Readonly<AIKn
                 <p className="text-xs text-gray-400 mt-1">Higher number = matched first (0-100)</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Tags (comma-separated)</label>
+                <label htmlFor="kb-tags" className="text-sm font-medium text-gray-700 block mb-1">Tags (comma-separated)</label>
                 <Input
+                  id="kb-tags"
                   value={formData.tags}
                   onChange={e => setFormData({ ...formData, tags: e.target.value })}
                   placeholder="e.g., warranty, returns, common"
@@ -483,13 +487,13 @@ export default function AIKnowledgePanel({ agentType, agentName }: Readonly<AIKn
                   <div className="px-4 pb-4 border-t pt-3 space-y-3">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs font-medium text-gray-500 uppercase">Trigger / Question</label>
+                        <span className="text-xs font-medium text-gray-500 uppercase">Trigger / Question</span>
                         <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap bg-gray-50 p-3 rounded">
                           {entry.trigger_phrase}
                         </p>
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-gray-500 uppercase">Trained Response</label>
+                        <span className="text-xs font-medium text-gray-500 uppercase">Trained Response</span>
                         <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap bg-gray-50 p-3 rounded">
                           {entry.response}
                         </p>
