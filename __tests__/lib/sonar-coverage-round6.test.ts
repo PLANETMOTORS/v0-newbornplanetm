@@ -184,6 +184,36 @@ describe("formatVehiclesForAnna", () => {
   })
 })
 
+/* ── lib/homenet/parser.ts — trimSuffix, trimSlugSuffix, msrp null coerce ── */
+
+describe("parseHomenetCSV — trim and MSRP coverage", () => {
+  it("builds title/slug with trim suffix and converts MSRP", async () => {
+    const { parseHomenetCSV } = await import("@/lib/homenet/parser")
+    const csv = [
+      "vin,stock_number,year,make,model,trim,price,msrp",
+      "12345678901234567,STK001,2024,Tesla,Model 3,Long Range,45000,52000",
+    ].join("\n")
+    const vehicles = parseHomenetCSV(csv)
+    expect(vehicles).toHaveLength(1)
+    expect(vehicles[0].title).toBe("2024 Tesla Model 3 Long Range")
+    expect(vehicles[0].slug).toContain("long-range")
+    expect(vehicles[0].msrp).toBe(5200000) // 52000 * 100
+  })
+
+  it("builds title/slug without trim when trim is empty", async () => {
+    const { parseHomenetCSV } = await import("@/lib/homenet/parser")
+    const csv = [
+      "vin,stock_number,year,make,model,trim,price,msrp",
+      "12345678901234567,STK002,2023,BMW,X5,,65000,",
+    ].join("\n")
+    const vehicles = parseHomenetCSV(csv)
+    expect(vehicles).toHaveLength(1)
+    expect(vehicles[0].title).toBe("2023 BMW X5")
+    expect(vehicles[0].slug).not.toContain("undefined")
+    expect(vehicles[0].msrp).toBeUndefined() // msrpDollars == null path
+  })
+})
+
 /* ── lib/validation.ts — validateTradeInForm refactored conditional ──────── */
 
 describe("validateTradeInForm — name vs firstName/lastName branches", () => {
