@@ -383,8 +383,11 @@ export async function POST(request: NextRequest) {
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
+    // Log the precise reason server-side, but never echo it back: an attacker
+    // probing the webhook would otherwise learn which signature element is
+    // malformed (timestamp drift vs. payload mismatch vs. wrong secret).
     logger.warn("[Stripe] Webhook signature verification failed:", message)
-    return NextResponse.json({ error: `Webhook signature invalid: ${message}` }, { status: 400 })
+    return NextResponse.json({ error: "Invalid webhook signature" }, { status: 400 })
   }
 
   const supabase = createAdminClient()

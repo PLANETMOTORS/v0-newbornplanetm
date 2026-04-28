@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 import { ADMIN_EMAILS } from "@/lib/admin"
+import {
+  adminLeadPatchSchema,
+  parseAdminPatch,
+} from "@/lib/security/admin-mutation-schemas"
 
 // ── Status mappers (extracted from nested ternaries to satisfy SonarCloud S3358) ──
 
@@ -244,12 +248,21 @@ export async function PATCH(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
     )
 
-    const { id, ...updates } = await request.json()
+    const { id, ...rawUpdates } = await request.json()
     if (!id) return NextResponse.json({ error: "Lead ID required" }, { status: 400 })
+
+    // Mass-assignment defence: only allow admin-editable columns through.
+    const parsed = parseAdminPatch(adminLeadPatchSchema, rawUpdates)
+    if (!parsed.ok) {
+      return NextResponse.json(
+        { error: "Invalid lead update", details: parsed.issues },
+        { status: 400 }
+      )
+    }
 
     const { data, error } = await adminClient
       .from("leads")
-      .update(updates)
+      .update(parsed.data)
       .eq("id", id)
       .select()
       .single()
