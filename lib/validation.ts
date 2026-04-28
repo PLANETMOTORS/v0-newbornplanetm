@@ -304,8 +304,7 @@ export interface TradeInFormData {
 export function validateTradeInForm(data: TradeInFormData): { valid: boolean; errors: Record<string, string> } {
   const errors: Record<string, string> = {}
   
-  // Name validation (either combined name or first/last).
-  // S7735: positive condition first.
+  // Name validation (either combined name or first/last)
   if (data.name === undefined) {
     if (data.firstName !== undefined && !isValidName(data.firstName)) {
       errors.firstName = ValidationMessages.name

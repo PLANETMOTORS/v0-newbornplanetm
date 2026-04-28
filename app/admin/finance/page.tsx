@@ -109,7 +109,6 @@ export default function AdminFinancePage() {
   const fetchApplications = async () => {
     setLoading(true)
     try {
-      // S4624: extract the inner template literal.
       const statusQuery = statusFilter === "all" ? "" : `?status=${statusFilter}`
       const url = `/api/v1/admin/finance/applications${statusQuery}`
       const res = await fetch(url)

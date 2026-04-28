@@ -26,7 +26,7 @@ function ButtonGroup({
   orientation,
   ...props
 }: React.ComponentProps<'div'> & VariantProps<typeof buttonGroupVariants>) {
-  // S6819: drop role="group" — visual wrapper for buttons. Consumers
+  // S6819: drop role="group" — it's a visual wrapper for buttons. Consumers
   // who need a labelled group should add aria-label themselves.
   return (
     <div

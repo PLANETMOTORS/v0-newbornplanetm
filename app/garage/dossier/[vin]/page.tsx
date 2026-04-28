@@ -71,7 +71,6 @@ export default async function DossierDetailPage({ params }: Readonly<PageProps>)
     const { error: ackError } = await sb.from("dossier_documents")
       .update({ customer_acknowledged_at: now })
       .in("id", unreadIds)
-    // S7735: positive condition first.
     if (ackError) {
       console.error("Failed to acknowledge documents:", ackError.message)
     } else {

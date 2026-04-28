@@ -224,7 +224,7 @@ export function ProductsGridWithDetails() {
           </p>
         </div>
 
-        {/* Product Cards Grid (S6819: <ul> + <li> instead of role="list" / "listitem"). */}
+        {/* Product Cards Grid */}
         <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 list-none p-0 m-0" aria-label="Protection products">
           {PROTECTION_PRODUCTS.map((product) => {
             const meta = PRODUCT_META[product.slug]
@@ -267,8 +267,7 @@ export function ProductsGridWithDetails() {
           })}
         </ul>
 
-        {/* Inline Detail Panels — all 9 rendered for SEO, only active one visible.
-            S6819: <section aria-label> instead of <div role="region">. */}
+        {/* Inline Detail Panels — all 9 rendered for SEO, only active one visible */}
         {PROTECTION_PRODUCTS.map((product) => {
           const isActive = openSlug === product.slug
           return (

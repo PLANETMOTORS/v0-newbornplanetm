@@ -123,7 +123,7 @@ const COMPARISON_ROWS = [
 ] as const
 
 function ComparisonModal({ onClose }: Readonly<{ onClose: () => void }>) {
-  const modalRef = useRef<HTMLDialogElement>(null)
+  const modalRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
@@ -164,14 +164,13 @@ function ComparisonModal({ onClose }: Readonly<{ onClose: () => void }>) {
         aria-label="Close comparison"
         onClick={onClose}
       />
-      {/* S6819: native <dialog> instead of div role="dialog". */}
-      <dialog
+      <div
         ref={modalRef}
-        open
+        role="dialog"
         aria-modal="true"
         aria-labelledby="comparison-modal-title"
         tabIndex={-1}
-        className="relative bg-background rounded-2xl shadow-xl max-w-3xl w-full max-h-[85vh] overflow-auto m-0"
+        className="relative bg-background rounded-2xl shadow-xl max-w-3xl w-full max-h-[85vh] overflow-auto"
       >
         <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-background rounded-t-2xl z-10">
           <h2 id="comparison-modal-title" className="text-xl font-bold">Compare Coverage</h2>
@@ -227,7 +226,7 @@ function ComparisonModal({ onClose }: Readonly<{ onClose: () => void }>) {
             </tbody>
           </table>
         </div>
-      </dialog>
+      </div>
     </div>
   )
 }
@@ -350,7 +349,6 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: Readonly<Pro
           {data.selectedPlan === "none" ? "Continue without protection" : "Continue with protection"}
         </Button>
 
-        {/* S7735: positive condition first. */}
         {data.selectedPlan === "none" ? (
           <button
             type="button"

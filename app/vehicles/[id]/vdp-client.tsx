@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
@@ -192,7 +191,6 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
 
   // Track product view on mount (data is already available from SSR)
   useEffect(() => {
-    // S4624: extract the inner template literal.
     const trimSuffix = vehicle.trim ? ` ${vehicle.trim}` : ""
     const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}${trimSuffix}`
     trackProductView({
@@ -259,9 +257,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
   }
 
   const handleShare = async () => {
-    // S7741 / S7735: compare with `undefined` directly and use the
-    // positive form (truthy arm first).
-    const shareUrl = globalThis.window === undefined ? "" : globalThis.window.location.href
+    const shareUrl = typeof globalThis.window === "undefined" ? "" : globalThis.window.location.href
     const shareTitle = `${vehicle.year} ${vehicle.make} ${vehicle.model} at Planet Motors`
     const shareText = `Check out this ${vehicle.year} ${vehicle.make} ${vehicle.model} for $${safeNum(vehicle.price).toLocaleString()}.`
     try {
@@ -335,7 +331,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
     <div className="min-h-screen bg-background">
       {/* JSON-LD is server-rendered in page.tsx — no client Script needed */}
       <Header />
-      <main id="main-content" tabIndex={-1} className="pb-32 md:pb-20 overflow-x-hidden max-w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" role="main" aria-label="Vehicle details" data-vin={vehicle.vin} data-stock={vehicle.stockNumber}>
+      <main id="main-content" tabIndex={-1} className="pb-32 md:pb-20 overflow-x-hidden max-w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" aria-label="Vehicle details" data-vin={vehicle.vin} data-stock={vehicle.stockNumber}>
 
         {/* Trade-In Banner */}
         {tradeInValue && Number.parseInt(tradeInValue) > 0 && (

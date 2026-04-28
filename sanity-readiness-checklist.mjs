@@ -218,7 +218,7 @@ test('Q21', 'Boundary between Sanity (editorial) and Supabase (inventory) docume
   const supabaseSection = has(src.envExample, 'REQUIRED — Supabase')
   const sanitySection = has(src.envExample, 'SANITY CMS')
   // webhook route comment mentions Sanity = editorial
-  const webhookComment = has(src.webhook, 'editorial content')
+  const _webhookComment = has(src.webhook, 'editorial content')
   return supabaseSection && sanitySection
 })
 

@@ -50,9 +50,11 @@ function BreadcrumbLink({
 }
 
 function BreadcrumbPage({ className, ...props }: React.ComponentProps<'span'>) {
-  // S6819: drop redundant role="link" — aria-current="page" already
-  // signals the current-page status to assistive tech, and a non-anchor
-  // <span> doesn't need (or want) a role="link".
+  // S6819: We can't use <a> here (it's the *current* page, intentionally
+  // unlinked) and Sonar rejects role="link" on a <span>. Drop the role —
+  // aria-current="page" already signals current-page status to assistive
+  // tech, and the parent <li> inherits its position from the breadcrumb
+  // <ol>.
   return (
     <span
       data-slot="breadcrumb-page"
@@ -68,8 +70,8 @@ function BreadcrumbSeparator({
   className,
   ...props
 }: React.ComponentProps<'li'>) {
-  // S6819: aria-hidden="true" already hides from the a11y tree —
-  // role="presentation" is redundant.
+  // S6819: aria-hidden="true" already removes this from the a11y tree, so
+  // role="presentation" is redundant — drop it.
   return (
     <li
       data-slot="breadcrumb-separator"
@@ -86,7 +88,8 @@ function BreadcrumbEllipsis({
   className,
   ...props
 }: React.ComponentProps<'span'>) {
-  // S6819: same as BreadcrumbSeparator — aria-hidden suffices.
+  // S6819: same — aria-hidden="true" already hides this; role="presentation"
+  // adds nothing.
   return (
     <span
       data-slot="breadcrumb-ellipsis"

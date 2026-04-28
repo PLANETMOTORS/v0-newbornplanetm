@@ -6,8 +6,6 @@ import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
 
 function ItemGroup({ className, ...props }: React.ComponentProps<'ul'>) {
-  // S6819: render a real <ul> instead of a <div role="list"> so the
-  // semantic mapping is correct without an explicit role.
   return (
     <ul
       data-slot="item-group"
@@ -61,9 +59,9 @@ function Item({
   size = 'default',
   asChild = false,
   ...props
-}: React.ComponentProps<'div'> &
+}: React.ComponentProps<'li'> &
   VariantProps<typeof itemVariants> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot : 'div'
+  const Comp = asChild ? Slot : 'li'
   return (
     <Comp
       data-slot="item"

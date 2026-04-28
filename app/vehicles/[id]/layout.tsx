@@ -24,7 +24,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (!v) throw new Error("not found")
 
     // ── Trust-forward title ──
-    // S4624: extract the inner template literal.
     const trimSuffix = v.trim ? ` ${v.trim}` : ""
     const title = `${v.year} ${v.make} ${v.model}${trimSuffix} — Used for Sale | Planet Motors`
 
@@ -37,8 +36,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       trustParts.push(`Aviloo Certified ${v.evBatteryHealthPercent}% Battery Health`)
     }
 
-    // S7778: push the core trust signals in a single call.
-    trustParts.push("Clean Carfax", "No Accidents")
+    // Core trust signals
+    trustParts.push("Clean Carfax")
+    trustParts.push("No Accidents")
 
     const trustPrefix = trustParts.join(". ") + "."
 

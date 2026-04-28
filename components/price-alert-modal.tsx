@@ -85,7 +85,6 @@ export function PriceAlertModal({ vehicle, searchCriteria, trigger }: Readonly<P
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
-        {/* S7735: positive condition first. */}
         {isSuccess ? (
           <div className="text-center py-6">
             <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">

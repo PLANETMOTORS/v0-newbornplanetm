@@ -47,9 +47,8 @@ function protectSin(rawSin: string): string {
   // Fallback: peppered one-way hash. Not reversible, but keeps raw PII out of
   // the database when no encryption key has been provisioned yet.
   const pepper = process.env.APPLICATION_SIN_HASH_PEPPER || ""
-  // S4624: pull the inner template literal into its own variable.
-  const peppered = `${pepper}:${digits}`
-  return `sha256:${createHash("sha256").update(peppered).digest("hex")}`
+  const hashInput = `${pepper}:${digits}`
+  return `sha256:${createHash("sha256").update(hashInput).digest("hex")}`
 }
 
 export async function POST(request: NextRequest) {

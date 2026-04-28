@@ -142,8 +142,6 @@ export function DriversLicenseStep({
         </div>
       )}
 
-      {/* S7735: positive condition first — render the upload preview when a
-          file is present, otherwise show the dropzone. */}
       {data.licenseFile ? (
         <div className="border rounded-xl p-4">
           <div className="flex items-center gap-4">
@@ -182,15 +180,16 @@ export function DriversLicenseStep({
           </div>
         </div>
       ) : (
-        // S6819: render a real <button> instead of <div role="button">.
-        <button
-          type="button"
+        <div
           onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
           aria-label="Upload driver's license"
-          className={`w-full border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${
+          className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${
             isDragging
               ? "border-blue-600 bg-blue-50"
               : "border-blue-300 hover:border-blue-500 hover:bg-blue-50/50"
@@ -210,7 +209,7 @@ export function DriversLicenseStep({
               if (file) handleFile(file)
             }}
           />
-        </button>
+        </div>
       )}
 
       <fieldset>

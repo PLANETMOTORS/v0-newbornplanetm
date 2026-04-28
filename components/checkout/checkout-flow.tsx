@@ -81,7 +81,7 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
   const [timeLeft, setTimeLeft] = useState(40 * 60) // 40 minute countdown
   const [showOrderSummary, setShowOrderSummary] = useState(false)
   const orderSummaryTriggerRef = useRef<HTMLButtonElement>(null)
-  const orderSummaryModalRef = useRef<HTMLDialogElement>(null)
+  const orderSummaryModalRef = useRef<HTMLDivElement>(null)
 
   // Countdown timer — decrements every second
   useEffect(() => {
@@ -95,9 +95,8 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
   // Redirect unauthenticated users
   useEffect(() => {
     if (!authLoading && !user) {
-      // S4624: extract the inner template literal.
-      const checkoutPath = `/checkout/${vehicleId}`
-      router.push(`/auth/login?redirectTo=${encodeURIComponent(checkoutPath)}`)
+      const redirectTo = encodeURIComponent(`/checkout/${vehicleId}`)
+      router.push(`/auth/login?redirectTo=${redirectTo}`)
     }
   }, [user, authLoading, router, vehicleId])
 
@@ -111,8 +110,7 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
 
   // Restore protection plan selection from sessionStorage (set by /protection-plans page)
   useEffect(() => {
-    // S7764: prefer globalThis.window over window.
-    if (typeof globalThis.window === "undefined") return
+    if (typeof window === "undefined") return
     const stored = sessionStorage.getItem("selectedProtectionPackage")
     const validIds: ProtectionPlanId[] = ["none", "essential", "smart", "lifeproof"]
     if (stored && validIds.includes(stored as ProtectionPlanId)) {
@@ -265,26 +263,24 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
   // --- Loading / error states ---
 
   if (authLoading || !user) {
-    // S6819: <output> implicitly carries role="status".
     return (
-      <output className="min-h-screen flex items-center justify-center w-full" aria-label="Loading">
+      <div className="min-h-screen flex items-center justify-center" role="status" aria-live="polite" aria-label="Loading">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Loading…</p>
         </div>
-      </output>
+      </div>
     )
   }
 
   if (vehicleLoading) {
-    // S6819: <output> implicitly carries role="status".
     return (
-      <output className="min-h-screen flex items-center justify-center w-full" aria-label="Loading vehicle">
+      <div className="min-h-screen flex items-center justify-center" role="status" aria-live="polite" aria-label="Loading vehicle">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Loading vehicle details…</p>
         </div>
-      </output>
+      </div>
     )
   }
 
@@ -364,18 +360,14 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
             aria-label="Close order summary"
             onClick={() => setShowOrderSummary(false)}
           />
-          {/* S6819: native <dialog> instead of div role="dialog". We don't
-              call showModal()/show() here because the visibility is already
-              controlled by `showOrderSummary`; aria-modal + the dimmed
-              overlay above provide the modal semantics. */}
-          <dialog
+          <div
             ref={orderSummaryModalRef}
             id="mobile-order-summary"
-            open
+            role="dialog"
             aria-modal="true"
             aria-labelledby="mobile-order-summary-title"
             tabIndex={-1}
-            className="absolute right-0 top-0 h-full w-full max-w-sm bg-background shadow-xl overflow-y-auto p-4 m-0"
+            className="absolute right-0 top-0 h-full w-full max-w-sm bg-background shadow-xl overflow-y-auto p-4"
           >
             <div className="flex items-center justify-between mb-4">
               <h2 id="mobile-order-summary-title" className="font-bold">Order Summary</h2>
@@ -403,7 +395,7 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
                 router.push(`/vehicles/${vehicleId}`)
               }}
             />
-          </dialog>
+          </div>
         </div>
       )}
 
@@ -486,7 +478,7 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
                 tradeIn={tradeIn}
                 paymentMethod={paymentMethod}
                 delivery={delivery}
-                protectionPlan={protection.selectedPlan}
+                protectionPlan={protection.selectedPlan as ProtectionPlanId}
                 agreeToTerms={agreeToTerms}
                 onAgreeToTermsChange={setAgreeToTerms}
                 onEditStep={goToStep}
@@ -502,7 +494,7 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
                 customerEmail={personal.email}
                 customerName={`${personal.firstName} ${personal.lastName}`.trim()}
                 customerPhone={personal.phone}
-                protectionPlanId={protection.selectedPlan}
+                protectionPlanId={protection.selectedPlan as ProtectionPlanId}
                 licenseStoragePath={license.licenseStoragePath}
               />
             )}

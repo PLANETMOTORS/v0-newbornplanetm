@@ -251,7 +251,7 @@ export function InstantQuote() {
   
   // Mileage handler - only allow numbers, prevent scroll glitches
   const handleMileageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replaceAll(/\D/g, '')
+    const value = e.target.value.replaceAll(/[^0-9]/g, '')
     setFormData(prev => ({ ...prev, mileage: value }))
   }, [])
   
@@ -262,7 +262,6 @@ export function InstantQuote() {
     
     // Only validate when user has entered enough characters (complete postal code is 7 chars with space)
     if (formatted.length === 7) {
-      // S7735: positive condition first.
       if (isValidPostalCode(formatted)) {
         setPostalCodeError("")
       } else {

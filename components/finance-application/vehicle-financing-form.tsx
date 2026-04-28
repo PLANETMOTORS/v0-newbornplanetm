@@ -51,9 +51,6 @@ export
 function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn, financingTerms, setFinancingTerms, financing, additionalNotes, setAdditionalNotes }: Readonly<VehicleFinancingFormProps>) {
   // Check if vehicle data was pre-filled (has year and make)
   const isVehicleSelected = Boolean(vehicleInfo.year && vehicleInfo.make && vehicleInfo.totalPrice)
-  // S4624: extract inner template literal used in the Model/Trim input below.
-  const trimSuffix = vehicleInfo.trim ? ` ${vehicleInfo.trim}` : ''
-  const modelTrimLabel = `${vehicleInfo.model}${trimSuffix}`
   const [showInventoryModal, setShowInventoryModal] = useState(false)
   interface InventoryVehicle {
     id: string
@@ -224,9 +221,12 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
             )}
           </h4>
           
-          {/* S7735: positive condition first — vehicle selected => details. */}
           {isVehicleSelected ? (
             // Vehicle selected - show read-only details
+            (() => {
+              const trimSuffix = vehicleInfo.trim ? ` ${vehicleInfo.trim}` : ''
+              const modelTrim = `${vehicleInfo.model}${trimSuffix}`
+              return (
             <>
               <p className="text-sm text-muted-foreground mb-4">
                 Vehicle details have been automatically filled from your selected vehicle.
@@ -259,7 +259,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                 <div>
                   <Label>Model/Trim</Label>
                   <Input 
-                    value={modelTrimLabel} 
+                    value={modelTrim} 
                     readOnly
                     className="bg-muted"
                   />
@@ -307,6 +307,8 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                 Change Vehicle
               </Button>
             </>
+              )
+            })()
           ) : (
             // No vehicle selected - show browse button
             <div className="border-2 border-dashed border-primary/30 bg-primary/5 rounded-xl p-8 text-center">
@@ -361,7 +363,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
               </div>
               <div>
                 <Label>Mileage (km)</Label>
-                <Input type="text" inputMode="numeric" pattern="[0-9]*" value={tradeIn.mileage} onChange={(e) => setTradeIn({ ...tradeIn, mileage: e.target.value.replaceAll(/\D/g, '') })} autoComplete="off" />
+                <Input type="text" inputMode="numeric" pattern="[0-9]*" value={tradeIn.mileage} onChange={(e) => setTradeIn({ ...tradeIn, mileage: e.target.value.replaceAll(/[^0-9]/g, '') })} autoComplete="off" />
               </div>
               <div>
                 <Label>Condition</Label>

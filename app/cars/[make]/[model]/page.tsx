@@ -249,7 +249,7 @@ export default async function ModelLandingPage({ params }: Readonly<{ params: Pr
       />
       <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Inventory", url: "/inventory" }, { name: makeFormatted, url: `/inventory?make=${make}` }, { name: modelFormatted, url: `/cars/${make}/${model}` }]} />
 
-      <main id="main-content" role="main">
+      <main id="main-content">
         {/* Breadcrumb */}
         <nav className="bg-muted/30 py-3 border-b" aria-label="Breadcrumb">
           <div className="container mx-auto px-4">

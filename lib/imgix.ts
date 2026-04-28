@@ -30,7 +30,6 @@ export function imgix(path: string, params: ImgixParams = {}): string {
     .map(([key, value]) => `${key}=${encodeURIComponent(String(value))}`)
     .join("&")
 
-  // S4624: extract the inner template literal so we don't nest one inside another.
   const querySuffix = queryString ? `?${queryString}` : ""
   return `https://${IMGIX_DOMAIN}/${path}${querySuffix}`
 }

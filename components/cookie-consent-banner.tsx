@@ -32,9 +32,8 @@ export function CookieConsentBanner() {
   useEffect(() => {
     if (!showBanner) return
     const timer = setTimeout(() => {
-      // S7764: prefer globalThis.window over bare `window`.
-      if (typeof globalThis.window !== "undefined" && "requestIdleCallback" in globalThis.window) {
-        (globalThis.window as Window).requestIdleCallback(() => setReady(true), { timeout: 500 })
+      if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+        (window as Window).requestIdleCallback(() => setReady(true), { timeout: 500 })
       } else {
         setReady(true)
       }
@@ -44,13 +43,12 @@ export function CookieConsentBanner() {
 
   if (!showBanner || !ready) return null
 
-  // S6819: native <dialog open> instead of div role="dialog". Non-modal
-  // (aria-modal omitted) so the rest of the page stays interactive.
   return (
-    <dialog
-      open
+    <div
+      role="dialog"
       aria-label="Cookie consent"
-      className="fixed bottom-0 inset-x-0 top-auto left-0 z-[9999] p-4 md:p-6 m-0 bg-transparent w-full max-w-none"
+      aria-modal="false"
+      className="fixed bottom-0 inset-x-0 z-[9999] p-4 md:p-6"
       style={{ contentVisibility: "auto" } as React.CSSProperties}
     >
       <div className="mx-auto max-w-3xl rounded-xl border bg-background shadow-2xl">
@@ -82,8 +80,8 @@ export function CookieConsentBanner() {
           </button>
 
           {showDetails && (
-            // S6819: native <fieldset> carries group semantics implicitly.
-            <fieldset className="space-y-3 mb-5 rounded-lg bg-muted/50 p-4 border-0" aria-label="Cookie categories">
+            <fieldset className="space-y-3 mb-5 rounded-lg bg-muted/50 p-4 border-0">
+              <legend className="sr-only">Cookie categories</legend>
               {/* Essential — always on */}
               <div className="flex items-center justify-between">
                 <div>
@@ -151,6 +149,6 @@ export function CookieConsentBanner() {
           </div>
         </div>
       </div>
-    </dialog>
+    </div>
   )
 }

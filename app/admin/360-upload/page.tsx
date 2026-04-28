@@ -139,7 +139,6 @@ export default function Admin360UploadPage() {
 
       const data = await res.json()
 
-      // S7735: positive condition first.
       if (res.ok) {
         setUploadResult(data)
         // Refresh vehicle list
