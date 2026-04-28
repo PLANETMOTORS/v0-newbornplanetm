@@ -95,10 +95,14 @@ Required env vars for Sanity Studio:
 - **Database**: Supabase (PostgreSQL) — auth, inventory, leads, reservations
 - **CMS**: Sanity v5 — pages, blog, settings, featured vehicles
 - **Edge Functions**: Supabase Deno — `capture-lead`, `finance-prequalify`, `price-drop-alert`
-- **Payments**: Stripe — deposits, checkout
+- **Payments**: Stripe — deposits, checkout, payment-intent verification at confirm-time
 - **Email**: Resend — magic links, price drop alerts, ADF to AutoRaptor
-- **Auth**: Supabase Auth (magic link / OTP) + Clerk (legacy)
+- **Auth**:
+    - Storefront customers — Supabase Auth (magic link / OTP)
+    - Admin users — Supabase Auth (email + password) gated by `ADMIN_EMAILS` allow-list
+- **Rate limiting**: Upstash Redis — per-(IP + principal) and per-IP buckets on `/api/v1/auth/*`
 - **Search**: Typesense (primary) with PostgreSQL fallback
+- **Cron**: Vercel Cron — auto-release stuck reservations every 10 minutes
 
 ### Infrastructure
 - **Hosting**: Vercel (frontend + API routes)
@@ -112,31 +116,54 @@ Required env vars for Sanity Studio:
 
 ```
 v0-newbornplanetm/
-├── app/                    # Next.js App Router pages
-│   ├── api/               # API routes (financing, social proof, webhooks)
-│   ├── financing/         # Multi-lender financing flow
-│   ├── inventory/         # Vehicle listings (SRP)
-│   ├── vehicles/          # Vehicle detail pages (VDP)
-│   ├── checkout/          # 8-step Carvana-style checkout
-│   └── sell-your-car/     # Trade-in flow (Sanity CMS)
-├── components/            # React components
-│   ├── ui/               # shadcn/ui components
-│   ├── vehicle/          # VDP, 360° viewer, social proof
+├── app/                            # Next.js App Router pages
+│   ├── admin/                     # Admin portal (Supabase email+password auth)
+│   │   ├── login/                # Admin sign-in
+│   │   ├── forgot-password/      # Reset-link request
+│   │   ├── reset-password/       # New-password set after email link
+│   │   ├── inventory/            # Vehicle CRUD + status actions
+│   │   ├── reservations/         # Reservations + payment validation
+│   │   ├── leads/                # CRM-bound lead management
+│   │   ├── orders/               # Closed-deal record
+│   │   ├── finance/              # Finance application admin
+│   │   ├── customers/            # Customer 360
+│   │   ├── ai-agents/            # AI assistant configuration
+│   │   ├── workflows/            # Email + automation rules
+│   │   ├── 360-upload/           # 360° photo manager
+│   │   ├── analytics/            # Dashboards
+│   │   └── settings/             # Admin settings
+│   ├── api/                       # API routes
+│   │   ├── v1/auth/              # /login + /refresh — rate-limited (Upstash)
+│   │   ├── v1/admin/             # Admin-only mutations w/ allow-list schemas
+│   │   ├── webhooks/stripe/      # Stripe webhook → reservation confirm
+│   │   └── cron/vehicle-release/ # Vercel Cron — auto-release stuck reservations
+│   ├── financing/                 # Multi-lender financing flow
+│   ├── inventory/                 # Vehicle listings (SRP) — shows Reserved + Sold badges
+│   ├── vehicles/                  # Vehicle detail pages (VDP) — JSON-LD, AVIF 360°
+│   ├── checkout/                  # 8-step Carvana-style checkout
+│   └── sell-your-car/             # Trade-in flow (Sanity CMS)
+├── components/                    # React components
+│   ├── ui/                        # shadcn/ui components
+│   ├── admin/                     # Admin-only components
+│   ├── vehicle/                   # VDP, 360° viewer, social proof
 │   └── finance-application-form.tsx  # Magic link financing
-├── lib/                   # Core utilities
-│   ├── rates.ts          # Single source of truth for finance math
-│   ├── sanity/           # Sanity client + GROQ queries
-│   ├── supabase/         # Supabase clients + Edge Function helpers
-│   └── seo/              # SEO metadata utilities
+├── lib/
+│   ├── rates.ts                   # Single source of truth for finance math
+│   ├── reservation-payment-rules.ts  # "Stripe-approved only" confirmation rules
+│   ├── sanity/                    # Sanity client + GROQ queries
+│   ├── supabase/                  # Supabase clients + Edge Function helpers
+│   ├── seo/                       # SEO metadata utilities
+│   ├── security/                  # auth-rate-limit, sentry-redaction, admin-mutation-schemas, client-ip
+│   └── vehicles/                  # status-filter, status-display, fetch-vehicle
 ├── supabase/
-│   └── functions/        # Edge Functions (Deno)
-│       ├── capture-lead/       # Pre-auth lead capture + AutoRaptor ADF
-│       ├── finance-prequalify/ # Post-auth soft credit pull
-│       └── price-drop-alert/   # Automated price drop emails
-├── e2e/                   # Playwright E2E + visual regression tests
-├── docs/                  # Technical documentation
-├── scripts/              # Migrations, bundle checks, utilities
-└── public/               # Static assets
+│   └── functions/                 # Edge Functions (Deno)
+│       ├── capture-lead/          # Pre-auth lead capture + AutoRaptor ADF
+│       ├── finance-prequalify/    # Post-auth soft credit pull
+│       └── price-drop-alert/      # Automated price drop emails
+├── e2e/                           # Playwright E2E + visual regression tests
+├── docs/                          # Technical documentation (SECURITY.md, etc.)
+├── scripts/                       # Migrations, bundle checks, utilities
+└── public/                        # Static assets
 ```
 
 ## Environment Variables
@@ -160,9 +187,95 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 
 # Resend (email)
 RESEND_API_KEY=re_...
+
+# Upstash Redis (rate limiting + vehicle locks + verification codes)
+KV_REST_API_URL=https://...upstash.io
+KV_REST_API_TOKEN=...
+
+# Vercel Cron (auto-release of stuck reservations)
+# Set automatically by Vercel; required in production for cron auth.
+CRON_SECRET=...
+
+# Sentry (errors + tracing)
+SENTRY_DSN=https://...ingest.sentry.io/...
+NEXT_PUBLIC_SENTRY_DSN=https://...ingest.sentry.io/...
 ```
 
 See `.env.example` for all available options.
+
+## Admin Portal
+
+The admin portal lives at [`/admin`](https://www.planetmotors.ca/admin) and is
+gated by an `ADMIN_EMAILS` allow-list (see `lib/admin.ts`) on top of Supabase
+email + password auth.
+
+### Sign-in flow
+
+```text
+/admin/login            ← email + password (Supabase signInWithPassword)
+/admin/forgot-password  ← request a reset link (Supabase resetPasswordForEmail)
+/admin/reset-password   ← set new password after email link (updateUser)
+/admin                  ← dashboard (allow-list gated by app/admin/layout.tsx)
+```
+
+Only emails listed in `ADMIN_EMAILS` (or users with `user_metadata.is_admin === true`)
+can access any `/admin/*` page. Non-admins are redirected to the storefront.
+The login + forgot-password + reset-password pages render outside the admin
+shell so unauthenticated users can authenticate.
+
+### Auto-release cron
+
+`app/api/cron/vehicle-release/route.ts` runs every 10 minutes via Vercel Cron
+(`vercel.json`). It releases vehicles that have been stuck in transitional
+states so inventory is never permanently locked by an abandoned checkout:
+
+| Trigger | Threshold | New status |
+|---------|-----------|------------|
+| `checkout_in_progress` with no recent update | 30 minutes | `available` |
+| `reserved` with no confirmed deposit / active reservation | 48 hours | `available` |
+
+The endpoint is authenticated with `Authorization: Bearer ${CRON_SECRET}`;
+the secret is required in production (the route fails-closed otherwise).
+
+### Reservation payment validation
+
+`lib/reservation-payment-rules.ts` is the single source of truth for the
+"Stripe-approved only" rule on reservations. The admin reservations API
+(`app/api/v1/admin/reservations/route.ts`) and the Stripe webhook
+(`app/api/webhooks/stripe/route.ts`) both run reservations through:
+
+```ts
+import {
+  validateReservationForConfirmation,
+  fullPaymentVerification,
+} from "@/lib/reservation-payment-rules"
+
+// Local check (synchronous): deposit_status === 'paid', a Stripe reference
+// exists, and the reservation has not expired.
+const local = validateReservationForConfirmation(reservation)
+
+// Full check (async): re-verifies the PaymentIntent or Checkout Session
+// directly with the Stripe API. Used by admin "confirm" mutations.
+const remote = await fullPaymentVerification(reservation)
+```
+
+A matching SQL trigger (`scripts/023_reservation_payment_validation.sql`)
+enforces the same rule at the database level so the constraint cannot be
+bypassed by writing directly to PostgREST.
+
+### Reserved + Sold badges
+
+The inventory page shows vehicles in three states:
+
+- **Available** — purchasable, "Start your purchase" CTA
+- **Reserved** — yellow badge, customer has paid the $250 deposit
+- **Sold** — red badge, visible for 7 days then auto-hidden by the
+  `buildPublicStatusFilter()` helper in `lib/vehicles/status-filter.ts`
+
+Status display tokens (label + Tailwind colour class + schema.org
+availability URL) come from one shared map in `lib/vehicles/status-display.ts`
+so the badge, the disabled-CTA banner, and the JSON-LD signal can never
+drift apart.
 
 ## Development
 
@@ -219,16 +332,52 @@ GitHub Actions runs on every PR and push to `main`:
 
 1. **lint-and-build** — `pnpm lint` → `pnpm test` → `pnpm build`
 2. **bundle-check** — Enforces 1700 KB first-load JS budget per page
-3. **e2e** — Playwright accessibility + navigation tests
-4. **visual-regression** — Playwright `toHaveScreenshot` for VDP + finance form layouts
+3. **accessibility** — `axe-core` + Playwright assertions on key flows
+4. **e2e** — Playwright navigation + interaction tests
+5. **visual-regression** — Playwright `toHaveScreenshot` for VDP + finance form layouts
+6. **lighthouse** — Performance + best-practices budget
+7. **SonarCloud Scan** — Quality Gate enforces:
+   - reliability A, security A, maintainability A
+   - new_coverage ≥ 80%
+   - new_duplicated_lines_density ≤ 3%
+   - 100% of new security hotspots reviewed
+8. **Detect secrets** — Tree-walks every diff for credentials
 
 ## Security
 
-- PIPEDA compliant (Canadian privacy)
-- PCI DSS Level 1 (Stripe tokenization)
-- OMVIC/AMVIC compliant (dealer regulations)
-- All sensitive API keys stored in Supabase Secrets (never in browser)
-- PII redacted from Edge Function logs
+- **PIPEDA compliant** (Canadian privacy)
+- **PCI DSS Level 1** (Stripe tokenization)
+- **OMVIC / AMVIC compliant** (dealer regulations)
+- **Authentication rate limiting** — `/api/v1/auth/login` capped at 5 attempts
+  per (IP + email-hash) and 25 per IP per 15 minutes; `/api/v1/auth/refresh`
+  capped at 60 per (IP + token-hash) and 300 per IP per hour. See
+  `lib/security/auth-rate-limit.ts`.
+- **Admin mutation allow-lists** — every admin PATCH endpoint runs payloads
+  through a strict zod schema in `lib/security/admin-mutation-schemas.ts`
+  before touching the database (mass-assignment defence).
+- **Stripe-approved-only reservations** — both the admin route and a
+  PostgreSQL trigger refuse to confirm a reservation without a `paid`
+  deposit + a verified Stripe reference. See
+  `lib/reservation-payment-rules.ts` and
+  `scripts/023_reservation_payment_validation.sql`.
+- **Sentry redaction pipeline** — `beforeSend` + `beforeBreadcrumb`
+  scrub PII (email, phone, name, SIN, DOB, address), tokens (JWT, Stripe
+  secret, Supabase service-role), and credit-card-shaped digit runs from
+  every event before transport. WeakSet-backed cycle detection prevents
+  serialization drops.
+- **Cookie hardening** — Supabase session cookies receive `secure` (in
+  production) and `sameSite=lax` defaults via
+  `lib/supabase/middleware.ts:applySupabaseCookieDefaults`; `httpOnly`
+  is deliberately preserved as Supabase set it so the browser SDK can
+  read tokens via `document.cookie`.
+- **CSP** — single source of truth in `next.config.mjs:async headers()`
+  with origin allow-listing for Stripe, Supabase, Sentry, Resend,
+  Upstash, Typesense, and analytics partners.
+- **Sensitive API keys** stored in Vercel + Supabase secret stores
+  (never in browser bundles).
+- **PII redacted** from Edge Function logs via `lib/redact.ts`.
+
+See `docs/SECURITY.md` for the full pre-launch security checklist.
 
 ## Contributing
 
