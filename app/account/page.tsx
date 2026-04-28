@@ -131,43 +131,47 @@ export default function AccountPage() {
   const fetchAccountData = useCallback(async () => {
     if (!user?.email) return
 
-    // Fetch price alerts
-    setAlertsLoading(true)
-    try {
-      const res = await fetch(`/api/alerts?email=${encodeURIComponent(user.email)}`)
-      if (res.ok) {
+    const userEmail = user.email
+    const fetchPriceAlerts = async () => {
+      setAlertsLoading(true)
+      try {
+        const res = await fetch(`/api/alerts?email=${encodeURIComponent(userEmail)}`)
+        if (!res.ok) return
         const data = await res.json()
         setPriceAlerts(data.alerts || [])
-        // Derive notification prefs from active alerts
         const hasDropAlerts = (data.alerts || []).some((a: PriceAlert) => a.notify_price_drops && a.is_active)
         const hasNewAlerts = (data.alerts || []).some((a: PriceAlert) => a.notify_new_listings && a.is_active)
         setPriceDropEnabled(hasDropAlerts)
         setNewInventoryEnabled(hasNewAlerts)
-      }
-    } catch { /* silent */ }
-    setAlertsLoading(false)
+      } catch { /* silent */ }
+      setAlertsLoading(false)
+    }
+    const fetchFinanceDrafts = async () => {
+      setDraftsLoading(true)
+      try {
+        const res = await fetch("/api/v1/financing/drafts")
+        if (res.ok) {
+          const data = await res.json()
+          setFinanceDrafts(data.data || [])
+        }
+      } catch { /* silent */ }
+      setDraftsLoading(false)
+    }
+    const fetchFinanceApps = async () => {
+      setAppsLoading(true)
+      try {
+        const res = await fetch("/api/v1/financing/applications")
+        if (res.ok) {
+          const data = await res.json()
+          setFinanceApps(data.data || [])
+        }
+      } catch { /* silent */ }
+      setAppsLoading(false)
+    }
 
-    // Fetch finance application drafts
-    setDraftsLoading(true)
-    try {
-      const res = await fetch("/api/v1/financing/drafts")
-      if (res.ok) {
-        const data = await res.json()
-        setFinanceDrafts(data.data || [])
-      }
-    } catch { /* silent */ }
-    setDraftsLoading(false)
-
-    // Fetch submitted finance applications
-    setAppsLoading(true)
-    try {
-      const res = await fetch("/api/v1/financing/applications")
-      if (res.ok) {
-        const data = await res.json()
-        setFinanceApps(data.data || [])
-      }
-    } catch { /* silent */ }
-    setAppsLoading(false)
+    await fetchPriceAlerts()
+    await fetchFinanceDrafts()
+    await fetchFinanceApps()
   }, [user?.email])
 
   useEffect(() => {

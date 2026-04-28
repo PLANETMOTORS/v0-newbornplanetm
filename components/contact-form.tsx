@@ -23,6 +23,24 @@ interface ContactFormProps {
   onSuccess?: () => void
 }
 
+function getFieldErrorMessage(field: string, value: string): string {
+  switch (field) {
+    case "firstName": return value.trim() ? "" : "First name is required"
+    case "lastName": return value.trim() ? "" : "Last name is required"
+    case "email":
+      if (value && isValidEmail(value)) return ""
+      return value ? "Please enter a valid email" : "Email is required"
+    case "phone":
+      if (value && isValidCanadianPhone(value)) return ""
+      return value ? "Please enter a valid 10-digit phone number" : "Phone number is required"
+    case "postalCode":
+      if (value && isValidCanadianPostalCode(value)) return ""
+      return value ? "Please enter a valid postal code (e.g., M5V 3L9)" : "Postal code is required"
+    case "message": return value.trim() ? "" : "Message is required"
+    default: return ""
+  }
+}
+
 export function ContactForm({ onSuccess }: Readonly<ContactFormProps>) {
   const [formData, setFormData] = useState({
     firstName: "",
@@ -39,33 +57,7 @@ export function ContactForm({ onSuccess }: Readonly<ContactFormProps>) {
   const [submitError, setSubmitError] = useState("")
 
   const validateField = (field: string, value: string) => {
-    const newErrors = { ...errors }
-    switch (field) {
-      case "firstName":
-        newErrors.firstName = value.trim() ? "" : "First name is required"
-        break
-      case "lastName":
-        newErrors.lastName = value.trim() ? "" : "Last name is required"
-        break
-      case "email":
-        if (value && isValidEmail(value)) newErrors.email = ""
-        else if (value) newErrors.email = "Please enter a valid email"
-        else newErrors.email = "Email is required"
-        break
-      case "phone":
-        if (value && isValidCanadianPhone(value)) newErrors.phone = ""
-        else if (value) newErrors.phone = "Please enter a valid 10-digit phone number"
-        else newErrors.phone = "Phone number is required"
-        break
-      case "postalCode":
-        if (value && isValidCanadianPostalCode(value)) newErrors.postalCode = ""
-        else if (value) newErrors.postalCode = "Please enter a valid postal code (e.g., M5V 3L9)"
-        else newErrors.postalCode = "Postal code is required"
-        break
-      case "message":
-        newErrors.message = value.trim() ? "" : "Message is required"
-        break
-    }
+    const newErrors = { ...errors, [field]: getFieldErrorMessage(field, value) }
     setErrors(newErrors)
     return !newErrors[field]
   }

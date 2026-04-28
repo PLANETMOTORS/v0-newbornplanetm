@@ -27,6 +27,26 @@ const DOC_KIND_LABELS: Record<string, string> = {
   other: "Document",
 }
 
+type DossierDoc = { id: string; kind: string; title: string; issued_at: string; customer_acknowledged_at: string | null; file_url?: string }
+type SohHistoryRow = { tested_at: string; soh_pct: number; report_url?: string }
+type SbClient = Awaited<ReturnType<typeof createClient>>
+
+async function acknowledgeUnreadDocs(sb: SbClient, docs: DossierDoc[]): Promise<void> {
+  const unreadIds = docs.filter(d => !d.customer_acknowledged_at).map(d => d.id)
+  if (unreadIds.length === 0) return
+  const now = new Date().toISOString()
+  const { error: ackError } = await sb.from("dossier_documents")
+    .update({ customer_acknowledged_at: now })
+    .in("id", unreadIds)
+  if (ackError) {
+    console.error("Failed to acknowledge documents:", ackError.message)
+    return
+  }
+  docs.forEach(d => {
+    if (unreadIds.includes(d.id)) d.customer_acknowledged_at = now
+  })
+}
+
 export default async function DossierDetailPage({ params }: Readonly<PageProps>) {
   const { vin } = await params
   const sb = await createClient()
@@ -53,10 +73,9 @@ export default async function DossierDetailPage({ params }: Readonly<PageProps>)
   }
   if (!dossier) notFound()
 
-  const sohHistory = ((dossier.aviloo_soh_history as Array<{ tested_at: string; soh_pct: number; report_url?: string }>) ?? [])
+  const sohHistory = ((dossier.aviloo_soh_history as SohHistoryRow[]) ?? [])
     .sort((a, b) => new Date(b.tested_at).getTime() - new Date(a.tested_at).getTime())
-
-  const docs = ((dossier.dossier_documents as Array<{ id: string; kind: string; title: string; issued_at: string; customer_acknowledged_at: string | null; file_url?: string }>) ?? [])
+  const docs = ((dossier.dossier_documents as DossierDoc[]) ?? [])
     .sort((a, b) => new Date(b.issued_at).getTime() - new Date(a.issued_at).getTime())
 
   const warrantyExpiry = dossier.warranty_expires_at ? new Date(dossier.warranty_expires_at) : null
@@ -64,24 +83,7 @@ export default async function DossierDetailPage({ params }: Readonly<PageProps>)
   const nextDue = dossier.next_aviloo_due_at ? new Date(dossier.next_aviloo_due_at) : null
   const dueOverdue = nextDue && nextDue < new Date()
 
-  // Auto-acknowledge unread docs and update local state for consistent UI
-  const unreadIds = docs.filter(d => !d.customer_acknowledged_at).map(d => d.id)
-  if (unreadIds.length > 0) {
-    const now = new Date().toISOString()
-    const { error: ackError } = await sb.from("dossier_documents")
-      .update({ customer_acknowledged_at: now })
-      .in("id", unreadIds)
-    if (ackError) {
-      console.error("Failed to acknowledge documents:", ackError.message)
-    } else {
-      // Update local state so UI renders documents as acknowledged immediately
-      docs.forEach(d => {
-        if (unreadIds.includes(d.id)) {
-          d.customer_acknowledged_at = now
-        }
-      })
-    }
-  }
+  await acknowledgeUnreadDocs(sb, docs)
 
   return (
     <div className="min-h-screen bg-background">
