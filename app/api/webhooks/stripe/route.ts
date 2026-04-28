@@ -30,7 +30,7 @@ import Stripe from "stripe"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getStripe } from "@/lib/stripe"
 import { logger } from "@/lib/logger"
-import { validateReservationForConfirmation } from "@/lib/reservation-payment-rules"
+import { validateReservationForConfirmation, type ReservationPaymentFields } from "@/lib/reservation-payment-rules"
 
 // ── Type alias ─────────────────────────────────────────────────────────────
 
@@ -247,6 +247,94 @@ export async function handlePaymentIntentFailed(
   }
 }
 
+// S3776 helpers — split the body of `handleCheckoutSessionCompleted` into
+// focused steps so the orchestrator stays under the 15-cog threshold.
+
+async function logCheckoutCompletedDealEvent(
+  supabase: SupabaseAdminClient,
+  meta: { reservationId?: string; vehicleId?: string; userId?: string; isReservation: boolean },
+  session: Stripe.Checkout.Session,
+  stripeEventId: string,
+): Promise<void> {
+  if (!meta.userId) return
+  const dealId = await resolveDealId(supabase, { reservationId: meta.reservationId, vehicleId: meta.vehicleId })
+  if (!dealId) return
+  await appendDealEvent(supabase, {
+    dealId,
+    eventType: "checkout.completed",
+    stripeEventId,
+    stripeOccurredAt: session.created,
+    payload: { session_id: session.id, payment_status: session.payment_status, is_reservation: meta.isReservation },
+  })
+}
+
+const TERMINAL_RESERVATION_STATUSES = new Set(["confirmed", "completed", "cancelled", "expired"])
+
+async function applyReservationPaidUpdate(
+  supabase: SupabaseAdminClient,
+  reservationId: string,
+  session: Stripe.Checkout.Session,
+  reservation: ReservationPaymentFields,
+  now: string,
+): Promise<boolean> {
+  const piPatch = typeof session.payment_intent === "string"
+    ? { stripe_payment_intent_id: session.payment_intent }
+    : {}
+  await supabase.from("reservations").update({
+    deposit_status: "paid",
+    stripe_checkout_session_id: session.id,
+    ...piPatch,
+    updated_at: now,
+  }).eq("id", reservationId)
+
+  const updated = { ...reservation, deposit_status: "paid", stripe_checkout_session_id: session.id, ...piPatch }
+  const validation = validateReservationForConfirmation(updated, { skipExpiryCheck: true })
+  if (!validation.valid) {
+    logger.warn("[Stripe] Reservation payment validation failed, not confirming:", { reservationId, reason: validation.reason })
+    await supabase.from("reservations").update({ status: "pending", updated_at: now }).eq("id", reservationId)
+    return false
+  }
+  const { error: confirmError } = await supabase.from("reservations").update({ status: "confirmed", updated_at: now }).eq("id", reservationId)
+  if (confirmError) {
+    logger.warn("[Stripe] Failed to confirm reservation:", { reservationId, error: confirmError.message })
+    return false
+  }
+  return true
+}
+
+async function processReservationCheckout(
+  supabase: SupabaseAdminClient,
+  reservationId: string,
+  session: Stripe.Checkout.Session,
+): Promise<boolean> {
+  const now = new Date().toISOString()
+  if (session.payment_status !== "paid") {
+    await supabase.from("reservations").update({ status: "pending", updated_at: now }).eq("id", reservationId)
+    return false
+  }
+  const { data: reservation } = await supabase
+    .from("reservations")
+    .select("deposit_status, stripe_payment_intent_id, stripe_checkout_session_id, status, expires_at")
+    .eq("id", reservationId)
+    .single()
+  if (!reservation) return false
+  if (TERMINAL_RESERVATION_STATUSES.has(reservation.status ?? "")) {
+    return reservation.status === "confirmed" || reservation.status === "completed"
+  }
+  return applyReservationPaidUpdate(supabase, reservationId, session, reservation, now)
+}
+
+function resolveTargetVehicleStatus(
+  isReservation: boolean,
+  reservationConfirmed: boolean,
+  paymentStatus: Stripe.Checkout.Session["payment_status"],
+): "reserved" | "available" | "pending" {
+  if (!isReservation) return "pending"
+  const isAsyncPaymentPending = isReservation && paymentStatus === "unpaid"
+  if (reservationConfirmed || isAsyncPaymentPending) return "reserved"
+  return "available"
+}
+
 export async function handleCheckoutSessionCompleted(
   supabase: SupabaseAdminClient,
   session: Stripe.Checkout.Session,
@@ -256,69 +344,17 @@ export async function handleCheckoutSessionCompleted(
   logger.info("[Stripe] checkout.session.completed", { sessionId: session.id, paymentStatus: session.payment_status })
   const isReservation = type === "vehicle-reservation" || (type !== "purchase" && !!reservationId)
 
-  if (userId) {
-    const dealId = await resolveDealId(supabase, { reservationId, vehicleId })
-    if (dealId) {
-      await appendDealEvent(supabase, {
-        dealId,
-        eventType: "checkout.completed",
-        stripeEventId,
-        stripeOccurredAt: session.created,
-        payload: { session_id: session.id, payment_status: session.payment_status, is_reservation: isReservation },
-      })
-    }
-  }
+  await logCheckoutCompletedDealEvent(supabase, { reservationId, vehicleId, userId, isReservation }, session, stripeEventId)
 
   let reservationConfirmed = false
-
   if (isReservation && reservationId) {
-    const now = new Date().toISOString()
-
-    if (session.payment_status === "paid") {
-      const { data: reservation } = await supabase
-        .from("reservations")
-        .select("deposit_status, stripe_payment_intent_id, stripe_checkout_session_id, status, expires_at")
-        .eq("id", reservationId)
-        .single()
-
-      if (reservation) {
-        if (["confirmed", "completed", "cancelled", "expired"].includes(reservation.status ?? "")) {
-          reservationConfirmed = reservation.status === "confirmed" || reservation.status === "completed"
-        } else {
-          await supabase.from("reservations").update({ deposit_status: "paid", stripe_checkout_session_id: session.id, ...(typeof session.payment_intent === "string" ? { stripe_payment_intent_id: session.payment_intent } : {}), updated_at: now }).eq("id", reservationId)
-
-          const updatedReservation = { ...reservation, deposit_status: "paid", stripe_checkout_session_id: session.id, ...(typeof session.payment_intent === "string" ? { stripe_payment_intent_id: session.payment_intent } : {}) }
-          const validation = validateReservationForConfirmation(updatedReservation, { skipExpiryCheck: true })
-          if (validation.valid) {
-            const { error: confirmError } = await supabase.from("reservations").update({ status: "confirmed", updated_at: now }).eq("id", reservationId)
-            if (confirmError) {
-              logger.warn("[Stripe] Failed to confirm reservation:", { reservationId, error: confirmError.message })
-            } else {
-              reservationConfirmed = true
-            }
-          } else {
-            logger.warn("[Stripe] Reservation payment validation failed, not confirming:", { reservationId, reason: validation.reason })
-            await supabase.from("reservations").update({ status: "pending", updated_at: now }).eq("id", reservationId)
-          }
-        }
-      }
-    } else {
-      await supabase.from("reservations").update({ status: "pending", updated_at: now }).eq("id", reservationId)
-    }
+    reservationConfirmed = await processReservationCheckout(supabase, reservationId, session)
   } else if (vehicleId) {
     await supabase.from("orders").update({ status: "confirmed", updated_at: new Date().toISOString() }).eq("vehicle_id", vehicleId)
   }
 
   if (vehicleId) {
-    const isAsyncPaymentPending = isReservation && session.payment_status === "unpaid"
-    let targetStatus: "reserved" | "available" | "pending"
-    if (!isReservation) {
-      targetStatus = "pending"
-    } else if (reservationConfirmed || isAsyncPaymentPending) {
-      targetStatus = "reserved"
-    } else {
-      targetStatus = "available"
-    }
+    const targetStatus = resolveTargetVehicleStatus(isReservation, reservationConfirmed, session.payment_status)
     await supabase.rpc("transition_vehicle_status", { p_vehicle_id: vehicleId, p_to_status: targetStatus })
   }
 }

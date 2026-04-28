@@ -49,134 +49,150 @@ function validateCentsAmount(value: unknown): number {
   return Math.round(numericValue)
 }
 
-export async function startVehicleCheckout(data: VehicleCheckoutData) {
-  if (!data.vehicleId) {
-    throw new Error('Vehicle ID is required for vehicle checkout. Use startCheckoutSession for generic deposits.')
-  }
+// S3776 helpers for startVehicleCheckout/startCheckoutSession.
 
-  // SEC-001: Server-side authentication — prevents unauthenticated session creation
+type LockedVehicle = { id: string; year: number; make: string; model: string; price: number; status: string }
+type LockResultEnvelope =
+  | { success: boolean; error?: string; id?: string; year?: number; make?: string; model?: string; price?: number; status?: string }
+  | boolean
+  | null
+
+async function authenticateAndRateLimit(scope: 'vehicle' | 'generic') {
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
     throw new Error('Authentication required to start checkout')
   }
-
-  // SEC-002: Rate limit checkout session creation (10 per 15 min per user)
-  const rateLimitKey = `checkout:vehicle:${user.id}`
-  const rl = await rateLimit(rateLimitKey, 10, 15 * 60)
+  const rl = await rateLimit(`checkout:${scope}:${user.id}`, 10, 15 * 60)
   if (!rl.success) {
     throw new Error('Too many checkout attempts. Please wait a few minutes before trying again.')
   }
+  return { supabase, user }
+}
+
+function getAdminClientOrThrow(): ReturnType<typeof createAdminClient> {
+  try {
+    return createAdminClient()
+  } catch (e) {
+    console.error('Admin client not configured — SUPABASE_SERVICE_ROLE_KEY is required for checkout RPC:', e)
+    throw new Error('Service configuration error. Please try again later.', { cause: e })
+  }
+}
+
+function fromLockEnvelope(lock: LockResultEnvelope): LockedVehicle | null {
+  if (typeof lock !== 'object' || lock === null) return null
+  if (!lock.success) {
+    throw new Error(lock.error || 'Vehicle is not available for checkout')
+  }
+  return {
+    id: lock.id as string,
+    year: lock.year as number,
+    make: lock.make as string,
+    model: lock.model as string,
+    price: lock.price as number,
+    status: lock.status as string,
+  }
+}
+
+async function fromScalarLockFallback(
+  adminClient: ReturnType<typeof createAdminClient>,
+  vehicleId: string,
+): Promise<LockedVehicle> {
+  const { data: vehicleRow, error: vehicleError } = await adminClient
+    .from('vehicles')
+    .select('id, year, make, model, price, status')
+    .eq('id', vehicleId)
+    .single()
+  if (vehicleError || !vehicleRow) {
+    throw new Error('Failed to fetch vehicle details after lock')
+  }
+  if (
+    vehicleRow.id == null ||
+    vehicleRow.year == null ||
+    vehicleRow.make == null ||
+    vehicleRow.model == null ||
+    vehicleRow.price == null
+  ) {
+    throw new Error('Vehicle data incomplete after lock')
+  }
+  return {
+    id: vehicleRow.id as string,
+    year: vehicleRow.year as number,
+    make: vehicleRow.make as string,
+    model: vehicleRow.model as string,
+    price: vehicleRow.price as number,
+    status: vehicleRow.status as string,
+  }
+}
+
+async function lockAndResolveVehicle(
+  adminClient: ReturnType<typeof createAdminClient>,
+  vehicleId: string,
+): Promise<LockedVehicle> {
+  const { data: lockResult, error: lockError } = await adminClient
+    .rpc('lock_vehicle_for_checkout', {
+      p_vehicle_id: vehicleId,
+      p_allowed_statuses: ['available', 'reserved'],
+    })
+  if (lockError) {
+    throw new Error(`Failed to verify vehicle availability: ${lockError.message}`)
+  }
+  const lock = lockResult as LockResultEnvelope
+  const fromObj = fromLockEnvelope(lock)
+  if (fromObj) return fromObj
+  if (lock === true) return fromScalarLockFallback(adminClient, vehicleId)
+  throw new Error('Vehicle is not available for checkout')
+}
+
+async function createReservationOrNull(
+  adminClient: ReturnType<typeof createAdminClient>,
+  data: VehicleCheckoutData,
+): Promise<string | undefined> {
+  if (!data.depositOnly) return undefined
+  const { data: reservation, error: reservationError } = await adminClient
+    .from('reservations')
+    .insert({
+      vehicle_id: data.vehicleId,
+      customer_email: data.customerEmail || null,
+      customer_name: data.customerName || null,
+      customer_phone: data.customerPhone || null,
+      deposit_amount: 25000,
+      deposit_status: 'pending',
+      status: 'pending',
+      expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+      notes: 'Reservation created from web checkout',
+    })
+    .select('id')
+    .single()
+  if (reservationError || !reservation) {
+    throw new Error(`Failed to create reservation: ${reservationError?.message || 'unknown error'}`)
+  }
+  return reservation.id
+}
+
+export async function startVehicleCheckout(data: VehicleCheckoutData) {
+  if (!data.vehicleId) {
+    throw new Error('Vehicle ID is required for vehicle checkout. Use startCheckoutSession for generic deposits.')
+  }
+
+  // SEC-001 + SEC-002: Auth gate + rate limit
+  const { user } = await authenticateAndRateLimit('vehicle')
 
   const stripe = getStripe()
   const enableAcssDebit = process.env.STRIPE_ENABLE_ACSS_DEBIT === 'true'
   const paymentMethodTypes: Array<'card' | 'acss_debit'> = enableAcssDebit
     ? ['card', 'acss_debit']
     : ['card']
-  // Use atomic SELECT FOR UPDATE via RPC to prevent concurrent checkouts.
-  // Without this, 50 concurrent users all read status='available' and all get Stripe sessions.
-  let adminClient: ReturnType<typeof createAdminClient>
-  try {
-    adminClient = createAdminClient()
-  } catch (e) {
-    console.error('Admin client not configured — SUPABASE_SERVICE_ROLE_KEY is required for checkout RPC:', e)
-    throw new Error('Service configuration error. Please try again later.', { cause: e })
-  }
 
-  const { data: lockResult, error: lockError } = await adminClient
-    .rpc('lock_vehicle_for_checkout', {
-      p_vehicle_id: data.vehicleId,
-      p_allowed_statuses: ['available', 'reserved'],
-    })
-
-  if (lockError) {
-    throw new Error(`Failed to verify vehicle availability: ${lockError.message}`)
-  }
-
-  // PostgREST may unwrap single-row JSONB returns to a scalar (e.g. `true`
-  // instead of `{success:true, …}`). Handle both formats: the full object
-  // returned by some PostgREST versions and the scalar boolean.
-  const lock = lockResult as
-    | { success: boolean; error?: string; id?: string; year?: number; make?: string; model?: string; price?: number; status?: string }
-    | boolean
-    | null
-
-  let vehicle: { id: string; year: number; make: string; model: string; price: number; status: string }
-
-  if (typeof lock === 'object' && lock !== null) {
-    if (!lock.success) {
-      throw new Error(lock.error || 'Vehicle is not available for checkout')
-    }
-    // Use the atomically-locked vehicle data from the RPC to preserve price
-    // integrity — the price was read under SELECT … FOR UPDATE.
-    vehicle = {
-      id: lock.id as string,
-      year: lock.year as number,
-      make: lock.make as string,
-      model: lock.model as string,
-      price: lock.price as number,
-      status: lock.status as string,
-    }
-  } else if (lock === true) {
-    // PostgREST unwrapped the JSONB to a scalar boolean — fetch vehicle data
-    // separately as a fallback.
-    const { data: vehicleRow, error: vehicleError } = await adminClient
-      .from('vehicles')
-      .select('id, year, make, model, price, status')
-      .eq('id', data.vehicleId)
-      .single()
-
-    if (vehicleError || !vehicleRow) {
-      throw new Error('Failed to fetch vehicle details after lock')
-    }
-    if (
-      vehicleRow.id == null ||
-      vehicleRow.year == null ||
-      vehicleRow.make == null ||
-      vehicleRow.model == null ||
-      vehicleRow.price == null
-    ) {
-      throw new Error('Vehicle data incomplete after lock')
-    }
-    vehicle = {
-      id: vehicleRow.id as string,
-      year: vehicleRow.year as number,
-      make: vehicleRow.make as string,
-      model: vehicleRow.model as string,
-      price: vehicleRow.price as number,
-      status: vehicleRow.status as string,
-    }
-  } else {
-    throw new Error('Vehicle is not available for checkout')
-  }
+  // Atomic lock via SELECT FOR UPDATE RPC, then resolve to vehicle data.
+  const adminClient = getAdminClientOrThrow()
+  const vehicle = await lockAndResolveVehicle(adminClient, data.vehicleId)
 
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
   const serverVehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`.trim() || data.vehicleName
   const vehicleAmount = data.depositOnly ? 25000 : validateCentsAmount(vehicle.price)
   // Create a reservation row so the webhook can find and update it after payment.
-  let reservationId: string | undefined
-  if (data.depositOnly) {
-    const { data: reservation, error: reservationError } = await adminClient
-      .from('reservations')
-      .insert({
-        vehicle_id: data.vehicleId,
-        customer_email: data.customerEmail || null,
-        customer_name: data.customerName || null,
-        customer_phone: data.customerPhone || null,
-        deposit_amount: 25000,
-        deposit_status: 'pending',
-        status: 'pending',
-        expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
-        notes: 'Reservation created from web checkout',
-      })
-      .select('id')
-      .single()
-
-    if (reservationError || !reservation) {
-      throw new Error(`Failed to create reservation: ${reservationError?.message || 'unknown error'}`)
-    }
-    reservationId = reservation.id
-  }
+  const reservationId = await createReservationOrNull(adminClient, data)
 
   // Include reservationId so each new reservation attempt gets its own Stripe
   // session while retries of the same reservation remain idempotent.
@@ -277,19 +293,7 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
 }
 
 export async function startCheckoutSession(productId: string) {
-  // SEC-001: Server-side authentication
-  const supabase = await createClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    throw new Error('Authentication required to start checkout')
-  }
-
-  // SEC-002: Rate limit generic checkout (10 per 15 min per user)
-  const rateLimitKey = `checkout:generic:${user.id}`
-  const rl = await rateLimit(rateLimitKey, 10, 15 * 60)
-  if (!rl.success) {
-    throw new Error('Too many checkout attempts. Please wait a few minutes before trying again.')
-  }
+  await authenticateAndRateLimit('generic')
 
   const PRODUCTS = [
     { id: 'deposit', name: 'Vehicle Deposit', description: 'Refundable deposit', priceInCents: 25000 },
