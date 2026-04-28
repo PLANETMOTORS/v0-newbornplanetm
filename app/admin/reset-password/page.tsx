@@ -19,7 +19,7 @@ export default function AdminResetPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
-  const [hasSession, setHasSession] = useState(false)
+  const [hasSession, setHasSession] = useState<boolean | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -96,7 +96,12 @@ export default function AdminResetPasswordPage() {
                   </Link>
                 </Button>
               </div>
-            ) : !hasSession ? (
+            ) : hasSession === null ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
+                <span className="ml-2 text-sm text-gray-400">Verifying session...</span>
+              </div>
+            ) : hasSession === false ? (
               <div className="space-y-4">
                 <div className="p-3 text-sm text-yellow-400 bg-yellow-950/50 border border-yellow-900 rounded-lg">
                   No active session. Please use the reset link from your email, or request a new one.
