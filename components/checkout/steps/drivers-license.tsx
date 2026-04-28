@@ -195,8 +195,8 @@ export function DriversLicenseStep({
             }`}
           >
             <Upload className="w-10 h-10 text-blue-500 mx-auto mb-3" aria-hidden="true" />
-            <p className="font-semibold">Click or drag to upload</p>
-            <p className="text-sm text-muted-foreground mt-1">JPG, PNG, WebP, or PDF — max 5 MB</p>
+            <span className="block font-semibold">Click or drag to upload</span>
+            <span className="block text-sm text-muted-foreground mt-1">JPG, PNG, WebP, or PDF — max 5 MB</span>
           </button>
           <input
             ref={fileInputRef}
