@@ -4,8 +4,9 @@ import { createHash } from 'node:crypto'
 import type Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
 import { createAdminClient } from '@/lib/supabase/admin'
-
+import { createClient } from '@/lib/supabase/server'
 import { isValidLicensePath } from '@/lib/license-path'
+import { rateLimit } from '@/lib/redis'
 
 const PROTECTION_PLANS: Record<string, { name: string; priceInCents: number }> = {
   'essential': { name: 'PlanetCare Essential', priceInCents: 195000 },
@@ -52,6 +53,21 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
   if (!data.vehicleId) {
     throw new Error('Vehicle ID is required for vehicle checkout. Use startCheckoutSession for generic deposits.')
   }
+
+  // SEC-001: Server-side authentication — prevents unauthenticated session creation
+  const supabase = await createClient()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    throw new Error('Authentication required to start checkout')
+  }
+
+  // SEC-002: Rate limit checkout session creation (10 per 15 min per user)
+  const rateLimitKey = `checkout:vehicle:${user.id}`
+  const rl = await rateLimit(rateLimitKey, 10, 15 * 60)
+  if (!rl.success) {
+    throw new Error('Too many checkout attempts. Please wait a few minutes before trying again.')
+  }
+
   const stripe = getStripe()
   const enableAcssDebit = process.env.STRIPE_ENABLE_ACSS_DEBIT === 'true'
   const paymentMethodTypes: Array<'card' | 'acss_debit'> = enableAcssDebit
@@ -70,7 +86,7 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
   const { data: lockResult, error: lockError } = await adminClient
     .rpc('lock_vehicle_for_checkout', {
       p_vehicle_id: data.vehicleId,
-      p_allowed_statuses: ['available', 'reserved', 'checkout_in_progress'],
+      p_allowed_statuses: ['available', 'reserved'],
     })
 
   if (lockError) {
@@ -227,6 +243,7 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
       type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
       protectionPlanId: data.protectionPlanId || '',
       amountSource: 'server',
+      userId: user.id,
       ...(reservationId && { reservationId }),
       ...(data.licenseStoragePath && isValidLicensePath(data.licenseStoragePath, data.vehicleId) && { licenseStoragePath: data.licenseStoragePath }),
       ...(data.utmSource && { utm_source: data.utmSource }),
@@ -242,6 +259,7 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
         protectionPlanId: data.protectionPlanId || '',
         amountSource: 'server',
         type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
+        userId: user.id,
         ...(reservationId && { reservationId }),
         ...(data.utmSource && { utm_source: data.utmSource }),
         ...(data.utmMedium && { utm_medium: data.utmMedium }),
@@ -259,6 +277,20 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
 }
 
 export async function startCheckoutSession(productId: string) {
+  // SEC-001: Server-side authentication
+  const supabase = await createClient()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    throw new Error('Authentication required to start checkout')
+  }
+
+  // SEC-002: Rate limit generic checkout (10 per 15 min per user)
+  const rateLimitKey = `checkout:generic:${user.id}`
+  const rl = await rateLimit(rateLimitKey, 10, 15 * 60)
+  if (!rl.success) {
+    throw new Error('Too many checkout attempts. Please wait a few minutes before trying again.')
+  }
+
   const PRODUCTS = [
     { id: 'deposit', name: 'Vehicle Deposit', description: 'Refundable deposit', priceInCents: 25000 },
   ]

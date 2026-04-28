@@ -19,7 +19,20 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // ─── Mock 'use server' directive helpers ─────────────────────────────────────
 // next/headers is referenced by server-action infrastructure
-vi.mock('next/headers', () => ({ headers: vi.fn() }))
+vi.mock('next/headers', () => ({ headers: vi.fn(), cookies: vi.fn(() => ({ getAll: vi.fn(() => []), set: vi.fn() })) }))
+
+// ─── Mock Supabase server client (auth gate) ──────────────────────────────
+const mockGetUser = vi.fn()
+vi.mock('@/lib/supabase/server', () => ({
+  createClient: vi.fn(async () => ({
+    auth: { getUser: mockGetUser },
+  })),
+}))
+
+// ─── Mock rate limiter ─────────────────────────────────────────────────────
+vi.mock('@/lib/redis', () => ({
+  rateLimit: vi.fn(async () => ({ success: true, remaining: 9 })),
+}))
 
 // ─── Mock Stripe client ────────────────────────────────────────────────────
 const mockSessionCreate = vi.fn()
@@ -80,6 +93,7 @@ const DEFAULT_SESSION = { client_secret: 'cs_test_abc123' }
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mockGetUser.mockResolvedValue({ data: { user: { id: 'user-test-001', email: 'buyer@example.com' } }, error: null })
   mockRpc.mockResolvedValue(makeLockResult())
   mockSessionCreate.mockResolvedValue(DEFAULT_SESSION)
   // Route .from() calls by table name:
