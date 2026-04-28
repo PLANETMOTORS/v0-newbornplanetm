@@ -50,11 +50,14 @@ function BreadcrumbLink({
 }
 
 function BreadcrumbPage({ className, ...props }: React.ComponentProps<'span'>) {
+  // S6819: We can't use <a> here (it's the *current* page, intentionally
+  // unlinked) and Sonar rejects role="link" on a <span>. Drop the role —
+  // aria-current="page" already signals current-page status to assistive
+  // tech, and the parent <li> inherits its position from the breadcrumb
+  // <ol>.
   return (
     <span
       data-slot="breadcrumb-page"
-      role="link"
-      aria-disabled="true"
       aria-current="page"
       className={cn('text-foreground font-normal', className)}
       {...props}
@@ -67,10 +70,11 @@ function BreadcrumbSeparator({
   className,
   ...props
 }: React.ComponentProps<'li'>) {
+  // S6819: aria-hidden="true" already removes this from the a11y tree, so
+  // role="presentation" is redundant — drop it.
   return (
     <li
       data-slot="breadcrumb-separator"
-      role="presentation"
       aria-hidden="true"
       className={cn('[&>svg]:size-3.5', className)}
       {...props}
@@ -84,10 +88,11 @@ function BreadcrumbEllipsis({
   className,
   ...props
 }: React.ComponentProps<'span'>) {
+  // S6819: same — aria-hidden="true" already hides this; role="presentation"
+  // adds nothing.
   return (
     <span
       data-slot="breadcrumb-ellipsis"
-      role="presentation"
       aria-hidden="true"
       className={cn('flex size-9 items-center justify-center', className)}
       {...props}

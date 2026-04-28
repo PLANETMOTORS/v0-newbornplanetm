@@ -43,10 +43,17 @@
   "exclude": [
     "node_modules",
     "__tests__",
+    "e2e",
     "app/sw.ts",
     "scripts",
     "src",
     "supabase/functions",
+    "Planet-Ultra",
+    "Website",
+    "PLANET-WEB-FINAL",
+    "next-platform-starter",
+    "v0-cms-site-build-m1",
+    "v0-planet-ultra-ui-ux-rebuild",
     ".next/dev/types"
   ]
 }

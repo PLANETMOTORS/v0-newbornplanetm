@@ -8,10 +8,10 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 
 function InputGroup({ className, ...props }: React.ComponentProps<'div'>) {
+  // S6819: drop role="group" — visual-only wrapper around an input + addons.
   return (
     <div
       data-slot="input-group"
-      role="group"
       className={cn(
         'group/input-group border-input dark:bg-input/30 relative flex w-full items-center rounded-md border shadow-xs transition-[color,box-shadow] outline-none',
         'h-9 has-[>textarea]:h-auto',
@@ -61,9 +61,10 @@ function InputGroupAddon({
   align = 'inline-start',
   ...props
 }: React.ComponentProps<'div'> & VariantProps<typeof inputGroupAddonVariants>) {
+  // S6819: drop role="group" — addons are visual decoration around the
+  // input's adjacent affordances (icons, kbd shortcuts, etc.).
   return (
     <div
-      role="group"
       data-slot="input-group-addon"
       data-align={align}
       className={cn(inputGroupAddonVariants({ align }), className)}

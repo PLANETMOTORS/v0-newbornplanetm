@@ -34,7 +34,7 @@ export default function FavoritesPage() {
                 Saved Vehicles
               </h1>
               <p className="text-muted-foreground">
-                {favorites.length} vehicle{favorites.length !== 1 ? 's' : ''} saved
+                {favorites.length} vehicle{favorites.length === 1 ? '' : 's'} saved
               </p>
             </div>
             <Button variant="outline" asChild>

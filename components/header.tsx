@@ -216,7 +216,7 @@ export function Header() {
           </div>
         </div>
 
-      <header className={`bg-background/95 backdrop-blur-md border-b border-border ${scrolled ? "shadow-sm" : ""}`} role="banner">
+      <header className={`bg-background/95 backdrop-blur-md border-b border-border ${scrolled ? "shadow-sm" : ""}`}>
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-2 lg:px-8" aria-label="Main navigation">
           <div className="flex items-center gap-6">
             <Link href="/" className="shrink-0 min-w-[100px]">
@@ -332,7 +332,7 @@ export function Header() {
                         <ChevronDown className={`w-3.5 h-3.5 transition-transform ${activeSubmenu === item.name ? 'rotate-180' : ''}`} />
                       </button>
                       {activeSubmenu === item.name && (
-                        <div role="region" aria-labelledby={`mobile-nav-${item.name}`} className="pl-4 space-y-1">
+                        <section aria-labelledby={`mobile-nav-${item.name}`} className="pl-4 space-y-1">
                           {item.submenu.map((subitem) => (
                             <Link
                               key={subitem.name}
@@ -343,7 +343,7 @@ export function Header() {
                               {subitem.name}
                             </Link>
                           ))}
-                        </div>
+                        </section>
                       )}
                     </>
                   ) : (

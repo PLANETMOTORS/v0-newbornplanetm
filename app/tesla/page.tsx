@@ -89,7 +89,7 @@ export default function TeslaPage() {
       <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Tesla", url: "/tesla" }]} />
       <Header />
 
-      <main id="main-content" role="main" aria-label="Tesla vehicles">
+      <main id="main-content" aria-label="Tesla vehicles">
         {/* Hero Section */}
         <section className="relative bg-black text-white py-16 lg:py-24">
           <div className="container mx-auto px-4">

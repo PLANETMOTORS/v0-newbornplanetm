@@ -87,7 +87,7 @@ export async function PUT(request: NextRequest) {
     }
     if (firstName !== undefined) updates.first_name = String(firstName).normalize('NFC').trim()
     if (lastName !== undefined) updates.last_name = String(lastName).normalize('NFC').trim()
-    if (phone !== undefined) updates.phone = phone !== null ? String(phone).trim() : null
+    if (phone !== undefined) updates.phone = phone === null ? null : String(phone).trim()
     if (notificationPreferences !== undefined) updates.notification_preferences = notificationPreferences
 
     const { data: row, error: upsertError } = await supabase

@@ -14,6 +14,13 @@ export default [
       'dist/**',
       'coverage/**',
       'supabase/functions/**',
+      // Separate embedded repos — not part of this project
+      'Planet-Ultra/**',
+      'Website/**',
+      'PLANET-WEB-FINAL/**',
+      'next-platform-starter/**',
+      'v0-cms-site-build-m1/**',
+      'v0-planet-ultra-ui-ux-rebuild/**',
       // Auto-generated Serwist/Workbox service worker — minified, not our source
       'public/sw.js',
       'public/workbox-*.js',

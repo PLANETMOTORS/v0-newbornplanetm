@@ -72,13 +72,16 @@ export function FooterContent({ siteSettings }: Readonly<FooterProps>) {
       : `Sat: ${SATURDAY_HOURS_FALLBACK}`
     const sunday = sundayHours?.isClosed ? "Sun: Closed" : ""
     
-    return `${weekday} | ${saturday}${sunday ? ` | ${sunday}` : ""}`
+    const sundaySuffix = sunday ? ` | ${sunday}` : ""
+    return `${weekday} | ${saturday}${sundaySuffix}`
   }
 
   const depositAmount = siteSettings.depositAmount || 250
+  const mapsAddress = `${siteSettings.streetAddress} ${siteSettings.city} ${siteSettings.province}`
+  const mapsFallbackUrl = `https://maps.google.com/?q=${encodeURIComponent(mapsAddress)}`
 
   return (
-    <footer className="bg-foreground text-background" role="contentinfo" aria-label="Site footer">
+    <footer className="bg-foreground text-background" aria-label="Site footer">
       {/* ── Row 1: Trust Bar — gradient bridge from CTA blue → footer black ── */}
       <div className="bg-linear-to-b from-[#1e3a8a] to-[#0a0a0a]">
         <div className="mx-auto max-w-7xl px-6 py-5 lg:px-8">
@@ -137,7 +140,7 @@ export function FooterContent({ siteSettings }: Readonly<FooterProps>) {
                   <span>{siteSettings.email}</span>
                 </a>
                 <a
-                  href={siteSettings.googleMapsUrl || `https://maps.google.com/?q=${encodeURIComponent(`${siteSettings.streetAddress} ${siteSettings.city} ${siteSettings.province}`)}`}
+                  href={siteSettings.googleMapsUrl || mapsFallbackUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2.5 min-h-11 text-sm text-white/90 hover:text-white transition-colors"

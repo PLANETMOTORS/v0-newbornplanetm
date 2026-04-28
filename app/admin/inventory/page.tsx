@@ -469,7 +469,8 @@ export default function AdminInventoryPage() {
       const res = await fetch("/api/v1/inventory/import", { method: "POST", body: fd })
       const data = await res.json()
       if (res.ok) {
-        setCsvResult(`Imported ${data.imported} vehicles${data.errors?.length ? ` (${data.errors.length} errors)` : ""}`)
+        const errorSuffix = data.errors?.length ? ` (${data.errors.length} errors)` : ""
+        setCsvResult(`Imported ${data.imported} vehicles${errorSuffix}`)
         fetchVehicles()
       } else {
         setCsvResult(`Import failed: ${data.error}`)
