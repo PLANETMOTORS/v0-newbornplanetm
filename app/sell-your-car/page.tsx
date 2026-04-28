@@ -89,10 +89,14 @@ function normalizeComparisonRows(input: unknown): ComparisonRow[] {
         const others = record.others ?? record.competitors
 
         if (feature || us || others) {
+          // S6551: only stringify primitives; objects would render as
+          // "[object Object]" and badly mislead the comparison table.
+          const asStr = (v: unknown) =>
+            typeof v === "string" || typeof v === "number" ? String(v) : ""
           return {
-            feature: String(feature ?? ''),
-            us: String(us ?? ''),
-            others: String(others ?? ''),
+            feature: asStr(feature),
+            us: asStr(us),
+            others: asStr(others),
           }
         }
       }
@@ -114,6 +118,11 @@ function normalizeTestimonials(input: unknown): TestimonialCard[] {
       const quote = record.quote ?? record.review
 
       if (!name || !quote) return null
+
+      // S6551: keep testimonials text as primitives — never coerce a stray
+      // object reference into "[object Object]".
+      if (typeof name !== "string" && typeof name !== "number") return null
+      if (typeof quote !== "string" && typeof quote !== "number") return null
 
       return {
         name: String(name),

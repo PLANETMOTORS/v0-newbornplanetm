@@ -115,15 +115,19 @@ export async function PUT(
       }
     }
 
-    // Numeric conversions
+    // Numeric conversions. Each `update[f]` is `unknown`; coerce only
+    // primitives so that an accidental object never gets parsed via
+    // "[object Object]" (Sonar S6551).
+    const toScalar = (v: unknown): string =>
+      typeof v === "string" || typeof v === "number" ? String(v) : ""
     const intFields = ["year", "price", "msrp", "mileage", "fuel_economy_city", "fuel_economy_highway", "range_miles", "inspection_score", "ev_battery_health_percent", "savings"]
     for (const f of intFields) {
       if (f in update && update[f] !== null) {
-        update[f] = Number.parseInt(String(update[f]))
+        update[f] = Number.parseInt(toScalar(update[f]))
       }
     }
     if ("battery_capacity_kwh" in update && update.battery_capacity_kwh !== null) {
-      update.battery_capacity_kwh = Number.parseFloat(String(update.battery_capacity_kwh))
+      update.battery_capacity_kwh = Number.parseFloat(toScalar(update.battery_capacity_kwh))
     }
 
     update.updated_at = new Date().toISOString()

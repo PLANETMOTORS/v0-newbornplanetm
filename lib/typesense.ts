@@ -206,27 +206,37 @@ async function searchTypesense(params: VehicleSearchParams): Promise<SearchRespo
       typo_tokens_threshold: 1,
     })
 
+  // Coerce Typesense doc fields to primitives without ever stringifying an
+  // object reference (Sonar S6551 — `String(obj || '')` would yield
+  // "[object Object]"). For string fields we accept only `string`; otherwise
+  // fall back to the empty/default value.
+  const asStr = (v: unknown, fallback = ""): string =>
+    typeof v === "string" ? v : fallback
+  const asOptStr = (v: unknown): string | undefined =>
+    typeof v === "string" ? v : undefined
+  const asNum = (v: unknown, fallback = 0): number =>
+    typeof v === "number" ? v : fallback
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const hits = (result.hits || []).map((hit: any) => {
     const doc = hit.document as Record<string, unknown>
     return {
       document: {
-        id: String(doc.id || ''),
-        stock_number: String(doc.stock_number || ''),
-        year: Number(doc.year || 0),
-        make: String(doc.make || ''),
-        model: String(doc.model || ''),
-        trim: doc.trim ? String(doc.trim) : undefined,
-        body_style: doc.body_style ? String(doc.body_style) : undefined,
-        exterior_color: doc.exterior_color ? String(doc.exterior_color) : undefined,
-        price: Math.round(Number(doc.price || 0) / 100), // cents → dollars
-        mileage: Number(doc.mileage || 0),
-        drivetrain: doc.drivetrain ? String(doc.drivetrain) : undefined,
-        fuel_type: doc.fuel_type ? String(doc.fuel_type) : undefined,
+        id: asStr(doc.id),
+        stock_number: asStr(doc.stock_number),
+        year: asNum(doc.year),
+        make: asStr(doc.make),
+        model: asStr(doc.model),
+        trim: asOptStr(doc.trim),
+        body_style: asOptStr(doc.body_style),
+        exterior_color: asOptStr(doc.exterior_color),
+        price: Math.round(asNum(doc.price) / 100), // cents → dollars
+        mileage: asNum(doc.mileage),
+        drivetrain: asOptStr(doc.drivetrain),
+        fuel_type: asOptStr(doc.fuel_type),
         is_ev: Boolean(doc.is_ev),
         is_certified: Boolean(doc.is_certified),
-        status: String(doc.status || 'available'),
-        primary_image_url: doc.primary_image_url ? String(doc.primary_image_url) : undefined,
+        status: asStr(doc.status, "available"),
+        primary_image_url: asOptStr(doc.primary_image_url),
       } as VehicleSearchResult,
     }
   })

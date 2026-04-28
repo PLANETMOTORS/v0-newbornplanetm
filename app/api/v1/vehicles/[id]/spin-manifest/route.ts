@@ -5,7 +5,12 @@ const DEFAULT_SPIN_FRAME_COUNT = 72
 const MIN_SPIN_FRAME_COUNT = 24
 
 function resolveFrameCount(value: unknown): number {
-  const numeric = typeof value === "number" ? value : Number.parseInt(String(value || ""), 10)
+  const numeric =
+    typeof value === "number"
+      ? value
+      : typeof value === "string"
+        ? Number.parseInt(value, 10)
+        : Number.NaN
   if (!Number.isFinite(numeric)) return DEFAULT_SPIN_FRAME_COUNT
   return Math.max(MIN_SPIN_FRAME_COUNT, numeric)
 }
