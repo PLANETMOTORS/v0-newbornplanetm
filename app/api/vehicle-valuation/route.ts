@@ -135,37 +135,8 @@ Respond ONLY with a JSON object (no markdown, no explanation):
   }
 }
 
-// Fallback algorithmic calculation with regional pricing
-function calculateFallbackValue(year: string, make: string, model: string, mileage: number, condition: string, postalCode?: string) {
-  const currentYear = new Date().getFullYear()
-  const age = currentYear - Number.parseInt(year)
-
-  // Base values by vehicle class
-  const baseValues: Record<string, number> = {
-    // Economy
-    "Jetta": 24000, "Civic": 26000, "Corolla": 24000, "Elantra": 22000,
-    "Golf": 25000, "Mazda3": 24000, "Sentra": 21000, "Forte": 21000,
-    // Mid-size
-    "Accord": 32000, "Camry": 32000, "Sonata": 30000, "Passat": 30000,
-    // SUV
-    "CR-V": 35000, "RAV4": 35000, "Tucson": 32000, "Tiguan": 34000,
-    "Highlander": 48000, "Pilot": 48000,
-    // Trucks
-    "F-150": 55000, "Silverado": 52000, "Tacoma": 42000,
-    // Luxury
-    "3 Series": 52000, "C-Class": 50000, "Model 3": 55000,
-  }
-
-  const makeTiers: Record<string, number> = {
-    "BMW": 45000, "Mercedes-Benz": 48000, "Audi": 45000, "Lexus": 42000,
-    "Tesla": 55000, "Toyota": 28000, "Honda": 28000, "Volkswagen": 27000,
-    "Hyundai": 25000, "Kia": 25000, "Ford": 30000, "Chevrolet": 28000,
-  }
-
-  let baseValue = baseValues[model] || makeTiers[make] || 28000
-
-  // Depreciation
-  let value = baseValue
+function applyDepreciation(initial: number, age: number): number {
+  let value = initial
   for (let y = 0; y < age; y++) {
     if (y === 0) value *= 0.8
     else if (y === 1) value *= 0.85
@@ -173,26 +144,23 @@ function calculateFallbackValue(year: string, make: string, model: string, milea
     else if (y < 6) value *= 0.9
     else value *= 0.92
   }
+  return value
+}
 
-  // Mileage adjustment
+function applyMileageAdjustment(value: number, mileage: number, age: number): number {
   const expectedMileage = age * 20000
   const mileageDiff = mileage - expectedMileage
-  if (mileageDiff > 0) {
-    value -= mileageDiff * 0.05
-    if (mileage > 150000) value -= (mileage - 150000) * 0.03
-    if (mileage > 200000) value -= (mileage - 200000) * 0.02
-  }
+  if (mileageDiff <= 0) return value
+  let adjusted = value - mileageDiff * 0.05
+  if (mileage > 150000) adjusted -= (mileage - 150000) * 0.03
+  if (mileage > 200000) adjusted -= (mileage - 200000) * 0.02
+  return adjusted
+}
 
-  // Condition
-  const conditionMultipliers: Record<string, number> = {
-    "excellent": 1.1, "good": 1, "fair": 0.85, "poor": 0.65,
-  }
-  value *= conditionMultipliers[condition?.toLowerCase()] || 1
-
-  // Regional adjustment based on postal code
-  const { multiplier, region, vehicleType } = getRegionalMultiplier(postalCode, make, model)
-  value *= multiplier
-
+function buildValuationFactors(
+  region: ReturnType<typeof getRegionalMultiplier>['region'],
+  vehicleType: string,
+): string[] {
   const factors = [
     "Age-based depreciation",
     "Mileage adjustment",
@@ -205,8 +173,40 @@ function calculateFallbackValue(year: string, make: string, model: string, milea
   if (vehicleType === "ev") {
     factors.push(`EV market adjustment for ${region.province}`)
   }
+  return factors
+}
 
-  // Minimum and rounding
+// Fallback algorithmic calculation with regional pricing
+function calculateFallbackValue(year: string, make: string, model: string, mileage: number, condition: string, postalCode?: string) {
+  const currentYear = new Date().getFullYear()
+  const age = currentYear - Number.parseInt(year)
+
+  // Base values by vehicle class
+  const baseValues: Record<string, number> = {
+    "Jetta": 24000, "Civic": 26000, "Corolla": 24000, "Elantra": 22000,
+    "Golf": 25000, "Mazda3": 24000, "Sentra": 21000, "Forte": 21000,
+    "Accord": 32000, "Camry": 32000, "Sonata": 30000, "Passat": 30000,
+    "CR-V": 35000, "RAV4": 35000, "Tucson": 32000, "Tiguan": 34000,
+    "Highlander": 48000, "Pilot": 48000,
+    "F-150": 55000, "Silverado": 52000, "Tacoma": 42000,
+    "3 Series": 52000, "C-Class": 50000, "Model 3": 55000,
+  }
+  const makeTiers: Record<string, number> = {
+    "BMW": 45000, "Mercedes-Benz": 48000, "Audi": 45000, "Lexus": 42000,
+    "Tesla": 55000, "Toyota": 28000, "Honda": 28000, "Volkswagen": 27000,
+    "Hyundai": 25000, "Kia": 25000, "Ford": 30000, "Chevrolet": 28000,
+  }
+  const conditionMultipliers: Record<string, number> = {
+    "excellent": 1.1, "good": 1, "fair": 0.85, "poor": 0.65,
+  }
+
+  let value = applyDepreciation(baseValues[model] || makeTiers[make] || 28000, age)
+  value = applyMileageAdjustment(value, mileage, age)
+  value *= conditionMultipliers[condition?.toLowerCase()] || 1
+
+  const { multiplier, region, vehicleType } = getRegionalMultiplier(postalCode, make, model)
+  value *= multiplier
+
   value = Math.max(500, value)
   value = Math.round(value / 50) * 50
 
@@ -215,7 +215,7 @@ function calculateFallbackValue(year: string, make: string, model: string, milea
     midValue: value,
     highValue: Math.round(value * 1.1 / 50) * 50,
     confidence: "medium",
-    factors,
+    factors: buildValuationFactors(region, vehicleType),
     region: region.regionName,
   }
 }

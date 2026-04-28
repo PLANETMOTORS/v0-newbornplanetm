@@ -47,6 +47,52 @@ export async function GET(_request: NextRequest) {
 const NAME_RE = /^[\p{L}'\s-]{1,50}$/u
 const PHONE_RE = /^[+\d\s().-]{0,20}$/
 
+function validateNameField(value: unknown, fieldName: 'firstName' | 'lastName') {
+  const name = String(value).normalize('NFC').trim()
+  if (name.length === 0 || name.length > 50 || !NAME_RE.test(name)) {
+    return apiError(
+      ErrorCode.VALIDATION_ERROR,
+      `Invalid ${fieldName}: must be 1-50 characters containing only letters, spaces, hyphens, or apostrophes`,
+      400,
+    )
+  }
+  return null
+}
+
+function validateProfilePayload(body: { firstName?: unknown; lastName?: unknown; phone?: unknown }) {
+  if (body.firstName !== undefined) {
+    const err = validateNameField(body.firstName, 'firstName')
+    if (err) return err
+  }
+  if (body.lastName !== undefined) {
+    const err = validateNameField(body.lastName, 'lastName')
+    if (err) return err
+  }
+  if (body.phone !== undefined && body.phone !== null) {
+    const ph = String(body.phone).trim()
+    if (!PHONE_RE.test(ph)) {
+      return apiError(ErrorCode.VALIDATION_ERROR, "Invalid phone number format", 400)
+    }
+  }
+  return null
+}
+
+function buildProfileUpdates(
+  user: { id: string; email?: string | null },
+  body: { firstName?: unknown; lastName?: unknown; phone?: unknown; notificationPreferences?: unknown },
+): Record<string, unknown> {
+  const updates: Record<string, unknown> = {
+    id: user.id,
+    email: user.email,
+    updated_at: new Date().toISOString(),
+  }
+  if (body.firstName !== undefined) updates.first_name = String(body.firstName).normalize('NFC').trim()
+  if (body.lastName !== undefined) updates.last_name = String(body.lastName).normalize('NFC').trim()
+  if (body.phone !== undefined) updates.phone = body.phone === null ? null : String(body.phone).trim()
+  if (body.notificationPreferences !== undefined) updates.notification_preferences = body.notificationPreferences
+  return updates
+}
+
 // PUT /api/v1/customers/me - Update customer profile
 export async function PUT(request: NextRequest) {
   try {
@@ -57,38 +103,9 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { firstName, lastName, phone, notificationPreferences } = body
-
-    // Validate provided fields
-    if (firstName !== undefined) {
-      // Normalize to NFC to prevent homograph attacks with lookalike Unicode characters
-      const name = String(firstName).normalize('NFC').trim()
-      if (name.length === 0 || name.length > 50 || !NAME_RE.test(name)) {
-        return apiError(ErrorCode.VALIDATION_ERROR, "Invalid firstName: must be 1-50 characters containing only letters, spaces, hyphens, or apostrophes", 400)
-      }
-    }
-    if (lastName !== undefined) {
-      const name = String(lastName).normalize('NFC').trim()
-      if (name.length === 0 || name.length > 50 || !NAME_RE.test(name)) {
-        return apiError(ErrorCode.VALIDATION_ERROR, "Invalid lastName: must be 1-50 characters containing only letters, spaces, hyphens, or apostrophes", 400)
-      }
-    }
-    if (phone !== undefined && phone !== null) {
-      const ph = String(phone).trim()
-      if (!PHONE_RE.test(ph)) {
-        return apiError(ErrorCode.VALIDATION_ERROR, "Invalid phone number format", 400)
-      }
-    }
-
-    const updates: Record<string, unknown> = {
-      id: user.id,
-      email: user.email,
-      updated_at: new Date().toISOString(),
-    }
-    if (firstName !== undefined) updates.first_name = String(firstName).normalize('NFC').trim()
-    if (lastName !== undefined) updates.last_name = String(lastName).normalize('NFC').trim()
-    if (phone !== undefined) updates.phone = phone === null ? null : String(phone).trim()
-    if (notificationPreferences !== undefined) updates.notification_preferences = notificationPreferences
+    const validationError = validateProfilePayload(body)
+    if (validationError) return validationError
+    const updates = buildProfileUpdates(user, body)
 
     const { data: row, error: upsertError } = await supabase
       .from("profiles")

@@ -32,6 +32,23 @@ function generateApplicationNumber(): string {
   return `PM-FA-${ts}-${rand}`
 }
 
+function jsonError(code: string, message: string, status: number) {
+  return NextResponse.json({ success: false, error: { code, message } }, { status })
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function validateApplyPayload(body: any) {
+  const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'annualIncome', 'requestedAmount']
+  const missingFields = requiredFields.filter((field) => !body[field])
+  if (missingFields.length > 0) {
+    return jsonError('MISSING_FIELDS', `Missing required fields: ${missingFields.join(', ')}`, 400)
+  }
+  if (!validateEmail(String(body.email))) {
+    return jsonError('INVALID_EMAIL', 'Invalid email format', 400)
+  }
+  return null
+}
+
 // POST /api/v1/financing/apply - Full application submission (review pipeline)
 export async function POST(request: NextRequest) {
   try {
@@ -80,62 +97,19 @@ export async function POST(request: NextRequest) {
       tradeInId,
     } = body
 
-    const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'annualIncome', 'requestedAmount']
-    const missingFields = requiredFields.filter((field) => !body[field])
-
-    if (missingFields.length > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'MISSING_FIELDS',
-            message: `Missing required fields: ${missingFields.join(', ')}`,
-          },
-        },
-        { status: 400 }
-      )
-    }
-
-    if (!validateEmail(String(email))) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'INVALID_EMAIL',
-            message: 'Invalid email format',
-          },
-        },
-        { status: 400 }
-      )
-    }
+    const validationError = validateApplyPayload(body)
+    if (validationError) return validationError
 
     const requestedAmountValue = asNumber(requestedAmount)
     const annualIncomeValue = asNumber(annualIncome)
     const downPaymentValue = Math.max(0, asNumber(downPayment))
     const requestedTermValue = Math.max(24, Math.min(96, Math.round(asNumber(requestedTerm, 72))))
-
     if (requestedAmountValue <= 0 || annualIncomeValue <= 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'INVALID_FINANCIAL_INPUT',
-            message: 'requestedAmount and annualIncome must be greater than 0',
-          },
-        },
-        { status: 400 }
-      )
+      return jsonError('INVALID_FINANCIAL_INPUT', 'requestedAmount and annualIncome must be greater than 0', 400)
     }
-
-    if (customerId) {
-      if (customerId !== user.id) {
-        return NextResponse.json(
-          { success: false, error: { code: 'FORBIDDEN', message: 'customerId must match authenticated user' } },
-          { status: 403 }
-        )
-      }
+    if (customerId && customerId !== user.id) {
+      return jsonError('FORBIDDEN', 'customerId must match authenticated user', 403)
     }
-
     const effectiveCustomerId = customerId || user.id
 
     if (vehicleId) {
@@ -144,20 +118,8 @@ export async function POST(request: NextRequest) {
         .select('id, status')
         .eq('id', vehicleId)
         .maybeSingle()
-
-      if (vehicleError) {
-        return NextResponse.json(
-          { success: false, error: { code: 'DB_ERROR', message: vehicleError.message } },
-          { status: 500 }
-        )
-      }
-
-      if (!vehicle) {
-        return NextResponse.json(
-          { success: false, error: { code: 'NOT_FOUND', message: 'Vehicle not found' } },
-          { status: 404 }
-        )
-      }
+      if (vehicleError) return jsonError('DB_ERROR', vehicleError.message, 500)
+      if (!vehicle) return jsonError('NOT_FOUND', 'Vehicle not found', 404)
     }
 
     const applicationNumber = generateApplicationNumber()

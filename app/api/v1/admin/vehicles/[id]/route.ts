@@ -20,6 +20,61 @@ async function authorize() {
   return user
 }
 
+const ALLOWED_VEHICLE_UPDATE_FIELDS = [
+  "stock_number", "vin", "year", "make", "model", "trim", "body_style",
+  "exterior_color", "interior_color", "price", "msrp", "mileage",
+  "drivetrain", "transmission", "engine", "fuel_type",
+  "fuel_economy_city", "fuel_economy_highway", "is_ev",
+  "battery_capacity_kwh", "range_miles", "status", "is_certified",
+  "is_new_arrival", "featured", "has_360_spin",
+  "primary_image_url", "image_urls", "video_url", "location",
+  "inspection_score", "inspection_date",
+  "ev_battery_health_percent",
+] as const
+
+const VEHICLE_INT_FIELDS = [
+  "year", "price", "msrp", "mileage", "fuel_economy_city", "fuel_economy_highway",
+  "range_miles", "inspection_score", "ev_battery_health_percent", "savings",
+] as const
+
+function buildVehicleUpdate(body: Record<string, unknown>): Record<string, unknown> {
+  const update: Record<string, unknown> = {}
+  for (const field of ALLOWED_VEHICLE_UPDATE_FIELDS) {
+    if (field in body) update[field] = body[field]
+  }
+  for (const f of VEHICLE_INT_FIELDS) {
+    if (f in update && update[f] !== null) {
+      update[f] = Number.parseInt(asScalarString(update[f]))
+    }
+  }
+  if ("battery_capacity_kwh" in update && update.battery_capacity_kwh !== null) {
+    update.battery_capacity_kwh = Number.parseFloat(asScalarString(update.battery_capacity_kwh))
+  }
+  return update
+}
+
+async function validateVinForUpdate(
+  adminClient: ReturnType<typeof createAdminClient>,
+  vehicleId: string,
+  rawVin: unknown,
+): Promise<{ ok: true; normalised: string } | { ok: false; res: NextResponse }> {
+  if (typeof rawVin !== "string") return { ok: true, normalised: "" }
+  const normalised = rawVin.toUpperCase()
+  if (normalised.length !== 17) {
+    return { ok: false, res: NextResponse.json({ error: "VIN must be exactly 17 characters" }, { status: 400 }) }
+  }
+  const { data: existingVin } = await adminClient
+    .from("vehicles")
+    .select("id")
+    .eq("vin", normalised)
+    .neq("id", vehicleId)
+    .maybeSingle()
+  if (existingVin) {
+    return { ok: false, res: NextResponse.json({ error: "A vehicle with this VIN already exists" }, { status: 409 }) }
+  }
+  return { ok: true, normalised }
+}
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -72,61 +127,14 @@ export async function PUT(
     }
 
     const body = await request.json()
-
-    // Build update object — only include fields that are present in the request
-    const allowedFields = [
-      "stock_number", "vin", "year", "make", "model", "trim", "body_style",
-      "exterior_color", "interior_color", "price", "msrp", "mileage",
-      "drivetrain", "transmission", "engine", "fuel_type",
-      "fuel_economy_city", "fuel_economy_highway", "is_ev",
-      "battery_capacity_kwh", "range_miles", "status", "is_certified",
-      "is_new_arrival", "featured", "has_360_spin",
-      "primary_image_url", "image_urls", "video_url", "location",
-      "inspection_score", "inspection_date",
-      "ev_battery_health_percent",
-    ]
-
-    const update: Record<string, unknown> = {}
-    for (const field of allowedFields) {
-      if (field in body) {
-        update[field] = body[field]
-      }
-    }
-
+    const update = buildVehicleUpdate(body)
     if (Object.keys(update).length === 0) {
       return NextResponse.json({ error: "No fields to update" }, { status: 400 })
     }
 
-    // Uppercase VIN if provided and validate
-    if (typeof update.vin === "string") {
-      const normalizedVin = update.vin.toUpperCase()
-      if (normalizedVin.length !== 17) {
-        return NextResponse.json({ error: "VIN must be exactly 17 characters" }, { status: 400 })
-      }
-      update.vin = normalizedVin
-      // Check for duplicate VIN (excluding current vehicle)
-      const { data: existingVin } = await adminClient
-        .from("vehicles")
-        .select("id")
-        .eq("vin", normalizedVin)
-        .neq("id", id)
-        .maybeSingle()
-      if (existingVin) {
-        return NextResponse.json({ error: "A vehicle with this VIN already exists" }, { status: 409 })
-      }
-    }
-
-    // Numeric conversions — `update[f]` is `unknown`; only primitives are
-    // safe to feed into Number.parseInt / parseFloat (S6551).
-    const intFields = ["year", "price", "msrp", "mileage", "fuel_economy_city", "fuel_economy_highway", "range_miles", "inspection_score", "ev_battery_health_percent", "savings"]
-    for (const f of intFields) {
-      if (f in update && update[f] !== null) {
-        update[f] = Number.parseInt(asScalarString(update[f]))
-      }
-    }
-    if ("battery_capacity_kwh" in update && update.battery_capacity_kwh !== null) {
-      update.battery_capacity_kwh = Number.parseFloat(asScalarString(update.battery_capacity_kwh))
-    }
+    const vinResult = await validateVinForUpdate(adminClient, id, update.vin)
+    if (!vinResult.ok) return vinResult.res
+    if (vinResult.normalised) update.vin = vinResult.normalised
 
     update.updated_at = new Date().toISOString()
 
