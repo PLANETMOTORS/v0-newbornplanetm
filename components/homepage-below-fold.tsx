@@ -72,7 +72,7 @@ type BelowFoldProps = {
   saturdayHours?: { open: string; close: string } | null
 }
 
-export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekdayHours, saturdayHours }: BelowFoldProps) {
+export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekdayHours, saturdayHours }: Readonly<BelowFoldProps>) {
   const displayReviews = defaultReviews
   return (
     <>
@@ -229,8 +229,8 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-white">Ready to find your perfect vehicle?</h2>
-              <p className="mt-4 text-white max-w-xl">Browse our inventory of certified pre-owned vehicles. Get pre-approved for financing in minutes with rates from {lowestRate}% APR.</p>
+              <h2 className="text-3xl font-bold text-white">Ready to drive a certified used EV?</h2>
+              <p className="mt-4 text-white max-w-xl">Browse battery-health certified used EVs and 210-point inspected pre-owned vehicles. Get pre-approved for financing in minutes with rates from {lowestRate}% APR.</p>
               <div className="mt-8 flex flex-wrap gap-6">
                 <Button size="lg" className="bg-white text-[#1e5a8e] hover:bg-[#eef2f7]" asChild>
                   <Link href="/inventory">Browse Inventory<ArrowRight className="ml-2 w-4 h-4" /></Link>

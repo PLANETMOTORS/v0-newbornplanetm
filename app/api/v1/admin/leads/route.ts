@@ -2,6 +2,39 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 import { ADMIN_EMAILS } from "@/lib/admin"
+import {
+  adminLeadPatchSchema,
+  parseAdminPatch,
+} from "@/lib/security/admin-mutation-schemas"
+
+// ── Status mappers (extracted from nested ternaries to satisfy SonarCloud S3358) ──
+
+function mapFinanceStatusToLeadStatus(status: string | null | undefined): string {
+  if (!status) return "archived"
+  if (status === "submitted" || status === "under_review") return "new"
+  if (status === "approved") return "qualified"
+  if (status === "funded") return "converted"
+  return "archived"
+}
+
+function mapReservationStatusToLeadStatus(status: string | null | undefined): string {
+  switch (status) {
+    case "completed":
+      return "converted"
+    case "confirmed":
+      return "qualified"
+    case "cancelled":
+      return "lost"
+    default:
+      return "new"
+  }
+}
+
+function mapTradeInStatusToLeadStatus(status: string | null | undefined): string {
+  if (status === "accepted") return "converted"
+  if (status === "pending") return "new"
+  return "archived"
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,7 +69,7 @@ export async function GET(request: NextRequest) {
     if (search) {
       // Sanitize search input: escape characters that PostgREST uses as delimiters
       // in .or() filter strings (commas, dots, parens, backslashes, percent signs)
-      const sanitized = search.replace(/[\\%,().]/g, "")
+      const sanitized = search.replaceAll(/[\\%,().]/g, "")
       if (sanitized.length > 0) {
         query = query.or(`customer_name.ilike.%${sanitized}%,customer_email.ilike.%${sanitized}%,customer_phone.ilike.%${sanitized}%,subject.ilike.%${sanitized}%`)
       }
@@ -108,7 +141,7 @@ async function aggregateLeads(adminClient: any, filters: { status: string | null
       allLeads.push({
         id: app.id,
         source: "finance_app",
-        status: ["submitted", "under_review"].includes(app.status) ? "new" : app.status === "approved" ? "qualified" : app.status === "funded" ? "converted" : "archived",
+        status: mapFinanceStatusToLeadStatus(app.status),
         customer_name: applicant ? `${applicant.first_name} ${applicant.last_name}` : "Unknown",
         customer_email: applicant?.email || "",
         customer_phone: applicant?.phone || null,
@@ -132,7 +165,7 @@ async function aggregateLeads(adminClient: any, filters: { status: string | null
       allLeads.push({
         id: res.id,
         source: "reservation",
-        status: res.status === "completed" ? "converted" : res.status === "confirmed" ? "qualified" : res.status === "cancelled" ? "lost" : "new",
+        status: mapReservationStatusToLeadStatus(res.status),
         customer_name: res.customer_name || "Unknown",
         customer_email: res.customer_email,
         customer_phone: res.customer_phone,
@@ -156,7 +189,7 @@ async function aggregateLeads(adminClient: any, filters: { status: string | null
       allLeads.push({
         id: ti.id,
         source: "trade_in",
-        status: ti.status === "accepted" ? "converted" : ti.status === "pending" ? "new" : "archived",
+        status: mapTradeInStatusToLeadStatus(ti.status),
         customer_name: ti.customer_name || "Unknown",
         customer_email: ti.customer_email || "",
         customer_phone: ti.customer_phone || null,
@@ -215,12 +248,21 @@ export async function PATCH(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
     )
 
-    const { id, ...updates } = await request.json()
+    const { id, ...rawUpdates } = await request.json()
     if (!id) return NextResponse.json({ error: "Lead ID required" }, { status: 400 })
+
+    // Mass-assignment defence: only allow admin-editable columns through.
+    const parsed = parseAdminPatch(adminLeadPatchSchema, rawUpdates)
+    if (!parsed.ok) {
+      return NextResponse.json(
+        { error: "Invalid lead update", details: parsed.issues },
+        { status: 400 }
+      )
+    }
 
     const { data, error } = await adminClient
       .from("leads")
-      .update(updates)
+      .update(parsed.data)
       .eq("id", id)
       .select()
       .single()

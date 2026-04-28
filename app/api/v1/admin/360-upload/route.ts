@@ -7,6 +7,28 @@ const BUCKET = "vehicle-360"
 const MAX_FRAME_SIZE = 5 * 1024 * 1024 // 5 MB per frame
 const ALLOWED_TYPES = new Set(["image/webp"])
 
+interface UploadMessageInput {
+  allFailed: boolean
+  errors: unknown[]
+  uploaded: unknown[]
+  frames: unknown[]
+  vehicleName: string
+}
+
+/**
+ * Build the human-readable status message for a 360° upload response.
+ * Extracted from a nested ternary to satisfy SonarCloud rule
+ * typescript:S3358.
+ */
+function buildUploadMessage(input: UploadMessageInput): string {
+  const { allFailed, errors, uploaded, frames, vehicleName } = input
+  if (allFailed) return `All ${errors.length} frames failed to upload`
+  if (errors.length > 0) {
+    return `Uploaded ${uploaded.length}/${frames.length} frames (${errors.length} failed)`
+  }
+  return `Successfully uploaded ${uploaded.length} frames for ${vehicleName}`
+}
+
 /**
  * POST /api/v1/admin/360-upload
  *
@@ -143,11 +165,7 @@ export async function POST(request: NextRequest) {
       frames: uploaded,
       errors: errors.length > 0 ? errors : undefined,
       error: allFailed ? `All ${errors.length} frames failed to upload` : undefined,
-      message: allFailed
-        ? `All ${errors.length} frames failed to upload`
-        : errors.length > 0
-          ? `Uploaded ${uploaded.length}/${frames.length} frames (${errors.length} failed)`
-          : `Successfully uploaded ${uploaded.length} frames for ${vehicleName}`,
+      message: buildUploadMessage({ allFailed, errors, uploaded, frames, vehicleName }),
     },
     allFailed ? { status: 500 } : undefined,
   )

@@ -39,7 +39,11 @@ export async function generateMetadata({ params }: { params: Promise<{ make: str
     },
     openGraph: {
       title: `${currentYear} ${makeFormatted} ${modelFormatted} for Sale | Planet Motors Richmond Hill`,
-      description: `Find your perfect ${makeFormatted} ${modelFormatted} at Planet Motors. PM Certified with 210-point inspection. Serving Richmond Hill, Toronto & the GTA.`,
+      // Generic across powertrains — these pages serve gas, hybrid, and EV
+      // models. The Aviloo battery-health claim is reserved for surfaces
+      // where the inventory is unambiguously electric (homepage, EV
+      // category pages, individual EV VDPs).
+      description: `Browse used ${makeFormatted} ${modelFormatted} at Planet Motors — 210-point inspected, Canada-wide delivery, OMVIC licensed. Richmond Hill dealership serving Toronto and the GTA.`,
       type: 'website',
       url: canonicalPath,
     }
@@ -171,7 +175,7 @@ const defaultModelData = {
   hybrid: false
 }
 
-export default async function ModelLandingPage({ params }: { params: Promise<{ make: string; model: string }> }) {
+export default async function ModelLandingPage({ params }: Readonly<{ params: Promise<{ make: string; model: string }> }>) {
   const { make, model } = await params
   const makeFormatted = make.charAt(0).toUpperCase() + make.slice(1)
   const modelFormatted = model.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')

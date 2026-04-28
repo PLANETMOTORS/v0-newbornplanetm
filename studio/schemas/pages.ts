@@ -110,11 +110,13 @@ export const homepage = defineType({
       const { heroSection, seo } = selection
       const hasHero = Boolean(heroSection?.headline)
       const hasSeo = Boolean(seo)
+      const seoSuffix = hasSeo ? ' · SEO ✅' : ' · SEO ⚠️'
+      const subtitle = hasHero
+        ? `Hero: "${heroSection?.headline}"${seoSuffix}`
+        : '⏳ Hero section not configured'
       return {
         title: `${hasHero ? '✅' : '📝'} Homepage`,
-        subtitle: hasHero
-          ? `Hero: "${heroSection?.headline}"${hasSeo ? ' · SEO ✅' : ' · SEO ⚠️'}`
-          : '⏳ Hero section not configured',
+        subtitle,
       }
     },
   },
@@ -197,9 +199,13 @@ export const financingPage = defineType({
     prepare(selection) {
       const { heroSection, seo } = selection
       const hasHero = Boolean(heroSection?.headline)
+      const seoSuffix = seo ? ' · SEO ✅' : ' · SEO ⚠️'
+      const subtitle = hasHero
+        ? `Hero: "${heroSection?.headline}"${seoSuffix}`
+        : '⏳ Hero not configured'
       return {
         title: `${hasHero ? '✅' : '📝'} Financing Page`,
-        subtitle: hasHero ? `Hero: "${heroSection?.headline}"${seo ? ' · SEO ✅' : ' · SEO ⚠️'}` : '⏳ Hero not configured',
+        subtitle,
       }
     },
   },
@@ -297,9 +303,13 @@ export const sellYourCarPage = defineType({
     prepare(selection) {
       const { heroSection, seo } = selection
       const hasHero = Boolean(heroSection?.headline)
+      const seoSuffix = seo ? ' · SEO ✅' : ' · SEO ⚠️'
+      const subtitle = hasHero
+        ? `Hero: "${heroSection?.headline}"${seoSuffix}`
+        : '⏳ Hero not configured'
       return {
         title: `${hasHero ? '✅' : '📝'} Sell Your Car Page`,
-        subtitle: hasHero ? `Hero: "${heroSection?.headline}"${seo ? ' · SEO ✅' : ' · SEO ⚠️'}` : '⏳ Hero not configured',
+        subtitle,
       }
     },
   },

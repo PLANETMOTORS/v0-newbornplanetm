@@ -41,7 +41,7 @@ export function DriveeViewer({
   uid = DRIVEE_DEALER_UID,
   vehicleName,
   className = "",
-}: DriveeViewerProps) {
+}: Readonly<DriveeViewerProps>) {
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const [iframeLoaded, setIframeLoaded] = useState(false)

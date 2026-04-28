@@ -9,7 +9,7 @@ interface CTASectionProps {
   ctaLink: string
 }
 
-export function CTASection({ headline, subheadline, ctaText, ctaLink }: CTASectionProps) {
+export function CTASection({ headline, subheadline, ctaText, ctaLink }: Readonly<CTASectionProps>) {
   return (
     <section className="py-16 md:py-24 bg-primary text-primary-foreground">
       <div className="container mx-auto px-4 text-center">

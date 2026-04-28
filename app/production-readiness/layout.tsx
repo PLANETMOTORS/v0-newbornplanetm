@@ -5,6 +5,6 @@ export const metadata: Metadata = {
   title: 'Production Readiness — Internal',
 }
 
-export default function ProductionReadinessLayout({ children }: { children: React.ReactNode }) {
+export default function ProductionReadinessLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <>{children}</>
 }

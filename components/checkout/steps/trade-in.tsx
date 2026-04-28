@@ -22,7 +22,7 @@ const TRADE_IN_BENEFITS = [
   "Save on taxes — trade-in value may be tax-exempt",
 ]
 
-export function TradeInStep({ data, onChange, onContinue }: TradeInStepProps) {
+export function TradeInStep({ data, onChange, onContinue }: Readonly<TradeInStepProps>) {
   return (
     <div className="space-y-8">
       <div>
@@ -100,16 +100,21 @@ export function TradeInStep({ data, onChange, onContinue }: TradeInStepProps) {
         </div>
       </fieldset>
 
-      {data.hasTradeIn !== null && (
-        <Button onClick={onContinue} className="w-full h-12 text-base font-semibold">
-          {data.hasTradeIn === false
-            ? "Continue without trade-in"
-            : data.tradeInValue > 0
-              ? "Continue with trade-in"
-              : "Continue"
-          }
-        </Button>
-      )}
+      {data.hasTradeIn !== null && (() => {
+        let buttonLabel: string
+        if (data.hasTradeIn === false) {
+          buttonLabel = "Continue without trade-in"
+        } else if (data.tradeInValue > 0) {
+          buttonLabel = "Continue with trade-in"
+        } else {
+          buttonLabel = "Continue"
+        }
+        return (
+          <Button onClick={onContinue} className="w-full h-12 text-base font-semibold">
+            {buttonLabel}
+          </Button>
+        )
+      })()}
     </div>
   )
 }

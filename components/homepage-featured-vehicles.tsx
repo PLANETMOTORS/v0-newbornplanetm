@@ -27,6 +27,16 @@ type FeaturedVehicle = {
   imageUrl: string | null
 }
 
+/**
+ * Choose a featured-vehicle badge label. Extracted from a nested ternary
+ * to satisfy SonarCloud rule typescript:S3358.
+ */
+function pickFeaturedBadge(featured: boolean | null | undefined, isEV: boolean): string {
+  if (featured) return "Popular"
+  if (isEV) return "Electric"
+  return "Certified"
+}
+
 const fallbackVehicles: FeaturedVehicle[] = [
   {
     id: "fallback-1",
@@ -160,7 +170,7 @@ const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
       priceCents,
       monthlyPayment,
       mileageLabel: `${Math.max(0, Math.round(Number(vehicle.mileage || 0))).toLocaleString()} km`,
-      badge: vehicle.featured ? "Popular" : isEV ? "Electric" : "Certified",
+      badge: pickFeaturedBadge(vehicle.featured, isEV),
       isEV,
       isSUV,
       isAvilooCertified: isEV && Number(vehicle.inspection_score || 0) >= 200,

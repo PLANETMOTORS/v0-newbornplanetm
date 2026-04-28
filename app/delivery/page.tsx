@@ -25,6 +25,17 @@ import { DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 // Max delivery distance: 9,999 km
 const MAX_DELIVERY_DISTANCE = 9999
 
+/**
+ * Map a delivery distance to its display label. Extracted from a nested
+ * ternary to satisfy SonarCloud rule typescript:S3358.
+ */
+function estimateDeliveryDays(distance: number): string {
+  if (distance <= 300) return "1-2 business days"
+  if (distance <= 1000) return "3-5 business days"
+  if (distance <= 2500) return "5-7 business days"
+  return "7-10 business days"
+}
+
 
 const DELIVERY_TIERS = [
   { minKm: 0, maxKm: 300, cost: 0, label: "FREE" },
@@ -799,7 +810,7 @@ export default function DeliveryPage() {
     
     setTimeout(() => {
       // Extract FSA (first 3 characters) for lookup
-      const fsa = postalCode.replace(/\s/g, "").substring(0, 3).toUpperCase()
+      const fsa = postalCode.replaceAll(/\s/g, "").substring(0, 3).toUpperCase()
       
       // Find matching city or estimate distance
       const city = CITY_DISTANCES[fsa]?.city ?? "Your Area"
@@ -854,10 +865,7 @@ export default function DeliveryPage() {
       }
 
       // Estimate delivery days
-      const deliveryDays = distance <= 300 ? "1-2 business days"
-        : distance <= 1000 ? "3-5 business days"
-        : distance <= 2500 ? "5-7 business days"
-        : "7-10 business days"
+      const deliveryDays = estimateDeliveryDays(distance)
 
       setDeliveryEstimate({ distance, cost, city, province, deliveryDays })
       setIsCalculating(false)
@@ -865,7 +873,7 @@ export default function DeliveryPage() {
   }
 
   const formatPostalCode = (value: string) => {
-    const cleaned = value.replace(/\s/g, "").toUpperCase()
+    const cleaned = value.replaceAll(/\s/g, "").toUpperCase()
     if (cleaned.length <= 3) return cleaned
     return cleaned.substring(0, 3) + " " + cleaned.substring(3, 6)
   }
@@ -916,7 +924,7 @@ export default function DeliveryPage() {
                     </div>
                     <Button 
                       onClick={calculateDelivery}
-                      disabled={postalCode.replace(/\s/g, "").length < 3 || isCalculating}
+                      disabled={postalCode.replaceAll(/\s/g, "").length < 3 || isCalculating}
                       size="lg"
                     >
                       {isCalculating ? "Calculating..." : "Calculate"}

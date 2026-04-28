@@ -75,6 +75,43 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
+/*
+ * Planet Motors brand palette.
+ * Mirrors lib/brand/colors.ts — keep the two in lock-step. See
+ * BRAND_GUIDELINES.md for the semantic roles each colour owns.
+ *
+ * Each role exposes three rungs: base / hover (≈ -10 % luminance, used
+ * on `hover:` states) / dark (deeper surface, used in dark headers and
+ * email backgrounds).
+ */
+@theme {
+  --color-brand-navy:         #1e3a8a;
+  --color-brand-navy-hover:   #172554;
+  --color-brand-navy-dark:    #0f172a;
+
+  --color-brand-red:          #dc2626;
+  --color-brand-red-hover:    #b91c1c;
+
+  --color-brand-green:        #16a34a;
+  --color-brand-green-hover:  #15803d;
+  --color-brand-green-light:  #dcfce7;
+
+  --color-brand-orange:       #ea580c;
+  --color-brand-orange-hover: #c2410c;
+
+  --color-brand-gold:         #f59e0b;
+  --color-brand-gold-light:   #fbbf24;
+
+  --color-brand-purple:       #7e22ce;
+  --color-brand-purple-hover: #6b21a8;
+
+  --color-brand-slate:        #64748b;
+  --color-brand-slate-light:  #f1f5f9;
+  --color-brand-blue:         #1d4ed8;
+  --color-brand-blue-light:   #3b82f6;
+  --color-brand-border:       #e2e8f0;
+}
+
 @theme inline {
   --font-sans: var(--font-inter), 'Inter', system-ui, sans-serif;
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';

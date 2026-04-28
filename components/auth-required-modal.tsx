@@ -17,7 +17,7 @@ export function AuthRequiredModal({
   onClose, 
   action = "continue",
   redirectTo = ""
-}: AuthRequiredModalProps) {
+}: Readonly<AuthRequiredModalProps>) {
   const encodedRedirect = encodeURIComponent(redirectTo || globalThis.location.pathname)
 
   return (

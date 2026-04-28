@@ -32,7 +32,7 @@ export default function VehiclePhotoManager({
   vehicleTitle,
   onClose,
   onPhotosChanged,
-}: VehiclePhotoManagerProps) {
+}: Readonly<VehiclePhotoManagerProps>) {
   const [photos, setPhotos] = useState<PhotoData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -281,17 +281,24 @@ export default function VehiclePhotoManager({
 
         {/* Photo Grid */}
         <div className="px-4 pb-4 sm:px-6 sm:pb-6">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
-            </div>
-          ) : imageUrls.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-400">
-              <ImagePlus className="w-12 h-12 mb-3" />
-              <p className="text-sm font-medium">No photos yet</p>
-              <p className="text-xs">Upload photos to get started</p>
-            </div>
-          ) : (
+          {(() => {
+            if (loading) {
+              return (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+                </div>
+              )
+            }
+            if (imageUrls.length === 0) {
+              return (
+                <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                  <ImagePlus className="w-12 h-12 mb-3" />
+                  <p className="text-sm font-medium">No photos yet</p>
+                  <p className="text-xs">Upload photos to get started</p>
+                </div>
+              )
+            }
+            return (
             <>
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm text-gray-600">
@@ -386,7 +393,8 @@ export default function VehiclePhotoManager({
                 })}
               </div>
             </>
-          )}
+            )
+          })()}
         </div>
 
         {/* Footer */}

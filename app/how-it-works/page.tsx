@@ -25,7 +25,7 @@ const buyingSteps = [
   {
     icon: Search,
     title: "Browse & Select",
-    description: "Explore our inventory of quality vehicles. Use filters to find your perfect match, view 360° photos, and check detailed specs.",
+    description: "Explore our inventory of quality vehicles. Use filters to narrow your search, view 360° photos, and check detailed specs.",
     details: ["360° vehicle photos", "Detailed inspection reports", "Vehicle history included", "Compare up to 3 vehicles"]
   },
   {

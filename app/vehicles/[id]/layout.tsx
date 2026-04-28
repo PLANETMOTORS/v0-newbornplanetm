@@ -103,6 +103,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default function VehicleLayout({ children }: { children: React.ReactNode }) {
+export default function VehicleLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <>{children}</>
 }

@@ -23,7 +23,7 @@ interface ContactFormProps {
   onSuccess?: () => void
 }
 
-export function ContactForm({ onSuccess }: ContactFormProps) {
+export function ContactForm({ onSuccess }: Readonly<ContactFormProps>) {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",

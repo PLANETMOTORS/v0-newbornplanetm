@@ -36,7 +36,7 @@ export function ICOVerificationDialog({
   formData,
   onFormDataChange,
   onProceed,
-}: ICOVerificationDialogProps) {
+}: Readonly<ICOVerificationDialogProps>) {
   const [step, setStep] = useState<"contact" | "verify" | "result">("contact")
   const [verificationCode, setVerificationCode] = useState("")
   const [verifyMethod, setVerifyMethod] = useState<"email" | "phone">("email")
@@ -175,7 +175,7 @@ export function ICOVerificationDialog({
                 id="ico-verify-code"
                 placeholder="123456"
                 value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                onChange={(e) => setVerificationCode(e.target.value.replaceAll(/\D/g, "").slice(0, 6))}
                 className="text-center text-lg tracking-widest"
                 maxLength={6}
               />

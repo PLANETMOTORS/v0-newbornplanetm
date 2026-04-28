@@ -66,7 +66,7 @@ export function generateVehicleSlug(vehicle: VehicleSlugInput): string {
   return parts
     .join("-")
     .toLowerCase()
-    .replace(/[^a-z0-9-]/g, "-") // replace non-alphanumeric chars with hyphens
-    .replace(/-{2,}/g, "-")       // collapse consecutive hyphens
-    .replace(/^-|-$/g, "")        // trim leading/trailing hyphens
+    .replaceAll(/[^a-z0-9-]/g, "-") // replace non-alphanumeric chars with hyphens
+    .replaceAll(/-{2,}/g, "-")       // collapse consecutive hyphens
+    .replaceAll(/^-|-$/g, "")        // trim leading/trailing hyphens
 }

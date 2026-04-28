@@ -24,8 +24,31 @@ interface VehicleFinancingFormProps {
   setAdditionalNotes: (notes: string) => void
 }
 
+/**
+ * Map a payment-frequency code to its display label. Extracted from a
+ * 4-way nested ternary to satisfy SonarCloud rule typescript:S3358.
+ * Parameter is typed against the strict union from FinancingTerms so
+ * invalid values are caught at compile time.
+ */
+function getPaymentFrequencyLabel(frequency: FinancingTerms["paymentFrequency"]): string {
+  switch (frequency) {
+    case "bi-weekly":
+      return "Bi-Weekly"
+    case "weekly":
+      return "Weekly"
+    case "semi-monthly":
+      return "Semi-Monthly"
+    case "monthly":
+      return "Monthly"
+    default: {
+      const _exhaustive: never = frequency
+      return _exhaustive ?? "Monthly"
+    }
+  }
+}
+
 export
-function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn, financingTerms, setFinancingTerms, financing, additionalNotes, setAdditionalNotes }: VehicleFinancingFormProps) {
+function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn, financingTerms, setFinancingTerms, financing, additionalNotes, setAdditionalNotes }: Readonly<VehicleFinancingFormProps>) {
   // Check if vehicle data was pre-filled (has year and make)
   const isVehicleSelected = Boolean(vehicleInfo.year && vehicleInfo.make && vehicleInfo.totalPrice)
   const [showInventoryModal, setShowInventoryModal] = useState(false)
@@ -123,15 +146,22 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
               />
             </div>
             <div className="flex-1 overflow-y-auto p-4">
-              {isLoadingInventory ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </div>
-              ) : filteredVehicles.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  No vehicles found in inventory
-                </div>
-              ) : (
+              {(() => {
+                if (isLoadingInventory) {
+                  return (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    </div>
+                  )
+                }
+                if (filteredVehicles.length === 0) {
+                  return (
+                    <div className="text-center py-12 text-muted-foreground">
+                      No vehicles found in inventory
+                    </div>
+                  )
+                }
+                return (
                 <div className="grid gap-3">
                   {filteredVehicles.map((vehicle) => (
                     <button
@@ -172,7 +202,8 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                     </button>
                   ))}
                 </div>
-              )}
+                )
+              })()}
               <p className="text-xs text-muted-foreground italic mt-3 px-1">*Prices are estimates. Final all-in price confirmed at signing per OMVIC regulations.</p>
             </div>
           </div>
@@ -326,7 +357,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
               </div>
               <div>
                 <Label>Mileage (km)</Label>
-                <Input type="text" inputMode="numeric" pattern="[0-9]*" value={tradeIn.mileage} onChange={(e) => setTradeIn({ ...tradeIn, mileage: e.target.value.replace(/[^0-9]/g, '') })} autoComplete="off" />
+                <Input type="text" inputMode="numeric" pattern="[0-9]*" value={tradeIn.mileage} onChange={(e) => setTradeIn({ ...tradeIn, mileage: e.target.value.replaceAll(/[^0-9]/g, '') })} autoComplete="off" />
               </div>
               <div>
                 <Label>Condition</Label>
@@ -579,9 +610,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
               {/* Payment Display */}
               <div className="mt-4 p-6 bg-primary/10 rounded-xl text-center">
                 <div className="text-sm text-muted-foreground mb-1">
-                  {financingTerms.paymentFrequency === "bi-weekly" ? "Bi-Weekly" : 
-                   financingTerms.paymentFrequency === "weekly" ? "Weekly" :
-                   financingTerms.paymentFrequency === "semi-monthly" ? "Semi-Monthly" : "Monthly"} Payment
+                  {getPaymentFrequencyLabel(financingTerms.paymentFrequency)} Payment
                 </div>
                 <div className="text-4xl font-bold text-primary tabular-nums">
                   ${financing.payment.toFixed(2)}

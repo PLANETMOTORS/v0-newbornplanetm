@@ -286,12 +286,17 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       .digest('hex')
       .slice(0, 12)
 
+    // Production logs go to Vercel + (eventually) Datadog/Sentry. Stack
+    // traces in those logs leak file paths and dependency versions, so we
+    // only emit them in dev/test. Sentry's native error capture (with the
+    // PII-scrubbing beforeSend filter) keeps the rich trace for triage.
+    const isProd = process.env.NODE_ENV === 'production'
     console.error('Reservation error:', {
       error: errorMessage,
       vehicleId: input.vehicleId,
       stockNumber: input.stockNumber,
       customerEmailHash,
-      stack: error instanceof Error ? error.stack : undefined,
+      ...(isProd ? {} : { stack: error instanceof Error ? error.stack : undefined }),
     })
     await unlockVehicle(input.stockNumber, input.customerEmail)
     

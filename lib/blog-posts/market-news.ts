@@ -251,7 +251,7 @@ export const blogPostsChunk4: Record<string, BlogPostEntry> = {
       </ul>
 
       <h2>Shop Pre-Owned at Planet Motors</h2>
-      <p>Every vehicle in our inventory undergoes a 210-point inspection. Visit us to find your perfect pre-owned vehicle with confidence.</p>
+      <p>Every vehicle in our inventory undergoes a 210-point inspection, and every used EV is independently Aviloo battery-health certified. Visit us to choose a pre-owned vehicle with confidence.</p>
     `,
     ["why-choose-planet-motors", "top-cars-fall-winter-2024", "tesla-model-y-vs-model-3"]
   ),

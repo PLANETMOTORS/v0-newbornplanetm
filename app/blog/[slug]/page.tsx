@@ -29,7 +29,7 @@ function portableTextToHtml(blocks: any[]): string {
     const text = (block.children ?? []).map((child: any) => {
       const t = child.text ?? ""
       const marks: string[] = child.marks ?? []
-      let out = t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      let out = t.replaceAll(/&/g, "&amp;").replaceAll(/</g, "&lt;").replaceAll(/>/g, "&gt;")
       if (marks.includes("strong")) out = `<strong>${out}</strong>`
       if (marks.includes("em")) out = `<em>${out}</em>`
       return out
@@ -100,11 +100,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const sanityDate = sanityPost?.publishedAt
     ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA")
     : ""
-  const post = sanityPost
-    ? { title: sanityPost.title, excerpt: sanityPost.excerpt, image: sanityPost.coverImage ?? "/images/blog/1.png", date: sanityDate }
-    : staticPost
-    ? { title: staticPost.title, excerpt: staticPost.excerpt, image: staticPost.image, date: staticPost.date }
-    : null
+  let post: { title: string; excerpt: string | undefined; image: string; date: string } | null = null
+  if (sanityPost) {
+    post = { title: sanityPost.title, excerpt: sanityPost.excerpt, image: sanityPost.coverImage ?? "/images/blog/1.png", date: sanityDate }
+  } else if (staticPost) {
+    post = { title: staticPost.title, excerpt: staticPost.excerpt, image: staticPost.image, date: staticPost.date }
+  }
 
   if (!post) {
     return {
@@ -114,13 +115,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   return {
     title: `${post.title} | Planet Motors Blog`,
-    description: post.excerpt,
+    description: post.excerpt || undefined,
     alternates: {
       canonical: `${SITE_URL}/blog/${slug}`,
     },
     openGraph: {
       title: post.title,
-      description: post.excerpt,
+      description: post.excerpt || undefined,
       url: `${SITE_URL}/blog/${slug}`,
       siteName: "Planet Motors",
       locale: "en_CA",
@@ -131,7 +132,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
-export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function BlogPostPage({ params }: Readonly<{ params: Promise<{ slug: string }> }>) {
   const { slug } = await params
 
   // Try Sanity CMS first; fall back to static blog-data.ts

@@ -22,7 +22,7 @@ export interface PostalCodeInputProps {
   id?: string
 }
 
-export function PostalCodeInput({ value, onChange, label = "Postal Code *", id }: PostalCodeInputProps) {
+export function PostalCodeInput({ value, onChange, label = "Postal Code *", id }: Readonly<PostalCodeInputProps>) {
   const autoId = useId()
   const inputId = id ?? `postal-code-${autoId}`
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([])
@@ -31,7 +31,7 @@ export function PostalCodeInput({ value, onChange, label = "Postal Code *", id }
   const [cityProvince, setCityProvince] = useState<{ city: string; province: string }>({ city: '', province: '' })
   
   const formatPostalCode = (val: string): string => {
-    let formatted = val.toUpperCase().replace(/[^A-Z0-9]/g, '')
+    let formatted = val.toUpperCase().replaceAll(/[^A-Z0-9]/g, '')
     if (formatted.length > 3) {
       formatted = formatted.slice(0, 3) + ' ' + formatted.slice(3, 6)
     }
@@ -39,7 +39,7 @@ export function PostalCodeInput({ value, onChange, label = "Postal Code *", id }
   }
   
   const fetchAddressSuggestions = async (postalCode: string) => {
-    const cleanPostal = postalCode.replace(/\s/g, '')
+    const cleanPostal = postalCode.replaceAll(/\s/g, '')
     if (cleanPostal.length < 3) {
       setSuggestions([])
       setCityProvince({ city: '', province: '' })

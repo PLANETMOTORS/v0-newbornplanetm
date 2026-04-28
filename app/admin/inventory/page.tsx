@@ -124,6 +124,59 @@ function formatPrice(cents: number): string {
   return "$" + Math.round(safe / 100).toLocaleString()
 }
 
+// ─── Sub-components (extracted to satisfy SonarCloud rule typescript:S2004) ──
+
+const VEHICLE_STATUSES = ["available", "reserved", "pending", "sold"] as const
+type VehicleStatus = (typeof VEHICLE_STATUSES)[number]
+
+interface VehicleStatusMenuProps {
+  vehicleId: string
+  currentStatus: string
+  onChange: (vehicleId: string, newStatus: string) => void
+}
+
+/**
+ * Status sub-menu rendered inside each row of the inventory table.
+ * Hoisted to module scope so the inline arrow handler that fires
+ * `onChange` no longer pushes the per-row nesting depth above the
+ * SonarCloud S2004 threshold (4 levels).
+ */
+function VehicleStatusMenu({ vehicleId, currentStatus, onChange }: Readonly<VehicleStatusMenuProps>) {
+  return (
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger>
+        <RotateCcw className="w-4 h-4 mr-2" />
+        Change Status
+      </DropdownMenuSubTrigger>
+      <DropdownMenuSubContent>
+        {VEHICLE_STATUSES.map((s: VehicleStatus) => (
+          <VehicleStatusMenuItem
+            key={s}
+            status={s}
+            currentStatus={currentStatus}
+            onSelect={() => onChange(vehicleId, s)}
+          />
+        ))}
+      </DropdownMenuSubContent>
+    </DropdownMenuSub>
+  )
+}
+
+interface VehicleStatusMenuItemProps {
+  status: VehicleStatus
+  currentStatus: string
+  onSelect: () => void
+}
+
+function VehicleStatusMenuItem({ status, currentStatus, onSelect }: Readonly<VehicleStatusMenuItemProps>) {
+  return (
+    <DropdownMenuItem disabled={currentStatus === status} onClick={onSelect}>
+      <Badge variant={statusBadgeVariant(status)} className="mr-2">{status}</Badge>
+      {currentStatus === status && <span className="ml-auto text-xs text-gray-400">current</span>}
+    </DropdownMenuItem>
+  )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────
 
 export default function AdminInventoryPage() {
@@ -461,7 +514,7 @@ export default function AdminInventoryPage() {
       (safeNum(v.price) / 100).toFixed(2), v.mileage, v.status, v.exterior_color || "",
       v.drivetrain || "", v.fuel_type || ""
     ])
-    const csv = [headers.join(","), ...rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(","))].join("\n")
+    const csv = [headers.join(","), ...rows.map(r => r.map(c => `"${String(c).replaceAll(/"/g, '""')}"`).join(","))].join("\n")
     const blob = new Blob([csv], { type: "text/csv" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
@@ -648,30 +701,39 @@ export default function AdminInventoryPage() {
       {/* Vehicle Table */}
       <Card>
         <CardContent className="p-0">
-          {loading ? (
-            <div className="flex items-center justify-center p-12">
-              <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-            </div>
-          ) : error ? (
-            <div className="text-center p-12 text-gray-500">
-              <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p className="font-medium">{error}</p>
-              <Button variant="outline" onClick={fetchVehicles} className="mt-4">
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Retry
-              </Button>
-            </div>
-          ) : vehicles.length === 0 ? (
-            <div className="text-center p-12 text-gray-500">
-              <Car className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p className="font-medium">No vehicles found</p>
-              <p className="text-sm">
-                {searchQuery || statusFilter !== "all"
-                  ? "Try adjusting your search or filters"
-                  : "Click \"Add Vehicle\" or trigger a HomeNet sync to get started"}
-              </p>
-            </div>
-          ) : (
+          {(() => {
+            if (loading) {
+              return (
+                <div className="flex items-center justify-center p-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                </div>
+              )
+            }
+            if (error) {
+              return (
+                <div className="text-center p-12 text-gray-500">
+                  <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p className="font-medium">{error}</p>
+                  <Button variant="outline" onClick={fetchVehicles} className="mt-4">
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Retry
+                  </Button>
+                </div>
+              )
+            }
+            if (vehicles.length === 0) {
+              const emptyHint = searchQuery || statusFilter !== "all"
+                ? "Try adjusting your search or filters"
+                : "Click \"Add Vehicle\" or trigger a HomeNet sync to get started"
+              return (
+                <div className="text-center p-12 text-gray-500">
+                  <Car className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p className="font-medium">No vehicles found</p>
+                  <p className="text-sm">{emptyHint}</p>
+                </div>
+              )
+            }
+            return (
             <>
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -778,24 +840,11 @@ export default function AdminInventoryPage() {
                                 ) : null}
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuSub>
-                                <DropdownMenuSubTrigger>
-                                  <RotateCcw className="w-4 h-4 mr-2" />
-                                  Change Status
-                                </DropdownMenuSubTrigger>
-                                <DropdownMenuSubContent>
-                                  {["available", "reserved", "pending", "sold"].map((s) => (
-                                    <DropdownMenuItem
-                                      key={s}
-                                      disabled={vehicle.status === s}
-                                      onClick={() => handleStatusChange(vehicle.id, s)}
-                                    >
-                                      <Badge variant={statusBadgeVariant(s)} className="mr-2">{s}</Badge>
-                                      {vehicle.status === s && <span className="ml-auto text-xs text-gray-400">current</span>}
-                                    </DropdownMenuItem>
-                                  ))}
-                                </DropdownMenuSubContent>
-                              </DropdownMenuSub>
+                              <VehicleStatusMenu
+                                vehicleId={vehicle.id}
+                                currentStatus={vehicle.status}
+                                onChange={handleStatusChange}
+                              />
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 className="text-red-600"
@@ -831,7 +880,8 @@ export default function AdminInventoryPage() {
                 </div>
               </div>
             </>
-          )}
+            )
+          })()}
         </CardContent>
       </Card>
 

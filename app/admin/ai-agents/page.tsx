@@ -193,28 +193,40 @@ export default function AIAgentsPage() {
                     <button onClick={() => toggleAgent(agent.agent_type, agent.is_active)} className="p-2 hover:bg-gray-100 rounded-lg">
                       {agent.is_active ? <ToggleRight className="w-6 h-6 text-green-600" /> : <ToggleLeft className="w-6 h-6 text-gray-400" />}
                     </button>
-                    {!isEditing && knowledgeAgent !== agent.agent_type ? (
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => { setKnowledgeAgent(agent.agent_type); setEditingAgent(null) }}>
-                          <BookOpen className="w-4 h-4 mr-1" />
-                          Knowledge
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => { startEditing(agent); setKnowledgeAgent(null) }}>
-                          <Settings2 className="w-4 h-4 mr-1" />
-                          Configure
-                        </Button>
-                      </div>
-                    ) : isEditing ? (
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={cancelEditing}>Cancel</Button>
-                        <Button size="sm" onClick={saveAgent} disabled={saving === agent.agent_type}>
-                          <Save className="w-4 h-4 mr-1" />
-                          {saving === agent.agent_type ? "Saving..." : "Save"}
-                        </Button>
-                      </div>
-                    ) : knowledgeAgent === agent.agent_type ? (
-                      <Button variant="outline" size="sm" onClick={() => setKnowledgeAgent(null)}>Close Knowledge</Button>
-                    ) : null}
+                    {(() => {
+                      if (!isEditing && knowledgeAgent !== agent.agent_type) {
+                        return (
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" onClick={() => { setKnowledgeAgent(agent.agent_type); setEditingAgent(null) }}>
+                              <BookOpen className="w-4 h-4 mr-1" />
+                              Knowledge
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => { startEditing(agent); setKnowledgeAgent(null) }}>
+                              <Settings2 className="w-4 h-4 mr-1" />
+                              Configure
+                            </Button>
+                          </div>
+                        )
+                      }
+                      if (isEditing) {
+                        const saveLabel = saving === agent.agent_type ? "Saving..." : "Save"
+                        return (
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" onClick={cancelEditing}>Cancel</Button>
+                            <Button size="sm" onClick={saveAgent} disabled={saving === agent.agent_type}>
+                              <Save className="w-4 h-4 mr-1" />
+                              {saveLabel}
+                            </Button>
+                          </div>
+                        )
+                      }
+                      if (knowledgeAgent === agent.agent_type) {
+                        return (
+                          <Button variant="outline" size="sm" onClick={() => setKnowledgeAgent(null)}>Close Knowledge</Button>
+                        )
+                      }
+                      return null
+                    })()}
                   </div>
                 </div>
               </CardHeader>

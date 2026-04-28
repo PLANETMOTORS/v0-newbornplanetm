@@ -84,18 +84,19 @@ export interface VDPClientProps {
   serverVehicle: VehicleDetail
 }
 
-export default function VDPClient({ serverVehicle }: VDPClientProps) {
+export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
   const searchParams = useSearchParams()
   const { user } = useAuth()
   const { addFavorite, removeFavorite, isFavorite: isFavoriteInContext } = useFavorites()
 
   // ── Build the merged vehicle shape from server data + mock inspection fallbacks ──
   // HomenetIOL: first image often has dealer overlays. Skip when feed has > 1 image.
+  const fallbackImages: string[] = serverVehicle.primaryImageUrl
+    ? [serverVehicle.primaryImageUrl]
+    : vehicleData.images
   const rawImages: string[] = serverVehicle.imageUrls.length > 0
     ? serverVehicle.imageUrls
-    : serverVehicle.primaryImageUrl
-      ? [serverVehicle.primaryImageUrl]
-      : vehicleData.images
+    : fallbackImages
 
   const cleanImages = rawImages.length > 1
     && rawImages[0] === serverVehicle.primaryImageUrl
@@ -277,7 +278,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   }
 
   const normalizePostalCode = (value: string) =>
-    value.toUpperCase().replace(/\s/g, "").slice(0, 6)
+    value.toUpperCase().replaceAll(/\s/g, "").slice(0, 6)
 
   const handleDeliveryCheck = async () => {
     const cleaned = normalizePostalCode(postalCode)
@@ -417,12 +418,17 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
                   {/* 360° Interactive Viewer — Drivee iframe (if available) */}
-                  {imageType === "360" && has360 && vehicle.driveeMid ? (
-                    <DriveeViewer
-                      mid={vehicle.driveeMid}
-                      vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                    />
-                  ) : imageType === "360" && !has360 ? (
+                  {(() => {
+                    if (imageType === "360" && has360 && vehicle.driveeMid) {
+                      return (
+                        <DriveeViewer
+                          mid={vehicle.driveeMid}
+                          vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                        />
+                      )
+                    }
+                    if (imageType === "360" && !has360) {
+                      return (
                   /* ── Auto-Spin 360° Fallback — cycles exterior photos ── */
                   <div
                     data-testid="vdp-auto-spin"
@@ -484,7 +490,9 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       </div>
                     )}
                   </div>
-                  ) : (
+                      )
+                    }
+                    return (
                   <section
                     data-testid="vdp-image-gallery"
                     tabIndex={0}
@@ -549,7 +557,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       <ChevronRight className="h-5 w-5" />
                     </button>
                   </section>
-                  )}
+                    )
+                  })()}
 
                   {/* Image Type Toggle */}
                   <div className="flex gap-2 flex-wrap overflow-x-auto scrollbar-hide pb-1">
@@ -1807,15 +1816,19 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                     {deliveryError && (
                       <p className="text-xs text-red-600 mt-2">{deliveryError}</p>
                     )}
-                    {deliveryQuote && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        {deliveryQuote.isDeliveryAvailable
-                          ? deliveryQuote.isFreeDelivery
-                            ? `Free delivery to ${deliveryQuote.postalCode} (${deliveryQuote.distanceKm} km).`
-                            : `Delivery to ${deliveryQuote.postalCode}: $${deliveryQuote.deliveryCost.toFixed(2)} (${deliveryQuote.distanceKm} km).`
-                          : `Delivery is not available for ${deliveryQuote.postalCode} right now.`}
-                      </p>
-                    )}
+                    {deliveryQuote && (() => {
+                      let deliveryMsg: string
+                      if (!deliveryQuote.isDeliveryAvailable) {
+                        deliveryMsg = `Delivery is not available for ${deliveryQuote.postalCode} right now.`
+                      } else if (deliveryQuote.isFreeDelivery) {
+                        deliveryMsg = `Free delivery to ${deliveryQuote.postalCode} (${deliveryQuote.distanceKm} km).`
+                      } else {
+                        deliveryMsg = `Delivery to ${deliveryQuote.postalCode}: $${deliveryQuote.deliveryCost.toFixed(2)} (${deliveryQuote.distanceKm} km).`
+                      }
+                      return (
+                        <p className="text-xs text-muted-foreground mt-2">{deliveryMsg}</p>
+                      )
+                    })()}
                   </div>
 
                   {/* Phone */}
