@@ -849,10 +849,18 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
             )}
           </div>
 
-          {/* Inline error state */}
+          {/* Inline error state — role=alert so screen readers announce the
+              failure immediately; text-red-700 over white passes WCAG 2.2 AA
+              contrast (5.94:1) where text-red-500 (3.76:1) does not. */}
           {showError && (
-            <div className="flex flex-col items-center justify-center py-20">
-              <p className="text-red-500 mb-4">Error loading inventory</p>
+            <div
+              role="alert"
+              aria-live="polite"
+              className="flex flex-col items-center justify-center py-20"
+            >
+              <p className="text-red-700 dark:text-red-400 mb-4 font-medium">
+                Error loading inventory
+              </p>
               <Button onClick={() => globalThis.location.reload()}>Try Again</Button>
             </div>
           )}
