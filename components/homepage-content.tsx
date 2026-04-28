@@ -110,10 +110,13 @@ export function HomepageContent({ siteSettings, homepageData, showcaseVehicles }
   // CMS-driven hero content with hardcoded fallbacks
   const heroHeadline = homepageData?.heroSection?.headline ?? null
   const heroSubheadline = homepageData?.heroSection?.subheadline ?? null
-  const primaryCtaLabel = homepageData?.heroSection?.primaryCta?.buttonLabel ?? homepageData?.heroSection?.primaryCta?.label ?? "Find Your Car"
+  // Fallbacks match the canonical Sanity values documented in
+  // docs/HERO_HEADLINE.md so a CMS outage cannot drop the visitor onto
+  // off-brand wording. Sanity is still source of truth at runtime.
+  const primaryCtaLabel = homepageData?.heroSection?.primaryCta?.buttonLabel ?? homepageData?.heroSection?.primaryCta?.label ?? "Browse Inventory"
   const primaryCtaUrl = homepageData?.heroSection?.primaryCta?.url ?? "/inventory"
-  const secondaryCtaLabel = homepageData?.heroSection?.secondaryCta?.buttonLabel ?? homepageData?.heroSection?.secondaryCta?.label ?? "Get Trade-In Value"
-  const secondaryCtaUrl = homepageData?.heroSection?.secondaryCta?.url ?? "/trade-in"
+  const secondaryCtaLabel = homepageData?.heroSection?.secondaryCta?.buttonLabel ?? homepageData?.heroSection?.secondaryCta?.label ?? "Get Pre-Approved"
+  const secondaryCtaUrl = homepageData?.heroSection?.secondaryCta?.url ?? "/financing/application"
 
   // Get business hours for display
   const weekdayHours = siteSettings.businessHours?.find(h => h.day === "Monday")
@@ -137,7 +140,8 @@ export function HomepageContent({ siteSettings, homepageData, showcaseVehicles }
                  * Sanity `homepage.heroSection.headline` field. If you edit
                  * this string, also patch Sanity (and vice-versa) so the
                  * page renders the same words whether or not the CMS is
-                 * reachable. Style rules in BRAND_GUIDELINES.md → "Hero".
+                 * reachable. Editorial rules + banned-phrase list live in
+                 * docs/HERO_HEADLINE.md.
                  */
                 <h1 className="text-[2rem] sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-[-0.01em] sm:tracking-[-0.02em] text-gray-900">
                   Canada&apos;s Battery-Health Certified
@@ -150,9 +154,9 @@ export function HomepageContent({ siteSettings, homepageData, showcaseVehicles }
               <p className="mt-6 text-base sm:text-lg text-gray-600 max-w-lg mx-auto lg:mx-0 min-h-[3rem] sm:min-h-[3.5rem]">
                 {heroSubheadline ?? (
                   <>
-                    Inspected on <span className="font-semibold text-gray-800">210 points</span>, Aviloo battery-health certified, delivered nationwide
+                    Inspected on <span className="font-semibold text-gray-800">210 points</span>, Aviloo battery-health certified, delivered nationwide{" "}
                     <br className="hidden sm:block" />
-                    {" "}— backed by a <span className="font-semibold text-gray-800">10-day money-back guarantee</span>.
+                    — backed by a <span className="font-semibold text-gray-800">10-day money-back guarantee</span>.
                   </>
                 )}
               </p>
