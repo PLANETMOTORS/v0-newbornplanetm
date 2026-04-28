@@ -744,7 +744,7 @@ if (errors.length > 0) {
       const errMsg = error instanceof Error ? error.message : "Unable to submit application right now."
       setSubmitError(errMsg)
       // Fire GA4 form_error event
-      if (globalThis.window !== undefined && globalThis.window.gtag) {
+      if (globalThis.window?.gtag) {
         globalThis.window.gtag("event", "form_error", {
           event_category: "finance_application",
           error_message: errMsg,

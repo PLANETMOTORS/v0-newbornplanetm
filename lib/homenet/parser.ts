@@ -165,7 +165,7 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
 
   const vin = get(["vin"])
   const stockNumber = get(["stock_number", "stocknumber", "dealerstocknum", "stock"])
-  if (!vin || vin.length !== 17) return null
+  if (vin?.length !== 17) return null
   if (!stockNumber) return null
 
   // Normalize HomeNet fuel values: "Gasoline Fuel" → "Gasoline", "Electric Fuel System" → "Electric"
@@ -495,7 +495,7 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
     const variations = getTagVariations(tag)
     for (const variant of variations) {
       const match = new RegExp(`<${variant}[^>]*>([^<]*)</${variant}>`, "i").exec(xml)
-      if (match && match[1]) return match[1].trim()
+      if (match?.[1]) return match[1].trim()
     }
     return ""
   }
@@ -519,7 +519,7 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
     for (const pattern of imagePatterns) {
       let match
       while ((match = pattern.exec(xml)) !== null) {
-        if (match[1] && match[1].startsWith("http")) images.push(match[1])
+        if (match[1]?.startsWith("http")) images.push(match[1])
       }
     }
     return images

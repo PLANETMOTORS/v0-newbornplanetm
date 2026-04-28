@@ -16,7 +16,7 @@ export default function AdminForgotPasswordPage() {
   const [error, setError] = useState("")
   const [sent, setSent] = useState(false)
 
-  const handleReset = async (e: React.FormEvent) => {
+  const handleReset = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError("")
     setIsSubmitting(true)

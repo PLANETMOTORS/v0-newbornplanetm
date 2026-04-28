@@ -119,7 +119,7 @@ export async function deleteCachedSearchResults(queryHash: string): Promise<void
   }
 }
 
-export async function getCachedSearchResults(queryHash: string): Promise<unknown | null> {
+export async function getCachedSearchResults(queryHash: string): Promise<unknown> {
   const redis = await getRedis()
   if (!redis) return null
   

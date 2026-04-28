@@ -34,7 +34,7 @@ export default function AdminResetPasswordPage() {
     return () => clearTimeout(id)
   }, [success, router])
 
-  const handleReset = async (e: React.FormEvent) => {
+  const handleReset = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError("")
 

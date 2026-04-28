@@ -116,7 +116,7 @@ export function PaymentCalculator({
           <p className="text-sm text-muted-foreground mt-1">
             <span className="tabular-nums">Estimated for {selectedTier.label} credit at {calculation.effectiveApr}% APR</span>
           </p>
-          {specialFinance && calculation.effectiveApr === specialFinance.promoRate && (
+          {calculation.effectiveApr === specialFinance?.promoRate && (
             <p className="text-xs text-green-600 mt-1">
               Using {specialFinance.name} promotional rate
             </p>

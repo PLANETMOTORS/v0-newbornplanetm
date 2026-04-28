@@ -26,6 +26,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
+// Stable keys for the loading-state KPI skeleton grid.
+const LEAD_ANALYTICS_SKELETON_KEYS = ["kpi-total", "kpi-new", "kpi-conv", "kpi-rt"] as const
+
 // ── Types ──────────────────────────────────────────────────────────────────
 
 interface Lead {
@@ -392,8 +395,8 @@ export function LeadAnalyticsDashboard({
   if (loading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-pulse">
-        {[...new Array(4)].map((_, i) => (
-          <div key={i} className="h-28 bg-muted rounded-xl" />
+        {LEAD_ANALYTICS_SKELETON_KEYS.map((skeletonKey) => (
+          <div key={skeletonKey} className="h-28 bg-muted rounded-xl" />
         ))}
         <div className="col-span-full h-64 bg-muted rounded-xl" />
       </div>

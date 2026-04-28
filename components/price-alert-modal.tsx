@@ -36,7 +36,7 @@ export function PriceAlertModal({ vehicle, searchCriteria, trigger }: Readonly<P
 
   const [error, setError] = useState("")
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError("")

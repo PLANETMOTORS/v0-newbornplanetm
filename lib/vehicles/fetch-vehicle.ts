@@ -103,7 +103,7 @@ export const fetchVehicleForSSR = cache(async (
 
     const v = row as Record<string, unknown>
     const priceInDollars = safeNum(v.price) / 100
-    const msrpInDollars = typeof v.msrp === "number" ? (v.msrp as number) / 100 : null
+    const msrpInDollars = typeof v.msrp === "number" ? v.msrp / 100 : null
     const vin = typeof v.vin === "string" ? v.vin : ""
 
     const driveeMid = await getDriveeMidFromDb(vin)

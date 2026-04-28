@@ -41,7 +41,7 @@ function SignUpForm() {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError("")
 
