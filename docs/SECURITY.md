@@ -46,7 +46,15 @@ edit reservations or vehicle prices.
 | Env validation                    | Zod schema, throws on missing required vars                  | `lib/env.ts` |
 | Service-role isolation            | `createAdminClient()` uses `autoRefreshToken: false`         | `lib/supabase/admin.ts` |
 
-All controls are covered by unit tests in `__tests__/lib/security-audit-fixes.test.ts` and `__tests__/lib/auth-rate-limit.test.ts` (36 tests, locked into CI).
+Unit-test coverage for the audited security fixes currently lives in
+`__tests__/lib/security-audit-fixes.test.ts`,
+`__tests__/lib/auth-rate-limit.test.ts`, and
+`__tests__/lib/supabase-cookie-defaults.test.ts` (locked into CI).
+This statement is **not** a claim that every control listed above has
+its own dedicated unit test — header-level controls (CSP, HSTS, XFO,
+referrer policy, permissions policy) are owned by `next.config.mjs:async headers()`
+and are exercised by the Next.js framework itself plus production smoke
+checks, not by these test files.
 
 ---
 

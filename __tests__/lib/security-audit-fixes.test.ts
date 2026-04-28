@@ -3,11 +3,14 @@
  *
  * Each block locks one concrete behaviour from the audit:
  *   - C3a/C3b mass-assignment allow-list (admin reservation + lead PATCH)
- *   - R4    Sentry PII / secret redaction
- *   - R6    Security-headers builder is well-formed and partner-aware
- *   - R8    (covered indirectly via lib/supabase/middleware integration —
- *           Supabase mocks the response cookie store so we exercise the
- *           defaults from a unit-callable seam)
+ *   - R4     Sentry PII / secret redaction (incl. cycle + depth markers)
+ *   - R8     covered indirectly via lib/supabase/middleware integration —
+ *            see __tests__/lib/supabase-cookie-defaults.test.ts
+ *
+ * Security headers (CSP / HSTS / X-Frame-Options / etc) are NOT covered
+ * here: they live in `next.config.mjs:async headers()` as the project's
+ * single source of truth and are exercised by the Next.js framework
+ * itself + the production smoke checks.
  *
  * No network calls, no Stripe SDK, no Supabase REST hits — every fixture
  * is in-memory.
@@ -27,7 +30,6 @@ import {
   redactSentryBreadcrumb,
   redactSentryEvent,
 } from "@/lib/security/sentry-redaction"
-import { applySecurityHeaders } from "@/lib/security/security-headers"
 
 // ── C3a — admin reservation PATCH allow-list ──────────────────────────────
 
@@ -218,78 +220,60 @@ describe("Sentry redaction (R4 — PII / secret scrubbing)", () => {
     expect(e.breadcrumb).not.toContain("@example.com")
   })
 
-  it("does not throw on cyclic object input", () => {
+  it("substitutes a string marker for a self-referencing cycle (FU-2)", () => {
+    // Self-cycle: obj.self === obj. The previous implementation's depth
+    // cap returned the original object, which re-introduced the cycle and
+    // caused Sentry's serializer to drop the event silently.
     const obj: Record<string, unknown> = { a: 1 }
-    obj.self = obj // intentional cycle — depth cap should catch this
-    expect(() => redactSentryEvent(obj)).not.toThrow()
+    obj.self = obj
+    const out = redactSentryEvent(obj) as Record<string, unknown>
+    expect(out.a).toBe(1)
+    // Cycle is broken with a primitive string — Sentry can serialize this.
+    expect(out.self).toBe("[REDACTED:cycle]")
+  })
+
+  it("substitutes a string marker for a multi-hop cycle (FU-2)", () => {
+    // a -> b -> c -> a chain: every cycle exit must be a string, never an
+    // object reference. Uses neutral keys ("id"/"next"/"back") so the
+    // sensitive-key matcher does not interfere with this test.
+    type Node = Record<string, unknown>
+    const a: Node = { id: "a" }
+    const b: Node = { id: "b" }
+    const c: Node = { id: "c" }
+    a.next = b
+    b.next = c
+    c.back = a
+    const out = redactSentryEvent(a) as Node
+    expect((out.next as Node).id).toBe("b")
+    expect(((out.next as Node).next as Node).id).toBe("c")
+    // The closing `c.back -> a` edge becomes a marker — JSON.stringify
+    // proves it's safe to serialize.
+    expect(((out.next as Node).next as Node).back).toBe("[REDACTED:cycle]")
+    expect(() => JSON.stringify(out)).not.toThrow()
+  })
+
+  it("substitutes a string marker beyond the depth cap (FU-2)", () => {
+    // Build a 12-deep nested object. With MAX_DEPTH=8 the inner three
+    // levels MUST collapse into the depth marker, not return the raw
+    // sub-object (which could hide a cycle).
+    type Box = { v?: number; inner?: Box }
+    const root: Box = { v: 0 }
+    let cur: Box = root
+    for (let i = 1; i <= 12; i += 1) {
+      const next: Box = { v: i }
+      cur.inner = next
+      cur = next
+    }
+    const out = redactSentryEvent(root) as unknown
+    let level = out as Record<string, unknown>
+    for (let i = 0; i < 8; i += 1) {
+      level = level.inner as Record<string, unknown>
+    }
+    // 9th level should be the depth marker string.
+    expect(level.inner).toBe("[REDACTED:depth]")
   })
 
   it("preserves the literal redaction marker across helper boundaries", () => {
     expect(__testing.REDACTED).toBe("[REDACTED]")
-  })
-})
-
-// ── R6 — security headers ──────────────────────────────────────────────────
-
-describe("security headers (R6 — CSP + clickjacking + nosniff)", () => {
-  function bareResponse() {
-    return new Response("ok", { headers: { "content-type": "text/plain" } })
-  }
-
-  it("emits the canonical static security headers on every path", () => {
-    const r = applySecurityHeaders(bareResponse(), "/")
-    expect(r.headers.get("X-Frame-Options")).toBe("DENY")
-    expect(r.headers.get("X-Content-Type-Options")).toBe("nosniff")
-    expect(r.headers.get("Referrer-Policy")).toBe("strict-origin-when-cross-origin")
-    expect(r.headers.get("Permissions-Policy")).toContain("camera=()")
-    expect(r.headers.get("Cross-Origin-Opener-Policy")).toBe(
-      "same-origin-allow-popups"
-    )
-  })
-
-  it("emits a CSP that allow-lists each partner stack origin", () => {
-    const r = applySecurityHeaders(bareResponse(), "/")
-    const csp = r.headers.get("Content-Security-Policy") || ""
-    // Stripe — JS + connect + frame
-    expect(csp).toContain("https://js.stripe.com")
-    expect(csp).toContain("https://api.stripe.com")
-    expect(csp).toContain("https://hooks.stripe.com")
-    // Supabase — connect (REST + realtime websocket) + image
-    expect(csp).toContain("https://*.supabase.co")
-    expect(csp).toContain("wss://*.supabase.co")
-    // Sentry — connect
-    expect(csp).toContain("https://*.sentry.io")
-    expect(csp).toContain("https://*.ingest.sentry.io")
-    // Resend — connect
-    expect(csp).toContain("https://api.resend.com")
-    // Upstash — connect
-    expect(csp).toContain("https://*.upstash.io")
-    // Typesense — connect
-    expect(csp).toContain("https://*.typesense.net")
-    // Defaults that defang clickjacking + plugin abuse
-    expect(csp).toContain("frame-ancestors 'none'")
-    expect(csp).toContain("object-src 'none'")
-    expect(csp).toContain("base-uri 'self'")
-  })
-
-  it("skips CSP for /studio so Sanity Studio's own CSP wins", () => {
-    const r = applySecurityHeaders(bareResponse(), "/studio")
-    expect(r.headers.get("Content-Security-Policy")).toBeNull()
-    // …but other static headers still apply.
-    expect(r.headers.get("X-Frame-Options")).toBe("DENY")
-  })
-
-  it("emits HSTS only in production builds", () => {
-    const original = process.env.NODE_ENV
-    try {
-      // @ts-expect-error — typed as readonly literal in lib.dom; mutate for the test
-      process.env.NODE_ENV = "production"
-      const r = applySecurityHeaders(bareResponse(), "/")
-      expect(r.headers.get("Strict-Transport-Security")).toContain("max-age=63072000")
-      expect(r.headers.get("Strict-Transport-Security")).toContain("preload")
-    } finally {
-      // @ts-expect-error — restore
-      process.env.NODE_ENV = original
-    }
   })
 })

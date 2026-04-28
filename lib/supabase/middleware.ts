@@ -8,6 +8,36 @@ type CookieMutation = {
   options?: Parameters<NextResponse["cookies"]["set"]>[2]
 }
 
+/**
+ * Apply two NON-DESTRUCTIVE hardening defaults to a cookie options object
+ * coming out of @supabase/ssr:
+ *
+ *   - secure   defaults to true in production, never weakening Supabase's
+ *              explicit choice.
+ *   - sameSite defaults to 'lax' when Supabase didn't set one, still
+ *              respecting Supabase's own value (e.g. 'strict' on the
+ *              PKCE auth-flow cookie).
+ *
+ * We DELIBERATELY do not touch `httpOnly`. @supabase/ssr leaves it
+ * undefined on session cookies so `createBrowserClient` can read the
+ * access/refresh tokens via `document.cookie`. Forcing httpOnly=true
+ * here would silently break every page that uses the browser SDK
+ * (auth, account, admin, finance, favorites, ...).
+ *
+ * Exported so it can be unit-tested without standing up a NextResponse
+ * + a full Supabase server client.
+ */
+export function applySupabaseCookieDefaults(
+  options: NonNullable<CookieMutation["options"]> | undefined,
+  isProduction: boolean = process.env.NODE_ENV === "production"
+): NonNullable<CookieMutation["options"]> {
+  return {
+    ...options,
+    secure: options?.secure ?? isProduction,
+    sameSite: options?.sameSite ?? "lax",
+  }
+}
+
 export async function updateSession(request: NextRequest) {
   const supabaseUrl = getSupabaseUrl()
   const supabaseAnonKey = getSupabaseAnonKey()
@@ -27,18 +57,11 @@ export async function updateSession(request: NextRequest) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
         supabaseResponse = NextResponse.next({ request })
         cookiesToSet.forEach(({ name, value, options }) =>
-          // Harden every cookie Supabase writes back to the browser:
-          //   secure  – never send over plain HTTP in production
-          //   sameSite – defends against CSRF on state-changing endpoints
-          //   httpOnly – not readable from client JS, defangs XSS theft
-          //   path     – scope to '/'; explicit beats Supabase defaults
-          supabaseResponse.cookies.set(name, value, {
-            ...options,
-            secure: options?.secure ?? process.env.NODE_ENV === "production",
-            sameSite: options?.sameSite ?? "lax",
-            httpOnly: options?.httpOnly ?? true,
-            path: options?.path ?? "/",
-          })
+          supabaseResponse.cookies.set(
+            name,
+            value,
+            applySupabaseCookieDefaults(options)
+          )
         )
       },
     },

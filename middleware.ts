@@ -1,22 +1,27 @@
 import { updateSession } from '@/lib/supabase/middleware'
 import { NextResponse, type NextRequest } from 'next/server'
-import { applySecurityHeaders } from '@/lib/security/security-headers'
 
 // Routes that must never be accessible in production
 const DEV_ONLY_ROUTES = ['/mockup', '/production-readiness']
 
+// NOTE: All security headers (CSP, HSTS, X-Frame-Options, X-Content-Type-Options,
+// Referrer-Policy, Permissions-Policy, X-XSS-Protection) are defined as the
+// SINGLE source of truth in `next.config.mjs:async headers()`. Do NOT duplicate
+// them here — running two header pipelines would either intersect into a
+// browser-tightest CSP (breaking unrelated origins) or have one silently
+// overwrite the other (security change not taking effect).
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Block dev/internal routes in production
   if (process.env.NODE_ENV === 'production') {
     if (DEV_ONLY_ROUTES.some((route) => pathname === route || pathname.startsWith(route + '/'))) {
-      return applySecurityHeaders(new NextResponse(null, { status: 404 }), pathname)
+      return new NextResponse(null, { status: 404 })
     }
   }
 
   const { response } = await updateSession(request)
-  return applySecurityHeaders(response, pathname)
+  return response
 }
 
 export const config = {

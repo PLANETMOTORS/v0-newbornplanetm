@@ -67,26 +67,44 @@ function scrubString(input: string): string {
   return out
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function scrubValue(value: any, depth = 0): any {
-  if (depth > 8) return value // hard cap to avoid pathological recursion
+const CYCLE_MARKER = "[REDACTED:cycle]"
+const DEPTH_MARKER = "[REDACTED:depth]"
+const MAX_DEPTH = 8
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function scrubValue(
+  value: any,
+  depth = 0,
+  // WeakSet tracks objects already entered on the *current* descent path so
+  // we never re-emit a circular reference back to Sentry's serializer
+  // (which would either crash or drop the event silently). Returning a
+  // string marker preserves event shape while breaking the cycle.
+  seen: WeakSet<object> = new WeakSet()
+): any {
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+  // Hard depth cap: return a STRING marker rather than the original object
+  // so any cycle hidden below this depth cannot leak back into the event.
+  if (depth > MAX_DEPTH) return DEPTH_MARKER
   if (value === null || value === undefined) return value
 
   if (typeof value === "string") return scrubString(value)
   if (typeof value === "number" || typeof value === "boolean") return value
 
-  if (Array.isArray(value)) {
-    return value.map((v) => scrubValue(v, depth + 1))
-  }
-
   if (typeof value === "object") {
+    if (seen.has(value)) return CYCLE_MARKER
+    seen.add(value)
+
+    if (Array.isArray(value)) {
+      return value.map((v) => scrubValue(v, depth + 1, seen))
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const out: Record<string, any> = {}
     for (const [k, v] of Object.entries(value)) {
       if (SENSITIVE_KEY_RE.test(k)) {
         out[k] = REDACTED
       } else {
-        out[k] = scrubValue(v, depth + 1)
+        out[k] = scrubValue(v, depth + 1, seen)
       }
     }
     return out
