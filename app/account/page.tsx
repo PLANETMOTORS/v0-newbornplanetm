@@ -755,8 +755,8 @@ export default function AccountPage() {
                           <div className="space-y-3">
                             {financeDrafts.map((draft) => {
                               const formData = draft.form_data as Record<string, unknown>
-                              const applicant = formData.primaryApplicant as Record<string, string> | undefined
-                              const vehicle = formData.vehicleInfo as Record<string, string> | undefined
+                              const applicant = formData.primaryApplicant as Record<string, string>
+                              const vehicle = formData.vehicleInfo as Record<string, string>
                               const vehicleLabel = vehicle?.year && vehicle?.make && vehicle?.model
                                 ? `${vehicle.year} ${vehicle.make} ${vehicle.model}`
                                 : "General Application"

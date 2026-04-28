@@ -291,10 +291,10 @@ export async function handleCheckoutSessionCompleted(
           const validation = validateReservationForConfirmation(updatedReservation, { skipExpiryCheck: true })
           if (validation.valid) {
             const { error: confirmError } = await supabase.from("reservations").update({ status: "confirmed", updated_at: now }).eq("id", reservationId)
-            if (!confirmError) {
-              reservationConfirmed = true
-            } else {
+            if (confirmError) {
               logger.warn("[Stripe] Failed to confirm reservation:", { reservationId, error: confirmError.message })
+            } else {
+              reservationConfirmed = true
             }
           } else {
             logger.warn("[Stripe] Reservation payment validation failed, not confirming:", { reservationId, reason: validation.reason })
@@ -311,7 +311,14 @@ export async function handleCheckoutSessionCompleted(
 
   if (vehicleId) {
     const isAsyncPaymentPending = isReservation && session.payment_status === "unpaid"
-    const targetStatus = isReservation ? (reservationConfirmed || isAsyncPaymentPending ? "reserved" : "available") : "pending"
+    let targetStatus: "reserved" | "available" | "pending"
+    if (!isReservation) {
+      targetStatus = "pending"
+    } else if (reservationConfirmed || isAsyncPaymentPending) {
+      targetStatus = "reserved"
+    } else {
+      targetStatus = "available"
+    }
     await supabase.rpc("transition_vehicle_status", { p_vehicle_id: vehicleId, p_to_status: targetStatus })
   }
 }

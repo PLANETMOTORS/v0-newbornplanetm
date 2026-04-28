@@ -12,7 +12,8 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, EyeOff, Mail, LockKeyhole, User, Phone, Chrome, Facebook, CheckCircle } from "lucide-react"
+import { Eye, EyeOff, Mail, LockKeyhole, User, Phone, CheckCircle } from "lucide-react"
+import { GoogleIcon, FacebookIcon } from "@/components/ui/brand-icons"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 
 function SignUpForm() {
@@ -182,7 +183,7 @@ function SignUpForm() {
                       onClick={() => handleOAuthLogin("google")}
                       disabled={isLoading}
                     >
-                      <Chrome className="mr-2 h-5 w-5" />
+                      <GoogleIcon className="mr-2 h-5 w-5" />
                       Google
                     </Button>
                     <Button 
@@ -191,7 +192,7 @@ function SignUpForm() {
                       onClick={() => handleOAuthLogin("facebook")}
                       disabled={isLoading}
                     >
-                      <Facebook className="mr-2 h-5 w-5" />
+                      <FacebookIcon className="mr-2 h-5 w-5" />
                       Facebook
                     </Button>
                   </div>

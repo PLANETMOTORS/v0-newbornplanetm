@@ -48,12 +48,13 @@
     "scripts",
     "src",
     "supabase/functions",
+    ".next/dev/types",
+    "e2e",
     "Planet-Ultra",
-    "Website",
     "PLANET-WEB-FINAL",
+    "Website",
     "next-platform-starter",
     "v0-cms-site-build-m1",
-    "v0-planet-ultra-ui-ux-rebuild",
-    ".next/dev/types"
+    "v0-planet-ultra-ui-ux-rebuild"
   ]
 }

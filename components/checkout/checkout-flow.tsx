@@ -110,7 +110,7 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
 
   // Restore protection plan selection from sessionStorage (set by /protection-plans page)
   useEffect(() => {
-    if (typeof window === "undefined") return
+    if (globalThis.window === undefined) return
     const stored = sessionStorage.getItem("selectedProtectionPackage")
     const validIds: ProtectionPlanId[] = ["none", "essential", "smart", "lifeproof"]
     if (stored && validIds.includes(stored as ProtectionPlanId)) {
@@ -264,23 +264,23 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center" role="status" aria-live="polite" aria-label="Loading">
+      <output className="min-h-screen flex items-center justify-center" aria-label="Loading">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Loading…</p>
         </div>
-      </div>
+      </output>
     )
   }
 
   if (vehicleLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" role="status" aria-live="polite" aria-label="Loading vehicle">
+      <output className="min-h-screen flex items-center justify-center" aria-label="Loading vehicle">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Loading vehicle details…</p>
         </div>
-      </div>
+      </output>
     )
   }
 
@@ -478,7 +478,7 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
                 tradeIn={tradeIn}
                 paymentMethod={paymentMethod}
                 delivery={delivery}
-                protectionPlan={protection.selectedPlan as ProtectionPlanId}
+                protectionPlan={protection.selectedPlan}
                 agreeToTerms={agreeToTerms}
                 onAgreeToTermsChange={setAgreeToTerms}
                 onEditStep={goToStep}
@@ -494,7 +494,7 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
                 customerEmail={personal.email}
                 customerName={`${personal.firstName} ${personal.lastName}`.trim()}
                 customerPhone={personal.phone}
-                protectionPlanId={protection.selectedPlan as ProtectionPlanId}
+                protectionPlanId={protection.selectedPlan}
                 licenseStoragePath={license.licenseStoragePath}
               />
             )}

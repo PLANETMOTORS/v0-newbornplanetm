@@ -61,8 +61,10 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
     return hasFieldError(fieldName) ? `error-${fieldName.toLowerCase().replaceAll(/\s+/g, "-")}` : undefined
   }
 
-  // Render inline error message with proper id for aria-describedby
-  const FieldError = ({ fieldName }: { fieldName: string }) => {
+  // S6478 — render inline (no nested component) so React doesn't see a new
+  // component identity on every parent render. Returns the same JSX shape
+  // as the previous <FieldError /> JSX.
+  const renderFieldError = (fieldName: string) => {
     if (!hasFieldError(fieldName)) return null
     const errorMsg = validationErrors.find(err => err.toLowerCase().includes(fieldName.toLowerCase()))
     return (
@@ -106,7 +108,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
           <div>
             <Label htmlFor="firstName" className={getLabelClass("First Name")}>First Name *</Label>
             <Input id="firstName" data-testid="finance-step-1-first-name" value={data.firstName} onChange={(e) => updateField("firstName", e.target.value)} required aria-invalid={getAriaInvalid("First Name")} aria-describedby={getAriaDescribedBy("First Name")} className={getInputErrorClass("First Name")} />
-            <FieldError fieldName="First Name" />
+            {renderFieldError("First Name" )}
           </div>
           <div>
             <Label htmlFor="middleName">Middle Name</Label>
@@ -115,7 +117,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
           <div>
             <Label htmlFor="lastName" className={getLabelClass("Last Name")}>Last Name *</Label>
             <Input id="lastName" data-testid="finance-step-1-last-name" value={data.lastName} onChange={(e) => updateField("lastName", e.target.value)} required aria-invalid={getAriaInvalid("Last Name")} aria-describedby={getAriaDescribedBy("Last Name")} className={getInputErrorClass("Last Name")} />
-            <FieldError fieldName="Last Name" />
+            {renderFieldError("Last Name" )}
           </div>
           <div>
             <Label>Suffix</Label>

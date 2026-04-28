@@ -251,7 +251,7 @@ export function InstantQuote() {
   
   // Mileage handler - only allow numbers, prevent scroll glitches
   const handleMileageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replaceAll(/[^0-9]/g, '')
+    const value = e.target.value.replaceAll(/\D/g, '')
     setFormData(prev => ({ ...prev, mileage: value }))
   }, [])
   
@@ -438,12 +438,11 @@ export function InstantQuote() {
     setCalculationProgress(0)
     
     // Call AI-powered valuation API
+    const tickProgress = () => setCalculationProgress(prev => Math.min(prev + 5, 90))
     const result = await (async () => {
       try {
         // Start progress animation
-        const progressInterval = setInterval(() => {
-          setCalculationProgress(prev => Math.min(prev + 5, 90))
-        }, 300)
+        const progressInterval = setInterval(tickProgress, 300)
 
         const response = await fetch("/api/vehicle-valuation", {
           method: "POST",

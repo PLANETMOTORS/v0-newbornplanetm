@@ -47,9 +47,8 @@ async function scrapeImagesFromVDP(vdpUrl: string): Promise<{
     const allImages: Set<string> = new Set()
     
     for (const pattern of imagePatterns) {
-      const matches = html.match(pattern)
-      if (matches) {
-        matches.forEach(url => allImages.add(url))
+      for (const match of html.matchAll(pattern)) {
+        allImages.add(match[0])
       }
     }
     

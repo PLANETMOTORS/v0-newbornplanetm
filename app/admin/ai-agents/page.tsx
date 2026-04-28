@@ -415,8 +415,7 @@ export default function AIAgentsPage() {
 
                   {/* Valuator-specific settings */}
                   {agent.agent_type === "valuator" && (
-                    <>
-                      <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label htmlFor={`${agent.agent_type}-temperature`} className="text-sm font-medium text-gray-700 block mb-1">AI Temperature</label>
                           <Input
@@ -442,8 +441,7 @@ export default function AIAgentsPage() {
                             <option value="gpt-4o">GPT-4o</option>
                           </select>
                         </div>
-                      </div>
-                    </>
+                    </div>
                   )}
 
                   {/* Common: Last updated info */}
