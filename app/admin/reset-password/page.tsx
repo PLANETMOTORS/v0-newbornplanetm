@@ -28,6 +28,12 @@ export default function AdminResetPasswordPage() {
     })
   }, [])
 
+  useEffect(() => {
+    if (!success) return
+    const id = setTimeout(() => router.push("/admin/login"), 3000)
+    return () => clearTimeout(id)
+  }, [success, router])
+
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
@@ -50,7 +56,6 @@ export default function AdminResetPasswordPage() {
 
       if (updateError) throw updateError
       setSuccess(true)
-      setTimeout(() => router.push("/admin/login"), 3000)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to update password")
     } finally {

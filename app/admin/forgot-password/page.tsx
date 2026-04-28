@@ -23,7 +23,7 @@ export default function AdminForgotPasswordPage() {
 
     try {
       const supabase = createClient()
-      const redirectTo = `${globalThis.location.origin}/admin/reset-password`
+      const redirectTo = `${globalThis.location.origin}/auth/callback?redirectTo=${encodeURIComponent("/admin/reset-password")}`
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
 
       if (resetError) throw resetError
