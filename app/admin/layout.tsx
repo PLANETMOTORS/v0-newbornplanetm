@@ -39,11 +39,11 @@ export default function AdminLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
 
-  // Allow the admin login page to render without auth
-  const isLoginPage = pathname === "/admin/login"
+  // Allow auth-related pages to render without admin shell or auth gate
+  const isAuthPage = pathname === "/admin/login" || pathname === "/admin/forgot-password" || pathname === "/admin/reset-password"
 
   useEffect(() => {
-    if (isLoginPage || isLoading) return
+    if (isAuthPage || isLoading) return
     if (user) {
       const userIsAdmin = ADMIN_EMAILS.includes(user.email || "") ||
                          user.user_metadata?.is_admin === true
@@ -54,10 +54,10 @@ export default function AdminLayout({
     } else {
       router.push("/admin/login")
     }
-  }, [user, isLoading, router, isLoginPage])
+  }, [user, isLoading, router, isAuthPage])
 
-  // Render login page without the admin shell
-  if (isLoginPage) {
+  // Render auth pages without the admin shell
+  if (isAuthPage) {
     return <>{children}</>
   }
 
