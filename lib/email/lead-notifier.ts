@@ -31,19 +31,27 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "toni@planetmotors.ca"
 const FROM_NOTIFICATIONS = process.env.FROM_EMAIL ?? "Planet Motors <notifications@planetmotors.ca>"
 const FROM_SALES = "Planet Motors <hello@planetmotors.ca>"
 
-// Brand palette (matches Tailwind config)
+// Brand palette — single source of truth lives in lib/brand/colors.ts
+// (and is mirrored in app/globals.css `@theme`). The local alias keeps
+// the rest of this file readable without rewriting every reference.
+import { BRAND as BRAND_TOKENS } from "@/lib/brand/colors"
+
 const BRAND = {
-  navy: "#0f172a",
-  blue: "#1d4ed8",
-  blueLight: "#3b82f6",
-  gold: "#f59e0b",
-  goldLight: "#fbbf24",
-  slate: "#64748b",
-  slateLight: "#f1f5f9",
-  white: "#ffffff",
-  border: "#e2e8f0",
-  green: "#16a34a",
-  greenLight: "#dcfce7",
+  // The email header has historically shipped a slightly darker navy
+  // than the web surface (slate-900 #0f172a) so the gold accent strip
+  // pops on dark backgrounds — preserve that by reaching for navyDark
+  // rather than the web-primary navy.
+  navy: BRAND_TOKENS.navyDark,
+  blue: BRAND_TOKENS.blue,
+  blueLight: BRAND_TOKENS.blueLight,
+  gold: BRAND_TOKENS.gold,
+  goldLight: BRAND_TOKENS.goldLight,
+  slate: BRAND_TOKENS.slate,
+  slateLight: BRAND_TOKENS.slateLight,
+  white: BRAND_TOKENS.white,
+  border: BRAND_TOKENS.border,
+  green: BRAND_TOKENS.green,
+  greenLight: BRAND_TOKENS.greenLight,
 } as const
 
 function getResend(): Resend | null {
