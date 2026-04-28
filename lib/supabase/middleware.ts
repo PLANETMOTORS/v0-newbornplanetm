@@ -1,4 +1,6 @@
-import { createServerClient } from '@supabase/ssr'
+// S1874: import the explicit `CookieMethodsServer` adapter type so the call
+// resolves to the modern, non-deprecated overload of `createServerClient`.
+import { createServerClient, type CookieMethodsServer } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabase/config'
 import type { Database } from '@/types/supabase'
@@ -54,7 +56,7 @@ export async function updateSession(request: NextRequest) {
       getAll() {
         return request.cookies.getAll()
       },
-      setAll(cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[]) {
+      setAll(cookiesToSet) {
         for (const { name, value } of cookiesToSet) {
           request.cookies.set(name, value)
         }
@@ -63,11 +65,11 @@ export async function updateSession(request: NextRequest) {
           supabaseResponse.cookies.set(
             name,
             value,
-            applySupabaseCookieDefaults(options)
+            applySupabaseCookieDefaults(options as CookieMutation["options"])
           )
         }
       },
-    },
+    } satisfies CookieMethodsServer,
   })
 
   const {
