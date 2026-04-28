@@ -569,7 +569,7 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
 
   
   // Validate Step 1 - Primary Applicant
-  const validateStep1 = (): string[] => {
+  const validateStep1Identity = (): string[] => {
     const errors: string[] = []
     if (!primaryApplicant.firstName.trim()) errors.push("First Name is required")
     if (!primaryApplicant.lastName.trim()) errors.push("Last Name is required")
@@ -584,6 +584,11 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     }
     if (!primaryApplicant.email.trim() && !primaryApplicant.noEmail) errors.push("Email is required")
     if (!primaryApplicant.creditRating) errors.push("Credit Rating is required")
+    return errors
+  }
+
+  const validateStep1Address = (): string[] => {
+    const errors: string[] = []
     if (!primaryApplicant.postalCode.trim() || primaryApplicant.postalCode.replaceAll(/\s/g, '').length < 6) {
       errors.push("Valid Postal Code is required (format: A1A 1A1)")
     }
@@ -594,6 +599,11 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     if (!primaryApplicant.province) errors.push("Province is required")
     if (!primaryApplicant.homeStatus) errors.push("Home Status is required")
     if (!primaryApplicant.monthlyPayment) errors.push("Monthly Payment is required")
+    return errors
+  }
+
+  const validateStep1Employment = (): string[] => {
+    const errors: string[] = []
     if (!primaryApplicant.employmentCategory) errors.push("Employment Type is required")
     if (!primaryApplicant.employmentStatus) errors.push("Employment Status is required")
     if (!primaryApplicant.employerName.trim()) errors.push("Employer Name is required")
@@ -609,6 +619,12 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     if (!primaryApplicant.incomeFrequency) errors.push("Income Frequency is required")
     return errors
   }
+
+  const validateStep1 = (): string[] => [
+    ...validateStep1Identity(),
+    ...validateStep1Address(),
+    ...validateStep1Employment(),
+  ]
   
   // Validate Step 2 - Co-Applicant (only if included)
   const validateStep2 = (): string[] => {
@@ -678,20 +694,36 @@ if (errors.length > 0) {
   }
   
 
+  const trackFinanceEvent = (event: string, extra: Record<string, unknown>) => {
+    if (globalThis.window?.gtag) {
+      globalThis.window.gtag("event", event, {
+        event_category: "finance_application",
+        vehicle_id: vehicleId || "general",
+        ...extra,
+      })
+    }
+  }
+
+  const cleanupAfterSubmit = () => {
+    try {
+      globalThis.localStorage.removeItem(draftKey)
+      globalThis.sessionStorage.removeItem(draftKey)
+    } catch { /* ignore */ }
+    if (user) {
+      const deleteParam = vehicleId ? `vehicleId=${vehicleId}` : "vehicleId="
+      fetch(`/api/v1/financing/drafts?${deleteParam}`, { method: "DELETE" }).catch((err) => console.warn("[silent-catch]", err))
+    }
+  }
+
   // buildSubmitError and uploadDocuments are imported from @/lib/finance/
   const handleSubmit = async () => {
     setIsSubmitting(true)
     setSubmitError(null)
     try {
-      // Fire GA4 form_submit event (respects consent mode — gtag handles consent internally)
-      if (globalThis.window?.gtag) {
-        globalThis.window.gtag("event", "form_submit", {
-          event_category: "finance_application",
-          vehicle_id: vehicleId || "general",
-          has_co_applicant: includeCoApplicant,
-          has_trade_in: tradeIn.hasTradeIn,
-        })
-      }
+      trackFinanceEvent("form_submit", {
+        has_co_applicant: includeCoApplicant,
+        has_trade_in: tradeIn.hasTradeIn,
+      })
       const response = await fetch("/api/v1/financing/applications", {
         method: "POST",
         headers: {
@@ -727,30 +759,13 @@ if (errors.length > 0) {
     await uploadDocuments(applicationId, documents)
   }
   
-      // Clean up drafts after successful submission
-      try {
-        globalThis.localStorage.removeItem(draftKey)
-        globalThis.sessionStorage.removeItem(draftKey)
-      } catch {
-        // Ignore storage failures.
-      }
-      if (user) {
-        const deleteParam = vehicleId ? `vehicleId=${vehicleId}` : "vehicleId="
-        fetch(`/api/v1/financing/drafts?${deleteParam}`, { method: "DELETE" }).catch((err) => console.warn("[silent-catch]", err))
-      }
+      cleanupAfterSubmit()
       setIsSubmitted(true)
   } catch (error) {
       console.error("Submit error:", error)
       const errMsg = error instanceof Error ? error.message : "Unable to submit application right now."
       setSubmitError(errMsg)
-      // Fire GA4 form_error event
-      if (globalThis.window?.gtag) {
-        globalThis.window.gtag("event", "form_error", {
-          event_category: "finance_application",
-          error_message: errMsg,
-          vehicle_id: vehicleId || "general",
-        })
-      }
+      trackFinanceEvent("form_error", { error_message: errMsg })
   } finally {
     setIsSubmitting(false)
   }

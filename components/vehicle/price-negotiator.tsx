@@ -100,6 +100,36 @@ export function PriceNegotiator({
     }
   }
 
+  const consumeNegotiateStream = async (response: Response): Promise<string> => {
+    const reader = response.body?.getReader()
+    const decoder = new TextDecoder()
+    let fullContent = ""
+    while (reader) {
+      const { done, value } = await reader.read()
+      if (done) break
+      const chunk = decoder.decode(value, { stream: true })
+      for (const line of chunk.split("\n")) {
+        if (!line.startsWith("data:")) continue
+        const data = line.slice(5).trim()
+        if (data === "[DONE]") continue
+        try {
+          const parsed = JSON.parse(data)
+          if (parsed.type === "text-delta" && parsed.delta) fullContent += parsed.delta
+        } catch { /* ignore parse errors for streaming chunks */ }
+      }
+    }
+    return fullContent
+  }
+
+  const appendAssistantFromStream = (fullContent: string) => {
+    try {
+      const result = JSON.parse(fullContent)
+      setMessages((prev) => [...prev, { role: "assistant", content: result.response, counterOffer: result.counterOffer, status: result.status }])
+    } catch {
+      setMessages((prev) => [...prev, { role: "assistant", content: fullContent || "I'd be happy to discuss pricing. What price did you have in mind?", status: "negotiating" }])
+    }
+  }
+
   const handleSubmitOffer = async () => {
     const offerAmount = Number.parseFloat(offer.replaceAll(/[^0-9.]/g, ""))
     if (Number.isNaN(offerAmount) || offerAmount <= 0) return
@@ -127,36 +157,9 @@ export function PriceNegotiator({
           vehicleInfo: { name: vehicleName, daysListed, viewsLastWeek },
         }),
       })
-
       if (!response.ok) throw new Error("Failed")
-
-      const reader = response.body?.getReader()
-      const decoder = new TextDecoder()
-      let fullContent = ""
-
-      while (reader) {
-        const { done, value } = await reader.read()
-        if (done) break
-        const chunk = decoder.decode(value, { stream: true })
-        const lines = chunk.split("\n")
-        for (const line of lines) {
-          if (line.startsWith("data:")) {
-            const data = line.slice(5).trim()
-            if (data === "[DONE]") continue
-            try {
-              const parsed = JSON.parse(data)
-              if (parsed.type === "text-delta" && parsed.delta) fullContent += parsed.delta
-            } catch { /* ignore parse errors for streaming chunks */ }
-          }
-        }
-      }
-
-      try {
-        const result = JSON.parse(fullContent)
-        setMessages((prev) => [...prev, { role: "assistant", content: result.response, counterOffer: result.counterOffer, status: result.status }])
-      } catch {
-        setMessages((prev) => [...prev, { role: "assistant", content: fullContent || "I'd be happy to discuss pricing. What price did you have in mind?", status: "negotiating" }])
-      }
+      const fullContent = await consumeNegotiateStream(response)
+      appendAssistantFromStream(fullContent)
     } catch {
       setMessages((prev) => [...prev, { role: "assistant", content: `I'm having trouble processing. Please try again or call ${PHONE_LOCAL}.`, status: "escalate" }])
     } finally {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, Suspense } from "react"
+import { useState, useEffect, useRef, useCallback, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
@@ -244,6 +244,51 @@ const TRADE_IN_DRAFT_KEY = "pm:trade-in-draft"
 
 type LookupMethod = "plate" | "vin" | "manual"
 
+interface DraftSetters {
+  setStep: (n: number) => void
+  setLookupMethod: (m: LookupMethod) => void
+  setSelectedYear: (s: string) => void
+  setSelectedMake: (s: string) => void
+  setSelectedModel: (s: string) => void
+  setSelectedTrim: (s: string) => void
+  setMileage: (s: string) => void
+  setCondition: (s: string) => void
+  setHasAccident: (b: boolean) => void
+  setHasMechanicalIssues: (b: boolean) => void
+  setHasLien: (b: boolean) => void
+  setPayoffAmount: (s: string) => void
+  setAdditionalNotes: (s: string) => void
+  setEmail: (s: string) => void
+  setPhone: (s: string) => void
+  setPostalCode: (s: string) => void
+  setVinNumber: (s: string) => void
+}
+function setIfString(d: Record<string, unknown>, key: string, fn: (s: string) => void) {
+  if (typeof d[key] === "string") fn(d[key] as string)
+}
+function setIfBool(d: Record<string, unknown>, key: string, fn: (b: boolean) => void) {
+  if (typeof d[key] === "boolean") fn(d[key] as boolean)
+}
+function hydrateTradeInDraft(d: Record<string, unknown>, s: DraftSetters) {
+  if (typeof d.step === "number" && d.step >= 1 && d.step <= 3) s.setStep(d.step)
+  if (typeof d.lookupMethod === "string") s.setLookupMethod(d.lookupMethod as LookupMethod)
+  setIfString(d, "selectedYear", s.setSelectedYear)
+  setIfString(d, "selectedMake", s.setSelectedMake)
+  setIfString(d, "selectedModel", s.setSelectedModel)
+  setIfString(d, "selectedTrim", s.setSelectedTrim)
+  setIfString(d, "mileage", s.setMileage)
+  setIfString(d, "condition", s.setCondition)
+  setIfBool(d, "hasAccident", s.setHasAccident)
+  setIfBool(d, "hasMechanicalIssues", s.setHasMechanicalIssues)
+  setIfBool(d, "hasLien", s.setHasLien)
+  setIfString(d, "payoffAmount", s.setPayoffAmount)
+  setIfString(d, "additionalNotes", s.setAdditionalNotes)
+  setIfString(d, "email", s.setEmail)
+  setIfString(d, "phone", s.setPhone)
+  setIfString(d, "postalCode", s.setPostalCode)
+  setIfString(d, "vinNumber", s.setVinNumber)
+}
+
 function TradeInContent() {
   const searchParams = useSearchParams()
   const { user } = useAuth()
@@ -307,6 +352,39 @@ function TradeInContent() {
   const [phoneError, setPhoneError] = useState("")
   const [postalCodeError, setPostalCodeError] = useState("")
 
+  const applyVehicleParts = useCallback((vehicleStr: string) => {
+    const parts = vehicleStr.split(" ")
+    if (parts.length >= 3) {
+      setSelectedYear(parts[0])
+      setSelectedMake(parts[1])
+      setSelectedModel(parts.slice(2).join(" "))
+    } else if (parts.length === 2) {
+      setSelectedMake(parts[0])
+      setSelectedModel(parts[1])
+    }
+  }, [])
+
+  const buildApplyOffer = useCallback((quoteId: string, vehicle: string, value: string) => {
+    const parsedValue = Number.parseInt(value) || 0
+    return {
+      quoteId,
+      offerNumber: `PM-${Date.now().toString(36).toUpperCase()}`,
+      vehicle: decodeURIComponent(vehicle),
+      offerAmount: parsedValue,
+      validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      mileage: mileage || "N/A",
+      condition: "good",
+      cbbValue: { low: parsedValue, mid: parsedValue, high: parsedValue },
+      adjustments: [],
+      payoff: 0,
+      equity: parsedValue,
+      comparison: {
+        privateSale: Math.round(parsedValue * 1.1),
+        dealerTrade: Math.round(parsedValue * 0.9),
+      },
+    }
+  }, [mileage])
+
   // Check for quote parameters from Instant Quote
   useEffect(() => {
     const quoteId = searchParams.get("quote")
@@ -317,51 +395,19 @@ function TradeInContent() {
     if (quoteId && vehicle && value) {
       const parsedValue = Number.parseInt(value) || 0
       setInstantQuote({ quoteId, vehicle: decodeURIComponent(vehicle), value: parsedValue })
-      const parts = decodeURIComponent(vehicle).split(" ")
-      if (parts.length >= 3) {
-        setSelectedYear(parts[0])
-        setSelectedMake(parts[1])
-        setSelectedModel(parts.slice(2).join(" "))
-      }
+      applyVehicleParts(decodeURIComponent(vehicle))
       goToStep(2)
       if (action === "apply" && user) {
-        const offerData = {
-          quoteId,
-          offerNumber: `PM-${Date.now().toString(36).toUpperCase()}`,
-          vehicle: decodeURIComponent(vehicle),
-          offerAmount: Number.parseInt(value) || 0,
-          validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          mileage: mileage || "N/A",
-          condition: "good",
-          cbbValue: { low: Number.parseInt(value) || 0, mid: Number.parseInt(value) || 0, high: Number.parseInt(value) || 0 },
-          adjustments: [],
-          payoff: 0,
-          equity: Number.parseInt(value) || 0,
-          comparison: {
-            privateSale: Math.round((Number.parseInt(value) || 0) * 1.1),
-            dealerTrade: Math.round((Number.parseInt(value) || 0) * 0.9),
-          },
-        }
-        setOffer(offerData)
+        setOffer(buildApplyOffer(quoteId, vehicle, value))
         setShowOffer(true)
         setTimeout(() => setShowApplyModal(true), 100)
       }
     } else if (vehicle && !quoteId) {
-      const vehicleStr = decodeURIComponent(vehicle)
-      const parts = vehicleStr.split(" ")
-      if (parts.length >= 3) {
-        setSelectedYear(parts[0])
-        setSelectedMake(parts[1])
-        setSelectedModel(parts.slice(2).join(" "))
-      } else if (parts.length === 2) {
-        setSelectedMake(parts[0])
-        setSelectedModel(parts[1])
-      }
+      applyVehicleParts(decodeURIComponent(vehicle))
       const mileageParam = searchParams.get("mileage")
       if (mileageParam) setMileage(mileageParam.replaceAll(/\D/g, ""))
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, user])
+  }, [searchParams, user, applyVehicleParts, buildApplyOffer])
 
   // Restore draft from localStorage on mount
   useEffect(() => {
@@ -377,23 +423,11 @@ function TradeInContent() {
         globalThis.localStorage.removeItem(TRADE_IN_DRAFT_KEY)
         return
       }
-      if (typeof d.step === "number" && d.step >= 1 && d.step <= 3) setStep(d.step)
-      if (typeof d.lookupMethod === "string") setLookupMethod(d.lookupMethod as "plate" | "vin" | "manual")
-      if (typeof d.selectedYear === "string") setSelectedYear(d.selectedYear)
-      if (typeof d.selectedMake === "string") setSelectedMake(d.selectedMake)
-      if (typeof d.selectedModel === "string") setSelectedModel(d.selectedModel)
-      if (typeof d.selectedTrim === "string") setSelectedTrim(d.selectedTrim)
-      if (typeof d.mileage === "string") setMileage(d.mileage)
-      if (typeof d.condition === "string") setCondition(d.condition)
-      if (typeof d.hasAccident === "boolean") setHasAccident(d.hasAccident)
-      if (typeof d.hasMechanicalIssues === "boolean") setHasMechanicalIssues(d.hasMechanicalIssues)
-      if (typeof d.hasLien === "boolean") setHasLien(d.hasLien)
-      if (typeof d.payoffAmount === "string") setPayoffAmount(d.payoffAmount)
-      if (typeof d.additionalNotes === "string") setAdditionalNotes(d.additionalNotes)
-      if (typeof d.email === "string") setEmail(d.email)
-      if (typeof d.phone === "string") setPhone(d.phone)
-      if (typeof d.postalCode === "string") setPostalCode(d.postalCode)
-      if (typeof d.vinNumber === "string") setVinNumber(d.vinNumber)
+      hydrateTradeInDraft(d, {
+        setStep, setLookupMethod, setSelectedYear, setSelectedMake, setSelectedModel, setSelectedTrim,
+        setMileage, setCondition, setHasAccident, setHasMechanicalIssues, setHasLien, setPayoffAmount,
+        setAdditionalNotes, setEmail, setPhone, setPostalCode, setVinNumber,
+      })
     } catch (err) {
       console.error("Failed to restore trade-in draft:", err)
     }
