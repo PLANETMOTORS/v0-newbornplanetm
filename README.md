@@ -100,17 +100,20 @@ Required env vars for Sanity Studio:
 - **Auth**:
     - Storefront customers — Supabase Auth (magic link / OTP)
     - Admin users — Supabase Auth (email + password) gated by `ADMIN_EMAILS` allow-list
-- **Rate limiting**: Upstash Redis — per-(IP + principal) and per-IP buckets on `/api/v1/auth/*`
-- **Search**: Typesense (primary) with PostgreSQL fallback
-- **Cron**: Vercel Cron — auto-release stuck reservations every 10 minutes
+- **Rate limiting**: Upstash Redis — per-(IP + principal) and per-IP buckets on `/api/v1/auth/*` and checkout endpoints
+- **Search**: Typesense Cloud (3-node HA cluster with SDN) — primary, with PostgreSQL fallback
+- **Cron**: Vercel Cron — `homenet-sync` (every 15 min), `drivee-sync` (every 6 hrs), `vehicle-release` (every 10 min)
+- **CRM**: AutoRaptor — ADF/XML lead push, eLead email forwarding
+- **Maps**: Google Maps JavaScript API + Places API — dealership map, address autocomplete
 
 ### Infrastructure
-- **Hosting**: Vercel (frontend + API routes)
+- **Hosting**: Vercel Pro (frontend + API routes + cron jobs)
 - **Database**: Supabase (managed PostgreSQL)
 - **CDN**: Vercel Edge Network
 - **CI/CD**: GitHub Actions — lint → test → build → bundle-check → e2e → VRT
 - **VRT**: Playwright visual regression testing
-- **Monitoring**: Vercel Analytics
+- **Monitoring**: Sentry (error tracking, performance monitoring, session replay with PII redaction) + Vercel Analytics
+- **Secret Management**: Vercel Environment Variables (encrypted at rest, scoped per environment)
 
 ## Project Structure
 
@@ -153,7 +156,7 @@ v0-newbornplanetm/
 │   ├── sanity/                    # Sanity client + GROQ queries
 │   ├── supabase/                  # Supabase clients + Edge Function helpers
 │   ├── seo/                       # SEO metadata utilities
-│   ├── security/                  # auth-rate-limit, sentry-redaction, admin-mutation-schemas, client-ip
+│   ├── security/                  # auth-rate-limit, cron-auth, sentry-redaction, admin-mutation-schemas, client-ip
 │   └── vehicles/                  # status-filter, status-display, fetch-vehicle
 ├── supabase/
 │   └── functions/                 # Edge Functions (Deno)
@@ -191,14 +194,47 @@ RESEND_API_KEY=re_...
 # Upstash Redis (rate limiting + vehicle locks + verification codes)
 KV_REST_API_URL=https://...upstash.io
 KV_REST_API_TOKEN=...
+UPSTASH_REDIS_REST_URL=https://...upstash.io  # alias for rate-limit module
+UPSTASH_REDIS_REST_TOKEN=...
 
 # Vercel Cron (auto-release of stuck reservations)
-# Set automatically by Vercel; required in production for cron auth.
 CRON_SECRET=...
 
-# Sentry (errors + tracing)
+# Sentry (errors + tracing + session replay)
 SENTRY_DSN=https://...ingest.sentry.io/...
 NEXT_PUBLIC_SENTRY_DSN=https://...ingest.sentry.io/...
+SENTRY_AUTH_TOKEN=sntrys_...  # source map uploads
+
+# Site URLs (SEO canonical, OG meta, sitemap)
+NEXT_PUBLIC_BASE_URL=https://www.planetmotors.ca
+NEXT_PUBLIC_SITE_URL=https://www.planetmotors.ca
+
+# Admin
+ADMIN_EMAIL=toni@planetmotors.ca
+ADMIN_EMAILS=toni@planetmotors.ca
+FROM_EMAIL=notifications@planetmotors.ca
+
+# Typesense (vehicle search)
+TYPESENSE_API_KEY=...           # admin key (server-side indexing)
+TYPESENSE_HOST=...a2.typesense.net
+NEXT_PUBLIC_TYPESENSE_SEARCH_KEY=...  # search-only key (client-safe)
+NEXT_PUBLIC_TYPESENSE_HOST=...a2.typesense.net
+TYPESENSE_NODES=node1,node2,node3
+
+# AutoRaptor CRM
+AUTORAPTOR_ADF_ENDPOINT=https://ar.autoraptor.com/incoming/adf/...
+AUTORAPTOR_DEALER_ID=...
+AUTORAPTOR_DEALER_NAME=Planet Motors
+AUTORAPTOR_ELEAD_EMAIL=eleads-...@app.autoraptor.com
+
+# Google Maps
+NEXT_PUBLIC_GOOGLE_MAPS_KEY=AIza...
+
+# Security (auto-generated secrets)
+INTERNAL_API_SECRET=...          # internal API route auth
+CRM_WEBHOOK_SECRET=...           # CRM webhook verification
+APPLICATION_SIN_ENCRYPTION_KEY=... # SIN field encryption (AES-256)
+APPLICATION_SIN_HASH_PEPPER=...    # SIN hash pepper
 ```
 
 See `.env.example` for all available options.
@@ -360,11 +396,25 @@ GitHub Actions runs on every PR and push to `main`:
   deposit + a verified Stripe reference. See
   `lib/reservation-payment-rules.ts` and
   `scripts/023_reservation_payment_validation.sql`.
+- **Payment flow auth gates** — `startVehicleCheckout` and
+  `startCheckoutSession` require authenticated users (`getUser()`) before
+  creating Stripe sessions or locking inventory.
+- **Checkout rate limiting** — 10 requests per 15 minutes per user on
+  checkout endpoints via Upstash Redis.
+- **Timing-safe cron authentication** — all cron and webhook endpoints
+  use `crypto.timingSafeEqual()` via the shared `verifyCronSecret()`
+  utility in `lib/security/cron-auth.ts` (prevents timing attacks on
+  secret comparison).
+- **userId in Stripe metadata** — injected into both Stripe session and
+  payment_intent metadata for full attribution of deposits and deal events.
 - **Sentry redaction pipeline** — `beforeSend` + `beforeBreadcrumb`
   scrub PII (email, phone, name, SIN, DOB, address), tokens (JWT, Stripe
   secret, Supabase service-role), and credit-card-shaped digit runs from
   every event before transport. WeakSet-backed cycle detection prevents
   serialization drops.
+- **SIN encryption** — finance application SIN fields encrypted with
+  AES-256 (`APPLICATION_SIN_ENCRYPTION_KEY`) and hashed with a pepper
+  (`APPLICATION_SIN_HASH_PEPPER`) before storage.
 - **Cookie hardening** — Supabase session cookies receive `secure` (in
   production) and `sameSite=lax` defaults via
   `lib/supabase/middleware.ts:applySupabaseCookieDefaults`; `httpOnly`
@@ -378,6 +428,21 @@ GitHub Actions runs on every PR and push to `main`:
 - **PII redacted** from Edge Function logs via `lib/redact.ts`.
 
 See `docs/SECURITY.md` for the full pre-launch security checklist.
+
+## Production Stack
+
+| Service | Purpose | Tier |
+|---------|---------|------|
+| **Vercel** | Hosting, edge runtime, cron jobs, preview deploys | Pro |
+| **Supabase** | Database, auth, RLS, storage, realtime | Pro |
+| **Upstash Redis** | Rate limiting, vehicle locking, idempotency cache | Pay-as-you-go |
+| **Stripe** | Payments, deposits, webhooks, Radar fraud detection | Standard |
+| **Resend** | Transactional email (magic links, alerts, ADF) | Free / Starter |
+| **Sentry** | Error tracking, performance monitoring, session replay | Free |
+| **Typesense Cloud** | Vehicle search (3-node HA + SDN) | Starter |
+| **Sanity** | CMS — pages, blog, featured vehicles, settings | Growth |
+| **AutoRaptor** | CRM — ADF/XML lead push, eLead forwarding | Dealer |
+| **Google Maps** | Maps JavaScript API + Places API (address autocomplete) | Pay-as-you-go |
 
 ## Contributing
 
