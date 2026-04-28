@@ -81,7 +81,7 @@ export function FooterContent({ siteSettings }: Readonly<FooterProps>) {
   const mapsFallbackUrl = `https://maps.google.com/?q=${encodeURIComponent(mapsAddress)}`
 
   return (
-    <footer className="bg-foreground text-background" role="contentinfo" aria-label="Site footer">
+    <footer className="bg-foreground text-background" aria-label="Site footer">
       {/* ── Row 1: Trust Bar — gradient bridge from CTA blue → footer black ── */}
       <div className="bg-linear-to-b from-[#1e3a8a] to-[#0a0a0a]">
         <div className="mx-auto max-w-7xl px-6 py-5 lg:px-8">

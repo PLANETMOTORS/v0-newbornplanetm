@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
@@ -332,7 +331,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
     <div className="min-h-screen bg-background">
       {/* JSON-LD is server-rendered in page.tsx — no client Script needed */}
       <Header />
-      <main id="main-content" tabIndex={-1} className="pb-32 md:pb-20 overflow-x-hidden max-w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" role="main" aria-label="Vehicle details" data-vin={vehicle.vin} data-stock={vehicle.stockNumber}>
+      <main id="main-content" tabIndex={-1} className="pb-32 md:pb-20 overflow-x-hidden max-w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" aria-label="Vehicle details" data-vin={vehicle.vin} data-stock={vehicle.stockNumber}>
 
         {/* Trade-In Banner */}
         {tradeInValue && Number.parseInt(tradeInValue) > 0 && (
@@ -357,7 +356,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
         {/* Breadcrumb */}
         <nav className="bg-muted/30 py-3 border-b" aria-label="Breadcrumb">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-[84px] overflow-x-auto scrollbar-hide">
-            <ol className="flex items-center gap-2 text-sm whitespace-nowrap" role="list">
+            <ol className="flex items-center gap-2 text-sm whitespace-nowrap">
               <li>
                 <Link href="/inventory" className="text-muted-foreground hover:text-foreground">
                   All cars

@@ -66,7 +66,7 @@ export default function ElectricVehiclesPage() {
       <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Electric Vehicles", url: "/electric-vehicles" }]} />
       <Header />
 
-      <main id="main-content" role="main" aria-label="Electric vehicles">
+      <main id="main-content" aria-label="Electric vehicles">
         {/* Hero Section */}
         <section className="relative bg-linear-to-br from-green-900 via-green-800 to-emerald-900 text-white py-16 lg:py-24">
           <div className="container mx-auto px-4">

@@ -264,23 +264,23 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
 
   if (authLoading || !user) {
     return (
-      <output className="min-h-screen flex items-center justify-center" aria-label="Loading">
+      <div className="min-h-screen flex items-center justify-center" role="status" aria-live="polite" aria-label="Loading">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Loading…</p>
         </div>
-      </output>
+      </div>
     )
   }
 
   if (vehicleLoading) {
     return (
-      <output className="min-h-screen flex items-center justify-center" aria-label="Loading vehicle">
+      <div className="min-h-screen flex items-center justify-center" role="status" aria-live="polite" aria-label="Loading vehicle">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Loading vehicle details…</p>
         </div>
-      </output>
+      </div>
     )
   }
 

@@ -59,9 +59,9 @@ function Item({
   size = 'default',
   asChild = false,
   ...props
-}: React.ComponentProps<'div'> &
+}: React.ComponentProps<'li'> &
   VariantProps<typeof itemVariants> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot : 'div'
+  const Comp = asChild ? Slot : 'li'
   return (
     <Comp
       data-slot="item"
