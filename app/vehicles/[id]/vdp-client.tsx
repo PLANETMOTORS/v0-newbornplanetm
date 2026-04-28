@@ -192,7 +192,8 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
 
   // Track product view on mount (data is already available from SSR)
   useEffect(() => {
-    const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.trim ? ` ${vehicle.trim}` : ""}`
+    const trimSuffix = vehicle.trim ? ` ${vehicle.trim}` : ""
+    const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}${trimSuffix}`
     trackProductView({
       id: vehicle.id,
       name,
@@ -257,7 +258,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
   }
 
   const handleShare = async () => {
-    const shareUrl = typeof globalThis.window !== "undefined" ? globalThis.window.location.href : ""
+    const shareUrl = typeof globalThis.window === "undefined" ? "" : globalThis.window.location.href
     const shareTitle = `${vehicle.year} ${vehicle.make} ${vehicle.model} at Planet Motors`
     const shareText = `Check out this ${vehicle.year} ${vehicle.make} ${vehicle.model} for $${safeNum(vehicle.price).toLocaleString()}.`
     try {

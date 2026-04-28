@@ -223,8 +223,10 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
   const normalizedVin = vin.toUpperCase()
 
   // === A2: Derived fields ===
-  const title = `${year} ${make} ${model}${trim ? ` ${trim}` : ""}`
-  const slug = `${year}-${make}-${model}${trim ? `-${trim}` : ""}-${stockNumber}`
+  const trimSuffix = trim ? ` ${trim}` : ""
+  const trimSlugSuffix = trim ? `-${trim}` : ""
+  const title = `${year} ${make} ${model}${trimSuffix}`
+  const slug = `${year}-${make}-${model}${trimSlugSuffix}-${stockNumber}`
     .toLowerCase().replaceAll(/[^a-z0-9]+/g, "-").replaceAll(/^-|-$/g, "")
 
   // === A2: Pricing (integer CAD dollars) ===
@@ -320,7 +322,7 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
 
     // Backward compat aliases (for existing DB sync until migration)
     price: (priceDollars || 0) * 100,
-    msrp: msrpDollars != null ? msrpDollars * 100 : undefined,
+    msrp: msrpDollars == null ? undefined : msrpDollars * 100,
     mileage: mileageKm,
     featured: isFeatured,
   }
@@ -544,8 +546,10 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
   const isFeatured = getBoolean("featured")
   const isCertified = getBoolean("certified") || getBoolean("cpo")
 
-  const title = `${year} ${make} ${model}${trim ? ` ${trim}` : ""}`
-  const slug = `${year}-${make}-${model}${trim ? `-${trim}` : ""}-${stockNumber}`
+  const trimSuffix = trim ? ` ${trim}` : ""
+  const trimSlugSuffix = trim ? `-${trim}` : ""
+  const title = `${year} ${make} ${model}${trimSuffix}`
+  const slug = `${year}-${make}-${model}${trimSlugSuffix}-${stockNumber}`
     .toLowerCase().replaceAll(/[^a-z0-9]+/g, "-").replaceAll(/^-|-$/g, "")
 
   return {
@@ -594,7 +598,7 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
     title_status: undefined,
     // Legacy compat
     price: (priceDollars || 0) * 100,
-    msrp: msrpDollars != null ? msrpDollars * 100 : undefined,
+    msrp: msrpDollars == null ? undefined : msrpDollars * 100,
     mileage: mileageKm,
     featured: isFeatured,
   }

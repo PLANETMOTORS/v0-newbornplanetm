@@ -146,11 +146,12 @@ export async function POST(request: Request) {
       }, { status: 500 })
     }
 
+    const skipSuffix = errors.length > 0 ? ` (${errors.length} rows skipped)` : ""
     return NextResponse.json({
       success: true,
       imported: vehicles.length,
       errors: errors.length > 0 ? errors : undefined,
-      message: `Successfully imported ${vehicles.length} vehicles${errors.length > 0 ? ` (${errors.length} rows skipped)` : ""}`
+      message: `Successfully imported ${vehicles.length} vehicles${skipSuffix}`
     })
 
   } catch (error) {

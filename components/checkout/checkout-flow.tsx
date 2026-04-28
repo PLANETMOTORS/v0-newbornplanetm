@@ -95,7 +95,8 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
   // Redirect unauthenticated users
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push(`/auth/login?redirectTo=${encodeURIComponent(`/checkout/${vehicleId}`)}`)
+      const redirectTo = encodeURIComponent(`/checkout/${vehicleId}`)
+      router.push(`/auth/login?redirectTo=${redirectTo}`)
     }
   }, [user, authLoading, router, vehicleId])
 

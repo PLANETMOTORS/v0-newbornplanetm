@@ -93,13 +93,13 @@ export async function GET() {
     }
 
     let homenetStatus: "ok" | "stale" | "unconfigured"
-    if (!isHomenetConfigured) {
-      homenetStatus = "unconfigured"
-    } else if (!homenetLastSync) {
-      homenetStatus = "stale"
-    } else {
+    if (isHomenetConfigured && homenetLastSync) {
       const ageMs = Date.now() - new Date(homenetLastSync).getTime()
       homenetStatus = ageMs > HOMENET_STALE_THRESHOLD_MS ? "stale" : "ok"
+    } else if (isHomenetConfigured) {
+      homenetStatus = "stale"
+    } else {
+      homenetStatus = "unconfigured"
     }
 
     const homenetSftp = {

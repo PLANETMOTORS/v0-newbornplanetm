@@ -109,7 +109,8 @@ export default function AdminFinancePage() {
   const fetchApplications = async () => {
     setLoading(true)
     try {
-      const url = `/api/v1/admin/finance/applications${statusFilter === "all" ? "" : `?status=${statusFilter}`}`
+      const statusQuery = statusFilter === "all" ? "" : `?status=${statusFilter}`
+      const url = `/api/v1/admin/finance/applications${statusQuery}`
       const res = await fetch(url)
       if (res.ok) {
         const data = await res.json()

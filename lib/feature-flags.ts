@@ -39,18 +39,16 @@ function parseEnabledPhases(): Set<Phase> {
       ? process.env.NEXT_PUBLIC_ENABLED_PHASES
       : undefined
 
-  if (raw && raw.trim() !== "") {
-    const parsed = new Set<Phase>()
-    for (const token of raw.split(",")) {
-      const num = Number(token.trim())
-      if (!Number.isNaN(num) && Object.values(Phase).includes(num as Phase)) {
-        parsed.add(num as Phase)
-      }
+  if (raw && raw.trim() === "") return new Set(ALL_PHASES)
+  if (!raw) return new Set(ALL_PHASES)
+  const parsed = new Set<Phase>()
+  for (const token of raw.split(",")) {
+    const num = Number(token.trim())
+    if (!Number.isNaN(num) && Object.values(Phase).includes(num as Phase)) {
+      parsed.add(num as Phase)
     }
-    return parsed
   }
-  // Default: all phases enabled
-  return new Set(ALL_PHASES)
+  return parsed
 }
 
 function parseEnabledFeatures(): Set<string> {
@@ -59,17 +57,16 @@ function parseEnabledFeatures(): Set<string> {
       ? process.env.NEXT_PUBLIC_FEATURES
       : undefined
 
-  if (raw && raw.trim() !== "") {
-    const features = new Set<string>()
-    for (const token of raw.split(",")) {
-      const trimmed = token.trim()
-      if (trimmed) {
-        features.add(trimmed)
-      }
+  if (raw && raw.trim() === "") return new Set()
+  if (!raw) return new Set()
+  const features = new Set<string>()
+  for (const token of raw.split(",")) {
+    const trimmed = token.trim()
+    if (trimmed) {
+      features.add(trimmed)
     }
-    return features
   }
-  return new Set()
+  return features
 }
 
 // ── Public API ──────────────────────────────────────────────────────────────

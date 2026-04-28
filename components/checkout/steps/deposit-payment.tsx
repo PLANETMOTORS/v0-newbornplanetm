@@ -65,7 +65,7 @@ export function DepositPaymentStep({
       const secret = await startVehicleCheckout({
         vehicleId,
         vehicleName,
-        protectionPlanId: protectionPlanId !== "none" ? protectionPlanId : undefined,
+        protectionPlanId: protectionPlanId === "none" ? undefined : protectionPlanId,
         customerEmail: customerEmail || undefined,
         customerName: customerName || undefined,
         customerPhone: customerPhone || undefined,

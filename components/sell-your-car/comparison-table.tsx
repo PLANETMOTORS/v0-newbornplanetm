@@ -46,7 +46,7 @@ export function ComparisonTable({ title, rows, usLabel = 'Planet Motors', others
           
           {/* Rows */}
           {rows.map((row, index) => (
-            <div key={row.feature} className={`grid grid-cols-3 ${index !== rows.length - 1 ? 'border-b' : ''}`}>
+            <div key={row.feature} className={`grid grid-cols-3 ${index === rows.length - 1 ? '' : 'border-b'}`}>
               <div className="p-4 font-semibold">{row.feature}</div>
               <div className="p-4 text-center">
                 {renderComparisonCell(row.usValue, row.us, "us")}
