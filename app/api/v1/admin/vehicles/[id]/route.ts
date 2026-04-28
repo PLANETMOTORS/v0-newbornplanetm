@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { ADMIN_EMAILS } from "@/lib/admin"
+import { asScalarString } from "@/lib/safe-coerce"
 
 /**
  * Admin Single Vehicle API
@@ -115,19 +116,16 @@ export async function PUT(
       }
     }
 
-    // Numeric conversions. Each `update[f]` is `unknown`; coerce only
-    // primitives so that an accidental object never gets parsed via
-    // "[object Object]" (Sonar S6551).
-    const toScalar = (v: unknown): string =>
-      typeof v === "string" || typeof v === "number" ? String(v) : ""
+    // Numeric conversions — `update[f]` is `unknown`; only primitives are
+    // safe to feed into Number.parseInt / parseFloat (S6551).
     const intFields = ["year", "price", "msrp", "mileage", "fuel_economy_city", "fuel_economy_highway", "range_miles", "inspection_score", "ev_battery_health_percent", "savings"]
     for (const f of intFields) {
       if (f in update && update[f] !== null) {
-        update[f] = Number.parseInt(toScalar(update[f]))
+        update[f] = Number.parseInt(asScalarString(update[f]))
       }
     }
     if ("battery_capacity_kwh" in update && update.battery_capacity_kwh !== null) {
-      update.battery_capacity_kwh = Number.parseFloat(toScalar(update.battery_capacity_kwh))
+      update.battery_capacity_kwh = Number.parseFloat(asScalarString(update.battery_capacity_kwh))
     }
 
     update.updated_at = new Date().toISOString()

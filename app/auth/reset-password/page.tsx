@@ -25,11 +25,11 @@ export default function ResetPasswordPage() {
     const supabase = createClient()
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
+      if (session) {
+        setSessionReady(true)
+      } else {
         // No valid session — link has expired or was already used
         router.replace("/auth/error")
-      } else {
-        setSessionReady(true)
       }
     })
   }, [router])
