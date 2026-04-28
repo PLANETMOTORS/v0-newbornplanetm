@@ -8,47 +8,48 @@ on:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: sonar-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   sonarcloud:
     name: SonarCloud Scan
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 15
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for better analysis
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
+          fetch-depth: 0
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9.15.0
-      
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-      
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-      
+          node-version: '22'
+          cache: pnpm
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: pnpm lint
+
       - name: Run tests with coverage
         run: pnpm exec vitest run --coverage --reporter=default
-        continue-on-error: true
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v7.1.0

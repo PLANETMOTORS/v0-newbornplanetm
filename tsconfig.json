@@ -43,6 +43,7 @@
   "exclude": [
     "node_modules",
     "__tests__",
+    "e2e",
     "app/sw.ts",
     "scripts",
     "src",

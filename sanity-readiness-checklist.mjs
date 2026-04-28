@@ -217,8 +217,8 @@ test('Q21', 'Boundary between Sanity (editorial) and Supabase (inventory) docume
   // .env.example clearly separates Supabase and Sanity sections
   const supabaseSection = has(src.envExample, 'REQUIRED — Supabase')
   const sanitySection = has(src.envExample, 'SANITY CMS')
-  // webhook route comment mentions Sanity = editorial — proven elsewhere,
-  // not required for this Q.
+  // webhook route comment mentions Sanity = editorial
+  const _webhookComment = has(src.webhook, 'editorial content')
   return supabaseSection && sanitySection
 })
 
