@@ -5,6 +5,10 @@ import { createClient as createServiceClient, SupabaseClient } from "@supabase/s
 import { ADMIN_EMAILS } from "@/lib/admin"
 import { fullPaymentVerification } from "@/lib/reservation-payment-rules"
 import type { ReservationPaymentFields } from "@/lib/reservation-payment-rules"
+import {
+  adminReservationPatchSchema,
+  parseAdminPatch,
+} from "@/lib/security/admin-mutation-schemas"
 
 /** Authenticate the request and return a service-role admin client.
  *  Returns null (with a 401 response already sent) if the user is not an admin. */
@@ -99,8 +103,21 @@ export async function PATCH(request: NextRequest) {
     const { adminClient, unauthorized } = await requireAdminClient()
     if (!adminClient) return unauthorized!
 
-    const { id, ...updates } = await request.json()
+    const { id, ...rawUpdates } = await request.json()
     if (!id) return NextResponse.json({ error: "Reservation ID required" }, { status: 400 })
+
+    // ── Mass-assignment defence (OWASP API3) ────────────────────────────
+    // Whitelist the admin-mutable columns + validate value domains. Any
+    // unexpected key (customer_email, vehicle_id, deposit_amount, …) is
+    // rejected with a 400 instead of silently rewritten.
+    const parsed = parseAdminPatch(adminReservationPatchSchema, rawUpdates)
+    if (!parsed.ok) {
+      return NextResponse.json(
+        { error: "Invalid reservation update", details: parsed.issues },
+        { status: 400 }
+      )
+    }
+    const updates = parsed.data
 
     // Payment validation: if attempting to confirm a reservation, verify payment first
     if (updates.status === "confirmed") {

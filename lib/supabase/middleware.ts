@@ -27,7 +27,18 @@ export async function updateSession(request: NextRequest) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
         supabaseResponse = NextResponse.next({ request })
         cookiesToSet.forEach(({ name, value, options }) =>
-          supabaseResponse.cookies.set(name, value, options)
+          // Harden every cookie Supabase writes back to the browser:
+          //   secure  – never send over plain HTTP in production
+          //   sameSite – defends against CSRF on state-changing endpoints
+          //   httpOnly – not readable from client JS, defangs XSS theft
+          //   path     – scope to '/'; explicit beats Supabase defaults
+          supabaseResponse.cookies.set(name, value, {
+            ...options,
+            secure: options?.secure ?? process.env.NODE_ENV === "production",
+            sameSite: options?.sameSite ?? "lax",
+            httpOnly: options?.httpOnly ?? true,
+            path: options?.path ?? "/",
+          })
         )
       },
     },

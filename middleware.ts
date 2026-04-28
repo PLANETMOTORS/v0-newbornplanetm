@@ -1,5 +1,6 @@
 import { updateSession } from '@/lib/supabase/middleware'
 import { NextResponse, type NextRequest } from 'next/server'
+import { applySecurityHeaders } from '@/lib/security/security-headers'
 
 // Routes that must never be accessible in production
 const DEV_ONLY_ROUTES = ['/mockup', '/production-readiness']
@@ -10,12 +11,12 @@ export async function middleware(request: NextRequest) {
   // Block dev/internal routes in production
   if (process.env.NODE_ENV === 'production') {
     if (DEV_ONLY_ROUTES.some((route) => pathname === route || pathname.startsWith(route + '/'))) {
-      return new NextResponse(null, { status: 404 })
+      return applySecurityHeaders(new NextResponse(null, { status: 404 }), pathname)
     }
   }
 
   const { response } = await updateSession(request)
-  return response
+  return applySecurityHeaders(response, pathname)
 }
 
 export const config = {
