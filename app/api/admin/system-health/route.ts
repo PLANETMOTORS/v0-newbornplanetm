@@ -40,6 +40,82 @@ async function requireAdmin(): Promise<{ user: { email: string } } | null> {
   }
 }
 
+// ── Per-section helpers (S3776 — keeps GET handler shallow) ──────────────
+
+async function getSanityWebhookStatus() {
+  const sanityRecord = await getKey<SanityWebhookRecord>(SANITY_WEBHOOK_REDIS_KEY)
+  if (sanityRecord) {
+    return {
+      lastTriggeredAt: sanityRecord.timestamp,
+      documentType: sanityRecord.documentType,
+      tagsRevalidated: sanityRecord.tagsRevalidated,
+      status: "ok" as const,
+    }
+  }
+  return {
+    lastTriggeredAt: null,
+    documentType: null,
+    tagsRevalidated: [] as string[],
+    status: "unknown" as const,
+    note: "No webhook trigger recorded yet (Redis may be unavailable or webhook has never fired)",
+  }
+}
+
+function isHomenetSftpConfigured(): boolean {
+  return !!(
+    process.env.HOMENET_SFTP_HOST &&
+    (process.env.HOMENET_SFTP_USER || process.env.HOMENET_SFTP_USERNAME) &&
+    (process.env.HOMENET_SFTP_PASS || process.env.HOMENET_SFTP_PASSWORD)
+  )
+}
+
+async function getHomenetLastSync(): Promise<string | null> {
+  try {
+    const supabase = await createClient()
+    const { data: latest } = await supabase
+      .from("vehicles")
+      .select("updated_at")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .single()
+    return latest?.updated_at ?? null
+  } catch (err) {
+    logger.warn("[system-health] Failed to query vehicles.updated_at:", err)
+    return null
+  }
+}
+
+function deriveHomenetStatus(
+  configured: boolean,
+  lastSync: string | null,
+): "ok" | "stale" | "unconfigured" {
+  if (!configured) return "unconfigured"
+  if (!lastSync) return "stale"
+  const ageMs = Date.now() - new Date(lastSync).getTime()
+  return ageMs > HOMENET_STALE_THRESHOLD_MS ? "stale" : "ok"
+}
+
+async function getHomenetSftpStatus() {
+  const configured = isHomenetSftpConfigured()
+  const lastSync = configured ? await getHomenetLastSync() : null
+  return {
+    configured,
+    lastSyncEstimate: lastSync,
+    cronSchedule: "*/15 * * * *",
+    cronDescription: "Every 15 minutes",
+    status: deriveHomenetStatus(configured, lastSync),
+    envVars: {
+      HOMENET_SFTP_HOST: process.env.HOMENET_SFTP_HOST ? "configured" : "missing",
+      HOMENET_SFTP_USER: (process.env.HOMENET_SFTP_USER || process.env.HOMENET_SFTP_USERNAME)
+        ? "configured"
+        : "missing",
+      HOMENET_SFTP_PASS: (process.env.HOMENET_SFTP_PASS || process.env.HOMENET_SFTP_PASSWORD)
+        ? "configured"
+        : "missing",
+    },
+  }
+}
+
 // ── GET — system health summary ────────────────────────────────────────────
 
 export async function GET() {
@@ -50,90 +126,15 @@ export async function GET() {
 
   try {
     const generatedAt = new Date().toISOString()
-
-    // ── 1. Sanity Webhook status ───────────────────────────────────────────
-    const sanityRecord = await getKey<SanityWebhookRecord>(SANITY_WEBHOOK_REDIS_KEY)
-
-    const sanityWebhook = sanityRecord
-      ? {
-          lastTriggeredAt: sanityRecord.timestamp,
-          documentType: sanityRecord.documentType,
-          tagsRevalidated: sanityRecord.tagsRevalidated,
-          status: "ok" as const,
-        }
-      : {
-          lastTriggeredAt: null,
-          documentType: null,
-          tagsRevalidated: [],
-          status: "unknown" as const,
-          note: "No webhook trigger recorded yet (Redis may be unavailable or webhook has never fired)",
-        }
-
-    // ── 2. HomenetIOL SFTP sync status ────────────────────────────────────
-    const isHomenetConfigured = !!(
-      process.env.HOMENET_SFTP_HOST &&
-      (process.env.HOMENET_SFTP_USER || process.env.HOMENET_SFTP_USERNAME) &&
-      (process.env.HOMENET_SFTP_PASS || process.env.HOMENET_SFTP_PASSWORD)
-    )
-
-    let homenetLastSync: string | null = null
-    if (isHomenetConfigured) {
-      try {
-        const supabase = await createClient()
-        const { data: latest } = await supabase
-          .from("vehicles")
-          .select("updated_at")
-          .order("updated_at", { ascending: false })
-          .limit(1)
-          .single()
-        homenetLastSync = latest?.updated_at ?? null
-      } catch (err) {
-        logger.warn("[system-health] Failed to query vehicles.updated_at:", err)
-      }
-    }
-
-    // S7735: avoid the negated condition cascade by computing each branch
-    // with positive predicates.
-    let homenetStatus: "ok" | "stale" | "unconfigured"
-    if (isHomenetConfigured && homenetLastSync) {
-      const ageMs = Date.now() - new Date(homenetLastSync).getTime()
-      homenetStatus = ageMs > HOMENET_STALE_THRESHOLD_MS ? "stale" : "ok"
-    } else if (isHomenetConfigured) {
-      homenetStatus = "stale"
-    } else {
-      homenetStatus = "unconfigured"
-    }
-
-    const homenetSftp = {
-      configured: isHomenetConfigured,
-      lastSyncEstimate: homenetLastSync,
-      cronSchedule: "*/15 * * * *",
-      cronDescription: "Every 15 minutes",
-      status: homenetStatus,
-      envVars: {
-        HOMENET_SFTP_HOST: process.env.HOMENET_SFTP_HOST ? "configured" : "missing",
-        HOMENET_SFTP_USER: (process.env.HOMENET_SFTP_USER || process.env.HOMENET_SFTP_USERNAME)
-          ? "configured"
-          : "missing",
-        HOMENET_SFTP_PASS: (process.env.HOMENET_SFTP_PASS || process.env.HOMENET_SFTP_PASSWORD)
-          ? "configured"
-          : "missing",
-      },
-    }
-
-    // ── 3. Typesense status ───────────────────────────────────────────────
+    const sanityWebhook = await getSanityWebhookStatus()
+    const homenetSftp = await getHomenetSftpStatus()
     const typesenseConfigured = isTypesenseConfigured()
     const typesense = {
       configured: typesenseConfigured,
       status: typesenseConfigured ? ("ok" as const) : ("unconfigured" as const),
     }
 
-    return NextResponse.json({
-      generatedAt,
-      sanityWebhook,
-      homenetSftp,
-      typesense,
-    })
+    return NextResponse.json({ generatedAt, sanityWebhook, homenetSftp, typesense })
   } catch (error) {
     logger.error("[system-health] GET error:", error)
     return NextResponse.json({ error: "Failed to retrieve system health" }, { status: 500 })

@@ -24,6 +24,47 @@ import { invalidateDriveeCache } from "@/lib/drivee-db"
 export const maxDuration = 120
 export const dynamic = "force-dynamic"
 
+type AdminClient = ReturnType<typeof createAdminClient>
+type UnmappedVehicle = { vin: string; stock_number: string | null; year: number; make: string; model: string }
+
+async function resolveMidForVehicle(vin: string, stockNumber: string | null): Promise<string | null> {
+  let mid = await resolveMidFromPirelly(vin)
+  if (!mid && stockNumber) {
+    mid = await resolveMidFromPirellyByStock(stockNumber)
+  }
+  return mid
+}
+
+async function syncOneVehicle(supabase: AdminClient, vehicle: UnmappedVehicle): Promise<SyncResult> {
+  const { vin, stock_number, year, make, model } = vehicle
+  const vehicleName = `${year} ${make} ${model}`
+  try {
+    const mid = await resolveMidForVehicle(vin, stock_number)
+    if (!mid) {
+      return { vin, mid: null, frameCount: 0, framesInStorage: false, framesMigrated: 0, status: "no_mid" }
+    }
+    const storageCount = await countFramesInStorage(mid)
+    const framesInStorage = storageCount > 0
+    const { error: upsertError } = await supabase
+      .from("drivee_mappings")
+      .upsert(
+        {
+          vin, mid, frame_count: storageCount, frames_in_storage: framesInStorage,
+          vehicle_name: vehicleName, source: "pirelly",
+          verified_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+        },
+        { onConflict: "vin" },
+      )
+    if (upsertError) throw upsertError
+    return { vin, mid, frameCount: storageCount, framesInStorage, framesMigrated: 0, status: "synced" }
+  } catch (err) {
+    return {
+      vin, mid: null, frameCount: 0, framesInStorage: false, framesMigrated: 0,
+      status: "error", error: err instanceof Error ? err.message : "Unknown error",
+    }
+  }
+}
+
 export async function GET(request: Request) {
   const startTime = Date.now()
 
@@ -80,53 +121,11 @@ export async function GET(request: Request) {
     let errors = 0
 
     for (const vehicle of unmappedVehicles) {
-      const { vin, stock_number, year, make, model } = vehicle
-      const vehicleName = `${year} ${make} ${model}`
-
-      try {
-        // Resolve MID from Pirelly (try VIN first, then stock number)
-        let mid = await resolveMidFromPirelly(vin)
-        if (!mid && stock_number) {
-          mid = await resolveMidFromPirellyByStock(stock_number)
-        }
-
-        if (!mid) {
-          results.push({ vin, mid: null, frameCount: 0, framesInStorage: false, framesMigrated: 0, status: "no_mid" })
-          noMid++
-          continue
-        }
-
-        // Check frames in Supabase Storage
-        const storageCount = await countFramesInStorage(mid)
-        const framesInStorage = storageCount > 0
-
-        // Upsert to drivee_mappings
-        const { error: upsertError } = await supabase
-          .from("drivee_mappings")
-          .upsert(
-            {
-              vin,
-              mid,
-              frame_count: storageCount,
-              frames_in_storage: framesInStorage,
-              vehicle_name: vehicleName,
-              source: "pirelly",
-              verified_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: "vin" },
-          )
-        if (upsertError) throw upsertError
-
-        results.push({ vin, mid, frameCount: storageCount, framesInStorage, framesMigrated: 0, status: "synced" })
-        synced++
-      } catch (err) {
-        results.push({
-          vin, mid: null, frameCount: 0, framesInStorage: false, framesMigrated: 0,
-          status: "error", error: err instanceof Error ? err.message : "Unknown error",
-        })
-        errors++
-      }
+      const result = await syncOneVehicle(supabase, vehicle)
+      results.push(result)
+      if (result.status === "synced") synced++
+      else if (result.status === "no_mid") noMid++
+      else if (result.status === "error") errors++
     }
 
     // Invalidate cache so subsequent requests see new data
