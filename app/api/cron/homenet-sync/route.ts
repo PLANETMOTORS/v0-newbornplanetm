@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto"
 import { NextResponse } from "next/server"
 import { downloadLatestCSV } from "@/lib/homenet/sftp-client"
 import { parseHomenetCSV, syncVehiclesToDatabase, getSql } from "@/lib/homenet/parser"
@@ -21,9 +22,21 @@ export async function GET(request: Request) {
   // Verify cron secret (Vercel sets CRON_SECRET automatically)
   const authHeader = request.headers.get("authorization")
   const cronSecret = process.env.CRON_SECRET
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.error("[HomenetIOL Cron] Unauthorized request")
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  if (process.env.NODE_ENV === "production" && !cronSecret) {
+    return NextResponse.json(
+      { error: "Server misconfiguration: CRON_SECRET is not set" },
+      { status: 503 }
+    )
+  }
+  if (cronSecret) {
+    const expected = `Bearer ${cronSecret}`
+    const supplied = authHeader ?? ''
+    const a = Buffer.from(expected)
+    const b = Buffer.from(supplied)
+    if (a.length !== b.length || !timingSafeEqual(a, b)) {
+      console.error("[HomenetIOL Cron] Unauthorized request")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
   }
 
   const sql = getSql()

@@ -1,4 +1,5 @@
 // Typesense Sync Webhook — receives insert/update/delete from Supabase DB trigger
+import { timingSafeEqual } from 'node:crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { upsertVehicle, deleteVehicle, type VehicleDocument } from '@/lib/typesense/indexer'
 import { isTypesenseConfigured } from '@/lib/typesense/client'
@@ -19,7 +20,11 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-  if (authHeader !== `Bearer ${syncSecret}`) {
+  const expected = `Bearer ${syncSecret}`
+  const supplied = authHeader ?? ''
+  const a = Buffer.from(expected)
+  const b = Buffer.from(supplied)
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
