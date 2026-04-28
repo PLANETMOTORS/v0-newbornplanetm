@@ -1,6 +1,6 @@
-import { timingSafeEqual } from "node:crypto"
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { verifyCronSecret } from "@/lib/security/cron-auth"
 
 /**
  * Vercel Cron Job: Auto-Release Stuck Vehicles
@@ -29,29 +29,8 @@ interface ReleasedVehicle {
 export async function GET(request: Request) {
   const startTime = Date.now()
 
-  // Verify cron secret (Vercel sets CRON_SECRET automatically).
-  //
-  // In production, an unset CRON_SECRET means the env is misconfigured —
-  // we MUST fail closed. The previous `if (cronSecret && ...)` form silently
-  // skipped the auth check whenever the env var was missing, which would
-  // expose the endpoint to anyone on the internet.
-  const authHeader = request.headers.get("authorization")
-  const cronSecret = process.env.CRON_SECRET
-  if (process.env.NODE_ENV === "production" && !cronSecret) {
-    return NextResponse.json(
-      { error: "Server misconfiguration: CRON_SECRET is not set" },
-      { status: 503 }
-    )
-  }
-  if (cronSecret) {
-    const expected = `Bearer ${cronSecret}`
-    const supplied = authHeader ?? ''
-    const a = Buffer.from(expected)
-    const b = Buffer.from(supplied)
-    if (a.length !== b.length || !timingSafeEqual(a, b)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-  }
+  const auth = verifyCronSecret(request)
+  if (!auth.ok) return auth.response
 
   let adminClient: ReturnType<typeof createAdminClient>
   try {

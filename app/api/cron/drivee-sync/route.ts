@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { verifyCronSecret } from "@/lib/security/cron-auth"
 import {
   resolveMidFromPirelly,
   resolveMidFromPirellyByStock,
@@ -27,13 +28,8 @@ export const dynamic = "force-dynamic"
 export async function GET(request: Request) {
   const startTime = Date.now()
 
-  // Verify cron secret (Vercel sets CRON_SECRET automatically)
-  const authHeader = request.headers.get("authorization")
-  const cronSecret = process.env.CRON_SECRET
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.error("[Drivee Cron] Unauthorized request")
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const auth = verifyCronSecret(request)
+  if (!auth.ok) return auth.response
 
   try {
     const supabase = createAdminClient()
