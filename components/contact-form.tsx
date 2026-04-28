@@ -23,22 +23,36 @@ interface ContactFormProps {
   onSuccess?: () => void
 }
 
-function getFieldErrorMessage(field: string, value: string): string {
-  switch (field) {
-    case "firstName": return value.trim() ? "" : "First name is required"
-    case "lastName": return value.trim() ? "" : "Last name is required"
-    case "email":
-      if (value && isValidEmail(value)) return ""
-      return value ? "Please enter a valid email" : "Email is required"
-    case "phone":
-      if (value && isValidCanadianPhone(value)) return ""
-      return value ? "Please enter a valid 10-digit phone number" : "Phone number is required"
-    case "postalCode":
-      if (value && isValidCanadianPostalCode(value)) return ""
-      return value ? "Please enter a valid postal code (e.g., M5V 3L9)" : "Postal code is required"
-    case "message": return value.trim() ? "" : "Message is required"
-    default: return ""
+type FieldRule = (value: string) => string
+
+function requiredText(label: string): FieldRule {
+  return (value) => (value.trim() ? "" : `${label} is required`)
+}
+
+function patternText(
+  label: string,
+  invalidMsg: string,
+  isValid: (value: string) => boolean,
+): FieldRule {
+  return (value) => {
+    if (!value) return `${label} is required`
+    if (!isValid(value)) return invalidMsg
+    return ""
   }
+}
+
+const FIELD_RULES: Record<string, FieldRule> = {
+  firstName: requiredText("First name"),
+  lastName: requiredText("Last name"),
+  message: requiredText("Message"),
+  email: patternText("Email", "Please enter a valid email", isValidEmail),
+  phone: patternText("Phone number", "Please enter a valid 10-digit phone number", isValidCanadianPhone),
+  postalCode: patternText("Postal code", "Please enter a valid postal code (e.g., M5V 3L9)", isValidCanadianPostalCode),
+}
+
+function getFieldErrorMessage(field: string, value: string): string {
+  const rule = FIELD_RULES[field]
+  return rule ? rule(value) : ""
 }
 
 function FieldError({ message }: Readonly<{ message?: string }>) {
