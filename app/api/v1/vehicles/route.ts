@@ -87,6 +87,238 @@ function hashKey(input: string): string {
   return createHash('sha256').update(input).digest('hex').slice(0, 32)
 }
 
+// ─── Helpers extracted to keep the GET handler's cognitive complexity low ───
+
+const ISO_DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})$/
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+type ListParams = ReturnType<typeof parseListParams>
+type CursorPair = { id: string | null; createdAt: string | null }
+
+function parseListParams(searchParams: URLSearchParams) {
+  const rawSort = searchParams.get('sort') || 'created_at'
+  const rawLimit = asInt(searchParams.get('limit'), 20)
+  return {
+    make: searchParams.get('make'),
+    model: searchParams.get('model'),
+    minYear: searchParams.get('minYear'),
+    maxYear: searchParams.get('maxYear'),
+    minPrice: searchParams.get('minPrice'),
+    maxPrice: searchParams.get('maxPrice'),
+    minMileage: searchParams.get('minMileage'),
+    maxMileage: searchParams.get('maxMileage'),
+    exteriorColor: searchParams.get('exteriorColor'),
+    bodyStyle: searchParams.get('bodyStyle'),
+    fuelType: searchParams.get('fuelType'),
+    transmission: searchParams.get('transmission'),
+    drivetrain: searchParams.get('drivetrain'),
+    q: searchParams.get('q'),
+    status: searchParams.get('status') || 'public',
+    sort: ALLOWED_SORT_COLUMNS.has(rawSort) ? rawSort : 'created_at',
+    order: searchParams.get('order') || 'desc',
+    page: Math.max(1, asInt(searchParams.get('page'), 1)),
+    limit: Math.min(Math.max(1, rawLimit), 250),
+    includeFilters: searchParams.get('includeFilters') === 'true',
+  }
+}
+
+// Cursor-based pagination: pass `cursor_id` + `cursor_created_at` to skip
+// expensive OFFSET scans on large tables. The composite cursor uses
+// (created_at, id) to guarantee stable ordering. PostgREST uses commas and
+// parentheses as delimiters, so we strictly validate both values to prevent
+// filter-string injection.
+function parseAndValidateCursor(searchParams: URLSearchParams):
+  | { ok: true; cursor: CursorPair }
+  | { ok: false } {
+  const rawId = searchParams.get('cursor_id')
+  const rawDate = searchParams.get('cursor_created_at')
+  const id = rawId && UUID_RE.test(rawId) ? rawId : null
+  const createdAt = rawDate && ISO_DATETIME_RE.test(rawDate) ? rawDate : null
+  if ((rawId && !id) || (rawDate && !createdAt)) return { ok: false }
+  return { ok: true, cursor: { id, createdAt } }
+}
+
+function applyVehicleFilters<Q extends {
+  ilike: (col: string, value: string) => Q
+  textSearch: (col: string, value: string, options: { type: 'websearch'; config: 'english' }) => Q
+  gte: (col: string, value: number) => Q
+  lte: (col: string, value: number) => Q
+}>(query: Q, p: ListParams): Q {
+  let q = query
+  if (p.make) q = q.ilike('make', p.make)
+  if (p.model) q = q.ilike('model', `%${p.model}%`)
+  if (p.q) {
+    const sanitizedQ = p.q.trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s-]/g, '').trim()
+    if (sanitizedQ) {
+      q = q.textSearch('search_vector', sanitizedQ, { type: 'websearch', config: 'english' })
+    }
+  }
+  if (p.minYear) q = q.gte('year', Number.parseInt(p.minYear))
+  if (p.maxYear) q = q.lte('year', Number.parseInt(p.maxYear))
+  if (p.minPrice) q = q.gte('price', Number.parseInt(p.minPrice) * 100)
+  if (p.maxPrice) q = q.lte('price', Number.parseInt(p.maxPrice) * 100)
+  if (p.minMileage) q = q.gte('mileage', Number.parseInt(p.minMileage))
+  if (p.maxMileage) q = q.lte('mileage', Number.parseInt(p.maxMileage))
+  if (p.exteriorColor) q = q.ilike('exterior_color', p.exteriorColor)
+  if (p.bodyStyle) {
+    const aliasPattern = BODY_STYLE_ALIASES[p.bodyStyle.toLowerCase()]
+    q = q.ilike('body_style', aliasPattern || p.bodyStyle)
+  }
+  if (p.fuelType) q = q.ilike('fuel_type', p.fuelType)
+  if (p.transmission) q = q.ilike('transmission', `%${p.transmission}%`)
+  if (p.drivetrain) q = q.ilike('drivetrain', p.drivetrain)
+  return q
+}
+
+function mockListResponse() {
+  const mockVehicles = getMockVehicles()
+  return NextResponse.json({
+    success: true,
+    data: {
+      vehicles: mockVehicles,
+      pagination: { page: 1, limit: 20, total: mockVehicles.length, totalPages: 1, hasMore: false },
+    },
+  }, { headers: { 'Cache-Control': 'no-store', 'X-Cache': 'MOCK' } })
+}
+
+function hasActiveFilters(p: ListParams): boolean {
+  return !!(p.q || p.make || p.model || p.minYear || p.maxYear || p.minPrice || p.maxPrice ||
+    p.minMileage || p.maxMileage || p.exteriorColor || p.bodyStyle || p.fuelType ||
+    p.transmission || p.drivetrain)
+}
+
+type FacetData = {
+  makes: string[]
+  bodyStyles: string[]
+  fuelTypes: string[]
+  priceRange: { min: number; max: number }
+  yearRange: { min: number; max: number }
+}
+
+type Aggregations = {
+  makes: { key: string; count: number }[]
+  bodyStyles: { key: string; count: number }[]
+  priceRanges: { key: string; count: number }[]
+}
+
+type AdvancedSearchFilters = {
+  makes?: string[]
+  bodyStyles?: string[]
+  fuelTypes?: string[]
+  priceRange?: { min: number; max: number }
+  yearRange?: { min: number; max: number }
+}
+
+function applySearchQueryFilter<Q extends {
+  textSearch: (col: string, value: string, options: { type: 'websearch'; config: 'english' }) => Q
+}>(query: Q, raw: unknown): Q {
+  if (!raw) return query
+  const sanitized = String(raw).trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s-]/g, '').trim()
+  if (!sanitized) return query
+  return query.textSearch('search_vector', sanitized, { type: 'websearch', config: 'english' })
+}
+
+function applyAdvancedFilters<Q extends {
+  in: (col: string, values: string[]) => Q
+  gte: (col: string, value: number) => Q
+  lte: (col: string, value: number) => Q
+}>(query: Q, filters: AdvancedSearchFilters): Q {
+  let q = query
+  if (filters.makes?.length) q = q.in('make', filters.makes)
+  if (filters.bodyStyles?.length) q = q.in('body_style', filters.bodyStyles)
+  if (filters.fuelTypes?.length) q = q.in('fuel_type', filters.fuelTypes)
+  if (filters.priceRange) {
+    q = q.gte('price', filters.priceRange.min * 100)
+    q = q.lte('price', filters.priceRange.max * 100)
+  }
+  if (filters.yearRange) {
+    q = q.gte('year', filters.yearRange.min)
+    q = q.lte('year', filters.yearRange.max)
+  }
+  return q
+}
+
+async function computeAndCacheAggregations(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  aggCacheKey: string,
+): Promise<Aggregations> {
+  let aggQuery = supabase.from('vehicles').select('make, body_style, price')
+  aggQuery = applyStatusFilter(aggQuery, 'public')
+  const { data: allVehicles } = await aggQuery.limit(1000)
+
+  // Price thresholds in cents
+  const PRICE_30K_CENTS = 3_000_000
+  const PRICE_50K_CENTS = 5_000_000
+  const PRICE_75K_CENTS = 7_500_000
+  const PRICE_100K_CENTS = 10_000_000
+
+  const makeCounts = new Map<string, number>()
+  const bodyStyleCounts = new Map<string, number>()
+  let under30kCount = 0, from30to50kCount = 0, from50to75kCount = 0, from75to100kCount = 0, over100kCount = 0
+
+  for (const v of allVehicles ?? []) {
+    if (v.make) makeCounts.set(v.make, (makeCounts.get(v.make) || 0) + 1)
+    if (v.body_style) bodyStyleCounts.set(v.body_style, (bodyStyleCounts.get(v.body_style) || 0) + 1)
+    const p = v.price
+    if (p < PRICE_30K_CENTS) under30kCount++
+    else if (p < PRICE_50K_CENTS) from30to50kCount++
+    else if (p < PRICE_75K_CENTS) from50to75kCount++
+    else if (p < PRICE_100K_CENTS) from75to100kCount++
+    else over100kCount++
+  }
+
+  const aggregations: Aggregations = {
+    makes: Array.from(makeCounts.entries()).map(([key, count]) => ({ key, count })),
+    bodyStyles: Array.from(bodyStyleCounts.entries()).map(([key, count]) => ({ key, count })),
+    priceRanges: [
+      { key: 'Under $30k', count: under30kCount },
+      { key: '$30k-$50k', count: from30to50kCount },
+      { key: '$50k-$75k', count: from50to75kCount },
+      { key: '$75k-$100k', count: from75to100kCount },
+      { key: 'Over $100k', count: over100kCount },
+    ],
+  }
+  await cacheSearchResults(aggCacheKey, aggregations, FACETS_TTL)
+  return aggregations
+}
+
+async function loadOrComputeFacets(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  status: string,
+): Promise<FacetData> {
+  const facetsCacheKey = `vehicles:facets:${status}`
+  const cachedFacets = await getCachedSearchResults(facetsCacheKey) as FacetData | null
+  if (cachedFacets) return cachedFacets
+
+  let facetQuery = supabase
+    .from('vehicles')
+    .select('make, body_style, fuel_type, price, year')
+  facetQuery = applyStatusFilter(facetQuery, status)
+  const { data: allVehicles } = await facetQuery.limit(1000)
+
+  const makes = [...new Set(allVehicles?.map(v => v.make).filter(Boolean) || [])]
+  const bodyStyles = [...new Set(allVehicles?.map(v => v.body_style).filter(Boolean) || [])]
+  const fuelTypes = [...new Set(allVehicles?.map(v => v.fuel_type).filter(Boolean) || [])]
+  const prices = allVehicles?.map(v => (typeof v.price === 'number' && Number.isFinite(v.price) ? v.price / 100 : 0)) || []
+  const years = allVehicles?.map(v => v.year) || []
+
+  const filters: FacetData = {
+    makes: makes.toSorted((a, b) => a.localeCompare(b)),
+    bodyStyles: bodyStyles.toSorted((a, b) => a.localeCompare(b)),
+    fuelTypes: fuelTypes.toSorted((a, b) => a.localeCompare(b)),
+    priceRange: {
+      min: prices.length > 0 ? Math.min(...prices) : 0,
+      max: prices.length > 0 ? Math.max(...prices) : 100000,
+    },
+    yearRange: {
+      min: years.length > 0 ? Math.min(...years) : 2018,
+      max: years.length > 0 ? Math.max(...years) : new Date().getFullYear(),
+    },
+  }
+  await cacheSearchResults(facetsCacheKey, filters, FACETS_TTL)
+  return filters
+}
+
 // GET /api/v1/vehicles - List vehicles with filtering
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -95,62 +327,18 @@ export async function GET(request: NextRequest) {
   try {
     supabase = await createClient()
   } catch {
-    // Supabase not configured — return mock data for local development
-    const mockVehicles = getMockVehicles()
-    return NextResponse.json({
-      success: true,
-      data: {
-        vehicles: mockVehicles,
-        pagination: { page: 1, limit: 20, total: mockVehicles.length, totalPages: 1, hasMore: false },
-      },
-    }, { headers: { 'Cache-Control': 'no-store', 'X-Cache': 'MOCK' } })
+    return mockListResponse()
   }
 
-  // Extract filter parameters
-  const make = searchParams.get('make')
-  const model = searchParams.get('model')
-  const minYear = searchParams.get('minYear')
-  const maxYear = searchParams.get('maxYear')
-  const minPrice = searchParams.get('minPrice')
-  const maxPrice = searchParams.get('maxPrice')
-  const minMileage = searchParams.get('minMileage')
-  const maxMileage = searchParams.get('maxMileage')
-  const exteriorColor = searchParams.get('exteriorColor')
-  const bodyStyle = searchParams.get('bodyStyle')
-  const fuelType = searchParams.get('fuelType')
-  const transmission = searchParams.get('transmission')
-  const drivetrain = searchParams.get('drivetrain')
-  const q = searchParams.get('q')
-  const status = searchParams.get('status') || 'public'
-  const rawSort = searchParams.get('sort') || 'created_at'
-  const sort = ALLOWED_SORT_COLUMNS.has(rawSort) ? rawSort : 'created_at'
-  const order = searchParams.get('order') || 'desc'
-  const page = Math.max(1, asInt(searchParams.get('page'), 1))
-  const rawLimit = asInt(searchParams.get('limit'), 20)
-  const limit = Math.min(Math.max(1, rawLimit), 250)
-  const includeFilters = searchParams.get('includeFilters') === 'true'
-
-  // Cursor-based pagination: pass `cursor_id` + `cursor_created_at` to skip
-  // expensive OFFSET scans on large tables. When present, these override page-based
-  // pagination. The composite cursor uses (created_at, id) to guarantee stable ordering.
-  //
-  // IMPORTANT: cursor values are interpolated into a PostgREST .or() filter string below.
-  // PostgREST uses commas and parentheses as delimiters, so we must strictly validate
-  // both values to prevent filter injection (e.g. ",id.neq.0" could bypass the status filter).
-  const rawCursorId = searchParams.get('cursor_id')
-  const rawCursorCreatedAt = searchParams.get('cursor_created_at')
-  const ISO_DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})$/
-  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-  const cursorId = rawCursorId && UUID_RE.test(rawCursorId) ? rawCursorId : null
-  const cursorCreatedAt =
-    rawCursorCreatedAt && ISO_DATETIME_RE.test(rawCursorCreatedAt) ? rawCursorCreatedAt : null
-
-  if ((rawCursorId && !cursorId) || (rawCursorCreatedAt && !cursorCreatedAt)) {
+  const params = parseListParams(searchParams)
+  const cursorResult = parseAndValidateCursor(searchParams)
+  if (!cursorResult.ok) {
     return NextResponse.json(
       { success: false, error: 'Invalid cursor parameters' },
       { status: 400 }
     )
   }
+  const { id: cursorId, createdAt: cursorCreatedAt } = cursorResult.cursor
 
   // Build a deterministic cache key from all query params
   const cacheKey = `vehicles:list:${hashKey(searchParams.toString())}`
@@ -158,9 +346,7 @@ export async function GET(request: NextRequest) {
   // Requests with search/filter params must NOT be cached at the CDN edge,
   // because different query strings return different results but Netlify Edge
   // may serve a stale response for a different query.  Redis handles caching.
-  const hasFilters = !!(q || make || model || minYear || maxYear || minPrice || maxPrice ||
-    minMileage || maxMileage || exteriorColor || bodyStyle || fuelType || transmission || drivetrain)
-  const cacheControl = hasFilters
+  const cacheControl = hasActiveFilters(params)
     ? 'private, no-store'
     : `public, s-maxage=${VEHICLE_LIST_TTL}, stale-while-revalidate=${VEHICLE_LIST_TTL * 2}`
 
@@ -181,61 +367,28 @@ export async function GET(request: NextRequest) {
     .select(VEHICLE_LIST_FIELDS, { count: 'exact' })
 
   // Apply status filter — "public" shows available + reserved + recently-sold (7 days)
-  if (status) {
-    query = applyStatusFilter(query, status)
+  if (params.status) {
+    query = applyStatusFilter(query, params.status)
   }
-  if (make) query = query.ilike('make', make)
-  if (model) query = query.ilike('model', `%${model}%`)
-  if (q) {
-    // Use the pre-built tsvector GIN index for safe, efficient full-text search.
-    // .or() with user input can be manipulated via special chars (commas, parens).
-    const sanitizedQ = q.trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s-]/g, '').trim()
-    if (sanitizedQ) {
-      query = query.textSearch('search_vector', sanitizedQ, { type: 'websearch', config: 'english' })
-    }
-  }
-  if (minYear) query = query.gte('year', Number.parseInt(minYear))
-  if (maxYear) query = query.lte('year', Number.parseInt(maxYear))
-  if (minPrice) query = query.gte('price', Number.parseInt(minPrice) * 100)
-  if (maxPrice) query = query.lte('price', Number.parseInt(maxPrice) * 100)
-  if (minMileage) query = query.gte('mileage', Number.parseInt(minMileage))
-  if (maxMileage) query = query.lte('mileage', Number.parseInt(maxMileage))
-  if (exteriorColor) query = query.ilike('exterior_color', exteriorColor)
-  if (bodyStyle) {
-    // Map customer-friendly terms (SUV, Sedan) to actual DB values (Sport Utility, 4dr Car)
-    const aliasPattern = BODY_STYLE_ALIASES[bodyStyle.toLowerCase()]
-    query = query.ilike('body_style', aliasPattern || bodyStyle)
-  }
-  if (fuelType) query = query.ilike('fuel_type', fuelType)
-  if (transmission) query = query.ilike('transmission', `%${transmission}%`)
-  if (drivetrain) query = query.ilike('drivetrain', drivetrain)
+  query = applyVehicleFilters(query, params)
 
-  // Apply sorting
-  const ascending = order === 'asc'
-  query = query.order(sort, { ascending })
-  // Secondary sort on id guarantees deterministic ordering for cursor pagination
+  // Apply sorting (secondary sort on id guarantees stable cursor ordering)
+  const ascending = params.order === 'asc'
+  query = query.order(params.sort, { ascending })
   query = query.order('id', { ascending })
 
   // Cursor-based pagination: when a cursor is provided, use a composite
   // (created_at, id) filter instead of OFFSET to avoid scanning skipped rows.
-  const useCursor = cursorId && cursorCreatedAt && sort === 'created_at'
+  const useCursor = cursorId && cursorCreatedAt && params.sort === 'created_at'
   if (useCursor) {
-    if (ascending) {
-      // Next page: created_at > cursor OR (created_at == cursor AND id > cursorId)
-      query = query.or(
-        `created_at.gt.${cursorCreatedAt},and(created_at.eq.${cursorCreatedAt},id.gt.${cursorId})`
-      )
-    } else {
-      // Next page (desc): created_at < cursor OR (created_at == cursor AND id < cursorId)
-      query = query.or(
-        `created_at.lt.${cursorCreatedAt},and(created_at.eq.${cursorCreatedAt},id.lt.${cursorId})`
-      )
-    }
-    query = query.limit(limit)
+    const cmp = ascending ? 'gt' : 'lt'
+    query = query.or(
+      `created_at.${cmp}.${cursorCreatedAt},and(created_at.eq.${cursorCreatedAt},id.${cmp}.${cursorId})`
+    )
+    query = query.limit(params.limit)
   } else {
-    // Fallback: traditional offset pagination
-    const startIndex = (page - 1) * limit
-    query = query.range(startIndex, startIndex + limit - 1)
+    const startIndex = (params.page - 1) * params.limit
+    query = query.range(startIndex, startIndex + params.limit - 1)
   }
 
   const { data: vehicles, error, count } = await query
@@ -249,80 +402,18 @@ export async function GET(request: NextRequest) {
         { status: 500 }
       )
     }
-    const mockVehicles = getMockVehicles()
-    return NextResponse.json(
-      {
-        success: true,
-        data: {
-          vehicles: mockVehicles,
-          pagination: { page: 1, limit: 20, total: mockVehicles.length, totalPages: 1, hasMore: false },
-        },
-      },
-      { headers: { 'Cache-Control': 'no-store', 'X-Cache': 'MOCK' } }
-    )
+    return mockListResponse()
   }
 
   if (!vehicles?.length && !process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    // Local dev without Supabase configured: return mock data
-    const mockVehicles = getMockVehicles()
-    return NextResponse.json(
-      {
-        success: true,
-        data: {
-          vehicles: mockVehicles,
-          pagination: { page: 1, limit: 20, total: mockVehicles.length, totalPages: 1, hasMore: false },
-        },
-      },
-      { headers: { 'Cache-Control': 'no-store', 'X-Cache': 'MOCK' } }
-    )
+    return mockListResponse()
   }
 
-  let filters: {
-    makes: string[]
-    bodyStyles: string[]
-    fuelTypes: string[]
-    priceRange: { min: number; max: number }
-    yearRange: { min: number; max: number }
-  } | undefined
+  let filters: FacetData | undefined
 
   // Computing facets can be expensive on large inventories, so keep it opt-in.
-  // Use a separate Redis cache for facets since they change less frequently.
-  if (includeFilters) {
-    const facetsCacheKey = `vehicles:facets:${status}`
-    const cachedFacets = await getCachedSearchResults(facetsCacheKey) as typeof filters | null
-
-    if (cachedFacets) {
-      filters = cachedFacets
-    } else {
-      let facetQuery = supabase
-        .from('vehicles')
-        .select('make, body_style, fuel_type, price, year')
-      facetQuery = applyStatusFilter(facetQuery, status)
-      const { data: allVehicles } = await facetQuery.limit(1000)
-
-      const makes = [...new Set(allVehicles?.map(v => v.make).filter(Boolean) || [])]
-      const bodyStyles = [...new Set(allVehicles?.map(v => v.body_style).filter(Boolean) || [])]
-      const fuelTypes = [...new Set(allVehicles?.map(v => v.fuel_type).filter(Boolean) || [])]
-      const prices = allVehicles?.map(v => (typeof v.price === 'number' && Number.isFinite(v.price) ? v.price / 100 : 0)) || []
-      const years = allVehicles?.map(v => v.year) || []
-
-      filters = {
-        makes: makes.toSorted((a, b) => a.localeCompare(b)),
-        bodyStyles: bodyStyles.toSorted((a, b) => a.localeCompare(b)),
-        fuelTypes: fuelTypes.toSorted((a, b) => a.localeCompare(b)),
-        priceRange: {
-          min: prices.length > 0 ? Math.min(...prices) : 0,
-          max: prices.length > 0 ? Math.max(...prices) : 100000,
-        },
-        yearRange: {
-          min: years.length > 0 ? Math.min(...years) : 2018,
-          max: years.length > 0 ? Math.max(...years) : new Date().getFullYear(),
-        },
-      }
-
-      // Cache facets independently with longer TTL
-      await cacheSearchResults(facetsCacheKey, filters, FACETS_TTL)
-    }
+  if (params.includeFilters) {
+    filters = await loadOrComputeFacets(supabase, params.status)
   }
 
   // Build cursor for the last item so the client can request the next page
@@ -336,18 +427,18 @@ export async function GET(request: NextRequest) {
     : null
 
   const hasMore = useCursor
-    ? vehicleList.length === limit
-    : (page - 1) * limit + limit < (count || 0)
+    ? vehicleList.length === params.limit
+    : (params.page - 1) * params.limit + params.limit < (count || 0)
 
   const responseBody = {
     success: true,
     data: {
       vehicles: vehicleList,
       pagination: {
-        page,
-        limit,
+        page: params.page,
+        limit: params.limit,
         total: count || 0,
-        totalPages: Math.ceil((count || 0) / limit),
+        totalPages: Math.ceil((count || 0) / params.limit),
         hasMore,
         ...(nextCursor ? { nextCursor } : {}),
       },
@@ -400,31 +491,10 @@ export async function POST(request: NextRequest) {
   query = applyStatusFilter(query, 'public')
 
   // Text search across multiple fields
-  if (searchQuery) {
-    const sanitizedQuery = String(searchQuery).trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s-]/g, '').trim()
-    if (sanitizedQuery) {
-      query = query.textSearch('search_vector', sanitizedQuery, { type: 'websearch', config: 'english' })
-    }
-  }
+  query = applySearchQueryFilter(query, searchQuery)
 
   // Apply filters
-  if (filters.makes?.length) {
-    query = query.in('make', filters.makes)
-  }
-  if (filters.bodyStyles?.length) {
-    query = query.in('body_style', filters.bodyStyles)
-  }
-  if (filters.fuelTypes?.length) {
-    query = query.in('fuel_type', filters.fuelTypes)
-  }
-  if (filters.priceRange) {
-    query = query.gte('price', filters.priceRange.min * 100)
-    query = query.lte('price', filters.priceRange.max * 100)
-  }
-  if (filters.yearRange) {
-    query = query.gte('year', filters.yearRange.min)
-    query = query.lte('year', filters.yearRange.max)
-  }
+  query = applyAdvancedFilters(query, filters)
 
   // Apply sorting
   const ascending = safeSortOrder === 'asc'
@@ -448,59 +518,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
 
-  type Aggregations = {
-    makes: { key: string; count: number }[]
-    bodyStyles: { key: string; count: number }[]
-    priceRanges: { key: string; count: number }[]
-  }
-
-  let aggregations: Aggregations
-
-  if (cachedAgg) {
-    aggregations = cachedAgg as Aggregations
-  } else {
-    let aggQuery = supabase
-      .from('vehicles')
-      .select('make, body_style, price')
-    aggQuery = applyStatusFilter(aggQuery, 'public')
-    const { data: allVehicles } = await aggQuery.limit(1000)
-
-    // Price thresholds in cents
-    const PRICE_30K_CENTS  = 3_000_000
-    const PRICE_50K_CENTS  = 5_000_000
-    const PRICE_75K_CENTS  = 7_500_000
-    const PRICE_100K_CENTS = 10_000_000
-
-    // Build count maps in a single O(n) pass
-    const makeCounts = new Map<string, number>()
-    const bodyStyleCounts = new Map<string, number>()
-    let under30kCount = 0, from30to50kCount = 0, from50to75kCount = 0, from75to100kCount = 0, over100kCount = 0
-
-    for (const v of allVehicles ?? []) {
-      if (v.make) makeCounts.set(v.make, (makeCounts.get(v.make) || 0) + 1)
-      if (v.body_style) bodyStyleCounts.set(v.body_style, (bodyStyleCounts.get(v.body_style) || 0) + 1)
-      const p = v.price
-      if (p < PRICE_30K_CENTS) under30kCount++
-      else if (p < PRICE_50K_CENTS) from30to50kCount++
-      else if (p < PRICE_75K_CENTS) from50to75kCount++
-      else if (p < PRICE_100K_CENTS) from75to100kCount++
-      else over100kCount++
-    }
-
-    aggregations = {
-      makes: Array.from(makeCounts.entries()).map(([key, count]) => ({ key, count })),
-      bodyStyles: Array.from(bodyStyleCounts.entries()).map(([key, count]) => ({ key, count })),
-      priceRanges: [
-        { key: 'Under $30k', count: under30kCount },
-        { key: '$30k-$50k', count: from30to50kCount },
-        { key: '$50k-$75k', count: from50to75kCount },
-        { key: '$75k-$100k', count: from75to100kCount },
-        { key: 'Over $100k', count: over100kCount },
-      ],
-    }
-
-    await cacheSearchResults(aggCacheKey, aggregations, FACETS_TTL)
-  }
+  const aggregations: Aggregations = cachedAgg
+    ? (cachedAgg as Aggregations)
+    : await computeAndCacheAggregations(supabase, aggCacheKey)
 
   return NextResponse.json(
     {
