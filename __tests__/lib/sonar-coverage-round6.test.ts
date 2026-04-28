@@ -59,6 +59,66 @@ describe("makeAndCount", () => {
   })
 })
 
+describe("buildInventoryContext", () => {
+  it("returns inventory context string with top makes using makeAndCount", async () => {
+    // Mock Supabase client to avoid real DB calls
+    const { vi } = await import("vitest")
+    const mockData = {
+      data: [
+        { make: "Tesla", price: 35000 },
+        { make: "Tesla", price: 42000 },
+        { make: "BMW", price: 55000 },
+      ],
+      count: 3,
+    }
+    // Mock Supabase from() — each select() call returns a different shape
+    const mockFrom = vi.fn().mockReturnValue({
+      select: vi.fn()
+        .mockReturnValueOnce({ count: 3 }) // total (head: true returns directly)
+        .mockReturnValueOnce({
+          in: vi.fn().mockResolvedValue({ count: 3 }),
+        })
+        .mockReturnValueOnce({
+          eq: vi.fn().mockReturnValue({
+            in: vi.fn().mockResolvedValue({ count: 1 }),
+          }),
+        })
+        .mockReturnValueOnce({
+          in: vi.fn().mockResolvedValue(mockData),
+        }),
+    })
+
+    vi.doMock("@supabase/supabase-js", () => ({
+      createClient: () => ({ from: mockFrom }),
+    }))
+
+    // Clear module cache so the mock takes effect
+    vi.resetModules()
+    const { buildInventoryContext } = await import("@/lib/anna/inventory-search")
+    const result = await buildInventoryContext()
+    expect(result).toContain("LIVE INVENTORY")
+    vi.doUnmock("@supabase/supabase-js")
+    vi.resetModules()
+  })
+
+  it("returns fallback when Supabase errors", async () => {
+    const { vi } = await import("vitest")
+    vi.doMock("@supabase/supabase-js", () => ({
+      createClient: () => ({
+        from: () => ({
+          select: () => { throw new Error("DB down") },
+        }),
+      }),
+    }))
+    vi.resetModules()
+    const { buildInventoryContext } = await import("@/lib/anna/inventory-search")
+    const result = await buildInventoryContext()
+    expect(result).toContain("temporarily unavailable")
+    vi.doUnmock("@supabase/supabase-js")
+    vi.resetModules()
+  })
+})
+
 describe("formatVehiclesForAnna", () => {
   it("returns 'no matching' for empty array", async () => {
     const { formatVehiclesForAnna } = await import("@/lib/anna/inventory-search")
