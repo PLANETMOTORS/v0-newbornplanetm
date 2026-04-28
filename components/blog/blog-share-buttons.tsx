@@ -29,11 +29,8 @@ export function BlogShareButtons({ title, url }: Readonly<BlogShareButtonsProps>
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      // S1874: navigator.clipboard.writeText is unavailable (older browsers
-      // / insecure contexts). The previous fallback used the deprecated
-      // document.execCommand("copy") workaround; we now degrade gracefully
-      // by selecting the URL in a temporary textarea so the user can copy
-      // it manually with Ctrl/Cmd+C.
+      // Fallback for older browsers or insecure contexts where
+      // navigator.clipboard.writeText is unavailable.
       const el = document.createElement("textarea")
       el.value = url
       el.setAttribute("readonly", "")
@@ -42,9 +39,12 @@ export function BlogShareButtons({ title, url }: Readonly<BlogShareButtonsProps>
       document.body.appendChild(el)
       el.select()
       el.setSelectionRange(0, el.value.length)
-      // Note: we deliberately do NOT call document.execCommand("copy") —
-      // it's deprecated and disabled-by-default in many secure contexts.
+      // NOSONAR: S1874 - execCommand is deprecated but still works in browsers
+      // and is the only reliable fallback when clipboard API is unavailable.
+      document.execCommand("copy") // NOSONAR
       el.remove()
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     }
   }
 
