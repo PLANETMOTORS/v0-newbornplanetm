@@ -117,7 +117,7 @@ export async function getInventoryStats(): Promise<{
   }
 }
 
-function makeAndCount(m: { make: string; count: number }): string {
+export function makeAndCount(m: { make: string; count: number }): string {
   return `${m.make} (${m.count})`
 }
 

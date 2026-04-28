@@ -1,0 +1,177 @@
+/**
+ * Coverage tests for new code introduced in the sonar-round-6 PR.
+ * Targets the 3 files with uncovered new lines flagged by SonarCloud:
+ *   - lib/imgix.ts (querySuffix extraction)
+ *   - lib/anna/inventory-search.ts (makeAndCount, formatVehiclesForAnna changes)
+ *   - lib/validation.ts (validateTradeInForm refactored conditional)
+ */
+import { describe, it, expect } from "vitest"
+
+/* ── lib/imgix.ts ────────────────────────────────────────────────────────── */
+
+describe("imgix", () => {
+  it("builds a URL with default params", async () => {
+    const { imgix } = await import("@/lib/imgix")
+    const url = imgix("vehicles/photo.jpg")
+    expect(url).toContain("https://")
+    expect(url).toContain("vehicles/photo.jpg")
+    expect(url).toContain("auto=format%2Ccompress")
+    expect(url).toContain("q=85")
+    expect(url).toContain("cs=srgb")
+    expect(url).toContain("chromasub=444")
+  })
+
+  it("merges custom params with defaults", async () => {
+    const { imgix } = await import("@/lib/imgix")
+    const url = imgix("test.jpg", { w: 800, h: 600, q: 70 })
+    expect(url).toContain("w=800")
+    expect(url).toContain("h=600")
+    expect(url).toContain("q=70") // override default 85
+  })
+
+  it("imgixWithPreset applies preset + overrides", async () => {
+    const { imgixWithPreset } = await import("@/lib/imgix")
+    const url = imgixWithPreset("car.jpg", "thumbnail", { q: 50 })
+    expect(url).toContain("w=400")
+    expect(url).toContain("h=300")
+    expect(url).toContain("q=50") // override preset q=65
+  })
+
+  it("imgixMobile uses adaptive quality", async () => {
+    const { imgixMobile } = await import("@/lib/imgix")
+    const smallUrl = imgixMobile("car.jpg", 400)
+    expect(smallUrl).toContain("w=400")
+    expect(smallUrl).toContain("q=65")
+
+    const largeUrl = imgixMobile("car.jpg", 800)
+    expect(largeUrl).toContain("w=800")
+    expect(largeUrl).toContain("q=72")
+  })
+})
+
+/* ── lib/anna/inventory-search.ts (pure functions only) ──────────────────── */
+
+describe("makeAndCount", () => {
+  it("formats make and count", async () => {
+    const { makeAndCount } = await import("@/lib/anna/inventory-search")
+    expect(makeAndCount({ make: "Tesla", count: 5 })).toBe("Tesla (5)")
+    expect(makeAndCount({ make: "BMW", count: 1 })).toBe("BMW (1)")
+  })
+})
+
+describe("formatVehiclesForAnna", () => {
+  it("returns 'no matching' for empty array", async () => {
+    const { formatVehiclesForAnna } = await import("@/lib/anna/inventory-search")
+    expect(formatVehiclesForAnna([], 0)).toBe(
+      "No matching vehicles found in current inventory."
+    )
+  })
+
+  it("formats a single vehicle (singular)", async () => {
+    const { formatVehiclesForAnna } = await import("@/lib/anna/inventory-search")
+    const result = formatVehiclesForAnna(
+      [
+        {
+          id: "1",
+          stock_number: "A100",
+          year: 2024,
+          make: "Tesla",
+          model: "Model 3",
+          trim: "Long Range",
+          price: 45000,
+          mileage: 12000,
+          exterior_color: "White",
+          fuel_type: "Electric",
+          drivetrain: "AWD",
+          status: "available",
+          is_ev: true,
+          primary_image_url: null,
+        },
+      ],
+      1
+    )
+    expect(result).toContain("Found 1 matching vehicle:")
+    expect(result).not.toContain("vehicles:")
+    expect(result).toContain("Tesla Model 3 Long Range")
+    expect(result).toContain("White")
+    expect(result).toContain("(Electric)")
+    expect(result).toContain("Stock #A100")
+  })
+
+  it("formats multiple vehicles (plural) and shows overflow", async () => {
+    const { formatVehiclesForAnna } = await import("@/lib/anna/inventory-search")
+    const vehicle = {
+      id: "2",
+      stock_number: "B200",
+      year: 2023,
+      make: "BMW",
+      model: "X5",
+      trim: null,
+      price: 65000,
+      mileage: 30000,
+      exterior_color: null,
+      fuel_type: "Gasoline",
+      drivetrain: "AWD",
+      status: "available",
+      is_ev: false,
+      primary_image_url: null,
+    }
+    const result = formatVehiclesForAnna([vehicle], 5)
+    expect(result).toContain("Found 5 matching vehicles:")
+    expect(result).toContain("BMW X5")
+    expect(result).not.toContain("(Electric)")
+    expect(result).toContain("...and 4 more")
+  })
+})
+
+/* ── lib/validation.ts — validateTradeInForm refactored conditional ──────── */
+
+describe("validateTradeInForm — name vs firstName/lastName branches", () => {
+  it("validates with combined name field (name defined)", async () => {
+    const { validateTradeInForm } = await import("@/lib/validation")
+    const result = validateTradeInForm({
+      name: "John Smith",
+      email: "john@planetmotors.ca",
+      phone: "4165551234",
+      postalCode: "M5V 3A1",
+    })
+    expect(result.valid).toBe(true)
+  })
+
+  it("rejects invalid combined name", async () => {
+    const { validateTradeInForm } = await import("@/lib/validation")
+    const result = validateTradeInForm({
+      name: "X",
+      email: "john@planetmotors.ca",
+      phone: "4165551234",
+      postalCode: "M5V 3A1",
+    })
+    expect(result.valid).toBe(false)
+    expect(result.errors.name).toBeDefined()
+  })
+
+  it("validates with firstName/lastName when name is undefined", async () => {
+    const { validateTradeInForm } = await import("@/lib/validation")
+    const result = validateTradeInForm({
+      firstName: "John",
+      lastName: "Smith",
+      email: "john@planetmotors.ca",
+      phone: "4165551234",
+      postalCode: "M5V 3A1",
+    })
+    expect(result.valid).toBe(true)
+  })
+
+  it("rejects invalid firstName when name is undefined", async () => {
+    const { validateTradeInForm } = await import("@/lib/validation")
+    const result = validateTradeInForm({
+      firstName: "X",
+      lastName: "Smith",
+      email: "john@planetmotors.ca",
+      phone: "4165551234",
+      postalCode: "M5V 3A1",
+    })
+    expect(result.valid).toBe(false)
+    expect(result.errors.firstName).toBeDefined()
+  })
+})
