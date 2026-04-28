@@ -110,7 +110,7 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
 
   // Restore protection plan selection from sessionStorage (set by /protection-plans page)
   useEffect(() => {
-    if (typeof window === "undefined") return
+    if (typeof globalThis.window === "undefined") return
     const stored = sessionStorage.getItem("selectedProtectionPackage")
     const validIds: ProtectionPlanId[] = ["none", "essential", "smart", "lifeproof"]
     if (stored && validIds.includes(stored as ProtectionPlanId)) {
@@ -478,7 +478,7 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
                 tradeIn={tradeIn}
                 paymentMethod={paymentMethod}
                 delivery={delivery}
-                protectionPlan={protection.selectedPlan as ProtectionPlanId}
+                protectionPlan={protection.selectedPlan}
                 agreeToTerms={agreeToTerms}
                 onAgreeToTermsChange={setAgreeToTerms}
                 onEditStep={goToStep}
@@ -494,7 +494,7 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
                 customerEmail={personal.email}
                 customerName={`${personal.firstName} ${personal.lastName}`.trim()}
                 customerPhone={personal.phone}
-                protectionPlanId={protection.selectedPlan as ProtectionPlanId}
+                protectionPlanId={protection.selectedPlan}
                 licenseStoragePath={license.licenseStoragePath}
               />
             )}

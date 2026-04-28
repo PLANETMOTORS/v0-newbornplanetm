@@ -75,13 +75,13 @@ export default function VehiclePhotoManager({
 
     // Validate
     const maxSize = 10 * 1024 * 1024
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/avif"]
+    const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"])
     for (const f of fileArray) {
       if (f.size > maxSize) {
         setError(`"${f.name}" exceeds 10 MB limit`)
         return
       }
-      if (!allowedTypes.includes(f.type)) {
+      if (!allowedTypes.has(f.type)) {
         setError(`"${f.name}" is not a supported format (JPEG, PNG, WebP, AVIF)`)
         return
       }

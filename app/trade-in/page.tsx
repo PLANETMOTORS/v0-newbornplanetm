@@ -242,6 +242,8 @@ const conditionOptions = [
 
 const TRADE_IN_DRAFT_KEY = "pm:trade-in-draft"
 
+type LookupMethod = "plate" | "vin" | "manual"
+
 function TradeInContent() {
   const searchParams = useSearchParams()
   const { user } = useAuth()
@@ -257,7 +259,7 @@ function TradeInContent() {
     }, 100)
   }
 
-  const [lookupMethod, setLookupMethod] = useState<"plate" | "vin" | "manual">("plate")
+  const [lookupMethod, setLookupMethod] = useState<LookupMethod>("plate")
   const [province, setProvince] = useState("")
   const [plateNumber, setPlateNumber] = useState("")
   const [vinNumber, setVinNumber] = useState("")

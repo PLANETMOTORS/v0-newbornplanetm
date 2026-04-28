@@ -115,7 +115,7 @@ export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedV
                   {liveIndicator && (
                     <span className="flex items-center gap-1 text-emerald-600 text-xs font-medium">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      Live update
+                      {' '}Live update
                     </span>
                   )}
                 </p>

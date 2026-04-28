@@ -3,13 +3,15 @@ import { createBlogPost, type BlogPostEntry } from "../blog-data"
 
 export const blogPostsChunk3: Record<string, BlogPostEntry> = {
   "sell-financed-car-canada": createBlogPost(
-    "How to Sell a Financed Car in Canada?",
-    "Thinking of selling your financed car in Canada? Learn the step-by-step process, key legal requirements, and expert tips.",
-    "Jul 17, 2025",
-    "10 min read",
-    "Selling",
-    "/images/blog/unnamed-8.jpg",
-    "Planet Motors Team",
+    {
+      title: "How to Sell a Financed Car in Canada?",
+      excerpt: "Thinking of selling your financed car in Canada? Learn the step-by-step process, key legal requirements, and expert tips.",
+      date: "Jul 17, 2025",
+      readTime: "10 min read",
+      category: "Selling",
+      image: "/images/blog/unnamed-8.jpg",
+      author: "Planet Motors Team",
+    },
     `
       <p>Yes, you can sell a car that's still being financed. However, there are important steps to follow to ensure the process goes smoothly and legally.</p>
 
@@ -64,13 +66,15 @@ export const blogPostsChunk3: Record<string, BlogPostEntry> = {
     ["sell-car-toronto-guide", "we-buy-your-car-canada", "sell-car-for-cash-canada"]
   ),
   "sell-car-toronto-guide": createBlogPost(
-    "How to Sell a Car in Toronto: A Comprehensive Guide",
-    "Looking to sell your car in Toronto? Discover the easiest way to get top dollar with Planet Motors.",
-    "Jul 14, 2025",
-    "12 min read",
-    "Selling",
-    "/images/blog/unnamed-9.jpg",
-    "Planet Motors Team",
+    {
+      title: "How to Sell a Car in Toronto: A Comprehensive Guide",
+      excerpt: "Looking to sell your car in Toronto? Discover the easiest way to get top dollar with Planet Motors.",
+      date: "Jul 14, 2025",
+      readTime: "12 min read",
+      category: "Selling",
+      image: "/images/blog/unnamed-9.jpg",
+      author: "Planet Motors Team",
+    },
     `
       <p>Selling a car in Toronto doesn't have to be stressful. Whether you choose to sell privately or to a dealer, this guide covers everything you need to know.</p>
 
@@ -144,13 +148,15 @@ export const blogPostsChunk3: Record<string, BlogPostEntry> = {
     ["we-buy-your-car-canada", "sell-car-for-cash-canada", "trade-in-vs-selling-car-ontario"]
   ),
   "sell-everything-before-sell": createBlogPost(
-    "Sell Your Car: Everything You Need to Know Before You Sell",
-    "Whether you're upgrading to a new vehicle or simply want to cash out, knowing the right steps can help you get the best deal.",
-    "Aug 26, 2025",
-    "8 min read",
-    "Selling",
-    "/images/blog/unnamed.jpg",
-    "Planet Motors Team",
+    {
+      title: "Sell Your Car: Everything You Need to Know Before You Sell",
+      excerpt: "Whether you're upgrading to a new vehicle or simply want to cash out, knowing the right steps can help you get the best deal.",
+      date: "Aug 26, 2025",
+      readTime: "8 min read",
+      category: "Selling",
+      image: "/images/blog/unnamed.jpg",
+      author: "Planet Motors Team",
+    },
     `
       <p>Selling your car is a big decision. Whether you're upgrading, downsizing, or simply need the cash, proper preparation ensures you get the best possible return.</p>
 
@@ -209,13 +215,15 @@ export const blogPostsChunk3: Record<string, BlogPostEntry> = {
     ["sell-car-toronto-guide", "car-resale-value-toronto", "we-buy-your-car-canada"]
   ),
   "get-quote-5-minutes": createBlogPost(
-    "Get a Quote in 5 Minutes from Planet Motors",
-    "Why wait? Get your personalized quote in just 5 minutes at Planet Motors. Fast, hassle-free, and no pressure.",
-    "Jul 22, 2025",
-    "4 min read",
-    "Company",
-    "/images/blog/unnamed-6.jpg",
-    "Planet Motors Team",
+    {
+      title: "Get a Quote in 5 Minutes from Planet Motors",
+      excerpt: "Why wait? Get your personalized quote in just 5 minutes at Planet Motors. Fast, hassle-free, and no pressure.",
+      date: "Jul 22, 2025",
+      readTime: "4 min read",
+      category: "Company",
+      image: "/images/blog/unnamed-6.jpg",
+      author: "Planet Motors Team",
+    },
     `
       <p>In today's fast-paced world, you don't have time to waste. That's why Planet Motors has streamlined our quote process to get you answers in just 5 minutes.</p>
 
@@ -260,13 +268,15 @@ export const blogPostsChunk3: Record<string, BlogPostEntry> = {
     ["why-choose-planet-motors", "we-buy-your-car-canada", "first-time-car-buyer-financing"]
   ),
   "tesla-cybertruck-2024": createBlogPost(
-    "Tesla Cybertruck: A Revolutionary Electric Pickup in 2024!",
-    "The electric truck market is rapidly evolving, and 2024 marks a significant year with the much-anticipated release of the Tesla Cybertruck.",
-    "May 12, 2025",
-    "10 min read",
-    "Electric Vehicles",
-    "/images/blog/blog-2.png",
-    "Planet Motors Team",
+    {
+      title: "Tesla Cybertruck: A Revolutionary Electric Pickup in 2024!",
+      excerpt: "The electric truck market is rapidly evolving, and 2024 marks a significant year with the much-anticipated release of the Tesla Cybertruck.",
+      date: "May 12, 2025",
+      readTime: "10 min read",
+      category: "Electric Vehicles",
+      image: "/images/blog/blog-2.png",
+      author: "Planet Motors Team",
+    },
     `
       <p>After years of anticipation, Tesla's Cybertruck has finally hit the roads. This isn't just another electric truck—it's a complete reimagining of what a pickup can be.</p>
 
@@ -317,13 +327,15 @@ export const blogPostsChunk3: Record<string, BlogPostEntry> = {
     ["tesla-full-self-driving-guide", "tesla-model-y-vs-model-3", "ev-trends-planet-motors"]
   ),
   "equifax-newcomers-credit-canada": createBlogPost(
-    "Equifax Lets Newcomers Import Credit Scores to Canada",
-    "Navigating Canada's financial system as a newcomer can be challenging, particularly without a Canadian credit score.",
-    "May 12, 2025",
-    "6 min read",
-    "Financing",
-    "/images/blog/blog-1.png",
-    "Planet Motors Team",
+    {
+      title: "Equifax Lets Newcomers Import Credit Scores to Canada",
+      excerpt: "Navigating Canada's financial system as a newcomer can be challenging, particularly without a Canadian credit score.",
+      date: "May 12, 2025",
+      readTime: "6 min read",
+      category: "Financing",
+      image: "/images/blog/blog-1.png",
+      author: "Planet Motors Team",
+    },
     `
       <p>Great news for newcomers to Canada! Equifax has introduced a program that allows immigrants to import their credit history from their home country, making it easier to access financial products like car loans.</p>
 
@@ -374,13 +386,15 @@ export const blogPostsChunk3: Record<string, BlogPostEntry> = {
     ["first-time-car-buyer-financing", "understanding-apr-car-loans", "biweekly-vs-monthly-payments-canada"]
   ),
   "tesla-robotaxi-robovan": createBlogPost(
-    "The Future of Autonomous Vehicles: Tesla Unveils Robotaxi and Robovan",
-    "Tesla's recent reveal of its autonomous Robotaxi and Robovan has set a new benchmark in the race for self-driving vehicles.",
-    "Oct 19, 2024",
-    "8 min read",
-    "Electric Vehicles",
-    "/images/blog/blog-3.png",
-    "Planet Motors Team",
+    {
+      title: "The Future of Autonomous Vehicles: Tesla Unveils Robotaxi and Robovan",
+      excerpt: "Tesla's recent reveal of its autonomous Robotaxi and Robovan has set a new benchmark in the race for self-driving vehicles.",
+      date: "Oct 19, 2024",
+      readTime: "8 min read",
+      category: "Electric Vehicles",
+      image: "/images/blog/blog-3.png",
+      author: "Planet Motors Team",
+    },
     `
       <p>Tesla's "We, Robot" event showcased two groundbreaking vehicles that could reshape transportation: the Cybercab (Robotaxi) and the Robovan.</p>
 
@@ -426,13 +440,15 @@ export const blogPostsChunk3: Record<string, BlogPostEntry> = {
     ["tesla-full-self-driving-guide", "tesla-cybertruck-2024", "ev-trends-planet-motors"]
   ),
   "ev-trends-planet-motors": createBlogPost(
-    "New Trends in EV: Leading the Charge at Planet Motors Canada",
-    "The electric vehicle (EV) market is evolving rapidly, with exciting trends shaping the future of driving.",
-    "Oct 17, 2024",
-    "7 min read",
-    "Electric Vehicles",
-    "/images/blog/blog-4.png",
-    "Planet Motors Team",
+    {
+      title: "New Trends in EV: Leading the Charge at Planet Motors Canada",
+      excerpt: "The electric vehicle (EV) market is evolving rapidly, with exciting trends shaping the future of driving.",
+      date: "Oct 17, 2024",
+      readTime: "7 min read",
+      category: "Electric Vehicles",
+      image: "/images/blog/blog-4.png",
+      author: "Planet Motors Team",
+    },
     `
       <p>The EV revolution is accelerating, and staying informed about the latest trends can help you make smarter car-buying decisions.</p>
 

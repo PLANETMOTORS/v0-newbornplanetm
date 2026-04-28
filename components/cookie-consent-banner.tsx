@@ -32,8 +32,8 @@ export function CookieConsentBanner() {
   useEffect(() => {
     if (!showBanner) return
     const timer = setTimeout(() => {
-      if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-        (window as Window).requestIdleCallback(() => setReady(true), { timeout: 500 })
+      if (typeof globalThis !== "undefined" && "requestIdleCallback" in globalThis) {
+        (globalThis as unknown as Window).requestIdleCallback(() => setReady(true), { timeout: 500 })
       } else {
         setReady(true)
       }

@@ -271,7 +271,6 @@ export function ReserveVehicleModal({ vehicle, trigger }: Readonly<ReserveVehicl
         )}
 
         {step === 3 && !showStripeCheckout && (
-          <>
             <div className="text-center py-6">
               <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-green-600" />
@@ -307,7 +306,6 @@ export function ReserveVehicleModal({ vehicle, trigger }: Readonly<ReserveVehicl
                 View My Reservation
               </Button>
             </div>
-          </>
         )}
       {showStripeCheckout && (
           <div className="py-4">

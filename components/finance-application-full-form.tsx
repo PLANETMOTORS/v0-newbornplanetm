@@ -519,12 +519,12 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     const lineNumber = digitsOnly.slice(6, 10)
     
     // Area code cannot start with 0 or 1 (North American numbering rules)
-    if (areaCode[0] === '0' || areaCode[0] === '1') {
+    if (areaCode.startsWith('0') || areaCode.startsWith('1')) {
       return { valid: false, error: "Invalid area code - cannot start with 0 or 1" }
     }
     
     // Exchange (first 3 digits of local number) cannot start with 0 or 1
-    if (exchange[0] === '0' || exchange[0] === '1') {
+    if (exchange.startsWith('0') || exchange.startsWith('1')) {
       return { valid: false, error: "Invalid phone number format" }
     }
     

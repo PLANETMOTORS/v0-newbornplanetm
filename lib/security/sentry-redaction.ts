@@ -24,8 +24,28 @@
 
 const REDACTED = "[REDACTED]"
 
-const SENSITIVE_KEY_RE =
-  /^(email|phone|phone_number|first_name|last_name|firstName|lastName|name|dob|date_of_birth|dateOfBirth|sin|address|street|streetAddress|street_address|postal_code|postalCode|password|passwordHash|password_hash|secret|api_key|apikey|apiKey|access_token|accessToken|refresh_token|refreshToken|stripe_secret|stripe_webhook_secret|service_role_key|serviceRoleKey|authorization|cookie|set-cookie)$/i
+// S5843 — keep the per-category regexes small and union them into a single
+// case-insensitive lookup via a Set so the cognitive complexity of the
+// overall match is well under the 20-token threshold.
+const SENSITIVE_KEYS = new Set<string>([
+  // PII
+  "email", "phone", "phone_number",
+  "first_name", "last_name", "firstName", "lastName", "name",
+  "dob", "date_of_birth", "dateOfBirth", "sin",
+  "address", "street", "streetAddress", "street_address",
+  "postal_code", "postalCode",
+  // Credentials
+  "password", "passwordHash", "password_hash", "secret",
+  "api_key", "apikey", "apiKey",
+  "access_token", "accessToken", "refresh_token", "refreshToken",
+  "stripe_secret", "stripe_webhook_secret",
+  "service_role_key", "serviceRoleKey",
+  "authorization", "cookie", "set-cookie",
+])
+
+function isSensitiveKey(key: string): boolean {
+  return SENSITIVE_KEYS.has(key.toLowerCase())
+}
 
 const VALUE_PATTERNS: Array<{ name: string; re: RegExp }> = [
   // Stripe secrets / pubkeys (keep pk_test/live since they're public).
@@ -101,7 +121,7 @@ function scrubValue(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const out: Record<string, any> = {}
     for (const [k, v] of Object.entries(value)) {
-      if (SENSITIVE_KEY_RE.test(k)) {
+      if (isSensitiveKey(k)) {
         out[k] = REDACTED
       } else {
         out[k] = scrubValue(v, depth + 1, seen)

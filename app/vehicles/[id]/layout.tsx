@@ -37,8 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 
     // Core trust signals
-    trustParts.push("Clean Carfax")
-    trustParts.push("No Accidents")
+    trustParts.push("Clean Carfax", "No Accidents")
 
     const trustPrefix = trustParts.join(". ") + "."
 
