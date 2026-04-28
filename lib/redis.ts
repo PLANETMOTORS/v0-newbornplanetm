@@ -15,10 +15,11 @@ async function getRedis(): Promise<Redis | null> {
   
   try {
     const { Redis: UpstashRedis } = await import('@upstash/redis')
+    // S4325: `new UpstashRedis(...)` already returns the imported `Redis` type.
     redisClient = new UpstashRedis({
       url: process.env.KV_REST_API_URL,
       token: process.env.KV_REST_API_TOKEN,
-    }) as Redis
+    })
     return redisClient
   } catch (error) {
     logger.warn("[Redis] Failed to initialize client:", (error as Error).message)

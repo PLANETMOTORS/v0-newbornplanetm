@@ -485,7 +485,7 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
                 tradeIn={tradeIn}
                 paymentMethod={paymentMethod}
                 delivery={delivery}
-                protectionPlan={protection.selectedPlan as ProtectionPlanId}
+                protectionPlan={protection.selectedPlan}
                 agreeToTerms={agreeToTerms}
                 onAgreeToTermsChange={setAgreeToTerms}
                 onEditStep={goToStep}
@@ -501,7 +501,7 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
                 customerEmail={personal.email}
                 customerName={`${personal.firstName} ${personal.lastName}`.trim()}
                 customerPhone={personal.phone}
-                protectionPlanId={protection.selectedPlan as ProtectionPlanId}
+                protectionPlanId={protection.selectedPlan}
                 licenseStoragePath={license.licenseStoragePath}
               />
             )}

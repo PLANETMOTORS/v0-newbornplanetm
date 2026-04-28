@@ -41,8 +41,8 @@ export async function POST(request: NextRequest) {
     if (!parseResult.success) {
       return apiError(ErrorCode.VALIDATION_ERROR, "Invalid application data", 400)
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const body = rawBody as any
+    // S4325: rawBody is already `any` from request.json(); use it directly.
+    const body = rawBody
     const {
       primaryApplicant,
       coApplicant,
