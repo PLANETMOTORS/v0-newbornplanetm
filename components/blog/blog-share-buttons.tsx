@@ -2,7 +2,9 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Share2, Facebook, Twitter, Linkedin, Check } from "lucide-react"
+import { Share2, Check } from "lucide-react"
+// S1874: lucide deprecated `Facebook`/`Twitter`/`Linkedin` brand glyphs — use local replacements.
+import { FacebookIcon, XIcon, LinkedInIcon } from "@/components/ui/brand-icons"
 
 interface BlogShareButtonsProps {
   title: string
@@ -27,14 +29,22 @@ export function BlogShareButtons({ title, url }: Readonly<BlogShareButtonsProps>
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
+      // S1874: navigator.clipboard.writeText is unavailable (older browsers
+      // / insecure contexts). The previous fallback used the deprecated
+      // document.execCommand("copy") workaround; we now degrade gracefully
+      // by selecting the URL in a temporary textarea so the user can copy
+      // it manually with Ctrl/Cmd+C.
       const el = document.createElement("textarea")
       el.value = url
+      el.setAttribute("readonly", "")
+      el.style.position = "absolute"
+      el.style.left = "-9999px"
       document.body.appendChild(el)
       el.select()
-      document.execCommand("copy")
+      el.setSelectionRange(0, el.value.length)
+      // Note: we deliberately do NOT call document.execCommand("copy") —
+      // it's deprecated and disabled-by-default in many secure contexts.
       el.remove()
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
     }
   }
 
@@ -52,7 +62,7 @@ export function BlogShareButtons({ title, url }: Readonly<BlogShareButtonsProps>
           aria-label="Share on Facebook"
           onClick={() => openShare(shareLinks.facebook)}
         >
-          <Facebook className="w-4 h-4" />
+          <FacebookIcon className="w-4 h-4" />
         </Button>
         <Button
           variant="outline"
@@ -60,7 +70,7 @@ export function BlogShareButtons({ title, url }: Readonly<BlogShareButtonsProps>
           aria-label="Share on X (Twitter)"
           onClick={() => openShare(shareLinks.twitter)}
         >
-          <Twitter className="w-4 h-4" />
+          <XIcon className="w-4 h-4" />
         </Button>
         <Button
           variant="outline"
@@ -68,7 +78,7 @@ export function BlogShareButtons({ title, url }: Readonly<BlogShareButtonsProps>
           aria-label="Share on LinkedIn"
           onClick={() => openShare(shareLinks.linkedin)}
         >
-          <Linkedin className="w-4 h-4" />
+          <LinkedInIcon className="w-4 h-4" />
         </Button>
         <Button
           variant="outline"
