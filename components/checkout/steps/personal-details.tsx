@@ -65,7 +65,7 @@ function formatPhone(value: string): string {
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
 }
 
-export function PersonalDetailsStep({ data, onChange, onContinue }: PersonalDetailsProps) {
+export function PersonalDetailsStep({ data, onChange, onContinue }: Readonly<PersonalDetailsProps>) {
   const [errors, setErrors] = useState<string[]>([])
   const [streetSuggestions, setStreetSuggestions] = useState<Array<{ fullAddress: string }>>([])
   const [showStreetDropdown, setShowStreetDropdown] = useState(false)

@@ -29,7 +29,7 @@ function formatPhoneDigits(digits: string): string {
 }
 
 export
-function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrimary, validationErrors = [] }: ApplicantFormProps) {
+function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrimary, validationErrors = [] }: Readonly<ApplicantFormProps>) {
   const updateField = (field: keyof ApplicantData, value: string | boolean | { day: string; month: string; year: string }) => {
     onChange({ ...data, [field]: value })
   }

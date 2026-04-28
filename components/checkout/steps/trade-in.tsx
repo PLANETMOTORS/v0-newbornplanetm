@@ -22,7 +22,7 @@ const TRADE_IN_BENEFITS = [
   "Save on taxes — trade-in value may be tax-exempt",
 ]
 
-export function TradeInStep({ data, onChange, onContinue }: TradeInStepProps) {
+export function TradeInStep({ data, onChange, onContinue }: Readonly<TradeInStepProps>) {
   return (
     <div className="space-y-8">
       <div>

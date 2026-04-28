@@ -67,11 +67,11 @@ function ProductAccordion({
   product,
   isOpen,
   onToggle,
-}: {
+}: Readonly<{
   product: ProtectionProduct
   isOpen: boolean
   onToggle: () => void
-}) {
+}>) {
   const Icon = product.icon
 
   return (

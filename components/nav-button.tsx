@@ -32,7 +32,7 @@ export function NavButton({
   userInitials = "",
   isOnline = false,
   showMenuButton = true,
-}: NavButtonProps) {
+}: Readonly<NavButtonProps>) {
   const safeName = userName.trim() || "Client";
   const safeInitials = (userInitials.trim() || getInitials(safeName) || "CL").slice(0, 2);
   const label = isLoggedIn ? safeName : "Sign In";

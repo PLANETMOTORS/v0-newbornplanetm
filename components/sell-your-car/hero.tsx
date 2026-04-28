@@ -9,7 +9,7 @@ interface SellYourCarHeroProps {
   highlightText?: string
 }
 
-export function SellYourCarHero({ headline, subheadline, highlightText }: SellYourCarHeroProps) {
+export function SellYourCarHero({ headline, subheadline, highlightText }: Readonly<SellYourCarHeroProps>) {
   return (
     <div className="space-y-6">
       {highlightText && (

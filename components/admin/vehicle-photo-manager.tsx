@@ -32,7 +32,7 @@ export default function VehiclePhotoManager({
   vehicleTitle,
   onClose,
   onPhotosChanged,
-}: VehiclePhotoManagerProps) {
+}: Readonly<VehiclePhotoManagerProps>) {
   const [photos, setPhotos] = useState<PhotoData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

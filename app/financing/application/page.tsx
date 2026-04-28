@@ -47,9 +47,9 @@ async function getVehicleData(vehicleId: string | undefined) {
 
 export default async function FinanceApplicationPage({
   searchParams,
-}: {
+}: Readonly<{
   searchParams: Promise<{ vehicleId?: string; tradeIn?: string; tradeInVehicle?: string; quoteId?: string }>
-}) {
+}>) {
   const params = await searchParams
   const vehicleData = await getVehicleData(params.vehicleId)
   

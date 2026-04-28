@@ -17,7 +17,7 @@ interface HeroImageServerProps {
   > | null
 }
 
-export function HeroImageServer({ firstVehicle }: HeroImageServerProps) {
+export function HeroImageServer({ firstVehicle }: Readonly<HeroImageServerProps>) {
   const imageUrl =
     firstVehicle?.primary_image_url ||
     (firstVehicle?.image_urls && firstVehicle.image_urls[0]) ||

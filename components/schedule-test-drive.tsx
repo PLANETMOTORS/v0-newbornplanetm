@@ -33,7 +33,7 @@ const locations = [
   { id: "home", name: "At Your Home/Office", address: "We come to you (GTA only)" },
 ]
 
-export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: ScheduleTestDriveProps) {
+export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Readonly<ScheduleTestDriveProps>) {
   const [step, setStep] = useState(1)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [availableDates, setAvailableDates] = useState<string[]>([])

@@ -20,7 +20,7 @@ export function DateSlotPicker({
   onDateChange,
   onTimeChange,
   disabled = false,
-}: DateSlotPickerProps) {
+}: Readonly<DateSlotPickerProps>) {
   const [availability, setAvailability] = useState<LiveVideoTourAvailability[]>([])
   const [slots, setSlots] = useState<LiveVideoTourSlot[]>([])
   const [loading, setLoading] = useState(true)

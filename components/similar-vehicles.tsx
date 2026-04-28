@@ -64,7 +64,7 @@ function toSimilarVehicle(v: ApiVehicle): SimilarVehicle {
   }
 }
 
-export function SimilarVehicles({ currentVehicleId, make, priceRange }: SimilarVehiclesProps) {
+export function SimilarVehicles({ currentVehicleId, make, priceRange }: Readonly<SimilarVehiclesProps>) {
   // Fetch similar vehicles from the API — benefits from CDN caching
   const apiUrl = `/api/v1/vehicles?make=${encodeURIComponent(make)}&status=available&limit=8&sort=created_at&order=desc`
   const { data } = useSWR(make ? apiUrl : null, fetcher, {

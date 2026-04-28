@@ -73,7 +73,7 @@ interface AIKnowledgePanelProps {
   agentName: string
 }
 
-export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePanelProps) {
+export default function AIKnowledgePanel({ agentType, agentName }: Readonly<AIKnowledgePanelProps>) {
   const [entries, setEntries] = useState<KnowledgeEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [tableExists, setTableExists] = useState(true)

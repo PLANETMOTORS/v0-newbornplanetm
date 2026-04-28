@@ -24,7 +24,7 @@ interface PriceAlertModalProps {
   trigger?: React.ReactNode
 }
 
-export function PriceAlertModal({ vehicle, searchCriteria, trigger }: PriceAlertModalProps) {
+export function PriceAlertModal({ vehicle, searchCriteria, trigger }: Readonly<PriceAlertModalProps>) {
   const [email, setEmail] = useState("")
   const [preferences, setPreferences] = useState({
     priceDrops: true,

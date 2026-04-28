@@ -14,7 +14,7 @@ interface TestimonialsSectionProps {
   testimonials: Testimonial[]
 }
 
-export function TestimonialsSection({ title, testimonials }: TestimonialsSectionProps) {
+export function TestimonialsSection({ title, testimonials }: Readonly<TestimonialsSectionProps>) {
   if (!testimonials || testimonials.length === 0) return null
 
   return (

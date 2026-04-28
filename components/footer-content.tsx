@@ -57,7 +57,7 @@ const footerLinks = {
   ],
 }
 
-export function FooterContent({ siteSettings }: FooterProps) {
+export function FooterContent({ siteSettings }: Readonly<FooterProps>) {
   // Format business hours
   const weekdayHours = siteSettings.businessHours?.find(h => h.day === "Monday")
   const saturdayHours = siteSettings.businessHours?.find(h => h.day === "Saturday")

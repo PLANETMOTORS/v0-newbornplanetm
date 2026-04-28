@@ -12,7 +12,7 @@ interface DocumentsStepProps {
   isSubmitting: boolean
 }
 
-export function DocumentsStep({ documents, setDocuments, onSubmit: _onSubmit, isSubmitting: _isSubmitting }: DocumentsStepProps) {
+export function DocumentsStep({ documents, setDocuments, onSubmit: _onSubmit, isSubmitting: _isSubmitting }: Readonly<DocumentsStepProps>) {
   const documentTypes = [
     { value: "drivers_license", label: "Driver's License", required: true },
     { value: "proof_of_income", label: "Proof of Income (Pay Stub/T4)", required: true },
