@@ -105,6 +105,19 @@ describe('ab-testing', () => {
         conversion_value: 25000,
       }))
     })
+
+    it('omits conversion_value when value is undefined (L186 branch)', async () => {
+      const { pushToDataLayer } = await import('@/components/analytics/google-tag-manager')
+      const exp = { variants: ['control', 'treatment'] as const }
+      getVariant('conv-noval', exp)
+      vi.mocked(pushToDataLayer).mockClear()
+      trackExperimentConversion('conv-noval', 'page_view')
+      expect(pushToDataLayer).toHaveBeenCalledWith(
+        expect.objectContaining({ event: 'experiment_conversion', goal_name: 'page_view' }),
+      )
+      const payload = vi.mocked(pushToDataLayer).mock.calls[0][0] as Record<string, unknown>
+      expect(payload).not.toHaveProperty('conversion_value')
+    })
   })
 
   describe('clearAssignments / getAllAssignments', () => {
