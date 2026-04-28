@@ -100,63 +100,76 @@ export function PriceNegotiator({
     }
   }
 
+  const extractDeltaFromSseLine = (line: string): string => {
+    if (!line.startsWith("data:")) return ""
+    const data = line.slice(5).trim()
+    if (!data || data === "[DONE]") return ""
+    try {
+      const parsed = JSON.parse(data)
+      if (parsed.type === "text-delta" && parsed.delta) return parsed.delta as string
+    } catch { /* ignore parse errors for non-JSON lines */ }
+    return ""
+  }
+
+  const consumeNegotiateStream = async (response: Response): Promise<string> => {
+    const reader = response.body?.getReader()
+    if (!reader) return ""
+    const decoder = new TextDecoder()
+    let fullContent = ""
+    let buffer = ""
+    let done = false
+    while (!done) {
+      const result = await reader.read()
+      done = result.done
+      if (done) break
+      buffer += decoder.decode(result.value, { stream: true })
+      const lines = buffer.split(/\r?\n/)
+      buffer = lines.pop() ?? ""
+      for (const line of lines) fullContent += extractDeltaFromSseLine(line)
+    }
+    fullContent += extractDeltaFromSseLine(buffer)
+    return fullContent
+  }
+
+  const appendAssistantFromStream = (fullContent: string) => {
+    try {
+      const result = JSON.parse(fullContent)
+      setMessages((prev) => [...prev, { role: "assistant", content: result.response, counterOffer: result.counterOffer, status: result.status }])
+    } catch {
+      setMessages((prev) => [...prev, { role: "assistant", content: fullContent || "I'd be happy to discuss pricing. What price did you have in mind?", status: "negotiating" }])
+    }
+  }
+
+  const postNegotiateRequest = (offerAmount: number, userMessage: string) => fetch("/api/negotiate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      vehicleId,
+      vehiclePrice,
+      customerOffer: offerAmount,
+      customerMessage: userMessage,
+      customerName: contactInfo.name,
+      customerEmail: contactInfo.email,
+      customerPhone: contactInfo.phone,
+      vehicleInfo: { name: vehicleName, daysListed, viewsLastWeek },
+    }),
+  })
+
   const handleSubmitOffer = async () => {
     const offerAmount = Number.parseFloat(offer.replaceAll(/[^0-9.]/g, ""))
     if (Number.isNaN(offerAmount) || offerAmount <= 0) return
 
     setCurrentOffer(offerAmount)
     const userMessage = customMessage || `I'd like to offer $${offerAmount.toLocaleString()} for this vehicle.`
-
     setMessages((prev) => [...prev, { role: "user", content: userMessage }])
     setIsLoading(true)
     setOffer("")
     setCustomMessage("")
 
     try {
-      const response = await fetch("/api/negotiate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          vehicleId,
-          vehiclePrice,
-          customerOffer: offerAmount,
-          customerMessage: userMessage,
-          customerName: contactInfo.name,
-          customerEmail: contactInfo.email,
-          customerPhone: contactInfo.phone,
-          vehicleInfo: { name: vehicleName, daysListed, viewsLastWeek },
-        }),
-      })
-
+      const response = await postNegotiateRequest(offerAmount, userMessage)
       if (!response.ok) throw new Error("Failed")
-
-      const reader = response.body?.getReader()
-      const decoder = new TextDecoder()
-      let fullContent = ""
-
-      while (reader) {
-        const { done, value } = await reader.read()
-        if (done) break
-        const chunk = decoder.decode(value, { stream: true })
-        const lines = chunk.split("\n")
-        for (const line of lines) {
-          if (line.startsWith("data:")) {
-            const data = line.slice(5).trim()
-            if (data === "[DONE]") continue
-            try {
-              const parsed = JSON.parse(data)
-              if (parsed.type === "text-delta" && parsed.delta) fullContent += parsed.delta
-            } catch { /* ignore parse errors for streaming chunks */ }
-          }
-        }
-      }
-
-      try {
-        const result = JSON.parse(fullContent)
-        setMessages((prev) => [...prev, { role: "assistant", content: result.response, counterOffer: result.counterOffer, status: result.status }])
-      } catch {
-        setMessages((prev) => [...prev, { role: "assistant", content: fullContent || "I'd be happy to discuss pricing. What price did you have in mind?", status: "negotiating" }])
-      }
+      appendAssistantFromStream(await consumeNegotiateStream(response))
     } catch {
       setMessages((prev) => [...prev, { role: "assistant", content: `I'm having trouble processing. Please try again or call ${PHONE_LOCAL}.`, status: "escalate" }])
     } finally {

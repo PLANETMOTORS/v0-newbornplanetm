@@ -26,13 +26,91 @@ interface ReleasedVehicle {
   previousStatus: string
 }
 
+type AdminClient = ReturnType<typeof createAdminClient>
+type StaleVehicle = { id: string; vin: string; year: number; make: string; model: string }
+
+async function releaseStaleCheckouts(
+  adminClient: AdminClient,
+  released: ReleasedVehicle[],
+  errors: string[],
+): Promise<void> {
+  const cutoff = new Date(Date.now() - 30 * 60 * 1000).toISOString()
+  const { data: stale, error } = await adminClient
+    .from("vehicles")
+    .select("id, vin, year, make, model")
+    .eq("status", "checkout_in_progress")
+    .lt("updated_at", cutoff)
+  if (error) {
+    errors.push(`checkout query: ${error.message}`)
+    return
+  }
+  for (const v of stale ?? []) {
+    const { error: updateErr } = await adminClient
+      .from("vehicles")
+      .update({ status: "available", updated_at: new Date().toISOString() })
+      .eq("id", v.id)
+      .eq("status", "checkout_in_progress")
+    if (updateErr) {
+      errors.push(`release ${v.vin}: ${updateErr.message}`)
+    } else {
+      released.push({ ...(v as StaleVehicle), previousStatus: "checkout_in_progress" })
+    }
+  }
+}
+
+async function hasActiveReservation(adminClient: AdminClient, vehicleId: string): Promise<{ active: boolean; error?: string }> {
+  const { data, error } = await adminClient
+    .from("reservations")
+    .select("id")
+    .eq("vehicle_id", vehicleId)
+    .in("status", ["confirmed", "pending"])
+    .limit(1)
+  if (error) return { active: false, error: error.message }
+  return { active: !!(data && data.length > 0) }
+}
+
+async function releaseStaleReservations(
+  adminClient: AdminClient,
+  released: ReleasedVehicle[],
+  errors: string[],
+): Promise<void> {
+  const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
+  const { data: stale, error } = await adminClient
+    .from("vehicles")
+    .select("id, vin, year, make, model")
+    .eq("status", "reserved")
+    .lt("updated_at", cutoff)
+  if (error) {
+    errors.push(`reserved query: ${error.message}`)
+    return
+  }
+  for (const v of stale ?? []) {
+    const check = await hasActiveReservation(adminClient, v.id)
+    if (check.error) {
+      errors.push(`reservation check ${v.vin}: ${check.error}`)
+      continue
+    }
+    if (check.active) continue
+    const { error: updateErr } = await adminClient
+      .from("vehicles")
+      .update({ status: "available", updated_at: new Date().toISOString() })
+      .eq("id", v.id)
+      .eq("status", "reserved")
+    if (updateErr) {
+      errors.push(`release ${v.vin}: ${updateErr.message}`)
+    } else {
+      released.push({ ...(v as StaleVehicle), previousStatus: "reserved" })
+    }
+  }
+}
+
 export async function GET(request: Request) {
   const startTime = Date.now()
 
   const auth = verifyCronSecret(request)
   if (!auth.ok) return auth.response
 
-  let adminClient: ReturnType<typeof createAdminClient>
+  let adminClient: AdminClient
   try {
     adminClient = createAdminClient()
   } catch {
@@ -43,82 +121,14 @@ export async function GET(request: Request) {
   const errors: string[] = []
 
   try {
-    // 1. Release checkout_in_progress vehicles older than 30 minutes
-    const checkoutCutoff = new Date(Date.now() - 30 * 60 * 1000).toISOString()
-    const { data: staleCheckouts, error: checkoutErr } = await adminClient
-      .from("vehicles")
-      .select("id, vin, year, make, model")
-      .eq("status", "checkout_in_progress")
-      .lt("updated_at", checkoutCutoff)
-
-    if (checkoutErr) {
-      errors.push(`checkout query: ${checkoutErr.message}`)
-    } else if (staleCheckouts && staleCheckouts.length > 0) {
-      for (const v of staleCheckouts) {
-        const { error: updateErr } = await adminClient
-          .from("vehicles")
-          .update({ status: "available", updated_at: new Date().toISOString() })
-          .eq("id", v.id)
-          .eq("status", "checkout_in_progress")
-
-        if (updateErr) {
-          errors.push(`release ${v.vin}: ${updateErr.message}`)
-        } else {
-          released.push({ ...v, previousStatus: "checkout_in_progress" })
-        }
-      }
-    }
-
-    // 2. Release reserved vehicles older than 48 hours (no confirmed deposit)
-    const reservedCutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
-    const { data: staleReserved, error: reservedErr } = await adminClient
-      .from("vehicles")
-      .select("id, vin, year, make, model")
-      .eq("status", "reserved")
-      .lt("updated_at", reservedCutoff)
-
-    if (reservedErr) {
-      errors.push(`reserved query: ${reservedErr.message}`)
-    } else if (staleReserved && staleReserved.length > 0) {
-      for (const v of staleReserved) {
-        // Check if there's an active confirmed reservation before releasing
-        const { data: activeRes, error: resErr } = await adminClient
-          .from("reservations")
-          .select("id")
-          .eq("vehicle_id", v.id)
-          .in("status", ["confirmed", "pending"])
-          .limit(1)
-
-        if (resErr) {
-          errors.push(`reservation check ${v.vin}: ${resErr.message}`)
-          continue
-        }
-
-        if (activeRes && activeRes.length > 0) {
-          // Vehicle has an active reservation — skip it
-          continue
-        }
-
-        const { error: updateErr } = await adminClient
-          .from("vehicles")
-          .update({ status: "available", updated_at: new Date().toISOString() })
-          .eq("id", v.id)
-          .eq("status", "reserved")
-
-        if (updateErr) {
-          errors.push(`release ${v.vin}: ${updateErr.message}`)
-        } else {
-          released.push({ ...v, previousStatus: "reserved" })
-        }
-      }
-    }
+    await releaseStaleCheckouts(adminClient, released, errors)
+    await releaseStaleReservations(adminClient, released, errors)
 
     const duration = Date.now() - startTime
     console.info(
       `[Vehicle Release] Released ${released.length} vehicles in ${duration}ms.` +
       (errors.length ? ` Errors: ${errors.length}` : "")
     )
-
     return NextResponse.json({
       success: true,
       released: released.length,
@@ -130,7 +140,7 @@ export async function GET(request: Request) {
     console.error("[Vehicle Release] Fatal error:", err)
     return NextResponse.json(
       { error: "Vehicle release failed", details: err instanceof Error ? err.message : "Unknown error" },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

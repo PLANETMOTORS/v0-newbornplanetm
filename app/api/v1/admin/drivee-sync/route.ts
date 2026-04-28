@@ -31,13 +31,78 @@ import { getSupabaseServiceRoleKey } from "@/lib/supabase/config"
  *
  * Returns a summary of all sync results.
  */
-export async function POST(request: NextRequest) {
-  // Auth guard — same pattern as all other admin API routes
+type AdminSupabase = ReturnType<typeof createAdminClient>
+type SyncTarget = { vin: string; stock_number: string | null; year: number; make: string; model: string }
+
+async function syncSingleDriveeVehicle(
+  supabase: AdminSupabase,
+  vehicle: SyncTarget,
+  shouldMigrate: boolean,
+  dryRun: boolean,
+  serviceRoleKey: string,
+): Promise<{ result: SyncResult; framesMigrated: number }> {
+  const { vin, stock_number, year, make, model } = vehicle
+  const vehicleName = `${year} ${make} ${model}`
+  try {
+    let mid = await resolveMidFromPirelly(vin)
+    if (!mid && stock_number) mid = await resolveMidFromPirellyByStock(stock_number)
+    if (!mid) {
+      return {
+        result: { vin, mid: null, frameCount: 0, framesInStorage: false, framesMigrated: 0, status: "no_mid" },
+        framesMigrated: 0,
+      }
+    }
+
+    let storageCount = await countFramesInStorage(mid)
+    let framesMigrated = 0
+    if (storageCount === 0 && shouldMigrate && !dryRun) {
+      const firebaseCount = await countFramesOnFirebase(mid)
+      if (firebaseCount > 0) {
+        framesMigrated = await migrateFramesToSupabase(mid, firebaseCount, serviceRoleKey)
+        storageCount = framesMigrated
+      }
+    }
+    const framesInStorage = storageCount > 0
+    if (!dryRun) {
+      const { error: upsertError } = await supabase
+        .from("drivee_mappings")
+        .upsert(
+          {
+            vin, mid, frame_count: storageCount, frames_in_storage: framesInStorage,
+            vehicle_name: vehicleName, source: "pirelly",
+            verified_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+          },
+          { onConflict: "vin" },
+        )
+      if (upsertError) throw upsertError
+    }
+    return {
+      result: { vin, mid, frameCount: storageCount, framesInStorage, framesMigrated, status: "synced" },
+      framesMigrated,
+    }
+  } catch (err) {
+    return {
+      result: {
+        vin, mid: null, frameCount: 0, framesInStorage: false, framesMigrated: 0,
+        status: "error", error: err instanceof Error ? err.message : "Unknown error",
+      },
+      framesMigrated: 0,
+    }
+  }
+}
+
+async function authoriseAdminOrError(): Promise<NextResponse | null> {
   const authClient = await createClient()
   const { data: { user } } = await authClient.auth.getUser()
   if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+  return null
+}
+
+export async function POST(request: NextRequest) {
+  const unauthorized = await authoriseAdminOrError()
+  if (unauthorized) return unauthorized
 
   const serviceRoleKey = getSupabaseServiceRoleKey()
   if (!serviceRoleKey) {
@@ -81,86 +146,12 @@ export async function POST(request: NextRequest) {
   let framesMigratedTotal = 0
 
   for (const vehicle of vinsToSync) {
-    const { vin, stock_number, year, make, model } = vehicle
-    const vehicleName = `${year} ${make} ${model}`
-
-    try {
-      // Step 1: Resolve MID from Pirelly (try VIN first, then stock number)
-      let mid = await resolveMidFromPirelly(vin)
-      if (!mid && stock_number) {
-        mid = await resolveMidFromPirellyByStock(stock_number)
-      }
-
-      if (!mid) {
-        results.push({
-          vin,
-          mid: null,
-          frameCount: 0,
-          framesInStorage: false,
-          framesMigrated: 0,
-          status: "no_mid",
-        })
-        noMid++
-        continue
-      }
-
-      // Step 2: Check frames in Supabase Storage
-      let storageCount = await countFramesInStorage(mid)
-      let framesMigrated = 0
-
-      // Step 3: If no frames in storage, check Firebase and migrate
-      if (storageCount === 0 && shouldMigrate && !dryRun) {
-        const firebaseCount = await countFramesOnFirebase(mid)
-        if (firebaseCount > 0) {
-          framesMigrated = await migrateFramesToSupabase(mid, firebaseCount, serviceRoleKey)
-          storageCount = framesMigrated
-          framesMigratedTotal += framesMigrated
-        }
-      }
-
-      const framesInStorage = storageCount > 0
-
-      // Step 4: Upsert to drivee_mappings
-      if (!dryRun) {
-        const { error: upsertError } = await supabase
-          .from("drivee_mappings")
-          .upsert(
-            {
-              vin,
-              mid,
-              frame_count: storageCount,
-              frames_in_storage: framesInStorage,
-              vehicle_name: vehicleName,
-              source: "pirelly",
-              verified_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: "vin" },
-          )
-        if (upsertError) throw upsertError
-      }
-
-      results.push({
-        vin,
-        mid,
-        frameCount: storageCount,
-        framesInStorage,
-        framesMigrated,
-        status: "synced",
-      })
-      synced++
-    } catch (err) {
-      results.push({
-        vin,
-        mid: null,
-        frameCount: 0,
-        framesInStorage: false,
-        framesMigrated: 0,
-        status: "error",
-        error: err instanceof Error ? err.message : "Unknown error",
-      })
-      errors++
-    }
+    const { result, framesMigrated } = await syncSingleDriveeVehicle(supabase, vehicle, shouldMigrate, dryRun, serviceRoleKey)
+    results.push(result)
+    framesMigratedTotal += framesMigrated
+    if (result.status === "synced") synced++
+    else if (result.status === "no_mid") noMid++
+    else if (result.status === "error") errors++
   }
 
   // Invalidate the in-memory drivee cache so subsequent requests see new data
@@ -185,12 +176,8 @@ export async function POST(request: NextRequest) {
  * Returns current state of all drivee_mappings from the database.
  */
 export async function GET() {
-  // Auth guard
-  const authClient = await createClient()
-  const { data: { user } } = await authClient.auth.getUser()
-  if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const unauthorized = await authoriseAdminOrError()
+  if (unauthorized) return unauthorized
 
   const supabase = createAdminClient()
 

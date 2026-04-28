@@ -168,6 +168,10 @@ export async function backupSanityDataset(): Promise<BackupResult> {
 // ── CLI entry point ────────────────────────────────────────────────────────
 // Runs when executed directly: npx tsx lib/cms/backup.ts
 
+// S7785: top-level await is unavailable here — tsconfig's `target` is ES6
+// to keep Next.js Turbopack output compatible with the broadest browser
+// matrix, and ESnext top-level await requires target ES2017+. We therefore
+// keep the explicit `main()` invocation guarded by the CommonJS marker.
 const isMain =
   typeof require !== "undefined" &&
   require.main === module
@@ -187,5 +191,5 @@ async function main() {
 }
 
 if (isMain) {
-  main()
+  void main() // NOSONAR S7785 — top-level await requires target: ES2022+; tsconfig is ES6.
 }

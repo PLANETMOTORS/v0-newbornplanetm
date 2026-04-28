@@ -38,17 +38,18 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
 export async function createClient() {
   const cookieStore = await cookies()
 
-  // S1874: type the cookies adapter with @supabase/ssr's own
-  // CookieMethodsServer so we resolve the modern, non-deprecated overload
-  // instead of the legacy `(url, key, options: any)` signature.
+  // S1874: explicit `CookieMethodsServer` annotation forces TS to resolve
+  // the modern (non-deprecated) overload of `createServerClient`.
+  const cookieAdapter: CookieMethodsServer = {
+    getAll: () => cookieStore.getAll(),
+    setAll: (all) =>
+      all.forEach(({ name, value, options }) =>
+        cookieStore.set(name, value, options as Parameters<typeof cookieStore.set>[2])
+      ),
+  }
+
   return createServerClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    cookies: {
-      getAll: () => cookieStore.getAll(),
-      setAll: (all) =>
-        all.forEach(({ name, value, options }) =>
-          cookieStore.set(name, value, options as Parameters<typeof cookieStore.set>[2])
-        ),
-    } satisfies CookieMethodsServer,
+    cookies: cookieAdapter,
   })
 }
 

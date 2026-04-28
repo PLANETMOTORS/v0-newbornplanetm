@@ -148,6 +148,42 @@ export function parseHomenetCSV(csvText: string): VehicleData[] {
   return vehicles
 }
 
+function normalizeHomenetFuelType(raw: string): string {
+  if (!raw) return raw
+  // String-based normalization (no regex) to avoid Sonar S5852 (regex
+  // backtracking risk on untrusted CSV input). Strip a trailing
+  // "fuel system" or "fuel" suffix, case-insensitive.
+  const trimmed = raw.trimEnd()
+  const lower = trimmed.toLowerCase()
+  for (const suffix of ["fuel system", "fuel"]) {
+    if (lower.endsWith(suffix)) {
+      return trimmed.slice(0, trimmed.length - suffix.length).trimEnd() || raw
+    }
+  }
+  return raw
+}
+
+function composeEngineString(direct: string, cyl: string, disp: string): string {
+  if (direct) return direct
+  // Skip "0.0", "0.0 L", etc. displacement for EVs
+  const validDisp = disp && !/^0+(\.0+)?(\s|$)/.exec(disp) ? disp : ""
+  if (validDisp) return validDisp + (cyl ? ` ${cyl}-Cylinder` : "")
+  if (cyl && cyl !== "0") return `${cyl}-Cylinder`
+  return ""
+}
+
+function mapConditionFlags(rawCondition: string, certifiedFlag: boolean, certifiedFlagPresent: boolean):
+  { a2Condition: string; isCertified: boolean } {
+  const lower = rawCondition.toLowerCase()
+  if (lower === "cpo" || lower === "certified" || lower === "certified_used") {
+    return { a2Condition: "certified_used", isCertified: true }
+  }
+  if (lower === "new") {
+    return { a2Condition: "new", isCertified: certifiedFlag }
+  }
+  return { a2Condition: "used", isCertified: certifiedFlagPresent ? certifiedFlag : false }
+}
+
 function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
   const get = (keys: string[]): string => {
     for (const key of keys) { if (row[key]) return row[key] }
@@ -169,51 +205,23 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
   if (!stockNumber) return null
 
   // Normalize HomeNet fuel values: "Gasoline Fuel" → "Gasoline", "Electric Fuel System" → "Electric"
-  let fuelType = get(["fuel_type", "fueltype", "fuel"])
-  if (fuelType) {
-    // String-based normalization (no regex) to avoid Sonar S5852 (regex
-    // backtracking risk on untrusted CSV input). Strip a trailing
-    // "fuel system" or "fuel" suffix, case-insensitive.
-    const trimmed = fuelType.trimEnd()
-    const lower = trimmed.toLowerCase()
-    let stripped = trimmed
-    for (const suffix of ["fuel system", "fuel"]) {
-      if (lower.endsWith(suffix)) {
-        stripped = trimmed.slice(0, trimmed.length - suffix.length).trimEnd()
-        break
-      }
-    }
-    fuelType = stripped || fuelType
-  }
+  const fuelType = normalizeHomenetFuelType(get(["fuel_type", "fueltype", "fuel"]))
   const rawImages = get(["image_urls", "photos", "images", "photo", "imagelist"])
   const images = parseImageUrls(rawImages)
 
-  // Compose engine string from cylinders + displacement if "engine" column is absent
-  let engineStr = get(["engine", "enginedescription"])
-  if (!engineStr) {
-    const cyl = get(["enginecylinders"])
-    const disp = get(["enginedisplacement"])
-    // Skip "0.0", "0.0 L", etc. displacement for EVs
-    const validDisp = disp && !/^0+(\.0+)?(\s|$)/.exec(disp) ? disp : ""
-    if (validDisp) engineStr = validDisp + (cyl ? ` ${cyl}-Cylinder` : "")
-    else if (cyl && cyl !== "0") engineStr = `${cyl}-Cylinder`
-    // EVs: leave engine empty — it's electric
-  }
+  const engineStr = composeEngineString(
+    get(["engine", "enginedescription"]),
+    get(["enginecylinders"]),
+    get(["enginedisplacement"]),
+  )
 
-  // === A2: Condition mapping ===
   // HomeNet "Type" column: "Used", "New", "CPO" → A2 condition values
-  const rawCondition = get(["condition", "type"]).toLowerCase()
-  let isCertified = getBool(["is_certified", "certified", "cpo"])
-  let a2Condition = "used"
-  if (rawCondition === "cpo" || rawCondition === "certified" || rawCondition === "certified_used") {
-    a2Condition = "certified_used"
-    isCertified = true
-  } else if (rawCondition === "new") {
-    a2Condition = "new"
-  } else if (!get(["is_certified", "certified", "cpo"])) {
-    // No certification flag — mark as not certified
-    isCertified = false
-  }
+  const certifiedFlagRaw = get(["is_certified", "certified", "cpo"])
+  const { a2Condition, isCertified } = mapConditionFlags(
+    get(["condition", "type"]),
+    getBool(["is_certified", "certified", "cpo"]),
+    !!certifiedFlagRaw,
+  )
 
   // === A2: Core vehicle fields ===
   const year = getNum(["year"]) || new Date().getFullYear()

@@ -51,25 +51,29 @@ export async function updateSession(request: NextRequest) {
 
   let supabaseResponse = NextResponse.next({ request })
 
+  // S1874: explicit `CookieMethodsServer` annotation forces TS to resolve
+  // the modern (non-deprecated) overload of `createServerClient`.
+  const cookieAdapter: CookieMethodsServer = {
+    getAll() {
+      return request.cookies.getAll()
+    },
+    setAll(cookiesToSet) {
+      for (const { name, value } of cookiesToSet) {
+        request.cookies.set(name, value)
+      }
+      supabaseResponse = NextResponse.next({ request })
+      for (const { name, value, options } of cookiesToSet) {
+        supabaseResponse.cookies.set(
+          name,
+          value,
+          applySupabaseCookieDefaults(options as CookieMutation["options"])
+        )
+      }
+    },
+  }
+
   const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll()
-      },
-      setAll(cookiesToSet) {
-        for (const { name, value } of cookiesToSet) {
-          request.cookies.set(name, value)
-        }
-        supabaseResponse = NextResponse.next({ request })
-        for (const { name, value, options } of cookiesToSet) {
-          supabaseResponse.cookies.set(
-            name,
-            value,
-            applySupabaseCookieDefaults(options as CookieMutation["options"])
-          )
-        }
-      },
-    } satisfies CookieMethodsServer,
+    cookies: cookieAdapter,
   })
 
   const {

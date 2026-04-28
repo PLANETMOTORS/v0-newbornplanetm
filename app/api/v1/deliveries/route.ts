@@ -2,6 +2,39 @@ import { NextRequest } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
 
+type DeliveryRow = {
+  id: string
+  status: string
+  scheduled_date: string | null
+  scheduled_time_slot: string | null
+  estimated_delivery_date: string | null
+  distance_km: number | null
+  delivery_fee: number | null
+  created_at: string | null
+}
+
+function toDeliveryDto(
+  row: DeliveryRow,
+  orderRef: string,
+  extra: { idempotentReplay?: boolean } = {},
+) {
+  return {
+    ...(extra.idempotentReplay ? { idempotentReplay: true } : {}),
+    delivery: {
+      id: row.id,
+      orderId: orderRef,
+      status: row.status,
+      scheduledDate: row.scheduled_date,
+      timeSlot: row.scheduled_time_slot,
+      estimatedDeliveryDate: row.estimated_delivery_date,
+      distanceKm: row.distance_km,
+      cost: row.delivery_fee,
+      isFree: Number(row.delivery_fee || 0) === 0,
+      createdAt: row.created_at,
+    },
+  }
+}
+
 // POST /api/v1/deliveries - Schedule delivery
 export async function POST(request: NextRequest) {
   try {
@@ -76,25 +109,9 @@ export async function POST(request: NextRequest) {
       const isSameSchedule =
         String(existing.scheduled_date || "") === String(scheduledDate) &&
         String(existing.scheduled_time_slot || "") === String(normalizedTimeSlot || "")
-
       if (isSameSchedule) {
-        return apiSuccess({
-          idempotentReplay: true,
-          delivery: {
-            id: existing.id,
-            orderId: order.order_number || order.id,
-            status: existing.status,
-            scheduledDate: existing.scheduled_date,
-            timeSlot: existing.scheduled_time_slot,
-            estimatedDeliveryDate: existing.estimated_delivery_date,
-            distanceKm: existing.distance_km,
-            cost: existing.delivery_fee,
-            isFree: Number(existing.delivery_fee || 0) === 0,
-            createdAt: existing.created_at,
-          },
-        })
+        return apiSuccess(toDeliveryDto(existing as DeliveryRow, order.order_number || order.id, { idempotentReplay: true }))
       }
-
       return apiError(ErrorCode.VALIDATION_ERROR, "An active delivery already exists for this order", 409)
     }
 
@@ -128,20 +145,7 @@ export async function POST(request: NextRequest) {
       return apiError(ErrorCode.INTERNAL_ERROR, "Failed to schedule delivery")
     }
 
-    return apiSuccess({
-      delivery: {
-        id: insertedRows.id,
-        orderId: order.order_number || order.id,
-        status: insertedRows.status,
-        scheduledDate: insertedRows.scheduled_date,
-        timeSlot: insertedRows.scheduled_time_slot,
-        estimatedDeliveryDate: insertedRows.estimated_delivery_date,
-        distanceKm: insertedRows.distance_km,
-        cost: insertedRows.delivery_fee,
-        isFree: Number(insertedRows.delivery_fee || 0) === 0,
-        createdAt: insertedRows.created_at,
-      },
-    })
+    return apiSuccess(toDeliveryDto(insertedRows as DeliveryRow, order.order_number || order.id))
   } catch (error) {
     console.error("[deliveries POST] failed:", error)
     return apiError(ErrorCode.INTERNAL_ERROR, "Failed to schedule delivery")

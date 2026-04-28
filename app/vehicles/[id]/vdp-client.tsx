@@ -83,32 +83,27 @@ export interface VDPClientProps {
   serverVehicle: VehicleDetail
 }
 
-export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
-  const searchParams = useSearchParams()
-  const { user } = useAuth()
-  const { addFavorite, removeFavorite, isFavorite: isFavoriteInContext } = useFavorites()
-
-  // ── Build the merged vehicle shape from server data + mock inspection fallbacks ──
-  // HomenetIOL: first image often has dealer overlays. Skip when feed has > 1 image.
+function buildVdpImages(serverVehicle: VehicleDetail): { exteriorImgs: string[]; interiorImgs: string[] } {
   const fallbackImages: string[] = serverVehicle.primaryImageUrl
     ? [serverVehicle.primaryImageUrl]
     : vehicleData.images
   const rawImages: string[] = serverVehicle.imageUrls.length > 0
     ? serverVehicle.imageUrls
     : fallbackImages
-
   const cleanImages = rawImages.length > 1
     && rawImages[0] === serverVehicle.primaryImageUrl
     && rawImages[0]?.includes('homenetiol.com')
     ? rawImages.slice(1)
     : rawImages
-
   const splitIndex = cleanImages.length > 10 ? Math.ceil(cleanImages.length * 0.6) : cleanImages.length
-  const exteriorImgs = cleanImages.slice(0, splitIndex)
-  const interiorImgs = cleanImages.length > 10 ? cleanImages.slice(splitIndex) : []
+  return {
+    exteriorImgs: cleanImages.slice(0, splitIndex),
+    interiorImgs: cleanImages.length > 10 ? cleanImages.slice(splitIndex) : [],
+  }
+}
 
-  // Merged vehicle object — SSR data + mock inspection fallback
-  const vehicle = {
+function buildMergedVehicle(serverVehicle: VehicleDetail, exteriorImgs: string[], interiorImgs: string[]) {
+  return {
     ...vehicleData,
     id: serverVehicle.id,
     year: serverVehicle.year,
@@ -139,6 +134,15 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
       totalWithHst: serverVehicle.pricing.total,
     },
   }
+}
+
+export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
+  const searchParams = useSearchParams()
+  const { user } = useAuth()
+  const { addFavorite, removeFavorite, isFavorite: isFavoriteInContext } = useFavorites()
+
+  const { exteriorImgs, interiorImgs } = buildVdpImages(serverVehicle)
+  const vehicle = buildMergedVehicle(serverVehicle, exteriorImgs, interiorImgs)
 
   const vehicleId = vehicle.id
   const isAvailable = vehicle.status === "available"
@@ -431,7 +435,11 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     if (imageType === "360" && !has360) {
                       return (
                   /* ── Auto-Spin 360° Fallback — cycles exterior photos ── */
-                  <div
+                  /* S6848: use a <section> with aria-label so mouse-pause is
+                     scoped to a passive landmark; the inner Play/Pause and
+                     arrow <button>s remain the keyboard-accessible controls. */
+                  <section
+                    aria-label="Auto-spinning vehicle photos"
                     data-testid="vdp-auto-spin"
                     className="relative aspect-[4/3] rounded-xl overflow-hidden group"
                     style={{ backgroundColor: "#111" }}
@@ -490,14 +498,17 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                         <p className="text-sm text-white/50">No exterior photos available</p>
                       </div>
                     )}
-                  </div>
+                  </section>
                       )
                     }
                     return (
+                  /* S6845/S6847: render the gallery as a focusable widget
+                     with role="group" + keyboard arrows so screen-reader and
+                     keyboard users can navigate the same way mouse users do. */
                   <section
                     data-testid="vdp-image-gallery"
                     tabIndex={0}
-                    aria-label="Vehicle image gallery"
+                    aria-label="Vehicle image gallery — use left/right arrow keys to navigate"
                     onKeyDown={(e) => {
                       if (e.key === "ArrowRight") { nextImage(); e.preventDefault() }
                       if (e.key === "ArrowLeft") { prevImage(); e.preventDefault() }

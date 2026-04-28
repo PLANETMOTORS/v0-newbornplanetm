@@ -88,50 +88,38 @@ const fetcher = async (url: string): Promise<VehiclesApiResponse> => {
 }
 
 // Transform API vehicle to display format
+function mapDisplayFuelType(fuelType: string | null | undefined = "Gasoline"): string {
+  const raw = fuelType ?? "Gasoline"
+  if (raw === "Electric") return "Electric"
+  if (raw === "Hybrid") return "Hybrid"
+  return "Gasoline"
+}
+
+function deriveBadge(v: Vehicle, priceInDollars: number): { badge: string; badgeColor: string } {
+  if (v.is_new_arrival) return { badge: "Just Arrived", badgeColor: "bg-green-700" }
+  if (v.fuel_type === "Electric") return { badge: "Electric", badgeColor: "bg-teal-700" }
+  if (v.is_certified) return { badge: "PM Certified", badgeColor: "bg-primary" }
+  if (priceInDollars > 100000) return { badge: "Premium", badgeColor: "bg-purple-700" }
+  return { badge: "", badgeColor: "bg-primary" }
+}
+
+const REAL_IMAGE_INDICATORS = ['.jpg', '.png', '.webp', 'cdn.planetmotors.ca', 'imgix.net', 'homenetiol.com', 'cpsimg.com']
+function pickImageUrl(primaryImageUrl: string | null | undefined): string | null {
+  if (!primaryImageUrl) return null
+  if (primaryImageUrl.includes('planetmotors.ca/inventory') || primaryImageUrl.includes('unsplash.com')) return null
+  return REAL_IMAGE_INDICATORS.some(ind => primaryImageUrl.includes(ind)) ? primaryImageUrl : null
+}
+
 // NOTE: API already returns price in dollars (route.ts divides by 100)
 function transformVehicle(v: Vehicle) {
   const priceInDollars = safeNum(v.price)
   const msrpInDollars = safeNum(v.msrp, priceInDollars * 1.1)
-  
-  // Determine badge based on vehicle attributes
-  let badge = ""
-  let badgeColor = "bg-primary"
-  
-  if (v.is_new_arrival) {
-    badge = "Just Arrived"
-    badgeColor = "bg-green-700"
-  } else if (v.fuel_type === "Electric") {
-    badge = "Electric"
-    badgeColor = "bg-teal-700"
-  } else if (v.is_certified) {
-    badge = "PM Certified"
-    // badgeColor stays "bg-primary" (the default)
-  } else if (priceInDollars > 100000) {
-    badge = "Premium"
-    badgeColor = "bg-purple-700"
-  }
-  
-  // Map fuel types for filtering
-  let displayFuelType = v.fuel_type || "Gasoline"
-  if (displayFuelType === "Electric") displayFuelType = "Electric"
-  else if (displayFuelType === "Hybrid") displayFuelType = "Hybrid"
-  else displayFuelType = "Gasoline"
-  
-  // Check if primary_image_url is a real hosted image (not an Unsplash placeholder or VDP page URL)
-  // Valid sources: cdn.planetmotors.ca, planetmotors.imgix.net, HomeNet IOL, direct image files
-  const hasRealImage = v.primary_image_url &&
-    !v.primary_image_url.includes('planetmotors.ca/inventory') &&
-    !v.primary_image_url.includes('unsplash.com') &&
-    (v.primary_image_url.includes('.jpg') ||
-     v.primary_image_url.includes('.png') ||
-     v.primary_image_url.includes('.webp') ||
-     v.primary_image_url.includes('cdn.planetmotors.ca') ||
-     v.primary_image_url.includes('imgix.net') ||
-     v.primary_image_url.includes('homenetiol.com') ||
-     v.primary_image_url.includes('cpsimg.com'))
+  const { badge, badgeColor } = deriveBadge(v, priceInDollars)
 
-  // Use real image URL or null (gradient fallback will show in the card)
-  const imageUrl = hasRealImage ? v.primary_image_url : null
+  // Map fuel types for filtering
+  const displayFuelType = mapDisplayFuelType(v.fuel_type)
+
+  const imageUrl = pickImageUrl(v.primary_image_url)
   
   return {
     id: v.id,
@@ -179,6 +167,50 @@ const INVENTORY_SKELETON_KEYS = [
   "skel-a", "skel-b", "skel-c", "skel-d",
   "skel-e", "skel-f", "skel-g", "skel-h",
 ] as const
+
+const SORT_PARAM_MAP: Record<string, [string, string]> = {
+  'price-low': ['price', 'asc'],
+  'price-high': ['price', 'desc'],
+  'mileage-low': ['mileage', 'asc'],
+  newest: ['year', 'desc'],
+}
+function applySortParams(params: URLSearchParams, sortBy: string) {
+  const [field, order] = SORT_PARAM_MAP[sortBy] ?? ['created_at', 'desc']
+  params.set('sort', field)
+  params.set('order', order)
+}
+
+interface FilterState {
+  evOnly: boolean
+  selectedFuelType: string
+  selectedMake: string
+  selectedBodyType: string
+  selectedYear: string
+  selectedTransmission: string
+  selectedColor: string
+  selectedDrivetrain: string
+  priceRange: number[]
+  mileageRange: number[]
+  searchQuery: string
+}
+function applyFilterParams(params: URLSearchParams, f: FilterState) {
+  if (f.evOnly) params.set('fuelType', 'Electric')
+  else if (f.selectedFuelType !== 'All Fuel Types') params.set('fuelType', f.selectedFuelType)
+  if (f.selectedMake !== 'All Makes') params.set('make', f.selectedMake)
+  if (f.selectedBodyType !== 'All Types') params.set('bodyStyle', f.selectedBodyType)
+  if (f.selectedYear !== 'All Years') {
+    params.set('minYear', f.selectedYear)
+    params.set('maxYear', f.selectedYear)
+  }
+  if (f.selectedTransmission !== 'All Transmissions') params.set('transmission', f.selectedTransmission)
+  if (f.selectedColor !== 'All Colors') params.set('exteriorColor', f.selectedColor)
+  if (f.selectedDrivetrain !== 'All Drivetrains') params.set('drivetrain', f.selectedDrivetrain)
+  if (f.priceRange[0] > 0) params.set('minPrice', String(f.priceRange[0]))
+  if (f.priceRange[1] < 400000) params.set('maxPrice', String(f.priceRange[1]))
+  if (f.mileageRange[0] > 0) params.set('minMileage', String(f.mileageRange[0]))
+  if (f.mileageRange[1] < 200000) params.set('maxMileage', String(f.mileageRange[1]))
+  if (f.searchQuery.trim()) params.set('q', f.searchQuery.trim())
+}
 
 /**
  * Render the interactive vehicle inventory page with search, filters, sorting, pagination, favorites, and optional trade-in integration.
@@ -250,30 +282,13 @@ function InventoryContent() {
     const params = new URLSearchParams()
     params.set('limit', String(API_PAGE_SIZE))
     params.set('page', String(effectivePage))
-
-    // Sort mapping
-    if (sortBy === 'price-low') { params.set('sort', 'price'); params.set('order', 'asc') }
-    else if (sortBy === 'price-high') { params.set('sort', 'price'); params.set('order', 'desc') }
-    else if (sortBy === 'mileage-low') { params.set('sort', 'mileage'); params.set('order', 'asc') }
-    else if (sortBy === 'newest') { params.set('sort', 'year'); params.set('order', 'desc') }
-    else { params.set('sort', 'created_at'); params.set('order', 'desc') }
-
-    // Filters
-    if (evOnly) { params.set('fuelType', 'Electric') }
-    else if (selectedFuelType !== 'All Fuel Types') { params.set('fuelType', selectedFuelType) }
-    if (selectedMake !== 'All Makes') params.set('make', selectedMake)
-    if (selectedBodyType !== 'All Types') params.set('bodyStyle', selectedBodyType)
-    if (selectedYear !== 'All Years') { params.set('minYear', selectedYear); params.set('maxYear', selectedYear) }
-    if (selectedTransmission !== 'All Transmissions') params.set('transmission', selectedTransmission)
-    if (selectedColor !== 'All Colors') params.set('exteriorColor', selectedColor)
-    if (selectedDrivetrain !== 'All Drivetrains') params.set('drivetrain', selectedDrivetrain)
-    if (priceRange[0] > 0) params.set('minPrice', String(priceRange[0]))
-    if (priceRange[1] < 400000) params.set('maxPrice', String(priceRange[1]))
-    if (mileageRange[0] > 0) params.set('minMileage', String(mileageRange[0]))
-    if (mileageRange[1] < 200000) params.set('maxMileage', String(mileageRange[1]))
-    if (searchQuery.trim()) params.set('q', searchQuery.trim())
+    applySortParams(params, sortBy)
+    applyFilterParams(params, {
+      evOnly, selectedFuelType, selectedMake, selectedBodyType, selectedYear,
+      selectedTransmission, selectedColor, selectedDrivetrain,
+      priceRange, mileageRange, searchQuery,
+    })
     params.set('includeFilters', 'true')
-
     return `/api/v1/vehicles?${params.toString()}`
   }, [effectivePage, sortBy, evOnly, selectedFuelType, selectedMake, selectedBodyType, selectedYear,
       selectedTransmission, selectedColor, selectedDrivetrain, priceRange, mileageRange, searchQuery])
@@ -315,90 +330,83 @@ function InventoryContent() {
     ? ['All Body Types', ...apiFilters.bodyStyles]
     : ['All Body Types']
 
+  const resetFiltersToDefaults = useCallback(() => {
+    setSelectedFuelType("All Fuel Types")
+    setSelectedBodyType("All Types")
+    setSelectedMake("All Makes")
+    setSelectedYear("All Years")
+    setSelectedTransmission("All Transmissions")
+    setSelectedColor("All Colors")
+    setSelectedDrivetrain("All Drivetrains")
+    setPriceRange([0, 400000])
+    setMileageRange([0, 200000])
+    setEvOnly(false)
+    setSearchQuery("")
+    setSearchInput("")
+  }, [])
+
+  const applyFuelTypeFilter = useCallback((fuelType: string | null) => {
+    if (fuelType === "Electric") { setSelectedFuelType("Electric"); setEvOnly(true) }
+    else if (fuelType) setSelectedFuelType(fuelType)
+  }, [])
+
+  const applyPriceFilter = useCallback((minPrice: string | null, maxPrice: string | null) => {
+    if (!minPrice && !maxPrice) return
+    const min = minPrice ? Number.parseInt(minPrice) : 0
+    const max = maxPrice ? Number.parseInt(maxPrice) : 400000
+    setPriceRange([Number.isNaN(min) ? 0 : min, Number.isNaN(max) ? 400000 : max])
+  }, [])
+
+  const applyCategoryFilter = useCallback((category: string | null) => {
+    if (category === "Luxury") { setSearchQuery("luxury"); setSearchInput("luxury") }
+    else if (category === "Family") setSelectedBodyType("SUV")
+  }, [])
+
+  const applyUrlFilters = useCallback((urlParams: {
+    fuelType: string | null
+    bodyType: string | null
+    make: string | null
+    maxPrice: string | null
+    minPrice: string | null
+    category: string | null
+    transmission: string | null
+    urlQuery: string | null
+  }) => {
+    const { fuelType, bodyType, make, maxPrice, minPrice, category, transmission, urlQuery } = urlParams
+    applyFuelTypeFilter(fuelType)
+    if (bodyType) setSelectedBodyType(bodyType)
+    if (make) setSelectedMake(make)
+    applyPriceFilter(minPrice, maxPrice)
+    if (transmission) setSelectedTransmission(transmission)
+    applyCategoryFilter(category)
+    if (urlQuery) { setSearchQuery(urlQuery); setSearchInput(urlQuery) }
+  }, [applyFuelTypeFilter, applyPriceFilter, applyCategoryFilter])
+
   // Read URL parameters and set filters
   // IMPORTANT: Reset ALL filters first, then apply only what the URL specifies.
-  // This prevents stale filters from persisting when navigating between
-  // homepage category links (e.g. Electric → SUV → Sedan).
   useEffect(() => {
-    const fuelType = searchParams.get("fuelType")
-    const bodyType = searchParams.get("bodyType")
-    const make = searchParams.get("make")
-    const maxPrice = searchParams.get("maxPrice")
-    const minPrice = searchParams.get("minPrice")
-    const category = searchParams.get("category")
-    const transmission = searchParams.get("transmission")
-    const urlQuery = searchParams.get("q")
-    // Check for trade-in from AI Quote
+    const params = {
+      fuelType: searchParams.get("fuelType"),
+      bodyType: searchParams.get("bodyType"),
+      make: searchParams.get("make"),
+      maxPrice: searchParams.get("maxPrice"),
+      minPrice: searchParams.get("minPrice"),
+      category: searchParams.get("category"),
+      transmission: searchParams.get("transmission"),
+      urlQuery: searchParams.get("q"),
+    }
     const tradeIn = searchParams.get("tradeIn")
-    const quoteId = searchParams.get("quoteId")
-    const tradeInVehicle = searchParams.get("tradeInVehicle")
-
     if (tradeIn && Number.parseInt(tradeIn) > 0) {
+      const tradeInVehicle = searchParams.get("tradeInVehicle")
       setTradeInInfo({
         value: Number.parseInt(tradeIn),
-        quoteId: quoteId || '',
-        vehicle: tradeInVehicle ? decodeURIComponent(tradeInVehicle) : ''
+        quoteId: searchParams.get("quoteId") || '',
+        vehicle: tradeInVehicle ? decodeURIComponent(tradeInVehicle) : '',
       })
     }
-
-    // Only reset filters when URL has filter-related params (not on bare /inventory)
-    const hasFilterParams = fuelType || bodyType || make || maxPrice || minPrice || category || transmission || urlQuery
-    if (hasFilterParams) {
-      // Reset all filters to defaults before applying URL params
-      setSelectedFuelType("All Fuel Types")
-      setSelectedBodyType("All Types")
-      setSelectedMake("All Makes")
-      setSelectedYear("All Years")
-      setSelectedTransmission("All Transmissions")
-      setSelectedColor("All Colors")
-      setSelectedDrivetrain("All Drivetrains")
-      setPriceRange([0, 400000])
-      setMileageRange([0, 200000])
-      setEvOnly(false)
-      setSearchQuery("")
-      setSearchInput("")
-    }
-
-    // Apply URL-specified filters
-    if (fuelType === "Electric") {
-      setSelectedFuelType("Electric")
-      setEvOnly(true)
-    } else if (fuelType) {
-      setSelectedFuelType(fuelType)
-    }
-
-    if (bodyType) {
-      setSelectedBodyType(bodyType)
-    }
-
-    if (make) {
-      setSelectedMake(make)
-    }
-
-    if (minPrice || maxPrice) {
-      const min = minPrice ? Number.parseInt(minPrice) : 0
-      const max = maxPrice ? Number.parseInt(maxPrice) : 400000
-      setPriceRange([Number.isNaN(min) ? 0 : min, Number.isNaN(max) ? 400000 : max])
-    }
-
-    if (transmission) {
-      setSelectedTransmission(transmission)
-    }
-
-    // Map category shortcuts to concrete filters
-    if (category === "Luxury") {
-      setSearchQuery("luxury")
-      setSearchInput("luxury")
-    } else if (category === "Family") {
-      setSelectedBodyType("SUV")
-    }
-
-    // Read search query from URL (e.g. /inventory?q=Tesla)
-    if (urlQuery) {
-      setSearchQuery(urlQuery)
-      setSearchInput(urlQuery)
-    }
-  }, [searchParams])
+    if (Object.values(params).some(Boolean)) resetFiltersToDefaults()
+    applyUrlFilters(params)
+  }, [searchParams, resetFiltersToDefaults, applyUrlFilters])
 
   // Final display list comes from the accumulator
   const sortedVehicles = accumulatedVehicles

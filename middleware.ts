@@ -32,7 +32,13 @@ export const config = {
      * - _next/image   (image optimisation)
      * - favicon.ico
      * - public assets (svg, png, jpg, jpeg, gif, webp, ico, woff, woff2)
+     *
+     * NOTE: Next.js statically analyses `config.matcher` and only accepts
+     * plain string literals here — tagged templates like `String.raw\`...\``
+     * make Next bail with "Invalid segment configuration export" during
+     * page-data collection, so S7780 is suppressed for this single literal.
      */
+    // NOSONAR — see comment above; cannot use String.raw here.
     '/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)',
   ],
 }

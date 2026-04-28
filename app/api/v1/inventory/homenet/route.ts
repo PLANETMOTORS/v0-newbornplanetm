@@ -11,6 +11,37 @@ import {
 // API Key for HomenetIOL webhook authentication
 const HOMENET_API_KEY = process.env.HOMENET_API_KEY
 
+async function parseInventoryFromRequest(
+  request: Request,
+  contentType: string,
+): Promise<{ vehicles: VehicleData[] } | { error: NextResponse }> {
+  if (contentType.includes("multipart/form-data")) {
+    const formData = await request.formData()
+    const file = formData.get("file") as File
+    if (!file) {
+      return { error: NextResponse.json({ error: "No file provided" }, { status: 400 }) }
+    }
+    const text = await file.text()
+    const filename = file.name.toLowerCase()
+    if (filename.endsWith(".xml")) return { vehicles: parseHomenetXML(text) }
+    if (filename.endsWith(".csv") || filename.endsWith(".txt")) return { vehicles: parseHomenetCSV(text) }
+    return { error: NextResponse.json({ error: "Unsupported file format. Use XML, CSV, or TXT." }, { status: 400 }) }
+  }
+  if (contentType.includes("application/xml") || contentType.includes("text/xml")) {
+    return { vehicles: parseHomenetXML(await request.text()) }
+  }
+  if (contentType.includes("application/json")) {
+    const json = await request.json()
+    return { vehicles: Array.isArray(json) ? json : (json.vehicles || []) }
+  }
+  const text = await request.text()
+  const trimmed = text.trim()
+  if (trimmed.startsWith("<?xml") || trimmed.startsWith("<")) {
+    return { vehicles: parseHomenetXML(text) }
+  }
+  return { vehicles: parseHomenetCSV(text) }
+}
+
 /**
  * HomenetIOL Inventory Feed Webhook
  * 
@@ -40,50 +71,14 @@ export async function POST(request: Request) {
     }
 
     const contentType = request.headers.get("content-type") || ""
-    let vehicles: VehicleData[] = []
-
-    // Handle different content types
-    if (contentType.includes("multipart/form-data")) {
-      // File upload (XML or CSV)
-      const formData = await request.formData()
-      const file = formData.get("file") as File
-      
-      if (!file) {
-        return NextResponse.json({ error: "No file provided" }, { status: 400 })
-      }
-
-      const text = await file.text()
-      const filename = file.name.toLowerCase()
-
-      if (filename.endsWith(".xml")) {
-        vehicles = parseHomenetXML(text)
-      } else if (filename.endsWith(".csv") || filename.endsWith(".txt")) {
-        vehicles = parseHomenetCSV(text)
-      } else {
-        return NextResponse.json({ error: "Unsupported file format. Use XML, CSV, or TXT." }, { status: 400 })
-      }
-    } else if (contentType.includes("application/xml") || contentType.includes("text/xml")) {
-      // Direct XML body
-      const text = await request.text()
-      vehicles = parseHomenetXML(text)
-    } else if (contentType.includes("application/json")) {
-      // JSON payload (alternative)
-      const json = await request.json()
-      vehicles = Array.isArray(json) ? json : json.vehicles || []
-    } else {
-      // Try to parse as text (CSV or XML)
-      const text = await request.text()
-      if (text.trim().startsWith("<?xml") || text.trim().startsWith("<")) {
-        vehicles = parseHomenetXML(text)
-      } else {
-        vehicles = parseHomenetCSV(text)
-      }
-    }
+    const parseResult = await parseInventoryFromRequest(request, contentType)
+    if ('error' in parseResult) return parseResult.error
+    const vehicles = parseResult.vehicles
 
     if (vehicles.length === 0) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: "No valid vehicles found in the feed",
-        received_content_type: contentType
+        received_content_type: contentType,
       }, { status: 400 })
     }
 

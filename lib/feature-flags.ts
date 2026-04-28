@@ -34,10 +34,11 @@ const ALL_PHASES: readonly Phase[] = [
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function parseEnabledPhases(): Set<Phase> {
+  // S7735: compare with `undefined` directly instead of using `typeof`.
   const raw =
-    typeof process !== "undefined"
-      ? process.env.NEXT_PUBLIC_ENABLED_PHASES
-      : undefined
+    typeof process === "undefined"
+      ? undefined
+      : process.env.NEXT_PUBLIC_ENABLED_PHASES
 
   // S7735: positive condition first — bail out only when the env var
   // contains a usable value.
@@ -55,10 +56,11 @@ function parseEnabledPhases(): Set<Phase> {
 }
 
 function parseEnabledFeatures(): Set<string> {
+  // S7735: positive guard — branch on the affirmative form.
   const raw =
-    typeof process !== "undefined"
-      ? process.env.NEXT_PUBLIC_FEATURES
-      : undefined
+    typeof process === "undefined"
+      ? undefined
+      : process.env.NEXT_PUBLIC_FEATURES
 
   // S7735: positive condition first — only parse when env var is non-empty.
   const features = new Set<string>()

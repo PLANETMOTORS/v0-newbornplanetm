@@ -46,17 +46,66 @@ function getStructuredErrorType(error: unknown): string {
   return typeof candidate === 'string' ? candidate.toLowerCase() : ''
 }
 
-export async function createReservation(input: ReservationInput): Promise<ReservationResult> {
+const PAYMENT_ERROR_CODES = new Set([
+  'payment_method_not_available',
+  'payment_method_invalid_parameter',
+  'parameter_invalid_empty',
+  'parameter_invalid_integer',
+  'resource_missing',
+  'card_declined',
+  'processing_error',
+  'api_connection_error',
+  'api_error',
+  'idempotency_key_in_use',
+  'rate_limit',
+])
+
+async function buildRateLimitScope(email: string): Promise<string> {
   const headersList = await headers()
   const forwardedFor = headersList.get('x-forwarded-for')
   const realIp = headersList.get('x-real-ip')
   const cfConnectingIp = headersList.get('cf-connecting-ip')
   const ipCandidate = forwardedFor?.split(',')[0]?.trim() || realIp || cfConnectingIp || 'unknown'
-  const normalizedIp = ipCandidate.toLowerCase()
-  const normalizedEmail = input.customerEmail.trim().toLowerCase()
-  const rateLimitScopeHash = createHash('sha256')
-    .update(`${normalizedIp}:${normalizedEmail}`)
+  return createHash('sha256')
+    .update(`${ipCandidate.toLowerCase()}:${email.trim().toLowerCase()}`)
     .digest('hex')
+}
+
+function mapReservationError(error: unknown): string {
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+  const errorMessageLower = errorMessage.toLowerCase()
+  const structuredErrorCode = getStructuredErrorCode(error)
+  const structuredErrorType = getStructuredErrorType(error)
+  const isStripeLike = structuredErrorType.startsWith('stripe') || PAYMENT_ERROR_CODES.has(structuredErrorCode)
+
+  if (
+    PAYMENT_ERROR_CODES.has(structuredErrorCode) ||
+    isStripeLike ||
+    errorMessageLower.includes('stripe') ||
+    errorMessageLower.includes('payment_method') ||
+    errorMessageLower.includes('checkout') ||
+    errorMessageLower.includes('acss')
+  ) {
+    return 'Payment system error. Please try again in a moment.'
+  }
+  if (errorMessageLower.includes('vehicle')) {
+    return 'Unable to verify vehicle details. Please refresh and try again.'
+  }
+  if (
+    errorMessageLower.includes('database') ||
+    errorMessageLower.includes('supabase') ||
+    errorMessageLower.includes('permission') ||
+    errorMessageLower.includes('relation') ||
+    errorMessageLower.includes('column') ||
+    errorMessageLower.includes('row-level security')
+  ) {
+    return 'Database error. Please try again shortly.'
+  }
+  return 'An unexpected error occurred. Please try again.'
+}
+
+export async function createReservation(input: ReservationInput): Promise<ReservationResult> {
+  const rateLimitScopeHash = await buildRateLimitScope(input.customerEmail)
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -261,26 +310,6 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    const errorMessageLower = errorMessage.toLowerCase()
-    const structuredErrorCode = getStructuredErrorCode(error)
-    const structuredErrorType = getStructuredErrorType(error)
-
-    const paymentErrorCodes = new Set([
-      'payment_method_not_available',
-      'payment_method_invalid_parameter',
-      'parameter_invalid_empty',
-      'parameter_invalid_integer',
-      'resource_missing',
-      'card_declined',
-      'processing_error',
-      'api_connection_error',
-      'api_error',
-      'idempotency_key_in_use',
-      'rate_limit',
-    ])
-
-    const isStripeLike = structuredErrorType.startsWith('stripe') || paymentErrorCodes.has(structuredErrorCode)
-
     const customerEmailHash = createHash('sha256')
       .update(input.customerEmail.trim().toLowerCase())
       .digest('hex')
@@ -299,33 +328,7 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       ...(isProd ? {} : { stack: error instanceof Error ? error.stack : undefined }),
     })
     await unlockVehicle(input.stockNumber, input.customerEmail)
-    
-    // Return more specific error messages to help with debugging
-    if (
-      paymentErrorCodes.has(structuredErrorCode) ||
-      isStripeLike ||
-      errorMessageLower.includes('stripe') ||
-      errorMessageLower.includes('payment_method') ||
-      errorMessageLower.includes('checkout') ||
-      errorMessageLower.includes('acss')
-    ) {
-      return { error: 'Payment system error. Please try again in a moment.' }
-    }
-    if (errorMessageLower.includes('vehicle')) {
-      return { error: 'Unable to verify vehicle details. Please refresh and try again.' }
-    }
-    if (
-      errorMessageLower.includes('database') ||
-      errorMessageLower.includes('supabase') ||
-      errorMessageLower.includes('permission') ||
-      errorMessageLower.includes('relation') ||
-      errorMessageLower.includes('column') ||
-      errorMessageLower.includes('row-level security')
-    ) {
-      return { error: 'Database error. Please try again shortly.' }
-    }
-    
-    return { error: 'An unexpected error occurred. Please try again.' }
+    return { error: mapReservationError(error) }
   }
 }
 

@@ -115,96 +115,90 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Fallback: aggregate leads from existing tables if leads table doesn't exist yet
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function aggregateLeads(adminClient: any, filters: { status: string | null; source: string | null; search: string | null; offset: number; limit: number }) {
-  type AggregatedLead = { id: string; source: string; status: string; customer_name: string; customer_email: string; customer_phone: string | null; subject: string; vehicle_info: string | null; created_at: string; source_table: string }
-  const allLeads: AggregatedLead[] = []
+type AggregatedLead = { id: string; source: string; status: string; customer_name: string; customer_email: string; customer_phone: string | null; subject: string; vehicle_info: string | null; created_at: string; source_table: string }
 
-  // Finance applications as leads
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function loadFinanceLeads(adminClient: any): Promise<AggregatedLead[]> {
   const { data: finApps } = await adminClient
     .from("finance_applications_v2")
     .select("id, status, requested_amount, created_at, vehicle_id")
     .order("created_at", { ascending: false })
     .limit(50)
-
-  if (finApps) {
-    for (const app of finApps) {
-      // Get applicant name
-      const { data: applicant } = await adminClient
-        .from("finance_applicants")
-        .select("first_name, last_name, email, phone")
-        .eq("application_id", app.id)
-        .eq("applicant_type", "primary")
-        .maybeSingle()
-
-      allLeads.push({
-        id: app.id,
-        source: "finance_app",
-        status: mapFinanceStatusToLeadStatus(app.status),
-        customer_name: applicant ? `${applicant.first_name} ${applicant.last_name}` : "Unknown",
-        customer_email: applicant?.email || "",
-        customer_phone: applicant?.phone || null,
-        subject: `Finance Application — $${(app.requested_amount || 0).toLocaleString()}`,
-        vehicle_info: null,
-        created_at: app.created_at,
-        source_table: "finance_applications_v2",
-      })
-    }
+  if (!finApps) return []
+  const leads: AggregatedLead[] = []
+  for (const app of finApps) {
+    const { data: applicant } = await adminClient
+      .from("finance_applicants")
+      .select("first_name, last_name, email, phone")
+      .eq("application_id", app.id)
+      .eq("applicant_type", "primary")
+      .maybeSingle()
+    leads.push({
+      id: app.id,
+      source: "finance_app",
+      status: mapFinanceStatusToLeadStatus(app.status),
+      customer_name: applicant ? `${applicant.first_name} ${applicant.last_name}` : "Unknown",
+      customer_email: applicant?.email || "",
+      customer_phone: applicant?.phone || null,
+      subject: `Finance Application — $${(app.requested_amount || 0).toLocaleString()}`,
+      vehicle_info: null,
+      created_at: app.created_at,
+      source_table: "finance_applications_v2",
+    })
   }
+  return leads
+}
 
-  // Reservations as leads
-  const { data: reservations } = await adminClient
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function loadReservationLeads(adminClient: any): Promise<AggregatedLead[]> {
+  const { data } = await adminClient
     .from("reservations")
     .select("id, customer_name, customer_email, customer_phone, status, deposit_amount, vehicle_id, created_at")
     .order("created_at", { ascending: false })
     .limit(50)
+  if (!data) return []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return data.map((res: any) => ({
+    id: res.id,
+    source: "reservation",
+    status: mapReservationStatusToLeadStatus(res.status),
+    customer_name: res.customer_name || "Unknown",
+    customer_email: res.customer_email,
+    customer_phone: res.customer_phone,
+    subject: `Reservation — $${Math.round((res.deposit_amount || 0) / 100).toLocaleString()} deposit`,
+    vehicle_info: null,
+    created_at: res.created_at,
+    source_table: "reservations",
+  }))
+}
 
-  if (reservations) {
-    for (const res of reservations) {
-      allLeads.push({
-        id: res.id,
-        source: "reservation",
-        status: mapReservationStatusToLeadStatus(res.status),
-        customer_name: res.customer_name || "Unknown",
-        customer_email: res.customer_email,
-        customer_phone: res.customer_phone,
-        subject: `Reservation — $${Math.round((res.deposit_amount || 0) / 100).toLocaleString()} deposit`,
-        vehicle_info: null,
-        created_at: res.created_at,
-        source_table: "reservations",
-      })
-    }
-  }
-
-  // Trade-in quotes as leads
-  const { data: tradeIns } = await adminClient
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function loadTradeInLeads(adminClient: any): Promise<AggregatedLead[]> {
+  const { data } = await adminClient
     .from("trade_in_quotes")
     .select("id, customer_name, customer_email, customer_phone, vehicle_year, vehicle_make, vehicle_model, offer_amount, status, created_at")
     .order("created_at", { ascending: false })
     .limit(50)
+  if (!data) return []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return data.map((ti: any) => ({
+    id: ti.id,
+    source: "trade_in",
+    status: mapTradeInStatusToLeadStatus(ti.status),
+    customer_name: ti.customer_name || "Unknown",
+    customer_email: ti.customer_email || "",
+    customer_phone: ti.customer_phone || null,
+    subject: `Trade-In: ${ti.vehicle_year} ${ti.vehicle_make} ${ti.vehicle_model}`,
+    vehicle_info: `Offered $${(ti.offer_amount || 0).toLocaleString()}`,
+    created_at: ti.created_at,
+    source_table: "trade_in_quotes",
+  }))
+}
 
-  if (tradeIns) {
-    for (const ti of tradeIns) {
-      allLeads.push({
-        id: ti.id,
-        source: "trade_in",
-        status: mapTradeInStatusToLeadStatus(ti.status),
-        customer_name: ti.customer_name || "Unknown",
-        customer_email: ti.customer_email || "",
-        customer_phone: ti.customer_phone || null,
-        subject: `Trade-In: ${ti.vehicle_year} ${ti.vehicle_make} ${ti.vehicle_model}`,
-        vehicle_info: `Offered $${(ti.offer_amount || 0).toLocaleString()}`,
-        created_at: ti.created_at,
-        source_table: "trade_in_quotes",
-      })
-    }
-  }
-
-  // Sort all by created_at descending
-  allLeads.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-
-  // Apply filters
+function applyLeadFilters(
+  allLeads: AggregatedLead[],
+  filters: { status: string | null; source: string | null; search: string | null },
+): AggregatedLead[] {
   let filtered = allLeads
   if (filters.source && filters.source !== "all") filtered = filtered.filter(l => l.source === filters.source)
   if (filters.status && filters.status !== "all") filtered = filtered.filter(l => l.status === filters.status)
@@ -217,7 +211,21 @@ async function aggregateLeads(adminClient: any, filters: { status: string | null
       l.subject.toLowerCase().includes(s)
     )
   }
+  return filtered
+}
 
+// Fallback: aggregate leads from existing tables if leads table doesn't exist yet
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function aggregateLeads(adminClient: any, filters: { status: string | null; source: string | null; search: string | null; offset: number; limit: number }) {
+  const [finance, reservations, tradeIns] = await Promise.all([
+    loadFinanceLeads(adminClient),
+    loadReservationLeads(adminClient),
+    loadTradeInLeads(adminClient),
+  ])
+  const allLeads = [...finance, ...reservations, ...tradeIns]
+  allLeads.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+
+  const filtered = applyLeadFilters(allLeads, filters)
   return {
     leads: filtered.slice(filters.offset, filters.offset + filters.limit),
     total: filtered.length,

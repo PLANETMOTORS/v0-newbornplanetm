@@ -29,82 +29,72 @@ function buildUploadMessage(input: UploadMessageInput): string {
   return `Successfully uploaded ${uploaded.length} frames for ${vehicleName}`
 }
 
+async function requireAdminUser() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || !isAdminEmail(user.email)) {
+    return NextResponse.json({ error: "Unauthorized — admin access required" }, { status: 401 })
+  }
+  return null
+}
+
+function validateUploadMetadata(formData: FormData):
+  | { ok: true; mid: string; vehicleName: string }
+  | { ok: false; res: NextResponse } {
+  const mid = formData.get("mid")
+  const vehicleName = formData.get("vehicleName")
+  if (!mid || typeof mid !== "string" || !/^\d{6,15}$/.test(mid)) {
+    return { ok: false, res: NextResponse.json({ error: "Invalid MID — must be a numeric string (6-15 digits)" }, { status: 400 }) }
+  }
+  if (!vehicleName || typeof vehicleName !== "string") {
+    return { ok: false, res: NextResponse.json({ error: "Vehicle name is required" }, { status: 400 }) }
+  }
+  return { ok: true, mid, vehicleName }
+}
+
+function collectFrames(formData: FormData):
+  | { ok: true; frames: File[] }
+  | { ok: false; res: NextResponse } {
+  const frames: File[] = []
+  for (const [key, value] of formData.entries()) {
+    if (key !== "frames" || !(value instanceof File)) continue
+    if (value.size > MAX_FRAME_SIZE) {
+      return { ok: false, res: NextResponse.json({ error: `Frame "${value.name}" exceeds ${MAX_FRAME_SIZE / 1024 / 1024}MB limit` }, { status: 400 }) }
+    }
+    if (!ALLOWED_TYPES.has(value.type)) {
+      return { ok: false, res: NextResponse.json({ error: `Frame "${value.name}" has unsupported type "${value.type}". Only WebP files are allowed.` }, { status: 400 }) }
+    }
+    frames.push(value)
+  }
+  if (frames.length === 0) {
+    return { ok: false, res: NextResponse.json({ error: "No frames provided" }, { status: 400 }) }
+  }
+  return { ok: true, frames }
+}
+
 /**
  * POST /api/v1/admin/360-upload
  *
- * Upload 360° walk-around frames to Supabase Storage.
- * Requires admin authentication.
- *
- * FormData fields:
- *   mid: string — the media ID for the vehicle
- *   vehicleName: string — human-readable vehicle name (for logging)
- *   frames: File[] — the image files (named 01.webp, 02.webp, etc.)
+ * Upload 360° walk-around frames to Supabase Storage. Requires admin auth.
  */
 export async function POST(request: NextRequest) {
-  // Verify admin auth
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user || !isAdminEmail(user.email)) {
-    return NextResponse.json(
-      { error: "Unauthorized — admin access required" },
-      { status: 401 },
-    )
-  }
+  const unauthorized = await requireAdminUser()
+  if (unauthorized) return unauthorized
 
   let formData: FormData
   try {
     formData = await request.formData()
   } catch {
-    return NextResponse.json(
-      { error: "Invalid form data" },
-      { status: 400 },
-    )
+    return NextResponse.json({ error: "Invalid form data" }, { status: 400 })
   }
 
-  const mid = formData.get("mid")
-  const vehicleName = formData.get("vehicleName")
+  const meta = validateUploadMetadata(formData)
+  if (!meta.ok) return meta.res
+  const { mid, vehicleName } = meta
 
-  if (!mid || typeof mid !== "string" || !/^\d{6,15}$/.test(mid)) {
-    return NextResponse.json(
-      { error: "Invalid MID — must be a numeric string (6-15 digits)" },
-      { status: 400 },
-    )
-  }
-
-  if (!vehicleName || typeof vehicleName !== "string") {
-    return NextResponse.json(
-      { error: "Vehicle name is required" },
-      { status: 400 },
-    )
-  }
-
-  // Collect all frame files from formData
-  const frames: File[] = []
-  for (const [key, value] of formData.entries()) {
-    if (key === "frames" && value instanceof File) {
-      if (value.size > MAX_FRAME_SIZE) {
-        return NextResponse.json(
-          { error: `Frame "${value.name}" exceeds ${MAX_FRAME_SIZE / 1024 / 1024}MB limit` },
-          { status: 400 },
-        )
-      }
-      if (!ALLOWED_TYPES.has(value.type)) {
-        return NextResponse.json(
-          { error: `Frame "${value.name}" has unsupported type "${value.type}". Only WebP files are allowed.` },
-          { status: 400 },
-        )
-      }
-      frames.push(value)
-    }
-  }
-
-  if (frames.length === 0) {
-    return NextResponse.json(
-      { error: "No frames provided" },
-      { status: 400 },
-    )
-  }
+  const collected = collectFrames(formData)
+  if (!collected.ok) return collected.res
+  const frames = collected.frames
 
   // Sort frames by name to ensure consistent ordering
   frames.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
@@ -178,15 +168,8 @@ export async function POST(request: NextRequest) {
  * Returns MID folders and their frame counts.
  */
 export async function GET(_request: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user || !isAdminEmail(user.email)) {
-    return NextResponse.json(
-      { error: "Unauthorized — admin access required" },
-      { status: 401 },
-    )
-  }
+  const unauthorized = await requireAdminUser()
+  if (unauthorized) return unauthorized
 
   const adminClient = createAdminClient()
 
