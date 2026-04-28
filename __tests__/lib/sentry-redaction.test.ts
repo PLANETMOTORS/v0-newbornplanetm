@@ -9,16 +9,16 @@ const { scrubString, scrubValue, REDACTED } = __testing
 
 describe("scrubString", () => {
   it("redacts Stripe secret keys", () => {
-    expect(scrubString("Authorization: sk_live_ABCDEFGHIJKLMNOP1234")).toBe(
+    expect(scrubString("Authorization: sk_live_ABCDEFGHIJKLMNOP1234")).toBe( // gitleaks:allow
       `Authorization: ${REDACTED}`
     )
-    expect(scrubString("token=sk_test_abcdefghijklmnopqrst")).toBe(
+    expect(scrubString("token=sk_test_abcdefghijklmnopqrst")).toBe( // gitleaks:allow
       `token=${REDACTED}`
     )
   })
 
   it("redacts Stripe restricted + webhook keys", () => {
-    expect(scrubString("rk_live_ABCDEFGHIJKLMNOP1234")).toBe(REDACTED)
+    expect(scrubString("rk_live_ABCDEFGHIJKLMNOP1234")).toBe(REDACTED) // gitleaks:allow
     expect(scrubString("whsec_ABCDEFGHIJKLMNOP12345")).toBe(REDACTED)
   })
 
@@ -28,7 +28,7 @@ describe("scrubString", () => {
 
   it("redacts JWT-shaped tokens", () => {
     const jwt =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c" // gitleaks:allow
     expect(scrubString(`Bearer ${jwt}`)).toContain(REDACTED)
   })
 
@@ -115,7 +115,7 @@ describe("scrubValue", () => {
 describe("redactSentryEvent / redactSentryBreadcrumb", () => {
   it("redacts an error-shaped event", () => {
     const event = {
-      message: "Stripe key sk_live_ABCDEFGHIJKLMNOP1234 leaked",
+      message: "Stripe key sk_live_ABCDEFGHIJKLMNOP1234 leaked", // gitleaks:allow
       user: { email: "x@y.com" },
     }
     const out = redactSentryEvent(event)
