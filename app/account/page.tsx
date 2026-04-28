@@ -136,18 +136,16 @@ export default function AccountPage() {
       setAlertsLoading(true)
       try {
         const res = await fetch(`/api/alerts?email=${encodeURIComponent(userEmail)}`)
-        if (!res.ok) {
-          setAlertsLoading(false)
-          return
-        }
+        if (!res.ok) return
         const data = await res.json()
         setPriceAlerts(data.alerts || [])
         const hasDropAlerts = (data.alerts || []).some((a: PriceAlert) => a.notify_price_drops && a.is_active)
         const hasNewAlerts = (data.alerts || []).some((a: PriceAlert) => a.notify_new_listings && a.is_active)
         setPriceDropEnabled(hasDropAlerts)
         setNewInventoryEnabled(hasNewAlerts)
-      } catch { /* silent */ }
-      setAlertsLoading(false)
+      } catch { /* silent */ } finally {
+        setAlertsLoading(false)
+      }
     }
     const fetchFinanceDrafts = async () => {
       setDraftsLoading(true)
