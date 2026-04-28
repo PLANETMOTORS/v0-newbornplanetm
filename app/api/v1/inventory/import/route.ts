@@ -112,9 +112,10 @@ export async function POST(request: Request) {
         continue
       }
 
-      // Validate VIN length
-      if (vehicle.vin && String(vehicle.vin).length !== 17) {
-        errors.push({ row: i + 1, error: `Invalid VIN length: ${String(vehicle.vin).length} (must be 17)` })
+      // Validate VIN length. `vehicle.vin` is unknown — only treat strings
+      // as VINs (anything else short-circuits to the error path).
+      if (typeof vehicle.vin === "string" && vehicle.vin.length !== 17) {
+        errors.push({ row: i + 1, error: `Invalid VIN length: ${vehicle.vin.length} (must be 17)` })
         continue
       }
 

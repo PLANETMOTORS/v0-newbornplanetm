@@ -167,6 +167,17 @@ export default function AIAgentsPage() {
           const Icon = meta.icon
           const isEditing = editingAgent === agent.agent_type
           const config = (isEditing ? editForm.config : agent.config) as Record<string, unknown> || {}
+          // S6551: a config value may be any unknown shape — coerce to a primitive
+          // explicitly so that an accidental object never renders as
+          // "[object Object]" in the input.
+          const cfgString = (key: string, fallback: string): string => {
+            const v = config[key]
+            return typeof v === "string" ? v : fallback
+          }
+          const cfgNumber = (key: string, fallback: number): number => {
+            const v = config[key]
+            return typeof v === "number" ? v : fallback
+          }
 
           return (
             <Card key={agent.agent_type} className={saveSuccess === agent.agent_type ? "ring-2 ring-green-500" : ""}>
@@ -302,7 +313,7 @@ export default function AIAgentsPage() {
                           <Input
                             id={`${agent.agent_type}-rate-limit`}
                             type="number"
-                            value={String(config.rateLimit || 20)}
+                            value={String(cfgNumber("rateLimit", 20))}
                             onChange={(e) => updateConfig("rateLimit", Number.parseInt(e.target.value))}
                           />
                         </div>
@@ -311,7 +322,7 @@ export default function AIAgentsPage() {
                           <select
                             id={`${agent.agent_type}-ai-model`}
                             className="w-full border rounded-md px-3 py-2 text-sm"
-                            value={String(config.model || "gpt-4o-mini")}
+                            value={cfgString("model", "gpt-4o-mini")}
                             onChange={(e) => updateConfig("model", e.target.value)}
                           >
                             <option value="gpt-4o-mini">GPT-4o Mini (fast, cost-effective)</option>
@@ -334,7 +345,7 @@ export default function AIAgentsPage() {
                               id={`${agent.agent_type}-low-0-31`}
                               type="number"
                               step="0.25"
-                              value={String(config.lowPriceMaxDiscount_0_31days || 1)}
+                              value={String(cfgNumber("lowPriceMaxDiscount_0_31days", 1))}
                               onChange={(e) => updateConfig("lowPriceMaxDiscount_0_31days", Number.parseFloat(e.target.value))}
                             />
                           </div>
@@ -344,7 +355,7 @@ export default function AIAgentsPage() {
                               id={`${agent.agent_type}-low-32-46`}
                               type="number"
                               step="0.25"
-                              value={String(config.lowPriceMaxDiscount_32_46days || 1.25)}
+                              value={String(cfgNumber("lowPriceMaxDiscount_32_46days", 1.25))}
                               onChange={(e) => updateConfig("lowPriceMaxDiscount_32_46days", Number.parseFloat(e.target.value))}
                             />
                           </div>
@@ -354,7 +365,7 @@ export default function AIAgentsPage() {
                               id={`${agent.agent_type}-low-47plus`}
                               type="number"
                               step="0.25"
-                              value={String(config.lowPriceMaxDiscount_47plus || 1.5)}
+                              value={String(cfgNumber("lowPriceMaxDiscount_47plus", 1.5))}
                               onChange={(e) => updateConfig("lowPriceMaxDiscount_47plus", Number.parseFloat(e.target.value))}
                             />
                           </div>
@@ -369,7 +380,7 @@ export default function AIAgentsPage() {
                               id={`${agent.agent_type}-high-0-46`}
                               type="number"
                               step="0.25"
-                              value={String(config.highPriceMaxDiscount_0_46days || 0.75)}
+                              value={String(cfgNumber("highPriceMaxDiscount_0_46days", 0.75))}
                               onChange={(e) => updateConfig("highPriceMaxDiscount_0_46days", Number.parseFloat(e.target.value))}
                             />
                           </div>
@@ -379,7 +390,7 @@ export default function AIAgentsPage() {
                               id={`${agent.agent_type}-high-47plus`}
                               type="number"
                               step="0.25"
-                              value={String(config.highPriceMaxDiscount_47plus || 1)}
+                              value={String(cfgNumber("highPriceMaxDiscount_47plus", 1))}
                               onChange={(e) => updateConfig("highPriceMaxDiscount_47plus", Number.parseFloat(e.target.value))}
                             />
                           </div>
@@ -390,7 +401,7 @@ export default function AIAgentsPage() {
                         <Input
                           id={`${agent.agent_type}-low-price-threshold`}
                           type="number"
-                          value={String(config.lowPriceThreshold || 30000)}
+                          value={String(cfgNumber("lowPriceThreshold", 30000))}
                           onChange={(e) => updateConfig("lowPriceThreshold", Number.parseInt(e.target.value))}
                         />
                         <p className="text-xs text-gray-400 mt-1">Vehicles below this price use the &quot;Under $30K&quot; discount tiers</p>
@@ -410,7 +421,7 @@ export default function AIAgentsPage() {
                             step="0.1"
                             min="0"
                             max="1"
-                            value={String(config.temperature || 0.3)}
+                            value={String(cfgNumber("temperature", 0.3))}
                             onChange={(e) => updateConfig("temperature", Number.parseFloat(e.target.value))}
                           />
                           <p className="text-xs text-gray-400 mt-1">Lower = more consistent, Higher = more creative</p>
@@ -420,7 +431,7 @@ export default function AIAgentsPage() {
                           <select
                             id={`${agent.agent_type}-valuator-model`}
                             className="w-full border rounded-md px-3 py-2 text-sm"
-                            value={String(config.model || "gpt-4o-mini")}
+                            value={cfgString("model", "gpt-4o-mini")}
                             onChange={(e) => updateConfig("model", e.target.value)}
                           >
                             <option value="gpt-4o-mini">GPT-4o Mini</option>
@@ -457,22 +468,22 @@ export default function AIAgentsPage() {
                   <div className="flex flex-wrap gap-4 text-sm text-gray-500">
                     {agent.agent_type === "anna" && (
                       <>
-                        <span>Model: {String(config.model || "gpt-4o-mini")}</span>
-                        <span>Rate limit: {String(config.rateLimit || 20)}/hr</span>
+                        <span>Model: {cfgString("model", "gpt-4o-mini")}</span>
+                        <span>Rate limit: {String(cfgNumber("rateLimit", 20))}/hr</span>
                         <span>Quick actions: {(agent.quick_actions || []).length}</span>
                       </>
                     )}
                     {agent.agent_type === "negotiator" && (
                       <>
-                        <span>Low price max: {String(config.lowPriceMaxDiscount_47plus || 1.5)}%</span>
-                        <span>High price max: {String(config.highPriceMaxDiscount_47plus || 1)}%</span>
+                        <span>Low price max: {String(cfgNumber("lowPriceMaxDiscount_47plus", 1.5))}%</span>
+                        <span>High price max: {String(cfgNumber("highPriceMaxDiscount_47plus", 1))}%</span>
                         <span>Threshold: ${Number(config.lowPriceThreshold || 30000).toLocaleString()}</span>
                       </>
                     )}
                     {agent.agent_type === "valuator" && (
                       <>
-                        <span>Model: {String(config.model || "gpt-4o-mini")}</span>
-                        <span>Temperature: {String(config.temperature || 0.3)}</span>
+                        <span>Model: {cfgString("model", "gpt-4o-mini")}</span>
+                        <span>Temperature: {String(cfgNumber("temperature", 0.3))}</span>
                       </>
                     )}
                   </div>
