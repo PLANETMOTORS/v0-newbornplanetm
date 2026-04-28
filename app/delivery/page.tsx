@@ -39,9 +39,9 @@ function estimateDeliveryDays(distance: number): string {
 
 const DELIVERY_TIERS = [
   { minKm: 0, maxKm: 300, cost: 0, label: "FREE" },
-  { minKm: 301, maxKm: 499, costPerKm: 0.70, label: "$0.70/km" },
+  { minKm: 301, maxKm: 499, costPerKm: 0.7, label: "$0.70/km" },
   { minKm: 500, maxKm: 999, costPerKm: 0.75, label: "$0.75/km" },
-  { minKm: 1000, maxKm: 2000, costPerKm: 0.80, label: "$0.80/km" },
+  { minKm: 1000, maxKm: 2000, costPerKm: 0.8, label: "$0.80/km" },
   { minKm: 2001, maxKm: 9999, costPerKm: 0.65, label: "$0.65/km" }
 ]
 

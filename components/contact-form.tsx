@@ -42,28 +42,28 @@ export function ContactForm({ onSuccess }: Readonly<ContactFormProps>) {
     const newErrors = { ...errors }
     switch (field) {
       case "firstName":
-        newErrors.firstName = !value.trim() ? "First name is required" : ""
+        newErrors.firstName = value.trim() ? "" : "First name is required"
         break
       case "lastName":
-        newErrors.lastName = !value.trim() ? "Last name is required" : ""
+        newErrors.lastName = value.trim() ? "" : "Last name is required"
         break
       case "email":
-        if (!value) newErrors.email = "Email is required"
-        else if (!isValidEmail(value)) newErrors.email = "Please enter a valid email"
-        else newErrors.email = ""
+        if (value && isValidEmail(value)) newErrors.email = ""
+        else if (value) newErrors.email = "Please enter a valid email"
+        else newErrors.email = "Email is required"
         break
       case "phone":
-        if (!value) newErrors.phone = "Phone number is required"
-        else if (!isValidCanadianPhone(value)) newErrors.phone = "Please enter a valid 10-digit phone number"
-        else newErrors.phone = ""
+        if (value && isValidCanadianPhone(value)) newErrors.phone = ""
+        else if (value) newErrors.phone = "Please enter a valid 10-digit phone number"
+        else newErrors.phone = "Phone number is required"
         break
       case "postalCode":
-        if (!value) newErrors.postalCode = "Postal code is required"
-        else if (!isValidCanadianPostalCode(value)) newErrors.postalCode = "Please enter a valid postal code (e.g., M5V 3L9)"
-        else newErrors.postalCode = ""
+        if (value && isValidCanadianPostalCode(value)) newErrors.postalCode = ""
+        else if (value) newErrors.postalCode = "Please enter a valid postal code (e.g., M5V 3L9)"
+        else newErrors.postalCode = "Postal code is required"
         break
       case "message":
-        newErrors.message = !value.trim() ? "Message is required" : ""
+        newErrors.message = value.trim() ? "" : "Message is required"
         break
     }
     setErrors(newErrors)

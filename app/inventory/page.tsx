@@ -1157,9 +1157,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline hover:text-foreground"
-              >
-                OMVIC Registered Dealer
-              </a>
+              >OMVIC Registered Dealer</a>
               . All prices exclude applicable taxes and licensing fees.
             </p>
           </div>

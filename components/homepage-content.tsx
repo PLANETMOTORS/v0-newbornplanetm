@@ -144,10 +144,8 @@ export function HomepageContent({ siteSettings, homepageData, showcaseVehicles }
                  * docs/HERO_HEADLINE.md.
                  */
                 <h1 className="text-[2rem] sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-[-0.01em] sm:tracking-[-0.02em] text-gray-900">
-                  Canada&apos;s Battery-Health Certified
-                  <span className="block text-[#1e3a8a]">
-                    Used EVs
-                  </span>
+                  Canada&apos;s Battery-Health Certified{" "}
+                  <span className="block text-[#1e3a8a]">Used EVs</span>
                 </h1>
               )}
 
