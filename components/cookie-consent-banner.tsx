@@ -80,7 +80,8 @@ export function CookieConsentBanner() {
           </button>
 
           {showDetails && (
-            <div className="space-y-3 mb-5 rounded-lg bg-muted/50 p-4" role="group" aria-label="Cookie categories">
+            <fieldset className="space-y-3 mb-5 rounded-lg bg-muted/50 p-4 border-0">
+              <legend className="sr-only">Cookie categories</legend>
               {/* Essential — always on */}
               <div className="flex items-center justify-between">
                 <div>
@@ -115,7 +116,7 @@ export function CookieConsentBanner() {
                   aria-label="Marketing cookies"
                 />
               </div>
-            </div>
+            </fieldset>
           )}
 
           {/* Action buttons */}

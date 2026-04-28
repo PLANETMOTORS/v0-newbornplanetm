@@ -332,7 +332,7 @@ export function Header() {
                         <ChevronDown className={`w-3.5 h-3.5 transition-transform ${activeSubmenu === item.name ? 'rotate-180' : ''}`} />
                       </button>
                       {activeSubmenu === item.name && (
-                        <div role="region" aria-labelledby={`mobile-nav-${item.name}`} className="pl-4 space-y-1">
+                        <section aria-labelledby={`mobile-nav-${item.name}`} className="pl-4 space-y-1">
                           {item.submenu.map((subitem) => (
                             <Link
                               key={subitem.name}
@@ -343,7 +343,7 @@ export function Header() {
                               {subitem.name}
                             </Link>
                           ))}
-                        </div>
+                        </section>
                       )}
                     </>
                   ) : (
