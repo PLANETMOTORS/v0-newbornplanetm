@@ -438,12 +438,11 @@ export function InstantQuote() {
     setCalculationProgress(0)
     
     // Call AI-powered valuation API
+    const tickProgress = () => setCalculationProgress(prev => Math.min(prev + 5, 90))
     const result = await (async () => {
       try {
         // Start progress animation
-        const progressInterval = setInterval(() => {
-          setCalculationProgress(prev => Math.min(prev + 5, 90))
-        }, 300)
+        const progressInterval = setInterval(tickProgress, 300)
 
         const response = await fetch("/api/vehicle-valuation", {
           method: "POST",

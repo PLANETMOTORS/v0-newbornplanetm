@@ -28,14 +28,9 @@ export function BlogShareButtons({ title, url }: Readonly<BlogShareButtonsProps>
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      const el = document.createElement("textarea")
-      el.value = url
-      document.body.appendChild(el)
-      el.select()
-      document.execCommand("copy")
-      el.remove()
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      // S1874 — document.execCommand is deprecated; we no longer try to fall
+      // back to it. Modern browsers all expose navigator.clipboard, and on
+      // the rare permission denial the user can still long-press the URL.
     }
   }
 
