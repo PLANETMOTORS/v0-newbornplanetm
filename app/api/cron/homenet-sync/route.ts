@@ -3,6 +3,7 @@ import { downloadLatestCSV } from "@/lib/homenet/sftp-client"
 import { parseHomenetCSV, syncVehiclesToDatabase, getSql } from "@/lib/homenet/parser"
 import { upsertVehiclesBatch, type VehicleDocument } from "@/lib/typesense/indexer"
 import { isTypesenseConfigured } from "@/lib/typesense/client"
+import { verifyCronSecret } from "@/lib/security/cron-auth"
 
 /**
  * Vercel Cron Job: HomenetIOL SFTP Feed Sync
@@ -18,13 +19,8 @@ export const dynamic = "force-dynamic"
 export async function GET(request: Request) {
   const startTime = Date.now()
 
-  // Verify cron secret (Vercel sets CRON_SECRET automatically)
-  const authHeader = request.headers.get("authorization")
-  const cronSecret = process.env.CRON_SECRET
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.error("[HomenetIOL Cron] Unauthorized request")
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const auth = verifyCronSecret(request)
+  if (!auth.ok) return auth.response
 
   const sql = getSql()
   if (!sql) {

@@ -1,6 +1,6 @@
-import { timingSafeEqual } from "node:crypto"
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { verifyCronSecret } from "@/lib/security/cron-auth"
 
 /**
  * Vercel Cron Job: Auto-Release Stuck Vehicles
@@ -28,25 +28,6 @@ interface ReleasedVehicle {
 
 type AdminClient = ReturnType<typeof createAdminClient>
 type StaleVehicle = { id: string; vin: string; year: number; make: string; model: string }
-
-function authorizeCron(request: Request): NextResponse | null {
-  const cronSecret = process.env.CRON_SECRET
-  if (process.env.NODE_ENV === "production" && !cronSecret) {
-    return NextResponse.json(
-      { error: "Server misconfiguration: CRON_SECRET is not set" },
-      { status: 503 },
-    )
-  }
-  if (!cronSecret) return null
-  const expected = `Bearer ${cronSecret}`
-  const supplied = request.headers.get("authorization") ?? ''
-  const a = Buffer.from(expected)
-  const b = Buffer.from(supplied)
-  if (a.length !== b.length || !timingSafeEqual(a, b)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-  return null
-}
 
 async function releaseStaleCheckouts(
   adminClient: AdminClient,
@@ -126,8 +107,8 @@ async function releaseStaleReservations(
 export async function GET(request: Request) {
   const startTime = Date.now()
 
-  const unauthorized = authorizeCron(request)
-  if (unauthorized) return unauthorized
+  const auth = verifyCronSecret(request)
+  if (!auth.ok) return auth.response
 
   let adminClient: AdminClient
   try {

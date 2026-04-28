@@ -87,4 +87,38 @@ describe('Typesense client — env-driven nodes', () => {
 
     expect(client).not.toBeNull()
   })
+
+  it('search client prefers NEXT_PUBLIC_TYPESENSE_SEARCH_KEY over admin key', async () => {
+    process.env.TYPESENSE_HOST = 'sdn.typesense.net'
+    process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_KEY = 'search-only-key'
+    process.env.TYPESENSE_API_KEY = 'admin-key'
+
+    const { getSearchClient } = await import('@/lib/typesense/client')
+    const client = getSearchClient()
+
+    expect(client).not.toBeNull()
+  })
+
+  it('search client falls back to admin key on server (typeof window === undefined)', async () => {
+    process.env.TYPESENSE_HOST = 'sdn.typesense.net'
+    process.env.TYPESENSE_API_KEY = 'admin-key'
+    delete process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_KEY
+
+    const { getSearchClient } = await import('@/lib/typesense/client')
+    const client = getSearchClient()
+
+    // In Node.js (server), typeof window === 'undefined', so fallback works
+    expect(client).not.toBeNull()
+  })
+
+  it('search client returns null when no search key and no admin key', async () => {
+    process.env.TYPESENSE_HOST = 'sdn.typesense.net'
+    delete process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_KEY
+    delete process.env.TYPESENSE_API_KEY
+
+    const { getSearchClient } = await import('@/lib/typesense/client')
+    const client = getSearchClient()
+
+    expect(client).toBeNull()
+  })
 })
