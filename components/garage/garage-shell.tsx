@@ -111,7 +111,7 @@ export function GarageShell({ user, customer, activeDeals, ownedDossiers, savedV
                   Hey {name} 👋
                 </h1>
                 <p className="text-sm text-muted-foreground flex items-center gap-2">
-                  Your Garage
+                  Your Garage{" "}
                   {liveIndicator && (
                     <span className="flex items-center gap-1 text-emerald-600 text-xs font-medium">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />

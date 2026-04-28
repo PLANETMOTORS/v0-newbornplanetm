@@ -194,10 +194,8 @@ export default function HomepageMockupV2() {
             {/* Hero Text */}
             <div className="text-center lg:text-left">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.01em] md:tracking-[-0.02em] leading-tight mb-6 text-gray-900">
-                Buy Your Next Vehicle
-                <span className="block text-brand-navy">
-                  With Confidence
-                </span>
+                Buy Your Next Vehicle{" "}
+                <span className="block text-brand-navy">With Confidence</span>
               </h1>
               
               <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-lg mx-auto lg:mx-0">

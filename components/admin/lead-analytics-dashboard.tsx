@@ -272,7 +272,7 @@ function RecentLeadsFeed({ leads }: Readonly<{ leads: Lead[] }>) {
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <Zap className="h-4 w-4 text-amber-500" />
             Live Lead Feed
-          </CardTitle>
+          </CardTitle>{" "}
           <span className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
