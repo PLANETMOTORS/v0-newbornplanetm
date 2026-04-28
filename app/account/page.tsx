@@ -136,7 +136,10 @@ export default function AccountPage() {
       setAlertsLoading(true)
       try {
         const res = await fetch(`/api/alerts?email=${encodeURIComponent(userEmail)}`)
-        if (!res.ok) return
+        if (!res.ok) {
+          setAlertsLoading(false)
+          return
+        }
         const data = await res.json()
         setPriceAlerts(data.alerts || [])
         const hasDropAlerts = (data.alerts || []).some((a: PriceAlert) => a.notify_price_drops && a.is_active)
