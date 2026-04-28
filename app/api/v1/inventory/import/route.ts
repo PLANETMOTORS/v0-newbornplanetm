@@ -1,12 +1,86 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
+const REQUIRED_FIELDS = ["stock_number", "vin", "year", "make", "model", "price", "mileage"] as const
+
+const INTEGER_FIELDS = new Set([
+  "year", "mileage", "price", "msrp", "fuel_economy_city", "fuel_economy_highway",
+  "range_miles", "inspection_score", "ev_battery_health_percent",
+])
+const BOOLEAN_FIELDS = new Set(["is_ev", "is_certified", "is_new_arrival", "featured", "has_360_spin"])
+
+type ImportError = { row: number; error: string }
+
+function coerceCsvValue(
+  header: string,
+  value: string,
+  rowIndex: number,
+  vehicle: Record<string, unknown>,
+  errors: ImportError[],
+): boolean {
+  if (INTEGER_FIELDS.has(header)) {
+    const parsed = Number.parseInt(value, 10)
+    if (Number.isNaN(parsed)) {
+      errors.push({ row: rowIndex + 1, error: `Invalid numeric value for ${header}: "${value}"` })
+      return false
+    }
+    vehicle[header] = parsed
+    return true
+  }
+  if (header === "battery_capacity_kwh") {
+    const parsed = Number.parseFloat(value)
+    if (Number.isNaN(parsed)) {
+      errors.push({ row: rowIndex + 1, error: `Invalid numeric value for ${header}: "${value}"` })
+      return false
+    }
+    vehicle[header] = parsed
+    return true
+  }
+  if (BOOLEAN_FIELDS.has(header)) {
+    vehicle[header] = value.toLowerCase() === "true" || value === "1"
+    return true
+  }
+  if (header === "image_urls") {
+    vehicle[header] = value.split("|").map(u => u.trim()).filter(Boolean)
+    return true
+  }
+  vehicle[header] = value
+  return true
+}
+
+function parseVehicleRow(
+  rowIndex: number,
+  values: string[],
+  headers: string[],
+  errors: ImportError[],
+): Record<string, unknown> | null {
+  if (values.length !== headers.length) {
+    errors.push({ row: rowIndex + 1, error: "Column count mismatch" })
+    return null
+  }
+  const vehicle: Record<string, unknown> = {}
+  for (let j = 0; j < headers.length; j++) {
+    const value = values[j]?.trim()
+    if (!value) continue
+    if (!coerceCsvValue(headers[j], value, rowIndex, vehicle, errors)) return null
+  }
+  const missing = REQUIRED_FIELDS.filter(f => !vehicle[f])
+  if (missing.length > 0) {
+    errors.push({ row: rowIndex + 1, error: `Missing values for: ${missing.join(", ")}` })
+    return null
+  }
+  if (typeof vehicle.vin === "string" && vehicle.vin.length !== 17) {
+    errors.push({ row: rowIndex + 1, error: `Invalid VIN length: ${vehicle.vin.length} (must be 17)` })
+    return null
+  }
+  return vehicle
+}
+
 // CSV Import endpoint for vehicle inventory
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
-    
-    // Check authentication
+
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -14,118 +88,36 @@ export async function POST(request: Request) {
 
     const formData = await request.formData()
     const file = formData.get("file") as File
-    
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
 
     const text = await file.text()
     const lines = text.split("\n").filter(line => line.trim())
-    
     if (lines.length < 2) {
       return NextResponse.json({ error: "CSV file must have headers and at least one data row" }, { status: 400 })
     }
 
-    // Parse headers
     const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim())
-    
-    // Required fields validation
-    const requiredFields = ["stock_number", "vin", "year", "make", "model", "price", "mileage"]
-    const missingFields = requiredFields.filter(f => !headers.includes(f))
-    
+    const missingFields = REQUIRED_FIELDS.filter(f => !headers.includes(f))
     if (missingFields.length > 0) {
-      return NextResponse.json({ 
-        error: `Missing required fields: ${missingFields.join(", ")}` 
-      }, { status: 400 })
+      return NextResponse.json(
+        { error: `Missing required fields: ${missingFields.join(", ")}` },
+        { status: 400 },
+      )
     }
 
-    // Parse data rows
-    const vehicles = []
-    const errors = []
-    
+    const vehicles: Record<string, unknown>[] = []
+    const errors: ImportError[] = []
     for (let i = 1; i < lines.length; i++) {
-      const values = parseCSVLine(lines[i])
-      if (values.length !== headers.length) {
-        errors.push({ row: i + 1, error: "Column count mismatch" })
-        continue
-      }
-
-      const vehicle: Record<string, unknown> = {}
-      let invalidRow = false
-
-      for (let j = 0; j < headers.length; j++) {
-        const header = headers[j]
-        const value = values[j]?.trim()
-        if (!value) continue
-
-        // Type conversions
-        switch (header) {
-          case "year":
-          case "mileage":
-          case "price":
-          case "msrp":
-          case "fuel_economy_city":
-          case "fuel_economy_highway":
-          case "range_miles":
-          case "inspection_score":
-          case "ev_battery_health_percent": {
-            const parsed = Number.parseInt(value, 10)
-            if (Number.isNaN(parsed)) {
-              errors.push({ row: i + 1, error: `Invalid numeric value for ${header}: "${value}"` })
-              invalidRow = true
-            } else {
-              vehicle[header] = parsed
-            }
-            break
-          }
-          case "battery_capacity_kwh": {
-            const parsed = Number.parseFloat(value)
-            if (Number.isNaN(parsed)) {
-              errors.push({ row: i + 1, error: `Invalid numeric value for ${header}: "${value}"` })
-              invalidRow = true
-            } else {
-              vehicle[header] = parsed
-            }
-            break
-          }
-          case "is_ev":
-          case "is_certified":
-          case "is_new_arrival":
-          case "featured":
-          case "has_360_spin":
-            vehicle[header] = value.toLowerCase() === "true" || value === "1"
-            break
-          case "image_urls":
-            vehicle[header] = value.split("|").map(url => url.trim()).filter(Boolean)
-            break
-          default:
-            vehicle[header] = value
-        }
-      }
-
-      if (invalidRow) continue
-
-      // Validate required fields have values
-      const vehicleMissingFields = requiredFields.filter(f => !vehicle[f])
-      if (vehicleMissingFields.length > 0) {
-        errors.push({ row: i + 1, error: `Missing values for: ${vehicleMissingFields.join(", ")}` })
-        continue
-      }
-
-      // Validate VIN length. `vehicle.vin` is unknown — only treat strings
-      // as VINs (anything else short-circuits to the error path).
-      if (typeof vehicle.vin === "string" && vehicle.vin.length !== 17) {
-        errors.push({ row: i + 1, error: `Invalid VIN length: ${vehicle.vin.length} (must be 17)` })
-        continue
-      }
-
-      vehicles.push(vehicle)
+      const parsed = parseVehicleRow(i, parseCSVLine(lines[i]), headers, errors)
+      if (parsed) vehicles.push(parsed)
     }
 
     if (vehicles.length === 0) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: "No valid vehicles to import",
-        errors 
+        errors,
       }, { status: 400 })
     }
 
