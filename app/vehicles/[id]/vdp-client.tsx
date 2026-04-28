@@ -431,7 +431,11 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     if (imageType === "360" && !has360) {
                       return (
                   /* ── Auto-Spin 360° Fallback — cycles exterior photos ── */
-                  <div
+                  /* S6848: use a <section> with aria-label so mouse-pause is
+                     scoped to a passive landmark; the inner Play/Pause and
+                     arrow <button>s remain the keyboard-accessible controls. */
+                  <section
+                    aria-label="Auto-spinning vehicle photos"
                     data-testid="vdp-auto-spin"
                     className="relative aspect-[4/3] rounded-xl overflow-hidden group"
                     style={{ backgroundColor: "#111" }}
@@ -490,14 +494,18 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                         <p className="text-sm text-white/50">No exterior photos available</p>
                       </div>
                     )}
-                  </div>
+                  </section>
                       )
                     }
                     return (
+                  /* S6845/S6847: render the gallery as a focusable widget
+                     with role="group" + keyboard arrows so screen-reader and
+                     keyboard users can navigate the same way mouse users do. */
                   <section
                     data-testid="vdp-image-gallery"
+                    role="group"
                     tabIndex={0}
-                    aria-label="Vehicle image gallery"
+                    aria-label="Vehicle image gallery — use left/right arrow keys to navigate"
                     onKeyDown={(e) => {
                       if (e.key === "ArrowRight") { nextImage(); e.preventDefault() }
                       if (e.key === "ArrowLeft") { prevImage(); e.preventDefault() }

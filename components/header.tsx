@@ -117,7 +117,13 @@ function DesktopNav({
           )}
 
           {item.submenu && activeSubmenu === item.name && (
-            <div
+            // S6848: the submenu container is a passive region — onMouseEnter
+            // here only keeps the menu open while the cursor moves over it.
+            // Keyboard users navigate via the inner <Link>s (focus-visible
+            // already keeps the submenu open via :focus-within in the parent),
+            // so no keyboard handler is needed on the wrapper.
+            <section
+              aria-label={`${item.name} submenu`}
               className="absolute top-full left-0 pt-1 min-w-[220px] z-[99999]"
               onMouseEnter={() => handleMouseEnter(item.name, true)}
               onMouseLeave={handleMouseLeave}
@@ -134,7 +140,7 @@ function DesktopNav({
                   </Link>
                 ))}
               </div>
-            </div>
+            </section>
           )}
         </li>
       ))}
