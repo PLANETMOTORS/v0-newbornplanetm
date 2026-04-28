@@ -1196,7 +1196,7 @@ function TradeInContent() {
                       <Button size="lg" className="h-14 text-lg bg-accent hover:bg-accent/90 text-accent-foreground" onClick={() => setShowAcceptModal(true)}>
                         <ThumbsUp className="mr-2 h-5 w-5" />Accept Offer
                       </Button>
-                      <Button size="lg" variant="outline" className="h-14 text-lg" onClick={() => { if (!user) { setShowAuthModal(true) } else { setShowApplyModal(true) } }}>
+                      <Button size="lg" variant="outline" className="h-14 text-lg" onClick={() => { if (user) { setShowApplyModal(true) } else { setShowAuthModal(true) } }}>
                         <Car className="mr-2 h-5 w-5" />Apply to a Purchase
                       </Button>
                     </div>

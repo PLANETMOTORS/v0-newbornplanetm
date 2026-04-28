@@ -91,7 +91,39 @@ export function PriceDropAlert({
           </DialogTitle>
         </DialogHeader>
 
-        {!isSuccess ? (
+        {/* S7735: positive condition first. */}
+        {isSuccess ? (
+          <div className="text-center py-6 space-y-4">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+              <Check className="w-8 h-8 text-green-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg">Alert Set!</h3>
+              <p className="text-sm text-muted-foreground">
+                We&apos;ll notify you when the price drops.
+              </p>
+            </div>
+            <Card className="text-left">
+              <CardContent className="pt-4 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Vehicle</span>
+                  <span className="font-semibold">{vehicleName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Current Price</span>
+                  <span className="font-semibold">${currentPrice.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Alert ID</span>
+                  <span className="font-mono text-xs">{alertId}</span>
+                </div>
+              </CardContent>
+            </Card>
+            <Button onClick={() => setIsOpen(false)} className="w-full">
+              Done
+            </Button>
+          </div>
+        ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <Card className="bg-muted/50">
               <CardContent className="pt-4">
@@ -164,37 +196,6 @@ export function PriceDropAlert({
               You can unsubscribe at any time. We only notify you about price drops.
             </p>
           </form>
-        ) : (
-          <div className="text-center py-6 space-y-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <Check className="w-8 h-8 text-green-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg">Alert Set!</h3>
-              <p className="text-sm text-muted-foreground">
-                We&apos;ll notify you when the price drops.
-              </p>
-            </div>
-            <Card className="text-left">
-              <CardContent className="pt-4 space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Vehicle</span>
-                  <span className="font-semibold">{vehicleName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Current Price</span>
-                  <span className="font-semibold">${currentPrice.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Alert ID</span>
-                  <span className="font-mono text-xs">{alertId}</span>
-                </div>
-              </CardContent>
-            </Card>
-            <Button onClick={() => setIsOpen(false)} className="w-full">
-              Done
-            </Button>
-          </div>
         )}
       </DialogContent>
     </Dialog>

@@ -302,7 +302,7 @@ export default function VehiclePhotoManager({
             <>
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm text-gray-600">
-                  {imageUrls.length} photo{imageUrls.length !== 1 ? "s" : ""}
+                  {imageUrls.length} photo{imageUrls.length === 1 ? "" : "s"}
                 </p>
                 <div className="flex items-center gap-2 text-xs text-gray-400">
                   <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />

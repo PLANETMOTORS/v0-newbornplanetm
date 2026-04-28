@@ -259,8 +259,9 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
   }
 
   const handleShare = async () => {
-    // S7741: compare with `undefined` directly instead of using `typeof`.
-    const shareUrl = globalThis.window !== undefined ? globalThis.window.location.href : ""
+    // S7741 / S7735: compare with `undefined` directly and use the
+    // positive form (truthy arm first).
+    const shareUrl = globalThis.window === undefined ? "" : globalThis.window.location.href
     const shareTitle = `${vehicle.year} ${vehicle.make} ${vehicle.model} at Planet Motors`
     const shareText = `Check out this ${vehicle.year} ${vehicle.make} ${vehicle.model} for $${safeNum(vehicle.price).toLocaleString()}.`
     try {

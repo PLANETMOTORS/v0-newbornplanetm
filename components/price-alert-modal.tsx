@@ -85,7 +85,21 @@ export function PriceAlertModal({ vehicle, searchCriteria, trigger }: Readonly<P
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
-        {!isSuccess ? (
+        {/* S7735: positive condition first. */}
+        {isSuccess ? (
+          <div className="text-center py-6">
+            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+            <DialogTitle className="mb-2">Alert Created!</DialogTitle>
+            <DialogDescription className="mb-4">
+              We&apos;ll notify you at {email} when there are updates.
+            </DialogDescription>
+            <Button variant="outline" onClick={() => { setIsSuccess(false); setEmail(""); }}>
+              Set Up Another Alert
+            </Button>
+          </div>
+        ) : (
           <>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
@@ -156,19 +170,6 @@ export function PriceAlertModal({ vehicle, searchCriteria, trigger }: Readonly<P
               </p>
             </form>
           </>
-        ) : (
-          <div className="text-center py-6">
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-8 h-8 text-green-600" />
-            </div>
-            <DialogTitle className="mb-2">Alert Created!</DialogTitle>
-            <DialogDescription className="mb-4">
-              We&apos;ll notify you at {email} when there are updates.
-            </DialogDescription>
-            <Button variant="outline" onClick={() => { setIsSuccess(false); setEmail(""); }}>
-              Set Up Another Alert
-            </Button>
-          </div>
         )}
       </DialogContent>
     </Dialog>

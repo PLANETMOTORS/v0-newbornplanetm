@@ -34,18 +34,21 @@ const ALL_PHASES: readonly Phase[] = [
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function parseEnabledPhases(): Set<Phase> {
+  // S7735: positive condition first.
   const raw =
-    typeof process !== "undefined"
-      ? process.env.NEXT_PUBLIC_ENABLED_PHASES
-      : undefined
+    typeof process === "undefined"
+      ? undefined
+      : process.env.NEXT_PUBLIC_ENABLED_PHASES
 
   if (raw && raw.trim() !== "") {
     const parsed = new Set<Phase>()
     for (const token of raw.split(",")) {
       const num = Number(token.trim())
-      if (!Number.isNaN(num) && Object.values(Phase).includes(num as Phase)) {
-        parsed.add(num as Phase)
+      // S7735: positive condition first.
+      if (Number.isNaN(num) || !Object.values(Phase).includes(num as Phase)) {
+        continue
       }
+      parsed.add(num as Phase)
     }
     return parsed
   }
@@ -54,10 +57,11 @@ function parseEnabledPhases(): Set<Phase> {
 }
 
 function parseEnabledFeatures(): Set<string> {
+  // S7735: positive condition first.
   const raw =
-    typeof process !== "undefined"
-      ? process.env.NEXT_PUBLIC_FEATURES
-      : undefined
+    typeof process === "undefined"
+      ? undefined
+      : process.env.NEXT_PUBLIC_FEATURES
 
   if (raw && raw.trim() !== "") {
     const features = new Set<string>()

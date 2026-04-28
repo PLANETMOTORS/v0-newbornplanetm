@@ -142,37 +142,9 @@ export function DriversLicenseStep({
         </div>
       )}
 
-      {!data.licenseFile ? (
-        // S6819: render a real <button> instead of <div role="button">.
-        <button
-          type="button"
-          onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-          aria-label="Upload driver's license"
-          className={`w-full border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${
-            isDragging
-              ? "border-blue-600 bg-blue-50"
-              : "border-blue-300 hover:border-blue-500 hover:bg-blue-50/50"
-          }`}
-        >
-          <Upload className="w-10 h-10 text-blue-500 mx-auto mb-3" aria-hidden="true" />
-          <p className="font-semibold">Click or drag to upload</p>
-          <p className="text-sm text-muted-foreground mt-1">JPG, PNG, WebP, or PDF — max 5 MB</p>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={ACCEPTED_TYPES.join(",")}
-            className="sr-only"
-            aria-label="Choose driver's license file"
-            onChange={(e) => {
-              const file = e.target.files?.[0]
-              if (file) handleFile(file)
-            }}
-          />
-        </button>
-      ) : (
+      {/* S7735: positive condition first — render the upload preview when a
+          file is present, otherwise show the dropzone. */}
+      {data.licenseFile ? (
         <div className="border rounded-xl p-4">
           <div className="flex items-center gap-4">
             {data.licensePreviewUrl ? (
@@ -209,6 +181,36 @@ export function DriversLicenseStep({
             </button>
           </div>
         </div>
+      ) : (
+        // S6819: render a real <button> instead of <div role="button">.
+        <button
+          type="button"
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+          aria-label="Upload driver's license"
+          className={`w-full border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${
+            isDragging
+              ? "border-blue-600 bg-blue-50"
+              : "border-blue-300 hover:border-blue-500 hover:bg-blue-50/50"
+          }`}
+        >
+          <Upload className="w-10 h-10 text-blue-500 mx-auto mb-3" aria-hidden="true" />
+          <p className="font-semibold">Click or drag to upload</p>
+          <p className="text-sm text-muted-foreground mt-1">JPG, PNG, WebP, or PDF — max 5 MB</p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={ACCEPTED_TYPES.join(",")}
+            className="sr-only"
+            aria-label="Choose driver's license file"
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file) handleFile(file)
+            }}
+          />
+        </button>
       )}
 
       <fieldset>
@@ -223,7 +225,7 @@ export function DriversLicenseStep({
               id="licenseFirstName"
               autoComplete="given-name"
               disabled={isPending}
-              value={data.licenseFirstName !== "" ? data.licenseFirstName : prefillFirstName}
+              value={data.licenseFirstName === "" ? prefillFirstName : data.licenseFirstName}
               onChange={(e) => onChange({ ...data, licenseFirstName: e.target.value })}
             />
           </div>
@@ -233,7 +235,7 @@ export function DriversLicenseStep({
               id="licenseLastName"
               autoComplete="family-name"
               disabled={isPending}
-              value={data.licenseLastName !== "" ? data.licenseLastName : prefillLastName}
+              value={data.licenseLastName === "" ? prefillLastName : data.licenseLastName}
               onChange={(e) => onChange({ ...data, licenseLastName: e.target.value })}
             />
           </div>

@@ -139,12 +139,13 @@ export default function Admin360UploadPage() {
 
       const data = await res.json()
 
-      if (!res.ok) {
-        setUploadError(data.error ?? "Upload failed")
-      } else {
+      // S7735: positive condition first.
+      if (res.ok) {
         setUploadResult(data)
         // Refresh vehicle list
         loadVehicles()
+      } else {
+        setUploadError(data.error ?? "Upload failed")
       }
     } catch {
       setUploadError("Network error — please try again")
@@ -243,7 +244,7 @@ export default function Admin360UploadPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium text-gray-700">
-                      {selectedFiles.length} frame{selectedFiles.length !== 1 ? "s" : ""} selected
+                      {selectedFiles.length} frame{selectedFiles.length === 1 ? "" : "s"} selected
                     </p>
                     <Button variant="ghost" size="sm" onClick={clearFiles}>
                       <Trash2 className="w-4 h-4 mr-1" />
@@ -295,7 +296,7 @@ export default function Admin360UploadPage() {
                 ) : (
                   <>
                     <Upload className="w-4 h-4 mr-2" />
-                    Upload {selectedFiles.length} Frame{selectedFiles.length !== 1 ? "s" : ""}
+                    Upload {selectedFiles.length} Frame{selectedFiles.length === 1 ? "" : "s"}
                   </>
                 )}
               </Button>
@@ -397,7 +398,7 @@ export default function Admin360UploadPage() {
                 </Button>
               </div>
               <CardDescription>
-                {vehicles.length} vehicle{vehicles.length !== 1 ? "s" : ""} with 360° frames
+                {vehicles.length} vehicle{vehicles.length === 1 ? "" : "s"} with 360° frames
               </CardDescription>
             </CardHeader>
             <CardContent>

@@ -291,10 +291,11 @@ export async function handleCheckoutSessionCompleted(
           const validation = validateReservationForConfirmation(updatedReservation, { skipExpiryCheck: true })
           if (validation.valid) {
             const { error: confirmError } = await supabase.from("reservations").update({ status: "confirmed", updated_at: now }).eq("id", reservationId)
-            if (!confirmError) {
-              reservationConfirmed = true
-            } else {
+            // S7735: positive condition first.
+            if (confirmError) {
               logger.warn("[Stripe] Failed to confirm reservation:", { reservationId, error: confirmError.message })
+            } else {
+              reservationConfirmed = true
             }
           } else {
             logger.warn("[Stripe] Reservation payment validation failed, not confirming:", { reservationId, reason: validation.reason })

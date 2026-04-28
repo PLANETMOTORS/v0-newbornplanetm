@@ -183,7 +183,7 @@ export function trackExperimentConversion(
     experiment_variant: variant,
     goal_name: goalName,
     visitor_id: getVisitorId(),
-    ...(value !== undefined ? { conversion_value: value } : {}),
+    ...(value === undefined ? {} : { conversion_value: value }),
   })
 }
 

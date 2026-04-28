@@ -350,7 +350,16 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: Readonly<Pro
           {data.selectedPlan === "none" ? "Continue without protection" : "Continue with protection"}
         </Button>
 
-        {data.selectedPlan !== "none" ? (
+        {/* S7735: positive condition first. */}
+        {data.selectedPlan === "none" ? (
+          <button
+            type="button"
+            className="text-sm text-blue-600 underline underline-offset-4 hover:text-blue-700 transition-colors"
+            onClick={() => setShowComparison(true)}
+          >
+            Compare all coverage options
+          </button>
+        ) : (
           <button
             type="button"
             className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
@@ -360,14 +369,6 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: Readonly<Pro
             }}
           >
             I choose to decline coverage and continue
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="text-sm text-blue-600 underline underline-offset-4 hover:text-blue-700 transition-colors"
-            onClick={() => setShowComparison(true)}
-          >
-            Compare all coverage options
           </button>
         )}
       </div>

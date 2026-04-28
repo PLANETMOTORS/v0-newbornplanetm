@@ -262,10 +262,11 @@ export function InstantQuote() {
     
     // Only validate when user has entered enough characters (complete postal code is 7 chars with space)
     if (formatted.length === 7) {
-      if (!isValidPostalCode(formatted)) {
-        setPostalCodeError("Please enter a valid Canadian postal code (e.g., M5V 1J2)")
-      } else {
+      // S7735: positive condition first.
+      if (isValidPostalCode(formatted)) {
         setPostalCodeError("")
+      } else {
+        setPostalCodeError("Please enter a valid Canadian postal code (e.g., M5V 1J2)")
       }
     } else if (formatted.length < 6) {
       // Clear error while user is still typing

@@ -304,18 +304,17 @@ export interface TradeInFormData {
 export function validateTradeInForm(data: TradeInFormData): { valid: boolean; errors: Record<string, string> } {
   const errors: Record<string, string> = {}
   
-  // Name validation (either combined name or first/last)
-  if (data.name !== undefined) {
-    if (!isValidName(data.name)) {
-      errors.name = ValidationMessages.name
-    }
-  } else {
+  // Name validation (either combined name or first/last).
+  // S7735: positive condition first.
+  if (data.name === undefined) {
     if (data.firstName !== undefined && !isValidName(data.firstName)) {
       errors.firstName = ValidationMessages.name
     }
     if (data.lastName !== undefined && !isValidName(data.lastName)) {
       errors.lastName = ValidationMessages.name
     }
+  } else if (!isValidName(data.name)) {
+    errors.name = ValidationMessages.name
   }
   
   // Email validation

@@ -224,25 +224,8 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
             )}
           </h4>
           
-          {!isVehicleSelected ? (
-            // No vehicle selected - show browse button
-            <div className="border-2 border-dashed border-primary/30 bg-primary/5 rounded-xl p-8 text-center">
-              <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <Car className="w-8 h-8 text-primary" />
-              </div>
-              <h5 className="font-semibold text-lg mb-2">Select Your Vehicle</h5>
-              <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
-                Choose a vehicle from our inventory to proceed with your financing application. Vehicle information will be filled automatically.
-              </p>
-              <Button size="lg" onClick={() => setShowInventoryModal(true)}>
-                <Car className="w-5 h-5 mr-2" />
-                Browse Available Inventory
-              </Button>
-              <p className="text-xs text-muted-foreground mt-4">
-                Vehicle selection is required to continue
-              </p>
-            </div>
-          ) : (
+          {/* S7735: positive condition first — vehicle selected => details. */}
+          {isVehicleSelected ? (
             // Vehicle selected - show read-only details
             <>
               <p className="text-sm text-muted-foreground mb-4">
@@ -324,6 +307,24 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                 Change Vehicle
               </Button>
             </>
+          ) : (
+            // No vehicle selected - show browse button
+            <div className="border-2 border-dashed border-primary/30 bg-primary/5 rounded-xl p-8 text-center">
+              <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <Car className="w-8 h-8 text-primary" />
+              </div>
+              <h5 className="font-semibold text-lg mb-2">Select Your Vehicle</h5>
+              <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
+                Choose a vehicle from our inventory to proceed with your financing application. Vehicle information will be filled automatically.
+              </p>
+              <Button size="lg" onClick={() => setShowInventoryModal(true)}>
+                <Car className="w-5 h-5 mr-2" />
+                Browse Available Inventory
+              </Button>
+              <p className="text-xs text-muted-foreground mt-4">
+                Vehicle selection is required to continue
+              </p>
+            </div>
           )}
         </section>
         
