@@ -280,12 +280,19 @@ async function applyReservationPaidUpdate(
   const piPatch = typeof session.payment_intent === "string"
     ? { stripe_payment_intent_id: session.payment_intent }
     : {}
-  await supabase.from("reservations").update({
+  const { error: initialUpdateError } = await supabase.from("reservations").update({
     deposit_status: "paid",
     stripe_checkout_session_id: session.id,
     ...piPatch,
     updated_at: now,
   }).eq("id", reservationId)
+  if (initialUpdateError) {
+    logger.warn("[Stripe] Failed to persist reservation payment fields:", {
+      reservationId,
+      error: initialUpdateError.message,
+    })
+    return false
+  }
 
   const updated = { ...reservation, deposit_status: "paid", stripe_checkout_session_id: session.id, ...piPatch }
   const validation = validateReservationForConfirmation(updated, { skipExpiryCheck: true })
