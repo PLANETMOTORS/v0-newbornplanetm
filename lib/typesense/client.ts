@@ -23,7 +23,15 @@ function getAdminKey(): string | undefined {
 }
 
 function getSearchKey(): string | undefined {
-  return process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_KEY || process.env.TYPESENSE_API_KEY
+  // Prefer the scoped search-only key; only fall back to the admin key on
+  // the server where it is never exposed to the browser.
+  if (process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_KEY) {
+    return process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_KEY
+  }
+  if (typeof window === 'undefined') {
+    return process.env.TYPESENSE_API_KEY
+  }
+  return undefined
 }
 
 function getNodes(): NodeConfiguration[] {
