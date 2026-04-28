@@ -1,25 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-
-const DEFAULT_SPIN_FRAME_COUNT = 72
-const MIN_SPIN_FRAME_COUNT = 24
-
-function resolveFrameCount(value: unknown): number {
-  const numeric =
-    typeof value === "number"
-      ? value
-      : typeof value === "string"
-        ? Number.parseInt(value, 10)
-        : Number.NaN
-  if (!Number.isFinite(numeric)) return DEFAULT_SPIN_FRAME_COUNT
-  return Math.max(MIN_SPIN_FRAME_COUNT, numeric)
-}
-
-function sanitizeStockNumber(value: unknown): string | null {
-  if (typeof value !== "string") return null
-  const trimmed = value.trim()
-  return trimmed.length > 0 ? trimmed : null
-}
+import { resolveFrameCount, sanitizeStockNumber } from "@/lib/spin-manifest/helpers"
 
 export async function GET(
   _request: NextRequest,

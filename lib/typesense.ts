@@ -3,6 +3,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { getSearchClient, isTypesenseConfigured, VEHICLES_COLLECTION } from './typesense/client'
+import { asNum, asOptStr, asStr } from './safe-coerce'
 
 // ── Public interfaces (unchanged) ──────────────────────────────────────────
 
@@ -206,16 +207,6 @@ async function searchTypesense(params: VehicleSearchParams): Promise<SearchRespo
       typo_tokens_threshold: 1,
     })
 
-  // Coerce Typesense doc fields to primitives without ever stringifying an
-  // object reference (Sonar S6551 — `String(obj || '')` would yield
-  // "[object Object]"). For string fields we accept only `string`; otherwise
-  // fall back to the empty/default value.
-  const asStr = (v: unknown, fallback = ""): string =>
-    typeof v === "string" ? v : fallback
-  const asOptStr = (v: unknown): string | undefined =>
-    typeof v === "string" ? v : undefined
-  const asNum = (v: unknown, fallback = 0): number =>
-    typeof v === "number" ? v : fallback
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const hits = (result.hits || []).map((hit: any) => {
     const doc = hit.document as Record<string, unknown>

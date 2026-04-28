@@ -19,6 +19,7 @@
 
 import { getSearchClient, isTypesenseConfigured, VEHICLES_COLLECTION } from "./client"
 import { logger } from "@/lib/logger"
+import { asStr } from "@/lib/safe-coerce"
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -119,14 +120,10 @@ function buildSuggestions(
   const suggestions: SmartSuggestion[] = []
   const lowerQuery = query.toLowerCase()
 
-  // S6551: never let a non-string `make`/`model`/`trim` slip into String()
-  // (would render "[object Object]"). Treat anything non-string as empty.
-  const safeStr = (v: unknown): string => (typeof v === "string" ? v.trim() : "")
-
   for (const hit of hits) {
-    const make = safeStr(hit.document.make)
-    const model = safeStr(hit.document.model)
-    const trim = safeStr(hit.document.trim)
+    const make = asStr(hit.document.make).trim()
+    const model = asStr(hit.document.model).trim()
+    const trim = asStr(hit.document.trim).trim()
 
     // Pass 1: makes that match the query
     if (make?.toLowerCase().includes(lowerQuery)) {

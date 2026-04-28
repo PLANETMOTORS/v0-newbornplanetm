@@ -356,8 +356,7 @@ export function LeadCaptureForm({
 
       <p className="text-xs text-muted-foreground text-center">
         By submitting, you agree to our{" "}
-        <a href="/privacy" className="underline hover:text-foreground">privacy policy</a>
-        . No spam — ever.
+        <a href="/privacy" className="underline hover:text-foreground">privacy policy</a>. No spam — ever.
       </p>
     </form>
   )
