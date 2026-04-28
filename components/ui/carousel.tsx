@@ -159,8 +159,10 @@ function CarouselItem({ className, ...props }: React.ComponentProps<'div'>) {
   const { orientation } = useCarousel()
 
   return (
+    // S6819: rely on aria-roledescription="slide" alone instead of the
+    // redundant role="group". Embla wires keyboard navigation on the
+    // viewport, so the slide itself does not need a group role.
     <div
-      role="group"
       aria-roledescription="slide"
       data-slot="carousel-item"
       className={cn(

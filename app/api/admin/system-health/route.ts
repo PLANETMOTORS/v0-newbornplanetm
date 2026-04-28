@@ -92,6 +92,8 @@ export async function GET() {
       }
     }
 
+    // S7735: avoid the negated condition cascade by computing each branch
+    // with positive predicates.
     let homenetStatus: "ok" | "stale" | "unconfigured"
     if (isHomenetConfigured && homenetLastSync) {
       const ageMs = Date.now() - new Date(homenetLastSync).getTime()

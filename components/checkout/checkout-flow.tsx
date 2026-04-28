@@ -81,7 +81,7 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
   const [timeLeft, setTimeLeft] = useState(40 * 60) // 40 minute countdown
   const [showOrderSummary, setShowOrderSummary] = useState(false)
   const orderSummaryTriggerRef = useRef<HTMLButtonElement>(null)
-  const orderSummaryModalRef = useRef<HTMLDivElement>(null)
+  const orderSummaryModalRef = useRef<HTMLDialogElement>(null)
 
   // Countdown timer — decrements every second
   useEffect(() => {
@@ -360,10 +360,11 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
             aria-label="Close order summary"
             onClick={() => setShowOrderSummary(false)}
           />
-          <div
+          {/* S6819: use the native <dialog open> element instead of role="dialog". */}
+          <dialog
+            open
             ref={orderSummaryModalRef}
             id="mobile-order-summary"
-            role="dialog"
             aria-modal="true"
             aria-labelledby="mobile-order-summary-title"
             tabIndex={-1}
@@ -395,7 +396,7 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
                 router.push(`/vehicles/${vehicleId}`)
               }}
             />
-          </div>
+          </dialog>
         </div>
       )}
 

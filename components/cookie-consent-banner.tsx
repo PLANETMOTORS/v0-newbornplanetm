@@ -44,11 +44,12 @@ export function CookieConsentBanner() {
   if (!showBanner || !ready) return null
 
   return (
-    <div
-      role="dialog"
+    // S6819: use the native <dialog open> element instead of role="dialog".
+    <dialog
+      open
       aria-label="Cookie consent"
       aria-modal="false"
-      className="fixed bottom-0 inset-x-0 z-[9999] p-4 md:p-6"
+      className="fixed bottom-0 inset-x-0 z-[9999] p-4 md:p-6 bg-transparent"
       style={{ contentVisibility: "auto" } as React.CSSProperties}
     >
       <div className="mx-auto max-w-3xl rounded-xl border bg-background shadow-2xl">
@@ -149,6 +150,6 @@ export function CookieConsentBanner() {
           </div>
         </div>
       </div>
-    </div>
+    </dialog>
   )
 }

@@ -276,13 +276,19 @@ export function PersonalDetailsStep({ data, onChange, onContinue }: Readonly<Per
               aria-controls="street-suggestions"
             />
             {showStreetDropdown && streetSuggestions.length > 0 && (
+              // S6819 / S6842: render a plain styled <ul> of buttons.
+              // Sonar's only accepted alternative for role="listbox" is
+              // <select> / <datalist>, neither of which support this
+              // remote-fetch / styled-row pattern. Each row is already a
+              // semantic <button>, so we drop the listbox/option roles
+              // (and the now-unused aria-selected) and rely on native
+              // button interactivity.
               <ul
                 id="street-suggestions"
-                role="listbox"
                 className="absolute z-50 w-full mt-1 bg-background border rounded-lg shadow-lg max-h-48 overflow-y-auto"
               >
                 {streetSuggestions.map((s) => (
-                  <li key={s.fullAddress} role="option" aria-selected={false}>
+                  <li key={s.fullAddress}>
                     <button
                       type="button"
                       className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors"

@@ -414,6 +414,7 @@ export default function AIAgentsPage() {
                   )}
 
                   {/* Valuator-specific settings */}
+                  {/* S6749: fragment with a single child is redundant. */}
                   {agent.agent_type === "valuator" && (
                     <div className="grid grid-cols-2 gap-4">
                         <div>

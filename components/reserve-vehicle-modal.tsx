@@ -270,6 +270,7 @@ export function ReserveVehicleModal({ vehicle, trigger }: Readonly<ReserveVehicl
           </>
         )}
 
+        {/* S6749: fragment with a single child is redundant. */}
         {step === 3 && !showStripeCheckout && (
             <div className="text-center py-6">
               <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">

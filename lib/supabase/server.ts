@@ -17,7 +17,7 @@
  *   await admin.from('deals').insert(...)
  */
 
-import { createServerClient } from "@supabase/ssr"
+import { createServerClient, type CookieMethodsServer } from "@supabase/ssr"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { cookies } from "next/headers"
 import type { Database } from "@/lib/supabase/database.types"
@@ -38,14 +38,17 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
 export async function createClient() {
   const cookieStore = await cookies()
 
+  // S1874: type the cookies adapter with @supabase/ssr's own
+  // CookieMethodsServer so we resolve the modern, non-deprecated overload
+  // instead of the legacy `(url, key, options: any)` signature.
   return createServerClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
       getAll: () => cookieStore.getAll(),
-      setAll: (all: Array<{ name: string; value: string; options?: Record<string, unknown> }>) =>
+      setAll: (all) =>
         all.forEach(({ name, value, options }) =>
           cookieStore.set(name, value, options as Parameters<typeof cookieStore.set>[2])
         ),
-    },
+    } satisfies CookieMethodsServer,
   })
 }
 

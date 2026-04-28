@@ -92,6 +92,7 @@ export function DriveeViewer({
   ].join("")
 
   if (hasError) {
+    // S6819: <section aria-label> instead of <div role="region">.
     return (
       <section
         className={`relative h-[500px] md:h-[600px] rounded-xl overflow-hidden flex items-center justify-center ${className}`}
@@ -107,6 +108,7 @@ export function DriveeViewer({
     )
   }
 
+  // S6819: <section aria-label> instead of <div role="region">.
   return (
     <section
       className={`relative h-[500px] md:h-[600px] rounded-xl overflow-hidden ${className}`}
