@@ -49,7 +49,7 @@ export function DeliveryOptionsStep({ data, postalCode, onChange, onContinue }: 
   }, [baseDate, data.deliveryDistance])
 
   useEffect(() => {
-    if (!postalCode || postalCode.replace(/\s/g, '').length < 6) return
+    if (!postalCode || postalCode.replaceAll(/\s/g, '').length < 6) return
 
     let cancelled = false
     setIsCalculating(true)

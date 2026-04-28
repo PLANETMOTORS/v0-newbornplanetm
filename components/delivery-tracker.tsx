@@ -261,7 +261,7 @@ export function DeliveryTracker({
             </div>
             {tracking.driver.phone && (
               <Button variant="outline" size="sm" asChild>
-                <a href={`tel:${tracking.driver.phone.replace(/[^0-9+]/g, '')}`}>
+                <a href={`tel:${tracking.driver.phone.replaceAll(/[^0-9+]/g, '')}`}>
                   <Phone className="w-4 h-4 mr-2" />
                   Call Driver
                 </a>

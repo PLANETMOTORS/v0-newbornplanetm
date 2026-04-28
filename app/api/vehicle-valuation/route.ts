@@ -103,7 +103,7 @@ Respond ONLY with a JSON object (no markdown, no explanation):
     let valuation
     try {
       // Clean the response - remove any markdown formatting
-      const cleanedText = text.replace(/```json\n?|\n?```/g, "").trim()
+      const cleanedText = text.replaceAll(/```json\n?|\n?```/g, "").trim()
       valuation = JSON.parse(cleanedText)
     } catch {
       // Fallback to algorithmic calculation if AI parsing fails

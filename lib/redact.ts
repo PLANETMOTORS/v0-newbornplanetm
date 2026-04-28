@@ -38,7 +38,7 @@ export function maskEmail(email: string | null | undefined): string {
  */
 export function maskPhone(phone: string | null | undefined): string {
   if (typeof phone !== "string") return "<missing>"
-  const digits = phone.replace(/\D/g, "")
+  const digits = phone.replaceAll(/\D/g, "")
   if (digits.length < 4) return "<redacted>"
   return `***${digits.slice(-4)}`
 }

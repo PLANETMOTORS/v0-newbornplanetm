@@ -47,9 +47,9 @@ export function PriceNegotiator({
 
   // Structural, ReDoS-free check (S5852/S2631).
   const isValidEmail = (email: string) => isEmailLike(email)
-  const isValidPhone = (phone: string) => phone.replace(/\D/g, "").length >= 10
+  const isValidPhone = (phone: string) => phone.replaceAll(/\D/g, "").length >= 10
   const formatPhone = (value: string) => {
-    const digits = value.replace(/\D/g, "").slice(0, 10)
+    const digits = value.replaceAll(/\D/g, "").slice(0, 10)
     if (digits.length <= 3) return digits
     if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
     return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
@@ -101,7 +101,7 @@ export function PriceNegotiator({
   }
 
   const handleSubmitOffer = async () => {
-    const offerAmount = Number.parseFloat(offer.replace(/[^0-9.]/g, ""))
+    const offerAmount = Number.parseFloat(offer.replaceAll(/[^0-9.]/g, ""))
     if (Number.isNaN(offerAmount) || offerAmount <= 0) return
 
     setCurrentOffer(offerAmount)
@@ -227,7 +227,7 @@ export function PriceNegotiator({
             </div>
             <div>
               <Label htmlFor="verify-code">Verification Code</Label>
-              <Input id="verify-code" placeholder="123456" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))} className="text-center text-lg tracking-widest" maxLength={6} />
+              <Input id="verify-code" placeholder="123456" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value.replaceAll(/\D/g, "").slice(0, 6))} className="text-center text-lg tracking-widest" maxLength={6} />
             </div>
             <Button className="w-full" onClick={verifyCode} disabled={verificationCode.length !== 6 || isVerifying}>
               {isVerifying && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
