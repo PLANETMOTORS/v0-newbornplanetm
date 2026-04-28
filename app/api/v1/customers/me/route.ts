@@ -59,6 +59,14 @@ function validateNameField(value: unknown, fieldName: 'firstName' | 'lastName') 
   return null
 }
 
+function toScalarString(value: unknown): string | null {
+  if (typeof value === "string") return value
+  if (typeof value === "number" || typeof value === "bigint" || typeof value === "boolean") {
+    return String(value)
+  }
+  return null
+}
+
 function validateProfilePayload(body: { firstName?: unknown; lastName?: unknown; phone?: unknown }) {
   if (body.firstName !== undefined) {
     const err = validateNameField(body.firstName, 'firstName')
@@ -69,8 +77,8 @@ function validateProfilePayload(body: { firstName?: unknown; lastName?: unknown;
     if (err) return err
   }
   if (body.phone !== undefined && body.phone !== null) {
-    const ph = String(body.phone).trim()
-    if (!PHONE_RE.test(ph)) {
+    const phStr = toScalarString(body.phone)
+    if (phStr === null || !PHONE_RE.test(phStr.trim())) {
       return apiError(ErrorCode.VALIDATION_ERROR, "Invalid phone number format", 400)
     }
   }
@@ -86,9 +94,21 @@ function buildProfileUpdates(
     email: user.email,
     updated_at: new Date().toISOString(),
   }
-  if (body.firstName !== undefined) updates.first_name = String(body.firstName).normalize('NFC').trim()
-  if (body.lastName !== undefined) updates.last_name = String(body.lastName).normalize('NFC').trim()
-  if (body.phone !== undefined) updates.phone = body.phone === null ? null : String(body.phone).trim()
+  if (body.firstName !== undefined) {
+    const v = toScalarString(body.firstName)
+    if (v !== null) updates.first_name = v.normalize('NFC').trim()
+  }
+  if (body.lastName !== undefined) {
+    const v = toScalarString(body.lastName)
+    if (v !== null) updates.last_name = v.normalize('NFC').trim()
+  }
+  if (body.phone !== undefined) {
+    if (body.phone === null) updates.phone = null
+    else {
+      const v = toScalarString(body.phone)
+      if (v !== null) updates.phone = v.trim()
+    }
+  }
   if (body.notificationPreferences !== undefined) updates.notification_preferences = body.notificationPreferences
   return updates
 }

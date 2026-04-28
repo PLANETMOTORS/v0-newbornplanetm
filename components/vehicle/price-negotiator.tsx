@@ -144,36 +144,36 @@ export function PriceNegotiator({
     }
   }
 
+  const postNegotiateRequest = (offerAmount: number, userMessage: string) => fetch("/api/negotiate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      vehicleId,
+      vehiclePrice,
+      customerOffer: offerAmount,
+      customerMessage: userMessage,
+      customerName: contactInfo.name,
+      customerEmail: contactInfo.email,
+      customerPhone: contactInfo.phone,
+      vehicleInfo: { name: vehicleName, daysListed, viewsLastWeek },
+    }),
+  })
+
   const handleSubmitOffer = async () => {
     const offerAmount = Number.parseFloat(offer.replaceAll(/[^0-9.]/g, ""))
     if (Number.isNaN(offerAmount) || offerAmount <= 0) return
 
     setCurrentOffer(offerAmount)
     const userMessage = customMessage || `I'd like to offer $${offerAmount.toLocaleString()} for this vehicle.`
-
     setMessages((prev) => [...prev, { role: "user", content: userMessage }])
     setIsLoading(true)
     setOffer("")
     setCustomMessage("")
 
     try {
-      const response = await fetch("/api/negotiate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          vehicleId,
-          vehiclePrice,
-          customerOffer: offerAmount,
-          customerMessage: userMessage,
-          customerName: contactInfo.name,
-          customerEmail: contactInfo.email,
-          customerPhone: contactInfo.phone,
-          vehicleInfo: { name: vehicleName, daysListed, viewsLastWeek },
-        }),
-      })
+      const response = await postNegotiateRequest(offerAmount, userMessage)
       if (!response.ok) throw new Error("Failed")
-      const fullContent = await consumeNegotiateStream(response)
-      appendAssistantFromStream(fullContent)
+      appendAssistantFromStream(await consumeNegotiateStream(response))
     } catch {
       setMessages((prev) => [...prev, { role: "assistant", content: `I'm having trouble processing. Please try again or call ${PHONE_LOCAL}.`, status: "escalate" }])
     } finally {

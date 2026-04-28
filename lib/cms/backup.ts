@@ -191,6 +191,5 @@ async function main() {
 }
 
 if (isMain) {
-  // NOSONAR S7785 — top-level await requires `target: ES2017+`; see comment above.
-  void main()
+  void main() // NOSONAR S7785 — top-level await requires target: ES2022+; tsconfig is ES6.
 }

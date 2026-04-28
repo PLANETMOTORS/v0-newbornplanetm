@@ -72,60 +72,81 @@ function computeFinancingMath(vehicleInfo: any, financingTerms: any, tradeIn: an
   return { amountFinanced, payment, totalInterest, totalToRepay, netTrade, adminFee, taxRate, downPayment, tradeValue, lienAmount }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function insertApplicantSubrows(supabase: SupaClient, applicantId: string, src: any, opts: { primary: boolean }) {
-  await supabase.from("applicant_addresses").insert({
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function ifPrimary<T>(opts: { primary: boolean }, value: T): T | undefined {
+  return opts.primary ? value : undefined
+}
+
+function insertApplicantAddress(supabase: SupaClient, applicantId: string, src: any, opts: { primary: boolean }) {
+  return supabase.from("applicant_addresses").insert({
     applicant_id: applicantId,
     address_type: "current",
     address_category: src.addressType || null,
-    suite_number: opts.primary ? (src.suiteNumber || null) : undefined,
+    suite_number: ifPrimary(opts, src.suiteNumber || null),
     street_number: src.streetNumber || null,
     street_name: src.streetName || null,
-    street_type: opts.primary ? (src.streetType || null) : undefined,
-    street_direction: opts.primary ? (src.streetDirection || null) : undefined,
+    street_type: ifPrimary(opts, src.streetType || null),
+    street_direction: ifPrimary(opts, src.streetDirection || null),
     city: src.city || null,
     province: src.province || "Ontario",
     postal_code: src.postalCode || null,
     duration_years: Number.parseInt(src.durationYears) || 0,
     duration_months: Number.parseInt(src.durationMonths) || 0,
   })
-  await supabase.from("applicant_housing").insert({
+}
+
+function insertApplicantHousing(supabase: SupaClient, applicantId: string, src: any, opts: { primary: boolean }) {
+  return supabase.from("applicant_housing").insert({
     applicant_id: applicantId,
     home_status: src.homeStatus || null,
-    market_value: opts.primary ? (Number.parseFloat(src.marketValue) || null) : undefined,
-    mortgage_amount: opts.primary ? (Number.parseFloat(src.mortgageAmount) || null) : undefined,
-    mortgage_holder: opts.primary ? (src.mortgageHolder || null) : undefined,
+    market_value: ifPrimary(opts, Number.parseFloat(src.marketValue) || null),
+    mortgage_amount: ifPrimary(opts, Number.parseFloat(src.mortgageAmount) || null),
+    mortgage_holder: ifPrimary(opts, src.mortgageHolder || null),
     monthly_payment: Number.parseFloat(src.monthlyPayment) || null,
-    outstanding_mortgage: opts.primary ? (Number.parseFloat(src.outstandingMortgage) || null) : undefined,
+    outstanding_mortgage: ifPrimary(opts, Number.parseFloat(src.outstandingMortgage) || null),
   })
-  await supabase.from("applicant_employment").insert({
+}
+
+function insertApplicantEmployment(supabase: SupaClient, applicantId: string, src: any, opts: { primary: boolean }) {
+  return supabase.from("applicant_employment").insert({
     applicant_id: applicantId,
     employment_type: "current",
     employment_category: src.employmentCategory || null,
-    employment_status: opts.primary ? (src.employmentStatus || null) : undefined,
+    employment_status: ifPrimary(opts, src.employmentStatus || null),
     employer_name: src.employerName || null,
     occupation: src.occupation || null,
-    job_title: opts.primary ? (src.jobTitle || null) : undefined,
-    employer_street_name: opts.primary ? (src.employerStreet || null) : undefined,
-    employer_city: opts.primary ? (src.employerCity || null) : undefined,
-    employer_province: opts.primary ? (src.employerProvince || null) : undefined,
-    employer_postal_code: opts.primary ? (src.employerPostalCode || null) : undefined,
+    job_title: ifPrimary(opts, src.jobTitle || null),
+    employer_street_name: ifPrimary(opts, src.employerStreet || null),
+    employer_city: ifPrimary(opts, src.employerCity || null),
+    employer_province: ifPrimary(opts, src.employerProvince || null),
+    employer_postal_code: ifPrimary(opts, src.employerPostalCode || null),
     employer_phone: src.employerPhone || null,
-    employer_phone_ext: opts.primary ? (src.employerPhoneExt || null) : undefined,
+    employer_phone_ext: ifPrimary(opts, src.employerPhoneExt || null),
     duration_years: Number.parseInt(src.employmentYears) || 0,
     duration_months: Number.parseInt(src.employmentMonths) || 0,
   })
-  await supabase.from("applicant_income").insert({
+}
+
+function insertApplicantIncome(supabase: SupaClient, applicantId: string, src: any, opts: { primary: boolean }) {
+  return supabase.from("applicant_income").insert({
     applicant_id: applicantId,
     gross_income: Number.parseFloat(src.grossIncome) || 0,
     income_frequency: src.incomeFrequency || "annually",
-    other_income_type: opts.primary ? (src.otherIncomeType || null) : undefined,
-    other_income_amount: opts.primary ? (Number.parseFloat(src.otherIncomeAmount) || null) : undefined,
-    other_income_frequency: opts.primary ? (src.otherIncomeFrequency || null) : undefined,
-    other_income_description: opts.primary ? (src.otherIncomeDescription || null) : undefined,
+    other_income_type: ifPrimary(opts, src.otherIncomeType || null),
+    other_income_amount: ifPrimary(opts, Number.parseFloat(src.otherIncomeAmount) || null),
+    other_income_frequency: ifPrimary(opts, src.otherIncomeFrequency || null),
+    other_income_description: ifPrimary(opts, src.otherIncomeDescription || null),
     annual_total: Number.parseFloat(src.annualTotal) || null,
   })
 }
+
+async function insertApplicantSubrows(supabase: SupaClient, applicantId: string, src: any, opts: { primary: boolean }) {
+  await insertApplicantAddress(supabase, applicantId, src, opts)
+  await insertApplicantHousing(supabase, applicantId, src, opts)
+  await insertApplicantEmployment(supabase, applicantId, src, opts)
+  await insertApplicantIncome(supabase, applicantId, src, opts)
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildDateOfBirth(dob: any): string | null {

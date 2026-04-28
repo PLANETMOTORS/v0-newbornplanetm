@@ -73,8 +73,9 @@ function resolveProvinceOrError(province: unknown, userId: string):
   }
   if (!hasProvince) {
     console.warn(`[orders] Province not provided for order by user ${userId}. Defaulting to ON.`)
+    return { ok: true, province: 'ON' }
   }
-  return { ok: true, province: hasProvince ? (province as string).toUpperCase() : 'ON' }
+  return { ok: true, province: province.toUpperCase() }
 }
 
 function validateOrderInputs(body: { vehicleId?: unknown; paymentMethod?: unknown; customerId?: unknown }, userId: string):
@@ -89,7 +90,7 @@ function validateOrderInputs(body: { vehicleId?: unknown; paymentMethod?: unknow
       ),
     }
   }
-  const effectiveCustomerId = (body.customerId as string) || userId
+  const effectiveCustomerId = typeof body.customerId === 'string' && body.customerId ? body.customerId : userId
   if (effectiveCustomerId !== userId) {
     return {
       ok: false,
@@ -99,7 +100,8 @@ function validateOrderInputs(body: { vehicleId?: unknown; paymentMethod?: unknow
       ),
     }
   }
-  if (!['financing', 'cash', 'bank_draft'].includes(String(body.paymentMethod))) {
+  const paymentMethod = typeof body.paymentMethod === 'string' ? body.paymentMethod : ''
+  if (!['financing', 'cash', 'bank_draft'].includes(paymentMethod)) {
     return {
       ok: false,
       res: NextResponse.json(

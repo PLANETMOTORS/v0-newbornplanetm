@@ -41,6 +41,15 @@ function getFieldErrorMessage(field: string, value: string): string {
   }
 }
 
+function FieldError({ message }: Readonly<{ message?: string }>) {
+  if (!message) return null
+  return (
+    <p className="text-xs text-destructive mt-1 flex items-center gap-1">
+      <AlertCircle className="h-3 w-3" /> {message}
+    </p>
+  )
+}
+
 export function ContactForm({ onSuccess }: Readonly<ContactFormProps>) {
   const [formData, setFormData] = useState({
     firstName: "",
@@ -134,11 +143,7 @@ export function ContactForm({ onSuccess }: Readonly<ContactFormProps>) {
             onChange={(e) => handleInputChange("firstName", e.target.value)}
             className={errors.firstName ? "border-destructive" : ""}
           />
-          {errors.firstName && (
-            <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" /> {errors.firstName}
-            </p>
-          )}
+          <FieldError message={errors.firstName} />
         </div>
         <div>
           <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
@@ -149,11 +154,7 @@ export function ContactForm({ onSuccess }: Readonly<ContactFormProps>) {
             onChange={(e) => handleInputChange("lastName", e.target.value)}
             className={errors.lastName ? "border-destructive" : ""}
           />
-          {errors.lastName && (
-            <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" /> {errors.lastName}
-            </p>
-          )}
+          <FieldError message={errors.lastName} />
         </div>
       </div>
 
@@ -167,11 +168,7 @@ export function ContactForm({ onSuccess }: Readonly<ContactFormProps>) {
           onChange={(e) => handleInputChange("email", e.target.value)}
           className={errors.email ? "border-destructive" : ""}
         />
-        {errors.email && (
-          <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-            <AlertCircle className="h-3 w-3" /> {errors.email}
-          </p>
-        )}
+        <FieldError message={errors.email} />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -185,11 +182,7 @@ export function ContactForm({ onSuccess }: Readonly<ContactFormProps>) {
             onChange={(e) => handleInputChange("phone", e.target.value)}
             className={errors.phone ? "border-destructive" : ""}
           />
-          {errors.phone && (
-            <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" /> {errors.phone}
-            </p>
-          )}
+          <FieldError message={errors.phone} />
         </div>
         <div>
           <Label htmlFor="postalCode">Postal Code <span className="text-destructive">*</span></Label>
@@ -202,11 +195,7 @@ export function ContactForm({ onSuccess }: Readonly<ContactFormProps>) {
             className={errors.postalCode ? "border-destructive" : ""}
             maxLength={7}
           />
-          {errors.postalCode && (
-            <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" /> {errors.postalCode}
-            </p>
-          )}
+          <FieldError message={errors.postalCode} />
         </div>
       </div>
 
@@ -236,11 +225,7 @@ export function ContactForm({ onSuccess }: Readonly<ContactFormProps>) {
           value={formData.message}
           onChange={(e) => handleInputChange("message", e.target.value)}
         />
-        {errors.message && (
-          <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-            <AlertCircle className="h-3 w-3" /> {errors.message}
-          </p>
-        )}
+        <FieldError message={errors.message} />
       </div>
 
       {submitError && (

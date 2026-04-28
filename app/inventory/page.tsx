@@ -88,6 +88,13 @@ const fetcher = async (url: string): Promise<VehiclesApiResponse> => {
 }
 
 // Transform API vehicle to display format
+function mapDisplayFuelType(fuelType: string | null | undefined): string {
+  const raw = fuelType || "Gasoline"
+  if (raw === "Electric") return "Electric"
+  if (raw === "Hybrid") return "Hybrid"
+  return "Gasoline"
+}
+
 function deriveBadge(v: Vehicle, priceInDollars: number): { badge: string; badgeColor: string } {
   if (v.is_new_arrival) return { badge: "Just Arrived", badgeColor: "bg-green-700" }
   if (v.fuel_type === "Electric") return { badge: "Electric", badgeColor: "bg-teal-700" }
@@ -110,8 +117,7 @@ function transformVehicle(v: Vehicle) {
   const { badge, badgeColor } = deriveBadge(v, priceInDollars)
 
   // Map fuel types for filtering
-  const rawFuel = v.fuel_type || "Gasoline"
-  const displayFuelType = rawFuel === "Electric" ? "Electric" : rawFuel === "Hybrid" ? "Hybrid" : "Gasoline"
+  const displayFuelType = mapDisplayFuelType(v.fuel_type)
 
   const imageUrl = pickImageUrl(v.primary_image_url)
   
@@ -339,6 +345,23 @@ function InventoryContent() {
     setSearchInput("")
   }, [])
 
+  const applyFuelTypeFilter = useCallback((fuelType: string | null) => {
+    if (fuelType === "Electric") { setSelectedFuelType("Electric"); setEvOnly(true) }
+    else if (fuelType) setSelectedFuelType(fuelType)
+  }, [])
+
+  const applyPriceFilter = useCallback((minPrice: string | null, maxPrice: string | null) => {
+    if (!minPrice && !maxPrice) return
+    const min = minPrice ? Number.parseInt(minPrice) : 0
+    const max = maxPrice ? Number.parseInt(maxPrice) : 400000
+    setPriceRange([Number.isNaN(min) ? 0 : min, Number.isNaN(max) ? 400000 : max])
+  }, [])
+
+  const applyCategoryFilter = useCallback((category: string | null) => {
+    if (category === "Luxury") { setSearchQuery("luxury"); setSearchInput("luxury") }
+    else if (category === "Family") setSelectedBodyType("SUV")
+  }, [])
+
   const applyUrlFilters = useCallback((urlParams: {
     fuelType: string | null
     bodyType: string | null
@@ -350,20 +373,14 @@ function InventoryContent() {
     urlQuery: string | null
   }) => {
     const { fuelType, bodyType, make, maxPrice, minPrice, category, transmission, urlQuery } = urlParams
-    if (fuelType === "Electric") { setSelectedFuelType("Electric"); setEvOnly(true) }
-    else if (fuelType) setSelectedFuelType(fuelType)
+    applyFuelTypeFilter(fuelType)
     if (bodyType) setSelectedBodyType(bodyType)
     if (make) setSelectedMake(make)
-    if (minPrice || maxPrice) {
-      const min = minPrice ? Number.parseInt(minPrice) : 0
-      const max = maxPrice ? Number.parseInt(maxPrice) : 400000
-      setPriceRange([Number.isNaN(min) ? 0 : min, Number.isNaN(max) ? 400000 : max])
-    }
+    applyPriceFilter(minPrice, maxPrice)
     if (transmission) setSelectedTransmission(transmission)
-    if (category === "Luxury") { setSearchQuery("luxury"); setSearchInput("luxury") }
-    else if (category === "Family") setSelectedBodyType("SUV")
+    applyCategoryFilter(category)
     if (urlQuery) { setSearchQuery(urlQuery); setSearchInput(urlQuery) }
-  }, [])
+  }, [applyFuelTypeFilter, applyPriceFilter, applyCategoryFilter])
 
   // Read URL parameters and set filters
   // IMPORTANT: Reset ALL filters first, then apply only what the URL specifies.

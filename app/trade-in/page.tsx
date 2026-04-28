@@ -264,10 +264,12 @@ interface DraftSetters {
   setVinNumber: (s: string) => void
 }
 function setIfString(d: Record<string, unknown>, key: string, fn: (s: string) => void) {
-  if (typeof d[key] === "string") fn(d[key] as string)
+  const v = d[key]
+  if (typeof v === "string") fn(v)
 }
 function setIfBool(d: Record<string, unknown>, key: string, fn: (b: boolean) => void) {
-  if (typeof d[key] === "boolean") fn(d[key] as boolean)
+  const v = d[key]
+  if (typeof v === "boolean") fn(v)
 }
 function hydrateTradeInDraft(d: Record<string, unknown>, s: DraftSetters) {
   if (typeof d.step === "number" && d.step >= 1 && d.step <= 3) s.setStep(d.step)

@@ -138,6 +138,29 @@ function parseAndValidateCursor(searchParams: URLSearchParams):
   return { ok: true, cursor: { id, createdAt } }
 }
 
+function applyNumericRangeFilters<Q extends {
+  gte: (col: string, value: number) => Q
+  lte: (col: string, value: number) => Q
+}>(query: Q, p: ListParams): Q {
+  let q = query
+  if (p.minYear) q = q.gte('year', Number.parseInt(p.minYear))
+  if (p.maxYear) q = q.lte('year', Number.parseInt(p.maxYear))
+  if (p.minPrice) q = q.gte('price', Number.parseInt(p.minPrice) * 100)
+  if (p.maxPrice) q = q.lte('price', Number.parseInt(p.maxPrice) * 100)
+  if (p.minMileage) q = q.gte('mileage', Number.parseInt(p.minMileage))
+  if (p.maxMileage) q = q.lte('mileage', Number.parseInt(p.maxMileage))
+  return q
+}
+
+function applyTextSearchFilter<Q extends {
+  textSearch: (col: string, value: string, options: { type: 'websearch'; config: 'english' }) => Q
+}>(query: Q, raw: string | null | undefined): Q {
+  if (!raw) return query
+  const sanitizedQ = raw.trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s-]/g, '').trim()
+  if (!sanitizedQ) return query
+  return query.textSearch('search_vector', sanitizedQ, { type: 'websearch', config: 'english' })
+}
+
 function applyVehicleFilters<Q extends {
   ilike: (col: string, value: string) => Q
   textSearch: (col: string, value: string, options: { type: 'websearch'; config: 'english' }) => Q
@@ -147,18 +170,8 @@ function applyVehicleFilters<Q extends {
   let q = query
   if (p.make) q = q.ilike('make', p.make)
   if (p.model) q = q.ilike('model', `%${p.model}%`)
-  if (p.q) {
-    const sanitizedQ = p.q.trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s-]/g, '').trim()
-    if (sanitizedQ) {
-      q = q.textSearch('search_vector', sanitizedQ, { type: 'websearch', config: 'english' })
-    }
-  }
-  if (p.minYear) q = q.gte('year', Number.parseInt(p.minYear))
-  if (p.maxYear) q = q.lte('year', Number.parseInt(p.maxYear))
-  if (p.minPrice) q = q.gte('price', Number.parseInt(p.minPrice) * 100)
-  if (p.maxPrice) q = q.lte('price', Number.parseInt(p.maxPrice) * 100)
-  if (p.minMileage) q = q.gte('mileage', Number.parseInt(p.minMileage))
-  if (p.maxMileage) q = q.lte('mileage', Number.parseInt(p.maxMileage))
+  q = applyTextSearchFilter(q, p.q)
+  q = applyNumericRangeFilters(q, p)
   if (p.exteriorColor) q = q.ilike('exterior_color', p.exteriorColor)
   if (p.bodyStyle) {
     const aliasPattern = BODY_STYLE_ALIASES[p.bodyStyle.toLowerCase()]
