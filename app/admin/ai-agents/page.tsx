@@ -128,7 +128,7 @@ export default function AIAgentsPage() {
   const updateConfig = (key: string, value: string | number) => {
     const existing =
       editForm.config && typeof editForm.config === "object"
-        ? (editForm.config as Record<string, unknown>)
+        ? editForm.config
         : null
     const config: Record<string, unknown> = existing ? { ...existing } : {}
     config[key] = value
