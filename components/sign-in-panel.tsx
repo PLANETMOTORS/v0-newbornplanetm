@@ -53,7 +53,7 @@ export function SignInPanel({ isOpen, onClose }: Readonly<SignInPanelProps>) {
     }
   }
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
     setError(null)

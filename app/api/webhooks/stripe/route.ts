@@ -413,22 +413,22 @@ export async function POST(request: NextRequest) {
   try {
     switch (event.type) {
       case "payment_intent.created":
-        await handlePaymentIntentCreated(supabase, event.data.object as Stripe.PaymentIntent, event.id)
+        await handlePaymentIntentCreated(supabase, event.data.object, event.id)
         break
       case "payment_intent.succeeded":
-        await handlePaymentIntentSucceeded(supabase, event.data.object as Stripe.PaymentIntent, event.id)
+        await handlePaymentIntentSucceeded(supabase, event.data.object, event.id)
         break
       case "payment_intent.payment_failed":
-        await handlePaymentIntentFailed(supabase, event.data.object as Stripe.PaymentIntent, event.id)
+        await handlePaymentIntentFailed(supabase, event.data.object, event.id)
         break
       case "checkout.session.completed":
-        await handleCheckoutSessionCompleted(supabase, event.data.object as Stripe.Checkout.Session, event.id)
+        await handleCheckoutSessionCompleted(supabase, event.data.object, event.id)
         break
       case "checkout.session.expired":
-        await handleCheckoutSessionExpired(supabase, event.data.object as Stripe.Checkout.Session, event.id)
+        await handleCheckoutSessionExpired(supabase, event.data.object, event.id)
         break
       case "checkout.session.async_payment_failed":
-        await handleCheckoutSessionAsyncPaymentFailed(supabase, event.data.object as Stripe.Checkout.Session, event.id)
+        await handleCheckoutSessionAsyncPaymentFailed(supabase, event.data.object, event.id)
         break
       default:
         logger.info(`[Stripe] Unhandled event type: ${event.type}`)

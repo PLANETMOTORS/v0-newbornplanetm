@@ -174,6 +174,12 @@ const transmissions = ["All Transmissions", "Automatic", "Manual", "CVT", "Dual-
 const colors = ["All Colors", "White", "Black", "Silver", "Blue", "Red", "Gray", "Green"]
 const drivetrains = ["All Drivetrains", "AWD", "FWD", "RWD", "4WD"]
 
+// Stable keys for skeleton placeholder grid (avoids array-index-as-key warning).
+const INVENTORY_SKELETON_KEYS = [
+  "skel-a", "skel-b", "skel-c", "skel-d",
+  "skel-e", "skel-f", "skel-g", "skel-h",
+] as const
+
 /**
  * Render the interactive vehicle inventory page with search, filters, sorting, pagination, favorites, and optional trade-in integration.
  *
@@ -868,8 +874,8 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
           {/* Inline skeleton loading state */}
           {showSkeleton && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 py-8">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="rounded-xl border overflow-hidden animate-pulse">
+              {INVENTORY_SKELETON_KEYS.map((skeletonKey) => (
+                <div key={skeletonKey} className="rounded-xl border overflow-hidden animate-pulse">
                   <div className="aspect-4/3 bg-muted" />
                   <div className="p-4 space-y-3">
                     <div className="h-5 bg-muted rounded w-3/4" />

@@ -69,7 +69,7 @@ export function LiveChatWidget() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!inputValue.trim() || isLoading) return
     sendMessage({ text: inputValue })

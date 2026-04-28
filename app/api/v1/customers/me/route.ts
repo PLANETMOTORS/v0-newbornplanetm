@@ -33,7 +33,8 @@ export async function GET(_request: NextRequest) {
     }
 
     return apiSuccess({ customer })
-  } catch (_error) {
+  } catch (error) {
+    console.error("[customers/me GET] failed:", error)
     return apiError(ErrorCode.INTERNAL_ERROR, "Failed to fetch customer")
   }
 }
@@ -112,7 +113,8 @@ export async function PUT(request: NextRequest) {
         updatedAt: row.updated_at,
       },
     })
-  } catch (_error) {
+  } catch (error) {
+    console.error("[customers/me PATCH] failed:", error)
     return apiError(ErrorCode.INTERNAL_ERROR, "Failed to update customer")
   }
 }

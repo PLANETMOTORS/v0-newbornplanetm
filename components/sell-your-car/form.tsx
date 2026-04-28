@@ -49,14 +49,14 @@ export function SellYourCarForm() {
     Boolean(formData.mileage) &&
     Boolean(formData.condition)
 
-  const handleStepOneSubmit = (e: React.FormEvent) => {
+  const handleStepOneSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (canContinue) {
       setStep(2)
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError('')

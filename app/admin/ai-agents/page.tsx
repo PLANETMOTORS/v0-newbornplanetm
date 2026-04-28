@@ -109,24 +109,24 @@ export default function AIAgentsPage() {
   }
 
   const addQuickAction = () => {
-    const currentActions = (editForm.quick_actions || []) as QuickAction[]
+    const currentActions = editForm.quick_actions || []
     setEditForm({ ...editForm, quick_actions: [...currentActions, { label: "", prompt: "" }] })
   }
 
   const removeQuickAction = (index: number) => {
-    const currentActions = [...((editForm.quick_actions || []) as QuickAction[])]
+    const currentActions = [...(editForm.quick_actions || [])]
     currentActions.splice(index, 1)
     setEditForm({ ...editForm, quick_actions: currentActions })
   }
 
   const updateQuickAction = (index: number, field: "label" | "prompt", value: string) => {
-    const currentActions = [...((editForm.quick_actions || []) as QuickAction[])]
+    const currentActions = [...(editForm.quick_actions || [])]
     currentActions[index] = { ...currentActions[index], [field]: value }
     setEditForm({ ...editForm, quick_actions: currentActions })
   }
 
   const updateConfig = (key: string, value: string | number) => {
-    const config = { ...((editForm.config || {}) as Record<string, unknown>) }
+    const config = { ...(editForm.config || {}) }
     config[key] = value
     setEditForm({ ...editForm, config })
   }
@@ -275,7 +275,7 @@ export default function AIAgentsPage() {
                           </Button>
                         </div>
                         <div className="space-y-2">
-                          {((editForm.quick_actions || []) as QuickAction[]).map((qa, i) => (
+                          {(editForm.quick_actions || []).map((qa, i) => (
                             <div key={qa.label} className="flex gap-2 items-center">
                               <Input
                                 value={qa.label}

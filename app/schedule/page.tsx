@@ -45,7 +45,7 @@ export default function SchedulePage() {
   const [selectedTime, setSelectedTime] = useState("")
   const [submitted, setSubmitted] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setSubmitted(true)
   }

@@ -20,7 +20,7 @@ interface HeroImageServerProps {
 export function HeroImageServer({ firstVehicle }: Readonly<HeroImageServerProps>) {
   const imageUrl =
     firstVehicle?.primary_image_url ||
-    (firstVehicle?.image_urls && firstVehicle.image_urls[0]) ||
+    firstVehicle?.image_urls?.[0] ||
     null
 
   let alt: string
