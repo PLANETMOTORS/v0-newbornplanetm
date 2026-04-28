@@ -58,8 +58,8 @@ export const blogPostsChunk2: Record<string, BlogPostEntry> = {
         <li>You want the versatility of an SUV</li>
       </ul>
 
-      <h2>Find Your Perfect Tesla at Planet Motors</h2>
-      <p>We carry both Model 3 and Model Y vehicles in various configurations. Visit us for a test drive and experience the difference for yourself. Our team can help you find the perfect Tesla for your lifestyle and budget.</p>
+      <h2>Browse Battery-Health Certified Used Teslas at Planet Motors</h2>
+      <p>We carry both Model 3 and Model Y vehicles in various configurations — every one independently Aviloo battery-health certified and 210-point inspected. Visit us for a test drive and experience the difference for yourself. Our team can help you choose the right Tesla for your lifestyle and budget.</p>
     `,
     ["tesla-full-self-driving-guide", "tesla-model-y-future-ev", "best-selling-electric-cars-canada-2023"]
   ),

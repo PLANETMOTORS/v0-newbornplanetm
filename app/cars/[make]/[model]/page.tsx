@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: { params: Promise<{ make: str
     },
     openGraph: {
       title: `${currentYear} ${makeFormatted} ${modelFormatted} for Sale | Planet Motors Richmond Hill`,
-      description: `Find your perfect ${makeFormatted} ${modelFormatted} at Planet Motors. PM Certified with 210-point inspection. Serving Richmond Hill, Toronto & the GTA.`,
+      description: `Browse used ${makeFormatted} ${modelFormatted} at Planet Motors — 210-point inspected, Aviloo battery-health certified, Canada-wide delivery. OMVIC licensed dealership in Richmond Hill, ON.`,
       type: 'website',
       url: canonicalPath,
     }

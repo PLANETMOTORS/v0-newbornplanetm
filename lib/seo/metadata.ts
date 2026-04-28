@@ -4,7 +4,7 @@ import { PHONE_TOLL_FREE, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealer
 
 const BASE_URL = getPublicSiteUrl()
 const SITE_NAME = "Planet Motors"
-const DEFAULT_DESCRIPTION = "Canada's EV-focused used car dealership. Every electric vehicle independently battery-certified by Aviloo. OMVIC licensed, 210-point inspected, Canada-wide delivery. Financing from 6.29% APR."
+const DEFAULT_DESCRIPTION = "Canada's battery-health certified used EVs. Aviloo battery health reports, 210-point inspection, Canada-wide delivery. Plus inspected used hybrids and PHEVs. OMVIC licensed. Financing from 6.29% APR."
 
 interface GenerateMetadataParams {
   title: string
@@ -23,7 +23,7 @@ export function generateSEOMetadata({
   noIndex = false,
   keywords = [],
 }: GenerateMetadataParams): Metadata {
-  const fullTitle = title === "Home" ? `${SITE_NAME} Richmond Hill | Aviloo-Certified Used EVs | Canada-Wide Delivery` : `${title} | ${SITE_NAME}`
+  const fullTitle = title === "Home" ? `Used EVs, Hybrids & PHEVs in Canada | Battery-Certified by Aviloo | ${SITE_NAME}` : `${title} | ${SITE_NAME}`
   const url = `${BASE_URL}${path}`
   const imageUrl = image.startsWith("http") ? image : `${BASE_URL}${image}`
 

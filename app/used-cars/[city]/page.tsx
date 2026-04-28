@@ -406,10 +406,10 @@ export default function CityLandingPage() {
         <section className="py-16 bg-primary text-white">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold mb-4">
-              Ready to Find Your Perfect Vehicle?
+              Browse Used EVs Available in {city.name}
             </h2>
             <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
-              Browse our entire inventory online and get your vehicle delivered to {city.name}
+              Every EV is Aviloo battery-health certified and 210-point inspected. Delivered to {city.name} with a 10-day money-back guarantee.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/inventory">
