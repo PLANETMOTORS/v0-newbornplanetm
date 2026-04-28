@@ -209,11 +209,25 @@ type AdvancedSearchFilters = {
   yearRange?: { min: number; max: number }
 }
 
+function coerceSearchQuery(raw: unknown): string {
+  if (typeof raw === 'string') return raw
+  if (typeof raw === 'number' || typeof raw === 'boolean' || typeof raw === 'bigint') {
+    return raw.toString()
+  }
+  return ''
+}
+
 function applySearchQueryFilter<Q extends {
   textSearch: (col: string, value: string, options: { type: 'websearch'; config: 'english' }) => Q
 }>(query: Q, raw: unknown): Q {
-  if (!raw) return query
-  const sanitized = String(raw).trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s-]/g, '').trim()
+  const coerced = coerceSearchQuery(raw)
+  if (!coerced) return query
+  const sanitized = coerced
+    .replaceAll('-', ' ')
+    .replaceAll(/[^a-zA-Z0-9\s]/g, ' ')
+    .replaceAll(/\s+/g, ' ')
+    .trim()
+    .slice(0, 200)
   if (!sanitized) return query
   return query.textSearch('search_vector', sanitized, { type: 'websearch', config: 'english' })
 }
