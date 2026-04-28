@@ -39,8 +39,7 @@ function parseEnabledPhases(): Set<Phase> {
       ? process.env.NEXT_PUBLIC_ENABLED_PHASES
       : undefined
 
-  if (raw && raw.trim() === "") return new Set(ALL_PHASES)
-  if (!raw) return new Set(ALL_PHASES)
+  if (!raw || raw.trim() === "") return new Set(ALL_PHASES)
   const parsed = new Set<Phase>()
   for (const token of raw.split(",")) {
     const num = Number(token.trim())
@@ -57,8 +56,7 @@ function parseEnabledFeatures(): Set<string> {
       ? process.env.NEXT_PUBLIC_FEATURES
       : undefined
 
-  if (raw && raw.trim() === "") return new Set()
-  if (!raw) return new Set()
+  if (!raw || raw.trim() === "") return new Set()
   const features = new Set<string>()
   for (const token of raw.split(",")) {
     const trimmed = token.trim()

@@ -54,16 +54,18 @@ export async function updateSession(request: NextRequest) {
       getAll() {
         return request.cookies.getAll()
       },
-      setAll(cookiesToSet: CookieMutation[]) {
-        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+      setAll(cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[]) {
+        for (const { name, value } of cookiesToSet) {
+          request.cookies.set(name, value)
+        }
         supabaseResponse = NextResponse.next({ request })
-        cookiesToSet.forEach(({ name, value, options }) =>
+        for (const { name, value, options } of cookiesToSet) {
           supabaseResponse.cookies.set(
             name,
             value,
             applySupabaseCookieDefaults(options)
           )
-        )
+        }
       },
     },
   })

@@ -172,21 +172,20 @@ const isMain =
   typeof require !== "undefined" &&
   require.main === module
 
+async function main() {
+  const result = await backupSanityDataset()
+  if (result.success) {
+    console.log(`\nBackup saved to: ${result.filePath}`)
+    console.log(`  Size:      ${((result.sizeBytes ?? 0) / 1024).toFixed(1)} KB`)
+    console.log(`  Documents: ${result.lineCount}`)
+    console.log(`  Duration:  ${result.durationMs}ms`)
+    process.exit(0)
+  } else {
+    console.error(`\nBackup failed: ${result.error}`)
+    process.exit(1)
+  }
+}
+
 if (isMain) {
-  // S7785 wants top-level await here, but tsconfig targets a module variant
-  // that disallows it; wrap in an async IIFE which is functionally
-  // equivalent and avoids the .then() promise chain Sonar flagged.
-  ;(async () => {
-    const result = await backupSanityDataset()
-    if (result.success) {
-      console.log(`\nBackup saved to: ${result.filePath}`)
-      console.log(`  Size:      ${((result.sizeBytes ?? 0) / 1024).toFixed(1)} KB`)
-      console.log(`  Documents: ${result.lineCount}`)
-      console.log(`  Duration:  ${result.durationMs}ms`)
-      process.exit(0)
-    } else {
-      console.error(`\nBackup failed: ${result.error}`)
-      process.exit(1)
-    }
-  })()
+  main()
 }

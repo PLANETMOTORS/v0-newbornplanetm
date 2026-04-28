@@ -72,7 +72,6 @@ export function GoogleIcon(props: Props) {
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden={props['aria-label'] ? undefined : true}
-      role={props['aria-label'] ? 'img' : undefined}
       aria-label={props['aria-label']}
       className={cn('shrink-0', props.className)}
     >

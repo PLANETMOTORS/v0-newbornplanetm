@@ -125,7 +125,7 @@ export function SupabaseVehiclePicker(props: Readonly<StringInputProps>) {
       if (searchQuery.trim()) {
         // S7780: build escape sequences from char codes so we don't need
         // backslash literals (String.raw can't end on a single \).
-        const BS = String.fromCharCode(92) // backslash
+        const BS = String.fromCodePoint(92) // backslash
         const escapedQuery = searchQuery
           .replaceAll(BS, BS + BS)            // Escape backslashes first
           .replaceAll('%', BS + '%')          // Escape percent signs (LIKE wildcard)
