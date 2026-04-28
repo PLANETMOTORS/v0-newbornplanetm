@@ -95,7 +95,9 @@ export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
   // Redirect unauthenticated users
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push(`/auth/login?redirectTo=${encodeURIComponent(`/checkout/${vehicleId}`)}`)
+      // S4624: extract the inner template literal.
+      const checkoutPath = `/checkout/${vehicleId}`
+      router.push(`/auth/login?redirectTo=${encodeURIComponent(checkoutPath)}`)
     }
   }, [user, authLoading, router, vehicleId])
 

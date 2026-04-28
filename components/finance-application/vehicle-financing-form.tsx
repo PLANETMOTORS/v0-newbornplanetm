@@ -51,6 +51,9 @@ export
 function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn, financingTerms, setFinancingTerms, financing, additionalNotes, setAdditionalNotes }: Readonly<VehicleFinancingFormProps>) {
   // Check if vehicle data was pre-filled (has year and make)
   const isVehicleSelected = Boolean(vehicleInfo.year && vehicleInfo.make && vehicleInfo.totalPrice)
+  // S4624: extract inner template literal used in the Model/Trim input below.
+  const trimSuffix = vehicleInfo.trim ? ` ${vehicleInfo.trim}` : ''
+  const modelTrimLabel = `${vehicleInfo.model}${trimSuffix}`
   const [showInventoryModal, setShowInventoryModal] = useState(false)
   interface InventoryVehicle {
     id: string
@@ -273,7 +276,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                 <div>
                   <Label>Model/Trim</Label>
                   <Input 
-                    value={`${vehicleInfo.model}${vehicleInfo.trim ? ` ${vehicleInfo.trim}` : ''}`} 
+                    value={modelTrimLabel} 
                     readOnly
                     className="bg-muted"
                   />

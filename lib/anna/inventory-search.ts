@@ -128,7 +128,11 @@ export async function buildInventoryContext(): Promise<string> {
       `- ${stats.available} vehicles available out of ${stats.total} total`,
       `- ${stats.evCount} electric vehicles`,
       `- Price range: $${stats.priceRange.min.toLocaleString()} — $${stats.priceRange.max.toLocaleString()}`,
-      `- Top makes: ${stats.topMakes.map(m => `${m.make} (${m.count})`).join(", ")}`,
+      // S4624: extract the inner template literal from the .map callback.
+      `- Top makes: ${stats.topMakes.map(m => {
+        const makeWithCount = `${m.make} (${m.count})`
+        return makeWithCount
+      }).join(", ")}`,
       ``,
       `You can search inventory for customers. When they ask about specific vehicles,`,
       `use the search results to give real answers with actual stock numbers and prices.`,
@@ -154,7 +158,9 @@ export function formatVehiclesForAnna(vehicles: VehicleSummary[], totalCount: nu
     const km = `${v.mileage.toLocaleString()} km`
     const color = v.exterior_color ? ` — ${v.exterior_color}` : ""
     const ev = v.is_ev ? " (Electric)" : ""
-    lines.push(`• ${v.year} ${v.make} ${v.model}${v.trim ? ` ${v.trim}` : ""}${color}${ev} — ${price}, ${km} (Stock #${v.stock_number})`)
+    // S4624: extract the inner template literal.
+    const trimSuffix = v.trim ? ` ${v.trim}` : ""
+    lines.push(`• ${v.year} ${v.make} ${v.model}${trimSuffix}${color}${ev} — ${price}, ${km} (Stock #${v.stock_number})`)
   }
   if (totalCount > vehicles.length) {
     lines.push(`...and ${totalCount - vehicles.length} more. See all at planetmotors.ca/inventory`)

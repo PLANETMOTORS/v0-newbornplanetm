@@ -223,8 +223,11 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
   const normalizedVin = vin.toUpperCase()
 
   // === A2: Derived fields ===
-  const title = `${year} ${make} ${model}${trim ? ` ${trim}` : ""}`
-  const slug = `${year}-${make}-${model}${trim ? `-${trim}` : ""}-${stockNumber}`
+  // S4624: extract inner template literals.
+  const trimWithSpace = trim ? ` ${trim}` : ""
+  const trimWithDash = trim ? `-${trim}` : ""
+  const title = `${year} ${make} ${model}${trimWithSpace}`
+  const slug = `${year}-${make}-${model}${trimWithDash}-${stockNumber}`
     .toLowerCase().replaceAll(/[^a-z0-9]+/g, "-").replaceAll(/^-|-$/g, "")
 
   // === A2: Pricing (integer CAD dollars) ===
@@ -544,8 +547,11 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
   const isFeatured = getBoolean("featured")
   const isCertified = getBoolean("certified") || getBoolean("cpo")
 
-  const title = `${year} ${make} ${model}${trim ? ` ${trim}` : ""}`
-  const slug = `${year}-${make}-${model}${trim ? `-${trim}` : ""}-${stockNumber}`
+  // S4624: extract inner template literals.
+  const trimWithSpace = trim ? ` ${trim}` : ""
+  const trimWithDash = trim ? `-${trim}` : ""
+  const title = `${year} ${make} ${model}${trimWithSpace}`
+  const slug = `${year}-${make}-${model}${trimWithDash}-${stockNumber}`
     .toLowerCase().replaceAll(/[^a-z0-9]+/g, "-").replaceAll(/^-|-$/g, "")
 
   return {

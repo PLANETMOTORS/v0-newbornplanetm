@@ -192,7 +192,9 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
 
   // Track product view on mount (data is already available from SSR)
   useEffect(() => {
-    const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.trim ? ` ${vehicle.trim}` : ""}`
+    // S4624: extract the inner template literal.
+    const trimSuffix = vehicle.trim ? ` ${vehicle.trim}` : ""
+    const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}${trimSuffix}`
     trackProductView({
       id: vehicle.id,
       name,

@@ -71,8 +71,10 @@ export function FooterContent({ siteSettings }: Readonly<FooterProps>) {
       ? `Sat: ${saturdayHours.open}-${saturdayHours.close}`
       : `Sat: ${SATURDAY_HOURS_FALLBACK}`
     const sunday = sundayHours?.isClosed ? "Sun: Closed" : ""
-    
-    return `${weekday} | ${saturday}${sunday ? ` | ${sunday}` : ""}`
+
+    // S4624: extract the inner template literal.
+    const sundaySuffix = sunday ? ` | ${sunday}` : ""
+    return `${weekday} | ${saturday}${sundaySuffix}`
   }
 
   const depositAmount = siteSettings.depositAmount || 250
@@ -136,8 +138,13 @@ export function FooterContent({ siteSettings }: Readonly<FooterProps>) {
                   <Mail className="w-4 h-4 shrink-0" />
                   <span>{siteSettings.email}</span>
                 </a>
+                {(() => {
+                  // S4624: extract the inner template literal.
+                  const fullAddress = `${siteSettings.streetAddress} ${siteSettings.city} ${siteSettings.province}`
+                  const mapsUrl = siteSettings.googleMapsUrl || `https://maps.google.com/?q=${encodeURIComponent(fullAddress)}`
+                  return (
                 <a
-                  href={siteSettings.googleMapsUrl || `https://maps.google.com/?q=${encodeURIComponent(`${siteSettings.streetAddress} ${siteSettings.city} ${siteSettings.province}`)}`}
+                  href={mapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2.5 min-h-11 text-sm text-white/90 hover:text-white transition-colors"
@@ -145,6 +152,8 @@ export function FooterContent({ siteSettings }: Readonly<FooterProps>) {
                   <MapPin className="w-4 h-4 shrink-0" />
                   <span>{siteSettings.streetAddress}, {siteSettings.city}</span>
                 </a>
+                  )
+                })()}
               </div>
 
               {/* Newsletter Signup */}

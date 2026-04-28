@@ -231,7 +231,12 @@ export default function FinanceCalculatorPage() {
     )
   }
 
-  const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.trim ? ` ${vehicle.trim}` : ""}`
+  // S4624: extract the inner template literals.
+  const trimSuffix = vehicle.trim ? ` ${vehicle.trim}` : ""
+  const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}${trimSuffix}`
+  const tradeInQuery = urlTradeIn
+    ? `&tradeIn=${urlTradeIn}&quoteId=${urlQuoteId || ''}&tradeInVehicle=${encodeURIComponent(urlTradeInVehicle || '')}`
+    : ''
 
   return (
     <div className="min-h-screen bg-background">
@@ -655,7 +660,7 @@ export default function FinanceCalculatorPage() {
               <div className="space-y-3">
                 {agreementType === "finance" ? (
                   <Button className="w-full h-12 text-base" size="lg" asChild>
-                    <Link href={`/financing/application?vehicleId=${vehicleId}${urlTradeIn ? `&tradeIn=${urlTradeIn}&quoteId=${urlQuoteId || ''}&tradeInVehicle=${encodeURIComponent(urlTradeInVehicle || '')}` : ''}`}>
+                    <Link href={`/financing/application?vehicleId=${vehicleId}${tradeInQuery}`}>
                       <CreditCard className="w-5 h-5 mr-2" />
                       Apply for Financing
                     </Link>

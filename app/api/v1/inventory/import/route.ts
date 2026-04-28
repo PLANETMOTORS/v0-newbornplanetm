@@ -146,11 +146,13 @@ export async function POST(request: Request) {
       }, { status: 500 })
     }
 
+    // S4624: pull the inner template literal into its own variable.
+    const skippedSuffix = errors.length > 0 ? ` (${errors.length} rows skipped)` : ""
     return NextResponse.json({
       success: true,
       imported: vehicles.length,
       errors: errors.length > 0 ? errors : undefined,
-      message: `Successfully imported ${vehicles.length} vehicles${errors.length > 0 ? ` (${errors.length} rows skipped)` : ""}`
+      message: `Successfully imported ${vehicles.length} vehicles${skippedSuffix}`,
     })
 
   } catch (error) {
