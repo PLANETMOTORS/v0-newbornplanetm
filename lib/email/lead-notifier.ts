@@ -460,7 +460,7 @@ function buildCustomerFollowUp(lead: LeadPayload): { subject: string; html: stri
     <tr>
       <td style="padding:24px 32px 32px;">
         <p style="margin:0;font-size:14px;color:${BRAND.slate};line-height:1.6;">
-          Looking forward to helping you find your perfect vehicle,<br/>
+          Looking forward to helping you choose the right vehicle,<br/>
           <strong style="color:${BRAND.navy};">The Planet Motors Sales Team</strong><br/>
           <span style="font-size:12px;">${escapeHtml(DEALERSHIP_LOCATION.streetAddress)}, ${escapeHtml(DEALERSHIP_LOCATION.city)}, ${escapeHtml(DEALERSHIP_LOCATION.province)}</span>
         </p>

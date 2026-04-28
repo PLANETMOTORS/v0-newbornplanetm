@@ -112,8 +112,56 @@ describe("banned-phrase guard", () => {
     expectFreeOfBannedPhrases("components/homepage-content.tsx", file)
   })
 
+  it("homepage below-fold CTA is clean", async () => {
+    const file = await fs.readFile(
+      path.join(ROOT, "components/homepage-below-fold.tsx"),
+      "utf8"
+    )
+    expectFreeOfBannedPhrases("components/homepage-below-fold.tsx", file)
+  })
+
+  it("how-it-works page meta description is clean", async () => {
+    const file = await fs.readFile(
+      path.join(ROOT, "app/how-it-works/page.tsx"),
+      "utf8"
+    )
+    expectFreeOfBannedPhrases("app/how-it-works/page.tsx", file)
+  })
+
+  it("transactional email body (lead-notifier) is clean", async () => {
+    const file = await fs.readFile(
+      path.join(ROOT, "lib/email/lead-notifier.ts"),
+      "utf8"
+    )
+    expectFreeOfBannedPhrases("lib/email/lead-notifier.ts", file)
+  })
+
+  it("blog-posts/market-news.ts is clean", async () => {
+    const file = await fs.readFile(
+      path.join(ROOT, "lib/blog-posts/market-news.ts"),
+      "utf8"
+    )
+    expectFreeOfBannedPhrases("lib/blog-posts/market-news.ts", file)
+  })
+
   it("BANNED_PHRASES list is non-empty and unique", () => {
     expect(BANNED_PHRASES.length).toBeGreaterThan(0)
     expect(new Set(BANNED_PHRASES).size).toBe(BANNED_PHRASES.length)
+  })
+
+  it("title tag stays under Google's 60-char SERP truncation limit", async () => {
+    const file = await fs.readFile(path.join(ROOT, "app/layout.tsx"), "utf8")
+    // Match the literal `title:` string inside the Metadata export. We pull
+    // the first one (the root metadata title) and ignore the openGraph /
+    // twitter ones which Google does not render in SERPs.
+    const m = /title:\s*['"]([^'"]+)['"]/.exec(file)
+    if (m === null) {
+      throw new Error("could not locate root title in app/layout.tsx")
+    }
+    const title = m[1]
+    expect(
+      title.length,
+      `Root <title> "${title}" is ${title.length} chars — Google truncates at ~60.`
+    ).toBeLessThanOrEqual(60)
   })
 })

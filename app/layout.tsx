@@ -25,7 +25,9 @@ const inter = Inter({
 const SITE_URL = getPublicSiteUrl()
 
 export const metadata: Metadata = {
-  title: 'Used EVs, Hybrids & PHEVs in Canada | Battery-Certified by Aviloo | Planet Motors',
+  // Title kept under 60 chars so Google does not truncate it in SERPs.
+  // Description carries the longer Hybrid/PHEV breadth claim.
+  title: 'Used EVs Canada — Aviloo Battery-Certified | Planet Motors',
   description: "Canada's battery-health certified used EVs. Aviloo battery health reports, 210-point inspection, Canada-wide delivery. Plus inspected used hybrids and PHEVs. OMVIC licensed.",
   keywords: 'used EVs Canada, used hybrids Canada, used PHEVs Canada, Aviloo certified, battery-health certified, pre-owned electric vehicles, used car dealership Richmond Hill, EV battery health, Canada-wide delivery, OMVIC licensed, financing, trade-in',
   authors: [{ name: 'Planet Motors' }],
@@ -41,7 +43,7 @@ export const metadata: Metadata = {
     address: true,
   },
   openGraph: {
-    title: 'Used EVs, Hybrids & PHEVs in Canada | Battery-Certified by Aviloo | Planet Motors',
+    title: 'Used EVs Canada — Aviloo Battery-Certified | Planet Motors',
     description: "Canada's battery-health certified used EVs. Aviloo battery health reports, 210-point inspection, Canada-wide delivery. Plus inspected used hybrids and PHEVs. OMVIC licensed.",
     url: SITE_URL,
     siteName: 'Planet Motors',
@@ -58,7 +60,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Used EVs, Hybrids & PHEVs in Canada | Battery-Certified by Aviloo',
+    title: 'Used EVs Canada — Aviloo Battery-Certified',
     description: "Canada's battery-health certified used EVs. Aviloo battery health reports. 210-point inspected. Canada-wide delivery.",
     images: [`${SITE_URL}/images/planet-motors-logo.png`],
   },

@@ -110,10 +110,13 @@ export function HomepageContent({ siteSettings, homepageData, showcaseVehicles }
   // CMS-driven hero content with hardcoded fallbacks
   const heroHeadline = homepageData?.heroSection?.headline ?? null
   const heroSubheadline = homepageData?.heroSection?.subheadline ?? null
-  const primaryCtaLabel = homepageData?.heroSection?.primaryCta?.buttonLabel ?? homepageData?.heroSection?.primaryCta?.label ?? "Find Your Car"
+  // Fallbacks match the canonical Sanity values documented in
+  // docs/HERO_HEADLINE.md so a CMS outage cannot drop the visitor onto
+  // off-brand wording. Sanity is still source of truth at runtime.
+  const primaryCtaLabel = homepageData?.heroSection?.primaryCta?.buttonLabel ?? homepageData?.heroSection?.primaryCta?.label ?? "Browse Inventory"
   const primaryCtaUrl = homepageData?.heroSection?.primaryCta?.url ?? "/inventory"
-  const secondaryCtaLabel = homepageData?.heroSection?.secondaryCta?.buttonLabel ?? homepageData?.heroSection?.secondaryCta?.label ?? "Get Trade-In Value"
-  const secondaryCtaUrl = homepageData?.heroSection?.secondaryCta?.url ?? "/trade-in"
+  const secondaryCtaLabel = homepageData?.heroSection?.secondaryCta?.buttonLabel ?? homepageData?.heroSection?.secondaryCta?.label ?? "Get Pre-Approved"
+  const secondaryCtaUrl = homepageData?.heroSection?.secondaryCta?.url ?? "/financing/application"
 
   // Get business hours for display
   const weekdayHours = siteSettings.businessHours?.find(h => h.day === "Monday")
