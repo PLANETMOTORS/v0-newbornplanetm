@@ -5,8 +5,15 @@ import { isTypesenseConfigured } from '@/lib/typesense/client'
 import { verifyCronSecret } from '@/lib/security/cron-auth'
 
 export async function POST(request: NextRequest) {
-  // Verify webhook secret — accepts TYPESENSE_SYNC_SECRET or falls back to CRON_SECRET
+  // This webhook mutates the Typesense search index, so it MUST be
+  // authenticated in ALL environments (including preview deployments).
   const syncSecret = process.env.TYPESENSE_SYNC_SECRET || process.env.CRON_SECRET
+  if (!syncSecret) {
+    return NextResponse.json(
+      { error: 'Server misconfigured: webhook secret missing' },
+      { status: 500 },
+    )
+  }
   const auth = verifyCronSecret(request, { secret: syncSecret })
   if (!auth.ok) return auth.response
 
