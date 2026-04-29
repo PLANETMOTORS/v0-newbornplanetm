@@ -497,7 +497,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     return (
                   <div
                     data-testid="vdp-image-gallery"
-                    role="toolbar"
+                    role="region"
                     tabIndex={0}
                     aria-label="Vehicle image gallery — use left/right arrow keys to navigate"
                     onKeyDown={(e) => {
