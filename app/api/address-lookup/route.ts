@@ -55,71 +55,57 @@ function street(
   return { streetName, streetType, direction, city, province, postalCode, fullAddress }
 }
 
-// Comprehensive Canadian postal code to address mapping by prefix
-const postalCodePrefixStreets: Record<string, AddressSuggestion[]> = {
-  // Richmond Hill L4B
-  "L4B": [
-    street("Highway 7", "Road", "Richmond Hill", "Ontario", "L4B", "East"),
-    street("Leslie", "Street", "Richmond Hill", "Ontario", "L4B"),
-    street("Yonge", "Street", "Richmond Hill", "Ontario", "L4B"),
-    street("Bayview", "Avenue", "Richmond Hill", "Ontario", "L4B"),
-    street("Major Mackenzie", "Drive", "Richmond Hill", "Ontario", "L4B", "East"),
-  ],
-  // Richmond Hill L4C
-  "L4C": [
-    street("Major Mackenzie", "Drive", "Richmond Hill", "Ontario", "L4C", "East"),
-    street("Major Mackenzie", "Drive", "Richmond Hill", "Ontario", "L4C", "West"),
-    street("Yonge", "Street", "Richmond Hill", "Ontario", "L4C"),
-    street("Bathurst", "Street", "Richmond Hill", "Ontario", "L4C"),
-    street("Elgin Mills", "Road", "Richmond Hill", "Ontario", "L4C", "East"),
-    street("King", "Road", "Richmond Hill", "Ontario", "L4C"),
-  ],
-  // Richmond Hill L4E
-  "L4E": [
-    street("Yonge", "Street", "Richmond Hill", "Ontario", "L4E"),
-    street("Bloomington", "Road", "Richmond Hill", "Ontario", "L4E"),
-    street("19th", "Avenue", "Richmond Hill", "Ontario", "L4E"),
-    street("Stouffville", "Road", "Richmond Hill", "Ontario", "L4E"),
-  ],
-  // Richmond Hill L4S
-  "L4S": [
-    street("Bayview", "Avenue", "Richmond Hill", "Ontario", "L4S"),
-    street("16th", "Avenue", "Richmond Hill", "Ontario", "L4S"),
-    street("Leslie", "Street", "Richmond Hill", "Ontario", "L4S"),
-  ],
-  // Markham L3R
-  "L3R": [
-    street("Warden", "Avenue", "Markham", "Ontario", "L3R"),
-    street("Highway 7", "Road", "Markham", "Ontario", "L3R", "East"),
-    street("McCowan", "Road", "Markham", "Ontario", "L3R"),
-    street("Denison", "Street", "Markham", "Ontario", "L3R"),
-  ],
-  // Markham L6E
-  "L6E": [
-    street("Main Street", "Markham", "Markham", "Ontario", "L6E"),
-    street("9th Line", "Road", "Markham", "Ontario", "L6E"),
-    street("Markham", "Road", "Markham", "Ontario", "L6E"),
-  ],
-  // Toronto M5V
-  "M5V": [
-    street("Spadina", "Avenue", "Toronto", "Ontario", "M5V"),
-    street("King", "Street", "Toronto", "Ontario", "M5V", "West"),
-    street("Queen", "Street", "Toronto", "Ontario", "M5V", "West"),
-    street("Front", "Street", "Toronto", "Ontario", "M5V", "West"),
-  ],
-  // Mississauga L5B
-  "L5B": [
-    street("Hurontario", "Street", "Mississauga", "Ontario", "L5B"),
-    street("Dundas", "Street", "Mississauga", "Ontario", "L5B", "East"),
-    street("Burnhamthorpe", "Road", "Mississauga", "Ontario", "L5B"),
-  ],
-  // Brampton L6Y
-  "L6Y": [
-    street("Queen", "Street", "Brampton", "Ontario", "L6Y", "East"),
-    street("Main", "Street", "Brampton", "Ontario", "L6Y", "North"),
-    street("Bovaird", "Drive", "Brampton", "Ontario", "L6Y", "East"),
-  ],
+type StreetTuple = [streetName: string, streetType: string, direction?: string]
+
+interface PostalZone {
+  city: string
+  province: string
+  streets: StreetTuple[]
 }
+
+const POSTAL_ZONES: Record<string, PostalZone> = {
+  L4B: { city: "Richmond Hill", province: "Ontario", streets: [
+    ["Highway 7", "Road", "East"], ["Leslie", "Street"], ["Yonge", "Street"],
+    ["Bayview", "Avenue"], ["Major Mackenzie", "Drive", "East"],
+  ]},
+  L4C: { city: "Richmond Hill", province: "Ontario", streets: [
+    ["Major Mackenzie", "Drive", "East"], ["Major Mackenzie", "Drive", "West"],
+    ["Yonge", "Street"], ["Bathurst", "Street"], ["Elgin Mills", "Road", "East"], ["King", "Road"],
+  ]},
+  L4E: { city: "Richmond Hill", province: "Ontario", streets: [
+    ["Yonge", "Street"], ["Bloomington", "Road"], ["19th", "Avenue"], ["Stouffville", "Road"],
+  ]},
+  L4S: { city: "Richmond Hill", province: "Ontario", streets: [
+    ["Bayview", "Avenue"], ["16th", "Avenue"], ["Leslie", "Street"],
+  ]},
+  L3R: { city: "Markham", province: "Ontario", streets: [
+    ["Warden", "Avenue"], ["Highway 7", "Road", "East"], ["McCowan", "Road"], ["Denison", "Street"],
+  ]},
+  L6E: { city: "Markham", province: "Ontario", streets: [
+    ["Main Street", "Markham"], ["9th Line", "Road"], ["Markham", "Road"],
+  ]},
+  M5V: { city: "Toronto", province: "Ontario", streets: [
+    ["Spadina", "Avenue"], ["King", "Street", "West"], ["Queen", "Street", "West"], ["Front", "Street", "West"],
+  ]},
+  L5B: { city: "Mississauga", province: "Ontario", streets: [
+    ["Hurontario", "Street"], ["Dundas", "Street", "East"], ["Burnhamthorpe", "Road"],
+  ]},
+  L6Y: { city: "Brampton", province: "Ontario", streets: [
+    ["Queen", "Street", "East"], ["Main", "Street", "North"], ["Bovaird", "Drive", "East"],
+  ]},
+}
+
+function buildPostalCodeStreets(): Record<string, AddressSuggestion[]> {
+  const result: Record<string, AddressSuggestion[]> = {}
+  for (const [prefix, zone] of Object.entries(POSTAL_ZONES)) {
+    result[prefix] = zone.streets.map(([name, type, dir]) =>
+      street(name, type, zone.city, zone.province, prefix, dir),
+    )
+  }
+  return result
+}
+
+const postalCodePrefixStreets = buildPostalCodeStreets()
 
 // Get province from first letter of postal code
 function getProvinceFromPostalCode(postalCode: string): string {

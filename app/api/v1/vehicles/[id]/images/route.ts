@@ -6,9 +6,29 @@ async function requireAdmin() {
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
   if (error || !user || !ADMIN_EMAILS.includes(user.email || "")) {
-    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
+    return { supabase, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
   }
-  return { supabase }
+  return { supabase, error: null }
+}
+
+async function fetchVehicleForAdmin(
+  id: string,
+  fields: string,
+) {
+  const { supabase, error: adminError } = await requireAdmin()
+  if (adminError) return { supabase, vehicle: null as null, error: adminError }
+
+  const { data: vehicle, error } = await supabase
+    .from('vehicles')
+    .select(fields)
+    .eq('id', id)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .single() as { data: Record<string, any> | null; error: unknown }
+
+  if (error || !vehicle) {
+    return { supabase, vehicle: null as null, error: NextResponse.json({ error: 'Vehicle not found' }, { status: 404 }) }
+  }
+  return { supabase, vehicle, error: null }
 }
 
 // Scrape images from Planet Motors VDP page
@@ -104,21 +124,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const { supabase, error: adminError } = await requireAdmin()
-  if (adminError) {
-    return adminError
-  }
-  
-  // Fetch vehicle
-  const { data: vehicle, error } = await supabase
-    .from('vehicles')
-    .select('id, stock_number, vin, primary_image_url, image_urls, has_360_spin')
-    .eq('id', id)
-    .single()
-  
-  if (error || !vehicle) {
-    return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 })
-  }
+  const { supabase, vehicle, error: fetchErr } = await fetchVehicleForAdmin(
+    id, 'id, stock_number, vin, primary_image_url, image_urls, has_360_spin',
+  )
+  if (fetchErr) return fetchErr
   
   // If we already have images cached, return them
   if (vehicle.image_urls?.length) {
@@ -166,21 +175,10 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const { supabase, error: adminError } = await requireAdmin()
-  if (adminError) {
-    return adminError
-  }
-  
-  // Fetch vehicle
-  const { data: vehicle, error } = await supabase
-    .from('vehicles')
-    .select('id, stock_number, primary_image_url')
-    .eq('id', id)
-    .single()
-  
-  if (error || !vehicle) {
-    return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 })
-  }
+  const { supabase, vehicle, error: fetchErr } = await fetchVehicleForAdmin(
+    id, 'id, stock_number, primary_image_url',
+  )
+  if (fetchErr) return fetchErr
   
   const vdpUrl = vehicle.primary_image_url
   

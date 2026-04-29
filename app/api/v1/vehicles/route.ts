@@ -346,11 +346,48 @@ async function loadOrComputeFacets(
   return filters
 }
 
-// List endpoint orchestrates Supabase availability detection, query-param
-// parsing, status filtering (with the special "public" recently-sold window),
-// Typesense passthrough, mock-mode fallback, facet aggregation, and pagination
-// response shaping. Splitting these concerns across helpers would duplicate
-// the early-return boilerplate in each branch. Refactor tracked as follow-up.
+function handleQueryError(error: { message: string }) {
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    )
+  }
+  return mockListResponse()
+}
+
+function buildPaginationResponse(
+  vehicleList: Record<string, unknown>[],
+  params: { page: number; limit: number },
+  count: number | null,
+  useCursor: string | boolean | null,
+  lastVehicle: Record<string, unknown> | null,
+  filters?: FacetData,
+) {
+  const nextCursor = lastVehicle
+    ? { cursor_id: lastVehicle.id as string, cursor_created_at: lastVehicle.created_at as string }
+    : null
+  const hasMore = useCursor
+    ? vehicleList.length === params.limit
+    : (params.page - 1) * params.limit + params.limit < (count || 0)
+
+  return {
+    success: true,
+    data: {
+      vehicles: vehicleList,
+      pagination: {
+        page: params.page,
+        limit: params.limit,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / params.limit),
+        hasMore,
+        ...(nextCursor ? { nextCursor } : {}),
+      },
+      ...(filters ? { filters } : {}),
+    },
+  }
+}
+
 // GET /api/v1/vehicles - List vehicles with filtering
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -426,15 +463,7 @@ export async function GET(request: NextRequest) {
   const { data: vehicles, error, count } = await query
 
   if (error) {
-    // In production (Supabase configured), surface real errors so callers don't
-    // cache or act on fake vehicles. Mock data is only for local dev without env vars.
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 500 }
-      )
-    }
-    return mockListResponse()
+    return handleQueryError(error)
   }
 
   if (!vehicles?.length && !process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -454,29 +483,8 @@ export async function GET(request: NextRequest) {
 
   const lastRaw = vehicles && vehicles.length > 0 ? vehicles[vehicles.length - 1] : null
   const lastVehicle = lastRaw as unknown as Record<string, unknown> | null
-  const nextCursor = lastVehicle
-    ? { cursor_id: lastVehicle.id as string, cursor_created_at: lastVehicle.created_at as string }
-    : null
 
-  const hasMore = useCursor
-    ? vehicleList.length === params.limit
-    : (params.page - 1) * params.limit + params.limit < (count || 0)
-
-  const responseBody = {
-    success: true,
-    data: {
-      vehicles: vehicleList,
-      pagination: {
-        page: params.page,
-        limit: params.limit,
-        total: count || 0,
-        totalPages: Math.ceil((count || 0) / params.limit),
-        hasMore,
-        ...(nextCursor ? { nextCursor } : {}),
-      },
-      ...(filters ? { filters } : {}),
-    },
-  }
+  const responseBody = buildPaginationResponse(vehicleList, params, count, useCursor, lastVehicle, filters)
 
   // Persist to Redis
   await cacheSearchResults(cacheKey, responseBody, VEHICLE_LIST_TTL)

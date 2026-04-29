@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { ADMIN_EMAILS } from "@/lib/admin"
+import { getAuthenticatedAdmin } from "@/lib/api/auth-helpers"
 
 interface KnowledgeEntry {
   id: string
@@ -114,11 +115,8 @@ export async function POST(request: NextRequest) {
 // PUT — update an existing knowledge entry
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const admin = await getAuthenticatedAdmin()
+    if (admin.error) return admin.error
 
     const adminClient = createAdminClient()
 
@@ -130,7 +128,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Clean up updates
-    const cleanUpdates: Record<string, unknown> = { updated_by: user.email }
+    const cleanUpdates: Record<string, unknown> = { updated_by: admin.user?.email }
     if (updates.trigger_phrase !== undefined) cleanUpdates.trigger_phrase = updates.trigger_phrase.trim()
     if (updates.response !== undefined) cleanUpdates.response = updates.response.trim()
     if (updates.category !== undefined) cleanUpdates.category = updates.category

@@ -32,6 +32,57 @@ interface VehicleCheckoutData {
   utmTerm?: string
 }
 
+function collectUtmParams(data: VehicleCheckoutData): Record<string, string> {
+  const utm: Record<string, string> = {}
+  if (data.utmSource) utm.utm_source = data.utmSource
+  if (data.utmMedium) utm.utm_medium = data.utmMedium
+  if (data.utmCampaign) utm.utm_campaign = data.utmCampaign
+  if (data.utmContent) utm.utm_content = data.utmContent
+  if (data.utmTerm) utm.utm_term = data.utmTerm
+  return utm
+}
+
+function buildSessionMetadata(
+  data: VehicleCheckoutData,
+  vehicle: { year?: unknown; make?: unknown; model?: unknown },
+  serverVehicleName: string,
+  userId: string,
+  reservationId: string | null | undefined,
+): Record<string, string> {
+  return {
+    vehicleId: data.vehicleId,
+    vehicleName: serverVehicleName,
+    vehicleYear: String(vehicle.year ?? ''),
+    vehicleMake: String(vehicle.make ?? ''),
+    vehicleModel: String(vehicle.model ?? ''),
+    depositOnly: String(data.depositOnly || false),
+    type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
+    protectionPlanId: data.protectionPlanId || '',
+    amountSource: 'server',
+    userId,
+    ...(reservationId ? { reservationId } : {}),
+    ...(data.licenseStoragePath && isValidLicensePath(data.licenseStoragePath, data.vehicleId) ? { licenseStoragePath: data.licenseStoragePath } : {}),
+    ...collectUtmParams(data),
+  }
+}
+
+function buildPaymentIntentMetadata(
+  data: VehicleCheckoutData,
+  userId: string,
+  reservationId: string | null | undefined,
+): Record<string, string> {
+  return {
+    vehicleId: data.vehicleId,
+    depositOnly: String(data.depositOnly || false),
+    protectionPlanId: data.protectionPlanId || '',
+    amountSource: 'server',
+    type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
+    userId,
+    ...(reservationId ? { reservationId } : {}),
+    ...collectUtmParams(data),
+  }
+}
+
 const MAX_VEHICLE_PRICE_CENTS = 50_000_000 // $500,000 CAD
 
 function validateCentsAmount(value: unknown): number {
@@ -253,40 +304,9 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
           },
         }
       : {}),
-    metadata: {
-      vehicleId: data.vehicleId,
-      vehicleName: serverVehicleName,
-      vehicleYear: String(vehicle.year ?? ''),
-      vehicleMake: String(vehicle.make ?? ''),
-      vehicleModel: String(vehicle.model ?? ''),
-      depositOnly: String(data.depositOnly || false),
-      type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
-      protectionPlanId: data.protectionPlanId || '',
-      amountSource: 'server',
-      userId: user.id,
-      ...(reservationId && { reservationId }),
-      ...(data.licenseStoragePath && isValidLicensePath(data.licenseStoragePath, data.vehicleId) && { licenseStoragePath: data.licenseStoragePath }),
-      ...(data.utmSource && { utm_source: data.utmSource }),
-      ...(data.utmMedium && { utm_medium: data.utmMedium }),
-      ...(data.utmCampaign && { utm_campaign: data.utmCampaign }),
-      ...(data.utmContent && { utm_content: data.utmContent }),
-      ...(data.utmTerm && { utm_term: data.utmTerm }),
-    },
+    metadata: buildSessionMetadata(data, vehicle, serverVehicleName, user.id, reservationId),
     payment_intent_data: {
-      metadata: {
-        vehicleId: data.vehicleId,
-        depositOnly: String(data.depositOnly || false),
-        protectionPlanId: data.protectionPlanId || '',
-        amountSource: 'server',
-        type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
-        userId: user.id,
-        ...(reservationId && { reservationId }),
-        ...(data.utmSource && { utm_source: data.utmSource }),
-        ...(data.utmMedium && { utm_medium: data.utmMedium }),
-        ...(data.utmCampaign && { utm_campaign: data.utmCampaign }),
-        ...(data.utmContent && { utm_content: data.utmContent }),
-        ...(data.utmTerm && { utm_term: data.utmTerm }),
-      },
+      metadata: buildPaymentIntentMetadata(data, user.id, reservationId),
     },
     ...(data.customerEmail && { customer_email: data.customerEmail }),
   }, {

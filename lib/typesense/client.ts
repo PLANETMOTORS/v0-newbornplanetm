@@ -28,7 +28,7 @@ function getSearchKey(): string | undefined {
   if (process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_KEY) {
     return process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_KEY
   }
-  if (typeof globalThis.window === 'undefined') {
+  if (globalThis.window === undefined) {
     return process.env.TYPESENSE_API_KEY
   }
   return undefined
