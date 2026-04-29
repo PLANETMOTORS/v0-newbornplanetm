@@ -1,23 +1,46 @@
-import { describe, it, expect } from "vitest"
-import { locales, defaultLocale, localeNames, localeFlags } from "@/lib/i18n/config"
+import { describe, expect, it } from "vitest"
+import { locales, defaultLocale, localeNames, localeFlags, type Locale } from "@/lib/i18n/config"
+import { getDictionary, type Dictionary } from "@/lib/i18n/dictionaries"
 
 describe("i18n/config", () => {
-  it("exports supported locales", () => {
-    expect(locales).toContain("en")
-    expect(locales).toContain("fr")
+  it("exposes en + fr locales", () => {
+    expect(locales).toEqual(["en", "fr"])
   })
 
-  it("has English as default locale", () => {
+  it("defaults to English", () => {
     expect(defaultLocale).toBe("en")
   })
 
-  it("has locale names", () => {
+  it("provides display names for every locale", () => {
+    for (const loc of locales) {
+      expect(localeNames[loc]).toBeTruthy()
+    }
     expect(localeNames.en).toBe("English")
     expect(localeNames.fr).toBe("Français")
   })
 
-  it("has locale flags", () => {
-    expect(localeFlags.en).toBeDefined()
-    expect(localeFlags.fr).toBeDefined()
+  it("provides flag emoji for every locale", () => {
+    for (const loc of locales) {
+      expect(localeFlags[loc]).toBeTruthy()
+    }
+  })
+
+  it("Locale type accepts only the listed strings (compile check)", () => {
+    const a: Locale = "en"
+    const b: Locale = "fr"
+    expect([a, b]).toEqual(["en", "fr"])
+  })
+})
+
+describe("i18n/dictionaries", () => {
+  it("loads the English dictionary", async () => {
+    const d: Dictionary = await getDictionary("en")
+    expect(d).toBeTypeOf("object")
+    expect(d).not.toBeNull()
+  })
+
+  it("loads the French dictionary", async () => {
+    const d = await getDictionary("fr")
+    expect(d).toBeTypeOf("object")
   })
 })

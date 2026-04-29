@@ -1,161 +1,185 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
-const mockFrom = vi.fn()
-const mockInsert = vi.fn()
-const mockSelect = vi.fn()
 const mockSingle = vi.fn()
-const mockUpsert = vi.fn()
-const mockUpdate = vi.fn()
-const mockEq = vi.fn()
-const mockRpc = vi.fn()
+const mockSelect = vi.fn(() => ({ single: mockSingle }))
+const mockInsert = vi.fn(() => ({ select: mockSelect }))
+const mockUpsertSingle = vi.fn()
+const mockUpsertSelect = vi.fn(() => ({ single: mockUpsertSingle }))
+const mockUpsert = vi.fn(() => ({ select: mockUpsertSelect }))
+const mockUpdateEq = vi.fn().mockResolvedValue({})
+const mockUpdate = vi.fn(() => ({ eq: mockUpdateEq }))
+const mockRpc = vi.fn().mockResolvedValue({})
+
+const mockFrom = vi.fn((table: string) => {
+  if (table === "leads") return { insert: mockInsert }
+  if (table === "chat_conversations") return { upsert: mockUpsert, update: mockUpdate }
+  if (table === "chat_messages") return { insert: vi.fn().mockResolvedValue({}) }
+  return { insert: vi.fn(), upsert: vi.fn(), update: vi.fn() }
+})
 
 vi.mock("@supabase/supabase-js", () => ({
-  createClient: () => ({
-    from: mockFrom,
-    rpc: mockRpc,
-  }),
+  createClient: vi.fn(() => ({ from: mockFrom, rpc: mockRpc })),
 }))
 
 vi.mock("@/lib/email", () => ({
-  sendNotificationEmail: vi.fn().mockResolvedValue(undefined),
+  sendNotificationEmail: vi.fn().mockResolvedValue({ success: true }),
 }))
 
-function chainMocks(terminal: () => unknown) {
-  mockFrom.mockReturnValue({
-    insert: mockInsert,
-    upsert: mockUpsert,
-    update: mockUpdate,
-  })
-  mockInsert.mockReturnValue({ select: mockSelect })
-  mockSelect.mockReturnValue({ single: mockSingle })
-  mockSingle.mockImplementation(terminal)
-  mockUpsert.mockReturnValue({ select: mockSelect })
-  mockUpdate.mockReturnValue({ eq: mockEq })
-  mockEq.mockResolvedValue({ error: null })
-}
+beforeEach(() => {
+  vi.clearAllMocks()
+  vi.resetModules()
+})
 
-describe("anna/lead-capture", () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://test.supabase.co"
-    process.env.SUPABASE_SERVICE_ROLE_KEY = "test-key"
-  })
+afterEach(() => {
+  vi.restoreAllMocks()
+})
 
-  describe("createLead", () => {
-    it("creates a lead and returns id", async () => {
-      chainMocks(() => Promise.resolve({ data: { id: "lead-1" }, error: null }))
-
-      const { createLead } = await import("@/lib/anna/lead-capture")
-      const id = await createLead({
-        source: "chat",
-        customerName: "John",
-        customerEmail: "john@test.com",
-        subject: "Interest in Tesla",
-      })
-      expect(id).toBe("lead-1")
-      expect(mockFrom).toHaveBeenCalledWith("leads")
+describe("createLead", () => {
+  it("inserts a lead and returns its ID", async () => {
+    mockSingle.mockResolvedValueOnce({ data: { id: "lead-123" }, error: null })
+    const { createLead } = await import("@/lib/anna/lead-capture")
+    const id = await createLead({
+      source: "chat",
+      customerName: "Jane Doe",
+      customerEmail: "jane@example.com",
+      subject: "Interested in 2024 RAV4",
     })
-
-    it("returns null on DB error", async () => {
-      chainMocks(() => Promise.resolve({ data: null, error: { message: "fail" } }))
-
-      const { createLead } = await import("@/lib/anna/lead-capture")
-      const id = await createLead({
-        source: "chat",
-        subject: "Test",
-      })
-      expect(id).toBeNull()
-    })
-
-    it("returns null on exception", async () => {
-      chainMocks(() => { throw new Error("boom") })
-
-      const { createLead } = await import("@/lib/anna/lead-capture")
-      const id = await createLead({
-        source: "contact_form",
-        subject: "Test",
-      })
-      expect(id).toBeNull()
-    })
+    expect(id).toBe("lead-123")
+    expect(mockFrom).toHaveBeenCalledWith("leads")
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
+      source: "chat",
+      status: "new",
+      priority: "medium",
+      customer_name: "Jane Doe",
+      customer_email: "jane@example.com",
+      subject: "Interested in 2024 RAV4",
+    }))
   })
 
-  describe("saveConversation", () => {
-    it("saves and returns conversation id", async () => {
-      chainMocks(() => Promise.resolve({ data: { id: "conv-1" }, error: null }))
-
-      const { saveConversation } = await import("@/lib/anna/lead-capture")
-      const id = await saveConversation({ sessionId: "sess-1" })
-      expect(id).toBe("conv-1")
-      expect(mockFrom).toHaveBeenCalledWith("chat_conversations")
-    })
-
-    it("returns null on DB error", async () => {
-      chainMocks(() => Promise.resolve({ data: null, error: { message: "fail" } }))
-
-      const { saveConversation } = await import("@/lib/anna/lead-capture")
-      const id = await saveConversation({ sessionId: "sess-1" })
-      expect(id).toBeNull()
-    })
-
-    it("returns null on exception", async () => {
-      chainMocks(() => { throw new Error("boom") })
-
-      const { saveConversation } = await import("@/lib/anna/lead-capture")
-      const id = await saveConversation({ sessionId: "sess-1" })
-      expect(id).toBeNull()
-    })
+  it("uses high/urgent priority when supplied", async () => {
+    mockSingle.mockResolvedValueOnce({ data: { id: "x" }, error: null })
+    const { createLead } = await import("@/lib/anna/lead-capture")
+    await createLead({ source: "phone", subject: "x", priority: "urgent" })
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({ priority: "urgent" }))
   })
 
-  describe("saveChatMessage", () => {
-    it("inserts message and calls RPC", async () => {
-      mockFrom.mockReturnValue({
-        insert: vi.fn().mockResolvedValue({ error: null }),
-      })
-      mockRpc.mockResolvedValue({ error: null })
-
-      const { saveChatMessage } = await import("@/lib/anna/lead-capture")
-      await saveChatMessage({
-        conversationId: "conv-1",
-        role: "user",
-        content: "Hello",
-      })
-      expect(mockFrom).toHaveBeenCalledWith("chat_messages")
-    })
-
-    it("handles insert failure gracefully", async () => {
-      mockFrom.mockReturnValue({
-        insert: vi.fn().mockRejectedValue(new Error("insert fail")),
-      })
-
-      const { saveChatMessage } = await import("@/lib/anna/lead-capture")
-      await expect(
-        saveChatMessage({ conversationId: "conv-1", role: "user", content: "Hello" })
-      ).resolves.toBeUndefined()
-    })
+  it("returns null and logs on insert error", async () => {
+    mockSingle.mockResolvedValueOnce({ data: null, error: { message: "table missing" } })
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => undefined)
+    const { createLead } = await import("@/lib/anna/lead-capture")
+    const id = await createLead({ source: "chat", subject: "test" })
+    expect(id).toBeNull()
+    expect(errSpy).toHaveBeenCalledWith("Lead creation error:", "table missing")
   })
 
-  describe("escalateConversation", () => {
-    it("creates escalation lead", async () => {
-      chainMocks(() => Promise.resolve({ data: { id: "lead-esc" }, error: null }))
+  it("returns null on thrown error", async () => {
+    mockSingle.mockRejectedValueOnce(new Error("network"))
+    vi.spyOn(console, "error").mockImplementation(() => undefined)
+    const { createLead } = await import("@/lib/anna/lead-capture")
+    const id = await createLead({ source: "chat", subject: "test" })
+    expect(id).toBeNull()
+  })
 
-      const { escalateConversation } = await import("@/lib/anna/lead-capture")
-      const id = await escalateConversation({
-        sessionId: "sess-1",
-        reason: "Wants human help",
-      })
-      expect(id).toBe("lead-esc")
+  it("falls back to defaults when name/email are missing", async () => {
+    mockSingle.mockResolvedValueOnce({ data: { id: "y" }, error: null })
+    const { createLead } = await import("@/lib/anna/lead-capture")
+    await createLead({ source: "chat", subject: "anonymous" })
+    const { sendNotificationEmail } = await import("@/lib/email")
+    expect(sendNotificationEmail).toHaveBeenCalledWith(expect.objectContaining({
+      customerName: "Chat Visitor",
+      customerEmail: "unknown@chat",
+    }))
+  })
+})
+
+describe("saveConversation", () => {
+  it("upserts a conversation by session_id and returns ID", async () => {
+    mockUpsertSingle.mockResolvedValueOnce({ data: { id: "conv-1" }, error: null })
+    const { saveConversation } = await import("@/lib/anna/lead-capture")
+    const id = await saveConversation({ sessionId: "sess-1", customerEmail: "x@y.com" })
+    expect(id).toBe("conv-1")
+    expect(mockUpsert).toHaveBeenCalledWith(expect.objectContaining({
+      session_id: "sess-1",
+      customer_email: "x@y.com",
+      status: "active",
+    }), { onConflict: "session_id" })
+  })
+
+  it("returns null on DB error", async () => {
+    mockUpsertSingle.mockResolvedValueOnce({ data: null, error: { message: "no table" } })
+    vi.spyOn(console, "error").mockImplementation(() => undefined)
+    const { saveConversation } = await import("@/lib/anna/lead-capture")
+    expect(await saveConversation({ sessionId: "sess-2" })).toBeNull()
+  })
+
+  it("returns null on thrown error", async () => {
+    mockUpsertSingle.mockRejectedValueOnce(new Error("boom"))
+    const { saveConversation } = await import("@/lib/anna/lead-capture")
+    expect(await saveConversation({ sessionId: "sess-3" })).toBeNull()
+  })
+})
+
+describe("saveChatMessage", () => {
+  it("inserts a chat message and increments count", async () => {
+    const { saveChatMessage } = await import("@/lib/anna/lead-capture")
+    await saveChatMessage({
+      conversationId: "conv-1",
+      role: "user",
+      content: "Hello",
+      metadata: { ip: "1.2.3.4" },
     })
+    expect(mockFrom).toHaveBeenCalledWith("chat_messages")
+    expect(mockRpc).toHaveBeenCalledWith("increment_message_count", { conv_id: "conv-1" })
+  })
 
-    it("updates conversation status when conversationId provided", async () => {
-      chainMocks(() => Promise.resolve({ data: { id: "lead-esc" }, error: null }))
+  it("swallows RPC failure", async () => {
+    mockRpc.mockRejectedValueOnce(new Error("rpc-down"))
+    vi.spyOn(console, "error").mockImplementation(() => undefined)
+    const { saveChatMessage } = await import("@/lib/anna/lead-capture")
+    await expect(
+      saveChatMessage({ conversationId: "conv-2", role: "assistant", content: "ok" }),
+    ).resolves.toBeUndefined()
+  })
+})
 
-      const { escalateConversation } = await import("@/lib/anna/lead-capture")
-      await escalateConversation({
-        sessionId: "sess-1",
-        conversationId: "conv-1",
-        reason: "Wants human help",
-      })
-      expect(mockFrom).toHaveBeenCalledWith("chat_conversations")
+describe("escalateConversation", () => {
+  it("updates the conversation status and creates an urgent lead", async () => {
+    mockSingle.mockResolvedValueOnce({ data: { id: "lead-urgent" }, error: null })
+    const { escalateConversation } = await import("@/lib/anna/lead-capture")
+    const id = await escalateConversation({
+      conversationId: "conv-1",
+      sessionId: "sess-1",
+      customerName: "Jane",
+      reason: "Wants test drive",
     })
+    expect(id).toBe("lead-urgent")
+    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ status: "escalated" }))
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
+      priority: "urgent",
+      subject: expect.stringContaining("Escalation"),
+    }))
+  })
+
+  it("works without a conversationId (no update call)", async () => {
+    mockSingle.mockResolvedValueOnce({ data: { id: "lead-x" }, error: null })
+    const { escalateConversation } = await import("@/lib/anna/lead-capture")
+    const id = await escalateConversation({
+      sessionId: "sess-2",
+      reason: "general escalation",
+    })
+    expect(id).toBe("lead-x")
+  })
+
+  it("swallows update errors and still creates lead", async () => {
+    mockUpdateEq.mockRejectedValueOnce(new Error("update failed"))
+    mockSingle.mockResolvedValueOnce({ data: { id: "lead-z" }, error: null })
+    vi.spyOn(console, "error").mockImplementation(() => undefined)
+    const { escalateConversation } = await import("@/lib/anna/lead-capture")
+    const id = await escalateConversation({
+      conversationId: "conv-3",
+      sessionId: "sess-3",
+      reason: "agent unreachable",
+    })
+    expect(id).toBe("lead-z")
   })
 })

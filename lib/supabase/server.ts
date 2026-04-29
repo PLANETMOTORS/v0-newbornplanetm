@@ -48,7 +48,10 @@ export async function createClient() {
       ),
   }
 
-  return createServerClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, { // NOSONAR S1874 — cookies adapter is typed CookieMethodsServer (non-deprecated overload)
+  // NOSONAR S1874 — the explicit `CookieMethodsServer`-typed adapter resolves
+  // to the modern overload at runtime; Sonar's TS analyzer mis-attributes the
+  // call to the deprecated `get/set/remove` signature.
+  return createServerClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, { // NOSONAR S1874
     cookies: cookieAdapter,
   })
 }

@@ -291,26 +291,11 @@ function hydrateTradeInDraft(d: Record<string, unknown>, s: DraftSetters) {
   setIfString(d, "vinNumber", s.setVinNumber)
 }
 
-function validateEmailField(value: string): string {
-  if (value && !value.includes('@')) return "Email must include @ symbol (e.g., name@email.com)"
-  if (value && !isValidEmail(value)) return ValidationMessages.email
-  return ""
-}
-
-function validatePhoneField(value: string): string {
-  const digitsOnly = value.replaceAll(/\D/g, '')
-  if (digitsOnly.length > 0 && digitsOnly.length < 10) return "Please enter a complete 10-digit phone number"
-  if (digitsOnly.length >= 10 && !isValidCanadianPhoneNumber(formatCanadianPhoneNumber(value))) return ValidationMessages.phone
-  return ""
-}
-
-function validatePostalCodeField(value: string): string {
-  const cleanValue = value.replaceAll(/\s/g, '')
-  if (cleanValue.length > 0 && cleanValue.length < 6) return "Please enter a complete postal code (e.g., L4C 2G1)"
-  if (cleanValue.length >= 6 && !isValidCanadianPostalCode(formatCanadianPostalCode(value))) return ValidationMessages.postalCode
-  return ""
-}
-
+// Multi-step trade-in wizard (4 steps) with VIN lookup, draft auto-save, AI
+// quote prefill, photo upload, and conditional address/payoff/document
+// branches. Step state machine + form state share a closure so we avoid
+// prop-drilling 30+ setters across step components. Tracked for refactor
+// into a finite-state-machine helper in a follow-up — see PR #542 review.
 function TradeInContent() {
   const searchParams = useSearchParams()
   const { user } = useAuth()
@@ -489,19 +474,39 @@ function TradeInContent() {
 
   const handleEmailChange = (value: string) => {
     setEmail(value)
-    setEmailError(validateEmailField(value))
+    if (value && !value.includes('@')) {
+      setEmailError("Email must include @ symbol (e.g., name@email.com)")
+    } else if (value && !isValidEmail(value)) {
+      setEmailError(ValidationMessages.email)
+    } else {
+      setEmailError("")
+    }
   }
 
   const handlePhoneChange = (value: string) => {
     const formatted = formatCanadianPhoneNumber(value)
     setPhone(formatted)
-    setPhoneError(validatePhoneField(value))
+    const digitsOnly = value.replaceAll(/\D/g, '')
+    if (digitsOnly.length > 0 && digitsOnly.length < 10) {
+      setPhoneError("Please enter a complete 10-digit phone number")
+    } else if (digitsOnly.length >= 10 && !isValidCanadianPhoneNumber(formatted)) {
+      setPhoneError(ValidationMessages.phone)
+    } else {
+      setPhoneError("")
+    }
   }
 
   const handlePostalCodeChange = (value: string) => {
     const formatted = formatCanadianPostalCode(value)
     setPostalCode(formatted)
-    setPostalCodeError(validatePostalCodeField(value))
+    const cleanValue = value.replaceAll(/\s/g, '')
+    if (cleanValue.length > 0 && cleanValue.length < 6) {
+      setPostalCodeError("Please enter a complete postal code (e.g., L4C 2G1)")
+    } else if (cleanValue.length >= 6 && !isValidCanadianPostalCode(formatted)) {
+      setPostalCodeError(ValidationMessages.postalCode)
+    } else {
+      setPostalCodeError("")
+    }
   }
 
   const handlePhotoUpload = (angle: string, file: File | null) => {

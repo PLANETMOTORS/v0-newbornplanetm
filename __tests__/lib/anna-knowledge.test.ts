@@ -1,94 +1,105 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
-const mockSelect = vi.fn()
-const mockEq = vi.fn()
-const mockOrder = vi.fn()
+const ENV_KEYS = ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"] as const
+const original: Partial<Record<(typeof ENV_KEYS)[number], string | undefined>> = {}
+
+const mockOrder2 = vi.fn()
+const mockOrder1 = vi.fn(() => ({ order: mockOrder2 }))
+const mockEq2 = vi.fn(() => ({ order: mockOrder1 }))
+const mockEq1 = vi.fn(() => ({ eq: mockEq2 }))
+const mockSelect = vi.fn(() => ({ eq: mockEq1 }))
+const mockFrom = vi.fn(() => ({ select: mockSelect }))
 
 vi.mock("@supabase/supabase-js", () => ({
-  createClient: () => ({
-    from: () => ({
-      select: mockSelect,
-    }),
-  }),
+  createClient: vi.fn(() => ({ from: mockFrom })),
 }))
 
-describe("anna/knowledge", () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    vi.resetModules()
-    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://test.supabase.co"
-    process.env.SUPABASE_SERVICE_ROLE_KEY = "test-key"
+beforeEach(() => {
+  for (const k of ENV_KEYS) original[k] = process.env[k]
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co"
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "service-key"
+  vi.resetModules()
+  vi.clearAllMocks()
+})
+
+afterEach(() => {
+  for (const k of ENV_KEYS) {
+    if (original[k] === undefined) delete process.env[k]
+    else process.env[k] = original[k]
+  }
+  vi.restoreAllMocks()
+})
+
+describe("buildKnowledgePrompt", () => {
+  it("returns empty string when env vars missing", async () => {
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL
+    const { buildKnowledgePrompt } = await import("@/lib/anna/knowledge")
+    expect(await buildKnowledgePrompt("anna")).toBe("")
   })
 
-  describe("buildKnowledgePrompt", () => {
-    it("returns empty string when no env vars", async () => {
-      delete process.env.NEXT_PUBLIC_SUPABASE_URL
-      delete process.env.SUPABASE_SERVICE_ROLE_KEY
-      const { buildKnowledgePrompt } = await import("@/lib/anna/knowledge")
-      const result = await buildKnowledgePrompt("anna")
-      expect(result).toBe("")
+  it("returns empty string when service key missing", async () => {
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY
+    const { buildKnowledgePrompt } = await import("@/lib/anna/knowledge")
+    expect(await buildKnowledgePrompt("anna")).toBe("")
+  })
+
+  it("returns empty string when DB returns no rows", async () => {
+    mockOrder2.mockResolvedValueOnce({ data: [], error: null })
+    const { buildKnowledgePrompt } = await import("@/lib/anna/knowledge")
+    expect(await buildKnowledgePrompt("anna")).toBe("")
+  })
+
+  it("returns empty string on DB error", async () => {
+    mockOrder2.mockResolvedValueOnce({ data: null, error: { message: "DB down" } })
+    const { buildKnowledgePrompt } = await import("@/lib/anna/knowledge")
+    expect(await buildKnowledgePrompt("anna")).toBe("")
+  })
+
+  it("formats knowledge entries grouped by category with category labels", async () => {
+    mockOrder2.mockResolvedValueOnce({
+      data: [
+        { category: "qa", trigger_phrase: "What is your address?", response: "123 Main St", priority: 5, tags: ["address", "location"] },
+        { category: "objection", trigger_phrase: "Too expensive", response: "We have financing", priority: 3, tags: null },
+        { category: "policy", trigger_phrase: "Refund?", response: "30 days", priority: 1, tags: [] },
+      ],
+      error: null,
     })
+    const { buildKnowledgePrompt } = await import("@/lib/anna/knowledge")
+    const prompt = await buildKnowledgePrompt("anna")
+    expect(prompt).toContain("TRAINED KNOWLEDGE & CUSTOM RESPONSES (3 entries)")
+    expect(prompt).toContain("Q&A TRAINED RESPONSES")
+    expect(prompt).toContain("OBJECTION HANDLING")
+    expect(prompt).toContain("POLICY OVERRIDES")
+    expect(prompt).toContain('IF customer asks: "What is your address?"')
+    expect(prompt).toContain("THEN respond: 123 Main St")
+    expect(prompt).toContain("[Tags: address, location]")
+  })
 
-    it("returns empty string when no data", async () => {
-      const mockOrder2 = vi.fn().mockResolvedValue({ data: [], error: null })
-      mockOrder.mockReturnValue({ order: mockOrder2 })
-      mockEq.mockReturnValue({ eq: vi.fn().mockReturnValue({ order: mockOrder }) })
-      mockSelect.mockReturnValue({ eq: mockEq })
-
-      const { buildKnowledgePrompt } = await import("@/lib/anna/knowledge")
-      const result = await buildKnowledgePrompt("anna")
-      expect(result).toBe("")
+  it("falls back to category uppercase for unknown labels", async () => {
+    mockOrder2.mockResolvedValueOnce({
+      data: [{ category: "novel-cat", trigger_phrase: "x", response: "y", priority: 1, tags: null }],
+      error: null,
     })
+    const { buildKnowledgePrompt } = await import("@/lib/anna/knowledge")
+    const prompt = await buildKnowledgePrompt("anna")
+    expect(prompt).toContain("--- NOVEL-CAT ---")
+  })
 
-    it("returns empty string on query error", async () => {
-      const mockOrder2 = vi.fn().mockResolvedValue({ data: null, error: { message: "fail" } })
-      mockOrder.mockReturnValue({ order: mockOrder2 })
-      mockEq.mockReturnValue({ eq: vi.fn().mockReturnValue({ order: mockOrder }) })
-      mockSelect.mockReturnValue({ eq: mockEq })
-
-      const { buildKnowledgePrompt } = await import("@/lib/anna/knowledge")
-      const result = await buildKnowledgePrompt("anna")
-      expect(result).toBe("")
+  it("defaults missing category to 'qa'", async () => {
+    mockOrder2.mockResolvedValueOnce({
+      data: [{ category: null, trigger_phrase: "a", response: "b", priority: 1, tags: null }],
+      error: null,
     })
+    const { buildKnowledgePrompt } = await import("@/lib/anna/knowledge")
+    const prompt = await buildKnowledgePrompt("anna")
+    expect(prompt).toContain("Q&A TRAINED RESPONSES")
+  })
 
-    it("formats entries into prompt when data exists", async () => {
-      const mockData = [
-        {
-          category: "qa",
-          trigger_phrase: "What are your hours?",
-          response: "We are open 9-5",
-          priority: 10,
-          tags: ["hours"],
-        },
-        {
-          category: "policy",
-          trigger_phrase: "Return policy",
-          response: "10-day money back",
-          priority: 5,
-          tags: null,
-        },
-      ]
-      const mockOrder2 = vi.fn().mockResolvedValue({ data: mockData, error: null })
-      mockOrder.mockReturnValue({ order: mockOrder2 })
-      mockEq.mockReturnValue({ eq: vi.fn().mockReturnValue({ order: mockOrder }) })
-      mockSelect.mockReturnValue({ eq: mockEq })
-
-      const { buildKnowledgePrompt } = await import("@/lib/anna/knowledge")
-      const result = await buildKnowledgePrompt("anna")
-      expect(result).toContain("TRAINED KNOWLEDGE")
-      expect(result).toContain("What are your hours?")
-      expect(result).toContain("We are open 9-5")
-      expect(result).toContain("Return policy")
-      expect(result).toContain("POLICY OVERRIDES")
-      expect(result).toContain("[Tags: hours]")
-    })
-
-    it("returns empty string on exception", async () => {
-      mockSelect.mockImplementation(() => { throw new Error("boom") })
-
-      const { buildKnowledgePrompt } = await import("@/lib/anna/knowledge")
-      const result = await buildKnowledgePrompt("anna")
-      expect(result).toBe("")
-    })
+  it("returns empty string and logs on thrown error", async () => {
+    mockOrder2.mockRejectedValueOnce(new Error("network failure"))
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => undefined)
+    const { buildKnowledgePrompt } = await import("@/lib/anna/knowledge")
+    expect(await buildKnowledgePrompt("anna")).toBe("")
+    expect(errSpy).toHaveBeenCalled()
   })
 })

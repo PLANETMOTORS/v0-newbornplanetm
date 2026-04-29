@@ -38,7 +38,7 @@ export const config = {
      * make Next bail with "Invalid segment configuration export" during
      * page-data collection, so S7780 is suppressed for this single literal.
      */
-    '/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)', // NOSONAR S7780 — Next.js statically parses config.matcher and rejects tagged templates
+    '/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)', // NOSONAR S7780 — Next.js statically analyses config.matcher and only accepts plain string literals; String.raw breaks page-data collection.
   ],
 }
 

@@ -1,47 +1,55 @@
-import { describe, it, expect } from "vitest"
-import { PRODUCTS, getProductById, getProductPrice } from "@/lib/products"
+import { describe, expect, it } from "vitest"
+import { PRODUCTS, getProductById, getProductPrice, type Product } from "@/lib/products"
 
-describe("products", () => {
-  describe("PRODUCTS", () => {
-    it("contains expected product entries", () => {
-      expect(PRODUCTS.length).toBeGreaterThan(0)
-      expect(PRODUCTS.find(p => p.id === "vehicle-reservation")).toBeDefined()
-      expect(PRODUCTS.find(p => p.id === "delivery-express")).toBeDefined()
-    })
-
-    it("all products have required fields", () => {
-      for (const p of PRODUCTS) {
-        expect(p.id).toBeTruthy()
-        expect(p.name).toBeTruthy()
-        expect(p.description).toBeTruthy()
-        expect(typeof p.priceInCents).toBe("number")
-      }
-    })
+describe("products catalog", () => {
+  it("exports a non-empty PRODUCTS array", () => {
+    expect(PRODUCTS.length).toBeGreaterThan(0)
   })
 
-  describe("getProductById", () => {
-    it("returns product for known id", () => {
-      const p = getProductById("vehicle-reservation")
-      expect(p).toBeDefined()
-      expect(p?.priceInCents).toBe(25000)
-    })
-
-    it("returns undefined for unknown id", () => {
-      expect(getProductById("nonexistent")).toBeUndefined()
-    })
+  it("every product has the required shape", () => {
+    for (const p of PRODUCTS) {
+      const pp: Product = p
+      expect(pp.id).toBeTruthy()
+      expect(pp.name).toBeTruthy()
+      expect(pp.description).toBeTruthy()
+      expect(typeof pp.priceInCents).toBe("number")
+      expect(pp.priceInCents).toBeGreaterThanOrEqual(0)
+    }
   })
 
-  describe("getProductPrice", () => {
-    it("returns price for known id", () => {
-      expect(getProductPrice("vehicle-reservation")).toBe(25000)
-    })
+  it("product IDs are unique", () => {
+    const ids = PRODUCTS.map((p) => p.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
 
-    it("returns 0 for unknown id", () => {
-      expect(getProductPrice("unknown")).toBe(0)
-    })
+  it("includes the vehicle reservation deposit at $250", () => {
+    const r = getProductById("vehicle-reservation")
+    expect(r).toBeDefined()
+    expect(r?.priceInCents).toBe(25000)
+  })
 
-    it("returns 0 for free product", () => {
-      expect(getProductPrice("delivery-standard")).toBe(0)
-    })
+  it("includes the financing application fee", () => {
+    const r = getProductById("financing-application-fee")
+    expect(r).toBeDefined()
+    expect(r?.priceInCents).toBe(4900)
+  })
+
+  it("includes a free standard delivery option", () => {
+    const r = getProductById("delivery-standard")
+    expect(r?.priceInCents).toBe(0)
+  })
+
+  it("getProductById returns undefined for unknown ids", () => {
+    expect(getProductById("not-a-real-id")).toBeUndefined()
+    expect(getProductById("")).toBeUndefined()
+  })
+
+  it("getProductPrice returns the cents amount", () => {
+    expect(getProductPrice("vehicle-reservation")).toBe(25000)
+    expect(getProductPrice("delivery-standard")).toBe(0)
+  })
+
+  it("getProductPrice returns 0 for unknown ids", () => {
+    expect(getProductPrice("missing")).toBe(0)
   })
 })

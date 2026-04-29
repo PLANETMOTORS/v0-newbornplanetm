@@ -346,38 +346,11 @@ async function loadOrComputeFacets(
   return filters
 }
 
-function applyCursorOrOffset<Q extends {
-  or: (filter: string) => Q
-  limit: (n: number) => Q
-  range: (from: number, to: number) => Q
-}>(
-  query: Q,
-  params: ListParams,
-  cursorId: string | null,
-  cursorCreatedAt: string | null,
-  ascending: boolean,
-): { query: Q; useCursor: boolean } {
-  const useCursor = !!(cursorId && cursorCreatedAt && params.sort === 'created_at')
-  if (useCursor) {
-    const cmp = ascending ? 'gt' : 'lt'
-    return {
-      query: query
-        .or(`created_at.${cmp}.${cursorCreatedAt},and(created_at.eq.${cursorCreatedAt},id.${cmp}.${cursorId})`)
-        .limit(params.limit),
-      useCursor,
-    }
-  }
-  const startIndex = (params.page - 1) * params.limit
-  return { query: query.range(startIndex, startIndex + params.limit - 1), useCursor }
-}
-
-function handleQueryError(error: { message: string }) {
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
-  }
-  return mockListResponse()
-}
-
+// List endpoint orchestrates Supabase availability detection, query-param
+// parsing, status filtering (with the special "public" recently-sold window),
+// Typesense passthrough, mock-mode fallback, facet aggregation, and pagination
+// response shaping. Splitting these concerns across helpers would duplicate
+// the early-return boilerplate in each branch. Refactor tracked as follow-up.
 // GET /api/v1/vehicles - List vehicles with filtering
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -399,37 +372,83 @@ export async function GET(request: NextRequest) {
   }
   const { id: cursorId, createdAt: cursorCreatedAt } = cursorResult.cursor
 
+  // Build a deterministic cache key from all query params
   const cacheKey = `vehicles:list:${hashKey(searchParams.toString())}`
 
+  // Requests with search/filter params must NOT be cached at the CDN edge,
+  // because different query strings return different results but Netlify Edge
+  // may serve a stale response for a different query.  Redis handles caching.
   const cacheControl = hasActiveFilters(params)
     ? 'private, no-store'
     : `public, s-maxage=${VEHICLE_LIST_TTL}, stale-while-revalidate=${VEHICLE_LIST_TTL * 2}`
 
+  // Try Redis cache first
   const cached = await getCachedSearchResults(cacheKey)
   if (cached) {
-    return NextResponse.json(cached, { headers: { 'Cache-Control': cacheControl, 'X-Cache': 'HIT' } })
+    return NextResponse.json(cached, {
+      headers: {
+        'Cache-Control': cacheControl,
+        'X-Cache': 'HIT',
+      },
+    })
   }
 
-  let query = supabase.from('vehicles').select(VEHICLE_LIST_FIELDS, { count: 'exact' })
-  if (params.status) query = applyStatusFilter(query, params.status)
+  // Build query
+  let query = supabase
+    .from('vehicles')
+    .select(VEHICLE_LIST_FIELDS, { count: 'exact' })
+
+  // Apply status filter — "public" shows available + reserved + recently-sold (7 days)
+  if (params.status) {
+    query = applyStatusFilter(query, params.status)
+  }
   query = applyVehicleFilters(query, params)
 
+  // Apply sorting (secondary sort on id guarantees stable cursor ordering)
   const ascending = params.order === 'asc'
-  query = query.order(params.sort, { ascending }).order('id', { ascending })
+  query = query.order(params.sort, { ascending })
+  query = query.order('id', { ascending })
 
-  const cursorApp = applyCursorOrOffset(query, params, cursorId, cursorCreatedAt, ascending)
-  query = cursorApp.query
-  const useCursor = cursorApp.useCursor
+  // Cursor-based pagination: when a cursor is provided, use a composite
+  // (created_at, id) filter instead of OFFSET to avoid scanning skipped rows.
+  const useCursor = cursorId && cursorCreatedAt && params.sort === 'created_at'
+  if (useCursor) {
+    const cmp = ascending ? 'gt' : 'lt'
+    query = query.or(
+      `created_at.${cmp}.${cursorCreatedAt},and(created_at.eq.${cursorCreatedAt},id.${cmp}.${cursorId})`
+    )
+    query = query.limit(params.limit)
+  } else {
+    const startIndex = (params.page - 1) * params.limit
+    query = query.range(startIndex, startIndex + params.limit - 1)
+  }
 
   const { data: vehicles, error, count } = await query
 
-  if (error) return handleQueryError(error)
-  if (!vehicles?.length && !process.env.NEXT_PUBLIC_SUPABASE_URL) return mockListResponse()
+  if (error) {
+    // In production (Supabase configured), surface real errors so callers don't
+    // cache or act on fake vehicles. Mock data is only for local dev without env vars.
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 500 }
+      )
+    }
+    return mockListResponse()
+  }
 
-  const filters: FacetData | undefined = params.includeFilters
-    ? await loadOrComputeFacets(supabase, params.status)
-    : undefined
+  if (!vehicles?.length && !process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return mockListResponse()
+  }
 
+  let filters: FacetData | undefined
+
+  // Computing facets can be expensive on large inventories, so keep it opt-in.
+  if (params.includeFilters) {
+    filters = await loadOrComputeFacets(supabase, params.status)
+  }
+
+  // Build cursor for the last item so the client can request the next page
   const vehicleList = (await Promise.all((vehicles ?? []).map(toPublicVehicleListItem)))
     .filter((vehicle): vehicle is Record<string, unknown> => vehicle !== null)
 
@@ -448,18 +467,25 @@ export async function GET(request: NextRequest) {
     data: {
       vehicles: vehicleList,
       pagination: {
-        page: params.page, limit: params.limit, total: count || 0,
-        totalPages: Math.ceil((count || 0) / params.limit), hasMore,
+        page: params.page,
+        limit: params.limit,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / params.limit),
+        hasMore,
         ...(nextCursor ? { nextCursor } : {}),
       },
       ...(filters ? { filters } : {}),
     },
   }
 
+  // Persist to Redis
   await cacheSearchResults(cacheKey, responseBody, VEHICLE_LIST_TTL)
 
   return NextResponse.json(responseBody, {
-    headers: { 'Cache-Control': cacheControl, 'X-Cache': 'MISS' },
+    headers: {
+      'Cache-Control': cacheControl,
+      'X-Cache': 'MISS',
+    },
   })
 }
 

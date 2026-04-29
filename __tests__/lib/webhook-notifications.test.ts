@@ -1,139 +1,188 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import type Stripe from "stripe"
+
+const sendMock = vi.fn()
+const createAutoRaptorLeadMock = vi.fn()
+
+class MockResend {
+  emails = { send: sendMock }
+}
+
+vi.mock("resend", () => ({ Resend: MockResend }))
 
 vi.mock("@/lib/autoraptor", () => ({
-  createAutoRaptorLead: vi.fn().mockResolvedValue({ success: true, leadId: "ar-1" }),
-}))
-vi.mock("@/lib/email", () => ({
-  escapeHtml: (s: string) => s.replace(/</g, "&lt;").replace(/>/g, "&gt;"),
-}))
-vi.mock("@/lib/redact", () => ({
-  maskEmail: (e: string) => e.replace(/(.{2}).*(@.*)/, "$1***$2"),
-}))
-vi.mock("resend", () => ({
-  Resend: vi.fn().mockImplementation(() => ({
-    emails: { send: vi.fn().mockResolvedValue({ error: null }) },
-  })),
+  createAutoRaptorLead: (...args: unknown[]) => createAutoRaptorLeadMock(...args),
 }))
 
-describe("webhook-notifications", () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
+const ENV_KEYS = ["RESEND_API_KEY", "API_KEY_RESEND", "FROM_EMAIL", "ADMIN_EMAIL", "NEXT_PUBLIC_BASE_URL"] as const
+const original: Partial<Record<(typeof ENV_KEYS)[number], string | undefined>> = {}
 
-  describe("extractNotificationData", () => {
-    it("extracts data from a checkout session", async () => {
-      const { extractNotificationData } = await import("@/lib/webhook-notifications")
-      const session = {
-        id: "cs_123",
-        customer_details: { email: "john@test.com", name: "John Doe", phone: "+1234567890" },
-        customer_email: null,
-        metadata: {
-          vehicleId: "v-1",
-          vehicleName: "2023 Tesla Model 3",
-          vehicleYear: "2023",
-          vehicleMake: "Tesla",
-          vehicleModel: "Model 3",
-          type: "vehicle-purchase",
-          stockNumber: "PM-001",
-        },
-        amount_total: 5000000,
-        currency: "cad",
-      }
+beforeEach(() => {
+  for (const k of ENV_KEYS) original[k] = process.env[k]
+  vi.clearAllMocks()
+  vi.resetModules()
+  sendMock.mockResolvedValue({ data: { id: "msg-1" }, error: null })
+  createAutoRaptorLeadMock.mockResolvedValue({ success: true, leadId: "ar-1" })
+})
 
-      const data = extractNotificationData(session as never)
-      expect(data).not.toBeNull()
-      expect(data?.customerEmail).toBe("john@test.com")
-      expect(data?.customerName).toBe("John Doe")
-      expect(data?.vehicleName).toBe("2023 Tesla Model 3")
-      expect(data?.amountCents).toBe(5000000)
-      expect(data?.isDeposit).toBe(false)
-    })
+afterEach(() => {
+  for (const k of ENV_KEYS) {
+    if (original[k] === undefined) delete process.env[k]
+    else process.env[k] = original[k]
+  }
+  vi.restoreAllMocks()
+})
 
-    it("returns null when no email", async () => {
-      const { extractNotificationData } = await import("@/lib/webhook-notifications")
-      const session = {
-        id: "cs_123",
-        customer_details: { email: null, name: null, phone: null },
-        customer_email: null,
-        metadata: {},
-        amount_total: 0,
-        currency: "cad",
-      }
-      expect(extractNotificationData(session as never)).toBeNull()
-    })
+function makeSession(overrides: Partial<Stripe.Checkout.Session> = {}): Stripe.Checkout.Session {
+  return {
+    id: "cs_test_1",
+    customer_email: "buyer@example.com",
+    customer_details: { email: "buyer@example.com", name: "Buyer Name", phone: "555-0001" },
+    metadata: {
+      vehicleId: "veh-1",
+      vehicleName: "2024 RAV4",
+      vehicleYear: "2024",
+      vehicleMake: "Toyota",
+      vehicleModel: "RAV4",
+      depositOnly: "true",
+      type: "vehicle-reservation",
+      stockNumber: "AB123",
+    },
+    amount_total: 25000,
+    currency: "cad",
+    ...overrides,
+  } as unknown as Stripe.Checkout.Session
+}
 
-    it("detects deposit for vehicle-reservation type", async () => {
-      const { extractNotificationData } = await import("@/lib/webhook-notifications")
-      const session = {
-        id: "cs_456",
-        customer_details: { email: "jane@test.com", name: null, phone: null },
-        customer_email: null,
-        metadata: { type: "vehicle-reservation" },
-        amount_total: 25000,
-        currency: "cad",
-      }
-      const data = extractNotificationData(session as never)
-      expect(data?.isDeposit).toBe(true)
-    })
-
-    it("detects deposit when depositOnly flag is set", async () => {
-      const { extractNotificationData } = await import("@/lib/webhook-notifications")
-      const session = {
-        id: "cs_789",
-        customer_details: { email: "bob@test.com", name: null, phone: null },
-        customer_email: null,
-        metadata: { depositOnly: "true" },
-        amount_total: 25000,
-        currency: "cad",
-      }
-      const data = extractNotificationData(session as never)
-      expect(data?.isDeposit).toBe(true)
-    })
-
-    it("uses fallback customer name from email", async () => {
-      const { extractNotificationData } = await import("@/lib/webhook-notifications")
-      const session = {
-        id: "cs_111",
-        customer_details: { email: "alice@test.com", name: null, phone: null },
-        customer_email: null,
-        metadata: {},
-        amount_total: 0,
-        currency: "cad",
-      }
-      const data = extractNotificationData(session as never)
-      expect(data?.customerName).toBe("alice")
-    })
-
-    it("uses metadata customerName when customer_details.name missing", async () => {
-      const { extractNotificationData } = await import("@/lib/webhook-notifications")
-      const session = {
-        id: "cs_222",
-        customer_details: { email: "x@test.com", name: null, phone: null },
-        customer_email: null,
-        metadata: { customerName: "From Metadata" },
-        amount_total: 0,
-        currency: "cad",
-      }
-      const data = extractNotificationData(session as never)
-      expect(data?.customerName).toBe("From Metadata")
+describe("extractNotificationData", () => {
+  it("extracts a complete record from a populated session", async () => {
+    const { extractNotificationData } = await import("@/lib/webhook-notifications")
+    const data = extractNotificationData(makeSession())
+    expect(data).toMatchObject({
+      customerEmail: "buyer@example.com",
+      customerName: "Buyer Name",
+      customerPhone: "555-0001",
+      vehicleName: "2024 RAV4",
+      vehicleYear: 2024,
+      vehicleMake: "Toyota",
+      vehicleModel: "RAV4",
+      amountCents: 25000,
+      currency: "cad",
+      isDeposit: true,
+      stripeSessionId: "cs_test_1",
     })
   })
 
-  describe("sendPaymentNotifications", () => {
-    it("runs all notification tasks without throwing", async () => {
-      process.env.API_KEY_RESEND = "re_test"
-      const { sendPaymentNotifications } = await import("@/lib/webhook-notifications")
-      await expect(
-        sendPaymentNotifications({
-          customerEmail: "john@test.com",
-          customerName: "John",
-          vehicleName: "2023 Tesla",
-          amountCents: 25000,
-          currency: "cad",
-          stripeSessionId: "cs_test",
-          isDeposit: true,
-        })
-      ).resolves.toBeUndefined()
+  it("returns null when there is no email", async () => {
+    const { extractNotificationData } = await import("@/lib/webhook-notifications")
+    const data = extractNotificationData(makeSession({
+      customer_email: null,
+      customer_details: null,
+    } as unknown as Partial<Stripe.Checkout.Session>))
+    expect(data).toBeNull()
+  })
+
+  it("falls back to email-derived name when no customer name set", async () => {
+    const { extractNotificationData } = await import("@/lib/webhook-notifications")
+    const data = extractNotificationData(makeSession({
+      customer_details: { email: "anon@example.com" },
+      metadata: {},
+    } as unknown as Partial<Stripe.Checkout.Session>))
+    expect(data?.customerName).toBe("anon")
+  })
+
+  it("derives vehicleName from stockNumber when missing", async () => {
+    const { extractNotificationData } = await import("@/lib/webhook-notifications")
+    const data = extractNotificationData(makeSession({
+      metadata: { stockNumber: "X-9", vehicleId: "veh-9" },
+    } as unknown as Partial<Stripe.Checkout.Session>))
+    expect(data?.vehicleName).toBe("Vehicle X-9")
+  })
+
+  it("flags non-deposit when no metadata flags set", async () => {
+    const { extractNotificationData } = await import("@/lib/webhook-notifications")
+    const data = extractNotificationData(makeSession({
+      metadata: { vehicleName: "Final Buy" },
+    } as unknown as Partial<Stripe.Checkout.Session>))
+    expect(data?.isDeposit).toBe(false)
+  })
+})
+
+describe("sendPaymentNotifications", () => {
+  it("sends customer + admin email and AutoRaptor lead when env configured", async () => {
+    process.env.RESEND_API_KEY = "rk_test"
+    process.env.ADMIN_EMAIL = "ops@planetmotors.ca"
+    const { sendPaymentNotifications } = await import("@/lib/webhook-notifications")
+    await sendPaymentNotifications({
+      customerEmail: "x@y.com",
+      customerName: "Jane",
+      customerPhone: "555-1234",
+      vehicleName: "2024 RAV4",
+      amountCents: 25000,
+      currency: "cad",
+      stripeSessionId: "cs_1",
+      isDeposit: true,
     })
+    expect(createAutoRaptorLeadMock).toHaveBeenCalled()
+    expect(sendMock).toHaveBeenCalledTimes(2)
+    const customerCall = sendMock.mock.calls.find(([arg]) => arg.to === "x@y.com")
+    expect(customerCall?.[0].subject).toContain("Refundable Deposit")
+    expect(customerCall?.[0].html).toContain("Jane")
+  })
+
+  it("skips email send when Resend not configured", async () => {
+    delete process.env.RESEND_API_KEY
+    delete process.env.API_KEY_RESEND
+    const { sendPaymentNotifications } = await import("@/lib/webhook-notifications")
+    await sendPaymentNotifications({
+      customerEmail: "x@y.com",
+      customerName: "Jane",
+      vehicleName: "2024 RAV4",
+      amountCents: 25000,
+      currency: "cad",
+      stripeSessionId: "cs_1",
+      isDeposit: false,
+    })
+    expect(sendMock).not.toHaveBeenCalled()
+  })
+
+  it("logs but does not throw when individual notifications fail", async () => {
+    process.env.RESEND_API_KEY = "rk_test"
+    sendMock.mockResolvedValueOnce({ data: null, error: { message: "send fail" } })
+    sendMock.mockResolvedValueOnce({ data: null, error: { message: "send fail" } })
+    createAutoRaptorLeadMock.mockResolvedValueOnce({ success: false, error: "no api" })
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => undefined)
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined)
+    const { sendPaymentNotifications } = await import("@/lib/webhook-notifications")
+    await expect(
+      sendPaymentNotifications({
+        customerEmail: "x@y.com",
+        customerName: "Jane",
+        vehicleName: "v",
+        amountCents: 100,
+        currency: "cad",
+        stripeSessionId: "cs_1",
+        isDeposit: false,
+      }),
+    ).resolves.toBeUndefined()
+    expect(warnSpy).toHaveBeenCalled()
+    errSpy.mockRestore()
+  })
+
+  it("uses non-deposit verbiage when isDeposit=false", async () => {
+    process.env.RESEND_API_KEY = "rk_test"
+    const { sendPaymentNotifications } = await import("@/lib/webhook-notifications")
+    await sendPaymentNotifications({
+      customerEmail: "x@y.com",
+      customerName: "Jane",
+      vehicleName: "v",
+      amountCents: 50000,
+      currency: "cad",
+      stripeSessionId: "cs_1",
+      isDeposit: false,
+    })
+    const customerCall = sendMock.mock.calls.find(([arg]) => arg.to === "x@y.com")
+    expect(customerCall?.[0].subject).toContain("Payment Confirmation")
+    expect(customerCall?.[0].html).toContain("arrange delivery")
   })
 })

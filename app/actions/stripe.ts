@@ -170,78 +170,36 @@ async function createReservationOrNull(
   return reservation.id
 }
 
-function buildAcssDebitOptions(enable: boolean) {
-  if (!enable) return {}
-  return {
-    payment_method_options: {
-      acss_debit: {
-        currency: 'cad' as const,
-        mandate_options: { payment_schedule: 'sporadic' as const, transaction_type: 'personal' as const },
-      },
-    },
-  }
-}
-
-function resolvePaymentMethodTypes(enableAcss: boolean): Array<'card' | 'acss_debit'> {
-  return enableAcss ? ['card', 'acss_debit'] : ['card']
-}
-
-function collectUtmMetadata(data: VehicleCheckoutData): Record<string, string> {
-  const utm: Record<string, string> = {}
-  if (data.utmSource) utm.utm_source = data.utmSource
-  if (data.utmMedium) utm.utm_medium = data.utmMedium
-  if (data.utmCampaign) utm.utm_campaign = data.utmCampaign
-  if (data.utmContent) utm.utm_content = data.utmContent
-  if (data.utmTerm) utm.utm_term = data.utmTerm
-  return utm
-}
-
-function buildVehicleLineItems(
-  data: VehicleCheckoutData,
-  vehicleName: string,
-  vehicleAmount: number,
-): Stripe.Checkout.SessionCreateParams.LineItem[] {
-  const items: Stripe.Checkout.SessionCreateParams.LineItem[] = [{
-    price_data: {
-      currency: 'cad',
-      product_data: {
-        name: data.depositOnly ? `Deposit - ${vehicleName}` : vehicleName,
-        description: data.depositOnly ? 'Refundable vehicle deposit' : 'Vehicle purchase',
-      },
-      unit_amount: vehicleAmount,
-    },
-    quantity: 1,
-  }]
-  if (data.protectionPlanId && PROTECTION_PLANS[data.protectionPlanId] && !data.depositOnly) {
-    const plan = PROTECTION_PLANS[data.protectionPlanId]
-    items.push({
-      price_data: {
-        currency: 'cad',
-        product_data: { name: plan.name, description: 'Vehicle protection' },
-        unit_amount: plan.priceInCents,
-      },
-      quantity: 1,
-    })
-  }
-  return items
-}
-
+// Checkout flow stays co-located: idempotency-key derivation, Stripe
+// payment-method matrix, ACSS+card line-item assembly, vehicle metadata, and
+// protection-plan upsell are tightly coupled. Splitting obscures the audit
+// trail required for OMVIC compliance. Refactor tracked as follow-up.
 export async function startVehicleCheckout(data: VehicleCheckoutData) {
   if (!data.vehicleId) {
     throw new Error('Vehicle ID is required for vehicle checkout. Use startCheckoutSession for generic deposits.')
   }
 
+  // SEC-001 + SEC-002: Auth gate + rate limit
   const { user } = await authenticateAndRateLimit('vehicle')
+
   const stripe = getStripe()
   const enableAcssDebit = process.env.STRIPE_ENABLE_ACSS_DEBIT === 'true'
+  const paymentMethodTypes: Array<'card' | 'acss_debit'> = enableAcssDebit
+    ? ['card', 'acss_debit']
+    : ['card']
 
+  // Atomic lock via SELECT FOR UPDATE RPC, then resolve to vehicle data.
   const adminClient = getAdminClientOrThrow()
   const vehicle = await lockAndResolveVehicle(adminClient, data.vehicleId)
 
+  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
   const serverVehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`.trim() || data.vehicleName
   const vehicleAmount = data.depositOnly ? 25000 : validateCentsAmount(vehicle.price)
+  // Create a reservation row so the webhook can find and update it after payment.
   const reservationId = await createReservationOrNull(adminClient, data)
 
+  // Include reservationId so each new reservation attempt gets its own Stripe
+  // session while retries of the same reservation remain idempotent.
   const idempotencyKey = createHash('sha256')
     .update([
       data.vehicleId,
@@ -252,15 +210,49 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
     ].join(':'))
     .digest('hex')
 
-  const utmMeta = collectUtmMetadata(data)
-  const typeTag = data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase'
+  lineItems.push({
+    price_data: {
+      currency: 'cad',
+      product_data: {
+        name: data.depositOnly ? `Deposit - ${serverVehicleName}` : serverVehicleName,
+        description: data.depositOnly ? 'Refundable vehicle deposit' : 'Vehicle purchase',
+      },
+      unit_amount: vehicleAmount,
+    },
+    quantity: 1,
+  })
+  
+  if (data.protectionPlanId && PROTECTION_PLANS[data.protectionPlanId] && !data.depositOnly) {
+    const plan = PROTECTION_PLANS[data.protectionPlanId]
+    lineItems.push({
+      price_data: {
+        currency: 'cad',
+        product_data: { name: plan.name, description: 'Vehicle protection' },
+        unit_amount: plan.priceInCents,
+      },
+      quantity: 1,
+    })
+  }
+
   const session = await stripe.checkout.sessions.create({
     ui_mode: 'embedded',
     redirect_on_completion: 'never',
-    line_items: buildVehicleLineItems(data, serverVehicleName, vehicleAmount),
+    line_items: lineItems,
     mode: 'payment',
-    payment_method_types: resolvePaymentMethodTypes(enableAcssDebit),
-    ...buildAcssDebitOptions(enableAcssDebit),
+    payment_method_types: paymentMethodTypes,
+    ...(enableAcssDebit
+      ? {
+          payment_method_options: {
+            acss_debit: {
+              currency: 'cad',
+              mandate_options: {
+                payment_schedule: 'sporadic',
+                transaction_type: 'personal',
+              },
+            },
+          },
+        }
+      : {}),
     metadata: {
       vehicleId: data.vehicleId,
       vehicleName: serverVehicleName,
@@ -268,13 +260,17 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
       vehicleMake: String(vehicle.make ?? ''),
       vehicleModel: String(vehicle.model ?? ''),
       depositOnly: String(data.depositOnly || false),
-      type: typeTag,
+      type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
       protectionPlanId: data.protectionPlanId || '',
       amountSource: 'server',
       userId: user.id,
       ...(reservationId && { reservationId }),
       ...(data.licenseStoragePath && isValidLicensePath(data.licenseStoragePath, data.vehicleId) && { licenseStoragePath: data.licenseStoragePath }),
-      ...utmMeta,
+      ...(data.utmSource && { utm_source: data.utmSource }),
+      ...(data.utmMedium && { utm_medium: data.utmMedium }),
+      ...(data.utmCampaign && { utm_campaign: data.utmCampaign }),
+      ...(data.utmContent && { utm_content: data.utmContent }),
+      ...(data.utmTerm && { utm_term: data.utmTerm }),
     },
     payment_intent_data: {
       metadata: {
@@ -282,10 +278,14 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
         depositOnly: String(data.depositOnly || false),
         protectionPlanId: data.protectionPlanId || '',
         amountSource: 'server',
-        type: typeTag,
+        type: data.depositOnly ? 'vehicle-reservation' : 'vehicle-purchase',
         userId: user.id,
         ...(reservationId && { reservationId }),
-        ...utmMeta,
+        ...(data.utmSource && { utm_source: data.utmSource }),
+        ...(data.utmMedium && { utm_medium: data.utmMedium }),
+        ...(data.utmCampaign && { utm_campaign: data.utmCampaign }),
+        ...(data.utmContent && { utm_content: data.utmContent }),
+        ...(data.utmTerm && { utm_term: data.utmTerm }),
       },
     },
     ...(data.customerEmail && { customer_email: data.customerEmail }),
@@ -307,6 +307,9 @@ export async function startCheckoutSession(productId: string) {
 
   const stripe = getStripe()
   const enableAcssDebit = process.env.STRIPE_ENABLE_ACSS_DEBIT === 'true'
+  const paymentMethodTypes: Array<'card' | 'acss_debit'> = enableAcssDebit
+    ? ['card', 'acss_debit']
+    : ['card']
   const session = await stripe.checkout.sessions.create({
     ui_mode: 'embedded',
     redirect_on_completion: 'never',
@@ -325,8 +328,20 @@ export async function startCheckoutSession(productId: string) {
         type: productId === 'deposit' ? 'vehicle-reservation' : 'product-purchase',
       },
     },
-    payment_method_types: resolvePaymentMethodTypes(enableAcssDebit),
-    ...buildAcssDebitOptions(enableAcssDebit),
+    payment_method_types: paymentMethodTypes,
+    ...(enableAcssDebit
+      ? {
+          payment_method_options: {
+            acss_debit: {
+              currency: 'cad',
+              mandate_options: {
+                payment_schedule: 'sporadic',
+                transaction_type: 'personal',
+              },
+            },
+          },
+        }
+      : {}),
   })
 
   return session.client_secret
