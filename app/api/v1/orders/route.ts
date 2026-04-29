@@ -157,6 +157,51 @@ async function claimVehicleOrError(adminClient: AdminClient, vehicleId: string, 
   }
 }
 
+interface OrderPricing {
+  vehiclePriceCents: number
+  documentationFeeCents: number
+  omvicFeeCents: number
+  deliveryFeeCents: number
+  protectionPlanFeeCents: number
+  taxRate: number
+  subtotalCents: number
+  taxAmountCents: number
+  totalBeforeCreditsCents: number
+  tradeInCreditCents: number
+  downPaymentCents: number
+  totalCreditsCents: number
+  totalPriceCents: number
+  amountFinancedCents: number
+}
+
+function computeOrderPricing(
+  vehiclePrice: number,
+  protectionPlanId: string | undefined,
+  downPayment: unknown,
+  paymentMethod: string,
+  taxInfo: { total: number },
+): OrderPricing {
+  const vehiclePriceCents = validateCentsAmount(vehiclePrice)
+  const documentationFeeCents = 49900
+  const omvicFeeCents = 1000
+  const deliveryFeeCents = 0
+  const protectionPlanFeeCents = protectionPlanId ? (PROTECTION_PLAN_PRICES_CENTS[String(protectionPlanId)] || 0) : 0
+  const taxRate = taxInfo.total
+  const subtotalCents = vehiclePriceCents + documentationFeeCents + omvicFeeCents + deliveryFeeCents + protectionPlanFeeCents
+  const taxAmountCents = Math.round(subtotalCents * taxRate)
+  const totalBeforeCreditsCents = subtotalCents + taxAmountCents
+  const tradeInCreditCents = 0
+  const downPaymentCents = parseDollarsToCents(downPayment)
+  const totalCreditsCents = tradeInCreditCents + downPaymentCents
+  const totalPriceCents = Math.max(0, totalBeforeCreditsCents - totalCreditsCents)
+  const amountFinancedCents = paymentMethod === 'financing' ? totalPriceCents : 0
+  return {
+    vehiclePriceCents, documentationFeeCents, omvicFeeCents, deliveryFeeCents,
+    protectionPlanFeeCents, taxRate, subtotalCents, taxAmountCents, totalBeforeCreditsCents,
+    tradeInCreditCents, downPaymentCents, totalCreditsCents, totalPriceCents, amountFinancedCents,
+  }
+}
+
 async function rollbackVehicleStatus(adminClient: AdminClient, vehicleId: string, previousStatus: string): Promise<void> {
   await adminClient
     .from('vehicles')
@@ -201,9 +246,9 @@ export async function POST(request: NextRequest) {
   if (!claimResult.ok) return claimResult.res
   const vehicle = claimResult.vehicle
   const currentVehicleStatus = vehicle.status
-  const vehiclePriceCents = validateCentsAmount(vehicle.price)
+  const pricing = computeOrderPricing(vehicle.price, protectionPlanId, downPayment, paymentMethod, taxInfo)
 
-  if (vehiclePriceCents <= 0) {
+  if (pricing.vehiclePriceCents <= 0) {
     await rollbackVehicleStatus(adminClient, vehicleId, currentVehicleStatus)
     return NextResponse.json(
       { success: false, error: { code: 'INVALID_VEHICLE', message: 'Vehicle does not have a valid price' } },
@@ -211,25 +256,11 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const documentationFeeCents = 49900
-  const omvicFeeCents = 1000
-  // Delivery fee is currently waived for all delivery types.
-  const deliveryFeeCents = 0
-  const protectionPlanFeeCents = protectionPlanId ? (PROTECTION_PLAN_PRICES_CENTS[String(protectionPlanId)] || 0) : 0
-  // taxInfo.total is the full decimal rate (e.g. 0.14975 for QC).
-  // taxAmountCents and the stored/returned taxRate both derive from it directly
-  // so that taxRate * subtotal always equals taxAmount with no rounding disagreement.
-  const taxRate = taxInfo.total  // e.g. 0.13, 0.14975
-
-  const subtotalCents = vehiclePriceCents + documentationFeeCents + omvicFeeCents + deliveryFeeCents + protectionPlanFeeCents
-  const taxAmountCents = Math.round(subtotalCents * taxRate)
-  const totalBeforeCreditsCents = subtotalCents + taxAmountCents
-
-  const tradeInCreditCents = 0
-  const downPaymentCents = parseDollarsToCents(downPayment)
-  const totalCreditsCents = tradeInCreditCents + downPaymentCents
-  const totalPriceCents = Math.max(0, totalBeforeCreditsCents - totalCreditsCents)
-  const amountFinancedCents = paymentMethod === 'financing' ? totalPriceCents : 0
+  const {
+    vehiclePriceCents, documentationFeeCents, omvicFeeCents, deliveryFeeCents,
+    protectionPlanFeeCents, taxRate, subtotalCents, taxAmountCents, totalBeforeCreditsCents,
+    tradeInCreditCents, downPaymentCents, totalCreditsCents, totalPriceCents, amountFinancedCents,
+  } = pricing
 
   const orderNumber = generateOrderNumber()
   const nowIso = new Date().toISOString()

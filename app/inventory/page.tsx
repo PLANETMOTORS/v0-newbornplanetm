@@ -212,13 +212,17 @@ function applyFilterParams(params: URLSearchParams, f: FilterState) {
   if (f.searchQuery.trim()) params.set('q', f.searchQuery.trim())
 }
 
-/**
- * Render the interactive vehicle inventory page with search, filters, sorting, pagination, favorites, and optional trade-in integration.
- *
- * This component maintains UI state (search input/debounced query, filters, sort, view mode, ranges, EV-only toggle), builds the server API URL from those filters, fetches paginated vehicles via SWR, transforms and accumulates pages for a "Load More" pattern, synchronizes initial filter state from URL query parameters (resetting filters first when URL-provided filters exist), and exposes actions for favoriting, clearing filters, and applying trade-in values. It also handles loading and error UI states and renders the vehicle grid/list, filter controls, quick stats, and compliance footer.
- *
- * @returns The inventory page JSX element ready for rendering.
- */
+function parseTradeInFromParams(params: URLSearchParams) {
+  const tradeIn = params.get("tradeIn")
+  if (!tradeIn || Number.parseInt(tradeIn) <= 0) return null
+  const tradeInVehicle = params.get("tradeInVehicle")
+  return {
+    value: Number.parseInt(tradeIn),
+    quoteId: params.get("quoteId") || '',
+    vehicle: tradeInVehicle ? decodeURIComponent(tradeInVehicle) : '',
+  }
+}
+
 function InventoryContent() {
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState("")
@@ -395,15 +399,8 @@ function InventoryContent() {
       transmission: searchParams.get("transmission"),
       urlQuery: searchParams.get("q"),
     }
-    const tradeIn = searchParams.get("tradeIn")
-    if (tradeIn && Number.parseInt(tradeIn) > 0) {
-      const tradeInVehicle = searchParams.get("tradeInVehicle")
-      setTradeInInfo({
-        value: Number.parseInt(tradeIn),
-        quoteId: searchParams.get("quoteId") || '',
-        vehicle: tradeInVehicle ? decodeURIComponent(tradeInVehicle) : '',
-      })
-    }
+    const tradeInInfo = parseTradeInFromParams(searchParams)
+    if (tradeInInfo) setTradeInInfo(tradeInInfo)
     if (Object.values(params).some(Boolean)) resetFiltersToDefaults()
     applyUrlFilters(params)
   }, [searchParams, resetFiltersToDefaults, applyUrlFilters])

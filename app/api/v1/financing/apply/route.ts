@@ -49,6 +49,21 @@ function validateApplyPayload(body: any) {
   return null
 }
 
+async function validateVehicleIfPresent(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  vehicleId: string | undefined,
+) {
+  if (!vehicleId) return null
+  const { data: vehicle, error: vehicleError } = await supabase
+    .from('vehicles')
+    .select('id, status')
+    .eq('id', vehicleId)
+    .maybeSingle()
+  if (vehicleError) return jsonError('DB_ERROR', vehicleError.message, 500)
+  if (!vehicle) return jsonError('NOT_FOUND', 'Vehicle not found', 404)
+  return null
+}
+
 // POST /api/v1/financing/apply - Full application submission (review pipeline)
 export async function POST(request: NextRequest) {
   try {
@@ -112,15 +127,8 @@ export async function POST(request: NextRequest) {
     }
     const effectiveCustomerId = customerId || user.id
 
-    if (vehicleId) {
-      const { data: vehicle, error: vehicleError } = await supabase
-        .from('vehicles')
-        .select('id, status')
-        .eq('id', vehicleId)
-        .maybeSingle()
-      if (vehicleError) return jsonError('DB_ERROR', vehicleError.message, 500)
-      if (!vehicle) return jsonError('NOT_FOUND', 'Vehicle not found', 404)
-    }
+    const vehicleCheckError = await validateVehicleIfPresent(supabase, vehicleId)
+    if (vehicleCheckError) return vehicleCheckError
 
     const applicationNumber = generateApplicationNumber()
     const submittedAt = new Date().toISOString()

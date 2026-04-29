@@ -13,6 +13,54 @@ type DeliveryRow = {
   created_at: string | null
 }
 
+async function lookupOrder(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  orderId: string,
+  userId: string,
+) {
+  const normalizedOrderId = String(orderId).trim()
+  const orderIdIsUuid = /^[0-9a-fA-F-]{36}$/.test(normalizedOrderId)
+  let orderQuery = supabase
+    .from("orders")
+    .select("id, order_number, customer_id, vehicle_id")
+    .eq("customer_id", userId)
+    .limit(1)
+  orderQuery = orderIdIsUuid
+    ? orderQuery.eq("id", normalizedOrderId)
+    : orderQuery.eq("order_number", normalizedOrderId)
+  const { data: orderRows, error: orderError } = await orderQuery
+  if (orderError) return { error: apiError(ErrorCode.INTERNAL_ERROR, "Failed to schedule delivery") as ReturnType<typeof apiError> }
+  const order = orderRows?.[0]
+  if (!order) return { error: apiError(ErrorCode.NOT_FOUND, "Order not found", 404) as ReturnType<typeof apiError> }
+  return { order }
+}
+
+async function checkExistingDelivery(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  orderId: string,
+  scheduledDate: string,
+  normalizedTimeSlot: string | null,
+  orderRef: string,
+) {
+  const { data: existingRows, error: existingError } = await supabase
+    .from("deliveries")
+    .select("id, status, scheduled_date, scheduled_time_slot, estimated_delivery_date, distance_km, delivery_fee, created_at")
+    .eq("order_id", orderId)
+    .in("status", ["pending", "scheduled", "preparing", "in_transit", "out_for_delivery"])
+    .order("created_at", { ascending: false })
+    .limit(1)
+  if (existingError) return { error: apiError(ErrorCode.INTERNAL_ERROR, "Failed to schedule delivery") as ReturnType<typeof apiError> }
+  const existing = existingRows?.[0]
+  if (!existing) return null
+  const isSameSchedule =
+    String(existing.scheduled_date || "") === String(scheduledDate) &&
+    String(existing.scheduled_time_slot || "") === String(normalizedTimeSlot || "")
+  if (isSameSchedule) {
+    return { response: apiSuccess(toDeliveryDto(existing as DeliveryRow, orderRef, { idempotentReplay: true })) as ReturnType<typeof apiSuccess> }
+  }
+  return { error: apiError(ErrorCode.VALIDATION_ERROR, "An active delivery already exists for this order", 409) as ReturnType<typeof apiError> }
+}
+
 function toDeliveryDto(
   row: DeliveryRow,
   orderRef: string,
@@ -63,57 +111,19 @@ export async function POST(request: NextRequest) {
     const estimatedDistanceKm = Number(quote.distanceKm || 0)
     const deliveryCost = Number(quote.deliveryCost || 0)
 
-    const normalizedOrderId = String(orderId).trim()
-    const orderIdIsUuid = /^[0-9a-fA-F-]{36}$/.test(normalizedOrderId)
     const normalizedPostal = String(destinationPostalCode).trim().toUpperCase()
     const normalizedTimeSlot = typeof timeSlot === "string" ? timeSlot.trim() : null
 
-    let orderQuery = supabase
-      .from("orders")
-      .select("id, order_number, customer_id, vehicle_id")
-      .eq("customer_id", user.id)
-      .limit(1)
-
-    orderQuery = orderIdIsUuid
-      ? orderQuery.eq("id", normalizedOrderId)
-      : orderQuery.eq("order_number", normalizedOrderId)
-
-    const { data: orderRows, error: orderError } = await orderQuery
-    if (orderError) {
-      return apiError(ErrorCode.INTERNAL_ERROR, "Failed to schedule delivery")
-    }
-
-    const order = orderRows?.[0]
-    if (!order) {
-      return apiError(ErrorCode.NOT_FOUND, "Order not found", 404)
-    }
+    const orderResult = await lookupOrder(supabase, orderId, user.id)
+    if ('error' in orderResult) return orderResult.error
+    const { order } = orderResult
 
     if (vehicleId && order.vehicle_id && vehicleId !== order.vehicle_id) {
       return apiError(ErrorCode.VALIDATION_ERROR, "Vehicle does not match order", 409)
     }
 
-    const { data: existingRows, error: existingError } = await supabase
-      .from("deliveries")
-      .select("id, status, scheduled_date, scheduled_time_slot, estimated_delivery_date, distance_km, delivery_fee, created_at")
-      .eq("order_id", order.id)
-      .in("status", ["pending", "scheduled", "preparing", "in_transit", "out_for_delivery"])
-      .order("created_at", { ascending: false })
-      .limit(1)
-
-    if (existingError) {
-      return apiError(ErrorCode.INTERNAL_ERROR, "Failed to schedule delivery")
-    }
-
-    const existing = existingRows?.[0]
-    if (existing) {
-      const isSameSchedule =
-        String(existing.scheduled_date || "") === String(scheduledDate) &&
-        String(existing.scheduled_time_slot || "") === String(normalizedTimeSlot || "")
-      if (isSameSchedule) {
-        return apiSuccess(toDeliveryDto(existing as DeliveryRow, order.order_number || order.id, { idempotentReplay: true }))
-      }
-      return apiError(ErrorCode.VALIDATION_ERROR, "An active delivery already exists for this order", 409)
-    }
+    const existingCheck = await checkExistingDelivery(supabase, order.id, scheduledDate, normalizedTimeSlot, order.order_number || order.id)
+    if (existingCheck) return 'response' in existingCheck ? existingCheck.response : existingCheck.error
 
     const notes = [
       `Destination postal code: ${normalizedPostal}`,
