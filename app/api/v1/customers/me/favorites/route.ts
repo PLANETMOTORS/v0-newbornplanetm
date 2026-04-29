@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
 import { getAuthenticatedUser, getProfileField } from "@/lib/api/auth-helpers"
 
 // GET /api/v1/customers/me/favorites - Get customer's favorite vehicles
