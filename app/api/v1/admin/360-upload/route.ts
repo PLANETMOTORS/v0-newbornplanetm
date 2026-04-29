@@ -29,6 +29,32 @@ function buildUploadMessage(input: UploadMessageInput): string {
   return `Successfully uploaded ${uploaded.length} frames for ${vehicleName}`
 }
 
+async function uploadFrames(
+  adminClient: ReturnType<typeof createAdminClient>,
+  mid: string,
+  frames: File[],
+): Promise<{ uploaded: string[]; errors: string[] }> {
+  const uploaded: string[] = []
+  const errors: string[] = []
+  for (let i = 0; i < frames.length; i++) {
+    const frame = frames[i]
+    const padded = String(i + 1).padStart(2, "0")
+    const storagePath = `${mid}/nobg/${padded}.webp`
+    const arrayBuffer = await frame.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    const { error } = await adminClient.storage
+      .from(BUCKET)
+      .upload(storagePath, buffer, { contentType: "image/webp", upsert: true })
+    if (error) {
+      errors.push(`Frame ${padded}: ${error.message}`)
+    } else {
+      const { data: urlData } = adminClient.storage.from(BUCKET).getPublicUrl(storagePath)
+      uploaded.push(urlData.publicUrl)
+    }
+  }
+  return { uploaded, errors }
+}
+
 async function requireAdminUser() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -117,33 +143,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const uploaded: string[] = []
-  const errors: string[] = []
-
-  for (let i = 0; i < frames.length; i++) {
-    const frame = frames[i]
-    const padded = String(i + 1).padStart(2, "0")
-    const storagePath = `${mid}/nobg/${padded}.webp`
-
-    const arrayBuffer = await frame.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-
-    const { error } = await adminClient.storage
-      .from(BUCKET)
-      .upload(storagePath, buffer, {
-        contentType: "image/webp",
-        upsert: true,
-      })
-
-    if (error) {
-      errors.push(`Frame ${padded}: ${error.message}`)
-    } else {
-      const { data: urlData } = adminClient.storage
-        .from(BUCKET)
-        .getPublicUrl(storagePath)
-      uploaded.push(urlData.publicUrl)
-    }
-  }
+  const { uploaded, errors } = await uploadFrames(adminClient, mid, frames)
 
   const allFailed = uploaded.length === 0 && errors.length > 0
 

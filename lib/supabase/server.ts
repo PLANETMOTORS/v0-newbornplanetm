@@ -48,7 +48,7 @@ export async function createClient() {
       ),
   }
 
-  return createServerClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  return createServerClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, { // NOSONAR S1874 — cookies adapter is typed CookieMethodsServer (non-deprecated overload)
     cookies: cookieAdapter,
   })
 }

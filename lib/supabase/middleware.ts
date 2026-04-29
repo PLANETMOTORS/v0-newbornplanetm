@@ -72,7 +72,7 @@ export async function updateSession(request: NextRequest) {
     },
   }
 
-  const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+  const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, { // NOSONAR S1874 — cookies adapter is typed CookieMethodsServer (non-deprecated overload)
     cookies: cookieAdapter,
   })
 

@@ -507,6 +507,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                      keyboard users can navigate the same way mouse users do. */
                   <section
                     data-testid="vdp-image-gallery"
+                    role="toolbar"
                     tabIndex={0}
                     aria-label="Vehicle image gallery — use left/right arrow keys to navigate"
                     onKeyDown={(e) => {

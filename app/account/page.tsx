@@ -79,6 +79,36 @@ function renderNotificationButtonContent(isLoading: boolean, isEnabled: boolean)
   return 'Enable'
 }
 
+interface FinanceDraft {
+  id: string
+  vehicle_id: string | null
+  form_data: Record<string, unknown>
+  updated_at: string
+}
+
+interface FinanceApp {
+  id: string
+  status: string
+  agreement_type: string
+  requested_amount: number | null
+  estimated_payment: number | null
+  created_at: string
+  vehicle_id: string | null
+  finance_applicants?: Array<{ first_name: string; last_name: string }>
+}
+
+async function fetchPriceAlertsData(userEmail: string) {
+  const res = await fetch(`/api/alerts?email=${encodeURIComponent(userEmail)}`)
+  if (!res.ok) return null
+  return res.json()
+}
+
+async function fetchJsonData(url: string) {
+  const res = await fetch(url)
+  if (!res.ok) return null
+  return res.json()
+}
+
 export default function AccountPage() {
   const { user, isLoading: isAuthLoading, signOut } = useAuth()
   const { favorites, removeFavorite } = useFavorites()
@@ -104,26 +134,10 @@ export default function AccountPage() {
   const [deleteError, setDeleteError] = useState("")
 
   // Finance application drafts
-  interface FinanceDraft {
-    id: string
-    vehicle_id: string | null
-    form_data: Record<string, unknown>
-    updated_at: string
-  }
   const [financeDrafts, setFinanceDrafts] = useState<FinanceDraft[]>([])
   const [draftsLoading, setDraftsLoading] = useState(false)
 
   // Finance applications (submitted)
-  interface FinanceApp {
-    id: string
-    status: string
-    agreement_type: string
-    requested_amount: number | null
-    estimated_payment: number | null
-    created_at: string
-    vehicle_id: string | null
-    finance_applicants?: Array<{ first_name: string; last_name: string }>
-  }
   const [financeApps, setFinanceApps] = useState<FinanceApp[]>([])
   const [appsLoading, setAppsLoading] = useState(false)
 
@@ -132,47 +146,32 @@ export default function AccountPage() {
     if (!user?.email) return
 
     const userEmail = user.email
-    const fetchPriceAlerts = async () => {
-      setAlertsLoading(true)
-      try {
-        const res = await fetch(`/api/alerts?email=${encodeURIComponent(userEmail)}`)
-        if (!res.ok) return
-        const data = await res.json()
-        setPriceAlerts(data.alerts || [])
-        const hasDropAlerts = (data.alerts || []).some((a: PriceAlert) => a.notify_price_drops && a.is_active)
-        const hasNewAlerts = (data.alerts || []).some((a: PriceAlert) => a.notify_new_listings && a.is_active)
-        setPriceDropEnabled(hasDropAlerts)
-        setNewInventoryEnabled(hasNewAlerts)
-      } catch { /* silent */ } finally {
-        setAlertsLoading(false)
+    setAlertsLoading(true)
+    try {
+      const data = await fetchPriceAlertsData(userEmail)
+      if (data) {
+        const alerts: PriceAlert[] = data.alerts || []
+        setPriceAlerts(alerts)
+        setPriceDropEnabled(alerts.some((a) => a.notify_price_drops && a.is_active))
+        setNewInventoryEnabled(alerts.some((a) => a.notify_new_listings && a.is_active))
       }
-    }
-    const fetchFinanceDrafts = async () => {
-      setDraftsLoading(true)
-      try {
-        const res = await fetch("/api/v1/financing/drafts")
-        if (res.ok) {
-          const data = await res.json()
-          setFinanceDrafts(data.data || [])
-        }
-      } catch { /* silent */ }
-      setDraftsLoading(false)
-    }
-    const fetchFinanceApps = async () => {
-      setAppsLoading(true)
-      try {
-        const res = await fetch("/api/v1/financing/applications")
-        if (res.ok) {
-          const data = await res.json()
-          setFinanceApps(data.data || [])
-        }
-      } catch { /* silent */ }
-      setAppsLoading(false)
+    } catch { /* silent */ } finally {
+      setAlertsLoading(false)
     }
 
-    await fetchPriceAlerts()
-    await fetchFinanceDrafts()
-    await fetchFinanceApps()
+    setDraftsLoading(true)
+    try {
+      const data = await fetchJsonData("/api/v1/financing/drafts")
+      if (data) setFinanceDrafts(data.data || [])
+    } catch { /* silent */ }
+    setDraftsLoading(false)
+
+    setAppsLoading(true)
+    try {
+      const data = await fetchJsonData("/api/v1/financing/applications")
+      if (data) setFinanceApps(data.data || [])
+    } catch { /* silent */ }
+    setAppsLoading(false)
   }, [user?.email])
 
   useEffect(() => {

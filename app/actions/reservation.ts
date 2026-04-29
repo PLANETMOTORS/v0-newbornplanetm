@@ -104,14 +104,44 @@ function mapReservationError(error: unknown): string {
   return 'An unexpected error occurred. Please try again.'
 }
 
+function bootAdminClientOrError(): ReturnType<typeof createAdminClient> | string {
+  try {
+    return createAdminClient()
+  } catch (e) {
+    console.error('Admin client not configured — SUPABASE_SERVICE_ROLE_KEY is required for reservation RPC:', e)
+    return 'Service configuration error. Please try again later.'
+  }
+}
+
+async function createStripeSessionWithFallback(
+  stripe: ReturnType<typeof getStripe>,
+  params: (includeAcss: boolean) => Record<string, unknown>,
+  enableAcss: boolean,
+  idempotencyKey: string,
+) {
+  try {
+    return await stripe.checkout.sessions.create(params(enableAcss), { idempotencyKey })
+  } catch (sessionError) {
+    const stripeErrorCode = getStructuredErrorCode(sessionError)
+    const msg = sessionError instanceof Error ? sessionError.message.toLowerCase() : ''
+    const canRetryCardOnly =
+      enableAcss &&
+      (stripeErrorCode === 'payment_method_not_available' ||
+        stripeErrorCode === 'payment_method_invalid_parameter' ||
+        msg.includes('acss') ||
+        msg.includes('payment_method_options'))
+    if (!canRetryCardOnly) throw sessionError
+    console.warn('ACSS checkout session failed, retrying with card only', { errorCode: stripeErrorCode || undefined, error: msg })
+    return stripe.checkout.sessions.create(params(false), { idempotencyKey: `${idempotencyKey}:card-only` })
+  }
+}
+
 export async function createReservation(input: ReservationInput): Promise<ReservationResult> {
   const rateLimitScopeHash = await buildRateLimitScope(input.customerEmail)
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   
-  // Rate limit: 12 reservation attempts per hour per user+network scope.
-  // This avoids blocking legitimate retries from shared proxy IPs while still curbing abuse.
   const rateLimitResult = await rateLimit(`reservation:${rateLimitScopeHash}`, 12, 3600)
   if (!rateLimitResult.success) {
     return { 
@@ -120,36 +150,26 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
     }
   }
 
-  // Acquire Redis lock as a fast distributed mutex (defense-in-depth).
-  // The real serialization happens in the DB via SELECT FOR UPDATE.
   const locked = await lockVehicle(input.stockNumber, input.customerEmail)
   if (!locked) {
     return { error: 'This vehicle is currently being reserved by another customer. Please try again.' }
   }
 
-  // Get Stripe instance
   const stripe = getStripe()
 
   try {
-    // Get product for $250 reservation
     const product = getProductById('vehicle-reservation')
     if (!product) {
       await unlockVehicle(input.stockNumber, input.customerEmail)
       return { error: 'Reservation product not found.' }
     }
 
-    // --- ATOMIC claim via DB-level SELECT FOR UPDATE ---
-    // This replaces the old TOCTOU pattern (read status → check → insert) with a
-    // single RPC call that locks the vehicle row, checks status, checks for
-    // conflicting reservations, and inserts/reuses a reservation — all in one TX.
-    let adminClient: ReturnType<typeof createAdminClient>
-    try {
-      adminClient = createAdminClient()
-    } catch (e) {
-      console.error('Admin client not configured — SUPABASE_SERVICE_ROLE_KEY is required for reservation RPC:', e)
+    const adminClientOrError = bootAdminClientOrError()
+    if (typeof adminClientOrError === 'string') {
       await unlockVehicle(input.stockNumber, input.customerEmail)
-      return { error: 'Service configuration error. Please try again later.' }
+      return { error: adminClientOrError }
     }
+    const adminClient = adminClientOrError
 
     const { data: claimResult, error: claimError } = await adminClient
       .rpc('claim_vehicle_for_reservation', {
@@ -256,38 +276,9 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       expires_at: Math.floor(Date.now() / 1000) + 900, // 15 minutes
     })
 
-    let session
-    try {
-      session = await stripe.checkout.sessions.create(createSessionParams(enableAcssDebit), {
-        idempotencyKey,
-      })
-    } catch (sessionError) {
-      const stripeErrorCode = getStructuredErrorCode(sessionError)
-      const sessionErrorMessage = sessionError instanceof Error ? sessionError.message.toLowerCase() : ''
-      const canRetryCardOnly =
-        enableAcssDebit &&
-        (
-          stripeErrorCode === 'payment_method_not_available' ||
-          stripeErrorCode === 'payment_method_invalid_parameter' ||
-          sessionErrorMessage.includes('acss') ||
-          sessionErrorMessage.includes('payment_method_options')
-        )
-
-      if (!canRetryCardOnly) {
-        throw sessionError
-      }
-
-      console.warn('ACSS checkout session failed, retrying with card only', {
-        reservationId,
-        stockNumber: input.stockNumber,
-        errorCode: stripeErrorCode || undefined,
-        error: sessionErrorMessage,
-      })
-
-      session = await stripe.checkout.sessions.create(createSessionParams(false), {
-        idempotencyKey: `${idempotencyKey}:card-only`,
-      })
-    }
+    const session = await createStripeSessionWithFallback(
+      stripe, createSessionParams, enableAcssDebit, idempotencyKey,
+    )
 
     const { error: updateError } = await supabase
       .from('reservations')
