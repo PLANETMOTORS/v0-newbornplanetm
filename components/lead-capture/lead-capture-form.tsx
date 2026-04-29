@@ -5,18 +5,15 @@
  *
  * Analytics coverage (all fire on successful submission):
  *
- *  1. Meta Pixel (browser)  — globalThis.fbq('track', 'Lead')
- *     via trackMetaLead() from @/components/analytics/meta-pixel
- *
- *  2. GTM dataLayer (browser) — event: 'generate_lead' + form_name
+ *  1. GTM dataLayer (browser) — event: 'generate_lead' + form_name
  *     via trackFormSubmission() from @/components/analytics/google-tag-manager
  *
- *  3. GA4 (browser) — gtag('event', 'generate_lead', {...})
+ *  2. GA4 (browser) — gtag('event', 'generate_lead', {...})
  *     via trackLead() from @/components/analytics/google-analytics
  *
- *  4. Meta CAPI (server-side) — Lead event sent directly to Meta Graph API
+ *  3. Meta CAPI (server-side) — Lead event sent directly to Meta Graph API
  *     via /api/contact route which calls lib/meta-capi-helpers trackLead()
- *     This fires even when the browser pixel is blocked by ad blockers.
+ *     This fires server-side, immune to ad blockers.
  *
  * Usage:
  *   <LeadCaptureForm
@@ -39,7 +36,6 @@ import {
 } from "@/lib/validation"
 import { trackFormSubmission, pushToDataLayer } from "@/components/analytics/google-tag-manager"
 import { trackLead } from "@/components/analytics/google-analytics"
-import { trackMetaLead } from "@/components/analytics/meta-pixel"
 import { logger } from "@/lib/logger"
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -191,11 +187,7 @@ export function LeadCaptureForm({
       // 2. GA4 — gtag generate_lead event
       trackLead(formName, vehicleId)
 
-      // 3. Meta Pixel — globalThis.fbq('track', 'Lead')
-      //    Fires even if CAPI is blocked; CAPI already fired server-side above.
-      trackMetaLead(formName)
-
-      // 4. Additional dataLayer push with richer context for GTM custom tags
+      // 3. Additional dataLayer push with richer context for GTM custom tags
       pushToDataLayer({
         event: "lead_captured",
         form_name: formName,

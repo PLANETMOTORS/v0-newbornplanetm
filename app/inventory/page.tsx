@@ -23,7 +23,6 @@ import { useFavorites } from "@/contexts/favorites-context"
 import { InventoryPageJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
 import { PriceAlertModal } from "@/components/price-alert-modal"
 import { trackAddToWishlist } from "@/components/analytics/google-analytics"
-import { trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
 import { safeNum } from "@/lib/pricing/format"
 import { randomInt } from "@/lib/util/random"
 
@@ -432,7 +431,6 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
     } else {
       const name = `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`
       trackAddToWishlist({ id: vehicleData.id, name, price: vehicleData.price })
-      trackMetaAddToWishlist({ id: vehicleData.id, name, price: vehicleData.price })
       addFavorite({
         id: vehicleData.id,
         year: vehicleData.year,
