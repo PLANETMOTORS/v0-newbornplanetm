@@ -37,8 +37,14 @@ const MAX_URLS_PER_REQUEST = 10_000
 /** Network timeout — IndexNow normally responds in < 1s. */
 const REQUEST_TIMEOUT_MS = 5_000
 
-/** Minimum key length per IndexNow spec (8 chars). */
+/** Minimum key length per IndexNow spec. */
 const MIN_KEY_LENGTH = 8
+
+/** Maximum key length per IndexNow spec. */
+const MAX_KEY_LENGTH = 128
+
+/** Allowed charset per IndexNow spec: alphanumeric only. */
+const VALID_KEY_RE = /^[a-zA-Z0-9]+$/
 
 export interface PingResult {
   /** True when IndexNow accepted the request (HTTP 200/202). */
@@ -53,12 +59,19 @@ export interface PingResult {
 
 function getKey(): string | undefined {
   const key = process.env.INDEXNOW_KEY
-  if (!key || key.length < MIN_KEY_LENGTH) return undefined
+  if (
+    !key ||
+    key.length < MIN_KEY_LENGTH ||
+    key.length > MAX_KEY_LENGTH ||
+    !VALID_KEY_RE.test(key)
+  )
+    return undefined
   return key
 }
 
 /**
- * Returns true when INDEXNOW_KEY is set with a valid-length value.
+ * Returns true when INDEXNOW_KEY is set with a valid key: 8–128 alphanumeric
+ * characters, matching the IndexNow spec.
  *
  * Exported for diagnostics (`/api/health` extension, deploy checks).
  */

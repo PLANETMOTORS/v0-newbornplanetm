@@ -52,8 +52,26 @@ describe("lib/seo/indexnow", () => {
       expect(mod.isIndexNowConfigured()).toBe(false)
     })
 
+    it("returns false when INDEXNOW_KEY exceeds 128 characters", async () => {
+      process.env[KEY_ENV] = "a".repeat(129)
+      const mod = await import("@/lib/seo/indexnow")
+      expect(mod.isIndexNowConfigured()).toBe(false)
+    })
+
+    it("returns false when INDEXNOW_KEY contains non-alphanumeric characters", async () => {
+      process.env[KEY_ENV] = "abc-def_12"
+      const mod = await import("@/lib/seo/indexnow")
+      expect(mod.isIndexNowConfigured()).toBe(false)
+    })
+
     it("returns true when INDEXNOW_KEY meets the minimum length", async () => {
       process.env[KEY_ENV] = "abcdef12"
+      const mod = await import("@/lib/seo/indexnow")
+      expect(mod.isIndexNowConfigured()).toBe(true)
+    })
+
+    it("returns true when INDEXNOW_KEY is exactly 128 alphanumeric characters", async () => {
+      process.env[KEY_ENV] = "a".repeat(128)
       const mod = await import("@/lib/seo/indexnow")
       expect(mod.isIndexNowConfigured()).toBe(true)
     })

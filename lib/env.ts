@@ -61,7 +61,12 @@ const optionalServerSchema = z.object({
   // IndexNow — Bing/Yandex/etc. instant search-engine notifications.
   // Same value MUST be served at /<key>.txt at the site root. See
   // lib/seo/indexnow.ts for the full contract.
-  INDEXNOW_KEY: z.string().min(8).optional(),
+  INDEXNOW_KEY: z
+    .string()
+    .min(8, "INDEXNOW_KEY must be at least 8 characters")
+    .max(128, "INDEXNOW_KEY must be at most 128 characters")
+    .regex(/^[a-zA-Z0-9]+$/, "INDEXNOW_KEY must only contain alphanumeric characters")
+    .optional(),
 
   NODE_ENV: z.enum(["development", "production", "test"]).optional(),
 })
