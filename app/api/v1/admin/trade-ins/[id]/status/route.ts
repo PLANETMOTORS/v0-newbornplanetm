@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { ADMIN_EMAILS } from "@/lib/admin"
+import { getAuthenticatedAdmin } from "@/lib/api/auth-helpers"
 
 // PATCH /api/v1/admin/trade-ins/[id]/status - Update trade-in quote status
 export async function PATCH(
@@ -9,12 +8,9 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params
-    const supabase = await createClient()
-
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const admin = await getAuthenticatedAdmin()
+    if (admin.error) return admin.error
+    const { supabase } = admin
 
     const body = await request.json()
     const { status } = body

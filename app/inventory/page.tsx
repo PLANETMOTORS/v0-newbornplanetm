@@ -219,12 +219,22 @@ function applyFilterParams(params: URLSearchParams, f: FilterState) {
  *
  * @returns The inventory page JSX element ready for rendering.
  */
-// Inventory page coordinates 13 filter dimensions, debounced search, URL-param
-// sync (with reset-then-apply semantics), Load-More pagination with filterKey-
-// based page reset, favorites, trade-in carry-over, and a SWR fetcher with
-// abort support. Tracked for hook-based refactor in a follow-up — see
-// PR #542 review (Qodo). The orchestration is intentionally co-located until
-// then so URL-param→filter→page-reset semantics stay in one place.
+interface ApiFilterData {
+  makes?: string[]
+  yearRange?: { min: number; max: number }
+  bodyStyles?: string[]
+}
+
+function deriveDynamicFilters(apiFilters?: ApiFilterData) {
+  const dynamicMakes = apiFilters?.makes?.length
+    ? ['All Makes', ...apiFilters.makes]
+    : ['All Makes']
+  const yr = apiFilters?.yearRange
+  const dynamicYears = yr
+    ? ['All Years', ...Array.from({ length: yr.max - yr.min + 1 }, (_, i) => String(yr.max - i))]
+    : ['All Years']
+  return { dynamicMakes, dynamicYears }
+}
 function InventoryContent() {
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState("")
@@ -326,15 +336,7 @@ function InventoryContent() {
 
   // Derive dropdown values from API response filters, falling back to sensible defaults
   const apiFilters = apiResponse?.data?.filters
-  const dynamicMakes = apiFilters?.makes?.length
-    ? ['All Makes', ...apiFilters.makes]
-    : ['All Makes']
-  const dynamicYears = apiFilters?.yearRange
-    ? ['All Years', ...Array.from({ length: apiFilters.yearRange.max - apiFilters.yearRange.min + 1 }, (_, i) => String(apiFilters.yearRange.max - i))]
-    : ['All Years']
-  const _dynamicBodyTypes = apiFilters?.bodyStyles?.length
-    ? ['All Body Types', ...apiFilters.bodyStyles]
-    : ['All Body Types']
+  const { dynamicMakes, dynamicYears } = deriveDynamicFilters(apiFilters)
 
   const resetFiltersToDefaults = useCallback(() => {
     setSelectedFuelType("All Fuel Types")

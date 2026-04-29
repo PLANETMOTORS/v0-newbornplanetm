@@ -210,11 +210,19 @@ async function rollbackVehicleStatus(adminClient: AdminClient, vehicleId: string
     .eq('status', 'pending')
 }
 
-// Order creation is a multi-step transaction (auth → admin client → vehicle
-// pending-claim → Stripe session → DB insert → cleanup on failure). The
-// compensating-action structure requires each branch to live in the same
-// try/catch so we never leave a vehicle in 'pending' state on error.
-// Refactor into a transaction-scoped class is tracked as follow-up.
+function handleInsertOrderError(insertError: { code?: string; message?: string } | null) {
+  if (insertError?.code === '23505') {
+    return NextResponse.json(
+      { success: false, error: { code: 'VEHICLE_UNAVAILABLE', message: 'An active order already exists for this vehicle' } },
+      { status: 409 },
+    )
+  }
+  return NextResponse.json(
+    { success: false, error: { code: 'DB_ERROR', message: insertError?.message || 'Failed to create order' } },
+    { status: 500 },
+  )
+}
+
 // POST /api/v1/orders - Create order
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -334,16 +342,7 @@ export async function POST(request: NextRequest) {
 
   if (insertError || !insertedOrder) {
     await rollbackVehicleStatus(adminClient, vehicleId, currentVehicleStatus)
-    if (insertError?.code === '23505') {
-      return NextResponse.json(
-        { success: false, error: { code: 'VEHICLE_UNAVAILABLE', message: 'An active order already exists for this vehicle' } },
-        { status: 409 },
-      )
-    }
-    return NextResponse.json(
-      { success: false, error: { code: 'DB_ERROR', message: insertError?.message || 'Failed to create order' } },
-      { status: 500 },
-    )
+    return handleInsertOrderError(insertError)
   }
 
   return NextResponse.json({

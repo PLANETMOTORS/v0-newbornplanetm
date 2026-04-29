@@ -4,6 +4,7 @@ import { useState, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import { initiateOAuthLogin } from "@/lib/auth/oauth-helpers"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -55,27 +56,10 @@ function LoginForm() {
   const handleOAuthLogin = async (provider: "google" | "facebook") => {
     setIsLoading(true)
     setError("")
-    
     try {
-      const supabase = createClient()
-      const callbackUrl = `${globalThis.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: callbackUrl,
-        },
-      })
-      
-      if (error) {
-        throw error
-      }
-      if (data?.url) {
-        globalThis.location.assign(data.url)
-      }
+      await initiateOAuthLogin(provider, redirectTo)
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Sign in failed. Please try email login."
-      setError(errorMessage)
+      setError(err instanceof Error ? err.message : "Sign in failed. Please try email login.")
       setIsLoading(false)
     }
   }

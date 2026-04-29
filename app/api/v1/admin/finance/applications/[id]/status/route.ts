@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { ADMIN_EMAILS } from "@/lib/admin"
+import { getAuthenticatedAdmin } from "@/lib/api/auth-helpers"
 
-/**
- * Map a finance application status to its display label. Extracted from a
- * nested ternary to satisfy SonarCloud rule typescript:S3358.
- */
 function getFinanceStatusLabel(status: string): string {
   switch (status) {
     case "approved":
@@ -25,13 +20,8 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params
-    const supabase = await createClient()
-    
-    // Verify admin access
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const admin = await getAuthenticatedAdmin()
+    if (admin.error) return admin.error
 
     const body = await request.json()
     const { status, notes } = body
@@ -91,7 +81,7 @@ export async function PATCH(
         application_id: id,
         from_status: currentApp.status,
         to_status: status,
-        changed_by: user.id,
+        changed_by: admin.user?.id,
         notes: notes || `Status changed from ${currentApp.status} to ${status}`
       })
 

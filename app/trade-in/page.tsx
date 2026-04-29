@@ -291,11 +291,33 @@ function hydrateTradeInDraft(d: Record<string, unknown>, s: DraftSetters) {
   setIfString(d, "vinNumber", s.setVinNumber)
 }
 
-// Multi-step trade-in wizard (4 steps) with VIN lookup, draft auto-save, AI
-// quote prefill, photo upload, and conditional address/payoff/document
-// branches. Step state machine + form state share a closure so we avoid
-// prop-drilling 30+ setters across step components. Tracked for refactor
-// into a finite-state-machine helper in a follow-up — see PR #542 review.
+function renderValidationField(
+  error: string,
+  hint: string,
+) {
+  if (error) {
+    return <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{error}</p>
+  }
+  return <p className="text-xs text-muted-foreground">{hint}</p>
+}
+
+function formatOfferVehicleDetail(mileage?: string, condition?: string) {
+  const parts: string[] = []
+  if (mileage && mileage !== "N/A") {
+    parts.push(Number.parseInt(mileage).toLocaleString() + ' km')
+  }
+  if (condition) {
+    parts.push(condition + ' condition')
+  }
+  return parts.join(' | ')
+}
+
+function renderLookupButtonContent(isLookingUp: boolean, loadingText: string, defaultText: string) {
+  if (isLookingUp) {
+    return <span className="flex items-center gap-2"><span className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" /> {loadingText}</span>
+  }
+  return <><Search className="mr-2 h-5 w-5" /> {defaultText}</>
+}
 function TradeInContent() {
   const searchParams = useSearchParams()
   const { user } = useAuth()
@@ -761,11 +783,7 @@ function TradeInContent() {
                         Found on your registration, insurance card, or driver-side door jamb
                       </p>
                       <Button className="w-full h-14 text-lg font-semibold" size="lg" onClick={handleVinLookup} disabled={vinNumber.length !== 17 || isLookingUp}>
-                        {isLookingUp ? (
-                          <span className="flex items-center gap-2"><span className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" /> Decoding VIN...</span>
-                        ) : (
-                          <><Search className="mr-2 h-5 w-5" /> Look Up My Vehicle</>
-                        )}
+                        {renderLookupButtonContent(isLookingUp, "Decoding VIN...", "Look Up My Vehicle")}
                       </Button>
                     </TabsContent>
 
@@ -793,11 +811,7 @@ function TradeInContent() {
                         </Select>
                       </div>
                       <Button className="w-full h-14 text-lg font-semibold" size="lg" onClick={handlePlateLookup} disabled={!plateNumber || isLookingUp}>
-                        {isLookingUp ? (
-                          <span className="flex items-center gap-2"><span className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" /> Looking Up...</span>
-                        ) : (
-                          <><Search className="mr-2 h-5 w-5" /> Look Up Vehicle</>
-                        )}
+                        {renderLookupButtonContent(isLookingUp, "Looking Up...", "Look Up Vehicle")}
                       </Button>
                     </TabsContent>
 
@@ -1105,29 +1119,17 @@ function TradeInContent() {
                         <div className="space-y-2">
                           <Label>Email Address <span className="text-destructive">*</span></Label>
                           <Input type="email" placeholder="you@example.com" value={email} onChange={(e) => handleEmailChange(e.target.value)} className={emailError ? "border-destructive" : ""} />
-                          {emailError ? (
-                            <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{emailError}</p>
-                          ) : (
-                            <p className="text-xs text-muted-foreground">Example: name@email.com</p>
-                          )}
+                          {renderValidationField(emailError, "Example: name@email.com")}
                         </div>
                         <div className="space-y-2">
                           <Label>Phone Number <span className="text-destructive">*</span></Label>
                           <Input type="tel" placeholder="(416) 555-1234" value={phone} onChange={(e) => handlePhoneChange(e.target.value)} className={phoneError ? "border-destructive" : ""} />
-                          {phoneError ? (
-                            <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{phoneError}</p>
-                          ) : (
-                            <p className="text-xs text-muted-foreground">Format: (416) 555-1234</p>
-                          )}
+                          {renderValidationField(phoneError, "Format: (416) 555-1234")}
                         </div>
                         <div className="space-y-2 md:col-span-2">
                           <Label>Postal Code <span className="text-destructive">*</span></Label>
                           <Input placeholder="A1A 1A1" value={postalCode} onChange={(e) => handlePostalCodeChange(e.target.value)} className={`max-w-xs uppercase ${postalCodeError ? "border-destructive" : ""}`} />
-                          {postalCodeError ? (
-                            <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{postalCodeError}</p>
-                          ) : (
-                            <p className="text-xs text-muted-foreground">Format: A1A 1A1 - For scheduling free pickup</p>
-                          )}
+                          {renderValidationField(postalCodeError, "Format: A1A 1A1 - For scheduling free pickup")}
                         </div>
                       </div>
                       <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
@@ -1196,9 +1198,7 @@ function TradeInContent() {
                       <div>
                         <p className="font-semibold text-lg">{offer.vehicle}</p>
                         <p className="text-sm text-muted-foreground">
-                          {offer.mileage && offer.mileage !== "N/A" ? Number.parseInt(offer.mileage).toLocaleString() + ' km' : ''}
-                          {offer.mileage && offer.mileage !== "N/A" && offer.condition ? ' | ' : ''}
-                          {offer.condition ? offer.condition + ' condition' : ''}
+                          {formatOfferVehicleDetail(offer.mileage, offer.condition)}
                         </p>
                       </div>
                       <Car className="h-8 w-8 text-muted-foreground" />

@@ -2,6 +2,7 @@
 'use server'
 
 import { createHash } from 'node:crypto'
+import type Stripe from 'stripe'
 import { lockVehicle, unlockVehicle, rateLimit } from '@/lib/redis'
 import { getStripe } from '@/lib/stripe'
 import { getProductById } from '@/lib/products'
@@ -104,11 +105,58 @@ function mapReservationError(error: unknown): string {
   return 'An unexpected error occurred. Please try again.'
 }
 
-// Reservation flow chains rate-limit → distributed lock → RPC claim → vehicle
-// lookup → Stripe session create (with ACSS-debit fallback) → single
-// error/cleanup path. Each step runs sequentially against the SAME locked
-// vehicle row; extracting helpers would split the cleanup logic across
-// modules and risk silent lock leaks. Refactor tracked as follow-up.
+type StripeInstance = ReturnType<typeof getStripe>
+
+async function createStripeSessionWithFallback(
+  stripe: StripeInstance,
+  buildParams: (includeAcss: boolean) => Stripe.Checkout.SessionCreateParams,
+  enableAcssDebit: boolean,
+  idempotencyKey: string,
+  logContext?: Record<string, unknown>,
+) {
+  try {
+    return await stripe.checkout.sessions.create(buildParams(enableAcssDebit), {
+      idempotencyKey,
+    })
+  } catch (sessionError) {
+    const stripeErrorCode = getStructuredErrorCode(sessionError)
+    const sessionErrorMessage = sessionError instanceof Error ? sessionError.message.toLowerCase() : ''
+    const canRetryCardOnly =
+      enableAcssDebit &&
+      (
+        stripeErrorCode === 'payment_method_not_available' ||
+        stripeErrorCode === 'payment_method_invalid_parameter' ||
+        sessionErrorMessage.includes('acss') ||
+        sessionErrorMessage.includes('payment_method_options')
+      )
+    if (!canRetryCardOnly) throw sessionError
+
+    console.warn('ACSS checkout session failed, retrying with card only', {
+      ...logContext,
+      errorCode: stripeErrorCode || undefined,
+      error: sessionErrorMessage,
+    })
+    return await stripe.checkout.sessions.create(buildParams(false), {
+      idempotencyKey: `${idempotencyKey}:card-only`,
+    })
+  }
+}
+
+function logReservationError(error: unknown, input: ReservationInput) {
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+  const customerEmailHash = createHash('sha256')
+    .update(input.customerEmail.trim().toLowerCase())
+    .digest('hex')
+    .slice(0, 12)
+  const isProd = process.env.NODE_ENV === 'production'
+  console.error('Reservation error:', {
+    error: errorMessage,
+    vehicleId: input.vehicleId,
+    stockNumber: input.stockNumber,
+    customerEmailHash,
+    ...(isProd ? {} : { stack: error instanceof Error ? error.stack : undefined }),
+  })
+}
 export async function createReservation(input: ReservationInput): Promise<ReservationResult> {
   const rateLimitScopeHash = await buildRateLimitScope(input.customerEmail)
 
@@ -261,38 +309,10 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       expires_at: Math.floor(Date.now() / 1000) + 900, // 15 minutes
     })
 
-    let session
-    try {
-      session = await stripe.checkout.sessions.create(createSessionParams(enableAcssDebit), {
-        idempotencyKey,
-      })
-    } catch (sessionError) {
-      const stripeErrorCode = getStructuredErrorCode(sessionError)
-      const sessionErrorMessage = sessionError instanceof Error ? sessionError.message.toLowerCase() : ''
-      const canRetryCardOnly =
-        enableAcssDebit &&
-        (
-          stripeErrorCode === 'payment_method_not_available' ||
-          stripeErrorCode === 'payment_method_invalid_parameter' ||
-          sessionErrorMessage.includes('acss') ||
-          sessionErrorMessage.includes('payment_method_options')
-        )
-
-      if (!canRetryCardOnly) {
-        throw sessionError
-      }
-
-      console.warn('ACSS checkout session failed, retrying with card only', {
-        reservationId,
-        stockNumber: input.stockNumber,
-        errorCode: stripeErrorCode || undefined,
-        error: sessionErrorMessage,
-      })
-
-      session = await stripe.checkout.sessions.create(createSessionParams(false), {
-        idempotencyKey: `${idempotencyKey}:card-only`,
-      })
-    }
+    const session = await createStripeSessionWithFallback(
+      stripe, createSessionParams, enableAcssDebit, idempotencyKey,
+      { reservationId, stockNumber: input.stockNumber },
+    )
 
     const { error: updateError } = await supabase
       .from('reservations')
@@ -314,24 +334,7 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       sessionId: session.id,
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    const customerEmailHash = createHash('sha256')
-      .update(input.customerEmail.trim().toLowerCase())
-      .digest('hex')
-      .slice(0, 12)
-
-    // Production logs go to Vercel + (eventually) Datadog/Sentry. Stack
-    // traces in those logs leak file paths and dependency versions, so we
-    // only emit them in dev/test. Sentry's native error capture (with the
-    // PII-scrubbing beforeSend filter) keeps the rich trace for triage.
-    const isProd = process.env.NODE_ENV === 'production'
-    console.error('Reservation error:', {
-      error: errorMessage,
-      vehicleId: input.vehicleId,
-      stockNumber: input.stockNumber,
-      customerEmailHash,
-      ...(isProd ? {} : { stack: error instanceof Error ? error.stack : undefined }),
-    })
+    logReservationError(error, input)
     await unlockVehicle(input.stockNumber, input.customerEmail)
     return { error: mapReservationError(error) }
   }

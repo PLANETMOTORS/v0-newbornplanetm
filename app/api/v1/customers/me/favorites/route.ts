@@ -1,31 +1,23 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { getAuthenticatedUser, getProfileField } from "@/lib/api/auth-helpers"
 
 // GET /api/v1/customers/me/favorites - Get customer's favorite vehicles
 export async function GET(_request: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const auth = await getAuthenticatedUser()
+  if (auth.error) return auth.error
 
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("saved_vehicles")
-    .eq("id", user.id)
-    .maybeSingle()
+  const result = await getProfileField<{ saved_vehicles?: string[] }>(
+    auth.supabase, auth.user.id, "saved_vehicles", "Failed to fetch favorites",
+  )
+  if (result.error) return result.error
 
-  if (profileError) {
-    return NextResponse.json({ error: "Failed to fetch favorites" }, { status: 500 })
-  }
-
-  const savedVehicleIds: string[] = profile?.saved_vehicles ?? []
+  const savedVehicleIds: string[] = result.profile?.saved_vehicles ?? []
 
   if (savedVehicleIds.length === 0) {
     return NextResponse.json({ favorites: [], count: 0 })
   }
 
-  const { data: vehicles, error: vehiclesError } = await supabase
+  const { data: vehicles, error: vehiclesError } = await auth.supabase
     .from("vehicles")
     .select("id, year, make, model, trim, price, mileage, status")
     .in("id", savedVehicleIds)
@@ -56,11 +48,9 @@ export async function GET(_request: NextRequest) {
 
 // POST /api/v1/customers/me/favorites - Add vehicle to favorites
 export async function POST(request: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const auth = await getAuthenticatedUser()
+  if (auth.error) return auth.error
+  const { supabase, user } = auth
 
   const body = await request.json()
   const { vehicleId } = body
