@@ -388,6 +388,25 @@ function buildPaginationResponse(
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase query builder generic is complex; any is safe here
+function applyCursorOrOffset(query: any, params: ReturnType<typeof parseListParams>, cursorId: string | null, cursorCreatedAt: string | null, ascending: boolean) {
+  const useCursor = cursorId && cursorCreatedAt && params.sort === 'created_at'
+  if (useCursor) {
+    const cmp = ascending ? 'gt' : 'lt'
+    return {
+      query: query.or(
+        `created_at.${cmp}.${cursorCreatedAt},and(created_at.eq.${cursorCreatedAt},id.${cmp}.${cursorId})`
+      ).limit(params.limit),
+      useCursor: true as const,
+    }
+  }
+  const startIndex = (params.page - 1) * params.limit
+  return {
+    query: query.range(startIndex, startIndex + params.limit - 1),
+    useCursor: false as const,
+  }
+}
+
 // GET /api/v1/vehicles - List vehicles with filtering
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -446,19 +465,9 @@ export async function GET(request: NextRequest) {
   query = query.order(params.sort, { ascending })
   query = query.order('id', { ascending })
 
-  // Cursor-based pagination: when a cursor is provided, use a composite
-  // (created_at, id) filter instead of OFFSET to avoid scanning skipped rows.
-  const useCursor = cursorId && cursorCreatedAt && params.sort === 'created_at'
-  if (useCursor) {
-    const cmp = ascending ? 'gt' : 'lt'
-    query = query.or(
-      `created_at.${cmp}.${cursorCreatedAt},and(created_at.eq.${cursorCreatedAt},id.${cmp}.${cursorId})`
-    )
-    query = query.limit(params.limit)
-  } else {
-    const startIndex = (params.page - 1) * params.limit
-    query = query.range(startIndex, startIndex + params.limit - 1)
-  }
+  const pagination = applyCursorOrOffset(query, params, cursorId, cursorCreatedAt, ascending)
+  query = pagination.query
+  const useCursor = pagination.useCursor
 
   const { data: vehicles, error, count } = await query
 
@@ -481,7 +490,7 @@ export async function GET(request: NextRequest) {
   const vehicleList = (await Promise.all((vehicles ?? []).map(toPublicVehicleListItem)))
     .filter((vehicle): vehicle is Record<string, unknown> => vehicle !== null)
 
-  const lastRaw = vehicles && vehicles.length > 0 ? vehicles[vehicles.length - 1] : null
+  const lastRaw = vehicles?.at(-1) ?? null
   const lastVehicle = lastRaw as unknown as Record<string, unknown> | null
 
   const responseBody = buildPaginationResponse(vehicleList, params, count, useCursor, lastVehicle, filters)

@@ -495,16 +495,9 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                       )
                     }
                     return (
-                  /* S6845/S6847: render the gallery as a focusable region.
-                     We deliberately do NOT use role="application" — that would
-                     force assistive tech out of browse mode and is overkill
-                     for a widget that only handles arrow-key navigation
-                     alongside normal links/buttons. role="region" with an
-                     aria-label gives screen-reader users a properly named
-                     landmark while preserving default browse behavior. */
-                  <section
+                  <div
                     data-testid="vdp-image-gallery"
-                    role="region"
+                    role="toolbar"
                     tabIndex={0}
                     aria-label="Vehicle image gallery — use left/right arrow keys to navigate"
                     onKeyDown={(e) => {
@@ -566,7 +559,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     >
                       <ChevronRight className="h-5 w-5" />
                     </button>
-                  </section>
+                  </div>
                     )
                   })()}
 

@@ -11,23 +11,33 @@ async function requireAdmin() {
   return { supabase, error: null }
 }
 
+interface AdminVehicleRow {
+  id: string
+  stock_number: string
+  vin?: string
+  primary_image_url: string | null
+  image_urls: string[] | null
+  has_360_spin: boolean
+  [key: string]: unknown
+}
+
 async function fetchVehicleForAdmin(
   id: string,
   fields: string,
 ) {
   const { supabase, error: adminError } = await requireAdmin()
-  if (adminError) return { supabase, vehicle: null as null, error: adminError }
+  if (adminError) return { supabase, vehicle: null as AdminVehicleRow | null, error: adminError }
 
-  const { data: vehicle, error } = await supabase
+  const { data, error } = await supabase
     .from('vehicles')
     .select(fields)
     .eq('id', id)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .single() as { data: Record<string, any> | null; error: unknown }
+    .single()
 
-  if (error || !vehicle) {
-    return { supabase, vehicle: null as null, error: NextResponse.json({ error: 'Vehicle not found' }, { status: 404 }) }
+  if (error || !data) {
+    return { supabase, vehicle: null as AdminVehicleRow | null, error: NextResponse.json({ error: 'Vehicle not found' }, { status: 404 }) }
   }
+  const vehicle = data as unknown as AdminVehicleRow
   return { supabase, vehicle, error: null }
 }
 
