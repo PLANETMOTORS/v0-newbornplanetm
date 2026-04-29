@@ -15,10 +15,6 @@ const GoogleTagManagerNoScript = dynamic(
   () => import('@/components/analytics/google-tag-manager').then(m => ({ default: m.GoogleTagManagerNoScript })),
   { ssr: false }
 )
-const MetaPixel = dynamic(
-  () => import('@/components/analytics/meta-pixel').then(m => ({ default: m.MetaPixel })),
-  { ssr: false }
-)
 
 // Cookie consent & UTM — client-only, lazy-loaded
 const CookieConsentBanner = dynamic(
@@ -76,7 +72,6 @@ export function ClientLayoutWidgets() {
       <GoogleAnalytics />
       <GoogleTagManager />
       <GoogleTagManagerNoScript />
-      <MetaPixel />
       {isVercelDeploy && <VercelAnalytics />}
       {isVercelDeploy && <VercelSpeedInsights />}
     </>

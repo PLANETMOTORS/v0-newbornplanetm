@@ -12,6 +12,7 @@
  * Auth: staff only
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { corsHeaders, handleCorsPreFlight } from "../_shared/cors.ts"
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -23,26 +24,22 @@ const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 const RETEST_MONTHS = 18
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, {
-      headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, content-type, apikey" }
-    })
-  }
-  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405)
+  if (req.method === "OPTIONS") return handleCorsPreFlight(req)
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405, req)
 
   // Auth: staff only
   const authHeader = req.headers.get("Authorization")
-  if (!authHeader) return json({ error: "Unauthorized" }, 401)
+  if (!authHeader) return json({ error: "Unauthorized" }, 401, req)
 
   const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     global: { headers: { Authorization: authHeader } }
   })
   const { data: { user } } = await userClient.auth.getUser()
-  if (!user) return json({ error: "Unauthorized" }, 401)
+  if (!user) return json({ error: "Unauthorized" }, 401, req)
 
   const { data: staff } = await admin.from("staff_members")
     .select("role").eq("user_id", user.id).eq("active", true).single()
-  if (!staff) return json({ error: "Forbidden: staff only" }, 403)
+  if (!staff) return json({ error: "Forbidden: staff only" }, 403, req)
 
   const body = await req.json()
   const { vin, soh_pct, capacity_kwh, tested_at, storage_path, title } = body as {
@@ -51,7 +48,7 @@ Deno.serve(async (req: Request) => {
   }
 
   if (!vin || !soh_pct || !storage_path) {
-    return json({ error: "vin, soh_pct, and storage_path are required" }, 400)
+    return json({ error: "vin, soh_pct, and storage_path are required" }, 400, req)
   }
 
   const testedAt = tested_at ?? new Date().toISOString()
@@ -69,7 +66,7 @@ Deno.serve(async (req: Request) => {
     dossier = newDossier
   }
 
-  if (!dossier) return json({ error: "Failed to find or create dossier" }, 500)
+  if (!dossier) return json({ error: "Failed to find or create dossier" }, 500, req)
 
   // Insert dossier document
   const { data: doc } = await admin.from("dossier_documents").insert({
@@ -113,11 +110,15 @@ Deno.serve(async (req: Request) => {
     })
   }
 
-  return json({ success: true, dossier_id: dossier.id, soh_pct, next_aviloo_due_at: nextDue.toISOString() })
+  return json({ success: true, dossier_id: dossier.id, soh_pct, next_aviloo_due_at: nextDue.toISOString() }, 200, req)
 })
 
-function json(body: unknown, status = 200) {
+function json(body: unknown, status = 200, req?: Request) {
   return new Response(JSON.stringify(body), {
-    status, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+    status,
+    headers: {
+      "Content-Type": "application/json",
+      ...(req ? corsHeaders(req) : {}),
+    },
   })
 }

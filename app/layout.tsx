@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next'
-import { partytownSnippet } from '@builder.io/partytown/integration'
 import { Inter } from 'next/font/google'
 import { CompareProvider } from '@/contexts/compare-context'
 import { FavoritesProvider } from '@/contexts/favorites-context'
@@ -124,23 +123,11 @@ export default function RootLayout({
         <link rel="preconnect" href="https://www.google-analytics.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-        {/* Preconnect to Meta Pixel CDN — reduces LCP impact */}
-        <link rel="preconnect" href="https://connect.facebook.net" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://connect.facebook.net" />
+
         {/* Preconnect to vehicle image CDN for faster LCP */}
         <link rel="preconnect" href="https://content.homenetiol.com" />
         <link rel="preconnect" href="https://photos.homenetiol.com" />
 
-
-        {/* Partytown — offloads GTM/analytics to Web Worker, improves TTI */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: partytownSnippet({
-              forward: ["dataLayer.push", "fbq"],
-              lib: "/_next/static/~partytown/",
-            }),
-          }}
-        />
         {/* JSON-LD structured data — server-rendered, lightweight */}
         <OrganizationJsonLd />
         <DynamicLocalBusinessJsonLd />

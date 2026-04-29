@@ -38,7 +38,6 @@ import {
 import { trackProductView, trackPhoneClick } from "@/components/analytics/google-tag-manager"
 import { safeNum } from "@/lib/pricing/format"
 import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
-import { trackMetaViewContent, trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
 import { PHONE_LOCAL, PHONE_LOCAL_TEL, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 import { FALLBACK_VEHICLE_DATA as vehicleData } from "@/lib/vdp/fallback-vehicle-data"
 import { getVehicleStatusDisplay } from "@/lib/vehicles/status-display"
@@ -212,12 +211,6 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
       price: vehicle.price,
       make: vehicle.make,
       model: vehicle.model,
-    })
-    trackMetaViewContent({
-      id: vehicle.id,
-      name,
-      price: vehicle.price,
-      make: vehicle.make,
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps -- Fire once on mount
   }, [])
@@ -1760,7 +1753,6 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                         if (!isFavorite && vehicle) {
                           const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
                           trackAddToWishlist({ id: vehicle.id, name, price: vehicle.price })
-                          trackMetaAddToWishlist({ id: vehicle.id, name, price: vehicle.price })
                           addFavorite({
                             id: vehicle.id,
                             year: vehicle.year,
