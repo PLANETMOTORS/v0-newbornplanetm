@@ -26,6 +26,7 @@
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { corsHeaders, handleCorsPreFlight } from "../_shared/cors.ts"
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -52,28 +53,11 @@ const SLA_HOURS: Record<string, number> = {
   approved:    24,  // 24h to collect deposit
 }
 
-const ALLOWED_ORIGINS = [
-  "https://www.planetmotors.ca",
-  "https://planetmotors.ca",
-  "https://staging.planetmotors.ca",
-]
-
-function getAllowedOrigin(req: Request): string {
-  const origin = req.headers.get("Origin") ?? ""
-  return ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
-}
-
 // ── Handler ────────────────────────────────────────────────────────────────
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, {
-      headers: {
-        "Access-Control-Allow-Origin": getAllowedOrigin(req),
-        "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-        "Vary": "Origin",
-      },
-    })
+    return handleCorsPreFlight(req)
   }
 
   try {
@@ -215,12 +199,11 @@ Deno.serve(async (req: Request) => {
 })
 
 function json(body: unknown, status = 200, req?: Request): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": req ? getAllowedOrigin(req) : ALLOWED_ORIGINS[0],
-      "Vary": "Origin",
-    },
-  })
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  }
+  if (req) {
+    Object.assign(headers, corsHeaders(req))
+  }
+  return new Response(JSON.stringify(body), { status, headers })
 }
