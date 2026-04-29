@@ -43,7 +43,7 @@
     {
       "id": "rule_004_challenge_anonymous_proxies_on_payment_routes",
       "description": "Force CAPTCHA challenge for traffic from anonymous proxies / VPNs / Tor on payment routes. Legitimate buyers don't usually use Tor for car purchases.",
-      "expression": "(http.request.uri.path contains \"/api/checkout\" or http.request.uri.path contains \"/api/v1/checkout\" or http.request.uri.path contains \"/api/v1/financing/apply\") and (ip.src.is_in_european_union or cf.client.bot or cf.threat_score gt 30)",
+      "expression": "(http.request.uri.path contains \"/api/checkout\" or http.request.uri.path contains \"/api/v1/checkout\" or http.request.uri.path contains \"/api/v1/financing/apply\") and (cf.client.bot or cf.threat_score gt 30)",
       "action": "managed_challenge",
       "priority": 40,
       "enabled": true,
