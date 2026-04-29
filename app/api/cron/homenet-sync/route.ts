@@ -4,6 +4,12 @@ import { parseHomenetCSV, syncVehiclesToDatabase, getSql } from "@/lib/homenet/p
 import { upsertVehiclesBatch, type VehicleDocument } from "@/lib/typesense/indexer"
 import { isTypesenseConfigured } from "@/lib/typesense/client"
 import { verifyCronSecret } from "@/lib/security/cron-auth"
+import {
+  buildVehicleUrls,
+  isIndexNowConfigured,
+  pingIndexNow,
+} from "@/lib/seo/indexnow"
+import { getPublicSiteUrl } from "@/lib/site-url"
 
 /**
  * Vercel Cron Job: HomenetIOL SFTP Feed Sync
@@ -90,10 +96,41 @@ export async function GET(request: Request) {
       }
     }
 
+    // Step 5: Ping IndexNow for new + soft-deleted URLs (non-blocking).
+    // We never let an IndexNow failure cascade into a 500 — the cron's job
+    // is to keep the database in sync, IndexNow is a best-effort SEO signal.
+    let indexNowPings = 0
+    let indexNowOk = false
+    if (isIndexNowConfigured()) {
+      const baseUrl = getPublicSiteUrl()
+      const changedUrls: string[] = [
+        ...buildVehicleUrls(result.insertedVehicleIds),
+        ...buildVehicleUrls(result.soldVehicleIds),
+      ]
+      // Always nudge the inventory listing — sort/availability may have changed.
+      if (changedUrls.length > 0) changedUrls.push(`${baseUrl}/inventory`)
+
+      if (changedUrls.length > 0) {
+        try {
+          const pingResult = await pingIndexNow(changedUrls)
+          indexNowPings = pingResult.count
+          indexNowOk = pingResult.ok
+          if (pingResult.ok) {
+            console.info(`[HomenetIOL Cron] IndexNow pinged ${pingResult.count} URLs`)
+          } else {
+            console.warn(`[HomenetIOL Cron] IndexNow ping failed: ${pingResult.error}`)
+          }
+        } catch (pingErr) {
+          // pingIndexNow already swallows errors, but belt-and-suspenders.
+          console.warn(`[HomenetIOL Cron] IndexNow ping threw:`, pingErr)
+        }
+      }
+    }
+
     const duration = Date.now() - startTime
     console.info(
       `[HomenetIOL Cron] Sync complete in ${duration}ms: ` +
-      `${result.inserted} inserted, ${result.updated} updated, ${result.errors.length} errors`
+      `${result.inserted} inserted, ${result.updated} updated, ${result.removed} sold, ${result.errors.length} errors`
     )
 
     return NextResponse.json({
@@ -104,8 +141,11 @@ export async function GET(request: Request) {
       vehiclesParsed: vehicles.length,
       inserted: result.inserted,
       updated: result.updated,
+      removed: result.removed,
       typesenseIndexed: typesenseResult.success,
       typesenseErrors: typesenseResult.errors,
+      indexNowPings,
+      indexNowOk,
       errors: result.errors.length > 0 ? result.errors.slice(0, 10) : undefined,
       errorCount: result.errors.length,
       duration_ms: duration,

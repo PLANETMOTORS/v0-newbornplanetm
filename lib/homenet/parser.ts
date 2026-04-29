@@ -360,17 +360,55 @@ export function parseCSVLine(line: string): string[] {
 
 // ==================== DATABASE SYNC ====================
 
+export interface SyncVehiclesResult {
+  inserted: number
+  updated: number
+  /**
+   * Number of vehicles soft-deleted (status set to 'sold') in this run.
+   * The vehicles' rows are kept in the database so the VDP URL keeps
+   * resolving; this preserves SEO equity, lets the SimilarVehicles
+   * carousel save the lead, and allows IndexNow to ping search engines
+   * with `schema.org/SoldOut` for the existing URL.
+   */
+  removed: number
+  /**
+   * IDs of newly inserted vehicles in this run. Used by callers (the
+   * HomenetIOL cron) to fire IndexNow pings for fresh URLs without
+   * re-querying the database.
+   */
+  insertedVehicleIds: string[]
+  /**
+   * IDs of vehicles soft-deleted in this run. Used by callers to fire
+   * IndexNow pings so search engines re-crawl and pick up the new
+   * SoldOut availability.
+   */
+  soldVehicleIds: string[]
+  errors: { vin: string; error: string }[]
+}
+
 /**
  * Full-replacement sync: the incoming file IS the complete inventory.
  * 1. Upsert all vehicles from the file
- * 2. Delete every vehicle NOT in the file
- * Result: website shows ONLY what HomeNet sent. Nothing else.
+ * 2. Mark every vehicle NOT in the file as sold (soft-delete)
+ *
+ * Soft-delete rationale: when a vehicle leaves the HomeNet feed it has
+ * almost always been sold. Hard-deleting would orphan the VDP URL,
+ * losing SEO equity from old shares/links and removing the chance to
+ * cross-sell similar inventory to a returning visitor. Soft-deleting
+ * keeps the URL alive, the VDP renders with the existing "Vehicle Sold"
+ * banner + Similar Vehicles carousel, and search engines see
+ * `schema.org/SoldOut` on re-crawl (already wired in the VDP layout).
  */
-export async function syncVehiclesToDatabase(sql: SqlClient, vehicles: VehicleData[]) {
+export async function syncVehiclesToDatabase(
+  sql: SqlClient,
+  vehicles: VehicleData[],
+): Promise<SyncVehiclesResult> {
   let inserted = 0
   let updated = 0
   let removed = 0
   const errors: { vin: string; error: string }[] = []
+  const insertedVehicleIds: string[] = []
+  const soldVehicleIds: string[] = []
   const BATCH_SIZE = 100
 
   // Collect all VINs from incoming file
@@ -442,10 +480,16 @@ export async function syncVehiclesToDatabase(sql: SqlClient, vehicles: VehicleDa
               source_vdp_url = EXCLUDED.source_vdp_url,
               title_status = EXCLUDED.title_status,
               updated_at = NOW()
-            RETURNING (xmax = 0) AS inserted
+            RETURNING id, (xmax = 0) AS inserted
           `
-          const rows = result as Record<string, unknown>[]
-          if (rows?.[0]?.inserted) { inserted++ } else { updated++ }
+          const rows = result as Array<{ id: string; inserted: boolean }>
+          const row = rows?.[0]
+          if (row?.inserted) {
+            inserted++
+            if (row.id) insertedVehicleIds.push(row.id)
+          } else {
+            updated++
+          }
         } catch (error) {
           console.error(`[HomenetIOL] Error syncing VIN ${vehicle.vin}:`, error)
           errors.push({
@@ -457,27 +501,36 @@ export async function syncVehiclesToDatabase(sql: SqlClient, vehicles: VehicleDa
     )
   }
 
-  // Step 2: Delete all vehicles NOT in the incoming file
-  // The new file IS the inventory. Anything not in it is gone.
+  // Step 2: Mark all vehicles NOT in the incoming file as SOLD (soft-delete).
+  // We only flip rows that aren't already marked sold, so re-runs are
+  // idempotent and `sold_at` reflects the first time we noticed.
   try {
-    const deleteResult = await sql`
-      DELETE FROM vehicles
+    const soldResult = await sql`
+      UPDATE vehicles
+      SET status = 'sold',
+          sold_at = COALESCE(sold_at, NOW()),
+          updated_at = NOW()
       WHERE vin != ALL(${incomingVins})
-      RETURNING vin
+        AND status != 'sold'
+      RETURNING id
     `
-    removed = (deleteResult as unknown[]).length
+    const soldRows = soldResult as Array<{ id: string }>
+    removed = soldRows.length
+    for (const row of soldRows) {
+      if (row.id) soldVehicleIds.push(row.id)
+    }
     if (removed > 0) {
-      console.info(`[HomenetIOL] Removed ${removed} vehicles not in incoming file`)
+      console.info(`[HomenetIOL] Soft-deleted ${removed} vehicles not in incoming file`)
     }
   } catch (error) {
-    console.error(`[HomenetIOL] Error removing old vehicles:`, error)
+    console.error(`[HomenetIOL] Error soft-deleting old vehicles:`, error)
     errors.push({
-      vin: "BULK_DELETE",
+      vin: "BULK_SOFT_DELETE",
       error: error instanceof Error ? error.message : "Unknown error",
     })
   }
 
-  return { inserted, updated, removed, errors }
+  return { inserted, updated, removed, insertedVehicleIds, soldVehicleIds, errors }
 }
 
 
