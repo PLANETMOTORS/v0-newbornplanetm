@@ -9,8 +9,10 @@ import { describe, expect, it, vi } from "vitest"
 import {
   API_BASE,
   buildMonitors,
+  describeError,
   formatSummary,
   listExistingMonitors,
+  normaliseBaseUrl,
   runCli,
   syncAllMonitors,
   syncMonitor,
@@ -34,6 +36,52 @@ function errorResponse(status: number, text = "boom"): Response {
 
 const TOKEN = "secret-token"
 
+describe("normaliseBaseUrl", () => {
+  it("returns the origin for a clean URL", () => {
+    expect(normaliseBaseUrl("https://example.com")).toBe("https://example.com")
+  })
+
+  it("strips a trailing slash", () => {
+    expect(normaliseBaseUrl("https://example.com/")).toBe("https://example.com")
+  })
+
+  it("strips a trailing path", () => {
+    expect(normaliseBaseUrl("https://example.com/site/")).toBe("https://example.com")
+  })
+
+  it("preserves a non-default port", () => {
+    expect(normaliseBaseUrl("https://example.com:8443/")).toBe("https://example.com:8443")
+  })
+
+  it("falls back to a regex strip when URL parsing fails", () => {
+    expect(normaliseBaseUrl("not a url//")).toBe("not a url")
+  })
+})
+
+describe("describeError", () => {
+  it("returns the .message of an Error instance", () => {
+    expect(describeError(new Error("kaboom"))).toBe("kaboom")
+  })
+
+  it("returns string values verbatim", () => {
+    expect(describeError("string failure")).toBe("string failure")
+  })
+
+  it("stringifies finite numbers and booleans", () => {
+    expect(describeError(42)).toBe("42")
+    expect(describeError(true)).toBe("true")
+  })
+
+  it("falls back to a generic message for plain objects (never [object Object])", () => {
+    expect(describeError({ a: 1 })).toBe("unknown error")
+  })
+
+  it("falls back to a generic message for null / undefined", () => {
+    expect(describeError(null)).toBe("unknown error")
+    expect(describeError(undefined)).toBe("unknown error")
+  })
+})
+
 describe("buildMonitors", () => {
   it("emits 6 monitors with stable names + correct URLs", () => {
     const monitors = buildMonitors("https://example.com")
@@ -48,6 +96,12 @@ describe("buildMonitors", () => {
       "Checkout entry",
     ])
     monitors.forEach((m) => expect(m.url.startsWith("https://example.com")).toBe(true))
+  })
+
+  it("strips a trailing slash from the base URL before building monitor URLs", () => {
+    const monitors = buildMonitors("https://example.com/")
+    monitors.forEach((m) => expect(m.url.includes("//", 8)).toBe(false))
+    expect(monitors[1]?.url).toBe("https://example.com/inventory")
   })
 
   it("requires the homepage keyword 'Battery-Health Certified'", () => {

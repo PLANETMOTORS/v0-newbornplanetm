@@ -63,7 +63,23 @@ export interface SyncDeps {
   dryRun: boolean
 }
 
-export function buildMonitors(baseUrl: string): MonitorSpec[] {
+/**
+ * Normalises an arbitrary base URL down to its origin (scheme + host + port),
+ * stripping any trailing slash or path. This is the single guard that makes
+ * the idempotency match key (name + url) reliable: passing both
+ * `https://x.com` and `https://x.com/` would otherwise produce duplicate
+ * monitor URLs that never match each other.
+ */
+export function normaliseBaseUrl(input: string): string {
+  try {
+    return new URL(input).origin
+  } catch {
+    return input.replace(/\/+$/u, "")
+  }
+}
+
+export function buildMonitors(rawBaseUrl: string): MonitorSpec[] {
+  const baseUrl = normaliseBaseUrl(rawBaseUrl)
   return [
     {
       pronounceable_name: "Homepage",
@@ -227,6 +243,19 @@ export interface RunCliOptions {
   stderr: (chunk: string) => void
 }
 
+/**
+ * Safely renders an unknown error value into a single-line operator-readable
+ * message, never returning the unhelpful `[object Object]` that
+ * `String(error)` produces for plain objects. Mirrors the discipline of
+ * `lib/safe-coerce.ts` so we don't leak structured payloads to logs.
+ */
+export function describeError(error: unknown): string {
+  if (error instanceof Error) return error.message
+  if (typeof error === "string") return error
+  if (typeof error === "number" || typeof error === "boolean") return String(error)
+  return "unknown error"
+}
+
 export async function runCli(opts: RunCliOptions): Promise<number> {
   const token = opts.env.BETTER_STACK_API_TOKEN
   if (!token) {
@@ -241,8 +270,7 @@ export async function runCli(opts: RunCliOptions): Promise<number> {
     opts.stdout(`${formatSummary(results)}\n`)
     return 0
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-    opts.stderr(`Better Stack sync failed: ${message}\n`)
+    opts.stderr(`Better Stack sync failed: ${describeError(error)}\n`)
     return 1
   }
 }

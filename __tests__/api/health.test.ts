@@ -1,8 +1,8 @@
 /**
  * __tests__/api/health.test.ts
  *
- * Unit tests for /api/health. We mock @/lib/homenet/parser.getSql so the
- * route exercises every branch without touching a real database.
+ * Unit tests for /api/health. We mock @/lib/neon/sql.getSql so the route
+ * exercises every branch without touching a real database.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
@@ -13,7 +13,7 @@ const sqlState = vi.hoisted(() => ({
   impl: null as SqlTag | null,
 }))
 
-vi.mock("@/lib/homenet/parser", () => ({
+vi.mock("@/lib/neon/sql", () => ({
   getSql: () => sqlState.impl,
 }))
 

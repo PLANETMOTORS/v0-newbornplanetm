@@ -21,10 +21,13 @@
  *   - Vehicles live in Neon (DATABASE_URL). We reuse getSql() so this probe
  *     stays in lock-step with the cron handler that produces the freshness
  *     signal: app/api/cron/homenet-sync/route.ts → vehicles.updated_at.
+ *   - We import from `lib/neon/sql` (a tiny, side-effect-free module) rather
+ *     than `lib/homenet/parser` (600+ lines of CSV parsing) to keep this
+ *     hot-polled endpoint cheap to cold-start.
  */
 
 import { NextResponse } from "next/server"
-import { getSql } from "@/lib/homenet/parser"
+import { getSql } from "@/lib/neon/sql"
 import { logger } from "@/lib/logger"
 
 export const dynamic = "force-dynamic"

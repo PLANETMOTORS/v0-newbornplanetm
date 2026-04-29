@@ -1,4 +1,4 @@
-import { neon } from "@neondatabase/serverless"
+import type { SqlClient } from "@/lib/neon/sql"
 
 // ==================== TYPES ====================
 
@@ -72,13 +72,10 @@ export interface VehicleData {
   featured?: boolean              // Legacy: alias for is_featured
 }
 
-export type SqlClient = ReturnType<typeof neon>
-
-export function getSql(): SqlClient | null {
-  const url = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || process.env.NEON_POSTGRES_URL
-  if (!url) return null
-  return neon(url)
-}
+// Re-exported from lib/neon/sql so hot endpoints (e.g. /api/health) can
+// import the SQL tag without dragging in the 600-line parser module.
+// Existing callers continue to import from this file unchanged.
+export { getSql, type SqlClient } from "@/lib/neon/sql"
 
 // ==================== CSV PARSER ====================
 
