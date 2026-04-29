@@ -16,7 +16,7 @@ vi.mock('@/lib/supabase/config', () => ({
   getSupabaseAnonKey: vi.fn(() => 'test-key'),
 }))
 
-import { buildVehiclesSitemap, buildPagesSitemap } from '@/lib/sitemap-builders'
+import { buildVehiclesSitemap, buildPagesSitemap, buildBlogSitemap } from '@/lib/sitemap-builders'
 
 describe('buildVehiclesSitemap', () => {
   beforeEach(() => {
@@ -96,5 +96,38 @@ describe('buildPagesSitemap', () => {
     const inventory = result.find(r => r.url === 'https://example.com/inventory')
     expect(inventory).toBeDefined()
     expect(inventory?.priority).toBe(0.95)
+  })
+})
+
+describe('buildBlogSitemap', () => {
+  it('is exported and callable (signature smoke check)', () => {
+    expect(typeof buildBlogSitemap).toBe('function')
+    expect(buildBlogSitemap.length).toBe(2)
+  })
+})
+
+describe('buildVehiclesSitemap — supabase not configured', () => {
+  it('returns empty array and logs warning when supabase is unavailable', async () => {
+    vi.resetModules()
+    vi.doMock('@supabase/supabase-js', () => ({ createClient: vi.fn() }))
+    vi.doMock('@/lib/supabase/config', () => ({
+      getSupabaseUrl: vi.fn(() => ''),
+      getSupabaseAnonKey: vi.fn(() => ''),
+    }))
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const { buildVehiclesSitemap: build } = await import('@/lib/sitemap-builders')
+    const out = await build('https://example.com', '2025-01-01')
+    expect(out).toEqual([])
+    expect(warn).toHaveBeenCalledWith('Sitemap: Supabase not configured, skipping vehicles')
+  })
+})
+
+describe('buildVehiclesSitemap — 42P01 silenced', () => {
+  it('returns empty when underlying error has code 42P01', async () => {
+    mockLimit.mockResolvedValueOnce({ data: null, error: { message: 'relation does not exist', code: '42P01' } })
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const out = await buildVehiclesSitemap('https://example.com', '2025-01-01')
+    expect(out).toEqual([])
+    expect(errSpy).toHaveBeenCalled()
   })
 })
