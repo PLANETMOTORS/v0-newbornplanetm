@@ -3,6 +3,8 @@ import { sendNotificationEmail } from "@/lib/email"
 import { validateOrigin } from "@/lib/csrf"
 import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
 import { trackLead } from "@/lib/meta-capi-helpers"
+import { rateLimit } from "@/lib/redis"
+import { getClientIp } from "@/lib/security/client-ip"
 
 // Vehicle value estimation algorithm
 function estimateTradeInValue(data: {
@@ -88,6 +90,13 @@ export async function POST(req: Request) {
     if (!validateOrigin(req)) {
       return apiError(ErrorCode.FORBIDDEN, "Forbidden", 403)
     }
+
+    const ip = getClientIp(req)
+    const limiter = await rateLimit(`trade-in-quote:${ip}`, 10, 3600)
+    if (!limiter.success) {
+      return apiError(ErrorCode.RATE_LIMITED, "Too many requests. Please try again later.", 429)
+    }
+
     const data = await req.json()
     const { year, make, model, mileage, condition, vin, customerName, customerEmail, customerPhone } = data
 

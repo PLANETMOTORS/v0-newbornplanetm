@@ -52,14 +52,26 @@ const SLA_HOURS: Record<string, number> = {
   approved:    24,  // 24h to collect deposit
 }
 
+const ALLOWED_ORIGINS = [
+  "https://www.planetmotors.ca",
+  "https://planetmotors.ca",
+  "https://staging.planetmotors.ca",
+]
+
+function getAllowedOrigin(req: Request): string {
+  const origin = req.headers.get("Origin") ?? ""
+  return ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
+}
+
 // ── Handler ────────────────────────────────────────────────────────────────
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
       headers: {
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": getAllowedOrigin(req),
         "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+        "Vary": "Origin",
       },
     })
   }
@@ -75,18 +87,18 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!deal_id || !to_stage) {
-      return json({ error: "deal_id and to_stage are required" }, 400)
+      return json({ error: "deal_id and to_stage are required" }, 400, req)
     }
 
     // 2. Auth: get caller identity from JWT
     const authHeader = req.headers.get("Authorization")
-    if (!authHeader) return json({ error: "Unauthorized" }, 401)
+    if (!authHeader) return json({ error: "Unauthorized" }, 401, req)
 
     const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
     })
     const { data: { user }, error: authError } = await userClient.auth.getUser()
-    if (authError || !user) return json({ error: "Unauthorized" }, 401)
+    if (authError || !user) return json({ error: "Unauthorized" }, 401, req)
 
     // 3. Staff check
     const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
@@ -97,7 +109,7 @@ Deno.serve(async (req: Request) => {
       .eq("active", true)
       .single()
 
-    if (!staffRow) return json({ error: "Forbidden: staff only" }, 403)
+    if (!staffRow) return json({ error: "Forbidden: staff only" }, 403, req)
 
     // 4. Load current deal
     const { data: deal, error: dealError } = await adminClient
@@ -106,7 +118,7 @@ Deno.serve(async (req: Request) => {
       .eq("id", deal_id)
       .single()
 
-    if (dealError || !deal) return json({ error: "Deal not found" }, 404)
+    if (dealError || !deal) return json({ error: "Deal not found" }, 404, req)
 
     // 5. Validate transition
     const allowed = ALLOWED_TRANSITIONS[deal.stage] ?? []
@@ -114,7 +126,7 @@ Deno.serve(async (req: Request) => {
       return json({
         error: `Invalid transition: ${deal.stage} → ${to_stage}`,
         allowed,
-      }, 422)
+      }, 422, req)
     }
 
     // 6. Compute SLA deadline
@@ -140,7 +152,7 @@ Deno.serve(async (req: Request) => {
 
     if (updateError) {
       console.error("Deal update failed:", updateError)
-      return json({ error: "Failed to update deal stage" }, 500)
+      return json({ error: "Failed to update deal stage" }, 500, req)
     }
 
     // 8. Append deal event (idempotent key = deal_id + to_stage + now-minute)
@@ -194,20 +206,21 @@ Deno.serve(async (req: Request) => {
       from_stage: deal.stage,
       to_stage,
       sla_respond_by: slaRespondBy,
-    })
+    }, 200, req)
 
   } catch (err) {
     console.error("deal-transition error:", err)
-    return json({ error: "Internal server error" }, 500)
+    return json({ error: "Internal server error" }, 500, req)
   }
 })
 
-function json(body: unknown, status = 200): Response {
+function json(body: unknown, status = 200, req?: Request): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": req ? getAllowedOrigin(req) : ALLOWED_ORIGINS[0],
+      "Vary": "Origin",
     },
   })
 }
