@@ -41,13 +41,13 @@
     },
 
     {
-      "id": "rule_004_challenge_anonymous_proxies_on_payment_routes",
-      "description": "Force CAPTCHA challenge for traffic from anonymous proxies / VPNs / Tor on payment routes. Legitimate buyers don't usually use Tor for car purchases.",
-      "expression": "(http.request.uri.path contains \"/api/checkout\" or http.request.uri.path contains \"/api/v1/checkout\" or http.request.uri.path contains \"/api/v1/financing/apply\") and (cf.client.bot or cf.threat_score gt 30)",
+      "id": "rule_004_challenge_high_risk_payment_route_traffic",
+      "description": "Force a managed challenge on higher-risk payment-route traffic based on Cloudflare risk signals (EU source geography, bot classification, or elevated threat score).",
+      "expression": "(http.request.uri.path contains \"/api/checkout\" or http.request.uri.path contains \"/api/v1/financing/apply\") and (ip.src.is_in_european_union or cf.client.bot or cf.threat_score gt 30)",
       "action": "managed_challenge",
       "priority": 40,
       "enabled": true,
-      "notes": "Uses Cloudflare's `cf.threat_score` (0-100, higher = more suspicious). 30+ filters out most known bad actors while letting normal traffic through."
+      "notes": "Applies extra friction to checkout/financing endpoints when Cloudflare flags the request as bot traffic, assigns `cf.threat_score` above 30, or the source IP is in the EU. Removed `/api/v1/checkout` because that route does not exist in this repo."
     },
 
     {
