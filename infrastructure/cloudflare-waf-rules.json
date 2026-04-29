@@ -61,13 +61,13 @@
     },
 
     {
-      "id": "rule_006_allow_stripe_webhook_only_from_stripe_ips",
-      "description": "Stripe webhooks (https://yoursite/api/webhooks/stripe) should only come from Stripe's documented IP ranges. Anything else is a spoofing attempt. Stripe also signs the webhook with STRIPE_WEBHOOK_SECRET, but defence-in-depth.",
-      "expression": "(http.request.uri.path eq \"/api/webhooks/stripe\") and not (ip.src in {3.18.12.63 3.130.192.231 13.235.14.237 13.235.122.149 18.211.135.69 35.154.171.200 52.15.183.38 54.88.130.119 54.88.130.237 54.187.174.169 54.187.205.235 54.187.216.72})",
+      "id": "rule_006_stripe_webhook_ip_allowlist_managed_externally",
+      "description": "Do not enforce a hard-coded Stripe webhook source-IP allowlist here. Stripe webhook authenticity must be verified in-app using the Stripe-Signature header. If IP-based defence-in-depth is required, manage Stripe's current CIDR/IPv4/IPv6 ranges through an automated Cloudflare IP List instead of embedding static IPs in this file.",
+      "expression": "(http.request.uri.path eq \"/__disabled_stripe_webhook_ip_allowlist_placeholder__\")",
       "action": "block",
       "priority": 60,
-      "enabled": true,
-      "notes": "IP list from https://stripe.com/files/ips/ips_webhooks.txt — refresh quarterly. New ranges added when Stripe scales infrastructure. If a webhook starts failing post-deploy, check this list first."
+      "enabled": false,
+      "notes": "Disabled intentionally: hard-coded individual Stripe webhook IPs are brittle and can block legitimate events when Stripe updates its ranges. Rely on Stripe-Signature verification for authenticity; if an IP restriction is later added, source it automatically from Stripe's published ranges into a Cloudflare-managed IP List with IPv4/CIDR/IPv6 support."
     },
 
     {
