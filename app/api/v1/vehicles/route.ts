@@ -1,4 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+// TODO(post-launch P1 — see docs/POST_LAUNCH_FIXES.md item #4):
+//   Once SUPABASE_READ_REPLICA_URL is provisioned in Vercel, swap this
+//   import for `createReadClient` from `@/lib/supabase/read-replica`
+//   to offload public read traffic from the primary database. The
+//   replica client falls back to primary when env vars are missing,
+//   so this swap is safe to ship before the replica is online.
 import { createClient } from '@/lib/supabase/server'
 import { getCachedSearchResults, cacheSearchResults } from '@/lib/redis'
 import { createHash } from 'node:crypto'
