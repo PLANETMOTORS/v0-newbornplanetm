@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server"
-import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
+import { createAnonClientOrError } from "@/lib/supabase/anon-client"
 import { AUTH_RATE_LIMITS, checkAuthRateLimit } from "@/lib/security/auth-rate-limit"
 
 // POST /api/v1/auth/login - Customer login
@@ -30,13 +30,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    if (!supabaseUrl || !supabaseAnonKey) {
-      return apiError(ErrorCode.CONFIG_ERROR, "Server configuration error")
-    }
-
-    const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey)
+    const result = createAnonClientOrError()
+    if ('error' in result) return result.error
+    const supabase = result.client
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error || !data.session) {
