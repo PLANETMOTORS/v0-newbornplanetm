@@ -14,7 +14,7 @@ export function GoogleTagManager() {
   if (!GTM_ID) return null
 
   return (
-    <Script id="gtm" strategy="worker">
+    <Script id="gtm" strategy="afterInteractive">
       {`
         globalThis.dataLayer = globalThis.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}

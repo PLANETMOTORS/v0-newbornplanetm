@@ -145,7 +145,6 @@ const nextConfig = {
       'https://va.vercel-scripts.com',    // Vercel Analytics
       'https://www.googletagmanager.com', // GTM
       'https://www.google-analytics.com', // GA4
-      'https://connect.facebook.net',     // Facebook Pixel
       'https://cdn.jsdelivr.net',         // Open-source CDN (widgets)
       'https://stapecdn.com',             // Stape server-side tagging CDN
       'https://googleads.g.doubleclick.net',  // Google Ads conversion scripts
@@ -171,7 +170,6 @@ const nextConfig = {
       'https://cdn.sanity.io',
       'https://www.google-analytics.com',
       'https://www.googletagmanager.com',
-      'https://www.facebook.com',
       'https://content.homenetiol.com',
       'https://photos.homenetiol.com',
       'https://ldervbcvkoawwknsemuz.supabase.co',
@@ -190,7 +188,6 @@ const nextConfig = {
       'https://js.stripe.com',
       'https://hooks.stripe.com',
       'https://www.googletagmanager.com',
-      'https://www.facebook.com',
       'https://capig.planetmotors.ca',        // Server-side tagging iframe
       'https://td.doubleclick.net',           // DoubleClick tracking frame
       'https://iframe-b8b2c.web.app',        // Drivee 360° viewer iframe
@@ -206,8 +203,6 @@ const nextConfig = {
       'https://www.google-analytics.com',
       'https://region1.google-analytics.com',
       'https://www.googletagmanager.com',
-      'https://graph.facebook.com',
-      'https://www.facebook.com',
       'https://capig.planetmotors.ca',            // GA4 server-side proxy
       'https://www.google.com',                    // Remarketing + CCM
       'https://googleads.g.doubleclick.net',       // Google Ads data

@@ -16,7 +16,6 @@ import {
 } from "@/lib/validation"
 import { trackFormSubmission } from "@/components/analytics/google-tag-manager"
 import { trackLead } from "@/components/analytics/google-analytics"
-import { trackMetaLead } from "@/components/analytics/meta-pixel"
 import { PHONE_LOCAL } from "@/lib/constants/dealership"
 
 interface ContactFormProps {
@@ -166,7 +165,6 @@ export function ContactForm({ onSuccess }: Readonly<ContactFormProps>) {
 
       trackFormSubmission("contact_form", { subject: formData.subject || "General Inquiry" })
       trackLead("contact_form")
-      trackMetaLead("contact_form")
       setIsSubmitted(true)
       onSuccess?.()
     } catch {
