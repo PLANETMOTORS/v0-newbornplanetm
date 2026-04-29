@@ -23,7 +23,7 @@
  *   - Filters out cross-host URLs to satisfy IndexNow's same-host rule.
  *   - Hard 5-second timeout on the API call.
  *
- * Tested in __tests__/lib/seo/indexnow.test.ts.
+ * Tested in __tests__/lib/seo-indexnow.test.ts.
  */
 
 import { getPublicSiteUrl } from "@/lib/site-url"
