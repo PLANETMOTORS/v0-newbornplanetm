@@ -69,12 +69,18 @@ export interface SyncDeps {
  * the idempotency match key (name + url) reliable: passing both
  * `https://x.com` and `https://x.com/` would otherwise produce duplicate
  * monitor URLs that never match each other.
+ *
+ * The fallback path uses a manual character loop (rather than a regex) so
+ * the function is provably free of ReDoS / catastrophic-backtracking risk
+ * on any input shape.
  */
 export function normaliseBaseUrl(input: string): string {
   try {
     return new URL(input).origin
   } catch {
-    return input.replace(/\/+$/u, "")
+    let end = input.length
+    while (end > 0 && input.charAt(end - 1) === "/") end -= 1
+    return input.slice(0, end)
   }
 }
 
