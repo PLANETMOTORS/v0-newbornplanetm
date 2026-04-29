@@ -165,12 +165,13 @@ async function rollbackVehicleStatus(adminClient: AdminClient, vehicleId: string
     .eq('status', 'pending')
 }
 
-// NOSONAR S3776 — order creation is a multi-step transaction (auth → admin
-// client → vehicle pending-claim → stripe session → DB insert → cleanup on
-// failure). The compensating-action structure requires each branch to live in
-// the same try/catch so we never leave a vehicle in 'pending' state on error.
+// Order creation is a multi-step transaction (auth → admin client → vehicle
+// pending-claim → Stripe session → DB insert → cleanup on failure). The
+// compensating-action structure requires each branch to live in the same
+// try/catch so we never leave a vehicle in 'pending' state on error.
+// Refactor into a transaction-scoped class is tracked as follow-up.
 // POST /api/v1/orders - Create order
-export async function POST(request: NextRequest) { // NOSONAR S3776
+export async function POST(request: NextRequest) {
   const supabase = await createClient()
   const adminClientOrError = bootAdminClient()
   if (adminClientOrError instanceof NextResponse) return adminClientOrError

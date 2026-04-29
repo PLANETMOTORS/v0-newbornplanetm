@@ -1,6 +1,8 @@
-import { NextRequest } from "next/server"
+import type { NextRequest } from "next/server"
+import type { SupabaseClient } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/server"
 import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
+import { asStr } from "@/lib/safe-coerce"
 
 type DeliveryRow = {
   id: string
@@ -51,9 +53,12 @@ async function fetchDeliveryQuote(request: NextRequest, postalCode: string):
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function findOrder(supabase: any, userId: string, rawOrderId: string) {
-  const normalizedOrderId = String(rawOrderId).trim()
+async function findOrder(
+  supabase: SupabaseClient,
+  userId: string,
+  rawOrderId: unknown,
+) {
+  const normalizedOrderId = asStr(rawOrderId).trim()
   const orderIdIsUuid = /^[0-9a-fA-F-]{36}$/.test(normalizedOrderId)
   let orderQuery = supabase
     .from("orders")
@@ -104,18 +109,25 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { orderId, vehicleId, destinationPostalCode, scheduledDate, timeSlot, specialInstructions, addressId } = body
 
-    if (!orderId || !destinationPostalCode || !scheduledDate) {
-      return apiError(ErrorCode.VALIDATION_ERROR, "Missing required fields: orderId, destinationPostalCode, scheduledDate", 400)
+    const orderIdStr = asStr(orderId).trim()
+    const postalStr = asStr(destinationPostalCode).trim()
+    const scheduledDateStr = asStr(scheduledDate).trim()
+    if (!orderIdStr || !postalStr || !scheduledDateStr) {
+      return apiError(
+        ErrorCode.VALIDATION_ERROR,
+        "Missing required fields: orderId, destinationPostalCode, scheduledDate",
+        400,
+      )
     }
 
-    const quote = await fetchDeliveryQuote(request, destinationPostalCode)
+    const quote = await fetchDeliveryQuote(request, postalStr)
     if (!quote.ok) return quote.res
     const { distanceKm: estimatedDistanceKm, deliveryCost } = quote
 
-    const normalizedPostal = String(destinationPostalCode).trim().toUpperCase()
+    const normalizedPostal = postalStr.toUpperCase()
     const normalizedTimeSlot = typeof timeSlot === "string" ? timeSlot.trim() : null
 
-    const { data: orderRows, error: orderError } = await findOrder(supabase, user.id, orderId)
+    const { data: orderRows, error: orderError } = await findOrder(supabase, user.id, orderIdStr)
     if (orderError) {
       return apiError(ErrorCode.INTERNAL_ERROR, "Failed to schedule delivery")
     }
@@ -138,7 +150,7 @@ export async function POST(request: NextRequest) {
     }
 
     const orderRef = order.order_number || order.id
-    const existingResponse = handleExistingDelivery(existingRows?.[0] as DeliveryRow | undefined, orderRef, scheduledDate, normalizedTimeSlot)
+    const existingResponse = handleExistingDelivery(existingRows?.[0] as DeliveryRow | undefined, orderRef, scheduledDateStr, normalizedTimeSlot)
     if (existingResponse) return existingResponse
 
     const { data: insertedRows, error: insertError } = await supabase
@@ -147,9 +159,9 @@ export async function POST(request: NextRequest) {
         order_id: order.id,
         delivery_type: "delivery",
         address_id: addressId || null,
-        scheduled_date: scheduledDate,
+        scheduled_date: scheduledDateStr,
         scheduled_time_slot: normalizedTimeSlot,
-        estimated_delivery_date: scheduledDate,
+        estimated_delivery_date: scheduledDateStr,
         status: "scheduled",
         distance_km: Number.isFinite(estimatedDistanceKm) ? Math.round(estimatedDistanceKm) : null,
         delivery_fee: Number.isFinite(deliveryCost) ? deliveryCost : null,

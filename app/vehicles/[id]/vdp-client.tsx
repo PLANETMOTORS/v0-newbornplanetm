@@ -502,14 +502,16 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                       )
                     }
                     return (
-                  /* S6845/S6847: render the gallery as a focusable widget with
-                     role="application" — this is the WAI-ARIA pattern for a
-                     custom widget that manages its own keyboard interactions
-                     (arrow keys), so the keyboard handler + tabIndex are
-                     semantically appropriate. */
+                  /* S6845/S6847: render the gallery as a focusable region.
+                     We deliberately do NOT use role="application" — that would
+                     force assistive tech out of browse mode and is overkill
+                     for a widget that only handles arrow-key navigation
+                     alongside normal links/buttons. role="region" with an
+                     aria-label gives screen-reader users a properly named
+                     landmark while preserving default browse behavior. */
                   <section
                     data-testid="vdp-image-gallery"
-                    role="application"
+                    role="region"
                     tabIndex={0}
                     aria-label="Vehicle image gallery — use left/right arrow keys to navigate"
                     onKeyDown={(e) => {

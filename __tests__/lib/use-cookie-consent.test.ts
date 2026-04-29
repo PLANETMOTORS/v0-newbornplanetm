@@ -5,16 +5,16 @@ import { useCookieConsent } from "@/lib/hooks/use-cookie-consent"
 
 const STORAGE_KEY = "pm_cookie_consent"
 
+type GtagWindow = Window & { gtag?: (...args: unknown[]) => void }
+
 beforeEach(() => {
   localStorage.clear()
-  // @ts-expect-error gtag mock
-  globalThis.window.gtag = vi.fn()
+  ;(globalThis.window as GtagWindow).gtag = vi.fn()
 })
 
 afterEach(() => {
   localStorage.clear()
-  // @ts-expect-error gtag cleanup
-  delete globalThis.window.gtag
+  delete (globalThis.window as GtagWindow).gtag
 })
 
 describe("useCookieConsent", () => {
@@ -49,8 +49,7 @@ describe("useCookieConsent", () => {
     expect(result.current.consent.categories.marketing).toBe(true)
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}")
     expect(stored.categories.analytics).toBe(true)
-    // @ts-expect-error gtag is mocked
-    expect(globalThis.window.gtag).toHaveBeenCalledWith(
+    expect((globalThis.window as GtagWindow).gtag).toHaveBeenCalledWith(
       "consent",
       "update",
       expect.objectContaining({ analytics_storage: "granted", ad_storage: "granted" }),

@@ -219,12 +219,13 @@ function applyFilterParams(params: URLSearchParams, f: FilterState) {
  *
  * @returns The inventory page JSX element ready for rendering.
  */
-// NOSONAR S3776 — inventory page coordinates 13 filter dimensions, debounced
-// search, URL-param sync (with reset-then-apply semantics), Load-More pagination
-// with filterKey-based page reset, favorites, trade-in carry-over, and SWR
-// fetcher with abort support. Splitting into hooks risks de-syncing
-// effective-page calculations across renders.
-function InventoryContent() { // NOSONAR S3776
+// Inventory page coordinates 13 filter dimensions, debounced search, URL-param
+// sync (with reset-then-apply semantics), Load-More pagination with filterKey-
+// based page reset, favorites, trade-in carry-over, and a SWR fetcher with
+// abort support. Tracked for hook-based refactor in a follow-up — see
+// PR #542 review (Qodo). The orchestration is intentionally co-located until
+// then so URL-param→filter→page-reset semantics stay in one place.
+function InventoryContent() {
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState("")
   const [searchInput, setSearchInput] = useState("")
@@ -391,11 +392,14 @@ function InventoryContent() { // NOSONAR S3776
     const tradeIn = sp.get("tradeIn")
     const tradeInValue = tradeIn ? Number.parseInt(tradeIn) : 0
     if (!Number.isFinite(tradeInValue) || tradeInValue <= 0) return
-    const tradeInVehicle = sp.get("tradeInVehicle")
+    // URLSearchParams.get() returns an already-decoded value; calling
+    // decodeURIComponent again can throw URIError on legitimate inputs that
+    // contain a literal "%" (e.g. "100%25" -> "100%"). Use the raw value.
+    const tradeInVehicle = sp.get("tradeInVehicle") || ''
     setTradeInInfo({
       value: tradeInValue,
       quoteId: sp.get("quoteId") || '',
-      vehicle: tradeInVehicle ? decodeURIComponent(tradeInVehicle) : '',
+      vehicle: tradeInVehicle,
     })
   }, [])
 

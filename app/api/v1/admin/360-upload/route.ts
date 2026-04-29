@@ -78,9 +78,16 @@ async function clearExistingFrames(
   adminClient: AdminClient,
   mid: string,
 ): Promise<NextResponse | null> {
-  const { data: existingFiles } = await adminClient.storage
+  const { data: existingFiles, error: listError } = await adminClient.storage
     .from(BUCKET)
     .list(`${mid}/nobg`, { limit: 200 })
+
+  if (listError) {
+    return NextResponse.json(
+      { error: `Failed to list existing frames: ${listError.message}. Aborting upload to prevent stale frame mix.` },
+      { status: 500 },
+    )
+  }
 
   if (!existingFiles || existingFiles.length === 0) return null
 
