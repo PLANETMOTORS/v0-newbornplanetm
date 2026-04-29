@@ -383,6 +383,12 @@ export interface SyncVehiclesResult {
    * SoldOut availability.
    */
   soldVehicleIds: string[]
+  /**
+   * IDs of vehicles updated (not inserted) in this run. Used by callers
+   * to fire IndexNow pings so search engines re-crawl and pick up changes
+   * like price updates.
+   */
+  updatedVehicleIds: string[]
   errors: { vin: string; error: string }[]
 }
 
@@ -409,6 +415,7 @@ export async function syncVehiclesToDatabase(
   const errors: { vin: string; error: string }[] = []
   const insertedVehicleIds: string[] = []
   const soldVehicleIds: string[] = []
+  const updatedVehicleIds: string[] = []
   const BATCH_SIZE = 100
 
   // Collect all VINs from incoming file
@@ -489,6 +496,7 @@ export async function syncVehiclesToDatabase(
             if (row.id) insertedVehicleIds.push(row.id)
           } else {
             updated++
+            if (row?.id) updatedVehicleIds.push(row.id)
           }
         } catch (error) {
           console.error(`[HomenetIOL] Error syncing VIN ${vehicle.vin}:`, error)
@@ -530,7 +538,7 @@ export async function syncVehiclesToDatabase(
     })
   }
 
-  return { inserted, updated, removed, insertedVehicleIds, soldVehicleIds, errors }
+  return { inserted, updated, removed, insertedVehicleIds, soldVehicleIds, updatedVehicleIds, errors }
 }
 
 

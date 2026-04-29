@@ -106,6 +106,7 @@ export async function GET(request: Request) {
       const changedUrls: string[] = [
         ...buildVehicleUrls(result.insertedVehicleIds),
         ...buildVehicleUrls(result.soldVehicleIds),
+        ...buildVehicleUrls(result.updatedVehicleIds),
       ]
       const hasInventoryChanges =
         result.inserted > 0 || result.updated > 0 || result.removed > 0
