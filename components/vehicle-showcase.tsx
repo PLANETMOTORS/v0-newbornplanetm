@@ -145,12 +145,16 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
 
   // Fetch vehicles from Supabase — use server-fetched data as fallbackData
   // so the first render already has real vehicle data + images (enables LCP preload).
+  // When server data is available, skip the immediate re-fetch on mount
+  // to reduce TBT (saves ~50-100ms of Supabase client init + network).
+  const hasServerData = !!serverVehicles && serverVehicles.length > 0
   const { data: dbVehicles } = useSWR('showcase-vehicles', fetcher, {
     refreshInterval: 120000,
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
+    revalidateOnMount: !hasServerData,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- server data matches fetcher shape
-    ...(serverVehicles ? { fallbackData: serverVehicles as any } : {}),
+    ...(hasServerData ? { fallbackData: serverVehicles as any } : {}),
   })
 
   // Transform to showcase format - use fallback if no DB data

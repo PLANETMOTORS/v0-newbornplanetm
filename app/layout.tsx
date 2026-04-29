@@ -124,9 +124,14 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
 
-        {/* Preconnect to vehicle image CDN for faster LCP */}
-        <link rel="preconnect" href="https://content.homenetiol.com" />
-        <link rel="preconnect" href="https://photos.homenetiol.com" />
+        {/* Preconnect to vehicle image CDN for faster LCP.
+            crossOrigin="anonymous" is required because Next.js <Image>
+            requests go through /_next/image (CORS). Without it the
+            browser opens a second connection and the preconnect is wasted. */}
+        <link rel="preconnect" href="https://content.homenetiol.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://photos.homenetiol.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://content.homenetiol.com" />
+        <link rel="dns-prefetch" href="https://photos.homenetiol.com" />
 
         {/* JSON-LD structured data — server-rendered, lightweight */}
         <OrganizationJsonLd />
