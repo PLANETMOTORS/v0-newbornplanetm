@@ -44,7 +44,7 @@ function collectUtmParams(data: VehicleCheckoutData): Record<string, string> {
 
 function buildSessionMetadata(
   data: VehicleCheckoutData,
-  vehicle: { year?: unknown; make?: unknown; model?: unknown },
+  vehicle: { year?: string | number; make?: string; model?: string },
   serverVehicleName: string,
   userId: string,
   reservationId: string | null | undefined,

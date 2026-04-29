@@ -80,17 +80,17 @@ function renderNotificationButtonContent(isLoading: boolean, isEnabled: boolean)
 }
 
 interface AuthFormProps {
-  authTab: string
-  setAuthTab: (v: string) => void
-  loginError: string
-  setLoginError: (v: string) => void
-  authMessage: string
-  setAuthMessage: (v: string) => void
-  isLoading: boolean
-  oauthLoading: OAuthProvider | null
-  handleLogin: (email: string, password: string) => void
-  handleRegister: (data: RegistrationInput) => void
-  handleOAuthLogin: (provider: OAuthProvider) => void
+  readonly authTab: string
+  readonly setAuthTab: (v: string) => void
+  readonly loginError: string
+  readonly setLoginError: (v: string) => void
+  readonly authMessage: string
+  readonly setAuthMessage: (v: string) => void
+  readonly isLoading: boolean
+  readonly oauthLoading: OAuthProvider | null
+  readonly handleLogin: (email: string, password: string) => void
+  readonly handleRegister: (data: RegistrationInput) => void
+  readonly handleOAuthLogin: (provider: OAuthProvider) => void
 }
 
 function AuthFormPage({

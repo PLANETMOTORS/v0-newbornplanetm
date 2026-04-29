@@ -77,9 +77,7 @@ export function createReadClient(): SupabaseClient {
     return createStaticClient() as SupabaseClient
   }
 
-  if (!_replicaClient) {
-    _replicaClient = buildReplicaClient(url, key)
-  }
+  _replicaClient ??= buildReplicaClient(url, key)
   return _replicaClient
 }
 
