@@ -163,7 +163,7 @@
     },
     "always_use_https": {
       "enabled": true,
-      "description": "302 redirect any http:// request to https://. Free.",
+      "description": "302 redirect any http:// request to https:// Free.",
       "deployment": "Cloudflare Dashboard → SSL/TLS → Edge Certificates → Always Use HTTPS → Toggle On"
     },
     "min_tls_version": {
