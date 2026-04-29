@@ -200,8 +200,8 @@
 
   "cache_rules": [
     {
-      "id": "cache_001_never_cache_api_or_health",
-      "description": "Don't cache API responses or health probes — they must always hit origin to reflect current state.",
+      "id": "cache_001_never_cache_api_or_next_data",
+      "description": "Don't cache API responses or Next.js data requests — they must always hit origin to reflect current state.",
       "expression": "(http.request.uri.path contains \"/api/\" or http.request.uri.path contains \"/_next/data/\")",
       "action": "bypass_cache",
       "enabled": true,
