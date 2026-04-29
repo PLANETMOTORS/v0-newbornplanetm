@@ -3,7 +3,7 @@
     "title": "Planet Motors — Cloudflare WAF Rules",
     "version": "1.0.0",
     "purpose": "Layer 7 protection rules for the planetmotors.ca zone on Cloudflare. Complements Vercel's built-in DDoS protection by adding application-aware rate limits, payment-route guards, and webhook origin validation.",
-    "tier_required": "Cloudflare Free is sufficient for all rules below. Pro tier ($20/mo) unlocks: WAF Managed Rules (OWASP CRS), Bot Fight Mode (advanced), Browser Integrity Check.",
+    "tier_required": "Cloudflare Free is sufficient for the custom rules and rate-limit rules defined below. Optional Cloudflare managed protections may vary by plan: Browser Integrity Check and basic Bot Fight Mode can be enabled on Free, while WAF Managed Rules (OWASP CRS) and Bot Management/advanced bot protections require a paid tier.",
     "deployment": "Two paths to deploy: (a) Cloudflare Dashboard → Security → WAF → Custom rules → click 'Create rule' for each entry below, OR (b) via Cloudflare API: POST /zones/{zone_id}/firewall/rules with the expression and action.",
     "rule_count": 8,
     "last_reviewed": "2026-04-29"
