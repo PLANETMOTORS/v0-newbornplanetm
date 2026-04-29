@@ -107,8 +107,11 @@ export async function GET(request: Request) {
         ...buildVehicleUrls(result.insertedVehicleIds),
         ...buildVehicleUrls(result.soldVehicleIds),
       ]
-      // Always nudge the inventory listing — sort/availability may have changed.
-      if (changedUrls.length > 0) changedUrls.push(`${baseUrl}/inventory`)
+      const hasInventoryChanges =
+        result.inserted > 0 || result.updated > 0 || result.removed > 0
+      // Always nudge the inventory listing when the sync changed inventory state
+      // — sort, filters, pricing, or availability may have changed.
+      if (hasInventoryChanges) changedUrls.push(`${baseUrl}/inventory`)
 
       if (changedUrls.length > 0) {
         try {
