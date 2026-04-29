@@ -77,7 +77,7 @@
       "action": "block",
       "priority": 70,
       "enabled": true,
-      "notes": "Catches `/api/file?path=../../etc/passwd` style attacks even when URL-encoded."
+      "notes": "Catches path traversal in the URL path itself (e.g. GET /static/../../../etc/passwd). Query-string path traversal (e.g. ?path=../../etc/passwd) is covered by rule_001."
     },
 
     {
