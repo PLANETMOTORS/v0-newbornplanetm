@@ -79,6 +79,10 @@ function renderNotificationButtonContent(isLoading: boolean, isEnabled: boolean)
   return 'Enable'
 }
 
+// Large client page with auth/profile/notifications/finance/drafts/applications
+// tabs; complexity is from many useState/useEffect hooks gating mutually-
+// exclusive UI branches. Tracked for refactor into per-tab sub-components in a
+// follow-up — see PR #542 review.
 export default function AccountPage() {
   const { user, isLoading: isAuthLoading, signOut } = useAuth()
   const { favorites, removeFavorite } = useFavorites()

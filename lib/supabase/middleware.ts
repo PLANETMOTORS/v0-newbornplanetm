@@ -72,7 +72,10 @@ export async function updateSession(request: NextRequest) {
     },
   }
 
-  const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+  // NOSONAR S1874 — the explicit `CookieMethodsServer`-typed adapter resolves
+  // to the modern overload at runtime; Sonar's TS analyzer mis-attributes the
+  // call to the deprecated `get/set/remove` signature.
+  const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, { // NOSONAR S1874
     cookies: cookieAdapter,
   })
 

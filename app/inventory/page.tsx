@@ -219,6 +219,12 @@ function applyFilterParams(params: URLSearchParams, f: FilterState) {
  *
  * @returns The inventory page JSX element ready for rendering.
  */
+// Inventory page coordinates 13 filter dimensions, debounced search, URL-param
+// sync (with reset-then-apply semantics), Load-More pagination with filterKey-
+// based page reset, favorites, trade-in carry-over, and a SWR fetcher with
+// abort support. Tracked for hook-based refactor in a follow-up — see
+// PR #542 review (Qodo). The orchestration is intentionally co-located until
+// then so URL-param→filter→page-reset semantics stay in one place.
 function InventoryContent() {
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState("")
@@ -382,6 +388,21 @@ function InventoryContent() {
     if (urlQuery) { setSearchQuery(urlQuery); setSearchInput(urlQuery) }
   }, [applyFuelTypeFilter, applyPriceFilter, applyCategoryFilter])
 
+  const captureTradeInFromUrl = useCallback((sp: URLSearchParams) => {
+    const tradeIn = sp.get("tradeIn")
+    const tradeInValue = tradeIn ? Number.parseInt(tradeIn) : 0
+    if (!Number.isFinite(tradeInValue) || tradeInValue <= 0) return
+    // URLSearchParams.get() returns an already-decoded value; calling
+    // decodeURIComponent again can throw URIError on legitimate inputs that
+    // contain a literal "%" (e.g. "100%25" -> "100%"). Use the raw value.
+    const tradeInVehicle = sp.get("tradeInVehicle") || ''
+    setTradeInInfo({
+      value: tradeInValue,
+      quoteId: sp.get("quoteId") || '',
+      vehicle: tradeInVehicle,
+    })
+  }, [])
+
   // Read URL parameters and set filters
   // IMPORTANT: Reset ALL filters first, then apply only what the URL specifies.
   useEffect(() => {
@@ -395,18 +416,10 @@ function InventoryContent() {
       transmission: searchParams.get("transmission"),
       urlQuery: searchParams.get("q"),
     }
-    const tradeIn = searchParams.get("tradeIn")
-    if (tradeIn && Number.parseInt(tradeIn) > 0) {
-      const tradeInVehicle = searchParams.get("tradeInVehicle")
-      setTradeInInfo({
-        value: Number.parseInt(tradeIn),
-        quoteId: searchParams.get("quoteId") || '',
-        vehicle: tradeInVehicle ? decodeURIComponent(tradeInVehicle) : '',
-      })
-    }
+    captureTradeInFromUrl(searchParams)
     if (Object.values(params).some(Boolean)) resetFiltersToDefaults()
     applyUrlFilters(params)
-  }, [searchParams, resetFiltersToDefaults, applyUrlFilters])
+  }, [searchParams, resetFiltersToDefaults, applyUrlFilters, captureTradeInFromUrl])
 
   // Final display list comes from the accumulator
   const sortedVehicles = accumulatedVehicles

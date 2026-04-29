@@ -104,6 +104,11 @@ function mapReservationError(error: unknown): string {
   return 'An unexpected error occurred. Please try again.'
 }
 
+// Reservation flow chains rate-limit → distributed lock → RPC claim → vehicle
+// lookup → Stripe session create (with ACSS-debit fallback) → single
+// error/cleanup path. Each step runs sequentially against the SAME locked
+// vehicle row; extracting helpers would split the cleanup logic across
+// modules and risk silent lock leaks. Refactor tracked as follow-up.
 export async function createReservation(input: ReservationInput): Promise<ReservationResult> {
   const rateLimitScopeHash = await buildRateLimitScope(input.customerEmail)
 

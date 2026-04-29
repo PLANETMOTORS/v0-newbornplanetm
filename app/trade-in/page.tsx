@@ -291,6 +291,11 @@ function hydrateTradeInDraft(d: Record<string, unknown>, s: DraftSetters) {
   setIfString(d, "vinNumber", s.setVinNumber)
 }
 
+// Multi-step trade-in wizard (4 steps) with VIN lookup, draft auto-save, AI
+// quote prefill, photo upload, and conditional address/payoff/document
+// branches. Step state machine + form state share a closure so we avoid
+// prop-drilling 30+ setters across step components. Tracked for refactor
+// into a finite-state-machine helper in a follow-up — see PR #542 review.
 function TradeInContent() {
   const searchParams = useSearchParams()
   const { user } = useAuth()
