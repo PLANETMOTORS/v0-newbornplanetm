@@ -511,7 +511,7 @@ export async function syncVehiclesToDatabase(
           sold_at = COALESCE(sold_at, NOW()),
           updated_at = NOW()
       WHERE vin != ALL(${incomingVins})
-        AND status != 'sold'
+        AND status IS DISTINCT FROM 'sold'
       RETURNING id
     `
     const soldRows = soldResult as Array<{ id: string }>
