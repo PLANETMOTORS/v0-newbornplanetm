@@ -214,7 +214,7 @@ function applyFilterParams(params: URLSearchParams, f: FilterState) {
 
 function parseTradeInFromParams(params: URLSearchParams) {
   const tradeIn = params.get("tradeIn")
-  if (!tradeIn || Number.parseInt(tradeIn) <= 0) return null
+  if (!tradeIn || !(Number.parseInt(tradeIn) > 0)) return null
   const tradeInVehicle = params.get("tradeInVehicle")
   return {
     value: Number.parseInt(tradeIn),
