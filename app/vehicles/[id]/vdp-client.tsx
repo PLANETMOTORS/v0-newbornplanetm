@@ -498,13 +498,8 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                   <div
                     data-testid="vdp-image-gallery"
                     role="region"
-                    tabIndex={0}
-                    aria-label="Vehicle image gallery — use left/right arrow keys to navigate"
-                    onKeyDown={(e) => {
-                      if (e.key === "ArrowRight") { nextImage(); e.preventDefault() }
-                      if (e.key === "ArrowLeft") { prevImage(); e.preventDefault() }
-                    }}
-                    className="relative aspect-[4/3] rounded-xl overflow-hidden group focus:outline-none focus:ring-2 focus:ring-primary"
+                    aria-label="Vehicle image gallery — use arrow buttons to navigate"
+                    className="relative aspect-[4/3] rounded-xl overflow-hidden group"
                     style={{ backgroundColor: "#e8e8e8" }}
                   >
                     {/* Hidden native img for vdp-active-image testid (Playwright getAttribute('src')) */}
@@ -545,17 +540,25 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     {/* Navigation Arrows */}
                     <button
                       onClick={prevImage}
+                      onKeyDown={(e) => {
+                        if (e.key === "ArrowRight") { nextImage(); e.preventDefault() }
+                        if (e.key === "ArrowLeft") { prevImage(); e.preventDefault() }
+                      }}
                       aria-label="Previous image"
                       type="button"
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100 focus:opacity-100"
                     >
                       <ChevronLeft className="h-5 w-5" />
                     </button>
                     <button
                       onClick={nextImage}
+                      onKeyDown={(e) => {
+                        if (e.key === "ArrowRight") { nextImage(); e.preventDefault() }
+                        if (e.key === "ArrowLeft") { prevImage(); e.preventDefault() }
+                      }}
                       aria-label="Next image"
                       type="button"
-                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100 focus:opacity-100"
                     >
                       <ChevronRight className="h-5 w-5" />
                     </button>
