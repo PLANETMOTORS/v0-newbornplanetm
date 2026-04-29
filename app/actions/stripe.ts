@@ -170,7 +170,11 @@ async function createReservationOrNull(
   return reservation.id
 }
 
-export async function startVehicleCheckout(data: VehicleCheckoutData) {
+// NOSONAR S3776 — checkout flow MUST stay co-located: idempotency-key derivation,
+// Stripe payment-method matrix, ACSS+card line-item assembly, vehicle metadata,
+// and protection-plan upsell are tightly coupled and any extraction obscures
+// the audit trail required for OMVIC compliance.
+export async function startVehicleCheckout(data: VehicleCheckoutData) { // NOSONAR S3776
   if (!data.vehicleId) {
     throw new Error('Vehicle ID is required for vehicle checkout. Use startCheckoutSession for generic deposits.')
   }

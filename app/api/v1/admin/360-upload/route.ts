@@ -72,6 +72,73 @@ function collectFrames(formData: FormData):
   return { ok: true, frames }
 }
 
+type AdminClient = ReturnType<typeof createAdminClient>
+
+async function clearExistingFrames(
+  adminClient: AdminClient,
+  mid: string,
+): Promise<NextResponse | null> {
+  const { data: existingFiles } = await adminClient.storage
+    .from(BUCKET)
+    .list(`${mid}/nobg`, { limit: 200 })
+
+  if (!existingFiles || existingFiles.length === 0) return null
+
+  const pathsToDelete = existingFiles.map((f) => `${mid}/nobg/${f.name}`)
+  const { error: deleteError } = await adminClient.storage.from(BUCKET).remove(pathsToDelete)
+  if (deleteError) {
+    return NextResponse.json(
+      { error: `Failed to clean up existing frames: ${deleteError.message}. Aborting upload to prevent stale frame mix.` },
+      { status: 500 },
+    )
+  }
+  return null
+}
+
+async function uploadSingleFrame(
+  adminClient: AdminClient,
+  mid: string,
+  frame: File,
+  index: number,
+): Promise<{ ok: true; url: string } | { ok: false; padded: string; error: string }> {
+  const padded = String(index + 1).padStart(2, "0")
+  const storagePath = `${mid}/nobg/${padded}.webp`
+  const arrayBuffer = await frame.arrayBuffer()
+  const buffer = Buffer.from(arrayBuffer)
+
+  const { error } = await adminClient.storage
+    .from(BUCKET)
+    .upload(storagePath, buffer, { contentType: "image/webp", upsert: true })
+
+  if (error) return { ok: false, padded, error: error.message }
+
+  const { data: urlData } = adminClient.storage.from(BUCKET).getPublicUrl(storagePath)
+  return { ok: true, url: urlData.publicUrl }
+}
+
+async function uploadAllFrames(
+  adminClient: AdminClient,
+  mid: string,
+  frames: File[],
+): Promise<{ uploaded: string[]; errors: string[] }> {
+  const uploaded: string[] = []
+  const errors: string[] = []
+  for (let i = 0; i < frames.length; i++) {
+    const result = await uploadSingleFrame(adminClient, mid, frames[i], i)
+    if (result.ok) uploaded.push(result.url)
+    else errors.push(`Frame ${result.padded}: ${result.error}`)
+  }
+  return { uploaded, errors }
+}
+
+async function parseFormData(request: NextRequest): Promise<FormData | NextResponse> {
+  try {
+    return await request.formData()
+  } catch {
+    return NextResponse.json({ error: "Invalid form data" }, { status: 400 })
+  }
+}
+
 /**
  * POST /api/v1/admin/360-upload
  *
@@ -81,12 +148,9 @@ export async function POST(request: NextRequest) {
   const unauthorized = await requireAdminUser()
   if (unauthorized) return unauthorized
 
-  let formData: FormData
-  try {
-    formData = await request.formData()
-  } catch {
-    return NextResponse.json({ error: "Invalid form data" }, { status: 400 })
-  }
+  const formDataOrError = await parseFormData(request)
+  if (formDataOrError instanceof NextResponse) return formDataOrError
+  const formData = formDataOrError
 
   const meta = validateUploadMetadata(formData)
   if (!meta.ok) return meta.res
@@ -95,56 +159,13 @@ export async function POST(request: NextRequest) {
   const collected = collectFrames(formData)
   if (!collected.ok) return collected.res
   const frames = collected.frames
-
-  // Sort frames by name to ensure consistent ordering
   frames.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
 
   const adminClient = createAdminClient()
+  const cleanupError = await clearExistingFrames(adminClient, mid)
+  if (cleanupError) return cleanupError
 
-  // Delete any existing frames in this MID folder to prevent stale leftovers
-  const { data: existingFiles } = await adminClient.storage
-    .from(BUCKET)
-    .list(`${mid}/nobg`, { limit: 200 })
-
-  if (existingFiles && existingFiles.length > 0) {
-    const pathsToDelete = existingFiles.map(f => `${mid}/nobg/${f.name}`)
-    const { error: deleteError } = await adminClient.storage.from(BUCKET).remove(pathsToDelete)
-    if (deleteError) {
-      return NextResponse.json(
-        { error: `Failed to clean up existing frames: ${deleteError.message}. Aborting upload to prevent stale frame mix.` },
-        { status: 500 },
-      )
-    }
-  }
-
-  const uploaded: string[] = []
-  const errors: string[] = []
-
-  for (let i = 0; i < frames.length; i++) {
-    const frame = frames[i]
-    const padded = String(i + 1).padStart(2, "0")
-    const storagePath = `${mid}/nobg/${padded}.webp`
-
-    const arrayBuffer = await frame.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-
-    const { error } = await adminClient.storage
-      .from(BUCKET)
-      .upload(storagePath, buffer, {
-        contentType: "image/webp",
-        upsert: true,
-      })
-
-    if (error) {
-      errors.push(`Frame ${padded}: ${error.message}`)
-    } else {
-      const { data: urlData } = adminClient.storage
-        .from(BUCKET)
-        .getPublicUrl(storagePath)
-      uploaded.push(urlData.publicUrl)
-    }
-  }
-
+  const { uploaded, errors } = await uploadAllFrames(adminClient, mid, frames)
   const allFailed = uploaded.length === 0 && errors.length > 0
 
   return NextResponse.json(

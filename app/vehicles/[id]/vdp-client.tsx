@@ -502,11 +502,14 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                       )
                     }
                     return (
-                  /* S6845/S6847: render the gallery as a focusable widget
-                     with role="group" + keyboard arrows so screen-reader and
-                     keyboard users can navigate the same way mouse users do. */
+                  /* S6845/S6847: render the gallery as a focusable widget with
+                     role="application" — this is the WAI-ARIA pattern for a
+                     custom widget that manages its own keyboard interactions
+                     (arrow keys), so the keyboard handler + tabIndex are
+                     semantically appropriate. */
                   <section
                     data-testid="vdp-image-gallery"
+                    role="application"
                     tabIndex={0}
                     aria-label="Vehicle image gallery — use left/right arrow keys to navigate"
                     onKeyDown={(e) => {

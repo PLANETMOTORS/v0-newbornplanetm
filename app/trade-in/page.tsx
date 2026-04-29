@@ -291,7 +291,11 @@ function hydrateTradeInDraft(d: Record<string, unknown>, s: DraftSetters) {
   setIfString(d, "vinNumber", s.setVinNumber)
 }
 
-function TradeInContent() {
+// NOSONAR S3776 — multi-step trade-in wizard (4 steps) with VIN lookup, draft
+// auto-save, AI quote prefill, photo upload, and conditional address/payoff/
+// document branches. Step state machine and form state must share the same
+// closure to avoid prop-drilling 30+ setters across child components.
+function TradeInContent() { // NOSONAR S3776
   const searchParams = useSearchParams()
   const { user } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)

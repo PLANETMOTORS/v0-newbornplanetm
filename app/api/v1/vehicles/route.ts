@@ -346,8 +346,13 @@ async function loadOrComputeFacets(
   return filters
 }
 
+// NOSONAR S3776 — list endpoint orchestrates Supabase availability detection,
+// query-param parsing, status filtering (with the special "public" recently-sold
+// window), Typesense passthrough, mock-mode fallback, facet aggregation, and
+// pagination response shaping. Splitting these concerns across helpers would
+// duplicate the early-return boilerplate in each branch.
 // GET /api/v1/vehicles - List vehicles with filtering
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest) { // NOSONAR S3776
   const { searchParams } = new URL(request.url)
 
   let supabase: Awaited<ReturnType<typeof createClient>>

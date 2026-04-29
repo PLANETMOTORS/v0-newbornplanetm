@@ -49,78 +49,96 @@ function validateApplyPayload(body: any) {
   return null
 }
 
+interface NormalisedFinancials {
+  requestedAmountValue: number
+  annualIncomeValue: number
+  downPaymentValue: number
+  requestedTermValue: number
+}
+
+function normaliseFinancials(body: Record<string, unknown>):
+  | { ok: true; values: NormalisedFinancials }
+  | { ok: false; res: NextResponse } {
+  const requestedAmountValue = asNumber(body.requestedAmount)
+  const annualIncomeValue = asNumber(body.annualIncome)
+  const downPaymentValue = Math.max(0, asNumber(body.downPayment))
+  const requestedTermValue = Math.max(24, Math.min(96, Math.round(asNumber(body.requestedTerm, 72))))
+  if (requestedAmountValue <= 0 || annualIncomeValue <= 0) {
+    return { ok: false, res: jsonError('INVALID_FINANCIAL_INPUT', 'requestedAmount and annualIncome must be greater than 0', 400) }
+  }
+  return { ok: true, values: { requestedAmountValue, annualIncomeValue, downPaymentValue, requestedTermValue } }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function ensureVehicleExists(supabase: any, vehicleId: string | null | undefined): Promise<NextResponse | null> {
+  if (!vehicleId) return null
+  const { data: vehicle, error: vehicleError } = await supabase
+    .from('vehicles')
+    .select('id, status')
+    .eq('id', vehicleId)
+    .maybeSingle()
+  if (vehicleError) return jsonError('DB_ERROR', vehicleError.message, 500)
+  if (!vehicle) return jsonError('NOT_FOUND', 'Vehicle not found', 404)
+  return null
+}
+
+async function authoriseUser(): Promise<
+  | { ok: true; supabase: Awaited<ReturnType<typeof createClient>>; userId: string }
+  | { ok: false; res: NextResponse }
+> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return {
+      ok: false,
+      res: NextResponse.json(
+        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
+        { status: 401 },
+      ),
+    }
+  }
+  return { ok: true, supabase, userId: user.id }
+}
+
 // POST /api/v1/financing/apply - Full application submission (review pipeline)
 export async function POST(request: NextRequest) {
   try {
     if (!validateOrigin(request)) {
       return NextResponse.json(
         { success: false, error: { code: 'FORBIDDEN', message: 'Forbidden' } },
-        { status: 403 }
+        { status: 403 },
       )
     }
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      )
-    }
+    const auth = await authoriseUser()
+    if (!auth.ok) return auth.res
+    const { supabase, userId } = auth
 
     const body = await request.json()
     const {
-      customerId,
-      vehicleId,
-      selectedLenderIds,
-      firstName,
-      lastName,
-      email,
-      phone,
-      dateOfBirth,
-      sin,
-      streetAddress,
-      city,
-      province,
-      postalCode,
-      residenceStatus,
-      monthlyPayment: _monthlyPayment,
-      yearsAtAddress,
-      employmentStatus,
-      employerName,
-      jobTitle,
-      employmentYears,
-      annualIncome,
-      requestedAmount,
-      requestedTerm,
-      downPayment,
-      tradeInId,
+      customerId, vehicleId, selectedLenderIds,
+      firstName, lastName, email, phone, dateOfBirth, sin,
+      streetAddress, city, province, postalCode, residenceStatus,
+      monthlyPayment: _monthlyPayment, yearsAtAddress,
+      employmentStatus, employerName, jobTitle, employmentYears,
+      annualIncome: _annualIncome, requestedAmount: _requestedAmount,
+      requestedTerm: _requestedTerm, downPayment: _downPayment, tradeInId,
     } = body
 
     const validationError = validateApplyPayload(body)
     if (validationError) return validationError
 
-    const requestedAmountValue = asNumber(requestedAmount)
-    const annualIncomeValue = asNumber(annualIncome)
-    const downPaymentValue = Math.max(0, asNumber(downPayment))
-    const requestedTermValue = Math.max(24, Math.min(96, Math.round(asNumber(requestedTerm, 72))))
-    if (requestedAmountValue <= 0 || annualIncomeValue <= 0) {
-      return jsonError('INVALID_FINANCIAL_INPUT', 'requestedAmount and annualIncome must be greater than 0', 400)
-    }
-    if (customerId && customerId !== user.id) {
+    const financials = normaliseFinancials(body)
+    if (!financials.ok) return financials.res
+    const { requestedAmountValue, annualIncomeValue, downPaymentValue, requestedTermValue } = financials.values
+
+    if (customerId && customerId !== userId) {
       return jsonError('FORBIDDEN', 'customerId must match authenticated user', 403)
     }
-    const effectiveCustomerId = customerId || user.id
+    const effectiveCustomerId = customerId || userId
 
-    if (vehicleId) {
-      const { data: vehicle, error: vehicleError } = await supabase
-        .from('vehicles')
-        .select('id, status')
-        .eq('id', vehicleId)
-        .maybeSingle()
-      if (vehicleError) return jsonError('DB_ERROR', vehicleError.message, 500)
-      if (!vehicle) return jsonError('NOT_FOUND', 'Vehicle not found', 404)
-    }
+    const vehicleError = await ensureVehicleExists(supabase, vehicleId)
+    if (vehicleError) return vehicleError
 
     const applicationNumber = generateApplicationNumber()
     const submittedAt = new Date().toISOString()
@@ -132,7 +150,7 @@ export async function POST(request: NextRequest) {
       .from('finance_applications_v2')
       .insert({
         application_number: applicationNumber,
-        user_id: user.id,
+        user_id: userId,
         customer_id: effectiveCustomerId,
         vehicle_id: vehicleId || null,
         status: 'submitted',
@@ -181,7 +199,7 @@ export async function POST(request: NextRequest) {
         application_id: application.id,
         from_status: null,
         to_status: 'submitted',
-        changed_by: user.id,
+        changed_by: userId,
         notes: 'Application submitted for manual/compliance review',
       })
 
