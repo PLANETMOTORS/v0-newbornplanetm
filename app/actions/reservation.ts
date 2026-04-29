@@ -112,6 +112,7 @@ async function createStripeSessionWithFallback(
   buildParams: (includeAcss: boolean) => Stripe.Checkout.SessionCreateParams,
   enableAcssDebit: boolean,
   idempotencyKey: string,
+  logContext?: Record<string, unknown>,
 ) {
   try {
     return await stripe.checkout.sessions.create(buildParams(enableAcssDebit), {
@@ -131,6 +132,7 @@ async function createStripeSessionWithFallback(
     if (!canRetryCardOnly) throw sessionError
 
     console.warn('ACSS checkout session failed, retrying with card only', {
+      ...logContext,
       errorCode: stripeErrorCode || undefined,
       error: sessionErrorMessage,
     })
@@ -309,6 +311,7 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
 
     const session = await createStripeSessionWithFallback(
       stripe, createSessionParams, enableAcssDebit, idempotencyKey,
+      { reservationId, stockNumber: input.stockNumber },
     )
 
     const { error: updateError } = await supabase
