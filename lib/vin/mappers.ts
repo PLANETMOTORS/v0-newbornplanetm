@@ -11,6 +11,7 @@ export function mapFuelType(raw: string): string {
   const lower = raw.toLowerCase()
   if (lower.includes("gasoline")) return "Gasoline"
   if (lower.includes("diesel")) return "Diesel"
+  if (lower.includes("hydrogen") || lower.includes("fuel cell")) return "Hydrogen"
   if (lower.includes("electric")) return "Electric"
   if (lower.includes("hybrid") && lower.includes("plug")) return "Plug-in Hybrid"
   if (lower.includes("hybrid")) return "Hybrid"

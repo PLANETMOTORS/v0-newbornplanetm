@@ -54,8 +54,13 @@ describe("vin/mappers", () => {
       expect(mapFuelType("Flex Fuel")).toBe("Flex Fuel")
     })
 
-    it("returns raw for unknown", () => {
+    it("maps hydrogen and fuel cell", () => {
       expect(mapFuelType("Hydrogen")).toBe("Hydrogen")
+      expect(mapFuelType("Fuel Cell Electric Vehicle (FCEV)")).toBe("Hydrogen")
+    })
+
+    it("returns raw for unknown fuel type", () => {
+      expect(mapFuelType("Unknown Fuel")).toBe("Unknown Fuel")
     })
   })
 
