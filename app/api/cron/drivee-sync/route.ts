@@ -5,6 +5,7 @@ import {
   resolveMidFromPirelly,
   resolveMidFromPirellyByStock,
   countFramesInStorage,
+  findExistingMidConflict,
   type SyncResult,
 } from "@/lib/drivee-sync"
 import { invalidateDriveeCache } from "@/lib/drivee-db"
@@ -44,6 +45,27 @@ async function syncOneVehicle(supabase: AdminClient, vehicle: UnmappedVehicle): 
     if (!mid) {
       return { vin, mid: null, frameCount: 0, framesInStorage: false, framesMigrated: 0, status: "no_mid" }
     }
+
+    // Collision guard: if another VIN already owns this MID, refuse to store.
+    // This prevents the Pirelly stock-number-fallback bug where multiple VINs
+    // resolve to the same photo session and customers see the wrong vehicle.
+    const conflict = await findExistingMidConflict(supabase, mid, vin)
+    if (conflict.conflict) {
+      console.warn(
+        `[Drivee Cron] MID collision for VIN ${vin}: MID ${mid} is already ` +
+          `mapped to ${conflict.existingVin}. Refusing to store duplicate.`,
+      )
+      return {
+        vin,
+        mid,
+        frameCount: 0,
+        framesInStorage: false,
+        framesMigrated: 0,
+        status: "mid_collision",
+        collisionWith: conflict.existingVin,
+      }
+    }
+
     const storageCount = await countFramesInStorage(mid)
     const framesInStorage = storageCount > 0
     const { error: upsertError } = await supabase
@@ -115,6 +137,7 @@ export async function GET(request: Request) {
     let synced = 0
     let noMid = 0
     let errors = 0
+    let collisions = 0
 
     for (const vehicle of unmappedVehicles) {
       const result = await syncOneVehicle(supabase, vehicle)
@@ -122,17 +145,29 @@ export async function GET(request: Request) {
       if (result.status === "synced") synced++
       else if (result.status === "no_mid") noMid++
       else if (result.status === "error") errors++
+      else if (result.status === "mid_collision") collisions++
     }
 
     // Invalidate cache so subsequent requests see new data
     if (synced > 0) invalidateDriveeCache()
 
     const duration = Date.now() - startTime
-    console.info(`[Drivee Cron] Complete in ${duration}ms: ${synced} synced, ${noMid} no MID, ${errors} errors`)
+    console.info(
+      `[Drivee Cron] Complete in ${duration}ms: ${synced} synced, ${noMid} no MID, ` +
+        `${collisions} collisions skipped, ${errors} errors`,
+    )
 
     return NextResponse.json({
       success: true,
-      summary: { total: allVehicles.length, alreadyMapped: mappedVins.size, attempted: unmappedVehicles.length, synced, noMid, errors },
+      summary: {
+        total: allVehicles.length,
+        alreadyMapped: mappedVins.size,
+        attempted: unmappedVehicles.length,
+        synced,
+        noMid,
+        collisions,
+        errors,
+      },
       results: results.slice(0, 50), // Cap response size
       duration_ms: duration,
       timestamp: new Date().toISOString(),

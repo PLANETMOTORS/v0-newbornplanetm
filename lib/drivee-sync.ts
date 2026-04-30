@@ -30,8 +30,58 @@ export interface SyncResult {
   frameCount: number
   framesInStorage: boolean
   framesMigrated: number
-  status: "synced" | "no_mid" | "error"
+  status: "synced" | "no_mid" | "error" | "mid_collision"
   error?: string
+  /**
+   * When set, indicates the resolved MID was already mapped to a different
+   * VIN — almost always a sign of Pirelly returning the wrong photo session.
+   * The mapping is rejected and `frames_in_storage` defaults to false.
+   * See PR fix/drivee-prevent-mid-collisions for the smoking-gun case
+   * (1C4JJXP6XMW777356 vs 1C4JJXP60MW777382 — both VINs were sharing
+   * MID 190171976531 because of a stock-number-fallback collision).
+   */
+  collisionWith?: string
+}
+
+/**
+ * Result returned by `findExistingMidConflict`. We separate "no row" from
+ * "row exists for the same VIN" (no conflict) from "row exists for a
+ * different VIN" (collision — bad).
+ */
+export type MidConflictCheck =
+  | { conflict: false }
+  | { conflict: true; existingVin: string }
+
+/**
+ * Returns whether storing `mid` for `currentVin` would collide with an
+ * existing mapping for a DIFFERENT VIN. This is our defence against the
+ * Pirelly-stock-fallback bug where stock# collisions cause two VINs to
+ * resolve to the same photo session.
+ *
+ * Implementation note: we query for any row with this `mid` whose `vin` is
+ * NOT the current VIN. Limit 1 + maybeSingle gives us "first conflicting
+ * VIN" without choking on the (impossible-but-defensive) case where the
+ * same MID is already mapped to multiple other VINs. The `supabase`
+ * parameter is intentionally typed loosely so this helper accepts either
+ * the production Supabase client (whose generated types are deep enough to
+ * trip TS2589 "excessively deep") or a chainable test mock.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function findExistingMidConflict(
+  supabase: any,
+  mid: string,
+  currentVin: string,
+): Promise<MidConflictCheck> {
+  const { data, error } = await supabase
+    .from("drivee_mappings")
+    .select("vin")
+    .eq("mid", mid)
+    .neq("vin", currentVin)
+    .limit(1)
+    .maybeSingle()
+
+  if (error || !data) return { conflict: false }
+  return { conflict: true, existingVin: data.vin as string }
 }
 
 /** Query Pirelly API to resolve a VIN to a Drivee media ID. */
