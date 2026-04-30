@@ -8,22 +8,21 @@ Tracker for known gaps deferred until after launch (April 2026 cutover). Each it
 
 ## P0 — Ship within first 2 weeks of launch
 
-### 1. IndexNow safety guard (truncated CSV protection)
+### 1. IndexNow inventory floor guard (truncated CSV protection)
 
-**Severity:** High — one bad CSV could mark thousands of vehicles as sold and IndexNow-ping search engines with `SoldOut` schema. Recovery is lossy.
+**Severity:** High — a partial CSV could mark thousands of vehicles as sold and IndexNow-ping search engines with `SoldOut` schema. Recovery is lossy.
 
 **Where:** `lib/homenet/parser.ts` → `syncVehiclesToDatabase()`
 
-**Failure mode:**
+**Status update (April 30, 2026):** Vercel's auto-fix landed the empty-array guard:
+```typescript
+if (incomingVins.length === 0) {
+  console.warn(`[HomenetIOL] Skipping soft-delete step: no incoming vehicles to compare against`)
+}
 ```
-HomeNet uploads a partial/truncated CSV (network blip, encoding issue,
-parse failure on most rows). The cron's only guard is `length === 0`.
-A CSV with 80 rows when current inventory is 5,000 will mark 4,920
-vehicles as SOLD in one run, triggering IndexNow `SoldOut` pings to
-Bing/Yandex/etc. SEO equity drops within hours.
-```
+This closes ONE failure mode (totally empty parse → mass wipe via `WHERE != ALL(ARRAY[])` vacuous truth). **The partial-CSV case is still open**: e.g. a parse glitch returns 80 of 5,000 vehicles. `length > 0` → guard passes → 4,920 vehicles wiped.
 
-**Fix:** Inventory floor guard inside `syncVehiclesToDatabase` — abort the bulk soft-delete if `incoming.length < HOMENET_INVENTORY_FLOOR_PCT * currentLiveCount`. Default 50%. Returns `safetyAborted: true` so the cron knows not to ping IndexNow for sold URLs.
+**Fix (still needed):** Add an inventory-floor guard inside `syncVehiclesToDatabase` that compares `incomingVins.length` to the current `status != 'sold'` row count. Skip the bulk soft-delete when the ratio drops below `HOMENET_INVENTORY_FLOOR_PCT` (default 50%). Return `safetyAborted: true` so the cron knows not to ping IndexNow for sold URLs.
 
 **Effort:** ~45 min (code + 100% test coverage).
 
@@ -31,30 +30,24 @@ Bing/Yandex/etc. SEO equity drops within hours.
 
 ---
 
-### 2. IndexNow material-change detection
+### 2. IndexNow material-change filter (avoid spam pings)
 
-**Severity:** High — current cron pings ZERO IndexNow signals on update-only runs. Price drops, status changes, photo updates, and mileage corrections all go unannounced. At 5K-vehicle scale that's dozens of missed pings per day = significant SEO drift over 60 days.
+**Severity:** High — Vercel's auto-fix added `updatedVehicleIds` to the cron's ping set, which closed the "pure-update runs send zero pings" gap. **However**, every cron run flips `updated_at = NOW()` on every existing row in the upsert, so the UPDATE branch fires for ~5,000 vehicles per run. At 96 runs/day that's ~480,000 IndexNow URL submissions/day for a 5K inventory.
+
+**Why this matters:** Bing's IndexNow guidance is explicit — submitting unchanged URLs makes your usage appear spammy and may lead to deprioritization of legitimate signals.
 
 **Where:**
-- `lib/homenet/parser.ts` → `syncVehiclesToDatabase()` — needs to track `updatedVehicleIds`
-- `app/api/cron/homenet-sync/route.ts` → ping logic only includes `inserted` + `sold`
-
-**Failure modes:**
-| Cron run | Today | Should be |
-|---|---|---|
-| Pure repricing (10 cars drop $1K each) | 0 pings | 10 VDP + /inventory |
-| Status changes only (5 reserved) | 0 pings | 5 VDP + /inventory |
-| New photos uploaded | 0 pings | affected VDPs + /inventory |
-
-Also: **`/inventory` is only pinged when there's already an insert or sold**, so update-only runs skip even the listing page.
+- `lib/homenet/parser.ts` → upsert loop currently pushes `row.id` into `updatedVehicleIds` whenever the INSERT didn't fire (regardless of whether tracked fields actually changed)
+- `app/api/cron/homenet-sync/route.ts` → forwards everything in `updatedVehicleIds` to `pingIndexNow()`
 
 **Fix:**
 1. Pre-fetch a snapshot of existing rows (`vin, price, status, primary_image_url, mileage`) BEFORE the upsert loop.
-2. Compare incoming vs snapshot inside the loop; collect IDs whose tracked fields actually changed (skip pure `updated_at` bumps).
-3. Add `updatedVehicleIds` to `SyncVehiclesResult`.
-4. Cron pings `inserted ∪ updated ∪ sold(if !safetyAborted)`, plus `/inventory` whenever any of those is non-empty.
+2. Inside the loop, only push `row.id` to `updatedVehicleIds` when at least one tracked field actually differs from the snapshot.
+3. Cron pings `inserted ∪ materially-changed ∪ sold(if !safetyAborted)`, plus `/inventory` whenever any of those is non-empty.
 
-**Effort:** ~1.5 hours including 100% test coverage on parser + cron route tests for /inventory ping behaviour.
+**Stopgap if needed before #2 lands:** Add a `MAX_UPDATE_PINGS_PER_RUN` cap (default 100) in the cron — if `updatedVehicleIds.length` exceeds it, skip update pings for that run. Better than dripping noise.
+
+**Effort:** ~1.5 hours including 100% test coverage on parser + cron route tests.
 
 **Tracked in:** Original IndexNow PR review feedback (April 2026).
 
@@ -185,4 +178,4 @@ All three respect cookie consent (`use-cookie-consent.ts`) like existing pixels 
 - Move to `docs/CHANGELOG.md` (or delete) when shipped.
 - Reference this file from PR descriptions when deferring scope.
 
-Last updated: 2026-04-29
+Last updated: 2026-04-30 (revised after Vercel auto-fixes for empty-array guard and updatedVehicleIds tracking)
