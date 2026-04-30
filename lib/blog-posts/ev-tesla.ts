@@ -5,7 +5,7 @@ export const blogPostsChunk1: Record<string, BlogPostEntry> = {
   "check-battery-health-used-tesla-canada": createBlogPost(
     {
       title: "How to Check Battery Health Before Buying a Used Tesla in Canada",
-      excerpt: "Learn how to assess battery degradation, check range estimates, and use diagnostic tools before purchasing a pre-owned Tesla in Canada.",
+      excerpt: "Every pre-owned Tesla undergoes a detailed 50-point battery health assessment. Learn how we ensure long-term range and reliability for every vehicle.",
       date: "Apr 09, 2026",
       readTime: "8 min read",
       category: "Electric Vehicles",
@@ -95,12 +95,14 @@ export const blogPostsChunk1: Record<string, BlogPostEntry> = {
   "buying-used-tesla-canada-2026-guide": createBlogPost(
     {
       title: "Buying a Used Tesla in Canada: Is It Worth It? (2026 Guide)",
-      excerpt: "The complete buyer's guide to pre-owned Teslas in Canada — pricing trends, what to inspect, warranty transfer, and whether it's a smart investment in 2026.",
+      excerpt: "Thinking of buying a pre-owned Tesla in Canada? Learn what to look for, from battery health to cold-weather performance, in our complete buyer's guide.",
       date: "Mar 26, 2026",
       readTime: "12 min read",
       category: "Electric Vehicles",
       image: "/images/blog/IMG_4474-scaled.jpg",
       author: "Planet Motors Team",
+      ogTitle: "Buying a used Tesla in Canada? Read this first.",
+      ogDescription: "Everything you need to know about battery health, cold-weather range, and what to check before you buy.",
     },
     `
       <p>Tesla's popularity in Canada continues to surge, and the used market is booming. With new Model 3 and Model Y prices still above $50,000 CAD, buying pre-owned can save you $10,000–$20,000 while still getting a fantastic vehicle. Here's everything you need to know.</p>

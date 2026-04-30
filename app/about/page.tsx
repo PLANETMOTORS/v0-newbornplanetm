@@ -6,18 +6,23 @@ const SITE_URL = getPublicSiteUrl()
 
 export const metadata: Metadata = {
   title: "About Planet Motors | OMVIC Licensed Used EV Dealership Richmond Hill",
-  description: "Canada's EV-focused used car dealership. Aviloo battery-certified. OMVIC licensed. Family-operated since 2015. 210-point inspection on every vehicle.",
+  description: "Discover the story behind our mission. Learn how we're redefining Tesla ownership in Canada through transparency, quality, and world-class service.",
   keywords: "Planet Motors, OMVIC licensed, Richmond Hill dealership, used EV dealer, Aviloo certified, about us",
   alternates: {
     canonical: '/about',
   },
   openGraph: {
-    title: "About Planet Motors | OMVIC Licensed Used EV Dealership Richmond Hill",
-    description: "Canada's EV-focused used car dealership. Aviloo battery-certified. OMVIC licensed. Family-operated since 2015.",
+    title: "Meet the team changing how Canadians buy Teslas.",
+    description: "Transparency, 210-point inspections, and zero-stress buying. See how we're building the future of pre-owned EVs.",
     url: `${SITE_URL}/about`,
     siteName: "Planet Motors",
     locale: "en_CA",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Meet the team changing how Canadians buy Teslas.",
+    description: "Transparency, 210-point inspections, and zero-stress buying. See how we're building the future of pre-owned EVs.",
   },
 }
 
