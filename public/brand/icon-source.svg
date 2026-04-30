@@ -1,23 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" role="img" aria-label="Planet Motors icon">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" role="img" aria-label="Planet Motors icon (dark mode)">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#06182b"/>
-      <stop offset="1" stop-color="#02101f"/>
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f1f5f9"/>
     </linearGradient>
-    <linearGradient id="blue" x1="350" y1="560" x2="1700" y2="1480" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#0a92ff"/>
-      <stop offset="1" stop-color="#0070df"/>
+    <linearGradient id="navy" x1="350" y1="560" x2="1700" y2="1480" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1e3a8a"/>
+      <stop offset="1" stop-color="#0a1628"/>
     </linearGradient>
     <linearGradient id="green" x1="870" y1="640" x2="1170" y2="1350" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#36e85d"/>
-      <stop offset="1" stop-color="#10b838"/>
+      <stop offset="0" stop-color="#16a34a"/>
+      <stop offset="1" stop-color="#0d8a3a"/>
     </linearGradient>
     <linearGradient id="red" x1="1110" y1="1040" x2="1500" y2="1570" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#ff2c24"/>
-      <stop offset="1" stop-color="#df1010"/>
+      <stop offset="0" stop-color="#dc2626"/>
+      <stop offset="1" stop-color="#b91c1c"/>
     </linearGradient>
     <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000000" flood-opacity="0.35"/>
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#0a1628" flood-opacity="0.18"/>
     </filter>
   </defs>
   <rect width="2048" height="2048" rx="420" fill="url(#bg)"/>
@@ -41,11 +41,12 @@
              L243 1281
              C193 1281 154 1242 154 1192
              L154 1119Z"
-          fill="none" stroke="url(#blue)" stroke-width="86" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="596" cy="1337" r="178" fill="url(#blue)"/>
-    <circle cx="596" cy="1337" r="82" fill="#06182b"/>
-    <circle cx="1450" cy="1337" r="178" fill="url(#blue)"/>
-    <circle cx="1450" cy="1337" r="82" fill="#06182b"/>
+          fill="none" stroke="url(#navy)" stroke-width="86" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="596" cy="1337" r="178" fill="url(#navy)"/>
+    <circle cx="596" cy="1337" r="82" fill="#ffffff"/>
+    <circle cx="1450" cy="1337" r="178" fill="url(#navy)"/>
+    <circle cx="1450" cy="1337" r="82" fill="#ffffff"/>
+
     <path d="M1088 604
              C1138 577 1188 621 1168 675
              L1087 901
@@ -57,6 +58,7 @@
              L742 1076
              C681 1076 651 1004 692 959Z"
           fill="url(#green)"/>
+
     <path d="M1135 1043
              C1123 994 1175 955 1218 983
              L1608 1240
