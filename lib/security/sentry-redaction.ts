@@ -72,10 +72,14 @@ const VALUE_PATTERNS: Array<{ name: string; re: RegExp }> = [
   },
   // SIN-shaped (Canadian Social Insurance Number)
   { name: "sin", re: /\b\d{3}[ -]?\d{3}[ -]?\d{3}\b/g },
-  // Email addresses appearing in free text (best-effort)
+  // Email addresses appearing in free text (best-effort).
+  // All quantifiers are upper-bounded (RFC 5321 local ≤ 64, label ≤ 63,
+  // domain ≤ 253 total) to eliminate super-linear backtracking (Sonar S5852).
+  // The domain is split into non-dot labels so the character class never
+  // contains '.' — preventing overlap with the literal '\.' separator.
   {
     name: "email-in-text",
-    re: /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g,
+    re: /[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*\.[A-Za-z]{2,63}/g,
   },
 ]
 

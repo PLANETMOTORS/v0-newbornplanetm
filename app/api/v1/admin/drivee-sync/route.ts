@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { ADMIN_EMAILS } from "@/lib/admin"
+import { authoriseAdminOrError } from "@/lib/admin-auth"
 import {
   resolveMidFromPirelly,
   resolveMidFromPirellyByStock,
@@ -35,6 +34,35 @@ import { getSupabaseServiceRoleKey } from "@/lib/supabase/config"
 type AdminSupabase = ReturnType<typeof createAdminClient>
 type SyncTarget = { vin: string; stock_number: string | null; year: number; make: string; model: string }
 
+function noMidResult(vin: string): { result: SyncResult; framesMigrated: number } {
+  return {
+    result: { vin, mid: null, frameCount: 0, framesInStorage: false, framesMigrated: 0, status: "no_mid" },
+    framesMigrated: 0,
+  }
+}
+
+function collisionResult(vin: string, mid: string, existingVin: string): { result: SyncResult; framesMigrated: number } {
+  return {
+    result: { vin, mid, frameCount: 0, framesInStorage: false, framesMigrated: 0, status: "mid_collision", collisionWith: existingVin },
+    framesMigrated: 0,
+  }
+}
+
+async function ensureFrames(
+  mid: string, shouldMigrate: boolean, dryRun: boolean, serviceRoleKey: string,
+): Promise<{ storageCount: number; framesMigrated: number }> {
+  let storageCount = await countFramesInStorage(mid)
+  let framesMigrated = 0
+  if (storageCount === 0 && shouldMigrate && !dryRun) {
+    const firebaseCount = await countFramesOnFirebase(mid)
+    if (firebaseCount > 0) {
+      framesMigrated = await migrateFramesToSupabase(mid, firebaseCount, serviceRoleKey)
+      storageCount = framesMigrated
+    }
+  }
+  return { storageCount, framesMigrated }
+}
+
 async function syncSingleDriveeVehicle(
   supabase: AdminSupabase,
   vehicle: SyncTarget,
@@ -47,44 +75,18 @@ async function syncSingleDriveeVehicle(
   try {
     let mid = await resolveMidFromPirelly(vin)
     if (!mid && stock_number) mid = await resolveMidFromPirellyByStock(stock_number)
-    if (!mid) {
-      return {
-        result: { vin, mid: null, frameCount: 0, framesInStorage: false, framesMigrated: 0, status: "no_mid" },
-        framesMigrated: 0,
-      }
-    }
+    if (!mid) return noMidResult(vin)
 
-    // Collision guard — same logic as the cron route. See lib/drivee-sync.ts
-    // for the full rationale.
     const conflict = await findExistingMidConflict(supabase, mid, vin)
     if (conflict.conflict) {
       console.warn(
         `[Admin Drivee Sync] MID collision for VIN ${vin}: MID ${mid} is already ` +
           `mapped to ${conflict.existingVin}. Refusing to store duplicate.`,
       )
-      return {
-        result: {
-          vin,
-          mid,
-          frameCount: 0,
-          framesInStorage: false,
-          framesMigrated: 0,
-          status: "mid_collision",
-          collisionWith: conflict.existingVin,
-        },
-        framesMigrated: 0,
-      }
+      return collisionResult(vin, mid, conflict.existingVin)
     }
 
-    let storageCount = await countFramesInStorage(mid)
-    let framesMigrated = 0
-    if (storageCount === 0 && shouldMigrate && !dryRun) {
-      const firebaseCount = await countFramesOnFirebase(mid)
-      if (firebaseCount > 0) {
-        framesMigrated = await migrateFramesToSupabase(mid, firebaseCount, serviceRoleKey)
-        storageCount = framesMigrated
-      }
-    }
+    const { storageCount, framesMigrated } = await ensureFrames(mid, shouldMigrate, dryRun, serviceRoleKey)
     const framesInStorage = storageCount > 0
     if (!dryRun) {
       const { error: upsertError } = await supabase
@@ -112,15 +114,6 @@ async function syncSingleDriveeVehicle(
       framesMigrated: 0,
     }
   }
-}
-
-async function authoriseAdminOrError(): Promise<NextResponse | null> {
-  const authClient = await createClient()
-  const { data: { user } } = await authClient.auth.getUser()
-  if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-  return null
 }
 
 export async function POST(request: NextRequest) {
@@ -163,19 +156,17 @@ export async function POST(request: NextRequest) {
   }
 
   const results: SyncResult[] = []
-  let synced = 0
-  let noMid = 0
-  let errors = 0
   let framesMigratedTotal = 0
 
   for (const vehicle of vinsToSync) {
     const { result, framesMigrated } = await syncSingleDriveeVehicle(supabase, vehicle, shouldMigrate, dryRun, serviceRoleKey)
     results.push(result)
     framesMigratedTotal += framesMigrated
-    if (result.status === "synced") synced++
-    else if (result.status === "no_mid") noMid++
-    else if (result.status === "error") errors++
   }
+
+  const synced = results.filter((r) => r.status === "synced").length
+  const noMid = results.filter((r) => r.status === "no_mid").length
+  const errors = results.filter((r) => r.status === "error").length
 
   // Invalidate the in-memory drivee cache so subsequent requests see new data
   if (!dryRun) invalidateDriveeCache()

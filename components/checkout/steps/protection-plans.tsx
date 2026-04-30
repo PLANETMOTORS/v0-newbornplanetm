@@ -186,7 +186,7 @@ function ComparisonModal({ onClose }: Readonly<{ onClose: () => void }>) {
                 <th className="text-left p-4 font-medium text-muted-foreground w-1/4">Feature</th>
                 {PLANS.map((plan) => (
                   <th key={plan.id} className="p-4 text-center">
-                    <p className="font-semibold">{plan.name.replace("PlanetCare ", "")}</p>
+                    <p className="font-semibold">{plan.name.replaceAll("PlanetCare ", "")}</p>
                     <p className="text-muted-foreground font-normal">${plan.price.toLocaleString()}</p>
                   </th>
                 ))}
