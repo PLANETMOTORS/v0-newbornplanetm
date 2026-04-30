@@ -50,7 +50,11 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: `${SITE_URL}/images/planet-motors-logo.png`,
+        // Branded 1200x630 social-share card: navy gradient bg, EV car icon
+        // with green charging bolt + red cursor, PLANET MOTORS wordmark.
+        // Generated from public/brand/icon-source.svg via the Python brand
+        // pipeline; see public/brand/ for all source assets.
+        url: `${SITE_URL}/brand/og-image.png`,
         width: 1200,
         height: 630,
         alt: 'Planet Motors — OMVIC Licensed Used Car Dealership, Richmond Hill Ontario',
@@ -61,7 +65,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Used EVs Canada — Aviloo Battery-Certified',
     description: "Canada's battery-health certified used EVs. Aviloo battery health reports. 210-point inspected. Canada-wide delivery.",
-    images: [`${SITE_URL}/images/planet-motors-logo.png`],
+    images: [`${SITE_URL}/brand/og-image.png`],
   },
   metadataBase: new URL(SITE_URL),
   // Canonical is set per-page to avoid all sub-pages inheriting '/'
