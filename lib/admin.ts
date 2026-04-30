@@ -9,7 +9,6 @@
  */
 
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
 
 export const ADMIN_EMAILS: readonly string[] = process.env.ADMIN_EMAILS
   ? process.env.ADMIN_EMAILS.split(",").map((e) => e.trim()).filter(Boolean)
@@ -26,6 +25,7 @@ export function isAdminEmail(email: string | null | undefined): boolean {
  * Returns a 401 NextResponse if the current user is not an admin, or null on success.
  */
 export async function authoriseAdminOrError(): Promise<NextResponse | null> {
+  const { createClient } = await import("@/lib/supabase/server")
   const authClient = await createClient()
   const { data: { user } } = await authClient.auth.getUser()
   if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
