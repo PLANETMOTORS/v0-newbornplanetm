@@ -46,7 +46,7 @@ export const blogPostsChunk1: Record<string, BlogPostEntry> = {
       </ul>
 
       <h2>Get It Inspected at Planet Motors</h2>
-      <p>At Planet Motors, every pre-owned Tesla undergoes a comprehensive battery health assessment before listing. We provide transparent degradation data so you know exactly what you're buying. Visit us in Richmond Hill or request a remote battery report for any Tesla in our inventory.</p>
+      <p>At Planet Motors, every pre-owned Tesla undergoes a rigorous 50-point battery health diagnostic before listing. We provide transparent degradation data so you know exactly what you're buying. Visit us in Richmond Hill or request a remote battery report for any Tesla in our inventory.</p>
     `,
     ["buying-used-tesla-canada-2026-guide", "tesla-warranty-used-cars", "tesla-model-y-vs-model-3"]
   ),
@@ -95,7 +95,7 @@ export const blogPostsChunk1: Record<string, BlogPostEntry> = {
   "buying-used-tesla-canada-2026-guide": createBlogPost(
     {
       title: "Buying a Used Tesla in Canada: Is It Worth It? (2026 Guide)",
-      excerpt: "A comprehensive guide to buying a pre-owned Tesla in Canada — pricing trends, what to inspect, warranty transfer, and whether it's a smart investment in 2026.",
+      excerpt: "The complete buyer's guide to pre-owned Teslas in Canada — pricing trends, what to inspect, warranty transfer, and whether it's a smart investment in 2026.",
       date: "Mar 26, 2026",
       readTime: "12 min read",
       category: "Electric Vehicles",
@@ -297,7 +297,7 @@ export const blogPostsChunk1: Record<string, BlogPostEntry> = {
       author: "Planet Motors Team",
     },
     `
-      <p>Tesla's Full Self-Driving (FSD) capability represents the cutting edge of autonomous driving technology. Whether you're considering a new or used Tesla, understanding FSD is crucial to making an informed purchase decision.</p>
+      <p>Tesla's Full Self-Driving (FSD) capability represents the forefront of self-driving technology. Whether you're considering a new or used Tesla, understanding FSD is crucial to making an informed purchase decision.</p>
 
       <h2>What Is Full Self-Driving?</h2>
       <p>Full Self-Driving is Tesla's most advanced driver assistance package. Despite its name, FSD is currently a Level 2 autonomous system, meaning it requires driver attention at all times. However, it offers impressive capabilities that go far beyond basic autopilot.</p>

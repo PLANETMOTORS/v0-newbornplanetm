@@ -53,7 +53,7 @@ const defaultReviews = [
     name: "David K.",
     location: "Richmond Hill, ON",
     rating: 5,
-    text: "Got pre-approved with TD in minutes. Great rates and the whole process was seamless. Highly recommend!",
+    text: "The buying process was incredibly easy and straightforward. Great rates and got pre-approved with TD in minutes. Highly recommend!",
     date: "3 weeks ago",
   },
 ]
@@ -85,7 +85,7 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {([
-              { icon: CheckCircle, title: "210-Point Inspection", description: "Every vehicle passes our comprehensive inspection with full transparency reports." },
+              { icon: CheckCircle, title: "210-Point Inspection", description: "Every vehicle passes our detailed 210-point mechanical inspection with full transparency reports." },
               { icon: Battery, title: "EV Battery Health", description: "Exclusive Aviloo battery certification for EVs - know exactly what you're getting.", href: "/aviloo" },
               { icon: RotateCw, title: "10-Day Returns", description: "Not satisfied? Return your vehicle within 10 days, no questions asked." },
               { icon: Truck, title: "Canada-Wide Delivery", description: "Get your vehicle delivered anywhere in Canada with our convenient delivery service." },

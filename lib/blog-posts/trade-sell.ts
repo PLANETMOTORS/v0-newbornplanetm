@@ -4,7 +4,7 @@ export const blogPostsChunk2: Record<string, BlogPostEntry> = {
   "tesla-model-y-vs-model-3": createBlogPost(
     {
       title: "Tesla Model Y vs Tesla Model 3: Which One Should You Buy?",
-      excerpt: "A comprehensive comparison of Tesla's two most popular models. Discover the key differences in size, range, features, and value.",
+      excerpt: "A detailed side-by-side comparison of Tesla's top models. Discover the key differences in size, range, features, and value.",
       date: "Jan 26, 2026",
       readTime: "12 min read",
       category: "Electric Vehicles",

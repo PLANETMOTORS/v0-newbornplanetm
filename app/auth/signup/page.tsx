@@ -118,7 +118,7 @@ function SignUpForm() {
               </Link>
               <h1 className="text-4xl font-bold tracking-[-0.01em] mb-4">Join Planet Motors</h1>
               <p className="text-xl text-muted-foreground mb-8">
-                Create your account and unlock exclusive benefits
+                Create your account to access member-only perks and pricing
               </p>
               
               <div className="space-y-4">

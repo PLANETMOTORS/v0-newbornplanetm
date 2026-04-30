@@ -61,7 +61,7 @@ export default function AboutPage() {
 
   // Real customer reviews from Google
   const customerReviews = [
-    { name: "Parsa", rating: 5, review: "Exceptional service from start to finish. Hamza was incredibly helpful and made the entire process seamless.", date: "2 weeks ago" },
+    { name: "Parsa", rating: 5, review: "Great service from start to finish. Hamza was incredibly helpful and made the entire trade-in process hassle-free.", date: "2 weeks ago" },
     { name: "Jee Han", rating: 5, review: "Best car buying experience I&apos;ve ever had. Transparent pricing, no pressure, and the car was exactly as described.", date: "1 month ago" },
     { name: "Morgan", rating: 5, review: "Bought a Tesla Model Y from Planet Motors. The battery health report gave me complete confidence.", date: "1 month ago" },
     { name: "Ayman", rating: 5, review: "Adam in financing got me an amazing rate. Highly recommend for anyone with any credit situation.", date: "2 months ago" },
@@ -114,7 +114,7 @@ export default function AboutPage() {
                   <div className="text-5xl mb-4">🔑</div>
                   <h3 className="font-semibold text-xl mb-2">Key</h3>
                   <p className="text-muted-foreground">
-                    Signifies the keys to your new vehicle and the beginning of your journey with us
+                    Signifies the keys to your new vehicle and the start of your ownership experience
                   </p>
                 </Card>
               </div>
@@ -147,21 +147,21 @@ export default function AboutPage() {
                 <Target className="h-12 w-12 mx-auto mb-4 text-primary" />
                 <h3 className="font-semibold text-xl mb-2">Transparency</h3>
                 <p className="text-muted-foreground">
-                  No hidden fees, no surprises. Every vehicle comes with a complete history report and detailed 210-point inspection.
+                  We provide the full history of every vehicle, no exceptions.
                 </p>
               </Card>
               <Card className="text-center p-6">
                 <Heart className="h-12 w-12 mx-auto mb-4 text-accent" />
                 <h3 className="font-semibold text-xl mb-2">Customer First</h3>
                 <p className="text-muted-foreground">
-                  Your satisfaction is our priority. Our 10-day return policy means you can buy with complete confidence.
+                  Our team is here to support you through the entire buying process and long after you drive off the lot.
                 </p>
               </Card>
               <Card className="text-center p-6">
                 <Shield className="h-12 w-12 mx-auto mb-4 text-primary" />
                 <h3 className="font-semibold text-xl mb-2">Quality Assured</h3>
                 <p className="text-muted-foreground">
-                  Every vehicle undergoes our rigorous 210-point inspection before being PM Certified for sale.
+                  Every car passes our 210-point check.
                 </p>
               </Card>
             </div>
@@ -276,7 +276,7 @@ export default function AboutPage() {
         {/* Our Story Timeline */}
         <section className="py-16 bg-muted/30">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">Our Journey</h2>
+            <h2 className="text-3xl font-bold text-center mb-12">Our Story</h2>
             <div className="max-w-3xl mx-auto">
               {milestones.map((milestone, i) => (
                 <div key={milestone.title} className="flex gap-6 mb-8 last:mb-0">

@@ -195,7 +195,7 @@ export default function ProtectionPlansPage() {
               </h2>
               <p className="mt-4 text-muted-foreground max-w-2xl mx-auto text-base md:text-lg">
                 Every vehicle includes our 150+ point inspection and safety certificate.
-                Choose a package to unlock additional protection.
+                Choose a package for added peace-of-mind coverage.
               </p>
             </div>
 

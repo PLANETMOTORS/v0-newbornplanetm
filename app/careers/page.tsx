@@ -89,7 +89,7 @@ export default function CareersPage() {
             </h1>
             <p className="text-xl text-primary-foreground/80 max-w-3xl mx-auto">
               Help us transform the car buying experience in Canada. We are looking for passionate 
-              individuals who share our commitment to fairness, integrity, and exceptional customer service.
+              individuals who share our commitment to fairness, integrity, and world-class customer service.
             </p>
           </div>
         </section>
