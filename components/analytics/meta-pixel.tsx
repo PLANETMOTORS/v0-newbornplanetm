@@ -102,7 +102,7 @@ export function trackMetaEvent(
   props?: Record<string, unknown>,
   eventID?: string,
 ): void {
-  if (typeof globalThis.document === "undefined") return
+  if (globalThis.document === undefined) return
   const fbq = (globalThis as unknown as Window).fbq
   if (!fbq) return
   if (eventID) {
@@ -123,7 +123,7 @@ export function trackMetaCustomEvent(
   props?: Record<string, unknown>,
   eventID?: string,
 ): void {
-  if (typeof globalThis.document === "undefined") return
+  if (globalThis.document === undefined) return
   const fbq = (globalThis as unknown as Window).fbq
   if (!fbq) return
   if (eventID) {

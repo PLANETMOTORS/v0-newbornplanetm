@@ -56,6 +56,19 @@ interface FinanceApplicationFullFormProps {
   }
 }
 
+const FREQ_MULTIPLIER: Record<string, number> = {
+  weekly: 52,
+  'bi-weekly': 26,
+  'semi-monthly': 24,
+  monthly: 12,
+  annually: 1,
+}
+
+function annualizeIncome(amount: number, frequency: string, fallback = 12): number {
+  if (amount <= 0 || !frequency) return 0
+  return amount * (FREQ_MULTIPLIER[frequency] ?? fallback)
+}
+
 export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData }: Readonly<FinanceApplicationFullFormProps>) {
   useRouter()
   const { user, isLoading: isAuthLoading } = useAuth()
@@ -144,31 +157,8 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
     const otherAmount = Number.parseFloat(primaryApplicant.otherIncomeAmount) || 0
     const otherFreq = primaryApplicant.otherIncomeFrequency
     
-    // Calculate annual gross income based on frequency
-    let annualGross = 0
-    if (grossAmount > 0 && frequency) {
-      switch (frequency) {
-        case 'weekly': annualGross = grossAmount * 52; break
-        case 'bi-weekly': annualGross = grossAmount * 26; break
-        case 'semi-monthly': annualGross = grossAmount * 24; break
-        case 'monthly': annualGross = grossAmount * 12; break
-        case 'annually': annualGross = grossAmount; break
-        default: annualGross = grossAmount * 12 // Default to monthly
-      }
-    }
-    
-    // Calculate annual other income based on frequency
-    let annualOther = 0
-    if (otherAmount > 0 && otherFreq) {
-      switch (otherFreq) {
-        case 'weekly': annualOther = otherAmount * 52; break
-        case 'bi-weekly': annualOther = otherAmount * 26; break
-        case 'semi-monthly': annualOther = otherAmount * 24; break
-        case 'monthly': annualOther = otherAmount * 12; break
-        case 'annually': annualOther = otherAmount; break
-        default: annualOther = otherAmount
-      }
-    }
+    const annualGross = annualizeIncome(grossAmount, frequency, 12)
+    const annualOther = annualizeIncome(otherAmount, otherFreq, 1)
     
     const totalAnnual = annualGross + annualOther
     // Always update annualTotal (even if 0)

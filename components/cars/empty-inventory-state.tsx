@@ -19,20 +19,20 @@ import { Card, CardContent } from '@/components/ui/card'
 
 interface Props {
   /** Human-readable name of the category, e.g. "2024 Toyota RAV4" or "Electric SUVs in Toronto". */
-  categoryName: string
+  readonly categoryName: string
   /**
    * Optional fallback browse URL. Defaults to `/inventory`. Provide
    * `/cars/<closest-related-slug>` to keep visitors in a related
    * category they might convert on instead of dumping them in the
    * full inventory grid.
    */
-  fallbackHref?: string
-  fallbackLabel?: string
+  readonly fallbackHref?: string
+  readonly fallbackLabel?: string
   /**
    * Optional notify-me topic, sent to `/api/v1/notify` so the lead
    * routes to the correct internal alert ("Toyota RAV4 in stock").
    */
-  notifyTopic?: string
+  readonly notifyTopic?: string
 }
 
 export function EmptyInventoryState({

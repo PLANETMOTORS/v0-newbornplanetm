@@ -15,7 +15,7 @@ import type { CategoryVehicle } from '@/lib/vehicles/fetch-by-filter'
 import { formatPrice, formatKm } from '@/lib/cars/category-helpers'
 
 interface Props {
-  vehicle: CategoryVehicle
+  readonly vehicle: CategoryVehicle
 }
 
 export function VehicleCard({ vehicle: v }: Props) {
@@ -45,11 +45,11 @@ export function VehicleCard({ vehicle: v }: Props) {
               <Zap className="w-3 h-3 mr-1" /> EV
             </Badge>
           ) : null}
-          {v.evBatteryHealthPercent != null ? (
+          {v.evBatteryHealthPercent != null && (
             <Badge className="absolute top-2 right-2 bg-blue-600">
               <Battery className="w-3 h-3 mr-1" /> {v.evBatteryHealthPercent}% SOH
             </Badge>
-          ) : null}
+          )}
         </div>
         <CardContent className="p-4 flex flex-col gap-1 flex-1">
           <h3 className="font-semibold leading-tight">

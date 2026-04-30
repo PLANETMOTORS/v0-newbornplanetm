@@ -194,6 +194,14 @@ function splitOnCity(slug: string): [string, string | null] {
   return [slug, null]
 }
 
+function resolveMakeCandidate(primary: string): string | null {
+  if ((KNOWN_MAKES as readonly string[]).includes(primary)) return primary
+  if (primary.endsWith('s') && (KNOWN_MAKES as readonly string[]).includes(primary.slice(0, -1))) {
+    return primary.slice(0, -1)
+  }
+  return null
+}
+
 /**
  * Resolve the "primary" portion (everything before `-in-<city>`) into
  * partial filter spec. Returns `null` if the primary doesn't match any
@@ -208,7 +216,7 @@ function parsePrimary(primary: string): Partial<CategoryFilter> | null {
   // 2. Price filter: under-30k, under-50k, under-100k
   const priceMatch = PRICE_RE.exec(primary)
   if (priceMatch) {
-    const num = parseInt(priceMatch[1], 10)
+    const num = Number.parseInt(priceMatch[1], 10)
     if (num > 0 && num < 1000) {
       return { priceMaxDollars: num * 1000 }
     }
@@ -222,11 +230,7 @@ function parsePrimary(primary: string): Partial<CategoryFilter> | null {
     return { bodyStyleDb: BODY_STYLE_TO_DB[primary] }
   }
   // Strip trailing 's' for plural make slugs ("teslas" → "tesla")
-  const makeCandidate = (KNOWN_MAKES as readonly string[]).includes(primary)
-    ? primary
-    : primary.endsWith('s') && (KNOWN_MAKES as readonly string[]).includes(primary.slice(0, -1))
-      ? primary.slice(0, -1)
-      : null
+  const makeCandidate = resolveMakeCandidate(primary)
   if (makeCandidate) {
     return { makeSlug: normalizeMake(makeCandidate) }
   }

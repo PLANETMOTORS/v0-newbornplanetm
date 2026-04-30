@@ -42,7 +42,7 @@
  * Empty / unknown values are passed through with first-letter casing.
  */
 export function normalizeHomenetBodyStyle(raw: string): string {
-  if (!raw || !raw.trim()) return ""
+  if (!raw?.trim()) return ""
   const lower = raw.toLowerCase().trim()
 
   if (lower.includes("convertible") || lower.includes("cabriolet") || lower.includes("roadster")) {
@@ -80,11 +80,11 @@ export function normalizeHomenetBodyStyle(raw: string): string {
     return "SUV"
   }
   // Coupe — explicit OR 2dr/2-door without "hatchback" (already handled above)
-  if (lower.includes("coupe") || /\b2[\s-]?d(o|r)/.test(lower)) {
+  if (lower.includes("coupe") || /\b2[\s-]?d[or]/.test(lower)) {
     return "Coupe"
   }
   // Sedan — explicit OR 4dr car / 4-door car
-  if (lower.includes("sedan") || /\b4[\s-]?d(o|r)/.test(lower) || lower.endsWith(" car") || lower === "car") {
+  if (lower.includes("sedan") || /\b4[\s-]?d[or]/.test(lower) || lower.endsWith(" car") || lower === "car") {
     return "Sedan"
   }
 
@@ -264,7 +264,7 @@ export function filterStockPhotos(urls: string[]): PhotoFilterResult {
  * The actual battery-health score is entered manually by the admin
  * (post-test), or pulled from the Drivee API if available.
  */
-export const HOMENET_NEVER_PROVIDES_AVILOO = null as null
+export const HOMENET_NEVER_PROVIDES_AVILOO: null = null
 
 // ==================== DESCRIPTION BOILERPLATE ====================
 
