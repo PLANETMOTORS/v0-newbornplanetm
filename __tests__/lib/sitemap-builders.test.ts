@@ -125,6 +125,30 @@ describe('buildPagesSitemap', () => {
     expect(inventory).toBeDefined()
     expect(inventory?.priority).toBe(0.95)
   })
+
+  it('includes /cars/<slug> category landing pages from the slug parser', () => {
+    const result = buildPagesSitemap('https://example.com', '2025-01-01')
+    const urls = new Set(result.map(r => r.url))
+    expect(urls.has('https://example.com/cars/electric')).toBe(true)
+    expect(urls.has('https://example.com/cars/luxury-evs')).toBe(true)
+    expect(urls.has('https://example.com/cars/under-50k')).toBe(true)
+    expect(urls.has('https://example.com/cars/electric-in-toronto')).toBe(true)
+    expect(urls.has('https://example.com/cars/tesla-in-richmond-hill')).toBe(true)
+  })
+
+  it('marks city-cross category pages with the lower priority bucket', () => {
+    const result = buildPagesSitemap('https://example.com', '2025-01-01')
+    const cityCross = result.find(r => r.url === 'https://example.com/cars/electric-in-toronto')
+    const bare = result.find(r => r.url === 'https://example.com/cars/electric')
+    expect(cityCross?.priority).toBe(0.85)
+    expect(bare?.priority).toBe(0.9)
+  })
+
+  it('marks all category landing pages as hourly so search engines see fresh inventory cadence', () => {
+    const result = buildPagesSitemap('https://example.com', '2025-01-01')
+    const sample = result.find(r => r.url === 'https://example.com/cars/electric')
+    expect(sample?.changeFrequency).toBe('hourly')
+  })
 })
 
 describe('buildBlogSitemap', () => {

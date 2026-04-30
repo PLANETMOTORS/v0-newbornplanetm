@@ -2,6 +2,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabase/config'
 import { buildPublicStatusFilter } from '@/lib/vehicles/status-filter'
 import { blogPosts } from '@/lib/blog-data'
+import { enumerateCategorySlugs } from '@/lib/seo/category-slug-parser'
 
 export interface SitemapEntry {
   url: string
@@ -140,8 +141,16 @@ export function buildPagesSitemap(baseUrl: string, currentDate: string): Sitemap
     { path: '/cars/audi/q5', priority: 0.9, changeFrequency: 'daily' },
   ]
 
+  // Category landing pages — single source of truth lives in the slug
+  // parser so sitemap URLs always resolve to a real, parseable page.
+  const categoryPages = enumerateCategorySlugs().map(slug => ({
+    path: `/cars/${slug}`,
+    priority: slug.includes('-in-') ? 0.85 : 0.9,
+    changeFrequency: 'hourly',
+  }))
+
   const staticRoutes = [
-    ...corePages, ...infoPages, ...legalPages, ...locationPages, ...modelLandingPages,
+    ...corePages, ...infoPages, ...legalPages, ...locationPages, ...modelLandingPages, ...categoryPages,
   ].map(page => ({
     url: `${baseUrl}${page.path}`,
     lastModified: currentDate,
