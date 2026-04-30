@@ -54,7 +54,7 @@ export function MetaPixel() {
             if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
             n.queue=[];t=b.createElement(e);t.async=!0;
             t.src=v;s=b.getElementsByTagName(e)[0];
-            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            s.parentNode.insertBefore(t,s)}(globalThis, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
           fbq('init', '${META_PIXEL_ID}');
           fbq('track', 'PageView');
@@ -102,12 +102,13 @@ export function trackMetaEvent(
   props?: Record<string, unknown>,
   eventID?: string,
 ): void {
-  if (globalThis.window === undefined) return
-  if (!globalThis.window.fbq) return
+  if (typeof globalThis.document === "undefined") return
+  const fbq = (globalThis as unknown as Window).fbq
+  if (!fbq) return
   if (eventID) {
-    globalThis.window.fbq("track", event, props ?? {}, { eventID })
+    fbq("track", event, props ?? {}, { eventID })
   } else {
-    globalThis.window.fbq("track", event, props ?? {})
+    fbq("track", event, props ?? {})
   }
 }
 
@@ -122,11 +123,12 @@ export function trackMetaCustomEvent(
   props?: Record<string, unknown>,
   eventID?: string,
 ): void {
-  if (globalThis.window === undefined) return
-  if (!globalThis.window.fbq) return
+  if (typeof globalThis.document === "undefined") return
+  const fbq = (globalThis as unknown as Window).fbq
+  if (!fbq) return
   if (eventID) {
-    globalThis.window.fbq("trackCustom", event, props ?? {}, { eventID })
+    fbq("trackCustom", event, props ?? {}, { eventID })
   } else {
-    globalThis.window.fbq("trackCustom", event, props ?? {})
+    fbq("trackCustom", event, props ?? {})
   }
 }

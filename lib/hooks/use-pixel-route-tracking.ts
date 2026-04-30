@@ -57,8 +57,8 @@ export function usePixelRouteTracking(): void {
       isFirstRender.current = false
       return
     }
-    if (typeof window === "undefined") return
-    const w = window as unknown as PixelWindow
+    if (typeof globalThis.document === "undefined") return
+    const w = globalThis as unknown as PixelWindow
 
     // Meta Pixel
     if (typeof w.fbq === "function") {
