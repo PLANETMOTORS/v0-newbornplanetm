@@ -38,6 +38,13 @@ const MetaPixel = dynamic(
   () => import('@/components/analytics/meta-pixel').then(m => ({ default: m.MetaPixel })),
   { ssr: false }
 )
+// SPA route-change tracker — re-fires PageView for Meta/TikTok/Snap/Bing
+// on every Next.js navigation. Required because the pixel SDKs only
+// auto-fire PageView on initial script load. Renders nothing.
+const PixelRouteTracker = dynamic(
+  () => import('@/components/analytics/pixel-route-tracker').then(m => ({ default: m.PixelRouteTracker })),
+  { ssr: false }
+)
 
 // Cookie consent & UTM — client-only, lazy-loaded
 const CookieConsentBanner = dynamic(
@@ -100,6 +107,7 @@ export function ClientLayoutWidgets() {
       <BingUET />
       <SnapchatPixel />
       <MetaPixel />
+      <PixelRouteTracker />
       {isVercelDeploy && <VercelAnalytics />}
       {isVercelDeploy && <VercelSpeedInsights />}
     </>

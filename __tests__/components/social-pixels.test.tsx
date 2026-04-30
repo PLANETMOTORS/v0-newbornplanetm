@@ -378,4 +378,63 @@ describe("MetaPixel", () => {
     const { trackMetaCustomEvent } = await import("@/components/analytics/meta-pixel")
     expect(() => trackMetaCustomEvent("VehicleConfigured")).not.toThrow()
   })
+
+  it("trackMetaEvent forwards eventID as fbq's 4th argument for CAPI dedup", async () => {
+    const fbq = vi.fn()
+    Object.defineProperty(window, "fbq", { value: fbq, configurable: true, writable: true })
+
+    const { trackMetaEvent } = await import("@/components/analytics/meta-pixel")
+    trackMetaEvent("Lead", { value: 1 }, "550e8400-e29b-41d4-a716-446655440000")
+    expect(fbq).toHaveBeenCalledWith(
+      "track",
+      "Lead",
+      { value: 1 },
+      { eventID: "550e8400-e29b-41d4-a716-446655440000" },
+    )
+
+    delete (window as unknown as Record<string, unknown>).fbq
+  })
+
+  it("trackMetaEvent omits the 4th argument when eventID is undefined", async () => {
+    const fbq = vi.fn()
+    Object.defineProperty(window, "fbq", { value: fbq, configurable: true, writable: true })
+
+    const { trackMetaEvent } = await import("@/components/analytics/meta-pixel")
+    trackMetaEvent("ViewContent", { content_ids: ["v123"] })
+    // 3 args, not 4 — explicit length check guards against passing
+    // an empty options object that would still trigger Meta's
+    // "missing eventID" warning in the test extension.
+    expect(fbq).toHaveBeenCalledWith("track", "ViewContent", { content_ids: ["v123"] })
+    expect(fbq.mock.calls[0]).toHaveLength(3)
+
+    delete (window as unknown as Record<string, unknown>).fbq
+  })
+
+  it("trackMetaCustomEvent forwards eventID as fbq's 4th argument for CAPI dedup", async () => {
+    const fbq = vi.fn()
+    Object.defineProperty(window, "fbq", { value: fbq, configurable: true, writable: true })
+
+    const { trackMetaCustomEvent } = await import("@/components/analytics/meta-pixel")
+    trackMetaCustomEvent("VehicleConfigured", { trim: "Sport" }, "abc-123")
+    expect(fbq).toHaveBeenCalledWith(
+      "trackCustom",
+      "VehicleConfigured",
+      { trim: "Sport" },
+      { eventID: "abc-123" },
+    )
+
+    delete (window as unknown as Record<string, unknown>).fbq
+  })
+
+  it("trackMetaCustomEvent omits the 4th argument when eventID is undefined", async () => {
+    const fbq = vi.fn()
+    Object.defineProperty(window, "fbq", { value: fbq, configurable: true, writable: true })
+
+    const { trackMetaCustomEvent } = await import("@/components/analytics/meta-pixel")
+    trackMetaCustomEvent("VehicleConfigured")
+    expect(fbq).toHaveBeenCalledWith("trackCustom", "VehicleConfigured", {})
+    expect(fbq.mock.calls[0]).toHaveLength(3)
+
+    delete (window as unknown as Record<string, unknown>).fbq
+  })
 })

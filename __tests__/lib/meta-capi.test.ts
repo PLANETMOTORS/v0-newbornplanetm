@@ -239,3 +239,45 @@ describe("sendMetaEvent — error handling", () => {
     expect(errSpy).toHaveBeenCalledWith("[Meta CAPI] Network error:", expect.any(Error))
   })
 })
+
+describe("event_id deduplication", () => {
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_META_PIXEL_ID = "PIXEL123"
+    process.env.META_CAPI_ACCESS_TOKEN = "tok-123"
+  })
+
+  it("forwards eventId as event_id in the payload", async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ events_received: 1 }), { status: 200 }))
+    vi.stubGlobal("fetch", fetchMock)
+    const { sendMetaEvent } = await import("@/lib/meta-capi")
+    await sendMetaEvent({ eventName: "Lead", eventId: "550e8400-e29b-41d4-a716-446655440000" })
+    const body = JSON.parse(fetchMock.mock.calls[0][1]?.body as string)
+    expect(body.data[0].event_id).toBe("550e8400-e29b-41d4-a716-446655440000")
+  })
+
+  it("omits event_id from payload when not supplied", async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ events_received: 1 }), { status: 200 }))
+    vi.stubGlobal("fetch", fetchMock)
+    const { sendMetaEvent } = await import("@/lib/meta-capi")
+    await sendMetaEvent({ eventName: "Lead" })
+    const body = JSON.parse(fetchMock.mock.calls[0][1]?.body as string)
+    expect(body.data[0].event_id).toBeUndefined()
+  })
+})
+
+describe("generateEventId", () => {
+  it("returns a v4 UUID", async () => {
+    const { generateEventId } = await import("@/lib/meta-capi")
+    const id = generateEventId()
+    // RFC-4122 v4: 8-4-4-4-12 hex with version nibble = 4
+    expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
+  })
+
+  it("returns distinct IDs across calls", async () => {
+    const { generateEventId } = await import("@/lib/meta-capi")
+    const a = generateEventId()
+    const b = generateEventId()
+    const c = generateEventId()
+    expect(new Set([a, b, c]).size).toBe(3)
+  })
+})

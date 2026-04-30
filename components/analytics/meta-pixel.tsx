@@ -85,24 +85,48 @@ export function MetaPixel() {
  *   InitiateCheckout, AddPaymentInfo, Purchase, Lead,
  *   CompleteRegistration, Contact, Schedule, SubmitApplication.
  *
- * Pass `eventID` in `props` to deduplicate against server-side CAPI
- * events fired from `lib/meta-capi.ts` for the same user action.
+ * Pass `eventID` to deduplicate against the server-side CAPI event
+ * fired from `lib/meta-capi.ts` for the same user action. Generate
+ * the ID server-side via `generateEventId()` and thread it into both
+ * the CAPI call AND this browser pixel call. Without an event ID,
+ * Meta's heuristic dedup is unreliable and events double-count.
+ *
+ * @example
+ *   const eventId = generateEventId()              // server
+ *   await sendMetaEvent({ eventName: 'Lead', eventId, ... })
+ *   // → return eventId to client →
+ *   trackMetaEvent('Lead', { value: 1 }, eventId)  // browser
  */
 export function trackMetaEvent(
   event: string,
   props?: Record<string, unknown>,
+  eventID?: string,
 ): void {
   if (typeof window === "undefined") return
   if (!window.fbq) return
-  window.fbq("track", event, props ?? {})
+  if (eventID) {
+    window.fbq("track", event, props ?? {}, { eventID })
+  } else {
+    window.fbq("track", event, props ?? {})
+  }
 }
 
-/** Fire a custom (non-standard) Meta Pixel event. */
+/**
+ * Fire a custom (non-standard) Meta Pixel event.
+ *
+ * Pass `eventID` to deduplicate against a server-side CAPI event
+ * fired with the same identifier for the same user action.
+ */
 export function trackMetaCustomEvent(
   event: string,
   props?: Record<string, unknown>,
+  eventID?: string,
 ): void {
   if (typeof window === "undefined") return
   if (!window.fbq) return
-  window.fbq("trackCustom", event, props ?? {})
+  if (eventID) {
+    window.fbq("trackCustom", event, props ?? {}, { eventID })
+  } else {
+    window.fbq("trackCustom", event, props ?? {})
+  }
 }
