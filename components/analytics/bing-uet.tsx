@@ -37,7 +37,13 @@ export function BingUET() {
         (function(w,d,t,r,u){
           var f,n,i;
           w[u]=w[u]||[],f=function(){
-            var o={ti:"${BING_UET_ID}", enableAutoSpaTracking: true};
+            // NOTE: enableAutoSpaTracking is intentionally OMITTED.
+            // SPA route changes are fired manually from
+            // usePixelRouteTracking() so all four pixels (Meta, Snap,
+            // TikTok, Bing) share one source of truth — preventing
+            // double-fires that Microsoft's auto-tracker is known to
+            // produce on Next.js App Router.
+            var o={ti:"${BING_UET_ID}"};
             o.q=w[u],w[u]=new UET(o),w[u].push("pageLoad")
           },
           n=d.createElement(t),n.src=r,n.async=1,n.onload=n.onreadystatechange=function(){

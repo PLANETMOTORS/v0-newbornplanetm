@@ -12,7 +12,7 @@
  * Docs: https://developers.facebook.com/docs/marketing-api/conversions-api
  */
 
-import { createHash } from "node:crypto"
+import { createHash, randomUUID } from "node:crypto"
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID
 const ACCESS_TOKEN = process.env.META_CAPI_ACCESS_TOKEN
@@ -69,6 +69,37 @@ export interface MetaEvent {
   actionSource?: "website" | "email" | "phone_call" | "chat" | "other"
   userData?: UserData
   customData?: CustomData
+  /**
+   * Unique event identifier for cross-source deduplication.
+   *
+   * When the same conversion is reported by BOTH the browser pixel
+   * (`trackMetaEvent`) AND this server-side CAPI call, Meta uses
+   * `event_id` to recognise them as one event and avoid double-
+   * counting. The same value MUST be passed to `trackMetaEvent` on
+   * the client and `sendMetaEvent` on the server for a given user
+   * action — generate it once with {@link generateEventId} and
+   * thread it through both code paths.
+   *
+   * If unset, dedup falls back to Meta's heuristic matcher (event
+   * name + timestamp + user data) which is unreliable, so events
+   * may still double-count.
+   *
+   * https://developers.facebook.com/docs/marketing-api/conversions-api/deduplicate-pixel-and-server-events
+   */
+  eventId?: string
+}
+
+/**
+ * Generate a unique event ID for cross-source deduplication.
+ *
+ * Use this server-side, then pass the same value to:
+ *   - `sendMetaEvent({ ..., eventId })`               (this module)
+ *   - `trackMetaEvent(name, props, eventId)`          (browser pixel)
+ *
+ * The two events will be merged in Meta's Events Manager.
+ */
+export function generateEventId(): string {
+  return randomUUID()
 }
 
 // ── Hashing (PII must be SHA-256 hashed) ──────────────────────────────────
@@ -113,6 +144,7 @@ export async function sendMetaEvent(event: MetaEvent): Promise<{ success: boolea
       {
         event_name: event.eventName,
         event_time: event.eventTime || Math.floor(Date.now() / 1000),
+        event_id: event.eventId,
         event_source_url: event.eventSourceUrl,
         action_source: event.actionSource || "website",
         user_data: event.userData ? hashUserData(event.userData) : undefined,
