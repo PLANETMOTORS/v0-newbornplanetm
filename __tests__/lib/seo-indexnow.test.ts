@@ -248,4 +248,65 @@ describe("lib/seo/indexnow", () => {
       expect(body.urlList).toHaveLength(10_000)
     })
   })
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // pingVehicleChange — admin-route helper
+  // ───────────────────────────────────────────────────────────────────────────
+  describe("pingVehicleChange", () => {
+    it("no-ops when INDEXNOW_KEY is not configured", async () => {
+      const fetchSpy = vi.spyOn(globalThis, "fetch")
+      const mod = await import("@/lib/seo/indexnow")
+
+      const result = await mod.pingVehicleChange("vehicle-abc")
+
+      expect(result.ok).toBe(false)
+      expect(result.status).toBe(0)
+      expect(result.count).toBe(0)
+      expect(result.error).toContain("not configured")
+      expect(fetchSpy).not.toHaveBeenCalled()
+    })
+
+    it("pings both the VDP URL and the inventory listing in one batch", async () => {
+      process.env[KEY_ENV] = "abcdef1234567890"
+      withResponse(200)
+
+      const mod = await import("@/lib/seo/indexnow")
+      const result = await mod.pingVehicleChange("vehicle-abc")
+
+      expect(result.ok).toBe(true)
+      expect(result.count).toBe(2)
+
+      const fetchSpy = vi.mocked(globalThis.fetch)
+      expect(fetchSpy).toHaveBeenCalledTimes(1)
+      const body = JSON.parse(String((fetchSpy.mock.calls[0][1] as RequestInit).body))
+      expect(body.urlList).toEqual([
+        "https://www.planetmotors.ca/vehicles/vehicle-abc",
+        "https://www.planetmotors.ca/inventory",
+      ])
+    })
+
+    it("propagates upstream errors without throwing", async () => {
+      process.env[KEY_ENV] = "abcdef1234567890"
+      vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("upstream blew up"))
+
+      const mod = await import("@/lib/seo/indexnow")
+      const result = await mod.pingVehicleChange("vehicle-abc")
+
+      expect(result.ok).toBe(false)
+      expect(result.error).toBe("upstream blew up")
+    })
+
+    it("propagates HTTP failures with the correct count", async () => {
+      process.env[KEY_ENV] = "abcdef1234567890"
+      withResponse(429, false)
+
+      const mod = await import("@/lib/seo/indexnow")
+      const result = await mod.pingVehicleChange("vehicle-abc")
+
+      expect(result.ok).toBe(false)
+      expect(result.status).toBe(429)
+      expect(result.count).toBe(2)
+      expect(result.error).toBe("HTTP 429")
+    })
+  })
 })
