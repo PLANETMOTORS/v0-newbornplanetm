@@ -5,6 +5,7 @@ import {
   parsePagination,
   sanitizeSearch,
 } from "@/lib/admin-api"
+import { pingVehicleChange } from "@/lib/seo/indexnow"
 
 /**
  * Admin Vehicle Management API
@@ -163,7 +164,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to create vehicle", details: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, vehicle: data }, { status: 201 })
+    // Notify search engines that a new VDP + the inventory listing
+    // exist. Non-blocking — IndexNow failures must never cascade into
+    // a 500 for the admin user.
+    const indexNow = await pingVehicleChange(data.id)
+
+    return NextResponse.json(
+      {
+        success: true,
+        vehicle: data,
+        indexNow: { ok: indexNow.ok, count: indexNow.count },
+      },
+      { status: 201 },
+    )
   } catch (error) {
     console.error("Admin vehicles POST error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

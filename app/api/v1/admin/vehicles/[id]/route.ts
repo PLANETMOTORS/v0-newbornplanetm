@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { ADMIN_EMAILS } from "@/lib/admin"
 import { asScalarString } from "@/lib/safe-coerce"
+import { pingVehicleChange } from "@/lib/seo/indexnow"
 
 /**
  * Admin Single Vehicle API
@@ -154,7 +155,16 @@ export async function PUT(
       return NextResponse.json({ error: "Vehicle not found" }, { status: 404 })
     }
 
-    return NextResponse.json({ success: true, vehicle: data })
+    // Notify search engines that this VDP + the inventory listing
+    // changed. Non-blocking — IndexNow failures must never cascade
+    // into a 500 for the admin user.
+    const indexNow = await pingVehicleChange(id)
+
+    return NextResponse.json({
+      success: true,
+      vehicle: data,
+      indexNow: { ok: indexNow.ok, count: indexNow.count },
+    })
   } catch (error) {
     console.error("Admin vehicle PUT error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
@@ -199,9 +209,14 @@ export async function DELETE(
       return NextResponse.json({ error: "Failed to delete vehicle", details: error.message }, { status: 500 })
     }
 
+    // Notify search engines that the VDP is gone and the inventory
+    // listing changed. Same non-blocking semantics as PUT.
+    const indexNow = await pingVehicleChange(id)
+
     return NextResponse.json({
       success: true,
       message: `Deleted ${existing.year} ${existing.make} ${existing.model} (${existing.vin})`,
+      indexNow: { ok: indexNow.ok, count: indexNow.count },
     })
   } catch (error) {
     console.error("Admin vehicle DELETE error:", error)
