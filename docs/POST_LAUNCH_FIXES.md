@@ -30,26 +30,19 @@ This closes ONE failure mode (totally empty parse → mass wipe via `WHERE != AL
 
 ---
 
-### 2. IndexNow material-change filter (avoid spam pings)
+### 2. ~~IndexNow material-change filter (avoid spam pings)~~ ✅ RESOLVED
 
-**Severity:** High — Vercel's auto-fix added `updatedVehicleIds` to the cron's ping set, which closed the "pure-update runs send zero pings" gap. **However**, every cron run flips `updated_at = NOW()` on every existing row in the upsert, so the UPDATE branch fires for ~5,000 vehicles per run. At 96 runs/day that's ~480,000 IndexNow URL submissions/day for a 5K inventory.
+**Status:** Fixed via `WHERE ... IS DISTINCT FROM` clause in upsert.
 
-**Why this matters:** Bing's IndexNow guidance is explicit — submitting unchanged URLs makes your usage appear spammy and may lead to deprioritization of legitimate signals.
+**Original issue:** Every cron run flipped `updated_at = NOW()` on every existing row in the upsert, so the UPDATE branch fired for ~5,000 vehicles per run. At 96 runs/day that was ~480,000 IndexNow URL submissions/day for a 5K inventory.
 
-**Where:**
-- `lib/homenet/parser.ts` → upsert loop currently pushes `row.id` into `updatedVehicleIds` whenever the INSERT didn't fire (regardless of whether tracked fields actually changed)
-- `app/api/cron/homenet-sync/route.ts` → forwards everything in `updatedVehicleIds` to `pingIndexNow()`
+**Solution implemented:** Added a `WHERE` clause to the `ON CONFLICT DO UPDATE` statement that compares all 33 tracked fields using `IS DISTINCT FROM`. PostgreSQL only performs the update (and returns the row) when at least one field actually changed. Unchanged vehicles are not returned, so they're not counted in `updatedVehicleIds`.
 
-**Fix:**
-1. Pre-fetch a snapshot of existing rows (`vin, price, status, primary_image_url, mileage`) BEFORE the upsert loop.
-2. Inside the loop, only push `row.id` to `updatedVehicleIds` when at least one tracked field actually differs from the snapshot.
-3. Cron pings `inserted ∪ materially-changed ∪ sold(if !safetyAborted)`, plus `/inventory` whenever any of those is non-empty.
-
-**Stopgap if needed before #2 lands:** Add a `MAX_UPDATE_PINGS_PER_RUN` cap (default 100) in the cron — if `updatedVehicleIds.length` exceeds it, skip update pings for that run. Better than dripping noise.
-
-**Effort:** ~1.5 hours including 100% test coverage on parser + cron route tests.
-
-**Tracked in:** Original IndexNow PR review feedback (April 2026).
+**Technical details:**
+- When the WHERE clause evaluates to false (no changes), PostgreSQL skips the update entirely
+- The RETURNING clause only returns rows that were actually inserted or updated
+- `updatedVehicleIds` now only contains vehicles with genuine data changes
+- The `updated` counter now accurately reflects actual updates, not just conflict matches
 
 ---
 

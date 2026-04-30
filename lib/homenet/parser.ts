@@ -487,6 +487,31 @@ export async function syncVehiclesToDatabase(
               source_vdp_url = EXCLUDED.source_vdp_url,
               title_status = EXCLUDED.title_status,
               updated_at = NOW()
+            WHERE (
+              vehicles.stock_number, vehicles.year, vehicles.make, vehicles.model,
+              vehicles.trim, vehicles.body_style, vehicles.exterior_color,
+              vehicles.interior_color, vehicles.price, vehicles.msrp,
+              vehicles.mileage, vehicles.drivetrain, vehicles.transmission,
+              vehicles.engine, vehicles.fuel_type, vehicles.fuel_economy_city,
+              vehicles.fuel_economy_highway, vehicles.is_ev, vehicles.battery_capacity_kwh,
+              vehicles.range_miles, vehicles.status, vehicles.is_certified,
+              vehicles.is_new_arrival, vehicles.featured, vehicles.inspection_score,
+              vehicles.primary_image_url, vehicles.image_urls, vehicles.has_360_spin,
+              vehicles.video_url, vehicles.location, vehicles.description,
+              vehicles.source_vdp_url, vehicles.title_status
+            ) IS DISTINCT FROM (
+              EXCLUDED.stock_number, EXCLUDED.year, EXCLUDED.make, EXCLUDED.model,
+              EXCLUDED.trim, EXCLUDED.body_style, EXCLUDED.exterior_color,
+              EXCLUDED.interior_color, EXCLUDED.price, EXCLUDED.msrp,
+              EXCLUDED.mileage, EXCLUDED.drivetrain, EXCLUDED.transmission,
+              EXCLUDED.engine, EXCLUDED.fuel_type, EXCLUDED.fuel_economy_city,
+              EXCLUDED.fuel_economy_highway, EXCLUDED.is_ev, EXCLUDED.battery_capacity_kwh,
+              EXCLUDED.range_miles, EXCLUDED.status, EXCLUDED.is_certified,
+              EXCLUDED.is_new_arrival, EXCLUDED.featured, EXCLUDED.inspection_score,
+              EXCLUDED.primary_image_url, EXCLUDED.image_urls, EXCLUDED.has_360_spin,
+              EXCLUDED.video_url, EXCLUDED.location, EXCLUDED.description,
+              EXCLUDED.source_vdp_url, EXCLUDED.title_status
+            )
             RETURNING id, (xmax = 0) AS inserted
           `
           const rows = result as Array<{ id: string; inserted: boolean }>
@@ -494,10 +519,14 @@ export async function syncVehiclesToDatabase(
           if (row?.inserted) {
             inserted++
             if (row.id) insertedVehicleIds.push(row.id)
-          } else {
+          } else if (row?.id) {
+            // Row was returned with xmax != 0, meaning an actual update occurred
+            // (WHERE clause evaluated to true because data changed)
             updated++
-            if (row?.id) updatedVehicleIds.push(row.id)
+            updatedVehicleIds.push(row.id)
           }
+          // If row is undefined, the WHERE clause prevented the update
+          // because no data changed — vehicle exists but is unchanged.
         } catch (error) {
           console.error(`[HomenetIOL] Error syncing VIN ${vehicle.vin}:`, error)
           errors.push({
