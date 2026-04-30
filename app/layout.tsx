@@ -78,17 +78,24 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      // SVG first — Safari ignores `media` attr on PNG icons, but it DOES
+      // support SVG favicons + CSS @media (prefers-color-scheme: dark)
+      // embedded inside the SVG. Putting it first makes Safari (and modern
+      // Chrome/Firefox) pick the theme-aware SVG.
+      {
+        url: '/icon.svg',
+        type: 'image/svg+xml',
+      },
+      // PNG fallbacks for browsers without SVG favicon support (legacy IE/Edge)
       {
         url: '/icon-light-32x32.png',
         media: '(prefers-color-scheme: light)',
+        sizes: '32x32',
       },
       {
         url: '/icon-dark-32x32.png',
         media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
+        sizes: '32x32',
       },
     ],
     apple: '/apple-icon.png',
