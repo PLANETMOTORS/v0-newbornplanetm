@@ -512,7 +512,13 @@ export async function syncVehiclesToDatabase(
   // Step 2: Mark all vehicles NOT in the incoming file as SOLD (soft-delete).
   // We only flip rows that aren't already marked sold, so re-runs are
   // idempotent and `sold_at` reflects the first time we noticed.
-  try {
+  //
+  // IMPORTANT: Skip soft-delete when incomingVins is empty. In PostgreSQL,
+  // `vin != ALL(ARRAY[])` is vacuously TRUE for all rows, which would
+  // incorrectly mark the entire inventory as sold.
+  if (incomingVins.length === 0) {
+    console.warn(`[HomenetIOL] Skipping soft-delete step: no incoming vehicles to compare against`)
+  } else try {
     const soldResult = await sql`
       UPDATE vehicles
       SET status = 'sold',
