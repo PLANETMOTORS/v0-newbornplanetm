@@ -1,5 +1,30 @@
-<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="180" height="180" rx="32" fill="#1e3a8a"/>
-  <path d="M58 44h35.6c19 0 30 10.4 30 26.5 0 16-11 27-30 27H78v38.5H58V44zm33.6 38.5c8.6 0 13-4.4 13-12 0-7.6-4.4-12-13-12H78v24h13.6z" fill="#dc2626"/>
-  <path d="M58 44h35.6c19 0 30 10.4 30 26.5 0 16-11 27-30 27H78v38.5H58V44z" stroke="#ffffff" stroke-width="2.5" stroke-linejoin="round" fill="none"/>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
+  <rect width="512" height="512" rx="72" fill="#0a1628"/>
+
+  <g fill="none" stroke="#3b82f6" stroke-width="26" stroke-linecap="round" stroke-linejoin="round">
+    <path d="
+      M 96 340
+      L 96 290
+      Q 96 262 126 262
+      L 170 262
+      Q 192 192 256 192
+      L 318 192
+      Q 372 192 394 226
+      L 414 262
+      L 446 262
+      Q 476 262 476 290
+      L 476 340
+    "/>
+    <path d="M 96 340 L 196 340"/>
+    <path d="M 254 340 L 348 340"/>
+    <path d="M 408 340 L 476 340"/>
+    <circle cx="224" cy="368" r="30"/>
+    <circle cx="380" cy="368" r="30"/>
+  </g>
+
+  <path d="M 286 208 L 244 296 L 282 296 L 252 360 L 312 280 L 280 280 L 312 208 Z"
+        fill="#22c55e" stroke="#22c55e" stroke-width="3" stroke-linejoin="round"/>
+
+  <path d="M 350 312 L 350 432 L 384 402 L 410 442 L 428 432 L 404 396 L 442 392 Z"
+        fill="#ef4444" stroke="#ef4444" stroke-width="3" stroke-linejoin="round"/>
 </svg>
