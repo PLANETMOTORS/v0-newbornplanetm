@@ -1,14 +1,6 @@
 import { put, list } from "@vercel/blob"
-import { neon } from "@neondatabase/serverless"
 import crypto from "node:crypto"
-
-function getSql() {
-  const url = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || process.env.NEON_POSTGRES_URL
-  if (!url) return null
-  return neon(url)
-}
-
-type SqlClient = NonNullable<ReturnType<typeof getSql>>
+import { getSql, type SqlClient } from "@/lib/neon/sql"
 
 // ==================== TYPES ====================
 
