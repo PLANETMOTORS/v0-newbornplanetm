@@ -11,7 +11,7 @@
   "scope": "/",
   "icons": [
     {
-      "src": "/icon-dark-32x32.png",
+      "src": "/icon-light-32x32.png",
       "sizes": "32x32",
       "type": "image/png"
     },
