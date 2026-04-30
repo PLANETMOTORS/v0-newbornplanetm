@@ -53,6 +53,28 @@ export type MidConflictCheck =
   | { conflict: true; existingVin: string }
 
 /**
+ * Internal chainable shape representing the subset of the Supabase query
+ * builder we use. We only depend on the `.from()` method of the public
+ * client and treat every step after that as opaque so the production
+ * Supabase types (whose generated chain is deep enough to trip
+ * TS2589 "excessively deep") don't leak into this helper's signature.
+ */
+interface SupabaseClientWithFrom {
+  from: (table: string) => unknown
+}
+
+interface SupabaseChain {
+  select: (cols: string) => SupabaseChain
+  eq: (col: string, value: string) => SupabaseChain
+  neq: (col: string, value: string) => SupabaseChain
+  limit: (n: number) => SupabaseChain
+  maybeSingle: () => Promise<{
+    data: { vin: string } | null
+    error: { message: string } | null
+  }>
+}
+
+/**
  * Returns whether storing `mid` for `currentVin` would collide with an
  * existing mapping for a DIFFERENT VIN. This is our defence against the
  * Pirelly-stock-fallback bug where stock# collisions cause two VINs to
@@ -61,19 +83,15 @@ export type MidConflictCheck =
  * Implementation note: we query for any row with this `mid` whose `vin` is
  * NOT the current VIN. Limit 1 + maybeSingle gives us "first conflicting
  * VIN" without choking on the (impossible-but-defensive) case where the
- * same MID is already mapped to multiple other VINs. The `supabase`
- * parameter is intentionally typed loosely so this helper accepts either
- * the production Supabase client (whose generated types are deep enough to
- * trip TS2589 "excessively deep") or a chainable test mock.
+ * same MID is already mapped to multiple other VINs.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function findExistingMidConflict(
-  supabase: any,
+  supabase: SupabaseClientWithFrom,
   mid: string,
   currentVin: string,
 ): Promise<MidConflictCheck> {
-  const { data, error } = await supabase
-    .from("drivee_mappings")
+  const chain = supabase.from("drivee_mappings") as SupabaseChain
+  const { data, error } = await chain
     .select("vin")
     .eq("mid", mid)
     .neq("vin", currentVin)
@@ -81,7 +99,7 @@ export async function findExistingMidConflict(
     .maybeSingle()
 
   if (error || !data) return { conflict: false }
-  return { conflict: true, existingVin: data.vin as string }
+  return { conflict: true, existingVin: data.vin }
 }
 
 /** Query Pirelly API to resolve a VIN to a Drivee media ID. */

@@ -38,10 +38,6 @@ vi.mock("@/lib/supabase/admin", () => ({
 
 const { GET } = await import("@/app/api/v1/admin/drivee/audit/route")
 
-function makeRequest(): Request {
-  return new Request("http://localhost/api/v1/admin/drivee/audit", { method: "GET" })
-}
-
 describe("GET /api/v1/admin/drivee/audit", () => {
   beforeEach(() => {
     vi.clearAllMocks()
