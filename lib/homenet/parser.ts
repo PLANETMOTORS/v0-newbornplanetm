@@ -1,4 +1,11 @@
 import type { SqlClient } from "@/lib/neon/sql"
+import {
+  normalizeHomenetBodyStyle,
+  detectPHEVOverride,
+  excelSerialToISO,
+  filterStockPhotos,
+  deduplicateDescriptionLines,
+} from "./normalizers"
 
 // ==================== TYPES ====================
 
@@ -59,6 +66,19 @@ export interface VehicleData {
   feature_bullets?: string[]      // A2: array of short strings for VDP
   options?: string[]              // A2: array of option strings
   location?: string
+
+  // === Lot tracking ===
+  /**
+   * ISO date (YYYY-MM-DD) of when this vehicle entered inventory,
+   * derived from HomeNet's Excel-serial DateInStock column.
+   * Used to compute "days on lot" / merchandising urgency badges.
+   */
+  date_in_stock?: string
+  /**
+   * False when ALL of the photos in `image_urls` are HomeNet stock /
+   * placeholder images — admin should be prompted to upload real photos.
+   */
+  has_real_photos?: boolean
 
   // === Legacy / Compat ===
   inspection_score?: number
@@ -202,9 +222,14 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
   if (!stockNumber) return null
 
   // Normalize HomeNet fuel values: "Gasoline Fuel" → "Gasoline", "Electric Fuel System" → "Electric"
-  const fuelType = normalizeHomenetFuelType(get(["fuel_type", "fueltype", "fuel"]))
+  let fuelType = normalizeHomenetFuelType(get(["fuel_type", "fueltype", "fuel"]))
   const rawImages = get(["image_urls", "photos", "images", "photo", "imagelist"])
-  const images = parseImageUrls(rawImages)
+  const allImages = parseImageUrls(rawImages)
+  // Filter out HomeNet stock-photo placeholders so category pages don't
+  // surface listings with generic stock imagery.
+  const photoFilter = filterStockPhotos(allImages)
+  const images = photoFilter.realPhotos.length > 0 ? photoFilter.realPhotos : allImages
+  const hasRealPhotos = photoFilter.realPhotos.length > 0
 
   const engineStr = composeEngineString(
     get(["engine", "enginedescription"]),
@@ -226,6 +251,13 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
   const model = get(["model"])
   const trim = get(["trim", "series"])
   const normalizedVin = vin.toUpperCase()
+
+  // === Body-style normalization ===
+  // HomeNet sends verbose values ("Sport Utility", "4dr Car"). Normalize to
+  // the canonical taxonomy used by category landing pages (SUV, Sedan, etc.)
+  // so /cars/<slug> queries can filter correctly via WHERE body_style = ?.
+  const rawBodyStyle = get(["body_style", "bodystyle", "body", "bodytype"])
+  const bodyStyle = normalizeHomenetBodyStyle(rawBodyStyle)
 
   // === A2: Derived fields ===
   const trimSuffix = trim ? ` ${trim}` : ""
@@ -256,10 +288,27 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
   // === A2: Doors ===
   const doors = getNum(["doors"])
 
-  // === A2: Description from comments ===
-  const description = get(["comments", "description", "comment1"]) || undefined
+  // === A2: Description from comments — strip duplicate boilerplate lines ===
+  const rawDescription = get(["comments", "description", "comment1"])
+  const description = rawDescription ? deduplicateDescriptionLines(rawDescription) : undefined
 
-  const isEv = fuelType?.toLowerCase().includes("electric") || getBool(["is_ev", "isev"])
+  // === Date in stock — Excel-serial → ISO ===
+  // HomeNet's DateInStock column ships as an Excel serial number
+  // (e.g. "45601" for 2024-11-26). Convert to ISO YYYY-MM-DD so the
+  // "days on lot" badge math is correct.
+  const dateInStock = excelSerialToISO(get(["dateinstock", "date_in_stock"])) ?? undefined
+
+  // === PHEV override ===
+  // HomeNet labels Jeep 4xe trims as plain "Hybrid Fuel" — but they're
+  // actually plug-in hybrids (PHEV), which matters for marketing accuracy
+  // and iZEV rebate eligibility. Apply override before deriving is_ev.
+  const phevOverride = detectPHEVOverride(make, model, trim, fuelType, optionsList)
+  let isEv = fuelType?.toLowerCase().includes("electric") || getBool(["is_ev", "isev"])
+  if (phevOverride) {
+    fuelType = phevOverride.fuelType
+    isEv = phevOverride.isEv
+  }
+
   const isFeatured = getBool(["featured", "is_featured"])
 
   return {
@@ -276,7 +325,7 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
     make,
     model,
     trim,
-    body_style: get(["body_style", "bodystyle", "body", "bodytype"]),
+    body_style: bodyStyle,
     condition: a2Condition,
     exterior_color: get(["exterior_color", "exteriorcolor", "color", "extcolor"]),
     interior_color: get(["interior_color", "interiorcolor", "intcolor"]),
@@ -319,6 +368,10 @@ function mapCSVToVehicle(row: Record<string, string>): VehicleData | null {
     feature_bullets: undefined, // HomeNet doesn't provide structured bullets
     options: optionsList,
     location: get(["location", "dealerlocation"]) || "Richmond Hill, ON",
+
+    // Lot tracking
+    date_in_stock: dateInStock,
+    has_real_photos: hasRealPhotos,
 
     // Legacy
     inspection_score: getNum(["inspection_score", "inspectionscore"]) || 210,
@@ -479,7 +532,7 @@ async function upsertVehicle(
         ${vehicle.fuel_economy_city || null}, ${vehicle.fuel_economy_highway || null},
         ${vehicle.is_ev ?? false}, ${vehicle.battery_capacity_kwh || null},
         ${vehicle.range_miles || null}, ${vehicle.status || 'available'},
-        ${vehicle.is_certified ?? true}, ${vehicle.is_new_arrival ?? false},
+        ${vehicle.is_certified ?? false}, ${vehicle.is_new_arrival ?? false},
         ${vehicle.featured ?? false}, ${vehicle.inspection_score ?? 210},
         ${vehicle.primary_image_url || null}, ${vehicle.image_urls || []},
         ${vehicle.has_360_spin || false}, ${vehicle.video_url || null},
@@ -745,17 +798,34 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
   if (vin?.length !== 17) return null
   if (!stockNumber) return null
 
-  const images = getXmlImages(xml)
+  const allImages = getXmlImages(xml)
+  const photoFilter = filterStockPhotos(allImages)
+  const images = photoFilter.realPhotos.length > 0 ? photoFilter.realPhotos : allImages
+  const hasRealPhotos = photoFilter.realPhotos.length > 0
+
   const priceDollars = getXmlTagNumber(xml, "price") || getXmlTagNumber(xml, "sellingprice") || getXmlTagNumber(xml, "internetprice") || 0
   const msrpDollars = getXmlTagNumber(xml, "msrp") || getXmlTagNumber(xml, "retailprice")
-  const fuelType = getXmlTagValue(xml, "fueltype") || getXmlTagValue(xml, "fuel_type") || getXmlTagValue(xml, "fuel")
+  let fuelType = normalizeHomenetFuelType(
+    getXmlTagValue(xml, "fueltype") || getXmlTagValue(xml, "fuel_type") || getXmlTagValue(xml, "fuel")
+  )
   const year = getXmlTagNumber(xml, "year") || new Date().getFullYear()
   const make = getXmlTagValue(xml, "make")
   const model = getXmlTagValue(xml, "model")
   const trim = getXmlTagValue(xml, "trim") || getXmlTagValue(xml, "series")
   const normalizedVin = vin.toUpperCase()
   const mileageKm = getXmlTagNumber(xml, "mileage") || getXmlTagNumber(xml, "odometer") || 0
-  const isEv = fuelType?.toLowerCase().includes("electric") || getXmlTagBoolean(xml, "isev")
+  const rawBodyStyle = getXmlTagValue(xml, "bodystyle") || getXmlTagValue(xml, "body") || getXmlTagValue(xml, "bodytype")
+  const bodyStyle = normalizeHomenetBodyStyle(rawBodyStyle)
+  const dateInStock = excelSerialToISO(getXmlTagValue(xml, "dateinstock")) ?? undefined
+
+  // PHEV override (Jeep 4xe etc.)
+  const phevOverride = detectPHEVOverride(make, model, trim, fuelType)
+  let isEv = fuelType?.toLowerCase().includes("electric") || getXmlTagBoolean(xml, "isev")
+  if (phevOverride) {
+    fuelType = phevOverride.fuelType
+    isEv = phevOverride.isEv
+  }
+
   const isFeatured = getXmlTagBoolean(xml, "featured")
   const isCertified = getXmlTagBoolean(xml, "certified") || getXmlTagBoolean(xml, "cpo")
 
@@ -776,7 +846,7 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
     make,
     model,
     trim,
-    body_style: getXmlTagValue(xml, "bodystyle") || getXmlTagValue(xml, "body") || getXmlTagValue(xml, "bodytype"),
+    body_style: bodyStyle,
     condition: isCertified ? "certified_used" : "used",
     exterior_color: getXmlTagValue(xml, "exteriorcolor") || getXmlTagValue(xml, "color") || getXmlTagValue(xml, "extcolor"),
     interior_color: getXmlTagValue(xml, "interiorcolor") || getXmlTagValue(xml, "intcolor"),
@@ -803,9 +873,14 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
     image_urls: images,
     has_360_spin: getXmlTagBoolean(xml, "has360") || getXmlTagBoolean(xml, "spinview"),
     video_url: getXmlTagValue(xml, "videourl") || getXmlTagValue(xml, "video"),
-    description: getXmlTagValue(xml, "description") || getXmlTagValue(xml, "comments") || undefined,
+    description: (() => {
+      const raw = getXmlTagValue(xml, "description") || getXmlTagValue(xml, "comments")
+      return raw ? deduplicateDescriptionLines(raw) : undefined
+    })(),
     options: undefined,
     location: getXmlTagValue(xml, "location") || getXmlTagValue(xml, "dealerlocation") || "Richmond Hill, ON",
+    date_in_stock: dateInStock,
+    has_real_photos: hasRealPhotos,
     inspection_score: getXmlTagNumber(xml, "inspectionscore") || 210,
     source_vdp_url: undefined,
     title_status: undefined,
