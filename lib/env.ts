@@ -68,6 +68,16 @@ const optionalServerSchema = z.object({
     .regex(/^[a-zA-Z0-9]+$/, "INDEXNOW_KEY must only contain alphanumeric characters")
     .optional(),
 
+  // HomeNet inventory-floor guard — see lib/homenet/parser.ts.
+  // Percentage of currently-live inventory the incoming CSV must cover
+  // for the bulk soft-delete to proceed. A truncated/partial feed below
+  // this threshold triggers `safetyAborted: true` and skips the soft-delete.
+  // Set to 0 to disable (legitimate liquidations, dev/preview).
+  HOMENET_INVENTORY_FLOOR_PCT: z
+    .string()
+    .regex(/^\d+(\.\d+)?$/, "HOMENET_INVENTORY_FLOOR_PCT must be a non-negative number")
+    .optional(),
+
   NODE_ENV: z.enum(["development", "production", "test"]).optional(),
 })
 
@@ -126,6 +136,7 @@ function validateEnv(): Env {
     TYPESENSE_API_KEY: process.env.TYPESENSE_API_KEY,
     TYPESENSE_HOST: process.env.TYPESENSE_HOST,
     INDEXNOW_KEY: process.env.INDEXNOW_KEY,
+    HOMENET_INVENTORY_FLOOR_PCT: process.env.HOMENET_INVENTORY_FLOOR_PCT,
     NODE_ENV: process.env.NODE_ENV,
     // Client
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,

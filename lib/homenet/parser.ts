@@ -360,6 +360,21 @@ export function parseCSVLine(line: string): string[] {
 
 // ==================== DATABASE SYNC ====================
 
+/** Default percentage of live inventory the incoming feed must cover for the
+ *  bulk soft-delete to proceed. Tunable via `HOMENET_INVENTORY_FLOOR_PCT`.
+ *  Set the env var to 0 to disable the guard for legitimate liquidations. */
+const DEFAULT_INVENTORY_FLOOR_PCT = 50
+
+function getInventoryFloorPct(): number {
+  const raw = process.env.HOMENET_INVENTORY_FLOOR_PCT
+  if (!raw) return DEFAULT_INVENTORY_FLOOR_PCT
+  const parsed = Number(raw)
+  if (!Number.isFinite(parsed) || parsed < 0 || parsed > 100) {
+    return DEFAULT_INVENTORY_FLOOR_PCT
+  }
+  return parsed
+}
+
 export interface SyncVehiclesResult {
   inserted: number
   updated: number
@@ -389,7 +404,30 @@ export interface SyncVehiclesResult {
    * like price updates.
    */
   updatedVehicleIds: string[]
+  /**
+   * True when the inventory-floor guard fired and the bulk soft-delete
+   * was skipped to prevent a partial/truncated CSV from incorrectly
+   * marking thousands of vehicles as SOLD. Callers (the cron) MUST
+   * skip soft-delete IndexNow pings when this is true.
+   */
+  safetyAborted: boolean
+  /**
+   * Diagnostic context populated when `safetyAborted` is true so
+   * operators can see, at a glance, why the guard fired.
+   */
+  safetyContext?: {
+    incoming: number
+    currentLive: number
+    floorPct: number
+    minimumExpected: number
+  }
   errors: { vin: string; error: string }[]
+}
+
+/** Test-only export for the inventory-floor parser. */
+export const __testing__ = {
+  getInventoryFloorPct,
+  DEFAULT_INVENTORY_FLOOR_PCT,
 }
 
 /**
@@ -416,6 +454,8 @@ export async function syncVehiclesToDatabase(
   const insertedVehicleIds: string[] = []
   const soldVehicleIds: string[] = []
   const updatedVehicleIds: string[] = []
+  let safetyAborted = false
+  let safetyContext: SyncVehiclesResult['safetyContext'] | undefined
   const BATCH_SIZE = 100
 
   // Collect all VINs from incoming file
@@ -542,38 +582,101 @@ export async function syncVehiclesToDatabase(
   // We only flip rows that aren't already marked sold, so re-runs are
   // idempotent and `sold_at` reflects the first time we noticed.
   //
-  // IMPORTANT: Skip soft-delete when incomingVins is empty. In PostgreSQL,
-  // `vin != ALL(ARRAY[])` is vacuously TRUE for all rows, which would
-  // incorrectly mark the entire inventory as sold.
+  // Two safety guards run BEFORE the bulk UPDATE:
+  //
+  //   (a) Empty-array guard. In PostgreSQL `vin != ALL(ARRAY[])` is
+  //       vacuously TRUE for every row — without this check, an empty
+  //       parse would mark the entire inventory as sold.
+  //
+  //   (b) Inventory-floor guard. A truncated/partial CSV (network blip,
+  //       encoding glitch, mass parse failure) can return e.g. 80 of
+  //       5,000 vehicles. The empty-array guard above doesn't catch
+  //       that — the array isn't empty, it's just suspiciously small.
+  //       If the incoming feed covers less than HOMENET_INVENTORY_FLOOR_PCT
+  //       (default 50%) of currently-live inventory, we skip the bulk
+  //       soft-delete and surface `safetyAborted: true` so the cron
+  //       can avoid pinging IndexNow for sold URLs in degraded mode.
   if (incomingVins.length === 0) {
-    console.warn(`[HomenetIOL] Skipping soft-delete step: no incoming vehicles to compare against`)
-  } else try {
-    const soldResult = await sql`
-      UPDATE vehicles
-      SET status = 'sold',
-          sold_at = COALESCE(sold_at, NOW()),
-          updated_at = NOW()
-      WHERE vin != ALL(${incomingVins})
-        AND status IS DISTINCT FROM 'sold'
-      RETURNING id
-    `
-    const soldRows = soldResult as Array<{ id: string }>
-    removed = soldRows.length
-    for (const row of soldRows) {
-      if (row.id) soldVehicleIds.push(row.id)
+    console.warn(
+      `[HomenetIOL] Skipping soft-delete step: no incoming vehicles to compare against`,
+    )
+  } else {
+    let currentLive: number | null = null
+    try {
+      const liveCountRows = (await sql`
+        SELECT COUNT(*)::int AS live_count
+        FROM vehicles
+        WHERE status IS DISTINCT FROM 'sold'
+      `) as Array<{ live_count: number }>
+      currentLive = liveCountRows?.[0]?.live_count ?? 0
+    } catch (error) {
+      // Non-fatal — without a live count we can't enforce the floor,
+      // so we let the soft-delete proceed (preserves prior behaviour).
+      console.error(
+        `[HomenetIOL] Live-count query failed (proceeding without inventory-floor guard):`,
+        error,
+      )
     }
-    if (removed > 0) {
-      console.info(`[HomenetIOL] Soft-deleted ${removed} vehicles not in incoming file`)
+
+    const floorPct = getInventoryFloorPct()
+    const minimumExpected =
+      currentLive !== null && currentLive > 0
+        ? Math.floor(currentLive * (floorPct / 100))
+        : 0
+
+    if (currentLive !== null && currentLive > 0 && incomingVins.length < minimumExpected) {
+      safetyAborted = true
+      safetyContext = {
+        incoming: incomingVins.length,
+        currentLive,
+        floorPct,
+        minimumExpected,
+      }
+      console.error(
+        `[HomenetIOL] SAFETY ABORT: incoming feed has ${incomingVins.length} ` +
+          `vehicles but database has ${currentLive} live (floor: ${minimumExpected} ` +
+          `at ${floorPct}%). Soft-delete SKIPPED to prevent inventory wipe.`,
+      )
+    } else {
+      try {
+        const soldResult = await sql`
+          UPDATE vehicles
+          SET status = 'sold',
+              sold_at = COALESCE(sold_at, NOW()),
+              updated_at = NOW()
+          WHERE vin != ALL(${incomingVins})
+            AND status IS DISTINCT FROM 'sold'
+          RETURNING id
+        `
+        const soldRows = soldResult as Array<{ id: string }>
+        removed = soldRows.length
+        for (const row of soldRows) {
+          if (row.id) soldVehicleIds.push(row.id)
+        }
+        if (removed > 0) {
+          console.info(`[HomenetIOL] Soft-deleted ${removed} vehicles not in incoming file`)
+        }
+      } catch (error) {
+        console.error(`[HomenetIOL] Error soft-deleting old vehicles:`, error)
+        errors.push({
+          vin: "BULK_SOFT_DELETE",
+          error: error instanceof Error ? error.message : "Unknown error",
+        })
+      }
     }
-  } catch (error) {
-    console.error(`[HomenetIOL] Error soft-deleting old vehicles:`, error)
-    errors.push({
-      vin: "BULK_SOFT_DELETE",
-      error: error instanceof Error ? error.message : "Unknown error",
-    })
   }
 
-  return { inserted, updated, removed, insertedVehicleIds, soldVehicleIds, updatedVehicleIds, errors }
+  return {
+    inserted,
+    updated,
+    removed,
+    insertedVehicleIds,
+    soldVehicleIds,
+    updatedVehicleIds,
+    safetyAborted,
+    safetyContext,
+    errors,
+  }
 }
 
 

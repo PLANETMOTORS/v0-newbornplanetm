@@ -96,17 +96,37 @@ export async function GET(request: Request) {
       }
     }
 
+    // Inventory-floor guard tripped — log a single high-severity line that
+    // external alerting (Sentry breadcrumbs, Better Stack scrapers, Vercel
+    // log drain) can pattern-match on. Stable prefix on purpose so alert
+    // rules can target it without parsing the structured context.
+    if (result.safetyAborted) {
+      console.error(
+        "[HomenetIOL Cron] CRITICAL SAFETY ABORT — inventory floor breached. " +
+          "Soft-delete was SKIPPED to prevent a partial CSV from wiping the inventory.",
+        result.safetyContext,
+      )
+    }
+
     // Step 5: Ping IndexNow for new + soft-deleted URLs (non-blocking).
-    // We never let an IndexNow failure cascade into a 500 — the cron's job
-    // is to keep the database in sync, IndexNow is a best-effort SEO signal.
+    //   We never let an IndexNow failure cascade into a 500 — the cron's
+    //   job is to keep the database in sync, IndexNow is a best-effort
+    //   SEO signal.
+    //
+    //   When `safetyAborted` is true the soft-delete step did not run, so
+    //   `soldVehicleIds` is empty by construction; we still skip those
+    //   pings explicitly as a defence-in-depth in case the contract drifts.
     let indexNowPings = 0
     let indexNowOk = false
     if (isIndexNowConfigured()) {
       const baseUrl = getPublicSiteUrl()
+      const soldUrls = result.safetyAborted
+        ? []
+        : buildVehicleUrls(result.soldVehicleIds)
       const changedUrlSet = new Set<string>([
         ...buildVehicleUrls(result.insertedVehicleIds),
-        ...buildVehicleUrls(result.soldVehicleIds),
         ...buildVehicleUrls(result.updatedVehicleIds),
+        ...soldUrls,
       ])
       const hasInventoryChanges =
         result.inserted > 0 || result.updated > 0 || result.removed > 0
@@ -135,7 +155,8 @@ export async function GET(request: Request) {
     const duration = Date.now() - startTime
     console.info(
       `[HomenetIOL Cron] Sync complete in ${duration}ms: ` +
-      `${result.inserted} inserted, ${result.updated} updated, ${result.removed} sold, ${result.errors.length} errors`
+      `${result.inserted} inserted, ${result.updated} updated, ${result.removed} sold, ${result.errors.length} errors` +
+      (result.safetyAborted ? " [SAFETY ABORT]" : "")
     )
 
     return NextResponse.json({
@@ -147,6 +168,8 @@ export async function GET(request: Request) {
       inserted: result.inserted,
       updated: result.updated,
       removed: result.removed,
+      safetyAborted: result.safetyAborted,
+      safetyContext: result.safetyContext,
       typesenseIndexed: typesenseResult.success,
       typesenseErrors: typesenseResult.errors,
       indexNowPings,
