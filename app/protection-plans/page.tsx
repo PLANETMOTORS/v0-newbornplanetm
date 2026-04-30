@@ -194,7 +194,7 @@ export default function ProtectionPlansPage() {
                 Compare Protection Packages
               </h2>
               <p className="mt-4 text-muted-foreground max-w-2xl mx-auto text-base md:text-lg">
-                Every vehicle includes our 150+ point inspection and safety certificate.
+                Every vehicle includes our 210-point inspection and safety certificate.
                 Choose a package for added peace-of-mind coverage.
               </p>
             </div>
