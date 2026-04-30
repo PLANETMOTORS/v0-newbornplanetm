@@ -3,8 +3,8 @@ import { createBlogPost, type BlogPostEntry } from "../blog-data"
 export const blogPostsChunk2: Record<string, BlogPostEntry> = {
   "tesla-model-y-vs-model-3": createBlogPost(
     {
-      title: "Tesla Model Y vs Tesla Model 3: Which One Should You Buy?",
-      excerpt: "Compare the Tesla Model 3 vs. Model Y. Discover the key differences in range, performance, and cargo space to find the perfect EV for your lifestyle.",
+      title: "A Detailed Side-by-Side Comparison of Tesla's Top Models",
+      excerpt: "A Detailed Side-by-Side Comparison of Tesla's Top Models",
       date: "Jan 26, 2026",
       readTime: "12 min read",
       category: "Electric Vehicles",
@@ -14,7 +14,7 @@ export const blogPostsChunk2: Record<string, BlogPostEntry> = {
       ogDescription: "We broke down the range, speed, and storage specs for Canada's favorite EVs. See which one fits your driveway.",
     },
     `
-      <p>Tesla's Model 3 and Model Y are the brand's best-selling vehicles, and for good reason. Both offer exceptional range, performance, and technology. But which one is right for you? Let's break down the key differences.</p>
+      <p>Tesla's Model 3 and Model Y are the brand's best-selling vehicles, and for good reason. Both offer impressive range, performance, and technology. But which one is right for you? Let's break down the key differences.</p>
 
       <h2>Size and Space</h2>
       <p><strong>Model 3:</strong> A compact sedan with seating for 5. Best for individuals, couples, or small families who prioritize driving dynamics.</p>
@@ -235,7 +235,7 @@ export const blogPostsChunk2: Record<string, BlogPostEntry> = {
       author: "Planet Motors Team",
     },
     `
-      <p>When you're searching for your next vehicle, you want a dealership you can trust. At Planet Motors in Richmond Hill, we've built our reputation on transparency, quality, and exceptional customer service.</p>
+      <p>When you're searching for your next vehicle, you want a dealership you can trust. At Planet Motors in Richmond Hill, we've built our reputation on transparency, quality, and dedicated support.</p>
 
       <h2>Our Commitment to Quality</h2>
       <p>Every vehicle in our inventory undergoes a thorough 210-point inspection. We believe in selling only vehicles we'd be proud to drive ourselves.</p>

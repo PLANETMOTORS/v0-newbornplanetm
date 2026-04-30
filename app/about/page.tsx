@@ -119,7 +119,7 @@ export default function AboutPage() {
                   <div className="text-5xl mb-4">🔑</div>
                   <h3 className="font-semibold text-xl mb-2">Key</h3>
                   <p className="text-muted-foreground">
-                    Signifies the keys to your new vehicle and the start of your ownership experience
+                    Signifies the keys to your new vehicle and the start of your Tesla ownership experience
                   </p>
                 </Card>
               </div>
@@ -146,27 +146,27 @@ export default function AboutPage() {
         {/* Values */}
         <section className="py-16 bg-muted/30">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">Our Core Values</h2>
+            <h2 className="text-3xl font-bold text-center mb-12">How We Do Things Differently</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
               <Card className="text-center p-6">
                 <Target className="h-12 w-12 mx-auto mb-4 text-primary" />
-                <h3 className="font-semibold text-xl mb-2">Transparency</h3>
+                <h3 className="font-semibold text-xl mb-2">Grounded in Data</h3>
                 <p className="text-muted-foreground">
-                  We provide the full history of every vehicle, no exceptions.
+                  We skip the vague checklists. Instead, we provide a rigorous 50-point battery health diagnostic on every car. If we wouldn&apos;t drive it home to Scarborough ourselves, we won&apos;t sell it.
                 </p>
               </Card>
               <Card className="text-center p-6">
                 <Heart className="h-12 w-12 mx-auto mb-4 text-accent" />
-                <h3 className="font-semibold text-xl mb-2">Customer First</h3>
+                <h3 className="font-semibold text-xl mb-2">Direct Support</h3>
                 <p className="text-muted-foreground">
-                  Our team is here to support you through the entire buying process and long after you drive off the lot.
+                  We&apos;ve cut out the salesy talk. Our team is here to give you straightforward answers about range and charging so you feel confident throughout the entire buying process.
                 </p>
               </Card>
               <Card className="text-center p-6">
                 <Shield className="h-12 w-12 mx-auto mb-4 text-primary" />
-                <h3 className="font-semibold text-xl mb-2">Quality Assured</h3>
+                <h3 className="font-semibold text-xl mb-2">Local Focus</h3>
                 <p className="text-muted-foreground">
-                  Every car passes our 210-point check.
+                  We&apos;re building a bustling hub for EV owners right here in Toronto. We aren&apos;t just selling cars; we&apos;re helping the city move toward a faster-moving, electric future.
                 </p>
               </Card>
             </div>

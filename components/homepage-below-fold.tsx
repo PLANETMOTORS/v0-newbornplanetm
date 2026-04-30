@@ -19,7 +19,7 @@ const protectionPlans = [
     name: "Premium Coverage",
     price: "59",
     period: "/month",
-    description: "Comprehensive protection for your vehicle",
+    description: "Full protection for your vehicle",
     features: ["Everything in Basic", "Electrical system coverage", "Air conditioning coverage", "Suspension coverage", "Brake system coverage"],
     highlighted: true,
   },

@@ -68,7 +68,7 @@ const modelData: Record<string, Record<string, {
   toyota: {
     'rav4': {
       tagline: "Canada&apos;s Best-Selling SUV - Now Available at Planet Motors",
-      description: "Experience the perfect blend of versatility and efficiency with the Toyota RAV4. Built for Canadian winters, the RAV4 delivers exceptional fuel economy, spacious interior, and Toyota&apos;s legendary reliability.",
+      description: "Experience the perfect blend of versatility and efficiency with the Toyota RAV4. Built for Canadian winters, the RAV4 delivers great fuel economy, spacious interior, and Toyota&apos;s legendary reliability.",
       startingPrice: 32990,
       mpg: { city: 8.4, highway: 6.8 },
       seating: 5,
@@ -101,7 +101,7 @@ const modelData: Record<string, Record<string, {
         { name: "Hyundai Sonata", price: 28990, mpg: 7.8, safety: 5 }
       ],
       faqs: [
-        { question: "Is the Toyota Camry available in hybrid?", answer: "Yes! The Camry Hybrid offers exceptional fuel economy of just 4.8 L/100km combined, making it one of the most fuel-efficient sedans available in Canada." },
+        { question: "Is the Toyota Camry available in hybrid?", answer: "Yes! The Camry Hybrid offers great fuel economy of just 4.8 L/100km combined, making it one of the most fuel-efficient sedans available in Canada." },
         { question: "What safety features come standard on the Camry?", answer: "Every Camry includes Toyota Safety Sense 3 with Pre-Collision System, Lane Departure Alert, Dynamic Radar Cruise Control, and Automatic High Beams as standard equipment." },
         { question: "How reliable is the Toyota Camry?", answer: "The Camry consistently ranks as one of the most reliable vehicles in its class, with many examples exceeding 300,000 km with proper maintenance. Toyota&apos;s reputation for longevity makes the Camry an excellent value." }
       ],
@@ -158,13 +158,13 @@ const modelData: Record<string, Record<string, {
 // Default data for unknown models
 const defaultModelData = {
   tagline: "Quality Pre-Owned Vehicles at Planet Motors",
-  description: "Discover our selection of PM Certified vehicles with 210-point inspection, 10-day money-back guarantee, and comprehensive warranty options.",
+  description: "Discover our selection of PM Certified vehicles with 210-point inspection, 10-day money-back guarantee, and full warranty options.",
   startingPrice: 29990,
   mpg: { city: 9, highway: 7 },
   seating: 5,
   cargo: 500,
   safetyRating: 5,
-  features: ["PM Certified", "210-Point Inspection", "10-Day Money-Back", "Comprehensive Warranty", "Financing Available"],
+  features: ["PM Certified", "210-Point Inspection", "10-Day Money-Back", "Full Warranty", "Financing Available"],
   competitors: [],
   faqs: [
     { question: "What is the PM Certification process?", answer: "Every PM Certified vehicle undergoes a rigorous 210-point inspection covering mechanical, safety, and cosmetic elements. Only vehicles that pass our strict standards earn the PM Certified badge." },
@@ -554,7 +554,7 @@ export default async function ModelLandingPage({ params }: Readonly<{ params: Pr
                     <Check className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
                     <div>
                       <p className="font-semibold">210-Point PM Certification</p>
-                      <p className="text-muted-foreground">More comprehensive than any competitor&apos;s inspection</p>
+                      <p className="text-muted-foreground">More rigorous than any competitor&apos;s inspection</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">

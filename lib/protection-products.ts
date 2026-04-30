@@ -76,8 +76,8 @@ const extendedWarrantyData = {
   slug: "extended-warranty",
   name: "Extended Vehicle Warranty",
   shortName: "Extended Warranty",
-  tagline: "Comprehensive mechanical breakdown protection",
-  description: "Comprehensive mechanical breakdown protection after manufacturer warranty expires.",
+  tagline: "Full mechanical breakdown protection",
+  description: "Full mechanical breakdown protection after manufacturer warranty expires.",
   icon: FileText,
   heroDescription: "When your manufacturer warranty expires, you're one breakdown away from a costly repair bill. Our Extended Vehicle Warranty covers major mechanical and electrical components — so you drive with confidence, not anxiety.",
   howItWorks: [
