@@ -4,12 +4,14 @@ export const blogPostsChunk2: Record<string, BlogPostEntry> = {
   "tesla-model-y-vs-model-3": createBlogPost(
     {
       title: "Tesla Model Y vs Tesla Model 3: Which One Should You Buy?",
-      excerpt: "A comprehensive comparison of Tesla's two most popular models. Discover the key differences in size, range, features, and value.",
+      excerpt: "Compare the Tesla Model 3 vs. Model Y. Discover the key differences in range, performance, and cargo space to find the perfect EV for your lifestyle.",
       date: "Jan 26, 2026",
       readTime: "12 min read",
       category: "Electric Vehicles",
       image: "/images/blog/Mode.png",
       author: "Planet Motors Team",
+      ogTitle: "Model 3 vs. Model Y: Which Tesla is right for you?",
+      ogDescription: "We broke down the range, speed, and storage specs for Canada's favorite EVs. See which one fits your driveway.",
     },
     `
       <p>Tesla's Model 3 and Model Y are the brand's best-selling vehicles, and for good reason. Both offer exceptional range, performance, and technology. But which one is right for you? Let's break down the key differences.</p>

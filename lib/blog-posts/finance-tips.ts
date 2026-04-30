@@ -67,13 +67,15 @@ export const blogPostsChunk3: Record<string, BlogPostEntry> = {
   ),
   "sell-car-toronto-guide": createBlogPost(
     {
-      title: "How to Sell a Car in Toronto: A Comprehensive Guide",
-      excerpt: "Looking to sell your car in Toronto? Discover the easiest way to get top dollar with Planet Motors.",
+      title: "How to Sell a Car in Toronto: The Ultimate Owner's Manual",
+      excerpt: "Planning to sell your car in Toronto? Get the ultimate owner's manual on paperwork, pricing, and how to get the most value for your vehicle today.",
       date: "Jul 14, 2025",
       readTime: "12 min read",
       category: "Selling",
       image: "/images/blog/unnamed-9.jpg",
       author: "Planet Motors Team",
+      ogTitle: "Selling your car in Toronto? Don't leave money on the table.",
+      ogDescription: "From MTO paperwork to final pricing, we've mapped out the exact steps to sell your car for top dollar in the GTA.",
     },
     `
       <p>Selling a car in Toronto doesn't have to be stressful. Whether you choose to sell privately or to a dealer, this guide covers everything you need to know.</p>
@@ -270,7 +272,7 @@ export const blogPostsChunk3: Record<string, BlogPostEntry> = {
   "tesla-cybertruck-2024": createBlogPost(
     {
       title: "Tesla Cybertruck: A Revolutionary Electric Pickup in 2024!",
-      excerpt: "The electric truck market is rapidly evolving, and 2024 marks a significant year with the much-anticipated release of the Tesla Cybertruck.",
+      excerpt: "The electric truck market is moving fast, and 2024 is a breakout year with the much-anticipated release of the Tesla Cybertruck.",
       date: "May 12, 2025",
       readTime: "10 min read",
       category: "Electric Vehicles",

@@ -19,7 +19,7 @@ const siteUrl = getPublicSiteUrl()
 
 export const metadata = {
   title: "Vehicle Protection Plans | Warranty Coverage | Planet Motors",
-  description: "Bumper-to-bumper warranty coverage starting from $1,950. Plans from $29/month. Compare Essential, Certified, and Certified Plus packages. Optional zero-deductible coverage.",
+  description: "Drive with peace of mind. Explore our 5-year mechanical breakdown protection and warranty plans designed specifically for Canadian drivers.",
   keywords: "vehicle protection plans, extended warranty, GAP insurance, tire and rim protection, Planet Motors warranty",
   openGraph: {
     title: "Vehicle Protection Plans | Warranty Coverage | Planet Motors",
@@ -195,7 +195,7 @@ export default function ProtectionPlansPage() {
               </h2>
               <p className="mt-4 text-muted-foreground max-w-2xl mx-auto text-base md:text-lg">
                 Every vehicle includes our 150+ point inspection and safety certificate.
-                Choose a package to unlock additional protection.
+                Choose a package for added peace-of-mind coverage.
               </p>
             </div>
 
