@@ -47,14 +47,14 @@ export function MicrosoftClarity() {
 
 /** Tag a session in Clarity (no-op if Clarity not loaded). */
 export function tagClaritySession(key: string, value: string): void {
-  if (typeof window === "undefined") return
-  if (!window.clarity) return
-  window.clarity("set", key, value)
+  if (globalThis.window === undefined) return
+  if (!globalThis.window.clarity) return
+  globalThis.window.clarity("set", key, value)
 }
 
 /** Identify a Clarity session (no-op if Clarity not loaded). */
 export function identifyClaritySession(userId: string): void {
-  if (typeof window === "undefined") return
-  if (!window.clarity) return
-  window.clarity("identify", userId)
+  if (globalThis.window === undefined) return
+  if (!globalThis.window.clarity) return
+  globalThis.window.clarity("identify", userId)
 }
