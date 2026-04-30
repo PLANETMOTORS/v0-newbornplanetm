@@ -9,6 +9,7 @@
 //   5. Below-fold data (testimonials, FAQs) fetched client-side
 import type { Metadata } from "next"
 import { preload } from "react-dom"
+import imgixLoader from "@/lib/imgix-loader"
 import dynamic from "next/dynamic"
 import { Header } from "@/components/header"
 import { HomepageContent } from "@/components/homepage-content"
@@ -131,15 +132,22 @@ export default async function HomePage() {
   // Uses imageSrcSet + imageSizes so the browser picks the exact same URL
   // that the <Image sizes="(max-width: 768px) 100vw, 50vw"> component will
   // request, avoiding "preloaded but not used" mismatches across DPRs.
+  // When the custom imgix loader is active, we use it to build the srcSet
+  // so preloaded URLs match the <Image> output exactly.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase row shape
   const firstVehicle = showcaseVehicles?.[0] as any
   const firstImage: string | undefined = firstVehicle?.primary_image_url
     || (firstVehicle?.image_urls?.[0])
   if (firstImage) {
-    const encodedUrl = encodeURIComponent(firstImage)
     // deviceSizes from next.config.mjs — must match exactly
     const widths = [640, 750, 828, 1080, 1200, 1920]
-    const srcSet = widths.map(w => `/_next/image?url=${encodedUrl}&w=${w}&q=75 ${w}w`).join(', ')
+    const useImgix = !!process.env.NEXT_PUBLIC_IMGIX_DOMAIN
+    const srcSet = widths.map(w => {
+      const url = useImgix
+        ? imgixLoader({ src: firstImage, width: w, quality: 75 })
+        : `/_next/image?url=${encodeURIComponent(firstImage)}&w=${w}&q=75`
+      return `${url} ${w}w`
+    }).join(', ')
     preload('', {
       as: 'image',
       imageSrcSet: srcSet,

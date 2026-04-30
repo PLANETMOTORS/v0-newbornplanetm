@@ -5,8 +5,8 @@
 // "Web Proxy" type, external image URLs (HomenetIOL, Sanity, etc.) are routed
 // through imgix for on-the-fly AVIF conversion, adaptive quality, and CDN caching.
 //
-// When the env var is unset, the loader returns the original src unchanged so
-// Vercel's built-in image optimizer handles it transparently — zero breakage.
+// The custom loader is only activated at build time when NEXT_PUBLIC_IMGIX_DOMAIN
+// is set (see next.config.mjs). When unset, Vercel's built-in optimizer is used.
 
 interface ImageLoaderProps {
   src: string
