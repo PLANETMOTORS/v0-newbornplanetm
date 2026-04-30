@@ -45,6 +45,13 @@ const nextConfig = {
   },
   
   images: {
+    // Custom imgix loader: AVIF-first delivery with adaptive quality presets.
+    // Only activated when NEXT_PUBLIC_IMGIX_DOMAIN is set at build time.
+    // When unset, the built-in Vercel image optimizer remains active.
+    ...(process.env.NEXT_PUBLIC_IMGIX_DOMAIN ? {
+      loader: 'custom',
+      loaderFile: './lib/imgix-loader.ts',
+    } : {}),
     formats: ['image/avif', 'image/webp'],
     // Responsive breakpoints tuned for vehicle card grid (1-3 cols)
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],

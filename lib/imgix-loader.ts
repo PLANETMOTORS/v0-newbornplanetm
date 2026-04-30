@@ -1,32 +1,12 @@
-// imgix Image Loader for Next.js 16
-// AVIF-first delivery with automatic fallback to WebP/JPEG for older browsers
+// imgix Image Loader for Next.js
+// AVIF-first delivery with automatic fallback to WebP/JPEG for older browsers.
 //
-// ============================================================================
-// CLOUDFRONT CONFIGURATION REQUIREMENTS
-// ============================================================================
+// The imgix source is configured as "Web Folder" with base URL
+// https://content.homenetiol.com/ — so vehicle image URLs from HomenetIOL
+// are stripped to relative paths before being sent to imgix.
 //
-// 1. CACHE POLICY - Include Accept header in Cache Key:
-//    - Go to CloudFront > Policies > Cache policies > Create policy
-//    - Cache key settings > Headers: Include "Accept"
-//    - This ensures CloudFront caches AVIF, WebP, and JPEG variants separately
-//
-// 2. ORIGIN REQUEST POLICY - Forward Accept header to imgix:
-//    - Go to CloudFront > Policies > Origin request policies > Create policy  
-//    - Headers: Include "Accept" header
-//    - Attach this policy to your CloudFront distribution's behavior
-//
-// 3. RESPONSE HEADERS - imgix automatically adds "Vary: Accept"
-//    - Verify in DevTools Network tab: Response Headers should show "Vary: Accept"
-//    - This tells CloudFront to cache based on the Accept header value
-//
-// VERIFICATION (DevTools > Network > select image > Headers):
-//    - Chrome/Edge: content-type: image/avif
-//    - Firefox 93+: content-type: image/avif  
-//    - Safari 16+: content-type: image/avif
-//    - Older browsers: content-type: image/webp or image/jpeg
-//    - Response should include: vary: Accept
-//
-// ============================================================================
+// The custom loader is only activated at build time when NEXT_PUBLIC_IMGIX_DOMAIN
+// is set (see next.config.mjs). When unset, Vercel's built-in optimizer is used.
 
 interface ImageLoaderProps {
   src: string
@@ -34,7 +14,10 @@ interface ImageLoaderProps {
   quality?: number
 }
 
-const IMGIX_DOMAIN = process.env.NEXT_PUBLIC_IMGIX_DOMAIN || 'planetmotors.imgix.net'
+const IMGIX_DOMAIN = process.env.NEXT_PUBLIC_IMGIX_DOMAIN ?? ''
+
+/** Whether imgix is actively configured (env var set and non-empty). */
+const isImgixActive = (): boolean => IMGIX_DOMAIN.length > 0
 
 // Adaptive quality based on image size for optimal mobile performance
 // Smaller images (thumbnails) can use lower quality, larger hero images need higher
@@ -47,9 +30,9 @@ const getAdaptiveQuality = (width: number, baseQuality: number): number => {
 
 // Common imgix params for AVIF-first optimization
 // Target: <1s mobile load time for 9,500+ vehicle inventory
-const getImgixParams = (width: number, quality: number): URLSearchParams => {
+const buildImgixParams = (width: number, quality: number): URLSearchParams => {
   const adaptiveQuality = getAdaptiveQuality(width, quality)
-  
+
   return new URLSearchParams({
     w: width.toString(),
     q: adaptiveQuality.toString(),
@@ -67,41 +50,51 @@ const getImgixParams = (width: number, quality: number): URLSearchParams => {
   })
 }
 
+/** Build a full imgix URL from an origin path and width/quality params. */
+function buildImgixUrl(path: string, width: number, quality: number): string {
+  const params = buildImgixParams(width, quality)
+  return `https://${IMGIX_DOMAIN}/${path}?${params.toString()}`
+}
+
 export default function imgixLoader({ src, width, quality = 75 }: ImageLoaderProps): string {
   // Skip imgix for placeholder/fallback images
   if (src === '/placeholder.svg' || src.startsWith('data:')) {
     return src
   }
 
-  // If already an imgix URL, just add/update params
+  // If already an imgix URL, always add/update params (regardless of config)
   if (src.includes('imgix.net')) {
     const url = new URL(src)
-    const params = getImgixParams(width, quality)
+    const params = buildImgixParams(width, quality)
     params.forEach((value, key) => url.searchParams.set(key, value))
     return url.toString()
   }
 
-  // Pass through Vercel Blob URLs directly
+  // If imgix is not configured, return src unchanged (Vercel optimizer handles it)
+  if (!isImgixActive()) {
+    return src
+  }
+
+  // Pass through Vercel Blob URLs directly (imgix can't proxy these)
   if (src.includes('blob.vercel-storage.com')) {
     return src
   }
 
-  // For other external URLs, return them directly (imgix proxy may not be configured)
+  // HomenetIOL vehicle images — strip base URL to get relative path for Web Folder source.
+  // e.g. https://content.homenetiol.com/2003873/2291843/0x0/abc.jpg → 2003873/2291843/0x0/abc.jpg
+  if (src.includes('content.homenetiol.com')) {
+    const path = src.replace(/^https?:\/\/content\.homenetiol\.com\//, '')
+    return buildImgixUrl(path, width, quality)
+  }
+
+  // Other external URLs can't be served through a Web Folder source — pass through unchanged
   if (src.startsWith('http')) {
     return src
   }
 
-  // Local images - serve from imgix with path if imgix is configured
-  const params = getImgixParams(width, quality)
+  // Local images — serve from imgix with the relative path
   const path = src.startsWith('/') ? src.slice(1) : src
-  
-  // Check if imgix domain is actually configured
-  if (IMGIX_DOMAIN && IMGIX_DOMAIN !== 'planetmotors.imgix.net') {
-    return `https://${IMGIX_DOMAIN}/${path}?${params.toString()}`
-  }
-  
-  // Fallback to local path if imgix not configured
-  return src
+  return buildImgixUrl(path, width, quality)
 }
 
 // Export for testing/debugging

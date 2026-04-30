@@ -125,13 +125,25 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
 
         {/* Preconnect to vehicle image CDN for faster LCP.
-            crossOrigin="anonymous" is required because Next.js <Image>
-            requests go through /_next/image (CORS). Without it the
-            browser opens a second connection and the preconnect is wasted. */}
-        <link rel="preconnect" href="https://content.homenetiol.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://photos.homenetiol.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://content.homenetiol.com" />
-        <link rel="dns-prefetch" href="https://photos.homenetiol.com" />
+            When imgix is active, the browser talks to imgix (not HomenetIOL
+            directly), so preconnect to the imgix domain instead.
+            crossOrigin="anonymous" is required for CORS image requests. */}
+        {process.env.NEXT_PUBLIC_IMGIX_DOMAIN ? (
+          <>
+            <link rel="preconnect" href={`https://${process.env.NEXT_PUBLIC_IMGIX_DOMAIN}`} crossOrigin="anonymous" />
+            <link rel="dns-prefetch" href={`https://${process.env.NEXT_PUBLIC_IMGIX_DOMAIN}`} />
+            {/* photos.homenetiol.com is NOT routed through imgix — still served directly */}
+            <link rel="preconnect" href="https://photos.homenetiol.com" crossOrigin="anonymous" />
+            <link rel="dns-prefetch" href="https://photos.homenetiol.com" />
+          </>
+        ) : (
+          <>
+            <link rel="preconnect" href="https://content.homenetiol.com" crossOrigin="anonymous" />
+            <link rel="preconnect" href="https://photos.homenetiol.com" crossOrigin="anonymous" />
+            <link rel="dns-prefetch" href="https://content.homenetiol.com" />
+            <link rel="dns-prefetch" href="https://photos.homenetiol.com" />
+          </>
+        )}
 
         {/* JSON-LD structured data — server-rendered, lightweight */}
         <OrganizationJsonLd />
