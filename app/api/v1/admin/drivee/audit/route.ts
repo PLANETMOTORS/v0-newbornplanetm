@@ -27,7 +27,7 @@
 
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { authoriseAdminOrError } from "@/lib/admin"
+import { authoriseAdminOrError } from "@/lib/admin-auth"
 
 export const dynamic = "force-dynamic"
 

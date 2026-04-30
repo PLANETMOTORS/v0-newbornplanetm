@@ -29,7 +29,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { authoriseAdminOrError } from "@/lib/admin"
+import { authoriseAdminOrError } from "@/lib/admin-auth"
 import { invalidateDriveeCache } from "@/lib/drivee-db"
 
 export const dynamic = "force-dynamic"

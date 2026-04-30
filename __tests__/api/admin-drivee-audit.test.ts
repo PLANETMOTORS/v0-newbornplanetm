@@ -25,8 +25,8 @@ vi.mock("@/lib/supabase/server", () => ({
   })),
 }))
 
-vi.mock("@/lib/admin", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/lib/admin")>()
+vi.mock("@/lib/admin-auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/admin-auth")>()
   return { ...actual }
 })
 
