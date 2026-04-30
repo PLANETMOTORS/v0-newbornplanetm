@@ -232,6 +232,21 @@ const nextConfig = {
           { key: 'Content-Security-Policy', value: mainSiteCSP },
         ],
       },
+      // HTML pages — never cached so users always get the latest deploy
+      {
+        source: '/:path((?!_next/|api/).*)',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, must-revalidate' },
+        ],
+      },
+      // Hashed static assets — immutable long-cache (Vercel also sets this,
+      // but explicit headers ensure consistent behaviour across CDNs)
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
       // Stripe webhook
       {
         source: '/api/webhooks/stripe',

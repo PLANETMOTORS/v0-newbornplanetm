@@ -9,8 +9,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Calendar, Clock, MapPin, Video, Home, CheckCircle2 } from "lucide-react"
+import { Calendar, Clock, MapPin, Video, Home, CheckCircle2, AlertCircle } from "lucide-react"
 import { DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
+import { isValidEmail, isValidCanadianPhone, formatCanadianPhone } from "@/lib/validation"
+import Link from "next/link"
 
 const timeSlots = [
   "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM",
@@ -38,15 +40,50 @@ const appointmentTypes = [
   }
 ]
 
+interface FormErrors {
+  firstName?: string
+  lastName?: string
+  email?: string
+  phone?: string
+  termsAccepted?: string
+}
+
+function validateContactFields(fields: {
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  termsAccepted: boolean
+}): FormErrors {
+  const errors: FormErrors = {}
+  if (!fields.firstName.trim()) errors.firstName = "First name is required"
+  if (!fields.lastName.trim()) errors.lastName = "Last name is required"
+  if (!fields.email) errors.email = "Email is required"
+  else if (!isValidEmail(fields.email)) errors.email = "Please enter a valid email address"
+  if (!fields.phone) errors.phone = "Phone number is required"
+  else if (!isValidCanadianPhone(fields.phone)) errors.phone = "Please enter a valid 10-digit phone number"
+  if (!fields.termsAccepted) errors.termsAccepted = "You must agree to the terms to proceed"
+  return errors
+}
+
 export default function SchedulePage() {
   const [step, setStep] = useState(1)
   const [appointmentType, setAppointmentType] = useState("dealership")
   const [selectedDate, setSelectedDate] = useState("")
   const [selectedTime, setSelectedTime] = useState("")
   const [submitted, setSubmitted] = useState(false)
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
+  const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
+  const [termsAccepted, setTermsAccepted] = useState(false)
+  const [formErrors, setFormErrors] = useState<FormErrors>({})
 
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
+    const errors = validateContactFields({ firstName, lastName, email, phone, termsAccepted })
+    setFormErrors(errors)
+    if (Object.keys(errors).length > 0) return
     setSubmitted(true)
   }
 
@@ -236,31 +273,86 @@ export default function SchedulePage() {
                   </h2>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="firstName">First Name</Label>
-                      <Input id="firstName" required />
+                      <Label htmlFor="firstName">First Name <span className="text-destructive">*</span></Label>
+                      <Input
+                        id="firstName"
+                        value={firstName}
+                        onChange={(e) => { setFirstName(e.target.value); setFormErrors((p) => ({ ...p, firstName: undefined })) }}
+                        className={formErrors.firstName ? "border-destructive" : ""}
+                      />
+                      {formErrors.firstName && (
+                        <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="h-3 w-3" /> {formErrors.firstName}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <Input id="lastName" required />
+                      <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
+                      <Input
+                        id="lastName"
+                        value={lastName}
+                        onChange={(e) => { setLastName(e.target.value); setFormErrors((p) => ({ ...p, lastName: undefined })) }}
+                        className={formErrors.lastName ? "border-destructive" : ""}
+                      />
+                      {formErrors.lastName && (
+                        <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="h-3 w-3" /> {formErrors.lastName}</p>
+                      )}
                     </div>
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input id="email" type="email" required />
+                      <Label htmlFor="email">Email <span className="text-destructive">*</span></Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => { setEmail(e.target.value); setFormErrors((p) => ({ ...p, email: undefined })) }}
+                        className={formErrors.email ? "border-destructive" : ""}
+                      />
+                      {formErrors.email && (
+                        <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="h-3 w-3" /> {formErrors.email}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Phone</Label>
-                      <Input id="phone" type="tel" required />
+                      <Label htmlFor="phone">Phone <span className="text-destructive">*</span></Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => { setPhone(formatCanadianPhone(e.target.value)); setFormErrors((p) => ({ ...p, phone: undefined })) }}
+                        placeholder="(416) 555-0123"
+                        className={formErrors.phone ? "border-destructive" : ""}
+                      />
+                      {formErrors.phone && (
+                        <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="h-3 w-3" /> {formErrors.phone}</p>
+                      )}
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="vehicle">Vehicle of Interest (Optional)</Label>
-                    <Input id="vehicle" placeholder="e.g., 2023 BMW X5" />
+                    <Input id="vehicle" placeholder="e.g., 2023 Tesla Model Y" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="notes">Additional Notes (Optional)</Label>
                     <Textarea id="notes" placeholder="Any specific questions or requests?" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={termsAccepted}
+                        onChange={(e) => { setTermsAccepted(e.target.checked); setFormErrors((p) => ({ ...p, termsAccepted: undefined })) }}
+                        className={`mt-1 h-4 w-4 rounded border ${formErrors.termsAccepted ? "border-destructive" : "border-input"}`}
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        I agree to the{" "}
+                        <Link href="/terms" className="text-primary underline" target="_blank">Terms of Service</Link>
+                        {" "}and{" "}
+                        <Link href="/privacy" className="text-primary underline" target="_blank">Privacy Policy</Link>.
+                        I understand that Planet Motors will contact me to confirm this appointment.
+                      </span>
+                    </label>
+                    {formErrors.termsAccepted && (
+                      <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="h-3 w-3" /> {formErrors.termsAccepted}</p>
+                    )}
                   </div>
                   <div className="flex justify-between">
                     <Button type="button" variant="outline" onClick={() => setStep(2)}>
