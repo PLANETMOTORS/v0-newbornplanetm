@@ -31,6 +31,16 @@ function formRedirect(request: NextRequest, path: string) {
   return NextResponse.redirect(new URL(path, request.url), 303)
 }
 
+function respondOk(request: NextRequest, contentType: string, json: object, formPath: string) {
+  if (isFormSubmission(contentType)) return formRedirect(request, formPath)
+  return NextResponse.json(json)
+}
+
+function respondErr(request: NextRequest, contentType: string, json: object, status: number, formPath: string) {
+  if (isFormSubmission(contentType)) return formRedirect(request, formPath)
+  return NextResponse.json(json, { status })
+}
+
 async function parseNotifyBody(request: NextRequest, contentType: string) {
   if (isFormSubmission(contentType)) {
     const formData = await request.formData()
@@ -50,6 +60,40 @@ function parseMakeModel(topic: string | null): { make: string | null; model: str
     make: parts[0] || null,
     model: parts.length >= 2 ? parts.slice(1).join("-") || null : null,
   }
+}
+
+function sendConfirmationEmail(email: string, topic: string | null) {
+  const resendClient = getResendClient()
+  if (!resendClient) return
+
+  const topicLabel = topic
+    ? topic.replace(/^\/cars\//, "").replaceAll("-", " ")
+    : "new inventory"
+
+  resendClient.emails
+    .send({
+      from:
+        process.env.FROM_EMAIL ||
+        "Planet Motors <notifications@planetmotors.ca>",
+      to: email,
+      subject: "You're on the list!",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto;">
+          <div style="background: #7c3aed; color: white; padding: 20px; text-align: center;">
+            <h1 style="margin: 0;">You're on the list!</h1>
+          </div>
+          <div style="padding: 20px; background: #f8fafc;">
+            <p>We'll notify you as soon as matching vehicles hit the lot:</p>
+            <div style="background: white; border: 2px solid #7c3aed; border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center;">
+              <p style="margin: 0; font-weight: bold; font-size: 18px; text-transform: capitalize;">${topicLabel}</p>
+            </div>
+            <p>Our inventory rotates fast — usually within a few weeks.</p>
+            <p style="color: #64748b; font-size: 14px; margin-top: 20px;">Planet Motors | ${PHONE_LOCAL}</p>
+          </div>
+        </div>
+      `,
+    })
+    .catch((err) => console.error("Notify confirmation email failed:", err))
 }
 
 export async function POST(request: NextRequest) {
@@ -72,8 +116,7 @@ export async function POST(request: NextRequest) {
     const { email, topic } = await parseNotifyBody(request, contentType)
 
     if (!email || !isEmailLike(email)) {
-      if (isFormSubmission(contentType)) return formRedirect(request, "/?notify_error=invalid_email")
-      return NextResponse.json({ error: "Valid email is required" }, { status: 400 })
+      return respondErr(request, contentType, { error: "Valid email is required" }, 400, "/?notify_error=invalid_email")
     }
 
     const supabase = await createClient()
@@ -91,8 +134,7 @@ export async function POST(request: NextRequest) {
     const { data: existing } = await existingQuery.maybeSingle()
 
     if (existing) {
-      if (isFormSubmission(contentType)) return formRedirect(request, "/?notify_success=1")
-      return NextResponse.json({ success: true, message: "Already subscribed" })
+      return respondOk(request, contentType, { success: true, message: "Already subscribed" }, "/?notify_success=1")
     }
 
     const { error: insertError } = await supabase.from("price_alerts").insert({
@@ -106,46 +148,12 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       console.error("Failed to save notification signup:", insertError)
-      if (isFormSubmission(contentType)) return formRedirect(request, "/?notify_error=failed")
-      return NextResponse.json({ error: "Failed to save signup" }, { status: 500 })
+      return respondErr(request, contentType, { error: "Failed to save signup" }, 500, "/?notify_error=failed")
     }
 
-    // Send confirmation email (non-blocking)
-    const resendClient = getResendClient()
-    if (resendClient) {
-      const topicLabel = topic
-        ? topic.replace(/^\/cars\//, "").replaceAll("-", " ")
-        : "new inventory"
+    sendConfirmationEmail(email, topic)
 
-      resendClient.emails
-        .send({
-          from:
-            process.env.FROM_EMAIL ||
-            "Planet Motors <notifications@planetmotors.ca>",
-          to: email,
-          subject: "You're on the list!",
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto;">
-              <div style="background: #7c3aed; color: white; padding: 20px; text-align: center;">
-                <h1 style="margin: 0;">You're on the list!</h1>
-              </div>
-              <div style="padding: 20px; background: #f8fafc;">
-                <p>We'll notify you as soon as matching vehicles hit the lot:</p>
-                <div style="background: white; border: 2px solid #7c3aed; border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center;">
-                  <p style="margin: 0; font-weight: bold; font-size: 18px; text-transform: capitalize;">${topicLabel}</p>
-                </div>
-                <p>Our inventory rotates fast — usually within a few weeks.</p>
-                <p style="color: #64748b; font-size: 14px; margin-top: 20px;">Planet Motors | ${PHONE_LOCAL}</p>
-              </div>
-            </div>
-          `,
-        })
-        .catch((err) => console.error("Notify confirmation email failed:", err))
-    }
-
-    if (isFormSubmission(contentType)) return formRedirect(request, "/?notify_success=1")
-
-    return NextResponse.json({ success: true })
+    return respondOk(request, contentType, { success: true }, "/?notify_success=1")
   } catch (error) {
     console.error("Notify endpoint error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

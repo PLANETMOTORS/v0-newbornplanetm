@@ -25,18 +25,15 @@ import { useCookieConsent } from "@/lib/hooks/use-cookie-consent"
 
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID
 
-declare global {
-  interface Window {
-    /** Meta Pixel global. Created by the loader script. */
-    fbq?: ((...args: unknown[]) => void) & {
-      callMethod?: (...args: unknown[]) => void
-      queue?: unknown[][]
-      loaded?: boolean
-      version?: string
-      push?: (...args: unknown[]) => void
-    }
-    _fbq?: Window["fbq"]
+interface FbqGlobal {
+  fbq?: ((...args: unknown[]) => void) & {
+    callMethod?: (...args: unknown[]) => void
+    queue?: unknown[][]
+    loaded?: boolean
+    version?: string
+    push?: (...args: unknown[]) => void
   }
+  _fbq?: FbqGlobal["fbq"]
 }
 
 export function MetaPixel() {
@@ -103,7 +100,7 @@ export function trackMetaEvent(
   eventID?: string,
 ): void {
   if (globalThis.document === undefined) return
-  const fbq = (globalThis as unknown as Window).fbq
+  const fbq = (globalThis as unknown as FbqGlobal).fbq
   if (!fbq) return
   if (eventID) {
     fbq("track", event, props ?? {}, { eventID })
@@ -124,7 +121,7 @@ export function trackMetaCustomEvent(
   eventID?: string,
 ): void {
   if (globalThis.document === undefined) return
-  const fbq = (globalThis as unknown as Window).fbq
+  const fbq = (globalThis as unknown as FbqGlobal).fbq
   if (!fbq) return
   if (eventID) {
     fbq("trackCustom", event, props ?? {}, { eventID })
