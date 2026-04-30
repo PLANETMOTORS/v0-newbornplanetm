@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi } from "vitest"
 import imgixLoader, { getImageFormat } from "@/lib/imgix-loader"
 
 describe("getImageFormat", () => {
@@ -51,6 +51,25 @@ describe("imgixLoader", () => {
     expect(imgixLoader({ src: "/cars/foo.jpg", width: 400 })).toBe(
       "/cars/foo.jpg"
     )
+  })
+
+  it("rewrites local path through custom imgix domain when configured", async () => {
+    vi.resetModules()
+    process.env.NEXT_PUBLIC_IMGIX_DOMAIN = "custom-cdn.imgix.net"
+    const mod = await import("@/lib/imgix-loader")
+    const result = mod.default({ src: "/cars/foo.jpg", width: 400 })
+    expect(result).toContain("https://custom-cdn.imgix.net/cars/foo.jpg")
+    expect(result).toContain("w=400")
+    delete process.env.NEXT_PUBLIC_IMGIX_DOMAIN
+  })
+
+  it("handles local path without leading slash", async () => {
+    vi.resetModules()
+    process.env.NEXT_PUBLIC_IMGIX_DOMAIN = "custom-cdn.imgix.net"
+    const mod = await import("@/lib/imgix-loader")
+    const result = mod.default({ src: "cars/foo.jpg", width: 400 })
+    expect(result).toContain("https://custom-cdn.imgix.net/cars/foo.jpg")
+    delete process.env.NEXT_PUBLIC_IMGIX_DOMAIN
   })
 
   it("applies the adaptive quality cap when rewriting an imgix URL", () => {

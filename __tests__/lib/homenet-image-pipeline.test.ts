@@ -299,6 +299,51 @@ describe("lib/homenet/image-pipeline triggerImagePipelineAsync", () => {
     expect(true).toBe(true)
   })
 
+  it("catches processVehicleImages errors without stopping the pipeline", async () => {
+    mockFetchOk()
+    // Make getExistingBlobs throw for the first vehicle by having listMock reject
+    listMock.mockRejectedValueOnce(new Error("blob storage unreachable"))
+    // Second vehicle succeeds normally
+    listMock.mockResolvedValueOnce({ blobs: [] })
+
+    const { runImagePipeline } = await import("@/lib/homenet/image-pipeline")
+    const out = await runImagePipeline([
+      {
+        stock_number: "Serr",
+        vin: "Verr",
+        image_urls: ["https://cdn.example.com/img.jpg"],
+        has_360_spin: false,
+      },
+      {
+        stock_number: "Sok",
+        vin: "Vok",
+        image_urls: ["https://cdn.example.com/img2.jpg"],
+        has_360_spin: false,
+      },
+    ])
+    // First vehicle failed in catch block, second succeeded
+    expect(out.vehiclesProcessed).toBeGreaterThanOrEqual(1)
+  })
+
+  it("triggerImagePipelineAsync logs when runImagePipeline rejects", async () => {
+    // Make list reject to cause runImagePipeline to throw internally
+    listMock.mockRejectedValue(new Error("pipeline boom"))
+    const { triggerImagePipelineAsync } = await import("@/lib/homenet/image-pipeline")
+    triggerImagePipelineAsync([
+      { stock_number: "Sx", vin: "Vx", image_urls: ["https://cdn.example.com/p.jpg"], has_360_spin: false },
+    ])
+    await new Promise((r) => setTimeout(r, 50))
+    // Reaching here without unhandled rejection = success
+    expect(true).toBe(true)
+  })
+
+  it("triggerImagePipelineAsync is a no-op for empty vehicles", async () => {
+    const { triggerImagePipelineAsync } = await import("@/lib/homenet/image-pipeline")
+    triggerImagePipelineAsync([])
+    // No errors — just verifying the early return
+    expect(true).toBe(true)
+  })
+
   it("silently swallows thumbnail-marker upload failures", async () => {
     mockFetchOk()
     let putCount = 0

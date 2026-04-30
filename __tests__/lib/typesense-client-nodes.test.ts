@@ -121,4 +121,18 @@ describe('Typesense client — env-driven nodes', () => {
 
     expect(client).toBeNull()
   })
+
+  it('search client returns null when in browser with no search key', async () => {
+    process.env.TYPESENSE_HOST = 'sdn.typesense.net'
+    delete process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_KEY
+    delete process.env.TYPESENSE_API_KEY
+    // Simulate browser environment
+    vi.stubGlobal('window', {})
+
+    const { getSearchClient } = await import('@/lib/typesense/client')
+    const client = getSearchClient()
+
+    expect(client).toBeNull()
+    vi.unstubAllGlobals()
+  })
 })

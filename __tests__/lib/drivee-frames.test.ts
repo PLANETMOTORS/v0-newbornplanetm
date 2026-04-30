@@ -62,6 +62,24 @@ describe("discoverFrameUrls", () => {
     }
   })
 
+  it("handles fetch rejections during probing (catch path)", async () => {
+    let callIdx = 0
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation(async () => {
+        callIdx++
+        if (callIdx <= 2) return { ok: true } as Response
+        throw new Error("network error")
+      })
+    try {
+      const urls = await discoverFrameUrls("UNKNOWN_CATCH_MID")
+      // First 2 succeed, 3rd throws (catch → ok:false), stops probing
+      expect(urls).toHaveLength(2)
+    } finally {
+      fetchSpy.mockRestore()
+    }
+  })
+
   it("probes Supabase via HEAD when MID is unknown", async () => {
     const responses: Array<{ ok: boolean }> = [
       { ok: true },

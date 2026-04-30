@@ -112,10 +112,34 @@ describe("validateOrigin — production checks", () => {
     expect(validateOrigin(makeRequest({ origin: "https://planetmotors.ca" }))).toBe(true)
   })
 
+  it("does NOT double-add www. when SITE_DOMAIN already starts with www.", async () => {
+    process.env.NEXT_PUBLIC_SITE_DOMAIN = "www.planetmotors.ca"
+    const { validateOrigin } = await import("@/lib/csrf")
+    expect(validateOrigin(makeRequest({ origin: "https://www.planetmotors.ca" }))).toBe(true)
+  })
+
+  it("does NOT add www. when SITE_DOMAIN contains ://www.", async () => {
+    process.env.NEXT_PUBLIC_SITE_DOMAIN = "https://www.example.com"
+    const { validateOrigin } = await import("@/lib/csrf")
+    expect(validateOrigin(makeRequest({ origin: "https://www.example.com" }))).toBe(true)
+  })
+
+  it("handles unparseable SITE_DOMAIN entry gracefully", async () => {
+    process.env.NEXT_PUBLIC_SITE_DOMAIN = "@@invalid@@"
+    const { validateOrigin } = await import("@/lib/csrf")
+    expect(validateOrigin(makeRequest({ origin: "https://anything.com" }))).toBe(false)
+  })
+
   it("ignores malformed VERCEL_URL", async () => {
     process.env.VERCEL_URL = "@@malformed@@"
     const { validateOrigin } = await import("@/lib/csrf")
     expect(validateOrigin(makeRequest({ origin: "https://anything.com" }))).toBe(false)
+  })
+
+  it("handles completely unparseable BASE_URL gracefully", async () => {
+    process.env.NEXT_PUBLIC_BASE_URL = "://"
+    const { validateOrigin } = await import("@/lib/csrf")
+    expect(validateOrigin(makeRequest({ origin: "https://example.com" }))).toBe(false)
   })
 
   it("does NOT include localhost origins in production", async () => {

@@ -80,6 +80,25 @@ describe("createLead", () => {
     expect(id).toBeNull()
   })
 
+  it("logs when notification email fails (fire-and-forget catch)", async () => {
+    mockSingle.mockResolvedValueOnce({ data: { id: "lead-email-fail" }, error: null })
+    const { sendNotificationEmail } = await import("@/lib/email")
+    ;(sendNotificationEmail as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+      new Error("SMTP down")
+    )
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => undefined)
+    const { createLead } = await import("@/lib/anna/lead-capture")
+    const id = await createLead({ source: "chat", subject: "test email fail" })
+    expect(id).toBe("lead-email-fail")
+    // Allow microtask to flush the .catch handler
+    await new Promise((r) => setTimeout(r, 10))
+    expect(errSpy).toHaveBeenCalledWith(
+      "Lead notification email failed:",
+      expect.any(Error),
+    )
+    errSpy.mockRestore()
+  })
+
   it("falls back to defaults when name/email are missing", async () => {
     mockSingle.mockResolvedValueOnce({ data: { id: "y" }, error: null })
     const { createLead } = await import("@/lib/anna/lead-capture")
@@ -130,6 +149,22 @@ describe("saveChatMessage", () => {
     })
     expect(mockFrom).toHaveBeenCalledWith("chat_messages")
     expect(mockRpc).toHaveBeenCalledWith("increment_message_count", { conv_id: "conv-1" })
+  })
+
+  it("swallows outer insert failure", async () => {
+    mockFrom.mockImplementationOnce(() => {
+      throw new Error("chat_messages insert failed")
+    })
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => undefined)
+    const { saveChatMessage } = await import("@/lib/anna/lead-capture")
+    await expect(
+      saveChatMessage({ conversationId: "conv-fail", role: "user", content: "hi" }),
+    ).resolves.toBeUndefined()
+    expect(errSpy).toHaveBeenCalledWith(
+      "[anna] saveChatMessage failed:",
+      expect.any(Error),
+    )
+    errSpy.mockRestore()
   })
 
   it("swallows RPC failure", async () => {

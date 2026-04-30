@@ -72,6 +72,34 @@ describe("drivee-db", () => {
       const { getDriveeMappingFromDb } = await import("@/lib/drivee-db")
       expect(await getDriveeMappingFromDb(null)).toBeNull()
     })
+
+    it("returns mapping entry for known VIN", async () => {
+      mockEq.mockResolvedValue({
+        data: [{ vin: "VIN-X", mid: "MID-X", frame_count: 10, frames_in_storage: true, vehicle_name: "Test Car" }],
+        error: null,
+      })
+      mockSelect.mockReturnValue({ eq: mockEq })
+      mockFrom.mockReturnValue({ select: mockSelect })
+
+      const { getDriveeMappingFromDb } = await import("@/lib/drivee-db")
+      const mapping = await getDriveeMappingFromDb("VIN-X")
+      expect(mapping).not.toBeNull()
+      expect(mapping?.mid).toBe("MID-X")
+      expect(mapping?.frame_count).toBe(10)
+    })
+
+    it("returns null for unknown VIN", async () => {
+      mockEq.mockResolvedValue({
+        data: [{ vin: "VIN-X", mid: "MID-X", frame_count: 10, frames_in_storage: true, vehicle_name: null }],
+        error: null,
+      })
+      mockSelect.mockReturnValue({ eq: mockEq })
+      mockFrom.mockReturnValue({ select: mockSelect })
+
+      const { getDriveeMappingFromDb } = await import("@/lib/drivee-db")
+      const mapping = await getDriveeMappingFromDb("UNKNOWN-VIN")
+      expect(mapping).toBeNull()
+    })
   })
 
   describe("getKnownMids", () => {

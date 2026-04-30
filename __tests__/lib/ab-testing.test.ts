@@ -75,6 +75,17 @@ describe('ab-testing', () => {
       expect(v1).toBe(v2)
     })
 
+    it('falls back to control when random >= total (floating point edge case)', async () => {
+      const { randomFloat } = await import('@/lib/util/random')
+      // Return 1.0 — rand = 1.0 * total ≥ all cumulative sums → fallback to control
+      vi.mocked(randomFloat).mockReturnValueOnce(1.0)
+      const variant = getVariant('fallback-test', {
+        variants: ['control', 'variant_b'] as const,
+        weights: [50, 50],
+      })
+      expect(variant).toBe('control')
+    })
+
     it('fires GTM impression on first assignment', async () => {
       const { pushToDataLayer } = await import('@/components/analytics/google-tag-manager')
       getVariant('gtm-exp', exp)

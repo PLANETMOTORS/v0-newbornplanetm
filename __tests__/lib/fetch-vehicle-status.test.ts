@@ -110,4 +110,59 @@ describe('fetchVehicleForSSR — status allowlist', () => {
     const result = await fetchVehicleForSSR('550e8400-e29b-41d4-a716-446655440000')
     expect(result).toBeNull()
   })
+
+  it('uses VIN lookup column for 17-char VIN format', async () => {
+    setupMock(makeRow({ vin: '1HGCM82633A004352' }))
+    const { fetchVehicleForSSR } = await import('@/lib/vehicles/fetch-vehicle')
+    const result = await fetchVehicleForSSR('1HGCM82633A004352')
+    expect(result).not.toBeNull()
+    expect(result?.vin).toBe('1HGCM82633A004352')
+  })
+
+  it('handles null/missing optional fields with fallback defaults', async () => {
+    setupMock(makeRow({
+      vin: null,
+      stock_number: null,
+      trim: null,
+      body_style: null,
+      exterior_color: null,
+      interior_color: null,
+      drivetrain: null,
+      transmission: null,
+      engine: null,
+      fuel_type: null,
+      image_urls: null,
+      msrp: 3000000,
+    }))
+    const { fetchVehicleForSSR } = await import('@/lib/vehicles/fetch-vehicle')
+    const result = await fetchVehicleForSSR('550e8400-e29b-41d4-a716-446655440000')
+    expect(result).not.toBeNull()
+    expect(result?.vin).toBe("")
+    expect(result?.stockNumber).toBe("")
+    expect(result?.trim).toBe("")
+    expect(result?.bodyStyle).toBeNull()
+    expect(result?.exteriorColor).toBeNull()
+    expect(result?.interiorColor).toBeNull()
+    expect(result?.drivetrain).toBeNull()
+    expect(result?.transmission).toBeNull()
+    expect(result?.engine).toBeNull()
+    expect(result?.fuelType).toBeNull()
+    expect(result?.imageUrls).toEqual([])
+    expect(result?.msrp).toBe(30000)
+  })
+
+  it('returns null and logs when an exception is thrown', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    ;(createStaticClient as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      throw new Error('connection refused')
+    })
+    const { fetchVehicleForSSR } = await import('@/lib/vehicles/fetch-vehicle')
+    const result = await fetchVehicleForSSR('550e8400-e29b-41d4-a716-446655440000')
+    expect(result).toBeNull()
+    expect(errSpy).toHaveBeenCalledWith(
+      '[fetchVehicleForSSR] Failed:',
+      expect.any(Error),
+    )
+    errSpy.mockRestore()
+  })
 })

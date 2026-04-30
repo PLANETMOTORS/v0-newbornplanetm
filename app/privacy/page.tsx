@@ -80,16 +80,29 @@ export default function PrivacyPolicyPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-bold mb-4">5. Data Security</h2>
+              <h2 className="text-2xl font-bold mb-4">5. Financial Data &amp; Payment Security</h2>
               <p className="text-muted-foreground mb-4">
-                We implement industry-standard security measures including:
+                We take the protection of your financial information seriously. Here is how we handle sensitive payment and credit data:
               </p>
+              <h3 className="text-xl font-semibold mb-3">Credit Card &amp; Payment Processing</h3>
+              <ul className="list-disc pl-6 text-muted-foreground space-y-2 mb-4">
+                <li>All payment transactions are processed through <strong>Stripe</strong>, a PCI DSS Level 1 certified payment processor — the highest level of certification in the payment industry.</li>
+                <li>Planet Motors <strong>never stores</strong> your full credit card number, CVV, or expiration date on our servers. This data is handled entirely by Stripe&apos;s secure infrastructure.</li>
+                <li>Payment forms use Stripe&apos;s embedded checkout, which means card details are entered directly into Stripe&apos;s PCI-compliant iframe and never pass through our application servers.</li>
+              </ul>
+              <h3 className="text-xl font-semibold mb-3">Financing Application Data</h3>
+              <ul className="list-disc pl-6 text-muted-foreground space-y-2 mb-4">
+                <li>Financial information submitted through our financing application (income, employment details, SIN when required by lenders) is encrypted in transit using TLS 1.3 and at rest using AES-256 encryption.</li>
+                <li>Financing data is shared only with our pre-approved lending partners for the purpose of credit adjudication, and only after you submit your application.</li>
+                <li>Government-issued identification documents uploaded for verification are stored in private, access-controlled cloud storage and automatically deleted after 90 days or upon deal completion.</li>
+              </ul>
+              <h3 className="text-xl font-semibold mb-3">General Security Measures</h3>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
                 <li>256-bit SSL/TLS encryption for all data transmission</li>
-                <li>PCI DSS Level 1 compliance for payment processing</li>
                 <li>Regular security audits and penetration testing</li>
-                <li>Access controls and employee training</li>
+                <li>Role-based access controls and employee security training</li>
                 <li>Data stored in SOC 2 Type II certified data centers in Canada</li>
+                <li>Automated error monitoring with PII redaction (sensitive data is stripped from error logs)</li>
               </ul>
             </section>
 
