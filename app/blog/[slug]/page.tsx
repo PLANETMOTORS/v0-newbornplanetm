@@ -100,11 +100,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const sanityDate = sanityPost?.publishedAt
     ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA")
     : ""
-  let post: { title: string; excerpt: string | undefined; image: string; date: string } | null = null
+  let post: { title: string; excerpt: string | undefined; image: string; date: string; ogTitle?: string; ogDescription?: string } | null = null
   if (sanityPost) {
-    post = { title: sanityPost.title, excerpt: sanityPost.excerpt, image: sanityPost.coverImage ?? "/images/blog/1.png", date: sanityDate }
+    post = { title: sanityPost.title, excerpt: sanityPost.excerpt, image: sanityPost.coverImage ?? "/images/blog/1.png", date: sanityDate, ogTitle: staticPost?.ogTitle, ogDescription: staticPost?.ogDescription }
   } else if (staticPost) {
-    post = { title: staticPost.title, excerpt: staticPost.excerpt, image: staticPost.image, date: staticPost.date }
+    post = { title: staticPost.title, excerpt: staticPost.excerpt, image: staticPost.image, date: staticPost.date, ogTitle: staticPost.ogTitle, ogDescription: staticPost.ogDescription }
   }
 
   if (!post) {
@@ -113,6 +113,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     }
   }
 
+  const socialTitle = post.ogTitle ?? post.title
+  const socialDescription = post.ogDescription ?? post.excerpt
+
   return {
     title: `${post.title} | Planet Motors Blog`,
     description: post.excerpt || undefined,
@@ -120,14 +123,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       canonical: `${SITE_URL}/blog/${slug}`,
     },
     openGraph: {
-      title: post.title,
-      description: post.excerpt || undefined,
+      title: socialTitle,
+      description: socialDescription || undefined,
       url: `${SITE_URL}/blog/${slug}`,
       siteName: "Planet Motors",
       locale: "en_CA",
       type: "article",
       images: [{ url: post.image, width: 1200, height: 600, alt: post.title }],
       publishedTime: toISODate(post.date),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: socialTitle,
+      description: socialDescription || undefined,
     },
   }
 }

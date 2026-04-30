@@ -1,15 +1,31 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabase/config'
 import { buildPublicStatusFilter } from '@/lib/vehicles/status-filter'
+import { blogPosts } from '@/lib/blog-data'
 
 export interface SitemapEntry {
   url: string
   lastModified: string
   changeFrequency: string
   priority: number
+  /**
+   * Absolute URLs of associated images. When present, the sitemap entry
+   * is emitted with `<image:image>` tags, which is what feeds Google
+   * Images for vehicle photos. Other surfaces (Bing, Yandex) ignore
+   * unknown fields, so this is purely additive.
+   */
+  images?: string[]
 }
 
 const VEHICLE_SITEMAP_LIMIT = 10_000
+
+/**
+ * Maximum images attached per vehicle entry. Google supports up to 1,000
+ * per URL but in practice 4-6 is plenty for a car listing and keeps the
+ * sitemap file small at 5K+ vehicle scale. Picks `primary_image_url`
+ * first, then up to (MAX - 1) extra photos from `image_urls`.
+ */
+const MAX_IMAGES_PER_VEHICLE = 5
 
 function createSitemapClient() {
   const url = getSupabaseUrl()
@@ -143,6 +159,37 @@ export function buildPagesSitemap(baseUrl: string, currentDate: string): Sitemap
   return [...staticRoutes, ...filterRoutes]
 }
 
+interface VehicleSitemapRow {
+  id: string
+  updated_at: string | null
+  primary_image_url?: string | null
+  image_urls?: string[] | null
+}
+
+/**
+ * Build the list of image URLs to attach to a vehicle's sitemap entry.
+ *
+ * - Prepends `primary_image_url` when present (so Google sees it first).
+ * - Adds up to `MAX_IMAGES_PER_VEHICLE - 1` extra photos from `image_urls`.
+ * - De-duplicates and drops empty / non-string values defensively because
+ *   the column historically allowed nulls.
+ */
+export function buildVehicleImages(row: VehicleSitemapRow): string[] {
+  const out: string[] = []
+  if (row.primary_image_url && typeof row.primary_image_url === 'string') {
+    out.push(row.primary_image_url)
+  }
+  if (Array.isArray(row.image_urls)) {
+    for (const url of row.image_urls) {
+      if (typeof url !== 'string' || !url) continue
+      if (out.includes(url)) continue
+      out.push(url)
+      if (out.length >= MAX_IMAGES_PER_VEHICLE) break
+    }
+  }
+  return out
+}
+
 export async function buildVehiclesSitemap(baseUrl: string, currentDate: string): Promise<SitemapEntry[]> {
   try {
     const supabase = createSitemapClient()
@@ -152,7 +199,7 @@ export async function buildVehiclesSitemap(baseUrl: string, currentDate: string)
     }
     let { data, error } = await supabase
       .from('vehicles')
-      .select('id, updated_at')
+      .select('id, updated_at, primary_image_url, image_urls')
       .or(buildPublicStatusFilter())
       .order('updated_at', { ascending: false })
       .limit(VEHICLE_SITEMAP_LIMIT)
@@ -161,7 +208,7 @@ export async function buildVehiclesSitemap(baseUrl: string, currentDate: string)
       // sold_at column not yet migrated — fall back to simple status filter
       const fallback = await supabase
         .from('vehicles')
-        .select('id, updated_at')
+        .select('id, updated_at, primary_image_url, image_urls')
         .in('status', ['available', 'reserved', 'sold'])
         .order('updated_at', { ascending: false })
         .limit(VEHICLE_SITEMAP_LIMIT)
@@ -176,12 +223,16 @@ export async function buildVehiclesSitemap(baseUrl: string, currentDate: string)
       throw wrapped
     }
 
-    return (data || []).map((v) => ({
-      url: `${baseUrl}/vehicles/${v.id}`,
-      lastModified: v.updated_at || currentDate,
-      changeFrequency: 'daily',
-      priority: 0.75,
-    }))
+    return (data || []).map((v: VehicleSitemapRow) => {
+      const images = buildVehicleImages(v)
+      return {
+        url: `${baseUrl}/vehicles/${v.id}`,
+        lastModified: v.updated_at || currentDate,
+        changeFrequency: 'daily',
+        priority: 0.75,
+        ...(images.length > 0 ? { images } : {}),
+      }
+    })
   } catch (err) {
     console.error('Error building vehicles sitemap:', err)
     if ((err as { code?: string })?.code === '42P01') return []
@@ -190,9 +241,9 @@ export async function buildVehiclesSitemap(baseUrl: string, currentDate: string)
 }
 
 export function buildBlogSitemap(baseUrl: string, currentDate: string): SitemapEntry[] {
-  // Dynamically import all blog post keys from the source of truth
-  // This ensures the sitemap always stays in sync with actual content
-  const { blogPosts } = require('@/lib/blog-data')
+  // Static ESM import keeps the sitemap in lockstep with the blog source
+  // of truth (`lib/blog-data`) without the cost of a dynamic `require()`
+  // on every request.
   const slugs = Object.keys(blogPosts)
 
   return slugs.map(slug => ({

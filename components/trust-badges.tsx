@@ -4,7 +4,7 @@ const badges = [
   {
     icon: ClipboardCheck,
     title: "210-Point Inspection",
-    description: "Comprehensive 210-point process",
+    description: "Rigorous 210-Point Certified Inspection",
     highlight: true
   },
   {

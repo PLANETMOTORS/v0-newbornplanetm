@@ -70,7 +70,7 @@ const cityData: Record<string, {
     region: "Ontario",
     distance: 30,
     population: "632K",
-    description: "a vibrant district of Toronto"
+    description: "a bustling, diverse hub in the heart of Toronto"
   },
   "north-york": {
     name: "North York",
