@@ -73,6 +73,7 @@ export async function GET(): Promise<NextResponse> {
   const { data, error } = await supabase
     .from("drivee_mappings")
     .select("vin, mid, vehicle_name, frames_in_storage, verified_at")
+    .eq("frames_in_storage", true)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
