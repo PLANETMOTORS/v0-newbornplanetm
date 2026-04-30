@@ -89,6 +89,13 @@ const clientSchema = z.object({
   NEXT_PUBLIC_GA_MEASUREMENT_ID: z.string().optional(),
   NEXT_PUBLIC_GTM_ID: z.string().optional(),
   NEXT_PUBLIC_META_PIXEL_ID: z.string().optional(),
+  // Social/marketing pixels — all gated by marketing/analytics consent.
+  // Each is optional; component returns null when its env var is unset
+  // so unset = dormant (no script load, no console errors).
+  NEXT_PUBLIC_TIKTOK_PIXEL_ID: z.string().optional(),
+  NEXT_PUBLIC_CLARITY_PROJECT_ID: z.string().optional(),
+  NEXT_PUBLIC_BING_UET_ID: z.string().optional(),
+  NEXT_PUBLIC_SNAPCHAT_PIXEL_ID: z.string().optional(),
   NEXT_PUBLIC_GOOGLE_MAPS_KEY: z.string().optional(),
   NEXT_PUBLIC_TYPESENSE_SEARCH_KEY: z.string().optional(),
   NEXT_PUBLIC_TYPESENSE_HOST: z.string().optional(),
@@ -147,6 +154,10 @@ function validateEnv(): Env {
     NEXT_PUBLIC_GA_MEASUREMENT_ID: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
     NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,
     NEXT_PUBLIC_META_PIXEL_ID: process.env.NEXT_PUBLIC_META_PIXEL_ID,
+    NEXT_PUBLIC_TIKTOK_PIXEL_ID: process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID,
+    NEXT_PUBLIC_CLARITY_PROJECT_ID: process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID,
+    NEXT_PUBLIC_BING_UET_ID: process.env.NEXT_PUBLIC_BING_UET_ID,
+    NEXT_PUBLIC_SNAPCHAT_PIXEL_ID: process.env.NEXT_PUBLIC_SNAPCHAT_PIXEL_ID,
     NEXT_PUBLIC_GOOGLE_MAPS_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY,
     NEXT_PUBLIC_TYPESENSE_SEARCH_KEY: process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_KEY,
     NEXT_PUBLIC_TYPESENSE_HOST: process.env.NEXT_PUBLIC_TYPESENSE_HOST,
