@@ -1,34 +1,48 @@
 /**
  * lib/neon/sql.ts
  *
- * Tiny, dependency-free wrapper around the Neon serverless driver.
+ * Tiny wrapper around the postgres.js (`postgres`) driver.
  *
- * The Neon driver speaks raw Postgres over HTTPS, so it works against ANY
- * Postgres host (Neon, Supabase, AWS RDS, etc.) — not just Neon. We keep the
- * `lib/neon/` path for historical reasons but the real source of truth for
- * vehicles in production is Supabase Postgres.
+ * Why postgres.js and not @neondatabase/serverless?
+ *   - The Neon serverless driver communicates over HTTPS to a Neon-only
+ *     proxy. It does NOT work against Supabase, AWS RDS, or any vanilla
+ *     Postgres host. Our production database is Supabase Postgres — so
+ *     this module needs a TCP-capable driver.
+ *   - postgres.js is tiny (~140KB), has the identical tagged-template
+ *     API (`await sql\`SELECT ...\``), and works on any Postgres host.
+ *   - We intentionally keep the `lib/neon/` path and the `SqlClient`
+ *     type name for backwards compatibility — every caller in
+ *     lib/homenet/* and app/api/cron/* keeps working unchanged.
  *
  * Connection string resolution order (first match wins):
  *   1. DATABASE_URL          — explicit override, highest priority
  *   2. POSTGRES_URL          — auto-set by the Vercel ↔ Supabase integration
- *   3. NEON_DATABASE_URL     — auto-set by the Vercel ↔ Neon integration
- *   4. NEON_POSTGRES_URL     — older Neon naming
+ *   3. NEON_DATABASE_URL     — legacy, for safety during cutover
+ *   4. NEON_POSTGRES_URL     — legacy, older Neon naming
  *
- * Why this lives in its own module:
- *   - The original `getSql()` lived in `lib/homenet/parser.ts`, which also
- *     pulls in 600+ lines of CSV parsing and column-mapping logic.
- *   - Hot endpoints (e.g. `/api/health`) only need the SQL tag — importing
- *     them from the parser inflates cold-start work and bundle size.
- *   - This module has zero side effects and no transitive dependencies
- *     beyond `@neondatabase/serverless`, so it stays cheap to import.
+ * Connection options chosen for Supabase Transaction pooler (port 6543):
+ *   - `prepare: false`        Required — tx pooler does not support
+ *                             prepared statements.
+ *   - `max: 1`                One connection per serverless invocation.
+ *                             The pooler handles concurrency for us.
+ *   - `idle_timeout: 20`      Close idle conns quickly so cold starts
+ *                             don't hold pool slots.
+ *   - `connect_timeout: 10`   Fail fast if pooler is unreachable.
  *
- * Returns `null` when none of the four env vars are configured. Callers must
- * handle the null case (the health probe, for example, returns 503).
+ * Returns `null` when none of the four env vars are configured. Callers
+ * must handle the null case (the health probe returns 503).
  */
 
-import { neon } from "@neondatabase/serverless"
+import postgres, { type Sql } from "postgres"
 
-export type SqlClient = ReturnType<typeof neon>
+export type SqlClient = Sql
+
+const POSTGRES_OPTIONS = {
+  prepare: false,
+  max: 1,
+  idle_timeout: 20,
+  connect_timeout: 10,
+} as const
 
 export function getSql(): SqlClient | null {
   const url =
@@ -37,5 +51,5 @@ export function getSql(): SqlClient | null {
     process.env.NEON_DATABASE_URL ||
     process.env.NEON_POSTGRES_URL
   if (!url) return null
-  return neon(url)
+  return postgres(url, POSTGRES_OPTIONS)
 }

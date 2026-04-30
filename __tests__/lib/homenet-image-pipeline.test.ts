@@ -17,12 +17,17 @@ vi.mock("@vercel/blob", () => ({
 const sqlMock = vi.fn(async (..._args: unknown[]) => undefined)
 const sqlTaggedMock = (strings: TemplateStringsArray, ...values: unknown[]) => sqlMock(strings, ...values)
 
-const neonMock = vi.fn(() => sqlTaggedMock)
-vi.mock("@neondatabase/serverless", () => ({
-  neon: (url: string) => neonMock(url),
+const postgresMock = vi.fn((_url: string, _opts?: unknown) => sqlTaggedMock)
+vi.mock("postgres", () => ({
+  default: (url: string, opts?: unknown) => postgresMock(url, opts),
 }))
 
-const ENV_KEYS = ["DATABASE_URL", "NEON_DATABASE_URL", "NEON_POSTGRES_URL"] as const
+const ENV_KEYS = [
+  "DATABASE_URL",
+  "POSTGRES_URL",
+  "NEON_DATABASE_URL",
+  "NEON_POSTGRES_URL",
+] as const
 const original: Partial<Record<(typeof ENV_KEYS)[number], string | undefined>> = {}
 
 beforeEach(() => {
@@ -31,7 +36,7 @@ beforeEach(() => {
   putMock.mockClear()
   listMock.mockClear()
   sqlMock.mockClear()
-  neonMock.mockClear()
+  postgresMock.mockClear()
   putCalls.length = 0
   listMock.mockResolvedValue({ blobs: [] })
   vi.spyOn(console, "info").mockImplementation(() => undefined)
@@ -96,7 +101,7 @@ describe("lib/homenet/image-pipeline runImagePipeline — early returns", () => 
       vehiclesProcessed: 0,
       errors: [],
     })
-    expect(neonMock).not.toHaveBeenCalled()
+    expect(postgresMock).not.toHaveBeenCalled()
   })
 
   it("processes a vehicle with no image_urls without invoking blob/fetch", async () => {
@@ -235,7 +240,7 @@ describe("lib/homenet/image-pipeline runImagePipeline — DB optionality", () =>
       },
     ])
     expect(out.downloaded).toBe(1)
-    expect(neonMock).not.toHaveBeenCalled()
+    expect(postgresMock).not.toHaveBeenCalled()
     expect(sqlMock).not.toHaveBeenCalled()
   })
 

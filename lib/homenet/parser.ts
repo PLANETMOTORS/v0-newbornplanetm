@@ -544,7 +544,7 @@ async function upsertVehicle(
       )
       RETURNING id, (xmax = 0) AS inserted
     `
-    const rows = result as Array<{ id: string; inserted: boolean }>
+    const rows = result as unknown as Array<{ id: string; inserted: boolean }>
     const row = rows?.[0]
     if (row?.inserted) {
       acc.inserted++
@@ -631,7 +631,7 @@ async function softDeleteSoldVehicles(
         AND status IS DISTINCT FROM 'sold'
       RETURNING id
     `
-    const soldRows = soldResult as Array<{ id: string }>
+    const soldRows = soldResult as unknown as Array<{ id: string }>
     for (const row of soldRows) {
       if (row.id) soldVehicleIds.push(row.id)
     }
