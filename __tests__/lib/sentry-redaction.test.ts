@@ -110,6 +110,13 @@ describe("scrubValue", () => {
     expect(scrubValue(42)).toBe(42)
     expect(scrubValue(true)).toBe(true)
   })
+
+  it("returns non-object non-string non-number values unchanged (e.g. Symbol, BigInt)", () => {
+    const sym = Symbol("test")
+    expect(scrubValue(sym)).toBe(sym)
+    const big = BigInt(9007199254740991)
+    expect(scrubValue(big)).toBe(big)
+  })
 })
 
 describe("redactSentryEvent / redactSentryBreadcrumb", () => {
@@ -141,5 +148,17 @@ describe("redactSentryEvent / redactSentryBreadcrumb", () => {
     })
     // Should not throw — falls through the catch and returns input.
     expect(() => redactSentryEvent(evil)).not.toThrow()
+  })
+
+  it("redactSentryBreadcrumb never throws — returns crumb on internal error", () => {
+    const evil: Record<string, unknown> = {}
+    Object.defineProperty(evil, "boom", {
+      enumerable: true,
+      get() {
+        throw new Error("breadcrumb-error")
+      },
+    })
+    const result = redactSentryBreadcrumb(evil)
+    expect(result).toBe(evil)
   })
 })

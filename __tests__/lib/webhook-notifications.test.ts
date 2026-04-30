@@ -169,6 +169,27 @@ describe("sendPaymentNotifications", () => {
     errSpy.mockRestore()
   })
 
+  it("logs rejected promise results from allSettled", async () => {
+    process.env.RESEND_API_KEY = "rk_test"
+    createAutoRaptorLeadMock.mockRejectedValueOnce(new Error("CRM network down"))
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => undefined)
+    const { sendPaymentNotifications } = await import("@/lib/webhook-notifications")
+    await sendPaymentNotifications({
+      customerEmail: "x@y.com",
+      customerName: "Jane",
+      vehicleName: "v",
+      amountCents: 100,
+      currency: "cad",
+      stripeSessionId: "cs_reject",
+      isDeposit: false,
+    })
+    expect(errSpy).toHaveBeenCalledWith(
+      expect.stringContaining("[webhook-notify] AutoRaptor CRM failed:"),
+      expect.any(Error),
+    )
+    errSpy.mockRestore()
+  })
+
   it("uses non-deposit verbiage when isDeposit=false", async () => {
     process.env.RESEND_API_KEY = "rk_test"
     const { sendPaymentNotifications } = await import("@/lib/webhook-notifications")

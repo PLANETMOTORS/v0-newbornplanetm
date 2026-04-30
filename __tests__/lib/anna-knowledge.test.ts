@@ -75,6 +75,21 @@ describe("buildKnowledgePrompt", () => {
     expect(prompt).toContain("[Tags: address, location]")
   })
 
+  it("groups multiple entries under the same category", async () => {
+    mockOrder2.mockResolvedValueOnce({
+      data: [
+        { category: "qa", trigger_phrase: "Hours?", response: "9-5 Mon-Fri", priority: 5, tags: null },
+        { category: "qa", trigger_phrase: "Location?", response: "123 Main St", priority: 3, tags: null },
+      ],
+      error: null,
+    })
+    const { buildKnowledgePrompt } = await import("@/lib/anna/knowledge")
+    const prompt = await buildKnowledgePrompt("anna")
+    expect(prompt).toContain("TRAINED KNOWLEDGE & CUSTOM RESPONSES (2 entries)")
+    expect(prompt).toContain('IF customer asks: "Hours?"')
+    expect(prompt).toContain('IF customer asks: "Location?"')
+  })
+
   it("falls back to category uppercase for unknown labels", async () => {
     mockOrder2.mockResolvedValueOnce({
       data: [{ category: "novel-cat", trigger_phrase: "x", response: "y", priority: 1, tags: null }],
