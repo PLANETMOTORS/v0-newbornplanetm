@@ -14,7 +14,12 @@ vi.mock("@neondatabase/serverless", () => ({
   neon: neonMock,
 }))
 
-const ENV_KEYS = ["DATABASE_URL", "NEON_DATABASE_URL", "NEON_POSTGRES_URL"] as const
+const ENV_KEYS = [
+  "DATABASE_URL",
+  "POSTGRES_URL",
+  "NEON_DATABASE_URL",
+  "NEON_POSTGRES_URL",
+] as const
 
 function clearEnv() {
   for (const key of ENV_KEYS) delete process.env[key]
@@ -31,7 +36,7 @@ describe("lib/neon/sql.getSql", () => {
     clearEnv()
   })
 
-  it("returns null when no Neon connection string is configured", async () => {
+  it("returns null when no Postgres connection string is configured", async () => {
     const { getSql } = await import("@/lib/neon/sql")
     expect(getSql()).toBeNull()
     expect(neonMock).not.toHaveBeenCalled()
@@ -46,7 +51,15 @@ describe("lib/neon/sql.getSql", () => {
     expect(client).toEqual({ tag: "primary-client" })
   })
 
-  it("falls back to NEON_DATABASE_URL when DATABASE_URL is unset", async () => {
+  it("falls back to POSTGRES_URL (Supabase) when DATABASE_URL is unset", async () => {
+    process.env.POSTGRES_URL = "postgres://supabase"
+    neonMock.mockReturnValue({ tag: "supabase-client" })
+    const { getSql } = await import("@/lib/neon/sql")
+    getSql()
+    expect(neonMock).toHaveBeenCalledWith("postgres://supabase")
+  })
+
+  it("falls back to NEON_DATABASE_URL when DATABASE_URL and POSTGRES_URL are unset", async () => {
     process.env.NEON_DATABASE_URL = "postgres://neon"
     neonMock.mockReturnValue({ tag: "neon-client" })
     const { getSql } = await import("@/lib/neon/sql")
@@ -54,7 +67,7 @@ describe("lib/neon/sql.getSql", () => {
     expect(neonMock).toHaveBeenCalledWith("postgres://neon")
   })
 
-  it("falls back to NEON_POSTGRES_URL when the other two are unset", async () => {
+  it("falls back to NEON_POSTGRES_URL when the other three are unset", async () => {
     process.env.NEON_POSTGRES_URL = "postgres://neon-pg"
     neonMock.mockReturnValue({ tag: "neon-pg-client" })
     const { getSql } = await import("@/lib/neon/sql")
@@ -62,8 +75,9 @@ describe("lib/neon/sql.getSql", () => {
     expect(neonMock).toHaveBeenCalledWith("postgres://neon-pg")
   })
 
-  it("prefers DATABASE_URL over the Neon-specific fallbacks", async () => {
+  it("prefers DATABASE_URL over every fallback", async () => {
     process.env.DATABASE_URL = "postgres://primary"
+    process.env.POSTGRES_URL = "postgres://supabase"
     process.env.NEON_DATABASE_URL = "postgres://neon"
     process.env.NEON_POSTGRES_URL = "postgres://neon-pg"
     neonMock.mockReturnValue({ tag: "primary-client" })
@@ -71,5 +85,16 @@ describe("lib/neon/sql.getSql", () => {
     getSql()
     expect(neonMock).toHaveBeenCalledOnce()
     expect(neonMock).toHaveBeenCalledWith("postgres://primary")
+  })
+
+  it("prefers POSTGRES_URL (Supabase) over Neon fallbacks", async () => {
+    process.env.POSTGRES_URL = "postgres://supabase"
+    process.env.NEON_DATABASE_URL = "postgres://neon"
+    process.env.NEON_POSTGRES_URL = "postgres://neon-pg"
+    neonMock.mockReturnValue({ tag: "supabase-client" })
+    const { getSql } = await import("@/lib/neon/sql")
+    getSql()
+    expect(neonMock).toHaveBeenCalledOnce()
+    expect(neonMock).toHaveBeenCalledWith("postgres://supabase")
   })
 })
