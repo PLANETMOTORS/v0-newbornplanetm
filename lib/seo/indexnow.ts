@@ -89,6 +89,34 @@ export function buildVehicleUrls(vehicleIds: readonly string[]): string[] {
 }
 
 /**
+ * Ping IndexNow for a single vehicle change initiated by an admin
+ * (manual create, edit, or delete in the admin panel).
+ *
+ * Pings two URLs in one batch: the vehicle's own VDP, and the
+ * `/inventory` listing — admins changing `featured`, `is_certified`,
+ * `price`, `primary_image_url`, or `status` all change what the
+ * listing shows. The cron uses the same dual-ping pattern.
+ *
+ * Non-blocking semantics: same as `pingIndexNow` — returns a `PingResult`
+ * but never throws. Callers can `await` it without try/catch.
+ */
+export async function pingVehicleChange(
+  vehicleId: string,
+): Promise<PingResult> {
+  if (!isIndexNowConfigured()) {
+    return {
+      ok: false,
+      status: 0,
+      count: 0,
+      error: "INDEXNOW_KEY not configured",
+    }
+  }
+  const baseUrl = getPublicSiteUrl()
+  const urls = [...buildVehicleUrls([vehicleId]), `${baseUrl}/inventory`]
+  return pingIndexNow(urls)
+}
+
+/**
  * Ping IndexNow with one or many URLs.
  *
  * - Non-blocking: returns `{ ok: false }` on failure but never throws.
